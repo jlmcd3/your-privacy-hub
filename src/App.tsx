@@ -421,6 +421,17 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/verification-scan"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <VerificationScanAdmin />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
 
             <Route
               path="/admin/test-governance"
