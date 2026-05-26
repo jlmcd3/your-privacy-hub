@@ -299,8 +299,9 @@ export function checkSubjectPresent(doc: string, subject?: string | null): Check
   const normalisedDoc = normaliseSubjectName(doc);
   const normalisedSubject = normaliseSubjectName(subject);
   if (!normalisedSubject) {
-    return { verdict: "uncertain", evidence_text: "subject is entirely corporate suffix after normalisation" };
+    return { verdict: "fail", evidence_text: "subject is empty after normalisation" };
   }
+
   const docLower = normalisedDoc.toLowerCase();
   const idx = docLower.indexOf(normalisedSubject.toLowerCase());
   if (idx >= 0) {
