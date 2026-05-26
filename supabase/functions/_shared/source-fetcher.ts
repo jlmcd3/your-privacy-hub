@@ -89,8 +89,13 @@ async function robotsAllows(targetUrl: string): Promise<boolean> {
   try {
     const u = new URL(targetUrl);
     const robotsUrl = `${u.origin}/robots.txt`;
-    const res = await fetchWithTimeout(robotsUrl, {}, 5_000);
+    const res = await fetchWithTimeout(
+      robotsUrl,
+      { headers: { "User-Agent": IDENTIFYING_UA } },
+      5_000,
+    );
     if (!res.ok) return true;
+
     const text = await res.text();
     const lines = text.split(/\r?\n/);
     let applies = false;
