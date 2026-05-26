@@ -76,6 +76,36 @@ function substringMatch(doc: string, quote: string): boolean {
   return doc.toLowerCase().includes(quote.toLowerCase().trim());
 }
 
+// Salvage path for AEPD-class JSON failures: scan the raw model output
+// (embedded in the parse_error string) for "provision"/"evidence_quote"
+// pairs via tolerant regex and keep only those whose evidence_quote
+// substring-matches the source document.
+function salvageStatutoryProvisions(
+  raw: string,
+  doc: string,
+): { provisions: string[]; evidence_quotes: Record<string, string> } {
+  const provisions: string[] = [];
+  const evidence_quotes: Record<string, string> = {};
+  if (!raw) return { provisions, evidence_quotes };
+
+  // Tolerant pair extractor — assumes the model emits provision before
+  // evidence_quote within each object (matches our schema example).
+  const re = /"provision"\s*:\s*"([^"]{1,200})"[^}]*?"evidence_quote"\s*:\s*"((?:[^"\\]|\\.){1,400}?)"/g;
+  let m: RegExpExecArray | null;
+  const seen = new Set<string>();
+  while ((m = re.exec(raw)) !== null) {
+    const prov = m[1].trim();
+    const quote = m[2].replace(/\\"/g, '"').trim();
+    if (!prov || seen.has(prov)) continue;
+    if (substringMatch(doc, quote)) {
+      provisions.push(prov);
+      evidence_quotes[`statutory_provision:${prov}`] = quote;
+      seen.add(prov);
+    }
+  }
+  return { provisions, evidence_quotes };
+}
+
 async function callAnthropic(
   apiKey: string,
   body: Record<string, unknown>,
@@ -156,6 +186,7 @@ The first character of your response must be { and the last must be }.`;
   let usage = { input_tokens: 0, output_tokens: 0 };
   let parsed: any = null;
   let lastParseError: string | null = null;
+  let lastRawOutput: string = "";
   const MAX_ATTEMPTS = 2;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -196,6 +227,7 @@ The first character of your response must be { and the last must be }.`;
     };
 
     const raw = (envelope?.content?.[0]?.text ?? "").trim();
+    lastRawOutput = raw;
     // Defensive cleanup: strip code fences and isolate the {...} body.
     let cleaned = raw;
     if (cleaned.startsWith("```")) {
@@ -216,7 +248,26 @@ The first character of your response must be { and the last must be }.`;
     }
   }
 
+  // Salvage path: if both JSON parse attempts failed, try to extract
+  // statutory_provisions via regex so a single malformed character in
+  // Haiku's output doesn't blank the whole row. Other fields stay null
+  // since we can't trust them without a structured parse.
   if (!parsed) {
+    const salvaged = salvageStatutoryProvisions(lastRawOutput, truncated);
+    if (salvaged.provisions.length > 0) {
+      return {
+        statutory_provisions: salvaged.provisions,
+        disposition_type: null,
+        appeal_status: "unknown",
+        case_reference: null,
+        sector: null,
+        original_currency: null,
+        original_amount: null,
+        evidence_quotes: salvaged.evidence_quotes,
+        parse_error: `salvaged_from_malformed_json: ${lastParseError?.slice(0, 200)}`,
+        usage,
+      };
+    }
     return {
       statutory_provisions: [],
       disposition_type: null,
@@ -239,6 +290,12 @@ The first character of your response must be { and the last must be }.`;
   const sp: string[] = [];
   if (Array.isArray(parsed.statutory_provisions)) {
     for (const entry of parsed.statutory_provisions) {
+      // Accept both object form {provision, evidence_quote} and bare string
+      // form (defensive — schema asks for objects).
+      if (typeof entry === "string") {
+        sp.push(entry.trim());
+        continue;
+      }
       if (!entry || typeof entry.provision !== "string") continue;
       if (typeof entry.evidence_quote !== "string") continue;
       if (substringMatch(truncated, entry.evidence_quote)) {
