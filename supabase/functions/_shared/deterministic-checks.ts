@@ -364,6 +364,42 @@ export function checkSourceUrlResolves(fetchStatus: "ok" | "fail" | "skipped"): 
   return { verdict: fetchStatus === "ok" ? "pass" : "fail" };
 }
 
+/**
+ * Parses a canonical-form statutory provision into its component parts.
+ * Returns null when input cannot be split into statute+article (caller falls
+ * back to whole-string substring matching).
+ */
+function parseCanonicalProvision(
+  provision: string,
+): { statute: string; article: string } | null {
+  if (!provision || typeof provision !== "string") return null;
+  const trimmed = provision.trim();
+
+  // Pattern 1: "STATUTE Article N(M)(letter)" / "STATUTE Section N..."
+  const articleSectionMatch = trimmed.match(
+    /^([A-Z][A-Z0-9_\s-]{1,30}?)\s+(Article\s+\d+(?:\(\d+\))?(?:\([a-z]\))?|Section\s+\d+(?:\(\d+\))?(?:\([a-z]\))?)\s*$/i,
+  );
+  if (articleSectionMatch) {
+    return {
+      statute: articleSectionMatch[1].trim(),
+      article: articleSectionMatch[2].trim(),
+    };
+  }
+
+  // Pattern 2: "STATUTE §N.M(letter)"
+  const sectionSignMatch = trimmed.match(
+    /^([A-Z][A-Z0-9_\s-]{1,30}?)\s+(§\s*\d+(?:\.\d+(?:\.\d+)?)?(?:\([a-z]\))?)\s*$/i,
+  );
+  if (sectionSignMatch) {
+    return {
+      statute: sectionSignMatch[1].trim(),
+      article: sectionSignMatch[2].trim().replace(/§\s+/, "§"),
+    };
+  }
+
+  return null;
+}
+
 export function checkStatutoryProvisionPresent(
   doc: string,
   provisions: string[] | null | undefined,
@@ -371,10 +407,47 @@ export function checkStatutoryProvisionPresent(
   if (!provisions || provisions.length === 0) {
     return { verdict: "skipped", evidence_text: "no provisions extracted" };
   }
+
+  const CO_OCCURRENCE_WINDOW = 200;
   const normalisedDoc = normaliseArticleCitations(normaliseStatuteNames(doc));
   const normalisedDocLower = normalisedDoc.toLowerCase();
+
   for (const provision of provisions) {
     const normalisedProvision = normaliseArticleCitations(normaliseStatuteNames(provision));
+    const parsed = parseCanonicalProvision(normalisedProvision);
+
+    if (parsed) {
+      const articleLower = parsed.article.toLowerCase();
+      const statuteLower = parsed.statute.toLowerCase();
+      let searchStart = 0;
+      while (true) {
+        const articleIdx = normalisedDocLower.indexOf(articleLower, searchStart);
+        if (articleIdx < 0) break;
+        const windowStart = Math.max(0, articleIdx - CO_OCCURRENCE_WINDOW);
+        const windowEnd = Math.min(
+          normalisedDoc.length,
+          articleIdx + articleLower.length + CO_OCCURRENCE_WINDOW,
+        );
+        const window = normalisedDocLower.substring(windowStart, windowEnd);
+        if (window.includes(statuteLower)) {
+          const evidenceStart = Math.max(0, articleIdx - 60);
+          const evidenceEnd = Math.min(
+            normalisedDoc.length,
+            articleIdx + articleLower.length + 60,
+          );
+          return {
+            verdict: "pass",
+            evidence_text: normalisedDoc.substring(evidenceStart, evidenceEnd).slice(0, 200),
+            evidence_offset_start: articleIdx,
+            evidence_offset_end: articleIdx + articleLower.length,
+          };
+        }
+        searchStart = articleIdx + articleLower.length;
+      }
+      continue;
+    }
+
+    // Fallback: whole-string substring match.
     const idx = normalisedDocLower.indexOf(normalisedProvision.toLowerCase());
     if (idx >= 0) {
       const contextStart = Math.max(0, idx - 50);
@@ -387,9 +460,12 @@ export function checkStatutoryProvisionPresent(
       };
     }
   }
+
   return {
     verdict: "fail",
-    evidence_text: `none of [${provisions.join(", ")}] found in normalised document`.slice(0, 200),
+    evidence_text:
+      `none of [${provisions.join(", ")}] found with statute+article co-occurring within 200 chars`
+        .slice(0, 200),
   };
 }
 
