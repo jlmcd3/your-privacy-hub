@@ -239,10 +239,26 @@ export default function CorpusExtractionAdmin() {
 
         {eligibility && (
           <section className="mb-8 border rounded p-4">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
               <h2 className="text-lg font-semibold">Memo-eligibility status</h2>
-              <button onClick={loadEligibility} className="text-xs underline">Refresh</button>
+              <div className="flex items-center gap-2 text-xs">
+                {eligibilityRefreshedAt && (
+                  <span className="text-muted-foreground">
+                    Updated {eligibilityRefreshedAt.toLocaleTimeString()}
+                  </span>
+                )}
+                <button
+                  onClick={loadEligibility}
+                  disabled={eligibilityLoading}
+                  className="underline disabled:opacity-50"
+                >
+                  {eligibilityLoading ? "Refreshing…" : "Refresh"}
+                </button>
+              </div>
             </div>
+            {eligibilityError && (
+              <p className="text-xs text-destructive mb-2">Error: {eligibilityError}</p>
+            )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-4">
               <Stat label="Total rows" value={eligibility.total} />
               <Stat label="memo_eligible = true" value={eligibility.memoEligibleTrue} />
