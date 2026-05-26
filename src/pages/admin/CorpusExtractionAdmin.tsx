@@ -237,6 +237,81 @@ export default function CorpusExtractionAdmin() {
         {statusLine && <p className="mb-2 text-sm">{statusLine}</p>}
         {recomputeResult && <p className="mb-4 text-sm">{recomputeResult}</p>}
 
+        {eligibility && (
+          <section className="mb-8 border rounded p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold">Memo-eligibility status</h2>
+              <button onClick={loadEligibility} className="text-xs underline">Refresh</button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-4">
+              <Stat label="Total rows" value={eligibility.total} />
+              <Stat label="memo_eligible = true" value={eligibility.memoEligibleTrue} />
+              <Stat label="memo_eligible = false" value={eligibility.memoEligibleFalse} />
+              <Stat label="memo_eligible = null" value={eligibility.memoEligibleNull} />
+            </div>
+
+            <h3 className="text-sm font-semibold mb-2">Eligibility gates (must all be satisfied)</h3>
+            <table className="text-xs w-full mb-4">
+              <thead>
+                <tr className="text-left">
+                  <th className="p-1">Gate</th>
+                  <th className="p-1">Rows passing</th>
+                  <th className="p-1">% of total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["Has source_url", eligibility.hasSourceUrl],
+                  ["Has extraction method (high-conf or per-regulator)", eligibility.hasProvisionsMethod],
+                  ["Has ≥1 statutory provision (proxy)", eligibility.hasProvisions],
+                  ["Has key_compliance_failure", eligibility.hasKcf],
+                  ["Has law", eligibility.hasLaw],
+                ].map(([label, n]) => (
+                  <tr key={label as string} className="border-t">
+                    <td className="p-1">{label}</td>
+                    <td className="p-1 font-mono">{(n as number).toLocaleString()}</td>
+                    <td className="p-1 font-mono">
+                      {eligibility.total ? Math.round(((n as number) / eligibility.total) * 100) : 0}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <h3 className="text-sm font-semibold mb-2">Extraction method breakdown</h3>
+            <table className="text-xs w-full mb-3">
+              <thead>
+                <tr className="text-left">
+                  <th className="p-1">Method</th>
+                  <th className="p-1">Rows</th>
+                </tr>
+              </thead>
+              <tbody>
+                {eligibility.methodBreakdown.map((m) => (
+                  <tr key={m.method} className="border-t">
+                    <td className="p-1 font-mono">{m.method}</td>
+                    <td className="p-1 font-mono">{m.count.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {eligibility.hasProvisions === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                <strong>Why memo_eligible is 0:</strong> no rows have extracted statutory provisions yet.
+                The recompute is working — it correctly evaluates every row to <code>false</code> because
+                the extraction gate fails. Click <em>Run extraction</em> first, then re-run the recompute.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Recompute is current. <code>{eligibility.memoEligibleTrue.toLocaleString()}</code> row(s)
+                currently satisfy all gates.
+              </p>
+            )}
+          </section>
+        )}
+
+
         <section className="mb-8 border rounded p-4">
           <h2 className="text-lg font-semibold mb-3">Running totals</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
