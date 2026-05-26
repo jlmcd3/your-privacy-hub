@@ -144,6 +144,7 @@ import CPPACybersecurity from "./pages/CPPACybersecurity.tsx";
 import CPPACybersecurityResult from "./pages/CPPACybersecurityResult.tsx";
 import CPPASuiteResult from "./pages/CPPASuiteResult.tsx";
 import TestsDashboard from "./pages/admin/TestsDashboard.tsx";
+import CorpusExtractionAdmin from "./pages/admin/CorpusExtractionAdmin";
 
 const queryClient = new QueryClient();
 
