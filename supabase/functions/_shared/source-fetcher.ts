@@ -191,7 +191,7 @@ export async function fetchSourceDocument(
   for (let i = 0; i < backoffs.length; i++) {
     if (backoffs[i]) await new Promise((r) => setTimeout(r, backoffs[i]));
     try {
-      res = await fetchWithTimeout(url);
+      res = await fetchWithUaStrategy(url);
       if (res.status >= 500) {
         lastErr = new Error(`HTTP ${res.status}`);
         continue;
