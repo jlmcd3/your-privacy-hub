@@ -76,6 +76,40 @@ function substringMatch(doc: string, quote: string): boolean {
   return doc.toLowerCase().includes(quote.toLowerCase().trim());
 }
 
+// Salvage path for AEPD-class JSON failures: scan the raw model output
+// (embedded in the parse_error string) for "provision"/"evidence_quote"
+// pairs via tolerant regex and keep only those whose evidence_quote
+// substring-matches the source document.
+function salvageStatutoryProvisions(
+  lastParseError: string | null,
+  doc: string,
+): { provisions: string[]; evidence_quotes: Record<string, string> } {
+  const provisions: string[] = [];
+  const evidence_quotes: Record<string, string> = {};
+  if (!lastParseError) return { provisions, evidence_quotes };
+
+  // The raw model output is embedded after "raw[0:500]=" in the error.
+  const rawMarker = lastParseError.indexOf("raw[0:500]=");
+  const raw = rawMarker >= 0 ? lastParseError.substring(rawMarker + "raw[0:500]=".length) : lastParseError;
+
+  // Tolerant pair extractor — assumes the model emits provision before
+  // evidence_quote within each object (matches our schema example).
+  const re = /"provision"\s*:\s*"([^"]{1,200})"[^}]*?"evidence_quote"\s*:\s*"((?:[^"\\]|\\.){1,400}?)"/g;
+  let m: RegExpExecArray | null;
+  const seen = new Set<string>();
+  while ((m = re.exec(raw)) !== null) {
+    const prov = m[1].trim();
+    const quote = m[2].replace(/\\"/g, '"').trim();
+    if (!prov || seen.has(prov)) continue;
+    if (substringMatch(doc, quote)) {
+      provisions.push(prov);
+      evidence_quotes[`statutory_provision:${prov}`] = quote;
+      seen.add(prov);
+    }
+  }
+  return { provisions, evidence_quotes };
+}
+
 async function callAnthropic(
   apiKey: string,
   body: Record<string, unknown>,
