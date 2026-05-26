@@ -1,0 +1,1 @@
+DELETE FROM source_document_cache WHERE source_url = 'https://www.aepd.es/es/documento/ps-00393-2022.pdf'; DELETE FROM verification_results WHERE enforcement_action_id = '007d52f3-fcb9-493a-8af6-05c9bb719525';

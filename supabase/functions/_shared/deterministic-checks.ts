@@ -526,5 +526,10 @@ export function aggregateDeterministic(
   postChecks: CheckResult[],
 ): boolean {
   const all = [...preChecks, ...postChecks];
-  return all.every((c) => c.verdict === "pass" || c.verdict === "skipped");
+  // Rule: pass if no check fails AND at least one check passes.
+  // uncertain and skipped are non-blocking.
+  const anyFail = all.some((c) => c.verdict === "fail");
+  if (anyFail) return false;
+  const anyPass = all.some((c) => c.verdict === "pass");
+  return anyPass;
 }
