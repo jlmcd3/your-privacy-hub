@@ -216,7 +216,26 @@ The first character of your response must be { and the last must be }.`;
     }
   }
 
+  // Salvage path: if both JSON parse attempts failed, try to extract
+  // statutory_provisions via regex so a single malformed character in
+  // Haiku's output doesn't blank the whole row. Other fields stay null
+  // since we can't trust them without a structured parse.
   if (!parsed) {
+    const salvaged = salvageStatutoryProvisions(lastParseError, truncated);
+    if (salvaged.provisions.length > 0) {
+      return {
+        statutory_provisions: salvaged.provisions,
+        disposition_type: null,
+        appeal_status: "unknown",
+        case_reference: null,
+        sector: null,
+        original_currency: null,
+        original_amount: null,
+        evidence_quotes: salvaged.evidence_quotes,
+        parse_error: `salvaged_from_malformed_json: ${lastParseError?.slice(0, 200)}`,
+        usage,
+      };
+    }
     return {
       statutory_provisions: [],
       disposition_type: null,
@@ -239,6 +258,12 @@ The first character of your response must be { and the last must be }.`;
   const sp: string[] = [];
   if (Array.isArray(parsed.statutory_provisions)) {
     for (const entry of parsed.statutory_provisions) {
+      // Accept both object form {provision, evidence_quote} and bare string
+      // form (defensive — schema asks for objects).
+      if (typeof entry === "string") {
+        sp.push(entry.trim());
+        continue;
+      }
       if (!entry || typeof entry.provision !== "string") continue;
       if (typeof entry.evidence_quote !== "string") continue;
       if (substringMatch(truncated, entry.evidence_quote)) {
