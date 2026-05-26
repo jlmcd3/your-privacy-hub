@@ -190,6 +190,7 @@ The first character of your response must be { and the last must be }.`;
   let usage = { input_tokens: 0, output_tokens: 0 };
   let parsed: any = null;
   let lastParseError: string | null = null;
+  let lastRawOutput: string = "";
   const MAX_ATTEMPTS = 2;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
