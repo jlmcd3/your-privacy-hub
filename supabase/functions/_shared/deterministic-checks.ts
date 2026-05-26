@@ -51,6 +51,212 @@ function stripCorporateSuffix(name: string): string {
     .trim();
 }
 
+// ---------------------------------------------------------------------------
+// Normalisation layer (Package 7 smoke-fix). All transforms are pure and
+// deterministic — they run on BOTH the corpus value and the source-document
+// text before any exact substring comparison. No fuzzy matching.
+// ---------------------------------------------------------------------------
+
+const STATUTE_ALIASES: Array<[RegExp, string]> = [
+  // GDPR variants
+  [/\bAVG\b/gi, "GDPR"],
+  [/\bRGPD\b/gi, "GDPR"],
+  [/\bDSGVO\b/gi, "GDPR"],
+  [/\bGDPR\b/gi, "GDPR"],
+  [/Regolamento\s+UE\s+2016\/679/gi, "GDPR"],
+  [/Reglamento\s+\(UE\)\s+2016\/679/gi, "GDPR"],
+  [/Règlement\s+\(UE\)\s+2016\/679/gi, "GDPR"],
+  [/Verordnung\s+\(EU\)\s+2016\/679/gi, "GDPR"],
+  [/Rozporządzenie\s+2016\/679/gi, "GDPR"],
+  // Spanish national implementation
+  [/\bLOPDGDD\b/gi, "LOPDGDD"],
+  [/Ley\s+Org[áa]nica\s+3\/2018/gi, "LOPDGDD"],
+  // German national implementation
+  [/\bBDSG\b/gi, "BDSG"],
+  [/Bundesdatenschutzgesetz/gi, "BDSG"],
+  // UK
+  [/\bUK\s+GDPR\b/gi, "UK GDPR"],
+  [/Data\s+Protection\s+Act\s+2018/gi, "DPA 2018"],
+  // California
+  [/California\s+Consumer\s+Privacy\s+Act/gi, "CCPA"],
+  [/California\s+Privacy\s+Rights\s+Act/gi, "CPRA"],
+  [/\bCCPA\b/gi, "CCPA"],
+  // Illinois
+  [/Biometric\s+Information\s+Privacy\s+Act/gi, "BIPA"],
+  [/\bBIPA\b/gi, "BIPA"],
+  [/740\s+ILCS\s+14/gi, "BIPA"],
+  // Texas
+  [/Texas\s+Data\s+Privacy\s+and\s+Security\s+Act/gi, "TDPSA"],
+  [/\bTDPSA\b/gi, "TDPSA"],
+  [/Capture\s+or\s+Use\s+of\s+Biometric\s+Identifier/gi, "CUBI"],
+  [/\bCUBI\b/gi, "CUBI"],
+  // Washington
+  [/My\s+Health\s+My\s+Data\s+Act/gi, "MHMDA"],
+  [/\bMHMDA\b/gi, "MHMDA"],
+];
+
+export function normaliseStatuteNames(text: string): string {
+  let result = text;
+  for (const [pattern, replacement] of STATUTE_ALIASES) {
+    result = result.replace(pattern, replacement);
+  }
+  return result;
+}
+
+export function normaliseArticleCitations(text: string): string {
+  let result = text;
+
+  // Dutch: "art. 5, lid 1, onder a"
+  result = result.replace(
+    /\bart(?:ikel|\.)?\s*(\d+)(?:\s*,?\s*lid\s+(\d+))?(?:\s*,?\s*onder\s+([a-z]))?/gi,
+    (_m, art, lid, onder) => {
+      let out = `Article ${art}`;
+      if (lid) out += `(${lid})`;
+      if (onder) out += `(${String(onder).toLowerCase()})`;
+      return out;
+    },
+  );
+
+  // German: "Art. 5 Abs. 1 lit. a"
+  result = result.replace(
+    /\b(?:Art(?:ikel|\.)?)\s*(\d+)(?:\s*Abs(?:atz|\.)?\s*(\d+))?(?:\s*(?:lit\.?|Buchstabe)\s*([a-z]))?/gi,
+    (_m, art, abs, lit) => {
+      let out = `Article ${art}`;
+      if (abs) out += `(${abs})`;
+      if (lit) out += `(${String(lit).toLowerCase()})`;
+      return out;
+    },
+  );
+
+  // French
+  result = result.replace(
+    /\bart(?:icle|\.)?\s*(\d+)(?:\s*,?\s*paragraphe\s+(\d+))?(?:\s*,?\s*point\s+([a-z]))?/gi,
+    (_m, art, par, point) => {
+      let out = `Article ${art}`;
+      if (par) out += `(${par})`;
+      if (point) out += `(${String(point).toLowerCase()})`;
+      return out;
+    },
+  );
+
+  // Italian
+  result = result.replace(
+    /\bart(?:icolo|\.)?\s*(\d+)(?:\s*,?\s*par(?:agrafo|\.)?\s*(\d+))?(?:\s*,?\s*lett(?:era|\.)?\s*([a-z]))?/gi,
+    (_m, art, par, lett) => {
+      let out = `Article ${art}`;
+      if (par) out += `(${par})`;
+      if (lett) out += `(${String(lett).toLowerCase()})`;
+      return out;
+    },
+  );
+
+  // Spanish
+  result = result.replace(
+    /\bart(?:[íi]culo|\.)?\s*(\d+)(?:\s*,?\s*apartado\s+(\d+))?(?:\s*,?\s*letra\s+([a-z]))?/gi,
+    (_m, art, ap, letra) => {
+      let out = `Article ${art}`;
+      if (ap) out += `(${ap})`;
+      if (letra) out += `(${String(letra).toLowerCase()})`;
+      return out;
+    },
+  );
+
+  // Polish
+  result = result.replace(
+    /\bart(?:ykuł|\.)?\s*(\d+)(?:\s*ust(?:ęp|\.)?\s*(\d+))?(?:\s*lit(?:era|\.)?\s*([a-z]))?/gi,
+    (_m, art, ust, lit) => {
+      let out = `Article ${art}`;
+      if (ust) out += `(${ust})`;
+      if (lit) out += `(${String(lit).toLowerCase()})`;
+      return out;
+    },
+  );
+
+  // Canonical Article N(M)(letter) — normalise whitespace + lowercase letter
+  result = result.replace(
+    /\bArticle\s+(\d+)\s*(?:\(\s*(\d+)\s*\))?\s*(?:\(\s*([a-z])\s*\))?/gi,
+    (_m, art, num, letter) => {
+      let out = `Article ${art}`;
+      if (num) out += `(${num})`;
+      if (letter) out += `(${String(letter).toLowerCase()})`;
+      return out;
+    },
+  );
+
+  // CCPA section patterns
+  result = result.replace(
+    /(?:§\s*|Section\s+|Sec\.\s+)?(1798\.\d+(?:\.\d+)?)\s*(?:\(([a-z])\))?/gi,
+    (_m, section, letter) => {
+      let out = `§${section}`;
+      if (letter) out += `(${String(letter).toLowerCase()})`;
+      return out;
+    },
+  );
+
+  // BIPA section normalisation
+  result = result.replace(
+    /(?:740\s+ILCS\s+14\/|BIPA\s+Section\s+|Section\s+)(\d+)\s*(?:\(([a-z])\))?/gi,
+    (_m, sec, letter) => {
+      let out = `Section ${sec}`;
+      if (letter) out += `(${String(letter).toLowerCase()})`;
+      return out;
+    },
+  );
+
+  return result;
+}
+
+const CORPORATE_SUFFIXES = [
+  // English
+  "Inc.", "Inc", "LLC", "L.L.C.", "Ltd.", "Ltd", "Limited", "Corp.", "Corp",
+  "Corporation", "Co.", "Co", "Company", "PLC", "P.L.C.", "L.P.", "LP",
+  // Spanish / Portuguese
+  "S.A.", "S A", "SA", "S.L.", "SL", "S.L.U.", "SLU", "S.A.S.", "SAS",
+  // French
+  "SAS", "SARL", "S.A.R.L.", "EURL", "SASU",
+  // German / Austrian
+  "GmbH", "AG", "KG", "GmbH & Co. KG", "mbH", "OHG",
+  // Italian
+  "S.p.A.", "SpA", "S.r.l.", "Srl", "S.a.s.", "Sas",
+  // Dutch
+  "B.V.", "BV", "N.V.", "NV", "V.O.F.", "VOF",
+  // Polish
+  "Sp. z o.o.", "Sp z o o", "sp. z o.o.", "SK",
+  // Nordic
+  "AB", "A/S", "AS", "Oy", "ApS", "ASA",
+  // Swiss
+  "Sàrl", "S.à r.l.",
+];
+
+export function normaliseSubjectName(text: string): string {
+  let result = text;
+  result = result.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const sorted = [...CORPORATE_SUFFIXES].sort((a, b) => b.length - a.length);
+  for (const suffix of sorted) {
+    const escaped = suffix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`,?\\s*\\b${escaped}\\b\\.?`, "gi");
+    result = result.replace(pattern, "");
+  }
+  result = result.replace(/\s+/g, " ").trim();
+  return result;
+}
+
+export function normaliseNumericString(s: string): string {
+  let cleaned = s.replace(/[^\d.,]/g, "");
+  const lastDot = cleaned.lastIndexOf(".");
+  const lastComma = cleaned.lastIndexOf(",");
+  const lastSep = Math.max(lastDot, lastComma);
+  if (lastSep > 0 && cleaned.length - lastSep <= 3) {
+    const integerPart = cleaned.substring(0, lastSep).replace(/[.,]/g, "");
+    const decimalPart = cleaned.substring(lastSep + 1);
+    cleaned = `${integerPart}.${decimalPart}`;
+  } else {
+    cleaned = cleaned.replace(/[.,]/g, "");
+  }
+  return cleaned;
+}
+
+
 function findSubstr(
   haystack: string,
   needle: string,
