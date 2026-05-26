@@ -1,0 +1,1 @@
+DELETE FROM public.source_document_cache;
