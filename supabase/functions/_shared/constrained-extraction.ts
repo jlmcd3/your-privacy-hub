@@ -81,16 +81,12 @@ function substringMatch(doc: string, quote: string): boolean {
 // pairs via tolerant regex and keep only those whose evidence_quote
 // substring-matches the source document.
 function salvageStatutoryProvisions(
-  lastParseError: string | null,
+  raw: string,
   doc: string,
 ): { provisions: string[]; evidence_quotes: Record<string, string> } {
   const provisions: string[] = [];
   const evidence_quotes: Record<string, string> = {};
-  if (!lastParseError) return { provisions, evidence_quotes };
-
-  // The raw model output is embedded after "raw[0:500]=" in the error.
-  const rawMarker = lastParseError.indexOf("raw[0:500]=");
-  const raw = rawMarker >= 0 ? lastParseError.substring(rawMarker + "raw[0:500]=".length) : lastParseError;
+  if (!raw) return { provisions, evidence_quotes };
 
   // Tolerant pair extractor — assumes the model emits provision before
   // evidence_quote within each object (matches our schema example).
