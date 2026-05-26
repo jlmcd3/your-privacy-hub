@@ -257,7 +257,7 @@ The first character of your response must be { and the last must be }.`;
   // Haiku's output doesn't blank the whole row. Other fields stay null
   // since we can't trust them without a structured parse.
   if (!parsed) {
-    const salvaged = salvageStatutoryProvisions(lastParseError, truncated);
+    const salvaged = salvageStatutoryProvisions(lastRawOutput, truncated);
     if (salvaged.provisions.length > 0) {
       return {
         statutory_provisions: salvaged.provisions,
