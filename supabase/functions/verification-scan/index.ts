@@ -37,6 +37,23 @@ const PRICE = {
 
 type Mode = "initial" | "targeted" | "sample";
 
+// Placeholder-subject precheck. Skip corpus rows whose subject is a generic
+// placeholder before any fetch or LLM cost is incurred.
+const SUBJECT_PLACEHOLDERS = new Set<string>([
+  "company", "controller", "processor", "respondent", "defendant",
+  "entity", "organization", "organisation", "data controller",
+  "data processor", "the company", "the controller", "the respondent",
+  "unknown", "redacted", "anonymous", "n/a", "na", "unspecified",
+  "tbd", "tba", "placeholder",
+]);
+
+function isPlaceholderSubject(subject: string | null | undefined): boolean {
+  if (!subject) return true;
+  const normalised = subject.trim().toLowerCase();
+  if (normalised.length < 3) return true;
+  return SUBJECT_PLACEHOLDERS.has(normalised);
+}
+
 const TIER_FIELDS = [
   "statutory_provisions",
   "disposition_type",
