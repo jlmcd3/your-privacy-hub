@@ -213,17 +213,10 @@ export default function CorpusExtractionAdmin() {
         <div className="flex flex-wrap gap-3 mb-6">
           <button
             disabled={running}
-            onClick={() => runExtraction(false)}
+            onClick={() => runExtraction(true)}
             className="px-4 py-2 rounded bg-brand-teal text-white disabled:opacity-50"
           >
-            {running ? "Running…" : "Run extraction"}
-          </button>
-          <button
-            disabled={running}
-            onClick={() => runExtraction(true)}
-            className="px-4 py-2 rounded border border-brand-teal text-brand-teal disabled:opacity-50"
-          >
-            Run with force re-extract
+            {running ? "Running…" : "Run extraction (re-process all rows)"}
           </button>
           <button
             disabled={running}
@@ -233,6 +226,10 @@ export default function CorpusExtractionAdmin() {
             Recompute memo_eligible (interim)
           </button>
         </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          Extraction is idempotent — clicking it always reprocesses every row from scratch, so you
+          can re-run it any time before recomputing memo-eligibility.
+        </p>
 
         {statusLine && <p className="mb-2 text-sm">{statusLine}</p>}
         {recomputeResult && <p className="mb-4 text-sm">{recomputeResult}</p>}
