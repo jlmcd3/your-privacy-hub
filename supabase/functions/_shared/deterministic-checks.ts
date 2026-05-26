@@ -283,16 +283,27 @@ function pass(found: { start: number; end: number; snippet: string }): CheckResu
 }
 
 export function checkSubjectPresent(doc: string, subject?: string | null): CheckResult {
-  if (!subject) return { verdict: "skipped" };
-  const variants = [subject, stripCorporateSuffix(subject)].filter(
-    (v, i, a) => v && v.length >= 3 && a.indexOf(v) === i,
-  );
-  for (const v of variants) {
-    const f = findSubstr(doc, v);
-    if (f) return pass(f);
+  if (!subject) return { verdict: "skipped", evidence_text: "subject not populated in corpus" };
+  const normalisedDoc = normaliseSubjectName(doc);
+  const normalisedSubject = normaliseSubjectName(subject);
+  if (!normalisedSubject) {
+    return { verdict: "uncertain", evidence_text: "subject is entirely corporate suffix after normalisation" };
   }
-  return { verdict: "fail" };
+  const docLower = normalisedDoc.toLowerCase();
+  const idx = docLower.indexOf(normalisedSubject.toLowerCase());
+  if (idx >= 0) {
+    const contextStart = Math.max(0, idx - 50);
+    const contextEnd = Math.min(normalisedDoc.length, idx + normalisedSubject.length + 50);
+    return {
+      verdict: "pass",
+      evidence_text: normalisedDoc.substring(contextStart, contextEnd).slice(0, 200),
+      evidence_offset_start: idx,
+      evidence_offset_end: idx + normalisedSubject.length,
+    };
+  }
+  return { verdict: "fail", evidence_text: "subject not found in document after normalisation" };
 }
+
 
 export function checkRegulatorPresent(doc: string, regulator?: string | null): CheckResult {
   if (!regulator) return { verdict: "skipped" };
