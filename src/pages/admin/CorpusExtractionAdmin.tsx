@@ -184,9 +184,9 @@ export default function CorpusExtractionAdmin() {
       setStatusLine(`Stopped on error: ${(e as Error).message}`);
     } finally {
       setRunning(false);
-      await Promise.all([loadErrors(), loadCoverage()]);
+      await Promise.all([loadErrors(), loadCoverage(), loadEligibility()]);
     }
-  }, [loadErrors, loadCoverage]);
+  }, [loadErrors, loadCoverage, loadEligibility]);
 
   const recomputeMemo = useCallback(async () => {
     setRecomputeResult("Recomputing…");
