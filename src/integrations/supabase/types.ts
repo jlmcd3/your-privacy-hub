@@ -703,6 +703,7 @@ export type Database = {
           key_compliance_failure: string | null
           last_source_fetch_at: string | null
           law: string | null
+          legacy_enrichment_version: number | null
           li_processed: boolean
           memo_eligible: boolean
           original_amount: number | null
@@ -754,6 +755,7 @@ export type Database = {
           key_compliance_failure?: string | null
           last_source_fetch_at?: string | null
           law?: string | null
+          legacy_enrichment_version?: number | null
           li_processed?: boolean
           memo_eligible?: boolean
           original_amount?: number | null
@@ -805,6 +807,7 @@ export type Database = {
           key_compliance_failure?: string | null
           last_source_fetch_at?: string | null
           law?: string | null
+          legacy_enrichment_version?: number | null
           li_processed?: boolean
           memo_eligible?: boolean
           original_amount?: number | null
