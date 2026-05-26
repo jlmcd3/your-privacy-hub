@@ -226,6 +226,33 @@ export type Database = {
         }
         Relationships: []
       }
+      corpus_versions: {
+        Row: {
+          memo_eligible_count: number
+          notes: string | null
+          snapshot_date: string
+          total_enforcement_actions: number
+          total_regulatory_guidance: number
+          version_label: string
+        }
+        Insert: {
+          memo_eligible_count: number
+          notes?: string | null
+          snapshot_date?: string
+          total_enforcement_actions: number
+          total_regulatory_guidance?: number
+          version_label: string
+        }
+        Update: {
+          memo_eligible_count?: number
+          notes?: string | null
+          snapshot_date?: string
+          total_enforcement_actions?: number
+          total_regulatory_guidance?: number
+          version_label?: string
+        }
+        Relationships: []
+      }
       cppa_assessments: {
         Row: {
           client_id: string | null
@@ -523,12 +550,18 @@ export type Database = {
       enforcement_actions: {
         Row: {
           action_type: string | null
+          appeal_status: string | null
+          appeal_status_extraction_method: string | null
           biometric_related: boolean | null
           breach_related: boolean | null
+          case_reference: string | null
+          case_reference_extraction_method: string | null
           company_type: string | null
           created_at: string | null
           data_categories: string[] | null
           decision_date: string | null
+          disposition_type: string | null
+          disposition_type_extraction_method: string | null
           dpa_related: boolean | null
           enrichment_version: number | null
           etid: string | null
@@ -539,28 +572,47 @@ export type Database = {
           industry_sector: string | null
           jurisdiction: string
           key_compliance_failure: string | null
+          last_source_fetch_at: string | null
           law: string | null
           li_processed: boolean
+          memo_eligible: boolean
+          original_amount: number | null
+          original_currency: string | null
           precedent_significance: number | null
           preventive_measures: string | null
           raw_text: string | null
           regulator: string
+          regulatory_family: string[] | null
           sector: string | null
+          sector_extraction_method: string | null
           source_database: string | null
+          source_document_hash: string | null
           source_url: string | null
+          statutory_provisions: string[] | null
+          statutory_provisions_extraction_method: string | null
           subject: string | null
           tool_relevance: string[] | null
+          verification_deterministic_pass: boolean | null
+          verification_last_run_at: string | null
+          verification_paraphrase_confidence: string | null
+          verification_status: string
           violation: string | null
           violation_types: string[] | null
         }
         Insert: {
           action_type?: string | null
+          appeal_status?: string | null
+          appeal_status_extraction_method?: string | null
           biometric_related?: boolean | null
           breach_related?: boolean | null
+          case_reference?: string | null
+          case_reference_extraction_method?: string | null
           company_type?: string | null
           created_at?: string | null
           data_categories?: string[] | null
           decision_date?: string | null
+          disposition_type?: string | null
+          disposition_type_extraction_method?: string | null
           dpa_related?: boolean | null
           enrichment_version?: number | null
           etid?: string | null
@@ -571,28 +623,47 @@ export type Database = {
           industry_sector?: string | null
           jurisdiction: string
           key_compliance_failure?: string | null
+          last_source_fetch_at?: string | null
           law?: string | null
           li_processed?: boolean
+          memo_eligible?: boolean
+          original_amount?: number | null
+          original_currency?: string | null
           precedent_significance?: number | null
           preventive_measures?: string | null
           raw_text?: string | null
           regulator: string
+          regulatory_family?: string[] | null
           sector?: string | null
+          sector_extraction_method?: string | null
           source_database?: string | null
+          source_document_hash?: string | null
           source_url?: string | null
+          statutory_provisions?: string[] | null
+          statutory_provisions_extraction_method?: string | null
           subject?: string | null
           tool_relevance?: string[] | null
+          verification_deterministic_pass?: boolean | null
+          verification_last_run_at?: string | null
+          verification_paraphrase_confidence?: string | null
+          verification_status?: string
           violation?: string | null
           violation_types?: string[] | null
         }
         Update: {
           action_type?: string | null
+          appeal_status?: string | null
+          appeal_status_extraction_method?: string | null
           biometric_related?: boolean | null
           breach_related?: boolean | null
+          case_reference?: string | null
+          case_reference_extraction_method?: string | null
           company_type?: string | null
           created_at?: string | null
           data_categories?: string[] | null
           decision_date?: string | null
+          disposition_type?: string | null
+          disposition_type_extraction_method?: string | null
           dpa_related?: boolean | null
           enrichment_version?: number | null
           etid?: string | null
@@ -603,17 +674,30 @@ export type Database = {
           industry_sector?: string | null
           jurisdiction?: string
           key_compliance_failure?: string | null
+          last_source_fetch_at?: string | null
           law?: string | null
           li_processed?: boolean
+          memo_eligible?: boolean
+          original_amount?: number | null
+          original_currency?: string | null
           precedent_significance?: number | null
           preventive_measures?: string | null
           raw_text?: string | null
           regulator?: string
+          regulatory_family?: string[] | null
           sector?: string | null
+          sector_extraction_method?: string | null
           source_database?: string | null
+          source_document_hash?: string | null
           source_url?: string | null
+          statutory_provisions?: string[] | null
+          statutory_provisions_extraction_method?: string | null
           subject?: string | null
           tool_relevance?: string[] | null
+          verification_deterministic_pass?: boolean | null
+          verification_last_run_at?: string | null
+          verification_paraphrase_confidence?: string | null
+          verification_status?: string
           violation?: string | null
           violation_types?: string[] | null
         }
@@ -1319,6 +1403,44 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      jurisdiction_canonical: {
+        Row: {
+          canonical_name: string
+          display_name: string
+          is_subnational: boolean
+          iso_country_code: string | null
+          iso_subdivision_code: string | null
+          notes: string | null
+          parent_jurisdiction: string | null
+        }
+        Insert: {
+          canonical_name: string
+          display_name: string
+          is_subnational?: boolean
+          iso_country_code?: string | null
+          iso_subdivision_code?: string | null
+          notes?: string | null
+          parent_jurisdiction?: string | null
+        }
+        Update: {
+          canonical_name?: string
+          display_name?: string
+          is_subnational?: boolean
+          iso_country_code?: string | null
+          iso_subdivision_code?: string | null
+          notes?: string | null
+          parent_jurisdiction?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisdiction_canonical_parent_jurisdiction_fkey"
+            columns: ["parent_jurisdiction"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction_canonical"
+            referencedColumns: ["canonical_name"]
           },
         ]
       }
@@ -2429,6 +2551,92 @@ export type Database = {
           jurisdiction?: string | null
           metadata?: Json | null
           name?: string
+        }
+        Relationships: []
+      }
+      regulatory_family_mapping: {
+        Row: {
+          id: string
+          jurisdiction: string
+          notes: string | null
+          primary_statute: string | null
+          regulator: string
+          regulatory_family: string
+        }
+        Insert: {
+          id?: string
+          jurisdiction: string
+          notes?: string | null
+          primary_statute?: string | null
+          regulator: string
+          regulatory_family: string
+        }
+        Update: {
+          id?: string
+          jurisdiction?: string
+          notes?: string | null
+          primary_statute?: string | null
+          regulator?: string
+          regulatory_family?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regulatory_family_mapping_jurisdiction_fkey"
+            columns: ["jurisdiction"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction_canonical"
+            referencedColumns: ["canonical_name"]
+          },
+        ]
+      }
+      regulatory_guidance: {
+        Row: {
+          created_at: string
+          document_type: string
+          effective_date: string | null
+          full_text: string | null
+          id: string
+          jurisdiction: string
+          last_source_fetch_at: string | null
+          regulator: string
+          regulatory_family: string[]
+          source_document_hash: string | null
+          source_url: string
+          summary: string | null
+          title: string
+          verification_status: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          effective_date?: string | null
+          full_text?: string | null
+          id?: string
+          jurisdiction: string
+          last_source_fetch_at?: string | null
+          regulator: string
+          regulatory_family?: string[]
+          source_document_hash?: string | null
+          source_url: string
+          summary?: string | null
+          title: string
+          verification_status?: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          effective_date?: string | null
+          full_text?: string | null
+          id?: string
+          jurisdiction?: string
+          last_source_fetch_at?: string | null
+          regulator?: string
+          regulatory_family?: string[]
+          source_document_hash?: string | null
+          source_url?: string
+          summary?: string | null
+          title?: string
+          verification_status?: string
         }
         Relationships: []
       }
@@ -4121,6 +4329,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      verification_results: {
+        Row: {
+          check_category: string
+          check_name: string
+          enforcement_action_id: string
+          evidence_offset_end: number | null
+          evidence_offset_start: number | null
+          evidence_text: string | null
+          id: string
+          model_used: string | null
+          ran_at: string
+          source_document_hash: string | null
+          verdict: string
+        }
+        Insert: {
+          check_category: string
+          check_name: string
+          enforcement_action_id: string
+          evidence_offset_end?: number | null
+          evidence_offset_start?: number | null
+          evidence_text?: string | null
+          id?: string
+          model_used?: string | null
+          ran_at?: string
+          source_document_hash?: string | null
+          verdict: string
+        }
+        Update: {
+          check_category?: string
+          check_name?: string
+          enforcement_action_id?: string
+          evidence_offset_end?: number | null
+          evidence_offset_start?: number | null
+          evidence_text?: string | null
+          id?: string
+          model_used?: string | null
+          ran_at?: string
+          source_document_hash?: string | null
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_results_enforcement_action_id_fkey"
+            columns: ["enforcement_action_id"]
+            isOneToOne: false
+            referencedRelation: "enforcement_actions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       weekly_briefs: {
         Row: {
