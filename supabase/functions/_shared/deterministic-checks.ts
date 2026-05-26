@@ -355,70 +355,82 @@ export function checkStatutoryProvisionPresent(
   doc: string,
   provisions: string[] | null | undefined,
 ): CheckResult {
-  if (!provisions || provisions.length === 0) return { verdict: "skipped" };
-  for (const p of provisions) {
-    const f = findSubstr(doc, p);
-    if (f) return pass(f);
-    // Try stripping spaces around § and Article
-    const compact = p.replace(/\s+/g, " ").replace(/§\s*/g, "§").trim();
-    if (compact !== p) {
-      const f2 = findSubstr(doc, compact);
-      if (f2) return pass(f2);
+  if (!provisions || provisions.length === 0) {
+    return { verdict: "skipped", evidence_text: "no provisions extracted" };
+  }
+  const normalisedDoc = normaliseArticleCitations(normaliseStatuteNames(doc));
+  const normalisedDocLower = normalisedDoc.toLowerCase();
+  for (const provision of provisions) {
+    const normalisedProvision = normaliseArticleCitations(normaliseStatuteNames(provision));
+    const idx = normalisedDocLower.indexOf(normalisedProvision.toLowerCase());
+    if (idx >= 0) {
+      const contextStart = Math.max(0, idx - 50);
+      const contextEnd = Math.min(normalisedDoc.length, idx + normalisedProvision.length + 50);
+      return {
+        verdict: "pass",
+        evidence_text: normalisedDoc.substring(contextStart, contextEnd).slice(0, 200),
+        evidence_offset_start: idx,
+        evidence_offset_end: idx + normalisedProvision.length,
+      };
     }
   }
-  return { verdict: "fail" };
-}
-
-function formatNumberVariants(amt: number): string[] {
-  const intStr = String(Math.round(amt));
-  const withCommas = intStr.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  const withDots = intStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  const withSpaces = intStr.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  return Array.from(new Set([intStr, withCommas, withDots, withSpaces]));
+  return {
+    verdict: "fail",
+    evidence_text: `none of [${provisions.join(", ")}] found in normalised document`.slice(0, 200),
+  };
 }
 
 export function checkFineAmountPresent(
   doc: string,
   originalAmount?: number | null,
-  originalCurrency?: string | null,
+  _originalCurrency?: string | null,
   fineEurEquivalent?: number | null,
 ): CheckResult {
-  const tryAmounts = (amt: number): CheckResult | null => {
-    for (const v of formatNumberVariants(amt)) {
-      const f = findSubstr(doc, v);
-      if (f) return pass(f);
-    }
-    return null;
-  };
-  if (originalAmount && originalAmount > 0) {
-    const r = tryAmounts(originalAmount);
-    if (r) return r;
+  if ((originalAmount == null || originalAmount <= 0) && (fineEurEquivalent == null || fineEurEquivalent <= 0)) {
+    return { verdict: "skipped", evidence_text: "no fine amount in corpus" };
   }
-  if (fineEurEquivalent && fineEurEquivalent > 0) {
-    // ±2% tolerance: try exact, plus a few rounded values.
-    const targets = new Set<number>([
-      Math.round(fineEurEquivalent),
-      Math.round(fineEurEquivalent * 0.98),
-      Math.round(fineEurEquivalent * 1.02),
-      Math.round(fineEurEquivalent / 1000) * 1000,
-    ]);
-    for (const t of targets) {
-      const r = tryAmounts(t);
-      if (r) return r;
+  const candidates = doc.match(/[\d.,]+/g) || [];
+  const targets: number[] = [];
+  if (originalAmount && originalAmount > 0) targets.push(originalAmount);
+  if (fineEurEquivalent && fineEurEquivalent > 0) targets.push(fineEurEquivalent);
+
+  for (const candidate of candidates) {
+    const normalised = normaliseNumericString(candidate);
+    const asNumber = parseFloat(normalised);
+    if (isNaN(asNumber) || asNumber === 0) continue;
+    for (const target of targets) {
+      const tolerance = target * 0.02;
+      if (Math.abs(asNumber - target) <= tolerance) {
+        return {
+          verdict: "pass",
+          evidence_text: `matched ${candidate} ≈ ${target}`,
+        };
+      }
     }
   }
-  if (!originalAmount && !fineEurEquivalent) return { verdict: "uncertain" };
-  return { verdict: "fail" };
+  return { verdict: "fail", evidence_text: "no matching fine amount in document" };
 }
 
 export function checkCaseReferencePresent(
   doc: string,
   caseRef?: string | null,
 ): CheckResult {
-  if (!caseRef) return { verdict: "skipped" };
-  const f = findSubstr(doc, caseRef);
-  return f ? pass(f) : { verdict: "fail" };
+  if (!caseRef) return { verdict: "skipped", evidence_text: "no case reference in corpus" };
+  const norm = (s: string) => s.replace(/\s+/g, "").toLowerCase();
+  const normalisedDoc = norm(doc);
+  const normalisedRef = norm(caseRef);
+  const idx = normalisedDoc.indexOf(normalisedRef);
+  if (idx >= 0) {
+    return {
+      verdict: "pass",
+      evidence_text: caseRef,
+      evidence_offset_start: idx,
+      evidence_offset_end: idx + normalisedRef.length,
+    };
+  }
+  return { verdict: "fail", evidence_text: "case reference not found in normalised document" };
 }
+
 
 export function aggregateDeterministic(
   preChecks: CheckResult[],
