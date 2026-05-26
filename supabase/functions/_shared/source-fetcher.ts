@@ -106,32 +106,15 @@ function htmlToText(html: string): string {
 }
 
 async function pdfToText(bytes: Uint8Array): Promise<string> {
-  // Lazy-load pdfjs. If it fails to load (Deno env), surface as parse error.
-  // We use a legacy build which avoids worker requirements.
-  const pdfjs = await import(
-    "https://esm.sh/pdfjs-dist@4.0.379/legacy/build/pdf.mjs?external=canvas"
+  // unpdf is a serverless-friendly PDF text extractor (Deno/Edge compatible,
+  // no canvas/DOMMatrix polyfills required).
+  const { extractText, getDocumentProxy } = await import(
+    "https://esm.sh/unpdf@0.12.1"
   );
-  // Disable worker entirely.
-  (pdfjs as any).GlobalWorkerOptions.workerSrc = "";
-  const loadingTask = (pdfjs as any).getDocument({
-    data: bytes,
-    disableFontFace: true,
-    useSystemFonts: false,
-    isEvalSupported: false,
-  });
-  const pdf = await loadingTask.promise;
-  let text = "";
-  const maxPages = Math.min(pdf.numPages, 100);
-  for (let p = 1; p <= maxPages; p++) {
-    if (text.length >= MAX_PDF_CHARS) break;
-    const page = await pdf.getPage(p);
-    const content = await page.getTextContent();
-    const pageText = content.items
-      .map((it: any) => ("str" in it ? it.str : ""))
-      .join(" ");
-    text += pageText + "\n";
-  }
-  return text.slice(0, MAX_PDF_CHARS).trim();
+  const pdf = await getDocumentProxy(bytes);
+  const { text } = await extractText(pdf, { mergePages: true });
+  const joined = Array.isArray(text) ? text.join("\n") : String(text ?? "");
+  return joined.slice(0, MAX_PDF_CHARS).trim();
 }
 
 export async function fetchSourceDocument(
