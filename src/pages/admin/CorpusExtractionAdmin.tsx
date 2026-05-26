@@ -61,6 +61,7 @@ export default function CorpusExtractionAdmin() {
   const [statusLine, setStatusLine] = useState<string>("");
   const [errorRows, setErrorRows] = useState<ErrorRow[]>([]);
   const [coverage, setCoverage] = useState<{ total: number; withProvisions: number; noPattern: number } | null>(null);
+  const [eligibility, setEligibility] = useState<EligibilityStatus | null>(null);
   const [recomputeResult, setRecomputeResult] = useState<string>("");
 
   const loadErrors = useCallback(async () => {
@@ -91,7 +92,62 @@ export default function CorpusExtractionAdmin() {
     });
   }, []);
 
-  useEffect(() => { loadErrors(); loadCoverage(); }, [loadErrors, loadCoverage]);
+  const loadEligibility = useCallback(async () => {
+    const headCount = (q: any) => q.select("id", { count: "exact", head: true });
+    const ea = () => supabase.from("enforcement_actions");
+    const [
+      total,
+      mTrue,
+      mFalse,
+      mNull,
+      srcUrl,
+      provMethod,
+      kcf,
+      law,
+      provNone,
+      provHi,
+      provPattern,
+      provNoPattern,
+    ] = await Promise.all([
+      headCount(ea()),
+      headCount(ea()).eq("memo_eligible", true),
+      headCount(ea()).eq("memo_eligible", false),
+      headCount(ea()).is("memo_eligible", null),
+      headCount(ea()).not("source_url", "is", null).neq("source_url", ""),
+      headCount(ea()).in("statutory_provisions_extraction_method", [
+        "regex_high_confidence",
+        "pattern_per_regulator",
+      ]),
+      headCount(ea()).not("key_compliance_failure", "is", null).neq("key_compliance_failure", ""),
+      headCount(ea()).not("law", "is", null).neq("law", ""),
+      headCount(ea()).eq("statutory_provisions_extraction_method", "none"),
+      headCount(ea()).eq("statutory_provisions_extraction_method", "regex_high_confidence"),
+      headCount(ea()).eq("statutory_provisions_extraction_method", "pattern_per_regulator"),
+      headCount(ea()).eq("statutory_provisions_extraction_method", "no_pattern_found"),
+    ]);
+    // Approximate "has provisions array length >=1" via the high-confidence + pattern method counts.
+    // (PostgREST can't filter on array_length directly; method ⇔ provisions populated by extractor.)
+    const hasProvisions = (provHi.count ?? 0) + (provPattern.count ?? 0);
+    setEligibility({
+      total: total.count ?? 0,
+      memoEligibleTrue: mTrue.count ?? 0,
+      memoEligibleFalse: mFalse.count ?? 0,
+      memoEligibleNull: mNull.count ?? 0,
+      hasSourceUrl: srcUrl.count ?? 0,
+      hasProvisionsMethod: provMethod.count ?? 0,
+      hasProvisions,
+      hasKcf: kcf.count ?? 0,
+      hasLaw: law.count ?? 0,
+      methodBreakdown: [
+        { method: "none (not yet run)", count: provNone.count ?? 0 },
+        { method: "regex_high_confidence", count: provHi.count ?? 0 },
+        { method: "pattern_per_regulator", count: provPattern.count ?? 0 },
+        { method: "no_pattern_found", count: provNoPattern.count ?? 0 },
+      ],
+    });
+  }, []);
+
+  useEffect(() => { loadErrors(); loadCoverage(); loadEligibility(); }, [loadErrors, loadCoverage, loadEligibility]);
 
   const runExtraction = useCallback(async (force: boolean) => {
     setRunning(true);
