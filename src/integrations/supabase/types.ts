@@ -226,6 +226,50 @@ export type Database = {
         }
         Relationships: []
       }
+      corpus_drift_log: {
+        Row: {
+          detected_at: string
+          enforcement_action_id: string | null
+          id: string
+          new_hash: string | null
+          new_verdict: string | null
+          notes: string | null
+          previous_hash: string | null
+          previous_verdict: string | null
+          trigger_source: string
+        }
+        Insert: {
+          detected_at?: string
+          enforcement_action_id?: string | null
+          id?: string
+          new_hash?: string | null
+          new_verdict?: string | null
+          notes?: string | null
+          previous_hash?: string | null
+          previous_verdict?: string | null
+          trigger_source: string
+        }
+        Update: {
+          detected_at?: string
+          enforcement_action_id?: string | null
+          id?: string
+          new_hash?: string | null
+          new_verdict?: string | null
+          notes?: string | null
+          previous_hash?: string | null
+          previous_verdict?: string | null
+          trigger_source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corpus_drift_log_enforcement_action_id_fkey"
+            columns: ["enforcement_action_id"]
+            isOneToOne: false
+            referencedRelation: "enforcement_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       corpus_extraction_errors: {
         Row: {
           details: Json | null
@@ -254,6 +298,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "corpus_extraction_errors_enforcement_action_id_fkey"
+            columns: ["enforcement_action_id"]
+            isOneToOne: false
+            referencedRelation: "enforcement_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      corpus_field_history: {
+        Row: {
+          changed_at: string
+          enforcement_action_id: string
+          extraction_method: string
+          field_name: string
+          id: string
+          model_used: string | null
+          new_value: Json | null
+          notes: string | null
+          previous_value: Json | null
+          source_document_hash: string | null
+          source_url: string | null
+        }
+        Insert: {
+          changed_at?: string
+          enforcement_action_id: string
+          extraction_method: string
+          field_name: string
+          id?: string
+          model_used?: string | null
+          new_value?: Json | null
+          notes?: string | null
+          previous_value?: Json | null
+          source_document_hash?: string | null
+          source_url?: string | null
+        }
+        Update: {
+          changed_at?: string
+          enforcement_action_id?: string
+          extraction_method?: string
+          field_name?: string
+          id?: string
+          model_used?: string | null
+          new_value?: Json | null
+          notes?: string | null
+          previous_value?: Json | null
+          source_document_hash?: string | null
+          source_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corpus_field_history_enforcement_action_id_fkey"
             columns: ["enforcement_action_id"]
             isOneToOne: false
             referencedRelation: "enforcement_actions"
@@ -3529,6 +3623,33 @@ export type Database = {
         }
         Relationships: []
       }
+      source_document_cache: {
+        Row: {
+          content_hash: string
+          content_text: string
+          content_type: string
+          expires_at: string
+          fetched_at: string
+          source_url: string
+        }
+        Insert: {
+          content_hash: string
+          content_text: string
+          content_type: string
+          expires_at?: string
+          fetched_at?: string
+          source_url: string
+        }
+        Update: {
+          content_hash?: string
+          content_text?: string
+          content_type?: string
+          expires_at?: string
+          fetched_at?: string
+          source_url?: string
+        }
+        Relationships: []
+      }
       sponsorships: {
         Row: {
           active: boolean | null
@@ -4365,6 +4486,44 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_queue: {
+        Row: {
+          attempts: number
+          enforcement_action_id: string
+          in_flight_until: string | null
+          last_attempt_at: string | null
+          last_error: string | null
+          priority: string
+          queued_at: string
+        }
+        Insert: {
+          attempts?: number
+          enforcement_action_id: string
+          in_flight_until?: string | null
+          last_attempt_at?: string | null
+          last_error?: string | null
+          priority?: string
+          queued_at?: string
+        }
+        Update: {
+          attempts?: number
+          enforcement_action_id?: string
+          in_flight_until?: string | null
+          last_attempt_at?: string | null
+          last_error?: string | null
+          priority?: string
+          queued_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_queue_enforcement_action_id_fkey"
+            columns: ["enforcement_action_id"]
+            isOneToOne: true
+            referencedRelation: "enforcement_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       verification_results: {
         Row: {
           check_category: string
@@ -4375,6 +4534,7 @@ export type Database = {
           evidence_text: string | null
           id: string
           model_used: string | null
+          notes: string | null
           ran_at: string
           source_document_hash: string | null
           verdict: string
@@ -4388,6 +4548,7 @@ export type Database = {
           evidence_text?: string | null
           id?: string
           model_used?: string | null
+          notes?: string | null
           ran_at?: string
           source_document_hash?: string | null
           verdict: string
@@ -4401,6 +4562,7 @@ export type Database = {
           evidence_text?: string | null
           id?: string
           model_used?: string | null
+          notes?: string | null
           ran_at?: string
           source_document_hash?: string | null
           verdict?: string
