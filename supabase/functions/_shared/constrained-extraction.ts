@@ -141,40 +141,82 @@ export async function constrainedExtract(args: {
 SOURCE DOCUMENT:
 ${truncated}`;
 
-  const { res, text } = await callAnthropic(apiKey, {
-    model: HAIKU_MODEL,
-    max_tokens: 2048,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userPrompt }],
-  });
+  const STRICTER_SUFFIX = `
+
+CRITICAL OUTPUT FORMAT (retry attempt):
+Your previous response could not be parsed as JSON. Common causes:
+- Including prose before or after the JSON object
+- Using markdown code fences (\`\`\`json ... \`\`\`)
+- Including a trailing comma after the last field
+- Including unescaped quotes inside string values
+
+Respond with ONLY the raw JSON object. No prose. No code fences. No comments.
+The first character of your response must be { and the last must be }.`;
 
   let usage = { input_tokens: 0, output_tokens: 0 };
-  if (!res.ok) {
-    return {
-      statutory_provisions: [],
-      disposition_type: null,
-      appeal_status: "unknown",
-      case_reference: null,
-      sector: null,
-      original_currency: null,
-      original_amount: null,
-      evidence_quotes: {},
-      parse_error: `http_${res.status}: ${text.slice(0, 200)}`,
-      usage,
-    };
-  }
-  let parsed: any;
-  try {
-    parsed = JSON.parse(text);
+  let parsed: any = null;
+  let lastParseError: string | null = null;
+  const MAX_ATTEMPTS = 2;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const sys = attempt === 1 ? SYSTEM_PROMPT : SYSTEM_PROMPT + STRICTER_SUFFIX;
+    const { res, text } = await callAnthropic(apiKey, {
+      model: HAIKU_MODEL,
+      max_tokens: 2048,
+      system: sys,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+
+    if (!res.ok) {
+      return {
+        statutory_provisions: [],
+        disposition_type: null,
+        appeal_status: "unknown",
+        case_reference: null,
+        sector: null,
+        original_currency: null,
+        original_amount: null,
+        evidence_quotes: {},
+        parse_error: `http_${res.status}: ${text.slice(0, 200)}`,
+        usage,
+      };
+    }
+
+    let envelope: any;
+    try {
+      envelope = JSON.parse(text);
+    } catch (e) {
+      lastParseError = `envelope_parse: ${(e as Error).message}`;
+      continue;
+    }
+    // Accumulate token usage across attempts so the cost tracker reflects retries.
     usage = {
-      input_tokens: parsed?.usage?.input_tokens ?? 0,
-      output_tokens: parsed?.usage?.output_tokens ?? 0,
+      input_tokens: usage.input_tokens + (envelope?.usage?.input_tokens ?? 0),
+      output_tokens: usage.output_tokens + (envelope?.usage?.output_tokens ?? 0),
     };
-    const content = parsed?.content?.[0]?.text ?? "";
-    // Strip ```json fences if present
-    const jsonText = content.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-    parsed = JSON.parse(jsonText);
-  } catch (e) {
+
+    const raw = (envelope?.content?.[0]?.text ?? "").trim();
+    // Defensive cleanup: strip code fences and isolate the {...} body.
+    let cleaned = raw;
+    if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+    }
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
+
+    try {
+      parsed = JSON.parse(cleaned);
+      break; // success
+    } catch (e) {
+      lastParseError = `json_parse: ${(e as Error).message} (attempt ${attempt}); raw[0:500]=${raw.slice(0, 500)}`;
+      // loop to retry with stricter system prompt
+    }
+  }
+
+  if (!parsed) {
     return {
       statutory_provisions: [],
       disposition_type: null,
@@ -184,10 +226,11 @@ ${truncated}`;
       original_currency: null,
       original_amount: null,
       evidence_quotes: {},
-      parse_error: `json_parse: ${(e as Error).message}`,
+      parse_error: lastParseError ?? "json_parse: unknown",
       usage,
     };
   }
+
 
   // Validate per field
   const evidence_quotes: Record<string, string> = {};

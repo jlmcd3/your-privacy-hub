@@ -229,17 +229,29 @@ const CORPORATE_SUFFIXES = [
 ];
 
 export function normaliseSubjectName(text: string): string {
-  let result = text;
-  result = result.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (!text) return "";
+  const diacriticsStripped = text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  let suffixStripped = diacriticsStripped;
   const sorted = [...CORPORATE_SUFFIXES].sort((a, b) => b.length - a.length);
   for (const suffix of sorted) {
     const escaped = suffix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const pattern = new RegExp(`,?\\s*\\b${escaped}\\b\\.?`, "gi");
-    result = result.replace(pattern, "");
+    suffixStripped = suffixStripped.replace(pattern, "");
   }
-  result = result.replace(/\s+/g, " ").trim();
-  return result;
+  suffixStripped = suffixStripped.replace(/\s+/g, " ").trim();
+
+  // Safety guard: if suffix-stripping reduced the subject below a usable
+  // length, fall back to the diacritics-only form (Berlin smoke-test fix).
+  const MIN_MEANINGFUL_LENGTH = 3;
+  if (suffixStripped.length < MIN_MEANINGFUL_LENGTH) {
+    return diacriticsStripped.replace(/\s+/g, " ").trim();
+  }
+  return suffixStripped;
 }
+
 
 export function normaliseNumericString(s: string): string {
   let cleaned = s.replace(/[^\d.,]/g, "");
@@ -287,8 +299,9 @@ export function checkSubjectPresent(doc: string, subject?: string | null): Check
   const normalisedDoc = normaliseSubjectName(doc);
   const normalisedSubject = normaliseSubjectName(subject);
   if (!normalisedSubject) {
-    return { verdict: "uncertain", evidence_text: "subject is entirely corporate suffix after normalisation" };
+    return { verdict: "fail", evidence_text: "subject is empty after normalisation" };
   }
+
   const docLower = normalisedDoc.toLowerCase();
   const idx = docLower.indexOf(normalisedSubject.toLowerCase());
   if (idx >= 0) {
