@@ -192,8 +192,9 @@ export default function CorpusExtractionAdmin() {
     setRecomputeResult("Recomputing…");
     const { data, error } = await supabase.rpc("recompute_memo_eligible_interim" as any);
     if (error) { setRecomputeResult(`Error: ${error.message}`); return; }
-    setRecomputeResult(`Recomputed memo_eligible on ${data} rows.`);
-  }, []);
+    setRecomputeResult(`Recomputed memo_eligible — ${data} row(s) changed value.`);
+    await loadEligibility();
+  }, [loadEligibility]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
