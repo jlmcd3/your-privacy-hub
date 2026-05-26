@@ -126,6 +126,30 @@ async function processRow(row: any) {
   const prevHash = row.source_document_hash as string | null;
   const prevStatus = row.verification_status as string | null;
 
+  // Precheck: skip rows with placeholder or empty subjects. Corpus data
+  // quality issue — flag for review without burning fetch + LLM budget.
+  if (isPlaceholderSubject(row.subject)) {
+    await sb.from("verification_results").insert({
+      enforcement_action_id: id,
+      check_name: "subject_quality_precheck",
+      check_category: "deterministic",
+      verdict: "fail",
+      evidence_text:
+        `corpus subject "${row.subject ?? ""}" is a placeholder or too short to verify; flagged for corpus review`,
+      ran_at: new Date().toISOString(),
+    });
+    await sb.from("enforcement_actions").update({
+      verification_status: "requires_review",
+      verification_deterministic_pass: false,
+      memo_eligible: false,
+      verification_last_run_at: new Date().toISOString(),
+    }).eq("id", id);
+    return {
+      verdict: "requires_review",
+      tokens: { haiku_in: 0, haiku_out: 0, sonnet_in: 0, sonnet_out: 0 },
+    };
+  }
+
   const fetched = await fetchSourceDocument(row.source_url ?? "");
   const fetchCheck = checkSourceUrlResolves(fetched.status);
 
