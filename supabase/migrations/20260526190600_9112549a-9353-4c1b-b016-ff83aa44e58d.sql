@@ -1,0 +1,2 @@
+ALTER TABLE public.enforcement_actions ADD COLUMN IF NOT EXISTS legacy_enrichment_version integer;
+UPDATE public.enforcement_actions SET legacy_enrichment_version = 1 WHERE enrichment_version >= 1 AND legacy_enrichment_version IS NULL;
