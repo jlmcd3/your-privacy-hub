@@ -411,6 +411,17 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/corpus-extraction"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <CorpusExtractionAdmin />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/admin/test-governance"
               element={
                 <ProtectedRoute>
