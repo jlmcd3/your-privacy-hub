@@ -1,0 +1,287 @@
+// Constrained extraction via Claude Haiku 4.5. One API call per row.
+// Validates that every non-null field has a verbatim evidence_quote from the source.
+
+const HAIKU_MODEL = "claude-haiku-4-5-20251001";
+const ANTHROPIC_VERSION = "2023-06-01";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+
+const DISPOSITION_VOCAB = new Set([
+  "settlement","consent_order","administrative_fine",
+  "final_decision","civil_penalty","injunctive_relief",
+]);
+const APPEAL_VOCAB = new Set(["final","appeal_pending","affirmed","vacated","remanded","unknown"]);
+const SECTOR_VOCAB = new Set([
+  "financial_services","healthcare","technology","retail","telecommunications",
+  "automotive","insurance","education","government","energy","hospitality",
+  "media","manufacturing","transportation","other",
+]);
+
+const SYSTEM_PROMPT = `You are extracting structured data from a regulator enforcement document.
+
+Strict rules:
+1. Every value you return must be either (a) a verbatim substring of the input document, or (b) a controlled-vocabulary value from the list below, chosen only when the document text supports that choice.
+2. You may NOT infer, paraphrase, or generate any value not present in the document. If a field is not stated in the document, return null (or an empty array for statutory_provisions).
+3. For every non-null field, return a verbatim evidence_quote (max 200 characters) from the document supporting the value. The evidence_quote MUST be a substring of the input. If you cannot quote evidence, return null for the field.
+
+Output JSON schema:
+{
+  "statutory_provisions": [
+    {"provision": "string (canonical form)", "evidence_quote": "string"}
+  ],
+  "disposition_type": "settlement|consent_order|administrative_fine|final_decision|civil_penalty|injunctive_relief|null",
+  "disposition_evidence_quote": "string or null",
+  "appeal_status": "final|appeal_pending|affirmed|vacated|remanded|unknown",
+  "appeal_status_evidence_quote": "string or null",
+  "case_reference": "string or null",
+  "case_reference_evidence_quote": "string or null",
+  "sector": "string from controlled list or null",
+  "sector_evidence_quote": "string or null",
+  "original_currency": "ISO 4217 code (USD, EUR, GBP, PLN, etc.) or null",
+  "original_amount": "number or null",
+  "amount_evidence_quote": "string or null"
+}
+
+Controlled vocabularies:
+- disposition_type: settlement, consent_order, administrative_fine, final_decision, civil_penalty, injunctive_relief
+- appeal_status: final, appeal_pending, affirmed, vacated, remanded, unknown
+- sector: financial_services, healthcare, technology, retail, telecommunications, automotive, insurance, education, government, energy, hospitality, media, manufacturing, transportation, other
+
+For statutory_provisions, use canonical form when possible:
+- GDPR articles: "GDPR Article 6(1)(f)" not "Art. 6(1)(f)"
+- CCPA sections: "CCPA §1798.100(b)" not "Section 1798.100(b)"
+- BIPA: "BIPA Section 15(b)" not "740 ILCS 14/15(b)"
+- TDPSA: "TDPSA §541.052"
+
+The canonical form is the value; the evidence_quote is the verbatim text from the document showing the citation in its original form.
+
+If the document is empty, truncated, or unrelated to the action you were asked to verify, return all fields as null and statutory_provisions as an empty array.
+
+Respond with the JSON object only. No prose before or after.`;
+
+export type ExtractionResult = {
+  statutory_provisions: string[];
+  disposition_type: string | null;
+  appeal_status: string;
+  case_reference: string | null;
+  sector: string | null;
+  original_currency: string | null;
+  original_amount: number | null;
+  evidence_quotes: Record<string, string>; // field name -> quote
+  parse_error?: string;
+  usage: { input_tokens: number; output_tokens: number };
+};
+
+function substringMatch(doc: string, quote: string): boolean {
+  if (!quote || typeof quote !== "string") return false;
+  return doc.toLowerCase().includes(quote.toLowerCase().trim());
+}
+
+async function callAnthropic(
+  apiKey: string,
+  body: Record<string, unknown>,
+): Promise<{ res: Response; text: string }> {
+  let attempt = 0;
+  const backoffs = [5_000, 20_000, 60_000];
+  while (true) {
+    attempt++;
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 60_000);
+    try {
+      const res = await fetch(ANTHROPIC_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": ANTHROPIC_VERSION,
+        },
+        body: JSON.stringify(body),
+        signal: ctrl.signal,
+      });
+      clearTimeout(t);
+      const text = await res.text();
+      if (res.status === 429 && attempt <= 3) {
+        await new Promise((r) => setTimeout(r, backoffs[attempt - 1] ?? 60_000));
+        continue;
+      }
+      if (res.status >= 500 && attempt <= 2) {
+        await new Promise((r) => setTimeout(r, 10_000));
+        continue;
+      }
+      return { res, text };
+    } catch (e) {
+      clearTimeout(t);
+      if (attempt <= 2) {
+        await new Promise((r) => setTimeout(r, 10_000));
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
+export async function constrainedExtract(args: {
+  apiKey: string;
+  doc: string;
+  regulator: string | null;
+  subject: string | null;
+  decisionDate: string | null;
+  law: string | null;
+}): Promise<ExtractionResult> {
+  const { apiKey, doc, regulator, subject, decisionDate, law } = args;
+
+  // Truncate doc to ~60k chars to stay within Haiku context comfortably.
+  const truncated = doc.slice(0, 60_000);
+
+  const userPrompt = `ENFORCEMENT ACTION CONTEXT (for matching only — do not extract from this):
+- Regulator: ${regulator ?? "unknown"}
+- Subject: ${subject ?? "unknown"}
+- Decision date: ${decisionDate ?? "unknown"}
+- Statute family: ${law ?? "unknown"}
+
+SOURCE DOCUMENT:
+${truncated}`;
+
+  const { res, text } = await callAnthropic(apiKey, {
+    model: HAIKU_MODEL,
+    max_tokens: 2048,
+    system: SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userPrompt }],
+  });
+
+  let usage = { input_tokens: 0, output_tokens: 0 };
+  if (!res.ok) {
+    return {
+      statutory_provisions: [],
+      disposition_type: null,
+      appeal_status: "unknown",
+      case_reference: null,
+      sector: null,
+      original_currency: null,
+      original_amount: null,
+      evidence_quotes: {},
+      parse_error: `http_${res.status}: ${text.slice(0, 200)}`,
+      usage,
+    };
+  }
+  let parsed: any;
+  try {
+    parsed = JSON.parse(text);
+    usage = {
+      input_tokens: parsed?.usage?.input_tokens ?? 0,
+      output_tokens: parsed?.usage?.output_tokens ?? 0,
+    };
+    const content = parsed?.content?.[0]?.text ?? "";
+    // Strip ```json fences if present
+    const jsonText = content.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+    parsed = JSON.parse(jsonText);
+  } catch (e) {
+    return {
+      statutory_provisions: [],
+      disposition_type: null,
+      appeal_status: "unknown",
+      case_reference: null,
+      sector: null,
+      original_currency: null,
+      original_amount: null,
+      evidence_quotes: {},
+      parse_error: `json_parse: ${(e as Error).message}`,
+      usage,
+    };
+  }
+
+  // Validate per field
+  const evidence_quotes: Record<string, string> = {};
+
+  // statutory_provisions
+  const sp: string[] = [];
+  if (Array.isArray(parsed.statutory_provisions)) {
+    for (const entry of parsed.statutory_provisions) {
+      if (!entry || typeof entry.provision !== "string") continue;
+      if (typeof entry.evidence_quote !== "string") continue;
+      if (substringMatch(truncated, entry.evidence_quote)) {
+        sp.push(entry.provision.trim());
+        evidence_quotes[`statutory_provision:${entry.provision.trim()}`] = entry.evidence_quote;
+      }
+    }
+  }
+
+  const validatedScalar = (
+    val: any,
+    quote: any,
+    field: string,
+    vocab?: Set<string>,
+  ): string | null => {
+    if (val == null || val === "null" || val === "") return null;
+    if (typeof val !== "string") return null;
+    if (vocab && !vocab.has(val)) return null;
+    if (typeof quote !== "string" || !substringMatch(truncated, quote)) return null;
+    evidence_quotes[field] = quote;
+    return val;
+  };
+
+  const disposition_type = validatedScalar(
+    parsed.disposition_type,
+    parsed.disposition_evidence_quote,
+    "disposition_type",
+    DISPOSITION_VOCAB,
+  );
+
+  let appeal_status: string;
+  if (typeof parsed.appeal_status === "string" && APPEAL_VOCAB.has(parsed.appeal_status)) {
+    if (parsed.appeal_status === "unknown") {
+      appeal_status = "unknown";
+    } else if (
+      typeof parsed.appeal_status_evidence_quote === "string" &&
+      substringMatch(truncated, parsed.appeal_status_evidence_quote)
+    ) {
+      appeal_status = parsed.appeal_status;
+      evidence_quotes["appeal_status"] = parsed.appeal_status_evidence_quote;
+    } else {
+      appeal_status = "unknown";
+    }
+  } else {
+    appeal_status = "unknown";
+  }
+
+  const case_reference = validatedScalar(
+    parsed.case_reference,
+    parsed.case_reference_evidence_quote,
+    "case_reference",
+  );
+  const sector = validatedScalar(
+    parsed.sector,
+    parsed.sector_evidence_quote,
+    "sector",
+    SECTOR_VOCAB,
+  );
+
+  // amount
+  let original_amount: number | null = null;
+  let original_currency: string | null = null;
+  const amt = parsed.original_amount;
+  const cur = parsed.original_currency;
+  const amtQuote = parsed.amount_evidence_quote;
+  if (
+    typeof amt === "number" && Number.isFinite(amt) && amt > 0 &&
+    typeof cur === "string" && /^[A-Z]{3}$/.test(cur) &&
+    typeof amtQuote === "string" && substringMatch(truncated, amtQuote)
+  ) {
+    original_amount = amt;
+    original_currency = cur;
+    evidence_quotes["amount"] = amtQuote;
+  }
+
+  return {
+    statutory_provisions: sp,
+    disposition_type,
+    appeal_status,
+    case_reference,
+    sector,
+    original_currency,
+    original_amount,
+    evidence_quotes,
+    usage,
+  };
+}
+
+export const HAIKU_MODEL_ID = HAIKU_MODEL;

@@ -145,6 +145,7 @@ import CPPACybersecurityResult from "./pages/CPPACybersecurityResult.tsx";
 import CPPASuiteResult from "./pages/CPPASuiteResult.tsx";
 import TestsDashboard from "./pages/admin/TestsDashboard.tsx";
 import CorpusExtractionAdmin from "./pages/admin/CorpusExtractionAdmin";
+import VerificationScanAdmin from "./pages/admin/VerificationScanAdmin";
 
 const queryClient = new QueryClient();
 
@@ -420,6 +421,17 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/verification-scan"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <VerificationScanAdmin />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
 
             <Route
               path="/admin/test-governance"
