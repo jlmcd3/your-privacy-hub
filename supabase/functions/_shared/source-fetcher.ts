@@ -109,7 +109,7 @@ async function pdfToText(bytes: Uint8Array): Promise<string> {
   // Lazy-load pdfjs. If it fails to load (Deno env), surface as parse error.
   // We use a legacy build which avoids worker requirements.
   const pdfjs = await import(
-    "https://esm.sh/pdfjs-dist@4.0.379/legacy/build/pdf.mjs"
+    "https://esm.sh/pdfjs-dist@4.0.379/legacy/build/pdf.mjs?external=canvas"
   );
   // Disable worker entirely.
   (pdfjs as any).GlobalWorkerOptions.workerSrc = "";
