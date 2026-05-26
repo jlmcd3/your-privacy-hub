@@ -144,6 +144,7 @@ import CPPACybersecurity from "./pages/CPPACybersecurity.tsx";
 import CPPACybersecurityResult from "./pages/CPPACybersecurityResult.tsx";
 import CPPASuiteResult from "./pages/CPPASuiteResult.tsx";
 import TestsDashboard from "./pages/admin/TestsDashboard.tsx";
+import CorpusExtractionAdmin from "./pages/admin/CorpusExtractionAdmin";
 
 const queryClient = new QueryClient();
 
@@ -409,6 +410,17 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/corpus-extraction"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <CorpusExtractionAdmin />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/admin/test-governance"
               element={

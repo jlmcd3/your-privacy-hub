@@ -226,6 +226,41 @@ export type Database = {
         }
         Relationships: []
       }
+      corpus_extraction_errors: {
+        Row: {
+          details: Json | null
+          enforcement_action_id: string | null
+          error_message: string
+          id: string
+          ran_at: string
+          stage: string
+        }
+        Insert: {
+          details?: Json | null
+          enforcement_action_id?: string | null
+          error_message: string
+          id?: string
+          ran_at?: string
+          stage: string
+        }
+        Update: {
+          details?: Json | null
+          enforcement_action_id?: string | null
+          error_message?: string
+          id?: string
+          ran_at?: string
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corpus_extraction_errors_enforcement_action_id_fkey"
+            columns: ["enforcement_action_id"]
+            isOneToOne: false
+            referencedRelation: "enforcement_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       corpus_versions: {
         Row: {
           memo_eligible_count: number
@@ -4549,6 +4584,7 @@ export type Database = {
       is_founding_rate_available: { Args: never; Returns: boolean }
       my_client_ids: { Args: never; Returns: string[] }
       owns_client: { Args: { _client_id: string }; Returns: boolean }
+      recompute_memo_eligible_interim: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

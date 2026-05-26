@@ -1,0 +1,278 @@
+import { useCallback, useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
+type Summary = {
+  statutory_provisions_high_confidence: number;
+  statutory_provisions_no_pattern: number;
+  disposition_set: number;
+  appeal_status_set: number;
+  original_amount_set: number;
+  case_reference_set: number;
+  sector_set: number;
+  errors: number;
+};
+
+type BatchResult = {
+  processed: number;
+  last_id: string | null;
+  extraction_summary: Summary;
+};
+
+type ErrorRow = {
+  id: string;
+  enforcement_action_id: string | null;
+  stage: string;
+  error_message: string;
+  ran_at: string;
+};
+
+const EMPTY_TOTALS: Summary = {
+  statutory_provisions_high_confidence: 0,
+  statutory_provisions_no_pattern: 0,
+  disposition_set: 0,
+  appeal_status_set: 0,
+  original_amount_set: 0,
+  case_reference_set: 0,
+  sector_set: 0,
+  errors: 0,
+};
+
+export default function CorpusExtractionAdmin() {
+  const [running, setRunning] = useState(false);
+  const [batches, setBatches] = useState<BatchResult[]>([]);
+  const [totals, setTotals] = useState<Summary>({ ...EMPTY_TOTALS });
+  const [processedTotal, setProcessedTotal] = useState(0);
+  const [statusLine, setStatusLine] = useState<string>("");
+  const [errorRows, setErrorRows] = useState<ErrorRow[]>([]);
+  const [coverage, setCoverage] = useState<{ total: number; withProvisions: number; noPattern: number } | null>(null);
+  const [recomputeResult, setRecomputeResult] = useState<string>("");
+
+  const loadErrors = useCallback(async () => {
+    const { data } = await supabase
+      .from("corpus_extraction_errors" as any)
+      .select("id, enforcement_action_id, stage, error_message, ran_at")
+      .order("ran_at", { ascending: false })
+      .limit(50);
+    setErrorRows((data as any) ?? []);
+  }, []);
+
+  const loadCoverage = useCallback(async () => {
+    const [{ count: total }, { count: withProvisions }, { count: noPattern }] = await Promise.all([
+      supabase.from("enforcement_actions").select("id", { count: "exact", head: true }),
+      supabase
+        .from("enforcement_actions")
+        .select("id", { count: "exact", head: true })
+        .eq("statutory_provisions_extraction_method", "regex_high_confidence"),
+      supabase
+        .from("enforcement_actions")
+        .select("id", { count: "exact", head: true })
+        .eq("statutory_provisions_extraction_method", "no_pattern_found"),
+    ]);
+    setCoverage({
+      total: total ?? 0,
+      withProvisions: withProvisions ?? 0,
+      noPattern: noPattern ?? 0,
+    });
+  }, []);
+
+  useEffect(() => { loadErrors(); loadCoverage(); }, [loadErrors, loadCoverage]);
+
+  const runExtraction = useCallback(async (force: boolean) => {
+    setRunning(true);
+    setBatches([]);
+    setTotals({ ...EMPTY_TOTALS });
+    setProcessedTotal(0);
+    setStatusLine("Starting…");
+
+    let cursor: string | null = null;
+    const accTotals: Summary = { ...EMPTY_TOTALS };
+    let processed = 0;
+
+    try {
+      // Safety cap so a runaway loop can't spin forever.
+      for (let i = 0; i < 500; i++) {
+        const { data, error } = await supabase.functions.invoke("corpus-extract-candidates", {
+          body: { batch_size: 100, start_after_id: cursor, force_reextract: force },
+        });
+        if (error) throw error;
+        const batch = data as BatchResult;
+        setBatches((prev) => [...prev, batch]);
+        for (const k of Object.keys(accTotals) as (keyof Summary)[]) {
+          accTotals[k] += batch.extraction_summary[k] ?? 0;
+        }
+        processed += batch.processed;
+        setTotals({ ...accTotals });
+        setProcessedTotal(processed);
+        setStatusLine(`Batch ${i + 1}: processed ${batch.processed} (running total ${processed})`);
+        if (!batch.processed || batch.processed === 0) break;
+        cursor = batch.last_id;
+      }
+      setStatusLine(`Complete. Total processed: ${processed}.`);
+    } catch (e) {
+      setStatusLine(`Stopped on error: ${(e as Error).message}`);
+    } finally {
+      setRunning(false);
+      await Promise.all([loadErrors(), loadCoverage()]);
+    }
+  }, [loadErrors, loadCoverage]);
+
+  const recomputeMemo = useCallback(async () => {
+    setRecomputeResult("Recomputing…");
+    const { data, error } = await supabase.rpc("recompute_memo_eligible_interim" as any);
+    if (error) { setRecomputeResult(`Error: ${error.message}`); return; }
+    setRecomputeResult(`Recomputed memo_eligible on ${data} rows.`);
+  }, []);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <Helmet>
+        <title>Corpus Extraction — Admin</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
+      <Navbar />
+      <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full">
+        <h1 className="text-3xl font-serif mb-2">Corpus candidate extraction</h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          Runs deterministic Tier-A / Tier-B extractors over the <code>enforcement_actions</code> table.
+          Idempotent — re-run safely. Use <em>force re-extract</em> only when patterns change.
+        </p>
+
+        <div className="flex flex-wrap gap-3 mb-6">
+          <button
+            disabled={running}
+            onClick={() => runExtraction(false)}
+            className="px-4 py-2 rounded bg-brand-teal text-white disabled:opacity-50"
+          >
+            {running ? "Running…" : "Run extraction"}
+          </button>
+          <button
+            disabled={running}
+            onClick={() => runExtraction(true)}
+            className="px-4 py-2 rounded border border-brand-teal text-brand-teal disabled:opacity-50"
+          >
+            Run with force re-extract
+          </button>
+          <button
+            disabled={running}
+            onClick={recomputeMemo}
+            className="px-4 py-2 rounded border border-brand-navy text-brand-navy disabled:opacity-50"
+          >
+            Recompute memo_eligible (interim)
+          </button>
+        </div>
+
+        {statusLine && <p className="mb-2 text-sm">{statusLine}</p>}
+        {recomputeResult && <p className="mb-4 text-sm">{recomputeResult}</p>}
+
+        <section className="mb-8 border rounded p-4">
+          <h2 className="text-lg font-semibold mb-3">Running totals</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <Stat label="Processed rows" value={processedTotal} />
+            <Stat label="Provisions (high conf.)" value={totals.statutory_provisions_high_confidence} />
+            <Stat label="No pattern found" value={totals.statutory_provisions_no_pattern} />
+            <Stat label="Disposition set" value={totals.disposition_set} />
+            <Stat label="Appeal status set" value={totals.appeal_status_set} />
+            <Stat label="Original amount set" value={totals.original_amount_set} />
+            <Stat label="Case ref set" value={totals.case_reference_set} />
+            <Stat label="Sector set" value={totals.sector_set} />
+            <Stat label="Errors" value={totals.errors} />
+          </div>
+        </section>
+
+        {coverage && (
+          <section className="mb-8 border rounded p-4">
+            <h2 className="text-lg font-semibold mb-2">Corpus coverage</h2>
+            <p className="text-sm">
+              {coverage.withProvisions.toLocaleString()} of {coverage.total.toLocaleString()} rows
+              ({coverage.total ? Math.round((coverage.withProvisions / coverage.total) * 100) : 0}%)
+              have candidate statutory provisions; {coverage.noPattern.toLocaleString()} rows have no
+              pattern found.
+            </p>
+          </section>
+        )}
+
+        {batches.length > 0 && (
+          <section className="mb-8 border rounded p-4 overflow-x-auto">
+            <h2 className="text-lg font-semibold mb-3">Per-batch summary</h2>
+            <table className="text-xs w-full min-w-[640px]">
+              <thead>
+                <tr className="text-left">
+                  <th className="p-1">#</th>
+                  <th className="p-1">Processed</th>
+                  <th className="p-1">Prov. hi-conf</th>
+                  <th className="p-1">No pattern</th>
+                  <th className="p-1">Dispo</th>
+                  <th className="p-1">Appeal</th>
+                  <th className="p-1">Amount</th>
+                  <th className="p-1">Case ref</th>
+                  <th className="p-1">Sector</th>
+                  <th className="p-1">Err</th>
+                </tr>
+              </thead>
+              <tbody>
+                {batches.map((b, i) => (
+                  <tr key={i} className="border-t">
+                    <td className="p-1">{i + 1}</td>
+                    <td className="p-1">{b.processed}</td>
+                    <td className="p-1">{b.extraction_summary.statutory_provisions_high_confidence}</td>
+                    <td className="p-1">{b.extraction_summary.statutory_provisions_no_pattern}</td>
+                    <td className="p-1">{b.extraction_summary.disposition_set}</td>
+                    <td className="p-1">{b.extraction_summary.appeal_status_set}</td>
+                    <td className="p-1">{b.extraction_summary.original_amount_set}</td>
+                    <td className="p-1">{b.extraction_summary.case_reference_set}</td>
+                    <td className="p-1">{b.extraction_summary.sector_set}</td>
+                    <td className="p-1">{b.extraction_summary.errors}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
+
+        <section className="mb-8 border rounded p-4 overflow-x-auto">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Recent extraction errors (last 50)</h2>
+            <button onClick={loadErrors} className="text-xs underline">Refresh</button>
+          </div>
+          {errorRows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No errors recorded.</p>
+          ) : (
+            <table className="text-xs w-full min-w-[640px]">
+              <thead>
+                <tr className="text-left">
+                  <th className="p-1">When</th>
+                  <th className="p-1">Action ID</th>
+                  <th className="p-1">Stage</th>
+                  <th className="p-1">Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                {errorRows.map((r) => (
+                  <tr key={r.id} className="border-t align-top">
+                    <td className="p-1 whitespace-nowrap">{new Date(r.ran_at).toLocaleString()}</td>
+                    <td className="p-1 font-mono">{r.enforcement_action_id?.slice(0, 8) ?? "—"}</td>
+                    <td className="p-1">{r.stage}</td>
+                    <td className="p-1">{r.error_message}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded border p-3">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-xl font-semibold">{value.toLocaleString()}</div>
+    </div>
+  );
+}
