@@ -21,6 +21,19 @@ type BatchResult = {
   extraction_summary: Summary;
 };
 
+type EligibilityStatus = {
+  total: number;
+  memoEligibleTrue: number;
+  memoEligibleFalse: number;
+  memoEligibleNull: number;
+  hasSourceUrl: number;
+  hasProvisionsMethod: number;
+  hasProvisions: number;
+  hasKcf: number;
+  hasLaw: number;
+  methodBreakdown: { method: string; count: number }[];
+};
+
 type ErrorRow = {
   id: string;
   enforcement_action_id: string | null;
@@ -48,6 +61,7 @@ export default function CorpusExtractionAdmin() {
   const [statusLine, setStatusLine] = useState<string>("");
   const [errorRows, setErrorRows] = useState<ErrorRow[]>([]);
   const [coverage, setCoverage] = useState<{ total: number; withProvisions: number; noPattern: number } | null>(null);
+  const [eligibility, setEligibility] = useState<EligibilityStatus | null>(null);
   const [recomputeResult, setRecomputeResult] = useState<string>("");
 
   const loadErrors = useCallback(async () => {
@@ -78,7 +92,62 @@ export default function CorpusExtractionAdmin() {
     });
   }, []);
 
-  useEffect(() => { loadErrors(); loadCoverage(); }, [loadErrors, loadCoverage]);
+  const loadEligibility = useCallback(async () => {
+    const headCount = (q: any) => q.select("id", { count: "exact", head: true });
+    const ea = () => supabase.from("enforcement_actions");
+    const [
+      total,
+      mTrue,
+      mFalse,
+      mNull,
+      srcUrl,
+      provMethod,
+      kcf,
+      law,
+      provNone,
+      provHi,
+      provPattern,
+      provNoPattern,
+    ] = await Promise.all([
+      headCount(ea()),
+      headCount(ea()).eq("memo_eligible", true),
+      headCount(ea()).eq("memo_eligible", false),
+      headCount(ea()).is("memo_eligible", null),
+      headCount(ea()).not("source_url", "is", null).neq("source_url", ""),
+      headCount(ea()).in("statutory_provisions_extraction_method", [
+        "regex_high_confidence",
+        "pattern_per_regulator",
+      ]),
+      headCount(ea()).not("key_compliance_failure", "is", null).neq("key_compliance_failure", ""),
+      headCount(ea()).not("law", "is", null).neq("law", ""),
+      headCount(ea()).eq("statutory_provisions_extraction_method", "none"),
+      headCount(ea()).eq("statutory_provisions_extraction_method", "regex_high_confidence"),
+      headCount(ea()).eq("statutory_provisions_extraction_method", "pattern_per_regulator"),
+      headCount(ea()).eq("statutory_provisions_extraction_method", "no_pattern_found"),
+    ]);
+    // Approximate "has provisions array length >=1" via the high-confidence + pattern method counts.
+    // (PostgREST can't filter on array_length directly; method ⇔ provisions populated by extractor.)
+    const hasProvisions = (provHi.count ?? 0) + (provPattern.count ?? 0);
+    setEligibility({
+      total: total.count ?? 0,
+      memoEligibleTrue: mTrue.count ?? 0,
+      memoEligibleFalse: mFalse.count ?? 0,
+      memoEligibleNull: mNull.count ?? 0,
+      hasSourceUrl: srcUrl.count ?? 0,
+      hasProvisionsMethod: provMethod.count ?? 0,
+      hasProvisions,
+      hasKcf: kcf.count ?? 0,
+      hasLaw: law.count ?? 0,
+      methodBreakdown: [
+        { method: "none (not yet run)", count: provNone.count ?? 0 },
+        { method: "regex_high_confidence", count: provHi.count ?? 0 },
+        { method: "pattern_per_regulator", count: provPattern.count ?? 0 },
+        { method: "no_pattern_found", count: provNoPattern.count ?? 0 },
+      ],
+    });
+  }, []);
+
+  useEffect(() => { loadErrors(); loadCoverage(); loadEligibility(); }, [loadErrors, loadCoverage, loadEligibility]);
 
   const runExtraction = useCallback(async (force: boolean) => {
     setRunning(true);
@@ -115,16 +184,17 @@ export default function CorpusExtractionAdmin() {
       setStatusLine(`Stopped on error: ${(e as Error).message}`);
     } finally {
       setRunning(false);
-      await Promise.all([loadErrors(), loadCoverage()]);
+      await Promise.all([loadErrors(), loadCoverage(), loadEligibility()]);
     }
-  }, [loadErrors, loadCoverage]);
+  }, [loadErrors, loadCoverage, loadEligibility]);
 
   const recomputeMemo = useCallback(async () => {
     setRecomputeResult("Recomputing…");
     const { data, error } = await supabase.rpc("recompute_memo_eligible_interim" as any);
     if (error) { setRecomputeResult(`Error: ${error.message}`); return; }
-    setRecomputeResult(`Recomputed memo_eligible on ${data} rows.`);
-  }, []);
+    setRecomputeResult(`Recomputed memo_eligible — ${data} row(s) changed value.`);
+    await loadEligibility();
+  }, [loadEligibility]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -166,6 +236,81 @@ export default function CorpusExtractionAdmin() {
 
         {statusLine && <p className="mb-2 text-sm">{statusLine}</p>}
         {recomputeResult && <p className="mb-4 text-sm">{recomputeResult}</p>}
+
+        {eligibility && (
+          <section className="mb-8 border rounded p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold">Memo-eligibility status</h2>
+              <button onClick={loadEligibility} className="text-xs underline">Refresh</button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-4">
+              <Stat label="Total rows" value={eligibility.total} />
+              <Stat label="memo_eligible = true" value={eligibility.memoEligibleTrue} />
+              <Stat label="memo_eligible = false" value={eligibility.memoEligibleFalse} />
+              <Stat label="memo_eligible = null" value={eligibility.memoEligibleNull} />
+            </div>
+
+            <h3 className="text-sm font-semibold mb-2">Eligibility gates (must all be satisfied)</h3>
+            <table className="text-xs w-full mb-4">
+              <thead>
+                <tr className="text-left">
+                  <th className="p-1">Gate</th>
+                  <th className="p-1">Rows passing</th>
+                  <th className="p-1">% of total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["Has source_url", eligibility.hasSourceUrl],
+                  ["Has extraction method (high-conf or per-regulator)", eligibility.hasProvisionsMethod],
+                  ["Has ≥1 statutory provision (proxy)", eligibility.hasProvisions],
+                  ["Has key_compliance_failure", eligibility.hasKcf],
+                  ["Has law", eligibility.hasLaw],
+                ].map(([label, n]) => (
+                  <tr key={label as string} className="border-t">
+                    <td className="p-1">{label}</td>
+                    <td className="p-1 font-mono">{(n as number).toLocaleString()}</td>
+                    <td className="p-1 font-mono">
+                      {eligibility.total ? Math.round(((n as number) / eligibility.total) * 100) : 0}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <h3 className="text-sm font-semibold mb-2">Extraction method breakdown</h3>
+            <table className="text-xs w-full mb-3">
+              <thead>
+                <tr className="text-left">
+                  <th className="p-1">Method</th>
+                  <th className="p-1">Rows</th>
+                </tr>
+              </thead>
+              <tbody>
+                {eligibility.methodBreakdown.map((m) => (
+                  <tr key={m.method} className="border-t">
+                    <td className="p-1 font-mono">{m.method}</td>
+                    <td className="p-1 font-mono">{m.count.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {eligibility.hasProvisions === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                <strong>Why memo_eligible is 0:</strong> no rows have extracted statutory provisions yet.
+                The recompute is working — it correctly evaluates every row to <code>false</code> because
+                the extraction gate fails. Click <em>Run extraction</em> first, then re-run the recompute.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Recompute is current. <code>{eligibility.memoEligibleTrue.toLocaleString()}</code> row(s)
+                currently satisfy all gates.
+              </p>
+            )}
+          </section>
+        )}
+
 
         <section className="mb-8 border rounded p-4">
           <h2 className="text-lg font-semibold mb-3">Running totals</h2>
