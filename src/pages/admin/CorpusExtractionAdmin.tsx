@@ -21,6 +21,19 @@ type BatchResult = {
   extraction_summary: Summary;
 };
 
+type EligibilityStatus = {
+  total: number;
+  memoEligibleTrue: number;
+  memoEligibleFalse: number;
+  memoEligibleNull: number;
+  hasSourceUrl: number;
+  hasProvisionsMethod: number;
+  hasProvisions: number;
+  hasKcf: number;
+  hasLaw: number;
+  methodBreakdown: { method: string; count: number }[];
+};
+
 type ErrorRow = {
   id: string;
   enforcement_action_id: string | null;
