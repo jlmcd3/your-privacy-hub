@@ -15,8 +15,19 @@ export type FetcherResult = {
   fetched_from_cache?: boolean;
 };
 
-const USER_AGENT =
+const IDENTIFYING_UA =
   "EUP-Verification-Scanner/1.0 (verification@enduserprivacy.com)";
+const BROWSER_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+const USER_AGENT = IDENTIFYING_UA; // backward-compatible alias
+const COMMON_HEADERS: Record<string, string> = {
+  "Accept":
+    "text/html,application/xhtml+xml,application/xml;q=0.9,application/pdf,*/*;q=0.8",
+  "Accept-Language":
+    "en-US,en;q=0.9,es;q=0.8,fr;q=0.7,de;q=0.7,it;q=0.7,nl;q=0.7,pl;q=0.7",
+  "Accept-Encoding": "gzip, deflate, br",
+};
+const BLOCKED_STATUS_CODES = [403, 429, 451];
 const MAX_PDF_CHARS = 50_000;
 const FETCH_TIMEOUT_MS = 30_000;
 
@@ -45,7 +56,6 @@ async function fetchWithTimeout(
     return await fetch(url, {
       ...init,
       signal: ctrl.signal,
-      headers: { "User-Agent": USER_AGENT, ...(init.headers ?? {}) },
       redirect: "follow",
     });
   } finally {
@@ -53,14 +63,39 @@ async function fetchWithTimeout(
   }
 }
 
+async function fetchWithUaStrategy(
+  url: string,
+  timeoutMs = FETCH_TIMEOUT_MS,
+): Promise<Response> {
+  const first = await fetchWithTimeout(
+    url,
+    { headers: { ...COMMON_HEADERS, "User-Agent": IDENTIFYING_UA } },
+    timeoutMs,
+  );
+  if (!BLOCKED_STATUS_CODES.includes(first.status)) return first;
+  // Identifying UA blocked. Wait 10s, retry with browser UA.
+  await new Promise((r) => setTimeout(r, 10_000));
+  return await fetchWithTimeout(
+    url,
+    { headers: { ...COMMON_HEADERS, "User-Agent": BROWSER_UA } },
+    timeoutMs,
+  );
+}
+
+
 // Very small robots.txt parser. We honour Disallow rules for our UA or "*".
 // On any error/timeout we fail-open (allow).
 async function robotsAllows(targetUrl: string): Promise<boolean> {
   try {
     const u = new URL(targetUrl);
     const robotsUrl = `${u.origin}/robots.txt`;
-    const res = await fetchWithTimeout(robotsUrl, {}, 5_000);
+    const res = await fetchWithTimeout(
+      robotsUrl,
+      { headers: { "User-Agent": IDENTIFYING_UA } },
+      5_000,
+    );
     if (!res.ok) return true;
+
     const text = await res.text();
     const lines = text.split(/\r?\n/);
     let applies = false;
@@ -156,7 +191,7 @@ export async function fetchSourceDocument(
   for (let i = 0; i < backoffs.length; i++) {
     if (backoffs[i]) await new Promise((r) => setTimeout(r, backoffs[i]));
     try {
-      res = await fetchWithTimeout(url);
+      res = await fetchWithUaStrategy(url);
       if (res.status >= 500) {
         lastErr = new Error(`HTTP ${res.status}`);
         continue;
