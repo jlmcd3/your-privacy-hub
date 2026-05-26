@@ -231,6 +231,7 @@ The first character of your response must be { and the last must be }.`;
     };
 
     const raw = (envelope?.content?.[0]?.text ?? "").trim();
+    lastRawOutput = raw;
     // Defensive cleanup: strip code fences and isolate the {...} body.
     let cleaned = raw;
     if (cleaned.startsWith("```")) {
