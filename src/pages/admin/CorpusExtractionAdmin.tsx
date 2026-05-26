@@ -62,6 +62,9 @@ export default function CorpusExtractionAdmin() {
   const [errorRows, setErrorRows] = useState<ErrorRow[]>([]);
   const [coverage, setCoverage] = useState<{ total: number; withProvisions: number; noPattern: number } | null>(null);
   const [eligibility, setEligibility] = useState<EligibilityStatus | null>(null);
+  const [eligibilityLoading, setEligibilityLoading] = useState(false);
+  const [eligibilityError, setEligibilityError] = useState<string>("");
+  const [eligibilityRefreshedAt, setEligibilityRefreshedAt] = useState<Date | null>(null);
   const [recomputeResult, setRecomputeResult] = useState<string>("");
 
   const loadErrors = useCallback(async () => {
