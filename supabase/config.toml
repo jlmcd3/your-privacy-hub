@@ -144,4 +144,7 @@ verify_jwt = false
 [functions.get-biometric-regulatory-updates]
 verify_jwt = false
 
+[functions.per-regulator-ingestion]
+verify_jwt = false
+
 
