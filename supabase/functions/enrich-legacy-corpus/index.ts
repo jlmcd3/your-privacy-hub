@@ -47,6 +47,7 @@ const REGULATOR_ALIASES: Record<string, string[]> = {
     "Spanish Data Protection Authority (aepd)",
     "AEPD",
     "AEPD (Spain)",
+    "Agencia Española de Protección de Datos (AEPD)",
   ],
   "Urząd Ochrony Danych Osobowych (UODO)": [
     "UODO",
@@ -54,10 +55,14 @@ const REGULATOR_ALIASES: Record<string, string[]> = {
     "Polish Data Protection Authority (UODO)",
   ],
   "Garante per la protezione dei dati personali": [
+    "Italian Data Protection Authority (Garante)",
     "Garante per la protezione dei dati personali",
     "Garante (Italy)",
   ],
-  "Federal Trade Commission (FTC)": ["FTC"],
+  "Federal Trade Commission (FTC)": [
+    "FTC",
+    "Federal Trade Commission (FTC)",
+  ],
   "U.S. Department of Health & Human Services Office for Civil Rights (HHS OCR)": ["HHS OCR"],
   "Autoritatea Naţională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP)": [
     "Romanian National Supervisory Authority for Personal Data Processing (ANSPDCP)",
@@ -75,6 +80,7 @@ const REGULATOR_ALIASES: Record<string, string[]> = {
   "Office of the Australian Information Commissioner (OAIC)": ["OAIC"],
   "Nemzeti Adatvédelmi és Információszabadság Hatóság (NAIH)": [
     "Hungarian National Authority for Data Protection and the Freedom of Information (NAIH)",
+    "Nemzeti Adatvédelmi és Információszabadság Hatóság (NAIH)",
   ],
 };
 
