@@ -592,13 +592,13 @@ Deno.serve(async (req) => {
 
   for (const strategy of profile.strategy_stack) {
     try {
-      const urls = await discoverDetailUrls(strategy, profile, max_rows * 2);
+      const urls = await discoverDetailUrls(strategy, profile, max_rows * 2 + offset);
       if (!urls.length) {
         errors.push({ strategy: strategy.name, error: "no_urls_discovered" });
         continue;
       }
       strategyUsed = (strategy.name as string) || (strategy.method as string);
-      for (const u of urls.slice(0, max_rows)) {
+      for (const u of urls.slice(offset, offset + max_rows)) {
         discovered++;
         try {
           const row = await extractRow(u, profile, strategy, runId, llmCounter);
