@@ -71,7 +71,38 @@ async function sha256(input: ArrayBuffer | string): Promise<string> {
   return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-const MAX_RESPONSE_BYTES = 5_000_000; // 5MB cap to keep edge function memory under budget
+const MAX_RESPONSE_BYTES = 2_000_000; // 2MB cap — tightened to prevent worker OOM during PDF parse
+
+// Streams the response body chunk-by-chunk, aborting early if the total exceeds the cap.
+// This avoids allocating multi-MB ArrayBuffers (which kill the worker before our size check fires).
+async function readBodyWithCap(resp: Response, cap: number, url: string): Promise<ArrayBuffer | null> {
+  const reader = resp.body?.getReader();
+  if (!reader) return null;
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > cap) {
+        console.warn(`[fetch] aborting ${url} — streamed ${total} bytes exceeds cap ${cap}`);
+        try { await reader.cancel(); } catch { /* noop */ }
+        return null;
+      }
+      chunks.push(value);
+    }
+  } catch (e) {
+    console.warn(`[fetch] stream read error ${url}: ${(e as Error).message}`);
+    try { await reader.cancel(); } catch { /* noop */ }
+    return null;
+  }
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const c of chunks) { out.set(c, off); off += c.byteLength; }
+  return out.buffer;
+}
 
 async function politeFetch(
   url: string,
@@ -96,14 +127,14 @@ async function politeFetch(
       if (resp.ok) {
         const ct = resp.headers.get("content-type") || "";
         const cl = parseInt(resp.headers.get("content-length") || "0", 10);
+        console.log(`[fetch] url=${url} status=${resp.status} content-type=${ct} content-length=${cl || "unknown"}`);
         if (cl > MAX_RESPONSE_BYTES) {
           console.warn(`[fetch] skipping ${url} — content-length ${cl} exceeds ${MAX_RESPONSE_BYTES}`);
           try { await resp.body?.cancel(); } catch { /* noop */ }
           return { ok: false, status: 413, html: "", bytes: null, contentType: ct, fetchedUa: ua, tooLarge: true };
         }
-        const bytes = await resp.arrayBuffer();
-        if (bytes.byteLength > MAX_RESPONSE_BYTES) {
-          console.warn(`[fetch] skipping ${url} — body ${bytes.byteLength} exceeds ${MAX_RESPONSE_BYTES}`);
+        const bytes = await readBodyWithCap(resp, MAX_RESPONSE_BYTES, url);
+        if (!bytes) {
           return { ok: false, status: 413, html: "", bytes: null, contentType: ct, fetchedUa: ua, tooLarge: true };
         }
         let html = "";
