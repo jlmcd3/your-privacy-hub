@@ -285,8 +285,12 @@ async function discoverDetailUrls(
   const allowCross = Boolean(strategy.allow_cross_origin);
   const linkOpts: LinkFilterOpts = {
     pathFilter: strategy.path_filter as string | undefined,
+    hrefFilter: strategy.href_filter as string | undefined,
+    pathRegex: strategy.path_regex as string | undefined,
     minPathSegments: strategy.min_path_segments as number | undefined,
+    excludeBaseUrl: Boolean(strategy.exclude_base_url),
   };
+
   for (let p = 0; p < pages && urls.length < max; p++) {
     const url = pattern ? base + pattern.replace("{N}", String(p)) : base;
     const r = await politeFetch(url, profile.fetch_user_agent_strategy);
