@@ -16,8 +16,13 @@ export async function extractKeyComplianceFailure(
   language: string,
   regulatorCanonical: string,
 ): Promise<KcfResult> {
-  const truncated = (documentText || "").substring(0, 8000);
+  const truncated = (documentText || "").substring(0, 6000);
   if (truncated.length < 60) return { text: null, confidence: "uncertain" };
+  console.log(`[KCF] regulator=${regulatorCanonical} lang=${language} len=${truncated.length} head500="${truncated.substring(0, 500).replace(/\s+/g, " ")}"`);
+
+  const spanishHint = /spanish|^es$/i.test(language)
+    ? `\n\nThe document is a Spanish administrative decision. Look for sentences beginning with "El investigado", "La denunciada", "La entidad", "La reclamada", or "Se constata que" — these typically mark the compliance failure description.`
+    : "";
 
   const prompt = `You are extracting a specific fact from an official regulatory enforcement decision published by ${regulatorCanonical}. The document is in ${language}.
 
@@ -28,7 +33,7 @@ Rules:
 - The extracted text must appear word-for-word (or near word-for-word) in the source document
 - Include the specific data category involved (e.g. employee data, health data, customer data) if mentioned
 - Include the specific technical or organisational failure if mentioned (e.g. "failed to implement adequate encryption", "processed data without legal basis")
-- If you cannot find a clear compliance failure description, return exactly: NULL
+- If you cannot find a clear compliance failure description, return exactly: NULL${spanishHint}
 
 Respond with ONLY the extracted text, or the word NULL. No preamble, no explanation, no quotation marks.
 
