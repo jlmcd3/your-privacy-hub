@@ -522,7 +522,6 @@ async function matchAndWrite(
     fine_currency: row.fine_currency,
     fine_eur_equivalent: row.fine_eur_equivalent,
     key_compliance_failure: row.key_compliance_failure,
-    compliance_failure: row.compliance_failure,
     sector: row.sector,
     source_document_hash_at_ingest: row.source_document_hash_at_ingest,
     ingestion_method: row.ingestion_method,
@@ -534,16 +533,23 @@ async function matchAndWrite(
   };
 
   if (existing) {
-    // Do not overwrite a longer existing key_compliance_failure with shorter
     const { data: cur } = await supabase.from("enforcement_actions")
       .select("key_compliance_failure").eq("id", existing.id).maybeSingle();
     if (cur && (cur.key_compliance_failure || "").length > (row.key_compliance_failure || "").length) {
       delete payload.key_compliance_failure;
     }
-    await supabase.from("enforcement_actions").update(payload).eq("id", existing.id);
+    const { error: updErr } = await supabase.from("enforcement_actions").update(payload).eq("id", existing.id);
+    if (updErr) {
+      console.error(`[matchAndWrite] UPDATE failed id=${existing.id}: ${updErr.message}`);
+      throw new Error(`update_failed: ${updErr.message}`);
+    }
     return "matched";
   }
-  await supabase.from("enforcement_actions").insert(payload);
+  const { error: insErr } = await supabase.from("enforcement_actions").insert(payload);
+  if (insErr) {
+    console.error(`[matchAndWrite] INSERT failed url=${row.source_url}: ${insErr.message}`);
+    throw new Error(`insert_failed: ${insErr.message}`);
+  }
   return "inserted";
 }
 
