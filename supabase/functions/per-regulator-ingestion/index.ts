@@ -178,12 +178,22 @@ function extractLinks(html: string, baseUrl: string, selector?: string): string[
   const doc = new DOMParser().parseFromString(html, "text/html");
   if (!doc) return [];
   const out: string[] = [];
+  let basePath = "";
+  try { basePath = new URL(baseUrl).pathname; } catch { /* noop */ }
   const els = selector ? doc.querySelectorAll(selector) : doc.querySelectorAll("a[href]");
   els.forEach((el) => {
-    const href = (el as Element).getAttribute("href");
+    const hrefRaw = (el as Element).getAttribute("href");
+    if (!hrefRaw) return;
+    const href = hrefRaw.trim();
     if (!href) return;
+    if (href.startsWith("#")) return;
+    if (/^javascript:/i.test(href)) return;
+    if (/^mailto:|^tel:/i.test(href)) return;
     try {
       const u = new URL(href, baseUrl);
+      // Drop fragment for comparison
+      u.hash = "";
+      if (u.pathname === basePath) return; // same listing page (different fragment/query)
       out.push(u.toString());
     } catch { /* skip */ }
   });
