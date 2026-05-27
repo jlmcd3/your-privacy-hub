@@ -379,12 +379,14 @@ async function extractRow(
   row.decision_date = isoDate;
 
   // Confidence
-  const isAggregator = (strategy.method as string) === "aggregator";
+  const isAggregator = (strategy.method as string) === "aggregator" || Boolean(strategy.allow_cross_origin);
+  const confOverride = strategy.confidence_override as ("high" | "medium" | "low" | undefined);
   const hasReq = !!row.decision_date && !!row.subject &&
     !PLACEHOLDER_SUBJECTS.has((row.subject as string).toLowerCase()) &&
     !!row.source_url && !!row.source_document_hash_at_ingest;
   const hasKcf = !!row.key_compliance_failure && (row.key_compliance_failure as string).length > 20;
-  row.ingestion_confidence = isAggregator ? "medium" : !hasReq ? "low" : !hasKcf ? "medium" : "high";
+  const computed = isAggregator ? "medium" : !hasReq ? "low" : !hasKcf ? "medium" : "high";
+  row.ingestion_confidence = confOverride || computed;
 
   row.memo_eligible = row.ingestion_method !== null &&
     row.ingestion_confidence === "high" &&
