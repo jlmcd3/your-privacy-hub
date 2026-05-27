@@ -409,7 +409,9 @@ async function enrichOne(
   if (fineEur !== null && fineEur !== undefined) payload.fine_eur_equivalent = fineEur;
   if (provisions.length) payload.statutory_provisions = provisions;
   if (sector) payload.sector = sector;
-  if (compliance) payload.compliance_failure = compliance;
+  // Note: `compliance_failure` is not a column on enforcement_actions; classifier output
+  // is intentionally not persisted (mirrors discovery pipeline behaviour).
+  void compliance;
   if (decision_date) payload.decision_date = decision_date;
   if (fields.case_reference) payload.case_reference = fields.case_reference;
   if (subject) payload.subject = subject;
