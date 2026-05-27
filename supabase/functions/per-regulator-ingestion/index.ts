@@ -159,22 +159,27 @@ function htmlToText(html: string): string {
 }
 
 // PDF text extraction via unpdf (Deno-compatible, no canvas deps).
-async function pdfBytesToText(bytes: ArrayBuffer): Promise<string> {
+async function pdfBytesToText(bytes: ArrayBuffer, sourceUrl = ""): Promise<string> {
   try {
     const { extractText, getDocumentProxy } = await import("https://esm.sh/unpdf@0.12.1");
     const pdf = await getDocumentProxy(new Uint8Array(bytes));
     const { text } = await extractText(pdf, { mergePages: true });
     const joined = Array.isArray(text) ? text.join("\n") : String(text ?? "");
-    return joined.replace(/\s+/g, " ").slice(0, 50_000).trim();
+    const cleaned = joined.replace(/\s+/g, " ").slice(0, 50_000).trim();
+    console.log(`[PDF] url=${sourceUrl} bytes=${bytes.byteLength} extractedLen=${cleaned.length} head500="${cleaned.substring(0, 500)}"`);
+    return cleaned;
   } catch (e) {
-    console.warn(`unpdf parse failed: ${(e as Error).message}`);
+    console.warn(`unpdf parse failed for ${sourceUrl}: ${(e as Error).message}`);
     return "";
   }
 }
 
 interface LinkFilterOpts {
   pathFilter?: string;       // regex string applied to pathname
+  hrefFilter?: string;       // regex string applied to raw href (before URL resolution)
+  pathRegex?: string;        // regex string applied to resolved pathname (alt for pathFilter)
   minPathSegments?: number;  // min non-empty path segments
+  excludeBaseUrl?: boolean;  // skip URLs whose pathname+search equals base
 }
 
 function extractLinks(html: string, baseUrl: string, selector?: string, opts: LinkFilterOpts = {}): string[] {
@@ -183,11 +188,16 @@ function extractLinks(html: string, baseUrl: string, selector?: string, opts: Li
   if (!doc) return [];
   const out: string[] = [];
   let basePath = "";
-  try { basePath = new URL(baseUrl).pathname; } catch { /* noop */ }
-  let pathRe: RegExp | null = null;
-  if (opts.pathFilter) {
-    try { pathRe = new RegExp(opts.pathFilter, "i"); } catch { pathRe = null; }
-  }
+  let baseFull = "";
+  try {
+    const bu = new URL(baseUrl);
+    basePath = bu.pathname;
+    baseFull = bu.origin + bu.pathname + bu.search;
+  } catch { /* noop */ }
+  const compileRe = (s?: string) => { try { return s ? new RegExp(s, "i") : null; } catch { return null; } };
+  const pathRe = compileRe(opts.pathFilter);
+  const hrefRe = compileRe(opts.hrefFilter);
+  const pathRegexRe = compileRe(opts.pathRegex);
   const els = selector ? doc.querySelectorAll(selector) : doc.querySelectorAll("a[href]");
   els.forEach((el) => {
     const hrefRaw = (el as Element).getAttribute("href");
@@ -197,20 +207,24 @@ function extractLinks(html: string, baseUrl: string, selector?: string, opts: Li
     if (href.startsWith("#")) return;
     if (/^javascript:/i.test(href)) return;
     if (/^mailto:|^tel:/i.test(href)) return;
+    if (hrefRe && !hrefRe.test(href)) return;
     try {
       const u = new URL(href, baseUrl);
       u.hash = "";
-      if (u.pathname === basePath) return;
+      if (u.pathname === basePath && !u.search) return;
+      if (opts.excludeBaseUrl && (u.origin + u.pathname + u.search) === baseFull) return;
       if (opts.minPathSegments !== undefined) {
         const segs = u.pathname.split("/").filter(Boolean).length;
         if (segs < opts.minPathSegments) return;
       }
       if (pathRe && !pathRe.test(u.pathname)) return;
+      if (pathRegexRe && !pathRegexRe.test(u.pathname)) return;
       out.push(u.toString());
     } catch { /* skip */ }
   });
   return Array.from(new Set(out));
 }
+
 
 function extractRssItems(xml: string): Array<{ link: string; title: string; pubDate?: string }> {
   if (!xml) return [];
@@ -271,8 +285,12 @@ async function discoverDetailUrls(
   const allowCross = Boolean(strategy.allow_cross_origin);
   const linkOpts: LinkFilterOpts = {
     pathFilter: strategy.path_filter as string | undefined,
+    hrefFilter: strategy.href_filter as string | undefined,
+    pathRegex: strategy.path_regex as string | undefined,
     minPathSegments: strategy.min_path_segments as number | undefined,
+    excludeBaseUrl: Boolean(strategy.exclude_base_url),
   };
+
   for (let p = 0; p < pages && urls.length < max; p++) {
     const url = pattern ? base + pattern.replace("{N}", String(p)) : base;
     const r = await politeFetch(url, profile.fetch_user_agent_strategy);
@@ -310,7 +328,7 @@ async function extractRow(
   const r = await politeFetch(detailUrl, profile.fetch_user_agent_strategy);
   if (!r.ok || !r.bytes) return null;
   const isPdf = (r.contentType.includes("pdf")) || detailUrl.toLowerCase().endsWith(".pdf");
-  const text = isPdf ? await pdfBytesToText(r.bytes) : htmlToText(r.html);
+  const text = isPdf ? await pdfBytesToText(r.bytes, detailUrl) : htmlToText(r.html);
   const html = isPdf ? "" : r.html;
   if (text.length < 100) return null;
 
