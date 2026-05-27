@@ -266,13 +266,21 @@ async function discoverDetailUrls(
 
   if (method === "press_release_browse" && (strategy.year_range as number[] | undefined)) {
     const [start, end] = strategy.year_range as [number, number];
+    const prLinkOpts: LinkFilterOpts = {
+      pathFilter: strategy.path_filter as string | undefined,
+      hrefFilter: strategy.href_filter as string | undefined,
+      pathRegex: strategy.path_regex as string | undefined,
+      minPathSegments: strategy.min_path_segments as number | undefined,
+      excludeBaseUrl: Boolean(strategy.exclude_base_url),
+    };
     for (let y = end; y >= start && urls.length < max; y--) {
       const url = base.replace("{YYYY}", String(y));
       const r = await politeFetch(url, profile.fetch_user_agent_strategy);
       if (!r.ok) continue;
-      for (const u of extractLinks(r.html, url)) {
+      for (const u of extractLinks(r.html, url, selector, prLinkOpts)) {
         if (!urls.includes(u)) urls.push(u);
         if (urls.length >= max) break;
+
       }
       await new Promise((res) => setTimeout(res, profile.fetch_rate_limit_ms));
     }
