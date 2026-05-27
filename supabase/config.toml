@@ -150,5 +150,11 @@ verify_jwt = false
 [functions.regulator-ingestion-orchestrator]
 verify_jwt = false
 
+[functions.enrich-legacy-corpus]
+verify_jwt = false
+
+[functions.corpus-enrichment-orchestrator]
+verify_jwt = false
+
 
 
