@@ -71,10 +71,12 @@ async function sha256(input: ArrayBuffer | string): Promise<string> {
   return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+const MAX_RESPONSE_BYTES = 5_000_000; // 5MB cap to keep edge function memory under budget
+
 async function politeFetch(
   url: string,
   uaStrategy: string,
-): Promise<{ ok: boolean; status: number; html: string; bytes: ArrayBuffer | null; contentType: string; fetchedUa: string }> {
+): Promise<{ ok: boolean; status: number; html: string; bytes: ArrayBuffer | null; contentType: string; fetchedUa: string; tooLarge?: boolean }> {
   const tries = uaStrategy === "browser_first"
     ? [BROWSER_UA, IDENTIFYING_UA]
     : [IDENTIFYING_UA, BROWSER_UA];
@@ -93,7 +95,17 @@ async function politeFetch(
       last = resp;
       if (resp.ok) {
         const ct = resp.headers.get("content-type") || "";
+        const cl = parseInt(resp.headers.get("content-length") || "0", 10);
+        if (cl > MAX_RESPONSE_BYTES) {
+          console.warn(`[fetch] skipping ${url} — content-length ${cl} exceeds ${MAX_RESPONSE_BYTES}`);
+          try { await resp.body?.cancel(); } catch { /* noop */ }
+          return { ok: false, status: 413, html: "", bytes: null, contentType: ct, fetchedUa: ua, tooLarge: true };
+        }
         const bytes = await resp.arrayBuffer();
+        if (bytes.byteLength > MAX_RESPONSE_BYTES) {
+          console.warn(`[fetch] skipping ${url} — body ${bytes.byteLength} exceeds ${MAX_RESPONSE_BYTES}`);
+          return { ok: false, status: 413, html: "", bytes: null, contentType: ct, fetchedUa: ua, tooLarge: true };
+        }
         let html = "";
         if (!ct.includes("pdf")) {
           html = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
