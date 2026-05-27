@@ -548,6 +548,7 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => ({}));
   const regulator_canonical: string | undefined = body.regulator_canonical;
   const max_rows: number = Number(body.max_rows ?? 5);
+  const offset: number = Number(body.offset ?? 0);
   const dry_run: boolean = body.dry_run !== false;
 
   if (!regulator_canonical) {
