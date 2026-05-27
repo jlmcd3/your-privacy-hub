@@ -710,12 +710,17 @@ export type Database = {
           last_source_fetch_at: string | null
           law: string | null
           legacy_enrichment_version: number | null
+          legacy_summary_text: string | null
+          legacy_summary_url: string | null
           li_processed: boolean
           memo_eligible: boolean
           original_amount: number | null
           original_currency: string | null
           precedent_significance: number | null
           preventive_measures: string | null
+          primary_source_status: string | null
+          primary_source_url: string | null
+          primary_source_url_discovered_at: string | null
           raw_text: string | null
           regulator: string
           regulator_canonical: string | null
@@ -724,8 +729,10 @@ export type Database = {
           sector: string | null
           sector_extraction_method: string | null
           source_database: string | null
+          source_document_fetched_at: string | null
           source_document_hash: string | null
           source_document_hash_at_ingest: string | null
+          source_document_text: string | null
           source_url: string | null
           statutory_provisions: string[] | null
           statutory_provisions_extraction_method: string | null
@@ -771,12 +778,17 @@ export type Database = {
           last_source_fetch_at?: string | null
           law?: string | null
           legacy_enrichment_version?: number | null
+          legacy_summary_text?: string | null
+          legacy_summary_url?: string | null
           li_processed?: boolean
           memo_eligible?: boolean
           original_amount?: number | null
           original_currency?: string | null
           precedent_significance?: number | null
           preventive_measures?: string | null
+          primary_source_status?: string | null
+          primary_source_url?: string | null
+          primary_source_url_discovered_at?: string | null
           raw_text?: string | null
           regulator: string
           regulator_canonical?: string | null
@@ -785,8 +797,10 @@ export type Database = {
           sector?: string | null
           sector_extraction_method?: string | null
           source_database?: string | null
+          source_document_fetched_at?: string | null
           source_document_hash?: string | null
           source_document_hash_at_ingest?: string | null
+          source_document_text?: string | null
           source_url?: string | null
           statutory_provisions?: string[] | null
           statutory_provisions_extraction_method?: string | null
@@ -832,12 +846,17 @@ export type Database = {
           last_source_fetch_at?: string | null
           law?: string | null
           legacy_enrichment_version?: number | null
+          legacy_summary_text?: string | null
+          legacy_summary_url?: string | null
           li_processed?: boolean
           memo_eligible?: boolean
           original_amount?: number | null
           original_currency?: string | null
           precedent_significance?: number | null
           preventive_measures?: string | null
+          primary_source_status?: string | null
+          primary_source_url?: string | null
+          primary_source_url_discovered_at?: string | null
           raw_text?: string | null
           regulator?: string
           regulator_canonical?: string | null
@@ -846,8 +865,10 @@ export type Database = {
           sector?: string | null
           sector_extraction_method?: string | null
           source_database?: string | null
+          source_document_fetched_at?: string | null
           source_document_hash?: string | null
           source_document_hash_at_ingest?: string | null
+          source_document_text?: string | null
           source_url?: string | null
           statutory_provisions?: string[] | null
           statutory_provisions_extraction_method?: string | null
