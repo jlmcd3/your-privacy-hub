@@ -266,6 +266,7 @@ async function discoverDetailUrls(
 
   if (method === "press_release_browse" && (strategy.year_range as number[] | undefined)) {
     const [start, end] = strategy.year_range as [number, number];
+    const allowCrossPR = Boolean(strategy.allow_cross_origin);
     const prLinkOpts: LinkFilterOpts = {
       pathFilter: strategy.path_filter as string | undefined,
       hrefFilter: strategy.href_filter as string | undefined,
@@ -278,19 +279,27 @@ async function discoverDetailUrls(
       const r = await politeFetch(url, profile.fetch_user_agent_strategy);
       if (!r.ok) continue;
       for (const u of extractLinks(r.html, url, selector, prLinkOpts)) {
+        try {
+          if (!allowCrossPR) {
+            const baseHost = new URL(url).host;
+            const uH = new URL(u).host;
+            if (uH && baseHost && !uH.endsWith(baseHost.split(".").slice(-2).join("."))) continue;
+          }
+        } catch { continue; }
         if (!urls.includes(u)) urls.push(u);
         if (urls.length >= max) break;
-
       }
       await new Promise((res) => setTimeout(res, profile.fetch_rate_limit_ms));
     }
     return urls;
   }
 
-  // Default: paginated or single-page HTML listing
+  // Default: paginated or single-page HTML listing.
+  // Supports strategy.seed_urls: string[] (iterate multiple listing pages).
   const pattern = (strategy.url_pattern as string | undefined);
   const pages = pattern ? 3 : 1;
   const allowCross = Boolean(strategy.allow_cross_origin);
+  const seedUrls = (strategy.seed_urls as string[] | undefined);
   const linkOpts: LinkFilterOpts = {
     pathFilter: strategy.path_filter as string | undefined,
     hrefFilter: strategy.href_filter as string | undefined,
@@ -299,29 +308,34 @@ async function discoverDetailUrls(
     excludeBaseUrl: Boolean(strategy.exclude_base_url),
   };
 
-  for (let p = 0; p < pages && urls.length < max; p++) {
-    const url = pattern ? base + pattern.replace("{N}", String(p)) : base;
-    const r = await politeFetch(url, profile.fetch_user_agent_strategy);
-    if (!r.ok) break;
-    const links = extractLinks(r.html, url, selector, linkOpts);
-    for (const u of links) {
-      try {
-        if (allowCross) {
-          if (!urls.includes(u)) urls.push(u);
-        } else {
-          const baseHost = new URL(base).host;
-          const uH = new URL(u).host;
-          if (uH && baseHost && uH.endsWith(baseHost.split(".").slice(-2).join("."))) {
+  const listings: string[] = seedUrls && seedUrls.length ? [...seedUrls] : [base];
+
+  for (const listing of listings) {
+    if (urls.length >= max) break;
+    for (let p = 0; p < pages && urls.length < max; p++) {
+      const url = pattern ? listing + pattern.replace("{N}", String(p)) : listing;
+      const r = await politeFetch(url, profile.fetch_user_agent_strategy);
+      if (!r.ok) break;
+      const links = extractLinks(r.html, url, selector, linkOpts);
+      for (const u of links) {
+        try {
+          if (allowCross) {
             if (!urls.includes(u)) urls.push(u);
+          } else {
+            const baseHost = new URL(listing).host;
+            const uH = new URL(u).host;
+            if (uH && baseHost && uH.endsWith(baseHost.split(".").slice(-2).join("."))) {
+              if (!urls.includes(u)) urls.push(u);
+            }
           }
-        }
-      } catch { /* skip */ }
-      if (urls.length >= max) break;
+        } catch { /* skip */ }
+        if (urls.length >= max) break;
+      }
+      if (urls.length > 0 && p === 0) {
+        console.log(`[discover] ${profile.canonical_name} listing=${listing} found ${urls.length}, first: ${urls[0]}`);
+      }
+      await new Promise((res) => setTimeout(res, profile.fetch_rate_limit_ms));
     }
-    if (urls.length > 0 && p === 0) {
-      console.log(`[discover] ${profile.canonical_name} found ${urls.length} URLs, first: ${urls[0]}`);
-    }
-    await new Promise((res) => setTimeout(res, profile.fetch_rate_limit_ms));
   }
   return urls;
 }
@@ -534,6 +548,7 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => ({}));
   const regulator_canonical: string | undefined = body.regulator_canonical;
   const max_rows: number = Number(body.max_rows ?? 5);
+  const offset: number = Number(body.offset ?? 0);
   const dry_run: boolean = body.dry_run !== false;
 
   if (!regulator_canonical) {
@@ -577,13 +592,13 @@ Deno.serve(async (req) => {
 
   for (const strategy of profile.strategy_stack) {
     try {
-      const urls = await discoverDetailUrls(strategy, profile, max_rows * 2);
+      const urls = await discoverDetailUrls(strategy, profile, max_rows * 2 + offset);
       if (!urls.length) {
         errors.push({ strategy: strategy.name, error: "no_urls_discovered" });
         continue;
       }
       strategyUsed = (strategy.name as string) || (strategy.method as string);
-      for (const u of urls.slice(0, max_rows)) {
+      for (const u of urls.slice(offset, offset + max_rows)) {
         discovered++;
         try {
           const row = await extractRow(u, profile, strategy, runId, llmCounter);

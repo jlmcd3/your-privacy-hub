@@ -147,4 +147,8 @@ verify_jwt = false
 [functions.per-regulator-ingestion]
 verify_jwt = false
 
+[functions.regulator-ingestion-orchestrator]
+verify_jwt = false
+
+
 
