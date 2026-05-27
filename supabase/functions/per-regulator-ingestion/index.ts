@@ -266,6 +266,7 @@ async function discoverDetailUrls(
 
   if (method === "press_release_browse" && (strategy.year_range as number[] | undefined)) {
     const [start, end] = strategy.year_range as [number, number];
+    const allowCrossPR = Boolean(strategy.allow_cross_origin);
     const prLinkOpts: LinkFilterOpts = {
       pathFilter: strategy.path_filter as string | undefined,
       hrefFilter: strategy.href_filter as string | undefined,
@@ -278,9 +279,15 @@ async function discoverDetailUrls(
       const r = await politeFetch(url, profile.fetch_user_agent_strategy);
       if (!r.ok) continue;
       for (const u of extractLinks(r.html, url, selector, prLinkOpts)) {
+        try {
+          if (!allowCrossPR) {
+            const baseHost = new URL(url).host;
+            const uH = new URL(u).host;
+            if (uH && baseHost && !uH.endsWith(baseHost.split(".").slice(-2).join("."))) continue;
+          }
+        } catch { continue; }
         if (!urls.includes(u)) urls.push(u);
         if (urls.length >= max) break;
-
       }
       await new Promise((res) => setTimeout(res, profile.fetch_rate_limit_ms));
     }
