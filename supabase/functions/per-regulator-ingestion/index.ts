@@ -158,28 +158,36 @@ function htmlToText(html: string): string {
     .trim();
 }
 
-// Best-effort PDF text extraction without heavy deps: pull text fragments
-// between BT/ET blocks. Works for many text-based PDFs; fails for scanned PDFs.
-function pdfBytesToText(bytes: ArrayBuffer): string {
+// PDF text extraction via unpdf (Deno-compatible, no canvas deps).
+async function pdfBytesToText(bytes: ArrayBuffer): Promise<string> {
   try {
-    const s = new TextDecoder("latin1").decode(bytes);
-    const parts: string[] = [];
-    const re = /\(([^()\\]{2,})\)\s*Tj/g;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(s))) parts.push(m[1]);
-    return parts.join(" ").replace(/\s+/g, " ").slice(0, 50_000);
-  } catch {
+    const { extractText, getDocumentProxy } = await import("https://esm.sh/unpdf@0.12.1");
+    const pdf = await getDocumentProxy(new Uint8Array(bytes));
+    const { text } = await extractText(pdf, { mergePages: true });
+    const joined = Array.isArray(text) ? text.join("\n") : String(text ?? "");
+    return joined.replace(/\s+/g, " ").slice(0, 50_000).trim();
+  } catch (e) {
+    console.warn(`unpdf parse failed: ${(e as Error).message}`);
     return "";
   }
 }
 
-function extractLinks(html: string, baseUrl: string, selector?: string): string[] {
+interface LinkFilterOpts {
+  pathFilter?: string;       // regex string applied to pathname
+  minPathSegments?: number;  // min non-empty path segments
+}
+
+function extractLinks(html: string, baseUrl: string, selector?: string, opts: LinkFilterOpts = {}): string[] {
   if (!html) return [];
   const doc = new DOMParser().parseFromString(html, "text/html");
   if (!doc) return [];
   const out: string[] = [];
   let basePath = "";
   try { basePath = new URL(baseUrl).pathname; } catch { /* noop */ }
+  let pathRe: RegExp | null = null;
+  if (opts.pathFilter) {
+    try { pathRe = new RegExp(opts.pathFilter, "i"); } catch { pathRe = null; }
+  }
   const els = selector ? doc.querySelectorAll(selector) : doc.querySelectorAll("a[href]");
   els.forEach((el) => {
     const hrefRaw = (el as Element).getAttribute("href");
@@ -191,9 +199,13 @@ function extractLinks(html: string, baseUrl: string, selector?: string): string[
     if (/^mailto:|^tel:/i.test(href)) return;
     try {
       const u = new URL(href, baseUrl);
-      // Drop fragment for comparison
       u.hash = "";
-      if (u.pathname === basePath) return; // same listing page (different fragment/query)
+      if (u.pathname === basePath) return;
+      if (opts.minPathSegments !== undefined) {
+        const segs = u.pathname.split("/").filter(Boolean).length;
+        if (segs < opts.minPathSegments) return;
+      }
+      if (pathRe && !pathRe.test(u.pathname)) return;
       out.push(u.toString());
     } catch { /* skip */ }
   });
