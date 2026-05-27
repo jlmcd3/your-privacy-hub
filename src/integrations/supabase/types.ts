@@ -1451,57 +1451,90 @@ export type Database = {
       }
       ingestion_runs: {
         Row: {
+          completed_at: string | null
           duration_ms: number | null
           enriched: number | null
           enrichment_failed_429: number | null
           enrichment_failed_other: number | null
           error_message: string | null
+          errors: Json | null
           fetched: number | null
           finished_at: string | null
           id: string
           inserted: number | null
           job_name: string | null
+          llm_calls_made: number | null
+          llm_cost_usd: number | null
           metadata: Json | null
+          notes: string | null
+          regulator_canonical: string | null
+          rows_discovered: number | null
+          rows_failed: number | null
+          rows_inserted_new: number | null
+          rows_matched_legacy: number | null
           run_at: string
           skipped: number | null
           started_at: string | null
           status: string | null
+          strategy_method: string | null
           summaries_generated: number | null
         }
         Insert: {
+          completed_at?: string | null
           duration_ms?: number | null
           enriched?: number | null
           enrichment_failed_429?: number | null
           enrichment_failed_other?: number | null
           error_message?: string | null
+          errors?: Json | null
           fetched?: number | null
           finished_at?: string | null
           id?: string
           inserted?: number | null
           job_name?: string | null
+          llm_calls_made?: number | null
+          llm_cost_usd?: number | null
           metadata?: Json | null
+          notes?: string | null
+          regulator_canonical?: string | null
+          rows_discovered?: number | null
+          rows_failed?: number | null
+          rows_inserted_new?: number | null
+          rows_matched_legacy?: number | null
           run_at: string
           skipped?: number | null
           started_at?: string | null
           status?: string | null
+          strategy_method?: string | null
           summaries_generated?: number | null
         }
         Update: {
+          completed_at?: string | null
           duration_ms?: number | null
           enriched?: number | null
           enrichment_failed_429?: number | null
           enrichment_failed_other?: number | null
           error_message?: string | null
+          errors?: Json | null
           fetched?: number | null
           finished_at?: string | null
           id?: string
           inserted?: number | null
           job_name?: string | null
+          llm_calls_made?: number | null
+          llm_cost_usd?: number | null
           metadata?: Json | null
+          notes?: string | null
+          regulator_canonical?: string | null
+          rows_discovered?: number | null
+          rows_failed?: number | null
+          rows_inserted_new?: number | null
+          rows_matched_legacy?: number | null
           run_at?: string
           skipped?: number | null
           started_at?: string | null
           status?: string | null
+          strategy_method?: string | null
           summaries_generated?: number | null
         }
         Relationships: []
