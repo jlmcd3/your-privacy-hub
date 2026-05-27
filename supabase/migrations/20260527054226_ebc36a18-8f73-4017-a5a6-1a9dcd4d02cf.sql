@@ -1,0 +1,1 @@
+ALTER TABLE public.ingestion_runs ALTER COLUMN run_at SET DEFAULT now();

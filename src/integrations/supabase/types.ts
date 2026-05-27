@@ -1501,7 +1501,7 @@ export type Database = {
           rows_failed?: number | null
           rows_inserted_new?: number | null
           rows_matched_legacy?: number | null
-          run_at: string
+          run_at?: string
           skipped?: number | null
           started_at?: string | null
           status?: string | null
