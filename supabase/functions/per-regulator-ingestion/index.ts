@@ -6,7 +6,7 @@
 // Body: { regulator_canonical: string, max_rows?: number, dry_run?: boolean }
 // Auth: Admin only via x-admin-token header matching ADMIN_SECRET_TOKEN.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { DOMParser, Element } from "https://deno.land/x/[email protected]/deno-dom-wasm.ts";
+import { DOMParser, Element } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
 import {
   extractKeyComplianceFailure,
   classifyComplianceFailure,
