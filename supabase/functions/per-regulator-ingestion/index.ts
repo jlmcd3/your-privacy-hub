@@ -268,21 +268,32 @@ async function discoverDetailUrls(
   // Default: paginated or single-page HTML listing
   const pattern = (strategy.url_pattern as string | undefined);
   const pages = pattern ? 3 : 1;
+  const allowCross = Boolean(strategy.allow_cross_origin);
+  const linkOpts: LinkFilterOpts = {
+    pathFilter: strategy.path_filter as string | undefined,
+    minPathSegments: strategy.min_path_segments as number | undefined,
+  };
   for (let p = 0; p < pages && urls.length < max; p++) {
     const url = pattern ? base + pattern.replace("{N}", String(p)) : base;
     const r = await politeFetch(url, profile.fetch_user_agent_strategy);
     if (!r.ok) break;
-    const links = selector ? extractLinks(r.html, url, selector) : extractLinks(r.html, url);
+    const links = extractLinks(r.html, url, selector, linkOpts);
     for (const u of links) {
-      // Heuristic: prefer same-host links containing decision/resolution/case keywords
       try {
-        const baseHost = new URL(base).host;
-        const uH = new URL(u).host;
-        if (uH && baseHost && uH.endsWith(baseHost.split(".").slice(-2).join("."))) {
+        if (allowCross) {
           if (!urls.includes(u)) urls.push(u);
+        } else {
+          const baseHost = new URL(base).host;
+          const uH = new URL(u).host;
+          if (uH && baseHost && uH.endsWith(baseHost.split(".").slice(-2).join("."))) {
+            if (!urls.includes(u)) urls.push(u);
+          }
         }
       } catch { /* skip */ }
       if (urls.length >= max) break;
+    }
+    if (urls.length > 0 && p === 0) {
+      console.log(`[discover] ${profile.canonical_name} found ${urls.length} URLs, first: ${urls[0]}`);
     }
     await new Promise((res) => setTimeout(res, profile.fetch_rate_limit_ms));
   }
