@@ -328,7 +328,7 @@ async function extractRow(
   const r = await politeFetch(detailUrl, profile.fetch_user_agent_strategy);
   if (!r.ok || !r.bytes) return null;
   const isPdf = (r.contentType.includes("pdf")) || detailUrl.toLowerCase().endsWith(".pdf");
-  const text = isPdf ? await pdfBytesToText(r.bytes) : htmlToText(r.html);
+  const text = isPdf ? await pdfBytesToText(r.bytes, detailUrl) : htmlToText(r.html);
   const html = isPdf ? "" : r.html;
   if (text.length < 100) return null;
 
