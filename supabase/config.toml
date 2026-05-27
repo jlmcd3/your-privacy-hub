@@ -156,5 +156,17 @@ verify_jwt = false
 [functions.corpus-enrichment-orchestrator]
 verify_jwt = false
 
+[functions.discover-primary-source-url]
+verify_jwt = false
+
+[functions.fetch-and-extract-primary-source]
+verify_jwt = false
+
+[functions.track3-discovery-orchestrator]
+verify_jwt = false
+
+[functions.track3-extract-orchestrator]
+verify_jwt = false
+
 
 
