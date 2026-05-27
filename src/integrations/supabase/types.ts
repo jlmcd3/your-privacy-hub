@@ -695,10 +695,16 @@ export type Database = {
           enrichment_version: number | null
           etid: string | null
           fine_amount: string | null
+          fine_amount_local: string | null
+          fine_currency: string | null
           fine_eur: number | null
           fine_eur_equivalent: number | null
           id: string
           industry_sector: string | null
+          ingestion_confidence: string | null
+          ingestion_method: string | null
+          ingestion_run_id: string | null
+          ingestion_strategy_used: string | null
           jurisdiction: string
           key_compliance_failure: string | null
           last_source_fetch_at: string | null
@@ -712,11 +718,14 @@ export type Database = {
           preventive_measures: string | null
           raw_text: string | null
           regulator: string
+          regulator_canonical: string | null
+          regulator_profile_version: string | null
           regulatory_family: string[] | null
           sector: string | null
           sector_extraction_method: string | null
           source_database: string | null
           source_document_hash: string | null
+          source_document_hash_at_ingest: string | null
           source_url: string | null
           statutory_provisions: string[] | null
           statutory_provisions_extraction_method: string | null
@@ -747,10 +756,16 @@ export type Database = {
           enrichment_version?: number | null
           etid?: string | null
           fine_amount?: string | null
+          fine_amount_local?: string | null
+          fine_currency?: string | null
           fine_eur?: number | null
           fine_eur_equivalent?: number | null
           id?: string
           industry_sector?: string | null
+          ingestion_confidence?: string | null
+          ingestion_method?: string | null
+          ingestion_run_id?: string | null
+          ingestion_strategy_used?: string | null
           jurisdiction: string
           key_compliance_failure?: string | null
           last_source_fetch_at?: string | null
@@ -764,11 +779,14 @@ export type Database = {
           preventive_measures?: string | null
           raw_text?: string | null
           regulator: string
+          regulator_canonical?: string | null
+          regulator_profile_version?: string | null
           regulatory_family?: string[] | null
           sector?: string | null
           sector_extraction_method?: string | null
           source_database?: string | null
           source_document_hash?: string | null
+          source_document_hash_at_ingest?: string | null
           source_url?: string | null
           statutory_provisions?: string[] | null
           statutory_provisions_extraction_method?: string | null
@@ -799,10 +817,16 @@ export type Database = {
           enrichment_version?: number | null
           etid?: string | null
           fine_amount?: string | null
+          fine_amount_local?: string | null
+          fine_currency?: string | null
           fine_eur?: number | null
           fine_eur_equivalent?: number | null
           id?: string
           industry_sector?: string | null
+          ingestion_confidence?: string | null
+          ingestion_method?: string | null
+          ingestion_run_id?: string | null
+          ingestion_strategy_used?: string | null
           jurisdiction?: string
           key_compliance_failure?: string | null
           last_source_fetch_at?: string | null
@@ -816,11 +840,14 @@ export type Database = {
           preventive_measures?: string | null
           raw_text?: string | null
           regulator?: string
+          regulator_canonical?: string | null
+          regulator_profile_version?: string | null
           regulatory_family?: string[] | null
           sector?: string | null
           sector_extraction_method?: string | null
           source_database?: string | null
           source_document_hash?: string | null
+          source_document_hash_at_ingest?: string | null
           source_url?: string | null
           statutory_provisions?: string[] | null
           statutory_provisions_extraction_method?: string | null
@@ -2603,6 +2630,78 @@ export type Database = {
           follow_type?: string
           id?: string
           is_premium?: boolean | null
+        }
+        Relationships: []
+      }
+      regulator_profiles: {
+        Row: {
+          active: boolean
+          canonical_name: string
+          case_reference_pattern: string | null
+          coverage_assessment: string | null
+          created_at: string
+          currency_code: string
+          date_formats: string[]
+          default_language: string
+          fetch_rate_limit_ms: number
+          fetch_user_agent_strategy: string
+          field_recipes: Json
+          jurisdiction: string
+          known_issues: string[] | null
+          law_canonical: string
+          llm_extraction_model: string
+          profile_version: string
+          regulatory_family: string[]
+          requires_js_render: boolean
+          respect_robots_txt: boolean
+          strategy_stack: Json
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          canonical_name: string
+          case_reference_pattern?: string | null
+          coverage_assessment?: string | null
+          created_at?: string
+          currency_code?: string
+          date_formats?: string[]
+          default_language: string
+          fetch_rate_limit_ms?: number
+          fetch_user_agent_strategy?: string
+          field_recipes?: Json
+          jurisdiction: string
+          known_issues?: string[] | null
+          law_canonical: string
+          llm_extraction_model?: string
+          profile_version?: string
+          regulatory_family?: string[]
+          requires_js_render?: boolean
+          respect_robots_txt?: boolean
+          strategy_stack?: Json
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          canonical_name?: string
+          case_reference_pattern?: string | null
+          coverage_assessment?: string | null
+          created_at?: string
+          currency_code?: string
+          date_formats?: string[]
+          default_language?: string
+          fetch_rate_limit_ms?: number
+          fetch_user_agent_strategy?: string
+          field_recipes?: Json
+          jurisdiction?: string
+          known_issues?: string[] | null
+          law_canonical?: string
+          llm_extraction_model?: string
+          profile_version?: string
+          regulatory_family?: string[]
+          requires_js_render?: boolean
+          respect_robots_txt?: boolean
+          strategy_stack?: Json
+          updated_at?: string
         }
         Relationships: []
       }
