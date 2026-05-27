@@ -294,10 +294,12 @@ async function discoverDetailUrls(
     return urls;
   }
 
-  // Default: paginated or single-page HTML listing
+  // Default: paginated or single-page HTML listing.
+  // Supports strategy.seed_urls: string[] (iterate multiple listing pages).
   const pattern = (strategy.url_pattern as string | undefined);
   const pages = pattern ? 3 : 1;
   const allowCross = Boolean(strategy.allow_cross_origin);
+  const seedUrls = (strategy.seed_urls as string[] | undefined);
   const linkOpts: LinkFilterOpts = {
     pathFilter: strategy.path_filter as string | undefined,
     hrefFilter: strategy.href_filter as string | undefined,
@@ -306,29 +308,34 @@ async function discoverDetailUrls(
     excludeBaseUrl: Boolean(strategy.exclude_base_url),
   };
 
-  for (let p = 0; p < pages && urls.length < max; p++) {
-    const url = pattern ? base + pattern.replace("{N}", String(p)) : base;
-    const r = await politeFetch(url, profile.fetch_user_agent_strategy);
-    if (!r.ok) break;
-    const links = extractLinks(r.html, url, selector, linkOpts);
-    for (const u of links) {
-      try {
-        if (allowCross) {
-          if (!urls.includes(u)) urls.push(u);
-        } else {
-          const baseHost = new URL(base).host;
-          const uH = new URL(u).host;
-          if (uH && baseHost && uH.endsWith(baseHost.split(".").slice(-2).join("."))) {
+  const listings: string[] = seedUrls && seedUrls.length ? [...seedUrls] : [base];
+
+  for (const listing of listings) {
+    if (urls.length >= max) break;
+    for (let p = 0; p < pages && urls.length < max; p++) {
+      const url = pattern ? listing + pattern.replace("{N}", String(p)) : listing;
+      const r = await politeFetch(url, profile.fetch_user_agent_strategy);
+      if (!r.ok) break;
+      const links = extractLinks(r.html, url, selector, linkOpts);
+      for (const u of links) {
+        try {
+          if (allowCross) {
             if (!urls.includes(u)) urls.push(u);
+          } else {
+            const baseHost = new URL(listing).host;
+            const uH = new URL(u).host;
+            if (uH && baseHost && uH.endsWith(baseHost.split(".").slice(-2).join("."))) {
+              if (!urls.includes(u)) urls.push(u);
+            }
           }
-        }
-      } catch { /* skip */ }
-      if (urls.length >= max) break;
+        } catch { /* skip */ }
+        if (urls.length >= max) break;
+      }
+      if (urls.length > 0 && p === 0) {
+        console.log(`[discover] ${profile.canonical_name} listing=${listing} found ${urls.length}, first: ${urls[0]}`);
+      }
+      await new Promise((res) => setTimeout(res, profile.fetch_rate_limit_ms));
     }
-    if (urls.length > 0 && p === 0) {
-      console.log(`[discover] ${profile.canonical_name} found ${urls.length} URLs, first: ${urls[0]}`);
-    }
-    await new Promise((res) => setTimeout(res, profile.fetch_rate_limit_ms));
   }
   return urls;
 }
