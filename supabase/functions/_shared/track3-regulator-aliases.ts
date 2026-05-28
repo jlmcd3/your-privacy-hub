@@ -60,6 +60,7 @@ export const TRACK3_REGULATORS: Record<RegulatorAliasKey, RegulatorAlias> = {
       "Úřad pro ochranu osobních údajů (ÚOOÚ)",
       "ÚOOÚ",
       "Czech Data Protection Authority (UOOU)",
+      "Czech Data Protection Auhtority (UOOU)",
     ],
     allowedHosts: ["uoou.cz", "www.uoou.cz", "uoou.gov.cz"],
   },
