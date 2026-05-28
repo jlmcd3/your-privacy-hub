@@ -1118,18 +1118,18 @@ Generate 1–3 action_items entries. Do not generate an action_items entry that 
 
     const data = await res.json();
     const text = data.content?.[0]?.text;
-    if (!text) return null;
+    if (!text) { console.warn(`[fetch-updates][AI] no text in response for "${title.slice(0,80)}"`); return null; }
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
+    if (!jsonMatch) { console.warn(`[fetch-updates][AI] no JSON match for "${title.slice(0,80)}"`); return null; }
 
     const parsed = JSON.parse(jsonMatch[0]);
 
     // If the AI determined the article is not relevant, skip it
-    if (parsed.skip === true) return null;
+    if (parsed.skip === true) { console.log(`[fetch-updates][AI] model returned skip=true for "${title.slice(0,80)}"`); return null; }
 
     const v = validateAISummary(parsed, { fn: "fetch-updates", title });
-    if (!v.ok) return null;
+    if (!v.ok) { console.warn(`[fetch-updates][AI] validation failed for "${title.slice(0,80)}": ${v.error ?? "unknown"}`); return null; }
     return v.data;
   } catch (e) {
     console.error("AI summary generation failed:", e);
