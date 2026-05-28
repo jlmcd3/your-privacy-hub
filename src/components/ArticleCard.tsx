@@ -85,17 +85,31 @@ export interface ArticleItem {
     risk_level?: string | null;
     takeaways?: string[] | null;
     skipped?: boolean;
+    reason?: string | null;
   } | null;
 }
 
 // Variant controls the density and context of display
 export type ArticleCardVariant = 'full' | 'compact' | 'featured' | 'enforcement' | 'newsfeed' | 'preview' | 'homepage';
 
+// Determine if the enricher intentionally skipped this row (e.g. routine breach announcement)
+const isSkipped = (item: ArticleItem): boolean => !!item.ai_summary?.skipped;
+
+const SKIP_REASON_LABELS: Record<string, string> = {
+  breach_announcement: 'Breach notice',
+};
+const skipLabel = (item: ArticleItem): string => {
+  const r = item.ai_summary?.reason ?? '';
+  return SKIP_REASON_LABELS[r] ?? 'Routine notice';
+};
+
 // Determine if article is AI-enriched (has meaningful ai_summary content)
 const isEnriched = (item: ArticleItem): boolean => {
-  if (!item.ai_summary) return false;
+  if (isSkipped(item)) return false;
   const s = item.ai_summary;
-  return !!(s.why_it_matters || s.urgency || s.legal_weight || s.compliance_impact || s.risk_level);
+  const hasAiSummary = !!(s && (s.why_it_matters || s.urgency || s.legal_weight || s.compliance_impact || s.risk_level));
+  const hasShortWhy = !!(item.why_it_matters_short && item.why_it_matters_short.trim().length > 0);
+  return hasAiSummary || hasShortWhy;
 };
 
 // Category colors/labels live in src/config/categories.ts (shared with UpdateDetail).
