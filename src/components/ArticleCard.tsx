@@ -85,14 +85,27 @@ export interface ArticleItem {
     risk_level?: string | null;
     takeaways?: string[] | null;
     skipped?: boolean;
+    reason?: string | null;
   } | null;
 }
 
 // Variant controls the density and context of display
 export type ArticleCardVariant = 'full' | 'compact' | 'featured' | 'enforcement' | 'newsfeed' | 'preview' | 'homepage';
 
+// Determine if the enricher intentionally skipped this row (e.g. routine breach announcement)
+const isSkipped = (item: ArticleItem): boolean => !!item.ai_summary?.skipped;
+
+const SKIP_REASON_LABELS: Record<string, string> = {
+  breach_announcement: 'Breach notice',
+};
+const skipLabel = (item: ArticleItem): string => {
+  const r = item.ai_summary?.reason ?? '';
+  return SKIP_REASON_LABELS[r] ?? 'Routine notice';
+};
+
 // Determine if article is AI-enriched (has meaningful ai_summary content)
 const isEnriched = (item: ArticleItem): boolean => {
+  if (isSkipped(item)) return false;
   if (!item.ai_summary) return false;
   const s = item.ai_summary;
   return !!(s.why_it_matters || s.urgency || s.legal_weight || s.compliance_impact || s.risk_level);
@@ -127,6 +140,17 @@ const IntelligenceBadge = () => (
     Intelligence
   </span>
 );
+
+// — Skipped badge for rows the enricher intentionally bypassed (e.g. routine breach announcements) —
+const SkippedBadge = ({ item }: { item: ArticleItem }) => (
+  <span
+    className="inline-flex items-center px-1.5 py-1 rounded text-[11px] font-semibold font-sans bg-gray-100 text-gray-500"
+    title="This routine notice is not enriched with custom Intelligence analysis."
+  >
+    {skipLabel(item)}
+  </span>
+);
+
 
 // — Intelligence Card (paid-only, expandable, collapsed by default) —
 const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
@@ -245,6 +269,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
           {normalizeTitle(item.title)}
         </p>
         {enriched && <IntelligenceBadge />}
+        {isSkipped(item) && <SkippedBadge item={item} />}
       </div>
       {item.summary && (
         <p className="text-sm text-gray-600 leading-snug mt-1 line-clamp-2">
@@ -403,6 +428,7 @@ const FullCard = ({
               {weight}
             </span>
           )}
+          {isSkipped(item) && <SkippedBadge item={item} />}
           <AdminHideButton articleId={item.id} />
         </div>
         {/* Sector tags — show up to 2 if sectors are present */}
@@ -531,6 +557,13 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
           style={{ background: 'rgba(232,238,255,0.2)', color: 'hsl(var(--brand-teal) / 0.6)' }}>
           <Sparkles className="w-3 h-3" />
           Intelligence
+        </span>
+      </div>
+    )}
+    {isSkipped(item) && (
+      <div className="absolute top-3 right-3">
+        <span className="inline-flex items-center px-1.5 py-1 rounded text-[11px] font-semibold font-sans bg-white/15 text-white/70">
+          {skipLabel(item)}
         </span>
       </div>
     )}
