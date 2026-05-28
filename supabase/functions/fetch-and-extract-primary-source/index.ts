@@ -323,7 +323,8 @@ async function processOne(
 
   const kcfVerbatim = kcf.confidence === "verbatim" && (kcf.text?.length ?? 0) >= 20;
   const statsVerified = (extract.statutory_provisions?.length ?? 0) >= 1;
-  const verbatimOk = kcfVerbatim && statsVerified;
+  const verbatimOk = statsVerified; // KCF verbatim is enrichment, not a citation gate
+
 
   // Diagnostic: per-row gate decomposition + language-check snippets.
   // kcf_snippet and stat_snippet are deliberately truncated and preserved verbatim
@@ -352,7 +353,8 @@ async function processOne(
   if (verbatimOk) {
     updatePayload.primary_source_status = "extracted_verbatim";
     updatePayload.ingestion_confidence = "high";
-    updatePayload.key_compliance_failure = kcf.text;
+    if (kcfVerbatim) updatePayload.key_compliance_failure = kcf.text;
+
     // Overwrite Track 2 outputs only on verbatim success (Section 3).
     updatePayload.statutory_provisions = extract.statutory_provisions;
     updatePayload.statutory_provisions_extraction_method = "pattern_per_regulator_verified";
