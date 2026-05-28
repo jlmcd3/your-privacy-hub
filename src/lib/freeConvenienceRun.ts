@@ -65,10 +65,10 @@ export async function checkFreeConvenienceRun(
   if (resetDate < firstOfMonth) {
     await supabase
       .from('profiles')
-      .update(({
+      .update({
         free_convenience_runs_used: 0,
         free_runs_reset_date: firstOfMonth.toISOString().split('T')[0],
-      })
+      } as any)
       .eq('id', userId);
     runsUsed = 0;
   }
