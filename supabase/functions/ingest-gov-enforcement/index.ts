@@ -190,16 +190,64 @@ function extractActions(markdown: string, src: typeof SOURCES[number]) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
-  let inserted = 0, skipped = 0, errors = 0;
-  const summary: Record<string, number> = {};
+  const url = new URL(req.url);
+  const dryRun = url.searchParams.get("dry_run") === "true";
+  const ftcPageParam = url.searchParams.get("ftc_page");
+  const ftcPagesParam = url.searchParams.get("ftc_pages"); // e.g. "0-2" or "0,1,2"
+  const onlyFtc = ftcPageParam !== null || ftcPagesParam !== null;
 
-  for (const src of SOURCES) {
+  let ftcPageFilter: Set<number> | null = null;
+  if (ftcPageParam !== null) {
+    ftcPageFilter = new Set([parseInt(ftcPageParam, 10)]);
+  } else if (ftcPagesParam !== null) {
+    ftcPageFilter = new Set<number>();
+    if (ftcPagesParam.includes("-")) {
+      const [a, b] = ftcPagesParam.split("-").map((s) => parseInt(s, 10));
+      for (let i = a; i <= b; i++) ftcPageFilter.add(i);
+    } else {
+      for (const s of ftcPagesParam.split(",")) ftcPageFilter.add(parseInt(s, 10));
+    }
+  }
+
+  const activeSources = SOURCES.filter((s) => {
+    if (onlyFtc) {
+      if (s.source !== "FTC") return false;
+      if (ftcPageFilter && (s.ftcPage === undefined || !ftcPageFilter.has(s.ftcPage))) return false;
+      return true;
+    }
+    return true;
+  });
+
+  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
+  let inserted = 0, skipped = 0, errors = 0, legacyUpdated = 0;
+  let pdfFound = 0, pdfMissing = 0;
+  const summary: Record<string, number> = {};
+  const samples: Array<Record<string, unknown>> = [];
+
+  for (const src of activeSources) {
     try {
       const md = await jinaFetch(src.url);
       const actions = extractActions(md, src);
-      summary[src.source] = actions.length;
-      console.log(`${src.source}: ${actions.length} candidate actions`);
+      summary[`${src.source}${src.ftcPage !== undefined ? `:p${src.ftcPage}` : ""}`] = actions.length;
+      console.log(`${src.source}${src.ftcPage !== undefined ? ` page=${src.ftcPage}` : ""}: ${actions.length} candidate actions`);
+
+      // Second-hop enrichment for FTC case summaries.
+      if (src.secondHop) {
+        for (const a of actions) {
+          await new Promise((r) => setTimeout(r, 1000));
+          const pdfUrl = await extractDecisionAndOrderUrl(a.url);
+          (a as any).primarySourceUrl = pdfUrl;
+          if (pdfUrl) pdfFound++; else pdfMissing++;
+          if (samples.length < 5) {
+            samples.push({
+              title: a.title,
+              case_url: a.url,
+              decision_pdf_url: pdfUrl,
+              proposed_etid: `${src.source.toLowerCase()}:${a.url}`,
+            });
+          }
+        }
+      }
 
       for (const a of actions) {
         const etid = `${src.source.toLowerCase()}:${a.url}`;
@@ -218,10 +266,11 @@ Deno.serve(async (req) => {
           let n = parseFloat(fineMatch[1].replace(/,/g, ""));
           if (/million|m\b/i.test(fineMatch[2] || "")) n *= 1_000_000;
           if (/thousand|k\b/i.test(fineMatch[2] || "")) n *= 1_000;
-          if (!isNaN(n)) fine_eur = n; // currency normalization happens in enrichment
+          if (!isNaN(n)) fine_eur = n;
         }
 
-        const { error } = await supabase.from("enforcement_actions").insert({
+        const primarySourceUrl = (a as any).primarySourceUrl ?? null;
+        const baseRow: Record<string, unknown> = {
           etid,
           source_database: src.source,
           source_url: a.url,
@@ -233,67 +282,101 @@ Deno.serve(async (req) => {
           decision_date: a.date,
           fine_amount,
           fine_eur,
-        });
+        };
+        if (src.secondHop) {
+          baseRow.primary_source_url = primarySourceUrl;
+          baseRow.primary_source_status = primarySourceUrl ? "pending_fetch" : "pending_discovery";
+          baseRow.primary_source_url_discovered_at = new Date().toISOString();
+          baseRow.legacy_enrichment_version = 2;
+        }
+
+        if (dryRun) {
+          inserted++; // count would-be inserts
+          // Legacy match preview
+          if (src.secondHop && a.title && a.title.length > 20) {
+            const { data: legacyRows } = await supabase
+              .from("enforcement_actions")
+              .select("id")
+              .eq("regulator", "FTC")
+              .is("primary_source_url", null)
+              .ilike("violation", `%${a.title.slice(0, 40)}%`)
+              .limit(1);
+            if (legacyRows && legacyRows.length > 0) legacyUpdated++;
+          }
+          continue;
+        }
+
+        const { error } = await supabase.from("enforcement_actions").insert(baseRow);
         if (error) {
           errors++;
           console.error("insert enforcement_actions", etid, error.message);
-        } else {
-          inserted++;
+          continue;
+        }
+        inserted++;
 
-          // ── Dual-write to updates table so content appears in the brief and feed ──
-          if (anthropicKey) {
-            try {
-              const aiSummary = await generateUpdateSummary(
-                a.title,
-                a.title,
-                src.source,
-                src.regulator,
-                src.jurisdiction,
-                anthropicKey,
-              );
+        // Legacy dedup: link case_url + primary PDF onto a matching legacy row.
+        if (src.secondHop && a.title && a.title.length > 20) {
+          const { data: legacyRows } = await supabase
+            .from("enforcement_actions")
+            .select("id, violation, source_url")
+            .eq("regulator", "FTC")
+            .is("primary_source_url", null)
+            .ilike("violation", `%${a.title.slice(0, 40)}%`)
+            .limit(1);
+          if (legacyRows && legacyRows.length > 0) {
+            const { error: updErr } = await supabase
+              .from("enforcement_actions")
+              .update({
+                source_url: a.url,
+                primary_source_url: primarySourceUrl,
+                primary_source_status: primarySourceUrl ? "pending_fetch" : "pending_discovery",
+                primary_source_url_discovered_at: new Date().toISOString(),
+              })
+              .eq("id", legacyRows[0].id);
+            if (!updErr) legacyUpdated++;
+          }
+        }
 
-              if (aiSummary && aiSummary.legal_weight !== undefined) {
-                const updateRow: Record<string, unknown> = {
-                  url: a.url,
-                  title: a.title,
-                  summary: a.title,
-                  source_name: src.source,
-                  source_url: src.url,
-                  category: "enforcement",
-                  published_at: a.date
-                    ? new Date(a.date).toISOString()
-                    : new Date().toISOString(),
-                  source_tier: 1,
-                  legal_weight: aiSummary.legal_weight ?? "Enforcement",
-                  attention_level: aiSummary.attention_level ?? "High",
-                  why_it_matters_short: aiSummary.why_it_matters_short ?? null,
-                  why_it_matters: aiSummary.why_it_matters ?? null,
-                  compliance_impact: aiSummary.compliance_impact ?? null,
-                  takeaways: aiSummary.takeaways ?? [],
-                  affected_jurisdictions: aiSummary.affected_jurisdictions ?? [],
-                  regulatory_theory: aiSummary.regulatory_theory ?? null,
-                  action_items: aiSummary.action_items ?? [],
-                  defense_considerations: aiSummary.defense_considerations ?? null,
-                  entities: aiSummary.entities ?? {},
-                  ai_summary: aiSummary,
-                  direct_jurisdictions: Array.isArray(aiSummary.affected_jurisdictions)
-                    ? aiSummary.affected_jurisdictions
-                    : [],
-                };
-
-                const { error: updateErr } = await supabase
-                  .from("updates")
-                  .upsert(updateRow, { onConflict: "url", ignoreDuplicates: true });
-
-                if (updateErr) {
-                  console.error("dual-write to updates failed", a.url, updateErr.message);
-                } else {
-                  console.log("dual-write to updates succeeded", a.url);
-                }
-              }
-            } catch (aiErr) {
-              console.error("generateUpdateSummary failed", a.url, aiErr);
+        // Dual-write to updates table (skip for FTC second-hop scrape: cases
+        // index entries aren't suitable for the subscriber feed — handled by
+        // existing weekly brief pipeline instead).
+        if (anthropicKey && !src.secondHop) {
+          try {
+            const aiSummary = await generateUpdateSummary(
+              a.title, a.title, src.source, src.regulator, src.jurisdiction, anthropicKey,
+            );
+            if (aiSummary && aiSummary.legal_weight !== undefined) {
+              const updateRow: Record<string, unknown> = {
+                url: a.url,
+                title: a.title,
+                summary: a.title,
+                source_name: src.source,
+                source_url: src.url,
+                category: "enforcement",
+                published_at: a.date ? new Date(a.date).toISOString() : new Date().toISOString(),
+                source_tier: 1,
+                legal_weight: aiSummary.legal_weight ?? "Enforcement",
+                attention_level: aiSummary.attention_level ?? "High",
+                why_it_matters_short: aiSummary.why_it_matters_short ?? null,
+                why_it_matters: aiSummary.why_it_matters ?? null,
+                compliance_impact: aiSummary.compliance_impact ?? null,
+                takeaways: aiSummary.takeaways ?? [],
+                affected_jurisdictions: aiSummary.affected_jurisdictions ?? [],
+                regulatory_theory: aiSummary.regulatory_theory ?? null,
+                action_items: aiSummary.action_items ?? [],
+                defense_considerations: aiSummary.defense_considerations ?? null,
+                entities: aiSummary.entities ?? {},
+                ai_summary: aiSummary,
+                direct_jurisdictions: Array.isArray(aiSummary.affected_jurisdictions)
+                  ? aiSummary.affected_jurisdictions : [],
+              };
+              const { error: updateErr } = await supabase
+                .from("updates")
+                .upsert(updateRow, { onConflict: "url", ignoreDuplicates: true });
+              if (updateErr) console.error("dual-write updates failed", a.url, updateErr.message);
             }
+          } catch (aiErr) {
+            console.error("generateUpdateSummary failed", a.url, aiErr);
           }
         }
       }
@@ -304,6 +387,12 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ inserted, skipped, errors, summary }),
-    { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  return new Response(JSON.stringify({
+    dry_run: dryRun,
+    ftc_pages: ftcPageFilter ? [...ftcPageFilter] : null,
+    inserted, skipped, errors, legacy_updated: legacyUpdated,
+    pdf_found: pdfFound, pdf_missing: pdfMissing,
+    summary, samples,
+  }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 });
+
