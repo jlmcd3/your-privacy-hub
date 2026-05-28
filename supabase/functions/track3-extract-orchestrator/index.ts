@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
         // Always use the env-resident admin token when calling the worker —
         // the orchestrator may have been authed via service-role bearer
         // instead of x-admin-token, but the worker still requires the token.
-        const r = await callWorker(baseUrl, expected, id, dryRun);
+        const r = await callWorker(baseUrl, expected, id, dryRun, aliasKey);
         if (r.ok) {
           succeeded++;
           const k = r.primary_source_status ?? "unknown";
