@@ -58,9 +58,17 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Accept either:
+  //   - x-admin-token == ADMIN_SECRET_TOKEN (legacy/admin-curl path), or
+  //   - Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY> (server-to-server,
+  //     used by the SQL admin_fire_track3_extract helper invoked via pg_net).
   const adminToken = req.headers.get("x-admin-token") ?? "";
   const expected = Deno.env.get("ADMIN_SECRET_TOKEN") ?? "";
-  if (!expected || adminToken !== expected) {
+  const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const tokenOk = !!expected && adminToken === expected;
+  const bearerOk = !!serviceKey && !!bearer && bearer === serviceKey;
+  if (!tokenOk && !bearerOk) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
