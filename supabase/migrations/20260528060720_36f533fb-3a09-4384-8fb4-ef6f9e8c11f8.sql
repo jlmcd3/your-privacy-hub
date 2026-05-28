@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.admin_fire_track3_extract(text, integer) TO supabase_read_only_user;
