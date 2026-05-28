@@ -44,6 +44,21 @@ const BROWSER_UA =
 const MAX_RESPONSE_BYTES = 2_000_000;
 const MAX_TEXT_CHARS = 60_000;
 
+// Map regulator (canonical or display) -> primary source-document language.
+// Used to tag persisted evidence quotes so the annotation layer and auditors
+// can confirm "regulator's own language" without re-deriving it. Extend as
+// Track 3 expands beyond AEPD.
+const REGULATOR_LANG: Record<string, string> = {
+  aepd: "es",
+  "spain - aepd": "es",
+  "spanish data protection agency": "es",
+};
+
+function regulatorSourceLang(reg: string | null): string | null {
+  if (!reg) return null;
+  return REGULATOR_LANG[reg.trim().toLowerCase()] ?? null;
+}
+
 async function sha256(input: ArrayBuffer | string): Promise<string> {
   const data = typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input);
   const hash = await crypto.subtle.digest("SHA-256", data);
