@@ -219,9 +219,20 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const url = new URL(req.url);
-  const dryRun = url.searchParams.get("dry_run") === "true";
-  const ftcPageParam = url.searchParams.get("ftc_page");
-  const ftcPagesParam = url.searchParams.get("ftc_pages"); // e.g. "0-2" or "0,1,2"
+  let body: Record<string, unknown> = {};
+  if (req.method === "POST") {
+    try { body = await req.json(); } catch { body = {}; }
+  }
+  const param = (k: string): string | null => {
+    const q = url.searchParams.get(k);
+    if (q !== null) return q;
+    const v = (body as any)[k];
+    return v === undefined || v === null ? null : String(v);
+  };
+
+  const dryRun = param("dry_run") === "true";
+  const ftcPageParam = param("ftc_page");
+  const ftcPagesParam = param("ftc_pages");
   const onlyFtc = ftcPageParam !== null || ftcPagesParam !== null;
 
   let ftcPageFilter: Set<number> | null = null;
@@ -236,6 +247,21 @@ Deno.serve(async (req) => {
       for (const s of ftcPagesParam.split(",")) ftcPageFilter.add(parseInt(s, 10));
     }
   }
+
+  let inserted = 0;
+  let skipped = 0;
+  let errors = 0;
+  let legacyUpdated = 0;
+  let pdfFound = 0;
+  let pdfMissing = 0;
+  const summary: Record<string, number> = {};
+  const samples: Array<Record<string, unknown>> = [];
+  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") || "";
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
 
   const activeSources = SOURCES.filter((s) => {
     if (onlyFtc) {
