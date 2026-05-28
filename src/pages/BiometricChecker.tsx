@@ -63,13 +63,24 @@ export default function BiometricChecker() {
     setPhase("result");
   };
 
+  const [biometricFreeRunAvailable, setBiometricFreeRunAvailable] = useState(false);
+
+  useEffect(() => {
+    if (!access.user) { setBiometricFreeRunAvailable(false); return; }
+    supabase.from("profiles").select("biometric_free_run_claimed").eq("id", access.user.id).single()
+      .then(({ data }) => setBiometricFreeRunAvailable((data as any)?.biometric_free_run_claimed === false));
+  }, [access.user]);
+
   const handleAnalyse = async () => {
     logToolAcknowledgment("biometric_checker", access.user?.id ?? null);
-    // 1. Require login for everyone
     if (!access.user) { setAuthModalOpen(true); return; }
-    // 2. Subscribers with a free run this month — run free
     if (access.isPremium) { handleGenerate(); return; }
-    // 3. Otherwise charge per-use ($15 standalone)
+    if (biometricFreeRunAvailable) {
+      await supabase.from("profiles").update({ biometric_free_run_claimed: true } as any).eq("id", access.user.id);
+      setBiometricFreeRunAvailable(false);
+      handleGenerate();
+      return;
+    }
     setCheckoutOpen(true);
   };
 
@@ -77,7 +88,9 @@ export default function BiometricChecker() {
     ? "Sign in to analyse"
     : access.isPremium
       ? "Analyse — included with your plan"
-      : "Analyse — $15";
+      : biometricFreeRunAvailable
+        ? "Run your first Biometric Check free →"
+        : `Analyse — $${pricing.price}`;
 
   return (
     <div className="min-h-screen bg-brand-cloud">

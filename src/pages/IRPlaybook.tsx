@@ -12,6 +12,7 @@ import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+import FreeRunIndicator from "@/components/FreeRunIndicator";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
@@ -144,6 +145,7 @@ export default function IRPlaybook() {
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organisationType} onChange={e => setForm(f => ({ ...f, organisationType: e.target.value }))}>
                 {ORG_TYPES.map(o => <option key={o}>{o}</option>)}</select></label>
             <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
+            <FreeRunIndicator toolKey="ir_playbook" />
             <button onClick={handleGenerate} disabled={form.dataTypes.length === 0 || form.jurisdictions.length === 0}
               className="w-full bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
               Generate playbook</button>

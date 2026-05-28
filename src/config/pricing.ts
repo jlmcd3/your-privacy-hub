@@ -802,27 +802,29 @@ export const PRICING = {
     additionalLoginMonthly: 10,
   },
   tools: {
-    cppa_scope:   { name: 'CPPA Scope Checker',                 dollars: 0,  display: 'Free', stripePriceId: null },
-    biometric:    { name: 'Biometric Compliance Check',         dollars: 25, display: '$25',  stripePriceId: 'biometric_standalone_v2' },
-    ir_playbook:  { name: 'Breach IR Playbook',                 dollars: 30, display: '$30',  stripePriceId: 'ir_standalone_v2' },
-    lia:          { name: 'Legitimate Interest Assessment',     dollars: 45, display: '$45',  stripePriceId: 'li_standalone_v2' },
-    us_notice:    { name: 'US Privacy Notice Builder',          dollars: 25, display: '$25',  stripePriceId: 'us_notice_v7_standalone' },
-    dpia:         { name: 'Data Protection Impact Assessment',  dollars: 55, display: '$55',  stripePriceId: 'dpia_standalone_v2' },
-    dpa:          { name: 'Custom DPA Generator',               dollars: 30, display: '$30',  stripePriceId: 'dpa_standalone_v2' },
-    ropa:         { name: 'RoPA Builder',                       dollars: 40, display: '$40',  stripePriceId: 'ropa_initial_standalone' },
-    eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 40, display: '$40',  stripePriceId: 'eu_notice_v7_standalone' },
-    registration: { name: 'Registration Filings',               dollars: 45, display: '$45',  stripePriceId: 'registration_standalone' },
-    governance:   { name: 'Privacy Program Assessment',         dollars: 65, display: '$65',  stripePriceId: 'hc_standalone_v2' },
-    cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 55, display: '$55',  stripePriceId: 'cppa_risk_standalone' },
-    cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 70, display: '$70',  stripePriceId: 'cppa_cyber_standalone' },
+    cppa_scope:   { name: 'CPPA Scope Checker',                 dollars: 0,   display: 'Free', stripePriceId: null },
+    biometric:    { name: 'Biometric Compliance Check',         dollars: 35,  display: '$35',  stripePriceId: 'biometric_standalone_v2' },
+    ir_playbook:  { name: 'Breach IR Playbook',                 dollars: 30,  display: '$30',  stripePriceId: 'ir_standalone_v2' },
+    lia:          { name: 'Legitimate Interest Assessment',     dollars: 69,  display: '$69',  stripePriceId: 'li_standalone_v2' },
+    us_notice:    { name: 'US Privacy Notice Builder',          dollars: 25,  display: '$25',  stripePriceId: 'us_notice_v7_standalone' },
+    dpia:         { name: 'Data Protection Impact Assessment',  dollars: 79,  display: '$79',  stripePriceId: 'dpia_standalone_v2' },
+    dpa:          { name: 'Custom DPA Generator',               dollars: 49,  display: '$49',  stripePriceId: 'dpa_standalone_v2' },
+    ropa:         { name: 'RoPA Builder',                       dollars: 40,  display: '$40',  stripePriceId: 'ropa_initial_standalone' },
+    eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 40,  display: '$40',  stripePriceId: 'eu_notice_v7_standalone' },
+    registration: { name: 'Registration Filings',               dollars: 45,  display: '$45',  stripePriceId: 'registration_standalone' },
+    governance:   { name: 'Privacy Program Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
+    cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 89,  display: '$89',  stripePriceId: 'cppa_risk_standalone' },
+    cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 99,  display: '$99',  stripePriceId: 'cppa_cyber_standalone' },
+    cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 159, display: '$159', stripePriceId: 'cppa_suite_standalone' },
 
     // ── Legacy camelCase aliases (kept so existing imports keep compiling) ──
-    cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,  display: 'Free', stripePriceId: null },
-    irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 30, display: '$30',  stripePriceId: 'ir_standalone_v2' },
-    usNotice:     { name: 'US Privacy Notice Builder',          dollars: 25, display: '$25',  stripePriceId: 'us_notice_v7_standalone' },
-    euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 40, display: '$40',  stripePriceId: 'eu_notice_v7_standalone' },
-    cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 55, display: '$55',  stripePriceId: 'cppa_risk_standalone' },
-    cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 70, display: '$70',  stripePriceId: 'cppa_cyber_standalone' },
+    cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,   display: 'Free', stripePriceId: null },
+    irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 30,  display: '$30',  stripePriceId: 'ir_standalone_v2' },
+    usNotice:     { name: 'US Privacy Notice Builder',          dollars: 25,  display: '$25',  stripePriceId: 'us_notice_v7_standalone' },
+    euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 40,  display: '$40',  stripePriceId: 'eu_notice_v7_standalone' },
+    cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 89,  display: '$89',  stripePriceId: 'cppa_risk_standalone' },
+    cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 99,  display: '$99',  stripePriceId: 'cppa_cyber_standalone' },
+    cppaSuite:    { name: 'CPPA Full Audit Suite',              dollars: 159, display: '$159', stripePriceId: 'cppa_suite_standalone' },
   },
 } as const;
 
@@ -830,116 +832,70 @@ export type ToolKey = keyof typeof PRICING.tools;
 export type SubscriptionTier = 'anonymous' | 'free' | 'intelligence' | 'professional';
 
 /**
- * Per-tier subscriber pricing for tools that have differentiated rates.
- * "free" means no Stripe charge — the checkout gate checks this before
- * invoking Stripe. monthlyCapLimit is the abuse cap (calendar-month reset).
- * Tools not listed here charge the standalone rate for all tiers.
+ * Monthly free Convenience Tool run pool sizes by subscription tier.
+ * Pools reset on the 1st of each calendar month. No carry-over.
+ * Smart Tools are NEVER pool-eligible — isConvenienceTool() gates eligibility.
+ *
+ * Canonical tier keys: free | intel_monthly | intel_annual | pro_monthly | pro_annual.
+ * Legacy single-value aliases (monthly / annual / annual_founding / intelligence /
+ * professional / *_monthly / *_annual longhand) are mapped here so older callers
+ * keep resolving without conditional logic at every call site.
  */
-export const SUBSCRIBER_PRICING: Record<string, Record<string, {
-  dollars: number;
-  display: string;
-  free: boolean;
-  monthlyCapLimit: number | null;
-}>> = {
-  biometric: {
-    intelligence_monthly: { dollars: 0,  display: 'Free', free: true, monthlyCapLimit: 5  },
-    intelligence_annual:  { dollars: 0,  display: 'Free', free: true, monthlyCapLimit: 5  },
-    professional_monthly: { dollars: 0,  display: 'Free', free: true, monthlyCapLimit: 5  },
-    professional_annual:  { dollars: 0,  display: 'Free', free: true, monthlyCapLimit: 5  },
-  },
-  ir_playbook: {
-    intelligence_monthly: { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
-    intelligence_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 1  },
-    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 1  },
-    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-  },
-  dpa: {
-    intelligence_monthly: { dollars: 25, display: '$25',  free: false, monthlyCapLimit: null },
-    intelligence_annual:  { dollars: 25, display: '$25',  free: false, monthlyCapLimit: null },
-    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 1  },
-    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-  },
-  us_notice: {
-    intelligence_monthly: { dollars: 20, display: '$20',  free: false, monthlyCapLimit: null },
-    intelligence_annual:  { dollars: 20, display: '$20',  free: false, monthlyCapLimit: null },
-    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-  },
-  eu_notice: {
-    intelligence_monthly: { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
-    intelligence_annual:  { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
-    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-  },
-  // camelCase aliases
-  irPlaybook: {
-    intelligence_monthly: { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
-    intelligence_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 1  },
-    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 1  },
-    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-  },
-  usNotice: {
-    intelligence_monthly: { dollars: 20, display: '$20',  free: false, monthlyCapLimit: null },
-    intelligence_annual:  { dollars: 20, display: '$20',  free: false, monthlyCapLimit: null },
-    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-  },
-  euNotice: {
-    intelligence_monthly: { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
-    intelligence_annual:  { dollars: 30, display: '$30',  free: false, monthlyCapLimit: null },
-    professional_monthly: { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-    professional_annual:  { dollars: 0,  display: 'Free', free: true,  monthlyCapLimit: 3  },
-  },
+export const FREE_RUN_POOL_SIZES: Record<string, number> = {
+  free:                 0,
+  intel_monthly:        1,
+  intel_annual:         5,
+  pro_monthly:          3,
+  pro_annual:          10,
+  // ── Legacy aliases ───────────────────────────────────────────────────
+  annual:               5,   // → intel_annual
+  annual_founding:      5,   // → intel_annual
+  monthly:              1,   // → intel_monthly
+  intelligence:         1,   // → intel_monthly
+  professional:        10,   // → pro_annual
+  intelligence_monthly: 1,
+  intelligence_annual:  5,
+  professional_monthly: 3,
+  professional_annual: 10,
 };
 
-/**
- * Returns the effective price in dollars for a tool at a given subscription
- * tier. Checks SUBSCRIBER_PRICING first; falls back to standalone.
- *
- * tier values:
- *   'anonymous' | 'free'               → standalone price
- *   'intelligence_monthly'             → Intel Monthly rate
- *   'intelligence_annual'              → Intel Annual rate
- *   'professional_monthly'             → Pro Monthly rate
- *   'professional_annual'              → Pro Annual rate
- *
- * Legacy single-value tier aliases still accepted:
- *   'intelligence'  → maps to 'intelligence_monthly'
- *   'professional'  → maps to 'professional_annual'
- */
-export function getToolPrice(toolKey: ToolKey, tier?: string): number {
-  const normalisedTier = normaliseTier(tier);
-  const subscriberEntry = SUBSCRIBER_PRICING[toolKey]?.[normalisedTier];
-  if (subscriberEntry) return subscriberEntry.dollars;
-  const tool = PRICING.tools[toolKey];
-  return tool.dollars;
+/** Returns the free-run pool size for a tier string. 0 = not eligible. */
+export function getFreeRunPoolSize(tier: string | null | undefined): number {
+  if (!tier) return 0;
+  return FREE_RUN_POOL_SIZES[tier] ?? 0;
 }
 
-export function getToolPriceDisplay(toolKey: ToolKey, tier?: string): string {
-  const normalisedTier = normaliseTier(tier);
-  const subscriberEntry = SUBSCRIBER_PRICING[toolKey]?.[normalisedTier];
-  if (subscriberEntry) return subscriberEntry.display;
+/**
+ * v8 model — every tier pays the standalone per-use tool price.
+ * Subscriber discounts no longer exist; Convenience-Tool affordability is
+ * delivered via the monthly free-run pool (see FREE_RUN_POOL_SIZES).
+ */
+export function getToolPrice(toolKey: ToolKey, _tier?: string): number {
+  return PRICING.tools[toolKey].dollars;
+}
+
+export function getToolPriceDisplay(toolKey: ToolKey, _tier?: string): string {
   const price = PRICING.tools[toolKey].dollars;
   return price === 0 ? 'Free' : `$${price}`;
 }
 
-/** Returns true if the tool is free for this subscriber tier (no Stripe charge). */
+/**
+ * A tool is "free" for a tier iff the tier has a non-zero free-run pool
+ * AND the tool is a Convenience Tool. Smart Tools are never pool-eligible.
+ */
 export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
-  const normalisedTier = normaliseTier(tier);
-  return SUBSCRIBER_PRICING[toolKey]?.[normalisedTier]?.free === true;
+  if (!tier) return false;
+  return getFreeRunPoolSize(tier) > 0 && isConvenienceTool(toolKey);
 }
 
-/** Returns the monthly abuse cap for a tool at a tier, or null if uncapped. */
-export function getToolMonthlyCapLimit(toolKey: string, tier?: string): number | null {
-  const normalisedTier = normaliseTier(tier);
-  return SUBSCRIBER_PRICING[toolKey]?.[normalisedTier]?.monthlyCapLimit ?? null;
-}
-
-function normaliseTier(tier?: string): string {
-  if (!tier) return 'anonymous';
-  if (tier === 'intelligence') return 'intelligence_monthly';
-  if (tier === 'professional') return 'professional_annual';
-  return tier;
+/**
+ * The monthly free-run pool for the tier (replaces the legacy per-tool
+ * "abuse cap"). Returns null for tiers with no pool.
+ */
+export function getToolMonthlyCapLimit(_toolKey: string, tier?: string): number | null {
+  if (!tier) return null;
+  const pool = getFreeRunPoolSize(tier);
+  return pool > 0 ? pool : null;
 }
 
 // ── TOOL CLASSIFICATION ───────────────────────────────────────────────────

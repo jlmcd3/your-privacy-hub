@@ -23,6 +23,7 @@ import { buildEuQuestionSections } from "@/data/eu-notice-questions";
 import type { EuFrameworkCode } from "@/data/eu-notice-questions/types";
 import type { Question } from "@/data/ropa-questions/types";
 import SessionCheckoutModal, { type SessionToolType } from "@/components/SessionCheckoutModal";
+import FreeRunIndicator from "@/components/FreeRunIndicator";
 
 type AnswerValue = string | string[] | null;
 type EuNoticeScope = "single" | "suite" | "full_international";
@@ -680,23 +681,26 @@ export default function EUNoticeReview() {
             >
               <ArrowLeft className="w-4 h-4" /> Back to questions
             </button>
-            <button
-              onClick={handleGenerateClick}
-              disabled={generateDisabled || generating}
-              className="bg-brand-navy text-white text-sm font-semibold px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-navy/90 transition inline-flex items-center gap-2"
-            >
-              {generating ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Generating…
-                </>
-              ) : session?.payment_confirmed ? (
-                <>
-                  Generate notices <ArrowRight className="w-4 h-4" />
-                </>
-              ) : (
-                <>Continue to payment — ${pricing.price}</>
-              )}
-            </button>
+            <div className="flex flex-col items-end gap-2">
+              <FreeRunIndicator toolKey="eu_notice" />
+              <button
+                onClick={handleGenerateClick}
+                disabled={generateDisabled || generating}
+                className="bg-brand-navy text-white text-sm font-semibold px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-navy/90 transition inline-flex items-center gap-2"
+              >
+                {generating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Generating…
+                  </>
+                ) : session?.payment_confirmed ? (
+                  <>
+                    Generate notices <ArrowRight className="w-4 h-4" />
+                  </>
+                ) : (
+                  <>Continue to payment — ${pricing.price}</>
+                )}
+              </button>
+            </div>
           </div>
         </Section>
       </div>

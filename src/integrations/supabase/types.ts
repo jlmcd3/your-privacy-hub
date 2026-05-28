@@ -2211,6 +2211,7 @@ export type Database = {
         Row: {
           ask_privacy_count: number | null
           ask_privacy_reset_date: string | null
+          biometric_free_run_claimed: boolean
           bonus_report_credits: number
           brief_role: string | null
           cancel_at_period_end: boolean
@@ -2220,6 +2221,8 @@ export type Database = {
           digest_topics: string[] | null
           founding_subscriber: boolean | null
           founding_subscriber_set_at: string | null
+          free_convenience_runs_used: number
+          free_runs_reset_date: string | null
           free_tool_run_reset_date: string | null
           free_tool_run_used_this_month: boolean | null
           id: string
@@ -2251,6 +2254,7 @@ export type Database = {
         Insert: {
           ask_privacy_count?: number | null
           ask_privacy_reset_date?: string | null
+          biometric_free_run_claimed?: boolean
           bonus_report_credits?: number
           brief_role?: string | null
           cancel_at_period_end?: boolean
@@ -2260,6 +2264,8 @@ export type Database = {
           digest_topics?: string[] | null
           founding_subscriber?: boolean | null
           founding_subscriber_set_at?: string | null
+          free_convenience_runs_used?: number
+          free_runs_reset_date?: string | null
           free_tool_run_reset_date?: string | null
           free_tool_run_used_this_month?: boolean | null
           id: string
@@ -2291,6 +2297,7 @@ export type Database = {
         Update: {
           ask_privacy_count?: number | null
           ask_privacy_reset_date?: string | null
+          biometric_free_run_claimed?: boolean
           bonus_report_credits?: number
           brief_role?: string | null
           cancel_at_period_end?: boolean
@@ -2300,6 +2307,8 @@ export type Database = {
           digest_topics?: string[] | null
           founding_subscriber?: boolean | null
           founding_subscriber_set_at?: string | null
+          free_convenience_runs_used?: number
+          free_runs_reset_date?: string | null
           free_tool_run_reset_date?: string | null
           free_tool_run_used_this_month?: boolean | null
           id?: string
