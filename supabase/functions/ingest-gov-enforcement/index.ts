@@ -280,7 +280,7 @@ Deno.serve(async (req) => {
       // FTC cases-and-proceedings index pages: filter to real case-detail links
       // (nav, footer, blog, and policy links share the ftc.gov host).
       if (src.secondHop && src.source === "FTC") {
-        const caseRe = /^https:\/\/www\.ftc\.gov\/(legal-library\/browse|enforcement)\/cases-proceedings\/[a-z0-9][^/?#]+\/?$/i;
+        const caseRe = /^https:\/\/www\.ftc\.gov\/(legal-library\/browse|enforcement)\/cases-proceedings\/\d{3}-\d{4}-[a-z0-9][^/?#]*\/?$/i;
         actions = actions.filter((a) => caseRe.test(a.url));
       }
 
