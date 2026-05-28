@@ -142,6 +142,17 @@ const IntelligenceBadge = () => (
   </span>
 );
 
+// — Skipped badge for rows the enricher intentionally bypassed (e.g. routine breach announcements) —
+const SkippedBadge = ({ item }: { item: ArticleItem }) => (
+  <span
+    className="inline-flex items-center px-1.5 py-1 rounded text-[11px] font-semibold font-sans bg-gray-100 text-gray-500"
+    title="This routine notice is not enriched with custom Intelligence analysis."
+  >
+    {skipLabel(item)}
+  </span>
+);
+
+
 // — Intelligence Card (paid-only, expandable, collapsed by default) —
 const IntelligenceCard = ({ item }: { item: ArticleItem }) => {
   const [open, setOpen] = useState(false);
