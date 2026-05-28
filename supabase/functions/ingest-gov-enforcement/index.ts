@@ -242,22 +242,26 @@ Deno.serve(async (req) => {
       if (s.source !== "FTC") return false;
       if (ftcPageFilter && (s.ftcPage === undefined || !ftcPageFilter.has(s.ftcPage))) return false;
       return true;
-    }
-    return true;
-  });
+      if (src.secondHop) {
+        for (const a of actions) {
+          await new Promise((r) => setTimeout(r, 1000));
+          const detail = await extractDecisionAndOrderDetail(a.url);
+          const pdfUrl = detail ? detail.url : null;
+          (a as any).primarySourceUrl = pdfUrl;
+          if (pdfUrl) pdfFound++; else pdfMissing++;
+          if (samples.length < 10) {
+            samples.push({
+              title: a.title,
+              case_url: a.url,
+              decision_pdf_url: pdfUrl,
+              matched_anchor: detail?.anchor ?? null,
+              is_fallback: detail?.isFallback ?? null,
+              proposed_etid: `${src.source.toLowerCase()}:${a.url}`,
+            });
+          }
+        }
+      }
 
-  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
-  let inserted = 0, skipped = 0, errors = 0, legacyUpdated = 0;
-  let pdfFound = 0, pdfMissing = 0;
-  const summary: Record<string, number> = {};
-  const samples: Array<Record<string, unknown>> = [];
-
-  for (const src of activeSources) {
-    try {
-      const md = await jinaFetch(src.url);
-      let actions = extractActions(md, src);
-
-      // FTC cases-and-proceedings index pages: filter to real case-detail links
       // (nav, footer, blog, and policy links share the ftc.gov host).
       if (src.secondHop && src.source === "FTC") {
         const caseRe = /^https:\/\/www\.ftc\.gov\/(legal-library\/browse|enforcement)\/cases-proceedings\/[a-z0-9][^/?#]+\/?$/i;
