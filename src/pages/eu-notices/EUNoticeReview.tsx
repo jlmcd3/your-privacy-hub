@@ -23,6 +23,7 @@ import { buildEuQuestionSections } from "@/data/eu-notice-questions";
 import type { EuFrameworkCode } from "@/data/eu-notice-questions/types";
 import type { Question } from "@/data/ropa-questions/types";
 import SessionCheckoutModal, { type SessionToolType } from "@/components/SessionCheckoutModal";
+import FreeRunIndicator from "@/components/FreeRunIndicator";
 
 type AnswerValue = string | string[] | null;
 type EuNoticeScope = "single" | "suite" | "full_international";
