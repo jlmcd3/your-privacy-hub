@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import FreeRunIndicator from "@/components/FreeRunIndicator";
 import { useUsNoticeSessionGuard } from "@/hooks/useUsNoticeSessionGuard";
 import {
   buildQuestionSet,
