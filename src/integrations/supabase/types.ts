@@ -735,6 +735,7 @@ export type Database = {
           source_document_text: string | null
           source_url: string | null
           statutory_provisions: string[] | null
+          statutory_provisions_evidence: Json | null
           statutory_provisions_extraction_method: string | null
           subject: string | null
           tool_relevance: string[] | null
@@ -803,6 +804,7 @@ export type Database = {
           source_document_text?: string | null
           source_url?: string | null
           statutory_provisions?: string[] | null
+          statutory_provisions_evidence?: Json | null
           statutory_provisions_extraction_method?: string | null
           subject?: string | null
           tool_relevance?: string[] | null
@@ -871,6 +873,7 @@ export type Database = {
           source_document_text?: string | null
           source_url?: string | null
           statutory_provisions?: string[] | null
+          statutory_provisions_evidence?: Json | null
           statutory_provisions_extraction_method?: string | null
           subject?: string | null
           tool_relevance?: string[] | null
