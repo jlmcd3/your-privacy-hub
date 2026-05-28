@@ -288,6 +288,7 @@ async function processOne(
     // annotation layer to Ctrl-F each citation against primary_source_url
     // without re-running extraction.
     const sourceLang = regulatorSourceLang(
+      regulatorCanonicalAlias,
       (row.regulator_canonical as string) ?? (row.regulator as string) ?? null,
     );
     updatePayload.statutory_provisions_evidence = (extract.statutory_provisions ?? []).map(
