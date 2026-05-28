@@ -229,7 +229,15 @@ Deno.serve(async (req) => {
   for (const src of activeSources) {
     try {
       const md = await jinaFetch(src.url);
-      const actions = extractActions(md, src);
+      let actions = extractActions(md, src);
+
+      // FTC cases-and-proceedings index pages: filter to real case-detail links
+      // (nav, footer, blog, and policy links share the ftc.gov host).
+      if (src.secondHop && src.source === "FTC") {
+        const caseRe = /^https:\/\/www\.ftc\.gov\/(legal-library\/browse|enforcement)\/cases-proceedings\/[a-z0-9][^/?#]+\/?$/i;
+        actions = actions.filter((a) => caseRe.test(a.url));
+      }
+
       summary[`${src.source}${src.ftcPage !== undefined ? `:p${src.ftcPage}` : ""}`] = actions.length;
       console.log(`${src.source}${src.ftcPage !== undefined ? ` page=${src.ftcPage}` : ""}: ${actions.length} candidate actions`);
 
