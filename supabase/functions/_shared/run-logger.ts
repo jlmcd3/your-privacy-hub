@@ -122,6 +122,7 @@ export async function failRun(
   const finishedAt = new Date().toISOString();
   const durationMs = Date.now() - run.startedMs;
   const message = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+  const mergedMetadata = await mergeMetadata(supabase, run.id, partialCounts.metadata);
 
   const { error } = await supabase
     .from("ingestion_runs")
@@ -137,7 +138,7 @@ export async function failRun(
       summaries_generated: partialCounts.enriched ?? 0,
       enrichment_failed_429: partialCounts.enrichmentFailed429 ?? 0,
       enrichment_failed_other: partialCounts.enrichmentFailedOther ?? 0,
-      metadata: partialCounts.metadata ?? {},
+      metadata: mergedMetadata,
     })
     .eq("id", run.id);
 
