@@ -4838,6 +4838,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_fire_track3_extract: {
+        Args: { p_max_rows?: number; p_regulator: string }
+        Returns: number
+      }
       claim_enforcement_for_enrichment: {
         Args: { _limit: number; _target_version: number }
         Returns: {
