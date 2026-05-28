@@ -44,20 +44,37 @@ const BROWSER_UA =
 const MAX_RESPONSE_BYTES = 2_000_000;
 const MAX_TEXT_CHARS = 60_000;
 
-// Map regulator (canonical or display) -> primary source-document language.
-// Used to tag persisted evidence quotes so the annotation layer and auditors
-// can confirm "regulator's own language" without re-deriving it. Extend as
-// Track 3 expands beyond AEPD.
+// Map regulator (canonical alias OR display string) -> primary source-document
+// language. Per-regulator known-language fallback ONLY: valid where a regulator
+// publishes its decisions in a single known language (AEPD = Spanish). This is
+// NOT generalizable to multilingual bodies (EDPB, CJEU, EU Commission) — they
+// must derive language from the source document directly when added.
 const REGULATOR_LANG: Record<string, string> = {
+  // Canonical alias keys (preferred, piped by the orchestrator).
   aepd: "es",
+  // Display-string fallbacks (used when no alias is piped, e.g. ad-hoc curl).
   "spain - aepd": "es",
   "spanish data protection agency": "es",
+  "spanish data protection authority (aepd)": "es",
 };
 
-function regulatorSourceLang(reg: string | null): string | null {
-  if (!reg) return null;
-  return REGULATOR_LANG[reg.trim().toLowerCase()] ?? null;
+function regulatorSourceLang(
+  aliasKey: string | null,
+  regulatorString: string | null,
+): string | null {
+  // Prefer the canonical alias piped by the orchestrator over the messy
+  // regulator string on the row (~77% of rows have NULL regulator_canonical).
+  if (aliasKey) {
+    const v = REGULATOR_LANG[aliasKey.trim().toLowerCase()];
+    if (v) return v;
+  }
+  if (regulatorString) {
+    const v = REGULATOR_LANG[regulatorString.trim().toLowerCase()];
+    if (v) return v;
+  }
+  return null;
 }
+
 
 async function sha256(input: ArrayBuffer | string): Promise<string> {
   const data = typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input);
@@ -156,6 +173,7 @@ async function processOne(
   supabase: ReturnType<typeof createClient>,
   rowId: string,
   dryRun: boolean,
+  regulatorCanonicalAlias: string | null,
 ) {
   const { data: row, error } = await supabase
     .from("enforcement_actions")
@@ -270,6 +288,7 @@ async function processOne(
     // annotation layer to Ctrl-F each citation against primary_source_url
     // without re-running extraction.
     const sourceLang = regulatorSourceLang(
+      regulatorCanonicalAlias,
       (row.regulator_canonical as string) ?? (row.regulator as string) ?? null,
     );
     updatePayload.statutory_provisions_evidence = (extract.statutory_provisions ?? []).map(
@@ -352,7 +371,12 @@ Deno.serve(async (req) => {
   );
 
   try {
-    const result = await processOne(supabase, body.row_id, Boolean(body.dry_run));
+    const result = await processOne(
+      supabase,
+      body.row_id,
+      Boolean(body.dry_run),
+      typeof body.regulator_canonical_alias === "string" ? body.regulator_canonical_alias : null,
+    );
     return new Response(JSON.stringify({ ok: true, ...result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
