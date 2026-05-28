@@ -302,13 +302,38 @@ async function processOne(
   } else {
     updatePayload.primary_source_status = "extracted_unverified";
     updatePayload.ingestion_confidence = "low";
-    // Preserve existing Track 2 statutory_provisions + method (do NOT overwrite).
     // Preserve existing key_compliance_failure unless it's empty AND the new
     // KCF is at least "near_verbatim" — in that case fill it but do not promote
     // memo_eligible.
     if (!row.key_compliance_failure && kcf.text && kcf.text.length >= 20) {
       updatePayload.key_compliance_failure = kcf.text;
     }
+    // KCF/provisions persistence decoupling:
+    // If statutory_provisions passed their own gate (statsVerified) but KCF
+    // did not reach verbatim, we still persist the verified provisions and
+    // their evidence payload. The row remains extracted_unverified because
+    // KCF is paraphrased; provisions are real and substring-verified, so
+    // discarding them would lose audited citation data.
+    // extracted_verbatim still requires BOTH gates (see verbatimOk branch).
+    if (statsVerified) {
+      const sourceLang = regulatorSourceLang(
+        regulatorCanonicalAlias,
+        (row.regulator_canonical as string) ?? (row.regulator as string) ?? null,
+      );
+      updatePayload.statutory_provisions = extract.statutory_provisions;
+      updatePayload.statutory_provisions_extraction_method =
+        "pattern_per_regulator_verified_kcf_unverified";
+      updatePayload.statutory_provisions_evidence = (extract.statutory_provisions ?? []).map(
+        (provision: string) => ({
+          provision,
+          evidence_quote:
+            extract.evidence_quotes?.[`statutory_provision:${provision}`] ?? null,
+          verified: true,
+          source_lang: sourceLang,
+        }),
+      );
+    }
+    // Else: preserve existing Track 2 statutory_provisions (do NOT overwrite).
   }
 
   if (!dryRun) {
