@@ -12,6 +12,7 @@ import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
+import FreeRunIndicator from "@/components/FreeRunIndicator";
 import { useToolAccess } from "@/hooks/useToolAccess";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
