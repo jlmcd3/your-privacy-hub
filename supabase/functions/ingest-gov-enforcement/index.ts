@@ -397,12 +397,16 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({
+  const finalResult = {
     dry_run: dryRun,
     ftc_pages: ftcPageFilter ? [...ftcPageFilter] : null,
     inserted, skipped, errors, legacy_updated: legacyUpdated,
     pdf_found: pdfFound, pdf_missing: pdfMissing,
     summary, samples,
-  }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  };
+  console.log("FINAL_RESULT", JSON.stringify(finalResult));
+  return new Response(JSON.stringify(finalResult),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+});
 });
 
