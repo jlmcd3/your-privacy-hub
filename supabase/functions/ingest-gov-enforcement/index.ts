@@ -69,7 +69,6 @@ const FTC_PRIORITY: RegExp[] = [
   /^complaint\s+and\s+stipulated\s+order\b/i,
   /^amended\s+stipulated\s+order\b/i,
   /^default\s+(final\s+)?judgment\b/i,
-  /^order\b/i,
 ];
 
 async function extractDecisionAndOrderDetail(
