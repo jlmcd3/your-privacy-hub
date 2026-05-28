@@ -152,6 +152,7 @@ Deno.serve(async (req) => {
           counts[k] = (counts[k] ?? 0) + 1;
         } else {
           failed++;
+          counts["worker_error"] = (counts["worker_error"] ?? 0) + 1;
           console.warn(`[track3-extract] row ${id} worker fail: ${r.error}`);
         }
         if (INTER_CALL_DELAY_MS > 0) {
