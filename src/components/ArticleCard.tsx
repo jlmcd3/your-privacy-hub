@@ -429,6 +429,7 @@ const FullCard = ({
               {weight}
             </span>
           )}
+          {isSkipped(item) && <SkippedBadge item={item} />}
           <AdminHideButton articleId={item.id} />
         </div>
         {/* Sector tags — show up to 2 if sectors are present */}
