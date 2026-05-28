@@ -54,12 +54,16 @@ const REGULATOR_LANG: Record<string, string> = {
   aepd: "es",
   anspdcp: "ro",
   naih: "hu",
+  uoou: "cs",
   // Display-string fallbacks (used when no alias is piped, e.g. ad-hoc curl).
   "spain - aepd": "es",
   "spanish data protection agency": "es",
   "spanish data protection authority (aepd)": "es",
   "nemzeti adatvédelmi és információszabadság hatóság (naih)": "hu",
   "hungarian national authority for data protection (naih)": "hu",
+  "úřad pro ochranu osobních údajů (úooú)": "cs",
+  "czech data protection authority (uoou)": "cs",
+  "czech data protection auhtority (uoou)": "cs",
 };
 
 
