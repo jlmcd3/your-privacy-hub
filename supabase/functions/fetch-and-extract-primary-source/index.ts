@@ -119,22 +119,48 @@ interface FetchOutcome {
   http_status?: number;
 }
 
-async function fetchAndExtractText(url: string): Promise<FetchOutcome> {
-  let resp: Response;
+async function doFetch(url: string, extraHeaders: Record<string, string> = {}): Promise<Response | { _error: "timeout" | "other" }> {
   try {
-    resp = await fetch(url, {
+    return await fetch(url, {
       headers: {
         "user-agent": BROWSER_UA,
         "accept": "text/html,application/xhtml+xml,application/xml,application/pdf,*/*;q=0.8",
-        "accept-language": "en;q=0.8,*;q=0.5",
+        "accept-language": "es-ES,es;q=0.9,en;q=0.7",
+        ...extraHeaders,
       },
       redirect: "follow",
       signal: AbortSignal.timeout(30_000),
     });
   } catch (e) {
     const msg = (e as Error).message || "";
-    if (/timeout|abort/i.test(msg)) return { status: "fetch_timeout" };
-    return { status: "fetch_other" };
+    if (/timeout|abort/i.test(msg)) return { _error: "timeout" };
+    return { _error: "other" };
+  }
+}
+
+async function fetchAndExtractText(url: string): Promise<FetchOutcome> {
+  let resp = await doFetch(url);
+  if ("_error" in resp) {
+    return resp._error === "timeout" ? { status: "fetch_timeout" } : { status: "fetch_other" };
+  }
+
+  // One-shot 403 retry with richer browser-like headers (Referer, sec-fetch-*)
+  // — targets AEPD /documento/ which blocks bare bot traffic.
+  if (resp.status === 403) {
+    try { await resp.body?.cancel(); } catch { /* noop */ }
+    const u = new URL(url);
+    const retry = await doFetch(url, {
+      "referer": `${u.protocol}//${u.host}/`,
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-mode": "navigate",
+      "sec-fetch-dest": "document",
+      "sec-fetch-user": "?1",
+      "upgrade-insecure-requests": "1",
+    });
+    if ("_error" in retry) {
+      return retry._error === "timeout" ? { status: "fetch_timeout" } : { status: "fetch_403", http_status: 403 };
+    }
+    resp = retry;
   }
 
   if (resp.status === 404) {
@@ -302,13 +328,38 @@ async function processOne(
   } else {
     updatePayload.primary_source_status = "extracted_unverified";
     updatePayload.ingestion_confidence = "low";
-    // Preserve existing Track 2 statutory_provisions + method (do NOT overwrite).
     // Preserve existing key_compliance_failure unless it's empty AND the new
     // KCF is at least "near_verbatim" — in that case fill it but do not promote
     // memo_eligible.
     if (!row.key_compliance_failure && kcf.text && kcf.text.length >= 20) {
       updatePayload.key_compliance_failure = kcf.text;
     }
+    // KCF/provisions persistence decoupling:
+    // If statutory_provisions passed their own gate (statsVerified) but KCF
+    // did not reach verbatim, we still persist the verified provisions and
+    // their evidence payload. The row remains extracted_unverified because
+    // KCF is paraphrased; provisions are real and substring-verified, so
+    // discarding them would lose audited citation data.
+    // extracted_verbatim still requires BOTH gates (see verbatimOk branch).
+    if (statsVerified) {
+      const sourceLang = regulatorSourceLang(
+        regulatorCanonicalAlias,
+        (row.regulator_canonical as string) ?? (row.regulator as string) ?? null,
+      );
+      updatePayload.statutory_provisions = extract.statutory_provisions;
+      updatePayload.statutory_provisions_extraction_method =
+        "pattern_per_regulator_verified_kcf_unverified";
+      updatePayload.statutory_provisions_evidence = (extract.statutory_provisions ?? []).map(
+        (provision: string) => ({
+          provision,
+          evidence_quote:
+            extract.evidence_quotes?.[`statutory_provision:${provision}`] ?? null,
+          verified: true,
+          source_lang: sourceLang,
+        }),
+      );
+    }
+    // Else: preserve existing Track 2 statutory_provisions (do NOT overwrite).
   }
 
   if (!dryRun) {

@@ -4838,6 +4838,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_fire_track3_chunk_if_idle: {
+        Args: { p_chunk_size?: number; p_regulator: string }
+        Returns: Json
+      }
       admin_fire_track3_extract: {
         Args: { p_max_rows?: number; p_regulator: string }
         Returns: number
