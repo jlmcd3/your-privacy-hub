@@ -323,7 +323,8 @@ async function processOne(
 
   const kcfVerbatim = kcf.confidence === "verbatim" && (kcf.text?.length ?? 0) >= 20;
   const statsVerified = (extract.statutory_provisions?.length ?? 0) >= 1;
-  const verbatimOk = kcfVerbatim && statsVerified;
+  const verbatimOk = statsVerified; // KCF verbatim is enrichment, not a citation gate
+
 
   // Diagnostic: per-row gate decomposition + language-check snippets.
   // kcf_snippet and stat_snippet are deliberately truncated and preserved verbatim
