@@ -242,6 +242,26 @@ Deno.serve(async (req) => {
       if (s.source !== "FTC") return false;
       if (ftcPageFilter && (s.ftcPage === undefined || !ftcPageFilter.has(s.ftcPage))) return false;
       return true;
+    }
+    return true;
+  });
+
+  for (const src of activeSources) {
+    try {
+      const md = await jinaFetch(src.url);
+      let actions = extractActions(md, src);
+
+      // FTC cases-and-proceedings index pages: filter to real case-detail links
+      // (nav, footer, blog, and policy links share the ftc.gov host).
+      if (src.secondHop && src.source === "FTC") {
+        const caseRe = /^https:\/\/www\.ftc\.gov\/(legal-library\/browse|enforcement)\/cases-proceedings\/[a-z0-9][^/?#]+\/?$/i;
+        actions = actions.filter((a) => caseRe.test(a.url));
+      }
+
+      summary[`${src.source}${src.ftcPage !== undefined ? `:p${src.ftcPage}` : ""}`] = actions.length;
+      console.log(`${src.source}${src.ftcPage !== undefined ? ` page=${src.ftcPage}` : ""}: ${actions.length} candidate actions`);
+
+      // Second-hop enrichment for FTC case summaries.
       if (src.secondHop) {
         for (const a of actions) {
           await new Promise((r) => setTimeout(r, 1000));
@@ -262,32 +282,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // (nav, footer, blog, and policy links share the ftc.gov host).
-      if (src.secondHop && src.source === "FTC") {
-        const caseRe = /^https:\/\/www\.ftc\.gov\/(legal-library\/browse|enforcement)\/cases-proceedings\/[a-z0-9][^/?#]+\/?$/i;
-        actions = actions.filter((a) => caseRe.test(a.url));
-      }
-
-      summary[`${src.source}${src.ftcPage !== undefined ? `:p${src.ftcPage}` : ""}`] = actions.length;
-      console.log(`${src.source}${src.ftcPage !== undefined ? ` page=${src.ftcPage}` : ""}: ${actions.length} candidate actions`);
-
-      // Second-hop enrichment for FTC case summaries.
-      if (src.secondHop) {
-        for (const a of actions) {
-          await new Promise((r) => setTimeout(r, 1000));
-          const pdfUrl = await extractDecisionAndOrderUrl(a.url);
-          (a as any).primarySourceUrl = pdfUrl;
-          if (pdfUrl) pdfFound++; else pdfMissing++;
-          if (samples.length < 5) {
-            samples.push({
-              title: a.title,
-              case_url: a.url,
-              decision_pdf_url: pdfUrl,
-              proposed_etid: `${src.source.toLowerCase()}:${a.url}`,
-            });
-          }
-        }
-      }
 
       for (const a of actions) {
         const etid = `${src.source.toLowerCase()}:${a.url}`;
