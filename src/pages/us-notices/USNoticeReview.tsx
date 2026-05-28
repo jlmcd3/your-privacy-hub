@@ -546,16 +546,19 @@ export default function USNoticeReview() {
             Back to questions
           </Link>
         </Button>
-        <Button
-          onClick={handleGenerate}
-          disabled={generating || missingRequired.length > 0}
-        >
-          {generating ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : null}
-          Generate my notices
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
+        <div className="flex flex-col items-end gap-2">
+          <FreeRunIndicator toolKey="us_notice" />
+          <Button
+            onClick={handleGenerate}
+            disabled={generating || missingRequired.length > 0}
+          >
+            {generating ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : null}
+            Generate my notices
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
       </div>
     </USNoticeShell>
   );
