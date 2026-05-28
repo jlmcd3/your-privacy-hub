@@ -52,11 +52,16 @@ const MAX_TEXT_CHARS = 60_000;
 const REGULATOR_LANG: Record<string, string> = {
   // Canonical alias keys (preferred, piped by the orchestrator).
   aepd: "es",
+  anspdcp: "ro",
+  naih: "hu",
   // Display-string fallbacks (used when no alias is piped, e.g. ad-hoc curl).
   "spain - aepd": "es",
   "spanish data protection agency": "es",
   "spanish data protection authority (aepd)": "es",
+  "nemzeti adatvédelmi és információszabadság hatóság (naih)": "hu",
+  "hungarian national authority for data protection (naih)": "hu",
 };
+
 
 function regulatorSourceLang(
   aliasKey: string | null,
