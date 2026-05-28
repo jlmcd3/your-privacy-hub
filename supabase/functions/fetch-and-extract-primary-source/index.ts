@@ -177,7 +177,7 @@ async function doFetch(url: string, extraHeaders: Record<string, string> = {}): 
         ...extraHeaders,
       },
       redirect: "follow",
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(60_000),
     });
   } catch (e) {
     const msg = (e as Error).message || "";
