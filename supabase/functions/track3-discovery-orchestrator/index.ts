@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
   const { data: rows, error } = await supabase
     .from("enforcement_actions")
     .select("id")
-    .eq("legacy_enrichment_version", 1)
+    .in("legacy_enrichment_version", [1, 2])
     .eq("primary_source_status", "pending_discovery")
     .or(buildRegulatorOrFilter(alias))
     .limit(maxRows);
