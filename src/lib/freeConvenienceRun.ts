@@ -98,7 +98,7 @@ export async function consumeFreeConvenienceRun(userId: string): Promise<void> {
 
   await supabase
     .from('profiles')
-    .update({ free_convenience_runs_used: current + 1 })
+    .update({ free_convenience_runs_used: current + 1 } as any)
     .eq('id', userId);
 }
 
