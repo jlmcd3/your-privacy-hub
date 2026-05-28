@@ -61,15 +61,15 @@ const SOURCES: SourceEntry[] = [
 // Second-hop fetcher: given an FTC case summary page URL, find the Decision and
 // Order (or equivalent) PDF link. Returns null if none found.
 const FTC_PRIORITY: RegExp[] = [
-  /^decision\s+and\s+order$/i,
-  /^final\s+order$/i,
-  /^consent\s+order$/i,
-  /^stipulated\s+(final\s+)?order$/i,
-  /^agreement\s+containing\s+consent\s+order$/i,
-  /^complaint\s+and\s+stipulated\s+order$/i,
-  /^order$/i,
-  /^complaint$/i,
-  /^analysis\s+of\s+proposed\s+consent\s+order/i,
+  /^decision\s+and\s+order\b/i,
+  /^final\s+order\b/i,
+  /^consent\s+order\b/i,
+  /^stipulated\s+(final\s+)?order\b/i,
+  /^agreement\s+containing\s+consent\s+order\b/i,
+  /^complaint\s+and\s+stipulated\s+order\b/i,
+  /^amended\s+stipulated\s+order\b/i,
+  /^default\s+(final\s+)?judgment\b/i,
+  /^order\b/i,
 ];
 
 async function extractDecisionAndOrderDetail(
@@ -89,10 +89,13 @@ async function extractDecisionAndOrderDetail(
       const match = found.find((f) => pattern.test(f.anchor));
       if (match) return { url: match.url, anchor: match.anchor, isFallback: false };
     }
-    return { url: found[0].url, anchor: found[0].anchor, isFallback: true };
+    // No fallback — orders/stipulations only.
+    return null;
   } catch {
     return null;
   }
+}
+
 }
 
 async function extractDecisionAndOrderUrl(
