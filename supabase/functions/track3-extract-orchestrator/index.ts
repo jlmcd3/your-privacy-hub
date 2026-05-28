@@ -137,7 +137,10 @@ Deno.serve(async (req) => {
     let failed = 0;
     try {
       for (const id of rowIds) {
-        const r = await callWorker(baseUrl, adminToken, id, dryRun);
+        // Always use the env-resident admin token when calling the worker —
+        // the orchestrator may have been authed via service-role bearer
+        // instead of x-admin-token, but the worker still requires the token.
+        const r = await callWorker(baseUrl, expected, id, dryRun);
         if (r.ok) {
           succeeded++;
           const k = r.primary_source_status ?? "unknown";
