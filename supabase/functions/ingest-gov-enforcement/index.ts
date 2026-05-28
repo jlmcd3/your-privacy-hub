@@ -257,10 +257,7 @@ Deno.serve(async (req) => {
   const summary: Record<string, number> = {};
   const samples: Array<Record<string, unknown>> = [];
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") || "";
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
+
 
 
   const activeSources = SOURCES.filter((s) => {
