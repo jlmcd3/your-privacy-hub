@@ -48,7 +48,10 @@ export const TRACK3_REGULATORS: Record<RegulatorAliasKey, RegulatorAlias> = {
       "Nemzeti Adatvédelmi és Információszabadság Hatóság (NAIH)",
       "NAIH",
       "Hungarian National Authority for Data Protection (NAIH)",
+      "Hungarian National Authority for Data Protection and the Freedom of Information (NAIH)",
     ],
+    allowedHosts: ["naih.hu", "www.naih.hu"],
+
     allowedHosts: ["naih.hu", "www.naih.hu"],
   },
   uoou: {
