@@ -52,7 +52,24 @@ For statutory_provisions, use canonical form when possible:
 - BIPA: "BIPA Section 15(b)" not "740 ILCS 14/15(b)"
 - TDPSA: "TDPSA §541.052"
 
+Spanish-language documents (AEPD, etc.) cite provisions in Spanish format. Translate the form to canonical English while keeping the original Spanish text verbatim in evidence_quote. Worked examples:
+- Source text: "artículo 6.1.f) del RGPD"
+  → {"provision": "GDPR Article 6(1)(f)", "evidence_quote": "artículo 6.1.f) del RGPD"}
+- Source text: "Artículo 83.5 del RGPD"
+  → {"provision": "GDPR Article 83(5)", "evidence_quote": "Artículo 83.5 del RGPD"}
+- Source text: "artículo 13 del RGPD"
+  → {"provision": "GDPR Article 13", "evidence_quote": "artículo 13 del RGPD"}
+- Source text: "artículo 65 de la LOPDGDD"
+  → {"provision": "LOPDGDD Article 65", "evidence_quote": "artículo 65 de la LOPDGDD"}
+- Source text: "art. 5.1 c) RGPD"
+  → {"provision": "GDPR Article 5(1)(c)", "evidence_quote": "art. 5.1 c) RGPD"}
+Translating Spanish citation format to canonical English form is REQUIRED and does NOT violate rule 2 — it is a controlled format normalization, not inference.
+
 The canonical form is the value; the evidence_quote is the verbatim text from the document showing the citation in its original form.
+
+Scope of statutory_provisions: extract every statutory provision cited in the document in the context of (a) the violation finding, (b) the legal basis the regulator relies on, or (c) the sanction disposition. This includes provisions discussed in the legal-framework recital when they support the violation finding. Do NOT include procedural articles cited only as administrative boilerplate (rules of procedure, notification deadlines, agency competence) unless those procedural provisions themselves are part of the charged violation.
+
+Minimum-extract rule: if the document contains ANY Spanish statutory citation patterns ("artículo N del RGPD", "Art. N LOPDGDD", "artículo N de la LOPDGDD", "artículo N del Reglamento", "art. N RGPD", or the English/other-language equivalents for non-Spanish documents), you MUST extract at least one provision tied to the violation finding or sanction. Returning an empty array [] is acceptable ONLY when the document genuinely contains no statutory citation patterns at all (e.g. pure procedural orders, press notices, or unrelated content). If you see citations but are unsure which one is "the" charged provision, include the citation(s) most adjacent to disposition language or violation findings — do not return [].
 
 If the document is empty, truncated, or unrelated to the action you were asked to verify, return all fields as null and statutory_provisions as an empty array.
 
