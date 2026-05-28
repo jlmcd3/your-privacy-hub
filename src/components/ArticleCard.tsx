@@ -270,6 +270,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
           {normalizeTitle(item.title)}
         </p>
         {enriched && <IntelligenceBadge />}
+        {isSkipped(item) && <SkippedBadge item={item} />}
       </div>
       {item.summary && (
         <p className="text-sm text-gray-600 leading-snug mt-1 line-clamp-2">
