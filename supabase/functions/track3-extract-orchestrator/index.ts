@@ -58,9 +58,17 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Accept either:
+  //   - x-admin-token == ADMIN_SECRET_TOKEN (legacy/admin-curl path), or
+  //   - Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY> (server-to-server,
+  //     used by the SQL admin_fire_track3_extract helper invoked via pg_net).
   const adminToken = req.headers.get("x-admin-token") ?? "";
   const expected = Deno.env.get("ADMIN_SECRET_TOKEN") ?? "";
-  if (!expected || adminToken !== expected) {
+  const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const tokenOk = !!expected && adminToken === expected;
+  const bearerOk = !!serviceKey && !!bearer && bearer === serviceKey;
+  if (!tokenOk && !bearerOk) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -129,7 +137,10 @@ Deno.serve(async (req) => {
     let failed = 0;
     try {
       for (const id of rowIds) {
-        const r = await callWorker(baseUrl, adminToken, id, dryRun);
+        // Always use the env-resident admin token when calling the worker —
+        // the orchestrator may have been authed via service-role bearer
+        // instead of x-admin-token, but the worker still requires the token.
+        const r = await callWorker(baseUrl, expected, id, dryRun);
         if (r.ok) {
           succeeded++;
           const k = r.primary_source_status ?? "unknown";

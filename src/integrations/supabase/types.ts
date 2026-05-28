@@ -735,6 +735,7 @@ export type Database = {
           source_document_text: string | null
           source_url: string | null
           statutory_provisions: string[] | null
+          statutory_provisions_evidence: Json | null
           statutory_provisions_extraction_method: string | null
           subject: string | null
           tool_relevance: string[] | null
@@ -803,6 +804,7 @@ export type Database = {
           source_document_text?: string | null
           source_url?: string | null
           statutory_provisions?: string[] | null
+          statutory_provisions_evidence?: Json | null
           statutory_provisions_extraction_method?: string | null
           subject?: string | null
           tool_relevance?: string[] | null
@@ -871,6 +873,7 @@ export type Database = {
           source_document_text?: string | null
           source_url?: string | null
           statutory_provisions?: string[] | null
+          statutory_provisions_evidence?: Json | null
           statutory_provisions_extraction_method?: string | null
           subject?: string | null
           tool_relevance?: string[] | null
@@ -4835,6 +4838,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_fire_track3_extract: {
+        Args: { p_max_rows?: number; p_regulator: string }
+        Returns: number
+      }
       claim_enforcement_for_enrichment: {
         Args: { _limit: number; _target_version: number }
         Returns: {
