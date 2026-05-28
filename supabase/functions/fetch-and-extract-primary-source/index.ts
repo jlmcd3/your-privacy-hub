@@ -55,6 +55,7 @@ const REGULATOR_LANG: Record<string, string> = {
   anspdcp: "ro",
   naih: "hu",
   uoou: "cs",
+  ftc: "en",
   // Display-string fallbacks (used when no alias is piped, e.g. ad-hoc curl).
   "spain - aepd": "es",
   "spanish data protection agency": "es",
