@@ -353,7 +353,8 @@ async function processOne(
   if (verbatimOk) {
     updatePayload.primary_source_status = "extracted_verbatim";
     updatePayload.ingestion_confidence = "high";
-    updatePayload.key_compliance_failure = kcf.text;
+    if (kcfVerbatim) updatePayload.key_compliance_failure = kcf.text;
+
     // Overwrite Track 2 outputs only on verbatim success (Section 3).
     updatePayload.statutory_provisions = extract.statutory_provisions;
     updatePayload.statutory_provisions_extraction_method = "pattern_per_regulator_verified";
