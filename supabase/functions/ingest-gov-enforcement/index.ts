@@ -34,17 +34,20 @@ const SOURCES: SourceEntry[] = [
   // FTC cases-and-proceedings index — pages 0-10 (authoritative enforcement list).
   // Each entry uses secondHop to follow case summary pages and pull the
   // Decision/Final/Consent/Stipulated Order PDF as primary_source_url.
-  ...Array.from({ length: 11 }, (_, i): SourceEntry => ({
-    regulator: "FTC",
-    jurisdiction: "United States",
-    law: "FTC Act / COPPA / FCRA",
-    url: i === 0
-      ? "https://www.ftc.gov/enforcement/cases-proceedings"
-      : `https://www.ftc.gov/enforcement/cases-proceedings?page=${i}`,
-    source: "FTC",
-    secondHop: true,
-    ftcPage: i,
-  })),
+  // Skip p0 (bare URL renders default landing without case list in SSR HTML).
+  ...Array.from({ length: 10 }, (_, idx): SourceEntry => {
+    const i = idx + 1;
+    return {
+      regulator: "FTC",
+      jurisdiction: "United States",
+      law: "FTC Act / COPPA / FCRA",
+      url: `https://www.ftc.gov/enforcement/cases-proceedings?page=${i}`,
+      source: "FTC",
+      secondHop: true,
+      ftcPage: i,
+    };
+  }),
+
   { regulator: "HHS OCR", jurisdiction: "United States", law: "HIPAA", url: "https://www.hhs.gov/hipaa/for-professionals/compliance-enforcement/agreements/index.html", source: "HHS-OCR" },
   { regulator: "DPC Ireland", jurisdiction: "Ireland", law: "GDPR / Data Protection Act 2018", url: "https://www.dataprotection.ie/en/news-media/latest-news", source: "DPC Ireland" },
   { regulator: "Gibson Dunn", jurisdiction: "EU", law: "GDPR", url: "https://www.gibsondunn.com/topic/european-data-protection-newsletter/", source: "Gibson Dunn" },
@@ -278,9 +281,15 @@ Deno.serve(async (req) => {
       // FTC cases-and-proceedings index pages: filter to real case-detail links
       // (nav, footer, blog, and policy links share the ftc.gov host).
       if (src.secondHop && src.source === "FTC") {
-        const caseRe = /^https:\/\/www\.ftc\.gov\/(legal-library\/browse|enforcement)\/cases-proceedings\/\d{3}-\d{4}-[a-z0-9][^/?#]*\/?$/i;
-        actions = actions.filter((a) => caseRe.test(a.url));
+        // Two valid path prefixes:
+        //  /enforcement/cases-proceedings/<NNN-NNNN-slug>   — requires numeric ID
+        //  /legal-library/browse/cases-proceedings/<slug>   — accepts any slug
+        //    (path already specific; numeric ID not always present)
+        const enforcementRe = /^https:\/\/www\.ftc\.gov\/enforcement\/cases-proceedings\/\d{3}-\d{4}-[a-z0-9][^/?#]*\/?$/i;
+        const legalLibRe = /^https:\/\/www\.ftc\.gov\/legal-library\/browse\/cases-proceedings\/[a-z0-9][^/?#]*\/?$/i;
+        actions = actions.filter((a) => enforcementRe.test(a.url) || legalLibRe.test(a.url));
       }
+
 
       summary[`${src.source}${src.ftcPage !== undefined ? `:p${src.ftcPage}` : ""}`] = actions.length;
       console.log(`${src.source}${src.ftcPage !== undefined ? ` page=${src.ftcPage}` : ""}: ${actions.length} candidate actions`);
