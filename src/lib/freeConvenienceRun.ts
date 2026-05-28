@@ -1,91 +1,134 @@
 import { supabase } from '@/integrations/supabase/client';
-import { isConvenienceTool } from '@/config/pricing';
+import { isConvenienceTool, getFreeRunPoolSize } from '@/config/pricing';
 
 export interface FreeRunStatus {
   hasFreeRun: boolean;
+  runsUsed:   number;
+  poolSize:   number;
   reason:     string;
 }
 
 /**
- * Check whether a Professional annual subscriber has a free convenience
- * tool run available for a specific client this calendar month.
+ * Check whether the current user has a free Convenience Tool run available
+ * this calendar month, based on their subscription tier pool.
+ *
+ * Pool sizes (from pricing.ts FREE_RUN_POOL_SIZES):
+ *   intel_monthly: 1   intel_annual: 5
+ *   pro_monthly:   3   pro_annual:  10
+ *
+ * Smart Tools are never eligible — isConvenienceTool() gates access.
+ * Pool resets on the 1st of each calendar month. No carry-over.
  */
 export async function checkFreeConvenienceRun(
-  userId:   string,
-  clientId: string,
-  toolKey:  string
+  userId:  string,
+  toolKey: string,
 ): Promise<FreeRunStatus> {
-
   if (!isConvenienceTool(toolKey)) {
-    return { hasFreeRun: false, reason: 'Smart Tools are not eligible for free runs.' };
+    return {
+      hasFreeRun: false, runsUsed: 0, poolSize: 0,
+      reason: 'Smart Tools are not eligible for free runs.',
+    };
   }
 
-  // Confirm Professional annual subscription
   const { data: profile } = await supabase
     .from('profiles')
-    .select('professional_annual, subscription_tier')
+    .select('subscription_type, is_premium, is_pro, free_convenience_runs_used, free_runs_reset_date')
     .eq('id', userId)
     .single();
 
-  const p = profile as { professional_annual?: boolean; subscription_tier?: string } | null;
-  if (
-    !p ||
-    p.subscription_tier !== 'professional' ||
-    !p.professional_annual
-  ) {
+  if (!profile) {
+    return { hasFreeRun: false, runsUsed: 0, poolSize: 0, reason: 'Profile not found.' };
+  }
+
+  const p = profile as any;
+  const subType: string | null = p.subscription_type ?? null;
+  const isPro: boolean = p.is_pro === true;
+  // Map profile fields to a granular pool key. If subscription_type is set,
+  // trust it directly (FREE_RUN_POOL_SIZES knows the legacy aliases).
+  const tier = subType ?? (isPro ? 'pro_annual' : 'free');
+
+  const poolSize = getFreeRunPoolSize(tier);
+  if (poolSize === 0) {
     return {
-      hasFreeRun: false,
-      reason:     'Free runs require an active Professional annual subscription.',
+      hasFreeRun: false, runsUsed: 0, poolSize: 0,
+      reason: 'No free runs available for this subscription tier.',
     };
   }
 
-  // Check the client's monthly run record
-  const { data: client } = await supabase
-    .from('professional_clients')
-    .select('free_run_used_this_month, free_run_reset_date')
-    .eq('id', clientId)
-    .eq('user_id', userId)
-    .single();
-
-  const c = client as { free_run_used_this_month?: boolean; free_run_reset_date?: string } | null;
-  if (!c) {
-    return { hasFreeRun: false, reason: 'Client record not found.' };
-  }
-
-  // Reset flag if we're in a new calendar month
-  const resetDate = c.free_run_reset_date
-    ? new Date(c.free_run_reset_date)
-    : new Date(0);
+  // Reset counter if we're in a new calendar month
+  const resetDate = p.free_runs_reset_date ? new Date(p.free_runs_reset_date) : new Date(0);
   const now = new Date();
-  const isNewMonth =
-    resetDate.getFullYear() < now.getFullYear() ||
-    resetDate.getMonth()    < now.getMonth();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  if (isNewMonth) {
+  let runsUsed: number = p.free_convenience_runs_used ?? 0;
+
+  if (resetDate < firstOfMonth) {
     await supabase
-      .from('professional_clients')
+      .from('profiles')
       .update({
-        free_run_used_this_month: false,
-        free_run_reset_date:      now.toISOString().split('T')[0],
+        free_convenience_runs_used: 0,
+        free_runs_reset_date: firstOfMonth.toISOString().split('T')[0],
       })
-      .eq('id', clientId);
-    return { hasFreeRun: true, reason: 'Free monthly run available.' };
+      .eq('id', userId);
+    runsUsed = 0;
   }
 
-  if (c.free_run_used_this_month) {
+  if (runsUsed >= poolSize) {
     return {
-      hasFreeRun: false,
-      reason:     'Free run already used this month for this client.',
+      hasFreeRun: false, runsUsed, poolSize,
+      reason: `Free run pool exhausted (${runsUsed}/${poolSize} used this month).`,
     };
   }
 
-  return { hasFreeRun: true, reason: 'Free monthly run available.' };
+  return {
+    hasFreeRun: true, runsUsed, poolSize,
+    reason: `Free run available (${runsUsed}/${poolSize} used this month).`,
+  };
 }
 
-/** Mark the free run as consumed for this client this month */
-export async function consumeFreeConvenienceRun(clientId: string): Promise<void> {
+/** Consume one free run from the pool for this user. */
+export async function consumeFreeConvenienceRun(userId: string): Promise<void> {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('free_convenience_runs_used')
+    .eq('id', userId)
+    .single();
+
+  const current = (profile as any)?.free_convenience_runs_used ?? 0;
+
   await supabase
-    .from('professional_clients')
-    .update({ free_run_used_this_month: true })
-    .eq('id', clientId);
+    .from('profiles')
+    .update({ free_convenience_runs_used: current + 1 })
+    .eq('id', userId);
+}
+
+/** Get remaining free runs for display in UI. Returns { used, total, resetDate }. */
+export async function getFreeRunPoolStatus(
+  userId: string,
+  tier:   string,
+): Promise<{ used: number; total: number; resetDate: string | null }> {
+  const total = getFreeRunPoolSize(tier);
+  if (total === 0) return { used: 0, total: 0, resetDate: null };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('free_convenience_runs_used, free_runs_reset_date')
+    .eq('id', userId)
+    .single();
+
+  if (!profile) return { used: 0, total, resetDate: null };
+
+  const p = profile as any;
+  const resetDate = p.free_runs_reset_date as string | null;
+  const resetDt = resetDate ? new Date(resetDate) : new Date(0);
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // If counter is stale, effective used = 0
+  const used = resetDt < firstOfMonth ? 0 : (p.free_convenience_runs_used ?? 0);
+
+  const nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const nextResetStr = nextReset.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  return { used, total, resetDate: nextResetStr };
 }
