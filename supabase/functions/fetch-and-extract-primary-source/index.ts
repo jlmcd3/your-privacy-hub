@@ -82,18 +82,38 @@ async function sha256(input: ArrayBuffer | string): Promise<string> {
   return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Named HTML entities we may encounter in regulator pages. Numeric entities
+// (decimal &#NNN; and hex &#xHHHH;) are handled by the regex below — this
+// covers Romanian/Central-European diacritics emitted by older CMS templates
+// (e.g. ANSPDCP's dataprotection.ro: &#355; → ț, &#539; → ș, &#259; → ă).
+const NAMED_ENTITIES: Record<string, string> = {
+  nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', apos: "'",
+  copy: "©", reg: "®", trade: "™", hellip: "…", mdash: "—", ndash: "–",
+  lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”", laquo: "«", raquo: "»",
+  bull: "•", middot: "·", sect: "§", para: "¶", deg: "°", euro: "€",
+};
+
+function decodeHtmlEntities(s: string): string {
+  if (!s) return s;
+  return s
+    .replace(/&#(\d+);/g, (_, n) => {
+      try { return String.fromCodePoint(parseInt(n, 10)); } catch { return _; }
+    })
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => {
+      try { return String.fromCodePoint(parseInt(h, 16)); } catch { return _; }
+    })
+    .replace(/&([a-zA-Z][a-zA-Z0-9]+);/g, (m, name) => NAMED_ENTITIES[name] ?? m);
+}
+
 function htmlToText(html: string): string {
   if (!html) return "";
-  return html
+  const stripped = html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<\/(p|div|li|tr|h[1-6]|br)>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
+    .replace(/<[^>]+>/g, " ");
+  // Decode entities AFTER tag-strip so we don't accidentally re-introduce tags.
+  return decodeHtmlEntities(stripped)
     .replace(/[ \t]+/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
