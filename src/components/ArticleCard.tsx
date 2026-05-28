@@ -561,6 +561,13 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
         </span>
       </div>
     )}
+    {isSkipped(item) && (
+      <div className="absolute top-3 right-3">
+        <span className="inline-flex items-center px-1.5 py-1 rounded text-[11px] font-semibold font-sans bg-white/15 text-white/70">
+          {skipLabel(item)}
+        </span>
+      </div>
+    )}
     <div className="flex flex-wrap items-center gap-2 mb-3">
       {item.category && (
         <span className="text-[11px] font-bold uppercase tracking-widest text-blue-300">{categoryLabel(item.category)}</span>
