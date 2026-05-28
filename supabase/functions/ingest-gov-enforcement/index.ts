@@ -281,13 +281,14 @@ Deno.serve(async (req) => {
       // FTC cases-and-proceedings index pages: filter to real case-detail links
       // (nav, footer, blog, and policy links share the ftc.gov host).
       if (src.secondHop && src.source === "FTC") {
-        // Two valid path prefixes:
-        //  /enforcement/cases-proceedings/<NNN-NNNN-slug>   — requires numeric ID
-        //  /legal-library/browse/cases-proceedings/<slug>   — accepts any slug
-        //    (path already specific; numeric ID not always present)
         const enforcementRe = /^https:\/\/www\.ftc\.gov\/enforcement\/cases-proceedings\/\d{3}-\d{4}-[a-z0-9][^/?#]*\/?$/i;
         const legalLibRe = /^https:\/\/www\.ftc\.gov\/legal-library\/browse\/cases-proceedings\/[a-z0-9][^/?#]*\/?$/i;
-        actions = actions.filter((a) => enforcementRe.test(a.url) || legalLibRe.test(a.url));
+        // Hub/landing pages under /legal-library/browse/cases-proceedings/ that
+        // are not real case-detail pages.
+        const hubRe = /\/cases-proceedings\/(closing-letters|commissioner-statements|adjudicative-proceedings|commission-letters|staff-letters|banned-debt-collectors|policy-statements)\/?$/i;
+        actions = actions.filter(
+          (a) => (enforcementRe.test(a.url) || legalLibRe.test(a.url)) && !hubRe.test(a.url),
+        );
       }
 
 
