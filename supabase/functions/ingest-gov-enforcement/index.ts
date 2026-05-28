@@ -60,22 +60,48 @@ const SOURCES: SourceEntry[] = [
 
 // Second-hop fetcher: given an FTC case summary page URL, find the Decision and
 // Order (or equivalent) PDF link. Returns null if none found.
-async function extractDecisionAndOrderUrl(
+const FTC_PRIORITY: RegExp[] = [
+  /^decision\s+and\s+order$/i,
+  /^final\s+order$/i,
+  /^consent\s+order$/i,
+  /^stipulated\s+(final\s+)?order$/i,
+  /^agreement\s+containing\s+consent\s+order$/i,
+  /^complaint\s+and\s+stipulated\s+order$/i,
+  /^order$/i,
+  /^complaint$/i,
+  /^analysis\s+of\s+proposed\s+consent\s+order/i,
+];
+
+async function extractDecisionAndOrderDetail(
   caseSummaryUrl: string,
-): Promise<string | null> {
+): Promise<{ url: string; anchor: string; isFallback: boolean } | null> {
   try {
     const md = await jinaFetch(caseSummaryUrl);
-    const docRe = /\[(Decision and Order|Final Order|Consent Order|Stipulated Order|Complaint and Stipulated Order)\]\((https?:\/\/[^\s)]+)\)/i;
-    const m = md.match(docRe);
-    if (m) return m[2];
-    const pdfRe = /\[[^\]]+\]\((https?:\/\/(?:www\.)?ftc\.gov[^\s)]*\.pdf)\)/i;
-    const pm = md.match(pdfRe);
-    if (pm) return pm[1];
-    return null;
+    const FTC_PDF_RE = /\[([^\]]+)\]\((https:\/\/www\.ftc\.gov\/system\/files\/ftc_gov\/pdf\/[^\s)]+\.pdf)[^)]*\)/gi;
+    const found: Array<{ anchor: string; url: string }> = [];
+    let m: RegExpExecArray | null;
+    FTC_PDF_RE.lastIndex = 0;
+    while ((m = FTC_PDF_RE.exec(md)) !== null) {
+      found.push({ anchor: m[1].trim(), url: m[2] });
+    }
+    if (found.length === 0) return null;
+    for (const pattern of FTC_PRIORITY) {
+      const match = found.find((f) => pattern.test(f.anchor));
+      if (match) return { url: match.url, anchor: match.anchor, isFallback: false };
+    }
+    return { url: found[0].url, anchor: found[0].anchor, isFallback: true };
   } catch {
     return null;
   }
 }
+
+async function extractDecisionAndOrderUrl(
+  caseSummaryUrl: string,
+): Promise<string | null> {
+  const d = await extractDecisionAndOrderDetail(caseSummaryUrl);
+  return d ? d.url : null;
+}
+
 
 async function jinaFetch(targetUrl: string): Promise<string> {
   const jinaKey = Deno.env.get("JINA_API_KEY");
@@ -193,9 +219,20 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const url = new URL(req.url);
-  const dryRun = url.searchParams.get("dry_run") === "true";
-  const ftcPageParam = url.searchParams.get("ftc_page");
-  const ftcPagesParam = url.searchParams.get("ftc_pages"); // e.g. "0-2" or "0,1,2"
+  let body: Record<string, unknown> = {};
+  if (req.method === "POST") {
+    try { body = await req.json(); } catch { body = {}; }
+  }
+  const param = (k: string): string | null => {
+    const q = url.searchParams.get(k);
+    if (q !== null) return q;
+    const v = (body as any)[k];
+    return v === undefined || v === null ? null : String(v);
+  };
+
+  const dryRun = param("dry_run") === "true";
+  const ftcPageParam = param("ftc_page");
+  const ftcPagesParam = param("ftc_pages");
   const onlyFtc = ftcPageParam !== null || ftcPagesParam !== null;
 
   let ftcPageFilter: Set<number> | null = null;
@@ -211,6 +248,18 @@ Deno.serve(async (req) => {
     }
   }
 
+  let inserted = 0;
+  let skipped = 0;
+  let errors = 0;
+  let legacyUpdated = 0;
+  let pdfFound = 0;
+  let pdfMissing = 0;
+  const summary: Record<string, number> = {};
+  const samples: Array<Record<string, unknown>> = [];
+  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") || "";
+
+
+
   const activeSources = SOURCES.filter((s) => {
     if (onlyFtc) {
       if (s.source !== "FTC") return false;
@@ -219,12 +268,6 @@ Deno.serve(async (req) => {
     }
     return true;
   });
-
-  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
-  let inserted = 0, skipped = 0, errors = 0, legacyUpdated = 0;
-  let pdfFound = 0, pdfMissing = 0;
-  const summary: Record<string, number> = {};
-  const samples: Array<Record<string, unknown>> = [];
 
   for (const src of activeSources) {
     try {
@@ -245,19 +288,23 @@ Deno.serve(async (req) => {
       if (src.secondHop) {
         for (const a of actions) {
           await new Promise((r) => setTimeout(r, 1000));
-          const pdfUrl = await extractDecisionAndOrderUrl(a.url);
+          const detail = await extractDecisionAndOrderDetail(a.url);
+          const pdfUrl = detail ? detail.url : null;
           (a as any).primarySourceUrl = pdfUrl;
           if (pdfUrl) pdfFound++; else pdfMissing++;
-          if (samples.length < 5) {
+          if (samples.length < 10) {
             samples.push({
               title: a.title,
               case_url: a.url,
               decision_pdf_url: pdfUrl,
+              matched_anchor: detail?.anchor ?? null,
+              is_fallback: detail?.isFallback ?? null,
               proposed_etid: `${src.source.toLowerCase()}:${a.url}`,
             });
           }
         }
       }
+
 
       for (const a of actions) {
         const etid = `${src.source.toLowerCase()}:${a.url}`;
