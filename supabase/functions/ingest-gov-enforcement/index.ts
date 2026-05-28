@@ -60,22 +60,48 @@ const SOURCES: SourceEntry[] = [
 
 // Second-hop fetcher: given an FTC case summary page URL, find the Decision and
 // Order (or equivalent) PDF link. Returns null if none found.
-async function extractDecisionAndOrderUrl(
+const FTC_PRIORITY: RegExp[] = [
+  /^decision\s+and\s+order$/i,
+  /^final\s+order$/i,
+  /^consent\s+order$/i,
+  /^stipulated\s+(final\s+)?order$/i,
+  /^agreement\s+containing\s+consent\s+order$/i,
+  /^complaint\s+and\s+stipulated\s+order$/i,
+  /^order$/i,
+  /^complaint$/i,
+  /^analysis\s+of\s+proposed\s+consent\s+order/i,
+];
+
+async function extractDecisionAndOrderDetail(
   caseSummaryUrl: string,
-): Promise<string | null> {
+): Promise<{ url: string; anchor: string; isFallback: boolean } | null> {
   try {
     const md = await jinaFetch(caseSummaryUrl);
-    const docRe = /\[(Decision and Order|Final Order|Consent Order|Stipulated Order|Complaint and Stipulated Order)\]\((https?:\/\/[^\s)]+)\)/i;
-    const m = md.match(docRe);
-    if (m) return m[2];
-    const pdfRe = /\[[^\]]+\]\((https?:\/\/(?:www\.)?ftc\.gov[^\s)]*\.pdf)\)/i;
-    const pm = md.match(pdfRe);
-    if (pm) return pm[1];
-    return null;
+    const FTC_PDF_RE = /\[([^\]]+)\]\((https:\/\/www\.ftc\.gov\/system\/files\/ftc_gov\/pdf\/[^\s)]+\.pdf)[^)]*\)/gi;
+    const found: Array<{ anchor: string; url: string }> = [];
+    let m: RegExpExecArray | null;
+    FTC_PDF_RE.lastIndex = 0;
+    while ((m = FTC_PDF_RE.exec(md)) !== null) {
+      found.push({ anchor: m[1].trim(), url: m[2] });
+    }
+    if (found.length === 0) return null;
+    for (const pattern of FTC_PRIORITY) {
+      const match = found.find((f) => pattern.test(f.anchor));
+      if (match) return { url: match.url, anchor: match.anchor, isFallback: false };
+    }
+    return { url: found[0].url, anchor: found[0].anchor, isFallback: true };
   } catch {
     return null;
   }
 }
+
+async function extractDecisionAndOrderUrl(
+  caseSummaryUrl: string,
+): Promise<string | null> {
+  const d = await extractDecisionAndOrderDetail(caseSummaryUrl);
+  return d ? d.url : null;
+}
+
 
 async function jinaFetch(targetUrl: string): Promise<string> {
   const jinaKey = Deno.env.get("JINA_API_KEY");
