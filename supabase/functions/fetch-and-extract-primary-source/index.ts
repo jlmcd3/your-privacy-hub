@@ -218,6 +218,23 @@ async function processOne(
   const statsVerified = (extract.statutory_provisions?.length ?? 0) >= 1;
   const verbatimOk = kcfVerbatim && statsVerified;
 
+  // Diagnostic: per-row gate decomposition + language-check snippets.
+  // kcf_snippet and stat_snippet are deliberately truncated and preserved verbatim
+  // so we can confirm output stays in the source-document language (no translation).
+  const kcfSnippet = (kcf.text ?? "").slice(0, 160);
+  const firstStat = extract.statutory_provisions?.[0] as
+    | { citation?: string; evidence_quote?: string }
+    | undefined;
+  const statSnippet = firstStat
+    ? `${firstStat.citation ?? ""} | ${(firstStat.evidence_quote ?? "").slice(0, 120)}`
+    : "(none)";
+  console.log(
+    `[gate] row=${rowId} kcf_conf=${kcf.confidence} kcf_len=${kcf.text?.length ?? 0} ` +
+      `kcf_verbatim=${kcfVerbatim} stats_count=${extract.statutory_provisions?.length ?? 0} ` +
+      `stats_verified=${statsVerified} verbatim_ok=${verbatimOk} ` +
+      `kcf_snippet="${kcfSnippet.replace(/"/g, "'")}" stat_snippet="${statSnippet.replace(/"/g, "'")}"`,
+  );
+
   // Build update payload.
   const updatePayload: Record<string, unknown> = {
     source_document_text: sourceText,
