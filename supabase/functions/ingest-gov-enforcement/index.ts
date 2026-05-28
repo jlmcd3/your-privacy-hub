@@ -18,10 +18,31 @@ const corsHeaders = {
 
 const JINA = "https://r.jina.ai/";
 
-const SOURCES = [
+interface SourceEntry {
+  regulator: string;
+  jurisdiction: string;
+  law: string;
+  url: string;
+  source: string;
+  secondHop?: boolean;
+  ftcPage?: number;
+}
+
+const SOURCES: SourceEntry[] = [
   { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/action-weve-taken/enforcement/", source: "ICO" },
   { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/", source: "ICO News" },
-  { regulator: "FTC", jurisdiction: "United States", law: "FTC Act / COPPA", url: "https://www.ftc.gov/news-events/topics/protecting-consumer-privacy-security/privacy-security-enforcement", source: "FTC" },
+  // FTC cases-and-proceedings index — pages 0-10 (authoritative enforcement list).
+  // Each entry uses secondHop to follow case summary pages and pull the
+  // Decision/Final/Consent/Stipulated Order PDF as primary_source_url.
+  ...Array.from({ length: 11 }, (_, i): SourceEntry => ({
+    regulator: "FTC",
+    jurisdiction: "United States",
+    law: "FTC Act / COPPA / FCRA",
+    url: `https://www.ftc.gov/enforcement/cases-proceedings?page=${i}`,
+    source: "FTC",
+    secondHop: true,
+    ftcPage: i,
+  })),
   { regulator: "HHS OCR", jurisdiction: "United States", law: "HIPAA", url: "https://www.hhs.gov/hipaa/for-professionals/compliance-enforcement/agreements/index.html", source: "HHS-OCR" },
   { regulator: "DPC Ireland", jurisdiction: "Ireland", law: "GDPR / Data Protection Act 2018", url: "https://www.dataprotection.ie/en/news-media/latest-news", source: "DPC Ireland" },
   { regulator: "Gibson Dunn", jurisdiction: "EU", law: "GDPR", url: "https://www.gibsondunn.com/topic/european-data-protection-newsletter/", source: "Gibson Dunn" },
@@ -34,6 +55,25 @@ const SOURCES = [
   { regulator: "Texas AG", jurisdiction: "Texas", law: "TDPSA", url: "https://www.texasattorneygeneral.gov/news/press-releases", source: "Texas AG" },
   { regulator: "Colorado AG", jurisdiction: "Colorado", law: "CPA", url: "https://coag.gov/press-releases/", source: "Colorado AG" },
 ];
+
+// Second-hop fetcher: given an FTC case summary page URL, find the Decision and
+// Order (or equivalent) PDF link. Returns null if none found.
+async function extractDecisionAndOrderUrl(
+  caseSummaryUrl: string,
+): Promise<string | null> {
+  try {
+    const md = await jinaFetch(caseSummaryUrl);
+    const docRe = /\[(Decision and Order|Final Order|Consent Order|Stipulated Order|Complaint and Stipulated Order)\]\((https?:\/\/[^\s)]+)\)/i;
+    const m = md.match(docRe);
+    if (m) return m[2];
+    const pdfRe = /\[[^\]]+\]\((https?:\/\/(?:www\.)?ftc\.gov[^\s)]*\.pdf)\)/i;
+    const pm = md.match(pdfRe);
+    if (pm) return pm[1];
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 async function jinaFetch(targetUrl: string): Promise<string> {
   const jinaKey = Deno.env.get("JINA_API_KEY");
