@@ -4847,6 +4847,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_fire_ingest_ftc_page: {
+        Args: { p_dry_run?: boolean; p_page: number }
+        Returns: number
+      }
       admin_fire_track3_chunk_if_idle: {
         Args: { p_chunk_size?: number; p_regulator: string }
         Returns: Json
