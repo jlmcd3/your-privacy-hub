@@ -56,6 +56,29 @@ export async function startRun(
   return { id: data.id, job_name: jobName, started_at: startedAt, startedMs: Date.now() };
 }
 
+async function mergeMetadata(
+  supabase: any,
+  runId: string,
+  incoming: Record<string, unknown> | undefined,
+): Promise<Record<string, unknown>> {
+  if (!incoming || Object.keys(incoming).length === 0) {
+    // Still fetch to preserve existing metadata as-is
+    const { data } = await supabase
+      .from("ingestion_runs")
+      .select("metadata")
+      .eq("id", runId)
+      .single();
+    return (data?.metadata as Record<string, unknown>) ?? {};
+  }
+  const { data } = await supabase
+    .from("ingestion_runs")
+    .select("metadata")
+    .eq("id", runId)
+    .single();
+  const existing = (data?.metadata as Record<string, unknown>) ?? {};
+  return { ...existing, ...incoming };
+}
+
 export async function finishRun(
   supabase: any,
   run: RunHandle,
@@ -66,6 +89,8 @@ export async function finishRun(
   const durationMs = Date.now() - run.startedMs;
   const status = result.status
     ?? ((result.enrichmentFailed429 ?? 0) + (result.enrichmentFailedOther ?? 0) > 0 ? "partial" : "success");
+
+  const mergedMetadata = await mergeMetadata(supabase, run.id, result.metadata);
 
   const { error } = await supabase
     .from("ingestion_runs")
@@ -80,7 +105,7 @@ export async function finishRun(
       summaries_generated: result.enriched ?? 0,
       enrichment_failed_429: result.enrichmentFailed429 ?? 0,
       enrichment_failed_other: result.enrichmentFailedOther ?? 0,
-      metadata: result.metadata ?? {},
+      metadata: mergedMetadata,
     })
     .eq("id", run.id);
 
