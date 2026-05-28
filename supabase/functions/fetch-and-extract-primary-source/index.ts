@@ -371,7 +371,12 @@ Deno.serve(async (req) => {
   );
 
   try {
-    const result = await processOne(supabase, body.row_id, Boolean(body.dry_run));
+    const result = await processOne(
+      supabase,
+      body.row_id,
+      Boolean(body.dry_run),
+      typeof body.regulator_canonical_alias === "string" ? body.regulator_canonical_alias : null,
+    );
     return new Response(JSON.stringify({ ok: true, ...result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
