@@ -32,6 +32,7 @@ async function callWorker(
   adminToken: string,
   rowId: string,
   dryRun: boolean,
+  aliasKey: string,
 ): Promise<{ ok: boolean; primary_source_status?: string; error?: string }> {
   try {
     const r = await fetch(`${baseUrl}/${WORKER}`, {
@@ -40,7 +41,11 @@ async function callWorker(
         "Content-Type": "application/json",
         "x-admin-token": adminToken,
       },
-      body: JSON.stringify({ row_id: rowId, dry_run: dryRun }),
+      // Pipe the canonical alias so the worker can resolve source_lang via
+      // the per-regulator known-language fallback even when the row's
+      // `regulator_canonical` column is NULL (corpus-wide gap as of 2026-05;
+      // ~77% of enforcement_actions rows lack it).
+      body: JSON.stringify({ row_id: rowId, dry_run: dryRun, regulator_canonical_alias: aliasKey }),
       signal: AbortSignal.timeout(120_000),
     });
     const j = await r.json().catch(() => null);
