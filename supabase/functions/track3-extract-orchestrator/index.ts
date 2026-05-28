@@ -141,6 +141,7 @@ Deno.serve(async (req) => {
     let succeeded = 0;
     let failed = 0;
     try {
+      let idx = 0;
       for (const id of rowIds) {
         // Always use the env-resident admin token when calling the worker —
         // the orchestrator may have been authed via service-role bearer
@@ -155,10 +156,40 @@ Deno.serve(async (req) => {
           counts["worker_error"] = (counts["worker_error"] ?? 0) + 1;
           console.warn(`[track3-extract] row ${id} worker fail: ${r.error}`);
         }
+        idx++;
+        // Progress checkpoint every 10 workers — survives wall-clock reaps so
+        // status_counts and worker_error totals are preserved even if the run
+        // is auto-reaped before finishRun() executes.
+        if (idx % 10 === 0 && runHandle.id) {
+          try {
+            const { data: existing } = await supabase
+              .from("ingestion_runs")
+              .select("metadata")
+              .eq("id", runHandle.id)
+              .single();
+            const prior = (existing?.metadata as Record<string, unknown>) ?? {};
+            await supabase
+              .from("ingestion_runs")
+              .update({
+                metadata: {
+                  ...prior,
+                  phase: "track3_extract",
+                  dry_run: dryRun,
+                  status_counts: counts,
+                  processed: idx,
+                  checkpoint_at: new Date().toISOString(),
+                },
+              })
+              .eq("id", runHandle.id);
+          } catch (cpErr) {
+            console.warn(`[track3-extract] checkpoint write failed: ${(cpErr as Error).message}`);
+          }
+        }
         if (INTER_CALL_DELAY_MS > 0) {
           await new Promise((res) => setTimeout(res, INTER_CALL_DELAY_MS));
         }
       }
+
       await finishRun(supabase, runHandle, {
         fetched: rowIds.length,
         enriched: succeeded,
