@@ -173,6 +173,7 @@ async function processOne(
   supabase: ReturnType<typeof createClient>,
   rowId: string,
   dryRun: boolean,
+  regulatorCanonicalAlias: string | null,
 ) {
   const { data: row, error } = await supabase
     .from("enforcement_actions")
