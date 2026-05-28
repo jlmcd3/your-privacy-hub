@@ -1416,6 +1416,7 @@ Deno.serve(async (req) => {
   const maxRuntimeMs = 120_000;
   const results = { inserted: 0, skipped: 0, skipped_existing: 0, summaries_generated: 0, enrichment_failed_429: 0, enrichment_failed_other: 0, stopped_due_to_time_budget: false, errors: [] as string[] };
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
+  console.log(`[fetch-updates] ANTHROPIC_API_KEY present=${!!anthropicKey} length=${anthropicKey?.length ?? 0}`);
 
   try {
 
