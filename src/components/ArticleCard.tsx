@@ -106,10 +106,9 @@ const skipLabel = (item: ArticleItem): string => {
 // Determine if article is AI-enriched (has meaningful ai_summary content)
 const isEnriched = (item: ArticleItem): boolean => {
   if (isSkipped(item)) return false;
+  if (!item.ai_summary) return false;
   const s = item.ai_summary;
-  const hasAiSummary = !!(s && (s.why_it_matters || s.urgency || s.legal_weight || s.compliance_impact || s.risk_level));
-  const hasShortWhy = !!(item.why_it_matters_short && item.why_it_matters_short.trim().length > 0);
-  return hasAiSummary || hasShortWhy;
+  return !!(s.why_it_matters || s.urgency || s.legal_weight || s.compliance_impact || s.risk_level);
 };
 
 // Category colors/labels live in src/config/categories.ts (shared with UpdateDetail).
