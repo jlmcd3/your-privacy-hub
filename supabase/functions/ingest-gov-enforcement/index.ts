@@ -38,7 +38,9 @@ const SOURCES: SourceEntry[] = [
     regulator: "FTC",
     jurisdiction: "United States",
     law: "FTC Act / COPPA / FCRA",
-    url: `https://www.ftc.gov/enforcement/cases-proceedings?page=${i}`,
+    url: i === 0
+      ? "https://www.ftc.gov/enforcement/cases-proceedings"
+      : `https://www.ftc.gov/enforcement/cases-proceedings?page=${i}`,
     source: "FTC",
     secondHop: true,
     ftcPage: i,
