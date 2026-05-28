@@ -91,6 +91,24 @@ const NAMED_ENTITIES: Record<string, string> = {
   copy: "©", reg: "®", trade: "™", hellip: "…", mdash: "—", ndash: "–",
   lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”", laquo: "«", raquo: "»",
   bull: "•", middot: "·", sect: "§", para: "¶", deg: "°", euro: "€",
+  // Quote marks used by Central/Eastern European typography
+  bdquo: "„", sbquo: "‚", lsaquo: "‹", rsaquo: "›",
+  // Romanian + broad Latin-Extended (covers ANSPDCP corpus: î â Î Â and
+  // protects future regulators with French/German/Polish/Czech diacritics).
+  Acirc: "Â", acirc: "â", Icirc: "Î", icirc: "î", Ecirc: "Ê", ecirc: "ê",
+  Ocirc: "Ô", ocirc: "ô", Ucirc: "Û", ucirc: "û",
+  Atilde: "Ã", atilde: "ã", Ntilde: "Ñ", ntilde: "ñ", Otilde: "Õ", otilde: "õ",
+  Aacute: "Á", aacute: "á", Eacute: "É", eacute: "é", Iacute: "Í", iacute: "í",
+  Oacute: "Ó", oacute: "ó", Uacute: "Ú", uacute: "ú", Yacute: "Ý", yacute: "ý",
+  Agrave: "À", agrave: "à", Egrave: "È", egrave: "è", Igrave: "Ì", igrave: "ì",
+  Ograve: "Ò", ograve: "ò", Ugrave: "Ù", ugrave: "ù",
+  Auml: "Ä", auml: "ä", Euml: "Ë", euml: "ë", Iuml: "Ï", iuml: "ï",
+  Ouml: "Ö", ouml: "ö", Uuml: "Ü", uuml: "ü", yuml: "ÿ",
+  Aring: "Å", aring: "å", AElig: "Æ", aelig: "æ", Oslash: "Ø", oslash: "ø",
+  Ccedil: "Ç", ccedil: "ç", szlig: "ß", THORN: "Þ", thorn: "þ", ETH: "Ð", eth: "ð",
+  // Romanian-specific (ăĂșȘțȚ commonly emitted as numeric, included as names
+  // for safety): some CMSes use non-standard names, fall through to numeric.
+  iquest: "¿", iexcl: "¡",
 };
 
 function decodeHtmlEntities(s: string): string {
