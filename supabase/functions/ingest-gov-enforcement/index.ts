@@ -96,7 +96,6 @@ async function extractDecisionAndOrderDetail(
   }
 }
 
-}
 
 async function extractDecisionAndOrderUrl(
   caseSummaryUrl: string,
