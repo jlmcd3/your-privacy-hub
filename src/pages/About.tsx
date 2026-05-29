@@ -104,7 +104,7 @@ const About = () => {
                     Most privacy resources describe what the law says.
                     We calibrate our analysis against 3,700+ real enforcement
                     decisions — what regulators actually penalise, in practice,
-                    across 119 authorities. There is a material difference between
+                    across authorities worldwide. There is a material difference between
                     statutory text and enforcement reality. Our tools and
                     intelligence reflect that difference.
                   </p>
