@@ -26,15 +26,43 @@ interface SourceEntry {
   source: string;
   secondHop?: boolean;
   ftcPage?: number;
+  // When set, monitor-mode runs fetch only this many pages (typically page 1).
+  // Multi-page listings should set monitorPages: 1 and rely on backfill mode for
+  // historical pages. Sources that aren't paginated can omit this.
+  monitorPages?: number;
+  // Logical grouping for selective dispatch: "core" (existing tier 1), "us_state",
+  // "canada". Defaults to "core" when omitted.
+  sourceGroup?: "core" | "us_state" | "canada";
+  // When true, candidate titles are filtered through isTitleRelevant() to drop
+  // non-privacy press releases (used for state AG / general newsroom sources).
+  requireRelevance?: boolean;
+}
+
+// Privacy / data-protection terms used to filter generalist press-release feeds.
+// English first, then French (for Quebec CAI / OPC FR), then statute names.
+const PRIVACY_TERMS: RegExp[] = [
+  /\bprivacy\b/i, /\bdata\s+protection\b/i, /\bdata\s+breach\b/i,
+  /\bpersonal\s+(information|data)\b/i, /\bconsumer\s+protection\b/i,
+  /\bidentity\s+theft\b/i, /\bcyber(security)?\b/i, /\bsecurity\s+breach\b/i,
+  /\bdata\s+(sharing|sale|broker)\b/i, /\bbiometric\b/i, /\bsurveillance\b/i,
+  /\bgenetic\s+data\b/i, /\bhealth\s+(data|records)\b/i,
+  /\bCCPA\b/, /\bCPRA\b/, /\bTDPSA\b/, /\bCPA\b/, /\bVCDPA\b/, /\bCTDPA\b/,
+  /\bUCPA\b/, /\bSHIELD\b/, /\bBIPA\b/, /\bCOPPA\b/, /\bHIPAA\b/,
+  /\bPIPEDA\b/, /\bLoi\s*25\b/i, /\bLaw\s*25\b/i, /\bPHIPA\b/, /\bPIPA\b/,
+  /\bvie\s+priv[ée]e\b/i, /\brenseignements\s+personnels\b/i,
+  /\bprotection\s+des\s+(renseignements|donn[ée]es)\b/i,
+  /\benforcement\b/i, /\bsettlement\b/i, /\binvestigation\b/i, /\bfine\b/i, /\bpenalty\b/i,
+];
+
+function isTitleRelevant(title: string): boolean {
+  if (!title || title.length < 8) return false;
+  return PRIVACY_TERMS.some((re) => re.test(title));
 }
 
 const SOURCES: SourceEntry[] = [
-  { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/action-weve-taken/enforcement/", source: "ICO" },
-  { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/", source: "ICO News" },
+  { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/action-weve-taken/enforcement/", source: "ICO", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/", source: "ICO News", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
   // FTC cases-and-proceedings index — pages 0-10 (authoritative enforcement list).
-  // Each entry uses secondHop to follow case summary pages and pull the
-  // Decision/Final/Consent/Stipulated Order PDF as primary_source_url.
-  // Skip p0 (bare URL renders default landing without case list in SSR HTML).
   ...Array.from({ length: 10 }, (_, idx): SourceEntry => {
     const i = idx + 1;
     return {
@@ -45,20 +73,37 @@ const SOURCES: SourceEntry[] = [
       source: "FTC",
       secondHop: true,
       ftcPage: i,
+      sourceGroup: "core",
     };
   }),
 
-  { regulator: "HHS OCR", jurisdiction: "United States", law: "HIPAA", url: "https://www.hhs.gov/hipaa/for-professionals/compliance-enforcement/agreements/index.html", source: "HHS-OCR" },
-  { regulator: "DPC Ireland", jurisdiction: "Ireland", law: "GDPR / Data Protection Act 2018", url: "https://www.dataprotection.ie/en/news-media/latest-news", source: "DPC Ireland" },
-  { regulator: "Gibson Dunn", jurisdiction: "EU", law: "GDPR", url: "https://www.gibsondunn.com/topic/european-data-protection-newsletter/", source: "Gibson Dunn" },
-  { regulator: "UODO", jurisdiction: "Poland", law: "GDPR (Poland)", url: "https://uodo.gov.pl/en/p/news-and-events", source: "UODO Poland" },
-  { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/news/media-centre", source: "OAIC" },
-  { regulator: "Datatilsynet DK", jurisdiction: "Denmark", law: "GDPR (Denmark)", url: "https://www.datatilsynet.dk/english/news", source: "Datatilsynet DK" },
-  { regulator: "Datatilsynet NO", jurisdiction: "Norway", law: "GDPR (Norway)", url: "https://www.datatilsynet.no/en/news/", source: "Datatilsynet NO" },
-  { regulator: "PDPC Singapore", jurisdiction: "Singapore", law: "PDPA 2012", url: "https://www.pdpc.gov.sg/news-and-events/announcements", source: "PDPC Singapore" },
-  { regulator: "OPC Canada", jurisdiction: "Canada", law: "PIPEDA / Privacy Act", url: "https://www.priv.gc.ca/en/news-and-events/news-and-announcements/", source: "OPC Canada" },
-  { regulator: "Texas AG", jurisdiction: "Texas", law: "TDPSA", url: "https://www.texasattorneygeneral.gov/news/press-releases", source: "Texas AG" },
-  { regulator: "Colorado AG", jurisdiction: "Colorado", law: "CPA", url: "https://coag.gov/press-releases/", source: "Colorado AG" },
+  { regulator: "HHS OCR", jurisdiction: "United States", law: "HIPAA", url: "https://www.hhs.gov/hipaa/for-professionals/compliance-enforcement/agreements/index.html", source: "HHS-OCR", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "DPC Ireland", jurisdiction: "Ireland", law: "GDPR / Data Protection Act 2018", url: "https://www.dataprotection.ie/en/news-media/latest-news", source: "DPC Ireland", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "Gibson Dunn", jurisdiction: "EU", law: "GDPR", url: "https://www.gibsondunn.com/topic/european-data-protection-newsletter/", source: "Gibson Dunn", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "UODO", jurisdiction: "Poland", law: "GDPR (Poland)", url: "https://uodo.gov.pl/en/p/news-and-events", source: "UODO Poland", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "OAIC", jurisdiction: "Australia", law: "Privacy Act 1988", url: "https://www.oaic.gov.au/news/media-centre", source: "OAIC", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "Datatilsynet DK", jurisdiction: "Denmark", law: "GDPR (Denmark)", url: "https://www.datatilsynet.dk/english/news", source: "Datatilsynet DK", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "Datatilsynet NO", jurisdiction: "Norway", law: "GDPR (Norway)", url: "https://www.datatilsynet.no/en/news/", source: "Datatilsynet NO", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "PDPC Singapore", jurisdiction: "Singapore", law: "PDPA 2012", url: "https://www.pdpc.gov.sg/news-and-events/announcements", source: "PDPC Singapore", sourceGroup: "core", monitorPages: 1 },
+  { regulator: "Texas AG", jurisdiction: "Texas", law: "TDPSA", url: "https://www.texasattorneygeneral.gov/news/press-releases", source: "Texas AG", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
+  { regulator: "Colorado AG", jurisdiction: "Colorado", law: "CPA", url: "https://coag.gov/press-releases/", source: "Colorado AG", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
+
+  // ── US state regulators (Phase 1 — sourceGroup: "us_state") ──────
+  { regulator: "California Privacy Protection Agency (CPPA)", jurisdiction: "California", law: "CCPA / CPRA", url: "https://cppa.ca.gov/announcements/", source: "CPPA", sourceGroup: "us_state", monitorPages: 1 },
+  { regulator: "California Attorney General (CA AG)", jurisdiction: "California", law: "CCPA / CPRA", url: "https://oag.ca.gov/news/press-releases", source: "CA AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
+  { regulator: "New York Attorney General (NY AG)", jurisdiction: "New York", law: "NY SHIELD / GBL 349", url: "https://ag.ny.gov/press-releases", source: "NY AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
+  { regulator: "Connecticut Attorney General (CT AG)", jurisdiction: "Connecticut", law: "CTDPA", url: "https://portal.ct.gov/AG/Press-Releases", source: "CT AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
+  { regulator: "Oregon Attorney General (OR AG)", jurisdiction: "Oregon", law: "OCPA", url: "https://www.doj.state.or.us/media-home/news-media-releases/", source: "OR AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
+  { regulator: "Indiana Attorney General (IN AG)", jurisdiction: "Indiana", law: "INCDPA", url: "https://www.in.gov/attorneygeneral/about-the-office/news/", source: "IN AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
+  { regulator: "Virginia Attorney General (VA AG)", jurisdiction: "Virginia", law: "VCDPA", url: "https://www.oag.state.va.us/media-center/news-releases", source: "VA AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
+
+  // ── Canadian regulators (sourceGroup: "canada") ──────────────────
+  { regulator: "Office of the Privacy Commissioner of Canada (OPC)", jurisdiction: "Canada", law: "PIPEDA / Privacy Act", url: "https://www.priv.gc.ca/en/opc-news/news-and-announcements/", source: "OPC", sourceGroup: "canada", monitorPages: 1 },
+  { regulator: "Office of the Privacy Commissioner of Canada (OPC)", jurisdiction: "Canada", law: "PIPEDA", url: "https://www.priv.gc.ca/en/opc-actions-and-decisions/investigations/investigations-into-businesses/", source: "OPC Investigations", sourceGroup: "canada", monitorPages: 1 },
+  { regulator: "Commission d'accès à l'information du Québec (CAI)", jurisdiction: "Quebec", law: "Loi 25 / Private Sector Act", url: "https://www.cai.gouv.qc.ca/salle-de-presse/", source: "CAI Québec", sourceGroup: "canada", monitorPages: 1, requireRelevance: true },
+  { regulator: "Information and Privacy Commissioner of Ontario (IPC)", jurisdiction: "Ontario", law: "PHIPA / FIPPA / MFIPPA", url: "https://www.ipc.on.ca/en/newsroom/news-releases", source: "IPC Ontario", sourceGroup: "canada", monitorPages: 1 },
+  { regulator: "Office of the Information and Privacy Commissioner of Alberta (OIPC AB)", jurisdiction: "Alberta", law: "PIPA / HIA / FOIP", url: "https://oipc.ab.ca/news-releases/", source: "OIPC Alberta", sourceGroup: "canada", monitorPages: 1 },
+  { regulator: "Office of the Information and Privacy Commissioner for BC (OIPC BC)", jurisdiction: "British Columbia", law: "PIPA BC / FIPPA", url: "https://www.oipc.bc.ca/news/", source: "OIPC BC", sourceGroup: "canada", monitorPages: 1 },
 ];
 
 // Second-hop fetcher: given an FTC case summary page URL, find the Decision and
@@ -238,6 +283,10 @@ Deno.serve(async (req) => {
   const ftcPageParam = param("ftc_page");
   const ftcPagesParam = param("ftc_pages");
   const onlyFtc = ftcPageParam !== null || ftcPagesParam !== null;
+  const modeRaw = (param("mode") || "backfill").toLowerCase();
+  const mode: "backfill" | "monitor" = modeRaw === "monitor" ? "monitor" : "backfill";
+  const sourceGroupParam = param("source_group"); // "core" | "us_state" | "canada" | "all" | null
+  const sourceKeyParam = param("source"); // exact match on src.source (e.g. "CPPA")
 
   let ftcPageFilter: Set<number> | null = null;
   if (ftcPageParam !== null) {
@@ -252,6 +301,7 @@ Deno.serve(async (req) => {
     }
   }
 
+  const runStartedAt = new Date();
   let inserted = 0;
   let skipped = 0;
   let errors = 0;
@@ -262,14 +312,19 @@ Deno.serve(async (req) => {
   const samples: Array<Record<string, unknown>> = [];
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") || "";
 
-
-
   const activeSources = SOURCES.filter((s) => {
     if (onlyFtc) {
       if (s.source !== "FTC") return false;
       if (ftcPageFilter && (s.ftcPage === undefined || !ftcPageFilter.has(s.ftcPage))) return false;
       return true;
     }
+    if (sourceKeyParam && s.source !== sourceKeyParam) return false;
+    if (sourceGroupParam && sourceGroupParam !== "all") {
+      const grp = s.sourceGroup || "core";
+      if (grp !== sourceGroupParam) return false;
+    }
+    // In monitor mode, skip multi-page FTC backfill pages (only page 1).
+    if (mode === "monitor" && s.ftcPage !== undefined && s.ftcPage > 1) return false;
     return true;
   });
 
@@ -289,6 +344,13 @@ Deno.serve(async (req) => {
         actions = actions.filter(
           (a) => (enforcementRe.test(a.url) || legalLibRe.test(a.url)) && !hubRe.test(a.url),
         );
+      }
+
+      // Generalist press-release feeds: keep only privacy-relevant titles.
+      if (src.requireRelevance) {
+        const before = actions.length;
+        actions = actions.filter((a) => isTitleRelevant(a.title));
+        console.log(`${src.source}: relevance filter ${before} -> ${actions.length}`);
       }
 
 
@@ -455,15 +517,40 @@ Deno.serve(async (req) => {
     }
   }
 
+  const runCompletedAt = new Date();
+  const durationMs = runCompletedAt.getTime() - runStartedAt.getTime();
   const finalResult = {
     dry_run: dryRun,
+    mode,
+    source_group: sourceGroupParam,
+    source: sourceKeyParam,
     ftc_pages: ftcPageFilter ? [...ftcPageFilter] : null,
+    duration_ms: durationMs,
     inserted, skipped, errors, legacy_updated: legacyUpdated,
     pdf_found: pdfFound, pdf_missing: pdfMissing,
     summary, samples,
   };
   console.log("FINAL_RESULT", JSON.stringify(finalResult));
+
+  if (!dryRun) {
+    try {
+      await supabase.from("ingest_run_log").insert({
+        mode,
+        source_group: sourceGroupParam || (onlyFtc ? "ftc" : "all"),
+        started_at: runStartedAt.toISOString(),
+        completed_at: runCompletedAt.toISOString(),
+        duration_ms: durationMs,
+        inserted, skipped, errors,
+        per_source: summary,
+        notes: sourceKeyParam ? `source=${sourceKeyParam}` : null,
+      });
+    } catch (logErr) {
+      console.error("ingest_run_log insert failed", (logErr as Error).message);
+    }
+  }
+
   return new Response(JSON.stringify(finalResult),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+});
 });
 
