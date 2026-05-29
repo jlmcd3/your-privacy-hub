@@ -23,9 +23,32 @@ interface Body {
   auditRights: string;
   includeTransferClause: boolean;
   transferMechanism: string;
+  documentType?: "gdpr" | "us-state" | "canada" | "dual-eu-us" | "dual-eu-ca";
   assessment_id?: string;
   user_id?: string;
 }
+
+const EU_JURS = new Set(["Germany","France","Ireland","Spain","Italy","Netherlands",
+  "United Kingdom","Belgium","Sweden","Denmark","Poland","Norway","Portugal",
+  "Austria","Finland","Luxembourg","Greece","Switzerland"]);
+const US_JURS = new Set(["California","Texas","New York","Connecticut","Colorado",
+  "Virginia","Florida","Washington","Illinois","Massachusetts","Oregon","Indiana",
+  "Montana","Iowa","Tennessee","Minnesota","Utah","Delaware","United States (federal)"]);
+const CA_JURS = new Set(["Canada (federal / PIPEDA)","Quebec (Law 25)","Ontario (PHIPA)",
+  "British Columbia (PIPA)","Alberta (PIPA)"]);
+
+function detectDocType(ctrl: string, proc: string, explicit?: string): string {
+  if (explicit) return explicit;
+  const ctrlEU = EU_JURS.has(ctrl); const procEU = EU_JURS.has(proc);
+  const ctrlUS = US_JURS.has(ctrl); const procUS = US_JURS.has(proc);
+  const ctrlCA = CA_JURS.has(ctrl); const procCA = CA_JURS.has(proc);
+  if ((ctrlEU || procEU) && (ctrlUS || procUS)) return "dual-eu-us";
+  if ((ctrlEU || procEU) && (ctrlCA || procCA)) return "dual-eu-ca";
+  if (ctrlUS || procUS) return "us-state";
+  if (ctrlCA || procCA) return "canada";
+  return "gdpr";
+}
+
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
