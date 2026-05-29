@@ -24,7 +24,38 @@ import ToolTierNote from "@/components/tools/ToolTierNote";
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
 const COUNTS = ["Fewer than 100","100–1,000","1,000–10,000","10,000–100,000","More than 100,000","Unknown"];
-const JURS = ["United Kingdom","Ireland","France","Germany","Spain","Italy","Netherlands","Belgium","Sweden","Denmark","Poland","United States (HIPAA)","United States (FTC)","EU/EEA"];
+const JUR_GROUPS: Array<{ label: string; options: string[] }> = [
+  {
+    label: "EU / EEA",
+    options: [
+      "United Kingdom", "Ireland", "France", "Germany", "Spain", "Italy",
+      "Netherlands", "Belgium", "Sweden", "Denmark", "Poland", "Greece",
+      "Portugal", "Austria", "Finland", "Norway", "Luxembourg", "EU/EEA",
+    ],
+  },
+  {
+    label: "US Federal",
+    options: ["United States (HIPAA)", "United States (FTC)", "United States (SEC)"],
+  },
+  {
+    label: "US States",
+    options: [
+      "California", "Texas", "New York", "Connecticut", "Colorado", "Virginia",
+      "Florida", "Washington", "Illinois", "Massachusetts", "Oregon", "Other US State",
+    ],
+  },
+  {
+    label: "Canada",
+    options: [
+      "Canada (PIPEDA)", "Quebec (Law 25)", "Alberta (PIPA)",
+      "British Columbia (PIPA)", "Ontario (PHIPA)",
+    ],
+  },
+  {
+    label: "APAC",
+    options: ["Australia", "Singapore", "Japan"],
+  },
+];
 const ORG_TYPES = ["Company","Public authority","Healthcare provider","Financial institution","Other"];
 
 const SAMPLE = `## 1. IMMEDIATE ACTIONS (0–2 HOURS)
