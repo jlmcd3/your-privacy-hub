@@ -95,7 +95,7 @@ const GlobalAuthorities = () => {
   return (
     <div className="min-h-screen bg-brand-cloud">
       <Helmet>
-        <title>Global Privacy Authority Directory — 119+ DPAs | End User Privacy</title>
+        <title>Global Privacy Authority Directory | EndUserPrivacy.com</title>
         <meta
           name="description"
           content="Searchable directory of 119+ data protection authorities worldwide, ranked by enforcement activity. Find DPA contacts, complaint portals, and legislation."
