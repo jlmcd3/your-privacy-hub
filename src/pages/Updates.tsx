@@ -433,7 +433,7 @@ const Updates = () => {
             </div>
 
             <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-6 items-start">
-                {/* Left: Topics sidebar — sticky under navbar + jurisdiction strip */}
+                        <h3 className="text-eyebrow font-bold text-foreground underline underline-offset-4 mb-3 text-center">Topics</h3>
                 <aside className="hidden md:block sticky top-32 self-start max-h-[calc(100vh-9rem)] overflow-y-auto">
                     <div className="bg-card rounded-lg p-3">
                         <h3 className="text-eyebrow font-bold text-foreground underline underline-offset-4 mb-3 px-3">Topics</h3>
