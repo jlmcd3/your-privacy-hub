@@ -78,7 +78,8 @@ export default function DPAGenerator() {
       window.setTimeout(() => reject(new Error("Generation timed out. Please try again.")), 100_000)
     );
     const response = await Promise.race([
-      supabase.functions.invoke("generate-dpa", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } }),
+      supabase.functions.invoke("generate-dpa", { body: { ...form, documentType: detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction).type, user_id: access.user?.id, client_id: clientId ?? null } }),
+
       timeout,
     ]).catch((error) => ({ data: null, error }));
     const { data, error } = response;
