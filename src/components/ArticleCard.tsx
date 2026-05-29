@@ -398,6 +398,30 @@ const FullCard = ({
       className={`flex gap-4 items-start py-5 border-b border-gray-200 last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
       style={accentBackground ? { background: 'hsl(var(--brand-teal) / 0.08)', borderLeft: '3px solid hsl(var(--brand-teal))' } : undefined}
     >
+      {/* Enrichment toggles — upper-right of card */}
+      {enriched && (
+        <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleArticle(); }}
+            className="p-1 rounded text-slate-400 hover:text-brand-teal hover:bg-brand-cloud/50 transition-colors"
+            title={expanded ? 'Collapse enrichment for this article' : 'Expand enrichment for this article'}
+            aria-label={expanded ? 'Collapse enrichment for this article' : 'Expand enrichment for this article'}
+          >
+            {expanded ? <ChevronsDownUp className="w-3.5 h-3.5" /> : <ChevronsUpDown className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleAll(); }}
+            className="p-1 rounded text-slate-400 hover:text-brand-teal hover:bg-brand-cloud/50 transition-colors"
+            title={showAll ? 'Collapse enrichment on all articles' : 'Expand enrichment on all articles'}
+            aria-label={showAll ? 'Collapse enrichment on all articles' : 'Expand enrichment on all articles'}
+          >
+            <Sparkles className={`w-3.5 h-3.5 ${showAll ? '' : 'opacity-40'}`} />
+          </button>
+        </div>
+      )}
+
       {/* Article thumbnail */}
       <img
         src={item.image_url || EUP_TILE}
