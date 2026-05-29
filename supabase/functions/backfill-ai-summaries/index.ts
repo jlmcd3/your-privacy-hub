@@ -319,14 +319,14 @@ Deno.serve(async (req) => {
   const { data: articles } = await supabase
     .from("updates")
     .select("id, title, summary, source_name")
-    .or('ai_summary.is.null,enrichment_version.lt.3')
+    .or('ai_summary.is.null,enrichment_version.lt.4')
     .order("published_at", { ascending: false })
     .limit(batchSize);
 
   const { count } = await supabase
     .from("updates")
     .select("id", { count: "exact", head: true })
-    .or('ai_summary.is.null,enrichment_version.lt.3');
+    .or('ai_summary.is.null,enrichment_version.lt.4');
 
   let updated = 0,
     skipped = 0,
@@ -336,7 +336,7 @@ Deno.serve(async (req) => {
     if (isNonEditorial(article.title, article.summary)) {
       await supabase
         .from("updates")
-        .update({ ai_summary: { skipped: true, reason: "non_editorial" }, enrichment_version: 3 })
+        .update({ ai_summary: { skipped: true, reason: "non_editorial" }, enrichment_version: 4 })
         .eq("id", article.id);
       skipped++;
       continue;
@@ -345,7 +345,7 @@ Deno.serve(async (req) => {
     if (isBreachAnnouncement(article.title, article.summary)) {
       await supabase
         .from("updates")
-        .update({ ai_summary: { skipped: true, reason: "breach_announcement" }, enrichment_version: 3 })
+        .update({ ai_summary: { skipped: true, reason: "breach_announcement" }, enrichment_version: 4 })
         .eq("id", article.id);
       skipped++;
       continue;
@@ -362,7 +362,7 @@ Deno.serve(async (req) => {
       const aiSummary = result.data as Record<string, any>;
       const updatePayload: Record<string, any> = {
         ai_summary: aiSummary,
-        enrichment_version: 3,
+        enrichment_version: 4,
       };
       if (Array.isArray(aiSummary.affected_jurisdictions) && aiSummary.affected_jurisdictions.length > 0) {
         updatePayload.affected_jurisdictions = aiSummary.affected_jurisdictions;
@@ -399,7 +399,7 @@ Deno.serve(async (req) => {
         .from("updates")
         .update({
           ai_summary: { skipped: true, reason: result.kind, detail: result.detail },
-          enrichment_version: 3,
+          enrichment_version: 4,
         })
         .eq("id", article.id);
       skipped++;
