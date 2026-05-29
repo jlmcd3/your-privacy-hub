@@ -239,7 +239,8 @@ export default function DPAGenerator() {
         toolType="dpa_generator"
         userId={access.user?.id}
         clientId={clientId}
-        intakeData={form}
+        intakeData={{ ...form, documentType: detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction).type }}
+
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {
           setCheckoutOpen(false);
