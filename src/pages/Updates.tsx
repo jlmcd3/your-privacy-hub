@@ -433,7 +433,7 @@ const Updates = () => {
                 {/* Left: Topics sidebar — sticky under navbar + jurisdiction strip */}
                 <aside className="hidden md:block sticky top-32 self-start max-h-[calc(100vh-9rem)] overflow-y-auto">
                     <div className="bg-card rounded-lg p-3">
-                        <h3 className="text-eyebrow text-muted-foreground mb-3 px-3">Topics</h3>
+                        <h3 className="text-eyebrow font-bold text-foreground underline underline-offset-4 mb-3 px-3">Topics</h3>
                         <nav className="flex flex-col">
                             {TOPIC_FILTERS.map((t) => {
                                 const isActive = t.key === "all"
