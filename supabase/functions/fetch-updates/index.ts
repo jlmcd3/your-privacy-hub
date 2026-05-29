@@ -633,13 +633,7 @@ const RSS_SOURCES = [
   },
 
   // ── Additional Law Firm Blogs (not in JD Supra) ──────────────────
-  {
-    url: "https://www.twobirds.com/en/news/rss",
-    source: "Bird & Bird",
-    domain: "twobirds.com",
-    defaultCategory: "global",
-    regulator: "Bird & Bird LLP",
-  },
+  // Bird & Bird removed — no public RSS (audit 2026-05). Their insights still surface via JD Supra.
   {
     url: "https://www.lw.com/admin/upload/rss/CPDPRSSFeed.xml",
     source: "Latham CPDP",
