@@ -38,7 +38,7 @@ const Index = () => (
             <div className="text-2xl mb-2">📡</div>
             <h3 className="text-brand-navy mb-1">Monitor</h3>
             <p className="text-sm text-gray-600">
-              119 authorities tracked daily. Every enforcement action,
+              Worldwide privacy authorities tracked daily. Every enforcement action,
               regulatory guidance, and legislative development — enriched
               with AI analysis before it reaches you.
             </p>
