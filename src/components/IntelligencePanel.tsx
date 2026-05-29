@@ -121,13 +121,13 @@ export function IntelligencePanel({
           href={selectedArticle.source_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-display text-[18px] font-bold text-brand-navy hover:text-brand-teal leading-snug block no-underline transition-colors"
+          className="font-display text-[12px] font-bold text-brand-navy hover:text-brand-teal leading-snug block no-underline transition-colors"
         >
           {normalizeTitle(selectedArticle.title)}
           <ExternalLink className="w-3 h-3 inline ml-1 opacity-40 flex-shrink-0" />
         </a>
       ) : (
-        <p className="font-display text-[18px] font-bold text-brand-navy leading-snug">
+        <p className="font-display text-[12px] font-bold text-brand-navy leading-snug">
           {normalizeTitle(selectedArticle.title)}
         </p>
       )}

@@ -259,7 +259,7 @@ const RegulatorPage = () => {
                       {new Date(article.published_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
                     </span>
                   </div>
-                  <p className="text-sm font-semibold text-brand-navy leading-snug group-hover:text-brand-teal transition-colors">
+                  <p className="text-[9px] font-semibold text-brand-navy leading-snug group-hover:text-brand-teal transition-colors">
                     {article.title}
                   </p>
                   {article.ai_summary?.why_it_matters && (

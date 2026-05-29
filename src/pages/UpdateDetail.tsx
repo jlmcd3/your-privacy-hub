@@ -286,7 +286,7 @@ const UpdateDetail = () => {
             </span>
 
             {/* Title */}
-            <h1 className="font-display text-foreground leading-tight mb-3">{article.title}</h1>
+            <h1 className="font-display text-foreground leading-tight mb-3" style={{ fontSize: 'clamp(1.333rem, 0.933rem + 2vw, 1.833rem)' }}>{article.title}</h1>
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground mb-4">

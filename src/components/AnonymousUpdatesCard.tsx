@@ -92,7 +92,7 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
             ) : null;
           })()}
         </div>
-        <p className="text-[14px] font-bold text-brand-navy group-hover:text-brand-teal leading-snug mb-1 transition-colors">
+        <p className="text-[9px] font-bold text-brand-navy group-hover:text-brand-teal leading-snug mb-1 transition-colors">
           {normalizeTitle(item.title)}
         </p>
         {item.summary && (

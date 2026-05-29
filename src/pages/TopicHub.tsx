@@ -205,7 +205,7 @@ const TopicHub = () => {
                   <span>·</span>
                   <span>{formatDate(u.published_at)}</span>
                 </div>
-                <h3 className="text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                <h3 className="text-xs text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                   {normalizeTitle(u.title)}
                 </h3>
                 {u.summary && (
