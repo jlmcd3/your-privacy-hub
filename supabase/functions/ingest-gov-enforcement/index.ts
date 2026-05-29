@@ -561,6 +561,10 @@ Deno.serve(async (req) => {
                 defense_considerations: aiSummary.defense_considerations ?? null,
                 entities: aiSummary.entities ?? {},
                 ai_summary: aiSummary,
+                enforcement_action_id: enforcementActionId,
+                key_date: typeof aiSummary.key_date === "string" &&
+                  /^\d{4}-\d{2}-\d{2}$/.test(aiSummary.key_date as string)
+                  ? aiSummary.key_date : null,
                 direct_jurisdictions: Array.isArray(aiSummary.affected_jurisdictions)
                   ? aiSummary.affected_jurisdictions : [],
               };
