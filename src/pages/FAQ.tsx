@@ -21,7 +21,7 @@ const faqs = [
   },
   {
     q: "What countries and jurisdictions are covered?",
-    a: "150+ jurisdictions including all 27 EU member states, the US (federal + all 50 states), the United Kingdom, Canada, Brazil, Australia, Japan, Singapore, South Korea, UAE, India, and more. Coverage expands continuously as new regulatory authorities are added to our monitoring network.",
+    a: "Jurisdictions across the world including all 27 EU member states, the US (federal + all 50 states), the United Kingdom, Canada, Brazil, Australia, Japan, Singapore, South Korea, UAE, India, and more. Coverage expands continuously as new regulatory authorities are added to our monitoring network.",
   },
   {
     q: "What's included in the free tier?",
