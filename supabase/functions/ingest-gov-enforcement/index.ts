@@ -88,6 +88,12 @@ const SOURCES: SourceEntry[] = [
   { regulator: "Texas AG", jurisdiction: "Texas", law: "TDPSA", url: "https://www.texasattorneygeneral.gov/news/press-releases", source: "Texas AG", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
   { regulator: "Colorado AG", jurisdiction: "Colorado", law: "CPA", url: "https://coag.gov/press-releases/", source: "Colorado AG", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
 
+  // ── Additional EU DPA news feeds (no RSS — Jina HTML scrape) ──
+  { regulator: "AEPD", jurisdiction: "Spain", law: "GDPR (Spain)", url: "https://www.aepd.es/en/notices", source: "AEPD News", sourceGroup: "core", monitorPages: 1, requireRelevance: false },
+  { regulator: "APD/GBA", jurisdiction: "Belgium", law: "GDPR (Belgium)", url: "https://www.dataprotectionauthority.be/citizen/news", source: "APD Belgium", sourceGroup: "core", monitorPages: 1, requireRelevance: false },
+  { regulator: "NAIH", jurisdiction: "Hungary", law: "GDPR (Hungary)", url: "https://www.naih.hu/en/news", source: "NAIH", sourceGroup: "core", monitorPages: 1, requireRelevance: false },
+  { regulator: "ANSPDCP", jurisdiction: "Romania", law: "GDPR (Romania)", url: "https://www.dataprotection.ro/?page=Noutati_en", source: "ANSPDCP", sourceGroup: "core", monitorPages: 1, requireRelevance: false },
+
   // ── US state regulators (Phase 1 — sourceGroup: "us_state") ──────
   { regulator: "California Privacy Protection Agency (CPPA)", jurisdiction: "California", law: "CCPA / CPRA", url: "https://cppa.ca.gov/announcements/", source: "CPPA", sourceGroup: "us_state", monitorPages: 1 },
   { regulator: "California Attorney General (CA AG)", jurisdiction: "California", law: "CCPA / CPRA", url: "https://oag.ca.gov/news/press-releases", source: "CA AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
