@@ -490,6 +490,8 @@ const FullCard = ({
           <p className="text-sm text-gray-500 leading-relaxed mt-1.5 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
+        )}
+
         {/* ── ALERT — shown to all tiers when available ─────────── */}
         {expanded && (() => {
           const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
@@ -500,8 +502,6 @@ const FullCard = ({
               <span className="font-semibold text-severity-warning">Alert: </span>{firstSentence}
             </p>
           );
-        })()}
-
         })()}
 
         {/* ── ANONYMOUS CTAs ─────────── */}
@@ -517,7 +517,7 @@ const FullCard = ({
         )}
 
         {/* ── CONTEXT — free + paid ───── */}
-        {(tier === 'free' || tier === 'paid') && (() => {
+        {expanded && (tier === 'free' || tier === 'paid') && (() => {
           const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!why) return null;
           return (
@@ -526,6 +526,7 @@ const FullCard = ({
             </p>
           );
         })()}
+
 
         {/* ── FREE CTA ─────────── */}
         {tier === 'free' && (
