@@ -137,10 +137,8 @@ Deno.serve(async (req) => {
             limit: 8,
           }),
           signal: enforcementController.signal,
-        }
+      );
 
-          signal: enforcementController.signal,
-        }
       );
       clearTimeout(enforcementTimeout);
       if (enforcementRes.ok) {
