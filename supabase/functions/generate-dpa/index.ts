@@ -298,6 +298,13 @@ Draft a complete US State Data Processing Agreement with ALL of the following se
 [SIGNATURE BLOCK]
 
 Additional requirements:
+- Include a dedicated section titled 'Consumer Rights Assistance' or 'Data Subject / Consumer Rights' that explicitly requires the Processor to:
+  (a) assist the Controller in responding to consumer access requests under Cal. Civ. Code § 1798.100 (CCPA) and equivalent provisions of any other applicable state laws (TDPSA, CPA, VCDPA, etc.);
+  (b) assist the Controller in responding to consumer deletion requests under Cal. Civ. Code § 1798.105 and equivalent state provisions;
+  (c) pass through and honor any opt-out of sale/sharing signals under Cal. Civ. Code § 1798.120;
+  (d) notify the Controller within [5] business days upon receiving any consumer rights request directly;
+  (e) not respond to consumer rights requests directly without Controller's prior written authorization.
+  This clause must appear as an explicit named section in the document, not merely as implied language elsewhere.
 - Cite the specific statutory provision (e.g. "Cal. Civ. Code § 1798.100(d)(1)") for each key obligation.
 - Use the phrases "business purpose" and "prohibited from selling or sharing" explicitly where applicable.
 
