@@ -687,23 +687,18 @@ const Navbar = () => {
                       {item.sections.map((section, si) => (
                         <div key={si}>
                           {section.header && (
-                            <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                              <span className="text-eyebrow text-brand-mist">
+                            <div className="px-3 pt-2 pb-1">
+                              <span className="text-eyebrow text-brand-mist block">
                                 {section.header}
                               </span>
-                              {section.headerBadge && (
-                                <span
-                                  className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
-                                    section.headerBadgeGreen
-                                      ? "bg-accent/10 text-accent border border-accent/20"
-                                      : "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
-                                  }`}
-                                >
-                                  {section.headerBadge}
+                              {section.headerSub && (
+                                <span className="block text-[10px] text-brand-mist/60 mt-0.5">
+                                  {section.headerSub}
                                 </span>
                               )}
                             </div>
                           )}
+
                           {section.items.map((sub) => renderSubItem(sub, true))}
                         </div>
                       ))}
