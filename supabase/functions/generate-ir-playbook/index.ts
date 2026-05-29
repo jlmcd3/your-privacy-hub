@@ -265,6 +265,28 @@ Output ONLY the playbook (then the ===ANNOTATIONS=== block). No preamble or comm
         max_tokens: 8000,
         system: `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
 
+US STATE BREACH NOTIFICATION — KEY TIMELINES (for Section 3):
+- California: notify individuals in most expedient time / ≤30 days; notify CA AG if 500+ CA residents affected; no set clock for CPPA
+- Texas: notify individuals "as soon as possible" (no fixed window); notify AG if breach affects 250+ Texans; TDPSA adds requirements for personal data breaches
+- New York: notify individuals in most expedient time (no fixed window); notify NY AG, DFS, or other regulators if 500+ NY residents; SHIELD Act triggers
+- Connecticut: notify individuals ≤60 days; notify CT AG simultaneously
+- Colorado: notify individuals ≤60 days; notify CO AG ≤30 days if 500+ CO residents
+- Virginia: notify individuals ≤60 days; notify VA AG ≤60 days
+- Florida: notify individuals ≤30 days; notify FL AG ≤30 days if 500+ FL residents
+- Washington: notify individuals ≤30 days; notify WA AG ≤30 days if 500+ WA residents
+- Massachusetts: notify individuals + MA AG + OCABR ≤30 days; must include specific content
+- Oregon: notify individuals ≤30 days; notify OR AG if 250+ OR residents
+- Illinois: notify individuals "in most expedient time"; notify IL AG if 500+ IL residents
+
+CANADA BREACH NOTIFICATION — KEY TIMELINES (for Section 3):
+- PIPEDA: internal log all breaches; notify OPC + individuals "as soon as feasible" when real risk of significant harm (RROSH); no fixed clock but OPC expects prompt action
+- Quebec Law 25: notify CAI + affected individuals "without delay" — OPC interprets this as within 72 hours of internal discovery for high-risk incidents
+- Alberta PIPA: notify OIPC + individuals "as soon as practical" when real risk of significant harm
+- BC PIPA: notify OIPC + individuals when real risk of significant harm (no fixed clock)
+- Ontario PHIPA: notify IPC + individuals when breach creates real risk of significant harm to health
+
+Note: US state breach notification laws apply to ALL businesses with data on state residents, regardless of whether the business has a physical presence in that state. A breach affecting California residents triggers California law even if the company is Texas-based.
+
 Your task: generate a complete, immediately usable incident response playbook tailored to the incident facts and jurisdictions provided.
 
 QUALITY STANDARDS:
