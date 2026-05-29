@@ -370,6 +370,7 @@ const FullCard = ({
   item: ArticleItem;
   isPremium?: boolean;
   userSalutation?: string;
+}) => {
   const { user } = useAuth();
   const tier: 'paid' | 'free' | 'anonymous' = isPremium ? 'paid' : user ? 'free' : 'anonymous';
   const enriched = isEnriched(item);
@@ -377,7 +378,6 @@ const FullCard = ({
   const accentBackground = enriched && isPremium;
   const { expanded, showAll, toggleArticle, toggleAll } = useEnrichmentToggle(item.id);
 
-  const accentBackground = enriched && isPremium;
 
   const actionProse = (() => {
     const items = item.action_items ?? [];
