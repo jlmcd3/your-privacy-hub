@@ -495,16 +495,31 @@ const Navbar = () => {
 
         {/* Right side */}
         <div className="hidden lg:flex items-center gap-3 ml-auto">
+          {/* Always-visible Pricing link */}
           <Link
-            to={user ? "/subscribe" : "/login"}
+            to="/subscribe"
             className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
-              (user ? location.pathname === "/subscribe" : location.pathname === "/login")
+              location.pathname === "/subscribe"
                 ? "text-[hsl(var(--accent-light))]"
                 : "text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]"
             }`}
           >
-            {user ? "Pricing" : "Sign In"}
+            Pricing
           </Link>
+          {/* Sign In — only when logged out */}
+          {!user && (
+            <Link
+              to="/login"
+              className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
+                location.pathname === "/login"
+                  ? "text-[hsl(var(--accent-light))]"
+                  : "text-white hover:text-white/80"
+              }`}
+            >
+              Sign In
+            </Link>
+          )}
+
           {user ? (
             <>
               <Link
