@@ -497,28 +497,9 @@ const RSS_SOURCES = [
   },
 
   // ── Additional EU/EEA DPAs ───────────────────────────────────────
-  {
-    url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/rss/",
-    source: "ICO",
-    domain: "ico.org.uk",
-    defaultCategory: "eu-uk",
-    regulator: "Information Commissioner's Office (UK)",
-  },
-  {
-    url: "https://www.dataprotection.ie/en/rss.xml",
-    source: "DPC Ireland",
-    domain: "dataprotection.ie",
-    defaultCategory: "eu-uk",
-    regulator: "Data Protection Commission (Ireland)",
-  },
-  {
-    url: "https://www.aepd.es/es/prensa-y-comunicacion/notas-de-prensa/rss",
-    source: "AEPD",
-    domain: "aepd.es",
-    defaultCategory: "eu-uk",
-    regulator: "Agencia Española de Protección de Datos",
-    language: "es",
-  },
+  // Removed (no public RSS, audit 2026-05): ICO, DPC Ireland, AEPD Spain,
+  // Datatilsynet Norway, APD/GBA Belgium, UODO Poland, DSB Austria, NAIH Hungary.
+  // These regulators expose only HTML news pages and require dedicated scrapers.
   {
     url: "https://www.datatilsynet.dk/presse-og-nyheder/nyheder/rss",
     source: "Datatilsynet Denmark",
@@ -528,44 +509,12 @@ const RSS_SOURCES = [
     language: "da",
   },
   {
-    url: "https://www.datatilsynet.no/rss/nyheter/",
-    source: "Datatilsynet Norway",
-    domain: "datatilsynet.no",
+    url: "https://www.personvernbloggen.no/feed",
+    source: "Personvernbloggen (Datatilsynet NO)",
+    domain: "personvernbloggen.no",
     defaultCategory: "eu-uk",
-    regulator: "Datatilsynet (Norway DPA)",
+    regulator: "Datatilsynet (Norway DPA) — editorial blog",
     language: "no",
-  },
-  {
-    url: "https://www.gegevensbeschermingsautoriteit.be/burger/rss",
-    source: "APD Belgium",
-    domain: "gegevensbeschermingsautoriteit.be",
-    defaultCategory: "eu-uk",
-    regulator: "Autorité de protection des données (Belgium)",
-    language: "nl",
-  },
-  {
-    url: "https://uodo.gov.pl/pl/138.rss",
-    source: "UODO Poland",
-    domain: "uodo.gov.pl",
-    defaultCategory: "eu-uk",
-    regulator: "Urząd Ochrony Danych Osobowych (Poland DPA)",
-    language: "pl",
-  },
-  {
-    url: "https://www.dsb.gv.at/aktuelles/news.rss.html",
-    source: "DSB Austria",
-    domain: "dsb.gv.at",
-    defaultCategory: "eu-uk",
-    regulator: "Datenschutzbehörde (Austria DPA)",
-    language: "de",
-  },
-  {
-    url: "https://naih.hu/rss",
-    source: "NAIH Hungary",
-    domain: "naih.hu",
-    defaultCategory: "eu-uk",
-    regulator: "Nemzeti Adatvédelmi és Információszabadság Hatóság (Hungary DPA)",
-    language: "hu",
   },
 
   // ── Additional International Regulators ──────────────────────────
