@@ -58,7 +58,7 @@ const About = () => {
               “Privacy professionals should spend their time on the work that actually requires their expertise. The monitoring, the reading, the analysis — that's what we do.”
             </blockquote>
             <p className="text-[15px] text-slate leading-relaxed">
-              End User Privacy monitors 119 regulatory authorities and 150+ jurisdictions daily, enriches every development with AI-assisted analysis, and delivers the results in a format built for professionals who need to act on what they read, not just know about it.
+              EndUserPrivacy.com monitors privacy developments across the world on a daily basis, enriches every development with AI-assisted analysis, and delivers the results in a format built for professionals who need to act on what they read, not just know about it.
             </p>
           </div>
 
