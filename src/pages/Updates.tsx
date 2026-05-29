@@ -404,36 +404,33 @@ const Updates = () => {
             {/* Jurisdiction subnav (pill style) — sticky under navbar */}
             <div className="border-b border-border bg-card sticky top-14 md:top-16 z-30">
                 <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
-                    <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-6 items-center">
-                        <span className="hidden md:block text-eyebrow font-bold text-foreground underline underline-offset-4 text-center">Jurisdiction</span>
-                        <div className="flex items-center gap-3 overflow-x-auto">
-                            <span className="md:hidden text-eyebrow font-bold text-foreground underline underline-offset-4 whitespace-nowrap">Jurisdiction</span>
-                            {LOCATION_FILTERS.map((f) => {
-                                const isActive = f.key === "all"
-                                    ? selectedRegions.length === 0
-                                    : selectedRegions.includes(f.key);
-                                return (
-                                    <button
-                                        key={f.key}
-                                        onClick={() => toggleRegion(f.key)}
-                                        aria-pressed={isActive}
-                                        className={`text-sm font-medium cursor-pointer transition-colors whitespace-nowrap bg-transparent border-0 px-1 ${
-                                            isActive
-                                                ? "text-foreground border-b-2 border-[hsl(var(--cobalt))] pb-0.5"
-                                                : "text-slate hover:text-foreground"
-                                        }`}
-                                    >
-                                        {f.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                    <div className="flex items-center gap-3 overflow-x-auto md:pl-[184px] xl:pl-[204px]">
+                        <span className="text-eyebrow font-bold text-foreground underline underline-offset-4 whitespace-nowrap">Jurisdiction</span>
+                        {LOCATION_FILTERS.map((f) => {
+                            const isActive = f.key === "all"
+                                ? selectedRegions.length === 0
+                                : selectedRegions.includes(f.key);
+                            return (
+                                <button
+                                    key={f.key}
+                                    onClick={() => toggleRegion(f.key)}
+                                    aria-pressed={isActive}
+                                    className={`text-sm font-medium cursor-pointer transition-colors whitespace-nowrap bg-transparent border-0 px-1 ${
+                                        isActive
+                                            ? "text-foreground border-b-2 border-[hsl(var(--cobalt))] pb-0.5"
+                                            : "text-slate hover:text-foreground"
+                                    }`}
+                                >
+                                    {f.label}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
 
             <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 grid grid-cols-1 md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] gap-6 items-start">
-                        <h3 className="text-eyebrow font-bold text-foreground underline underline-offset-4 mb-3 text-center">Topics</h3>
+                {/* Left: Topics sidebar — sticky under navbar + jurisdiction strip */}
                 <aside className="hidden md:block sticky top-32 self-start max-h-[calc(100vh-9rem)] overflow-y-auto">
                     <div className="bg-card rounded-lg p-3">
                         <h3 className="text-eyebrow font-bold text-foreground underline underline-offset-4 mb-3 px-3">Topics</h3>
