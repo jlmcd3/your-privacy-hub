@@ -29,7 +29,7 @@ const JURISDICTIONS = [
 const FEATURES = [
   { icon: "📋", label: "Weekly Intelligence Brief", desc: "Every Monday, synthesized from 67+ regulatory sources" },
   { icon: "📊", label: "Comparison Tools", desc: "20 US states and 10 global jurisdictions, side by side" },
-  { icon: "🌍", label: "Jurisdiction Explorer", desc: "150+ country profiles with regulator contacts" },
+  { icon: "🌍", label: "Jurisdiction Explorer", desc: "Country profiles with regulator contacts worldwide" },
 ];
 
 export default function OnboardingModal({ userId, onComplete }: OnboardingModalProps) {
