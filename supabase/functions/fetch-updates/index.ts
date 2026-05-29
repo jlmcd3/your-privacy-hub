@@ -171,14 +171,7 @@ const RSS_SOURCES = [
     defaultCategory: "eu-uk",
     regulator: "Integritetsskyddsmyndigheten (Swedish DPA)",
   },
-  {
-    url: "https://cnpd.public.lu/fr/rss/actualites.rss",
-    source: "CNPD Luxembourg",
-    domain: "cnpd.public.lu",
-    defaultCategory: "eu-uk",
-    regulator: "Commission nationale pour la protection des données (Luxembourg DPA)",
-    language: "fr",
-  },
+  // CNPD Luxembourg removed — no public RSS feed (audit 2026-05). AEM CMS; needs scraper.
   {
     url: "https://www.europarl.europa.eu/rss/doc/top-stories/en.xml",
     source: "EU Parliament",
@@ -504,28 +497,9 @@ const RSS_SOURCES = [
   },
 
   // ── Additional EU/EEA DPAs ───────────────────────────────────────
-  {
-    url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/rss/",
-    source: "ICO",
-    domain: "ico.org.uk",
-    defaultCategory: "eu-uk",
-    regulator: "Information Commissioner's Office (UK)",
-  },
-  {
-    url: "https://www.dataprotection.ie/en/rss.xml",
-    source: "DPC Ireland",
-    domain: "dataprotection.ie",
-    defaultCategory: "eu-uk",
-    regulator: "Data Protection Commission (Ireland)",
-  },
-  {
-    url: "https://www.aepd.es/es/prensa-y-comunicacion/notas-de-prensa/rss",
-    source: "AEPD",
-    domain: "aepd.es",
-    defaultCategory: "eu-uk",
-    regulator: "Agencia Española de Protección de Datos",
-    language: "es",
-  },
+  // Removed (no public RSS, audit 2026-05): ICO, DPC Ireland, AEPD Spain,
+  // Datatilsynet Norway, APD/GBA Belgium, UODO Poland, DSB Austria, NAIH Hungary.
+  // These regulators expose only HTML news pages and require dedicated scrapers.
   {
     url: "https://www.datatilsynet.dk/presse-og-nyheder/nyheder/rss",
     source: "Datatilsynet Denmark",
@@ -535,44 +509,12 @@ const RSS_SOURCES = [
     language: "da",
   },
   {
-    url: "https://www.datatilsynet.no/rss/nyheter/",
-    source: "Datatilsynet Norway",
-    domain: "datatilsynet.no",
+    url: "https://www.personvernbloggen.no/feed",
+    source: "Personvernbloggen (Datatilsynet NO)",
+    domain: "personvernbloggen.no",
     defaultCategory: "eu-uk",
-    regulator: "Datatilsynet (Norway DPA)",
+    regulator: "Datatilsynet (Norway DPA) — editorial blog",
     language: "no",
-  },
-  {
-    url: "https://www.gegevensbeschermingsautoriteit.be/burger/rss",
-    source: "APD Belgium",
-    domain: "gegevensbeschermingsautoriteit.be",
-    defaultCategory: "eu-uk",
-    regulator: "Autorité de protection des données (Belgium)",
-    language: "nl",
-  },
-  {
-    url: "https://uodo.gov.pl/pl/138.rss",
-    source: "UODO Poland",
-    domain: "uodo.gov.pl",
-    defaultCategory: "eu-uk",
-    regulator: "Urząd Ochrony Danych Osobowych (Poland DPA)",
-    language: "pl",
-  },
-  {
-    url: "https://www.dsb.gv.at/aktuelles/news.rss.html",
-    source: "DSB Austria",
-    domain: "dsb.gv.at",
-    defaultCategory: "eu-uk",
-    regulator: "Datenschutzbehörde (Austria DPA)",
-    language: "de",
-  },
-  {
-    url: "https://naih.hu/rss",
-    source: "NAIH Hungary",
-    domain: "naih.hu",
-    defaultCategory: "eu-uk",
-    regulator: "Nemzeti Adatvédelmi és Információszabadság Hatóság (Hungary DPA)",
-    language: "hu",
   },
 
   // ── Additional International Regulators ──────────────────────────
@@ -583,21 +525,7 @@ const RSS_SOURCES = [
     defaultCategory: "global",
     regulator: "Office of the Australian Information Commissioner",
   },
-  {
-    url: "https://www.ppc.go.jp/en/aboutus/news/rss/",
-    source: "PPC Japan",
-    domain: "ppc.go.jp",
-    defaultCategory: "global",
-    regulator: "Personal Information Protection Commission (Japan)",
-  },
-  {
-    url: "https://www.gov.br/anpd/pt-br/RSS",
-    source: "ANPD Brazil",
-    domain: "gov.br",
-    defaultCategory: "global",
-    regulator: "Autoridade Nacional de Proteção de Dados (Brazil)",
-    language: "pt",
-  },
+  // PPC Japan and ANPD Brazil removed (no working RSS, audit 2026-05). Need scrapers.
   {
     url: "https://www.privacy.org.nz/about-us/news/rss/",
     source: "OPC New Zealand",
@@ -628,20 +556,7 @@ const RSS_SOURCES = [
     defaultCategory: "us-federal",
     regulator: "Cybersecurity and Infrastructure Security Agency",
   },
-  {
-    url: "https://www.hhs.gov/sites/default/files/ocr/rss/ocr-press-release-feed.xml",
-    source: "HHS OCR",
-    domain: "hhs.gov",
-    defaultCategory: "us-federal",
-    regulator: "HHS Office for Civil Rights",
-  },
-  {
-    url: "https://www.fcc.gov/news-events/headlines.xml",
-    source: "FCC Headlines",
-    domain: "fcc.gov",
-    defaultCategory: "us-federal",
-    regulator: "Federal Communications Commission",
-  },
+  // HHS OCR and FCC Headlines removed (WAF/geo blocks return 403/timeout, audit 2026-05).
   {
     url: "https://www.dfs.ny.gov/rss/press",
     source: "NY DFS",
@@ -718,13 +633,7 @@ const RSS_SOURCES = [
   },
 
   // ── Additional Law Firm Blogs (not in JD Supra) ──────────────────
-  {
-    url: "https://www.twobirds.com/en/news/rss",
-    source: "Bird & Bird",
-    domain: "twobirds.com",
-    defaultCategory: "global",
-    regulator: "Bird & Bird LLP",
-  },
+  // Bird & Bird removed — no public RSS (audit 2026-05). Their insights still surface via JD Supra.
   {
     url: "https://www.lw.com/admin/upload/rss/CPDPRSSFeed.xml",
     source: "Latham CPDP",
