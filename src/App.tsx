@@ -59,7 +59,11 @@ import TestGovernanceAssessment from "./pages/admin/TestGovernanceAssessment";
 import TestLIA from "./pages/admin/TestLIA";
 import TestDPIA from "./pages/admin/TestDPIA";
 import TestDPA from "./pages/admin/TestDPA";
+import TestDPAUSState from "./pages/admin/TestDPAUSState";
+import TestDPADualCompliance from "./pages/admin/TestDPADualCompliance";
+import TestDPACanada from "./pages/admin/TestDPACanada";
 import TestIRPlaybook from "./pages/admin/TestIRPlaybook";
+import TestIRPlaybookUS from "./pages/admin/TestIRPlaybookUS";
 import TestBiometric from "./pages/admin/TestBiometric";
 import TestCPPAScope from "./pages/admin/TestCPPAScope";
 import TestCPPARisk from "./pages/admin/TestCPPARisk";
@@ -473,6 +477,45 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/test-dpa-us"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestDPAUSState />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-dpa-dual"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestDPADualCompliance />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-dpa-canada"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestDPACanada />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/test-ir-playbook-us"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestIRPlaybookUS />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
             <Route
               path="/admin/test-ir-playbook"
               element={
