@@ -24,7 +24,38 @@ import ToolTierNote from "@/components/tools/ToolTierNote";
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
 const COUNTS = ["Fewer than 100","100–1,000","1,000–10,000","10,000–100,000","More than 100,000","Unknown"];
-const JURS = ["United Kingdom","Ireland","France","Germany","Spain","Italy","Netherlands","Belgium","Sweden","Denmark","Poland","United States (HIPAA)","United States (FTC)","EU/EEA"];
+const JUR_GROUPS: Array<{ label: string; options: string[] }> = [
+  {
+    label: "EU / EEA",
+    options: [
+      "United Kingdom", "Ireland", "France", "Germany", "Spain", "Italy",
+      "Netherlands", "Belgium", "Sweden", "Denmark", "Poland", "Greece",
+      "Portugal", "Austria", "Finland", "Norway", "Luxembourg", "EU/EEA",
+    ],
+  },
+  {
+    label: "US Federal",
+    options: ["United States (HIPAA)", "United States (FTC)", "United States (SEC)"],
+  },
+  {
+    label: "US States",
+    options: [
+      "California", "Texas", "New York", "Connecticut", "Colorado", "Virginia",
+      "Florida", "Washington", "Illinois", "Massachusetts", "Oregon", "Other US State",
+    ],
+  },
+  {
+    label: "Canada",
+    options: [
+      "Canada (PIPEDA)", "Quebec (Law 25)", "Alberta (PIPA)",
+      "British Columbia (PIPA)", "Ontario (PHIPA)",
+    ],
+  },
+  {
+    label: "APAC",
+    options: ["Australia", "Singapore", "Japan"],
+  },
+];
 const ORG_TYPES = ["Company","Public authority","Healthcare provider","Financial institution","Other"];
 
 const SAMPLE = `## 1. IMMEDIATE ACTIONS (0–2 HOURS)
@@ -113,7 +144,7 @@ export default function IRPlaybook() {
             <div className="flex items-center justify-between mb-4"><h2 className="font-display text-brand-navy">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
             <p className="text-meta text-muted-foreground mt-4">This playbook and its documentation checklist (Section 6) contribute to your Article 33(5) accountability record.</p>
-            <ToolDisclaimer addition="Regulatory notification deadlines referenced in this document must be independently verified — do not rely on them without confirming current requirements with qualified legal counsel." />
+            <ToolDisclaimer addition="This playbook is generated for informational purposes and should be reviewed by qualified legal counsel before use in a live incident. Notification deadlines and thresholds are based on publicly available regulatory guidance and may have changed. Verify current requirements with your legal team before filing any regulatory notification." />
           </div>
         ) : phase === "generating" ? (
           <div className="text-center py-16">
@@ -136,8 +167,13 @@ export default function IRPlaybook() {
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedCount} onChange={e => setForm(f => ({ ...f, affectedCount: e.target.value }))}>
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
             <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions</legend>
-              <div className="grid grid-cols-2 gap-1 mt-1">{JURS.map(j => <label key={j} className="flex items-center gap-2 text-meta">
-                <input type="checkbox" checked={form.jurisdictions.includes(j)} onChange={() => toggle("jurisdictions", j)} />{j}</label>)}</div></fieldset>
+              <div className="mt-1 space-y-3">{JUR_GROUPS.map(g => (
+                <div key={g.label}>
+                  <div className="text-meta font-semibold text-brand-navy/70 uppercase tracking-wide mb-1">{g.label}</div>
+                  <div className="grid grid-cols-2 gap-1">{g.options.map(j => <label key={j} className="flex items-center gap-2 text-meta">
+                    <input type="checkbox" checked={form.jurisdictions.includes(j)} onChange={() => toggle("jurisdictions", j)} />{j}</label>)}</div>
+                </div>
+              ))}</div></fieldset>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Contained?</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.contained} onChange={e => setForm(f => ({ ...f, contained: e.target.value }))}>
                 <option>Yes</option><option>No</option><option>Unknown</option></select></label>
