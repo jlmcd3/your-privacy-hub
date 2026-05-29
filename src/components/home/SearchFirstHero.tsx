@@ -17,7 +17,7 @@ export default function SearchFirstHero() {
               Global privacy law, tracked daily.
             </h1>
             <p className="text-blue-200/80 text-sm md:text-base mb-8">
-              119 regulatory authorities. 150+ jurisdictions. Action intelligence on every development — and the compliance tools to act on it.
+              Privacy developments across the world. Action intelligence on every development — and the compliance tools to act on it.
             </p>
 
             {/* ── Hero CTA Cards ─────────────────────────────────── */}
