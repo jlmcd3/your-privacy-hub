@@ -131,6 +131,10 @@ const extractDomain = (url: string): string => {
 //       Dentons, and Greenberg Traurig are covered via JD Supra (already in feed) which
 //       syndicates content from all of these firms.
 // If any removed publishers re-expose an RSS endpoint, re-add here.
+// NOTE: OAIC, PDPC Singapore, Datatilsynet Denmark (EN), CNIL, CPPA, and Connecticut AG
+// RSS feeds removed — these sources are now fully covered by ingest-gov-enforcement
+// which dual-writes to the updates table. FTC RSS and Garante RSS retained as they
+// cover different content (press releases vs enforcement cases; docweb decisions vs news pages).
 const RSS_SOURCES = [
   // ── EU & UK Regulators / Policy ───────────────────────────────────
   {
