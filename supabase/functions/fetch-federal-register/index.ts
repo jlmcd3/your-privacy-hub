@@ -144,7 +144,7 @@ Deno.serve(async () => {
               ? new Date(doc.publication_date).toISOString()
               : new Date().toISOString(),
             is_premium: false,
-            ai_summary: { legal_weight: legalWeight, source_strength: "Primary regulator" },
+            // Leave ai_summary NULL so backfill-ai-summaries cron enriches it on the next pass.
           },
           { onConflict: "url", ignoreDuplicates: true },
         );
