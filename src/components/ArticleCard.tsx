@@ -400,7 +400,7 @@ const FullCard = ({
     >
       {/* Enrichment toggles — upper-right of card */}
       {enriched && (
-        <div className="absolute top-2 right-2 flex items-center gap-2 z-10 text-[11px] text-slate-500">
+        <div className="absolute top-1 right-2 flex items-center gap-2 z-10 text-[11px] text-slate-500">
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleArticle(); }}
