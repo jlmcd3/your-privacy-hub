@@ -490,10 +490,8 @@ const FullCard = ({
           <p className="text-sm text-gray-500 leading-relaxed mt-1.5 line-clamp-2">
             {stripHtml(item.summary)}
           </p>
-        )}
-
         {/* ── ALERT — shown to all tiers when available ─────────── */}
-        {(() => {
+        {expanded && (() => {
           const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!shortWhy) return null;
           const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
@@ -502,6 +500,8 @@ const FullCard = ({
               <span className="font-semibold text-severity-warning">Alert: </span>{firstSentence}
             </p>
           );
+        })()}
+
         })()}
 
         {/* ── ANONYMOUS CTAs ─────────── */}
