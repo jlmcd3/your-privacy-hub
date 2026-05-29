@@ -14,7 +14,9 @@ import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
-import DownloadWordButton from "@/components/DownloadWordButton";
+import { AnnotationAppendix } from "@/components/AnnotationCallout";
+import { detectDocumentType } from "@/lib/dpaDocumentType";
+
 import { AnnotationAppendix } from "@/components/AnnotationCallout";
 
 export default function DPAResult() {
