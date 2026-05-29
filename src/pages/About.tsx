@@ -32,8 +32,9 @@ const About = () => {
         <div className="bg-card border-b border-brand-cloud py-8 px-4">
           <div className="max-w-[760px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { value: '119', label: 'Regulatory Authorities' },
-              { value: '150+', label: 'Jurisdictions Tracked' },
+              { value: 'Global', label: 'Regulatory Authorities' },
+              { value: 'Worldwide', label: 'Coverage' },
+
               { value: 'Daily', label: 'Update Frequency' },
               { value: 'Free', label: 'To Browse' },
             ].map(stat => (
