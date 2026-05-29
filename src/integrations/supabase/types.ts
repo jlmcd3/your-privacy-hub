@@ -4892,6 +4892,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_fire_backfill_ai_summaries: {
+        Args: { p_batch?: number }
+        Returns: number
+      }
       admin_fire_ingest_backfill: {
         Args: { p_source_group: string }
         Returns: number
