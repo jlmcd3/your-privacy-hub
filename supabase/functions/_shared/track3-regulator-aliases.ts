@@ -10,7 +10,9 @@
 // Tier 1 only for now. Add Tier 2 (Garante, UODO, CNIL, HDPA, OAIC) when Phase 3
 // is authorised.
 
-export type RegulatorAliasKey = "aepd" | "anspdcp" | "naih" | "uoou" | "ftc";
+export type RegulatorAliasKey =
+  | "aepd" | "anspdcp" | "naih" | "uoou" | "ftc"
+  | "garante" | "uodo" | "cnil" | "hdpa" | "oaic";
 
 export interface RegulatorAlias {
   canonical: string; // matches regulator_profiles.canonical_name
