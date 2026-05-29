@@ -114,7 +114,7 @@ export default function HomepageToolsSection() {
       ctaHref="/tools"
     >
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-6 px-5 pt-5 text-meta text-slate-500">
-        <span>⚖️ 3,700+ enforcement decisions in training corpus</span>
+        <span>⚖️ Thousands of enforcement decisions in training corpus</span>
         <span className="hidden sm:inline text-gray-300">·</span>
         <span>🌍 119 regulatory authorities monitored</span>
         <span className="hidden sm:inline text-gray-300">·</span>
