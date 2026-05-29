@@ -296,8 +296,15 @@ const Updates = () => {
     }, [updates]);
 
     const filtered = updates.filter((u) => {
-        // Region filter — OR across selected regions; empty = all
-        if (selectedRegions.length > 0 && !selectedRegions.includes(u.category)) return false;
+        // Region filter — OR across selected regions; matches category ∪ direct ∪ affected jurisdictions
+        if (selectedRegions.length > 0) {
+            const regionMatches = new Set<string>([
+                u.category,
+                ...(u.direct_jurisdictions ?? []),
+                ...(u.affected_jurisdictions ?? []),
+            ].filter(Boolean) as string[]);
+            if (!selectedRegions.some((r) => regionMatches.has(r))) return false;
+        }
 
         // Topic filter — OR across selected topics; empty = all
         if (selectedTopics.length > 0) {
