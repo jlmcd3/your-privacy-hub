@@ -123,8 +123,7 @@ export default function DPAGenerator() {
         </div>
       </header>
 
-        </div>
-      </header>
+
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
