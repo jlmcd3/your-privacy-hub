@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 const enforcementData = [
   { regulator: "CNIL (France)", company: "Clearview AI", jurisdiction: "EU — France", violation: "Unlawful biometric data processing without consent", fine: "€20M", date: "Mar 8, 2026" },

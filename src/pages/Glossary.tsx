@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Search, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, X } from "lucide-react";
 import glossaryData from "@/data/glossary.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
