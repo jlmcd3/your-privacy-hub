@@ -21,7 +21,7 @@ type ComparisonRow =
 const comparisonRows: ComparisonRow[] = [
   { isSection: true, feature: "The monitoring layer" },
   { feature: "Regulatory developments, monitored daily", free: true, intel: true, platform: true },
-  { feature: "Jurisdiction profiles (150+ countries)", free: true, intel: true, platform: true },
+  { feature: "Jurisdiction profiles (worldwide)", free: true, intel: true, platform: true },
   { feature: "Regulator directory", free: true, intel: true, platform: true },
   { feature: "Research guides (GDPR, AI Act, US laws)", free: true, intel: true, platform: true },
   { feature: "Enforcement tracker — all actions", free: true, intel: true, platform: true },
