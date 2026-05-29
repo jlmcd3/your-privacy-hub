@@ -86,8 +86,9 @@ const Login = () => {
           </h2>
           <div className="space-y-4">
             {[
-              '119 regulatory authorities monitored',
-              '150+ jurisdictions covered',
+              'Regulatory authorities monitored across the world',
+              'Key developments covered',
+
               'Weekly digest — free',
               `Intelligence from ${INTELLIGENCE_PRICING.monthly()}`,
               `Professional from ${PLATFORM_PRICING.standardMonthly()} base + ${PLATFORM_PRICING.clientAddon()}`,
