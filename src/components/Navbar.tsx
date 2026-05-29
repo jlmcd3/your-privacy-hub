@@ -78,7 +78,8 @@ const navItems: NavItem[] = [
     sections: [
       {
         header: "Intelligence subscription",
-        headerBadge: "PRO",
+        headerBadge: "INTEL+",
+
         column: 1,
         items: [
           { icon: "⭐", label: "Weekly Privacy Intelligence Report", href: "/get-intelligence" },
@@ -107,9 +108,10 @@ const navItems: NavItem[] = [
     wide: true,
     columns: 3,
     sections: [
+
       {
-        header: "Assessments",
-        headerBadge: "PRO",
+        header: "Smart Assessments",
+        headerBadge: "PER USE",
         column: 1,
         items: [
           { icon: "⚖️", label: "Legitimate Interest Assessment", href: "/li-assessment",
@@ -120,30 +122,35 @@ const navItems: NavItem[] = [
             tooltip: "EDPB-aligned DPIA for high-risk processing activities" },
           { icon: "👁️", label: "Biometric Compliance Assessment", href: "/biometric-checker",
             tooltip: "BIPA statutory exposure calculator and multi-jurisdiction analysis" },
-          { icon: "🚨", label: "Breach Response Playbook", href: "/ir-playbook",
-            tooltip: "Sequenced incident response plan with regulator notification deadlines" },
+          { icon: "📝", label: "Custom DPA Generator", href: "/dpa-generator",
+            tooltip: "Article 28-compliant data processing agreement, enforcement-informed" },
         ],
       },
       {
-        header: "Compliance Documents",
-        headerBadge: "PRO",
+        header: "Convenience Documents",
+        headerBadge: "POOL",
+        headerBadgeGreen: true,
         column: 2,
         items: [
-          { icon: "📝", label: "Custom DPA Generator", href: "/dpa-generator",
-            tooltip: "Article 28-compliant data processing agreement, enforcement-informed" },
-          { icon: "📂", label: "Registration Filings", href: "/registration-manager",
-            tooltip: "DPO, controller, and AI Act filings across 50+ jurisdictions" },
-          { icon: "📋", label: "RoPA Builder", href: "/ropa-builder",
-            tooltip: "Versioned Article 30 record of processing activities, per-activity entry" },
+          { icon: "🚨", label: "Breach Response Playbook", href: "/ir-playbook",
+            badge: "FREE w/ plan", badgeGreen: true,
+            tooltip: "Sequenced incident response plan with regulator notification deadlines. Free within Intel/Pro pool." },
           { icon: "📋", label: "US Privacy Notice Builder", href: "/us-notice-builder",
-            tooltip: "State-specific notices: CCPA, Virginia, Colorado, and more" },
+            badge: "FREE w/ plan", badgeGreen: true,
+            tooltip: "State-specific notices: CCPA, Virginia, Colorado, and more. Free within Intel/Pro pool." },
           { icon: "🌍", label: "EU & Global Notice Builder", href: "/eu-global-notice-builder",
-            tooltip: "GDPR Article 13/14 notices with multi-jurisdiction overlays" },
+            badge: "FREE w/ plan", badgeGreen: true,
+            tooltip: "GDPR Article 13/14 notices with multi-jurisdiction overlays. Free within Intel/Pro pool." },
+          { icon: "📋", label: "RoPA Builder", href: "/ropa-builder",
+            badge: "FREE w/ plan", badgeGreen: true,
+            tooltip: "Versioned Article 30 record of processing activities, per-activity entry. Free within Intel/Pro pool." },
+          { icon: "📂", label: "Registration Filings", href: "/registration-manager",
+            badge: "FREE w/ plan", badgeGreen: true,
+            tooltip: "DPO, controller, and AI Act filings across 50+ jurisdictions. Free within Intel/Pro pool." },
         ],
       },
       {
         header: "CPPA Suite · California",
-        headerBadge: "PRO",
         column: 3,
         items: [
           { icon: "🏛️", label: "CPPA Scope Checker", badge: "FREE", badgeGreen: true, href: "/cppa-scope-checker",
@@ -156,6 +163,7 @@ const navItems: NavItem[] = [
             tooltip: "See descriptions, pricing, and access details for every tool" },
         ],
       },
+
     ],
   },
   {
@@ -495,16 +503,31 @@ const Navbar = () => {
 
         {/* Right side */}
         <div className="hidden lg:flex items-center gap-3 ml-auto">
+          {/* Always-visible Pricing link */}
           <Link
-            to={user ? "/subscribe" : "/login"}
+            to="/subscribe"
             className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
-              (user ? location.pathname === "/subscribe" : location.pathname === "/login")
+              location.pathname === "/subscribe"
                 ? "text-[hsl(var(--accent-light))]"
                 : "text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]"
             }`}
           >
-            {user ? "Pricing" : "Sign In"}
+            Pricing
           </Link>
+          {/* Sign In — only when logged out */}
+          {!user && (
+            <Link
+              to="/login"
+              className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
+                location.pathname === "/login"
+                  ? "text-[hsl(var(--accent-light))]"
+                  : "text-white hover:text-white/80"
+              }`}
+            >
+              Sign In
+            </Link>
+          )}
+
           {user ? (
             <>
               <Link
