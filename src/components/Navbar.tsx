@@ -451,18 +451,17 @@ const Navbar = () => {
                 {item.sections && openDropdown === item.label && (
                   <div ref={dropdownRef} className="absolute left-0 top-full pt-1 z-50">
                     <div
-                      className={`bg-card border border-brand-cloud rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
+                      className={`bg-card border border-brand-cloud rounded-xl shadow-eup-md overflow-hidden max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
                         item.wide
                           ? item.columns === 3
-                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-stretch"
-                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-3 items-stretch"
+                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-0 items-stretch"
+                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-0 items-stretch"
                           : "min-w-[280px]"
                       }`}
                     >
                       {(() => {
                         const renderSection = (section: NavSection, si: number) => {
                           const topItems = section.items.filter((it) => !it.bottom);
-                          const bottomItems = section.items.filter((it) => it.bottom);
                           return (
                             <div key={si}>
                               {section.divider && !item.wide && <div className="border-t border-brand-cloud my-1.5" />}
@@ -489,16 +488,96 @@ const Navbar = () => {
                           );
                         };
                         if (!item.wide) return item.sections.map(renderSection);
+
+                        // Wide dropdown: B+C column treatment
                         const totalCols = item.columns ?? 2;
                         return Array.from({ length: totalCols }, (_, i) => {
-                          const colNum = i + 1;
-                          const colSections = item.sections.filter((s) => (s.column ?? 1) === colNum);
+                          const colNum = (i + 1) as 1 | 2 | 3;
+                          const colSections = item.sections!.filter((s) => (s.column ?? 1) === colNum);
+                          if (colSections.length === 0) return null;
+
+                          const isCppaSplit = colSections.some((s) => s.columnBg === "cppa-split");
+
+                          if (isCppaSplit) {
+                            const sec = colSections[0];
+                            const paidItems = sec.items.filter((it) => !it.bottom && it.badge !== "FREE");
+                            const freeItem = sec.items.find((it) => it.badge === "FREE");
+                            const ctaItem = sec.items.find((it) => it.bottom);
+
+                            return (
+                              <div key={colNum} className="flex flex-col h-full overflow-hidden border-r border-brand-cloud last:border-r-0">
+                                {/* Blue zone: header + paid tools */}
+                                <div className="bg-[#EEF4FB] px-3 pt-3 pb-2 flex-shrink-0">
+                                  <div className="pb-2 mb-2 border-b border-[#C0D5EE]">
+                                    <span className={`text-eyebrow font-semibold ${sec.headerColor ?? "text-[#185FA5]"}`}>
+                                      {sec.header}
+                                    </span>
+                                  </div>
+                                  {paidItems.map((sub) => renderSubItem(sub))}
+                                </div>
+
+                                {/* White zone: free Scope Checker */}
+                                {freeItem && (
+                                  <div className="bg-white border-t border-b border-[#C0D5EE] px-3 py-1.5">
+                                    {renderSubItem(freeItem)}
+                                  </div>
+                                )}
+
+                                {/* White zone: CTA in gold */}
+                                {ctaItem && (
+                                  <div className="bg-white px-3 pb-3 pt-2 mt-auto">
+                                    <Link
+                                      to={ctaItem.href}
+                                      className="block text-sm font-medium text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))] no-underline transition-colors"
+                                      onClick={() => setOpenDropdown(null)}
+                                    >
+                                      {ctaItem.label}
+                                    </Link>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
+
+                          const colBg = colSections[0]?.columnBg ?? "bg-card";
+
+                          const renderSectionBc = (section: NavSection, si: number) => {
+                            const topItems = section.items.filter((it) => !it.bottom);
+                            return (
+                              <div key={si}>
+                                {section.divider && (
+                                  <div className="border-t border-brand-cloud my-2 mx-1" />
+                                )}
+                                {section.header && (
+                                  <div className="px-3 pt-3 pb-2">
+                                    <span
+                                      className={`text-eyebrow font-semibold block ${
+                                        section.headerColor ?? "text-brand-mist"
+                                      }`}
+                                    >
+                                      {section.header}
+                                    </span>
+                                    {section.headerSub && (
+                                      <span className="block text-[10px] text-brand-mist/70 mt-0.5">
+                                        {section.headerSub}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {topItems.map((sub) => renderSubItem(sub))}
+                              </div>
+                            );
+                          };
+
                           const bottomItems = colSections.flatMap((s) => s.items.filter((it) => it.bottom));
                           return (
-                            <div key={colNum} className="flex flex-col h-full">
-                              {colSections.map((s, idx) => renderSection(s, idx))}
+                            <div
+                              key={colNum}
+                              className={`flex flex-col h-full border-r border-brand-cloud last:border-r-0 ${colBg}`}
+                            >
+                              {colSections.map(renderSectionBc)}
                               {bottomItems.length > 0 && (
-                                <div className="mt-auto pt-2">
+                                <div className="mt-auto pt-2 px-3 pb-3">
                                   {bottomItems.map((sub) => renderSubItem(sub))}
                                 </div>
                               )}
@@ -507,6 +586,7 @@ const Navbar = () => {
                         });
                       })()}
                     </div>
+
                   </div>
                 )}
               </div>
