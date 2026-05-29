@@ -78,7 +78,8 @@ const navItems: NavItem[] = [
     sections: [
       {
         header: "Intelligence subscription",
-        headerBadge: "PRO",
+        headerBadge: "INTEL+",
+
         column: 1,
         items: [
           { icon: "⭐", label: "Weekly Privacy Intelligence Report", href: "/get-intelligence" },
