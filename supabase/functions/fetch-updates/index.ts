@@ -299,20 +299,8 @@ const RSS_SOURCES = [
   },
 
   // ── U.S. State Regulators ─────────────────────────────────────────
-  {
-    url: "https://cppa.ca.gov/feed.xml",
-    source: "CPPA",
-    domain: "cppa.ca.gov",
-    defaultCategory: "us-states",
-    regulator: "California Privacy Protection Agency",
-  },
-  {
-    url: "https://portal.ct.gov/AG/RSS/PressReleases",
-    source: "Connecticut AG",
-    domain: "portal.ct.gov",
-    defaultCategory: "us-states",
-    regulator: "Connecticut Attorney General",
-  },
+  // (CPPA and Connecticut AG RSS removed — covered by ingest-gov-enforcement.)
+
 
   // ── Global Law Firm / Industry Analysis ──────────────────────────
   {
