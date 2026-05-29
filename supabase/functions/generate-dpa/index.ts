@@ -109,6 +109,12 @@ Deno.serve(async (req) => {
         });
       }
     }
+    // Resolve document type (from request or jurisdictional inference)
+    const documentType = detectDocType(
+      body.controllerJurisdiction,
+      body.processorJurisdiction,
+      body.documentType
+    );
 
     // Step 1 — fetch enforcement context
     let enforcement_context: EnforcementCtx[] = [];
@@ -127,8 +133,12 @@ Deno.serve(async (req) => {
             tool: "dpa-generator",
             jurisdictions: [body.controllerJurisdiction, body.processorJurisdiction],
             data_categories: (body.dataCategories || []).map((c) => c.toLowerCase()),
+            document_type: documentType,
             limit: 8,
           }),
+          signal: enforcementController.signal,
+        }
+
           signal: enforcementController.signal,
         }
       );
