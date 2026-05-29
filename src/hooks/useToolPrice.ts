@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { PRICING, type ToolKey } from "@/config/pricing";
+import { PRICING, PRICING_REGISTRY, type ToolKey } from "@/config/pricing";
 
 /**
- * Pricing hook (post-founding-discount cleanup):
- *   • Standalone per-use price applies to every tier.
- *   • There is no permanent subscriber discount. `subscriberPrice` mirrors
- *     `standalonePrice` and `isFoundingSubscriber` / `isSubscriber` are
- *     always `false` so existing call sites keep compiling without
- *     advertising a discount that no longer exists.
- *
- * Source of truth: PRICING.tools in src/config/pricing.ts.
+ * Pricing hook — restores differentiated subscriber pricing per the
+ * reconciled price list:
+ *   • Standalone price comes from PRICING.tools (canonical per-use price).
+ *   • Subscriber price comes from PRICING_REGISTRY `*_subscriber*` addons.
+ *   • Subscribers (intelligence/professional, any cadence) see the
+ *     subscriber rate; everyone else sees the standalone rate.
+ *   • IR Playbook and Biometric are FREE for any active subscriber.
  */
 
 const SLUG_TO_TOOL_KEY: Record<string, ToolKey | "cppa_suite_combo"> = {
@@ -57,6 +56,27 @@ const DISPLAY_NAMES: Record<string, string> = {
 
 export type ToolSlug = keyof typeof SLUG_TO_TOOL_KEY;
 
+const SLUG_TO_SUBSCRIBER_KEY: Partial<Record<ToolSlug, string>> = {
+  li_assessment:                "li_subscriber_v2",
+  governance_assessment:        "hc_subscriber_v2",
+  dpia_framework:               "dpia_subscriber_v2",
+  ropa_initial:                 "ropa_initial_subscriber",
+  ropa_refresh:                 "ropa_refresh_subscriber",
+  us_notice_single:             "us_notice_v7_subscriber",
+  us_notice_all_states:         "us_notice_v7_subscriber",
+  us_notice_refresh:            "us_notice_v7_subscriber",
+  eu_notice_single:             "eu_notice_v7_subscriber",
+  eu_notice_suite:              "eu_notice_v7_subscriber",
+  eu_notice_full_international: "eu_notice_v7_subscriber",
+  eu_notice_refresh:            "eu_notice_v7_subscriber",
+  cppa_risk_assessment:         "cppa_risk_subscriber",
+  cppa_cybersecurity:           "cppa_cyber_subscriber",
+  cppa_suite:                   "cppa_suite_subscriber",
+  dpa_generator:                "dpa_subscriber_v2",
+  ir_playbook:                  "ir_subscriber_v2",
+  biometric_checker:            "biometric_subscriber_v2",
+};
+
 function standaloneCentsFor(slug: ToolSlug): number {
   const key = SLUG_TO_TOOL_KEY[slug];
   if (key === "cppa_suite_combo") {
@@ -65,19 +85,23 @@ function standaloneCentsFor(slug: ToolSlug): number {
   return PRICING.tools[key].dollars * 100;
 }
 
+function subscriberCentsFor(slug: ToolSlug, standaloneCents: number): number {
+  const lookupKey = SLUG_TO_SUBSCRIBER_KEY[slug];
+  if (!lookupKey) return standaloneCents;
+  const entry = (PRICING_REGISTRY as Record<string, { amountCents: number }>)[lookupKey];
+  return entry ? entry.amountCents : standaloneCents;
+}
+
 export interface ToolPricing {
   /** Price the current viewer will pay, in dollars. */
   price: number;
   /** Standalone (non-discounted) price in dollars. */
   standalonePrice: number;
-  /**
-   * Retained for backwards compatibility — equal to `standalonePrice`
-   * now that the subscriber discount has been retired.
-   */
+  /** Subscriber per-use price in dollars. */
   subscriberPrice: number;
-  /** Retired program — always `false`. */
+  /** True if the current viewer is an active subscriber. */
   isSubscriber: boolean;
-  /** Retired flag — always `false` (no tool is "included free"). */
+  /** True if this tool is included free for the current subscriber. */
   isIncluded: boolean;
   /** True for monthly Intelligence subscribers. */
   isMonthlyIntelligence: boolean;
@@ -98,12 +122,17 @@ export interface ToolPricing {
 const CPPA_TOOLS = new Set(["cppa_risk_assessment", "cppa_cybersecurity", "cppa_suite"]);
 
 export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
-  const { tier, isLoading } = useSubscriptionTier();
+  const { tier, isPremium, isLoading } = useSubscriptionTier();
   const isCppa = CPPA_TOOLS.has(toolSlug);
   const name = DISPLAY_NAMES[toolSlug] ?? toolSlug;
 
   const standaloneCents = standaloneCentsFor(toolSlug);
+  const subscriberCents = subscriberCentsFor(toolSlug, standaloneCents);
   const standalone = standaloneCents / 100;
+  const subscriber = subscriberCents / 100;
+  const isSubscriber = isPremium;
+  const effective = isSubscriber ? subscriber : standalone;
+  const isIncluded = isSubscriber && subscriberCents === 0;
 
   const [stripeConfigured, setStripeConfigured] = useState(false);
 
@@ -127,11 +156,11 @@ export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
   }, [toolSlug]);
 
   return {
-    price: standalone,
+    price: effective,
     standalonePrice: standalone,
-    subscriberPrice: standalone,
-    isSubscriber: false,
-    isIncluded: false,
+    subscriberPrice: subscriber,
+    isSubscriber,
+    isIncluded,
     isMonthlyIntelligence: tier === "monthly",
     isCppa,
     isFoundingSubscriber: false,
