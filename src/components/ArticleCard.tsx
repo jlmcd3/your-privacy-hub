@@ -400,27 +400,29 @@ const FullCard = ({
     >
       {/* Enrichment toggles — upper-right of card */}
       {enriched && (
-        <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
+        <div className="absolute top-2 right-2 flex items-center gap-2 z-10 text-[11px] text-slate-500">
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleArticle(); }}
-            className="p-1 rounded text-slate-400 hover:text-brand-teal hover:bg-brand-cloud/50 transition-colors"
-            title={expanded ? 'Collapse enrichment for this article' : 'Expand enrichment for this article'}
-            aria-label={expanded ? 'Collapse enrichment for this article' : 'Expand enrichment for this article'}
+            className="flex items-center gap-1 px-1.5 py-1 rounded hover:text-brand-teal hover:bg-brand-cloud/50 transition-colors"
+            aria-label={expanded ? 'Collapse this article' : 'Expand this article'}
           >
+            <span>{expanded ? 'Collapse this article' : 'Expand this article'}</span>
             {expanded ? <ChevronsDownUp className="w-3.5 h-3.5" /> : <ChevronsUpDown className="w-3.5 h-3.5" />}
           </button>
+          <span className="text-slate-300">|</span>
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleAll(); }}
-            className="p-1 rounded text-slate-400 hover:text-brand-teal hover:bg-brand-cloud/50 transition-colors"
-            title={showAll ? 'Collapse enrichment on all articles' : 'Expand enrichment on all articles'}
-            aria-label={showAll ? 'Collapse enrichment on all articles' : 'Expand enrichment on all articles'}
+            className="flex items-center gap-1 px-1.5 py-1 rounded hover:text-brand-teal hover:bg-brand-cloud/50 transition-colors"
+            aria-label={showAll ? 'Collapse all articles' : 'Expand all articles'}
           >
-            <Sparkles className={`w-3.5 h-3.5 ${showAll ? '' : 'opacity-40'}`} />
+            <span>{showAll ? 'Collapse all' : 'Expand all'}</span>
+            {showAll ? <ChevronsDownUp className="w-3.5 h-3.5" /> : <ChevronsUpDown className="w-3.5 h-3.5" />}
           </button>
         </div>
       )}
+
 
       {/* Article thumbnail */}
       <img
