@@ -171,14 +171,7 @@ const RSS_SOURCES = [
     defaultCategory: "eu-uk",
     regulator: "Integritetsskyddsmyndigheten (Swedish DPA)",
   },
-  {
-    url: "https://cnpd.public.lu/fr/rss/actualites.rss",
-    source: "CNPD Luxembourg",
-    domain: "cnpd.public.lu",
-    defaultCategory: "eu-uk",
-    regulator: "Commission nationale pour la protection des données (Luxembourg DPA)",
-    language: "fr",
-  },
+  // CNPD Luxembourg removed — no public RSS feed (audit 2026-05). AEM CMS; needs scraper.
   {
     url: "https://www.europarl.europa.eu/rss/doc/top-stories/en.xml",
     source: "EU Parliament",
