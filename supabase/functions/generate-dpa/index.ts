@@ -137,9 +137,9 @@ Deno.serve(async (req) => {
             limit: 8,
           }),
           signal: enforcementController.signal,
+        }
       );
 
-      );
       clearTimeout(enforcementTimeout);
       if (enforcementRes.ok) {
         const json = await enforcementRes.json();
