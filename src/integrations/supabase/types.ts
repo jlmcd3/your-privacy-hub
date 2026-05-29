@@ -4164,7 +4164,6 @@ export type Database = {
           created_at: string
           defense_considerations: string | null
           direct_jurisdictions: string[] | null
-          enforcement_action_id: string | null
           enrichment_quality: string | null
           enrichment_version: number | null
           entities: Json | null
@@ -4206,7 +4205,6 @@ export type Database = {
           created_at?: string
           defense_considerations?: string | null
           direct_jurisdictions?: string[] | null
-          enforcement_action_id?: string | null
           enrichment_quality?: string | null
           enrichment_version?: number | null
           entities?: Json | null
@@ -4248,7 +4246,6 @@ export type Database = {
           created_at?: string
           defense_considerations?: string | null
           direct_jurisdictions?: string[] | null
-          enforcement_action_id?: string | null
           enrichment_quality?: string | null
           enrichment_version?: number | null
           entities?: Json | null
@@ -4277,15 +4274,7 @@ export type Database = {
           url?: string
           why_it_matters_short?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "updates_enforcement_action_id_fkey"
-            columns: ["enforcement_action_id"]
-            isOneToOne: false
-            referencedRelation: "enforcement_actions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       us_notice_answers: {
         Row: {
