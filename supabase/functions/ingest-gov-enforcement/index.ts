@@ -103,6 +103,45 @@ const SOURCES: SourceEntry[] = [
   { regulator: "Indiana Attorney General (IN AG)", jurisdiction: "Indiana", law: "INCDPA", url: "https://www.in.gov/attorneygeneral/about-the-office/news/", source: "IN AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
   { regulator: "Virginia Attorney General (VA AG)", jurisdiction: "Virginia", law: "VCDPA", url: "https://www.oag.state.va.us/media-center/news-releases", source: "VA AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
 
+  // ── Florida Attorney General (us_state Phase 2) ──────────────────
+  { regulator: "Florida Attorney General", jurisdiction: "Florida", law: "Florida breach notification law / FDUTPA / consumer protection", url: "https://www.myfloridalegal.com/press-release", source: "FL-AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
+  ...Array.from({ length: 4 }, (_, i): SourceEntry => ({
+    regulator: "Florida Attorney General",
+    jurisdiction: "Florida",
+    law: "Florida breach notification law / FDUTPA / consumer protection",
+    url: `https://www.myfloridalegal.com/press-release?page=${i + 1}`,
+    source: "FL-AG",
+    sourceGroup: "us_state",
+    requireRelevance: true,
+  })),
+
+  // ── Washington Attorney General ──────────────────────────────────
+  { regulator: "Washington Attorney General", jurisdiction: "Washington", law: "Washington My Health My Data Act / CPA / consumer protection", url: "https://www.atg.wa.gov/pressrelease.aspx", source: "WA-AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
+  ...Array.from({ length: 4 }, (_, i): SourceEntry => ({
+    regulator: "Washington Attorney General",
+    jurisdiction: "Washington",
+    law: "Washington My Health My Data Act / CPA / consumer protection",
+    url: `https://www.atg.wa.gov/pressrelease.aspx?page=${i + 1}`,
+    source: "WA-AG",
+    sourceGroup: "us_state",
+    requireRelevance: true,
+  })),
+
+  // ── Illinois Attorney General ────────────────────────────────────
+  { regulator: "Illinois Attorney General", jurisdiction: "Illinois", law: "Illinois PIPA / BIPA / consumer protection", url: "https://illinoisattorneygeneral.gov/news-room/", source: "IL-AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
+
+  // ── Massachusetts Attorney General ───────────────────────────────
+  { regulator: "Massachusetts Attorney General", jurisdiction: "Massachusetts", law: "Massachusetts data breach law (M.G.L. c. 93H) / 201 CMR 17", url: "https://www.mass.gov/orgs/office-of-the-attorney-general/news", source: "MA-AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
+  ...Array.from({ length: 4 }, (_, i): SourceEntry => ({
+    regulator: "Massachusetts Attorney General",
+    jurisdiction: "Massachusetts",
+    law: "Massachusetts data breach law (M.G.L. c. 93H) / 201 CMR 17",
+    url: `https://www.mass.gov/orgs/office-of-the-attorney-general/news?page=${i + 1}`,
+    source: "MA-AG",
+    sourceGroup: "us_state",
+    requireRelevance: true,
+  })),
+
   // ── Canadian regulators (sourceGroup: "canada") ──────────────────
   { regulator: "Office of the Privacy Commissioner of Canada (OPC)", jurisdiction: "Canada", law: "PIPEDA / Privacy Act", url: "https://www.priv.gc.ca/en/opc-news/news-and-announcements/", source: "OPC", sourceGroup: "canada", monitorPages: 1 },
   { regulator: "Office of the Privacy Commissioner of Canada (OPC)", jurisdiction: "Canada", law: "PIPEDA", url: "https://www.priv.gc.ca/en/opc-actions-and-decisions/investigations/investigations-into-businesses/", source: "OPC Investigations", sourceGroup: "canada", monitorPages: 1 },
