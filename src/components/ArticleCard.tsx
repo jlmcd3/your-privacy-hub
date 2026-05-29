@@ -538,7 +538,8 @@ const FullCard = ({
         )}
 
         {/* ── PAID — Analysis and Guidance + tool CTA ───── */}
-        {tier === 'paid' && (() => {
+        {expanded && tier === 'paid' && (() => {
+
           const impact = item.ai_summary?.compliance_impact;
            if (!impact && !actionProse && !watchProse) {
             const toolCTA = getToolCTA(item);
