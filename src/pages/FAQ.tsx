@@ -52,7 +52,7 @@ const faqs = [
 const pricingFaqs = [
   {
     q: "How much does End User Privacy cost?",
-    a: `Privacy Intelligence is ${I_MO} (or ${I_YR} — save $40) and includes the weekly Privacy Intelligence Report, enforcement tracking across 119 authorities, and all reference content. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces, branded document outputs, up to 3 team logins, and 1 free Convenience Tool run per client per month (annual plan). Individual compliance tools are available standalone for all users.`,
+    a: `Privacy Intelligence is ${I_MO} (or ${I_YR} — save $40) and includes the weekly Privacy Intelligence Report, enforcement tracking of privacy developments across the world, and all reference content. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces, branded document outputs, up to 3 team logins, and 1 free Convenience Tool run per client per month (annual plan). Individual compliance tools are available standalone for all users.`,
   },
   {
     q: "What is included in Professional?",
