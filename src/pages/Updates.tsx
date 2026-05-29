@@ -386,7 +386,7 @@ const Updates = () => {
         <div className="min-h-screen flex flex-col bg-background">
             <Helmet>
                 <title>Privacy Intelligence Feed | End User Privacy</title>
-                <meta name="description" content="Daily intelligence monitored from regulatory sources across the world — filtered by jurisdiction, topic, date, and source." />
+                <meta name="description" content="Daily intelligence monitored from regulatory and news sources across the world — filtered by jurisdiction, topic, date, and source." />
             </Helmet>
             <Navbar />
 
@@ -403,7 +403,7 @@ const Updates = () => {
                                 : "Privacy Intelligence Feed"}
                     </h1>
                     <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
-                        Daily intelligence from regulatory sources across the world — filter by jurisdiction, topic, date, and source to find what's relevant to your practice.
+                        Daily intelligence from regulatory and news sources across the world — filter by jurisdiction, topic, date, and source to find what's relevant to your practice.
                     </p>
                 </div>
             </header>
