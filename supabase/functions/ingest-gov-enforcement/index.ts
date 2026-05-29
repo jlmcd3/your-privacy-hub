@@ -517,15 +517,40 @@ Deno.serve(async (req) => {
     }
   }
 
+  const runCompletedAt = new Date();
+  const durationMs = runCompletedAt.getTime() - runStartedAt.getTime();
   const finalResult = {
     dry_run: dryRun,
+    mode,
+    source_group: sourceGroupParam,
+    source: sourceKeyParam,
     ftc_pages: ftcPageFilter ? [...ftcPageFilter] : null,
+    duration_ms: durationMs,
     inserted, skipped, errors, legacy_updated: legacyUpdated,
     pdf_found: pdfFound, pdf_missing: pdfMissing,
     summary, samples,
   };
   console.log("FINAL_RESULT", JSON.stringify(finalResult));
+
+  if (!dryRun) {
+    try {
+      await supabase.from("ingest_run_log").insert({
+        mode,
+        source_group: sourceGroupParam || (onlyFtc ? "ftc" : "all"),
+        started_at: runStartedAt.toISOString(),
+        completed_at: runCompletedAt.toISOString(),
+        duration_ms: durationMs,
+        inserted, skipped, errors,
+        per_source: summary,
+        notes: sourceKeyParam ? `source=${sourceKeyParam}` : null,
+      });
+    } catch (logErr) {
+      console.error("ingest_run_log insert failed", (logErr as Error).message);
+    }
+  }
+
   return new Response(JSON.stringify(finalResult),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+});
 });
 
