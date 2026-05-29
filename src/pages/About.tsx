@@ -179,7 +179,7 @@ const About = () => {
 
           <div className="space-y-6 text-[15px] text-slate leading-relaxed">
             <p>
-              End User Privacy monitors 119 regulatory authorities across 150+ jurisdictions worldwide, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
+              EndUserPrivacy.com monitors privacy regulatory authorities across the world, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
             </p>
             <p>
               Our platform ingests, filters, and summarizes primary source material — press releases, regulatory announcements, and authoritative news coverage — so privacy professionals can focus on what matters most.
