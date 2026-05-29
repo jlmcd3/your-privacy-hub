@@ -611,7 +611,7 @@ const FeaturedCard = ({ item }: { item: ArticleItem }) => (
     <a
       href={item.source_url || `/updates/${item.id}`}
       {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className="text-[18px] font-bold text-white leading-snug block mb-2 no-underline hover:text-blue-200 transition-colors">
+      className="text-[12px] font-bold text-white leading-snug block mb-2 no-underline hover:text-blue-200 transition-colors">
       {normalizeTitle(item.title)}
     </a>
     {(item.summary || item.ai_summary?.why_it_matters) && (
@@ -637,7 +637,7 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
         <a
           href={item.source_url || `/updates/${item.id}`}
           {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-          className="text-sm font-semibold text-gray-900 hover:text-brand-teal no-underline leading-snug block">
+          className="text-[9px] font-semibold text-gray-900 hover:text-brand-teal no-underline leading-snug block">
           {normalizeTitle(item.title)}
         </a>
         {item.summary && (
@@ -696,7 +696,7 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
               </span>
             )}
           </div>
-          <p className="text-sm font-medium text-gray-900 leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
+          <p className="text-[9px] font-medium text-gray-900 leading-snug mb-1 group-hover:text-sky-700 transition-colors line-clamp-2">
             {normalizeTitle(item.title)}
           </p>
           {item.summary && (
@@ -773,7 +773,7 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
             onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
           />
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-semibold text-gray-900 leading-snug mb-1">{normalizeTitle(item.title)}</p>
+            <p className="text-[9px] font-semibold text-gray-900 leading-snug mb-1">{normalizeTitle(item.title)}</p>
             {item.summary && (
               <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{stripHtml(item.summary)}</p>
             )}
@@ -852,7 +852,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
         </div>
         <TitleLink
           item={item}
-          className="text-sm font-semibold text-gray-900 hover:text-brand-teal leading-snug block no-underline transition-colors"
+          className="text-[9px] font-semibold text-gray-900 hover:text-brand-teal leading-snug block no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />}
