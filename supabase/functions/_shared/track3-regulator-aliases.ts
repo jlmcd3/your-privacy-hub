@@ -10,7 +10,9 @@
 // Tier 1 only for now. Add Tier 2 (Garante, UODO, CNIL, HDPA, OAIC) when Phase 3
 // is authorised.
 
-export type RegulatorAliasKey = "aepd" | "anspdcp" | "naih" | "uoou" | "ftc";
+export type RegulatorAliasKey =
+  | "aepd" | "anspdcp" | "naih" | "uoou" | "ftc"
+  | "garante" | "uodo" | "cnil" | "hdpa" | "oaic";
 
 export interface RegulatorAlias {
   canonical: string; // matches regulator_profiles.canonical_name
@@ -71,6 +73,51 @@ export const TRACK3_REGULATORS: Record<RegulatorAliasKey, RegulatorAlias> = {
       "FTC",
     ],
     allowedHosts: ["ftc.gov", "www.ftc.gov"],
+  },
+  garante: {
+    canonical: "Garante per la protezione dei dati personali",
+    regulatorMatches: [
+      "Garante per la protezione dei dati personali",
+      "Italian Data Protection Authority (Garante)",
+      "Garante (Italy)",
+    ],
+    allowedHosts: ["garanteprivacy.it", "www.garanteprivacy.it", "gpdp.it", "www.gpdp.it"],
+  },
+  uodo: {
+    canonical: "Urząd Ochrony Danych Osobowych (UODO)",
+    regulatorMatches: [
+      "Urząd Ochrony Danych Osobowych (UODO)",
+      "UODO",
+      "Polish National Personal Data Protection Office (UODO)",
+      "Polish Data Protection Authority (UODO)",
+    ],
+    allowedHosts: ["uodo.gov.pl", "www.uodo.gov.pl"],
+  },
+  cnil: {
+    canonical: "Commission nationale de l'informatique et des libertés (CNIL)",
+    regulatorMatches: [
+      "Commission nationale de l'informatique et des libertés (CNIL)",
+      "French Data Protection Authority (CNIL)",
+      "CNIL",
+      "CNIL (France)",
+    ],
+    allowedHosts: ["cnil.fr", "www.cnil.fr", "legifrance.gouv.fr", "www.legifrance.gouv.fr"],
+  },
+  hdpa: {
+    canonical: "Hellenic Data Protection Authority (HDPA)",
+    regulatorMatches: [
+      "Hellenic Data Protection Authority (HDPA)",
+      "HDPA",
+    ],
+    allowedHosts: ["dpa.gr", "www.dpa.gr"],
+  },
+  oaic: {
+    canonical: "Office of the Australian Information Commissioner (OAIC)",
+    regulatorMatches: [
+      "Office of the Australian Information Commissioner (OAIC)",
+      "OAIC",
+    ],
+    allowedHosts: ["oaic.gov.au", "www.oaic.gov.au"],
   },
 };
 
