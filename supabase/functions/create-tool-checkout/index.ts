@@ -237,6 +237,7 @@ Deno.serve(async (req) => {
     // standalone price; we still surface `subscription_type` for downstream
     // routing (e.g. Professional free convenience runs are handled client-side).
     let isProfessionalAnnual = false;
+    let isPro = false;
     let subscriptionType: string | null = null;
     if (user_id) {
       const { data: profile } = await supabase
@@ -245,8 +246,48 @@ Deno.serve(async (req) => {
         .eq("id", user_id)
         .single();
       subscriptionType = (profile as any)?.subscription_type ?? null;
+      isPro = (profile as any)?.is_pro === true;
       isProfessionalAnnual = (profile as any)?.professional_annual === true
         || subscriptionType === "annual" || subscriptionType === "annual_founding";
+    }
+
+    // ── Subscriber FREE bypass (IR Playbook, Biometric Checker) ──
+    // Stripe disallows $0 sessions; insert the assessment row directly
+    // with is_subscriber_credit=true and return the success path so the
+    // client navigates straight to the result page.
+    if (isPro && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
+      const insertRow: Record<string, unknown> = {
+        user_id,
+        client_id: client_id || null,
+        status: "pending",
+        intake_data: intake_data || {},
+        purchased_as_standalone: false,
+        is_subscriber_credit: true,
+        purchase_price_cents: 0,
+      };
+      const { data: row, error: insErr } = await supabase
+        .from(tool.table)
+        .insert(insertRow)
+        .select("id")
+        .single();
+      if (insErr || !row) {
+        console.error("Subscriber-free insert error:", insErr);
+        return new Response(JSON.stringify({ error: "Failed to create assessment row" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const toolPath = tool_type.replace(/_/g, "-");
+      const successPath = `/${toolPath}/result/${row.id}?purchased=true&subscriber_free=true`;
+      return new Response(
+        JSON.stringify({
+          bypassed: true,
+          assessment_id: row.id,
+          url: successPath,
+          redirect_path: successPath,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Always charge the standalone Stripe price.
