@@ -507,13 +507,7 @@ const RSS_SOURCES = [
   },
 
   // ── Additional International Regulators ──────────────────────────
-  {
-    url: "https://www.oaic.gov.au/news/feed",
-    source: "OAIC",
-    domain: "oaic.gov.au",
-    defaultCategory: "global",
-    regulator: "Office of the Australian Information Commissioner",
-  },
+  // OAIC and PDPC Singapore RSS removed — covered by ingest-gov-enforcement.
   // PPC Japan and ANPD Brazil removed (no working RSS, audit 2026-05). Need scrapers.
   {
     url: "https://www.privacy.org.nz/about-us/news/rss/",
@@ -521,13 +515,6 @@ const RSS_SOURCES = [
     domain: "privacy.org.nz",
     defaultCategory: "global",
     regulator: "Office of the Privacy Commissioner (New Zealand)",
-  },
-  {
-    url: "https://www.pdpc.gov.sg/api/rss/news-and-events",
-    source: "PDPC Singapore",
-    domain: "pdpc.gov.sg",
-    defaultCategory: "global",
-    regulator: "Personal Data Protection Commission (Singapore)",
   },
 
   // ── Additional U.S. Federal ──────────────────────────────────────
