@@ -69,8 +69,9 @@ const About = () => {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { stat: "119", label: "Regulatory authorities monitored" },
-                { stat: "150+", label: "Jurisdictions covered" },
+                { stat: "Global", label: "Regulatory authorities monitored worldwide" },
+                { stat: "Daily", label: "Jurisdictions covered, updated continuously" },
+
                 { stat: "Daily", label: "Updated, enriched with regulatory context" },
               ].map((item) => (
                 <div
