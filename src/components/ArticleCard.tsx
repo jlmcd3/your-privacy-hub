@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2 } from "lucide-react";
+import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2, ChevronsUpDown, ChevronsDownUp } from "lucide-react";
+import { useEnrichmentToggle } from "@/hooks/useEnrichmentToggle";
+
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { ActionBrief } from "@/components/ActionBrief";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -374,6 +376,8 @@ const FullCard = ({
   const enriched = isEnriched(item);
   const weight = item.ai_summary?.legal_weight;
   const accentBackground = enriched && isPremium;
+  const { expanded, showAll, toggleArticle, toggleAll } = useEnrichmentToggle(item.id);
+
 
   const actionProse = (() => {
     const items = item.action_items ?? [];
@@ -394,6 +398,30 @@ const FullCard = ({
       className={`flex gap-4 items-start py-5 border-b border-gray-200 last:border-0 relative ${accentBackground ? 'px-4 rounded-lg my-1' : ''}`}
       style={accentBackground ? { background: 'hsl(var(--brand-teal) / 0.08)', borderLeft: '3px solid hsl(var(--brand-teal))' } : undefined}
     >
+      {/* Enrichment toggles — upper-right of card */}
+      {enriched && (
+        <div className="absolute top-2 right-2 flex items-center gap-1 z-10">
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleArticle(); }}
+            className="p-1 rounded text-slate-400 hover:text-brand-teal hover:bg-brand-cloud/50 transition-colors"
+            title={expanded ? 'Collapse enrichment for this article' : 'Expand enrichment for this article'}
+            aria-label={expanded ? 'Collapse enrichment for this article' : 'Expand enrichment for this article'}
+          >
+            {expanded ? <ChevronsDownUp className="w-3.5 h-3.5" /> : <ChevronsUpDown className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleAll(); }}
+            className="p-1 rounded text-slate-400 hover:text-brand-teal hover:bg-brand-cloud/50 transition-colors"
+            title={showAll ? 'Collapse enrichment on all articles' : 'Expand enrichment on all articles'}
+            aria-label={showAll ? 'Collapse enrichment on all articles' : 'Expand enrichment on all articles'}
+          >
+            <Sparkles className={`w-3.5 h-3.5 ${showAll ? '' : 'opacity-40'}`} />
+          </button>
+        </div>
+      )}
+
       {/* Article thumbnail */}
       <img
         src={item.image_url || EUP_TILE}
@@ -465,7 +493,7 @@ const FullCard = ({
         )}
 
         {/* ── ALERT — shown to all tiers when available ─────────── */}
-        {(() => {
+        {expanded && (() => {
           const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!shortWhy) return null;
           const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
@@ -489,7 +517,7 @@ const FullCard = ({
         )}
 
         {/* ── CONTEXT — free + paid ───── */}
-        {(tier === 'free' || tier === 'paid') && (() => {
+        {expanded && (tier === 'free' || tier === 'paid') && (() => {
           const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
           if (!why) return null;
           return (
@@ -498,6 +526,7 @@ const FullCard = ({
             </p>
           );
         })()}
+
 
         {/* ── FREE CTA ─────────── */}
         {tier === 'free' && (
@@ -509,7 +538,8 @@ const FullCard = ({
         )}
 
         {/* ── PAID — Analysis and Guidance + tool CTA ───── */}
-        {tier === 'paid' && (() => {
+        {expanded && tier === 'paid' && (() => {
+
           const impact = item.ai_summary?.compliance_impact;
            if (!impact && !actionProse && !watchProse) {
             const toolCTA = getToolCTA(item);
