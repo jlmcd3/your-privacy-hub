@@ -107,8 +107,8 @@ export default function DPAGenerator() {
 
   return (
     <div className="min-h-screen bg-brand-cloud">
-      <Helmet><title>Custom Data Processing Agreement | End User Privacy</title>
-        <meta name="description" content="Draft a GDPR Article 28 controller-processor DPA with clauses calibrated to enforcement decisions — includes a Drafting Notes appendix citing the evidence behind every provision." /></Helmet>
+      <Helmet><title>Custom Data Processing Agreement — GDPR, US State, Canadian, Dual | End User Privacy</title>
+        <meta name="description" content="Draft a controller-processor DPA tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions." /></Helmet>
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
@@ -118,8 +118,11 @@ export default function DPAGenerator() {
           </span>
           <h1 className="font-serif mb-3">Custom Data Processing Agreement</h1>
           <p className="text-slate-300 text-lg max-w-3xl">
-            Draft a controller-processor Data Processing Agreement that meets GDPR Article 28, with clauses calibrated to recent EU regulator enforcement decisions. Use it whenever you onboard a vendor that processes personal data on your behalf.
+            Draft a controller-processor data processing agreement tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions.
           </p>
+        </div>
+      </header>
+
         </div>
       </header>
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
