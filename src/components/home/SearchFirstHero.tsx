@@ -16,8 +16,8 @@ export default function SearchFirstHero() {
             <h1 className="text-hero-h1 text-white mb-3">
               Global privacy law, tracked daily.
             </h1>
-            <p className="text-blue-200/80 text-sm md:text-base mb-8">
-              Privacy developments from across the world. Action intelligence on every development — and the compliance tools to act on it.
+            <p className="text-blue-200/80 text-sm md:text-base mb-8 whitespace-pre-line">
+              Privacy developments from across the world. Action intelligence on every development{"\n"}— and the compliance tools to act on it.
             </p>
 
             {/* ── Hero CTA Cards ─────────────────────────────────── */}
