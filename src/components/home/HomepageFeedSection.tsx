@@ -10,7 +10,7 @@ export default function HomepageFeedSection() {
   return (
     <SectionShell
       eyebrow="Privacy Intelligence Feed"
-      headline="Daily developments, with analysis beside the story"
+      headline="Daily developments, with analysis beneath the story"
       subline="Live regulatory monitoring paired with the intelligence layer that explains what matters."
       ctaLabel="Open feed →"
       ctaHref="/updates"
