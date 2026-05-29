@@ -173,24 +173,25 @@ interface FetchOutcome {
 }
 
 async function doFetch(url: string, extraHeaders: Record<string, string> = {}): Promise<Response | { _error: "timeout" | "other" }> {
-  // Legifrance and similar French government sites block requests whose
-  // Accept-Language is not French. Override the default Spanish-leaning
-  // headers with a French browser profile for those hosts.
+  // Legifrance blocks datacenter IPs outright regardless of UA. Route those
+  // requests through the Jina reader proxy (r.jina.ai) which fetches via a
+  // residential-style pool and returns clean text/markdown.
   const isLegifrance = url.includes("legifrance.gouv.fr");
-  const baseHeaders: Record<string, string> = isLegifrance
-    ? {
-        "user-agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "accept-language": "fr-FR,fr;q=0.9,en;q=0.8",
-      }
-    : {
-        "user-agent": BROWSER_UA,
-        "accept": "text/html,application/xhtml+xml,application/xml,application/pdf,*/*;q=0.8",
-        "accept-language": "es-ES,es;q=0.9,en;q=0.7",
-      };
+  let fetchUrl = url;
+  const baseHeaders: Record<string, string> = {
+    "user-agent": BROWSER_UA,
+    "accept": "text/html,application/xhtml+xml,application/xml,application/pdf,*/*;q=0.8",
+    "accept-language": "es-ES,es;q=0.9,en;q=0.7",
+  };
+  if (isLegifrance) {
+    fetchUrl = `https://r.jina.ai/${url}`;
+    baseHeaders["accept"] = "text/plain, text/markdown, */*;q=0.8";
+    baseHeaders["accept-language"] = "fr-FR,fr;q=0.9,en;q=0.8";
+    const jinaKey = Deno.env.get("JINA_API_KEY");
+    if (jinaKey) baseHeaders["authorization"] = `Bearer ${jinaKey}`;
+  }
   try {
-    return await fetch(url, {
+    return await fetch(fetchUrl, {
       headers: { ...baseHeaders, ...extraHeaders },
       redirect: "follow",
       signal: AbortSignal.timeout(60_000),
@@ -208,6 +209,8 @@ async function fetchAndExtractText(url: string): Promise<FetchOutcome> {
   if ("_error" in resp) {
     return resp._error === "timeout" ? { status: "fetch_timeout" } : { status: "fetch_other" };
   }
+
+
 
   // One-shot 403 retry with richer browser-like headers (Referer, sec-fetch-*)
   // — targets AEPD /documento/ which blocks bare bot traffic.
