@@ -167,8 +167,13 @@ export default function IRPlaybook() {
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedCount} onChange={e => setForm(f => ({ ...f, affectedCount: e.target.value }))}>
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
             <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions</legend>
-              <div className="grid grid-cols-2 gap-1 mt-1">{JURS.map(j => <label key={j} className="flex items-center gap-2 text-meta">
-                <input type="checkbox" checked={form.jurisdictions.includes(j)} onChange={() => toggle("jurisdictions", j)} />{j}</label>)}</div></fieldset>
+              <div className="mt-1 space-y-3">{JUR_GROUPS.map(g => (
+                <div key={g.label}>
+                  <div className="text-meta font-semibold text-brand-navy/70 uppercase tracking-wide mb-1">{g.label}</div>
+                  <div className="grid grid-cols-2 gap-1">{g.options.map(j => <label key={j} className="flex items-center gap-2 text-meta">
+                    <input type="checkbox" checked={form.jurisdictions.includes(j)} onChange={() => toggle("jurisdictions", j)} />{j}</label>)}</div>
+                </div>
+              ))}</div></fieldset>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Contained?</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.contained} onChange={e => setForm(f => ({ ...f, contained: e.target.value }))}>
                 <option>Yes</option><option>No</option><option>Unknown</option></select></label>
