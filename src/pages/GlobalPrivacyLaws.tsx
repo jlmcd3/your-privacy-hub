@@ -15,7 +15,7 @@ const GlobalPrivacyLaws = () => (
       stats: [
         { value: "140+", label: "countries with privacy laws" },
         { value: "80%+", label: "modelled on GDPR" },
-        { value: "119", label: "regulators tracked" },
+        { value: "Global", label: "regulators tracked worldwide" },
         { value: "2026", label: "newest regimes active" },
       ],
     }}
