@@ -44,11 +44,18 @@ interface NavSection {
   /** Optional badge displayed next to the section header (e.g. "FREE"). */
   headerBadge?: string;
   headerBadgeGreen?: boolean;
+  /** Muted access subline below the section header. */
+  headerSub?: string;
+  /** Tailwind text-colour class for the section title. */
+  headerColor?: string;
+  /** Tailwind bg class applied to the column wrapper. */
+  columnBg?: string;
   divider?: boolean;
   /** Explicit column placement for wide multi-column dropdowns (1-based). */
   column?: 1 | 2 | 3;
   items: NavSubItem[];
 }
+
 
 interface NavItem {
   label: string;
@@ -78,20 +85,22 @@ const navItems: NavItem[] = [
     sections: [
       {
         header: "Intelligence subscription",
-        headerBadge: "INTEL+",
-
+        headerSub: "Intel & Pro · monthly or annual",
+        headerColor: "text-[#185FA5]",
+        columnBg: "bg-[#EEF4FB]",
         column: 1,
         items: [
           { icon: "⭐", label: "Weekly Privacy Intelligence Report", href: "/get-intelligence" },
           { icon: "🛰️", label: "Regulatory Trend Forecast", href: "/horizon" },
-          { icon: "🗄️", label: "Global Enforcement Database", href: "/enforcement?view=archive" },
-          
+          { icon: "🗄️", label: "Global Enforcement Database", href: "/enforcement?view=archive",
+            description: "Full archive · 4,800+ decisions" },
         ],
       },
       {
         header: "Free exploration tools",
-        headerBadge: "FREE",
-        headerBadgeGreen: true,
+        headerSub: "No account required",
+        headerColor: "text-brand-mist",
+        columnBg: "bg-white",
         column: 2,
         items: [
           { icon: "🗺️", label: "Interactive Global Map", href: "/jurisdictions" },
@@ -108,10 +117,11 @@ const navItems: NavItem[] = [
     wide: true,
     columns: 3,
     sections: [
-
       {
         header: "Smart Assessments",
-        headerBadge: "PER USE",
+        headerSub: "Per use · any tier",
+        headerColor: "text-[#185FA5]",
+        columnBg: "bg-[#EEF4FB]",
         column: 1,
         items: [
           { icon: "⚖️", label: "Legitimate Interest Assessment", href: "/li-assessment",
@@ -128,54 +138,53 @@ const navItems: NavItem[] = [
       },
       {
         header: "Convenience Documents",
-        headerBadge: "POOL",
-        headerBadgeGreen: true,
+        headerSub: "Free from pool · Intel & Pro",
+        headerColor: "text-[#3B6D11]",
+        columnBg: "bg-[#F3FAF0]",
         column: 2,
         items: [
           { icon: "🚨", label: "Breach Response Playbook", href: "/ir-playbook",
-            badge: "FREE w/ plan", badgeGreen: true,
             tooltip: "Sequenced incident response plan with regulator notification deadlines. Free within Intel/Pro pool." },
           { icon: "📋", label: "US Privacy Notice Builder", href: "/us-notice-builder",
-            badge: "FREE w/ plan", badgeGreen: true,
             tooltip: "State-specific notices: CCPA, Virginia, Colorado, and more. Free within Intel/Pro pool." },
           { icon: "🌍", label: "EU & Global Notice Builder", href: "/eu-global-notice-builder",
-            badge: "FREE w/ plan", badgeGreen: true,
             tooltip: "GDPR Article 13/14 notices with multi-jurisdiction overlays. Free within Intel/Pro pool." },
           { icon: "📋", label: "RoPA Builder", href: "/ropa-builder",
-            badge: "FREE w/ plan", badgeGreen: true,
-            tooltip: "Versioned Article 30 record of processing activities, per-activity entry. Free within Intel/Pro pool." },
+            tooltip: "Versioned Article 30 record of processing activities. Free within Intel/Pro pool." },
           { icon: "📂", label: "Registration Filings", href: "/registration-manager",
-            badge: "FREE w/ plan", badgeGreen: true,
             tooltip: "DPO, controller, and AI Act filings across 50+ jurisdictions. Free within Intel/Pro pool." },
         ],
       },
       {
         header: "CPPA Suite · California",
+        headerSub: "",
+        headerColor: "text-[#185FA5]",
+        columnBg: "cppa-split",
         column: 3,
         items: [
-          { icon: "🏛️", label: "CPPA Scope Checker", badge: "FREE", badgeGreen: true, href: "/cppa-scope-checker",
-            tooltip: "Find out if your organisation is in scope for the Dec 31, 2027 audit" },
           { icon: "🏛️", label: "CPPA Risk Assessment", href: "/cppa-risk-assessment",
             tooltip: "Structured risk assessment aligned to CPPA audit regulations" },
           { icon: "🔒", label: "CPPA Cybersecurity Readiness", href: "/cppa-cybersecurity",
             tooltip: "18-control gap analysis for the April 2028 certification deadline" },
+          { icon: "🏛️", label: "CPPA Scope Checker", href: "/cppa-scope-checker",
+            badge: "FREE", badgeGreen: true,
+            tooltip: "Find out if your organisation is in scope for the Dec 31, 2027 audit" },
           { icon: "🧭", label: "Explore the full toolkit →", href: "/tools", bottom: true,
             tooltip: "See descriptions, pricing, and access details for every tool" },
         ],
       },
-
     ],
   },
   {
     label: "Research",
     wide: true,
     columns: 2,
-    
     sections: [
       {
         header: "Laws & frameworks",
-        headerBadge: "FREE",
-        headerBadgeGreen: true,
+        headerSub: "Free · no account needed",
+        headerColor: "text-brand-mist",
+        columnBg: "bg-white",
         column: 1,
         items: [
           { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
@@ -187,8 +196,10 @@ const navItems: NavItem[] = [
       },
       {
         header: "Directories",
-        headerBadge: "FREE",
-        headerBadgeGreen: true,
+        headerSub: "Free · no account needed",
+        headerColor: "text-brand-mist",
+        columnBg: "bg-white",
+        divider: true,
         column: 1,
         items: [
           { icon: "🌍", label: "Global Privacy Authorities", href: "/global-privacy-authorities" },
@@ -197,8 +208,9 @@ const navItems: NavItem[] = [
       },
       {
         header: "Practitioner guides",
-        headerBadge: "FREE",
-        headerBadgeGreen: true,
+        headerSub: "Free · no account needed",
+        headerColor: "text-brand-mist",
+        columnBg: "bg-white",
         column: 2,
         items: [
           { icon: "🔄", label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
@@ -211,6 +223,7 @@ const navItems: NavItem[] = [
     ],
   },
 ];
+
 
 /** Compact user-icon dropdown that replaces Account + Sign Out in the logged-in nav. */
 const UserMenu = ({ onSignOut }: { onSignOut: () => void | Promise<void> }) => {
@@ -438,18 +451,17 @@ const Navbar = () => {
                 {item.sections && openDropdown === item.label && (
                   <div ref={dropdownRef} className="absolute left-0 top-full pt-1 z-50">
                     <div
-                      className={`bg-card border border-brand-cloud rounded-xl shadow-eup-md p-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
+                      className={`bg-card border border-brand-cloud rounded-xl shadow-eup-md overflow-hidden max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
                         item.wide
                           ? item.columns === 3
-                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-3 items-stretch"
-                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-3 items-stretch"
+                            ? "w-[840px] lg:grid lg:grid-cols-3 gap-x-0 items-stretch"
+                            : "w-[640px] lg:grid lg:grid-cols-2 gap-x-0 items-stretch"
                           : "min-w-[280px]"
                       }`}
                     >
                       {(() => {
                         const renderSection = (section: NavSection, si: number) => {
                           const topItems = section.items.filter((it) => !it.bottom);
-                          const bottomItems = section.items.filter((it) => it.bottom);
                           return (
                             <div key={si}>
                               {section.divider && !item.wide && <div className="border-t border-brand-cloud my-1.5" />}
@@ -476,16 +488,96 @@ const Navbar = () => {
                           );
                         };
                         if (!item.wide) return item.sections.map(renderSection);
+
+                        // Wide dropdown: B+C column treatment
                         const totalCols = item.columns ?? 2;
                         return Array.from({ length: totalCols }, (_, i) => {
-                          const colNum = i + 1;
-                          const colSections = item.sections.filter((s) => (s.column ?? 1) === colNum);
+                          const colNum = (i + 1) as 1 | 2 | 3;
+                          const colSections = item.sections!.filter((s) => (s.column ?? 1) === colNum);
+                          if (colSections.length === 0) return null;
+
+                          const isCppaSplit = colSections.some((s) => s.columnBg === "cppa-split");
+
+                          if (isCppaSplit) {
+                            const sec = colSections[0];
+                            const paidItems = sec.items.filter((it) => !it.bottom && it.badge !== "FREE");
+                            const freeItem = sec.items.find((it) => it.badge === "FREE");
+                            const ctaItem = sec.items.find((it) => it.bottom);
+
+                            return (
+                              <div key={colNum} className="flex flex-col h-full overflow-hidden border-r border-brand-cloud last:border-r-0">
+                                {/* Blue zone: header + paid tools */}
+                                <div className="bg-[#EEF4FB] px-3 pt-3 pb-2 flex-shrink-0">
+                                  <div className="pb-2 mb-2 border-b border-[#C0D5EE]">
+                                    <span className={`text-eyebrow font-semibold ${sec.headerColor ?? "text-[#185FA5]"}`}>
+                                      {sec.header}
+                                    </span>
+                                  </div>
+                                  {paidItems.map((sub) => renderSubItem(sub))}
+                                </div>
+
+                                {/* White zone: free Scope Checker */}
+                                {freeItem && (
+                                  <div className="bg-white border-t border-b border-[#C0D5EE] px-3 py-1.5">
+                                    {renderSubItem(freeItem)}
+                                  </div>
+                                )}
+
+                                {/* White zone: CTA in gold */}
+                                {ctaItem && (
+                                  <div className="bg-white px-3 pb-3 pt-2 mt-auto">
+                                    <Link
+                                      to={ctaItem.href}
+                                      className="block text-sm font-medium text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))] no-underline transition-colors"
+                                      onClick={() => setOpenDropdown(null)}
+                                    >
+                                      {ctaItem.label}
+                                    </Link>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
+
+                          const colBg = colSections[0]?.columnBg ?? "bg-card";
+
+                          const renderSectionBc = (section: NavSection, si: number) => {
+                            const topItems = section.items.filter((it) => !it.bottom);
+                            return (
+                              <div key={si}>
+                                {section.divider && (
+                                  <div className="border-t border-brand-cloud my-2 mx-1" />
+                                )}
+                                {section.header && (
+                                  <div className="px-3 pt-3 pb-2">
+                                    <span
+                                      className={`text-eyebrow font-semibold block ${
+                                        section.headerColor ?? "text-brand-mist"
+                                      }`}
+                                    >
+                                      {section.header}
+                                    </span>
+                                    {section.headerSub && (
+                                      <span className="block text-[10px] text-brand-mist/70 mt-0.5">
+                                        {section.headerSub}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {topItems.map((sub) => renderSubItem(sub))}
+                              </div>
+                            );
+                          };
+
                           const bottomItems = colSections.flatMap((s) => s.items.filter((it) => it.bottom));
                           return (
-                            <div key={colNum} className="flex flex-col h-full">
-                              {colSections.map((s, idx) => renderSection(s, idx))}
+                            <div
+                              key={colNum}
+                              className={`flex flex-col h-full border-r border-brand-cloud last:border-r-0 ${colBg}`}
+                            >
+                              {colSections.map(renderSectionBc)}
                               {bottomItems.length > 0 && (
-                                <div className="mt-auto pt-2">
+                                <div className="mt-auto pt-2 px-3 pb-3">
                                   {bottomItems.map((sub) => renderSubItem(sub))}
                                 </div>
                               )}
@@ -494,6 +586,7 @@ const Navbar = () => {
                         });
                       })()}
                     </div>
+
                   </div>
                 )}
               </div>
@@ -594,23 +687,18 @@ const Navbar = () => {
                       {item.sections.map((section, si) => (
                         <div key={si}>
                           {section.header && (
-                            <div className="px-3 pt-2 pb-1 flex items-center gap-2">
-                              <span className="text-eyebrow text-brand-mist">
+                            <div className="px-3 pt-2 pb-1">
+                              <span className="text-eyebrow text-brand-mist block">
                                 {section.header}
                               </span>
-                              {section.headerBadge && (
-                                <span
-                                  className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
-                                    section.headerBadgeGreen
-                                      ? "bg-accent/10 text-accent border border-accent/20"
-                                      : "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
-                                  }`}
-                                >
-                                  {section.headerBadge}
+                              {section.headerSub && (
+                                <span className="block text-[10px] text-brand-mist/60 mt-0.5">
+                                  {section.headerSub}
                                 </span>
                               )}
                             </div>
                           )}
+
                           {section.items.map((sub) => renderSubItem(sub, true))}
                         </div>
                       ))}
