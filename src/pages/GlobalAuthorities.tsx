@@ -98,7 +98,7 @@ const GlobalAuthorities = () => {
         <title>Global Privacy Authority Directory | EndUserPrivacy.com</title>
         <meta
           name="description"
-          content="Searchable directory of 119+ data protection authorities worldwide, ranked by enforcement activity. Find DPA contacts, complaint portals, and legislation."
+          content="Searchable directory of data protection authorities across the world, ranked by enforcement activity. Find DPA contacts, complaint portals, and legislation."
         />
       </Helmet>
       <Navbar />
