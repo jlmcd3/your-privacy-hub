@@ -162,7 +162,7 @@ async function sendAlertEmail(to: string, subject: string, body: string): Promis
   // Resend can send from onboarding@resend.dev without domain verification.
   // Once a verified sender is configured at Resend, swap FROM_ADDRESS via secret.
   const from = Deno.env.get("ALERT_FROM_ADDRESS")
-    || "EndUserPrivacy Alerts <onboarding@resend.dev>";
+    || "EndUserPrivacy Alerts <alerts@enduserprivacy.com>";
 
   try {
     const r = await fetch("https://api.resend.com/emails", {
