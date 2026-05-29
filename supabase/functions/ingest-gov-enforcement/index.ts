@@ -494,13 +494,19 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const { error } = await supabase.from("enforcement_actions").insert(baseRow);
-        if (error) {
+        const { data: insertedEA, error } = await supabase
+          .from("enforcement_actions")
+          .insert(baseRow)
+          .select("id")
+          .single();
+
+        if (error || !insertedEA) {
           errors++;
-          console.error("insert enforcement_actions", etid, error.message);
+          console.error("insert enforcement_actions", etid, error?.message ?? "no data returned");
           continue;
         }
         inserted++;
+        const enforcementActionId: string | null = insertedEA.id ?? null;
 
         // Legacy dedup: link case_url + primary PDF onto a matching legacy row.
         if (src.secondHop && a.title && a.title.length > 20) {
