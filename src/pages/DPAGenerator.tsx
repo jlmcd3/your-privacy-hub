@@ -172,12 +172,14 @@ export default function DPAGenerator() {
             <p className="text-meta text-muted-foreground italic mt-4">PDF download coming soon.</p>
             <ToolDisclaimer addition={disclaimerAddition} />
           </div>
-
+        ) : phase === "generating" ? (
+          <div className="text-center py-16">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-sm font-semibold text-brand-navy mb-1">Generating your Custom DPA</p>
+            <p className="text-sm font-semibold text-brand-navy mb-1">Generating your {docType.label}</p>
             <p className="text-meta text-muted-foreground">Reviewing enforcement precedents and drafting provisions — this usually takes 15–25 seconds.</p>
           </div>
         ) : (
+
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <h2 className="font-display text-brand-navy">DPA Intake</h2>
             <div className="space-y-3 text-sm">
