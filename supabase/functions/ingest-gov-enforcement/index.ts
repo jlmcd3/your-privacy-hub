@@ -227,7 +227,7 @@ async function generateUpdateSummary(
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 2500,
+        max_tokens: 3000,
         system: `You are a senior privacy regulatory analyst at a leading intelligence firm.
 Analyse this enforcement action or regulatory announcement and return a single valid JSON object.
 Return ONLY the JSON — no preamble, no markdown, no explanation.
@@ -247,16 +247,27 @@ Source: ${sourceName}
 
 Return this JSON object:
 {
-  "why_it_matters_short": "ONE sentence (max 25 words). Name the regulator and what organisations must do or avoid.",
+  "why_it_matters_short": "ONE sentence (max 25 words). Name the regulator and what organisations must do or avoid. Shown to anonymous users as a preview.",
   "why_it_matters": "2 sentences. Lead with the compliance implication, then name the regulator, jurisdiction, and legal basis.",
   "takeaways": ["1-3 specific factual points. Each must name a regulator, law, or deadline."],
   "compliance_impact": "One sentence naming the specific organisation type and the specific action required. If monitoring only, write: 'Monitor — [what specifically] before [trigger or timeframe].'",
+  "who_should_care": "The single most specific audience: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
+  "urgency": "Immediate | This quarter | Monitor",
   "affected_jurisdictions": ["Use only these slugs: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong"],
   "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary",
   "attention_level": "High | Medium | Low",
+  "risk_level": "Low | Medium | High | Critical",
+  "source_strength": "Primary regulator | Legal analysis | Media coverage",
   "regulatory_theory": "The legal doctrine or principle in one sentence, or null for Commentary.",
+  "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine",
+  "cross_jurisdiction_signal": "If this reflects a pattern across multiple regulators simultaneously, describe it in one sentence. Otherwise null.",
+  "key_date": "YYYY-MM-DD if a specific compliance deadline or effective date is stated, otherwise null.",
   "action_items": [
-    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific step naming regulator or law", "timeframe": "Immediate (within 7 days) | This quarter | Monitor" }
+    {
+      "role": "DPO | Privacy Counsel | CISO | Compliance Manager",
+      "action": "Specific step naming regulator or law",
+      "timeframe": "Immediate (within 7 days) | This quarter | Monitor"
+    }
   ],
   "defense_considerations": "One sentence on the strongest distinguishing factor or defence, or null.",
   "entities": {
