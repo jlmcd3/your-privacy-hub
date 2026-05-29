@@ -283,6 +283,10 @@ Deno.serve(async (req) => {
   const ftcPageParam = param("ftc_page");
   const ftcPagesParam = param("ftc_pages");
   const onlyFtc = ftcPageParam !== null || ftcPagesParam !== null;
+  const modeRaw = (param("mode") || "backfill").toLowerCase();
+  const mode: "backfill" | "monitor" = modeRaw === "monitor" ? "monitor" : "backfill";
+  const sourceGroupParam = param("source_group"); // "core" | "us_state" | "canada" | "all" | null
+  const sourceKeyParam = param("source"); // exact match on src.source (e.g. "CPPA")
 
   let ftcPageFilter: Set<number> | null = null;
   if (ftcPageParam !== null) {
@@ -297,6 +301,7 @@ Deno.serve(async (req) => {
     }
   }
 
+  const runStartedAt = new Date();
   let inserted = 0;
   let skipped = 0;
   let errors = 0;
@@ -307,14 +312,19 @@ Deno.serve(async (req) => {
   const samples: Array<Record<string, unknown>> = [];
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") || "";
 
-
-
   const activeSources = SOURCES.filter((s) => {
     if (onlyFtc) {
       if (s.source !== "FTC") return false;
       if (ftcPageFilter && (s.ftcPage === undefined || !ftcPageFilter.has(s.ftcPage))) return false;
       return true;
     }
+    if (sourceKeyParam && s.source !== sourceKeyParam) return false;
+    if (sourceGroupParam && sourceGroupParam !== "all") {
+      const grp = s.sourceGroup || "core";
+      if (grp !== sourceGroupParam) return false;
+    }
+    // In monitor mode, skip multi-page FTC backfill pages (only page 1).
+    if (mode === "monitor" && s.ftcPage !== undefined && s.ftcPage > 1) return false;
     return true;
   });
 
