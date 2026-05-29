@@ -36,7 +36,7 @@ const TOOLS: Record<
     subscriber_lookup: "li_subscriber_v2",
     table: "li_assessments",
     fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 6900,
+    fallback_subscriber_cents: 3500,
   },
   governance_assessment: {
     name: "Privacy Program Assessment Tool",
@@ -44,7 +44,7 @@ const TOOLS: Record<
     subscriber_lookup: "hc_subscriber_v2",
     table: "governance_assessments",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 8900,
+    fallback_subscriber_cents: 2500,
   },
   dpia_framework: {
     name: "Impact Assessment Builder",
@@ -52,7 +52,7 @@ const TOOLS: Record<
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 7900,
+    fallback_subscriber_cents: 4900,
   },
   dpa_generator: {
     name: "Your Custom DPA",
@@ -67,32 +67,32 @@ const TOOLS: Record<
     standalone_lookup: "ir_standalone_v2",
     subscriber_lookup: "ir_subscriber_v2",
     table: "ir_playbooks",
-    fallback_standalone_cents: 3000,
-    fallback_subscriber_cents: 3000,
+    fallback_standalone_cents: 5900,
+    fallback_subscriber_cents: 0,
   },
   biometric_checker: {
     name: "Biometric Privacy Compliance Checker",
     standalone_lookup: "biometric_standalone_v2",
     subscriber_lookup: "biometric_subscriber_v2",
     table: "biometric_assessments",
-    fallback_standalone_cents: 3500,
-    fallback_subscriber_cents: 3500,
+    fallback_standalone_cents: 4900,
+    fallback_subscriber_cents: 0,
   },
   ropa_initial: {
     name: "RoPA Builder — Initial Generation",
     standalone_lookup: "ropa_initial_standalone",
     subscriber_lookup: "ropa_initial_subscriber",
     table: "ropa_sessions",
-    fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 4000,
+    fallback_standalone_cents: 7900,
+    fallback_subscriber_cents: 4900,
   },
   ropa_refresh: {
     name: "RoPA Builder — Annual Refresh",
     standalone_lookup: "ropa_refresh_standalone",
     subscriber_lookup: "ropa_refresh_subscriber",
     table: "ropa_sessions",
-    fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 4000,
+    fallback_standalone_cents: 7900,
+    fallback_subscriber_cents: 4900,
   },
   us_notice_single: {
     name: "US Privacy Notice — Single State",
@@ -156,7 +156,7 @@ const TOOLS: Record<
     subscriber_lookup: "cppa_risk_subscriber",
     table: "cppa_assessments",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 8900,
+    fallback_subscriber_cents: 7900,
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
@@ -171,10 +171,13 @@ const TOOLS: Record<
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 15900,
-    fallback_subscriber_cents: 15900,
+    fallback_standalone_cents: 29900,
+    fallback_subscriber_cents: 14900,
   },
 };
+
+// Tools that bypass Stripe entirely for is_pro subscribers (FREE).
+const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker"]);
 
 // Tools whose row insert needs a `module` discriminator (CPPA family).
 const MODULE_FOR_TOOL: Record<string, string> = {
