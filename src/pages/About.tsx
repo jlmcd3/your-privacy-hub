@@ -21,7 +21,8 @@ const About = () => {
             <h1 className="font-display text-white leading-tight mb-4">
               About End User Privacy
             </h1>
-            <p className="text-brand-mist text-[15px] max-w-[520px] mx-auto">
+              Monitoring regulatory authorities across the world, updated daily.
+
               Monitoring 119 regulatory authorities across 150+ jurisdictions, updated daily.
             </p>
           </div>
