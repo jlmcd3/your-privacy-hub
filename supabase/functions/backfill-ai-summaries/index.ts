@@ -276,13 +276,14 @@ Deno.serve(async (req) => {
       headers: { "Access-Control-Allow-Origin": "*" },
     });
 
-  // Accept either ADMIN_SECRET_TOKEN or a valid Supabase JWT
+  // Accept either ADMIN_SECRET_TOKEN from scheduled/internal callers or a valid Supabase JWT.
   const ADMIN_SECRET = Deno.env.get("ADMIN_SECRET_TOKEN");
   const authHeader = req.headers.get("Authorization") || "";
   const token = authHeader.replace("Bearer ", "");
+  const adminHeader = req.headers.get("x-admin-token") || "";
   
   let authorized = false;
-  if (ADMIN_SECRET && token === ADMIN_SECRET) {
+  if (ADMIN_SECRET && (token === ADMIN_SECRET || adminHeader === ADMIN_SECRET)) {
     authorized = true;
   } else {
     // Check if it's a valid authenticated user JWT
