@@ -4892,6 +4892,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_fire_ingest_backfill: {
+        Args: { p_source_group: string }
+        Returns: number
+      }
       admin_fire_ingest_ftc_page: {
         Args: { p_dry_run?: boolean; p_page: number }
         Returns: number
