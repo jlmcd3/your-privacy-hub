@@ -262,7 +262,7 @@ Output ONLY the playbook (then the ===ANNOTATIONS=== block). No preamble or comm
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 8000,
+        max_tokens: 5000,
         system: `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
 
 US STATE BREACH NOTIFICATION — KEY TIMELINES (for Section 3):
@@ -299,7 +299,7 @@ QUALITY STANDARDS:
 Output ONLY the playbook. No preamble or commentary.`,
         messages: [{ role: "user", content: prompt }],
       }),
-      signal: AbortSignal.timeout(120000),
+      signal: AbortSignal.timeout(105000),
     });
 
     if (!aiRes.ok) {
