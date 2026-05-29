@@ -1455,6 +1455,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ingest_run_log: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          duration_ms: number | null
+          errors: number
+          id: string
+          inserted: number
+          mode: string
+          notes: string | null
+          per_source: Json
+          skipped: number
+          source_group: string | null
+          started_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          errors?: number
+          id?: string
+          inserted?: number
+          mode: string
+          notes?: string | null
+          per_source?: Json
+          skipped?: number
+          source_group?: string | null
+          started_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          errors?: number
+          id?: string
+          inserted?: number
+          mode?: string
+          notes?: string | null
+          per_source?: Json
+          skipped?: number
+          source_group?: string | null
+          started_at?: string
+        }
+        Relationships: []
+      }
       ingestion_alert_state: {
         Row: {
           alert_key: string
