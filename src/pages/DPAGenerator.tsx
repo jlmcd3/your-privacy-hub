@@ -17,9 +17,10 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 
+import { JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER, detectDocumentType } from "@/lib/dpaDocumentType";
 
-const JURS = ["Germany","France","Ireland","Spain","Italy","Netherlands","United Kingdom","United States","Canada","Australia","Other"];
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
+
 
 const SAMPLE = `1. PARTIES AND RECITALS
 1.1 This Data Processing Agreement ("DPA") is entered into between Acme Corp Ltd, a company incorporated in Germany ("Controller"), and CloudOps Services GmbH, a company incorporated in Germany ("Processor").
@@ -77,7 +78,8 @@ export default function DPAGenerator() {
       window.setTimeout(() => reject(new Error("Generation timed out. Please try again.")), 100_000)
     );
     const response = await Promise.race([
-      supabase.functions.invoke("generate-dpa", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } }),
+      supabase.functions.invoke("generate-dpa", { body: { ...form, documentType: detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction).type, user_id: access.user?.id, client_id: clientId ?? null } }),
+
       timeout,
     ]).catch((error) => ({ data: null, error }));
     const { data, error } = response;
@@ -105,8 +107,8 @@ export default function DPAGenerator() {
 
   return (
     <div className="min-h-screen bg-brand-cloud">
-      <Helmet><title>Custom Data Processing Agreement | End User Privacy</title>
-        <meta name="description" content="Draft a GDPR Article 28 controller-processor DPA with clauses calibrated to enforcement decisions — includes a Drafting Notes appendix citing the evidence behind every provision." /></Helmet>
+      <Helmet><title>Custom Data Processing Agreement — GDPR, US State, Canadian, Dual | End User Privacy</title>
+        <meta name="description" content="Draft a controller-processor DPA tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions." /></Helmet>
       <Navbar />
       <DashboardSubnav />
       <header className="bg-slate-900 text-white py-12">
@@ -116,10 +118,12 @@ export default function DPAGenerator() {
           </span>
           <h1 className="font-serif mb-3">Custom Data Processing Agreement</h1>
           <p className="text-slate-300 text-lg max-w-3xl">
-            Draft a controller-processor Data Processing Agreement that meets GDPR Article 28, with clauses calibrated to recent EU regulator enforcement decisions. Use it whenever you onboard a vendor that processes personal data on your behalf.
+            Draft a controller-processor data processing agreement tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions.
           </p>
         </div>
       </header>
+
+
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
@@ -151,24 +155,31 @@ export default function DPAGenerator() {
           
         </div>
 
-        {phase === "result" ? (
+        {(() => {
+        const docType = detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction);
+        const disclaimerAddition =
+          docType.type === "us-state"
+            ? "US state privacy laws vary significantly. This agreement addresses commonly required provisions but may not capture all obligations under every applicable state law. Review with counsel licensed in the relevant states before execution."
+            : "This draft must not be presented to any counterparty or executed without prior review and approval by licensed legal counsel.";
+        return phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <h2 className="font-display text-brand-navy">Your Custom DPA — {form.controllerName} / {form.processorName}</h2>
+              <h2 className="font-display text-brand-navy">Your {docType.label} — {form.controllerName} / {form.processorName}</h2>
               <CopyButton text={result} />
             </div>
-            <p className="text-meta text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
+            <p className="text-meta text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {docType.label} · {form.controllerJurisdiction} / {form.processorJurisdiction}</p>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
             <p className="text-meta text-muted-foreground italic mt-4">PDF download coming soon.</p>
-            <ToolDisclaimer addition="This draft must not be presented to any counterparty or executed without prior review and approval by licensed legal counsel." />
+            <ToolDisclaimer addition={disclaimerAddition} />
           </div>
         ) : phase === "generating" ? (
           <div className="text-center py-16">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-sm font-semibold text-brand-navy mb-1">Generating your Custom DPA</p>
+            <p className="text-sm font-semibold text-brand-navy mb-1">Generating your {docType.label}</p>
             <p className="text-meta text-muted-foreground">Reviewing enforcement precedents and drafting provisions — this usually takes 15–25 seconds.</p>
           </div>
         ) : (
+
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <h2 className="font-display text-brand-navy">DPA Intake</h2>
             <div className="space-y-3 text-sm">
@@ -176,11 +187,23 @@ export default function DPAGenerator() {
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
               <label className="block"><span className="font-semibold text-brand-navy">Controller jurisdiction</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.controllerJurisdiction} onChange={e => setForm(f => ({ ...f, controllerJurisdiction: e.target.value }))}>
-                  {JURS.map(j => <option key={j}>{j}</option>)}</select></label>
+                  <optgroup label="🇪🇺 EU / EEA / UK">{JURS_EU.map(j => <option key={j}>{j}</option>)}</optgroup>
+                  <optgroup label="🇺🇸 United States">{JURS_US.map(j => <option key={j}>{j}</option>)}</optgroup>
+                  <optgroup label="🇨🇦 Canada">{JURS_CANADA.map(j => <option key={j}>{j}</option>)}</optgroup>
+                  <optgroup label="🌏 Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
+                </select></label>
               <label className="block"><span className="font-semibold text-brand-navy">Processor name</span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorName} onChange={e => setForm(f => ({ ...f, processorName: e.target.value }))} /></label>
+              <label className="block"><span className="font-semibold text-brand-navy">Processor jurisdiction</span>
+                <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorJurisdiction} onChange={e => setForm(f => ({ ...f, processorJurisdiction: e.target.value }))}>
+                  <optgroup label="🇪🇺 EU / EEA / UK">{JURS_EU.map(j => <option key={j}>{j}</option>)}</optgroup>
+                  <optgroup label="🇺🇸 United States">{JURS_US.map(j => <option key={j}>{j}</option>)}</optgroup>
+                  <optgroup label="🇨🇦 Canada">{JURS_CANADA.map(j => <option key={j}>{j}</option>)}</optgroup>
+                  <optgroup label="🌏 Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
+                </select></label>
               <label className="block"><span className="font-semibold text-brand-navy">Services description</span>
                 <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>
+
               <fieldset><legend className="font-semibold text-brand-navy">Data categories</legend>
                 <div className="grid grid-cols-2 gap-1.5 mt-1">
                   {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-meta">
@@ -195,6 +218,10 @@ export default function DPAGenerator() {
                 {validationError}
               </div>
             )}
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm">
+              <span className="font-semibold text-blue-900">Document type: {docType.label}</span>
+              <p className="text-blue-700 mt-0.5">{docType.description}</p>
+            </div>
             <button
               type="button"
               onClick={handlePurchase}
@@ -203,14 +230,17 @@ export default function DPAGenerator() {
               {access.isFreeForUser ? "Generate — Free" : `Generate — $${pricing.price}`}
             </button>
           </div>
-        )}
+        );
+        })()}
       </main>
+
       <ToolCheckoutModal
         open={checkoutOpen}
         toolType="dpa_generator"
         userId={access.user?.id}
         clientId={clientId}
-        intakeData={form}
+        intakeData={{ ...form, documentType: detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction).type }}
+
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {
           setCheckoutOpen(false);

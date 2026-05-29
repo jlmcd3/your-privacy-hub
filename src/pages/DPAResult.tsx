@@ -16,6 +16,8 @@ import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import { AnnotationAppendix } from "@/components/AnnotationCallout";
+import { detectDocumentType } from "@/lib/dpaDocumentType";
+
 
 export default function DPAResult() {
   const { id } = useParams();
@@ -59,14 +61,17 @@ export default function DPAResult() {
             <p className="text-foreground">Your DPA is being generated.</p>
             <p className="text-muted-foreground text-sm mt-1">Usually completes in 15–25 seconds.</p>
           </div>
-        ) : (
+        ) : (() => {
+          const docType = detectDocumentType(intake.controllerJurisdiction || "", intake.processorJurisdiction || "");
+          return (
           <ReportShell
-            title={`Your Custom DPA — ${intake.controllerName || "Controller"} / ${intake.processorName || "Processor"}`}
+            title={`Your ${docType.label} — ${intake.controllerName || "Controller"} / ${intake.processorName || "Processor"}`}
             meta={
               <>
-                Generated {new Date(row.created_at).toLocaleDateString()} · {intake.legalFramework || "GDPR"}
+                Generated {new Date(row.created_at).toLocaleDateString()} · {docType.label} · {intake.controllerJurisdiction || "—"} / {intake.processorJurisdiction || "—"}
               </>
             }
+
             actions={
               <>
                 <PDFDownloadButton
@@ -83,7 +88,10 @@ export default function DPAResult() {
             <AssessmentReport text={row.document_text || ""} sectionChipLabel={null} />
             <AnnotationAppendix annotations={(row?.report_data as any)?.annotations} />
           </ReportShell>
-        )}
+
+          );
+        })()}
+
       </main>
       <Footer />
     </div>
