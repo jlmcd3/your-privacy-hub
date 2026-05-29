@@ -160,7 +160,11 @@ NOTE: This article has already been confirmed as relevant to privacy, data prote
 
 Return this JSON object with every field populated:
 {
+  "why_it_matters_short": "ONE sentence (max 25 words). Name the specific regulator and what's at stake for organizations subject to it. Designed to be read at a glance in a feed. No generic phrasing.",
   "why_it_matters": "2 sentences. Lead with the compliance implication for the affected organisation type, then name the regulator, jurisdiction, and legal basis. No generic statements. WRONG: 'The ICO has published guidance on legitimate interests under UK GDPR, clarifying the balancing test.' RIGHT: 'Organisations relying on legitimate interest as a processing basis under UK GDPR must re-examine their balancing tests against the ICO's updated standard, which narrows the margin significantly for behavioural advertising.'",
+  "related_signals": [
+    { "label": "Short pattern/precedent observation — e.g. '3rd CCPA enforcement action this quarter', 'Mirrors EDPB binding decision 02/2026', 'Aligns with FTC Rite Aid order'.", "kind": "pattern | precedent | trend" }
+  ],
   "takeaways": "Array of 1–5 strings. Generate proportionally: 1–2 for simple enforcement actions or single-issue guidance; 3–5 for comprehensive guidance documents, landmark decisions, or multi-issue developments. Do not pad to reach a target count — every item must add distinct information not covered by another. Each item must cite a specific regulator, law, article number, or deadline. No generic statements.",
   "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no immediate action is required, write: 'Monitor — [specific development to watch] before [specific trigger or timeframe].' Never write a generic Monitor statement. Example of acceptable Monitor: 'Monitor — CNIL final position on session replay tools expected Q4 2026; update French website consent architecture once published.'",
   "who_should_care": "Choose one: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
