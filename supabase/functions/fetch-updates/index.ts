@@ -46,6 +46,10 @@ const DPA_SOURCE_JURISDICTIONS: Record<string, string[]> = {
   'ag.ny.gov':              ['new-york'],
   'oag.dc.gov':             ['district-of-columbia'],
   'coag.gov':               ['colorado'],
+  'myfloridalegal.com':     ['florida'],
+  'atg.wa.gov':             ['washington'],
+  'illinoisattorneygeneral.gov': ['illinois'],
+  'mass.gov':               ['massachusetts'],
   // Other global authorities
   'gdprhub.eu':             [],
   'pdpc.gov.sg':            ['singapore'],
