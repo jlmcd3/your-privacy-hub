@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2 } from "lucide-react";
+import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2, ChevronsUpDown, ChevronsDownUp } from "lucide-react";
+import { useEnrichmentToggle } from "@/hooks/useEnrichmentToggle";
+
 import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { ActionBrief } from "@/components/ActionBrief";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
