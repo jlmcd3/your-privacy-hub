@@ -523,7 +523,7 @@ const Subscribe = () => {
               The monitoring and action layer — purpose-built
             </h3>
             <p className="text-sm text-slate leading-relaxed">
-              Our tools monitor 119 regulatory authorities daily, synthesise every development,
+              Our tools monitor privacy regulatory authorities worldwide, synthesise every development,
               and tell you what it means for your specific work — automatically, every week.
               Plus the compliance documents to act on it.
             </p>
