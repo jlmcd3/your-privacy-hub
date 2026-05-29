@@ -9,6 +9,7 @@ const corsHeaders = {
 };
 
 const DPA_PORTALS: Record<string, string> = {
+  // ── EU / EEA ─────────────────────────────────────────────────────────────
   "United Kingdom":
     "ICO Online Breach Report: https://ico.org.uk/make-a-complaint/data-security-and-journalism/report-a-breach/",
   Ireland:
@@ -23,10 +24,65 @@ const DPA_PORTALS: Record<string, string> = {
   Sweden: "IMY Breach Form: https://www.imy.se/en/",
   Denmark: "Datatilsynet Report: https://www.datatilsynet.dk/english/",
   Poland: "UODO Breach Report: https://uodo.gov.pl/en/",
+  Greece: "HDPA Breach Report: https://www.dpa.gr/",
+  Portugal: "CNPD Breach Notification: https://www.cnpd.pt/",
+  Austria: "DSB Breach Notification: https://www.dsb.gv.at/",
+  Finland: "Tietosuojavaltuutettu: https://tietosuoja.fi/en/",
+  Norway:
+    "Datatilsynet NO Report: https://www.datatilsynet.no/en/about-privacy/virksomheters-rettigheter-og-plikter/report-a-data-breach/",
+  Luxembourg: "CNPD Luxembourg: https://cnpd.public.lu/en/particuliers/droits/violation.html",
+
+  // ── US FEDERAL ───────────────────────────────────────────────────────────
   "United States (HIPAA)":
     "HHS OCR Breach Portal: https://ocrportal.hhs.gov/ocr/breach/breach_report.jsf",
   "United States (FTC)":
     "FTC Data Breach Resources: https://www.ftc.gov/tips-advice/business-center/privacy-and-security/data-security",
+  "United States (SEC)":
+    "SEC 8-K / Form 6-K cybersecurity incident disclosure: https://www.sec.gov/",
+
+  // ── US STATES ────────────────────────────────────────────────────────────
+  California:
+    "California AG Breach Report (500+ CA residents): https://oag.ca.gov/ecrime/databreach/reporting | CPPA Enforcement: https://cppa.ca.gov/",
+  Texas:
+    "Texas AG Breach Notification (prompt notice to AG if 250+ Texans): https://www.texasattorneygeneral.gov/consumer-protection/file-consumer-complaint",
+  "New York":
+    "NY AG Breach Notification (most expedient time, notify AG if 500+ NY residents): https://ag.ny.gov/resources/individuals/data-security",
+  Connecticut:
+    "CT AG Breach Notification (60 days to individuals, notify AG): https://portal.ct.gov/ag/common-elements/ag-form-items/data-breach-reporting",
+  Colorado:
+    "CO AG Breach Notification (30 days to AG if 500+ CO residents, 60 days to individuals): https://coag.gov/office-sections/consumer-protection/",
+  Virginia:
+    "VA AG Breach Notification (60 days): https://www.oag.state.va.us/consumer-protection",
+  Oregon:
+    "OR AG Breach Notification (30 days to individuals, notify AG): https://www.doj.state.or.us/consumer-protection/",
+  Florida:
+    "FL AG Breach Notification (30 days, notify AG if 500+ FL residents): https://myfloridalegal.com/",
+  Washington:
+    "WA AG Breach Notification (30 days if 500+ WA residents, notify AG): https://www.atg.wa.gov/data-breach-notifications",
+  Illinois:
+    "IL AG Breach Notification (most expedient time, notify AG): https://illinoisattorneygeneral.gov/",
+  Massachusetts:
+    "MA AG + OCABR Breach Notification (30 days, written notice to AG and OCABR): https://www.mass.gov/info-details/data-breach-notification-requirements",
+
+  // ── CANADA ───────────────────────────────────────────────────────────────
+  "Canada (PIPEDA)":
+    "OPC PIPEDA Breach Report (report to OPC as soon as feasible when real risk of significant harm): https://www.priv.gc.ca/en/report-a-concern/report-a-privacy-breach-as-an-organization/",
+  "Quebec (Law 25)":
+    "CAI Breach Notification (notify CAI and individuals without delay, within 72h of internal discovery): https://www.cai.gouv.qc.ca/en/organizations/breach-of-confidentiality",
+  "Alberta (PIPA)":
+    "OIPC AB Breach Report (notify OIPC and affected individuals as soon as practical): https://www.oipc.ab.ca/actions-decisions/breach-reporting/",
+  "British Columbia (PIPA)":
+    "OIPC BC Breach Report: https://www.oipc.bc.ca/guidance-documents/2070",
+  "Ontario (PHIPA)":
+    "IPC Ontario PHIPA Breach (notify IPC and affected individuals if risk of harm): https://www.ipc.on.ca/privacy-organizations/breach-notification/",
+
+  // ── APAC ─────────────────────────────────────────────────────────────────
+  Australia:
+    "OAIC Notifiable Data Breach Report: https://www.oaic.gov.au/privacy/notifiable-data-breaches/report-a-data-breach",
+  Singapore:
+    "PDPC Breach Notification (3 days for significant harm, 30 days for all qualifying breaches): https://www.pdpc.gov.sg/Overview-of-PDPA/The-Legislation/Personal-Data-Protection-Act/Data-Breach-Notification",
+  Japan:
+    "PPC Breach Report (as soon as practicable): https://www.ppc.go.jp/en/",
 };
 
 interface Body {
