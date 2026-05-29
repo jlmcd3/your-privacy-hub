@@ -21,7 +21,6 @@ import { JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER, detectDocumentType } from "@
 
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
 
-const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
 
 const SAMPLE = `1. PARTIES AND RECITALS
 1.1 This Data Processing Agreement ("DPA") is entered into between Acme Corp Ltd, a company incorporated in Germany ("Controller"), and CloudOps Services GmbH, a company incorporated in Germany ("Processor").
