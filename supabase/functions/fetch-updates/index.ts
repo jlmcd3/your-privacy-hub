@@ -525,21 +525,7 @@ const RSS_SOURCES = [
     defaultCategory: "global",
     regulator: "Office of the Australian Information Commissioner",
   },
-  {
-    url: "https://www.ppc.go.jp/en/aboutus/news/rss/",
-    source: "PPC Japan",
-    domain: "ppc.go.jp",
-    defaultCategory: "global",
-    regulator: "Personal Information Protection Commission (Japan)",
-  },
-  {
-    url: "https://www.gov.br/anpd/pt-br/RSS",
-    source: "ANPD Brazil",
-    domain: "gov.br",
-    defaultCategory: "global",
-    regulator: "Autoridade Nacional de Proteção de Dados (Brazil)",
-    language: "pt",
-  },
+  // PPC Japan and ANPD Brazil removed (no working RSS, audit 2026-05). Need scrapers.
   {
     url: "https://www.privacy.org.nz/about-us/news/rss/",
     source: "OPC New Zealand",
