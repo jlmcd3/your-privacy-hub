@@ -556,20 +556,7 @@ const RSS_SOURCES = [
     defaultCategory: "us-federal",
     regulator: "Cybersecurity and Infrastructure Security Agency",
   },
-  {
-    url: "https://www.hhs.gov/sites/default/files/ocr/rss/ocr-press-release-feed.xml",
-    source: "HHS OCR",
-    domain: "hhs.gov",
-    defaultCategory: "us-federal",
-    regulator: "HHS Office for Civil Rights",
-  },
-  {
-    url: "https://www.fcc.gov/news-events/headlines.xml",
-    source: "FCC Headlines",
-    domain: "fcc.gov",
-    defaultCategory: "us-federal",
-    regulator: "Federal Communications Commission",
-  },
+  // HHS OCR and FCC Headlines removed (WAF/geo blocks return 403/timeout, audit 2026-05).
   {
     url: "https://www.dfs.ny.gov/rss/press",
     source: "NY DFS",
