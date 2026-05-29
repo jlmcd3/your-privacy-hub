@@ -155,19 +155,24 @@ export default function DPAGenerator() {
           
         </div>
 
-        {phase === "result" ? (
+        {(() => {
+        const docType = detectDocumentType(form.controllerJurisdiction, form.processorJurisdiction);
+        const disclaimerAddition =
+          docType.type === "us-state"
+            ? "US state privacy laws vary significantly. This agreement addresses commonly required provisions but may not capture all obligations under every applicable state law. Review with counsel licensed in the relevant states before execution."
+            : "This draft must not be presented to any counterparty or executed without prior review and approval by licensed legal counsel.";
+        return phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-              <h2 className="font-display text-brand-navy">Your Custom DPA — {form.controllerName} / {form.processorName}</h2>
+              <h2 className="font-display text-brand-navy">Your {docType.label} — {form.controllerName} / {form.processorName}</h2>
               <CopyButton text={result} />
             </div>
-            <p className="text-meta text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {form.legalFramework}</p>
+            <p className="text-meta text-muted-foreground mb-4">Generated {new Date().toLocaleDateString()} · {docType.label} · {form.controllerJurisdiction} / {form.processorJurisdiction}</p>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
             <p className="text-meta text-muted-foreground italic mt-4">PDF download coming soon.</p>
-            <ToolDisclaimer addition="This draft must not be presented to any counterparty or executed without prior review and approval by licensed legal counsel." />
+            <ToolDisclaimer addition={disclaimerAddition} />
           </div>
-        ) : phase === "generating" ? (
-          <div className="text-center py-16">
+
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
             <p className="text-sm font-semibold text-brand-navy mb-1">Generating your Custom DPA</p>
             <p className="text-meta text-muted-foreground">Reviewing enforcement precedents and drafting provisions — this usually takes 15–25 seconds.</p>
