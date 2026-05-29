@@ -108,7 +108,7 @@ const DIFFERENTIATORS = [
     body: "Regulatory guidance and enforcement decisions frequently diverge – what a law requires and what a regulator has actually penalised are not always the same thing.",
     checkColor: "text-brand-navy",
     checks: [
-      "3,500+ decisions across 119 regulatory authorities",
+      "Thousands of decisions from regulatory authorities across the world",
       "DPA notices, ICO actions, FTC settlements, HHS OCR agreements",
       "Cited in every output — the enforcement cases behind each finding are visible and traceable",
     ],
