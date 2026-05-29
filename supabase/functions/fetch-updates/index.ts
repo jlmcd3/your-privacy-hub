@@ -1395,15 +1395,15 @@ Deno.serve(async (req) => {
   // and writes via service_role. Rate-limited by cron schedule.
 
   // Sharding: caller may pass ?shard=N&shards=M (1-indexed) to process only a
-  // slice of RSS_SOURCES. Cron fans out multiple staggered invocations so each
-  // one fits comfortably under the edge-runtime wall-clock limit.
+  // slice of RSS_SOURCES. Uses modulo (round-robin) distribution so new feeds
+  // added anywhere in RSS_SOURCES spread evenly across shards automatically.
   const url = new URL(req.url);
   const shards = Math.max(1, Math.min(10, parseInt(url.searchParams.get("shards") || "1", 10) || 1));
   const shard = Math.max(1, Math.min(shards, parseInt(url.searchParams.get("shard") || "1", 10) || 1));
-  const sliceSize = Math.ceil(RSS_SOURCES.length / shards);
-  const sliceStart = (shard - 1) * sliceSize;
-  const sliceEnd = Math.min(RSS_SOURCES.length, sliceStart + sliceSize);
-  const sourcesForRun = shards === 1 ? RSS_SOURCES : RSS_SOURCES.slice(sliceStart, sliceEnd);
+  const sourcesForRun = shards === 1
+    ? RSS_SOURCES
+    : RSS_SOURCES.filter((_, i) => i % shards === (shard - 1));
+
 
   const run = await startRun(supabase, "fetch-updates", {
     sources: sourcesForRun.length,
