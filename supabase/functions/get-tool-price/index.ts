@@ -229,9 +229,10 @@ serve(async (req) => {
     ]);
     const isCppa = CPPA_TOOLS.has(tool_slug);
 
-    // Founding-subscriber discount has been retired. Every tier pays the
-    // standalone price; we still surface `subscription_type` for analytics.
+    // Resolve subscriber identity. `is_pro` users on the SUBSCRIBER_FREE_TOOLS
+    // list (IR Playbook, Biometric Checker) bypass Stripe entirely.
     let subscriptionType: string | null = null;
+    let isPro = false;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
       try {
@@ -248,18 +249,20 @@ serve(async (req) => {
           );
           const { data: profile } = await admin
             .from("profiles")
-            .select("subscription_type")
+            .select("subscription_type, is_pro")
             .eq("id", user.id)
             .single();
           subscriptionType = (profile as any)?.subscription_type ?? null;
+          isPro = (profile as any)?.is_pro === true;
         }
       } catch (_) {
         // ignore
       }
     }
 
-    // Resolve the standalone price from Stripe.
+    // Resolve standalone & subscriber prices from Stripe (fallbacks otherwise).
     let standaloneCents = tool.fallback_standalone_cents;
+    let subscriberCents = tool.fallback_subscriber_cents;
     let stripeConfigured = false;
     try {
       const stripe = createStripeClient(detectEnv());
@@ -268,27 +271,34 @@ serve(async (req) => {
         standaloneCents = standalonePrice.unit_amount ?? standaloneCents;
         stripeConfigured = true;
       }
+      if (tool.subscriber_lookup && tool.fallback_subscriber_cents > 0) {
+        const subPrice = await resolvePriceId(stripe, tool.subscriber_lookup);
+        if (subPrice) subscriberCents = subPrice.unit_amount ?? subscriberCents;
+      }
     } catch (e) {
       console.warn("get-tool-price: gateway lookup failed, using fallback:", (e as Error).message);
     }
 
-    const effectiveCents = standaloneCents;
-    const subscriberCents = standaloneCents;
+    const subscriberFree = SUBSCRIBER_FREE_TOOLS.has(tool_slug);
+    const isSubscriberFree = subscriberFree && isPro;
+    const effectiveCents = isPro ? (subscriberFree ? 0 : subscriberCents) : standaloneCents;
 
     return new Response(
       JSON.stringify({
+        tier: isPro ? "subscriber" : "standalone",
         tool_slug,
         tool_name: tool.name,
-        tier: "standalone",
         subscription_type: subscriptionType,
+        is_pro: isPro,
+        is_subscriber_free: isSubscriberFree,
         is_cppa: isCppa,
-        is_included: false,
+        is_included: isSubscriberFree,
         classification: tool.classification,
         amount_cents: effectiveCents,
         standalone_amount_cents: standaloneCents,
-        subscriber_amount_cents: subscriberCents,
-        founding_amount_cents: subscriberCents,
-        stripe_price_id: null, // resolved server-side at checkout
+        subscriber_amount_cents: subscriberFree ? 0 : subscriberCents,
+        founding_amount_cents: subscriberFree ? 0 : subscriberCents,
+        stripe_price_id: null,
         stripe_configured: stripeConfigured || tool.fallback_standalone_cents > 0,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
