@@ -216,6 +216,8 @@ export default function DPAGenerator() {
             {validationError && (
               <div className="bg-destructive/10 border border-destructive/25 text-destructive rounded-lg px-3 py-2 text-sm" role="alert">
                 {validationError}
+              </div>
+            )}
             <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm">
               <span className="font-semibold text-blue-900">Document type: {docType.label}</span>
               <p className="text-blue-700 mt-0.5">{docType.description}</p>
@@ -232,7 +234,6 @@ export default function DPAGenerator() {
         })()}
       </main>
 
-      </main>
       <ToolCheckoutModal
         open={checkoutOpen}
         toolType="dpa_generator"
