@@ -152,13 +152,6 @@ const RSS_SOURCES = [
     regulator: "Der Bundesbeauftragte für den Datenschutz und die Informationsfreiheit",
   },
   {
-    url: "https://www.cnil.fr/en/rss.xml",
-    source: "CNIL",
-    domain: "cnil.fr",
-    defaultCategory: "eu-uk",
-    regulator: "Commission Nationale de l'Informatique et des Libertés",
-  },
-  {
     url: "https://www.autoriteitpersoonsgegevens.nl/en/rss",
     source: "Dutch AP",
     domain: "autoriteitpersoonsgegevens.nl",
