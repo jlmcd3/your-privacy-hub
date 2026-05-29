@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -154,13 +155,25 @@ export default function AdminArticles() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-4 p-4 bg-card border border-border rounded-lg">
-          <Input
-            placeholder="Search by title…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && loadArticles()}
-            className="max-w-xs"
-          />
+          <div className="relative max-w-xs w-full">
+            <Input
+              placeholder="Search by title…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && loadArticles()}
+              className="pr-9"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
           <Button onClick={loadArticles} variant="secondary" size="sm">
             Search
           </Button>

@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ImagePoolPanel from "@/components/admin/ImagePoolPanel";
+import { X } from "lucide-react";
 
 interface RunRow {
   id: string;
@@ -366,14 +367,26 @@ export default function AdminIngestionDashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 mb-3">
-            <input
-              type="text"
-              value={articleSearch}
-              onChange={(e) => setArticleSearch(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") loadArticles(); }}
-              placeholder="Search article titles…"
-              className="flex-1 min-w-[240px] px-3 py-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
-            />
+            <div className="relative flex-1 min-w-[240px]">
+              <input
+                type="text"
+                value={articleSearch}
+                onChange={(e) => setArticleSearch(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") loadArticles(); }}
+                placeholder="Search article titles…"
+                className="w-full px-3 pr-9 py-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+              />
+              {articleSearch && (
+                <button
+                  type="button"
+                  onClick={() => setArticleSearch("")}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
             <button
               onClick={loadArticles}
               className="px-3 py-2 rounded-lg bg-foreground text-background text-xs font-semibold hover:opacity-90"

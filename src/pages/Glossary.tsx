@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Search, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, X } from "lucide-react";
 import glossaryData from "@/data/glossary.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -194,8 +194,18 @@ const Glossary = () => {
               placeholder="Search terms, definitions, or regulations (e.g. consent, GDPR, DPIA)…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full py-2.5 pl-10 pr-4 text-sm border border-silver rounded-lg bg-card text-brand-navy outline-none focus:border-brand-teal transition-colors"
+              className="w-full py-2.5 pl-10 pr-10 text-sm border border-silver rounded-lg bg-card text-brand-navy outline-none focus:border-brand-teal transition-colors"
             />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                aria-label="Clear search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-brand-mist hover:text-brand-navy hover:bg-brand-cloud transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
           {q && (
             <p className="text-xs text-slate mt-2">

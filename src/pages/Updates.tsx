@@ -566,8 +566,18 @@ const Updates = () => {
                                 }
                                 setSearchTerm(value);
                             }}
-                            className="w-full pl-12 pr-4 py-3.5 border-2 border-border rounded-lg text-base bg-background shadow-sm focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all placeholder:text-muted-foreground"
+                            className="w-full pl-12 pr-12 py-3.5 border-2 border-border rounded-lg text-base bg-background shadow-sm focus:outline-none focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20 transition-all placeholder:text-muted-foreground"
                         />
+                        {searchTerm && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchTerm("")}
+                                aria-label="Clear search"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
                     <select
                         value={dateRange}

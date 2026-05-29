@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 const enforcementData = [
   { regulator: "CNIL (France)", company: "Clearview AI", jurisdiction: "EU — France", violation: "Unlawful biometric data processing without consent", fine: "€20M", date: "Mar 8, 2026" },
@@ -42,11 +42,21 @@ const EnforcementTracker = () => {
             <div className="relative w-full sm:w-auto">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-mist" />
               <input
-                className="w-full sm:w-auto pl-8 pr-3.5 py-1.5 text-sm bg-white/[0.08] border border-white/15 rounded-lg text-white outline-none placeholder:text-brand-mist focus:border-brand-mist transition-colors"
+                className="w-full sm:w-auto pl-8 pr-8 py-1.5 text-sm bg-white/[0.08] border border-white/15 rounded-lg text-white outline-none placeholder:text-brand-mist focus:border-brand-mist transition-colors"
                 placeholder="Search actions…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  aria-label="Clear search"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-brand-mist hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
           <div className="overflow-x-auto">

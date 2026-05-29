@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { X } from "lucide-react";
 
 interface SignupRow {
   id: string;
@@ -189,13 +190,25 @@ export default function AdminEmailSignups() {
           </div>
           <div>
             <label className="block text-[11px] font-semibold text-slate mb-1 uppercase tracking-wide">Search email</label>
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="contains…"
-              className="w-full text-sm border border-brand-cloud rounded-lg px-2 py-2 bg-background"
-            />
+            <div className="relative">
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="contains…"
+                className="w-full text-sm border border-brand-cloud rounded-lg px-2 pr-8 py-2 bg-background"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded text-slate hover:text-brand-navy hover:bg-brand-cloud transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
           <div className="flex items-end gap-2">
             <button
