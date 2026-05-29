@@ -8,7 +8,8 @@ const About = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
         <title>About End User Privacy | Privacy Regulatory Intelligence Platform</title>
-        <meta name="description" content="End User Privacy monitors 119 regulatory authorities daily and delivers weekly intelligence briefs for DPOs, privacy lawyers, and compliance teams." />
+        <meta name="description" content="EndUserPrivacy.com monitors worldwide privacy regulatory authorities on a daily basis and delivers weekly intelligence briefs for DPOs, privacy lawyers, and compliance teams." />
+
       </Helmet>
       <Navbar />
       <main className="flex-1">
@@ -20,9 +21,10 @@ const About = () => {
             <h1 className="font-display text-white leading-tight mb-4">
               About End User Privacy
             </h1>
-            <p className="text-brand-mist text-[15px] max-w-[520px] mx-auto">
-              Monitoring 119 regulatory authorities across 150+ jurisdictions, updated daily.
+            <p className="text-blue-200/80 text-base md:text-lg leading-relaxed">
+              Monitoring regulatory authorities across the world, updated daily.
             </p>
+
           </div>
         </section>
 
@@ -30,8 +32,9 @@ const About = () => {
         <div className="bg-card border-b border-brand-cloud py-8 px-4">
           <div className="max-w-[760px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { value: '119', label: 'Regulatory Authorities' },
-              { value: '150+', label: 'Jurisdictions Tracked' },
+              { value: 'Global', label: 'Regulatory Authorities' },
+              { value: 'Worldwide', label: 'Coverage' },
+
               { value: 'Daily', label: 'Update Frequency' },
               { value: 'Free', label: 'To Browse' },
             ].map(stat => (
@@ -55,7 +58,7 @@ const About = () => {
               “Privacy professionals should spend their time on the work that actually requires their expertise. The monitoring, the reading, the analysis — that's what we do.”
             </blockquote>
             <p className="text-[15px] text-slate leading-relaxed">
-              End User Privacy monitors 119 regulatory authorities and 150+ jurisdictions daily, enriches every development with AI-assisted analysis, and delivers the results in a format built for professionals who need to act on what they read, not just know about it.
+              EndUserPrivacy.com monitors privacy developments across the world on a daily basis, enriches every development with AI-assisted analysis, and delivers the results in a format built for professionals who need to act on what they read, not just know about it.
             </p>
           </div>
 
@@ -66,8 +69,9 @@ const About = () => {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { stat: "119", label: "Regulatory authorities monitored" },
-                { stat: "150+", label: "Jurisdictions covered" },
+                { stat: "Global", label: "Regulatory authorities monitored worldwide" },
+                { stat: "Daily", label: "Jurisdictions covered, updated continuously" },
+
                 { stat: "Daily", label: "Updated, enriched with regulatory context" },
               ].map((item) => (
                 <div
@@ -100,7 +104,7 @@ const About = () => {
                     Most privacy resources describe what the law says.
                     We calibrate our analysis against 3,700+ real enforcement
                     decisions — what regulators actually penalise, in practice,
-                    across 119 authorities. There is a material difference between
+                    across authorities worldwide. There is a material difference between
                     statutory text and enforcement reality. Our tools and
                     intelligence reflect that difference.
                   </p>
@@ -175,7 +179,7 @@ const About = () => {
 
           <div className="space-y-6 text-[15px] text-slate leading-relaxed">
             <p>
-              End User Privacy monitors 119 regulatory authorities across 150+ jurisdictions worldwide, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
+              EndUserPrivacy.com monitors privacy regulatory authorities across the world, delivering daily updates on enforcement actions, legislative developments, and regulatory guidance.
             </p>
             <p>
               Our platform ingests, filters, and summarizes primary source material — press releases, regulatory announcements, and authoritative news coverage — so privacy professionals can focus on what matters most.

@@ -17,7 +17,7 @@ export default function SearchFirstHero() {
               Global privacy law, tracked daily.
             </h1>
             <p className="text-blue-200/80 text-sm md:text-base mb-8">
-              119 regulatory authorities. 150+ jurisdictions. Action intelligence on every development — and the compliance tools to act on it.
+              Privacy developments across the world. Action intelligence on every development — and the compliance tools to act on it.
             </p>
 
             {/* ── Hero CTA Cards ─────────────────────────────────── */}
@@ -35,7 +35,7 @@ export default function SearchFirstHero() {
                   Your Privacy Intelligence Feed — to keep you ahead
                 </p>
                 <p className="text-meta text-white/85 leading-snug">
-                  119 monitored sources. Enriched with compliance intelligence. Updated daily.
+                  Key privacy developments. Enriched with compliance intelligence. Updated daily.
                 </p>
               </a>
 
