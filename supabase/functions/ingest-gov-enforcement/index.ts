@@ -346,6 +346,13 @@ Deno.serve(async (req) => {
         );
       }
 
+      // Generalist press-release feeds: keep only privacy-relevant titles.
+      if (src.requireRelevance) {
+        const before = actions.length;
+        actions = actions.filter((a) => isTitleRelevant(a.title));
+        console.log(`${src.source}: relevance filter ${before} -> ${actions.length}`);
+      }
+
 
       summary[`${src.source}${src.ftcPage !== undefined ? `:p${src.ftcPage}` : ""}`] = actions.length;
       console.log(`${src.source}${src.ftcPage !== undefined ? ` page=${src.ftcPage}` : ""}: ${actions.length} candidate actions`);
