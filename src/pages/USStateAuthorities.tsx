@@ -72,11 +72,21 @@ const USStateAuthorities = () => {
           <div className="relative flex-1 max-w-[400px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-mist w-4 h-4" />
             <input
-              className="w-full py-2 pl-10 pr-4 text-sm border border-silver rounded-lg bg-brand-cloud text-brand-navy outline-none focus:border-brand-teal transition-colors"
+              className="w-full py-2 pl-10 pr-10 text-sm border border-silver rounded-lg bg-brand-cloud text-brand-navy outline-none focus:border-brand-teal transition-colors"
               placeholder="Search states, authorities, or statutes…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                aria-label="Clear search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-brand-mist hover:text-brand-navy hover:bg-card transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
           <span className="text-[11px] font-semibold tracking-wider uppercase text-slate">Status:</span>
           {statusFilters.map((f) => (

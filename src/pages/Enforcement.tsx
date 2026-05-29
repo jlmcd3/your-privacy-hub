@@ -405,13 +405,24 @@ export default function Enforcement() {
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
+                key={q}
                 placeholder="Search subject, violation, or key failure…"
                 defaultValue={q}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") setParam("q", (e.target as HTMLInputElement).value);
                 }}
-                className="pl-9"
+                className="pl-9 pr-9"
               />
+              {q && (
+                <button
+                  type="button"
+                  onClick={() => setParam("q", "")}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
