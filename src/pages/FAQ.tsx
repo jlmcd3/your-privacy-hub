@@ -13,7 +13,7 @@ const P_CLIENT = PLATFORM_PRICING.clientAddon();
 const faqs = [
   {
     q: "How often is the platform updated?",
-    a: "Daily. Our systems monitor 119 regulatory authorities continuously — including the EDPB, ICO, FTC, CNIL, all 50 US state attorneys general, and dozens of national data protection authorities worldwide. New articles are ingested, filtered for relevance, and summarized within hours of publication.",
+    a: "Daily. Our systems continuously monitor regulatory authorities across the world — including the EDPB, ICO, FTC, CNIL, all 50 US state attorneys general, and dozens of national data protection authorities worldwide. New articles are ingested, filtered for relevance, and summarized within hours of publication.",
   },
   {
     q: "Who writes the analysis?",
