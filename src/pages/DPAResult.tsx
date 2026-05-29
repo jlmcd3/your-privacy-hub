@@ -86,7 +86,9 @@ export default function DPAResult() {
             }
           >
             <AssessmentReport text={row.document_text || ""} sectionChipLabel={null} />
+            <AnnotationAppendix annotations={(row?.report_data as any)?.annotations} />
           </ReportShell>
+
           );
         })()}
 
