@@ -379,7 +379,7 @@ const Updates = () => {
         <div className="min-h-screen flex flex-col bg-background">
             <Helmet>
                 <title>Privacy Intelligence Feed | End User Privacy</title>
-                <meta name="description" content="Daily intelligence from 119 monitored regulatory sources — filtered by jurisdiction, topic, date, and source." />
+                <meta name="description" content="Daily intelligence monitored from regulatory sources across the world — filtered by jurisdiction, topic, date, and source." />
             </Helmet>
             <Navbar />
 
