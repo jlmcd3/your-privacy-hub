@@ -106,6 +106,9 @@ const navItems: NavItem[] = [
   {
     label: "Compliance Tools",
     wide: true,
+    columns: 3,
+    sections: [
+
       {
         header: "Smart Assessments",
         headerBadge: "PER USE",
