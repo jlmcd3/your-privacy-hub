@@ -131,6 +131,10 @@ const extractDomain = (url: string): string => {
 //       Dentons, and Greenberg Traurig are covered via JD Supra (already in feed) which
 //       syndicates content from all of these firms.
 // If any removed publishers re-expose an RSS endpoint, re-add here.
+// NOTE: OAIC, PDPC Singapore, Datatilsynet Denmark (EN), CNIL, CPPA, and Connecticut AG
+// RSS feeds removed — these sources are now fully covered by ingest-gov-enforcement
+// which dual-writes to the updates table. FTC RSS and Garante RSS retained as they
+// cover different content (press releases vs enforcement cases; docweb decisions vs news pages).
 const RSS_SOURCES = [
   // ── EU & UK Regulators / Policy ───────────────────────────────────
   {
@@ -146,13 +150,6 @@ const RSS_SOURCES = [
     domain: "bfdi.bund.de",
     defaultCategory: "eu-uk",
     regulator: "Der Bundesbeauftragte für den Datenschutz und die Informationsfreiheit",
-  },
-  {
-    url: "https://www.cnil.fr/en/rss.xml",
-    source: "CNIL",
-    domain: "cnil.fr",
-    defaultCategory: "eu-uk",
-    regulator: "Commission Nationale de l'Informatique et des Libertés",
   },
   {
     url: "https://www.autoriteitpersoonsgegevens.nl/en/rss",
@@ -302,20 +299,8 @@ const RSS_SOURCES = [
   },
 
   // ── U.S. State Regulators ─────────────────────────────────────────
-  {
-    url: "https://cppa.ca.gov/feed.xml",
-    source: "CPPA",
-    domain: "cppa.ca.gov",
-    defaultCategory: "us-states",
-    regulator: "California Privacy Protection Agency",
-  },
-  {
-    url: "https://portal.ct.gov/AG/RSS/PressReleases",
-    source: "Connecticut AG",
-    domain: "portal.ct.gov",
-    defaultCategory: "us-states",
-    regulator: "Connecticut Attorney General",
-  },
+  // (CPPA and Connecticut AG RSS removed — covered by ingest-gov-enforcement.)
+
 
   // ── Global Law Firm / Industry Analysis ──────────────────────────
   {
@@ -522,13 +507,7 @@ const RSS_SOURCES = [
   },
 
   // ── Additional International Regulators ──────────────────────────
-  {
-    url: "https://www.oaic.gov.au/news/feed",
-    source: "OAIC",
-    domain: "oaic.gov.au",
-    defaultCategory: "global",
-    regulator: "Office of the Australian Information Commissioner",
-  },
+  // OAIC and PDPC Singapore RSS removed — covered by ingest-gov-enforcement.
   // PPC Japan and ANPD Brazil removed (no working RSS, audit 2026-05). Need scrapers.
   {
     url: "https://www.privacy.org.nz/about-us/news/rss/",
@@ -536,13 +515,6 @@ const RSS_SOURCES = [
     domain: "privacy.org.nz",
     defaultCategory: "global",
     regulator: "Office of the Privacy Commissioner (New Zealand)",
-  },
-  {
-    url: "https://www.pdpc.gov.sg/api/rss/news-and-events",
-    source: "PDPC Singapore",
-    domain: "pdpc.gov.sg",
-    defaultCategory: "global",
-    regulator: "Personal Data Protection Commission (Singapore)",
   },
 
   // ── Additional U.S. Federal ──────────────────────────────────────

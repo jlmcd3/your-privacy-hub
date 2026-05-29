@@ -483,13 +483,19 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const { error } = await supabase.from("enforcement_actions").insert(baseRow);
-        if (error) {
+        const { data: insertedEA, error } = await supabase
+          .from("enforcement_actions")
+          .insert(baseRow)
+          .select("id")
+          .single();
+
+        if (error || !insertedEA) {
           errors++;
-          console.error("insert enforcement_actions", etid, error.message);
+          console.error("insert enforcement_actions", etid, error?.message ?? "no data returned");
           continue;
         }
         inserted++;
+        const enforcementActionId: string | null = insertedEA.id ?? null;
 
         // Legacy dedup: link case_url + primary PDF onto a matching legacy row.
         if (src.secondHop && a.title && a.title.length > 20) {
@@ -544,6 +550,10 @@ Deno.serve(async (req) => {
                 defense_considerations: aiSummary.defense_considerations ?? null,
                 entities: aiSummary.entities ?? {},
                 ai_summary: aiSummary,
+                enforcement_action_id: enforcementActionId,
+                key_date: typeof aiSummary.key_date === "string" &&
+                  /^\d{4}-\d{2}-\d{2}$/.test(aiSummary.key_date as string)
+                  ? aiSummary.key_date : null,
                 direct_jurisdictions: Array.isArray(aiSummary.affected_jurisdictions)
                   ? aiSummary.affected_jurisdictions : [],
               };
