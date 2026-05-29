@@ -70,6 +70,7 @@ export default function DPAResult() {
               <>
                 Generated {new Date(row.created_at).toLocaleDateString()} · {docType.label} · {intake.controllerJurisdiction || "—"} / {intake.processorJurisdiction || "—"}
               </>
+            }
 
             actions={
               <>
