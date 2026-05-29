@@ -516,6 +516,7 @@ const App = () => (
                   </AdminOnly>
                 </ProtectedRoute>
               }
+            />
             <Route
               path="/admin/test-ir-playbook"
               element={
