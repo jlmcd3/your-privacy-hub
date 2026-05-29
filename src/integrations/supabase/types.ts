@@ -4950,6 +4950,10 @@ export type Database = {
         }
         Returns: Json
       }
+      fire_backfill_ai_summaries_async: {
+        Args: { p_batch?: number }
+        Returns: number
+      }
       get_cron_jobs: {
         Args: never
         Returns: {
