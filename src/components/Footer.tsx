@@ -11,7 +11,7 @@ const Footer = () => {
               <img src="/logo.svg" alt="End User Privacy" width={260} height={48} className="h-10 w-auto shrink-0 object-contain" />
             </Link>
             <p className="text-sm leading-relaxed mb-5 max-w-[380px]">
-              Global privacy regulatory intelligence for professionals. Monitoring 119 authorities across 150+ jurisdictions, automatically.
+              Global privacy regulatory intelligence for professionals. Monitoring privacy authorities across the world, automatically.
             </p>
             <div className="flex gap-2">
               <a href="https://www.linkedin.com/company/enduserprivacy" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-brand-mist text-sm hover:bg-white/[0.12] hover:text-white transition-all no-underline">
