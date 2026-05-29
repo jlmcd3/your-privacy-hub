@@ -72,7 +72,7 @@ const FAQ = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
         <title>FAQ | End User Privacy — Privacy Intelligence Platform</title>
-        <meta name="description" content="Common questions about End User Privacy — coverage across 150+ jurisdictions, AI analysis methodology, update frequency, pricing, and cancellation." />
+        <meta name="description" content="Common questions about End User Privacy — coverage across jurisdictions worldwide, AI analysis methodology, update frequency, pricing, and cancellation." />
       </Helmet>
       <Navbar />
 
