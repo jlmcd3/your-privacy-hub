@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: "What's included in the free tier?",
-    a: "The entire platform is free to browse: all regulator profiles, jurisdiction pages (150+ countries), the enforcement tracker (most recent 12 actions), all research guides (GDPR, AI Privacy, US Federal and State law, Global Privacy Laws), and the free Monday news digest email with the top 5 developments of the week.",
+    a: "The entire platform is free to browse: all regulator profiles, jurisdiction pages (countries worldwide), the enforcement tracker (most recent 12 actions), all research guides (GDPR, AI Privacy, US Federal and State law, Global Privacy Laws), and the free Monday news digest email with the top 5 developments of the week.",
   },
   {
     q: "What does Intelligence add?",
