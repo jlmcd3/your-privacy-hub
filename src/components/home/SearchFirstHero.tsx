@@ -35,7 +35,7 @@ export default function SearchFirstHero() {
                   Your Privacy Intelligence Feed — to keep you ahead
                 </p>
                 <p className="text-meta text-white/85 leading-snug">
-                  119 monitored sources. Enriched with compliance intelligence. Updated daily.
+                  Key privacy developments. Enriched with compliance intelligence. Updated daily.
                 </p>
               </a>
 
