@@ -21,11 +21,11 @@ const faqs = [
   },
   {
     q: "What countries and jurisdictions are covered?",
-    a: "150+ jurisdictions including all 27 EU member states, the US (federal + all 50 states), the United Kingdom, Canada, Brazil, Australia, Japan, Singapore, South Korea, UAE, India, and more. Coverage expands continuously as new regulatory authorities are added to our monitoring network.",
+    a: "Jurisdictions across the world including all 27 EU member states, the US (federal + all 50 states), the United Kingdom, Canada, Brazil, Australia, Japan, Singapore, South Korea, UAE, India, and more. Coverage expands continuously as new regulatory authorities are added to our monitoring network.",
   },
   {
     q: "What's included in the free tier?",
-    a: "The entire platform is free to browse: all regulator profiles, jurisdiction pages (150+ countries), the enforcement tracker (most recent 12 actions), all research guides (GDPR, AI Privacy, US Federal and State law, Global Privacy Laws), and the free Monday news digest email with the top 5 developments of the week.",
+    a: "The entire platform is free to browse: all regulator profiles, jurisdiction pages (countries worldwide), the enforcement tracker (most recent 12 actions), all research guides (GDPR, AI Privacy, US Federal and State law, Global Privacy Laws), and the free Monday news digest email with the top 5 developments of the week.",
   },
   {
     q: "What does Intelligence add?",
@@ -72,7 +72,7 @@ const FAQ = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
         <title>FAQ | End User Privacy — Privacy Intelligence Platform</title>
-        <meta name="description" content="Common questions about End User Privacy — coverage across 150+ jurisdictions, AI analysis methodology, update frequency, pricing, and cancellation." />
+        <meta name="description" content="Common questions about End User Privacy — coverage across jurisdictions worldwide, AI analysis methodology, update frequency, pricing, and cancellation." />
       </Helmet>
       <Navbar />
 

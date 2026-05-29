@@ -21,7 +21,7 @@ type ComparisonRow =
 const comparisonRows: ComparisonRow[] = [
   { isSection: true, feature: "The monitoring layer" },
   { feature: "Regulatory developments, monitored daily", free: true, intel: true, platform: true },
-  { feature: "Jurisdiction profiles (150+ countries)", free: true, intel: true, platform: true },
+  { feature: "Jurisdiction profiles (worldwide)", free: true, intel: true, platform: true },
   { feature: "Regulator directory", free: true, intel: true, platform: true },
   { feature: "Research guides (GDPR, AI Act, US laws)", free: true, intel: true, platform: true },
   { feature: "Enforcement tracker — all actions", free: true, intel: true, platform: true },
@@ -523,7 +523,7 @@ const Subscribe = () => {
               The monitoring and action layer — purpose-built
             </h3>
             <p className="text-sm text-slate leading-relaxed">
-              Our tools monitor 119 regulatory authorities daily, synthesise every development,
+              Our tools monitor privacy regulatory authorities worldwide, synthesise every development,
               and tell you what it means for your specific work — automatically, every week.
               Plus the compliance documents to act on it.
             </p>

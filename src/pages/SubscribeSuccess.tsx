@@ -83,7 +83,7 @@ export default function SubscribeSuccess() {
         },
         {
           icon: "🌍",
-          title: "Explore 150+ jurisdiction profiles",
+          title: "Explore jurisdiction profiles worldwide",
           body: "Every country profile now shows its full news feed, regulator contacts, and enforcement history.",
         },
       ];
