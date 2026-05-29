@@ -269,13 +269,13 @@ const HomepageArticleCard = ({
               href={article.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-card-title text-gray-900 hover:text-brand-teal block no-underline transition-colors"
+              className="text-[14px] text-gray-900 hover:text-brand-teal block no-underline transition-colors"
             >
               {normalizeTitle(article.title)}
               <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />
             </a>
           ) : (
-            <p className="text-card-title text-gray-900">
+            <p className="text-[14px] text-gray-900">
               {normalizeTitle(article.title)}
             </p>
           )}
