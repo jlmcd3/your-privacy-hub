@@ -396,7 +396,7 @@ const Updates = () => {
                                 : "Privacy Intelligence Feed"}
                     </h1>
                     <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
-                        Daily intelligence from 119 monitored regulatory sources — filter by jurisdiction, topic, date, and source to find what's relevant to your practice.
+                        Daily intelligence from regulatory sources across the world — filter by jurisdiction, topic, date, and source to find what's relevant to your practice.
                     </p>
                 </div>
             </header>
