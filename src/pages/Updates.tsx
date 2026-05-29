@@ -403,9 +403,10 @@ const Updates = () => {
 
             {/* Jurisdiction subnav (pill style) — sticky under navbar */}
             <div className="border-b border-border bg-card sticky top-14 md:top-16 z-30">
-                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3">
-                    <div className="flex items-center gap-3 overflow-x-auto md:pl-[184px] xl:pl-[204px]">
-                        <span className="text-eyebrow font-bold text-foreground underline underline-offset-4 whitespace-nowrap">Jurisdiction</span>
+                <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-3 md:grid md:grid-cols-[160px_1fr] xl:grid-cols-[180px_1fr] md:gap-6 md:items-center">
+                    <span className="hidden md:block text-eyebrow font-bold text-foreground underline underline-offset-4 text-center">Jurisdiction</span>
+                    <div className="flex items-center gap-3 overflow-x-auto">
+                        <span className="md:hidden text-eyebrow font-bold text-foreground underline underline-offset-4 whitespace-nowrap">Jurisdiction</span>
                         {LOCATION_FILTERS.map((f) => {
                             const isActive = f.key === "all"
                                 ? selectedRegions.length === 0
@@ -433,7 +434,7 @@ const Updates = () => {
                 {/* Left: Topics sidebar — sticky under navbar + jurisdiction strip */}
                 <aside className="hidden md:block sticky top-32 self-start max-h-[calc(100vh-9rem)] overflow-y-auto">
                     <div className="bg-card rounded-lg p-3">
-                        <h3 className="text-eyebrow font-bold text-foreground underline underline-offset-4 mb-3 px-3">Topics</h3>
+                        <h3 className="text-eyebrow font-bold text-foreground underline underline-offset-4 mb-3 text-center">Topics</h3>
                         <nav className="flex flex-col">
                             {TOPIC_FILTERS.map((t) => {
                                 const isActive = t.key === "all"
