@@ -52,6 +52,8 @@ const PRIVACY_TERMS: RegExp[] = [
   /\bvie\s+priv[ée]e\b/i, /\brenseignements\s+personnels\b/i,
   /\bprotection\s+des\s+(renseignements|donn[ée]es)\b/i,
   /\benforcement\b/i, /\bsettlement\b/i, /\binvestigation\b/i, /\bfine\b/i, /\bpenalty\b/i,
+  // Phase 2 — state-specific statutes
+  /\bMy\s+Health\s+My\s+Data\b/i, /\bMHMDA\b/, /\b201\s+CMR\s+17\b/i, /\bc\.\s*93H\b/i, /\bFDUTPA\b/i, /\bdata\s+broker\b/i,
 ];
 
 function isTitleRelevant(title: string): boolean {
