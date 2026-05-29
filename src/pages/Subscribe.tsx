@@ -287,7 +287,7 @@ const Subscribe = () => {
                 ['Weekly Privacy Intelligence Report', '—', '✓', '✓'],
                 ['Personalised by role, jurisdiction, topics', '—', '✓', '✓'],
                 ['AI investigation prompts on every article', '—', '✓', '✓'],
-                ['119-authority enforcement tracking', 'Limited', '✓', '✓'],
+                ['Privacy authority enforcement tracking', 'Limited', '✓', '✓'],
                 ['Research guides (GDPR, biometric, health, etc.)', '✓', '✓', '✓'],
                 ['1 free Convenience Tool/client/month', '—', '—', '✓ (annual)'],
                 ['Governance Assessment (Smart)', '—', '$55', '$55'],
