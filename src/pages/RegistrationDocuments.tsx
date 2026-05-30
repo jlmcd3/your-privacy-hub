@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import CopyButton from "@/components/CopyButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
+import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 // Strip markdown syntax characters (*, #, backticks) from AI-generated text
 // so the rendered document reads as a clean letter/report.
