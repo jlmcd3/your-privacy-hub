@@ -152,9 +152,33 @@ export default function PrimarySourceFetcher() {
         </p>
 
         <section className="border rounded p-4 mb-6">
-          <h2 className="text-lg font-semibold mb-3">Pending fetch by source</h2>
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h2 className="text-lg font-semibold">
+              Pending fetch by source{" "}
+              <span className="text-xs font-mono text-muted-foreground">
+                ({pending.reduce((s, r) => s + r.pending, 0).toLocaleString()} total)
+              </span>
+            </h2>
+            <div className="flex items-center gap-3">
+              {pendingRefreshedAt && (
+                <span className="text-xs text-muted-foreground">
+                  updated {pendingRefreshedAt.toLocaleTimeString()}
+                </span>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={loadPending}
+                disabled={pendingLoading}
+              >
+                {pendingLoading ? "Refreshing…" : "Refresh"}
+              </Button>
+            </div>
+          </div>
           {pending.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nothing pending.</p>
+            <p className="text-sm text-muted-foreground">
+              {pendingLoading ? "Loading…" : "Nothing pending."}
+            </p>
           ) : (
             <table className="text-sm w-full">
               <thead>
@@ -173,7 +197,6 @@ export default function PrimarySourceFetcher() {
               </tbody>
             </table>
           )}
-          <button onClick={loadPending} className="text-xs underline mt-2">Refresh</button>
         </section>
 
         <section className="border rounded p-4 mb-6 space-y-3">
