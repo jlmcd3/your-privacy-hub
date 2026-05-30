@@ -141,12 +141,11 @@ export default function MyReports() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      // Fetch user's client ids first to scope ropa sessions
+      // Fetch user's client ids so we can attach client context to rows.
       const { data: myClients } = await supabase
         .from("clients")
         .select("id, name, is_personal")
         .eq("owner_id", user.id);
-      const clientIds = (myClients || []).map((c: any) => c.id);
       const clientNameById = new Map<string, string>((myClients || []).map((c: any) => [c.id, c.name]));
       const clientIsPersonalById = new Map<string, boolean>(
         (myClients || []).map((c: any) => [c.id, !!c.is_personal])
@@ -157,7 +156,10 @@ export default function MyReports() {
         is_personal_client: cid ? !!clientIsPersonalById.get(cid) : false,
       });
 
-      const [li, dpia, gov, dpa, ir, bio, reg, ropa, usNotices, euNotices] = await Promise.all([
+      // Reports tab shows only the six tool outputs.
+      // Registration orders live under Filings; RoPA / US notices / EU notices
+      // live under Notices & RoPA.
+      const [li, dpia, gov, dpa, ir, bio] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -176,29 +178,8 @@ export default function MyReports() {
         supabase.from("biometric_assessments")
           .select("id, status, created_at, intake_data, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("registration_orders")
-          .select("id, fulfillment_status, payment_status, created_at, jurisdictions, tier, client_id, registration_filings(id)")
-          .eq("user_id", user.id).order("created_at", { ascending: false }),
-        clientIds.length > 0
-          ? supabase.from("ropa_sessions")
-              .select("id, client_id, status, created_at, updated_at, last_activity_at, completed_activities, total_activities")
-              .in("client_id", clientIds)
-              .eq("status", "in_progress")
-              .order("last_activity_at", { ascending: false })
-          : Promise.resolve({ data: [] as any[] } as any),
-        clientIds.length > 0
-          ? supabase.from("us_notice_sessions" as any)
-              .select("id, client_id, status, created_at, scope")
-              .in("client_id", clientIds)
-              .order("created_at", { ascending: false })
-          : Promise.resolve({ data: [] as any[] } as any),
-        clientIds.length > 0
-          ? supabase.from("eu_notice_sessions" as any)
-              .select("id, client_id, status, created_at, scope")
-              .in("client_id", clientIds)
-              .order("created_at", { ascending: false })
-          : Promise.resolve({ data: [] as any[] } as any),
       ]);
+
 
       if (cancelled) return;
 
