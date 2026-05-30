@@ -255,7 +255,7 @@ export default function EUNoticeDocuments() {
                       {busyId === d.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        <><Download className="h-3.5 w-3.5 mr-1.5" /> Original</>
+                        <><Download className="h-3.5 w-3.5 mr-1.5" /> PDF</>
                       )}
                     </Button>
                     <Button asChild variant="ghost" size="sm">
