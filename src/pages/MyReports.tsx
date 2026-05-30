@@ -141,12 +141,11 @@ export default function MyReports() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      // Fetch user's client ids first to scope ropa sessions
+      // Fetch user's client ids so we can attach client context to rows.
       const { data: myClients } = await supabase
         .from("clients")
         .select("id, name, is_personal")
         .eq("owner_id", user.id);
-      const clientIds = (myClients || []).map((c: any) => c.id);
       const clientNameById = new Map<string, string>((myClients || []).map((c: any) => [c.id, c.name]));
       const clientIsPersonalById = new Map<string, boolean>(
         (myClients || []).map((c: any) => [c.id, !!c.is_personal])
@@ -157,7 +156,10 @@ export default function MyReports() {
         is_personal_client: cid ? !!clientIsPersonalById.get(cid) : false,
       });
 
-      const [li, dpia, gov, dpa, ir, bio, reg, ropa, usNotices, euNotices] = await Promise.all([
+      // Reports tab shows only the six tool outputs.
+      // Registration orders live under Filings; RoPA / US notices / EU notices
+      // live under Notices & RoPA.
+      const [li, dpia, gov, dpa, ir, bio] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -176,29 +178,8 @@ export default function MyReports() {
         supabase.from("biometric_assessments")
           .select("id, status, created_at, intake_data, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("registration_orders")
-          .select("id, fulfillment_status, payment_status, created_at, jurisdictions, tier, client_id, registration_filings(id)")
-          .eq("user_id", user.id).order("created_at", { ascending: false }),
-        clientIds.length > 0
-          ? supabase.from("ropa_sessions")
-              .select("id, client_id, status, created_at, updated_at, last_activity_at, completed_activities, total_activities")
-              .in("client_id", clientIds)
-              .eq("status", "in_progress")
-              .order("last_activity_at", { ascending: false })
-          : Promise.resolve({ data: [] as any[] } as any),
-        clientIds.length > 0
-          ? supabase.from("us_notice_sessions" as any)
-              .select("id, client_id, status, created_at, scope")
-              .in("client_id", clientIds)
-              .order("created_at", { ascending: false })
-          : Promise.resolve({ data: [] as any[] } as any),
-        clientIds.length > 0
-          ? supabase.from("eu_notice_sessions" as any)
-              .select("id, client_id, status, created_at, scope")
-              .in("client_id", clientIds)
-              .order("created_at", { ascending: false })
-          : Promise.resolve({ data: [] as any[] } as any),
       ]);
+
 
       if (cancelled) return;
 
@@ -252,71 +233,8 @@ export default function MyReports() {
         pdf_url: r.pdf_url,
         ...clientMeta(r.client_id),
       }));
-      (reg.data || []).forEach((r: any) => {
-        const filingsCount = (r.registration_filings || []).length;
-        const isPaid = r.payment_status === "paid";
-        all.push({
-          id: r.id, tool: "registration", tool_label: TOOL_LABEL.registration,
-          created_at: r.created_at, status: r.fulfillment_status || r.payment_status,
-          summary: `${r.tier} · ${(r.jurisdictions || []).length} jurisdiction${(r.jurisdictions || []).length === 1 ? "" : "s"}`,
-          view_path: `/registration-manager/documents/${r.id}?from=reports`,
-          deletable: !isPaid && filingsCount === 0,
-          ...clientMeta(r.client_id),
-        });
-      });
-      (ropa?.data || []).forEach((r: any) => {
-        const done = r.completed_activities ?? 0;
-        const total = r.total_activities ?? 0;
-        const orgName = clientNameById.get(r.client_id) || "RoPA";
-        const summary = total > 0
-          ? `${done} of ${total} activities completed · ${orgName}`
-          : (done > 0 ? `${done} activities completed · ${orgName}` : orgName);
-        all.push({
-          id: r.id,
-          tool: "ropa",
-          tool_label: "RoPA Builder",
-          created_at: r.last_activity_at || r.updated_at || r.created_at,
-          status: "in_progress",
-          summary,
-          view_path: "/ropa/activities",
-          ...clientMeta(r.client_id),
-        });
-      });
-      (usNotices?.data || []).forEach((r: any) => {
-        const status = r.status || "in_progress";
-        let viewPath: string;
-        if (status === "generated" || status === "completed") {
-          viewPath = `/us-notices/${r.id}/documents`;
-        } else if (status === "ready_to_generate" || status === "questions_complete") {
-          viewPath = `/us-notices/${r.id}/review`;
-        } else if (status === "in_progress") {
-          viewPath = `/us-notices/${r.id}/questions`;
-        } else {
-          viewPath = `/us-notices/${r.id}/states`;
-        }
-        all.push({
-          id: r.id,
-          tool: "us_notice",
-          tool_label: "US Privacy Notice",
-          created_at: r.created_at,
-          status,
-          summary: `US notice · ${r.scope || "—"}`,
-          view_path: viewPath,
-          ...clientMeta(r.client_id),
-        });
-      });
-      (euNotices?.data || []).forEach((r: any) => {
-        all.push({
-          id: r.id,
-          tool: "eu_notice",
-          tool_label: "EU / Global Privacy Notice",
-          created_at: r.created_at,
-          status: r.status || "in_progress",
-          summary: `EU/Global notice · ${r.scope || "—"}`,
-          view_path: `/eu-notices/documents`,
-          ...clientMeta(r.client_id),
-        });
-      });
+
+
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
