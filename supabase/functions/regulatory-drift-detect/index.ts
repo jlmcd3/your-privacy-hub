@@ -43,12 +43,19 @@ NEWS ITEM TITLE: ${args.articleTitle}
 NEWS ITEM SUMMARY: ${args.articleSummary}
 SOURCE URL: ${args.articleUrl}
 
+SOURCE FIDELITY (non-negotiable):
+- Base your verdict ONLY on the news item title and summary above. Do not draw on training knowledge to confirm or extrapolate dates.
+- "confirmed" may be true ONLY if the article text itself explicitly and unambiguously states a date change, court injunction, repeal, or amendment that supersedes the current milestone. A general mention of the law is not enough.
+- "new_date" must be a date that appears verbatim in the article title or summary, normalised to YYYY-MM-DD. If no specific date appears in the text, set new_date to null even if you believe one exists.
+- If the article is commentary, speculation, or merely cites the existing milestone, set confirmed=false and change_type="none".
+- Set confidence below 0.5 whenever the article text is ambiguous about which milestone, which jurisdiction, or which date is affected.
+
 Decide:
 - confirmed: true ONLY if the article unambiguously reports a date change, court injunction, repeal, or amendment that supersedes the current milestone.
-- confidence: 0.0–1.0 (your certainty).
+- confidence: 0.0–1.0 (your certainty, grounded in the article text only).
 - change_type: "delay" | "injunction" | "repeal" | "amendment" | "none"
-- new_date: extracted new effective date as YYYY-MM-DD, or null if unknown / fully blocked.
-- rationale: one sentence.
+- new_date: extracted new effective date as YYYY-MM-DD (must appear verbatim in the article text), or null if unknown / fully blocked / not stated.
+- rationale: one sentence quoting or paraphrasing the article text that supports your verdict.
 
 Return STRICT JSON only, no prose, no markdown:
 {"confirmed":bool,"confidence":num,"change_type":str,"new_date":str|null,"rationale":str}`;
