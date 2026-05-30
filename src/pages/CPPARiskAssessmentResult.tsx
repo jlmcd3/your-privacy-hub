@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCallout";
 import DownloadWordButton from "@/components/DownloadWordButton";
+import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -187,6 +188,13 @@ export default function CPPARiskAssessmentResult() {
 
 
             <div className="flex gap-2 flex-wrap">
+              <PDFDownloadButton
+                toolType="cppa_risk"
+                assessmentId={row.id}
+                pdfUrl={row.pdf_url}
+                onGenerated={(url) => setRow({ ...row, pdf_url: url })}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
+              />
               <DownloadWordButton
                 text={[
                   report?.executive_summary,
@@ -194,7 +202,9 @@ export default function CPPARiskAssessmentResult() {
                     `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding ?? ""}\n${d.remediation ?? ""}`) : [])
                 ].filter(Boolean).join("\n\n")}
                 label="CPPA Risk Assessment"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
               />
+
               <Button asChild variant="outline"><Link to="/cppa-risk-assessment">Run New Assessment</Link></Button>
               <Button asChild><Link to="/dashboard/reports">Back to My Reports</Link></Button>
             </div>
