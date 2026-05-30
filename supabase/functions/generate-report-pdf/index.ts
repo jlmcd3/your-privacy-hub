@@ -539,7 +539,24 @@ const TOOL_LABELS: Record<string, string> = {
   biometric_checker: "Biometric-Compliance",
   ir_playbook: "Breach-Response-Playbook",
   dpa_generator: "Custom-DPA",
+  cppa_cybersecurity: "CPPA-Cybersecurity-Audit",
+  cppa_risk: "CPPA-Risk-Assessment",
+  cppa_scope: "CPPA-Scope-Check",
+  registration_assessment: "Registration-Assessment",
+  registration_document: "Registration-Filing",
+  brief: "Intelligence-Brief",
 };
+
+// Tables that have a pdf_url column; others skip the row-update step.
+const TABLES_WITH_PDF_URL = new Set([
+  "li_assessments",
+  "governance_assessments",
+  "dpia_frameworks",
+  "biometric_assessments",
+  "ir_playbooks",
+  "dpa_documents",
+  "registration_documents",
+]);
 
 function makeAttachmentName(toolType: string, generatedAt: string): string {
   const date = new Date(generatedAt).toISOString().slice(0, 10);
