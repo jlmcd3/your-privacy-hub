@@ -25,7 +25,8 @@ async function generatePDF(
   // and the API key as the password. Accepts inline HTML in `source`.
   const pdfApiKey =
     Deno.env.get("PDFSHIFT_API_KEY") ||
-    Deno.env.get("PDF_SERVICE_API_KEY"); // legacy fallback
+    Deno.env.get("PDF_SERVICE_API_KEY") || // legacy fallback
+    Deno.env.get("PDFShift"); // secret stored under this name in this project
 
   if (!pdfApiKey) {
     console.error("PDFSHIFT_API_KEY not set in Supabase secrets.");

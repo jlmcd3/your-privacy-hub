@@ -18,7 +18,9 @@ const supabase = createClient(
 
 async function renderViaPdfShift(html: string, title: string): Promise<Uint8Array | null> {
   const pdfApiKey =
-    Deno.env.get("PDFSHIFT_API_KEY") || Deno.env.get("PDF_SERVICE_API_KEY");
+    Deno.env.get("PDFSHIFT_API_KEY") ||
+    Deno.env.get("PDF_SERVICE_API_KEY") ||
+    Deno.env.get("PDFShift");
   if (!pdfApiKey) {
     console.error("PDFSHIFT_API_KEY not set");
     return null;
