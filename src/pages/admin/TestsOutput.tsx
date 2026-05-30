@@ -24,7 +24,7 @@ const REGISTRY: Array<{ id: string; label: string; path: string }> = [
   { id: "governance", label: "Governance Assessment", path: "/admin/test-governance" },
 ];
 
-const TEST_TIMEOUT_MS = 120_000;
+const TEST_TIMEOUT_MS = 180_000;
 const STORAGE_KEY = () => `tests-output:${new Date().toISOString().slice(0, 10)}`;
 
 type Dimension = "accuracy" | "usability" | "tone_quality" | "annotations" | "mistakes_to_fix";
