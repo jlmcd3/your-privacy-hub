@@ -822,7 +822,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (pdfUrl) {
+    if (pdfUrl && TABLES_WITH_PDF_URL.has(table)) {
       await supabase.from(table).update({ pdf_url: pdfUrl }).eq("id", assessment_id);
     }
 
