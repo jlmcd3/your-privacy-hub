@@ -22,6 +22,21 @@ const REGISTRY: Array<{ id: string; label: string; path: string }> = [
   { id: "lia", label: "Legitimate Interest Assessment", path: "/admin/test-lia" },
   { id: "dpia", label: "DPIA Framework", path: "/admin/test-dpia" },
   { id: "governance", label: "Governance Assessment", path: "/admin/test-governance" },
+  { id: "dpa", label: "DPA Generator (EU/UK)", path: "/admin/test-dpa" },
+  { id: "dpa-us", label: "DPA Generator (US State)", path: "/admin/test-dpa-us" },
+  { id: "dpa-dual", label: "DPA Generator (Dual Compliance)", path: "/admin/test-dpa-dual" },
+  { id: "dpa-canada", label: "DPA Generator (Canada)", path: "/admin/test-dpa-canada" },
+  { id: "ir-playbook", label: "IR Playbook (EU/UK)", path: "/admin/test-ir-playbook" },
+  { id: "ir-playbook-us", label: "IR Playbook (US)", path: "/admin/test-ir-playbook-us" },
+  { id: "biometric", label: "Biometric Checker", path: "/admin/test-biometric" },
+  { id: "cppa-scope", label: "CPPA Scope Checker", path: "/admin/test-cppa-scope" },
+  { id: "cppa-risk", label: "CPPA Risk Assessment", path: "/admin/test-cppa-risk" },
+  { id: "cppa-cyber", label: "CPPA Cybersecurity Audit", path: "/admin/test-cppa-cyber" },
+  { id: "ropa", label: "RoPA Builder", path: "/admin/test-ropa" },
+  { id: "us-notice", label: "US Privacy Notice Builder", path: "/admin/test-us-notice" },
+  { id: "eu-notice", label: "EU Privacy Notice Builder", path: "/admin/test-eu-notice" },
+  { id: "registration", label: "Registration Assessment", path: "/admin/test-registration" },
+  { id: "brief", label: "Intelligence Brief Generator", path: "/admin/test-brief" },
 ];
 
 const TEST_TIMEOUT_MS = 180_000;
