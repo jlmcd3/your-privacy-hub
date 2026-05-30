@@ -170,3 +170,6 @@ verify_jwt = false
 
 
 
+
+[functions.review-test-output]
+verify_jwt = false
