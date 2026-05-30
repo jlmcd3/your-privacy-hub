@@ -1,0 +1,1 @@
+ALTER TABLE public.enforcement_actions ADD COLUMN IF NOT EXISTS source_quality text;
