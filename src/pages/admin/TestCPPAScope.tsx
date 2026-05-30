@@ -2,6 +2,7 @@
 // Replicates the logic in src/pages/CPPAScopeChecker.tsx (not exported).
 import { useMemo } from "react";
 import Navbar from "@/components/Navbar";
+import { useTestRunnerBridge } from "@/hooks/useTestRunnerBridge";
 
 type Answers = {
   q1: string;
