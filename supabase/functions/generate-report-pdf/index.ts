@@ -598,12 +598,13 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { tool_type, assessment_id, user_email, user_name, result_url } = await req.json();
+    const { tool_type, assessment_id, user_email, user_name, result_url, force } = await req.json();
 
     if (!tool_type || !assessment_id) {
       return new Response(JSON.stringify({ error: "tool_type and assessment_id are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
 
     const tableMap: Record<string, string> = {
       li_assessment: "li_assessments",
@@ -633,6 +634,38 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Record not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // ── CACHE CHECK ─────────────────────────────────────────────────────
+    // If a PDF was already generated for this assessment, reuse it instead
+    // of calling PDFShift again. Re-sign the stored object and return.
+    // Skip cache when `force=true` or when an email send is requested
+    // (so a fresh attachment can be delivered).
+    if (!force && !user_email) {
+      try {
+        const folder = `reports/${table}/${assessment_id}`;
+        const { data: existing } = await supabase.storage
+          .from("assessment-reports")
+          .list(folder, { limit: 10, sortBy: { column: "created_at", order: "desc" } });
+        const cachedFile = (existing || []).find((f) => f.name.toLowerCase().endsWith(".pdf"));
+        if (cachedFile) {
+          const { data: urlData } = await supabase.storage
+            .from("assessment-reports")
+            .createSignedUrl(`${folder}/${cachedFile.name}`, 60 * 60 * 24 * 365);
+          if (urlData?.signedUrl) {
+            if (TABLES_WITH_PDF_URL.has(table)) {
+              await supabase.from(table).update({ pdf_url: urlData.signedUrl }).eq("id", assessment_id);
+            }
+            return new Response(
+              JSON.stringify({ success: true, pdf_generated: true, pdf_url: urlData.signedUrl, email_sent: false, cached: true }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
+      } catch (cacheErr) {
+        console.warn("Cache lookup failed, falling through to fresh render:", cacheErr);
+      }
+    }
+
 
     // Tools that ship a structured report_data JSON blob
     const structuredTools = new Set(["li_assessment", "governance_assessment", "dpia_framework"]);
