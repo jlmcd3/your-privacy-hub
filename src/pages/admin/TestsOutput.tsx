@@ -683,6 +683,16 @@ export default function TestsOutput() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={(e) => { e.preventDefault(); exportPdf(entry); }}
+                          disabled={running || rowPdfBusy === r.id || (!entry.assertions && !entry.result && !entry.error)}
+                          title="Download PDF for this test"
+                          className="h-7 px-2 gap-1"
+                        >
+                          {rowPdfBusy === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={(e) => { e.preventDefault(); rerunOne(r.id); }}
                           disabled={running}
                           title="Re-run this test"
@@ -690,6 +700,7 @@ export default function TestsOutput() {
                         >
                           <RotateCw className="w-3.5 h-3.5" />
                         </Button>
+
                         {entry.result && (
                           <Button
                             variant="ghost"
