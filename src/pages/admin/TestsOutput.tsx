@@ -565,10 +565,11 @@ export default function TestsOutput() {
                   </div>
                 </div>
                 <div className="font-mono text-sm text-brand-navy text-right">
-                  <div>
-                    {liveElapsedSec}s / {timeoutSec}s
-                    {currentEntry.status === "reviewing" && " · reviewing"}
-                  </div>
+                  <LiveElapsed
+                    startedAtRef={startedAtRef}
+                    timeoutMs={TEST_TIMEOUT_MS}
+                    suffix={currentEntry.status === "reviewing" ? " · reviewing" : ""}
+                  />
                   <div className="text-xs text-slate-500">
                     status: <strong>{currentEntry.status}</strong>
                   </div>
@@ -576,14 +577,7 @@ export default function TestsOutput() {
               </div>
 
               {/* Per-test progress bar */}
-              <div className="w-full h-2 bg-white rounded overflow-hidden">
-                <div
-                  className={`h-full transition-all ${
-                    pct > 90 ? "bg-rose-500" : pct > 70 ? "bg-amber-500" : "bg-brand-teal"
-                  }`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
+              <LiveProgressBar startedAtRef={startedAtRef} timeoutMs={TEST_TIMEOUT_MS} />
 
               {/* Overall progress */}
               <div className="text-xs text-slate-500 flex items-center gap-2">
