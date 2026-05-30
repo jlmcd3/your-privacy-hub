@@ -161,46 +161,53 @@ export default function TestsOutput() {
     }
   }, [updateResult]);
 
-  // Watch the current run for completion or timeout
+  // Watch the current run for completion. Driven only by the currently-running
+  // test's status to avoid re-entrancy from unrelated state changes.
+  const currentStatus = runIndex !== null ? results[REGISTRY[runIndex].id]?.status : null;
+  const advancingRef = useRef(false);
+
   useEffect(() => {
     if (runIndex === null) return;
+    if (advancingRef.current) return;
+    if (currentStatus !== "complete" && currentStatus !== "failed" && currentStatus !== "timeout") return;
+
+    advancingRef.current = true;
     const entry = REGISTRY[runIndex];
-    if (!entry) return;
     const current = results[entry.id];
-    if (!current) return;
 
-    // Check timeout
-    const elapsed = Date.now() - startedAtRef.current;
-    if (current.status !== "complete" && current.status !== "failed" && elapsed > TEST_TIMEOUT_MS) {
-      updateResult(entry.id, { status: "timeout", error: "Test exceeded 120s" });
-      return;
+    if (current?.status === "complete" && current.result && !current.review) {
+      void reviewOne(current);
     }
-
-    // If finished — review then advance
-    if (current.status === "complete" || current.status === "failed" || current.status === "timeout") {
-      const next = runIndex + 1;
-      // Fire review (don't await — let next test start in parallel)
-      if (current.status === "complete" && current.result && !current.review) {
-        void reviewOne(current);
-      }
-      if (next < REGISTRY.length) {
-        startedAtRef.current = Date.now();
-        setIframeSrc(REGISTRY[next].path + "?embed=runner&t=" + Date.now());
-        setRunIndex(next);
-      } else {
-        setRunIndex(null);
-        setIframeSrc(null);
-      }
-      return;
+    const next = runIndex + 1;
+    if (next < REGISTRY.length) {
+      startedAtRef.current = Date.now();
+      setIframeSrc(REGISTRY[next].path + "?embed=runner&t=" + Date.now());
+      setRunIndex(next);
+      updateResult(REGISTRY[next].id, { status: "running" });
+    } else {
+      setRunIndex(null);
+      setIframeSrc(null);
     }
+    // Release the latch on next tick so the new run's status changes can fire.
+    setTimeout(() => { advancingRef.current = false; }, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runIndex, currentStatus]);
 
-    // Otherwise, poll every 2s to detect timeout
-    const t = setTimeout(() => {
-      // Trigger re-eval by re-setting same state
-      setResults((prev) => ({ ...prev }));
+  // Independent timeout watchdog — does not depend on `results` to avoid loops.
+  useEffect(() => {
+    if (runIndex === null) return;
+    const id = window.setInterval(() => {
+      if (Date.now() - startedAtRef.current > TEST_TIMEOUT_MS) {
+        const entry = REGISTRY[runIndex];
+        const cur = results[entry.id];
+        if (cur && cur.status !== "complete" && cur.status !== "failed" && cur.status !== "timeout") {
+          updateResult(entry.id, { status: "timeout", error: "Test exceeded 120s" });
+        }
+      }
     }, 2000);
-    return () => clearTimeout(t);
-  }, [runIndex, results, reviewOne, updateResult]);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runIndex]);
 
   function startRunAll() {
     const fresh = Object.fromEntries(
