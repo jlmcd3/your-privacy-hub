@@ -374,11 +374,11 @@ Sections (numbered hierarchically):
 4. PROCESSOR OBLIGATIONS — all eight GDPR Art. 28(3) elements PLUS US processor obligations (DPIA assistance, consumer-rights assistance)
 5. PROHIBITED PROCESSING (US-specific) — this section MUST contain, verbatim, the phrases "shall not sell" AND "shall not share" applied to Personal Data, and MUST explicitly state that the Processor is "prohibited from selling or sharing" Personal Data. Cover No Sale/Sharing; No Targeted Advertising outside business purpose; No Cross-Context Combination; No Retention Beyond Purpose. Cite Cal. Civ. Code § 1798.100(d)(1)-(5).
 6. CONSUMER / DATA SUBJECT RIGHTS — heading MUST contain "Consumer Rights" or "Data Subject Rights"; body MUST include verbatim "right to access", "right to delete" and "right to correct" and the GDPR rights under Arts. 12-23.
-7. SUB-PROCESSOR PROVISIONS (GDPR Arts. 28(2)/(4) + US flow-down)
+7. SUB-PROCESSOR PROVISIONS (GDPR Arts. 28(2)/(4) + US flow-down) — populate Schedule A from intake. If no sub-processors were provided, output a blank Schedule A with column headers (Name / Service / Location / Date Authorised) and the line "[TO BE COMPLETED: list approved Sub-processors here]". Do NOT hard-code "no Sub-Processors" unless the intake expressly stated none.
 8. SENSITIVE DATA / SPECIAL CATEGORIES (GDPR Art. 9 + US sensitive PI heightened protections)
 9. SECURITY MEASURES (GDPR Art. 32 standards apply)
-10. DATA BREACH NOTIFICATION — GDPR Art. 33 (72 hours to supervisory authority) PLUS US state notification timelines (California, Texas, Connecticut, Colorado, Virginia as applicable)
-11. INTERNATIONAL TRANSFER PROVISIONS — ${body.includeTransferClause ? body.transferMechanism : "SCCs / supplementary measures"}
+10. DATA BREACH NOTIFICATION — Processor notifies Controller without undue delay and in any event within forty-eight (48) hours of awareness, to enable the Controller to comply with Article 33(1) GDPR (72-hour supervisory authority window). PLUS US state notification timelines: California — "without unreasonable delay" (Cal. Civ. Code § 1798.82 governs notification to individuals); Texas (Tex. Bus. & Com. Code § 521.053); Connecticut; Colorado — C.R.S. § 6-1-716 (NOT "CPA § 6-1-1309"); Virginia. Apply only those state regimes triggered by the parties' jurisdictions or affected data subjects' residency.
+11. INTERNATIONAL TRANSFER PROVISIONS — ${body.includeTransferClause ? body.transferMechanism : "EU SCCs (Commission Implementing Decision (EU) 2021/914) for EU-origin transfers; UK International Data Transfer Addendum for UK-origin transfers"}. Where the UK IDTA is referenced, the protection standard MUST be expressed as "not less than equivalent to the protections afforded by UK data protection law" — do NOT use the EU adequacy phrase "essentially equivalent" for the UK IDTA standard.
 12. POST-TERMINATION OBLIGATIONS — at Controller's choice, Processor shall delete or return all Personal Data (Art. 28(3)(g) + US state equivalents). Use the exact phrase "delete or return" and reference "Personal Data".
 13. AUDIT AND INSPECTION RIGHTS — ${body.auditRights}
 14. RECORDKEEPING (Art. 30 + US state)
@@ -388,6 +388,8 @@ Sections (numbered hierarchically):
 18. GENERAL PROVISIONS
 
 [SIGNATURE BLOCK]
+
+SCHEDULE A — APPROVED SUB-PROCESSORS
 
 Where GDPR is stricter, GDPR prevails; where US state law adds requirements, both apply.
 
