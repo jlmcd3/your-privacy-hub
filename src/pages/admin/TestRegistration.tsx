@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
+import { useTestRunnerBridge } from "@/hooks/useTestRunnerBridge";
 
 const MOCK_INTAKE = {
   organization_name: "Meridian Health Analytics Ltd",
@@ -232,6 +233,16 @@ export default function TestRegistration() {
   }));
   const passCount = assertions.filter((a) => a.passed === true).length;
   const failCount = assertions.filter((a) => a.passed === false).length;
+
+  useTestRunnerBridge({
+    testId: "registration",
+    status,
+    result: docs as unknown,
+    assertions: assertions.map((a) => ({ label: a.label, passed: a.passed })),
+    log,
+    elapsedMs: elapsed * 1000,
+    resultUrl: null,
+  });
 
   const docTypeCounts = docs.reduce<Record<string, number>>((acc, d) => {
     acc[d.document_type] = (acc[d.document_type] || 0) + 1;

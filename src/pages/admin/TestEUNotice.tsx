@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
+import { useTestRunnerBridge } from "@/hooks/useTestRunnerBridge";
 
 const MOCK_INPUT = {
   frameworks: [
@@ -316,6 +317,16 @@ export default function TestEUNotice() {
   }));
   const passCount = assertions.filter((a) => a.passed === true).length;
   const failCount = assertions.filter((a) => a.passed === false).length;
+
+  useTestRunnerBridge({
+    testId: "eu-notice",
+    status,
+    result: fwTexts as unknown,
+    assertions: assertions.map((a) => ({ label: a.label, passed: a.passed })),
+    log,
+    elapsedMs: elapsed * 1000,
+    resultUrl: null,
+  });
 
   return (
     <div className="min-h-screen bg-brand-cloud">

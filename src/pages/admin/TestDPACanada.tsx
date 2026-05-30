@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
+import { useTestRunnerBridge } from "@/hooks/useTestRunnerBridge";
 
 const MOCK_INTAKE = {
   controllerName: "Maple Analytics Inc",
@@ -89,6 +90,16 @@ export default function TestDPACanada() {
   }));
   const passCount = assertions.filter((a) => a.passed === true).length;
   const failCount = assertions.filter((a) => a.passed === false).length;
+
+  useTestRunnerBridge({
+    testId: "dpa-canada",
+    status,
+    result: dpaText as unknown,
+    assertions: assertions.map((a) => ({ label: a.label, passed: a.passed })),
+    log,
+    elapsedMs: elapsed * 1000,
+    resultUrl: recordId ? `/dpa/result/${recordId}` : null,
+  });
 
   return (
     <div className="min-h-screen bg-brand-cloud">
