@@ -453,8 +453,8 @@ export default function TestsOutput() {
                 {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
                 {running ? `Running ${runIndex! + 1}/${REGISTRY.length}` : `Run all ${REGISTRY.length}`}
               </Button>
-              <Button variant="outline" onClick={exportJson} className="gap-1.5">
-                <Download className="w-4 h-4" />Export
+              <Button variant="outline" onClick={exportPdf} className="gap-1.5">
+                <Download className="w-4 h-4" />Export PDF
               </Button>
               <Button variant="outline" onClick={handleClearCache} disabled={running} className="gap-1.5">
                 <Trash2 className="w-4 h-4" />Clear cache
