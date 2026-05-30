@@ -332,22 +332,24 @@ Draft a complete Canadian Data Processing Agreement with ALL of the following se
 3. ACCOUNTABILITY (PIPEDA Schedule 1, Principle 1; Law 25 Art. 3.1) — Controller remains accountable; Processor acts on behalf of Controller.
 4. CONTRACTUAL PROTECTION REQUIREMENT (PIPEDA Principle 1.2 / Schedule 1 cl. 4.1.3; Quebec Law 25 Art. 18.3) — written contract with service providers, comparable safeguards.
 5. PURPOSE LIMITATION AND INSTRUCTIONS — Processor processes only on documented instructions; no secondary use.
-6. CONSENT SUPPORT — Processor shall not undermine Controller's consent obligations; assist with withdrawal of consent requests.
-7. SECURITY SAFEGUARDS (PIPEDA Principle 7 / Schedule 1 cl. 4.7; Law 25 Art. 10; PIPA AB s.34; PIPA BC s.34; PHIPA s.12) — calibrated technical, physical and organisational safeguards.
-8. SUB-PROCESSOR PROVISIONS — prior written consent; flow-down obligations; Processor remains accountable through the chain.
-9. INDIVIDUAL RIGHTS ASSISTANCE — Access, Correction, Withdrawal of Consent, Data Portability (Law 25 Art. 27), De-indexing (Law 25 Art. 28.1).
-10. CROSS-BORDER TRANSFER ASSESSMENT (Law 25 Art. 17; OPC guidance) — privacy impact assessment for transfers outside Quebec/Canada.
-11. BREACH OF SECURITY SAFEGUARDS NOTIFICATION (PIPEDA s.10.1 and Breach of Security Safeguards Regulations; Law 25 Art. 3.5; PIPA AB s.34.1) — real risk of significant harm; notify Controller without delay; Controller obligations to OPC/CAI and affected individuals.
-12. RETENTION AND DESTRUCTION — destroy or anonymise when purposes accomplished (Law 25 Art. 23).
+6. CONSENT SUPPORT — Processor shall not undermine Controller's consent obligations. On a withdrawal-of-consent request, the Processor shall (a) cease Processing of the relevant Personal Information and (b) notify the Controller of any technical limitations preventing full implementation. Do NOT use advisory/consultative language such as "advising the Controller on the scope and feasibility" — the Processor implements; it does not advise.
+7. SECURITY SAFEGUARDS (PIPEDA Principle 7 / Schedule 1 cl. 4.7; Law 25 Art. 10; PIPA AB Part 3 Div. 1.1; PIPA BC s.34; PHIPA s.12) — calibrated technical, physical and organisational safeguards.
+8. SUB-PROCESSOR PROVISIONS — prior written consent; flow-down obligations; Processor remains accountable through the chain; populate Schedule A from intake; if none provided, output a blank Schedule A with column headers (Name / Service / Location / Date Authorised) and the line "[TO BE COMPLETED: list approved Sub-processors here]".
+9. INDIVIDUAL RIGHTS ASSISTANCE — Access, Correction, Withdrawal of Consent, Data Portability (Law 25 Art. 27), De-indexing (cite as "section 28.1 of the Act respecting the protection of personal information in the private sector, or a court order" — do NOT cite ambiguously as "the law or a court order").
+10. CROSS-BORDER TRANSFER ASSESSMENT (Law 25 Art. 17; OPC guidance) — privacy impact assessment for transfers outside Quebec/Canada; include a Schedule B for approved transfer destinations OR a reference to OPC cross-border transfer guidance.
+11. BREACH OF SECURITY SAFEGUARDS NOTIFICATION (PIPEDA s.10.1 and Breach of Security Safeguards Regulations SOR/2018-64; Law 25 Art. 3.5; PIPA Alberta — Part 3, Division 1.1 of PIPA Alberta (S.A. 2003, c. P-6.5, as amended; sections 34.1–34.6 added by amendments in force January 2022)) — real risk of significant harm; notify Controller without delay; Controller obligations to OPC/CAI and affected individuals.
+12. RETENTION AND DESTRUCTION — destroy or anonymise when purposes accomplished (Law 25 Art. 23). Where the parties have agreed a specific retention period for HR data, state it as the parties' contractual choice. DO NOT default to "duration of employment plus five (5) years" as if statutorily required — neither PIPEDA nor Quebec Law 25 prescribes a fixed post-employment retention period. Frame any such figure as "unless applicable employment law or the Controller's documented retention policy requires otherwise" and include the note: "Quebec Law 25 and PIPEDA do not prescribe a fixed post-employment retention period — this duration should reflect the organisation's documented retention policy."
 13. POST-TERMINATION OBLIGATIONS — at Controller's election, Processor shall delete or return all Personal Information and certify in writing. Use the exact phrase "delete or return" and reference "Personal Information" in the same sentence.
 14. AUDIT AND INSPECTION RIGHTS — use ${body.auditRights} standard.
 15. RECORDKEEPING — Law 25 Art. 8 register of confidentiality incidents (Processor assists).
 16. LIABILITY AND INDEMNIFICATION
 17. TERM AND TERMINATION
-18. GOVERNING LAW (specify province) AND DISPUTE RESOLUTION
+18. GOVERNING LAW (specify province) AND DISPUTE RESOLUTION — for arbitration clauses, the city/province blank MUST use the form "[TO BE COMPLETED: City, Province]".
 19. GENERAL PROVISIONS
 
 [SIGNATURE BLOCK]
+
+SCHEDULE A — APPROVED SUB-PROCESSORS
 
 Additional requirements:
 - Cite specific PIPEDA principles/sections, Law 25 articles, and provincial PIPA/PHIPA sections where applicable.
