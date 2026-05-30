@@ -55,24 +55,15 @@ export default function PrimarySourceFetcher() {
 
   const loadPending = useCallback(async () => {
     setPendingLoading(true);
-    const { data, error } = await supabase
-      .from("enforcement_actions")
-      .select("source_database")
-      .eq("primary_source_status", "pending_fetch")
-      .not("primary_source_url", "is", null)
-      .limit(5000);
+    const { data, error } = await supabase.rpc(
+      "admin_pending_fetch_counts" as any,
+    );
     setPendingLoading(false);
     if (error) { setError(`Error loading pending counts: ${error.message}`); return; }
-    const tally = new Map<string, number>();
-    for (const r of data ?? []) {
-      const k = (r as any).source_database ?? "(unlabeled)";
-      tally.set(k, (tally.get(k) ?? 0) + 1);
-    }
-    setPending(
-      Array.from(tally.entries())
-        .map(([source_database, pending]) => ({ source_database, pending }))
-        .sort((a, b) => b.pending - a.pending),
-    );
+    const rows = ((data ?? []) as Array<{ source_database: string; pending: number }>)
+      .map((r) => ({ source_database: r.source_database, pending: Number(r.pending) }))
+      .sort((a, b) => b.pending - a.pending);
+    setPending(rows);
     setPendingRefreshedAt(new Date());
   }, []);
 
