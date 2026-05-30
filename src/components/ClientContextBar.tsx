@@ -59,7 +59,7 @@ export default function ClientContextBar() {
             onClick={() => setOpen((v) => !v)}
             className="text-sm font-medium text-brand-navy/80 hover:text-brand-navy bg-transparent border-none cursor-pointer inline-flex items-center gap-1"
           >
-            Switch <ChevronDown className="w-3.5 h-3.5" />
+            Switch Workspace <ChevronDown className="w-3.5 h-3.5" />
           </button>
           {open && (
             <div className="absolute right-0 top-full mt-1 z-50 min-w-[260px] bg-card border border-brand-cloud rounded-md shadow-eup-md py-1">
