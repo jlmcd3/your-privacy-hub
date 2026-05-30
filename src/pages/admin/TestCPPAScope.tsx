@@ -191,6 +191,16 @@ export default function TestCPPAScope() {
 
   const passCount = results.filter((r) => r.verdict.passed).length;
 
+  useTestRunnerBridge({
+    testId: "cppa-scope",
+    status: "complete",
+    result: results as unknown,
+    assertions: results.map((r) => ({ label: `Scenario ${r.name}`, passed: r.verdict.passed })),
+    log: results.map((r) => `${r.verdict.passed ? "✓" : "✗"} ${r.name}`),
+    elapsedMs: 0,
+    resultUrl: null,
+  });
+
   return (
     <div className="min-h-screen bg-brand-cloud">
       <Navbar />
