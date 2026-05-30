@@ -427,10 +427,10 @@ export default function USNoticeDocuments() {
                           onClick={() => handleDownload(d)}
                           disabled={!d.file_path}
                           className="w-full sm:w-auto min-h-[44px]"
-                          aria-label={`Download ${state.state_name} notice (${(d.document_format ?? "pdf").toUpperCase()})`}
+                          aria-label={`Download ${state.state_name} notice (PDF)`}
                         >
                           <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
-                          {(d.document_format ?? "pdf").toUpperCase()}
+                          PDF
                         </Button>
                       ))
                     )}
