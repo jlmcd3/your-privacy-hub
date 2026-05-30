@@ -233,71 +233,8 @@ export default function MyReports() {
         pdf_url: r.pdf_url,
         ...clientMeta(r.client_id),
       }));
-      (reg.data || []).forEach((r: any) => {
-        const filingsCount = (r.registration_filings || []).length;
-        const isPaid = r.payment_status === "paid";
-        all.push({
-          id: r.id, tool: "registration", tool_label: TOOL_LABEL.registration,
-          created_at: r.created_at, status: r.fulfillment_status || r.payment_status,
-          summary: `${r.tier} · ${(r.jurisdictions || []).length} jurisdiction${(r.jurisdictions || []).length === 1 ? "" : "s"}`,
-          view_path: `/registration-manager/documents/${r.id}?from=reports`,
-          deletable: !isPaid && filingsCount === 0,
-          ...clientMeta(r.client_id),
-        });
-      });
-      (ropa?.data || []).forEach((r: any) => {
-        const done = r.completed_activities ?? 0;
-        const total = r.total_activities ?? 0;
-        const orgName = clientNameById.get(r.client_id) || "RoPA";
-        const summary = total > 0
-          ? `${done} of ${total} activities completed · ${orgName}`
-          : (done > 0 ? `${done} activities completed · ${orgName}` : orgName);
-        all.push({
-          id: r.id,
-          tool: "ropa",
-          tool_label: "RoPA Builder",
-          created_at: r.last_activity_at || r.updated_at || r.created_at,
-          status: "in_progress",
-          summary,
-          view_path: "/ropa/activities",
-          ...clientMeta(r.client_id),
-        });
-      });
-      (usNotices?.data || []).forEach((r: any) => {
-        const status = r.status || "in_progress";
-        let viewPath: string;
-        if (status === "generated" || status === "completed") {
-          viewPath = `/us-notices/${r.id}/documents`;
-        } else if (status === "ready_to_generate" || status === "questions_complete") {
-          viewPath = `/us-notices/${r.id}/review`;
-        } else if (status === "in_progress") {
-          viewPath = `/us-notices/${r.id}/questions`;
-        } else {
-          viewPath = `/us-notices/${r.id}/states`;
-        }
-        all.push({
-          id: r.id,
-          tool: "us_notice",
-          tool_label: "US Privacy Notice",
-          created_at: r.created_at,
-          status,
-          summary: `US notice · ${r.scope || "—"}`,
-          view_path: viewPath,
-          ...clientMeta(r.client_id),
-        });
-      });
-      (euNotices?.data || []).forEach((r: any) => {
-        all.push({
-          id: r.id,
-          tool: "eu_notice",
-          tool_label: "EU / Global Privacy Notice",
-          created_at: r.created_at,
-          status: r.status || "in_progress",
-          summary: `EU/Global notice · ${r.scope || "—"}`,
-          view_path: `/eu-notices/documents`,
-          ...clientMeta(r.client_id),
-        });
-      });
+
+
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
