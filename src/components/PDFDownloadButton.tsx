@@ -15,7 +15,13 @@ type ToolType =
   | "dpa_generator"
   | "li_assessment"
   | "governance_assessment"
-  | "dpia_framework";
+  | "dpia_framework"
+  | "cppa_cybersecurity"
+  | "cppa_risk"
+  | "cppa_scope"
+  | "registration_assessment"
+  | "registration_document"
+  | "brief";
 
 interface Props {
   toolType: ToolType;
