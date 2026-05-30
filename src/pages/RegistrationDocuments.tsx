@@ -188,6 +188,17 @@ export default function RegistrationDocuments() {
                       </pre>
                       <div className="flex flex-wrap gap-2 mt-3">
                         {selected.content_text && <CopyButton text={cleanMarkdown(selected.content_text)} />}
+                        <PDFDownloadButton
+                          toolType="registration_document"
+                          assessmentId={selected.id}
+                          pdfUrl={selected.pdf_url}
+                          onGenerated={(url) => {
+                            const updated = { ...selected, pdf_url: url };
+                            setSelected(updated);
+                            setDocs((prev) => prev.map((x) => (x.id === selected.id ? updated : x)));
+                          }}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-brand-navy hover:bg-brand-navy/90 border border-brand-navy rounded-lg no-underline transition-colors disabled:opacity-60"
+                        />
                         {selected.content_text && (
                           <DownloadWordButton
                             text={cleanMarkdown(selected.content_text)}
@@ -207,13 +218,8 @@ export default function RegistrationDocuments() {
                             w.document.close();
                           }}
                         >
-                          <Printer className="w-4 h-4 mr-2" /> Print / Save as PDF
+                          <Printer className="w-4 h-4 mr-2" /> Print
                         </Button>
-                        {selected.pdf_url && (
-                          <Button asChild variant="outline" size="sm">
-                            <a href={selected.pdf_url} target="_blank" rel="noreferrer"><Download className="w-4 h-4 mr-2" /> Download PDF</a>
-                          </Button>
-                        )}
                       </div>
                     </>
                   ) : (
