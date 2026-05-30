@@ -243,7 +243,7 @@ export default function TestsOutput() {
     void reviewOne(entry);
   }
 
-  function buildExportHtml(): { html: string; date: string; rows: TestResult[] } {
+  function buildExportHtml(only?: TestResult): { html: string; date: string; rows: TestResult[] } {
     const date = new Date().toISOString().slice(0, 10);
     const esc = (s: unknown) =>
       String(s ?? "")
@@ -251,7 +251,9 @@ export default function TestsOutput() {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 
-    const rows = REGISTRY.map((r) => results[r.id]).filter(Boolean);
+    const rows = only
+      ? [only]
+      : REGISTRY.map((r) => results[r.id]).filter(Boolean);
     const sections = rows
       .map((r) => {
         const a = r.assertions || [];
@@ -326,8 +328,14 @@ export default function TestsOutput() {
       })
       .join("");
 
+    const title = only
+      ? `${only.label} — Test Output`
+      : "Tests Output Report";
+    const subtitle = only
+      ? `Generated ${date} · ${esc(only.label)} · EndUserPrivacy.com`
+      : `Generated ${date} · ${rows.length} tests · EndUserPrivacy.com`;
     const html = `<!doctype html><html><head><meta charset="utf-8"/>
-      <title>Tests Output — ${date}</title>
+      <title>${esc(title)} — ${date}</title>
       <style>
         body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0d2a45;max-width:880px;margin:32px auto;padding:0 24px;}
         h1{font-size:24px;margin:0 0 4px;color:#0d2a45;}
@@ -347,21 +355,25 @@ export default function TestsOutput() {
         .brandbar{border-top:3px solid #2a9d8f;margin-bottom:18px;padding-top:10px;}
       </style></head><body>
       <div class="brandbar"></div>
-      <h1>Tests Output Report</h1>
-      <p class="meta">Generated ${date} · ${rows.length} tests · EndUserPrivacy.com</p>
+      <h1>${esc(title)}</h1>
+      <p class="meta">${subtitle}</p>
       ${sections}
       </body></html>`;
     return { html, date, rows };
   }
 
-  const [pdfBusy, setPdfBusy] = useState(false);
 
-  async function exportPdf() {
-    setPdfBusy(true);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [rowPdfBusy, setRowPdfBusy] = useState<string | null>(null);
+
+  async function exportPdf(only?: TestResult) {
+    if (only) setRowPdfBusy(only.testId);
+    else setPdfBusy(true);
     try {
-      const { html, date } = buildExportHtml();
+      const { html, date } = buildExportHtml(only);
+      const slug = only ? only.testId : "All";
       const { data, error } = await supabase.functions.invoke("render-html-to-pdf", {
-        body: { html, title: `Tests-Output-${date}` },
+        body: { html, title: `Tests-Output-${slug}-${date}` },
       });
       if (error) throw error;
       if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");
@@ -370,9 +382,11 @@ export default function TestsOutput() {
       console.error("exportPdf failed:", e);
       alert(e?.message || "PDF generation failed");
     } finally {
-      setPdfBusy(false);
+      if (only) setRowPdfBusy(null);
+      else setPdfBusy(false);
     }
   }
+
 
   function exportWord() {
     const { date, rows } = buildExportHtml();
@@ -513,7 +527,7 @@ export default function TestsOutput() {
                 {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
                 {running ? `Running ${runIndex! + 1}/${REGISTRY.length}` : `Run all ${REGISTRY.length}`}
               </Button>
-              <Button variant="outline" onClick={exportPdf} disabled={pdfBusy} className="gap-1.5">
+              <Button variant="outline" onClick={() => exportPdf()} disabled={pdfBusy} className="gap-1.5">
                 {pdfBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 {pdfBusy ? "Rendering…" : "Export PDF"}
               </Button>
@@ -669,6 +683,16 @@ export default function TestsOutput() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={(e) => { e.preventDefault(); exportPdf(entry); }}
+                          disabled={running || rowPdfBusy === r.id || (!entry.assertions && !entry.result && !entry.error)}
+                          title="Download PDF for this test"
+                          className="h-7 px-2 gap-1"
+                        >
+                          {rowPdfBusy === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={(e) => { e.preventDefault(); rerunOne(r.id); }}
                           disabled={running}
                           title="Re-run this test"
@@ -676,6 +700,7 @@ export default function TestsOutput() {
                         >
                           <RotateCw className="w-3.5 h-3.5" />
                         </Button>
+
                         {entry.result && (
                           <Button
                             variant="ghost"
