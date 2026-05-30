@@ -46,18 +46,22 @@ export default function PrimarySourceFetcher() {
   const [regulator, setRegulator] = useState("");
   const [busy, setBusy] = useState<null | "dry" | "real">(null);
   const [pending, setPending] = useState<SourceRow[]>([]);
+  const [pendingLoading, setPendingLoading] = useState(false);
+  const [pendingRefreshedAt, setPendingRefreshedAt] = useState<Date | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
   const [run, setRun] = useState<Run | null>(null);
   const [error, setError] = useState<string>("");
   const logEndRef = useRef<HTMLDivElement | null>(null);
 
   const loadPending = useCallback(async () => {
+    setPendingLoading(true);
     const { data, error } = await supabase
       .from("enforcement_actions")
       .select("source_database")
       .eq("primary_source_status", "pending_fetch")
       .not("primary_source_url", "is", null)
       .limit(5000);
+    setPendingLoading(false);
     if (error) { setError(`Error loading pending counts: ${error.message}`); return; }
     const tally = new Map<string, number>();
     for (const r of data ?? []) {
@@ -69,6 +73,7 @@ export default function PrimarySourceFetcher() {
         .map(([source_database, pending]) => ({ source_database, pending }))
         .sort((a, b) => b.pending - a.pending),
     );
+    setPendingRefreshedAt(new Date());
   }, []);
 
   useEffect(() => { loadPending(); }, [loadPending]);
