@@ -254,6 +254,16 @@ export default function TestsOutput() {
     URL.revokeObjectURL(url);
   }
 
+  function handleClearCache() {
+    clearAllTestCache();
+    const fresh = Object.fromEntries(
+      REGISTRY.map((r) => [r.id, { testId: r.id, label: r.label, status: "pending" as const }]),
+    );
+    setResults(fresh);
+    setRunIndex(null);
+    setIframeSrc(null);
+  }
+
   const scorecard = useMemo(() => {
     const reviewed = REGISTRY.map((r) => results[r.id]).filter((r) => r?.review);
     if (reviewed.length === 0) return null;
