@@ -356,20 +356,6 @@ const GovernanceAssessmentResult = () => {
                 pdfUrl={assessment?.pdf_url}
                 onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
               />
-              <DownloadWordButton
-                text={[
-                  report?.executive_summary,
-                  ...(report?.domain_findings
-                    ? Object.values(report.domain_findings).map(
-                        (d: any) => (d?.domain || "") + ": " + (d?.finding || "")
-                      )
-                    : []),
-                ]
-                  .filter(Boolean)
-                  .join("\n\n")}
-                label="Governance Assessment"
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-white border border-brand-navy/30 hover:bg-brand-navy/5 rounded-lg transition-colors disabled:opacity-60"
-              />
             </div>
           </>
         )}
