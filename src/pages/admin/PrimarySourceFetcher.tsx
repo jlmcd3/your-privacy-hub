@@ -85,7 +85,7 @@ export default function PrimarySourceFetcher() {
         .maybeSingle();
       if (cancelled) return;
       if (error) { setError(`Polling error: ${error.message}`); return; }
-      setRun(data as Run);
+      setRun(data as unknown as Run);
     };
     tick();
     const handle = setInterval(tick, 2000);
