@@ -474,17 +474,10 @@ export default function TestsOutput() {
 
   const running = runIndex !== null;
 
-  // Live elapsed ticker for the currently-running test
-  const [nowTs, setNowTs] = useState(Date.now());
-  useEffect(() => {
-    if (!running) return;
-    const id = window.setInterval(() => setNowTs(Date.now()), 500);
-    return () => clearInterval(id);
-  }, [running]);
-  const liveElapsedMs = running && startedAtRef.current ? nowTs - startedAtRef.current : 0;
-  const liveElapsedSec = Math.floor(liveElapsedMs / 1000);
+  // NOTE: live elapsed counter is rendered inside <LiveElapsed /> so the
+  // ticking 500ms interval does NOT re-render this entire page (which would
+  // thrash the iframe and kill in-flight tests).
   const timeoutSec = Math.floor(TEST_TIMEOUT_MS / 1000);
-  const pct = Math.min(100, Math.round((liveElapsedMs / TEST_TIMEOUT_MS) * 100));
   const currentEntry = runIndex !== null ? results[REGISTRY[runIndex].id] : null;
   const overallPct = Math.round(
     ((runIndex ?? REGISTRY.length) / REGISTRY.length) * 100,
