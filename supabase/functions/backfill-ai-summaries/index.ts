@@ -362,7 +362,7 @@ Deno.serve(async (req) => {
 
   const { data: articles } = await supabase
     .from("updates")
-    .select("id, title, summary, source_name")
+    .select("id, title, summary, source_name, source_domain")
     .is('ai_summary', null)
     .order("published_at", { ascending: false })
     .limit(batchSize);
