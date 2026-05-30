@@ -261,6 +261,23 @@ export default function TestsOutput() {
 
   const running = runIndex !== null;
 
+  // Live elapsed ticker for the currently-running test
+  const [nowTs, setNowTs] = useState(Date.now());
+  useEffect(() => {
+    if (!running) return;
+    const id = window.setInterval(() => setNowTs(Date.now()), 500);
+    return () => clearInterval(id);
+  }, [running]);
+  const liveElapsedMs = running && startedAtRef.current ? nowTs - startedAtRef.current : 0;
+  const liveElapsedSec = Math.floor(liveElapsedMs / 1000);
+  const timeoutSec = Math.floor(TEST_TIMEOUT_MS / 1000);
+  const pct = Math.min(100, Math.round((liveElapsedMs / TEST_TIMEOUT_MS) * 100));
+  const currentEntry = runIndex !== null ? results[REGISTRY[runIndex].id] : null;
+  const overallPct = Math.round(
+    ((runIndex ?? REGISTRY.length) / REGISTRY.length) * 100,
+  );
+  const [showIframe, setShowIframe] = useState(false);
+
   if (!user) {
     return (
       <>
@@ -322,15 +339,99 @@ export default function TestsOutput() {
             </Card>
           )}
 
-          {/* Hidden iframe driver */}
+          {/* Live progress panel */}
+          {running && currentEntry && (
+            <Card className="border-brand-teal/50 bg-brand-teal/5 p-4 space-y-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="text-[11px] uppercase tracking-widest text-brand-teal font-semibold">
+                    Now running — {runIndex! + 1} of {REGISTRY.length}
+                  </div>
+                  <div className="font-display text-xl text-brand-navy mt-0.5">
+                    {currentEntry.label}
+                  </div>
+                </div>
+                <div className="font-mono text-sm text-brand-navy text-right">
+                  <div>
+                    {liveElapsedSec}s / {timeoutSec}s
+                    {currentEntry.status === "reviewing" && " · reviewing"}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    status: <strong>{currentEntry.status}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Per-test progress bar */}
+              <div className="w-full h-2 bg-white rounded overflow-hidden">
+                <div
+                  className={`h-full transition-all ${
+                    pct > 90 ? "bg-rose-500" : pct > 70 ? "bg-amber-500" : "bg-brand-teal"
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+
+              {/* Overall progress */}
+              <div className="text-xs text-slate-500 flex items-center gap-2">
+                <span>Overall</span>
+                <div className="flex-1 h-1.5 bg-white rounded overflow-hidden">
+                  <div className="h-full bg-brand-navy" style={{ width: `${overallPct}%` }} />
+                </div>
+                <span className="font-mono">{overallPct}%</span>
+              </div>
+
+              {/* Tail of test log */}
+              {currentEntry.log && currentEntry.log.length > 0 && (
+                <div className="bg-black text-green-400 font-mono text-[11px] rounded p-2 max-h-32 overflow-auto">
+                  {currentEntry.log.slice(-6).map((l, i) => (
+                    <div key={i}>{l}</div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setShowIframe((v) => !v)}
+                  className="text-brand-teal hover:underline bg-transparent border-none cursor-pointer p-0"
+                >
+                  {showIframe ? "Hide" : "Show"} embedded test page
+                </button>
+                {currentEntry.resultUrl && (
+                  <Link
+                    to={currentEntry.resultUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-brand-teal hover:underline inline-flex items-center gap-1"
+                  >
+                    Open result <ExternalLink className="w-3 h-3" />
+                  </Link>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Iframe driver — hidden offscreen unless user expands it */}
           {iframeSrc && (
-            <iframe
-              ref={iframeRef}
-              src={iframeSrc}
-              title="test-runner"
-              style={{ position: "fixed", left: -9999, top: -9999, width: 1200, height: 800, opacity: 0, pointerEvents: "none" }}
-              aria-hidden="true"
-            />
+            showIframe && running ? (
+              <Card className="border-brand-cloud overflow-hidden">
+                <iframe
+                  ref={iframeRef}
+                  src={iframeSrc}
+                  title="test-runner"
+                  className="w-full h-[600px] bg-white border-0"
+                />
+              </Card>
+            ) : (
+              <iframe
+                ref={iframeRef}
+                src={iframeSrc}
+                title="test-runner"
+                style={{ position: "fixed", left: -9999, top: -9999, width: 1200, height: 800, opacity: 0, pointerEvents: "none" }}
+                aria-hidden="true"
+              />
+            )
           )}
 
           <div className="space-y-3">
