@@ -538,7 +538,8 @@ VERIFICATION STANDARDS:
         enforcement_table: brief.enforcement_table,
         enforcement_trends: brief.enforcement_trends,
         cross_jurisdiction_patterns: brief.cross_jurisdiction_patterns ?? null,
-        trend_signal: brief.trend_signal,
+        // Risk 2: tolerate alias keys the model occasionally emits instead of trend_signal
+        trend_signal: brief.trend_signal ?? brief.forward_signal ?? brief.forward_outlook ?? brief.forward_looking_signal ?? null,
         why_this_matters: brief.why_this_matters,
         source_map: sourceMap,
         article_count: articles.length,
