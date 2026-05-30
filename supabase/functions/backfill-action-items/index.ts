@@ -107,8 +107,8 @@ Generate 1–3 action_items. If no specific named-law action applies, return [].
       signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) return null;
-    const data = await res.json();
-    const text = data.content?.[0]?.text;
+    const json = await res.json();
+    const text = json.content?.[0]?.text;
     if (!text) return null;
     const m = text.match(/\{[\s\S]*\}/);
     if (!m) return null;
