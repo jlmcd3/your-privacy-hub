@@ -353,24 +353,48 @@ Deno.serve(async (req) => {
     );
 
   const url = new URL(req.url);
-  // Default 10 per invocation: at ~4s/call this fits comfortably in a single edge function run
-  // and keeps each batch's reserved OTPM well below Anthropic's per-minute ceiling.
-  const batchSize = Math.min(
-    parseInt(url.searchParams.get("batch") || "25"),
-    100
-  );
 
-  const { data: articles } = await supabase
+  // Optional JSON body for advanced parameters (force_reenrich, since, limit)
+  let body: Record<string, unknown> = {};
+  if (req.method === "POST") {
+    try { body = await req.json(); } catch { body = {}; }
+  }
+
+  // Batch size: query param `batch` OR body `limit` (default 25, hard cap 100)
+  const requestedBatch =
+    (typeof body.limit === "number" ? body.limit : parseInt(url.searchParams.get("batch") || url.searchParams.get("limit") || "25"));
+  const batchSize = Math.min(Math.max(1, requestedBatch || 25), 100);
+
+  // force_reenrich: when true, process rows even if ai_summary is already populated
+  const forceReenrich =
+    body.force_reenrich === true || url.searchParams.get("force_reenrich") === "true";
+
+  // since: ISO date string — restrict to articles with published_at >= since
+  const since =
+    (typeof body.since === "string" ? body.since : url.searchParams.get("since")) || null;
+
+  let articleQuery = supabase
     .from("updates")
-    .select("id, title, summary, source_name, source_domain")
-    .is('ai_summary', null)
+    .select("id, title, summary, source_name, source_domain");
+
+  if (!forceReenrich) {
+    articleQuery = articleQuery.is('ai_summary', null);
+  }
+  if (since) {
+    articleQuery = articleQuery.gte('published_at', since);
+  }
+
+  const { data: articles } = await articleQuery
     .order("published_at", { ascending: false })
     .limit(batchSize);
 
-  const { count } = await supabase
+  let countQuery = supabase
     .from("updates")
-    .select("id", { count: "exact", head: true })
-    .is('ai_summary', null);
+    .select("id", { count: "exact", head: true });
+  if (!forceReenrich) countQuery = countQuery.is('ai_summary', null);
+  if (since) countQuery = countQuery.gte('published_at', since);
+  const { count } = await countQuery;
+
 
   let updated = 0,
     skipped = 0,
@@ -458,12 +482,16 @@ Deno.serve(async (req) => {
   return new Response(
     JSON.stringify({
       total_missing: count,
-      processed: articles?.length,
+      scanned: articles?.length ?? 0,
+      processed: articles?.length ?? 0,
       updated,
       skipped,
       deferred,
+      force_reenrich: forceReenrich,
+      since,
       remaining: Math.max(0, (count ?? 0) - (articles?.length ?? 0)),
     }),
     { headers: { "Content-Type": "application/json" } }
   );
 });
+
