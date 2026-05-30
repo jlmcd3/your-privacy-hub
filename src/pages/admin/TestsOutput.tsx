@@ -259,14 +259,120 @@ export default function TestsOutput() {
     void reviewOne(entry);
   }
 
-  function exportJson() {
-    const blob = new Blob([JSON.stringify(results, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `tests-output-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  function exportPdf() {
+    const date = new Date().toISOString().slice(0, 10);
+    const esc = (s: unknown) =>
+      String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    const rows = REGISTRY.map((r) => results[r.id]).filter(Boolean);
+    const sections = rows
+      .map((r) => {
+        const a = r.assertions || [];
+        const pass = a.filter((x) => x.passed === true).length;
+        const fail = a.filter((x) => x.passed === false).length;
+        const rev = r.review;
+        return `
+          <section class="test">
+            <h2>${esc(r.label)} <span class="badge ${r.status}">${esc(r.status)}</span></h2>
+            <p class="meta">Assertions: ${pass} pass · ${fail} fail · ${a.length} total${
+              r.elapsedMs ? ` · ${Math.round(r.elapsedMs / 1000)}s` : ""
+            }</p>
+            ${
+              a.length
+                ? `<ul class="assertions">${a
+                    .map(
+                      (x) =>
+                        `<li>${
+                          x.passed === true ? "✓" : x.passed === false ? "✗" : "·"
+                        } ${esc(x.label)}</li>`,
+                    )
+                    .join("")}</ul>`
+                : ""
+            }
+            ${
+              rev
+                ? `<div class="review">
+                    <h3>Review</h3>
+                    <p class="scores">${DIMENSIONS.map(
+                      (d) =>
+                        `<span><strong>${d.label}:</strong> ${rev.scores[d.key] ?? "—"}</span>`,
+                    ).join(" · ")}</p>
+                    <p><strong>Summary:</strong> ${esc(rev.summary)}</p>
+                    ${
+                      rev.strengths?.length
+                        ? `<p><strong>Strengths:</strong></p><ul>${rev.strengths
+                            .map((s) => `<li>${esc(s)}</li>`)
+                            .join("")}</ul>`
+                        : ""
+                    }
+                    ${
+                      rev.weaknesses?.length
+                        ? `<p><strong>Weaknesses:</strong></p><ul>${rev.weaknesses
+                            .map((s) => `<li>${esc(s)}</li>`)
+                            .join("")}</ul>`
+                        : ""
+                    }
+                    ${
+                      rev.priority_fixes?.length
+                        ? `<p><strong>Priority fixes:</strong></p><ul>${rev.priority_fixes
+                            .map(
+                              (f) =>
+                                `<li><em>[${esc(f.severity)}]</em> ${esc(f.issue)} — ${esc(
+                                  f.suggestion,
+                                )}</li>`,
+                            )
+                            .join("")}</ul>`
+                        : ""
+                    }
+                  </div>`
+                : r.reviewError
+                  ? `<p class="review-err">Review error: ${esc(r.reviewError)}</p>`
+                  : ""
+            }
+            ${
+              r.error
+                ? `<p class="error">Error: ${esc(r.error)}</p>`
+                : ""
+            }
+          </section>
+        `;
+      })
+      .join("");
+
+    const html = `<!doctype html><html><head><meta charset="utf-8"/>
+      <title>Tests Output — ${date}</title>
+      <style>
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0d2a45;max-width:880px;margin:32px auto;padding:0 24px;}
+        h1{font-size:24px;margin:0 0 4px;}
+        h2{font-size:16px;margin:0 0 6px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+        h3{font-size:13px;margin:12px 0 4px;text-transform:uppercase;letter-spacing:.06em;color:#475569;}
+        .meta{color:#64748b;font-size:12px;margin:0 0 8px;}
+        .test{border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;margin-bottom:14px;page-break-inside:avoid;}
+        .assertions{margin:6px 0;padding-left:18px;font-size:12px;}
+        .assertions li{margin:1px 0;}
+        .review{background:#f8fafc;border-radius:6px;padding:10px 12px;margin-top:10px;font-size:12.5px;}
+        .review ul{margin:4px 0 8px 18px;}
+        .scores{font-size:11.5px;color:#475569;margin:4px 0 8px;}
+        .badge{font-size:10px;padding:2px 8px;border-radius:999px;background:#e2e8f0;color:#334155;text-transform:uppercase;letter-spacing:.05em;}
+        .badge.reviewed,.badge.complete{background:#d1fae5;color:#065f46;}
+        .badge.failed,.badge.timeout{background:#fee2e2;color:#991b1b;}
+        .error,.review-err{color:#b91c1c;font-size:12px;margin:6px 0 0;}
+        @media print{ .test{break-inside:avoid;} }
+      </style></head><body>
+      <h1>Tests Output Report</h1>
+      <p class="meta">Generated ${date} · ${rows.length} tests</p>
+      ${sections}
+      <script>window.addEventListener("load",()=>{setTimeout(()=>window.print(),300);});</script>
+      </body></html>`;
+
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   }
 
   function handleClearCache() {
