@@ -120,14 +120,13 @@ function mapDataTypesToCategories(types: string[]): string[] {
 function formatEnforcementContext(rows: any[]): string {
   if (!rows || rows.length === 0) return "No specific enforcement precedents retrieved for these parameters.";
   return rows
-    .map(
-      (e, i) =>
-        `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${
-          e.decision_date ? new Date(e.decision_date).getFullYear() : "—"
-        }\n   Fine: ${
-          e.fine_amount ?? (e.fine_eur_equivalent ? `€${Number(e.fine_eur_equivalent).toLocaleString()}` : "Not disclosed")
-        }\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}\n   Lesson: ${e.preventive_measures ?? "—"}`
-    )
+    .map((e, i) => {
+      const year = e.decision_date ? new Date(e.decision_date).getFullYear() : "—";
+      const citation = `${e.regulator ?? "Regulator"} (${year})`;
+      return `[E${i + 1}] id:${e.id ?? "—"} CITATION: ${citation} — ${e.subject ?? ""} — ${e.jurisdiction ?? "—"}\n   Fine: ${
+        e.fine_amount ?? (e.fine_eur_equivalent ? `€${Number(e.fine_eur_equivalent).toLocaleString()}` : "Not disclosed")
+      }\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}\n   Lesson: ${e.preventive_measures ?? "—"}`;
+    })
     .join("\n\n");
 }
 
@@ -209,7 +208,8 @@ DPA NOTIFICATION PORTALS FOR RELEVANT JURISDICTIONS
 ${relevantPortals || "(No portal URLs available for the selected jurisdictions — direct the team to consult the relevant DPA's website.)"}
 
 ENFORCEMENT CONTEXT — BREACH NOTIFICATION FAILURES
-The following cases show where organisations were penalised for breach notification failures. Use this to calibrate your timeline and content recommendations:
+The following cases show where organisations were penalised for breach notification failures. Use this to calibrate your timeline and content recommendations.
+CITATION RULE: When you reference any of these in section text, use the human-readable CITATION shown (e.g. "ICO (2023)" or "CNIL (2022)") — NEVER the bracketed [E#] code. The [E#] tag is only for your internal lookup. Reserve the exact id values for the ===ANNOTATIONS=== JSON block below.
 ${formatEnforcementContext(enforcement_context)}
 
 Generate the following seven sections. Each section MUST begin with a markdown H2 heading using the EXACT format shown (the line "## Section N: TITLE"), so downstream tooling can locate them. Do not omit any section, even if you think it is not applicable — instead, state explicitly within the section why it does not apply.
@@ -262,7 +262,7 @@ Output ONLY the playbook (then the ===ANNOTATIONS=== block). No preamble or comm
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 5000,
+        max_tokens: 12000,
         stream: true,
         system: `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
 
