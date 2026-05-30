@@ -207,6 +207,31 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
   const retention = formatAnswer("retention_period", answers["retention_period"]) || "Not specified";
   const automatedYes = answerToken(answers["automated_decisions"]) === "yes";
 
+  // GDPR-style frameworks use the formal "Data Protection Officer" title;
+  // non-GDPR frameworks (PIPEDA, APPI, PIPA, PDPA, etc.) use "Privacy Officer".
+  const isGdprFamily =
+    fw.framework_code === "EU_GDPR" || fw.framework_code === "UK_GDPR";
+  const officerTitle = isGdprFamily ? "Data Protection Officer" : "Privacy Officer";
+
+  // Identify which special categories (Art 9) are actually present in the
+  // answers, so we can produce a specific Art 9(2) condition list rather than
+  // a generic "typically your explicit consent" sentence.
+  const dataCatRaw = answers["data_categories"];
+  const dataCatArr = Array.isArray(dataCatRaw) ? dataCatRaw.map(String) : [];
+  const SPECIAL_CAT_TO_ART9: Record<string, string> = {
+    health_medical: "health data — Art.9(2)(a) explicit consent or 9(2)(h) preventive/occupational medicine, medical diagnosis, or healthcare provision",
+    biometric: "biometric data for unique identification — Art.9(2)(a) explicit consent (default) or 9(2)(g) substantial public interest where laid down by law",
+    race_ethnicity: "racial or ethnic origin — Art.9(2)(a) explicit consent",
+    religion: "religious beliefs — Art.9(2)(a) explicit consent or 9(2)(d) processing by a not-for-profit body",
+    sexual_orientation: "sexual orientation — Art.9(2)(a) explicit consent",
+    political_opinions: "political opinions — Art.9(2)(a) explicit consent or 9(2)(d) processing by a not-for-profit body",
+    trade_union: "trade union membership — Art.9(2)(b) employment / social security law or 9(2)(d) trade union processing",
+    criminal: "criminal convictions or offences — processed under Art.10 (controlled by official authority or authorised by law)",
+  };
+  const specialCatsPresent = dataCatArr
+    .map((c) => SPECIAL_CAT_TO_ART9[c])
+    .filter(Boolean);
+
   const intro = `<p>This notice explains how <strong>${escapeHtml(controllerName)}</strong> processes personal data under the ${escapeHtml(lawName)}. Last updated: ${escapeHtml(generatedAtHuman)}.</p>`;
 
   const sections: NoticeSection[] = [];
@@ -216,20 +241,48 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
     html: `<p><strong>${escapeHtml(controllerName)}</strong>${controllerAddress ? `, ${escapeHtml(controllerAddress)}` : ""}.</p>
 <p>You can contact us about this notice at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>${
       dpoYes
-        ? `\n<p>Our Data Protection Officer can be reached at ${dpoName ? `<strong>${escapeHtml(dpoName)}</strong>, ` : ""}<a href="mailto:${escapeHtml(dpoEmail || contactEmail)}">${escapeHtml(dpoEmail || contactEmail)}</a>.</p>`
+        ? `\n<p>Our ${escapeHtml(officerTitle)} can be reached at ${dpoName ? `<strong>${escapeHtml(dpoName)}</strong>, ` : ""}<a href="mailto:${escapeHtml(dpoEmail || contactEmail)}">${escapeHtml(dpoEmail || contactEmail)}</a>.</p>`
         : ""
     }`,
   });
 
   sections.push({ title: "Personal data we process", html: `<p>${escapeHtml(categories)}</p>` });
   sections.push({ title: "Purposes of processing", html: `<p>${escapeHtml(purposes)}</p>` });
+
+  // Lawful-basis-to-purpose mapping: when the user supplied both purposes and
+  // bases, render a per-basis explanation that maps each basis to the
+  // purposes it most plausibly supports. This avoids the prior generic
+  // "we rely on the following lawful basis or bases" list with no linkage.
+  const basisRaw = answers["lawful_basis"];
+  const basisArr = Array.isArray(basisRaw) ? basisRaw.map(String) : (basisRaw ? [String(basisRaw)] : []);
+  const BASIS_PURPOSE_HINT: Record<string, string> = {
+    consent: "Marketing communications, optional analytics/advertising cookies, and any optional features you opt into.",
+    contract: "Service or product delivery, account management, and payment processing where these are needed to perform our contract with you.",
+    legal_obligation: "Legal and regulatory compliance, tax/accounting records, and responding to lawful regulator requests.",
+    vital_interests: "Limited safety-critical processing where it is needed to protect a person's life or physical integrity.",
+    public_task: "Processing carried out in the exercise of official authority or a task in the public interest, where applicable.",
+    legitimate_interests: "Security and fraud prevention, service improvement analytics, and B2B relationship management — balanced against your rights and interests.",
+  };
+  const basisRows = basisArr
+    .map((b) => {
+      const label = OPTION_LABELS.lawful_basis?.[b] ?? b;
+      const hint = BASIS_PURPOSE_HINT[b] ?? "";
+      return `<li><strong>${escapeHtml(label)}</strong>${hint ? ` — ${escapeHtml(hint)}` : ""}</li>`;
+    })
+    .join("");
+
+  const art9Html =
+    isGdprFamily && specialCatsPresent.length > 0
+      ? `\n<p>Because we process the following special category personal data, we additionally rely on a condition under <strong>Article 9(2)</strong> of the ${escapeHtml(lawName)}:</p>\n<ul>${specialCatsPresent.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>`
+      : isGdprFamily
+      ? `\n<p>If we process special category personal data (such as health, biometric, racial or ethnic origin, religious beliefs, trade union membership, sexual orientation, or political opinions), we will additionally rely on a condition under <strong>Article 9(2)</strong> of the ${escapeHtml(lawName)} — most commonly explicit consent under Art.9(2)(a).</p>`
+      : "";
+
   sections.push({
     title: "Lawful basis",
-    html: `<p>We rely on the following lawful basis (or bases) for our processing: ${escapeHtml(lawfulBasis)}.</p>${
-      (fw.framework_code === "EU_GDPR" || fw.framework_code === "UK_GDPR")
-        ? `\n<p>Where we process special category personal data (such as health, biometric, racial or ethnic origin, religious beliefs, trade union membership, sexual orientation, or political opinions), we additionally rely on a condition under <strong>Article 9</strong> of the ${escapeHtml(lawName)} — typically your explicit consent, or another applicable Article 9 condition.</p>`
-        : ""
-    }`,
+    html: basisRows
+      ? `<p>We rely on the following lawful basis (or bases) for our processing, mapped to the purposes above:</p>\n<ul>${basisRows}</ul>${art9Html}`
+      : `<p>We rely on the following lawful basis (or bases) for our processing: ${escapeHtml(lawfulBasis)}.</p>${art9Html}`,
   });
   sections.push({
     title: "Recipients of personal data",
@@ -249,6 +302,8 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
     ? `<p>You also have the right to lodge a complaint with the supervisory authority. In the United Kingdom, this is the <strong>Information Commissioner's Office (ICO)</strong> — <a href="https://ico.org.uk">ico.org.uk</a>.</p>`
     : fw.framework_code === "EU_GDPR"
     ? `<p>You also have the right to lodge a complaint with your national data protection authority (your supervisory authority under the GDPR). For organisations established in Ireland, this is the <strong>Data Protection Commission (DPC)</strong> — <a href="https://www.dataprotection.ie">dataprotection.ie</a>. For other EU/EEA Member States, contact the supervisory authority where you live, work, or where the alleged infringement took place.</p>`
+    : fw.framework_code === "CH_FADP"
+    ? `<p>You also have the right to lodge a complaint with the Swiss <strong>Federal Data Protection and Information Commissioner (FDPIC / EDÖB)</strong> — <a href="https://www.edoeb.admin.ch">edoeb.admin.ch</a>. Note that the revised FADP (in force 1 September 2023) does not provide for administrative fines on companies but does authorise criminal sanctions against responsible individuals for specific breaches (Art. 60–63 FADP) and requires controllers to maintain a register of processing activities, conduct DPIAs for high-risk processing, and report breaches to the FDPIC as soon as possible.</p>`
     : `<p>You also have the right to lodge a complaint with the relevant supervisory authority in your jurisdiction.</p>`;
 
   sections.push({
@@ -265,6 +320,7 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
 
   return { lawName, controllerName, contactEmail, intro, sections };
 }
+
 
 function renderSections(sections: NoticeSection[], startNumber = 1): string {
   return sections
