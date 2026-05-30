@@ -181,13 +181,18 @@ For mixed-source findings: distinguish confirmed from reported within the same o
 
 NEVER USE blanket hedging phrases ("this may indicate", "it would appear", "it remains to be seen") — these obscure source quality instead of communicating it. Name the source of uncertainty precisely.
 
+SOURCE FIDELITY (non-negotiable):
+- Every regulator name, fine amount, case identifier, statute reference, and date in your output MUST appear in the provided articles. Do not draw on training knowledge for specific factual claims.
+- If you cannot point to an article that supports a claim, do not make the claim.
+- If the corpus is thin (fewer than 5 substantive articles), say so explicitly in `summary` and keep `direction` to "Mixed" unless the article set clearly justifies otherwise.
+
 INTELLIGENCE STANDARDS:
 1. Lead with pattern significance, not event description.
-2. Where multiple sources report the same development, treat convergence as a quality signal and state findings with correspondingly greater confidence.
+2. Where multiple sources in the corpus report the same development, treat convergence as a quality signal and state findings with correspondingly greater confidence.
 3. key_observations must be specific — cite regulator names, law references, or case identifiers drawn from the provided articles. "Regulatory activity has increased" is not acceptable.
 4. direction must reflect the weight of evidence across the full article set, not the most recent or most prominent article.
-5. notable_shifts must name the specific change in regulatory approach or enforcement posture, with supporting evidence from the articles.
-6. Do not assert facts not grounded in the provided articles. If the corpus is thin, say so: "The limited article set for this period prevents confident pattern analysis — the following observations are directional only."
+5. notable_shifts must name the specific change in regulatory approach or enforcement posture, with supporting evidence from the articles. Set to null rather than fabricate.
+6. If the corpus is thin, say so: "The limited article set for this period prevents confident pattern analysis — the following observations are directional only."
 
 Return ONLY valid JSON. Your entire response must start with { and end with }. No text before or after the JSON object.`,
       messages: [{ role: "user", content: prompt }],
