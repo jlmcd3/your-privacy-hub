@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import DownloadWordButton from "@/components/DownloadWordButton";
+import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 const strengthColor = (s: string) => {
   const v = (s || "").toLowerCase();
@@ -153,24 +154,14 @@ const LIAssessmentResult = () => {
           )}
           <div className="mt-4 flex gap-2 flex-wrap">
             <Button asChild variant="secondary"><Link to="/li-assessment">Run New Assessment</Link></Button>
-            {assessment?.pdf_url ? (
-              <a
-                href={assessment.pdf_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 text-meta font-semibold text-white bg-gradient-to-br from-slate-700 to-blue-700 rounded-lg hover:opacity-90 transition-all no-underline"
-              >
-                ↓ Download PDF
-              </a>
-            ) : status === "complete" ? (
-              <button
-                disabled
-                className="inline-flex items-center gap-2 px-4 py-2 text-meta font-semibold text-muted-foreground bg-muted rounded-lg cursor-not-allowed"
-                title="PDF is being prepared — refresh in a moment"
-              >
-                ↓ PDF preparing...
-              </button>
-            ) : null}
+            {status === "complete" && (
+              <PDFDownloadButton
+                toolType="li_assessment"
+                assessmentId={assessment.id}
+                pdfUrl={assessment.pdf_url}
+                onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
+              />
+            )}
             <DownloadWordButton
               text={[
                 report?.three_part_test?.overall_assessment?.summary,
