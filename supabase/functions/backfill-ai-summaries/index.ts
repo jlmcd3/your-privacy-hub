@@ -108,12 +108,40 @@ function isNonEditorial(title: string, summary: string | null): boolean {
   return NON_EDITORIAL_PATTERNS.some(p => p.test(text));
 }
 
+// Source-tier inference for retrospective enrichment. Primary = official regulator
+// domains; Secondary = recognised legal-analysis blogs / IAPP; Tertiary = everything
+// else (commercial news, civil society, unknown).
+const TIER_1_DOMAINS = [
+  "edpb.europa.eu", "edps.europa.eu", "ec.europa.eu", "ico.org.uk", "cnil.fr",
+  "garanteprivacy.it", "aepd.es", "bfdi.bund.de", "datatilsynet.dk", "datainspektionen.se",
+  "datatilsynet.no", "dataprotection.ie", "autoriteitpersoonsgegevens.nl", "uodo.gov.pl",
+  "ftc.gov", "hhs.gov", "sec.gov", "cfpb.gov", "dfs.ny.gov", "oag.ca.gov", "cppa.ca.gov",
+  "oaic.gov.au", "priv.gc.ca", "cai.gouv.qc.ca", "gov.br/anpd", "pdpc.gov.sg",
+  "ppc.go.jp", "pipc.go.kr", "edoeb.admin.ch", "pcpd.org.hk",
+];
+const TIER_2_DOMAINS = [
+  "iapp.org", "out-law.com", "twobirds.com", "linklaters.com", "fieldfisher.com",
+  "dlapiper.com", "cms-lawnow.com", "cliffordchance.com", "freshfields.com", "hsfnotes.com",
+  "aoshearman.com", "wsgr.com", "morganlewis.com", "huntonprivacyblog.com", "ropesgray.com",
+  "bakermckenzie.com", "mwe.com", "perkinscoie.com",
+];
+function inferSourceTier(sourceDomain: string | null | undefined): 1 | 2 | 3 {
+  if (!sourceDomain) return 3;
+  const d = sourceDomain.toLowerCase().replace(/^www\./, "");
+  if (TIER_1_DOMAINS.some(t => d === t || d.endsWith("." + t) || d.includes(t))) return 1;
+  if (TIER_2_DOMAINS.some(t => d === t || d.endsWith("." + t))) return 2;
+  return 3;
+}
+
 async function generateAISummary(
   title: string,
   summary: string | null,
   sourceName: string | null,
+  sourceDomain: string | null,
   apiKey: string
 ): Promise<EnrichResult> {
+  const sourceTier = inferSourceTier(sourceDomain);
+  const textLen = (summary || "").length;
   try {
     const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
       method: "POST",
