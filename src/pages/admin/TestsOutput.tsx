@@ -22,6 +22,21 @@ const REGISTRY: Array<{ id: string; label: string; path: string }> = [
   { id: "lia", label: "Legitimate Interest Assessment", path: "/admin/test-lia" },
   { id: "dpia", label: "DPIA Framework", path: "/admin/test-dpia" },
   { id: "governance", label: "Governance Assessment", path: "/admin/test-governance" },
+  { id: "dpa", label: "DPA Generator (EU/UK)", path: "/admin/test-dpa" },
+  { id: "dpa-us", label: "DPA Generator (US State)", path: "/admin/test-dpa-us" },
+  { id: "dpa-dual", label: "DPA Generator (Dual Compliance)", path: "/admin/test-dpa-dual" },
+  { id: "dpa-canada", label: "DPA Generator (Canada)", path: "/admin/test-dpa-canada" },
+  { id: "ir-playbook", label: "IR Playbook (EU/UK)", path: "/admin/test-ir-playbook" },
+  { id: "ir-playbook-us", label: "IR Playbook (US)", path: "/admin/test-ir-playbook-us" },
+  { id: "biometric", label: "Biometric Checker", path: "/admin/test-biometric" },
+  { id: "cppa-scope", label: "CPPA Scope Checker", path: "/admin/test-cppa-scope" },
+  { id: "cppa-risk", label: "CPPA Risk Assessment", path: "/admin/test-cppa-risk" },
+  { id: "cppa-cyber", label: "CPPA Cybersecurity Audit", path: "/admin/test-cppa-cyber" },
+  { id: "ropa", label: "RoPA Builder", path: "/admin/test-ropa" },
+  { id: "us-notice", label: "US Privacy Notice Builder", path: "/admin/test-us-notice" },
+  { id: "eu-notice", label: "EU Privacy Notice Builder", path: "/admin/test-eu-notice" },
+  { id: "registration", label: "Registration Assessment", path: "/admin/test-registration" },
+  { id: "brief", label: "Intelligence Brief Generator", path: "/admin/test-brief" },
 ];
 
 const TEST_TIMEOUT_MS = 180_000;
@@ -244,14 +259,120 @@ export default function TestsOutput() {
     void reviewOne(entry);
   }
 
-  function exportJson() {
-    const blob = new Blob([JSON.stringify(results, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `tests-output-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  function exportPdf() {
+    const date = new Date().toISOString().slice(0, 10);
+    const esc = (s: unknown) =>
+      String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    const rows = REGISTRY.map((r) => results[r.id]).filter(Boolean);
+    const sections = rows
+      .map((r) => {
+        const a = r.assertions || [];
+        const pass = a.filter((x) => x.passed === true).length;
+        const fail = a.filter((x) => x.passed === false).length;
+        const rev = r.review;
+        return `
+          <section class="test">
+            <h2>${esc(r.label)} <span class="badge ${r.status}">${esc(r.status)}</span></h2>
+            <p class="meta">Assertions: ${pass} pass · ${fail} fail · ${a.length} total${
+              r.elapsedMs ? ` · ${Math.round(r.elapsedMs / 1000)}s` : ""
+            }</p>
+            ${
+              a.length
+                ? `<ul class="assertions">${a
+                    .map(
+                      (x) =>
+                        `<li>${
+                          x.passed === true ? "✓" : x.passed === false ? "✗" : "·"
+                        } ${esc(x.label)}</li>`,
+                    )
+                    .join("")}</ul>`
+                : ""
+            }
+            ${
+              rev
+                ? `<div class="review">
+                    <h3>Review</h3>
+                    <p class="scores">${DIMENSIONS.map(
+                      (d) =>
+                        `<span><strong>${d.label}:</strong> ${rev.scores[d.key] ?? "—"}</span>`,
+                    ).join(" · ")}</p>
+                    <p><strong>Summary:</strong> ${esc(rev.summary)}</p>
+                    ${
+                      rev.strengths?.length
+                        ? `<p><strong>Strengths:</strong></p><ul>${rev.strengths
+                            .map((s) => `<li>${esc(s)}</li>`)
+                            .join("")}</ul>`
+                        : ""
+                    }
+                    ${
+                      rev.weaknesses?.length
+                        ? `<p><strong>Weaknesses:</strong></p><ul>${rev.weaknesses
+                            .map((s) => `<li>${esc(s)}</li>`)
+                            .join("")}</ul>`
+                        : ""
+                    }
+                    ${
+                      rev.priority_fixes?.length
+                        ? `<p><strong>Priority fixes:</strong></p><ul>${rev.priority_fixes
+                            .map(
+                              (f) =>
+                                `<li><em>[${esc(f.severity)}]</em> ${esc(f.issue)} — ${esc(
+                                  f.suggestion,
+                                )}</li>`,
+                            )
+                            .join("")}</ul>`
+                        : ""
+                    }
+                  </div>`
+                : r.reviewError
+                  ? `<p class="review-err">Review error: ${esc(r.reviewError)}</p>`
+                  : ""
+            }
+            ${
+              r.error
+                ? `<p class="error">Error: ${esc(r.error)}</p>`
+                : ""
+            }
+          </section>
+        `;
+      })
+      .join("");
+
+    const html = `<!doctype html><html><head><meta charset="utf-8"/>
+      <title>Tests Output — ${date}</title>
+      <style>
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0d2a45;max-width:880px;margin:32px auto;padding:0 24px;}
+        h1{font-size:24px;margin:0 0 4px;}
+        h2{font-size:16px;margin:0 0 6px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+        h3{font-size:13px;margin:12px 0 4px;text-transform:uppercase;letter-spacing:.06em;color:#475569;}
+        .meta{color:#64748b;font-size:12px;margin:0 0 8px;}
+        .test{border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;margin-bottom:14px;page-break-inside:avoid;}
+        .assertions{margin:6px 0;padding-left:18px;font-size:12px;}
+        .assertions li{margin:1px 0;}
+        .review{background:#f8fafc;border-radius:6px;padding:10px 12px;margin-top:10px;font-size:12.5px;}
+        .review ul{margin:4px 0 8px 18px;}
+        .scores{font-size:11.5px;color:#475569;margin:4px 0 8px;}
+        .badge{font-size:10px;padding:2px 8px;border-radius:999px;background:#e2e8f0;color:#334155;text-transform:uppercase;letter-spacing:.05em;}
+        .badge.reviewed,.badge.complete{background:#d1fae5;color:#065f46;}
+        .badge.failed,.badge.timeout{background:#fee2e2;color:#991b1b;}
+        .error,.review-err{color:#b91c1c;font-size:12px;margin:6px 0 0;}
+        @media print{ .test{break-inside:avoid;} }
+      </style></head><body>
+      <h1>Tests Output Report</h1>
+      <p class="meta">Generated ${date} · ${rows.length} tests</p>
+      ${sections}
+      <script>window.addEventListener("load",()=>{setTimeout(()=>window.print(),300);});</script>
+      </body></html>`;
+
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   }
 
   function handleClearCache() {
@@ -332,8 +453,8 @@ export default function TestsOutput() {
                 {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
                 {running ? `Running ${runIndex! + 1}/${REGISTRY.length}` : `Run all ${REGISTRY.length}`}
               </Button>
-              <Button variant="outline" onClick={exportJson} className="gap-1.5">
-                <Download className="w-4 h-4" />Export
+              <Button variant="outline" onClick={exportPdf} className="gap-1.5">
+                <Download className="w-4 h-4" />Export PDF
               </Button>
               <Button variant="outline" onClick={handleClearCache} disabled={running} className="gap-1.5">
                 <Trash2 className="w-4 h-4" />Clear cache

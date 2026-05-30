@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
+import { useTestRunnerBridge } from "@/hooks/useTestRunnerBridge";
 
 const MOCK_INTAKE = {
   biometric_type: "Facial geometry / facial recognition",
@@ -158,6 +159,16 @@ export default function TestBiometric() {
   }));
   const passCount = assertions.filter((a) => a.passed === true).length;
   const failCount = assertions.filter((a) => a.passed === false).length;
+
+  useTestRunnerBridge({
+    testId: "biometric",
+    status,
+    result: text as unknown,
+    assertions: assertions.map((a) => ({ label: a.label, passed: a.passed })),
+    log,
+    elapsedMs: elapsed * 1000,
+    resultUrl: recordId ? `/biometric-checker/result/${recordId}` : null,
+  });
 
   return (
     <div className="min-h-screen bg-brand-cloud">

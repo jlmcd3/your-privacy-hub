@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
+import { useTestRunnerBridge } from "@/hooks/useTestRunnerBridge";
 
 // Mapped to the codes expected by generate-custom-brief
 const PREFS = {
@@ -217,6 +218,16 @@ export default function TestBrief() {
   }));
   const passCount = assertions.filter((a) => a.passed === true).length;
   const failCount = assertions.filter((a) => a.passed === false).length;
+
+  useTestRunnerBridge({
+    testId: "brief",
+    status,
+    result: sections as unknown,
+    assertions: assertions.map((a) => ({ label: a.label, passed: a.passed })),
+    log,
+    elapsedMs: elapsed * 1000,
+    resultUrl: null,
+  });
 
   const foundProhibited = PROHIBITED_PHRASES.filter((p) =>
     flat.toLowerCase().includes(p)
