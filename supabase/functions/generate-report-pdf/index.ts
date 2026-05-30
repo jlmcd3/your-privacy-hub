@@ -595,6 +595,13 @@ Deno.serve(async (req) => {
       biometric_checker: "biometric_assessments",
       ir_playbook: "ir_playbooks",
       dpa_generator: "dpa_documents",
+      // Newly supported tools (text/document-based or summary-based output):
+      cppa_cybersecurity: "cppa_assessments",
+      cppa_risk: "cppa_assessments",
+      cppa_scope: "cppa_scope_checks",
+      registration_assessment: "registration_assessments",
+      registration_document: "registration_documents",
+      brief: "custom_briefs",
     };
     const table = tableMap[tool_type];
     if (!table) {
@@ -616,6 +623,42 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Report data not found or not yet complete" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // Helper: turn a JSON summary into bullet-styled plain text for the
+    // generic text builder. Keeps PDF output readable for tools that don't
+    // (yet) have a bespoke HTML template.
+    const summaryToText = (obj: any): string => {
+      if (!obj) return "";
+      if (typeof obj === "string") return obj;
+      try {
+        const out: string[] = [];
+        const walk = (o: any, depth = 0) => {
+          const pad = "  ".repeat(depth);
+          if (Array.isArray(o)) {
+            o.forEach((v) => {
+              if (v && typeof v === "object") walk(v, depth);
+              else out.push(`${pad}• ${String(v)}`);
+            });
+          } else if (o && typeof o === "object") {
+            for (const [k, v] of Object.entries(o)) {
+              const label = k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+              if (v && typeof v === "object") {
+                out.push(`\n${pad}${label}`);
+                walk(v, depth + 1);
+              } else if (v !== null && v !== undefined && v !== "") {
+                out.push(`${pad}${label}: ${String(v)}`);
+              }
+            }
+          } else {
+            out.push(`${pad}${String(o)}`);
+          }
+        };
+        walk(obj);
+        return out.join("\n");
+      } catch {
+        return JSON.stringify(obj, null, 2);
+      }
+    };
 
     let html: string;
     let generatedAt: string;
@@ -665,7 +708,7 @@ Deno.serve(async (req) => {
         },
       });
       generatedAt = record.created_at || new Date().toISOString();
-    } else { // dpa_generator
+    } else if (tool_type === "dpa_generator") {
       const intake = record.intake_data || {};
       html = buildTextReportHTML({
         title: `Your Custom DPA — ${intake.controllerName || "Controller"} / ${intake.processorName || "Processor"}`,
@@ -674,6 +717,70 @@ Deno.serve(async (req) => {
         showJurisdictionChip: false,
       });
       generatedAt = record.created_at || new Date().toISOString();
+    } else if (tool_type === "cppa_cybersecurity" || tool_type === "cppa_risk") {
+      const intake = record.intake_data || {};
+      const title = tool_type === "cppa_cybersecurity"
+        ? "CPPA Cybersecurity Audit"
+        : "CPPA Risk Assessment";
+      const parts = [record.document_a_text, record.document_b_text].filter(Boolean);
+      const text = parts.length
+        ? parts.join("\n\n──────────────────────────────\n\n")
+        : summaryToText(record.report_data);
+      html = buildTextReportHTML({
+        title,
+        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
+          (intake.organizationName ? ` · ${intake.organizationName}` : "") + " · California (CPPA)",
+        text,
+        showJurisdictionChip: false,
+      });
+      generatedAt = record.created_at || new Date().toISOString();
+    } else if (tool_type === "cppa_scope") {
+      const text = summaryToText({
+        in_scope: record.in_scope,
+        obligation_map: record.obligation_map,
+      });
+      html = buildTextReportHTML({
+        title: "CPPA Scope Check",
+        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })} · California (CPPA)`,
+        text,
+        showJurisdictionChip: false,
+      });
+      generatedAt = record.created_at || new Date().toISOString();
+    } else if (tool_type === "registration_assessment") {
+      const summary = record.result_summary || {};
+      const text = summaryToText({
+        recommended_jurisdictions: record.recommended_jurisdictions,
+        confidence_tier: record.confidence_tier,
+        ...summary,
+      });
+      html = buildTextReportHTML({
+        title: "Registration Assessment",
+        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
+          (record.organization_name ? ` · ${record.organization_name}` : ""),
+        text,
+        showJurisdictionChip: false,
+      });
+      generatedAt = record.created_at || new Date().toISOString();
+    } else if (tool_type === "registration_document") {
+      html = buildTextReportHTML({
+        title: `Registration Filing — ${record.jurisdiction_code || ""}`,
+        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })} · ${record.document_type || ""} · ${record.language || "en"}`,
+        text: record.content_text || "",
+        showJurisdictionChip: false,
+      });
+      generatedAt = record.created_at || new Date().toISOString();
+    } else { // brief
+      const sections = record.custom_sections || {};
+      const text = typeof sections === "string"
+        ? sections
+        : summaryToText(sections);
+      html = buildTextReportHTML({
+        title: `Intelligence Brief — ${record.week_label || ""}`,
+        metaLine: `Generated ${new Date(record.generated_at || record.created_at || Date.now()).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}`,
+        text,
+        showJurisdictionChip: false,
+      });
+      generatedAt = record.generated_at || record.created_at || new Date().toISOString();
     }
 
     const attachmentName = makeAttachmentName(tool_type, generatedAt);
