@@ -364,13 +364,16 @@ export default function TestsOutput() {
 
 
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [rowPdfBusy, setRowPdfBusy] = useState<string | null>(null);
 
-  async function exportPdf() {
-    setPdfBusy(true);
+  async function exportPdf(only?: TestResult) {
+    if (only) setRowPdfBusy(only.testId);
+    else setPdfBusy(true);
     try {
-      const { html, date } = buildExportHtml();
+      const { html, date } = buildExportHtml(only);
+      const slug = only ? only.testId : "All";
       const { data, error } = await supabase.functions.invoke("render-html-to-pdf", {
-        body: { html, title: `Tests-Output-${date}` },
+        body: { html, title: `Tests-Output-${slug}-${date}` },
       });
       if (error) throw error;
       if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");
@@ -379,9 +382,11 @@ export default function TestsOutput() {
       console.error("exportPdf failed:", e);
       alert(e?.message || "PDF generation failed");
     } finally {
-      setPdfBusy(false);
+      if (only) setRowPdfBusy(null);
+      else setPdfBusy(false);
     }
   }
+
 
   function exportWord() {
     const { date, rows } = buildExportHtml();
