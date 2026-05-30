@@ -598,12 +598,13 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { tool_type, assessment_id, user_email, user_name, result_url } = await req.json();
+    const { tool_type, assessment_id, user_email, user_name, result_url, force } = await req.json();
 
     if (!tool_type || !assessment_id) {
       return new Response(JSON.stringify({ error: "tool_type and assessment_id are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
 
     const tableMap: Record<string, string> = {
       li_assessment: "li_assessments",
