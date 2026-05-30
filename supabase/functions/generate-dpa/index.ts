@@ -275,7 +275,7 @@ Draft a complete US State Data Processing Agreement with ALL of the following se
    4.3 Security measures (see Section 9)
    4.4 Sub-processor obligations (see Section 7)
    4.5 Consumer rights assistance (see Section 6)
-   4.6 Risk assessment / DPIA assistance — TDPSA § 541.109, CTDPA § 8, VCDPA § 59.1-579, CPA § 6-1-1309, OCPA § 646A.574
+   4.6 Risk assessment / DPIA assistance — Cal. Civ. Code § 1798.185(a)(15) and CPPA risk-assessment regulations; TDPSA § 541.109; CTDPA § 8; VCDPA § 59.1-579; CPA § 6-1-1309; OCPA § 646A.574
    4.7 Deletion or return of data at termination (see Section 11)
    4.8 Audit cooperation (see Section 12)
 5. PROHIBITED PROCESSING (CCPA/CPRA § 1798.100(d) and equivalents) — this section MUST contain, verbatim, the phrases "shall not sell" AND "shall not share" applied to Personal Data, and MUST explicitly state that the Processor is "prohibited from selling or sharing" Personal Data outside the business purpose.
