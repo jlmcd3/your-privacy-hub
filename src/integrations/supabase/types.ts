@@ -2222,6 +2222,57 @@ export type Database = {
         }
         Relationships: []
       }
+      primary_source_fetch_runs: {
+        Row: {
+          completed_at: string | null
+          dry_run: boolean
+          error: string | null
+          events: Json
+          extracted_unverified: number
+          extracted_verbatim: number
+          fetch_failed: number
+          fetched_partial: number
+          id: string
+          params: Json
+          processed: number
+          queried: number
+          started_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          dry_run?: boolean
+          error?: string | null
+          events?: Json
+          extracted_unverified?: number
+          extracted_verbatim?: number
+          fetch_failed?: number
+          fetched_partial?: number
+          id?: string
+          params?: Json
+          processed?: number
+          queried?: number
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          dry_run?: boolean
+          error?: string | null
+          events?: Json
+          extracted_unverified?: number
+          extracted_verbatim?: number
+          fetch_failed?: number
+          fetched_partial?: number
+          id?: string
+          params?: Json
+          processed?: number
+          queried?: number
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       professional_clients: {
         Row: {
           client_matter: string | null
