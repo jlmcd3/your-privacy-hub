@@ -186,16 +186,35 @@ export default function USNoticeDocuments() {
   async function handleDownload(doc: DocumentRow) {
     if (!doc.file_path) return;
     try {
-      const { data, error } = await supabase.storage
+      // Pull the stored HTML, render to PDF via PDFShift, open the result.
+      const { data: fileData, error: dlErr } = await supabase.storage
         .from("us-notices")
-        .createSignedUrl(doc.file_path, 60 * 5);
-      if (error || !data?.signedUrl) throw error;
-      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+        .download(doc.file_path);
+      if (dlErr || !fileData) throw dlErr ?? new Error("Couldn't fetch file");
+      const raw = await fileData.text();
+      const fmt = (doc.document_format || "").toLowerCase();
+      const isHtml = fmt === "html" || /<\/?[a-z][\s\S]*>/i.test(raw);
+      const html = isHtml
+        ? raw
+        : `<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Georgia,'Times New Roman',serif;font-size:11pt;line-height:1.5;color:#1a1a1a;white-space:pre-wrap;}</style></head><body>${raw
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")}</body></html>`;
+      const titleParts = [
+        doc.is_combined ? "us-notice-combined" : (doc.state_code || "us-notice"),
+        `v${doc.version_number}`,
+      ];
+      const { data, error } = await supabase.functions.invoke("render-html-to-pdf", {
+        body: { html, title: titleParts.join("-") },
+      });
+      if (error) throw error;
+      if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");
+      window.open(data.pdf_url, "_blank", "noopener,noreferrer");
     } catch (err) {
       console.error("[USNoticeDocuments] download error", err);
       toast({
-        title: "Couldn't open file",
-        description: "Please try again.",
+        title: "Couldn't generate PDF",
+        description: err instanceof Error ? err.message : "Please try again.",
         variant: "destructive",
       });
     }
@@ -408,10 +427,10 @@ export default function USNoticeDocuments() {
                           onClick={() => handleDownload(d)}
                           disabled={!d.file_path}
                           className="w-full sm:w-auto min-h-[44px]"
-                          aria-label={`Download ${state.state_name} notice (${(d.document_format ?? "pdf").toUpperCase()})`}
+                          aria-label={`Download ${state.state_name} notice (PDF)`}
                         >
                           <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
-                          {(d.document_format ?? "pdf").toUpperCase()}
+                          PDF
                         </Button>
                       ))
                     )}

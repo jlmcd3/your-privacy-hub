@@ -139,9 +139,27 @@ export default function EUNoticeDocuments() {
   async function downloadOriginal(d: DocRow) {
     setBusyId(d.id);
     try {
-      const { data, error } = await supabase.storage.from("eu-notices").createSignedUrl(d.file_path, 60);
-      if (error || !data) throw error ?? new Error("No URL");
-      window.open(data.signedUrl, "_blank", "noopener");
+      // Fetch the stored HTML/text, then render it to PDF via PDFShift.
+      const { data: fileData, error: dlErr } = await supabase.storage
+        .from("eu-notices")
+        .download(d.file_path);
+      if (dlErr || !fileData) throw dlErr ?? new Error("Couldn't fetch file");
+      const raw = await fileData.text();
+      const fmt = (d.document_format || "").toLowerCase();
+      const isHtml = fmt === "html" || /<\/?[a-z][\s\S]*>/i.test(raw);
+      const html = isHtml
+        ? raw
+        : `<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Georgia,'Times New Roman',serif;font-size:11pt;line-height:1.5;color:#1a1a1a;padding:0;white-space:pre-wrap;}</style></head><body>${raw
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")}</body></html>`;
+      const title = labelForDoc(d);
+      const { data, error } = await supabase.functions.invoke("render-html-to-pdf", {
+        body: { html, title },
+      });
+      if (error) throw error;
+      if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");
+      window.open(data.pdf_url, "_blank", "noopener");
     } catch (err) {
       toast({ title: "Couldn't download", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
     } finally {
@@ -237,7 +255,7 @@ export default function EUNoticeDocuments() {
                       {busyId === d.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        <><Download className="h-3.5 w-3.5 mr-1.5" /> Original</>
+                        <><Download className="h-3.5 w-3.5 mr-1.5" /> PDF</>
                       )}
                     </Button>
                     <Button asChild variant="ghost" size="sm">

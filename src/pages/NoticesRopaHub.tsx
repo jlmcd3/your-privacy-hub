@@ -161,6 +161,15 @@ export default function NoticesRopaHub() {
       </Helmet>
       <PageContainer>
         <div className="py-8">
+          <div className="mb-4">
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-1 text-sm text-slate hover:text-brand-navy no-underline font-medium transition-colors"
+            >
+              <ArrowRight className="w-4 h-4 rotate-180" aria-hidden="true" />
+              Back to dashboard
+            </Link>
+          </div>
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="font-display text-brand-navy">Notices & RoPA</h1>
