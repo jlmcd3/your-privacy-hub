@@ -285,14 +285,14 @@ Draft a complete US State Data Processing Agreement with ALL of the following se
    5.4 No Retention Beyond Purpose
    Cite Cal. Civ. Code § 1798.100(d)(1)-(5) and equivalent state provisions explicitly.
 6. CONSUMER RIGHTS PASS-THROUGH — the section heading MUST contain the exact phrase "Consumer Rights" and the body MUST include the verbatim phrases "right to access", "right to delete" and "right to correct" with applicable response timelines per state law (Know/Access, Delete, Correct, Opt-Out of Sale/Sharing incl. GPC for California, Limit Use of Sensitive PI, Non-Discrimination).
-7. SUB-PROCESSOR PROVISIONS — prior written consent; equivalent obligations flow-down; Processor liable for sub-processors; Schedule A listing.
+7. SUB-PROCESSOR PROVISIONS — prior written consent; equivalent obligations flow-down; Processor liable for sub-processors; populate Schedule A from the parties' inputs. If no sub-processors were provided in the intake, output a blank Schedule A with column headers (Name / Service / Location / Date Authorised) and the instruction line "[TO BE COMPLETED: list approved Sub-processors here]". Do NOT hard-code "no Sub-Processors at the Effective Date" unless the intake expressly stated none.
 8. SENSITIVE PERSONAL DATA — heightened protections; opt-in consent for minors' data for targeted advertising or profiling.
 9. SECURITY MEASURES — calibrated to data categories and subject count; encryption, access controls, employee training, incident response, pen testing cadence; address failures in enforcement context.
-10. DATA BREACH NOTIFICATION — state-specific timelines:
-    - California: notify Controller within 72 hours; Controller notifies CA AG if 500+ affected
-    - Texas: notify Controller promptly; Controller notifies AG if 250+ Texans affected
+10. DATA BREACH NOTIFICATION — state-specific timelines (use the wording below verbatim where indicated):
+    - California: Processor shall notify Controller of any Data Breach impacting Personal Data of California residents "without unreasonable delay and in the most expedient time possible" after discovery. Do NOT impose a fixed 72-hour processor-to-controller window for California — Cal. Civ. Code § 1798.82 governs notification to individuals, not B2B processor timelines. The Controller is responsible for notifying the California Attorney General if 500+ California residents are affected.
+    - Texas: notify Controller promptly; Controller notifies AG if 250+ Texans affected (Tex. Bus. & Com. Code § 521.053)
     - Connecticut: 72 hours to Controller; Controller notifies AG within 60 days
-    - Colorado: 30 days to Controller; Controller notifies AG if 500+ CO residents
+    - Colorado: Processor shall notify Controller without undue delay; Controller notifies the Colorado Attorney General as required by C.R.S. § 6-1-716 (Colorado breach notification statute). Do NOT cite "CPA § 6-1-1309" for breach notification — the Colorado Privacy Act does not set breach notification timelines; those come from C.R.S. § 6-1-716.
     - Virginia: notify Controller within 72 hours; Controller notifies AG within 60 days
     Include minimum notification content per applicable state law.
 11. POST-TERMINATION OBLIGATIONS — at Controller's election, Processor shall delete or return all Personal Data and certify deletion in writing within 30 days; no retention except as required by law. Use the exact phrase "delete or return" and reference "Personal Data" in the same sentence.
@@ -304,6 +304,8 @@ Draft a complete US State Data Processing Agreement with ALL of the following se
 17. GENERAL PROVISIONS (amendments, entire agreement, severability, counterparts)
 
 [SIGNATURE BLOCK]
+
+SCHEDULE A — APPROVED SUB-PROCESSORS
 
 Additional requirements:
 - Include a dedicated section titled 'Consumer Rights Assistance' or 'Data Subject / Consumer Rights' that explicitly requires the Processor to:
