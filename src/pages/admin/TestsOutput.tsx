@@ -243,7 +243,7 @@ export default function TestsOutput() {
     void reviewOne(entry);
   }
 
-  function exportPdf() {
+  function buildExportHtml(): { html: string; date: string; rows: TestResult[] } {
     const date = new Date().toISOString().slice(0, 10);
     const esc = (s: unknown) =>
       String(s ?? "")
@@ -330,7 +330,7 @@ export default function TestsOutput() {
       <title>Tests Output — ${date}</title>
       <style>
         body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0d2a45;max-width:880px;margin:32px auto;padding:0 24px;}
-        h1{font-size:24px;margin:0 0 4px;}
+        h1{font-size:24px;margin:0 0 4px;color:#0d2a45;}
         h2{font-size:16px;margin:0 0 6px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
         h3{font-size:13px;margin:12px 0 4px;text-transform:uppercase;letter-spacing:.06em;color:#475569;}
         .meta{color:#64748b;font-size:12px;margin:0 0 8px;}
@@ -344,19 +344,95 @@ export default function TestsOutput() {
         .badge.reviewed,.badge.complete{background:#d1fae5;color:#065f46;}
         .badge.failed,.badge.timeout{background:#fee2e2;color:#991b1b;}
         .error,.review-err{color:#b91c1c;font-size:12px;margin:6px 0 0;}
-        @media print{ .test{break-inside:avoid;} }
+        .brandbar{border-top:3px solid #2a9d8f;margin-bottom:18px;padding-top:10px;}
       </style></head><body>
+      <div class="brandbar"></div>
       <h1>Tests Output Report</h1>
-      <p class="meta">Generated ${date} · ${rows.length} tests</p>
+      <p class="meta">Generated ${date} · ${rows.length} tests · EndUserPrivacy.com</p>
       ${sections}
-      <script>window.addEventListener("load",()=>{setTimeout(()=>window.print(),300);});</script>
       </body></html>`;
+    return { html, date, rows };
+  }
 
-    const w = window.open("", "_blank");
-    if (!w) return;
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+  const [pdfBusy, setPdfBusy] = useState(false);
+
+  async function exportPdf() {
+    setPdfBusy(true);
+    try {
+      const { html, date } = buildExportHtml();
+      const { data, error } = await supabase.functions.invoke("render-html-to-pdf", {
+        body: { html, title: `Tests-Output-${date}` },
+      });
+      if (error) throw error;
+      if (!data?.pdf_url) throw new Error(data?.error || "PDF generation failed");
+      window.open(data.pdf_url, "_blank", "noopener");
+    } catch (e: any) {
+      console.error("exportPdf failed:", e);
+      alert(e?.message || "PDF generation failed");
+    } finally {
+      setPdfBusy(false);
+    }
+  }
+
+  function exportWord() {
+    const { date, rows } = buildExportHtml();
+    // Build a plain-text version that DownloadWordButton's parser can format.
+    const text = rows.map((r) => {
+      const a = r.assertions || [];
+      const pass = a.filter((x) => x.passed === true).length;
+      const fail = a.filter((x) => x.passed === false).length;
+      const lines: string[] = [];
+      lines.push(r.label.toUpperCase());
+      lines.push(`Status: ${r.status}  ·  Assertions: ${pass} pass / ${fail} fail / ${a.length} total${r.elapsedMs ? `  ·  ${Math.round(r.elapsedMs / 1000)}s` : ""}`);
+      if (a.length) {
+        lines.push("");
+        a.forEach((x) => lines.push(`• ${x.passed === true ? "✓" : x.passed === false ? "✗" : "·"} ${x.label}`));
+      }
+      if (r.review) {
+        lines.push("", "Review");
+        DIMENSIONS.forEach((d) => lines.push(`• ${d.label}: ${r.review!.scores[d.key] ?? "—"}`));
+        lines.push("", `Summary: ${r.review.summary}`);
+        if (r.review.strengths?.length) {
+          lines.push("", "Strengths");
+          r.review.strengths.forEach((s) => lines.push(`• ${s}`));
+        }
+        if (r.review.weaknesses?.length) {
+          lines.push("", "Weaknesses");
+          r.review.weaknesses.forEach((s) => lines.push(`• ${s}`));
+        }
+        if (r.review.priority_fixes?.length) {
+          lines.push("", "Priority fixes");
+          r.review.priority_fixes.forEach((f) => lines.push(`• [${f.severity}] ${f.issue} — ${f.suggestion}`));
+        }
+      } else if (r.reviewError) {
+        lines.push("", `Review error: ${r.reviewError}`);
+      }
+      if (r.error) lines.push("", `Error: ${r.error}`);
+      return lines.join("\n");
+    }).join("\n\n──────────────────────────────\n\n");
+    // Stash on a hidden component instance via temp button click.
+    const tmpDiv = document.createElement("div");
+    document.body.appendChild(tmpDiv);
+    import("@/components/DownloadWordButton").then((mod) => {
+      import("react-dom/client").then((rd) => {
+        const root = rd.createRoot(tmpDiv);
+        const Btn = mod.default;
+        // Mount, programmatically click, then cleanup.
+        const onClickRef: { current: HTMLButtonElement | null } = { current: null };
+        root.render(
+          <span ref={(el) => {
+            const b = el?.querySelector("button") as HTMLButtonElement | null;
+            if (b && !onClickRef.current) {
+              onClickRef.current = b;
+              b.click();
+              setTimeout(() => { root.unmount(); tmpDiv.remove(); }, 1500);
+            }
+          }}>
+            <Btn text={text} label={`Tests-Output-${date}`} subtitle={`${rows.length} tests · EndUserPrivacy.com`} />
+          </span>
+        );
+      });
+    });
   }
 
   function handleClearCache() {
