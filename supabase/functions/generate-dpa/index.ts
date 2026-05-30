@@ -422,7 +422,7 @@ ${ANNOTATIONS_INSTRUCTIONS}`;
 
 
     const aiController = new AbortController();
-    const aiTimeout = setTimeout(() => aiController.abort(), 85_000);
+    const aiTimeout = setTimeout(() => aiController.abort(), 180_000);
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
