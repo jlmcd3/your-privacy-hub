@@ -635,6 +635,38 @@ Deno.serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // ── CACHE CHECK ─────────────────────────────────────────────────────
+    // If a PDF was already generated for this assessment, reuse it instead
+    // of calling PDFShift again. Re-sign the stored object and return.
+    // Skip cache when `force=true` or when an email send is requested
+    // (so a fresh attachment can be delivered).
+    if (!force && !user_email) {
+      try {
+        const folder = `reports/${table}/${assessment_id}`;
+        const { data: existing } = await supabase.storage
+          .from("assessment-reports")
+          .list(folder, { limit: 10, sortBy: { column: "created_at", order: "desc" } });
+        const cachedFile = (existing || []).find((f) => f.name.toLowerCase().endsWith(".pdf"));
+        if (cachedFile) {
+          const { data: urlData } = await supabase.storage
+            .from("assessment-reports")
+            .createSignedUrl(`${folder}/${cachedFile.name}`, 60 * 60 * 24 * 365);
+          if (urlData?.signedUrl) {
+            if (TABLES_WITH_PDF_URL.has(table)) {
+              await supabase.from(table).update({ pdf_url: urlData.signedUrl }).eq("id", assessment_id);
+            }
+            return new Response(
+              JSON.stringify({ success: true, pdf_generated: true, pdf_url: urlData.signedUrl, email_sent: false, cached: true }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
+      } catch (cacheErr) {
+        console.warn("Cache lookup failed, falling through to fresh render:", cacheErr);
+      }
+    }
+
+
     // Tools that ship a structured report_data JSON blob
     const structuredTools = new Set(["li_assessment", "governance_assessment", "dpia_framework"]);
     if (structuredTools.has(tool_type) && !record.report_data) {
