@@ -456,7 +456,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
       }),
-      signal: AbortSignal.timeout(150000),
+      signal: AbortSignal.timeout(130000),
     });
 
     if (!aiResponse.ok) {
