@@ -4914,6 +4914,15 @@ export type Database = {
         Args: { p_batch?: number; p_force_reenrich?: boolean; p_since?: string }
         Returns: number
       }
+      admin_fire_batch_fetch_primary_sources: {
+        Args: {
+          p_dry_run?: boolean
+          p_limit?: number
+          p_regulator?: string
+          p_source?: string
+        }
+        Returns: number
+      }
       admin_fire_ingest_backfill:
         | { Args: { p_source_group: string }; Returns: number }
         | {

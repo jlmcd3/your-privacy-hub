@@ -150,6 +150,7 @@ import CPPASuiteResult from "./pages/CPPASuiteResult.tsx";
 import TestsDashboard from "./pages/admin/TestsDashboard.tsx";
 import CorpusExtractionAdmin from "./pages/admin/CorpusExtractionAdmin";
 import VerificationScanAdmin from "./pages/admin/VerificationScanAdmin";
+import PrimarySourceFetcher from "./pages/admin/PrimarySourceFetcher";
 
 const queryClient = new QueryClient();
 
@@ -431,6 +432,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <VerificationScanAdmin />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/primary-source-fetcher"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <PrimarySourceFetcher />
                   </AdminOnly>
                 </ProtectedRoute>
               }
