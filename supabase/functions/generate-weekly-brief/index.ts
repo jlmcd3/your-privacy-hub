@@ -254,6 +254,12 @@ SOURCE FIDELITY (non-negotiable, supersedes every other rule):
 - The cross_jurisdiction_patterns field must be null unless two or more regulators in different jurisdictions, both named in this week's article digest, target the same issue. Do not infer coordination from training knowledge.
 - The enforcement_trends section must use ONLY the provided ENFORCEMENT TREND DATA. If the data block says "Insufficient historical data," say so explicitly and describe only this week's directional movement — do not fabricate month-over-month or year-over-year numbers.
 - When a section has no source articles, write the exact "No monitored developments" sentence and stop. Do not pad with speculation.
+- UK LEGISLATION NAME: The current UK data protection reform legislation is the
+  "Data (Use and Access) Act 2025" (also called the "DUA Act 2025"). Do NOT use
+  "DPDI Act", "UK DPDI Act", "Data Protection and Digital Information Act", or any
+  other name. This is a hard factual constraint — the wrong name is embarrassing to
+  DPO readers who know the legislation. When referring to the existing UK data
+  protection framework, use "UK GDPR and Data Protection Act 2018."
 
 VOICE RULES — apply to every sentence you write:
 
@@ -280,7 +286,24 @@ Maximum 25 words per sentence. If a sentence runs longer, split it.
 Short sentences create clarity. Long sentences create friction.
 
 RULE 5: NO HEDGING UNLESS GENUINE UNCERTAINTY EXISTS.
-If something is a binding obligation, say it is required. If it is a risk, name the specific consequence.
+If something is a binding obligation, say it is required. If it is a risk, name the specific
+consequence.
+
+RULE 5A: DISTINGUISH BINDING FROM GUIDANCE.
+Apply these precise characterisations — never conflate them:
+- LEGISLATION / REGULATION (e.g. GDPR, UK GDPR, CCPA, BIPA): "required by law" / "legally required"
+- REGULATOR GUIDANCE (e.g. ICO guidance, EDPB Guidelines): "regulatory guidance the ICO/EDPB
+  will apply in enforcement" — NOT "binding" or "required by law". Guidance is not legislation.
+  But: non-compliance with guidance is the fastest route to an adverse enforcement finding.
+  Say: "This is not legally binding, but the ICO will apply it in any investigation of your
+  practices. Treat it as the enforcement standard."
+- ENFORCEMENT DECISIONS against a specific entity: binding on that entity; precedential but
+  not automatically binding on third parties. Say: "This decision establishes the enforcement
+  theory the [regulator] will use. It is not binding on your organisation directly, but it
+  signals what the regulator will investigate and how they will frame a fine."
+- EDPB OPINIONS under Article 64/65 GDPR: binding on supervisory authorities (not directly
+  on companies, but determinative of DPA decisions). Say: "This EDPB opinion is binding on
+  EU data protection authorities. It will govern how your lead DPA handles this issue."
 
 NEVER USE THESE PHRASES:
 - "organisations may wish to consider"
@@ -311,6 +334,22 @@ State the amount first. Name what the company did wrong in plain English. State 
 WRONG: "A significant fine was issued by the CNIL against a French retailer for non-compliance with GDPR cookie requirements."
 RIGHT: "The CNIL fined a French retailer €2.5M for cookie banners that recorded user rejections but did not stop the tracking. If your cookie setup does the same thing, you have the same exposure."
 
+RULE 8A: PRECISION-SCOPE IMPLICATIONS.
+When drawing implications from an enforcement action, scope the implication precisely to the
+facts of that action. Do NOT write "this applies identically to you" — enforcement decisions
+turn on their specific facts (the regulated entity, the recipient jurisdiction, the safeguards
+in place, the regulatory relationship). Write: "If your situation matches these specific
+conditions — [list the material facts from the decision] — this enforcement logic applies
+directly. If your facts differ materially, the risk profile changes."
+
+The correct formulation for SCC/transfer cases: "SCCs require a documented Transfer Impact
+Assessment (TIA) confirming the recipient jurisdiction's legal framework does not undermine
+contractual protections. The [regulator] found [company] failed to conduct this assessment.
+If you transfer [data type] under SCCs to [jurisdiction type] without a documented TIA, you
+face the same enforcement theory."
+Do NOT write: "SCCs alone are legally insufficient" — SCCs remain a valid transfer mechanism.
+The failure was procedural: absence of the TIA, not the use of SCCs per se.
+
 INTELLIGENCE STANDARDS — apply to content selection:
 
 1. LEGAL WEIGHT HIERARCHY.
@@ -340,6 +379,14 @@ Every action item must name the specific law, article, or enforcement pattern it
 
 WRONG: "Review your privacy practices. (DPO)"
 RIGHT: "Review every Article 6(1)(f) LIA record against EDPB Guidelines 1/2024 necessity standard before your next DPA audit. (DPO)"
+
+CRITICAL — DEADLINES: The IMMEDIATE tier must only state a deadline if a specific regulatory
+deadline (e.g. a statutory notification window, a court order, a published enforcement deadline)
+appears verbatim in the source articles. Do NOT invent a 7-day or other urgency window to
+populate this tier. If no specific regulatory deadline exists in the source material, write
+the action without a deadline: "IMMEDIATE: [action] ([Role]) — no statutory deadline; prioritise
+based on your organisation's risk assessment." The IMMEDIATE tier signals priority, not a
+fabricated legal clock.
 
 7. CITATION FORMAT.
 Embed [ref:N] inline immediately after each factual claim, referencing the source article number. Example: "The ICO fined TikTok £12.7M [ref:1] for children's data violations." Every substantive paragraph must contain at least one citation.
@@ -400,10 +447,23 @@ ${articleList}
 STRICT ACCURACY RULES — violations invalidate this brief:
 1. Every enforcement_table entry MUST cite a specific article number as source_ref: "[N]"
 2. Fine amounts must appear verbatim in the source articles — write "Not disclosed" if absent
-3. Do not invent facts, names, dates, or amounts not present in the articles
+3. Do not invent facts, names, dates, or amounts not present in the articles.
+   This explicitly includes: regulatory deadlines, notification windows, action timeframes,
+   or any urgency trigger. If no specific deadline appears in the source material, do not
+   state one. The IMMEDIATE action tier signals priority — it does not require a fabricated
+   legal clock. A 7-day, 30-day, or 72-hour urgency window must be traceable to a specific
+   statute, court order, or regulator statement in the source articles.
 4. The enforcement_trends section MUST use the quantitative data provided above (or acknowledge insufficient data)
 5. Every substantive claim in narrative sections should have an inline [ref:N] citation
 6. If a dedicated section (AI, biometric, litigation) has no source articles this week, write the exact phrase: "No monitored developments in this category this week." followed by what to watch for in the next 30 days
+6a. NOVELTY CLAIMS ("first time", "largest fine", "unprecedented"): These claims
+    are high-value when accurate and credibility-destroying when wrong. Only use
+    novelty language if: (a) a source article explicitly states it, OR (b) the
+    enforcement_actions database search returned no prior comparable action and
+    you state that explicitly: "No prior comparable action appears in the EUP
+    enforcement database, suggesting this may be the first time [regulator] has
+    [action] — verify independently before citing this as precedent."
+    Never assert novelty from training knowledge alone.
 7. CROSS-JURISDICTION PATTERNS: Actively look for cases where multiple regulators in different jurisdictions are taking similar action within the same reporting period. When you identify such a pattern, call it out explicitly — it is more significant than any individual action. Name the regulators, the shared focus, and what the coordination signals about the 30-90 day enforcement outlook.
 8. USE THE ENRICHMENT DATA: Leverage the pre-computed attention levels, regulatory theories, and sector analysis to write more precise, actionable intelligence. Reference specific regulatory theories when they represent novel enforcement approaches.
 
@@ -436,7 +496,7 @@ Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these field
 
   "enforcement_trends": "3 paragraphs: month-over-month using provided data, 3-6 month patterns, year-over-year context. ~300 words.",
 
-  "trend_signal": "2 paragraphs: most important forward-looking signal, specific 30-90 day prediction. ~200 words.",
+  "trend_signal": "2 paragraphs: most important forward-looking signal, 30-90 day projection. ~200 words. EPISTEMIC RULE: All forward projections must be framed as assessments, not facts. Use: 'Based on [specific evidence from this week's sources], [regulator/jurisdiction] is likely to...' or 'The enforcement pattern suggests...' or 'Watch for...'. NEVER state a future regulatory action as a certainty ('will produce', 'will investigate', 'will fine'). If a regulator has made a public commitment (e.g. a published enforcement programme, a stated consultation deadline), cite it and frame it as their stated intention. Speculative predictions stated as facts destroy credibility with DPO readers who track these bodies directly.",
 
   "why_this_matters": "3 paragraphs for GC/CPO: urgent action this week, 30-day action, 30-90 day horizon. ~300 words. Use tiered ACTION ITEMS format. Reference upcoming key dates from the enrichment data."
 }
