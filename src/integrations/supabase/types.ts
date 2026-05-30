@@ -4921,7 +4921,7 @@ export type Database = {
           p_regulator?: string
           p_source?: string
         }
-        Returns: number
+        Returns: string
       }
       admin_fire_ingest_backfill:
         | { Args: { p_source_group: string }; Returns: number }

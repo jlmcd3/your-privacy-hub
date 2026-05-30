@@ -1,9 +1,10 @@
 // Admin tool: dispatches the batch-fetch-primary-sources edge function via
 // the SECURITY DEFINER RPC admin_fire_batch_fetch_primary_sources. The RPC
-// reads ADMIN_SECRET_TOKEN from the vault, so the token never reaches the
-// browser. Use dry-run first to see what would be processed.
+// creates a row in primary_source_fetch_runs and returns its id; this page
+// polls that row every 2s and renders the live event log + counters so you
+// don't have to leave the page to read edge-function logs.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -14,13 +15,41 @@ import { supabase } from "@/integrations/supabase/client";
 
 type SourceRow = { source_database: string | null; pending: number };
 
+type Event = { ts: string; level: "info" | "ok" | "warn" | "error"; msg: string };
+
+type Run = {
+  id: string;
+  status: string;
+  dry_run: boolean;
+  queried: number;
+  processed: number;
+  extracted_verbatim: number;
+  extracted_unverified: number;
+  fetched_partial: number;
+  fetch_failed: number;
+  events: Event[] | null;
+  error: string | null;
+  started_at: string;
+  completed_at: string | null;
+};
+
+const LEVEL_COLOR: Record<Event["level"], string> = {
+  info: "text-muted-foreground",
+  ok: "text-emerald-600 dark:text-emerald-400",
+  warn: "text-amber-600 dark:text-amber-400",
+  error: "text-destructive",
+};
+
 export default function PrimarySourceFetcher() {
   const [limit, setLimit] = useState(10);
   const [source, setSource] = useState("FTC");
   const [regulator, setRegulator] = useState("");
   const [busy, setBusy] = useState<null | "dry" | "real">(null);
-  const [result, setResult] = useState<string>("");
   const [pending, setPending] = useState<SourceRow[]>([]);
+  const [runId, setRunId] = useState<string | null>(null);
+  const [run, setRun] = useState<Run | null>(null);
+  const [error, setError] = useState<string>("");
+  const logEndRef = useRef<HTMLDivElement | null>(null);
 
   const loadPending = useCallback(async () => {
     const { data, error } = await supabase
@@ -29,7 +58,7 @@ export default function PrimarySourceFetcher() {
       .eq("primary_source_status", "pending_fetch")
       .not("primary_source_url", "is", null)
       .limit(5000);
-    if (error) { setResult(`Error loading pending counts: ${error.message}`); return; }
+    if (error) { setError(`Error loading pending counts: ${error.message}`); return; }
     const tally = new Map<string, number>();
     for (const r of data ?? []) {
       const k = (r as any).source_database ?? "(unlabeled)";
@@ -44,9 +73,43 @@ export default function PrimarySourceFetcher() {
 
   useEffect(() => { loadPending(); }, [loadPending]);
 
-  const run = useCallback(async (dryRun: boolean) => {
+  // Poll the active run row.
+  useEffect(() => {
+    if (!runId) return;
+    let cancelled = false;
+    const tick = async () => {
+      const { data, error } = await supabase
+        .from("primary_source_fetch_runs" as any)
+        .select("*")
+        .eq("id", runId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) { setError(`Polling error: ${error.message}`); return; }
+      setRun(data as unknown as Run);
+    };
+    tick();
+    const handle = setInterval(tick, 2000);
+    return () => { cancelled = true; clearInterval(handle); };
+  }, [runId]);
+
+  // Auto-scroll log when new events arrive.
+  useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [run?.events?.length]);
+
+  // When a run completes, refresh pending counts.
+  useEffect(() => {
+    if (run?.status === "complete" || run?.status === "error") {
+      loadPending();
+      setBusy(null);
+    }
+  }, [run?.status, loadPending]);
+
+  const run_ = useCallback(async (dryRun: boolean) => {
     setBusy(dryRun ? "dry" : "real");
-    setResult(`${dryRun ? "Dry-run" : "Real run"} dispatched…`);
+    setError("");
+    setRun(null);
+    setRunId(null);
     const { data, error } = await supabase.rpc(
       "admin_fire_batch_fetch_primary_sources" as any,
       {
@@ -57,16 +120,15 @@ export default function PrimarySourceFetcher() {
       },
     );
     if (error) {
-      setResult(`Error: ${error.message}`);
-    } else {
-      setResult(
-        `${dryRun ? "Dry-run" : "Real run"} dispatched. request_id=${data}. ` +
-        `Tail the batch-fetch-primary-sources logs to see results.`,
-      );
+      setError(`Error: ${error.message}`);
+      setBusy(null);
+      return;
     }
-    setBusy(null);
-    if (!dryRun) await loadPending();
-  }, [limit, source, regulator, loadPending]);
+    setRunId(data as string);
+  }, [limit, source, regulator]);
+
+  const events = run?.events ?? [];
+  const isDone = run?.status === "complete" || run?.status === "error";
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -141,23 +203,89 @@ export default function PrimarySourceFetcher() {
             <Button
               variant="outline"
               disabled={busy !== null}
-              onClick={() => run(true)}
+              onClick={() => run_(true)}
             >
               {busy === "dry" ? "Dispatching…" : "Dry-run"}
             </Button>
             <Button
               disabled={busy !== null}
-              onClick={() => run(false)}
+              onClick={() => run_(false)}
               className="bg-brand-teal text-white"
             >
               {busy === "real" ? "Dispatching…" : "Run (fetch & extract)"}
             </Button>
           </div>
 
-          {result && <p className="text-sm pt-2">{result}</p>}
+          {error && <p className="text-sm text-destructive pt-2">{error}</p>}
         </section>
+
+        {run && (
+          <section className="border rounded p-4 mb-6">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div>
+                <h2 className="text-lg font-semibold">
+                  Live log{" "}
+                  <span className="text-xs font-mono text-muted-foreground">
+                    {run.id.slice(0, 8)} • {run.status}
+                    {run.dry_run && " • dry-run"}
+                  </span>
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Started {new Date(run.started_at).toLocaleTimeString()}
+                  {run.completed_at && ` • finished ${new Date(run.completed_at).toLocaleTimeString()}`}
+                </p>
+              </div>
+              {!isDone && (
+                <span className="text-xs px-2 py-1 rounded bg-brand-teal/10 text-brand-teal">
+                  polling every 2s…
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-xs mb-3">
+              <Stat label="queried" value={run.queried} />
+              <Stat label="processed" value={run.processed} />
+              <Stat label="verbatim" value={run.extracted_verbatim} />
+              <Stat label="unverified" value={run.extracted_unverified} />
+              <Stat label="partial" value={run.fetched_partial} />
+              <Stat label="failed" value={run.fetch_failed} />
+            </div>
+
+            <div className="bg-muted/40 border rounded p-3 font-mono text-xs max-h-[420px] overflow-auto">
+              {events.length === 0 ? (
+                <p className="text-muted-foreground">Waiting for events…</p>
+              ) : (
+                events.map((ev, i) => (
+                  <div key={i} className="whitespace-pre-wrap">
+                    <span className="text-muted-foreground">
+                      {new Date(ev.ts).toLocaleTimeString()}{" "}
+                    </span>
+                    <span className={LEVEL_COLOR[ev.level]}>
+                      [{ev.level}]
+                    </span>{" "}
+                    {ev.msg}
+                  </div>
+                ))
+              )}
+              <div ref={logEndRef} />
+            </div>
+
+            {run.error && (
+              <p className="text-sm text-destructive mt-3">Run error: {run.error}</p>
+            )}
+          </section>
+        )}
       </main>
       <Footer />
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="border rounded p-2 text-center">
+      <div className="text-muted-foreground">{label}</div>
+      <div className="font-mono text-sm">{value.toLocaleString()}</div>
     </div>
   );
 }
