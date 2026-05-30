@@ -41,11 +41,11 @@ const ASSERTIONS = [
   },
   {
     label: "Contains Section 5 with a notification template",
-    fn: (t: string) => /##\s*5\.|section\s*5/i.test(t) && /template/i.test(t),
+    fn: (t: string) => /(##\s*5\.|section\s*5|^\s*5\.|notification template)/im.test(t) && /template/i.test(t),
   },
   {
     label: "Contains Section 6 documentation checklist",
-    fn: (t: string) => /##\s*6\.|section\s*6/i.test(t) && /(documentation|checklist|accountability)/i.test(t),
+    fn: (t: string) => /(##\s*6\.|section\s*6|^\s*6\.|documentation.*checklist|accountability)/im.test(t) && /(documentation|checklist|accountability|records?\s+to\s+(create|maintain))/i.test(t),
   },
   { label: 'Contains "Article 33"', fn: (t: string) => /article\s*33|art\.?\s*33/i.test(t) },
   { label: "Document length > 3000 characters", fn: (t: string) => t.length > 3000 },

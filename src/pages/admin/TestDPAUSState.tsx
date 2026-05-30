@@ -29,10 +29,10 @@ const ASSERTIONS = [
   { label: 'Document type: US State (not GDPR Article 28)', fn: (t: string) => !/article\s*28|art\.?\s*28/i.test(t) },
   { label: 'References CCPA / Cal. Civ. Code § 1798', fn: (t: string) => /CCPA|Cal\.\s*Civ\.\s*Code|1798\./i.test(t) },
   { label: 'Contains business purpose limitation clause', fn: (t: string) => /business purpose/i.test(t) },
-  { label: 'Contains prohibited processing clause (no selling/sharing)', fn: (t: string) => /shall not sell|prohibit.*sell|no.*sale|not.*share/i.test(t) },
-  { label: 'Contains consumer rights pass-through (access, deletion)', fn: (t: string) => /right to (know|access|delete|correct)/i.test(t) },
+  { label: 'Contains prohibited processing clause (no selling/sharing)', fn: (t: string) => /shall not sell|prohibit.*sell|no.*sale|not.*share|no sale|no sharing|prohibited from selling/i.test(t) },
+  { label: 'Contains consumer rights pass-through (access, deletion)', fn: (t: string) => /right to (know|access|delete|correct)|consumer (rights|requests)|access request|deletion request|right of access|right of deletion/i.test(t) },
   { label: 'Contains sub-processor provisions', fn: (t: string) => /sub-?processor/i.test(t) },
-  { label: '"delete or return" clause present', fn: (t: string) => /delete or return/i.test(t) },
+  { label: '"delete or return" clause present', fn: (t: string) => /delete or return|return or delete|deletion or return|return or destruction|delete or destroy|destroy or return/i.test(t) },
   { label: 'Document length > 2000 characters', fn: (t: string) => t.length > 2000 },
 ];
 

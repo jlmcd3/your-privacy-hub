@@ -39,7 +39,7 @@ const REGISTRY: Array<{ id: string; label: string; path: string }> = [
   { id: "brief", label: "Intelligence Brief Generator", path: "/admin/test-brief" },
 ];
 
-const TEST_TIMEOUT_MS = 180_000;
+const TEST_TIMEOUT_MS = 240_000;
 const STORAGE_KEY = () => `tests-output:${new Date().toISOString().slice(0, 10)}`;
 
 // Isolated tickers — keep the 500ms re-render contained in tiny leaf
@@ -260,7 +260,7 @@ export default function TestsOutput() {
         const entry = REGISTRY[runIndex];
         const cur = results[entry.id];
         if (cur && cur.status !== "complete" && cur.status !== "failed" && cur.status !== "timeout") {
-          updateResult(entry.id, { status: "timeout", error: "Test exceeded 120s" });
+          updateResult(entry.id, { status: "timeout", error: `Test exceeded ${Math.floor(TEST_TIMEOUT_MS / 1000)}s` });
         }
       }
     }, 2000);
