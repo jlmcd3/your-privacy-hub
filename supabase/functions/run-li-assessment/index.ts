@@ -305,6 +305,17 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
     if (!Array.isArray(oa.key_distinguishing_factors)) oa.key_distinguishing_factors = [];
     if (!Array.isArray(oa.blocking_issues)) oa.blocking_issues = [];
 
+    // Always attach a plain-language note explaining the argument-strength rating
+    // so end users (especially non-specialists) understand what "uncertain" means.
+    const STRENGTH_NOTES: Record<string, string> = {
+      strong: "Strong: the facts and precedents available support a defensible legitimate-interest claim.",
+      moderate: "Moderate: legitimate interest is plausibly available but rests on contested or fact-sensitive points; resolve open questions before deployment.",
+      weak: "Weak: significant factors weigh against a legitimate-interest claim on the facts provided; consider an alternative legal basis or additional safeguards.",
+      insufficient: "Insufficient: not enough information has been provided to reach a verdict; supply the open-question items and re-run.",
+      uncertain: "Uncertain: blocking issues have been identified that must be resolved before a defensible LI claim can be established — this does NOT mean legitimate interest is categorically unavailable.",
+    };
+    oa.argument_strength_note = STRENGTH_NOTES[oa.argument_strength] ?? STRENGTH_NOTES.uncertain;
+
 
     // ── STAGE 3: Documentation recommendations ──
     const docsSystem = `You are a privacy regulatory analyst producing practical documentation guidance. Focus on what documentation would make this legitimate interest assessment defensible. Return ONLY valid JSON, no preamble.`;
