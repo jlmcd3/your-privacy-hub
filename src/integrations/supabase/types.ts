@@ -4992,6 +4992,13 @@ export type Database = {
         Args: { p_max_rows?: number; p_regulator: string }
         Returns: number
       }
+      admin_pending_fetch_counts: {
+        Args: never
+        Returns: {
+          pending: number
+          source_database: string
+        }[]
+      }
       claim_enforcement_for_enrichment: {
         Args: { _limit: number; _target_version: number }
         Returns: {
