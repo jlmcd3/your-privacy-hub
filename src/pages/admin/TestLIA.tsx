@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
+import { useTestRunnerBridge } from "@/hooks/useTestRunnerBridge";
 
 const MOCK_INTAKE = {
   processing_description:
@@ -181,6 +182,16 @@ export default function TestLIA() {
   }));
   const passCount = assertions.filter((a) => a.passed === true).length;
   const failCount = assertions.filter((a) => a.passed === false).length;
+
+  useTestRunnerBridge({
+    testId: "lia",
+    status,
+    result,
+    assertions: assertions.map((a) => ({ label: a.label, passed: a.passed })),
+    log,
+    elapsedMs: elapsed * 1000,
+    resultUrl: assessmentId ? `/li-assessment/result/${assessmentId}` : null,
+  });
 
   const argStrength = result?.three_part_test?.overall_assessment?.argument_strength;
 

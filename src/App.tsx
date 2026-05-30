@@ -148,6 +148,7 @@ import CPPACybersecurity from "./pages/CPPACybersecurity.tsx";
 import CPPACybersecurityResult from "./pages/CPPACybersecurityResult.tsx";
 import CPPASuiteResult from "./pages/CPPASuiteResult.tsx";
 import TestsDashboard from "./pages/admin/TestsDashboard.tsx";
+import TestsOutput from "./pages/admin/TestsOutput.tsx";
 import CorpusExtractionAdmin from "./pages/admin/CorpusExtractionAdmin";
 import VerificationScanAdmin from "./pages/admin/VerificationScanAdmin";
 import PrimarySourceFetcher from "./pages/admin/PrimarySourceFetcher";
@@ -624,6 +625,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <TestBrief />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/tests-output"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestsOutput />
                   </AdminOnly>
                 </ProtectedRoute>
               }
