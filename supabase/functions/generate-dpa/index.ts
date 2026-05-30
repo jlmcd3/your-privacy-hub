@@ -241,10 +241,10 @@ Draft the complete DPA with ALL of the following sections. Number clauses hierar
 1. PARTIES AND RECITALS
 2. SUBJECT MATTER, NATURE, DURATION AND PURPOSE
 3. PROCESSOR OBLIGATIONS (all eight Article 28(3) elements: instructions, confidentiality, security, sub-processors, assistance with rights, assistance with security/breach/DPIA, deletion/return, information/audit)
-4. SUB-PROCESSOR PROVISIONS (Articles 28(2) and 28(4)) – include specific approval mechanism and notification timeline
+4. SUB-PROCESSOR PROVISIONS (Articles 28(2) and 28(4)) – include specific approval mechanism and notification timeline. The clause MUST state explicitly: "General authorisation under this clause applies ONLY to the Sub-processors listed in Schedule 1 at the Effective Date. All subsequent additions or replacements require prior specific written authorisation under the [30]-day notice procedure set out in this clause." Use a 30-day notice window.
 5. SECURITY MEASURES (Article 32) – specify technical and organisational measures calibrated to the data categories listed above
-6. DATA BREACH NOTIFICATION (Article 33) – include the specific notification timeline and minimum content requirements
-7. DATA SUBJECT RIGHTS ASSISTANCE (Articles 12-23)
+6. DATA BREACH NOTIFICATION (Article 33) – the Processor MUST notify the Controller without undue delay and in any event within forty-eight (48) hours of becoming aware of a Personal Data Breach. Include this clarifying sentence verbatim in the clause: "This 48-hour window is the Processor's obligation to the Controller, designed to enable the Controller to comply with its own obligation under Article 33(1) GDPR to notify the supervisory authority within 72 hours of becoming aware of the breach." Include minimum content requirements.
+7. DATA SUBJECT RIGHTS ASSISTANCE (Articles 12-23). Where the processing involves special categories of data under Article 9, the DPIA-assistance clause MUST cite Article 35(3)(b) as the mandatory DPIA trigger for large-scale processing of special category data.
 8. POST-TERMINATION OBLIGATIONS — MUST include an explicit clause stating that, at the Controller's choice, the Processor shall delete or return all Personal Data to the Controller after the end of the provision of services, and delete existing copies unless retention is required by law (Article 28(3)(g)). Use the exact phrase "delete or return" and reference "Personal Data" within the same sentence.
 9. AUDIT AND INSPECTION RIGHTS – use ${body.auditRights} standard
 ${transferSection}
@@ -254,6 +254,8 @@ ${transferSection}
 13. GENERAL PROVISIONS
 
 [SIGNATURE BLOCK]
+
+SCHEDULE 1 — APPROVED SUB-PROCESSORS (populate from intake; if none provided, output a blank Schedule 1 with column headers Name / Service / Location / Date Authorised and an instruction line "[TO BE COMPLETED: list approved Sub-processors here]")
 
 ${ANNOTATIONS_INSTRUCTIONS}`;
 
