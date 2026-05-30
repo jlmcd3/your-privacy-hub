@@ -16,7 +16,7 @@ import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2, PlayCircle, RotateCw, ExternalLink, Download } from "lucide-react";
+import { Loader2, PlayCircle, RotateCw, ExternalLink, Download, Trash2 } from "lucide-react";
 
 const REGISTRY: Array<{ id: string; label: string; path: string }> = [
   { id: "lia", label: "Legitimate Interest Assessment", path: "/admin/test-lia" },
