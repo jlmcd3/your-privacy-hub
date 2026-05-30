@@ -209,6 +209,12 @@ async function jinaFetch(targetUrl: string): Promise<string> {
 }
 
 // ── AI enrichment for updates table ───────────────────────────────
+// NOTE (Source Fidelity overhaul, Function 2): this function must ONLY be called
+// when real body text is available (description distinct from title and >= 100 chars).
+// The previous dual-write call site passed `title` as both title and description,
+// causing the model to fabricate decision details from a headline. That call site has
+// been changed to skip the dual-write when body text is absent. The prompt below
+// applies THIN SOURCE DISCIPLINE for any future caller that does have body text.
 async function generateUpdateSummary(
   title: string,
   description: string,
@@ -217,6 +223,8 @@ async function generateUpdateSummary(
   jurisdiction: string,
   apiKey: string,
 ): Promise<Record<string, unknown> | null> {
+  const descText = description || "";
+  const isThin = descText.trim().length < 100 || descText.trim() === title.trim();
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -232,39 +240,55 @@ async function generateUpdateSummary(
 Analyse this enforcement action or regulatory announcement and return a single valid JSON object.
 Return ONLY the JSON — no preamble, no markdown, no explanation.
 
-VOICE: Write in direct, active voice. Lead with the compliance implication, not the regulatory action.
-Do not extrapolate beyond what the title and description directly support.
-
 SOURCE: This content comes from an official regulatory authority (${regulator}, ${jurisdiction}).
-Write in direct declarative voice — this is a primary source.`,
+It is a primary source. Write in direct declarative voice.
+
+GOVERNING PRINCIPLES:
+
+SOURCE FIDELITY: Every specific factual claim in your output — fine amounts, case reference numbers, specific article violations, company names, decision dates — must be directly present in the provided text. If the provided text is only a title with no body content, return a minimal object with null for fields that cannot be grounded. NEVER generate case reference numbers, fine amounts, or specific violation details from training knowledge. The absence of information in the source is not a reason to fabricate it.
+
+THIN SOURCE DISCIPLINE: If the source text is only a headline (under 100 characters, or identical to the title), you have insufficient basis for most fields. Return:
+- why_it_matters_short: a general statement based on the headline
+- why_it_matters: one general sentence (still must be >= 10 chars) acknowledging full text is pending
+- compliance_impact: 'Monitor — [headline topic] — full decision text pending retrieval.'
+- takeaways: a single general string acknowledging the headline topic (the validator requires >= 1)
+- legal_weight and attention_level based on the headline topic
+- All entity arrays: empty unless the headline names them
+- All specific fact fields (fine amounts, case refs, article numbers): null
+- action_items: empty array
+Do not extrapolate. A headline is not a decision.
+
+VOICE: Write in direct, active declarative voice appropriate to an official source. Lead with the compliance implication.`,
         messages: [{
           role: "user",
           content: `Regulator: ${regulator}
 Jurisdiction: ${jurisdiction}
 Title: ${title}
-Description: ${description || "No description available."}
+Source text: ${descText || "No body text available — title only."}
 Source: ${sourceName}
+
+SOURCE TEXT LENGTH: ${descText.length} characters.
+${isThin ? "WARNING: Source text is very short or duplicates the title. Apply THIN SOURCE DISCIPLINE — return null for all specific-fact fields that cannot be grounded in this text." : ""}
 
 Return this JSON object:
 {
-  "why_it_matters_short": "ONE sentence (max 25 words). Name the regulator and what organisations must do or avoid.",
-  "why_it_matters": "2 sentences. Lead with the compliance implication, then name the regulator, jurisdiction, and legal basis.",
-  "takeaways": ["1-3 specific factual points. Each must name a regulator, law, or deadline."],
-  "compliance_impact": "One sentence naming the specific organisation type and the specific action required. If monitoring only, write: 'Monitor — [what specifically] before [trigger or timeframe].'",
-  "affected_jurisdictions": ["Use only these slugs: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong"],
+  "why_it_matters_short": "ONE sentence (max 25 words) based only on what the source text states.",
+  "why_it_matters": "2 sentences based only on what the source text states. If source is title-only, ONE general sentence (>= 10 chars) acknowledging the headline topic is acceptable.",
+  "takeaways": ["1-3 strings citing specific facts FROM THE SOURCE TEXT. If source text is title-only, return a single general string about the headline topic. Never empty — validator requires >= 1."],
+  "compliance_impact": "One sentence. If source is title-only: 'Monitor — [headline topic] — full decision text pending retrieval.'",
+  "affected_jurisdictions": ["Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong"],
   "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary",
   "attention_level": "High | Medium | Low",
-  "regulatory_theory": "The legal doctrine or principle in one sentence, or null for Commentary.",
-  "action_items": [
-    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific step naming regulator or law", "timeframe": "Immediate (within 7 days) | This quarter | Monitor" }
-  ],
-  "defense_considerations": "One sentence on the strongest distinguishing factor or defence, or null.",
+  "regulatory_theory": "One sentence on the legal doctrine IF determinable from the source text. Return null if source is title-only or doctrine is not stated.",
+  "action_items": [],
+  "defense_considerations": null,
   "entities": {
-    "regulators": ["Official abbreviated names of regulatory authorities named"],
-    "companies": ["Organisations subject to this action — from content only, not training knowledge"],
-    "laws": ["Specific laws with article numbers where stated"],
-    "case_references": ["Case names or guidance document identifiers from content only"]
-  }
+    "regulators": ["${regulator}"],
+    "companies": ["Company names STATED IN SOURCE TEXT. Empty array if none or if source is title-only."],
+    "laws": ["Laws with article numbers STATED IN SOURCE TEXT. Empty array if not stated."],
+    "case_references": ["Case reference numbers or decision identifiers STATED VERBATIM IN SOURCE TEXT. NEVER generate or infer reference numbers. Empty array if none."]
+  },
+  "source_fidelity_note": "Short note on source quality: title-only | short summary | full body text"
 }`,
         }],
       }),
