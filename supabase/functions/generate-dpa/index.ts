@@ -203,6 +203,12 @@ Audit rights: ${body.auditRights}`;
 - Mark any fields requiring controller/processor input as [TO BE COMPLETED: description]
 - Include an annotations array listing every enforcement case from the ENFORCEMENT CONTEXT above that informed a clause choice. Use the exact id value from each case (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT above — never from training knowledge.
 
+CRITICAL DRAFTING RULES — NON-NEGOTIABLE:
+1. SEQUENTIAL SECTION NUMBERING. Top-level section headings MUST be numbered sequentially: "1.", "2.", "3.", "4." and so on through to the final section. Do NOT restart numbering, do NOT output "1." for every section, and do NOT use markdown heading syntax (# / ## / ###). Output section headings as plain text in the form: "1. PARTIES AND RECITALS", "2. DEFINITIONS", "3. ACCOUNTABILITY", etc. Sub-clauses MUST be hierarchical (1.1, 1.2, 1.2.1, 2.1, 2.2, …). Verify before output that every internal cross-reference (e.g. "see Section 7.2") points to the correct sequential number. NEVER output a sub-clause such as "100.3.7" — that indicates a numbering collision; the correct form is "10.3.7".
+2. COMPLETE OUTPUT. The document MUST run continuously through every required section, ending with a fully formed General Provisions section, a complete Term & Termination clause, and a SIGNATURE BLOCK with name / title / date lines for both Controller and Processor, followed by any required Schedules. Never stop mid-sentence. If the document is long, prioritise covering every numbered section to completion over verbosity in earlier sections.
+3. CONSISTENT BLANK FORMAT. Use the form "[TO BE COMPLETED: description]" for every user-fillable blank — do not mix "[TO BE COMPLETED: …]" with bare "[City, Province]" or other bracketed placeholders.
+4. NO STRAY MARKDOWN. Do not emit "**bold**", "*italics*", or markdown headings; the document must read as plain legal text.
+
 Output format:
 - First, output ONLY the DPA document. No preamble, commentary, or explanation.
 - Then, on a new line, output the exact separator:
