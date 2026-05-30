@@ -156,33 +156,15 @@ export default function TestsOutput() {
 
   // ---- Drive the run loop ----
   const reviewOne = useCallback(async (entry: TestResult) => {
-    updateResult(entry.testId, { status: "reviewing" });
-    try {
-      const { data, error } = await supabase.functions.invoke("review-test-output", {
-        body: {
-          testId: entry.testId,
-          testLabel: entry.label,
-          output: entry.result,
-          assertions: entry.assertions,
-          log: entry.log,
-        },
-      });
-      if (error) throw error;
-      if (data?.review) {
-        updateResult(entry.testId, { status: "reviewed", review: data.review });
-      } else {
-        updateResult(entry.testId, {
-          status: "reviewed",
-          reviewError: data?.error || "Empty review",
-        });
-      }
-    } catch (e: any) {
-      updateResult(entry.testId, {
-        status: "reviewed",
-        reviewError: e?.message || String(e),
-      });
-    }
+    // Claude review is disabled for now. Mark as reviewed with a notice.
+    updateResult(entry.testId, {
+      status: "reviewed",
+      reviewError: "Claude review disabled",
+    });
+    // Reference supabase to keep imports valid without invoking the function.
+    void supabase;
   }, [updateResult]);
+
 
   // Watch the current run for completion. Driven only by the currently-running
   // test's status to avoid re-entrancy from unrelated state changes.
