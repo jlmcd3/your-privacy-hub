@@ -301,50 +301,77 @@ Deno.serve(async (req) => {
               body: JSON.stringify({
                 model: "claude-sonnet-4-6",
                 max_tokens: 2500,
-                system: `You are a privacy regulatory analyst at a leading intelligence firm. Return ONLY valid JSON.
+                system: `You are a privacy regulatory intelligence analyst processing commercial news articles for a compliance platform.
 
-VOICE: Write in direct, active voice. Lead with the compliance implication, not the regulatory action. Do not extrapolate beyond what the article text directly supports.
+IMPORTANT: These articles come from commercial news sources (NewsAPI). They are TERTIARY sources — journalist reports, not official regulatory publications. Apply strict source calibration.
 
-RELEVANCE: If the article has NO meaningful connection to privacy law, data protection regulation, enforcement, or compliance, return {"skip": true}. When in doubt, proceed with enrichment — it is better to enrich a borderline article than to skip a relevant one.`,
+GOVERNING PRINCIPLES:
+
+SOURCE CALIBRATION: All claims must be attributed. Use "According to [source name], ..." or "[Source] reports that ..." for all specific factual claims. Never present a journalist's summary of a regulatory development as if it were the regulator's statement.
+
+SOURCE FIDELITY: Every specific fact — fine amounts, case numbers, deadlines — must appear in the article title or description. If not stated, return null. A news headline about a fine does not give you the exact fine amount unless the amount is in the title or description provided.
+
+NO SPECULATION: Do not predict enforcement consequences, regulatory outcomes, or what authorities will do next. Report only what the article states.
+
+THIN SOURCE DISCIPLINE: NewsAPI descriptions are often 1-3 sentences. Generate a minimal object. Return null or [] for any field that cannot be grounded in those sentences. NOTE: the validator requires why_it_matters (>= 10 chars), compliance_impact (>= 5 chars), and takeaways (>= 1 non-empty string). For thin sources, write GENERAL attributed versions of these — do not invent specifics to fill them.
+
+VOICE: Attribution is mandatory. "The ICO has announced..." is acceptable only if the article text states this. "The ICO is likely to..." is never acceptable.
+
+Return ONLY valid JSON. No preamble, no explanation.`,
                 messages: [{
                   role: "user",
-                  content: `Analyze this privacy/data protection article.
+                  content: `Analyze this privacy/data protection news article.
+
 Title: ${article.title}
-Description: ${article.description || ""}
-Source: ${article.source?.name || ""}
+Description: ${article.description || "No description available."}
+Source: ${article.source?.name || "Unknown"}
 
-STEP 1 — RELEVANCE CHECK: Return {"skip": true} ONLY if this article has no meaningful connection to privacy law, data protection regulation, enforcement, or compliance. When in doubt, proceed to Step 2.
+SOURCE TEXT LENGTH: ${(article.description || "").length} characters. This is a commercial news article — apply strict source calibration and attribution.
 
-STEP 2 — If relevant, return this JSON:
+STEP 1 — RELEVANCE CHECK: Return {"skip": true} if no meaningful connection to privacy law, data protection regulation, enforcement, or compliance.
+
+STEP 2 — If relevant, return:
 {
-  "why_it_matters": "2 sentences. Lead with the compliance implication for the affected organisation type, then name the regulator, jurisdiction, and legal basis. No generic statements. WRONG: 'The ICO has published guidance on legitimate interests under UK GDPR, clarifying the balancing test.' RIGHT: 'Organisations relying on legitimate interest as a processing basis under UK GDPR must re-examine their balancing tests against the ICO's updated standard, which narrows the margin significantly for behavioural advertising.'",
-  "takeaways": "Array of 1–5 strings. Generate proportionally: 1–2 for simple enforcement actions or single-issue guidance; 3–5 for comprehensive guidance documents, landmark decisions, or multi-issue developments. Do not pad to reach a target count — every item must add distinct information not covered by another. Each item must cite a specific regulator, law, article number, or deadline. No generic statements.",
-  "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no immediate action is required, write: 'Monitor — [specific development to watch] before [specific trigger or timeframe].' Never write a generic Monitor statement. Example of acceptable Monitor: 'Monitor — CNIL final position on session replay tools expected Q4 2026; update French website consent architecture once published.'",
-  "who_should_care": "The single most specific audience: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
-  "urgency": "Immediate | This quarter | Monitor",
-  "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary",
-  "source_strength": "Primary regulator | Legal analysis | Media coverage",
-  "cross_jurisdiction_signal": "If this article reflects a pattern occurring across multiple regulators or jurisdictions simultaneously, describe the pattern in one sentence. If no cross-jurisdiction pattern is evident, return null.",
+  "why_it_matters_short": "ONE sentence (max 25 words). Attribute to source if specific: 'According to [source], ...' Include regulator and stake.",
+
+  "why_it_matters": "2 sentences (>= 10 chars). Sentence 1: compliance implication attributed to the news source. Sentence 2: regulator, jurisdiction, legal basis as reported. Use attribution throughout — 'The article reports that...' or '[Source name] states...'",
+
+  "takeaways": ["1-2 strings (validator requires >= 1). Each attributed to the source. No specific legal citations unless stated in article text."],
+
+  "compliance_impact": "One sentence (>= 5 chars). Must reflect only what the article states. If unclear from the article: 'Monitor — see primary regulatory source for compliance implications.'",
+
+  "who_should_care": "DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
+
+  "urgency": "Immediate | This quarter | Monitor — default to Monitor for news articles unless article explicitly states an urgent deadline",
+
+  "legal_weight": "Commentary",
+
+  "source_strength": "Media coverage",
+
+  "cross_jurisdiction_signal": "Only if article explicitly reports coordinated multi-regulator action. Otherwise null.",
+
   "risk_level": "Low | Medium | High | Critical",
-  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong, china, israel, thailand, philippines, mexico. Return [] if impact is narrowly jurisdictional. Be conservative."],
+
+  "affected_jurisdictions": ["Conservative. Include only jurisdictions explicitly named in the article as being directly affected. Use only these slugs: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong, china, israel, thailand, philippines, mexico"],
+
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine",
-  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence. For Binding and Enforcement articles, this field is required — if no established doctrine name applies, describe the principle in plain terms. Only return null for Commentary or Proposal articles where no regulatory principle is engaged. Examples of well-formed values: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary use', 'Data minimisation enforcement against over-collection in employment context', 'Proportionality requirement applied to biometric retention schedules', 'Necessity test applied to cross-border transfer volume', 'Transparency obligation extended to automated profiling outputs', 'Legitimate interest balancing test narrowed for direct marketing'. Do not fabricate a doctrine name — if uncertain, describe the principle in plain terms.",
-  "action_items": [
-    {
-      "role": "DPO | Privacy Counsel | CISO | Compliance Manager",
-      "action": "Specific action naming the law, article number, or regulator",
-      "timeframe": "Immediate (within 7 days) | This quarter | Monitor"
-    }
-  ],
-  "key_date": "YYYY-MM-DD if a specific compliance deadline or effective date is stated in the article, otherwise null.",
-  "why_it_matters_short": "ONE sentence, max 25 words. Name the regulator and the compliance stake. No generic phrasing. This is shown to anonymous users as a preview.",
+
+  "regulatory_theory": "Only if article explicitly describes a legal theory. Return null if article is general news coverage.",
+
+  "action_items": [],
+
+  "key_date": "YYYY-MM-DD only if explicitly stated in article text. Return null otherwise.",
+
   "entities": {
-    "regulators": ["Array of regulatory authority names mentioned, using official abbreviated form (ICO, EDPB, CNIL, FTC, BfDI, ANPD, PDPC). Empty array if none."],
-    "companies": ["Array of company or organisation names that are the subject of regulatory action or guidance. Empty array if none. Populate only from content explicitly present in the article — do not use training knowledge."],
-    "laws": ["Array of specific laws with article numbers where stated (GDPR Art. 6(1)(f), CCPA §1798.120, BIPA 740 ILCS 14/). Empty array if none."],
-    "case_references": ["Array of specific case names or guidance document identifiers (C-597/19 Planet49, CNIL decision SAN-2022-018, EDPB Guidelines 1/2024). Empty array if none. Populate only from content explicitly present in the article."]
+    "regulators": ["Named in article text only."],
+    "companies": ["Named in article text as subjects of regulatory action only."],
+    "laws": ["Named in article text only. No training-knowledge citations."],
+    "case_references": ["Named verbatim in article text only. Return [] if none."]
   },
-  "defense_considerations": "For Binding or Enforcement articles only: one sentence stating the strongest distinguishing factor or defence an organisation could raise. Return null for Guidance, Proposal, or Commentary."
+
+  "defense_considerations": null,
+
+  "source_fidelity_note": "news-article: ${(article.description||'').length} chars available"
 }`,
                 }],
               }),
