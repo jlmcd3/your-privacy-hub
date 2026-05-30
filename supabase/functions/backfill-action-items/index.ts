@@ -84,10 +84,10 @@ async function generateActionsAndNovelty(
         model: "claude-haiku-4-5-20251001",
         max_tokens: 600,
         system:
-          "You produce concise privacy-regulatory metadata. Reply with one valid JSON object only — no preamble, no markdown.",
+          "You produce concise privacy-regulatory metadata grounded STRICTLY in the source text provided. Reply with one valid JSON object only — no preamble, no markdown.\n\nSOURCE FIDELITY RULES:\n- Only produce action_items that follow directly from a regulator, law, or obligation explicitly named in the source text.\n- Only classify precedent_novelty using cues present in the source text. If the source does not discuss prior practice, use \"routine\".\n- Never invent regulators, articles, deadlines, sectors, or enforcement patterns. If the source is thin or generic, return an empty action_items array.",
         messages: [{
           role: "user",
-          content: `Given this privacy article, produce action items and a precedent novelty classification.
+          content: `Given this privacy article, produce action items and a precedent novelty classification — grounded ONLY in the text below.
 
 Title: ${title}
 Why it matters: ${fullWhy || "(none)"}
@@ -96,19 +96,19 @@ Article summary: ${(summary || "").slice(0, 800)}
 Return JSON:
 {
   "action_items": [
-    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific compliance step naming a regulator or law (e.g. 'Update Art. 13 GDPR notices to disclose new AI processing purpose before enforcement begins'). NOT generic ('monitor', 'review').", "timeframe": "Immediate (within 7 days) | This quarter | Monitor" }
+    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific compliance step that names a regulator or law EXPLICITLY mentioned in the source above (e.g. 'Update Art. 13 GDPR notices to disclose new AI processing purpose'). NOT generic ('monitor', 'review'). NOT inferred from outside knowledge.", "timeframe": "Immediate (within 7 days) | This quarter | Monitor" }
   ],
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine"
 }
 
-Generate 1–3 action_items. If no specific named-law action applies, return []. Do not fabricate.`,
+Generate 0–3 action_items. Return [] if the source does not name a specific law/regulator/obligation strong enough to justify a concrete action. Do not fabricate. Better to return [] than to invent.`,
         }],
       }),
       signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) return null;
-    const data = await res.json();
-    const text = data.content?.[0]?.text;
+    const json = await res.json();
+    const text = json.content?.[0]?.text;
     if (!text) return null;
     const m = text.match(/\{[\s\S]*\}/);
     if (!m) return null;
