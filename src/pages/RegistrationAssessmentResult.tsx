@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Copy, Loader2, Mail } from "lucide-react";
 import RegistrationCheckoutModal, { type RegistrationTier } from "@/components/RegistrationCheckoutModal";
+import PDFDownloadButton from "@/components/PDFDownloadButton";
+import DownloadWordButton from "@/components/DownloadWordButton";
 
 interface JurisdictionResult {
   code: string;
@@ -227,9 +229,32 @@ export default function RegistrationAssessmentResult() {
             <header className="mb-8">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <h1 className="text-foreground">Your Registration Map</h1>
-                <Button variant="outline" size="sm" onClick={copyShareLink}>
-                  <Copy className="h-4 w-4 mr-2" />Share / save link
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={copyShareLink}>
+                    <Copy className="h-4 w-4 mr-2" />Share / save link
+                  </Button>
+                  {assessment?.id && (
+                    <>
+                      <PDFDownloadButton
+                        toolType="registration_assessment"
+                        assessmentId={assessment.id}
+                        pdfUrl={null}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
+                      />
+                      <DownloadWordButton
+                        text={[
+                          `Confidence: ${assessment.confidence_tier || ""}`,
+                          `Jurisdictions: ${(assessment.recommended_jurisdictions || []).join(", ")}`,
+                          typeof assessment.result_summary === "string"
+                            ? assessment.result_summary
+                            : JSON.stringify(assessment.result_summary || {}, null, 2),
+                        ].filter(Boolean).join("\n\n")}
+                        label="Registration Assessment"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
+                      />
+                    </>
+                  )}
+                </div>
               </div>
               <p className="text-muted-foreground mt-2">
                 Confidence: <Badge variant="secondary" className="ml-1 capitalize">{confidence}</Badge>
