@@ -373,11 +373,20 @@ Deno.serve(async (req) => {
   const since =
     (typeof body.since === "string" ? body.since : url.searchParams.get("since")) || null;
 
+  // Current enrichment target — bump if you change the prompt
+  const TARGET_ENRICHMENT_VERSION = 4;
+
   let articleQuery = supabase
     .from("updates")
     .select("id, title, summary, source_name, source_domain");
 
-  if (!forceReenrich) {
+  if (forceReenrich) {
+    // Re-enrich rows that haven't yet been processed by the new prompt.
+    // (Without this filter, batches keep re-processing the same top rows.)
+    articleQuery = articleQuery.or(
+      `enrichment_version.is.null,enrichment_version.lt.${TARGET_ENRICHMENT_VERSION}`
+    );
+  } else {
     articleQuery = articleQuery.is('ai_summary', null);
   }
   if (since) {
@@ -391,9 +400,16 @@ Deno.serve(async (req) => {
   let countQuery = supabase
     .from("updates")
     .select("id", { count: "exact", head: true });
-  if (!forceReenrich) countQuery = countQuery.is('ai_summary', null);
+  if (forceReenrich) {
+    countQuery = countQuery.or(
+      `enrichment_version.is.null,enrichment_version.lt.${TARGET_ENRICHMENT_VERSION}`
+    );
+  } else {
+    countQuery = countQuery.is('ai_summary', null);
+  }
   if (since) countQuery = countQuery.gte('published_at', since);
   const { count } = await countQuery;
+
 
 
   let updated = 0,
