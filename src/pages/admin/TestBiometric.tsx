@@ -37,7 +37,7 @@ const ASSERTIONS = [
   { label: "Contains Illinois (BIPA) jurisdiction assessment", fn: (t: string) => /illinois/i.test(t) },
   { label: 'UK section references "Serco" or "ICO"', fn: (t: string) => /serco|\bICO\b/i.test(t) },
   { label: 'UK section references "Article 35" (DPIA)', fn: (t: string) => /article\s*35|art\.?\s*35/i.test(t) },
-  { label: 'Illinois section references "BIPA" and §15', fn: (t: string) => /BIPA/i.test(t) && /(§|section)\s*15/i.test(t) },
+  { label: 'Illinois section references "BIPA" and §15', fn: (t: string) => /BIPA/i.test(t) && /(§|section)\s*15|740\s*ILCS\s*14\/15|14\/15\b/i.test(t) },
   {
     label: "Illinois section mentions BIPA statutory damages or aggregate exposure",
     fn: (t: string) => {

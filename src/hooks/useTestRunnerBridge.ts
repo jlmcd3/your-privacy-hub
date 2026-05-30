@@ -42,13 +42,22 @@ export function useTestRunnerBridge(payload: BridgePayload) {
     if (sig === lastSentRef.current) return;
     lastSentRef.current = sig;
 
-    window.parent.postMessage(
-      {
-        source: "lovable-test-runner",
-        version: 1,
-        ...payload,
-      },
-      "*",
-    );
+    const msg = {
+      source: "lovable-test-runner",
+      version: 1,
+      ...payload,
+    };
+    const post = () => {
+      try { window.parent.postMessage(msg, "*"); } catch { /* noop */ }
+    };
+    // Fire immediately, then retry briefly to defeat a race where the parent
+    // hasn't fully registered its runIndex handler before the iframe posts.
+    post();
+    const t1 = window.setTimeout(post, 250);
+    const t2 = window.setTimeout(post, 1500);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [payload]);
 }

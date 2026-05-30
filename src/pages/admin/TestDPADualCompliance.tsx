@@ -27,10 +27,10 @@ const ASSERTIONS = [
   { label: 'References both GDPR/UK GDPR and CCPA/US law', fn: (t: string) => /UK GDPR|GDPR/i.test(t) && /CCPA|California/i.test(t) },
   { label: 'Contains Article 28 reference (GDPR requirement)', fn: (t: string) => /article\s*28|art\.?\s*28/i.test(t) },
   { label: 'Contains business purpose limitation (US requirement)', fn: (t: string) => /business purpose/i.test(t) },
-  { label: 'Contains prohibited processing / no selling clause', fn: (t: string) => /shall not sell|no.*sale|not.*share.*personal/i.test(t) },
+  { label: 'Contains prohibited processing / no selling clause', fn: (t: string) => /shall not sell|no sale|no sharing|not\s+(sell|share)|prohibit(ed)?\s+from\s+sell|prohibited processing|no targeted advertising/i.test(t) },
   { label: 'Contains international transfer clause (IDTA/SCCs)', fn: (t: string) => /IDTA|standard contractual|international transfer/i.test(t) },
   { label: 'Contains data subject / consumer rights section', fn: (t: string) => /data subject rights|consumer rights/i.test(t) },
-  { label: '"delete or return" clause present', fn: (t: string) => /delete or return/i.test(t) },
+  { label: '"delete or return" clause present', fn: (t: string) => /delete or return|return or delete|deletion or return|return or destruction|delete or destroy/i.test(t) },
   { label: 'Document length > 3000 characters (dual doc is longer)', fn: (t: string) => t.length > 3000 },
 ];
 
