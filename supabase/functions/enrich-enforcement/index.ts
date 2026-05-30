@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
   try {
     for (const row of rows ?? []) {
       try {
-        const enriched = await enrichOne(row);
+        const { data: enriched, hasBodyText } = await enrichOne(row);
         if (!enriched) {
           failed++;
           await supabase.from("enforcement_actions").update({ enrichment_version: 0 }).eq("id", row.id);
@@ -183,7 +183,9 @@ Deno.serve(async (req) => {
           precedent_significance: typeof enriched.precedent_significance === "number" ? Math.max(1, Math.min(5, Math.round(enriched.precedent_significance))) : null,
           fine_eur_equivalent: typeof enriched.fine_eur_equivalent === "number" ? enriched.fine_eur_equivalent : row.fine_eur ?? null,
           enrichment_version: ENRICHMENT_VERSION,
+          source_quality: hasBodyText ? "enriched_with_text" : "enriched_title_only",
         };
+
 
         const { error: upErr } = await supabase.from("enforcement_actions").update(update).eq("id", row.id);
         if (upErr) {
