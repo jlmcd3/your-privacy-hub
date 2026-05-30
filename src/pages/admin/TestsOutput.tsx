@@ -335,6 +335,9 @@ export default function TestsOutput() {
               <Button variant="outline" onClick={exportJson} className="gap-1.5">
                 <Download className="w-4 h-4" />Export
               </Button>
+              <Button variant="outline" onClick={handleClearCache} disabled={running} className="gap-1.5">
+                <Trash2 className="w-4 h-4" />Clear cache
+              </Button>
             </div>
           </div>
 
