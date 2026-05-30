@@ -9,6 +9,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { CybersecurityReportBody } from "./CPPACybersecurityResult";
+import PDFDownloadButton from "@/components/PDFDownloadButton";
+import DownloadWordButton from "@/components/DownloadWordButton";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -221,6 +223,46 @@ export default function CPPASuiteResult() {
         )}
 
         <div className="flex gap-2 flex-wrap pt-4 border-t">
+          {riskRow?.id && riskRow.status === "complete" && (
+            <>
+              <PDFDownloadButton
+                toolType="cppa_risk"
+                assessmentId={riskRow.id}
+                pdfUrl={riskRow.pdf_url}
+                onGenerated={(url) => setRiskRow({ ...riskRow, pdf_url: url })}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
+              />
+              <DownloadWordButton
+                text={[
+                  riskRow?.report_data?.executive_summary,
+                  ...(Array.isArray(riskRow?.report_data?.domains) ? riskRow.report_data.domains.map((d: any) =>
+                    `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding ?? ""}\n${d.remediation ?? ""}`) : [])
+                ].filter(Boolean).join("\n\n")}
+                label="CPPA Risk Assessment"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
+              />
+            </>
+          )}
+          {cyberRow?.id && cyberRow.status === "complete" && (
+            <>
+              <PDFDownloadButton
+                toolType="cppa_cybersecurity"
+                assessmentId={cyberRow.id}
+                pdfUrl={cyberRow.pdf_url}
+                onGenerated={(url) => setCyberRow({ ...cyberRow, pdf_url: url })}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
+              />
+              <DownloadWordButton
+                text={[
+                  cyberRow?.report_data?.executive_summary,
+                  ...(Array.isArray(cyberRow?.report_data?.controls) ? cyberRow.report_data.controls.map((c: any) =>
+                    `${c.control}\nStatus: ${c.status ?? ""}\n${c.finding ?? ""}\n${c.remediation ?? ""}`) : [])
+                ].filter(Boolean).join("\n\n")}
+                label="CPPA Cybersecurity Readiness"
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
+              />
+            </>
+          )}
           <Button asChild variant="outline"><Link to="/dashboard/reports">Back to My Reports</Link></Button>
         </div>
       </main>
