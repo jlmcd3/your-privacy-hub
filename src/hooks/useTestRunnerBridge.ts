@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 
 type BridgePayload = {
   testId: string;
-  status: "running" | "complete" | "failed";
+  status: "idle" | "running" | "complete" | "failed";
   result?: unknown;
   assertions?: Array<{ label: string; passed: boolean | null }>;
   log?: string[];
