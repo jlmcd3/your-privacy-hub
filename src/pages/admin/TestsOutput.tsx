@@ -527,7 +527,7 @@ export default function TestsOutput() {
                 {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
                 {running ? `Running ${runIndex! + 1}/${REGISTRY.length}` : `Run all ${REGISTRY.length}`}
               </Button>
-              <Button variant="outline" onClick={exportPdf} disabled={pdfBusy} className="gap-1.5">
+              <Button variant="outline" onClick={() => exportPdf()} disabled={pdfBusy} className="gap-1.5">
                 {pdfBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 {pdfBusy ? "Rendering…" : "Export PDF"}
               </Button>
