@@ -642,7 +642,7 @@ export default function TestsOutput() {
 
           <div className="space-y-3">
             {REGISTRY.map((r) => {
-              const entry = results[r.id];
+              const entry = results[r.id] ?? { testId: r.id, label: r.label, status: "pending" as const };
               const passCount = entry?.assertions?.filter((a) => a.passed).length ?? 0;
               const totalA = entry?.assertions?.length ?? 0;
               return (
