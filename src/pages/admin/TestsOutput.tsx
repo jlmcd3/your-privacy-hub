@@ -42,6 +42,58 @@ const REGISTRY: Array<{ id: string; label: string; path: string }> = [
 const TEST_TIMEOUT_MS = 180_000;
 const STORAGE_KEY = () => `tests-output:${new Date().toISOString().slice(0, 10)}`;
 
+// Isolated tickers — keep the 500ms re-render contained in tiny leaf
+// components so the parent (and the iframe) never re-render from the clock.
+function LiveElapsed({
+  startedAtRef,
+  timeoutMs,
+  suffix,
+}: {
+  startedAtRef: React.MutableRefObject<number>;
+  timeoutMs: number;
+  suffix?: string;
+}) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setTick((t) => t + 1), 500);
+    return () => clearInterval(id);
+  }, []);
+  const elapsedSec = startedAtRef.current
+    ? Math.floor((Date.now() - startedAtRef.current) / 1000)
+    : 0;
+  return (
+    <div>
+      {elapsedSec}s / {Math.floor(timeoutMs / 1000)}s{suffix}
+    </div>
+  );
+}
+
+function LiveProgressBar({
+  startedAtRef,
+  timeoutMs,
+}: {
+  startedAtRef: React.MutableRefObject<number>;
+  timeoutMs: number;
+}) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setTick((t) => t + 1), 500);
+    return () => clearInterval(id);
+  }, []);
+  const elapsedMs = startedAtRef.current ? Date.now() - startedAtRef.current : 0;
+  const pct = Math.min(100, Math.round((elapsedMs / timeoutMs) * 100));
+  return (
+    <div className="w-full h-2 bg-white rounded overflow-hidden">
+      <div
+        className={`h-full transition-all ${
+          pct > 90 ? "bg-rose-500" : pct > 70 ? "bg-amber-500" : "bg-brand-teal"
+        }`}
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
 type Dimension = "accuracy" | "usability" | "tone_quality" | "annotations" | "mistakes_to_fix";
 const DIMENSIONS: { key: Dimension; label: string }[] = [
   { key: "accuracy", label: "Accuracy" },
