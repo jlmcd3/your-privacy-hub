@@ -270,13 +270,13 @@ Draft a complete US State Data Processing Agreement with ALL of the following se
    4.6 Risk assessment / DPIA assistance — TDPSA § 541.109, CTDPA § 8, VCDPA § 59.1-579, CPA § 6-1-1309, OCPA § 646A.574
    4.7 Deletion or return of data at termination (see Section 11)
    4.8 Audit cooperation (see Section 12)
-5. PROHIBITED PROCESSING (CCPA/CPRA § 1798.100(d) and equivalents)
+5. PROHIBITED PROCESSING (CCPA/CPRA § 1798.100(d) and equivalents) — this section MUST contain, verbatim, the phrases "shall not sell" AND "shall not share" applied to Personal Data, and MUST explicitly state that the Processor is "prohibited from selling or sharing" Personal Data outside the business purpose.
    5.1 No Sale or Sharing
    5.2 No Targeted Advertising outside the agreed business purpose
    5.3 No Cross-Context Combination except as permitted by law
    5.4 No Retention Beyond Purpose
    Cite Cal. Civ. Code § 1798.100(d)(1)-(5) and equivalent state provisions explicitly.
-6. CONSUMER RIGHTS PASS-THROUGH (Know/Access, Delete, Correct, Opt-Out of Sale/Sharing incl. GPC for California, Limit Use of Sensitive PI, Non-Discrimination) with applicable response timelines per state law.
+6. CONSUMER RIGHTS PASS-THROUGH — the section heading MUST contain the exact phrase "Consumer Rights" and the body MUST include the verbatim phrases "right to access", "right to delete" and "right to correct" with applicable response timelines per state law (Know/Access, Delete, Correct, Opt-Out of Sale/Sharing incl. GPC for California, Limit Use of Sensitive PI, Non-Discrimination).
 7. SUB-PROCESSOR PROVISIONS — prior written consent; equivalent obligations flow-down; Processor liable for sub-processors; Schedule A listing.
 8. SENSITIVE PERSONAL DATA — heightened protections; opt-in consent for minors' data for targeted advertising or profiling.
 9. SECURITY MEASURES — calibrated to data categories and subject count; encryption, access controls, employee training, incident response, pen testing cadence; address failures in enforcement context.
@@ -360,8 +360,8 @@ Sections (numbered hierarchically):
 2. DEFINITIONS (harmonised GDPR + US state definitions; where definitions diverge, state both)
 3. SUBJECT MATTER, NATURE, DURATION AND PURPOSE (specific business purpose)
 4. PROCESSOR OBLIGATIONS — all eight GDPR Art. 28(3) elements PLUS US processor obligations (DPIA assistance, consumer-rights assistance)
-5. PROHIBITED PROCESSING (US-specific) — No Sale/Sharing; No Targeted Advertising outside business purpose; No Cross-Context Combination; No Retention Beyond Purpose. Cite Cal. Civ. Code § 1798.100(d)(1)-(5).
-6. CONSUMER / DATA SUBJECT RIGHTS — combined GDPR Arts. 12-23 + US state consumer rights (Know/Access, Delete, Correct, Opt-Out of Sale/Sharing incl. GPC, Limit Use of Sensitive PI, Non-Discrimination)
+5. PROHIBITED PROCESSING (US-specific) — this section MUST contain, verbatim, the phrases "shall not sell" AND "shall not share" applied to Personal Data, and MUST explicitly state that the Processor is "prohibited from selling or sharing" Personal Data. Cover No Sale/Sharing; No Targeted Advertising outside business purpose; No Cross-Context Combination; No Retention Beyond Purpose. Cite Cal. Civ. Code § 1798.100(d)(1)-(5).
+6. CONSUMER / DATA SUBJECT RIGHTS — heading MUST contain "Consumer Rights" or "Data Subject Rights"; body MUST include verbatim "right to access", "right to delete" and "right to correct" and the GDPR rights under Arts. 12-23.
 7. SUB-PROCESSOR PROVISIONS (GDPR Arts. 28(2)/(4) + US flow-down)
 8. SENSITIVE DATA / SPECIAL CATEGORIES (GDPR Art. 9 + US sensitive PI heightened protections)
 9. SECURITY MEASURES (GDPR Art. 32 standards apply)
