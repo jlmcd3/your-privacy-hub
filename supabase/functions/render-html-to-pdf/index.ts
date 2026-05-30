@@ -28,7 +28,7 @@ async function renderViaPdfShift(html: string, title: string): Promise<Uint8Arra
   const response = await fetch("https://api.pdfshift.io/v3/convert/pdf", {
     method: "POST",
     headers: {
-      Authorization: "Basic " + btoa(`api:${pdfApiKey}`),
+      "X-API-Key": pdfApiKey,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
