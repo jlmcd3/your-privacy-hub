@@ -16,7 +16,7 @@ import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2, PlayCircle, RotateCw, ExternalLink, Download } from "lucide-react";
+import { Loader2, PlayCircle, RotateCw, ExternalLink, Download, Trash2 } from "lucide-react";
 
 const REGISTRY: Array<{ id: string; label: string; path: string }> = [
   { id: "lia", label: "Legitimate Interest Assessment", path: "/admin/test-lia" },
@@ -70,6 +70,14 @@ function saveCache(map: Record<string, TestResult>) {
   try {
     localStorage.setItem(STORAGE_KEY(), JSON.stringify(map));
   } catch { /* ignore quota */ }
+}
+function clearAllTestCache() {
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key?.startsWith("tests-output:")) localStorage.removeItem(key);
+    }
+  } catch { /* ignore */ }
 }
 
 function severityClass(sev: number) {
@@ -246,6 +254,16 @@ export default function TestsOutput() {
     URL.revokeObjectURL(url);
   }
 
+  function handleClearCache() {
+    clearAllTestCache();
+    const fresh = Object.fromEntries(
+      REGISTRY.map((r) => [r.id, { testId: r.id, label: r.label, status: "pending" as const }]),
+    );
+    setResults(fresh);
+    setRunIndex(null);
+    setIframeSrc(null);
+  }
+
   const scorecard = useMemo(() => {
     const reviewed = REGISTRY.map((r) => results[r.id]).filter((r) => r?.review);
     if (reviewed.length === 0) return null;
@@ -316,6 +334,9 @@ export default function TestsOutput() {
               </Button>
               <Button variant="outline" onClick={exportJson} className="gap-1.5">
                 <Download className="w-4 h-4" />Export
+              </Button>
+              <Button variant="outline" onClick={handleClearCache} disabled={running} className="gap-1.5">
+                <Trash2 className="w-4 h-4" />Clear cache
               </Button>
             </div>
           </div>
