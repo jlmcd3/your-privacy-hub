@@ -198,7 +198,9 @@ export default function TestsOutput() {
     const entry = REGISTRY[runIndex];
     const current = results[entry.id];
 
-    if (current?.status === "complete" && current.result && !current.review) {
+    // Claude review disabled — skip reviewOne call
+    void reviewOne; // keep reference to avoid unused warnings
+    if (false && current?.status === "complete" && current.result && !current.review) {
       void reviewOne(current);
     }
     const next = runIndex + 1;
