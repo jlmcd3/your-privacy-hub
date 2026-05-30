@@ -547,16 +547,28 @@ Deno.serve(async (req) => {
         // Dual-write to updates table (skip for FTC second-hop scrape: cases
         // index entries aren't suitable for the subscriber feed — handled by
         // existing weekly brief pipeline instead).
-        if (anthropicKey && !src.secondHop) {
+        //
+        // SOURCE FIDELITY (Function 2 overhaul): the previous implementation
+        // passed `a.title` as both title AND description to generateUpdateSummary,
+        // causing the model to fabricate decision specifics from a headline.
+        // `extractActions()` only returns {title, url, date} — no body text.
+        // Until a body-fetch step is wired into this path (TODO: extend
+        // fetch-and-extract-primary-source to also enrich the updates row),
+        // we skip the AI dual-write entirely rather than write hallucinated
+        // content. The enforcement_actions row is already stored above with
+        // primary_source_status='pending_fetch', and the weekly brief pipeline
+        // will pick up enforcement actions independently.
+        const bodyText = (a as { bodyText?: string }).bodyText || null;
+        if (anthropicKey && !src.secondHop && bodyText && bodyText.trim().length >= 100) {
           try {
             const aiSummary = await generateUpdateSummary(
-              a.title, a.title, src.source, src.regulator, src.jurisdiction, anthropicKey,
+              a.title, bodyText, src.source, src.regulator, src.jurisdiction, anthropicKey,
             );
             if (aiSummary && aiSummary.legal_weight !== undefined) {
               const updateRow: Record<string, unknown> = {
                 url: a.url,
                 title: a.title,
-                summary: a.title,
+                summary: bodyText.slice(0, 2000),
                 source_name: src.source,
                 source_url: src.url,
                 category: "enforcement",
@@ -589,6 +601,9 @@ Deno.serve(async (req) => {
           } catch (aiErr) {
             console.error("generateUpdateSummary failed", a.url, aiErr);
           }
+        } else if (anthropicKey && !src.secondHop) {
+          // Body text not available — skip dual-write rather than fabricate from headline.
+          console.log(`[ingest-gov-enforcement] skip dual-write (no body): ${a.url}`);
         }
       }
       await new Promise((r) => setTimeout(r, 800));
