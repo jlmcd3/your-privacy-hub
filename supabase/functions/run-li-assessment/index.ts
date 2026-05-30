@@ -171,6 +171,11 @@ Deno.serve(async (req) => {
 
     const analysisSystem = `You are a senior privacy regulatory analyst producing a formal legitimate interest assessment. Your analysis is precise, cites specific regulatory standards (Article 6(1)(f) GDPR, EDPB Guidelines 1/2024 on legitimate interests, ICO LIA guidance, applicable national DPA positions), and is grounded strictly in the facts provided and precedent database. Do NOT invent facts the user did not provide. Where a relevant fact is missing, say so and flag it as an open question. This is a compliance framework tool. All outputs must include the statement: "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel." Return ONLY valid JSON, no preamble.
 
+CITATION ACCURACY RULES — non-negotiable:
+- ICO Royal Free / DeepMind: the enforcement decision was issued in **2017**, NOT 2023. If you reference it, cite as "ICO Royal Free / DeepMind enforcement decision (2017) and subsequent guidance" — never as "2023 Royal Free / DeepMind enforcement."
+- EDPB Recommendations 01/2021 address **supplementary measures for international data transfers post-Schrems II**, not LIA necessity analysis. Do NOT cite EDPB Recommendations 01/2021 as authority for pseudonymisation in a necessity test. For pseudonymisation as a necessity/proportionality measure, cite **EDPB Guidelines 1/2024 §3.2 (necessity and proportionality)** as the primary source; EDPB Recommendations 01/2021 may be cited only as supplementary context if the technical-measures argument also concerns international transfers.
+- Do NOT invent enforcement years, fine amounts, or case names. If unsure of a citation detail, use a hedged form (e.g. "ICO guidance, c. 2023") rather than a precise but fabricated date.
+
 MANDATORY FIELD RULES — violations will cause downstream system failures:
 
 1. The "verdict" field is REQUIRED in every test object (purpose_test, necessity_test, balancing_test). You MUST include it even when evidence is incomplete or the outcome is genuinely uncertain. Use "uncertain" — never omit the field.
@@ -300,6 +305,17 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
     if (!Array.isArray(oa.key_distinguishing_factors)) oa.key_distinguishing_factors = [];
     if (!Array.isArray(oa.blocking_issues)) oa.blocking_issues = [];
 
+    // Always attach a plain-language note explaining the argument-strength rating
+    // so end users (especially non-specialists) understand what "uncertain" means.
+    const STRENGTH_NOTES: Record<string, string> = {
+      strong: "Strong: the facts and precedents available support a defensible legitimate-interest claim.",
+      moderate: "Moderate: legitimate interest is plausibly available but rests on contested or fact-sensitive points; resolve open questions before deployment.",
+      weak: "Weak: significant factors weigh against a legitimate-interest claim on the facts provided; consider an alternative legal basis or additional safeguards.",
+      insufficient: "Insufficient: not enough information has been provided to reach a verdict; supply the open-question items and re-run.",
+      uncertain: "Uncertain: blocking issues have been identified that must be resolved before a defensible LI claim can be established — this does NOT mean legitimate interest is categorically unavailable.",
+    };
+    oa.argument_strength_note = STRENGTH_NOTES[oa.argument_strength] ?? STRENGTH_NOTES.uncertain;
+
 
     // ── STAGE 3: Documentation recommendations ──
     const docsSystem = `You are a privacy regulatory analyst producing practical documentation guidance. Focus on what documentation would make this legitimate interest assessment defensible. Return ONLY valid JSON, no preamble.`;
@@ -363,6 +379,9 @@ Return JSON:
       precedents_reviewed: precedents.length,
       precedent_database_size: (allPrecedents || []).length,
       enforcement_precedents: enforcementPrecedents,
+      enforcement_precedents_note: enforcementPrecedents.length === 0
+        ? "No enforcement decisions matching this jurisdiction and processing theory were retrieved from the precedent database. The analysis above may reference relevant decisions that are not yet indexed against this scenario — verify any cited cases directly."
+        : null,
       three_part_test: analysis,
       annotations: (() => { try { return Array.isArray(analysis?.annotations) ? analysis.annotations : []; } catch { return []; } })(),
       documentation_recommendations: docRecs,

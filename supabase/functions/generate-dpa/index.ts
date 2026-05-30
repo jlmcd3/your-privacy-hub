@@ -203,6 +203,12 @@ Audit rights: ${body.auditRights}`;
 - Mark any fields requiring controller/processor input as [TO BE COMPLETED: description]
 - Include an annotations array listing every enforcement case from the ENFORCEMENT CONTEXT above that informed a clause choice. Use the exact id value from each case (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT above — never from training knowledge.
 
+CRITICAL DRAFTING RULES — NON-NEGOTIABLE:
+1. SEQUENTIAL SECTION NUMBERING. Top-level section headings MUST be numbered sequentially: "1.", "2.", "3.", "4." and so on through to the final section. Do NOT restart numbering, do NOT output "1." for every section, and do NOT use markdown heading syntax (# / ## / ###). Output section headings as plain text in the form: "1. PARTIES AND RECITALS", "2. DEFINITIONS", "3. ACCOUNTABILITY", etc. Sub-clauses MUST be hierarchical (1.1, 1.2, 1.2.1, 2.1, 2.2, …). Verify before output that every internal cross-reference (e.g. "see Section 7.2") points to the correct sequential number. NEVER output a sub-clause such as "100.3.7" — that indicates a numbering collision; the correct form is "10.3.7".
+2. COMPLETE OUTPUT. The document MUST run continuously through every required section, ending with a fully formed General Provisions section, a complete Term & Termination clause, and a SIGNATURE BLOCK with name / title / date lines for both Controller and Processor, followed by any required Schedules. Never stop mid-sentence. If the document is long, prioritise covering every numbered section to completion over verbosity in earlier sections.
+3. CONSISTENT BLANK FORMAT. Use the form "[TO BE COMPLETED: description]" for every user-fillable blank — do not mix "[TO BE COMPLETED: …]" with bare "[City, Province]" or other bracketed placeholders.
+4. NO STRAY MARKDOWN. Do not emit "**bold**", "*italics*", or markdown headings; the document must read as plain legal text.
+
 Output format:
 - First, output ONLY the DPA document. No preamble, commentary, or explanation.
 - Then, on a new line, output the exact separator:
@@ -235,10 +241,10 @@ Draft the complete DPA with ALL of the following sections. Number clauses hierar
 1. PARTIES AND RECITALS
 2. SUBJECT MATTER, NATURE, DURATION AND PURPOSE
 3. PROCESSOR OBLIGATIONS (all eight Article 28(3) elements: instructions, confidentiality, security, sub-processors, assistance with rights, assistance with security/breach/DPIA, deletion/return, information/audit)
-4. SUB-PROCESSOR PROVISIONS (Articles 28(2) and 28(4)) – include specific approval mechanism and notification timeline
+4. SUB-PROCESSOR PROVISIONS (Articles 28(2) and 28(4)) – include specific approval mechanism and notification timeline. The clause MUST state explicitly: "General authorisation under this clause applies ONLY to the Sub-processors listed in Schedule 1 at the Effective Date. All subsequent additions or replacements require prior specific written authorisation under the [30]-day notice procedure set out in this clause." Use a 30-day notice window.
 5. SECURITY MEASURES (Article 32) – specify technical and organisational measures calibrated to the data categories listed above
-6. DATA BREACH NOTIFICATION (Article 33) – include the specific notification timeline and minimum content requirements
-7. DATA SUBJECT RIGHTS ASSISTANCE (Articles 12-23)
+6. DATA BREACH NOTIFICATION (Article 33) – the Processor MUST notify the Controller without undue delay and in any event within forty-eight (48) hours of becoming aware of a Personal Data Breach. Include this clarifying sentence verbatim in the clause: "This 48-hour window is the Processor's obligation to the Controller, designed to enable the Controller to comply with its own obligation under Article 33(1) GDPR to notify the supervisory authority within 72 hours of becoming aware of the breach." Include minimum content requirements.
+7. DATA SUBJECT RIGHTS ASSISTANCE (Articles 12-23). Where the processing involves special categories of data under Article 9, the DPIA-assistance clause MUST cite Article 35(3)(b) as the mandatory DPIA trigger for large-scale processing of special category data.
 8. POST-TERMINATION OBLIGATIONS — MUST include an explicit clause stating that, at the Controller's choice, the Processor shall delete or return all Personal Data to the Controller after the end of the provision of services, and delete existing copies unless retention is required by law (Article 28(3)(g)). Use the exact phrase "delete or return" and reference "Personal Data" within the same sentence.
 9. AUDIT AND INSPECTION RIGHTS – use ${body.auditRights} standard
 ${transferSection}
@@ -248,6 +254,8 @@ ${transferSection}
 13. GENERAL PROVISIONS
 
 [SIGNATURE BLOCK]
+
+SCHEDULE 1 — APPROVED SUB-PROCESSORS (populate from intake; if none provided, output a blank Schedule 1 with column headers Name / Service / Location / Date Authorised and an instruction line "[TO BE COMPLETED: list approved Sub-processors here]")
 
 ${ANNOTATIONS_INSTRUCTIONS}`;
 
@@ -267,7 +275,7 @@ Draft a complete US State Data Processing Agreement with ALL of the following se
    4.3 Security measures (see Section 9)
    4.4 Sub-processor obligations (see Section 7)
    4.5 Consumer rights assistance (see Section 6)
-   4.6 Risk assessment / DPIA assistance — TDPSA § 541.109, CTDPA § 8, VCDPA § 59.1-579, CPA § 6-1-1309, OCPA § 646A.574
+   4.6 Risk assessment / DPIA assistance — Cal. Civ. Code § 1798.185(a)(15) and CPPA risk-assessment regulations; TDPSA § 541.109; CTDPA § 8; VCDPA § 59.1-579; CPA § 6-1-1309; OCPA § 646A.574
    4.7 Deletion or return of data at termination (see Section 11)
    4.8 Audit cooperation (see Section 12)
 5. PROHIBITED PROCESSING (CCPA/CPRA § 1798.100(d) and equivalents) — this section MUST contain, verbatim, the phrases "shall not sell" AND "shall not share" applied to Personal Data, and MUST explicitly state that the Processor is "prohibited from selling or sharing" Personal Data outside the business purpose.
@@ -277,14 +285,14 @@ Draft a complete US State Data Processing Agreement with ALL of the following se
    5.4 No Retention Beyond Purpose
    Cite Cal. Civ. Code § 1798.100(d)(1)-(5) and equivalent state provisions explicitly.
 6. CONSUMER RIGHTS PASS-THROUGH — the section heading MUST contain the exact phrase "Consumer Rights" and the body MUST include the verbatim phrases "right to access", "right to delete" and "right to correct" with applicable response timelines per state law (Know/Access, Delete, Correct, Opt-Out of Sale/Sharing incl. GPC for California, Limit Use of Sensitive PI, Non-Discrimination).
-7. SUB-PROCESSOR PROVISIONS — prior written consent; equivalent obligations flow-down; Processor liable for sub-processors; Schedule A listing.
+7. SUB-PROCESSOR PROVISIONS — prior written consent; equivalent obligations flow-down; Processor liable for sub-processors; populate Schedule A from the parties' inputs. If no sub-processors were provided in the intake, output a blank Schedule A with column headers (Name / Service / Location / Date Authorised) and the instruction line "[TO BE COMPLETED: list approved Sub-processors here]". Do NOT hard-code "no Sub-Processors at the Effective Date" unless the intake expressly stated none.
 8. SENSITIVE PERSONAL DATA — heightened protections; opt-in consent for minors' data for targeted advertising or profiling.
 9. SECURITY MEASURES — calibrated to data categories and subject count; encryption, access controls, employee training, incident response, pen testing cadence; address failures in enforcement context.
-10. DATA BREACH NOTIFICATION — state-specific timelines:
-    - California: notify Controller within 72 hours; Controller notifies CA AG if 500+ affected
-    - Texas: notify Controller promptly; Controller notifies AG if 250+ Texans affected
+10. DATA BREACH NOTIFICATION — state-specific timelines (use the wording below verbatim where indicated):
+    - California: Processor shall notify Controller of any Data Breach impacting Personal Data of California residents "without unreasonable delay and in the most expedient time possible" after discovery. Do NOT impose a fixed 72-hour processor-to-controller window for California — Cal. Civ. Code § 1798.82 governs notification to individuals, not B2B processor timelines. The Controller is responsible for notifying the California Attorney General if 500+ California residents are affected.
+    - Texas: notify Controller promptly; Controller notifies AG if 250+ Texans affected (Tex. Bus. & Com. Code § 521.053)
     - Connecticut: 72 hours to Controller; Controller notifies AG within 60 days
-    - Colorado: 30 days to Controller; Controller notifies AG if 500+ CO residents
+    - Colorado: Processor shall notify Controller without undue delay; Controller notifies the Colorado Attorney General as required by C.R.S. § 6-1-716 (Colorado breach notification statute). Do NOT cite "CPA § 6-1-1309" for breach notification — the Colorado Privacy Act does not set breach notification timelines; those come from C.R.S. § 6-1-716.
     - Virginia: notify Controller within 72 hours; Controller notifies AG within 60 days
     Include minimum notification content per applicable state law.
 11. POST-TERMINATION OBLIGATIONS — at Controller's election, Processor shall delete or return all Personal Data and certify deletion in writing within 30 days; no retention except as required by law. Use the exact phrase "delete or return" and reference "Personal Data" in the same sentence.
@@ -296,6 +304,8 @@ Draft a complete US State Data Processing Agreement with ALL of the following se
 17. GENERAL PROVISIONS (amendments, entire agreement, severability, counterparts)
 
 [SIGNATURE BLOCK]
+
+SCHEDULE A — APPROVED SUB-PROCESSORS
 
 Additional requirements:
 - Include a dedicated section titled 'Consumer Rights Assistance' or 'Data Subject / Consumer Rights' that explicitly requires the Processor to:
@@ -322,22 +332,24 @@ Draft a complete Canadian Data Processing Agreement with ALL of the following se
 3. ACCOUNTABILITY (PIPEDA Schedule 1, Principle 1; Law 25 Art. 3.1) — Controller remains accountable; Processor acts on behalf of Controller.
 4. CONTRACTUAL PROTECTION REQUIREMENT (PIPEDA Principle 1.2 / Schedule 1 cl. 4.1.3; Quebec Law 25 Art. 18.3) — written contract with service providers, comparable safeguards.
 5. PURPOSE LIMITATION AND INSTRUCTIONS — Processor processes only on documented instructions; no secondary use.
-6. CONSENT SUPPORT — Processor shall not undermine Controller's consent obligations; assist with withdrawal of consent requests.
-7. SECURITY SAFEGUARDS (PIPEDA Principle 7 / Schedule 1 cl. 4.7; Law 25 Art. 10; PIPA AB s.34; PIPA BC s.34; PHIPA s.12) — calibrated technical, physical and organisational safeguards.
-8. SUB-PROCESSOR PROVISIONS — prior written consent; flow-down obligations; Processor remains accountable through the chain.
-9. INDIVIDUAL RIGHTS ASSISTANCE — Access, Correction, Withdrawal of Consent, Data Portability (Law 25 Art. 27), De-indexing (Law 25 Art. 28.1).
-10. CROSS-BORDER TRANSFER ASSESSMENT (Law 25 Art. 17; OPC guidance) — privacy impact assessment for transfers outside Quebec/Canada.
-11. BREACH OF SECURITY SAFEGUARDS NOTIFICATION (PIPEDA s.10.1 and Breach of Security Safeguards Regulations; Law 25 Art. 3.5; PIPA AB s.34.1) — real risk of significant harm; notify Controller without delay; Controller obligations to OPC/CAI and affected individuals.
-12. RETENTION AND DESTRUCTION — destroy or anonymise when purposes accomplished (Law 25 Art. 23).
+6. CONSENT SUPPORT — Processor shall not undermine Controller's consent obligations. On a withdrawal-of-consent request, the Processor shall (a) cease Processing of the relevant Personal Information and (b) notify the Controller of any technical limitations preventing full implementation. Do NOT use advisory/consultative language such as "advising the Controller on the scope and feasibility" — the Processor implements; it does not advise.
+7. SECURITY SAFEGUARDS (PIPEDA Principle 7 / Schedule 1 cl. 4.7; Law 25 Art. 10; PIPA AB Part 3 Div. 1.1; PIPA BC s.34; PHIPA s.12) — calibrated technical, physical and organisational safeguards.
+8. SUB-PROCESSOR PROVISIONS — prior written consent; flow-down obligations; Processor remains accountable through the chain; populate Schedule A from intake; if none provided, output a blank Schedule A with column headers (Name / Service / Location / Date Authorised) and the line "[TO BE COMPLETED: list approved Sub-processors here]".
+9. INDIVIDUAL RIGHTS ASSISTANCE — Access, Correction, Withdrawal of Consent, Data Portability (Law 25 Art. 27), De-indexing (cite as "section 28.1 of the Act respecting the protection of personal information in the private sector, or a court order" — do NOT cite ambiguously as "the law or a court order").
+10. CROSS-BORDER TRANSFER ASSESSMENT (Law 25 Art. 17; OPC guidance) — privacy impact assessment for transfers outside Quebec/Canada; include a Schedule B for approved transfer destinations OR a reference to OPC cross-border transfer guidance.
+11. BREACH OF SECURITY SAFEGUARDS NOTIFICATION (PIPEDA s.10.1 and Breach of Security Safeguards Regulations SOR/2018-64; Law 25 Art. 3.5; PIPA Alberta — Part 3, Division 1.1 of PIPA Alberta (S.A. 2003, c. P-6.5, as amended; sections 34.1–34.6 added by amendments in force January 2022)) — real risk of significant harm; notify Controller without delay; Controller obligations to OPC/CAI and affected individuals.
+12. RETENTION AND DESTRUCTION — destroy or anonymise when purposes accomplished (Law 25 Art. 23). Where the parties have agreed a specific retention period for HR data, state it as the parties' contractual choice. DO NOT default to "duration of employment plus five (5) years" as if statutorily required — neither PIPEDA nor Quebec Law 25 prescribes a fixed post-employment retention period. Frame any such figure as "unless applicable employment law or the Controller's documented retention policy requires otherwise" and include the note: "Quebec Law 25 and PIPEDA do not prescribe a fixed post-employment retention period — this duration should reflect the organisation's documented retention policy."
 13. POST-TERMINATION OBLIGATIONS — at Controller's election, Processor shall delete or return all Personal Information and certify in writing. Use the exact phrase "delete or return" and reference "Personal Information" in the same sentence.
 14. AUDIT AND INSPECTION RIGHTS — use ${body.auditRights} standard.
 15. RECORDKEEPING — Law 25 Art. 8 register of confidentiality incidents (Processor assists).
 16. LIABILITY AND INDEMNIFICATION
 17. TERM AND TERMINATION
-18. GOVERNING LAW (specify province) AND DISPUTE RESOLUTION
+18. GOVERNING LAW (specify province) AND DISPUTE RESOLUTION — for arbitration clauses, the city/province blank MUST use the form "[TO BE COMPLETED: City, Province]".
 19. GENERAL PROVISIONS
 
 [SIGNATURE BLOCK]
+
+SCHEDULE A — APPROVED SUB-PROCESSORS
 
 Additional requirements:
 - Cite specific PIPEDA principles/sections, Law 25 articles, and provincial PIPA/PHIPA sections where applicable.
@@ -362,11 +374,11 @@ Sections (numbered hierarchically):
 4. PROCESSOR OBLIGATIONS — all eight GDPR Art. 28(3) elements PLUS US processor obligations (DPIA assistance, consumer-rights assistance)
 5. PROHIBITED PROCESSING (US-specific) — this section MUST contain, verbatim, the phrases "shall not sell" AND "shall not share" applied to Personal Data, and MUST explicitly state that the Processor is "prohibited from selling or sharing" Personal Data. Cover No Sale/Sharing; No Targeted Advertising outside business purpose; No Cross-Context Combination; No Retention Beyond Purpose. Cite Cal. Civ. Code § 1798.100(d)(1)-(5).
 6. CONSUMER / DATA SUBJECT RIGHTS — heading MUST contain "Consumer Rights" or "Data Subject Rights"; body MUST include verbatim "right to access", "right to delete" and "right to correct" and the GDPR rights under Arts. 12-23.
-7. SUB-PROCESSOR PROVISIONS (GDPR Arts. 28(2)/(4) + US flow-down)
+7. SUB-PROCESSOR PROVISIONS (GDPR Arts. 28(2)/(4) + US flow-down) — populate Schedule A from intake. If no sub-processors were provided, output a blank Schedule A with column headers (Name / Service / Location / Date Authorised) and the line "[TO BE COMPLETED: list approved Sub-processors here]". Do NOT hard-code "no Sub-Processors" unless the intake expressly stated none.
 8. SENSITIVE DATA / SPECIAL CATEGORIES (GDPR Art. 9 + US sensitive PI heightened protections)
 9. SECURITY MEASURES (GDPR Art. 32 standards apply)
-10. DATA BREACH NOTIFICATION — GDPR Art. 33 (72 hours to supervisory authority) PLUS US state notification timelines (California, Texas, Connecticut, Colorado, Virginia as applicable)
-11. INTERNATIONAL TRANSFER PROVISIONS — ${body.includeTransferClause ? body.transferMechanism : "SCCs / supplementary measures"}
+10. DATA BREACH NOTIFICATION — Processor notifies Controller without undue delay and in any event within forty-eight (48) hours of awareness, to enable the Controller to comply with Article 33(1) GDPR (72-hour supervisory authority window). PLUS US state notification timelines: California — "without unreasonable delay" (Cal. Civ. Code § 1798.82 governs notification to individuals); Texas (Tex. Bus. & Com. Code § 521.053); Connecticut; Colorado — C.R.S. § 6-1-716 (NOT "CPA § 6-1-1309"); Virginia. Apply only those state regimes triggered by the parties' jurisdictions or affected data subjects' residency.
+11. INTERNATIONAL TRANSFER PROVISIONS — ${body.includeTransferClause ? body.transferMechanism : "EU SCCs (Commission Implementing Decision (EU) 2021/914) for EU-origin transfers; UK International Data Transfer Addendum for UK-origin transfers"}. Where the UK IDTA is referenced, the protection standard MUST be expressed as "not less than equivalent to the protections afforded by UK data protection law" — do NOT use the EU adequacy phrase "essentially equivalent" for the UK IDTA standard.
 12. POST-TERMINATION OBLIGATIONS — at Controller's choice, Processor shall delete or return all Personal Data (Art. 28(3)(g) + US state equivalents). Use the exact phrase "delete or return" and reference "Personal Data".
 13. AUDIT AND INSPECTION RIGHTS — ${body.auditRights}
 14. RECORDKEEPING (Art. 30 + US state)
@@ -376,6 +388,8 @@ Sections (numbered hierarchically):
 18. GENERAL PROVISIONS
 
 [SIGNATURE BLOCK]
+
+SCHEDULE A — APPROVED SUB-PROCESSORS
 
 Where GDPR is stricter, GDPR prevails; where US state law adds requirements, both apply.
 
@@ -408,7 +422,7 @@ ${ANNOTATIONS_INSTRUCTIONS}`;
 
 
     const aiController = new AbortController();
-    const aiTimeout = setTimeout(() => aiController.abort(), 85_000);
+    const aiTimeout = setTimeout(() => aiController.abort(), 180_000);
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -417,7 +431,7 @@ ${ANNOTATIONS_INSTRUCTIONS}`;
       },
       body: JSON.stringify({
         model: AI_MODEL,
-        max_tokens: 6000,
+        max_tokens: 16000,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
