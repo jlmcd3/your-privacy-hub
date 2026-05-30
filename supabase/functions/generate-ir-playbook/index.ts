@@ -300,7 +300,7 @@ QUALITY STANDARDS:
 Output ONLY the playbook. No preamble or commentary.`,
         messages: [{ role: "user", content: prompt }],
       }),
-      signal: AbortSignal.timeout(105000),
+      signal: AbortSignal.timeout(145000),
     });
 
     if (!aiRes.ok) {
@@ -312,8 +312,31 @@ Output ONLY the playbook. No preamble or commentary.`,
       });
     }
 
-    const aiData = await aiRes.json();
-    const fullText = aiData.content?.[0]?.text ?? "";
+    // Consume SSE stream and concatenate text deltas. Streaming keeps the
+    // connection warm for long generations that previously hit the 105s
+    // AbortSignal cap when using non-streaming mode.
+    let fullText = "";
+    const reader = aiRes.body!.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(payload);
+          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+            fullText += evt.delta.text ?? "";
+          }
+        } catch { /* ignore keepalives / non-JSON */ }
+      }
+    }
     let playbook_text = fullText
       .replace(/^#{1,6}\s+/gm, '')
       .replace(/\*\*\*/g, '')
