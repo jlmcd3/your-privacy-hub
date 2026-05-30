@@ -87,11 +87,12 @@ HEADLINES (3–5 items):
 SYNTHESIS_TEXT (2–3 paragraphs, plain prose):
 1. No headings. No bullets. No preamble.
 2. LEGAL WEIGHT HIERARCHY: Lead with the highest-weight development. Never open with a law-firm blog when a regulatory decision is present.
-3. Be specific: name the regulator, the decision/guidance title, fines, and the precise compliance obligation it creates.
-4. SOURCE CALIBRATION: Direct declarative voice for official regulatory sources; attribution ("According to reported accounts...", "Coverage suggests...") for secondary sources.
-5. If there are no significant developments, write one paragraph naming exactly what to monitor and why.
-6. Write directly to the practitioner using "you" and "your".
-7. Do not start with "In the last 30 days" or similar time phrases.
+3. Be specific: name the regulator, the decision/guidance title, fines, and the precise compliance obligation it creates — but ONLY as these appear in the supplied articles.
+4. SOURCE FIDELITY (non-negotiable): every regulator, statute, fine, case, and date in headlines and synthesis_text MUST come from the digest above. Do not invent comparators or precedents from outside knowledge.
+5. SOURCE CALIBRATION: Direct declarative voice for official regulatory sources; attribution ("According to reported accounts...", "Coverage suggests...") for secondary sources.
+6. If there are no significant developments, write one paragraph naming exactly what to monitor and why — do not pad with speculation.
+7. Write directly to the practitioner using "you" and "your".
+8. Do not start with "In the last 30 days" or similar time phrases.
 
 Return JSON only. No markdown fences. No commentary.`;
 
