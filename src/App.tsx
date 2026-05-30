@@ -436,6 +436,16 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/primary-source-fetcher"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <PrimarySourceFetcher />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
 
 
             <Route
