@@ -243,7 +243,7 @@ export default function TestsOutput() {
     void reviewOne(entry);
   }
 
-  function buildExportHtml(): { html: string; date: string; rows: TestResult[] } {
+  function buildExportHtml(only?: TestResult): { html: string; date: string; rows: TestResult[] } {
     const date = new Date().toISOString().slice(0, 10);
     const esc = (s: unknown) =>
       String(s ?? "")
@@ -251,7 +251,9 @@ export default function TestsOutput() {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 
-    const rows = REGISTRY.map((r) => results[r.id]).filter(Boolean);
+    const rows = only
+      ? [only]
+      : REGISTRY.map((r) => results[r.id]).filter(Boolean);
     const sections = rows
       .map((r) => {
         const a = r.assertions || [];
@@ -326,8 +328,14 @@ export default function TestsOutput() {
       })
       .join("");
 
+    const title = only
+      ? `${only.label} — Test Output`
+      : "Tests Output Report";
+    const subtitle = only
+      ? `Generated ${date} · ${esc(only.label)} · EndUserPrivacy.com`
+      : `Generated ${date} · ${rows.length} tests · EndUserPrivacy.com`;
     const html = `<!doctype html><html><head><meta charset="utf-8"/>
-      <title>Tests Output — ${date}</title>
+      <title>${esc(title)} — ${date}</title>
       <style>
         body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0d2a45;max-width:880px;margin:32px auto;padding:0 24px;}
         h1{font-size:24px;margin:0 0 4px;color:#0d2a45;}
@@ -347,12 +355,13 @@ export default function TestsOutput() {
         .brandbar{border-top:3px solid #2a9d8f;margin-bottom:18px;padding-top:10px;}
       </style></head><body>
       <div class="brandbar"></div>
-      <h1>Tests Output Report</h1>
-      <p class="meta">Generated ${date} · ${rows.length} tests · EndUserPrivacy.com</p>
+      <h1>${esc(title)}</h1>
+      <p class="meta">${subtitle}</p>
       ${sections}
       </body></html>`;
     return { html, date, rows };
   }
+
 
   const [pdfBusy, setPdfBusy] = useState(false);
 
