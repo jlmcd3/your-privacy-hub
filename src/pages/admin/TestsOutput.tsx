@@ -71,6 +71,14 @@ function saveCache(map: Record<string, TestResult>) {
     localStorage.setItem(STORAGE_KEY(), JSON.stringify(map));
   } catch { /* ignore quota */ }
 }
+function clearAllTestCache() {
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key?.startsWith("tests-output:")) localStorage.removeItem(key);
+    }
+  } catch { /* ignore */ }
+}
 
 function severityClass(sev: number) {
   if (sev >= 4) return "text-emerald-700 bg-emerald-50";
