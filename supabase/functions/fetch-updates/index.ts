@@ -1153,99 +1153,115 @@ async function generateAISummary(
 
 Your task: analyze each article and return a single valid JSON object. Return ONLY the JSON — no preamble, no markdown, no explanation. Return {"skip": true} for non-privacy articles, or the full enrichment object for privacy articles.
 
+GOVERNING PRINCIPLES — apply without exception:
+
+SOURCE FIDELITY: Every specific factual claim — fine amounts, deadlines, case reference numbers, regulatory instrument names, named decision outcomes — must appear verbatim in the provided article text. If a specific fact is not in the article text, return null for that field. Do not infer facts from regulatory context. Do not use training knowledge to supply facts the article does not state.
+
+SOURCE CALIBRATION: Match your voice to your source.
+- Primary regulator source (official DPA website, government publication): write in direct declarative voice. "The ICO fined X £Y for Z."
+- Legal analysis source (law firm blog, IAPP, legal commentary): use explicit attribution. "According to [source], ..." or "As reported by [source], ..."
+- Media/civil society source: use attribution. "Coverage of this development suggests..." or "[Source] reports that..."
+Never present a secondary source's interpretation as if it were the primary regulator's position.
+
+NO SPECULATION: Do not predict regulatory outcomes, future enforcement, or what regulators are "likely" to do. The only permitted forward-looking statements are deadlines explicitly stated in the article text with a specific date.
+
+THIN SOURCE DISCIPLINE: If the article text is a short RSS summary (under 150 words), you will have insufficient basis for specific action items, case references, or deadline claims. Return null or [] for fields that cannot be grounded in what is actually written. It is correct to produce a minimal enrichment object. It is wrong to fabricate specificity. NOTE: the validator requires why_it_matters (>= 10 chars), compliance_impact (>= 5 chars), and takeaways (>= 1 non-empty string). For thin sources, write GENERAL versions of these — do not invent specifics to fill them.
+
 QUALITY STANDARDS:
-1. Every field must name specific regulators, laws, jurisdictions, or organizations. No generic statements.
-2. If information is not present in the article, return null — do not infer or fabricate.
-3. Legal weight hierarchy: Binding > Enforcement > Guidance > Proposal > Commentary. Assign the highest applicable category.
-4. For affected_jurisdictions: include only jurisdictions where this development creates a direct compliance obligation or material enforcement risk. EU-wide EDPB guidance → 'eu' only, not individual member states, unless the ruling names them specifically.
-5. For regulatory_theory: name the underlying legal doctrine in plain English terms that a practicing attorney would recognize.
+1. If information is not present in the article, return null — never infer or fabricate.
+2. Legal weight hierarchy: Binding > Enforcement > Guidance > Proposal > Commentary. Assign based on the document TYPE described, not the significance of the topic. A law firm blog post analysing a binding decision is "Legal analysis" source strength and "Guidance" or "Commentary" legal weight — not "Binding."
+3. For affected_jurisdictions: include only jurisdictions where this development creates a direct compliance obligation stated in the article. EU-wide EDPB guidance → "eu" only unless the article names specific member states.
+4. For regulatory_theory: name the underlying legal doctrine in plain English. Only populate for Binding and Enforcement articles. Return null for Commentary and Proposal. Do not fabricate doctrine names.
 
 DOMAIN COVERAGE:
-AdTech: IAB TCF, GDPR consent for tracking cookies, DPA cookie enforcement (CNIL, ICO, APD Belgium), FTC commercial surveillance, Google Privacy Sandbox, COPPA in ad environments, DSA advertising transparency, RTB data flows and special category data, data clean rooms, identity resolution.
-Healthcare: HIPAA Privacy and Security Rules, HITECH, GDPR Article 9 special category health data, EDPB health data guidance, FDA digital health, state health privacy laws (Washington My Health MY Data, Nevada, Connecticut, Montana, Oregon, Texas consumer health data laws).
-AI governance: EU AI Act prohibited practices, high-risk systems and GPAI obligations, GDPR Article 22 automated decision-making, FTC AI enforcement, NIST AI RMF, algorithmic accountability, AI training data and scraping, biometric data in AI systems.
-Financial services: GLBA Privacy and Safeguards Rules, CFPB Section 1033, DORA, SEC cybersecurity disclosure rules, NY DFS Part 500, PCI DSS.
-Civil society and legal analysis: EFF, EPIC, Privacy International, IAPP analysis, noyb, EDRi, Open Rights Group, Statewatch, Access Now, Bits of Freedom — treat as Commentary legal weight. Law firm blog analysis (Out-Law, Bird & Bird, Linklaters, Fieldfisher, DLA Piper, CMS Law, Clifford Chance, A&O Shearman, Freshfields, Herbert Smith Freehills, etc.) — treat as Soft Guidance legal weight.
-Cross-border transfers: SCCs (all four modules), BCRs, adequacy decisions, Schrems II implications, APAC mechanisms.
-Biometric: BIPA (Illinois), Texas CUBI, Washington MY Health MY Data, CCPA biometric provisions, GDPR Article 9(1) biometric data.
-Children: COPPA, FERPA, KOSA, UK Age Appropriate Design Code, GDPR Recital 38 and Article 8.
-Data brokers: state registration requirements, FTC enforcement, California Delete Act, Texas DPSA data broker provisions.
+AdTech: IAB TCF, GDPR consent for tracking cookies, DPA cookie enforcement, FTC commercial surveillance, Google Privacy Sandbox, COPPA in ad environments, RTB data flows.
+Healthcare: HIPAA Privacy and Security Rules, HITECH, GDPR Article 9, EDPB health data guidance, state health privacy laws.
+AI governance: EU AI Act, GDPR Article 22 automated decision-making, FTC AI enforcement, NIST AI RMF.
+Financial services: GLBA, CFPB Section 1033, DORA, SEC cybersecurity disclosure, NY DFS Part 500.
+Civil society and legal analysis: EFF, EPIC, Privacy International, IAPP, law firm analysis — assign "Commentary" or "Legal analysis" legal weight as appropriate.
+Cross-border transfers: SCCs, BCRs, adequacy decisions, Schrems II.
+Biometric: BIPA, Texas CUBI, GDPR Article 9(1).
+Children: COPPA, FERPA, UK Age Appropriate Design Code.
 
-VOICE:
-Write in direct, active voice. Lead with the compliance implication, not the regulatory action. The regulatory body or law is the cause — the reader's obligation or risk is the subject.
-WRONG: "The CNIL has issued guidance on session replay tools, requiring organisations to obtain consent."
-RIGHT: "Organisations using session replay tools on French websites now have a six-month compliance window following CNIL guidance published this week."
-Do not extrapolate beyond what the article text directly supports. If the article does not state a consequence, do not assert one.`,
+VOICE: Write in direct, active voice. Lead with the compliance implication, not the regulatory action. Apply SOURCE CALIBRATION above — match your declarative confidence to your source type.`,
         messages: [
           {
             role: "user",
             content: `Analyze this privacy/data protection article.
 
-Source authority: ${sourceTier === 1 ? "Primary regulator (official decision or guidance)" : sourceTier === 2 ? "Legal analysis (law firm or legal commentary)" : "Media or civil society coverage"}
+Source type: ${sourceTier === 1 ? "PRIMARY — official regulator publication. Use direct declarative voice." : sourceTier === 2 ? "SECONDARY — legal analysis or commentary. Use attribution (\"According to [source]...\")." : "TERTIARY — media or civil society coverage. Use attribution. Apply extra caution on specific factual claims."}
 Title: ${title}
 Description: ${summary || "No description available."}
 Source: ${sourceName || "Unknown"}
 
 STEP 1 — RELEVANCE CHECK: If this article is NOT genuinely about privacy regulation, data protection law, regulatory enforcement, or compliance obligations, return exactly: {"skip": true}
 
-Articles that ARE relevant and must NOT be skipped include: AdTech, advertising privacy, consent management, cookie compliance, tracking technologies — AI governance, AI regulation, EU AI Act, automated decision-making — Healthcare privacy (HIPAA, HITECH, state health data laws) — Financial privacy (GLBA, CFPB, SEC cybersecurity disclosure) — Data broker regulation, biometric data laws, children's privacy (COPPA, FERPA, KOSA) — Civil society analysis of privacy developments from organizations such as EFF, EPIC, or Privacy International — Law firm commentary on regulatory developments — Cross-border data transfer mechanisms (SCCs, BCRs, adequacy decisions) — Employment privacy and HR data processing — General business pricing, entertainment, non-privacy technology, sports, and lifestyle topics are the primary exclusions.
+STEP 2 — SOURCE TEXT INVENTORY (internal check, do not output):
+Before generating any field, identify which specific facts are directly stated in the Description above:
+- Is a fine amount stated? (yes/no and the amount)
+- Is a specific deadline or date stated? (yes/no and the date)
+- Is a case reference number stated? (yes/no)
+- Is a specific article or section number stated? (yes/no)
+Only populate fields with facts that passed this inventory. Return null for everything else.
 
-STEP 2 — If relevant, return this JSON:
+STEP 3 — If relevant, return this JSON:
 {
-  "why_it_matters_short": "ONE sentence (max 25 words). Name the specific regulator and what's at stake for organizations subject to it. Designed to be read at a glance in a feed. No generic phrasing.",
+  "why_it_matters_short": "ONE sentence (max 25 words). Name the specific regulator and what organisations subject to it must know. CONSTRAINT: Use only facts stated in the Description above. If the Description is too thin to support a specific statement, write a general one without inventing specifics.",
 
-  "why_it_matters": "2 sentences. Lead with the compliance implication for the affected organisation type, then name the regulator, jurisdiction, and legal basis. No generic statements. WRONG: 'The ICO has published guidance on legitimate interests under UK GDPR, clarifying the balancing test.' RIGHT: 'Organisations relying on legitimate interest as a processing basis under UK GDPR must re-examine their balancing tests against the ICO's updated standard, which narrows the margin significantly for behavioural advertising.'",
+  "why_it_matters": "2 sentences (>= 10 chars total). Sentence 1: the compliance implication for the affected organisation type. Sentence 2: the regulator, jurisdiction, and legal basis. CONSTRAINT: Apply SOURCE CALIBRATION — if this is a secondary source, attribute claims to the source. Do not present a secondary source's interpretation as primary regulatory fact.",
 
   "related_signals": [
     {
-      "label": "Short pattern/precedent observation — e.g. '3rd CCPA enforcement action this quarter', 'Mirrors EDPB binding decision 02/2026', 'Aligns with FTC Rite Aid order'.",
+      "label": "Short pattern/precedent observation grounded in the SOURCE TEXT (e.g. the article itself states 'this is the third CCPA enforcement this quarter'). CONSTRAINT: Only include signals the article text directly supports. Do not generate pattern claims from training knowledge. Return [] if the article does not state any cross-pattern.",
       "kind": "pattern | precedent | trend"
     }
   ],
 
-  "takeaways": "Array of 1–5 strings. Generate proportionally: 1–2 for simple enforcement actions or single-issue guidance; 3–5 for comprehensive guidance documents, landmark decisions, or multi-issue developments. Do not pad to reach a target count — every item must add distinct information not covered by another. Each item must cite a specific regulator, law, article number, or deadline. No generic statements.",
+  "takeaways": ["Array of 1-3 strings (validator requires >= 1). Each must cite a specific regulator, law, or deadline STATED IN THE SOURCE TEXT. If the source text does not provide specific cited facts, return ONE general takeaway and nothing more. Do not fabricate specific citations to appear more authoritative."],
 
-  "compliance_impact": "One sentence naming the specific organisation type affected and the specific action required under the specific law. If no immediate action is required, write: 'Monitor — [specific development to watch] before [specific trigger or timeframe].' Never write a generic Monitor statement. Example of acceptable Monitor: 'Monitor — CNIL final position on session replay tools expected Q4 2026; update French website consent architecture once published.'",
+  "compliance_impact": "One sentence (>= 5 chars) naming the specific organisation type and required action. If no immediate action is required: 'Monitor — [specific named development] before [specific named trigger].' CONSTRAINT: Only describe actions compelled by facts stated in the source text.",
 
-  "who_should_care": "The single most specific audience: DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
+  "who_should_care": "DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
 
   "urgency": "Immediate | This quarter | Monitor",
 
-  "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary",
+  "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary — assign based on document TYPE described in the article, not topic importance. Secondary source analysis of a binding decision = Commentary or Guidance, NOT Binding.",
 
   "source_strength": "Primary regulator | Legal analysis | Media coverage",
 
-  "cross_jurisdiction_signal": "If this article reflects a pattern occurring across multiple regulators or jurisdictions simultaneously, describe the pattern in one sentence. If no cross-jurisdiction pattern is evident, return null.",
+  "cross_jurisdiction_signal": "If the article EXPLICITLY states that multiple regulators in different jurisdictions are taking coordinated action on the same issue, describe it in one sentence. If the article does not state this, return null. Do not infer coordination from separate unrelated developments.",
 
   "risk_level": "Low | Medium | High | Critical",
 
-  "affected_jurisdictions": ["Array of jurisdiction slugs where this development creates real compliance obligations. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong, china, israel, thailand, philippines, mexico. Return [] if impact is narrowly jurisdictional. Be conservative."],
+  "affected_jurisdictions": ["Slugs where this development creates direct compliance obligations STATED IN THE ARTICLE. Conservative. Use only: eu, united-kingdom, us-federal, california, texas, new-york, france, germany, italy, spain, ireland, netherlands, poland, belgium, denmark, sweden, norway, australia, canada, brazil, singapore, japan, south-korea, india, switzerland, hong-kong, china, israel, thailand, philippines, mexico"],
 
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine",
 
-  "regulatory_theory": "The legal doctrine or principle underlying this development in one sentence. For Binding and Enforcement articles, this field is required — if no established doctrine name applies, describe the principle in plain terms. Only return null for Commentary or Proposal articles where no regulatory principle is engaged. Examples of well-formed values: 'Consent-as-prerequisite doctrine applied to auction-layer processing', 'Accountability principle extended to AI training datasets', 'Purpose limitation strict construction applied to secondary use', 'Data minimisation enforcement against over-collection in employment context', 'Proportionality requirement applied to biometric retention schedules', 'Necessity test applied to cross-border transfer volume', 'Transparency obligation extended to automated profiling outputs', 'Legitimate interest balancing test narrowed for direct marketing'. Do not fabricate a doctrine name — if uncertain, describe the principle in plain terms.",
+  "regulatory_theory": "The legal doctrine underlying this development in one sentence. Required for Binding and Enforcement only. Return null for Commentary and Proposal. CONSTRAINT: Do not fabricate doctrine names. If you cannot identify the doctrine from the article text, describe the principle in plain terms or return null.",
 
   "action_items": [
     {
       "role": "DPO | Privacy Counsel | CISO | Compliance Manager",
-      "action": "Specific action — must name the specific law, article number, or regulator. No generic actions. Example: 'Review Article 6(1)(f) LIA documentation against the EDPB Guidelines 1/2024 standard' not 'Review your privacy practices'.",
+      "action": "Specific action naming the specific law or regulator FROM THE SOURCE TEXT. CONSTRAINT: Do not invent specific article numbers or deadlines not stated in the source. If no specific law or deadline is stated, return [].",
       "timeframe": "Immediate (within 7 days) | This quarter | Monitor"
     }
   ],
 
-  "key_date": "If this article references a specific compliance deadline, effective date, enforcement start date, or public comment deadline, return it as YYYY-MM-DD. If the article references a deadline without a specific date (e.g. 'expected Q3 2026'), return null. Do not infer or estimate dates not explicitly stated in the article.",
+  "key_date": "YYYY-MM-DD ONLY if a specific compliance deadline or effective date is EXPLICITLY STATED with a specific date in the article text. Return null if the article mentions a timeframe without a specific date (e.g. 'expected Q3 2026'). NEVER estimate or infer a date.",
 
   "entities": {
-    "regulators": ["Array of regulatory authority names mentioned, using official abbreviated form. Examples: ICO, EDPB, CNIL, FTC, BfDI, ANPD, PDPC. Empty array if none."],
-    "companies": ["Array of company or organization names that are the subject of regulatory action or guidance. Examples: Meta Platforms, TikTok, Clearview AI. Empty array if none."],
-    "laws": ["Array of specific law or regulation names with article numbers where applicable. Examples: GDPR Art. 6(1)(f), UK GDPR Art. 22, CCPA §1798.120, BIPA 740 ILCS 14/. Empty array if none."],
-    "case_references": ["Array of specific case names, decision references, or guidance document identifiers. Examples: C-597/19 Planet49, CNIL decision SAN-2022-018, EDPB Guidelines 1/2024. Empty array if none."]
+    "regulators": ["Official abbreviated names of regulators NAMED IN THE ARTICLE TEXT. Empty array if none."],
+    "companies": ["Company names that are subjects of regulatory action, NAMED IN THE ARTICLE TEXT. Do not add entities from training knowledge. Empty array if none."],
+    "laws": ["Specific laws with article numbers WHERE STATED IN THE ARTICLE TEXT. Do not add law citations from training knowledge. Empty array if none."],
+    "case_references": ["Case names or guidance document identifiers STATED VERBATIM IN THE ARTICLE TEXT. Do not generate or infer case reference numbers. Empty array if none."]
   },
 
-  "defense_considerations": "For articles where legal_weight is 'Binding' or 'Enforcement' only: In one sentence, state the strongest distinguishing factor or defense consideration that an organization facing this same theory could raise. Focus on factual distinctions (scale, sector, data type, prior notice), not procedural technicalities. Examples: 'Organizations with documented legitimate interest assessments predating this ruling may be distinguishable on the adequacy of their balancing record', 'This ruling turned on the absence of any consent mechanism — organizations using layered consent may have stronger standing'. Return null for Guidance, Proposal, and Commentary articles."
+  "defense_considerations": "For Binding or Enforcement articles only: one sentence on the strongest distinguishing factor stated or implied in the source. Return null for all other legal weights.",
+
+  "source_fidelity_note": "One sentence summarising the quality of the source text available. Example: 'Full article body available — high confidence in specific claims.' or 'RSS summary only (82 words) — specific claims limited to what description states; action items and case references not inferable.' This field is stored for downstream quality control and not shown to users."
 }
 
-Generate 1–3 action_items entries. Do not generate an action_items entry that says only "monitor" or "review your practices" — every action must name a specific law or regulator. If no specific action applies, return an empty array []. For entities: populate only from content explicitly present in the article. Do not use training knowledge to add entities not named in the article text.`,
+Generate 0-3 action_items. Return [] if the source text does not support specific named-law actions. For entities: populate ONLY from content present in the article text — not from training knowledge.`,
           },
         ],
       }),
