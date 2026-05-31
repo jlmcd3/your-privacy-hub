@@ -18,12 +18,17 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-// Jobs we monitor. Add more here if new ingestion functions are introduced.
-const MONITORED_JOBS = ["fetch-updates", "fetch-newsapi"];
+// Jobs we monitor + per-job "no successful run" threshold (hours).
+// The threshold MUST exceed the cron interval, otherwise the job will appear
+// "stale" every time we sit in the gap between scheduled runs.
+const JOB_NO_SUCCESS_HOURS: Record<string, number> = {
+  "fetch-updates": 8,   // runs hourly (sharded), 8h is plenty
+  "fetch-newsapi": 14,  // runs twice daily (12h gap) → 12h + 2h slack
+};
+const MONITORED_JOBS = Object.keys(JOB_NO_SUCCESS_HOURS);
 
 // Tunables
 const STUCK_MINUTES = 10;        // run still "running" beyond this is stuck
-const NO_SUCCESS_HOURS = 8;      // alert if no successful run in this window
 const THROTTLE_HOURS = 6;        // suppress repeat alerts for the same key
 const CONSECUTIVE_FAIL_THRESHOLD = 2;
 
