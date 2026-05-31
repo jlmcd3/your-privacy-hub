@@ -18,12 +18,17 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-// Jobs we monitor. Add more here if new ingestion functions are introduced.
-const MONITORED_JOBS = ["fetch-updates", "fetch-newsapi"];
+// Jobs we monitor + per-job "no successful run" threshold (hours).
+// The threshold MUST exceed the cron interval, otherwise the job will appear
+// "stale" every time we sit in the gap between scheduled runs.
+const JOB_NO_SUCCESS_HOURS: Record<string, number> = {
+  "fetch-updates": 8,   // runs hourly (sharded), 8h is plenty
+  "fetch-newsapi": 14,  // runs twice daily (12h gap) → 12h + 2h slack
+};
+const MONITORED_JOBS = Object.keys(JOB_NO_SUCCESS_HOURS);
 
 // Tunables
 const STUCK_MINUTES = 10;        // run still "running" beyond this is stuck
-const NO_SUCCESS_HOURS = 8;      // alert if no successful run in this window
 const THROTTLE_HOURS = 6;        // suppress repeat alerts for the same key
 const CONSECUTIVE_FAIL_THRESHOLD = 2;
 
@@ -121,8 +126,9 @@ async function checkConsecutiveFailures(): Promise<Alert[]> {
 
 async function checkNoRecentSuccess(): Promise<Alert[]> {
   const alerts: Alert[] = [];
-  const cutoff = new Date(Date.now() - NO_SUCCESS_HOURS * 3600_000).toISOString();
   for (const job of MONITORED_JOBS) {
+    const hours = JOB_NO_SUCCESS_HOURS[job];
+    const cutoff = new Date(Date.now() - hours * 3600_000).toISOString();
     const { data, error } = await supabase
       .from("ingestion_runs")
       .select("id, run_at")
@@ -137,8 +143,8 @@ async function checkNoRecentSuccess(): Promise<Alert[]> {
     if ((data ?? []).length > 0) continue;
     alerts.push({
       key: `no-success:${job}`,
-      subject: `[Ingestion alert] ${job} has had no successful run in ${NO_SUCCESS_HOURS}h`,
-      body: `Job: ${job}\nNo run with status 'success' has been recorded in the past ${NO_SUCCESS_HOURS} hours.\n\nThe scheduled cron may have stopped firing, or every recent attempt has failed. Check pg_cron + function logs.`,
+      subject: `[Ingestion alert] ${job} has had no successful run in ${hours}h`,
+      body: `Job: ${job}\nNo run with status 'success' has been recorded in the past ${hours} hours.\n\nThe scheduled cron may have stopped firing, or every recent attempt has failed. Check pg_cron + function logs.`,
     });
   }
   return alerts;
