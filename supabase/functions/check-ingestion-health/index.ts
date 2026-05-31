@@ -126,8 +126,9 @@ async function checkConsecutiveFailures(): Promise<Alert[]> {
 
 async function checkNoRecentSuccess(): Promise<Alert[]> {
   const alerts: Alert[] = [];
-  const cutoff = new Date(Date.now() - NO_SUCCESS_HOURS * 3600_000).toISOString();
   for (const job of MONITORED_JOBS) {
+    const hours = JOB_NO_SUCCESS_HOURS[job];
+    const cutoff = new Date(Date.now() - hours * 3600_000).toISOString();
     const { data, error } = await supabase
       .from("ingestion_runs")
       .select("id, run_at")
@@ -142,8 +143,8 @@ async function checkNoRecentSuccess(): Promise<Alert[]> {
     if ((data ?? []).length > 0) continue;
     alerts.push({
       key: `no-success:${job}`,
-      subject: `[Ingestion alert] ${job} has had no successful run in ${NO_SUCCESS_HOURS}h`,
-      body: `Job: ${job}\nNo run with status 'success' has been recorded in the past ${NO_SUCCESS_HOURS} hours.\n\nThe scheduled cron may have stopped firing, or every recent attempt has failed. Check pg_cron + function logs.`,
+      subject: `[Ingestion alert] ${job} has had no successful run in ${hours}h`,
+      body: `Job: ${job}\nNo run with status 'success' has been recorded in the past ${hours} hours.\n\nThe scheduled cron may have stopped firing, or every recent attempt has failed. Check pg_cron + function logs.`,
     });
   }
   return alerts;
