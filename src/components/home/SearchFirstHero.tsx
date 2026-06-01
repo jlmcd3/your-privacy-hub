@@ -23,50 +23,50 @@ export default function SearchFirstHero() {
             {/* ── Hero CTA Cards ─────────────────────────────────── */}
             <div className="@container flex flex-col gap-3 w-full max-w-3xl mt-2">
               <div className="grid grid-cols-1 @md:grid-cols-2 @[900px]:grid-cols-3 gap-3">
-              {/* Card 1 — Privacy Intelligence Feed (Primary) */}
+              {/* Card 1 — Privacy Intelligence Feed (Free, subdued blue) */}
               <a
                 href="#updates"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-accent hover:bg-accent-light border border-accent hover:border-accent-light transition-all duration-200"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-ocean hover:bg-brand-ocean/80 border border-brand-ocean hover:border-brand-ocean/80 transition-all duration-200"
               >
-                <p className="text-eyebrow text-white/80 mb-1.5">
+                <p className="text-eyebrow text-white/50 mb-1.5">
                   Privacy Intelligence Feed
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Feed — to keep you ahead
                 </p>
-                <p className="text-meta text-white/85 leading-snug">
+                <p className="text-meta text-white/60 leading-snug">
                   Key privacy developments. Enriched with compliance intelligence. Updated daily.
                 </p>
               </a>
 
-              {/* Card 2 — Intelligence Brief (Secondary) */}
+              {/* Card 2 — Intelligence Brief (Premium, teal accent) */}
               <a
                 href="#brief"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-200"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-accent hover:bg-accent-light border border-accent hover:border-accent-light transition-all duration-200"
               >
-                <p className="text-eyebrow text-white/50 mb-1.5">
+                <p className="text-eyebrow text-white/80 mb-1.5">
                   Intelligence Report
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Report — to save you time
                 </p>
-                <p className="text-meta text-white/60 leading-snug">
+                <p className="text-meta text-white/85 leading-snug">
                   Personalized to your jurisdiction, role, and tracked topics. Every Monday.
                 </p>
               </a>
 
-              {/* Card 3 — Compliance Tools (Secondary) */}
+              {/* Card 3 — Compliance Tools (Premium, slate-teal) */}
               <a
                 href="#tools"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-200"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-slate-teal hover:bg-brand-slate-teal/80 border border-brand-slate-teal hover:border-brand-slate-teal/80 transition-all duration-200"
               >
-                <p className="text-eyebrow text-white/50 mb-1.5">
+                <p className="text-eyebrow text-white/80 mb-1.5">
                   Compliance Tools
                 </p>
                 <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
                   Your Compliance Tools — to do your job well
                 </p>
-                <p className="text-meta text-white/60 leading-snug">
+                <p className="text-meta text-white/85 leading-snug">
                   LIA, DPIA, DPA, IR Playbook, Governance. Enforcement-calibrated — with annotated reasoning in every output.
                 </p>
               </a>
