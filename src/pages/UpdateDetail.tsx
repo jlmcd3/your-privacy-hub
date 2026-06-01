@@ -7,7 +7,7 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EmailSignup from "@/components/EmailSignup";
-import { ActionBrief } from "@/components/ActionBrief";
+
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { ArrowLeft, ExternalLink, Tag, Lock } from "lucide-react";
 import InFeedAd from "@/components/InFeedAd";
