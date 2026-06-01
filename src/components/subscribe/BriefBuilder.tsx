@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Check, X } from "lucide-react";
+import { Check, X, Lock } from "lucide-react";
 import { sampleBriefs, type SampleTrackSection } from "@/data/sampleBriefs";
 import { CitedText } from "@/components/brief/CitedText";
 
