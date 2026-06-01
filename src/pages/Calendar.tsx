@@ -244,9 +244,20 @@ const Calendar = () => {
                       </td>
                       <td className="px-4 py-3 border-b border-border">
                         <div className="flex items-center gap-2">
-                          <Link to={event.url} className="text-sm font-medium text-foreground hover:text-primary transition-colors no-underline">
-                            {event.title}
-                          </Link>
+                          {event.url && (event.url.startsWith("http://") || event.url.startsWith("https://")) ? (
+                            <a
+                              href={event.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm font-medium text-foreground hover:text-primary transition-colors no-underline"
+                            >
+                              {event.title}
+                            </a>
+                          ) : (
+                            <Link to={event.url || "#"} className="text-sm font-medium text-foreground hover:text-primary transition-colors no-underline">
+                              {event.title}
+                            </Link>
+                          )}
                           {event.source === "db" && (
                             <span className="flex-shrink-0 text-[11px] px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded-full font-medium">Feed</span>
                           )}
