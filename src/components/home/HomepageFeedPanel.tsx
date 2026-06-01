@@ -128,7 +128,7 @@ const HomepageArticleCard = ({
         <div>
           {excerpt}
           {(why || impact) && (
-            <p className="text-body text-brand-steel mt-2">
+            <p className="text-[13px] text-brand-steel mt-2">
               {why}
               {why && impact && ' '}
               {impact}
@@ -139,7 +139,7 @@ const HomepageArticleCard = ({
           {actionItems.length > 0 && (
             <ul className="mt-2 space-y-1 list-none pl-0">
               {actionItems.slice(0, 3).map((a, i) => (
-                <li key={i} className="flex gap-2 items-start text-body text-brand-steel">
+                <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
                   <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
                   <span>{a.action}</span>
                 </li>
@@ -177,7 +177,7 @@ const HomepageArticleCard = ({
         <div className="space-y-1.5">
           {excerpt}
           {(why || impact) && (
-            <p className="text-body text-brand-steel mt-2">
+            <p className="text-[13px] text-brand-steel mt-2">
               {why}
               {why && impact && ' '}
               {impact}
@@ -188,7 +188,7 @@ const HomepageArticleCard = ({
           {actionItems.length > 0 && (
             <ul className="mt-2 space-y-1 list-none pl-0">
               {actionItems.slice(0, 3).map((a, i) => (
-                <li key={i} className="flex gap-2 items-start text-body text-brand-steel">
+                <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
                   <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
                   <span>{a.action}</span>
                 </li>
@@ -213,7 +213,7 @@ const HomepageArticleCard = ({
         <div className="space-y-1.5">
           {excerpt}
           {(why || impact) && (
-            <p className="text-body text-brand-steel mt-2">
+            <p className="text-[13px] text-brand-steel mt-2">
               {why}
               {why && impact && ' '}
               {impact}
@@ -224,7 +224,7 @@ const HomepageArticleCard = ({
           {actionItems.length > 0 && (
             <ul className="mt-2 space-y-1 list-none pl-0">
               {actionItems.slice(0, 3).map((a, i) => (
-                <li key={i} className="flex gap-2 items-start text-body text-brand-steel">
+                <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
                   <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
                   <span>{a.action}</span>
                 </li>
@@ -245,7 +245,7 @@ const HomepageArticleCard = ({
       <div>
         {excerpt}
         {(why || impact) && (
-          <p className="text-body text-brand-steel mt-2">
+          <p className="text-[13px] text-brand-steel mt-2">
             {why}
             {why && impact && ' '}
             {impact}
@@ -256,7 +256,7 @@ const HomepageArticleCard = ({
         {actionItems.length > 0 && (
           <ul className="mt-2 space-y-1 list-none pl-0">
             {actionItems.slice(0, 3).map((a, i) => (
-              <li key={i} className="flex gap-2 items-start text-body text-brand-steel">
+              <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
                 <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
                 <span>{a.action}</span>
               </li>
@@ -341,13 +341,13 @@ const HomepageArticleCard = ({
               href={article.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[14px] text-gray-900 hover:text-brand-teal block no-underline transition-colors"
+              className="text-base text-gray-900 hover:text-brand-teal block no-underline transition-colors"
             >
               {normalizeTitle(article.title)}
               <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />
             </a>
           ) : (
-            <p className="text-[14px] text-gray-900">
+            <p className="text-base text-gray-900">
               {normalizeTitle(article.title)}
             </p>
           )}
