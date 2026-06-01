@@ -110,11 +110,7 @@ export function IntelligencePanel({
             {categoryLabel(selectedArticle.category)}
           </span>
         )}
-        {selectedArticle.attention_level === "WATCH CLOSELY" && (
-          <span className="text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
-            Watch Closely
-          </span>
-        )}
+        {/* attention_level intentionally not surfaced to end users */}
       </div>
       {selectedArticle.source_url ? (
         <a

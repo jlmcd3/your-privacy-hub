@@ -251,11 +251,7 @@ const HomepageArticleCard = ({
                 {fmtDate(article.published_at)}
               </span>
             )}
-            {article.attention_level === "WATCH CLOSELY" && (
-              <span className="text-eyebrow px-1 py-0.5 rounded bg-red-50 text-red-700 border border-red-200">
-                Watch Closely
-              </span>
-            )}
+            {/* attention_level intentionally not surfaced to end users */}
           </div>
           <Link
             to="/updates"
