@@ -374,6 +374,11 @@ Deno.serve(async (req) => {
   const since =
     (typeof body.since === "string" ? body.since : url.searchParams.get("since")) || null;
 
+  // ids: comma-separated list of specific article IDs to re-enrich (targeted backfill)
+  const idsParam =
+    (typeof body.ids === "string" ? body.ids : url.searchParams.get("ids")) || null;
+  const targetIds = idsParam ? idsParam.split(",").map((s: string) => s.trim()).filter(Boolean) : null;
+
   // Current enrichment target — bump if you change the prompt
   const TARGET_ENRICHMENT_VERSION = 4;
 
@@ -381,22 +386,29 @@ Deno.serve(async (req) => {
     .from("updates")
     .select("id, title, summary, source_name, source_domain");
 
-  if (forceReenrich) {
+  if (targetIds && targetIds.length > 0) {
+    // Explicit ID list: process these rows regardless of enrichment state.
+    // Ignores force_reenrich, since, and batchSize when IDs are provided.
+    articleQuery = articleQuery.in("id", targetIds);
+  } else if (forceReenrich) {
     // Re-enrich rows that haven't yet been processed by the new prompt.
     // (Without this filter, batches keep re-processing the same top rows.)
     articleQuery = articleQuery.or(
       `enrichment_version.is.null,enrichment_version.lt.${TARGET_ENRICHMENT_VERSION}`
     );
+    if (since) {
+      articleQuery = articleQuery.gte('published_at', since);
+    }
   } else {
     articleQuery = articleQuery.is('ai_summary', null);
-  }
-  if (since) {
-    articleQuery = articleQuery.gte('published_at', since);
+    if (since) {
+      articleQuery = articleQuery.gte('published_at', since);
+    }
   }
 
   const { data: articles } = await articleQuery
     .order("published_at", { ascending: false })
-    .limit(batchSize);
+    .limit(targetIds && targetIds.length > 0 ? targetIds.length : batchSize);
 
   let countQuery = supabase
     .from("updates")
