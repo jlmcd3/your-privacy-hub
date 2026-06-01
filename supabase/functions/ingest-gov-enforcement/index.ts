@@ -419,6 +419,8 @@ Deno.serve(async (req) => {
     }
     // In monitor mode, skip multi-page FTC backfill pages (only page 1).
     if (mode === "monitor" && s.ftcPage !== undefined && s.ftcPage > 1) return false;
+    // Backfill-only pagination pages: skip in monitor mode.
+    if (mode === "monitor" && s.backfillOnly) return false;
     return true;
   });
 
