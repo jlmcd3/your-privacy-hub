@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Check, X } from "lucide-react";
+import { Check, X, Lock } from "lucide-react";
 import { sampleBriefs, type SampleTrackSection } from "@/data/sampleBriefs";
 import { CitedText } from "@/components/brief/CitedText";
 
@@ -133,8 +133,8 @@ export default function BriefBuilder() {
   const [role,         setRole]         = useState("");
   const [tracks,       setTracks]       = useState<string[]>([]);
   const [briefShown,   setBriefShown]   = useState(false);
-  const [showIndustryPrompt, setShowIndustryPrompt] = useState(false);
-  const [showFormatPrompt,   setShowFormatPrompt]   = useState(false);
+
+
   const [showCollapsePill, setShowCollapsePill] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -325,109 +325,88 @@ export default function BriefBuilder() {
         </p>
       </div>
 
+
       {/* ── INDUSTRY — locked preview ─────────────────────────────── */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-brand-navy">
             Your industry
+            <span className="ml-2 normal-case tracking-normal font-medium text-slate">
+              — available in the weekly brief, not included in this sample
+            </span>
           </p>
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-teal bg-brand-teal/10 border border-brand-teal/20 px-2 py-0.5 rounded-full">
             ⭐ Subscription
           </span>
         </div>
         <p className="text-[12px] text-slate mb-3">
-          Your brief filters enforcement actions and regulatory news to your sector.
-          Subscribers choose from 31 industries.
+          Subscribers pick from 31 industries to filter enforcement actions and
+          regulatory news to their sector every week.
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
           {INDUSTRIES.map((industry) => (
-            <button
+            <div
               key={industry}
-              type="button"
-              onClick={() => setShowIndustryPrompt(true)}
-              className="text-left px-3 py-2 rounded-lg border border-brand-cloud bg-white text-[11px] text-slate opacity-60 hover:opacity-80 hover:border-brand-teal/40 transition-all cursor-pointer"
+              aria-disabled="true"
+              className="flex items-center gap-1.5 text-left px-3 py-2 rounded-lg border border-brand-cloud bg-white text-[11px] text-slate opacity-60 select-none"
             >
-              {industry}
-            </button>
+              <Lock className="w-3 h-3 flex-shrink-0 text-slate/70" />
+              <span className="truncate">{industry}</span>
+            </div>
           ))}
         </div>
-        {showIndustryPrompt && (
-          <div className="mt-3 flex items-start gap-3 px-3 py-2.5 rounded-lg bg-brand-teal/5 border border-brand-teal/20 animate-in fade-in slide-in-from-top-1 duration-200">
-            <p className="text-[12px] text-brand-navy flex-1">
-              Industry-specific tailoring is included in your subscription.
-              Your brief filters enforcement actions and regulatory news to
-              your sector every week.
-            </p>
-            <div className="flex flex-col gap-1.5 flex-shrink-0">
-              <a
-                href="/subscribe"
-                className="text-[11px] px-3 py-1 rounded-lg bg-brand-teal text-white font-semibold hover:opacity-90 transition-colors whitespace-nowrap no-underline"
-              >
-                Subscribe →
-              </a>
-              <button
-                type="button"
-                onClick={() => setShowIndustryPrompt(false)}
-                className="text-[11px] text-slate hover:text-brand-navy text-center"
-              >
-                Dismiss
-              </button>
-            </div>
-          </div>
-        )}
+        <div className="mt-2 text-right">
+          <a
+            href="/subscribe"
+            className="text-[11px] font-semibold text-brand-teal hover:underline no-underline"
+          >
+            Unlock industry tailoring with a subscription →
+          </a>
+        </div>
       </div>
 
       {/* ── FORMAT — locked preview ────────────────────────────────── */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-brand-navy">
             Report format
+            <span className="ml-2 normal-case tracking-normal font-medium text-slate">
+              — available in the weekly brief, not included in this sample
+            </span>
           </p>
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-teal bg-brand-teal/10 border border-brand-teal/20 px-2 py-0.5 rounded-full">
             ⭐ Subscription
           </span>
         </div>
         <p className="text-[12px] text-slate mb-3">
-          Choose how your brief arrives each Monday.
+          Subscribers choose how their brief arrives each Monday — and can
+          change it any time.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           {FORMATS.map((fmt) => (
-            <button
+            <div
               key={fmt.label}
-              type="button"
-              onClick={() => setShowFormatPrompt(true)}
-              className="flex flex-col gap-1 px-4 py-3 rounded-xl border border-brand-cloud bg-white text-left opacity-60 hover:opacity-80 hover:border-brand-teal/40 transition-all cursor-pointer"
+              aria-disabled="true"
+              className="flex flex-col gap-1 px-4 py-3 rounded-xl border border-brand-cloud bg-white text-left opacity-60 select-none"
             >
-              <p className="text-sm font-semibold text-brand-navy">{fmt.label}</p>
+              <p className="text-sm font-semibold text-brand-navy flex items-center gap-1.5">
+                <Lock className="w-3 h-3 flex-shrink-0 text-slate/70" />
+                {fmt.label}
+              </p>
               <p className="text-[11px] text-slate leading-snug">{fmt.desc}</p>
-            </button>
+            </div>
           ))}
         </div>
-        {showFormatPrompt && (
-          <div className="mt-3 flex items-start gap-3 px-3 py-2.5 rounded-lg bg-brand-teal/5 border border-brand-teal/20 animate-in fade-in slide-in-from-top-1 duration-200">
-            <p className="text-[12px] text-brand-navy flex-1">
-              Format selection is included in your subscription. Choose between
-              a full 9-section report, an executive summary, or an action-items
-              checklist — and change it any time.
-            </p>
-            <div className="flex flex-col gap-1.5 flex-shrink-0">
-              <a
-                href="/subscribe"
-                className="text-[11px] px-3 py-1 rounded-lg bg-brand-teal text-white font-semibold hover:opacity-90 transition-colors whitespace-nowrap no-underline"
-              >
-                Subscribe →
-              </a>
-              <button
-                type="button"
-                onClick={() => setShowFormatPrompt(false)}
-                className="text-[11px] text-slate hover:text-brand-navy text-center"
-              >
-                Dismiss
-              </button>
-            </div>
-          </div>
-        )}
+        <div className="mt-2 text-right">
+          <a
+            href="/subscribe"
+            className="text-[11px] font-semibold text-brand-teal hover:underline no-underline"
+          >
+            Unlock format options with a subscription →
+          </a>
+        </div>
       </div>
+
 
       {!briefShown && (
         <div className="text-center mb-2">
