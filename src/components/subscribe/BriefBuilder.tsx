@@ -133,8 +133,8 @@ export default function BriefBuilder() {
   const [role,         setRole]         = useState("");
   const [tracks,       setTracks]       = useState<string[]>([]);
   const [briefShown,   setBriefShown]   = useState(false);
-  const [showIndustryPrompt, setShowIndustryPrompt] = useState(false);
-  const [showFormatPrompt,   setShowFormatPrompt]   = useState(false);
+
+
   const [showCollapsePill, setShowCollapsePill] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
