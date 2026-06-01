@@ -42,6 +42,15 @@ const EXCLUSION_PATTERNS: RegExp[] = [
   /scientific review|national cancer institute|national institute on/i,
   /grant (application|award|opportunity)/i,
   /budget (request|submission)/i,
+  // Privacy Act of 1974 housekeeping notices: statutorily-required
+  // announcements of agency record systems / data-matching programs.
+  // Not rulemaking; routinely filed by every federal agency.
+  /privacy act of 1974[;,:\s-]*matching program/i,
+  /privacy act of 1974[;,:\s-]*system of records/i,
+  /computer matching (program|agreement)/i,
+  /\bnew system of records\b/i,
+  /\bsystem of records notice\b/i,
+  /\bsorn\b/i,
 ];
 
 function isExcluded(title: string, summary: string): boolean {
