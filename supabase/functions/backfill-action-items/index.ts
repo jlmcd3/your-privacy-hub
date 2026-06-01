@@ -120,6 +120,11 @@ Generate 0–3 action_items. Return [] if the source does not name a specific la
     if (Array.isArray(data.action_items)) {
       result.action_items = (data.action_items as any[])
         .filter((a: any) => a && typeof a.action === "string" && a.action.trim())
+        // Enforce Monitor ban server-side regardless of model output.
+        .filter((a: any) => {
+          const tf = typeof a.timeframe === "string" ? a.timeframe.trim().toLowerCase() : "";
+          return tf !== "monitor";
+        })
         .slice(0, 3);
     }
     if (
