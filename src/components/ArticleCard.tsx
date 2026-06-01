@@ -492,7 +492,7 @@ const FullCard = ({
                     Get analysis personalized in your Monday brief
                   </span>
                   <span className="block text-[11px] text-slate mt-0.5">
-                    <span className="font-semibold text-amber-700">Subscriber feature</span> · curated weekly for your role &amp; jurisdictions
+                    <span className="font-semibold text-amber-700">Subscriber feature</span> · curated weekly for your industry, your role, your interests &amp; jurisdictions
                   </span>
                 </span>
               </span>
@@ -583,7 +583,7 @@ const FullCard = ({
                         Get analysis personalized in your Monday brief
                       </span>
                       <span className="block text-[11px] text-slate mt-0.5">
-                        <span className="font-semibold text-amber-700">Subscriber feature</span> · curated weekly for your role &amp; jurisdictions
+                        <span className="font-semibold text-amber-700">Subscriber feature</span> · curated weekly for your industry, your role, your interests &amp; jurisdictions
                       </span>
                     </span>
                   </span>
