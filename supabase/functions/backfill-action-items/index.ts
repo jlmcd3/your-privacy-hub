@@ -306,9 +306,11 @@ Deno.serve(async (req) => {
     }
 
     // 2. action_items + precedent_novelty (AI) — run in parallel with teaser below
+    const forceActions = forceReenrich || (targetIds && targetIds.length > 0);
     const needsActions = mode !== "tier" && mode !== "quality" &&
       mode !== "teaser" &&
-      (!Array.isArray(row.action_items) || row.action_items.length === 0 ||
+      (forceActions ||
+        !Array.isArray(row.action_items) || row.action_items.length === 0 ||
         !row.precedent_novelty);
 
     // 4-prep. teaser eligibility uses pre-existing tier/quality (deterministic)
