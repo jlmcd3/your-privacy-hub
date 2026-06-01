@@ -472,15 +472,33 @@ const FullCard = ({
 
         {/* ── ANONYMOUS CTAs ─────────── */}
         {tier === 'anonymous' && (
-          <div className="flex flex-col gap-1 mt-1.5">
-            <Link to="/signup" className="text-sm font-semibold text-brand-steel hover:underline no-underline">
-              Register free to see analysis →
-            </Link>
-            <Link to="/subscribe" className="text-sm font-semibold text-brand-teal hover:underline no-underline">
-              Subscribe to use AI investigation prompts →
-            </Link>
-            <Link to="/get-intelligence" className="text-sm font-semibold text-brand-teal hover:underline no-underline">
-              Get this and other analysis personalised for you in the Monday brief →
+          <div className="flex flex-col gap-2 mt-2">
+            <div className="flex flex-col gap-1">
+              <Link to="/signup" className="text-sm font-semibold text-brand-steel hover:underline no-underline">
+                Register free to see analysis →
+              </Link>
+              <Link to="/subscribe" className="text-sm font-semibold text-brand-teal hover:underline no-underline">
+                Subscribe to use AI investigation prompts →
+              </Link>
+            </div>
+            <Link
+              to="/get-intelligence"
+              className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-white px-3 py-2.5 no-underline hover:from-amber-100 transition-colors group"
+            >
+              <span className="flex items-start gap-2.5 min-w-0">
+                <Star className="w-4 h-4 text-amber-500 fill-amber-400 flex-shrink-0 mt-0.5" />
+                <span className="min-w-0">
+                  <span className="block text-[13px] font-semibold text-brand-navy leading-tight">
+                    Get this analysis personalised in your Monday brief
+                  </span>
+                  <span className="block text-[11px] text-slate mt-0.5">
+                    <span className="font-semibold text-amber-700">Subscriber feature</span> · curated weekly for your role &amp; jurisdictions
+                  </span>
+                </span>
+              </span>
+              <span className="flex-shrink-0 text-[12px] font-semibold bg-brand-navy text-white px-3 py-1.5 rounded-md group-hover:opacity-90 whitespace-nowrap">
+                Get the brief →
+              </span>
             </Link>
           </div>
         )}
