@@ -499,25 +499,33 @@ const FullCard = ({
 
           return (
             <div className="mt-2 space-y-2">
-              {(why || impact) && (
-                <p className="text-[13px] text-brand-steel leading-relaxed mt-2">
-                  {why}
-                  {why && impact && ' '}
-                  {impact}
-                  {(why || impact) && watchLine && ' '}
-                  {watchLine && <span className="italic">{watchLine}</span>}
-                </p>
-              )}
+              {(why || impact || actionItems.length > 0) && (
+                <div className="pl-3 border-l-[3px] rounded-r-md py-2 pr-2 space-y-2" style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.04)' }}>
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal))' }} />
+                    <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal))' }}>Key Takeaways</span>
+                  </div>
+                  {(why || impact) && (
+                    <p className="text-[13px] text-brand-steel leading-relaxed">
+                      {why}
+                      {why && impact && ' '}
+                      {impact}
+                      {(why || impact) && watchLine && ' '}
+                      {watchLine && <span className="italic">{watchLine}</span>}
+                    </p>
+                  )}
 
-              {actionItems.length > 0 && (
-                <ul className="mt-2 space-y-1 list-none pl-0">
-                  {actionItems.slice(0, 3).map((a, i) => (
-                    <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy leading-relaxed">
-                      <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
-                      <span>{a.action}</span>
-                    </li>
-                  ))}
-                </ul>
+                  {actionItems.length > 0 && (
+                    <ul className="space-y-1 list-none pl-0">
+                      {actionItems.slice(0, 3).map((a, i) => (
+                        <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy leading-relaxed">
+                          <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                          <span>{a.action}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               )}
 
               {tier === 'paid' && (
