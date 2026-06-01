@@ -155,6 +155,18 @@ Generate 0-3 action_items. Return [] whenever the quality gate cannot be satisfi
           const tf = typeof a.timeframe === "string" ? a.timeframe.trim().toLowerCase() : "";
           return tf !== "monitor";
         })
+        // Server-side quality gate: action must contain at least one named anchor.
+        // Two regexes kept separate so the "i" flag on the first does not defeat
+        // the capitalisation requirement in the second.
+        // Note: PIPA (Korean statute) and PIPC (Korean regulator) are both intentional.
+        // DPC may occasionally match "data processing center" — acceptable noise.
+        .filter((a: any) => {
+          const action = typeof a.action === "string" ? a.action : "";
+          const ACRONYM_ANCHOR = /\b(GDPR|EDPB|EDPS|ICO|CNIL|Garante|AEPD|BfDI|DPC|Datatilsynet|Datainspektionen|UODO|APD|NAIH|FTC|CFPB|HHS|SEC|CPPA|NIST|OAIC|PDPC|PCPD|PIPC|PIPA|PPC|OPC|ANPD|CCPA|CPRA|BIPA|HIPAA|HITECH|PIPEDA|LGPD|PIPL|DPDP|FADP|POPIA|KVKK|APPI|NDPR|COPPA|GLBA|FERPA|VPPA|CIPA|TCF|SCCs?)\b/i;
+          const PROPER_NOUN_ANCHOR = /\b[A-Z][a-zA-Z]+\s+(Act|Regulation)\b/;
+          const ARTICLE_ANCHOR = /\b(Art\.|Article\s+\d|Section\s+\d|§\s*\d)/i;
+          return ACRONYM_ANCHOR.test(action) || PROPER_NOUN_ANCHOR.test(action) || ARTICLE_ANCHOR.test(action);
+        })
         .slice(0, 3);
     }
     if (
