@@ -80,27 +80,45 @@ const AGENCIES = [
 
 const TYPES = ["RULE", "PRORULE", "NOTICE"];
 
-async function fetchAgency(agencySlug: string, since: string) {
-  const url = new URL("https://www.federalregister.gov/api/v1/articles.json");
-  url.searchParams.append("conditions[agencies][]", agencySlug);
-  for (const t of TYPES) url.searchParams.append("conditions[type][]", t);
-  url.searchParams.set("conditions[publication_date][gte]", since);
-  url.searchParams.set("order", "newest");
-  url.searchParams.set("per_page", "20");
+async function fetchAgency(agencySlug: string, since: string, until?: string, perPage = 20, maxPages = 1) {
+  const out: any[] = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const url = new URL("https://www.federalregister.gov/api/v1/articles.json");
+    url.searchParams.append("conditions[agencies][]", agencySlug);
+    for (const t of TYPES) url.searchParams.append("conditions[type][]", t);
+    url.searchParams.set("conditions[publication_date][gte]", since);
+    if (until) url.searchParams.set("conditions[publication_date][lte]", until);
+    url.searchParams.set("order", "newest");
+    url.searchParams.set("per_page", String(perPage));
+    url.searchParams.set("page", String(page));
 
-  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(12000) });
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status} ${body.slice(0, 200)}`);
+    const res = await fetch(url.toString(), { signal: AbortSignal.timeout(20000) });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`HTTP ${res.status} ${body.slice(0, 200)}`);
+    }
+    const json = await res.json();
+    const results = json.results || [];
+    out.push(...results);
+    if (results.length < perPage) break;
   }
-  const json = await res.json();
-  return json.results || [];
+  return out;
 }
 
-Deno.serve(async () => {
-  const run = await startRun(supabase, "fetch-federal-register", { agencies: AGENCIES.length });
+Deno.serve(async (req) => {
+  let reqBody: any = {};
+  try { reqBody = await req.json(); } catch { /* GET or empty */ }
+  const reqUrl = new URL(req.url);
+  const since =
+    reqBody.since ||
+    reqUrl.searchParams.get("since") ||
+    new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const until = reqBody.until || reqUrl.searchParams.get("until") || undefined;
+  const maxPages = Number(reqBody.max_pages || reqUrl.searchParams.get("max_pages") || 1);
+  const perPage = Number(reqBody.per_page || reqUrl.searchParams.get("per_page") || 100);
+
+  const run = await startRun(supabase, "fetch-federal-register", { agencies: AGENCIES.length, since, until, maxPages, perPage });
   const results = { inserted: 0, skipped: 0, fetched: 0, filtered_irrelevant: 0, errors: [] as string[] };
-  const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   try {
     for (const agency of AGENCIES) {
