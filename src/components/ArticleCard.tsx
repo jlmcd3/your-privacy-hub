@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2, ChevronsUpDown, ChevronsDownUp } from "lucide-react";
+import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2, ChevronsUpDown, ChevronsDownUp, Star, FlaskConical } from "lucide-react";
 import { useEnrichmentToggle } from "@/hooks/useEnrichmentToggle";
 
 import { stripHtml, normalizeTitle } from "@/lib/utils";
