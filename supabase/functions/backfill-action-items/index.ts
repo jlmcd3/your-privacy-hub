@@ -84,10 +84,36 @@ async function generateActionsAndNovelty(
         model: "claude-haiku-4-5-20251001",
         max_tokens: 600,
         system:
-          "You produce concise privacy-regulatory metadata grounded STRICTLY in the source text provided. Reply with one valid JSON object only — no preamble, no markdown.\n\nSOURCE FIDELITY RULES:\n- Only produce action_items that follow directly from a regulator, law, or obligation explicitly named in the source text.\n- Only classify precedent_novelty using cues present in the source text. If the source does not discuss prior practice, use \"routine\".\n- Never invent regulators, articles, deadlines, sectors, or enforcement patterns. If the source is thin or generic, return an empty action_items array.\n\nACTION ITEM DISCIPLINE (HARD RULES):\n- An action item REQUIRES (a) a specific named law/regulation/regulator from the source AND (b) a dated obligation, deadline, or concrete compliance step tied to that named item.\n- If the source does not name a specific law, regulator, or dated obligation, return action_items: []. A \"Monitor\"-level observation is NOT an action item.\n- Do NOT reclassify a Monitor observation as \"Immediate\" or \"This quarter\" to fill the array. Empty is correct and expected.\n- \"Monitor\" is FORBIDDEN as a timeframe value. Only \"Immediate (within 7 days)\" or \"This quarter\" are allowed, and only when (a) and (b) above are both satisfied.",
+          `You produce privacy-regulatory action items grounded STRICTLY in the source text provided. Reply with one valid JSON object only — no preamble, no markdown.
+
+SOURCE FIDELITY RULES:
+- Only produce action_items where the source text explicitly names (a) a specific law, regulation, or regulator AND (b) a concrete obligation, deadline, or compliance step tied to that named item.
+- Never invent regulators, article numbers, deadlines, or compliance requirements not stated in the source.
+- If the source is thin, generic commentary, or does not name a specific law or regulator, return action_items: []. Empty is correct and expected.
+
+ACTION ITEM QUALITY GATE — every item must pass ALL four tests:
+1. NAMED ANCHOR: The action string must contain at least one of: a statute name, a named regulator, or an article/section number from the source. If none are present, do not produce the item.
+2. CONCRETE VERB: The action must use a specific verb tied to what the organisation must actually do. FORBIDDEN verbs when used alone: "review", "audit", "assess", "evaluate", "consider", "monitor". If the only verb available is one of these, the source does not support an action item — return [].
+3. ORGANISATION SCOPE: The action must name the type of organisation it applies to. Not "organisations" generically — name the specific type affected (e.g. "Healthcare processors", "Ad tech vendors using TCF", "Illinois employers collecting biometric data").
+4. 30 WORDS MAX: Each action string must be 30 words or fewer. If you cannot say it in 30 words with a named anchor, a concrete verb, and an organisation scope, the source does not support a specific action item.
+
+WRONG examples (do not produce these):
+- "Review your data protection practices in light of this enforcement action." (no named anchor, forbidden verb, generic scope)
+- "Organisations should assess compliance with applicable privacy regulations." (no named anchor, forbidden verb, generic scope)
+- "Monitor developments under the GDPR." (Monitor timeframe is forbidden; this is not an action)
+
+RIGHT examples (this quality level or better):
+- "Illinois employers using facial recognition must post BIPA-compliant written notices before next collection cycle." (named anchor: BIPA, concrete verb: post, scoped: Illinois employers)
+- "Ad platforms running TCF-based consent banners must disable behavioural targeting for users who reject, per CNIL enforcement standard." (named anchor: TCF + CNIL, concrete verb: disable, scoped: ad platforms)
+- "DPOs at organisations transferring EU personal data to Russia under SCCs must complete a Transfer Impact Assessment documenting safeguard adequacy." (named anchor: SCCs, concrete verb: complete, scoped: DPOs at transferring orgs)
+
+TIMEFRAME RULES:
+- "Immediate (within 7 days)": only when the source states a specific regulatory deadline within 7 days, or an enforcement order with an immediate compliance requirement.
+- "This quarter": when the source states a specific upcoming deadline, effective date, or enforcement priority within 3 months.
+- "Monitor" is FORBIDDEN as a timeframe value. Do not reclassify a Monitor observation as Immediate or This quarter to fill the array.`,
         messages: [{
           role: "user",
-          content: `Given this privacy article, produce action items and a precedent novelty classification — grounded ONLY in the text below.
+          content: `Given this privacy article, produce action items grounded ONLY in the text below. Apply the quality gate strictly — return [] if the source cannot support a named-anchor, concrete-verb, scoped action under 30 words.
 
 Title: ${title}
 Why it matters: ${fullWhy || "(none)"}
@@ -96,12 +122,16 @@ Article summary: ${(summary || "").slice(0, 800)}
 Return JSON:
 {
   "action_items": [
-    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific compliance step that names a regulator or law EXPLICITLY mentioned in the source above (e.g. 'Update Art. 13 GDPR notices to disclose new AI processing purpose'). NOT generic ('monitor', 'review'). NOT inferred from outside knowledge.", "timeframe": "Immediate (within 7 days) | This quarter" }
+    {
+      "role": "DPO | Privacy Counsel | CISO | Compliance Manager",
+      "action": "Under 30 words. Must name a specific law/regulator/article from the source above. Must use a concrete verb (not review/audit/assess/evaluate/monitor alone). Must name the type of organisation it applies to.",
+      "timeframe": "Immediate (within 7 days) | This quarter"
+    }
   ],
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine"
 }
 
-Generate 0–3 action_items. Return [] if the source does not name a specific law/regulator/dated obligation. A Monitor-level observation is NOT an action item — do not invent an Immediate or This-quarter item just to fill the array. Empty is the correct answer for thin or commentary sources.`,
+Generate 0-3 action_items. Return [] whenever the quality gate cannot be satisfied. A specific, accurate empty array is worth more than three generic items.`,
         }],
       }),
       signal: AbortSignal.timeout(20000),
@@ -124,6 +154,18 @@ Generate 0–3 action_items. Return [] if the source does not name a specific la
         .filter((a: any) => {
           const tf = typeof a.timeframe === "string" ? a.timeframe.trim().toLowerCase() : "";
           return tf !== "monitor";
+        })
+        // Server-side quality gate: action must contain at least one named anchor.
+        // Two regexes kept separate so the "i" flag on the first does not defeat
+        // the capitalisation requirement in the second.
+        // Note: PIPA (Korean statute) and PIPC (Korean regulator) are both intentional.
+        // DPC may occasionally match "data processing center" — acceptable noise.
+        .filter((a: any) => {
+          const action = typeof a.action === "string" ? a.action : "";
+          const ACRONYM_ANCHOR = /\b(GDPR|EDPB|EDPS|ICO|CNIL|Garante|AEPD|BfDI|DPC|Datatilsynet|Datainspektionen|UODO|APD|NAIH|FTC|CFPB|HHS|SEC|CPPA|NIST|OAIC|PDPC|PCPD|PIPC|PIPA|PPC|OPC|ANPD|CCPA|CPRA|BIPA|HIPAA|HITECH|PIPEDA|LGPD|PIPL|DPDP|FADP|POPIA|KVKK|APPI|NDPR|COPPA|GLBA|FERPA|VPPA|CIPA|TCF|SCCs?)\b/i;
+          const PROPER_NOUN_ANCHOR = /\b[A-Z][a-zA-Z]+\s+(Act|Regulation)\b/;
+          const ARTICLE_ANCHOR = /\b(Art\.|Article\s+\d|Section\s+\d|§\s*\d)/i;
+          return ACRONYM_ANCHOR.test(action) || PROPER_NOUN_ANCHOR.test(action) || ARTICLE_ANCHOR.test(action);
         })
         .slice(0, 3);
     }
@@ -203,19 +245,37 @@ Deno.serve(async (req) => {
     10,
   );
   const mode = url.searchParams.get("mode") || "all"; // all | actions | tier | quality | teaser
+  const forceReenrich = url.searchParams.get("force_reenrich") === "true";
+  const idsParam = url.searchParams.get("ids");
+  const targetIds = idsParam
+    ? idsParam.split(",").map((s) => s.trim()).filter(Boolean)
+    : null;
 
-  // Pull rows that have ai_summary but are missing one of the Batch 4/5 fields.
-  const { data: rows, error } = await supabase
+  // Pull rows that have ai_summary but are missing one of the Batch 4/5 fields,
+  // unless explicit IDs or force_reenrich are passed.
+  let rowQuery = supabase
     .from("updates")
     .select(
       "id, title, summary, source_domain, ai_summary, action_items, precedent_novelty, enrichment_quality, source_tier, contextual_teaser, why_it_matters_short",
-    )
-    .not("ai_summary", "is", null)
-    .or(
-      "action_items.is.null,precedent_novelty.is.null,enrichment_quality.is.null,source_tier.is.null",
-    )
+    );
+
+  if (targetIds && targetIds.length > 0) {
+    // Explicit ID list: process these rows regardless of current field state
+    rowQuery = rowQuery.in("id", targetIds);
+  } else if (forceReenrich) {
+    // force_reenrich without IDs: re-process all rows regardless of field state
+    rowQuery = rowQuery.not("ai_summary", "is", null);
+  } else {
+    rowQuery = rowQuery
+      .not("ai_summary", "is", null)
+      .or(
+        "action_items.is.null,precedent_novelty.is.null,enrichment_quality.is.null,source_tier.is.null",
+      );
+  }
+
+  const { data: rows, error } = await rowQuery
     .order("published_at", { ascending: false })
-    .limit(limit);
+    .limit(targetIds && targetIds.length > 0 ? targetIds.length : limit);
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -246,9 +306,11 @@ Deno.serve(async (req) => {
     }
 
     // 2. action_items + precedent_novelty (AI) — run in parallel with teaser below
+    const forceActions = forceReenrich || (targetIds && targetIds.length > 0);
     const needsActions = mode !== "tier" && mode !== "quality" &&
       mode !== "teaser" &&
-      (!Array.isArray(row.action_items) || row.action_items.length === 0 ||
+      (forceActions ||
+        !Array.isArray(row.action_items) || row.action_items.length === 0 ||
         !row.precedent_novelty);
 
     // 4-prep. teaser eligibility uses pre-existing tier/quality (deterministic)
