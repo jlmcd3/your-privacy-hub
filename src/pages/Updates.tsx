@@ -607,10 +607,10 @@ const Updates = () => {
 
                 {/* Free registered: subtle Pro upgrade strip */}
                 {user && !isPremium && (
-                    <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg mb-4">
-                        Showing analysis on every update.{" "}
-                        <Link to="/subscribe" className="underline font-semibold hover:text-amber-900">
-                            Upgrade to Platform to unlock Action Briefs →
+                    <div className="text-sm text-brand-navy bg-brand-teal/5 border border-brand-teal/20 px-3 py-2 rounded-lg mb-4">
+                        Get a personalised Privacy Intelligence Report every Monday — written for your role, jurisdiction, and industry.{" "}
+                        <Link to="/get-intelligence" className="underline font-semibold text-brand-teal hover:text-brand-navy">
+                            Build your sample brief →
                         </Link>
                     </div>
                 )}
