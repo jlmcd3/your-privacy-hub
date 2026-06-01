@@ -44,11 +44,11 @@ export function InvestigationPrompt({ item }: InvestigationPromptProps) {
         aria-expanded={open}
       >
         <span className="flex items-center gap-2 min-w-0">
-          <FlaskConical className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-          <span className="text-body font-semibold text-gray-900">
+          <FlaskConical className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
+          <span className="text-[13px] font-semibold text-gray-900">
             Investigate further
           </span>
-          <span className="text-xs text-gray-500 truncate hidden sm:inline">
+          <span className="text-[11px] text-gray-500 truncate hidden sm:inline">
             — AI prompt pre-built from this article
           </span>
         </span>
