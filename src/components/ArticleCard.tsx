@@ -379,19 +379,6 @@ const FullCard = ({
   const { expanded, showAll, toggleArticle, toggleAll } = useEnrichmentToggle(item.id);
 
 
-  const actionProse = (() => {
-    const items = item.action_items ?? [];
-    if (items.length === 0) return null;
-    const sentences = items.slice(0, 2).map(a => a.action).filter(Boolean).join('. ');
-    return sentences ? sentences + '.' : null;
-  })();
-
-  const watchProse = (() => {
-    const signals = item.related_signals ?? [];
-    if (signals.length === 0) return null;
-    const labels = signals.map(s => s.label).filter(Boolean).join('; ');
-    return labels ? `Watch: ${labels}.` : null;
-  })();
 
   return (
     <div
