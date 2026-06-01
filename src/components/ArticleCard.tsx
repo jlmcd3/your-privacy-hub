@@ -457,7 +457,7 @@ const FullCard = ({
         {/* Title */}
         <TitleLink
           item={item}
-          className="text-[14px] text-gray-900 hover:text-brand-teal block mb-1 no-underline transition-colors"
+          className="text-base text-gray-900 hover:text-brand-teal block mb-1 no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-3 h-3 inline ml-1 opacity-30" />}
@@ -500,7 +500,7 @@ const FullCard = ({
           return (
             <div className="mt-2 space-y-2">
               {(why || impact) && (
-                <p className="text-sm text-brand-steel leading-relaxed mt-2">
+                <p className="text-[13px] text-brand-steel leading-relaxed mt-2">
                   {why}
                   {why && impact && ' '}
                   {impact}
@@ -512,7 +512,7 @@ const FullCard = ({
               {actionItems.length > 0 && (
                 <ul className="mt-2 space-y-1 list-none pl-0">
                   {actionItems.slice(0, 3).map((a, i) => (
-                    <li key={i} className="flex gap-2 items-start text-sm text-brand-steel leading-relaxed">
+                    <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy leading-relaxed">
                       <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
                       <span>{a.action}</span>
                     </li>
