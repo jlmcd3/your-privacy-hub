@@ -401,13 +401,15 @@ const Navbar = () => {
   return (
     <>
     <nav className="bg-brand-navy border-b border-brand-navy sticky top-0 z-50">
-      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 md:h-16">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-14 md:h-16">
         {/* Logo */}
-        <Link to="/" className="no-underline flex items-center">
-          <img src="/logo.svg" alt="End User Privacy" width={260} height={48} className="h-10 w-auto shrink-0 object-contain" />
-        </Link>
+        <div className="flex items-center flex-1">
+          <Link to="/" className="no-underline flex items-center">
+            <img src="/logo.svg" alt="End User Privacy" width={260} height={48} className="h-10 w-auto shrink-0 object-contain" />
+          </Link>
+        </div>
         {/* Desktop nav */}
-        <div className="hidden lg:flex items-center gap-1 lg:gap-2 xl:gap-4 ml-6 xl:ml-10">
+        <div className="hidden lg:flex items-center justify-center gap-1 lg:gap-2 xl:gap-4 shrink-0">
           {navItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
