@@ -457,7 +457,13 @@ Deno.serve(async (req) => {
         updatePayload.regulatory_theory = aiSummary.regulatory_theory;
       }
       if (Array.isArray(aiSummary.action_items) && aiSummary.action_items.length > 0) {
-        updatePayload.action_items = aiSummary.action_items;
+        // Server-side enforcement of the Monitor ban: drop any item with timeframe "Monitor"
+        // so the model cannot bypass the prompt rule. Empty arrays are valid output.
+        const filtered = (aiSummary.action_items as any[]).filter((a: any) => {
+          const tf = typeof a?.timeframe === "string" ? a.timeframe.trim().toLowerCase() : "";
+          return tf !== "monitor";
+        });
+        if (filtered.length > 0) updatePayload.action_items = filtered;
       }
       if (typeof aiSummary.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(aiSummary.key_date)) {
         updatePayload.key_date = aiSummary.key_date;
