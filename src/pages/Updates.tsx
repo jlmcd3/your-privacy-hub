@@ -295,20 +295,22 @@ const Updates = () => {
             .slice(0, 12);
     }, [updates]);
 
-    const filtered = updates.filter((u) => {
-        // Region filter — OR across selected regions; matches category ∪ direct ∪ affected jurisdictions
-        if (selectedRegions.length > 0) {
+    // Filter predicates — each returns true to KEEP the row. Keyed so we can
+    // selectively disable a dimension during progressive relaxation.
+    type FilterKey = 'region' | 'topic' | 'search' | 'date' | 'source' | 'sector' | 'ai';
+    const predicates: Record<FilterKey, (u: Update) => boolean> = {
+        region: (u) => {
+            if (selectedRegions.length === 0) return true;
             const regionMatches = new Set<string>([
                 u.category,
                 ...(u.direct_jurisdictions ?? []),
                 ...(u.affected_jurisdictions ?? []),
             ].filter(Boolean) as string[]);
-            if (!selectedRegions.some((r) => regionMatches.has(r))) return false;
-        }
-
-        // Topic filter — OR across selected topics; empty = all
-        if (selectedTopics.length > 0) {
-            const matchesAny = selectedTopics.some((key) => {
+            return selectedRegions.some((r) => regionMatches.has(r));
+        },
+        topic: (u) => {
+            if (selectedTopics.length === 0) return true;
+            return selectedTopics.some((key) => {
                 const t = TOPIC_FILTERS.find((f) => f.key === key);
                 if (!t) return false;
                 if (t.match === 'category') return u.category === t.key;
@@ -318,39 +320,87 @@ const Updates = () => {
                 }
                 return false;
             });
-            if (!matchesAny) return false;
-        }
-
-        if (searchTerm) {
+        },
+        search: (u) => {
+            if (!searchTerm) return true;
             const q = searchTerm.toLowerCase();
             const fields = [
                 u.title,
                 u.summary || "",
                 u.regulatory_theory || "",
                 u.related_development || "",
-                // attention_level intentionally excluded from search — not surfaced to end users
                 ...(u.affected_sectors || []),
                 u.regulator || "",
                 u.ai_summary?.why_it_matters || "",
             ];
-            if (!fields.some(f => f.toLowerCase().includes(q))) return false;
-        }
-        if (dateRange !== "all") {
+            return fields.some((f) => f.toLowerCase().includes(q));
+        },
+        date: (u) => {
+            if (dateRange === "all") return true;
             const days = parseInt(dateRange);
             const cutoff = Date.now() - days * 86400000;
-            if (new Date(u.published_at).getTime() < cutoff) return false;
-        }
-        if (activeSource && u.source_domain !== activeSource) return false;
-        if (activeSectors.length > 0) {
+            return new Date(u.published_at).getTime() >= cutoff;
+        },
+        source: (u) => !activeSource || u.source_domain === activeSource,
+        sector: (u) => {
+            if (activeSectors.length === 0) return true;
             const sectors = u.affected_sectors || [];
-            if (!activeSectors.some(s => sectors.includes(s))) return false;
+            return activeSectors.some((s) => sectors.includes(s));
+        },
+        ai: (u) => {
+            if (urgencyFilter !== "all" && u.ai_summary?.urgency !== urgencyFilter) return false;
+            if (legalWeightFilter !== "all" && u.ai_summary?.legal_weight !== legalWeightFilter) return false;
+            if (crossJurisdictionOnly && !u.ai_summary?.cross_jurisdiction_signal) return false;
+            return true;
+        },
+    };
+
+    const applyFilters = (disabled: Set<FilterKey>): Update[] =>
+        updates.filter((u) =>
+            (Object.keys(predicates) as FilterKey[]).every(
+                (k) => disabled.has(k) || predicates[k](u)
+            )
+        );
+
+    const strict = applyFilters(new Set());
+
+    // Progressive relaxation: when strict yields 0, drop filters one at a time
+    // in order of "least costly to broaden". Search stays — it's user intent.
+    const RELAXATION_ORDER: { key: FilterKey; label: string }[] = [
+        { key: 'date', label: 'date range' },
+        { key: 'sector', label: 'industry' },
+        { key: 'ai', label: 'urgency / legal weight' },
+        { key: 'source', label: 'source' },
+        { key: 'topic', label: 'topic' },
+        { key: 'region', label: 'jurisdiction' },
+    ];
+
+    let filtered = strict;
+    const relaxed: string[] = [];
+    if (strict.length === 0 && updates.length > 0) {
+        const disabled = new Set<FilterKey>();
+        for (const step of RELAXATION_ORDER) {
+            // Only count it as "relaxed" if that filter was actually active
+            const wasActive = (() => {
+                switch (step.key) {
+                    case 'date': return dateRange !== 'all';
+                    case 'sector': return activeSectors.length > 0;
+                    case 'ai': return urgencyFilter !== 'all' || legalWeightFilter !== 'all' || crossJurisdictionOnly;
+                    case 'source': return !!activeSource;
+                    case 'topic': return selectedTopics.length > 0;
+                    case 'region': return selectedRegions.length > 0;
+                    default: return false;
+                }
+            })();
+            disabled.add(step.key);
+            if (wasActive) relaxed.push(step.label);
+            const next = applyFilters(disabled);
+            if (next.length > 0) {
+                filtered = next;
+                break;
+            }
         }
-        // (Attention filter removed)
-        if (urgencyFilter !== "all" && u.ai_summary?.urgency !== urgencyFilter) return false;
-        if (legalWeightFilter !== "all" && u.ai_summary?.legal_weight !== legalWeightFilter) return false;
-        if (crossJurisdictionOnly && !u.ai_summary?.cross_jurisdiction_signal) return false;
-        return true;
-    });
+    }
 
     const toggleSector = (sector: string) => {
         setActiveSectors(prev =>
@@ -612,6 +662,23 @@ const Updates = () => {
                         <Link to="/get-intelligence" className="underline font-semibold text-brand-teal hover:text-brand-navy">
                             Build your sample brief →
                         </Link>
+                    </div>
+                )}
+
+                {/* Progressive-relaxation notice */}
+                {relaxed.length > 0 && filtered.length > 0 && (
+                    <div className="mb-4 flex items-start gap-3 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
+                        <div className="flex-1 text-sm text-amber-900">
+                            <span className="font-semibold">No exact matches</span> for your filter combination.
+                            Showing the closest related updates — we relaxed{" "}
+                            <span className="font-medium">{relaxed.join(", ")}</span>.
+                        </div>
+                        <button
+                            onClick={clearAllFilters}
+                            className="text-xs font-semibold text-amber-900 hover:underline whitespace-nowrap"
+                        >
+                            Clear filters
+                        </button>
                     </div>
                 )}
 
