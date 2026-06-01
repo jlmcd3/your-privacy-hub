@@ -519,17 +519,8 @@ const FullCard = ({
         })()}
 
 
-        {/* ── FREE CTA ─────────── */}
-        {tier === 'free' && (
-          <div className="mt-1.5">
-            <Link to="/subscribe" className="text-sm font-semibold text-brand-teal hover:underline no-underline">
-              Subscribe to see Analysis and Guidance →
-            </Link>
-          </div>
-        )}
-
-        {/* ── PAID — Analysis and Guidance + tool CTA ───── */}
-        {expanded && tier === 'paid' && (() => {
+        {/* ── REGISTERED — Analysis and Guidance + tool CTA (free + paid) ───── */}
+        {expanded && (tier === 'paid' || tier === 'free') && (() => {
 
           const impact = item.ai_summary?.compliance_impact;
            if (!impact && !actionProse && !watchProse) {
@@ -562,6 +553,9 @@ const FullCard = ({
                   {toolCTA.label}
                 </Link>
               </div>
+              {tier === 'free' && (impact || actionProse || watchProse) && (
+                <BriefBuilderCTA item={item} />
+              )}
             </div>
           );
         })()}
