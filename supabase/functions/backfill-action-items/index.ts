@@ -84,7 +84,7 @@ async function generateActionsAndNovelty(
         model: "claude-haiku-4-5-20251001",
         max_tokens: 600,
         system:
-          "You produce concise privacy-regulatory metadata grounded STRICTLY in the source text provided. Reply with one valid JSON object only — no preamble, no markdown.\n\nSOURCE FIDELITY RULES:\n- Only produce action_items that follow directly from a regulator, law, or obligation explicitly named in the source text.\n- Only classify precedent_novelty using cues present in the source text. If the source does not discuss prior practice, use \"routine\".\n- Never invent regulators, articles, deadlines, sectors, or enforcement patterns. If the source is thin or generic, return an empty action_items array.",
+          "You produce concise privacy-regulatory metadata grounded STRICTLY in the source text provided. Reply with one valid JSON object only — no preamble, no markdown.\n\nSOURCE FIDELITY RULES:\n- Only produce action_items that follow directly from a regulator, law, or obligation explicitly named in the source text.\n- Only classify precedent_novelty using cues present in the source text. If the source does not discuss prior practice, use \"routine\".\n- Never invent regulators, articles, deadlines, sectors, or enforcement patterns. If the source is thin or generic, return an empty action_items array.\n\nACTION ITEM DISCIPLINE (HARD RULES):\n- An action item REQUIRES (a) a specific named law/regulation/regulator from the source AND (b) a dated obligation, deadline, or concrete compliance step tied to that named item.\n- If the source does not name a specific law, regulator, or dated obligation, return action_items: []. A \"Monitor\"-level observation is NOT an action item.\n- Do NOT reclassify a Monitor observation as \"Immediate\" or \"This quarter\" to fill the array. Empty is correct and expected.\n- \"Monitor\" is FORBIDDEN as a timeframe value. Only \"Immediate (within 7 days)\" or \"This quarter\" are allowed, and only when (a) and (b) above are both satisfied.",
         messages: [{
           role: "user",
           content: `Given this privacy article, produce action items and a precedent novelty classification — grounded ONLY in the text below.
@@ -96,12 +96,12 @@ Article summary: ${(summary || "").slice(0, 800)}
 Return JSON:
 {
   "action_items": [
-    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific compliance step that names a regulator or law EXPLICITLY mentioned in the source above (e.g. 'Update Art. 13 GDPR notices to disclose new AI processing purpose'). NOT generic ('monitor', 'review'). NOT inferred from outside knowledge.", "timeframe": "Immediate (within 7 days) | This quarter | Monitor" }
+    { "role": "DPO | Privacy Counsel | CISO | Compliance Manager", "action": "Specific compliance step that names a regulator or law EXPLICITLY mentioned in the source above (e.g. 'Update Art. 13 GDPR notices to disclose new AI processing purpose'). NOT generic ('monitor', 'review'). NOT inferred from outside knowledge.", "timeframe": "Immediate (within 7 days) | This quarter" }
   ],
   "precedent_novelty": "new_theory | confirms_existing | reverses_prior | routine"
 }
 
-Generate 0–3 action_items. Return [] if the source does not name a specific law/regulator/obligation strong enough to justify a concrete action. Do not fabricate. Better to return [] than to invent.`,
+Generate 0–3 action_items. Return [] if the source does not name a specific law/regulator/dated obligation. A Monitor-level observation is NOT an action item — do not invent an Immediate or This-quarter item just to fill the array. Empty is the correct answer for thin or commentary sources.`,
         }],
       }),
       signal: AbortSignal.timeout(20000),
