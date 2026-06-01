@@ -245,19 +245,37 @@ Deno.serve(async (req) => {
     10,
   );
   const mode = url.searchParams.get("mode") || "all"; // all | actions | tier | quality | teaser
+  const forceReenrich = url.searchParams.get("force_reenrich") === "true";
+  const idsParam = url.searchParams.get("ids");
+  const targetIds = idsParam
+    ? idsParam.split(",").map((s) => s.trim()).filter(Boolean)
+    : null;
 
-  // Pull rows that have ai_summary but are missing one of the Batch 4/5 fields.
-  const { data: rows, error } = await supabase
+  // Pull rows that have ai_summary but are missing one of the Batch 4/5 fields,
+  // unless explicit IDs or force_reenrich are passed.
+  let rowQuery = supabase
     .from("updates")
     .select(
       "id, title, summary, source_domain, ai_summary, action_items, precedent_novelty, enrichment_quality, source_tier, contextual_teaser, why_it_matters_short",
-    )
-    .not("ai_summary", "is", null)
-    .or(
-      "action_items.is.null,precedent_novelty.is.null,enrichment_quality.is.null,source_tier.is.null",
-    )
+    );
+
+  if (targetIds && targetIds.length > 0) {
+    // Explicit ID list: process these rows regardless of current field state
+    rowQuery = rowQuery.in("id", targetIds);
+  } else if (forceReenrich) {
+    // force_reenrich without IDs: re-process all rows regardless of field state
+    rowQuery = rowQuery.not("ai_summary", "is", null);
+  } else {
+    rowQuery = rowQuery
+      .not("ai_summary", "is", null)
+      .or(
+        "action_items.is.null,precedent_novelty.is.null,enrichment_quality.is.null,source_tier.is.null",
+      );
+  }
+
+  const { data: rows, error } = await rowQuery
     .order("published_at", { ascending: false })
-    .limit(limit);
+    .limit(targetIds && targetIds.length > 0 ? targetIds.length : limit);
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
