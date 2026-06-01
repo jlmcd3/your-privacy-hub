@@ -379,19 +379,6 @@ const FullCard = ({
   const { expanded, showAll, toggleArticle, toggleAll } = useEnrichmentToggle(item.id);
 
 
-  const actionProse = (() => {
-    const items = item.action_items ?? [];
-    if (items.length === 0) return null;
-    const sentences = items.slice(0, 2).map(a => a.action).filter(Boolean).join('. ');
-    return sentences ? sentences + '.' : null;
-  })();
-
-  const watchProse = (() => {
-    const signals = item.related_signals ?? [];
-    if (signals.length === 0) return null;
-    const labels = signals.map(s => s.label).filter(Boolean).join('; ');
-    return labels ? `Watch: ${labels}.` : null;
-  })();
 
   return (
     <div
@@ -483,78 +470,95 @@ const FullCard = ({
           </p>
         )}
 
-        {/* ── ALERT — shown to all tiers when available ─────────── */}
-        {expanded && (() => {
-          const shortWhy = item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
-          if (!shortWhy) return null;
-          const firstSentence = shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy;
-          return (
-            <p className="text-sm leading-relaxed mt-2" style={{ color: '#92400E' }}>
-              <span className="font-semibold text-severity-warning">Alert: </span>{firstSentence}
-            </p>
-          );
-        })()}
-
         {/* ── ANONYMOUS CTAs ─────────── */}
         {tier === 'anonymous' && (
           <div className="flex flex-col gap-1 mt-1.5">
             <Link to="/signup" className="text-sm font-semibold text-brand-steel hover:underline no-underline">
-              Register free to see Context →
+              Register free to see analysis →
             </Link>
             <Link to="/subscribe" className="text-sm font-semibold text-brand-teal hover:underline no-underline">
-              Subscribe to see Analysis and Guidance →
+              Subscribe to use AI investigation prompts →
+            </Link>
+            <Link to="/get-intelligence" className="text-sm font-semibold text-brand-teal hover:underline no-underline">
+              Get this and other analysis personalised for you in the Monday brief →
             </Link>
           </div>
         )}
 
-        {/* ── CONTEXT — free + paid ───── */}
-        {expanded && (tier === 'free' || tier === 'paid') && (() => {
-          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
-          if (!why) return null;
-          return (
-            <p className="text-sm text-brand-steel leading-relaxed mt-2">
-              <span className="font-semibold">Context: </span>{why}
-            </p>
-          );
-        })()}
-
-
-        {/* ── REGISTERED — Analysis and Guidance + tool CTA (free + paid) ───── */}
+        {/* ── REGISTERED — single enrichment block (free + paid) ───── */}
         {expanded && (tier === 'paid' || tier === 'free') && (() => {
-
           const impact = item.ai_summary?.compliance_impact;
-           if (!impact && !actionProse && !watchProse) {
-            const toolCTA = getToolCTA(item);
-            return (
-              <div className="mt-2 space-y-2">
-                <InvestigationPrompt item={item} />
-                <div className="pt-2 border-t border-brand-cloud">
-                  <Link to={toolCTA.href} className="text-sm font-semibold text-brand-teal hover:underline no-underline">
-                    {toolCTA.label}
-                  </Link>
-                </div>
-              </div>
-            );
-          }
+          const why = item.ai_summary?.why_it_matters ?? item.why_it_matters_short ?? item.ai_summary?.why_it_matters_short;
+          const actionItems = item.action_items ?? [];
+          const signals = item.related_signals ?? [];
+          const watchLine = signals.length > 0
+            ? 'Watch: ' + signals.map(s => s.label).filter(Boolean).join('; ') + '.'
+            : null;
           const toolCTA = getToolCTA(item);
+          const hasContent = !!(impact || why || actionItems.length > 0);
+
           return (
             <div className="mt-2 space-y-2">
-              <p className="text-sm leading-relaxed mt-2" style={{ color: '#78350F' }}>
-                <span className="font-semibold text-brand-teal">Analysis and Guidance: </span>
-                {impact}
-                {impact && (actionProse || watchProse) && ' '}
-                {actionProse}
-                {actionProse && watchProse && ' '}
-                {watchProse && <span className="italic">{watchProse}</span>}
-              </p>
-              <InvestigationPrompt item={item} />
+              {(why || impact) && (
+                <p className="text-sm text-brand-steel leading-relaxed mt-2">
+                  {why}
+                  {why && impact && ' '}
+                  {impact}
+                  {(why || impact) && watchLine && ' '}
+                  {watchLine && <span className="italic">{watchLine}</span>}
+                </p>
+              )}
+
+              {actionItems.length > 0 && (
+                <ul className="mt-2 space-y-1 list-none pl-0">
+                  {actionItems.slice(0, 3).map((a, i) => (
+                    <li key={i} className="flex gap-2 items-start text-sm text-brand-steel leading-relaxed">
+                      <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                      <span>{a.action}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {tier === 'paid' && (
+                <InvestigationPrompt item={item} />
+              )}
+              {tier === 'free' && (
+                <div className="border border-silver rounded-lg bg-white">
+                  <div className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left rounded-t-lg bg-background">
+                    <span className="flex items-center gap-2 min-w-0">
+                      <span className="text-indigo-600 text-sm">⚗</span>
+                      <span className="text-body font-semibold text-gray-900">Investigate further</span>
+                      <span className="text-xs text-gray-500 truncate hidden sm:inline">— AI prompt pre-built from this article</span>
+                    </span>
+                    <span className="text-gray-500 text-sm">▾</span>
+                  </div>
+                  <div className="px-3 py-2.5 border-t border-silver flex items-center justify-between gap-3">
+                    <p className="text-xs text-slate leading-relaxed flex-1">
+                      AI investigation prompts are available to subscribers. Copy a pre-built prompt for this article into Claude, ChatGPT, or any AI assistant.
+                    </p>
+                    <Link
+                      to="/subscribe"
+                      className="flex-shrink-0 text-[11px] font-semibold bg-brand-navy text-white px-2.5 py-1 rounded-lg hover:opacity-90 no-underline whitespace-nowrap"
+                    >
+                      Subscribe →
+                    </Link>
+                  </div>
+                </div>
+              )}
+
               <div className="pt-2 border-t border-brand-cloud">
                 <Link to={toolCTA.href} className="text-sm font-semibold text-brand-teal hover:underline no-underline">
                   {toolCTA.label}
                 </Link>
               </div>
-              {tier === 'free' && (impact || actionProse || watchProse) && (
-                <BriefBuilderCTA item={item} />
+
+              {tier === 'free' && hasContent && (
+                <p className="text-sm text-slate mt-1">
+                  <Link to="/get-intelligence" className="font-semibold text-brand-teal hover:underline no-underline">
+                    Get this and other analysis personalised for you in the Monday brief →
+                  </Link>
+                </p>
               )}
             </div>
           );

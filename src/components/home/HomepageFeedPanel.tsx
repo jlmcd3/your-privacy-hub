@@ -27,8 +27,8 @@ const toArticleItem = (row: UpdateArticleRow): ArticleItem => {
 
 const SLOT_LABELS = [
   { icon: "👁", text: "What any visitor sees", className: "text-slate/60 text-sm" },
-  { icon: "✉", text: "Free account view", className: "text-brand-teal text-sm font-medium" },
-  { icon: "⭐", text: "Platform view", className: "text-brand-teal text-sm font-semibold" },
+  { icon: "✉", text: "Free registered — full analysis", className: "text-brand-teal text-sm font-medium" },
+  { icon: "⭐", text: "Subscriber — + AI investigation prompt", className: "text-brand-teal text-sm font-semibold" },
 ];
 
 const getToolCTA = (item: ArticleItem): { label: string; href: string } => {
@@ -67,14 +67,8 @@ const HomepageArticleCard = ({
   demoTier?: "anonymous" | "free" | "paid";
   isPremium?: boolean;
 }) => {
-  const actionProse = (() => {
-    const items = article.action_items ?? [];
-    if (!items.length) return null;
-    const s = items.slice(0, 2).map((a) => a.action).filter(Boolean).join(". ");
-    return s ? s + "." : null;
-  })();
-
-  const watchProse = (() => {
+  const actionItems = article.action_items ?? [];
+  const watchLine = (() => {
     const signals = article.related_signals ?? [];
     if (!signals.length) return null;
     const labels = signals.map((s) => s.label).filter(Boolean).join("; ");
@@ -88,36 +82,42 @@ const HomepageArticleCard = ({
       </p>
     ) : null;
 
-    const shortWhy = article.why_it_matters_short ?? article.ai_summary?.why_it_matters_short;
-    const sentence = shortWhy ? (shortWhy.split(/(?<=[.!?])\s/)[0] ?? shortWhy) : null;
-    const alertNode = sentence ? (
-      <p className="text-body mt-2" style={{ color: '#92400E' }}>
-        <span className="font-semibold text-severity-warning">Alert: </span>{sentence}
-      </p>
-    ) : null;
-
     const why =
       article.ai_summary?.why_it_matters ??
       article.why_it_matters_short ??
       article.ai_summary?.why_it_matters_short;
-    const contextNode = why ? (
-      <p className="text-body text-brand-steel mt-2">
-        <span className="font-semibold">Context: </span>{why}
+    const impact = article.ai_summary?.compliance_impact;
+    const toolCTA = getToolCTA(article);
+
+    const jur = article.jurisdiction ?? '';
+    const cat = article.category ?? '';
+    const briefParams = new URLSearchParams();
+    if (jur) briefParams.set('pre_jurisdiction', jur);
+    if (cat) briefParams.set('pre_topic', cat);
+    const briefHref = briefParams.toString()
+      ? `/get-intelligence?${briefParams.toString()}`
+      : '/get-intelligence';
+
+    const briefCTA = (
+      <p className="text-meta text-slate mt-1">
+        <Link to={briefHref} className="font-semibold text-brand-teal hover:underline no-underline">
+          Get this and other analysis personalised for you in the Monday brief →
+        </Link>
       </p>
-    ) : null;
+    );
 
     if (demoTier === "anonymous") {
       return (
         <div>
           {excerpt}
-          {alertNode}
           <div className="flex flex-col gap-1 mt-1">
             <Link to="/signup" className="text-meta font-semibold text-brand-steel hover:underline no-underline">
-              Register free to see Context →
+              Register free to see analysis →
             </Link>
             <Link to="/subscribe" className="text-meta font-semibold text-brand-teal hover:underline no-underline">
-              Subscribe to see Analysis and Guidance →
+              Subscribe to use AI investigation prompts →
             </Link>
+            {briefCTA}
           </div>
         </div>
       );
@@ -127,36 +127,75 @@ const HomepageArticleCard = ({
       return (
         <div>
           {excerpt}
-          {alertNode}
-          {contextNode}
-          <div className="mt-1.5">
-            <Link to="/subscribe" className="text-meta font-semibold text-brand-teal hover:underline no-underline">
-              Subscribe to see Analysis and Guidance →
-            </Link>
+          {(why || impact) && (
+            <p className="text-body text-brand-steel mt-2">
+              {why}
+              {why && impact && ' '}
+              {impact}
+              {(why || impact) && watchLine && ' '}
+              {watchLine && <span className="italic">{watchLine}</span>}
+            </p>
+          )}
+          {actionItems.length > 0 && (
+            <ul className="mt-2 space-y-1 list-none pl-0">
+              {actionItems.slice(0, 3).map((a, i) => (
+                <li key={i} className="flex gap-2 items-start text-body text-brand-steel">
+                  <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                  <span>{a.action}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="border border-silver rounded-lg bg-white mt-2">
+            <div className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-t-lg bg-background">
+              <span className="flex items-center gap-2 min-w-0">
+                <span className="text-indigo-600 text-sm">⚗</span>
+                <span className="text-body font-semibold text-gray-900">Investigate further</span>
+                <span className="text-xs text-gray-500 truncate hidden sm:inline">— AI prompt pre-built from this article</span>
+              </span>
+              <span className="text-gray-500 text-sm">▾</span>
+            </div>
+            <div className="px-3 py-2.5 border-t border-silver flex items-center justify-between gap-3">
+              <p className="text-xs text-slate leading-relaxed flex-1">
+                AI investigation prompts are available to subscribers.
+              </p>
+              <Link
+                to="/subscribe"
+                className="flex-shrink-0 text-[11px] font-semibold bg-brand-navy text-white px-2.5 py-1 rounded-lg hover:opacity-90 no-underline whitespace-nowrap"
+              >
+                Subscribe →
+              </Link>
+            </div>
           </div>
+          {briefCTA}
         </div>
       );
     }
 
     if (demoTier === "paid") {
-      const impact = article.ai_summary?.compliance_impact;
-      const toolCTA = getToolCTA(article);
       return (
         <div className="space-y-1.5">
           {excerpt}
-          {alertNode}
-          {contextNode}
-          {(impact || actionProse || watchProse) && (
-            <p className="text-body mt-2" style={{ color: '#78350F' }}>
-              <span className="font-semibold text-brand-teal">Analysis and Guidance: </span>
+          {(why || impact) && (
+            <p className="text-body text-brand-steel mt-2">
+              {why}
+              {why && impact && ' '}
               {impact}
-              {impact && (actionProse || watchProse) && " "}
-              {actionProse}
-              {actionProse && watchProse && " "}
-              {watchProse && <span className="italic">{watchProse}</span>}
+              {(why || impact) && watchLine && ' '}
+              {watchLine && <span className="italic">{watchLine}</span>}
             </p>
           )}
-          <p className="text-eyebrow mt-4 mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
+          {actionItems.length > 0 && (
+            <ul className="mt-2 space-y-1 list-none pl-0">
+              {actionItems.slice(0, 3).map((a, i) => (
+                <li key={i} className="flex gap-2 items-start text-body text-brand-steel">
+                  <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                  <span>{a.action}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="text-eyebrow mt-3 mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
             ⭐ Platform feature preview
           </p>
           <InvestigationPrompt item={article} />
@@ -169,24 +208,28 @@ const HomepageArticleCard = ({
       );
     }
 
-    // Authenticated (non-demo)
     if (isPremium) {
-      const impact = article.ai_summary?.compliance_impact;
-      const toolCTA = getToolCTA(article);
       return (
         <div className="space-y-1.5">
           {excerpt}
-          {alertNode}
-          {contextNode}
-          {(impact || actionProse || watchProse) && (
-            <p className="text-body mt-2" style={{ color: '#78350F' }}>
-              <span className="font-semibold text-brand-teal">Analysis and Guidance: </span>
+          {(why || impact) && (
+            <p className="text-body text-brand-steel mt-2">
+              {why}
+              {why && impact && ' '}
               {impact}
-              {impact && (actionProse || watchProse) && " "}
-              {actionProse}
-              {actionProse && watchProse && " "}
-              {watchProse && <span className="italic">{watchProse}</span>}
+              {(why || impact) && watchLine && ' '}
+              {watchLine && <span className="italic">{watchLine}</span>}
             </p>
+          )}
+          {actionItems.length > 0 && (
+            <ul className="mt-2 space-y-1 list-none pl-0">
+              {actionItems.slice(0, 3).map((a, i) => (
+                <li key={i} className="flex gap-2 items-start text-body text-brand-steel">
+                  <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                  <span>{a.action}</span>
+                </li>
+              ))}
+            </ul>
           )}
           <InvestigationPrompt item={article} />
           <div className="pt-1.5 border-t border-brand-cloud">
@@ -198,12 +241,50 @@ const HomepageArticleCard = ({
       );
     }
 
-    // Authenticated free user — show excerpt + alert + context
     return (
       <div>
         {excerpt}
-        {alertNode}
-        {contextNode}
+        {(why || impact) && (
+          <p className="text-body text-brand-steel mt-2">
+            {why}
+            {why && impact && ' '}
+            {impact}
+            {(why || impact) && watchLine && ' '}
+            {watchLine && <span className="italic">{watchLine}</span>}
+          </p>
+        )}
+        {actionItems.length > 0 && (
+          <ul className="mt-2 space-y-1 list-none pl-0">
+            {actionItems.slice(0, 3).map((a, i) => (
+              <li key={i} className="flex gap-2 items-start text-body text-brand-steel">
+                <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                <span>{a.action}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="border border-silver rounded-lg bg-white mt-2">
+          <div className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-t-lg bg-background">
+            <span className="flex items-center gap-2 min-w-0">
+              <span className="text-indigo-600 text-sm">⚗</span>
+              <span className="text-body font-semibold text-gray-900">Investigate further</span>
+              <span className="text-xs text-gray-500 truncate hidden sm:inline">— AI prompt pre-built from this article</span>
+            </span>
+            <span className="text-gray-500 text-sm">▾</span>
+          </div>
+          <div className="px-3 py-2.5 border-t border-silver flex items-center justify-between gap-3">
+            <p className="text-xs text-slate leading-relaxed flex-1">
+              AI investigation prompts are available to subscribers.
+            </p>
+            <Link
+              to="/subscribe"
+              className="flex-shrink-0 text-[11px] font-semibold bg-brand-navy text-white px-2.5 py-1 rounded-lg hover:opacity-90 no-underline whitespace-nowrap"
+            >
+              Subscribe →
+            </Link>
+          </div>
+        </div>
+        {briefCTA}
       </div>
     );
   };
@@ -223,11 +304,6 @@ const HomepageArticleCard = ({
       {tierLabel && (
         <div className={`mb-1.5 ${tierLabel.className}`}>
           {tierLabel.icon} {tierLabel.text}
-          {demoTier === "paid" && (
-            <div className="text-meta text-brand-teal/80 font-normal mt-0.5">
-              + AI investigation prompt, pre-built for this article
-            </div>
-          )}
         </div>
       )}
 
