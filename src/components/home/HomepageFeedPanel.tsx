@@ -27,8 +27,8 @@ const toArticleItem = (row: UpdateArticleRow): ArticleItem => {
 
 const SLOT_LABELS = [
   { icon: "👁", text: "What any visitor sees", className: "text-slate/60 text-sm" },
-  { icon: "✉", text: "Free account view", className: "text-brand-teal text-sm font-medium" },
-  { icon: "⭐", text: "Platform view", className: "text-brand-teal text-sm font-semibold" },
+  { icon: "✉", text: "Free registered — full analysis", className: "text-brand-teal text-sm font-medium" },
+  { icon: "⭐", text: "Subscriber — + AI investigation prompt", className: "text-brand-teal text-sm font-semibold" },
 ];
 
 const getToolCTA = (item: ArticleItem): { label: string; href: string } => {
