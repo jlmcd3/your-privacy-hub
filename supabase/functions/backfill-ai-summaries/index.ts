@@ -101,11 +101,22 @@ const NON_EDITORIAL_PATTERNS = [
   /\b(save\s+the\s+date|register\s+(now|today)\s+for|webinar\s+invitation|event\s+registration|tickets?\s+on\s+sale)\b/i,
   /\b(annual\s+report|membership\s+(renewal|drive)|board\s+(election|elections|nomination))\b/i,
   /\b(newsletter\s+sign[\s-]?up|subscribe\s+to\s+our)\b/i,
+  // Fundraising and membership recruitment — not regulatory analysis.
+  // Note: REGULATORY_OVERRIDE_PATTERNS (checked in isNonEditorial) provides a safety net
+  // so legitimate policy analysis posts from EFF, ACLU, etc. are not caught.
+  /\b(join\s+(eff|us|now|today)|become\s+a\s+member|support\s+(our\s+work|digital\s+rights)|donate\s+(now|today)|make\s+a\s+donation)\b/i,
+  /\b(member[-\s]?supported|member[-\s]?funded|powered\s+by\s+(members?|donors?)|your\s+donation)\b/i,
+  /\b(t[-\s]?shirt|crewneck|merchandise|shop\s+now)\b/i,
+  /\b(we've\s+received\s+top\s+ratings?|charity\s+navigator|501\(c\)\(3\)|tax[-\s]?deductible\s+donation)\b/i,
 ];
 
 function isNonEditorial(title: string, summary: string | null): boolean {
   const text = title + " " + (summary || "");
-  return NON_EDITORIAL_PATTERNS.some(p => p.test(text));
+  if (!NON_EDITORIAL_PATTERNS.some(p => p.test(text))) return false;
+  // If regulatory override patterns match, this is substantive content
+  // despite surface-level non-editorial signals — do not skip.
+  const isRegulatory = REGULATORY_OVERRIDE_PATTERNS.some(p => p.test(text));
+  return !isRegulatory;
 }
 
 // Source-tier inference for retrospective enrichment. Primary = official regulator
