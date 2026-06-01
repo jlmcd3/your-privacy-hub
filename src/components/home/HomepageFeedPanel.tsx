@@ -268,7 +268,7 @@ const HomepageArticleCard = ({
             <span className="flex items-center gap-2 min-w-0">
               <span className="text-indigo-600 text-sm">⚗</span>
               <span className="text-body font-semibold text-gray-900">Investigate further</span>
-              <span class="text-xs text-gray-500 truncate hidden sm:inline">— AI prompt pre-built from this article</span>
+              <span className="text-xs text-gray-500 truncate hidden sm:inline">— AI prompt pre-built from this article</span>
             </span>
             <span className="text-gray-500 text-sm">▾</span>
           </div>
