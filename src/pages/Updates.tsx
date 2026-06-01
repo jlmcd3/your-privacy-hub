@@ -328,7 +328,7 @@ const Updates = () => {
                 u.summary || "",
                 u.regulatory_theory || "",
                 u.related_development || "",
-                u.attention_level || "",
+                // attention_level intentionally excluded from search — not surfaced to end users
                 ...(u.affected_sectors || []),
                 u.regulator || "",
                 u.ai_summary?.why_it_matters || "",

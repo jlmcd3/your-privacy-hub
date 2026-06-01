@@ -250,9 +250,7 @@ const Calendar = () => {
                           {event.source === "db" && (
                             <span className="flex-shrink-0 text-[11px] px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded-full font-medium">Feed</span>
                           )}
-                          {event.attention_level === "High" && (
-                            <span className="flex-shrink-0 text-[11px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full font-bold">🔴 High</span>
-                          )}
+                          {/* attention_level intentionally not surfaced to end users */}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{event.description}</p>
                       </td>

@@ -92,11 +92,7 @@ const SpotlightCard = ({
               {categoryLabel(article.category)}
             </span>
           )}
-          {article.attention_level === "WATCH CLOSELY" && (
-            <span className="text-eyebrow px-1.5 py-0.5 rounded-md bg-red-50 text-red-700 border border-red-200">
-              Watch Closely
-            </span>
-          )}
+          {/* attention_level intentionally not surfaced to end users */}
         </div>
 
         {article.source_url ? (
