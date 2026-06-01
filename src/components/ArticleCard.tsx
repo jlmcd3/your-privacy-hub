@@ -4,7 +4,7 @@ import { ExternalLink, Sparkles, ChevronDown, EyeOff, Building2, ChevronsUpDown,
 import { useEnrichmentToggle } from "@/hooks/useEnrichmentToggle";
 
 import { stripHtml, normalizeTitle } from "@/lib/utils";
-import { ActionBrief } from "@/components/ActionBrief";
+
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import eupTile from "@/assets/eup-intelligence-tile.jpg";
