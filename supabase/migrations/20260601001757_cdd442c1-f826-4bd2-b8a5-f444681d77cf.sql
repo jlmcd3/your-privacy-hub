@@ -1,0 +1,1 @@
+DELETE FROM public.updates WHERE id IN ('77ef91d0-7900-4e92-889c-04a892ec7dfa','736f3d08-d139-4ab7-91b9-7a1bf5e74b30');
