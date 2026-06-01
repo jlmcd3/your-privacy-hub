@@ -415,12 +415,12 @@ const Navbar = () => {
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
             const basePadX = item.directLink ? "px-2 lg:px-4" : "px-2 lg:px-3";
-            const baseTopClasses = `relative flex items-center gap-1 whitespace-nowrap ${basePadX} py-2 transition-colors no-underline text-nav text-sm lg:text-base`;
+            const baseTopClasses = `relative flex items-center gap-1 whitespace-nowrap ${basePadX} py-2 transition-colors no-underline text-nav text-[15px] lg:text-base`;
             const activeUnderline = isActive
               ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
             const colorClasses = item.accent
-              ? `text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]`
+              ? `text-[hsl(142,76%,55%)] hover:text-[hsl(142,76%,70%)]`
               : `text-white hover:text-white`;
             const dimClass = item.dim ? "opacity-80 hover:opacity-100" : "";
             const directDot = item.directLink
