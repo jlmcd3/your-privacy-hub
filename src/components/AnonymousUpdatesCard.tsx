@@ -83,14 +83,8 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
               {catLabel}
             </span>
           )}
-          {(() => {
-            const sev = getSeverityLabel(item.ai_summary);
-            return sev ? (
-              <span className={`text-[11px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${sev.className}`}>
-                {sev.label}
-              </span>
-            ) : null;
-          })()}
+          {/* severity chip intentionally not surfaced to end users */}
+
         </div>
         <p className="text-[9px] font-bold text-brand-navy group-hover:text-brand-teal leading-snug mb-1 transition-colors">
           {normalizeTitle(item.title)}
