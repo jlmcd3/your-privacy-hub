@@ -446,14 +446,8 @@ const FullCard = ({
               {categoryLabel(item.category)}
             </span>
           )}
-          {(() => {
-            const sev = getSeverityLabel(item.ai_summary);
-            return sev ? (
-              <span className={`text-eyebrow px-1.5 py-0.5 rounded-md ${sev.className}`}>
-                {sev.label}
-              </span>
-            ) : null;
-          })()}
+          {/* severity chip intentionally not surfaced to end users */}
+
           {isSkipped(item) && <SkippedBadge item={item} />}
           <AdminHideButton articleId={item.id} />
         </div>
