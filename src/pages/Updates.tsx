@@ -665,6 +665,23 @@ const Updates = () => {
                     </div>
                 )}
 
+                {/* Progressive-relaxation notice */}
+                {relaxed.length > 0 && filtered.length > 0 && (
+                    <div className="mb-4 flex items-start gap-3 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
+                        <div className="flex-1 text-sm text-amber-900">
+                            <span className="font-semibold">No exact matches</span> for your filter combination.
+                            Showing the closest related updates — we relaxed{" "}
+                            <span className="font-medium">{relaxed.join(", ")}</span>.
+                        </div>
+                        <button
+                            onClick={clearAllFilters}
+                            className="text-xs font-semibold text-amber-900 hover:underline whitespace-nowrap"
+                        >
+                            Clear filters
+                        </button>
+                    </div>
+                )}
+
                 {/* Newsfeed — full cards with inline tier-appropriate enrichment */}
                 <div>
                     <TieredFeed
