@@ -194,13 +194,10 @@ ${sourceTier === 3 || textLen < 100 ? "APPLY THIN SOURCE DISCIPLINE — return n
 
 NOTE: This article has already been confirmed as relevant to privacy/data protection/compliance. Do NOT apply a relevance filter.
 
-SOURCE TEXT INVENTORY (internal — do not output):
-Before generating any field, identify which specific facts are directly stated in the Description above:
-- Fine amount? (yes/no + value)
-- Specific deadline or date? (yes/no + value)
-- Case reference number? (yes/no)
-- Specific article or section number? (yes/no)
-Only populate fields with facts that pass this inventory. Return null for everything else.
+SOURCE FACT EXTRACTION (internal — do not output):
+Before generating ANY field, mentally enumerate every specific, actionable fact stated in the Description above. Do not work from a predetermined checklist — surface whatever the source actually contains. Examples of fact types worth capturing if present: fines, deadlines, rollout dates, effective dates, program status changes (launched / paused / sunset), case or docket numbers, article or section numbers, named regulators, named companies, jurisdictions, sectoral scope, legal theories, procedural posture. If a fact is not explicitly in the source, it does not exist for this enrichment — do not import it from training knowledge.
+
+Then populate fields ONLY from the facts you extracted. If a field has no supporting fact, return null (or [] for arrays, or a clearly-marked general statement where the schema requires a string). It is better to return null than to generalise.
 
 Return this JSON object:
 {
@@ -209,8 +206,8 @@ Return this JSON object:
   "related_signals": [
     { "label": "Short pattern observation grounded in SOURCE TEXT. CONSTRAINT: only include signals the article itself states. Do not generate from training knowledge. Return [] otherwise.", "kind": "pattern | precedent | trend" }
   ],
-  "takeaways": ["1-3 strings (validator requires >= 1). Each cites a specific regulator/law/deadline STATED IN SOURCE. If thin source, ONE general takeaway."],
-  "compliance_impact": "One sentence (>= 5 chars). Specific organisation type + specific action. If no immediate action: 'Monitor — [specific named development] before [specific named trigger].' CONSTRAINT: only actions compelled by source facts.",
+  "takeaways": ["1-3 strings (validator requires >= 1). Each cites a specific regulator/law/deadline/date STATED IN SOURCE. If thin source, ONE general takeaway."],
+  "compliance_impact": "One sentence (>= 5 chars). Specific organisation type + specific action grounded in extracted facts. If no immediate action is compelled by the source, write: 'Monitor — [specific named development from source] before [specific named trigger from source].' Do not use a generic 'monitor developments' phrase.",
   "who_should_care": "DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
   "urgency": "Immediate | This quarter | Monitor",
   "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary — based on document TYPE.",
@@ -223,10 +220,14 @@ Return this JSON object:
   "action_items": [
     {
       "role": "DPO | Privacy Counsel | CISO | Compliance Manager",
-      "action": "Specific action naming law/regulator FROM SOURCE TEXT. CONSTRAINT: no invented article numbers or deadlines. If none stated, return [].",
-      "timeframe": "Immediate (within 7 days) | This quarter | Monitor"
+      "action": "Specific action naming a law/regulator FROM SOURCE TEXT and tied to a dated obligation or concrete compliance step. CONSTRAINT: no invented article numbers or deadlines.",
+      "timeframe": "Immediate (within 7 days) | This quarter"
     }
   ],
+  // ACTION ITEM DISCIPLINE: Return action_items: [] unless the source names BOTH (a) a specific law/regulator AND (b) a dated obligation or concrete step.
+  // A Monitor-level observation is NOT an action item. Do NOT reclassify it as "Immediate" or "This quarter" to fill the array.
+  // "Monitor" is FORBIDDEN as a timeframe value here. Empty arrays are expected for commentary, opinion, and thin sources.
+
   "key_date": "YYYY-MM-DD ONLY if explicitly stated in source. Return null otherwise. NEVER estimate.",
   "entities": {
     "regulators": ["Official abbreviated names NAMED IN ARTICLE. Empty if none."],
@@ -456,7 +457,13 @@ Deno.serve(async (req) => {
         updatePayload.regulatory_theory = aiSummary.regulatory_theory;
       }
       if (Array.isArray(aiSummary.action_items) && aiSummary.action_items.length > 0) {
-        updatePayload.action_items = aiSummary.action_items;
+        // Server-side enforcement of the Monitor ban: drop any item with timeframe "Monitor"
+        // so the model cannot bypass the prompt rule. Empty arrays are valid output.
+        const filtered = (aiSummary.action_items as any[]).filter((a: any) => {
+          const tf = typeof a?.timeframe === "string" ? a.timeframe.trim().toLowerCase() : "";
+          return tf !== "monitor";
+        });
+        if (filtered.length > 0) updatePayload.action_items = filtered;
       }
       if (typeof aiSummary.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(aiSummary.key_date)) {
         updatePayload.key_date = aiSummary.key_date;
