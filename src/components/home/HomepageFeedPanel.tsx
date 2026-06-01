@@ -304,11 +304,6 @@ const HomepageArticleCard = ({
       {tierLabel && (
         <div className={`mb-1.5 ${tierLabel.className}`}>
           {tierLabel.icon} {tierLabel.text}
-          {demoTier === "paid" && (
-            <div className="text-meta text-brand-teal/80 font-normal mt-0.5">
-              + AI investigation prompt, pre-built for this article
-            </div>
-          )}
         </div>
       )}
 
