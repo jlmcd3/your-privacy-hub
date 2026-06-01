@@ -36,6 +36,9 @@ interface SourceEntry {
   // When true, candidate titles are filtered through isTitleRelevant() to drop
   // non-privacy press releases (used for state AG / general newsroom sources).
   requireRelevance?: boolean;
+  // When true, this entry only runs in backfill mode (skipped in monitor mode).
+  // Used for page-2+ historical pagination pages.
+  backfillOnly?: boolean;
 }
 
 // Privacy / data-protection terms used to filter generalist press-release feeds.
@@ -151,6 +154,26 @@ const SOURCES: SourceEntry[] = [
   { regulator: "Information and Privacy Commissioner of Ontario (IPC)", jurisdiction: "Ontario", law: "PHIPA / FIPPA / MFIPPA", url: "https://www.ipc.on.ca/en/newsroom/news-releases", source: "IPC Ontario", sourceGroup: "canada", monitorPages: 1 },
   { regulator: "Office of the Information and Privacy Commissioner of Alberta (OIPC AB)", jurisdiction: "Alberta", law: "PIPA / HIA / FOIP", url: "https://oipc.ab.ca/news-releases/", source: "OIPC Alberta", sourceGroup: "canada", monitorPages: 1 },
   { regulator: "Office of the Information and Privacy Commissioner for BC (OIPC BC)", jurisdiction: "British Columbia", law: "PIPA BC / FIPPA", url: "https://www.oipc.bc.ca/news/", source: "OIPC BC", sourceGroup: "canada", monitorPages: 1 },
+
+  // ── Backfill: page 2 + 3 of confirmed-paginating sources ──
+  // Each entry reuses the same `source` key so dedupe-by-URL stays consistent.
+  // monitor mode skips these (they only fire in backfill mode, see filter below).
+  { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/action-weve-taken/enforcement/?facet_serve_paged=2", source: "ICO", sourceGroup: "core", monitorPages: 1, backfillOnly: true },
+  { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/action-weve-taken/enforcement/?facet_serve_paged=3", source: "ICO", sourceGroup: "core", monitorPages: 1, backfillOnly: true },
+  { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/?facet_serve_paged=2", source: "ICO News", sourceGroup: "core", monitorPages: 1, requireRelevance: true, backfillOnly: true },
+  { regulator: "ICO", jurisdiction: "United Kingdom", law: "UK GDPR", url: "https://ico.org.uk/about-the-ico/media-centre/news-and-blogs/?facet_serve_paged=3", source: "ICO News", sourceGroup: "core", monitorPages: 1, requireRelevance: true, backfillOnly: true },
+  { regulator: "DPC Ireland", jurisdiction: "Ireland", law: "GDPR / Data Protection Act 2018", url: "https://www.dataprotection.ie/en/news-media/latest-news?page=2", source: "DPC Ireland", sourceGroup: "core", monitorPages: 1, backfillOnly: true },
+  { regulator: "DPC Ireland", jurisdiction: "Ireland", law: "GDPR / Data Protection Act 2018", url: "https://www.dataprotection.ie/en/news-media/latest-news?page=3", source: "DPC Ireland", sourceGroup: "core", monitorPages: 1, backfillOnly: true },
+  { regulator: "Datatilsynet NO", jurisdiction: "Norway", law: "GDPR (Norway)", url: "https://www.datatilsynet.no/en/news/?page=2", source: "Datatilsynet NO", sourceGroup: "core", monitorPages: 1, backfillOnly: true },
+  { regulator: "Datatilsynet NO", jurisdiction: "Norway", law: "GDPR (Norway)", url: "https://www.datatilsynet.no/en/news/?page=3", source: "Datatilsynet NO", sourceGroup: "core", monitorPages: 1, backfillOnly: true },
+  { regulator: "Illinois Attorney General", jurisdiction: "Illinois", law: "Illinois PIPA / BIPA / consumer protection", url: "https://illinoisattorneygeneral.gov/news-room/?paged=2", source: "IL-AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true, backfillOnly: true },
+  { regulator: "Illinois Attorney General", jurisdiction: "Illinois", law: "Illinois PIPA / BIPA / consumer protection", url: "https://illinoisattorneygeneral.gov/news-room/?paged=3", source: "IL-AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true, backfillOnly: true },
+  { regulator: "Office of the Privacy Commissioner of Canada (OPC)", jurisdiction: "Canada", law: "PIPEDA / Privacy Act", url: "https://www.priv.gc.ca/en/opc-news/news-and-announcements/?page=2", source: "OPC", sourceGroup: "canada", monitorPages: 1, backfillOnly: true },
+  { regulator: "Office of the Privacy Commissioner of Canada (OPC)", jurisdiction: "Canada", law: "PIPEDA / Privacy Act", url: "https://www.priv.gc.ca/en/opc-news/news-and-announcements/?page=3", source: "OPC", sourceGroup: "canada", monitorPages: 1, backfillOnly: true },
+  { regulator: "Office of the Privacy Commissioner of Canada (OPC)", jurisdiction: "Canada", law: "PIPEDA", url: "https://www.priv.gc.ca/en/opc-actions-and-decisions/investigations/investigations-into-businesses/?page=2", source: "OPC Investigations", sourceGroup: "canada", monitorPages: 1, backfillOnly: true },
+  { regulator: "Office of the Privacy Commissioner of Canada (OPC)", jurisdiction: "Canada", law: "PIPEDA", url: "https://www.priv.gc.ca/en/opc-actions-and-decisions/investigations/investigations-into-businesses/?page=3", source: "OPC Investigations", sourceGroup: "canada", monitorPages: 1, backfillOnly: true },
+  { regulator: "Office of the Information and Privacy Commissioner of Alberta (OIPC AB)", jurisdiction: "Alberta", law: "PIPA / HIA / FOIP", url: "https://oipc.ab.ca/news-releases/page/2/", source: "OIPC Alberta", sourceGroup: "canada", monitorPages: 1, backfillOnly: true },
+  { regulator: "Office of the Information and Privacy Commissioner of Alberta (OIPC AB)", jurisdiction: "Alberta", law: "PIPA / HIA / FOIP", url: "https://oipc.ab.ca/news-releases/page/3/", source: "OIPC Alberta", sourceGroup: "canada", monitorPages: 1, backfillOnly: true },
 ];
 
 // Second-hop fetcher: given an FTC case summary page URL, find the Decision and
@@ -396,6 +419,8 @@ Deno.serve(async (req) => {
     }
     // In monitor mode, skip multi-page FTC backfill pages (only page 1).
     if (mode === "monitor" && s.ftcPage !== undefined && s.ftcPage > 1) return false;
+    // Backfill-only pagination pages: skip in monitor mode.
+    if (mode === "monitor" && s.backfillOnly) return false;
     return true;
   });
 
