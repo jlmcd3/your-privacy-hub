@@ -101,11 +101,22 @@ const NON_EDITORIAL_PATTERNS = [
   /\b(save\s+the\s+date|register\s+(now|today)\s+for|webinar\s+invitation|event\s+registration|tickets?\s+on\s+sale)\b/i,
   /\b(annual\s+report|membership\s+(renewal|drive)|board\s+(election|elections|nomination))\b/i,
   /\b(newsletter\s+sign[\s-]?up|subscribe\s+to\s+our)\b/i,
+  // Fundraising and membership recruitment — not regulatory analysis.
+  // Note: REGULATORY_OVERRIDE_PATTERNS (checked in isNonEditorial) provides a safety net
+  // so legitimate policy analysis posts from EFF, ACLU, etc. are not caught.
+  /\b(join\s+(eff|us|now|today)|become\s+a\s+member|support\s+(our\s+work|digital\s+rights)|donate\s+(now|today)|make\s+a\s+donation)\b/i,
+  /\b(member[-\s]?supported|member[-\s]?funded|powered\s+by\s+(members?|donors?)|your\s+donation)\b/i,
+  /\b(t[-\s]?shirt|crewneck|merchandise|shop\s+now)\b/i,
+  /\b(we've\s+received\s+top\s+ratings?|charity\s+navigator|501\(c\)\(3\)|tax[-\s]?deductible\s+donation)\b/i,
 ];
 
 function isNonEditorial(title: string, summary: string | null): boolean {
   const text = title + " " + (summary || "");
-  return NON_EDITORIAL_PATTERNS.some(p => p.test(text));
+  if (!NON_EDITORIAL_PATTERNS.some(p => p.test(text))) return false;
+  // If regulatory override patterns match, this is substantive content
+  // despite surface-level non-editorial signals — do not skip.
+  const isRegulatory = REGULATORY_OVERRIDE_PATTERNS.some(p => p.test(text));
+  return !isRegulatory;
 }
 
 // Source-tier inference for retrospective enrichment. Primary = official regulator
@@ -177,7 +188,23 @@ QUALITY STANDARDS:
 1. Information not present in the article → return null. Never infer or fabricate.
 2. Legal weight hierarchy: Binding > Enforcement > Guidance > Proposal > Commentary. Based on document TYPE, not topic importance.
 3. affected_jurisdictions: only where direct compliance obligation is stated in article.
-4. regulatory_theory: name doctrine only when source supports it. Return null for Commentary/Proposal.`,
+4. regulatory_theory: name doctrine only when source supports it. Return null for Commentary/Proposal.
+5. LEAD STORY DISCIPLINE: The enrichment subject is the development described in the
+   article's headline and opening sentence — not the longest paragraph, not background
+   context, and not historical text used to explain the new development.
+   Background sections are identifiable by phrases like "Originally enacted in...",
+   "The existing law requires...", "Under the prior framework...", "Since 2022...",
+   "CTDPA was enacted in...". These are NEVER the lead story even when they dominate
+   word count.
+   When an article contains both a background date and a later effective or signed date,
+   the later date anchors the lead story. Use it as a tiebreaker when the headline is
+   ambiguous.
+6. ATTRIBUTION ACCURACY: When attributing content to a media or third-party publication
+   in any field, use the exact source name from the Source field provided in the user
+   prompt. Do not substitute, infer, or abbreviate the publication name from training
+   knowledge. If the Source field says "Economic Times", write "Economic Times" — not
+   "Times of India", not "ET", not "the Times". This rule applies to every output field
+   without exception.`,
         messages: [
           {
             role: "user",
@@ -207,7 +234,7 @@ Return this JSON object:
     { "label": "Short pattern observation grounded in SOURCE TEXT. CONSTRAINT: only include signals the article itself states. Do not generate from training knowledge. Return [] otherwise.", "kind": "pattern | precedent | trend" }
   ],
   "takeaways": ["1-3 strings (validator requires >= 1). Each cites a specific regulator/law/deadline/date STATED IN SOURCE. If thin source, ONE general takeaway."],
-  "compliance_impact": "One sentence (>= 5 chars). Specific organisation type + specific action grounded in extracted facts. If no immediate action is compelled by the source, write: 'Monitor — [specific named development from source] before [specific named trigger from source].' Do not use a generic 'monitor developments' phrase.",
+  "compliance_impact": "One sentence, 40 words max (>= 5 chars). Specific organisation type + specific action grounded in extracted facts. DISTINCTIVENESS CONSTRAINT: If the source names a specific act, product, fine amount, or legal theory that distinguishes this matter, name it explicitly. Do not reduce enforcement actions to their legal basis alone. VERB CONSTRAINT: Do not use 'review', 'audit', 'assess', or 'evaluate' as the sole verb. Use verbs tied to what the organisation must actually do (e.g. 'remove', 'update', 'disclose', 'cease', 'document'). WRONG: 'Companies subject to FTC jurisdiction should review their advertising claims.' RIGHT: 'Ad vendors that marketed audience targeting as voice-data-derived must correct any service descriptions that misrepresent actual data collection methods, following FTC action against CMG for selling a non-existent voice-listening capability.' If no immediate action: 'Monitor — [specific named development] before [specific named trigger from source].'",
   "who_should_care": "DPO | Privacy Counsel | Compliance Manager | CISO | All privacy professionals",
   "urgency": "Immediate | This quarter | Monitor",
   "legal_weight": "Binding | Enforcement | Guidance | Proposal | Commentary — based on document TYPE.",
@@ -374,6 +401,11 @@ Deno.serve(async (req) => {
   const since =
     (typeof body.since === "string" ? body.since : url.searchParams.get("since")) || null;
 
+  // ids: comma-separated list of specific article IDs to re-enrich (targeted backfill)
+  const idsParam =
+    (typeof body.ids === "string" ? body.ids : url.searchParams.get("ids")) || null;
+  const targetIds = idsParam ? idsParam.split(",").map((s: string) => s.trim()).filter(Boolean) : null;
+
   // Current enrichment target — bump if you change the prompt
   const TARGET_ENRICHMENT_VERSION = 4;
 
@@ -381,22 +413,29 @@ Deno.serve(async (req) => {
     .from("updates")
     .select("id, title, summary, source_name, source_domain");
 
-  if (forceReenrich) {
+  if (targetIds && targetIds.length > 0) {
+    // Explicit ID list: process these rows regardless of enrichment state.
+    // Ignores force_reenrich, since, and batchSize when IDs are provided.
+    articleQuery = articleQuery.in("id", targetIds);
+  } else if (forceReenrich) {
     // Re-enrich rows that haven't yet been processed by the new prompt.
     // (Without this filter, batches keep re-processing the same top rows.)
     articleQuery = articleQuery.or(
       `enrichment_version.is.null,enrichment_version.lt.${TARGET_ENRICHMENT_VERSION}`
     );
+    if (since) {
+      articleQuery = articleQuery.gte('published_at', since);
+    }
   } else {
     articleQuery = articleQuery.is('ai_summary', null);
-  }
-  if (since) {
-    articleQuery = articleQuery.gte('published_at', since);
+    if (since) {
+      articleQuery = articleQuery.gte('published_at', since);
+    }
   }
 
   const { data: articles } = await articleQuery
     .order("published_at", { ascending: false })
-    .limit(batchSize);
+    .limit(targetIds && targetIds.length > 0 ? targetIds.length : batchSize);
 
   let countQuery = supabase
     .from("updates")
