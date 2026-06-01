@@ -177,7 +177,23 @@ QUALITY STANDARDS:
 1. Information not present in the article → return null. Never infer or fabricate.
 2. Legal weight hierarchy: Binding > Enforcement > Guidance > Proposal > Commentary. Based on document TYPE, not topic importance.
 3. affected_jurisdictions: only where direct compliance obligation is stated in article.
-4. regulatory_theory: name doctrine only when source supports it. Return null for Commentary/Proposal.`,
+4. regulatory_theory: name doctrine only when source supports it. Return null for Commentary/Proposal.
+5. LEAD STORY DISCIPLINE: The enrichment subject is the development described in the
+   article's headline and opening sentence — not the longest paragraph, not background
+   context, and not historical text used to explain the new development.
+   Background sections are identifiable by phrases like "Originally enacted in...",
+   "The existing law requires...", "Under the prior framework...", "Since 2022...",
+   "CTDPA was enacted in...". These are NEVER the lead story even when they dominate
+   word count.
+   When an article contains both a background date and a later effective or signed date,
+   the later date anchors the lead story. Use it as a tiebreaker when the headline is
+   ambiguous.
+6. ATTRIBUTION ACCURACY: When attributing content to a media or third-party publication
+   in any field, use the exact source name from the Source field provided in the user
+   prompt. Do not substitute, infer, or abbreviate the publication name from training
+   knowledge. If the Source field says "Economic Times", write "Economic Times" — not
+   "Times of India", not "ET", not "the Times". This rule applies to every output field
+   without exception.`,
         messages: [
           {
             role: "user",
