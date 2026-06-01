@@ -323,6 +323,14 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/jurisdiction-audit"
+              element={
+                <ProtectedRoute>
+                  <AdminJurisdictionAudit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/articles"
               element={
                 <ProtectedRoute>
