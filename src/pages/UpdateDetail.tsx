@@ -299,14 +299,8 @@ const UpdateDetail = () => {
                   <span>{article.regulator}</span>
                 </>
               )}
-              {(() => {
-                const sev = getSeverityLabel(ai);
-                return sev ? (
-                  <span className={`text-eyebrow px-1.5 py-0.5 rounded-md ${sev.className}`}>
-                    {sev.label}
-                  </span>
-                ) : null;
-              })()}
+              {/* severity chip intentionally not surfaced to end users */}
+
               {/* Precedent novelty badge — paid only (3D) */}
               {isPremium && (() => {
                 const pn = (article as any).precedent_novelty as string | null | undefined;
