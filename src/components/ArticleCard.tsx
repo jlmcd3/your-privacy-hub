@@ -532,26 +532,18 @@ const FullCard = ({
                 <InvestigationPrompt item={item} />
               )}
               {tier === 'free' && (
-                <div className="border border-silver rounded-lg bg-white">
-                  <div className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left rounded-t-lg bg-background">
-                    <span className="flex items-center gap-2 min-w-0">
-                      <span className="text-indigo-600 text-sm">⚗</span>
-                      <span className="text-body font-semibold text-gray-900">Investigate further</span>
-                      <span className="text-xs text-gray-500 truncate hidden sm:inline">— AI prompt pre-built from this article</span>
-                    </span>
-                    <span className="text-gray-500 text-sm">▾</span>
-                  </div>
-                  <div className="px-3 py-2.5 border-t border-silver flex items-center justify-between gap-3">
-                    <p className="text-xs text-slate leading-relaxed flex-1">
-                      AI investigation prompts are available to subscribers. Copy a pre-built prompt for this article into Claude, ChatGPT, or any AI assistant.
-                    </p>
-                    <Link
-                      to="/subscribe"
-                      className="flex-shrink-0 text-[11px] font-semibold bg-brand-navy text-white px-2.5 py-1 rounded-lg hover:opacity-90 no-underline whitespace-nowrap"
-                    >
-                      Subscribe →
-                    </Link>
-                  </div>
+                <div className="border border-silver rounded-lg bg-white px-3 py-2 flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 min-w-0 flex-1">
+                    <FlaskConical className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
+                    <span className="text-[13px] font-semibold text-gray-900 whitespace-nowrap">Investigate further</span>
+                    <span className="text-[11px] text-slate truncate hidden sm:inline">— AI prompts pre-built for this article are available to subscribers</span>
+                  </span>
+                  <Link
+                    to="/subscribe"
+                    className="flex-shrink-0 text-[11px] font-semibold bg-brand-navy text-white px-2.5 py-1 rounded-md hover:opacity-90 no-underline whitespace-nowrap"
+                  >
+                    Subscribe →
+                  </Link>
                 </div>
               )}
 
@@ -562,11 +554,25 @@ const FullCard = ({
               </div>
 
               {tier === 'free' && hasContent && (
-                <p className="text-sm text-slate mt-1">
-                  <Link to="/get-intelligence" className="font-semibold text-brand-teal hover:underline no-underline">
-                    Get this and other analysis personalised for you in the Monday brief →
-                  </Link>
-                </p>
+                <Link
+                  to="/get-intelligence"
+                  className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-white px-3 py-2.5 no-underline hover:from-amber-100 transition-colors group"
+                >
+                  <span className="flex items-start gap-2.5 min-w-0">
+                    <Star className="w-4 h-4 text-amber-500 fill-amber-400 flex-shrink-0 mt-0.5" />
+                    <span className="min-w-0">
+                      <span className="block text-[13px] font-semibold text-brand-navy leading-tight">
+                        Get this analysis personalised in your Monday brief
+                      </span>
+                      <span className="block text-[11px] text-slate mt-0.5">
+                        <span className="font-semibold text-amber-700">Subscriber feature</span> · curated weekly for your role &amp; jurisdictions
+                      </span>
+                    </span>
+                  </span>
+                  <span className="flex-shrink-0 text-[12px] font-semibold bg-brand-navy text-white px-3 py-1.5 rounded-md group-hover:opacity-90 whitespace-nowrap">
+                    Get the brief →
+                  </span>
+                </Link>
               )}
             </div>
           );
