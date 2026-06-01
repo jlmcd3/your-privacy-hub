@@ -597,7 +597,7 @@ const Navbar = () => {
         </div>
 
         {/* Right side */}
-        <div className="hidden lg:flex items-center gap-3 ml-auto">
+        <div className="hidden lg:flex items-center gap-3 flex-1 justify-end">
           {/* Always-visible Pricing link */}
           <Link
             to="/subscribe"
