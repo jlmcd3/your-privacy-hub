@@ -36,6 +36,9 @@ interface SourceEntry {
   // When true, candidate titles are filtered through isTitleRelevant() to drop
   // non-privacy press releases (used for state AG / general newsroom sources).
   requireRelevance?: boolean;
+  // When true, this entry only runs in backfill mode (skipped in monitor mode).
+  // Used for page-2+ historical pagination pages.
+  backfillOnly?: boolean;
 }
 
 // Privacy / data-protection terms used to filter generalist press-release feeds.
