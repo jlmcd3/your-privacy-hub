@@ -55,6 +55,26 @@ const TRACKS = [
     desc: "Breach notification law changes, enforcement for late reporting, and SEC rules" },
 ];
 
+const INDUSTRIES = [
+  "Online & Web Services", "Mobile Applications", "AdTech & Digital Media",
+  "AI & Machine Learning", "Healthcare & Life Sciences", "Financial Services & Fintech",
+  "HR & Employment Data", "Children & EdTech", "Retail & E-Commerce",
+  "Data Brokers", "Law Firm / Legal Services", "Insurance",
+  "Telecommunications", "Gaming & Entertainment", "Automotive & Connected Vehicles",
+  "Smart Home & IoT", "Non-Profit & NGO", "Media & Publishing",
+  "Government & Public Sector", "Cybersecurity", "Real Estate & PropTech",
+  "Education (Higher Ed)", "Consulting & Advisory", "Pharma & Clinical Research",
+  "Social Media & Platforms", "Travel & Hospitality", "Biotech & Genomics",
+  "Energy & Utilities", "Identity Verification & KYC",
+  "Manufacturing & Industrial IoT", "Consumer Goods & Loyalty Programs",
+];
+
+const FORMATS = [
+  { label: "Full 9-section report",  desc: "Executive summary, all topic tracks, enforcement table, trend signals, and action items." },
+  { label: "Executive summary only", desc: "2-paragraph synthesis of the week's most important developments for board or leadership review." },
+  { label: "Action items only",      desc: "A prioritised checklist of Immediate, This Quarter, and Monitor actions — no narrative." },
+];
+
 type BriefItem = SampleTrackSection & {
   track: string;
   trackLabel: string;
@@ -113,6 +133,8 @@ export default function BriefBuilder() {
   const [role,         setRole]         = useState("");
   const [tracks,       setTracks]       = useState<string[]>([]);
   const [briefShown,   setBriefShown]   = useState(false);
+  const [showIndustryPrompt, setShowIndustryPrompt] = useState(false);
+  const [showFormatPrompt,   setShowFormatPrompt]   = useState(false);
   const [showCollapsePill, setShowCollapsePill] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -301,6 +323,110 @@ export default function BriefBuilder() {
             ? "Select one or more tracks above"
             : `${tracks.length} track${tracks.length > 1 ? "s" : ""} selected`}
         </p>
+      </div>
+
+      {/* ── INDUSTRY — locked preview ─────────────────────────────── */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-brand-navy">
+            Your industry
+          </p>
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-teal bg-brand-teal/10 border border-brand-teal/20 px-2 py-0.5 rounded-full">
+            ⭐ Subscription
+          </span>
+        </div>
+        <p className="text-[12px] text-slate mb-3">
+          Your brief filters enforcement actions and regulatory news to your sector.
+          Subscribers choose from 31 industries.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+          {INDUSTRIES.map((industry) => (
+            <button
+              key={industry}
+              type="button"
+              onClick={() => setShowIndustryPrompt(true)}
+              className="text-left px-3 py-2 rounded-lg border border-brand-cloud bg-white text-[11px] text-slate opacity-60 hover:opacity-80 hover:border-brand-teal/40 transition-all cursor-pointer"
+            >
+              {industry}
+            </button>
+          ))}
+        </div>
+        {showIndustryPrompt && (
+          <div className="mt-3 flex items-start gap-3 px-3 py-2.5 rounded-lg bg-brand-teal/5 border border-brand-teal/20 animate-in fade-in slide-in-from-top-1 duration-200">
+            <p className="text-[12px] text-brand-navy flex-1">
+              Industry-specific tailoring is included in your subscription.
+              Your brief filters enforcement actions and regulatory news to
+              your sector every week.
+            </p>
+            <div className="flex flex-col gap-1.5 flex-shrink-0">
+              <a
+                href="/subscribe"
+                className="text-[11px] px-3 py-1 rounded-lg bg-brand-teal text-white font-semibold hover:opacity-90 transition-colors whitespace-nowrap no-underline"
+              >
+                Subscribe →
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowIndustryPrompt(false)}
+                className="text-[11px] text-slate hover:text-brand-navy text-center"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── FORMAT — locked preview ────────────────────────────────── */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-brand-navy">
+            Report format
+          </p>
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-teal bg-brand-teal/10 border border-brand-teal/20 px-2 py-0.5 rounded-full">
+            ⭐ Subscription
+          </span>
+        </div>
+        <p className="text-[12px] text-slate mb-3">
+          Choose how your brief arrives each Monday.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          {FORMATS.map((fmt) => (
+            <button
+              key={fmt.label}
+              type="button"
+              onClick={() => setShowFormatPrompt(true)}
+              className="flex flex-col gap-1 px-4 py-3 rounded-xl border border-brand-cloud bg-white text-left opacity-60 hover:opacity-80 hover:border-brand-teal/40 transition-all cursor-pointer"
+            >
+              <p className="text-sm font-semibold text-brand-navy">{fmt.label}</p>
+              <p className="text-[11px] text-slate leading-snug">{fmt.desc}</p>
+            </button>
+          ))}
+        </div>
+        {showFormatPrompt && (
+          <div className="mt-3 flex items-start gap-3 px-3 py-2.5 rounded-lg bg-brand-teal/5 border border-brand-teal/20 animate-in fade-in slide-in-from-top-1 duration-200">
+            <p className="text-[12px] text-brand-navy flex-1">
+              Format selection is included in your subscription. Choose between
+              a full 9-section report, an executive summary, or an action-items
+              checklist — and change it any time.
+            </p>
+            <div className="flex flex-col gap-1.5 flex-shrink-0">
+              <a
+                href="/subscribe"
+                className="text-[11px] px-3 py-1 rounded-lg bg-brand-teal text-white font-semibold hover:opacity-90 transition-colors whitespace-nowrap no-underline"
+              >
+                Subscribe →
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowFormatPrompt(false)}
+                className="text-[11px] text-slate hover:text-brand-navy text-center"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {!briefShown && (
