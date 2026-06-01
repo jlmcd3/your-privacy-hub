@@ -184,24 +184,32 @@ const HomepageArticleCard = ({
       return (
         <div className="space-y-1.5">
           {excerpt}
-          {(why || impact) && (
-            <p className="text-[13px] text-brand-steel mt-2">
-              {why}
-              {why && impact && ' '}
-              {impact}
-              {(why || impact) && watchLine && ' '}
-              {watchLine && <span className="italic">{watchLine}</span>}
-            </p>
-          )}
-          {actionItems.length > 0 && (
-            <ul className="mt-2 space-y-1 list-none pl-0">
-              {actionItems.slice(0, 3).map((a, i) => (
-                <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
-                  <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
-                  <span>{a.action}</span>
-                </li>
-              ))}
-            </ul>
+          {(why || impact || actionItems.length > 0) && (
+            <div className="pl-3 border-l-[3px] rounded-r-md py-2 pr-2 mt-2 space-y-2" style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.04)' }}>
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal))' }} />
+                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal))' }}>Key Takeaways</span>
+              </div>
+              {(why || impact) && (
+                <p className="text-[13px] text-brand-steel">
+                  {why}
+                  {why && impact && ' '}
+                  {impact}
+                  {(why || impact) && watchLine && ' '}
+                  {watchLine && <span className="italic">{watchLine}</span>}
+                </p>
+              )}
+              {actionItems.length > 0 && (
+                <ul className="space-y-1 list-none pl-0">
+                  {actionItems.slice(0, 3).map((a, i) => (
+                    <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
+                      <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                      <span>{a.action}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
           <p className="text-eyebrow mt-3 mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
             ⭐ Platform feature preview
@@ -220,24 +228,32 @@ const HomepageArticleCard = ({
       return (
         <div className="space-y-1.5">
           {excerpt}
-          {(why || impact) && (
-            <p className="text-[13px] text-brand-steel mt-2">
-              {why}
-              {why && impact && ' '}
-              {impact}
-              {(why || impact) && watchLine && ' '}
-              {watchLine && <span className="italic">{watchLine}</span>}
-            </p>
-          )}
-          {actionItems.length > 0 && (
-            <ul className="mt-2 space-y-1 list-none pl-0">
-              {actionItems.slice(0, 3).map((a, i) => (
-                <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
-                  <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
-                  <span>{a.action}</span>
-                </li>
-              ))}
-            </ul>
+          {(why || impact || actionItems.length > 0) && (
+            <div className="pl-3 border-l-[3px] rounded-r-md py-2 pr-2 mt-2 space-y-2" style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.04)' }}>
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal))' }} />
+                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal))' }}>Key Takeaways</span>
+              </div>
+              {(why || impact) && (
+                <p className="text-[13px] text-brand-steel">
+                  {why}
+                  {why && impact && ' '}
+                  {impact}
+                  {(why || impact) && watchLine && ' '}
+                  {watchLine && <span className="italic">{watchLine}</span>}
+                </p>
+              )}
+              {actionItems.length > 0 && (
+                <ul className="space-y-1 list-none pl-0">
+                  {actionItems.slice(0, 3).map((a, i) => (
+                    <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
+                      <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                      <span>{a.action}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
           <InvestigationPrompt item={article} />
           <div className="pt-1.5 border-t border-brand-cloud">
@@ -252,24 +268,32 @@ const HomepageArticleCard = ({
     return (
       <div>
         {excerpt}
-        {(why || impact) && (
-          <p className="text-[13px] text-brand-steel mt-2">
-            {why}
-            {why && impact && ' '}
-            {impact}
-            {(why || impact) && watchLine && ' '}
-            {watchLine && <span className="italic">{watchLine}</span>}
-          </p>
-        )}
-        {actionItems.length > 0 && (
-          <ul className="mt-2 space-y-1 list-none pl-0">
-            {actionItems.slice(0, 3).map((a, i) => (
-              <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
-                <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
-                <span>{a.action}</span>
-              </li>
-            ))}
-          </ul>
+        {(why || impact || actionItems.length > 0) && (
+          <div className="pl-3 border-l-[3px] rounded-r-md py-2 pr-2 mt-2 space-y-2" style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.04)' }}>
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal))' }} />
+              <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal))' }}>Key Takeaways</span>
+            </div>
+            {(why || impact) && (
+              <p className="text-[13px] text-brand-steel">
+                {why}
+                {why && impact && ' '}
+                {impact}
+                {(why || impact) && watchLine && ' '}
+                {watchLine && <span className="italic">{watchLine}</span>}
+              </p>
+            )}
+            {actionItems.length > 0 && (
+              <ul className="space-y-1 list-none pl-0">
+                {actionItems.slice(0, 3).map((a, i) => (
+                  <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
+                    <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                    <span>{a.action}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
         <div className="border border-silver rounded-lg bg-white mt-2">
           <div className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-t-lg bg-background">
