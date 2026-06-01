@@ -4961,6 +4961,10 @@ export type Database = {
         Args: { p_batch?: number }
         Returns: number
       }
+      admin_fire_backfill_ai_summaries_ids: {
+        Args: { p_force_reenrich?: boolean; p_ids: string }
+        Returns: number
+      }
       admin_fire_backfill_ai_summaries_v2: {
         Args: { p_batch?: number; p_force_reenrich?: boolean; p_since?: string }
         Returns: number
