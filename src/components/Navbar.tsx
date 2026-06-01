@@ -74,7 +74,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    label: "Privacy Intelligence Feed",
+    label: "Feed",
     href: "/updates",
     directLink: true,
   },
@@ -113,7 +113,7 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    label: "Compliance Tools",
+    label: "Tools",
     wide: true,
     columns: 3,
     sections: [
@@ -407,7 +407,7 @@ const Navbar = () => {
           <img src="/logo.svg" alt="End User Privacy" width={260} height={48} className="h-10 w-auto shrink-0 object-contain" />
         </Link>
         {/* Desktop nav */}
-        <div className="hidden lg:flex items-center gap-2 lg:gap-3 xl:gap-6 ml-12 xl:ml-16">
+        <div className="hidden lg:flex items-center gap-1 lg:gap-2 xl:gap-4 ml-6 xl:ml-10">
           {navItems.map((item) => {
             const isActive = item.href
               ? location.pathname === item.href
@@ -415,7 +415,7 @@ const Navbar = () => {
                   s.items.some((sub) => location.pathname.startsWith(sub.href.split("?")[0]))
                 ) ?? false;
             const basePadX = item.directLink ? "px-2 lg:px-4" : "px-2 lg:px-3";
-            const baseTopClasses = `relative flex items-center gap-1 ${basePadX} py-2 transition-colors no-underline text-nav text-xs lg:text-sm`;
+            const baseTopClasses = `relative flex items-center gap-1 whitespace-nowrap ${basePadX} py-2 transition-colors no-underline text-nav text-xs lg:text-sm`;
             const activeUnderline = isActive
               ? "after:content-[''] after:absolute after:left-3 after:right-3 after:-bottom-[1px] after:h-[2px] after:bg-[hsl(var(--accent))]"
               : "";
