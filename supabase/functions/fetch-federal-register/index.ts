@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
     for (const agency of AGENCIES) {
       let docs: any[] = [];
       try {
-        docs = await fetchAgency(agency, since);
+        docs = await fetchAgency(agency, since, until, perPage, maxPages);
       } catch (e: any) {
         results.errors.push(`${agency}: ${e.message}`);
         continue;
