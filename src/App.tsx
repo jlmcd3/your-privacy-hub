@@ -111,6 +111,7 @@ import GetIntelligence from "./pages/GetIntelligence.tsx";
 import LegitimateInterestTracker from "./pages/LegitimateInterestTracker.tsx";
 import AdminSeedLI from "./pages/AdminSeedLI.tsx";
 import AdminIngestionDashboard from "./pages/AdminIngestionDashboard.tsx";
+import AdminJurisdictionAudit from "./pages/admin/AdminJurisdictionAudit.tsx";
 import AdminArticles from "./pages/AdminArticles.tsx";
 import AdminEmailSignups from "./pages/AdminEmailSignups.tsx";
 import AdminGatingLeaks from "./pages/AdminGatingLeaks.tsx";
@@ -318,6 +319,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdminIngestionDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/jurisdiction-audit"
+              element={
+                <ProtectedRoute>
+                  <AdminJurisdictionAudit />
                 </ProtectedRoute>
               }
             />

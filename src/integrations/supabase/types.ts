@@ -1670,6 +1670,42 @@ export type Database = {
           },
         ]
       }
+      jurisdiction_audit_runs: {
+        Row: {
+          completed_at: string | null
+          error: string | null
+          id: string
+          issues_found: number
+          jurisdictions_checked: number
+          model: string | null
+          params: Json | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          error?: string | null
+          id?: string
+          issues_found?: number
+          jurisdictions_checked?: number
+          model?: string | null
+          params?: Json | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          error?: string | null
+          id?: string
+          issues_found?: number
+          jurisdictions_checked?: number
+          model?: string | null
+          params?: Json | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       jurisdiction_canonical: {
         Row: {
           canonical_name: string
@@ -1743,6 +1779,71 @@ export type Database = {
           source_url?: string | null
         }
         Relationships: []
+      }
+      jurisdiction_requirement_audits: {
+        Row: {
+          agreement: string
+          confidence: string | null
+          created_at: string
+          current_value: Json | null
+          field_name: string
+          id: string
+          jurisdiction_code: string
+          model: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_note: string | null
+          run_id: string
+          source_quote: string | null
+          source_url: string | null
+          status: string
+          suggested_value: Json | null
+        }
+        Insert: {
+          agreement: string
+          confidence?: string | null
+          created_at?: string
+          current_value?: Json | null
+          field_name: string
+          id?: string
+          jurisdiction_code: string
+          model?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_note?: string | null
+          run_id: string
+          source_quote?: string | null
+          source_url?: string | null
+          status?: string
+          suggested_value?: Json | null
+        }
+        Update: {
+          agreement?: string
+          confidence?: string | null
+          created_at?: string
+          current_value?: Json | null
+          field_name?: string
+          id?: string
+          jurisdiction_code?: string
+          model?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_note?: string | null
+          run_id?: string
+          source_quote?: string | null
+          source_url?: string | null
+          status?: string
+          suggested_value?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jurisdiction_requirement_audits_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "jurisdiction_audit_runs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       jurisdiction_requirements: {
         Row: {
