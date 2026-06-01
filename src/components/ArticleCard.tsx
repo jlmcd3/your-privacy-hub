@@ -454,11 +454,6 @@ const FullCard = ({
               </span>
             ) : null;
           })()}
-          {enriched && weight && WEIGHT_COLORS[weight] && (
-            <span className={`font-mono-code text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${WEIGHT_COLORS[weight]}`}>
-              {weight}
-            </span>
-          )}
           {isSkipped(item) && <SkippedBadge item={item} />}
           <AdminHideButton articleId={item.id} />
         </div>
