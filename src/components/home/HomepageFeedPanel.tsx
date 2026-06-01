@@ -168,26 +168,18 @@ const HomepageArticleCard = ({
               )}
             </div>
           )}
-          <div className="border border-silver rounded-lg bg-white mt-2">
-            <div className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-t-lg bg-background">
-              <span className="flex items-center gap-2 min-w-0">
-                <span className="text-indigo-600 text-sm">⚗</span>
-                <span className="text-body font-semibold text-gray-900">Investigate further</span>
-                <span className="text-xs text-gray-500 truncate hidden sm:inline">— AI prompt pre-built from this article</span>
-              </span>
-              <span className="text-gray-500 text-sm">▾</span>
-            </div>
-            <div className="px-3 py-2.5 border-t border-silver flex items-center justify-between gap-3">
-              <p className="text-xs text-slate leading-relaxed flex-1">
-                AI investigation prompts are available to subscribers.
-              </p>
-              <Link
-                to="/subscribe"
-                className="flex-shrink-0 text-[11px] font-semibold bg-brand-navy text-white px-2.5 py-1 rounded-lg hover:opacity-90 no-underline whitespace-nowrap"
-              >
-                Subscribe →
-              </Link>
-            </div>
+          <div className="border border-silver rounded-lg bg-white mt-2 px-3 py-2 flex items-center justify-between gap-3">
+            <span className="flex items-center gap-2 min-w-0 flex-1">
+              <FlaskConical className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
+              <span className="text-[13px] font-semibold text-gray-900 whitespace-nowrap">Investigate further</span>
+              <span className="text-[11px] text-slate truncate hidden sm:inline">— AI prompts pre-built for this article are available to subscribers</span>
+            </span>
+            <Link
+              to="/subscribe"
+              className="flex-shrink-0 text-[11px] font-semibold bg-brand-navy text-white px-2.5 py-1 rounded-md hover:opacity-90 no-underline whitespace-nowrap"
+            >
+              Subscribe →
+            </Link>
           </div>
           {briefCTA}
         </div>
