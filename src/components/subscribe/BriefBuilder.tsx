@@ -9,10 +9,18 @@ import { CitedText } from "@/components/brief/CitedText";
 // ─────────────────────────────────────────────────────────────────────────
 
 const JURISDICTIONS = [
-  { value: "eu",     label: "EU & UK" },
-  { value: "us",     label: "United States" },
-  { value: "global", label: "Global / Multinational" },
-  { value: "apac",   label: "Asia-Pacific" },
+  { value: "eu-all",     label: "EU (All Member States)" },
+  { value: "uk",         label: "United Kingdom" },
+  { value: "us-federal", label: "U.S. Federal" },
+  { value: "us-ca",      label: "U.S. — California (CPRA)" },
+  { value: "us-states",  label: "U.S. States (all)" },
+  { value: "apac",       label: "Asia-Pacific" },
+  { value: "latam",      label: "Latin America" },
+  { value: "mea",        label: "Middle East & Africa" },
+  { value: "canada",     label: "Canada" },
+  { value: "australia",  label: "Australia & NZ" },
+  { value: "india",      label: "India (DPDP Act)" },
+  { value: "global",     label: "Global / Multinational" },
 ];
 
 const ROLES = [
@@ -53,12 +61,37 @@ type BriefItem = SampleTrackSection & {
   trackIcon: string;
 };
 
+const JURISDICTION_FALLBACK_NOTE: Record<string, string> = {
+  canada: "Canada",
+  latam: "Latin America",
+  mea: "Middle East & Africa",
+};
+
+function resolveStaticRegion(jurisdiction: string): string {
+  const map: Record<string, string> = {
+    "eu-all":     "eu",
+    "uk":         "eu",
+    "us-federal": "us",
+    "us-ca":      "us",
+    "us-states":  "us",
+    "apac":       "apac",
+    "australia":  "apac",
+    "india":      "apac",
+    "global":     "global",
+    "canada":     "global",
+    "latam":      "global",
+    "mea":        "global",
+  };
+  return map[jurisdiction] ?? "global";
+}
+
 function getBriefItems(
   jurisdiction: string,
   role: string,
   selectedTracks: string[]
 ): BriefItem[] {
-  const brief = sampleBriefs[jurisdiction]?.[role];
+  const regionKey = resolveStaticRegion(jurisdiction);
+  const brief = sampleBriefs[regionKey]?.[role];
   if (!brief) return [];
   return selectedTracks
     .map((t) => {
@@ -300,9 +333,16 @@ export default function BriefBuilder() {
               </span>
             </div>
             <p className="text-blue-200/70 text-[12px] leading-relaxed">
-              A representative sample showing the format and depth of your Monday brief — one article per selected track, written for{" "}
+              A representative sample showing the format and depth of your Monday brief — one article
+              per selected track, written for{" "}
               {ROLES.find((r) => r.value === role)?.label ?? "your role"} in{" "}
               {JURISDICTIONS.find((j) => j.value === jurisdiction)?.label ?? "your jurisdiction"}.
+              {JURISDICTION_FALLBACK_NOTE[jurisdiction] && (
+                <span className="block mt-1 text-blue-300/60 text-[11px]">
+                  Showing our Global sample — your subscription brief covers{" "}
+                  {JURISDICTION_FALLBACK_NOTE[jurisdiction]} specifically.
+                </span>
+              )}
             </p>
 
             <div className="mt-4 pt-4 border-t border-white/10">
