@@ -154,17 +154,27 @@ export default function RopaDocuments() {
   const handleDownload = async (doc: DocVersion) => {
     setDownloadingId(doc.id);
     try {
-      const { data, error } = await supabase.storage
-        .from("ropa-documents")
-        .createSignedUrl(doc.file_path, 3600);
-      if (error || !data?.signedUrl) throw error || new Error("No signed URL");
+      const { data: generated, error: genError } = await supabase.functions.invoke("generate-ropa-document", {
+        body: { session_id: doc.session_id, format: doc.document_format },
+      });
+      if (genError) throw genError;
+
+      const signedUrl = generated?.download_url as string | undefined;
+      if (!signedUrl) throw new Error("No signed URL");
+
+      const response = await fetch(signedUrl);
+      if (!response.ok) throw new Error("Could not fetch document");
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
 
       const link = document.createElement("a");
-      link.href = data.signedUrl;
+      link.href = objectUrl;
       link.download = `ropa_v${doc.session_id.slice(0, 8)}.${FORMAT_META[doc.document_format].ext}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+      void loadDocuments();
     } catch (err) {
       console.error("Download failed:", err);
       toast({

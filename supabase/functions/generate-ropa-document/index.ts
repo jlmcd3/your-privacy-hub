@@ -1,6 +1,6 @@
 // supabase/functions/generate-ropa-document/index.ts
 //
-// Generates a RoPA document (HTML "PDF" + optional DOCX + optional XLSX) for a
+// Generates a RoPA document (PDF + optional DOCX + optional XLSX) for a
 // session, uploads each format to the private `ropa-documents` storage bucket,
 // records the result in ropa_document_versions, marks the session as
 // generated, and returns short-lived signed URLs.
@@ -9,13 +9,8 @@
 // enforced via the public.owns_client() SECURITY DEFINER function (called as
 // the requesting user).
 //
-// Idempotency: if a document for (session_id, document_format) already exists
-// and the file is still present in storage, the existing file is reused and a
-// fresh signed URL is returned.
-//
 // Library imports use esm.sh because npm/Node-only packages do not load in
-// Deno. PDF rendering is intentionally HTML-only — Chromium/puppeteer cannot
-// run inside Supabase edge functions.
+// Deno. PDF rendering uses the configured PDF service.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import {
@@ -136,6 +131,84 @@ function lawfulBasisLabel(value: unknown): string {
   return LAWFUL_BASIS_LABELS[v] ?? v;
 }
 
+function activityRole(ans: Record<string, unknown>, profile: any): string {
+  return answerToString(
+    ans.role ??
+      ([profile?.is_controller && "Controller", profile?.is_processor && "Processor"]
+        .filter(Boolean)
+        .join(" + ") || "—"),
+  );
+}
+
+const QUESTION_LABELS: Record<string, string> = {
+  info_card: "Information acknowledged",
+  role: "Role",
+  purpose: "Purpose",
+  lawful_basis: "Lawful basis",
+  special_category_basis: "Special category basis",
+  data_subjects: "Data subjects",
+  data_categories: "Data categories",
+  processor_platform: "Processors / recipients",
+  recipients: "Recipients",
+  transfer_destination: "Transfer destination",
+  transfer_country: "Transfer country",
+  cross_border_destination: "Cross-border destination",
+  transfer_mechanism: "Transfer mechanism",
+  transfer_safeguard: "Transfer safeguard",
+  transfer_basis: "Transfer basis",
+  transfer_lawful_basis: "Transfer lawful basis",
+  retention_period: "Retention period",
+  security_measures: "Security measures",
+  access_controls: "Access controls",
+  uses_processors: "Uses third-party processors",
+  unsubscribe_mechanism: "Unsubscribe mechanism",
+  incident_log: "Breach / incident register",
+  notices_displayed: "Surveillance notices displayed",
+};
+
+function questionLabel(key: string): string {
+  return QUESTION_LABELS[key] ?? key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+async function renderPdf(html: string, title: string): Promise<Uint8Array> {
+  const pdfApiKey =
+    Deno.env.get("PDFSHIFT_API_KEY") ||
+    Deno.env.get("PDF_SERVICE_API_KEY") ||
+    Deno.env.get("PDFShift");
+  if (!pdfApiKey) throw new Error("PDF service is not configured");
+
+  const safeTitle = title.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const response = await fetch("https://api.pdfshift.io/v3/convert/pdf", {
+    method: "POST",
+    headers: {
+      "X-API-Key": pdfApiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      source: html,
+      format: "Letter",
+      margin: { top: "16mm", right: "14mm", bottom: "18mm", left: "14mm" },
+      sandbox: Deno.env.get("PDFSHIFT_SANDBOX") === "true",
+      footer: {
+        source:
+          '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c5a54;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
+          `<span>${safeTitle}</span>` +
+          '<span>EndUserPrivacy.com · Page <span class="pageNumber"></span> / <span class="totalPages"></span></span>' +
+          "</div>",
+        spacing: 4,
+      },
+    }),
+    signal: AbortSignal.timeout(45000),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => "");
+    throw new Error(`PDF rendering failed (${response.status}): ${errBody.slice(0, 300)}`);
+  }
+
+  return new Uint8Array(await response.arrayBuffer());
+}
+
 function readDocumentSettings(body: RequestBody): DocumentSettings {
   const ds = body.document_settings ?? {};
   return {
@@ -243,6 +316,29 @@ function buildHtml(d: AssembledData): string {
     })
     .join("");
 
+  const allAnswerSections = d.activities
+    .map((a) => {
+      const ans = d.answersByActivity[a.id] ?? {};
+      const rows = Object.entries(ans)
+        .filter(([key]) => key !== "info_card")
+        .map(([key, value]) => `
+          <tr>
+            <th>${escapeHtml(questionLabel(key))}</th>
+            <td>${escapeHtml(answerToString(value))}</td>
+          </tr>
+        `)
+        .join("");
+      if (!rows) return "";
+      return `
+        <section class="activity">
+          <h3>${escapeHtml(a.display_name)}</h3>
+          <table class="kv"><tbody>${rows}</tbody></table>
+        </section>
+      `;
+    })
+    .filter(Boolean)
+    .join("");
+
   const transfers = collectTransfers(d);
   const transferTable = transfers.length === 0
     ? `<p><em>No cross-border transfers recorded.</em></p>`
@@ -264,29 +360,6 @@ function buildHtml(d: AssembledData): string {
         </tbody>
       </table>
     `;
-
-  const flagsBySev = (sev: string) =>
-    d.flags.filter((f) =>
-      sev === "errors"
-        ? f.flag_type === "missing_required"
-        : sev === "warnings"
-          ? f.severity === "warning" && f.flag_type !== "missing_required"
-          : f.severity === "info" || f.flag_type === "recommendation" || f.flag_type === "cross_sell",
-    );
-
-  const renderFlagGroup = (label: string, items: any[]) => {
-    if (items.length === 0) return "";
-    const rows = items
-      .map((f) => `
-        <li>
-          <strong>${escapeHtml(f.flag_message)}</strong>
-          <span class="status ${f.resolved ? "resolved" : "open"}">${f.resolved ? "Noted — under review" : "Action required"}</span>
-          ${!f.resolved && f.consequence ? `<br/><em>${escapeHtml(f.consequence)}</em>` : ""}
-        </li>
-      `)
-      .join("");
-    return `<h3>${escapeHtml(label)}</h3><ul class="flags">${rows}</ul>`;
-  };
 
   const refreshNotes = d.refreshNotes.length === 0
     ? ""
@@ -317,11 +390,6 @@ function buildHtml(d: AssembledData): string {
     table.grid th, table.grid td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; }
     table.grid th { background: #f5f5f5; }
     .activity { page-break-inside: avoid; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px dashed #e0e0e0; }
-    ul.flags { padding-left: 20px; }
-    ul.flags li { margin-bottom: 8px; }
-    .status { display: inline-block; margin-left: 8px; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
-    .status.open { background: #fde68a; color: #78350f; }
-    .status.resolved { background: #d1fae5; color: #065f46; }
     .signature { margin-top: 32px; border-top: 1px solid #ccc; padding-top: 16px; }
     .footer-note { font-size: 11px; color: #777; margin-top: 24px; }
   </style>
@@ -348,9 +416,9 @@ function buildHtml(d: AssembledData): string {
       <tr><th>Legal entity</th><td>${escapeHtml(d.profile?.legal_entity_type ?? "—")}</td></tr>
       <tr><th>Sector</th><td>${escapeHtml(d.client?.sector ?? "—")}</td></tr>
       <tr><th>Employee band</th><td>${escapeHtml(d.profile?.employee_band ?? "—")}</td></tr>
-      <tr><th>DPO</th><td>${escapeHtml(d.profile?.dpo_name ?? "Not designated")}${d.profile?.dpo_email ? ` &lt;${escapeHtml(d.profile.dpo_email)}&gt;` : ""}</td></tr>
-      <tr><th>EU representative</th><td>${escapeHtml(d.profile?.eu_rep_name ?? "—")}</td></tr>
-      <tr><th>UK representative</th><td>${escapeHtml(d.profile?.uk_rep_name ?? "—")}</td></tr>
+      <tr><th>DPO</th><td>${escapeHtml(d.profile?.dpo_name ?? "Not designated")}${d.profile?.dpo_email ? ` &lt;${escapeHtml(d.profile.dpo_email)}&gt;` : ""}${d.profile?.dpo_phone ? ` · ${escapeHtml(d.profile.dpo_phone)}` : ""}</td></tr>
+      <tr><th>EU representative</th><td>${escapeHtml(d.profile?.eu_rep_name ?? "—")}${d.profile?.eu_rep_email ? ` &lt;${escapeHtml(d.profile.eu_rep_email)}&gt;` : ""}</td></tr>
+      <tr><th>UK representative</th><td>${escapeHtml(d.profile?.uk_rep_name ?? "—")}${d.profile?.uk_rep_email ? ` &lt;${escapeHtml(d.profile.uk_rep_email)}&gt;` : ""}</td></tr>
       <tr><th>Jurisdictions</th><td>${escapeHtml(d.jurisdictions.join(", ") || "—")}</td></tr>
     </tbody>
   </table>
@@ -360,17 +428,14 @@ function buildHtml(d: AssembledData): string {
   <h2>2. Processing activities</h2>
   ${activitySections || "<p><em>No activities recorded.</em></p>"}
 
-  <h2>3. Cross-border transfer register</h2>
+  ${allAnswerSections ? `<h2>3. Complete answer register</h2>${allAnswerSections}` : ""}
+
+  <h2>${allAnswerSections ? "4" : "3"}. Cross-border transfer register</h2>
   ${transferTable}
 
-  <h2>4. Flagged items (appendix)</h2>
-  ${renderFlagGroup("Errors — required fields", flagsBySev("errors"))}
-  ${renderFlagGroup("Warnings", flagsBySev("warnings"))}
-  ${renderFlagGroup("Recommendations", flagsBySev("recommendations"))}
-  ${d.flags.length === 0 ? "<p><em>No flagged items.</em></p>" : ""}
   ${refreshNotes}
 
-  <h2>5. Controller / processor statement</h2>
+  <h2>${allAnswerSections ? "5" : "4"}. Controller / processor statement</h2>
   <p>This record was prepared by <strong>${escapeHtml(d.settings.authorName)}</strong> on <strong>${escapeHtml(d.settings.documentDate)}</strong>.
   It constitutes our Article 30 record of processing activities (Records of Processing Activities — RoPA) maintained under ${escapeHtml(d.jurisdictions.map((j) => LAW_NAMES[j] ?? j).join(", ") || "applicable law")}.
   We are committed to reviewing and updating this record at least annually.</p>
@@ -436,9 +501,9 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
       kvRow("Legal entity", d.profile?.legal_entity_type ?? "—"),
       kvRow("Sector", d.client?.sector ?? "—"),
       kvRow("Employee band", d.profile?.employee_band ?? "—"),
-      kvRow("DPO", d.profile?.dpo_name ?? "Not designated"),
-      kvRow("EU representative", d.profile?.eu_rep_name ?? "—"),
-      kvRow("UK representative", d.profile?.uk_rep_name ?? "—"),
+      kvRow("DPO", `${d.profile?.dpo_name ?? "Not designated"}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`),
+      kvRow("EU representative", `${d.profile?.eu_rep_name ?? "—"}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`),
+      kvRow("UK representative", `${d.profile?.uk_rep_name ?? "—"}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`),
       kvRow("Jurisdictions", d.jurisdictions.join(", ") || "—"),
     ],
   });
@@ -455,6 +520,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
       new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [
+          kvRow("Role", activityRole(ans, d.profile)),
           kvRow("Category", a.category),
           kvRow("Purpose", answerToString(ans.purpose)),
           kvRow("Lawful basis", lawfulBasisLabel(ans.lawful_basis)),
@@ -477,6 +543,21 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
       }),
     );
     activityBlocks.push(p(""));
+  }
+
+  const allAnswerBlocks: any[] = [];
+  for (const a of d.activities) {
+    const ans = d.answersByActivity[a.id] ?? {};
+    const entries = Object.entries(ans).filter(([key]) => key !== "info_card");
+    if (entries.length === 0) continue;
+    allAnswerBlocks.push(p(a.display_name, { heading: HeadingLevel.HEADING_3 }));
+    allAnswerBlocks.push(
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: entries.map(([key, value]) => kvRow(questionLabel(key), answerToString(value))),
+      }),
+    );
+    allAnswerBlocks.push(p(""));
   }
 
   const transfers = collectTransfers(d);
@@ -510,28 +591,6 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
         )),
   ];
 
-  const flagBlocks: any[] = [];
-  if (d.flags.length === 0) {
-    flagBlocks.push(p("No flagged items.", { size: 18 }));
-  } else {
-    for (const f of d.flags) {
-      flagBlocks.push(
-        new Paragraph({
-          children: [
-            new TextRun({ text: `• ${f.flag_message}`, bold: true, size: 20 }),
-            new TextRun({
-              text: ` — ${f.resolved ? "Noted — under review" : "Action required"}`,
-              size: 18,
-            }),
-          ],
-        }),
-      );
-      if (!f.resolved && f.consequence) {
-        flagBlocks.push(p(`  ${f.consequence}`, { size: 18 }));
-      }
-    }
-  }
-
   const doc = new Document({
     sections: [
       {
@@ -551,10 +610,11 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
             rows: transferRows,
           }),
           p(""),
-          p("4. Flagged items (appendix)", { heading: HeadingLevel.HEADING_2 }),
-          ...flagBlocks,
+          ...(allAnswerBlocks.length > 0
+            ? [p("4. Complete answer register", { heading: HeadingLevel.HEADING_2 }), ...allAnswerBlocks]
+            : []),
           p(""),
-          p("5. Controller / processor statement", { heading: HeadingLevel.HEADING_2 }),
+          p(allAnswerBlocks.length > 0 ? "5. Controller / processor statement" : "4. Controller / processor statement", { heading: HeadingLevel.HEADING_2 }),
           p(
             `This record was prepared by ${d.settings.authorName} on ${d.settings.documentDate}. It constitutes our record of processing activities under the applicable laws listed above. We are committed to reviewing and updating this record at least annually.`,
           ),
@@ -588,9 +648,9 @@ function buildXlsx(d: AssembledData): Uint8Array {
     ["Legal entity", d.profile?.legal_entity_type ?? "—"],
     ["Sector", d.client?.sector ?? "—"],
     ["Employee band", d.profile?.employee_band ?? "—"],
-    ["DPO", d.profile?.dpo_name ?? "Not designated"],
-    ["EU representative", d.profile?.eu_rep_name ?? "—"],
-    ["UK representative", d.profile?.uk_rep_name ?? "—"],
+    ["DPO", `${d.profile?.dpo_name ?? "Not designated"}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`],
+    ["EU representative", `${d.profile?.eu_rep_name ?? "—"}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`],
+    ["UK representative", `${d.profile?.uk_rep_name ?? "—"}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`],
     ["Jurisdictions", d.jurisdictions.join(", ") || "—"],
     ["Document date", d.settings.documentDate],
     ["Author", d.settings.authorName],
@@ -604,6 +664,7 @@ function buildXlsx(d: AssembledData): Uint8Array {
   // Sheet 2 — activities
   const activityHeader = [
     "Activity",
+    "Role",
     "Category",
     "Purpose",
     "Lawful basis",
@@ -622,6 +683,7 @@ function buildXlsx(d: AssembledData): Uint8Array {
     const ans = d.answersByActivity[a.id] ?? {};
     return [
       a.display_name,
+      activityRole(ans, d.profile),
       a.category,
       answerToString(ans.purpose),
       lawfulBasisLabel(ans.lawful_basis),
@@ -640,27 +702,24 @@ function buildXlsx(d: AssembledData): Uint8Array {
   const activitySheet = XLSX.utils.aoa_to_sheet([activityHeader, ...activityRows]);
   XLSX.utils.book_append_sheet(wb, activitySheet, "Activities");
 
-  // Sheet 3 — transfers
+  const answerSheet = XLSX.utils.aoa_to_sheet([
+    ["Activity", "Question key", "Question", "Answer"],
+    ...d.activities.flatMap((a) => {
+      const ans = d.answersByActivity[a.id] ?? {};
+      return Object.entries(ans)
+        .filter(([key]) => key !== "info_card")
+        .map(([key, value]) => [a.display_name, key, questionLabel(key), answerToString(value)]);
+    }),
+  ]);
+  XLSX.utils.book_append_sheet(wb, answerSheet, "All answers");
+
+  // Sheet 4 — transfers
   const transfers = collectTransfers(d);
   const transferSheet = XLSX.utils.aoa_to_sheet([
     ["Activity", "Data", "Destination", "Mechanism", "Basis"],
     ...transfers.map((t) => [t.activity, t.data, t.destination, t.mechanism, t.basis]),
   ]);
   XLSX.utils.book_append_sheet(wb, transferSheet, "Transfers");
-
-  // Sheet 4 — flags
-  const flagSheet = XLSX.utils.aoa_to_sheet([
-    ["Severity", "Type", "Activity", "Message", "Status", "Consequence"],
-    ...d.flags.map((f) => [
-      f.severity,
-      f.flag_type,
-      d.activities.find((a) => a.id === f.activity_id)?.display_name ?? "—",
-      f.flag_message,
-      f.resolved ? "Noted — under review" : "Action required",
-      f.consequence ?? "",
-    ]),
-  ]);
-  XLSX.utils.book_append_sheet(wb, flagSheet, "Flags");
 
   const out = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
   return new Uint8Array(out);
@@ -839,7 +898,6 @@ Deno.serve(async (req: Request) => {
   }> = [];
 
   for (const fmt of formats) {
-    // Idempotency: existing version + file in storage → reuse signed URL
     const { data: existing } = await admin
       .from("ropa_document_versions")
       .select("id, file_path")
@@ -850,85 +908,66 @@ Deno.serve(async (req: Request) => {
 
     let filePath: string | null = null;
     let documentVersionId: string | null = null;
-    let regenerated = false;
 
-    if (existing?.file_path) {
-      // Verify file still exists by attempting to sign it
-      const { data: signed } = await admin.storage
-        .from("ropa-documents")
-        .createSignedUrl(existing.file_path, 60 * 60);
-      if (signed?.signedUrl) {
-        filePath = existing.file_path;
-        documentVersionId = existing.id;
-      }
+    let payload: Uint8Array;
+    let contentType: string;
+    if (fmt === "pdf") {
+      payload = await renderPdf(
+        buildHtml(data),
+        `RoPA — ${data.client?.name ?? "Client"}`,
+      );
+      contentType = "application/pdf";
+    } else if (fmt === "docx") {
+      payload = await buildDocx(data);
+      contentType =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    } else {
+      payload = buildXlsx(data);
+      contentType =
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     }
 
-    if (!filePath) {
-      // Build payload
-      let payload: Uint8Array;
-      let contentType: string;
-      if (fmt === "pdf") {
-        // HTML stored under .html extension (Chromium/PDF rendering not
-        // available in Deno edge functions). Browsers render this inline; the
-        // document library page should label it as "PDF (HTML)" until a true
-        // PDF renderer ships.
-        payload = new TextEncoder().encode(buildHtml(data));
-        contentType = "text/html";
-      } else if (fmt === "docx") {
-        payload = await buildDocx(data);
-        contentType =
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-      } else {
-        payload = buildXlsx(data);
-        contentType =
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      }
+    filePath = `${session.client_id}/${session.id}/v${session.version_number}.${fmt}`;
 
-      const ext = fmt === "pdf" ? "html" : fmt;
-      filePath = `${session.client_id}/${session.id}/v${session.version_number}.${ext}`;
-
-      const { error: upErr } = await admin.storage
-        .from("ropa-documents")
-        .upload(filePath, payload, { contentType, upsert: true });
-      if (upErr) {
-        return jsonResponse(
-          { error: `Storage upload failed (${fmt}): ${upErr.message}` },
-          500,
-        );
-      }
-
-      // Upsert ropa_document_versions on (session_id, document_format)
-      const { data: upserted, error: verErr } = await admin
-        .from("ropa_document_versions")
-        .upsert(
-          {
-            session_id: session.id,
-            client_id: session.client_id,
-            version_number: session.version_number,
-            document_format: fmt,
-            file_path: filePath,
-            file_size_bytes: payload.byteLength,
-            jurisdictions_covered: data.jurisdictions,
-            activities_count: data.activities.length,
-            change_summary: existing
-              ? "Regenerated"
-              : `Generated v${session.version_number}`,
-            generated_at: new Date().toISOString(),
-            is_current: true,
-          },
-          { onConflict: "session_id,document_format" },
-        )
-        .select("id")
-        .single();
-      if (verErr || !upserted) {
-        return jsonResponse(
-          { error: `Failed to record document version: ${verErr?.message}` },
-          500,
-        );
-      }
-      documentVersionId = upserted.id;
-      regenerated = true;
+    const { error: upErr } = await admin.storage
+      .from("ropa-documents")
+      .upload(filePath, payload, { contentType, upsert: true });
+    if (upErr) {
+      return jsonResponse(
+        { error: `Storage upload failed (${fmt}): ${upErr.message}` },
+        500,
+      );
     }
+
+    const { data: upserted, error: verErr } = await admin
+      .from("ropa_document_versions")
+      .upsert(
+        {
+          session_id: session.id,
+          client_id: session.client_id,
+          version_number: session.version_number,
+          document_format: fmt,
+          file_path: filePath,
+          file_size_bytes: payload.byteLength,
+          jurisdictions_covered: data.jurisdictions,
+          activities_count: data.activities.length,
+          change_summary: existing
+            ? "Regenerated"
+            : `Generated v${session.version_number}`,
+          generated_at: new Date().toISOString(),
+          is_current: true,
+        },
+        { onConflict: "session_id,document_format" },
+      )
+      .select("id")
+      .single();
+    if (verErr || !upserted) {
+      return jsonResponse(
+        { error: `Failed to record document version: ${verErr?.message}` },
+        500,
+      );
+    }
+    documentVersionId = upserted.id;
 
     // Update session generated_*_path
     const pathColumn =
@@ -960,7 +999,6 @@ Deno.serve(async (req: Request) => {
       file_path: filePath,
     });
 
-    void regenerated;
   }
 
   // Single-format spec response
