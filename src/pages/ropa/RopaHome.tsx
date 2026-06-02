@@ -124,38 +124,12 @@ export default function RopaHome() {
     (async () => {
       setLoading(true);
       try {
-        const { data: clients } = await supabase
-          .from("clients")
-          .select("id")
-          .eq("owner_id", user.id)
-          .eq("is_active", true);
-        const clientIds = (clients ?? []).map((c) => c.id);
-        if (clientIds.length === 0) {
-          setLoading(false);
-          return;
-        }
-        const { data: sessions } = await supabase
-          .from("ropa_sessions")
-          .select(
-            "id,status,is_refresh,version_number,total_activities,completed_activities,open_flags_count,started_at,last_activity_at,completed_at,paid_at,payment_confirmed,generated_docx_path,generated_pdf_path,generated_xlsx_path"
-          )
-          .in("client_id", clientIds)
-          .order("last_activity_at", { ascending: false });
-
-        const rows = (sessions ?? []) as SessionRow[];
-        setAllSessions(rows);
-        setActiveSession(
-          rows.find((r) => r.status === "in_progress" || r.status === "review") ?? null
-        );
-        setLatestGenerated(
-          rows.find(
-            (r) => r.status === "generated" && (r.generated_docx_path || r.generated_pdf_path)
-          ) ?? null
-        );
+        await reload();
       } finally {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const refreshDue =
