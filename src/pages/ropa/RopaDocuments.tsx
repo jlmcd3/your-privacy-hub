@@ -39,6 +39,7 @@ type SessionRow = {
   open_flags_count: number;
   is_refresh: boolean;
   payment_confirmed: boolean;
+  org_name: string | null;
 };
 
 type DocVersion = {
