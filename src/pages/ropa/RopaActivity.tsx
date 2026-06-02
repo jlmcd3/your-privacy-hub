@@ -29,20 +29,16 @@ export default function RopaActivity() {
   const markActivityComplete = useRopaStore((s) => s.markActivityComplete);
   const evaluateFlagsForAnswer = useRopaStore((s) => s.evaluateFlagsForAnswer);
 
-  const [questionIndex, setQuestionIndex] = useState(0);
   const [activityNavOpen, setActivityNavOpen] = useState(false);
-  const questionCardRef = useRef<HTMLDivElement>(null);
+  const [applyToAll, setApplyToAll] = useState(false);
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const formCardRef = useRef<HTMLDivElement>(null);
 
-  // Load activity + parent session, and reset to first question whenever
-  // the activity changes (otherwise questionIndex sticks on the previous
-  // activity's last question — e.g. "security measures" appears to be
-  // asked twice).
+  // Load activity + parent session whenever the activity id changes.
   useEffect(() => {
     if (!id) return;
-    setQuestionIndex(0);
     (async () => {
       await loadActivity(id);
-      // also load session if not already
       const act = useRopaStore.getState().currentActivity;
       if (act && !useRopaStore.getState().currentSession) {
         await loadSession(act.session_id);
@@ -54,15 +50,6 @@ export default function RopaActivity() {
     () => getQuestionsForActivity(currentActivity?.template_key ?? null),
     [currentActivity?.template_key]
   );
-
-  // After auto-advance, move focus to first focusable element of new question
-  useEffect(() => {
-    if (!questionCardRef.current) return;
-    const focusable = questionCardRef.current.querySelector<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    focusable?.focus();
-  }, [questionIndex, currentActivity?.id]);
 
   // Filter based on showIf
   const visibleQuestions = useMemo(() => {
@@ -87,47 +74,120 @@ export default function RopaActivity() {
     });
   }, [questions, currentAnswers]);
 
-  const q = visibleQuestions[questionIndex];
-
-  const handleAnswer = async (value: unknown) => {
-    if (!q || !currentActivity || !currentSession) return;
-    await saveAnswer(q.key, value as never);
-
-    // Evaluate flags (auto-creates new ones, auto-resolves stale ones, dedupes)
-    if (q.flagIf) {
-      await evaluateFlagsForAnswer(q.key, value as never, q.flagIf);
-    }
-
-    // Auto-advance for single-pick question types so the user gets immediate
-    // visual feedback after choosing an option (e.g. lawful basis).
-    const autoAdvanceTypes = new Set([
-      "single_choice",
-      "lawful_basis",
-      "yes_no",
-      "yes_no_unsure",
-      "date_or_period",
-    ]);
-    if (autoAdvanceTypes.has(q.type)) {
-      // Small delay so the selection state is visible before moving on
-      setTimeout(() => {
-        void goNext();
-      }, 220);
+  const handleAnswer = async (questionKey: string, value: unknown) => {
+    if (!currentActivity || !currentSession) return;
+    await saveAnswer(questionKey, value as never);
+    const q = visibleQuestions.find((x) => x.key === questionKey);
+    if (q?.flagIf) {
+      await evaluateFlagsForAnswer(questionKey, value as never, q.flagIf);
     }
   };
 
-  const goNext = async () => {
-    if (questionIndex < visibleQuestions.length - 1) {
-      setQuestionIndex((i) => i + 1);
-    } else {
-      // Last question — mark complete
-      await markActivityComplete();
-      // Find next incomplete activity
-      const incomplete = allActivities.find(
-        (a) => a.id !== currentActivity?.id && a.status !== "complete"
+  // Count answered required questions for progress
+  const answeredRequired = visibleQuestions.filter(
+    (q) =>
+      q.isRequired &&
+      currentAnswers[q.key] !== undefined &&
+      currentAnswers[q.key] !== "" &&
+      !(Array.isArray(currentAnswers[q.key]) &&
+        (currentAnswers[q.key] as unknown[]).length === 0)
+  ).length;
+  const totalRequired = visibleQuestions.filter((q) => q.isRequired).length;
+  const missingRequired = visibleQuestions.filter(
+    (q) =>
+      q.isRequired &&
+      (currentAnswers[q.key] === undefined ||
+        currentAnswers[q.key] === "" ||
+        (Array.isArray(currentAnswers[q.key]) &&
+          (currentAnswers[q.key] as unknown[]).length === 0))
+  );
+
+  const handleSubmit = async () => {
+    if (!currentActivity || !currentSession) return;
+    if (missingRequired.length > 0) {
+      toast.error(
+        `Please answer all required questions (${missingRequired.length} remaining).`
       );
-      if (incomplete) navigate(`/ropa/activity/${incomplete.id}`);
-      else navigate("/ropa/review");
+      // Scroll to first missing
+      const firstKey = missingRequired[0].key;
+      const el = formCardRef.current?.querySelector(
+        `[data-question-key="${firstKey}"]`
+      ) as HTMLElement | null;
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
     }
+
+    // Ensure any debounced answers are flushed
+    await new Promise((r) => setTimeout(r, 600));
+
+    if (applyToAll) {
+      setBulkSaving(true);
+      try {
+        const others = allActivities.filter(
+          (a) => a.id !== currentActivity.id && a.status !== "complete"
+        );
+
+        // Build the answer payload from the current activity's answers
+        const answersToCopy = Object.entries(currentAnswers).filter(
+          ([, v]) =>
+            v !== undefined &&
+            v !== "" &&
+            !(Array.isArray(v) && v.length === 0)
+        );
+
+        for (const other of others) {
+          const otherQuestions = getQuestionsForActivity(
+            other.template_key ?? null
+          );
+          const otherKeys = new Set(otherQuestions.map((q) => q.key));
+          const rows = answersToCopy
+            .filter(([key]) => otherKeys.has(key))
+            .map(([key, value]) => ({
+              activity_id: other.id,
+              session_id: currentSession.id,
+              question_key: key,
+              answer_value: value,
+              updated_at: new Date().toISOString(),
+            }));
+
+          if (rows.length > 0) {
+            const { error: upErr } = await SUPA.from("ropa_answers").upsert(
+              rows,
+              { onConflict: "activity_id,question_key" }
+            );
+            if (upErr) throw upErr;
+          }
+
+          const { error: actErr } = await SUPA.from(
+            "ropa_processing_activities"
+          )
+            .update({ status: "complete", completion_pct: 100 })
+            .eq("id", other.id);
+          if (actErr) throw actErr;
+        }
+
+        await markActivityComplete();
+        toast.success(
+          others.length > 0
+            ? `Applied your answers to ${others.length} more activit${others.length === 1 ? "y" : "ies"}.`
+            : "Activity saved."
+        );
+        navigate("/ropa/review");
+      } catch (e) {
+        console.error(e);
+        toast.error("Could not apply answers to all activities. Try again.");
+      } finally {
+        setBulkSaving(false);
+      }
+      return;
+    }
+
+    await markActivityComplete();
+    const incomplete = allActivities.find(
+      (a) => a.id !== currentActivity.id && a.status !== "complete"
+    );
+    if (incomplete) navigate(`/ropa/activity/${incomplete.id}`);
+    else navigate("/ropa/review");
   };
 
   if (!currentActivity) {
@@ -138,7 +198,7 @@ export default function RopaActivity() {
     );
   }
 
-  if (!q) {
+  if (visibleQuestions.length === 0) {
     return (
       <RopaShell
         title={`${currentActivity.display_name} — RoPA Builder`}
@@ -157,6 +217,9 @@ export default function RopaActivity() {
 
   const completedCount = allActivities.filter((a) => a.status === "complete")
     .length;
+  const otherIncompleteCount = allActivities.filter(
+    (a) => a.id !== currentActivity.id && a.status !== "complete"
+  ).length;
 
   return (
     <RopaShell
@@ -200,21 +263,21 @@ export default function RopaActivity() {
           <div className="flex flex-col sm:flex-row gap-4 text-xs text-muted-foreground">
             <div className="flex-1">
               <p className="mb-1">
-                Question {questionIndex + 1} of {visibleQuestions.length}
+                {answeredRequired} of {totalRequired} required answered
               </p>
               <div
                 className="w-full h-1.5 bg-muted rounded-full overflow-hidden"
                 role="progressbar"
-                aria-valuenow={questionIndex + 1}
-                aria-valuemin={1}
-                aria-valuemax={visibleQuestions.length}
+                aria-valuenow={answeredRequired}
+                aria-valuemin={0}
+                aria-valuemax={totalRequired}
                 aria-label="Activity progress"
               >
                 <div
                   className="h-full bg-primary transition-all"
                   style={{
                     width: `${
-                      ((questionIndex + 1) / visibleQuestions.length) * 100
+                      (answeredRequired / Math.max(1, totalRequired)) * 100
                     }%`,
                   }}
                 />
@@ -222,7 +285,7 @@ export default function RopaActivity() {
             </div>
             <div className="flex-1">
               <p className="mb-1">
-                {completedCount} of {allActivities.length} activities
+                {completedCount} of {allActivities.length} activities complete
               </p>
               <div
                 className="w-full h-1.5 bg-muted rounded-full overflow-hidden"
@@ -244,91 +307,125 @@ export default function RopaActivity() {
             </div>
           </div>
 
-          <div ref={questionCardRef} className="bg-card border border-border rounded-xl p-4 sm:p-6">
-            {q.staticInfoCard && (
-              <div className="mb-4 p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-900/20 rounded">
-                <p className="font-semibold text-sm">{q.staticInfoCard.title}</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {q.staticInfoCard.body}
-                </p>
+          <div
+            ref={formCardRef}
+            className="bg-card border border-border rounded-xl p-4 sm:p-6 space-y-8"
+          >
+            {visibleQuestions.map((q, idx) => (
+              <div
+                key={q.key}
+                data-question-key={q.key}
+                className={
+                  idx > 0 ? "pt-6 border-t border-border" : undefined
+                }
+              >
+                {q.staticInfoCard && (
+                  <div className="mb-4 p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-900/20 rounded">
+                    <p className="font-semibold text-sm">
+                      {q.staticInfoCard.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {q.staticInfoCard.body}
+                    </p>
+                  </div>
+                )}
+
+                <label
+                  htmlFor={`q-${q.key}`}
+                  className="block text-base font-medium mb-1"
+                >
+                  <span className="text-xs text-muted-foreground mr-2">
+                    {idx + 1}.
+                  </span>
+                  {q.text}
+                  {q.isRequired && (
+                    <span
+                      className="text-destructive ml-1"
+                      aria-label="required"
+                    >
+                      *
+                    </span>
+                  )}
+                </label>
+                <details className="mb-3 text-sm">
+                  <summary className="cursor-pointer text-muted-foreground min-h-[32px] flex items-center">
+                    ⓘ Why we ask this
+                  </summary>
+                  <p className="mt-2 text-muted-foreground">{q.whyWeAsk}</p>
+                </details>
+
+                <PriorAnswerSuggestions
+                  sessionId={currentSession?.id ?? null}
+                  activityId={currentActivity.id}
+                  question={q}
+                  currentValue={currentAnswers[q.key]}
+                  onPick={(val) => handleAnswer(q.key, val)}
+                />
+
+                <QuestionInput
+                  question={q}
+                  value={currentAnswers[q.key]}
+                  onChange={(val) => handleAnswer(q.key, val)}
+                />
+
+                <FlagPreview question={q} value={currentAnswers[q.key]} />
+              </div>
+            ))}
+
+            {/* Apply-to-all checkbox */}
+            {otherIncompleteCount > 0 && (
+              <div className="pt-6 border-t border-border">
+                <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition">
+                  <input
+                    type="checkbox"
+                    checked={applyToAll}
+                    onChange={(e) => setApplyToAll(e.target.checked)}
+                    className="mt-1 h-4 w-4"
+                    aria-label="Apply these same answers to all remaining activities"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold">
+                      Use these same answers for all {otherIncompleteCount}{" "}
+                      remaining activit
+                      {otherIncompleteCount === 1 ? "y" : "ies"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      We'll copy your answers to every other activity that
+                      hasn't been completed yet, mark them complete, and take
+                      you to review. You can still edit each one afterwards.
+                    </p>
+                  </div>
+                </label>
               </div>
             )}
 
-            <label
-              htmlFor={`q-${q.key}`}
-              className="block text-lg font-medium mb-2"
-            >
-              {q.text}
-            </label>
-            <details className="mb-4 text-sm">
-              <summary className="cursor-pointer text-muted-foreground min-h-[44px] flex items-center">
-                ⓘ Why we ask this
-              </summary>
-              <p className="mt-2 text-muted-foreground">{q.whyWeAsk}</p>
-            </details>
-
-            <PriorAnswerSuggestions
-              sessionId={currentSession?.id ?? null}
-              activityId={currentActivity.id}
-              question={q}
-              currentValue={currentAnswers[q.key]}
-              onPick={(val) => handleAnswer(val)}
-            />
-
-            <QuestionInput
-              question={q}
-              value={currentAnswers[q.key]}
-              onChange={handleAnswer}
-            />
-
-            {/* Flag preview if just-saved value triggers a flag */}
-            <FlagPreview question={q} value={currentAnswers[q.key]} />
-
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6 pt-4 border-t border-border">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-border">
               <button
-                onClick={() =>
-                  setQuestionIndex((i) => Math.max(0, i - 1))
-                }
-                disabled={questionIndex === 0}
-                aria-label="Previous question"
-                className="order-2 sm:order-1 w-full sm:w-auto min-h-[44px] text-sm underline text-muted-foreground disabled:opacity-30"
+                onClick={() => navigate("/ropa/review")}
+                className="order-2 sm:order-1 text-xs underline text-muted-foreground min-h-[44px] px-2"
               >
-                ← Back
+                Skip this activity ›
               </button>
               <div className="order-1 sm:order-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                 <AutosaveIndicator
-                  saving={isSaving}
+                  saving={isSaving || bulkSaving}
                   savedAt={lastSavedAt}
                   className="text-center sm:text-left"
                 />
                 <button
-                  onClick={goNext}
-                  disabled={
-                    q.isRequired &&
-                    (currentAnswers[q.key] === undefined ||
-                      currentAnswers[q.key] === "")
-                  }
-                  aria-label={
-                    questionIndex < visibleQuestions.length - 1
-                      ? "Next question"
-                      : "Mark activity complete"
-                  }
+                  onClick={handleSubmit}
+                  disabled={bulkSaving}
                   className="w-full sm:w-auto min-h-[44px] bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-lg disabled:opacity-50"
                 >
-                  {questionIndex < visibleQuestions.length - 1
-                    ? "Next →"
-                    : "Mark complete →"}
+                  {bulkSaving
+                    ? "Saving…"
+                    : applyToAll
+                      ? `Apply to all & continue →`
+                      : otherIncompleteCount > 0
+                        ? "Save & next activity →"
+                        : "Save & continue to review →"}
                 </button>
               </div>
-            </div>
-
-            <div className="mt-3 text-center sm:text-right">
-              <button
-                onClick={() => navigate("/ropa/review")}
-                className="text-xs underline text-muted-foreground min-h-[44px] px-2"
-              >
-                Skip this activity ›
-              </button>
             </div>
           </div>
         </div>
