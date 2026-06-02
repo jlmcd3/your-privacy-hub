@@ -146,9 +146,7 @@ export default function RopaSetup() {
 
   const [step, setStep] = useState(0);
   const [orgName, setOrgName] = useState("");
-  const [sector, setSector] = useState<string>(
-    (client as { sector?: string } | null)?.sector ?? ""
-  );
+  const [sector, setSector] = useState<string>("");
   const [primaryRegion, setPrimaryRegion] = useState<string>("");
   const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
   const [selectedJurisdictions, setSelectedJurisdictions] = useState<Set<string>>(
