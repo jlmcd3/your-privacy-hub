@@ -1,0 +1,1 @@
+ALTER TABLE public.ropa_sessions ADD COLUMN IF NOT EXISTS org_name text;
