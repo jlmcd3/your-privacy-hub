@@ -234,13 +234,12 @@ export default function RopaActivities() {
         const { steps, currentIndex } = getRopaSteps("activities");
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
       })()}
-      <div className="bg-foreground text-background rounded-xl p-6 md:p-8 mb-6">
-        <h1 className="font-serif mb-2">
+      <div className="bg-foreground text-background rounded-lg px-5 py-4 mb-4">
+        <h1 className="font-serif text-xl md:text-2xl leading-tight mb-1">
           What does your organisation do with personal data?
         </h1>
-        <p className="text-sm opacity-80">
-          We've suggested typical activities for your sector. Confirm what
-          applies.
+        <p className="text-xs opacity-80">
+          We've suggested typical activities for your sector. Confirm what applies.
         </p>
       </div>
 
