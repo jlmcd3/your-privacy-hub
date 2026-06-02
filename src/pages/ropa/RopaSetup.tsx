@@ -199,27 +199,31 @@ export default function RopaSetup() {
       // Prefer a session id passed in the URL (so back-navigation always
       // resumes the same RoPA). Fall back to "latest non-archived" for this
       // client.
-      let sess: { id: string; status: string } | null = null;
+      let sess: { id: string; status: string; org_name: string | null } | null = null;
       if (urlSessionId) {
         const { data } = await SUPA.from("ropa_sessions")
-          .select("id, status, client_id")
+          .select("id, status, client_id, org_name")
           .eq("id", urlSessionId)
           .maybeSingle();
         if (data && data.client_id === clientId) {
-          sess = { id: data.id, status: data.status };
+          sess = { id: data.id, status: data.status, org_name: data.org_name ?? null };
         }
       }
       if (!sess) {
         const { data } = await SUPA.from("ropa_sessions")
-          .select("id, status")
+          .select("id, status, org_name")
           .eq("client_id", clientId)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        sess = data ?? null;
+        sess = data ? { id: data.id, status: data.status, org_name: data.org_name ?? null } : null;
       }
       if (cancelled) return;
       if (sess && sess.status !== "archived") setHasExistingSession(sess.id);
+      // Pre-fill the org name from the session (the company this RoPA documents),
+      // never from the workspace name — workspaces are separate from RoPA orgs.
+      if (sess?.org_name) setOrgName(sess.org_name);
+
     })();
     return () => {
       cancelled = true;
