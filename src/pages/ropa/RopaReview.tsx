@@ -76,11 +76,27 @@ export default function RopaReview() {
 
   // Load session, flags, profile, client info
   useEffect(() => {
-    if (!sessionId) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
-      await loadSession(sessionId);
+
+      // If the URL has no sessionId, try to recover from the store
+      // (e.g. user navigated to bare /ropa/review). If we still have no
+      // session, send them back to start instead of spinning forever.
+      let effectiveId = sessionId ?? useRopaStore.getState().currentSession?.id;
+      if (!effectiveId) {
+        if (!cancelled) {
+          setLoading(false);
+          navigate("/ropa", { replace: true });
+        }
+        return;
+      }
+      if (!sessionId && effectiveId) {
+        navigate(`/ropa/review/${effectiveId}`, { replace: true });
+        return;
+      }
+
+      await loadSession(effectiveId);
       const sess = useRopaStore.getState().currentSession;
       if (!sess || cancelled) {
         setLoading(false);

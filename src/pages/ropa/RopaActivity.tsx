@@ -172,7 +172,7 @@ export default function RopaActivity() {
             ? `Applied your answers to ${others.length} more activit${others.length === 1 ? "y" : "ies"}.`
             : "Activity saved."
         );
-        navigate("/ropa/review");
+        navigate(currentSession ? `/ropa/review/${currentSession.id}` : "/ropa/review");
       } catch (e) {
         console.error(e);
         toast.error("Could not apply answers to all activities. Try again.");
@@ -187,7 +187,7 @@ export default function RopaActivity() {
       (a) => a.id !== currentActivity.id && a.status !== "complete"
     );
     if (incomplete) navigate(`/ropa/activity/${incomplete.id}`);
-    else navigate("/ropa/review");
+    else navigate(currentSession ? `/ropa/review/${currentSession.id}` : "/ropa/review");
   };
 
   if (!currentActivity) {
@@ -206,7 +206,7 @@ export default function RopaActivity() {
       >
         <p className="text-muted-foreground">No questions configured.</p>
         <button
-          onClick={() => navigate("/ropa/review")}
+          onClick={() => navigate(currentSession ? `/ropa/review/${currentSession.id}` : "/ropa/review")}
           className="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold"
         >
           Continue to review →
@@ -401,7 +401,7 @@ export default function RopaActivity() {
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-border">
               <button
-                onClick={() => navigate("/ropa/review")}
+                onClick={() => navigate(currentSession ? `/ropa/review/${currentSession.id}` : "/ropa/review")}
                 className="order-2 sm:order-1 text-xs underline text-muted-foreground min-h-[44px] px-2"
               >
                 Skip this activity ›
