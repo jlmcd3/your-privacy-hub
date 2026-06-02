@@ -317,7 +317,7 @@ export default function RopaDocuments() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <CardTitle className="font-heading text-lg flex items-center gap-2">
-                        Version {s.version_number}
+                        {s.org_name?.trim() ? `${s.org_name.trim()} - ` : ""}Version {s.version_number}
                         {s.is_refresh && (
                           <Badge variant="outline" className="text-xs">Refresh</Badge>
                         )}
