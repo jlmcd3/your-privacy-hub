@@ -79,7 +79,7 @@ function statusVariant(s: string): "default" | "secondary" | "outline" {
 
 export default function MyReports() {
   const { user, loading: authLoading } = useAuth();
-  const { clientId: activeClientId, isPersonalActive, personal, hasClients } = useActiveClient();
+  const { clientId: activeClientId, clientName: activeClientName, isPersonalActive, personal, hasClients } = useActiveClient();
   const { isAdmin } = useIsAdmin();
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
