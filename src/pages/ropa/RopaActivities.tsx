@@ -234,22 +234,12 @@ export default function RopaActivities() {
         const { steps, currentIndex } = getRopaSteps("activities");
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
       })()}
-      <div className="bg-foreground text-background rounded-lg px-4 py-3 mb-4 flex items-center justify-between gap-4 flex-wrap">
-        <div className="min-w-0">
-          <h1 className="font-serif text-base md:text-lg leading-tight mb-0.5">
-            What does your organisation do with personal data?
-          </h1>
-          <p className="text-xs opacity-75">
-            Pre-fill the typical activities for your sector, then adjust below.
-          </p>
-        </div>
-        <button
-          onClick={loadTypical}
-          className="bg-primary text-primary-foreground font-semibold text-sm px-3 py-2 rounded-md whitespace-nowrap"
-        >
-          Load typical activities for {sector || "your sector"} →
-        </button>
-      </div>
+      <button
+        onClick={loadTypical}
+        className="w-full bg-foreground text-background font-semibold text-sm px-4 py-2.5 rounded-lg mb-4 text-left"
+      >
+        Prefill typical activities for {sector || "your sector"} and adjust as needed →
+      </button>
 
 
       <div className="space-y-3 mb-32">
