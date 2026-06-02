@@ -263,6 +263,14 @@ export default function RopaActivity() {
               <p className="mt-2 text-muted-foreground">{q.whyWeAsk}</p>
             </details>
 
+            <PriorAnswerSuggestions
+              sessionId={currentSession?.id ?? null}
+              activityId={currentActivity.id}
+              question={q}
+              currentValue={currentAnswers[q.key]}
+              onPick={(val) => handleAnswer(val)}
+            />
+
             <QuestionInput
               question={q}
               value={currentAnswers[q.key]}
