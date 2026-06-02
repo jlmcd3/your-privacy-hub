@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
+import { useRopaSessionParam, withSession, ROPA_SESSION_QS_KEY } from "@/lib/ropaSession";
 import { toast } from "sonner";
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
@@ -75,6 +76,8 @@ interface CustomActivity {
 export default function RopaActivities() {
   const navigate = useNavigate();
   const { clientId } = useActiveClient();
+  const urlSessionId = useRopaSessionParam();
+  const [, setSearchParams] = useSearchParams();
   const [templates, setTemplates] = useState<ActivityTemplate[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [customActivities, setCustomActivities] = useState<CustomActivity[]>([]);
@@ -95,22 +98,51 @@ export default function RopaActivities() {
         .select("sector")
         .eq("id", clientId)
         .single();
-      const { data: sess } = await SUPA.from("ropa_sessions")
-        .select("id")
-        .eq("client_id", clientId)
-        .neq("status", "archived")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+
+      // Prefer the session passed in via `?session=`. Validate it belongs to
+      // the current client. Otherwise fall back to "latest non-archived".
+      let resolved: { id: string } | null = null;
+      if (urlSessionId) {
+        const { data } = await SUPA.from("ropa_sessions")
+          .select("id, client_id, status")
+          .eq("id", urlSessionId)
+          .maybeSingle();
+        if (data && data.client_id === clientId && data.status !== "archived") {
+          resolved = { id: data.id };
+        }
+      }
+      if (!resolved) {
+        const { data } = await SUPA.from("ropa_sessions")
+          .select("id")
+          .eq("client_id", clientId)
+          .neq("status", "archived")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        resolved = data ?? null;
+      }
+
       if (cancelled) return;
       setTemplates((tmpls ?? []) as ActivityTemplate[]);
       setSector(cli?.sector ?? "");
-      setSessionId(sess?.id ?? null);
+      setSessionId(resolved?.id ?? null);
+
+      // Lock the URL to this session so back-nav from later steps lands here.
+      if (resolved?.id && resolved.id !== urlSessionId) {
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.set(ROPA_SESSION_QS_KEY, resolved!.id);
+            return next;
+          },
+          { replace: true }
+        );
+      }
     })();
     return () => {
       cancelled = true;
     };
-  }, [clientId]);
+  }, [clientId, urlSessionId, setSearchParams]);
 
   const grouped = useMemo(() => {
     const g: Record<string, ActivityTemplate[]> = {};
