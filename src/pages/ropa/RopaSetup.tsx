@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useRopaSessionParam, withSession } from "@/lib/ropaSession";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveClient } from "@/hooks/useActiveClient";
@@ -143,6 +143,10 @@ export default function RopaSetup() {
   const { clientId, client } = useActiveClient();
   const createSession = useRopaStore((s) => s.createSession);
   const urlSessionId = useRopaSessionParam();
+  const [searchParams] = useSearchParams();
+  // `?new=1` forces a brand-new RoPA: do NOT resume any in-progress session
+  // and do NOT hydrate the form from the workspace-scoped profile.
+  const forceNew = searchParams.get("new") === "1";
 
   const [step, setStep] = useState(0);
   const [orgName, setOrgName] = useState("");
@@ -172,6 +176,15 @@ export default function RopaSetup() {
     if (!clientId) return;
     let cancelled = false;
     (async () => {
+      // When forceNew is set, skip both lookups — start completely blank.
+      if (forceNew) {
+        setHasExistingSession(null);
+        setProfile(EMPTY_PROFILE);
+        setSelectedJurisdictions(new Set());
+        setOrgName("");
+        return;
+      }
+
       // First, figure out whether we are resuming an existing session.
       let sess: { id: string; status: string; org_name: string | null } | null = null;
       if (urlSessionId) {
@@ -242,7 +255,7 @@ export default function RopaSetup() {
     return () => {
       cancelled = true;
     };
-  }, [clientId, urlSessionId]);
+  }, [clientId, urlSessionId, forceNew]);
 
   // Auto-save profile on change
   useDebouncedAutoSave(
