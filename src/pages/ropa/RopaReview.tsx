@@ -9,6 +9,7 @@ import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
+import { withSession } from "@/lib/ropaSession";
 import RopaInlineFlag from "@/components/ropa/RopaInlineFlag";
 import SessionCheckoutModal from "@/components/SessionCheckoutModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -227,7 +228,13 @@ export default function RopaReview() {
           docx: includeWord ? "done" : "pending",
           xlsx: includeExcel ? "done" : "pending",
         });
-        setTimeout(() => navigate("/ropa/documents"), 600);
+        setTimeout(
+          () =>
+            navigate(
+              withSession("/ropa/documents", sessionId ?? currentSession?.id)
+            ),
+          600
+        );
       }
     } catch (e) {
       clearInterval(tickInt);
