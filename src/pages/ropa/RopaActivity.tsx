@@ -61,13 +61,22 @@ export default function RopaActivity() {
   );
 
   // Load activity + parent session whenever the activity id changes.
+  // We reload the session (which also refreshes allActivities) whenever the
+  // store doesn't already contain the current activity in its sidebar list —
+  // covers the case where the prior page created activities via direct
+  // inserts without round-tripping through loadSession.
   useEffect(() => {
     if (!id) return;
     (async () => {
       await loadActivity(id);
       const act = useRopaStore.getState().currentActivity;
       const sess = useRopaStore.getState().currentSession;
-      if (act && (!sess || sess.id !== act.session_id)) {
+      const all = useRopaStore.getState().allActivities;
+      const sidebarStale =
+        !sess ||
+        (act && sess.id !== act.session_id) ||
+        (act && !all.some((a) => a.id === act.id));
+      if (act && sidebarStale) {
         await loadSession(act.session_id);
       }
     })();
