@@ -11,12 +11,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, FileText, ArrowLeft, Download, Mail, Printer } from "lucide-react";
+import { Loader2, FileText, ArrowLeft, Download, Mail, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import CopyButton from "@/components/CopyButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { adminDelete } from "@/lib/adminDelete";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 
 // Strip markdown syntax characters (*, #, backticks) from AI-generated text
 // so the rendered document reads as a clean letter/report.
