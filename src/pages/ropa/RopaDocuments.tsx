@@ -198,6 +198,45 @@ export default function RopaDocuments() {
     }
   };
 
+  const confirmDeleteSession = async () => {
+    if (!pendingDeleteSession) return;
+    setDeleting(true);
+    try {
+      await adminDelete("ropa_session", pendingDeleteSession.id);
+      toast({ title: "RoPA session deleted" });
+      setPendingDeleteSession(null);
+      await loadDocuments();
+    } catch (err) {
+      toast({
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const confirmDeleteDoc = async () => {
+    if (!pendingDeleteDoc) return;
+    setDeleting(true);
+    try {
+      await adminDelete("ropa_document", pendingDeleteDoc.id);
+      toast({ title: "Document deleted" });
+      setPendingDeleteDoc(null);
+      await loadDocuments();
+    } catch (err) {
+      toast({
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+
   return (
     <RopaShell title={`${ownerLabel} RoPA Documents — End User Privacy`} heading={`${ownerLabel} RoPA Documents`}>
       {(() => {
