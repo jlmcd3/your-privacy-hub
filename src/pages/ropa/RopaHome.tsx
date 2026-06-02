@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { RopaShell } from "@/components/ropa/RopaShell";
+import { withSession } from "@/lib/ropaSession";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -184,7 +185,7 @@ export default function RopaHome() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button asChild>
-                    <Link to="/ropa/activities">
+                    <Link to={withSession("/ropa/activities", activeSession.id)}>
                       Continue <ArrowRight className="ml-1.5 h-4 w-4" />
                     </Link>
                   </Button>
