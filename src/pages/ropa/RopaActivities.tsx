@@ -8,6 +8,7 @@ import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
 import { useRopaSessionParam, withSession, ROPA_SESSION_QS_KEY } from "@/lib/ropaSession";
 import { toast } from "sonner";
+import SectorPrimerDialog from "@/components/ropa/SectorPrimerDialog";
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
 
@@ -94,6 +95,8 @@ export default function RopaActivities() {
     string | null
   >(null);
   const [existingCount, setExistingCount] = useState(0);
+  const [primerOpen, setPrimerOpen] = useState(false);
+  const [primerEvaluated, setPrimerEvaluated] = useState(false);
 
   useEffect(() => {
     if (!clientId) return;
