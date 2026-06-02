@@ -81,23 +81,17 @@ export default function RopaReview() {
     (async () => {
       setLoading(true);
 
-      // If the URL has no sessionId, try to recover from the store
-      // (e.g. user navigated to bare /ropa/review). If we still have no
-      // session, send them back to start instead of spinning forever.
-      let effectiveId = sessionId ?? useRopaStore.getState().currentSession?.id;
-      if (!effectiveId) {
+      // Never recover review from in-memory store: it can outlive route changes.
+      // A review must be opened with an explicit session id.
+      if (!sessionId) {
         if (!cancelled) {
           setLoading(false);
           navigate("/ropa", { replace: true });
         }
         return;
       }
-      if (!sessionId && effectiveId) {
-        navigate(`/ropa/review/${effectiveId}`, { replace: true });
-        return;
-      }
 
-      await loadSession(effectiveId);
+      await loadSession(sessionId);
       const sess = useRopaStore.getState().currentSession;
       if (!sess || cancelled) {
         setLoading(false);
