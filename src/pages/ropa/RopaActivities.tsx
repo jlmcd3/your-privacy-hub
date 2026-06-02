@@ -24,6 +24,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   hr_employment: "HR & Employment",
   marketing: "Marketing",
   customer_service: "Customer Service",
+  patient_records: "Patient Records",
   technology: "Technology",
   finance_legal: "Finance & Legal",
   third_party: "Third Party",
@@ -45,6 +46,8 @@ const SECTOR_DEFAULTS: Record<string, string[]> = {
   Healthcare: [
     "hr_payroll", "hr_recruitment", "customer_accounts", "customer_support",
     "tech_it_systems", "tech_security", "legal_compliance", "ops_research",
+    "patient_medical_records", "patient_appointments", "patient_billing_insurance",
+    "patient_telehealth", "patient_communications",
   ],
   Retail: [
     "hr_payroll", "hr_recruitment", "marketing_email", "marketing_analytics",
