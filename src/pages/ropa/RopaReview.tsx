@@ -116,14 +116,19 @@ export default function RopaReview() {
       }
 
       const { data: prof } = await SUPA.from("ropa_client_profiles")
-        .select("legal_entity_type, employee_band, is_controller, is_processor, dpo_name, selected_jurisdictions")
+        .select("legal_entity_type, employee_band, is_controller, is_processor, dpo_name")
         .eq("client_id", sess.client_id)
         .maybeSingle();
-      if (prof && !cancelled) setProfile(prof);
-
-      // Run session-level auto-flags, then refresh
-      await runSessionLevelChecks();
-      await loadFlags();
+      const { data: jurs } = await SUPA.from("ropa_jurisdiction_selections")
+        .select("jurisdiction_code")
+        .eq("client_id", sess.client_id);
+      if (!cancelled) {
+        setProfile({
+          ...(prof ?? {}),
+          selected_jurisdictions:
+            jurs?.map((j: { jurisdiction_code: string }) => j.jurisdiction_code) ?? [],
+        });
+      }
 
       if (!cancelled) setLoading(false);
     })();
@@ -139,39 +144,16 @@ export default function RopaReview() {
     }
   }, [user, authorName]);
 
-  const summary = getFlagSummary();
-  const openFlags = useMemo(() => flags.filter((f) => !f.resolved), [flags]);
-  const missingRequired = openFlags.filter((f) => f.flag_type === "missing_required");
-  const warningFlags = openFlags.filter(
-    (f) => f.flag_type !== "missing_required" && (f.severity === "warning" || f.flag_type === "high_risk_activity")
-  );
-  const recommendationFlags = openFlags.filter(
-    (f) => f.flag_type === "recommendation" || f.flag_type === "cross_sell" || f.severity === "info"
-  );
-
-  const flaggedActivityIds = new Set(openFlags.map((f) => f.activity_id).filter(Boolean) as string[]);
   const visibleActivities = useMemo(() => {
     if (showAllActivities) return allActivities;
-    return allActivities.filter(
-      (a) => flaggedActivityIds.has(a.id) || a.status !== "complete"
-    );
-  }, [allActivities, showAllActivities, flaggedActivityIds]);
+    return allActivities.filter((a) => a.status !== "complete");
+  }, [allActivities, showAllActivities]);
 
-  const flagsByActivity = useMemo(() => {
-    const m = new Map<string, number>();
-    openFlags.forEach((f) => {
-      if (!f.activity_id) return;
-      m.set(f.activity_id, (m.get(f.activity_id) ?? 0) + 1);
-    });
-    return m;
-  }, [openFlags]);
-
-  // Gate logic
-  const hasMissingRequired = missingRequired.length > 0;
-  const onlyWarningsOrRecs = !hasMissingRequired && (warningFlags.length > 0 || recommendationFlags.length > 0);
-  const allClean = openFlags.length === 0;
-  const generateDisabled =
-    hasMissingRequired || (onlyWarningsOrRecs && !acknowledged);
+  // Gating disabled — users can always proceed to generation.
+  const hasMissingRequired = false;
+  const onlyWarningsOrRecs = false;
+  const allClean = true;
+  const generateDisabled = false;
 
   // Handle ?payment_success=true
   useEffect(() => {
@@ -299,15 +281,6 @@ export default function RopaReview() {
           <div className="flex flex-wrap gap-2">
             <Chip>{allActivities.length} activities</Chip>
             <Chip>{(profile.selected_jurisdictions ?? []).length} jurisdictions</Chip>
-            {summary.total > 0 ? (
-              <Chip color="amber">
-                {summary.total} item{summary.total === 1 ? "" : "s"} to review
-              </Chip>
-            ) : (
-              <Chip color="green">
-                <CheckCircle2 className="w-3 h-3 inline mr-1" /> All items resolved
-              </Chip>
-            )}
           </div>
         </header>
 
@@ -372,7 +345,6 @@ export default function RopaReview() {
             <ul className="divide-y divide-border">
               {visibleActivities.map((a) => {
                 const isOpen = expandedActivity === a.id;
-                const flagCount = flagsByActivity.get(a.id) ?? 0;
                 return (
                   <li key={a.id}>
                     <button
@@ -389,7 +361,6 @@ export default function RopaReview() {
                       </span>
                       <Chip color="neutral">{a.category}</Chip>
                       <StatusChip status={a.status} />
-                      {flagCount > 0 && <Chip color="amber">{flagCount} flag{flagCount > 1 ? "s" : ""}</Chip>}
                     </button>
                     {isOpen && (
                       <div className="pl-7 pb-3 pr-2 text-sm text-muted-foreground space-y-1">
@@ -410,70 +381,6 @@ export default function RopaReview() {
           )}
         </Section>
 
-        {/* Section 3 — Flags */}
-        {(missingRequired.length > 0 || warningFlags.length > 0) && (
-          <Section title="Items requiring attention" data-ropa-section="flags">
-            <div className="space-y-2">
-              {[...missingRequired, ...warningFlags].map((f) => {
-                const activityName = allActivities.find((a) => a.id === f.activity_id)?.display_name;
-                return (
-                  <div key={f.id} className="border border-amber-200 dark:border-amber-900/50 rounded-lg p-3 bg-amber-50/50 dark:bg-amber-950/20">
-                    <RopaInlineFlag
-                      severity="warning"
-                      flagType={f.flag_type as never}
-                      activityName={activityName}
-                      message={f.flag_message}
-                      consequence={f.consequence}
-                    />
-                    <div className="flex gap-2 pl-3 mt-1">
-                      {f.activity_id && (
-                        <button
-                          onClick={() => navigate(withSession(`/ropa/activity/${f.activity_id}`, sessionId ?? currentSession?.id))}
-                          className="text-meta font-semibold text-brand-teal hover:underline"
-                        >
-                          Resolve in activity →
-                        </button>
-                      )}
-                      <button
-                        onClick={() => resolveFlag(f.id)}
-                        className="text-meta font-semibold text-muted-foreground hover:text-brand-navy"
-                      >
-                        Mark as reviewed
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Section>
-        )}
-
-        {recommendationFlags.length > 0 && (
-          <Section title="Recommendations">
-            <div className="space-y-2">
-              {recommendationFlags.map((f) => (
-                <div key={f.id}>
-                  <RopaInlineFlag
-                    severity={f.severity as never}
-                    flagType={f.flag_type as never}
-                    message={f.flag_message}
-                    consequence={f.consequence}
-                    actionLabel={f.action_label}
-                    actionRoute={f.action_route}
-                  />
-                  <div className="pl-3 -mt-1 mb-2">
-                    <button
-                      onClick={() => resolveFlag(f.id)}
-                      className="text-meta font-semibold text-muted-foreground hover:text-brand-navy"
-                    >
-                      Dismiss
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
-        )}
 
         {/* Section 4 — Document settings */}
         <Section title="Document settings">
@@ -577,41 +484,11 @@ export default function RopaReview() {
             )}
           </div>
 
-          {/* Gate messaging */}
-          {hasMissingRequired && (
-            <div className="border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-r mb-3 text-sm text-red-900 dark:text-red-200">
-              <AlertTriangle className="w-4 h-4 inline mr-1" />
-              Resolve required fields before generating.
-            </div>
-          )}
-          {onlyWarningsOrRecs && (
-            <label
-              ref={ackRef}
-              className={`flex items-start gap-2 text-sm mb-3 p-3 border rounded-md transition-all ${
-                ackHighlight
-                  ? "border-amber-500 bg-amber-50 dark:bg-amber-950/40 ring-2 ring-amber-400 animate-pulse"
-                  : "border-border bg-muted/30"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={acknowledged}
-                onChange={(e) => setAcknowledged(e.target.checked)}
-                className="mt-0.5"
-              />
-              <span>
-                I understand there are {summary.total} item{summary.total === 1 ? "" : "s"} flagged
-                — generate with them noted in the document.
-              </span>
-            </label>
-          )}
-
           <button
             onClick={handleGenerateClick}
             disabled={generating}
-            aria-disabled={generateDisabled || generating}
             className={`w-full text-white text-sm font-semibold py-3 rounded-lg transition ${
-              generateDisabled || generating
+              generating
                 ? "bg-brand-navy/50 cursor-not-allowed"
                 : "bg-brand-navy hover:bg-brand-navy/90"
             }`}
@@ -622,20 +499,6 @@ export default function RopaReview() {
                 ? "Generate RoPA documents"
                 : `Continue to payment — $${pricing.price}`}
           </button>
-          {hasMissingRequired ? (
-            <p className="text-meta text-red-700 dark:text-red-400 text-center mt-2">
-              Resolve the required items above before generating.
-            </p>
-          ) : onlyWarningsOrRecs && !acknowledged ? (
-            <p className="text-meta text-amber-700 dark:text-amber-400 text-center mt-2">
-              Tick the acknowledgment above to continue.
-            </p>
-          ) : allClean ? (
-            <p className="text-meta text-green-700 dark:text-green-400 text-center mt-2">
-              <CheckCircle2 className="w-3 h-3 inline mr-1" />
-              All flags resolved — ready to generate.
-            </p>
-          ) : null}
         </Section>
       </div>
 
