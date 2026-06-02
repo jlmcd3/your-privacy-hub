@@ -470,19 +470,32 @@ export default function USNoticeDocuments() {
                       </span>
                     ) : (
                       stateDocs.map((d) => (
-                        <Button
-                          key={d.id}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownload(d)}
-                          disabled={!d.file_path}
-                          className="w-full sm:w-auto min-h-[44px]"
-                          aria-label={`Download ${state.state_name} notice (PDF)`}
-                        >
-                          <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
-                          PDF
-                        </Button>
+                        <div key={d.id} className="flex items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownload(d)}
+                            disabled={!d.file_path}
+                            className="w-full sm:w-auto min-h-[44px]"
+                            aria-label={`Download ${state.state_name} notice (PDF)`}
+                          >
+                            <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
+                            PDF
+                          </Button>
+                          {isAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setPendingDelete(d)}
+                              className="text-destructive hover:text-destructive"
+                              aria-label={`Delete ${state.state_name} notice (admin)`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       ))
+
                     )}
                   </div>
                 </CardContent>
