@@ -236,6 +236,18 @@ export default function RopaHome() {
                   <Button asChild variant="outline">
                     <Link to={`/ropa/review/${activeSession.id}`}>Review</Link>
                   </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPendingDelete(activeSession)}
+                      className="ml-auto gap-2 text-destructive hover:text-destructive"
+                      aria-label="Delete in-progress RoPA session (admin)"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
