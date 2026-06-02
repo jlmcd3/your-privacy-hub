@@ -33,9 +33,13 @@ export default function RopaActivity() {
   const [activityNavOpen, setActivityNavOpen] = useState(false);
   const questionCardRef = useRef<HTMLDivElement>(null);
 
-  // Load activity + parent session
+  // Load activity + parent session, and reset to first question whenever
+  // the activity changes (otherwise questionIndex sticks on the previous
+  // activity's last question — e.g. "security measures" appears to be
+  // asked twice).
   useEffect(() => {
     if (!id) return;
+    setQuestionIndex(0);
     (async () => {
       await loadActivity(id);
       // also load session if not already
