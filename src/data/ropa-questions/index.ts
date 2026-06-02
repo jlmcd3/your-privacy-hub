@@ -157,6 +157,19 @@ const DPA_CROSSSELL_Q: Question = {
   ],
 };
 
+// Captured only when uses_processors === "yes". Populates the
+// "Processors / recipients" row in the generated RoPA document.
+const PROCESSOR_PLATFORM_Q: Question = {
+  key: "processor_platform",
+  text: "Which processors or platforms handle this data?",
+  whyWeAsk:
+    "Art.30(1)(d) requires you to list the recipients (including processors) of the personal data.",
+  type: "text_long",
+  isRequired: true,
+  showIf: { questionKey: "uses_processors", operator: "equals", value: "yes" },
+};
+
+
 // ---------- Per-activity sequences ----------
 
 const HR_PAYROLL = baseSequence({});
