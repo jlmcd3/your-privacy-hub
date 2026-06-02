@@ -103,8 +103,20 @@ export default function RopaDocuments() {
       } catch {
         setHasEuNotices(true);
       }
+      try {
+        const { data: regions } = await supabase
+          .from('ropa_jurisdiction_selections')
+          .select('jurisdiction_region');
+        const set = new Set((regions ?? []).map((r: { jurisdiction_region: string }) => r.jurisdiction_region));
+        setNeedsUs(set.has('United States'));
+        setNeedsEu(set.has('EU & UK'));
+      } catch {
+        setNeedsUs(false);
+        setNeedsEu(false);
+      }
     })();
   }, []);
+
 
   useEffect(() => {
     void loadDocuments();
