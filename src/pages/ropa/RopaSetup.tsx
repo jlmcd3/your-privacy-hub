@@ -255,7 +255,7 @@ export default function RopaSetup() {
     return () => {
       cancelled = true;
     };
-  }, [clientId, urlSessionId]);
+  }, [clientId, urlSessionId, forceNew]);
 
   // Auto-save profile on change
   useDebouncedAutoSave(
