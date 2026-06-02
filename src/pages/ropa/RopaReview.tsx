@@ -422,73 +422,8 @@ export default function RopaReview() {
           </div>
         </Section>
 
-        {/* Section 5 — Generate */}
-        <Section title="Generate">
-          <p className="text-meta text-muted-foreground mb-3">
-            PDF is the default format. You can also generate Word and Excel versions.
-          </p>
-          <div className="space-y-2 mb-4">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={includeWord}
-                onChange={(e) => setIncludeWord(e.target.checked)}
-              />
-              Also generate Word document (Included)
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={includeExcel}
-                onChange={(e) => setIncludeExcel(e.target.checked)}
-              />
-              Also generate Excel worksheet (Included)
-            </label>
-          </div>
-
-          {/* Pricing block */}
-          <div className="border border-border rounded-lg p-4 bg-muted/30 mb-4">
-            <p className="text-meta font-mono uppercase tracking-wider text-muted-foreground mb-2">
-              Document generation
-            </p>
-            <div className="flex items-center justify-between text-sm">
-              <span>
-                PDF · {allActivities.length} activit{allActivities.length === 1 ? "y" : "ies"}
-              </span>
-              <span className="font-semibold text-brand-navy">
-                {pricing.loading
-                  ? "…"
-                  : currentSession?.payment_confirmed
-                    ? "Paid"
-                    : `$${pricing.price}`}
-                {!currentSession?.payment_confirmed && !pricing.loading && (
-                  <span className="text-meta text-muted-foreground ml-2">
-                    {pricing.isSubscriber ? "subscriber" : "standalone"}
-                  </span>
-                )}
-              </span>
-            </div>
-            <div className="flex justify-between text-meta text-muted-foreground mt-1">
-              <span>+ Word document</span><span>Included</span>
-            </div>
-            <div className="flex justify-between text-meta text-muted-foreground">
-              <span>+ Excel worksheet</span><span>Included</span>
-            </div>
-            {!pricing.isSubscriber && !currentSession?.payment_confirmed && (
-              <p className="text-meta text-brand-teal mt-2">
-                Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
-                <a
-                  href="/get-intelligence"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline font-semibold"
-                >
-                  Intelligence <ExternalLink className="w-3 h-3 inline" />
-                </a>
-              </p>
-            )}
-          </div>
-
+        {/* Continue to payment */}
+        <div className="border border-border rounded-xl bg-brand-cloud p-5">
           <button
             onClick={handleGenerateClick}
             disabled={generating}
@@ -502,9 +437,25 @@ export default function RopaReview() {
               ? "Generating…"
               : currentSession?.payment_confirmed
                 ? "Generate RoPA documents"
-                : `Continue to payment — $${pricing.price}`}
+                : pricing.loading
+                  ? "Continue to payment"
+                  : `Continue to payment — $${pricing.price}`}
           </button>
-        </Section>
+          {!currentSession?.payment_confirmed && !pricing.isSubscriber && !pricing.loading && (
+            <p className="text-meta text-brand-teal mt-2 text-center">
+              Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
+              <a
+                href="/get-intelligence"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline font-semibold"
+              >
+                Intelligence <ExternalLink className="w-3 h-3 inline" />
+              </a>
+            </p>
+          )}
+        </div>
+
       </div>
 
       {/* Edit drawer */}
