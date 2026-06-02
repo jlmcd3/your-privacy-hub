@@ -190,6 +190,45 @@ export default function RopaActivities() {
     };
   }, [clientId, urlSessionId, setSearchParams]);
 
+  // Show the sector primer once per RoPA session, immediately after sector
+  // selection, before any activity has been added. Dismissal is tracked in
+  // sessionStorage so the modal never reappears for this session.
+  useEffect(() => {
+    if (primerEvaluated) return;
+    if (!sessionId || !sector) return;
+    if (existingCount > 0) {
+      setPrimerEvaluated(true);
+      return;
+    }
+    const key = `ropa-primer-dismissed-${sessionId}`;
+    if (typeof window !== "undefined" && sessionStorage.getItem(key) === "1") {
+      setPrimerEvaluated(true);
+      return;
+    }
+    setPrimerOpen(true);
+    setPrimerEvaluated(true);
+  }, [sessionId, sector, existingCount, primerEvaluated]);
+
+  const dismissPrimer = () => {
+    if (sessionId && typeof window !== "undefined") {
+      sessionStorage.setItem(`ropa-primer-dismissed-${sessionId}`, "1");
+    }
+    setPrimerOpen(false);
+  };
+
+  const useSampleAsFirstActivity = (sample: { label: string; description: string }) => {
+    setCustomActivities((cs) => [
+      ...cs,
+      {
+        id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        display_name: sample.label,
+        description: sample.description,
+        category: "other",
+      },
+    ]);
+    dismissPrimer();
+  };
+
   const grouped = useMemo(() => {
     const g: Record<string, ActivityTemplate[]> = {};
     for (const t of templates) {
