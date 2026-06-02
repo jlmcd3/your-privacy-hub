@@ -392,7 +392,7 @@ export default function RopaReview() {
                         <p>Completion: {a.completion_pct}%</p>
                         <p>{a.is_high_risk ? "Marked high-risk" : "Standard risk"}</p>
                         <button
-                          onClick={() => navigate(`/ropa/activity/${a.id}`)}
+                          onClick={() => navigate(withSession(`/ropa/activity/${a.id}`, sessionId ?? currentSession?.id))}
                           className="mt-2 inline-flex items-center gap-1 text-brand-teal font-semibold hover:underline"
                         >
                           Edit answers →
@@ -424,7 +424,7 @@ export default function RopaReview() {
                     <div className="flex gap-2 pl-3 mt-1">
                       {f.activity_id && (
                         <button
-                          onClick={() => navigate(`/ropa/activity/${f.activity_id}`)}
+                          onClick={() => navigate(withSession(`/ropa/activity/${f.activity_id}`, sessionId ?? currentSession?.id))}
                           className="text-meta font-semibold text-brand-teal hover:underline"
                         >
                           Resolve in activity →
