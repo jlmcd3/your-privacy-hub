@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { RopaShell } from "@/components/ropa/RopaShell";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
+import { withSession } from "@/lib/ropaSession";
 import { RopaRegulatoryUpdates } from "@/components/ropa/RopaRegulatoryUpdates";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -134,7 +135,7 @@ export default function RopaRefresh() {
   };
 
   const goToActivities = () => {
-    if (activeNewSessionId) navigate(`/ropa/activities/${activeNewSessionId}`);
+    if (activeNewSessionId) navigate(withSession("/ropa/activities", activeNewSessionId));
   };
 
   if (loading) {

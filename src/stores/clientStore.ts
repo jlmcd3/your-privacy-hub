@@ -35,6 +35,7 @@ interface ClientStore {
   ) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
   getActiveClientId: () => string | null;
+  clearClients: () => void;
 }
 
 export const useClientStore = create<ClientStore>()(
@@ -48,6 +49,12 @@ export const useClientStore = create<ClientStore>()(
 
       loadClients: async () => {
         set({ isLoading: true, error: null });
+        const { data: userData } = await supabase.auth.getUser();
+        const ownerId = userData.user?.id ?? null;
+        if (!ownerId) {
+          set({ clients: [], personal: null, activeClient: null, isLoading: false });
+          return;
+        }
         const { data, error } = await supabase
           .from('clients')
           .select('*')
@@ -66,7 +73,7 @@ export const useClientStore = create<ClientStore>()(
         const current = get().activeClient;
         // Re-resolve the active selection against the freshly loaded rows.
         // Default landing view: personal workspace.
-        const stillActive = current
+        const stillActive = current && current.owner_id === ownerId
           ? all.find((c) => c.id === current.id) ?? null
           : null;
 
@@ -152,6 +159,9 @@ export const useClientStore = create<ClientStore>()(
       },
 
       getActiveClientId: () => get().activeClient?.id ?? null,
+
+      clearClients: () =>
+        set({ clients: [], personal: null, activeClient: null, isLoading: false, error: null }),
     }),
     {
       name: 'eup-active-client',

@@ -119,7 +119,11 @@ export default function RopaActivities() {
           .select("id, client_id, status")
           .eq("id", urlSessionId)
           .maybeSingle();
-        if (data && data.client_id === clientId && data.status !== "archived") {
+        if (
+          data &&
+          data.client_id === clientId &&
+          ["in_progress", "review"].includes(data.status)
+        ) {
           resolved = { id: data.id };
         }
       }
@@ -127,7 +131,7 @@ export default function RopaActivities() {
         const { data } = await SUPA.from("ropa_sessions")
           .select("id")
           .eq("client_id", clientId)
-          .neq("status", "archived")
+          .in("status", ["in_progress", "review"])
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -280,7 +284,7 @@ export default function RopaActivities() {
   const beginDocumenting = async () => {
     if (!clientId || !sessionId) {
       toast.error("Complete setup first.");
-      navigate(withSession("/ropa/setup", urlSessionId));
+      navigate("/ropa/setup?new=1");
       return;
     }
     if (totalSelected === 0) return;
