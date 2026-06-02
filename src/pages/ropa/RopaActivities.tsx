@@ -8,6 +8,7 @@ import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
 import { useRopaSessionParam, withSession, ROPA_SESSION_QS_KEY } from "@/lib/ropaSession";
 import { toast } from "sonner";
+import SectorPrimerDialog from "@/components/ropa/SectorPrimerDialog";
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
 
@@ -94,6 +95,8 @@ export default function RopaActivities() {
     string | null
   >(null);
   const [existingCount, setExistingCount] = useState(0);
+  const [primerOpen, setPrimerOpen] = useState(false);
+  const [primerEvaluated, setPrimerEvaluated] = useState(false);
 
   useEffect(() => {
     if (!clientId) return;
@@ -186,6 +189,45 @@ export default function RopaActivities() {
       cancelled = true;
     };
   }, [clientId, urlSessionId, setSearchParams]);
+
+  // Show the sector primer once per RoPA session, immediately after sector
+  // selection, before any activity has been added. Dismissal is tracked in
+  // sessionStorage so the modal never reappears for this session.
+  useEffect(() => {
+    if (primerEvaluated) return;
+    if (!sessionId || !sector) return;
+    if (existingCount > 0) {
+      setPrimerEvaluated(true);
+      return;
+    }
+    const key = `ropa-primer-dismissed-${sessionId}`;
+    if (typeof window !== "undefined" && sessionStorage.getItem(key) === "1") {
+      setPrimerEvaluated(true);
+      return;
+    }
+    setPrimerOpen(true);
+    setPrimerEvaluated(true);
+  }, [sessionId, sector, existingCount, primerEvaluated]);
+
+  const dismissPrimer = () => {
+    if (sessionId && typeof window !== "undefined") {
+      sessionStorage.setItem(`ropa-primer-dismissed-${sessionId}`, "1");
+    }
+    setPrimerOpen(false);
+  };
+
+  const useSampleAsFirstActivity = (sample: { label: string; description: string }) => {
+    setCustomActivities((cs) => [
+      ...cs,
+      {
+        id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        display_name: sample.label,
+        description: sample.description,
+        category: "other",
+      },
+    ]);
+    dismissPrimer();
+  };
 
   const grouped = useMemo(() => {
     const g: Record<string, ActivityTemplate[]> = {};
@@ -324,6 +366,12 @@ export default function RopaActivities() {
 
   return (
     <RopaShell title="Select Activities — RoPA Builder" heading="">
+      <SectorPrimerDialog
+        open={primerOpen}
+        sector={sector}
+        onDismiss={dismissPrimer}
+        onUseSampleActivity={useSampleAsFirstActivity}
+      />
       {(() => {
         const { steps, currentIndex } = getRopaSteps("activities", sessionId);
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
