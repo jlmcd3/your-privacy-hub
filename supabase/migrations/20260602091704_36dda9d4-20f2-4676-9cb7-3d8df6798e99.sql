@@ -1,0 +1,1 @@
+UPDATE public.ropa_sessions SET payment_confirmed = true, updated_at = now() WHERE id = 'b5adcf25-b480-4748-9902-a051f3d28c7c';

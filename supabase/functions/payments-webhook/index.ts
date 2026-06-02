@@ -120,6 +120,44 @@ Deno.serve(async (req) => {
 async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   const userId = session.metadata?.user_id || session.metadata?.userId;
 
+  // Session-based tools (RoPA / US Notice / EU Notice) — mark the existing
+  // session row as paid so the review page can advance to generation.
+  const SESSION_TOOL_TABLES: Record<string, string> = {
+    ropa_initial: "ropa_sessions",
+    ropa_refresh: "ropa_sessions",
+    us_notice_single: "us_notice_sessions",
+    us_notice_all_states: "us_notice_sessions",
+    eu_notice_single: "eu_notice_sessions",
+    eu_notice_suite: "eu_notice_sessions",
+    eu_notice_full_international: "eu_notice_sessions",
+    eu_notice_refresh: "eu_notice_sessions",
+  };
+  const sessionToolType = session.metadata?.tool_type as string | undefined;
+  const sessionTable = sessionToolType ? SESSION_TOOL_TABLES[sessionToolType] : undefined;
+  if (sessionTable && session.metadata?.assessment_id) {
+    const sessionRowId = session.metadata.assessment_id as string;
+    const { error: payErr } = await supabase
+      .from(sessionTable)
+      .update({
+        payment_confirmed: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", sessionRowId);
+    if (payErr) {
+      console.error(`Failed to mark ${sessionTable} paid:`, payErr.message);
+    }
+    await supabase.from("assessment_purchases").insert({
+      user_id: userId || null,
+      tool_type: sessionToolType,
+      assessment_id: sessionRowId,
+      amount_cents: session.amount_total || 0,
+      stripe_payment_intent_id: (session.payment_intent as string) || session.id,
+      status: "paid",
+      subscriber_at_time: session.metadata?.tier !== "standalone",
+    });
+    return;
+  }
+
   // Tool purchase
   if (session.metadata?.tool_type && session.metadata?.assessment_id) {
     const { tool_type, assessment_id } = session.metadata;
@@ -168,6 +206,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     }
     return;
   }
+
 
   // Registration Manager order
   if (session.metadata?.type === "registration_order" && session.metadata?.order_id) {
