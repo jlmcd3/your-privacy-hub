@@ -85,6 +85,15 @@ export default function RopaActivities() {
   const [submitting, setSubmitting] = useState(false);
   const [sector, setSector] = useState<string>("");
   const [sessionId, setSessionId] = useState<string | null>(null);
+  // Activities that already exist for this session (from a previous visit).
+  // Keyed by template_key for templated rows; custom rows are keyed by id.
+  const [existingTemplateKeys, setExistingTemplateKeys] = useState<Set<string>>(
+    new Set()
+  );
+  const [existingFirstActivityId, setExistingFirstActivityId] = useState<
+    string | null
+  >(null);
+  const [existingCount, setExistingCount] = useState(0);
 
   useEffect(() => {
     if (!clientId) return;
