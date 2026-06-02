@@ -644,7 +644,7 @@ function ActivityNavList({
                   }}
                   aria-label={`Delete activity ${a.display_name}`}
                   title="Delete activity (removes all answers and flags)"
-                  className="px-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                  className="px-2 text-muted-foreground hover:text-destructive transition-colors"
                 >
                   🗑
                 </button>

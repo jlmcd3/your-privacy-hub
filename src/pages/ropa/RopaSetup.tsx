@@ -160,11 +160,55 @@ export default function RopaSetup() {
   const [submitting, setSubmitting] = useState(false);
   const [hasExistingSession, setHasExistingSession] = useState<string | null>(null);
 
-  // Load existing profile + session on mount
+  // Load existing profile + session on mount.
+  //
+  // IMPORTANT: profile + jurisdiction rows are stored against `client_id` and
+  // therefore persist on a personal workspace across multiple RoPAs. We must
+  // only PRE-FILL the form when this Setup is resuming an actual session
+  // (either a session id passed in the URL or a non-archived in-progress
+  // session for this workspace). When the user is starting a brand new RoPA
+  // — i.e. no in-progress session exists — the form must come up blank so
+  // the previous RoPA's DPO / EU rep / jurisdictions / org name do not leak
+  // into the new one.
   useEffect(() => {
     if (!clientId) return;
     let cancelled = false;
     (async () => {
+      // First, figure out whether we are resuming an existing session.
+      let sess: { id: string; status: string; org_name: string | null } | null = null;
+      if (urlSessionId) {
+        const { data } = await SUPA.from("ropa_sessions")
+          .select("id, status, client_id, org_name")
+          .eq("id", urlSessionId)
+          .maybeSingle();
+        if (data && data.client_id === clientId) {
+          sess = { id: data.id, status: data.status, org_name: data.org_name ?? null };
+        }
+      }
+      if (!sess) {
+        const { data } = await SUPA.from("ropa_sessions")
+          .select("id, status, org_name")
+          .eq("client_id", clientId)
+          .neq("status", "archived")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        sess = data ? { id: data.id, status: data.status, org_name: data.org_name ?? null } : null;
+      }
+      if (cancelled) return;
+      if (sess && sess.status !== "archived") setHasExistingSession(sess.id);
+
+      // Only hydrate the form from the workspace-scoped profile / jurisdictions
+      // when we are resuming an existing session. Brand-new RoPAs start blank.
+      if (!sess) {
+        setProfile(EMPTY_PROFILE);
+        setSelectedJurisdictions(new Set());
+        setOrgName("");
+        return;
+      }
+
+      if (sess.org_name) setOrgName(sess.org_name);
+
       const { data: prof } = await SUPA.from("ropa_client_profiles")
         .select("*")
         .eq("client_id", clientId)
@@ -196,34 +240,6 @@ export default function RopaSetup() {
           new Set(jurs.map((j: { jurisdiction_code: string }) => j.jurisdiction_code))
         );
       }
-      // Prefer a session id passed in the URL (so back-navigation always
-      // resumes the same RoPA). Fall back to "latest non-archived" for this
-      // client.
-      let sess: { id: string; status: string; org_name: string | null } | null = null;
-      if (urlSessionId) {
-        const { data } = await SUPA.from("ropa_sessions")
-          .select("id, status, client_id, org_name")
-          .eq("id", urlSessionId)
-          .maybeSingle();
-        if (data && data.client_id === clientId) {
-          sess = { id: data.id, status: data.status, org_name: data.org_name ?? null };
-        }
-      }
-      if (!sess) {
-        const { data } = await SUPA.from("ropa_sessions")
-          .select("id, status, org_name")
-          .eq("client_id", clientId)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        sess = data ? { id: data.id, status: data.status, org_name: data.org_name ?? null } : null;
-      }
-      if (cancelled) return;
-      if (sess && sess.status !== "archived") setHasExistingSession(sess.id);
-      // Pre-fill the org name from the session (the company this RoPA documents),
-      // never from the workspace name — workspaces are separate from RoPA orgs.
-      if (sess?.org_name) setOrgName(sess.org_name);
-
     })();
     return () => {
       cancelled = true;
@@ -391,7 +407,14 @@ export default function RopaSetup() {
               Continue
             </button>
             <button
-              onClick={() => setHasExistingSession(null)}
+              onClick={() => {
+                setHasExistingSession(null);
+                setProfile(EMPTY_PROFILE);
+                setSelectedJurisdictions(new Set());
+                setOrgName("");
+                setPrimaryRegion("");
+                setStep(0);
+              }}
               className="text-sm underline text-muted-foreground"
             >
               Start fresh
