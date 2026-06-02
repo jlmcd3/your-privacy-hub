@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, FileSpreadsheet, FileType, Download, RefreshCw, Plus, Globe2 } from "lucide-react";
 import { format } from "date-fns";
 import { CrossToolPrompt, RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
+import { useActiveClient } from "@/hooks/useActiveClient";
+
 
 type SessionRow = {
   id: string;
@@ -46,8 +48,11 @@ const FORMAT_META: Record<string, { label: string; icon: typeof FileText; ext: s
 export default function RopaDocuments() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { clientName, isPersonalActive } = useActiveClient();
+  const ownerLabel = !isPersonalActive && clientName ? clientName : "My";
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
+
   const [docs, setDocs] = useState<Record<string, DocVersion[]>>({});
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [hasUsNotices, setHasUsNotices] = useState<boolean>(true);
@@ -174,7 +179,7 @@ export default function RopaDocuments() {
   };
 
   return (
-    <RopaShell title="My RoPA Documents — End User Privacy" heading="My RoPA Documents">
+    <RopaShell title={`${ownerLabel} RoPA Documents — End User Privacy`} heading={`${ownerLabel} RoPA Documents`}>
       {(() => {
         const { steps, currentIndex } = getRopaSteps("documents");
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;

@@ -172,7 +172,7 @@ export default function NoticesRopaHub() {
           </div>
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="font-display text-brand-navy">Notices & RoPA</h1>
+              <h1 className="font-display text-brand-navy">{!isPersonalActive && clientName ? `${clientName} Notices & RoPA` : "Notices & RoPA"}</h1>
               <p className="text-sm text-slate mt-1 inline-flex items-center gap-1.5">
                 <WorkspaceIcon className="w-3.5 h-3.5" />
                 <span>

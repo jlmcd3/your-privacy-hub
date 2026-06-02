@@ -79,7 +79,7 @@ function statusVariant(s: string): "default" | "secondary" | "outline" {
 
 export default function MyReports() {
   const { user, loading: authLoading } = useAuth();
-  const { clientId: activeClientId, isPersonalActive, personal, hasClients } = useActiveClient();
+  const { clientId: activeClientId, clientName: activeClientName, isPersonalActive, personal, hasClients } = useActiveClient();
   const { isAdmin } = useIsAdmin();
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -243,20 +243,24 @@ export default function MyReports() {
     return () => { cancelled = true; };
   }, [user]);
 
+  const ownerLabel = !isPersonalActive && activeClientName ? activeClientName : "My";
+
+
   return (
     <WorkspaceLayout>
       <Helmet>
-        <title>My Reports | End User Privacy</title>
+        <title>{ownerLabel} Reports | End User Privacy</title>
         <meta name="description" content="View and download every assessment, playbook, and report you've generated." />
       </Helmet>
       <PageContainer>
         <div className="py-8">
           <div className="mb-6">
-            <h1 className="font-display text-brand-navy">My Reports</h1>
+            <h1 className="font-display text-brand-navy">{ownerLabel} Reports</h1>
             <p className="text-sm text-slate mt-1">
               Every assessment, playbook, and document you've generated. Click any item to re-open it or download the PDF.
             </p>
           </div>
+
 
           {authLoading || loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
