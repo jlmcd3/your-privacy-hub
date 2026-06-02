@@ -1,6 +1,6 @@
 // supabase/functions/generate-ropa-document/index.ts
 //
-// Generates a RoPA document (HTML "PDF" + optional DOCX + optional XLSX) for a
+// Generates a RoPA document (PDF + optional DOCX + optional XLSX) for a
 // session, uploads each format to the private `ropa-documents` storage bucket,
 // records the result in ropa_document_versions, marks the session as
 // generated, and returns short-lived signed URLs.
@@ -9,13 +9,8 @@
 // enforced via the public.owns_client() SECURITY DEFINER function (called as
 // the requesting user).
 //
-// Idempotency: if a document for (session_id, document_format) already exists
-// and the file is still present in storage, the existing file is reused and a
-// fresh signed URL is returned.
-//
 // Library imports use esm.sh because npm/Node-only packages do not load in
-// Deno. PDF rendering is intentionally HTML-only — Chromium/puppeteer cannot
-// run inside Supabase edge functions.
+// Deno. PDF rendering uses the configured PDF service.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import {
@@ -134,6 +129,84 @@ const LAWFUL_BASIS_LABELS: Record<string, string> = {
 function lawfulBasisLabel(value: unknown): string {
   const v = answerToString(value);
   return LAWFUL_BASIS_LABELS[v] ?? v;
+}
+
+function activityRole(ans: Record<string, unknown>, profile: any): string {
+  return answerToString(
+    ans.role ??
+      ([profile?.is_controller && "Controller", profile?.is_processor && "Processor"]
+        .filter(Boolean)
+        .join(" + ") || "—"),
+  );
+}
+
+const QUESTION_LABELS: Record<string, string> = {
+  info_card: "Information acknowledged",
+  role: "Role",
+  purpose: "Purpose",
+  lawful_basis: "Lawful basis",
+  special_category_basis: "Special category basis",
+  data_subjects: "Data subjects",
+  data_categories: "Data categories",
+  processor_platform: "Processors / recipients",
+  recipients: "Recipients",
+  transfer_destination: "Transfer destination",
+  transfer_country: "Transfer country",
+  cross_border_destination: "Cross-border destination",
+  transfer_mechanism: "Transfer mechanism",
+  transfer_safeguard: "Transfer safeguard",
+  transfer_basis: "Transfer basis",
+  transfer_lawful_basis: "Transfer lawful basis",
+  retention_period: "Retention period",
+  security_measures: "Security measures",
+  access_controls: "Access controls",
+  uses_processors: "Uses third-party processors",
+  unsubscribe_mechanism: "Unsubscribe mechanism",
+  incident_log: "Breach / incident register",
+  notices_displayed: "Surveillance notices displayed",
+};
+
+function questionLabel(key: string): string {
+  return QUESTION_LABELS[key] ?? key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+async function renderPdf(html: string, title: string): Promise<Uint8Array> {
+  const pdfApiKey =
+    Deno.env.get("PDFSHIFT_API_KEY") ||
+    Deno.env.get("PDF_SERVICE_API_KEY") ||
+    Deno.env.get("PDFShift");
+  if (!pdfApiKey) throw new Error("PDF service is not configured");
+
+  const safeTitle = title.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const response = await fetch("https://api.pdfshift.io/v3/convert/pdf", {
+    method: "POST",
+    headers: {
+      "X-API-Key": pdfApiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      source: html,
+      format: "Letter",
+      margin: { top: "16mm", right: "14mm", bottom: "18mm", left: "14mm" },
+      sandbox: Deno.env.get("PDFSHIFT_SANDBOX") === "true",
+      footer: {
+        source:
+          '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c5a54;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
+          `<span>${safeTitle}</span>` +
+          '<span>EndUserPrivacy.com · Page <span class="pageNumber"></span> / <span class="totalPages"></span></span>' +
+          "</div>",
+        spacing: 4,
+      },
+    }),
+    signal: AbortSignal.timeout(45000),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => "");
+    throw new Error(`PDF rendering failed (${response.status}): ${errBody.slice(0, 300)}`);
+  }
+
+  return new Uint8Array(await response.arrayBuffer());
 }
 
 function readDocumentSettings(body: RequestBody): DocumentSettings {
