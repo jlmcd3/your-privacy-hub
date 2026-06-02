@@ -40,7 +40,8 @@ export default function RopaActivity() {
     (async () => {
       await loadActivity(id);
       const act = useRopaStore.getState().currentActivity;
-      if (act && !useRopaStore.getState().currentSession) {
+      const sess = useRopaStore.getState().currentSession;
+      if (act && (!sess || sess.id !== act.session_id)) {
         await loadSession(act.session_id);
       }
     })();
