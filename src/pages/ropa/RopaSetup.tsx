@@ -176,6 +176,15 @@ export default function RopaSetup() {
     if (!clientId) return;
     let cancelled = false;
     (async () => {
+      // When forceNew is set, skip both lookups — start completely blank.
+      if (forceNew) {
+        setHasExistingSession(null);
+        setProfile(EMPTY_PROFILE);
+        setSelectedJurisdictions(new Set());
+        setOrgName("");
+        return;
+      }
+
       // First, figure out whether we are resuming an existing session.
       let sess: { id: string; status: string; org_name: string | null } | null = null;
       if (urlSessionId) {
