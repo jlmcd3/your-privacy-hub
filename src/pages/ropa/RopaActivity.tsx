@@ -28,6 +28,7 @@ export default function RopaActivity() {
   const loadSession = useRopaStore((s) => s.loadSession);
   const saveAnswer = useRopaStore((s) => s.saveAnswer);
   const markActivityComplete = useRopaStore((s) => s.markActivityComplete);
+  const deleteActivityFromStore = useRopaStore((s) => s.deleteActivity);
   const evaluateFlagsForAnswer = useRopaStore((s) => s.evaluateFlagsForAnswer);
 
   const [activityNavOpen, setActivityNavOpen] = useState(false);
@@ -269,6 +270,7 @@ export default function RopaActivity() {
             activities={allActivities}
             currentActivityId={currentActivity.id}
             onSelect={(aid) => navigate(`/ropa/activity/${aid}`)}
+            onDelete={(aid, name) => handleDeleteActivity(aid, name)}
           />
         </aside>
 
@@ -512,6 +514,10 @@ export default function RopaActivity() {
               onSelect={(aid) => {
                 setActivityNavOpen(false);
                 navigate(`/ropa/activity/${aid}`);
+              }}
+              onDelete={(aid, name) => {
+                setActivityNavOpen(false);
+                handleDeleteActivity(aid, name);
               }}
             />
           </nav>
