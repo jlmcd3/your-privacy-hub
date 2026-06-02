@@ -37,6 +37,7 @@ export default function RopaActivity() {
   const [activityNavOpen, setActivityNavOpen] = useState(false);
   const [applyToAll, setApplyToAll] = useState(false);
   const [bulkSaving, setBulkSaving] = useState(false);
+  const [activityReady, setActivityReady] = useState(false);
   const [clientSector, setClientSector] = useState<string>("");
   const formCardRef = useRef<HTMLDivElement>(null);
 
@@ -69,6 +70,7 @@ export default function RopaActivity() {
   // inserts without round-tripping through loadSession.
   useEffect(() => {
     if (!id) return;
+    setActivityReady(false);
     (async () => {
       await loadActivity(id);
       const act = useRopaStore.getState().currentActivity;
@@ -96,7 +98,9 @@ export default function RopaActivity() {
         !["in_progress", "review"].includes(loadedSession.status)
       ) {
         navigate(`/ropa/review/${loadedSession.id}`, { replace: true });
+        return;
       }
+      setActivityReady(true);
     })();
   }, [id, loadActivity, loadSession, navigate, urlSessionId]);
 
@@ -273,7 +277,7 @@ export default function RopaActivity() {
     else navigate(currentSession ? `/ropa/review/${currentSession.id}` : "/ropa/review");
   };
 
-  if (!currentActivity) {
+  if (!activityReady || !currentActivity) {
     return (
       <RopaShell title="Activity — RoPA Builder" heading="Loading activity…">
         <p className="text-muted-foreground text-sm">Loading…</p>
