@@ -147,6 +147,40 @@ export default function RopaActivities() {
           { replace: true }
         );
       }
+
+      // Load any activities already attached to this session so the user
+      // sees their previous picks pre-selected when they navigate back here.
+      if (resolved?.id) {
+        const { data: existing } = await SUPA.from(
+          "ropa_processing_activities"
+        )
+          .select("id, template_key")
+          .eq("session_id", resolved.id)
+          .order("display_order", { ascending: true });
+        if (cancelled) return;
+        const keys = new Set<string>();
+        for (const a of (existing ?? []) as {
+          id: string;
+          template_key: string | null;
+        }[]) {
+          if (a.template_key) keys.add(a.template_key);
+        }
+        setExistingTemplateKeys(keys);
+        setExistingCount((existing ?? []).length);
+        setExistingFirstActivityId(
+          (existing ?? [])[0]?.id ?? null
+        );
+        // Pre-tick the templated activities so the UI reflects current state.
+        setSelected((prev) => {
+          const next = new Set(prev);
+          for (const k of keys) next.add(k);
+          return next;
+        });
+      } else {
+        setExistingTemplateKeys(new Set());
+        setExistingCount(0);
+        setExistingFirstActivityId(null);
+      }
     })();
     return () => {
       cancelled = true;
