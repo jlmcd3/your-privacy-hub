@@ -69,6 +69,9 @@ const TOOL_LABEL: Record<string, string> = {
   ir: "Breach Response Playbook",
   biometric: "Biometric Compliance Check",
   registration: "Registration Order",
+  ropa: "RoPA (Article 30)",
+  us_notice: "US Privacy Notice",
+  eu_notice: "EU Privacy Notice",
 };
 
 function statusVariant(s: string): "default" | "secondary" | "outline" {
@@ -156,10 +159,9 @@ export default function MyReports() {
         is_personal_client: cid ? !!clientIsPersonalById.get(cid) : false,
       });
 
-      // Reports tab shows only the six tool outputs.
-      // Registration orders live under Filings; RoPA / US notices / EU notices
-      // live under Notices & RoPA.
-      const [li, dpia, gov, dpa, ir, bio] = await Promise.all([
+      // Reports tab aggregates every tool output and in-progress session for
+      // the user across all workspaces. Registration orders live under Filings.
+      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -178,6 +180,15 @@ export default function MyReports() {
         supabase.from("biometric_assessments")
           .select("id, status, created_at, intake_data, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("ropa_sessions")
+          .select("id, status, created_at, version_number, scope, client_id")
+          .order("created_at", { ascending: false }),
+        supabase.from("us_notice_sessions")
+          .select("id, status, created_at, version_number, scope, client_id")
+          .order("created_at", { ascending: false }),
+        supabase.from("eu_notice_sessions")
+          .select("id, status, created_at, version_number, client_id")
+          .order("created_at", { ascending: false }),
       ]);
 
 
@@ -233,6 +244,52 @@ export default function MyReports() {
         pdf_url: r.pdf_url,
         ...clientMeta(r.client_id),
       }));
+      (ropa.data || []).forEach((r: any) => {
+        const inProgress = r.status === "in_progress";
+        const scopeParts: string[] = [];
+        if (r.version_number) scopeParts.push(`v${r.version_number}`);
+        if (r.scope && typeof r.scope === "object") {
+          const states = Array.isArray((r.scope as any).states) ? (r.scope as any).states : null;
+          const frameworks = Array.isArray((r.scope as any).frameworks) ? (r.scope as any).frameworks : null;
+          if (states?.length) scopeParts.push(states.join(", "));
+          if (frameworks?.length) scopeParts.push(frameworks.join(", "));
+        }
+        all.push({
+          id: r.id, tool: "ropa", tool_label: TOOL_LABEL.ropa,
+          created_at: r.created_at, status: r.status,
+          summary: scopeParts.join(" · ") || "Record of Processing Activities",
+          view_path: inProgress ? `/ropa/activities?session=${r.id}` : "/ropa/documents",
+          ...clientMeta(r.client_id),
+        });
+      });
+      (usNotice.data || []).forEach((r: any) => {
+        const inProgress = r.status === "in_progress" || r.status === "draft";
+        const scopeParts: string[] = [];
+        if (r.version_number) scopeParts.push(`v${r.version_number}`);
+        if (r.scope && typeof r.scope === "object") {
+          const states = Array.isArray((r.scope as any).states) ? (r.scope as any).states : null;
+          if (states?.length) scopeParts.push(states.join(", "));
+        }
+        all.push({
+          id: r.id, tool: "us_notice", tool_label: TOOL_LABEL.us_notice,
+          created_at: r.created_at, status: r.status,
+          summary: scopeParts.join(" · ") || "US Privacy Notice",
+          view_path: inProgress ? `/us-notices/${r.id}/questions` : `/us-notices/${r.id}/documents`,
+          ...clientMeta(r.client_id),
+        });
+      });
+      (euNotice.data || []).forEach((r: any) => {
+        const inProgress = r.status === "in_progress" || r.status === "draft";
+        const scopeParts: string[] = [];
+        if (r.version_number) scopeParts.push(`v${r.version_number}`);
+        all.push({
+          id: r.id, tool: "eu_notice", tool_label: TOOL_LABEL.eu_notice,
+          created_at: r.created_at, status: r.status,
+          summary: scopeParts.join(" · ") || "EU Privacy Notice",
+          view_path: inProgress ? "/eu-notices" : "/eu-notices/documents",
+          ...clientMeta(r.client_id),
+        });
+      });
 
 
 
