@@ -382,7 +382,7 @@ export default function RopaReview() {
 
         {/* Section 3 — Flags */}
         {(missingRequired.length > 0 || warningFlags.length > 0) && (
-          <Section title="Items requiring attention">
+          <Section title="Items requiring attention" data-ropa-section="flags">
             <div className="space-y-2">
               {[...missingRequired, ...warningFlags].map((f) => {
                 const activityName = allActivities.find((a) => a.id === f.activity_id)?.display_name;
