@@ -8,6 +8,7 @@ import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
 import { getQuestionsForActivity } from "@/data/ropa-questions";
 import type { Question } from "@/data/ropa-questions/types";
+import { getPersonalDataExamplesForSector } from "@/data/ropa-personal-data-examples";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
@@ -32,7 +33,30 @@ export default function RopaActivity() {
   const [activityNavOpen, setActivityNavOpen] = useState(false);
   const [applyToAll, setApplyToAll] = useState(false);
   const [bulkSaving, setBulkSaving] = useState(false);
+  const [clientSector, setClientSector] = useState<string>("");
   const formCardRef = useRef<HTMLDivElement>(null);
+
+  // Fetch the client sector for the current session, so we can show
+  // sector-specific examples of personal data on the data_categories question.
+  useEffect(() => {
+    const clientId = currentSession?.client_id;
+    if (!clientId) {
+      setClientSector("");
+      return;
+    }
+    (async () => {
+      const { data } = await SUPA.from("clients")
+        .select("sector")
+        .eq("id", clientId)
+        .maybeSingle();
+      setClientSector((data?.sector as string) ?? "");
+    })();
+  }, [currentSession?.client_id]);
+
+  const personalDataExamples = useMemo(
+    () => getPersonalDataExamplesForSector(clientSector),
+    [clientSector]
+  );
 
   // Load activity + parent session whenever the activity id changes.
   useEffect(() => {
