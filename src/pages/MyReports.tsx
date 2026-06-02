@@ -243,10 +243,8 @@ export default function MyReports() {
     return () => { cancelled = true; };
   }, [user]);
 
-  const titlePrefix = !isPersonalActive && activeClientId ? (rows.find(r => r.client_id === activeClientId)?.client_name ?? "My") : "My";
-  // Prefer the live workspace name from the hook over a row-derived name.
-  const { clientName: activeClientName } = useActiveClient();
   const ownerLabel = !isPersonalActive && activeClientName ? activeClientName : "My";
+
 
   return (
     <WorkspaceLayout>
