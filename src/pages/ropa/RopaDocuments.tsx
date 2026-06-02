@@ -64,6 +64,7 @@ export default function RopaDocuments() {
   const urlSessionId = useRopaSessionParam();
   const { toast } = useToast();
   const { clientName, isPersonalActive } = useActiveClient();
+  const { isAdmin } = useIsAdmin();
   const ownerLabel = !isPersonalActive && clientName ? clientName : "My";
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
@@ -72,6 +73,10 @@ export default function RopaDocuments() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [hasUsNotices, setHasUsNotices] = useState<boolean>(true);
   const [hasEuNotices, setHasEuNotices] = useState<boolean>(true);
+  const [pendingDeleteSession, setPendingDeleteSession] = useState<SessionRow | null>(null);
+  const [pendingDeleteDoc, setPendingDeleteDoc] = useState<DocVersion | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
 
   useEffect(() => {
     (async () => {
