@@ -648,9 +648,9 @@ function buildXlsx(d: AssembledData): Uint8Array {
     ["Legal entity", d.profile?.legal_entity_type ?? "—"],
     ["Sector", d.client?.sector ?? "—"],
     ["Employee band", d.profile?.employee_band ?? "—"],
-    ["DPO", d.profile?.dpo_name ?? "Not designated"],
-    ["EU representative", d.profile?.eu_rep_name ?? "—"],
-    ["UK representative", d.profile?.uk_rep_name ?? "—"],
+    ["DPO", `${d.profile?.dpo_name ?? "Not designated"}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`],
+    ["EU representative", `${d.profile?.eu_rep_name ?? "—"}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`],
+    ["UK representative", `${d.profile?.uk_rep_name ?? "—"}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`],
     ["Jurisdictions", d.jurisdictions.join(", ") || "—"],
     ["Document date", d.settings.documentDate],
     ["Author", d.settings.authorName],
@@ -664,6 +664,7 @@ function buildXlsx(d: AssembledData): Uint8Array {
   // Sheet 2 — activities
   const activityHeader = [
     "Activity",
+    "Role",
     "Category",
     "Purpose",
     "Lawful basis",
@@ -682,6 +683,7 @@ function buildXlsx(d: AssembledData): Uint8Array {
     const ans = d.answersByActivity[a.id] ?? {};
     return [
       a.display_name,
+      activityRole(ans, d.profile),
       a.category,
       answerToString(ans.purpose),
       lawfulBasisLabel(ans.lawful_basis),
@@ -700,27 +702,24 @@ function buildXlsx(d: AssembledData): Uint8Array {
   const activitySheet = XLSX.utils.aoa_to_sheet([activityHeader, ...activityRows]);
   XLSX.utils.book_append_sheet(wb, activitySheet, "Activities");
 
-  // Sheet 3 — transfers
+  const answerSheet = XLSX.utils.aoa_to_sheet([
+    ["Activity", "Question key", "Question", "Answer"],
+    ...d.activities.flatMap((a) => {
+      const ans = d.answersByActivity[a.id] ?? {};
+      return Object.entries(ans)
+        .filter(([key]) => key !== "info_card")
+        .map(([key, value]) => [a.display_name, key, questionLabel(key), answerToString(value)]);
+    }),
+  ]);
+  XLSX.utils.book_append_sheet(wb, answerSheet, "All answers");
+
+  // Sheet 4 — transfers
   const transfers = collectTransfers(d);
   const transferSheet = XLSX.utils.aoa_to_sheet([
     ["Activity", "Data", "Destination", "Mechanism", "Basis"],
     ...transfers.map((t) => [t.activity, t.data, t.destination, t.mechanism, t.basis]),
   ]);
   XLSX.utils.book_append_sheet(wb, transferSheet, "Transfers");
-
-  // Sheet 4 — flags
-  const flagSheet = XLSX.utils.aoa_to_sheet([
-    ["Severity", "Type", "Activity", "Message", "Status", "Consequence"],
-    ...d.flags.map((f) => [
-      f.severity,
-      f.flag_type,
-      d.activities.find((a) => a.id === f.activity_id)?.display_name ?? "—",
-      f.flag_message,
-      f.resolved ? "Noted — under review" : "Action required",
-      f.consequence ?? "",
-    ]),
-  ]);
-  XLSX.utils.book_append_sheet(wb, flagSheet, "Flags");
 
   const out = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
   return new Uint8Array(out);
