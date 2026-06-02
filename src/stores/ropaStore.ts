@@ -104,6 +104,7 @@ interface RopaStore {
   goToNextQuestion: () => void;
   goToPreviousQuestion: () => void;
   markActivityComplete: () => Promise<void>;
+  deleteActivity: (activityId: string) => Promise<void>;
   createFlag: (
     flag: Omit<RopaFlag, "id" | "created_at"> & { created_at?: string }
   ) => Promise<void>;
@@ -312,6 +313,57 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
           : a
       ),
     }));
+  },
+
+  async deleteActivity(activityId: string) {
+    const session = get().currentSession;
+    // Wipe everything tied to this activity: answers, flags, then the row.
+    await SUPA.from("ropa_answers").delete().eq("activity_id", activityId);
+    const { data: removedFlags } = await SUPA.from("ropa_flags")
+      .delete()
+      .eq("activity_id", activityId)
+      .select("id, resolved");
+    const { error } = await SUPA.from("ropa_processing_activities")
+      .delete()
+      .eq("id", activityId);
+    if (error) {
+      set({ saveError: error.message });
+      throw error;
+    }
+
+    const openRemoved = (removedFlags ?? []).filter(
+      (f: { resolved: boolean }) => !f.resolved
+    ).length;
+
+    if (session && openRemoved > 0) {
+      const newCount = Math.max(0, (session.open_flags_count ?? 0) - openRemoved);
+      await SUPA.from("ropa_sessions")
+        .update({ open_flags_count: newCount })
+        .eq("id", session.id);
+    }
+
+    set((s) => {
+      const remaining = s.allActivities.filter((a) => a.id !== activityId);
+      const openRemovedSafe = openRemoved;
+      return {
+        allActivities: remaining,
+        flags: s.flags.filter((f) => f.activity_id !== activityId),
+        currentActivity:
+          s.currentActivity?.id === activityId ? null : s.currentActivity,
+        currentAnswers:
+          s.currentActivity?.id === activityId ? {} : s.currentAnswers,
+        currentSession:
+          s.currentSession && openRemovedSafe > 0
+            ? {
+                ...s.currentSession,
+                open_flags_count: Math.max(
+                  0,
+                  (s.currentSession.open_flags_count ?? 0) - openRemovedSafe
+                ),
+              }
+            : s.currentSession,
+      };
+    });
   },
 
   async loadFlags() {
