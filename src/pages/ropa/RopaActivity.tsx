@@ -599,3 +599,130 @@ function FlagPreview({
     </div>
   );
 }
+
+function PriorAnswerSuggestions({
+  sessionId,
+  activityId,
+  question,
+  currentValue,
+  onPick,
+}: {
+  sessionId: string | null;
+  activityId: string;
+  question: Question;
+  currentValue: unknown;
+  onPick: (val: string) => void;
+}) {
+  const [suggestions, setSuggestions] = useState<
+    { value: string; activityName: string }[]
+  >([]);
+
+  // Only show autofill for free-text questions
+  const isTextType =
+    question.type === "text_long" || question.type === "text_short";
+
+  useEffect(() => {
+    if (!isTextType || !sessionId) {
+      setSuggestions([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data: answerRows } = await SUPA.from("ropa_answers")
+        .select("activity_id, answer_value")
+        .eq("session_id", sessionId)
+        .eq("question_key", question.key)
+        .neq("activity_id", activityId);
+
+      if (cancelled || !answerRows?.length) {
+        setSuggestions([]);
+        return;
+      }
+
+      const activityIds = Array.from(
+        new Set(answerRows.map((r: any) => r.activity_id))
+      );
+      const { data: activityRows } = await SUPA.from(
+        "ropa_processing_activities"
+      )
+        .select("id, display_name")
+        .in("id", activityIds);
+
+      const nameById = new Map<string, string>(
+        (activityRows ?? []).map((a: any) => [a.id, a.display_name])
+      );
+
+      // Dedupe by value; keep first activity that used it
+      const seen = new Set<string>();
+      const items: { value: string; activityName: string }[] = [];
+      for (const r of answerRows as any[]) {
+        const val =
+          typeof r.answer_value === "string"
+            ? r.answer_value
+            : r.answer_value == null
+              ? ""
+              : String(r.answer_value);
+        if (!val.trim() || seen.has(val)) continue;
+        seen.add(val);
+        items.push({
+          value: val,
+          activityName: nameById.get(r.activity_id) ?? "previous activity",
+        });
+        if (items.length >= 5) break;
+      }
+      if (!cancelled) setSuggestions(items);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isTextType, sessionId, activityId, question.key]);
+
+  if (!suggestions.length) return null;
+
+  return (
+    <div className="mb-3 rounded-lg border border-dashed border-border bg-muted/30 p-3">
+      <p className="text-xs font-semibold text-muted-foreground mb-2">
+        Reuse a previous answer
+      </p>
+      <div className="flex flex-col gap-2">
+        {suggestions.map((s, i) => {
+          const isSelected = currentValue === s.value;
+          const preview =
+            s.value.length > 140 ? s.value.slice(0, 140) + "…" : s.value;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onPick(s.value)}
+              aria-pressed={isSelected}
+              className={`text-left text-sm rounded-md border p-2 min-h-[44px] transition ${
+                isSelected
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-background hover:bg-muted/40"
+              }`}
+            >
+              <div className="flex items-start gap-2">
+                <span
+                  aria-hidden
+                  className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {isSelected ? "✓" : ""}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">
+                    From: {s.activityName}
+                  </p>
+                  <p className="whitespace-pre-wrap break-words">{preview}</p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
