@@ -407,7 +407,14 @@ export default function RopaSetup() {
               Continue
             </button>
             <button
-              onClick={() => setHasExistingSession(null)}
+              onClick={() => {
+                setHasExistingSession(null);
+                setProfile(EMPTY_PROFILE);
+                setSelectedJurisdictions(new Set());
+                setOrgName("");
+                setPrimaryRegion("");
+                setStep(0);
+              }}
               className="text-sm underline text-muted-foreground"
             >
               Start fresh
