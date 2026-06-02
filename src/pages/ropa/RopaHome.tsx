@@ -19,7 +19,21 @@ import {
   CheckCircle2,
   Clock,
   Download,
+  Trash2,
 } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { adminDelete } from "@/lib/adminDelete";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface SessionRow {
   id: string;
