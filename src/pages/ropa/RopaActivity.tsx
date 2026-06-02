@@ -28,6 +28,7 @@ export default function RopaActivity() {
   const loadSession = useRopaStore((s) => s.loadSession);
   const saveAnswer = useRopaStore((s) => s.saveAnswer);
   const markActivityComplete = useRopaStore((s) => s.markActivityComplete);
+  const deleteActivityFromStore = useRopaStore((s) => s.deleteActivity);
   const evaluateFlagsForAnswer = useRopaStore((s) => s.evaluateFlagsForAnswer);
 
   const [activityNavOpen, setActivityNavOpen] = useState(false);
@@ -105,6 +106,33 @@ export default function RopaActivity() {
     const q = visibleQuestions.find((x) => x.key === questionKey);
     if (q?.flagIf) {
       await evaluateFlagsForAnswer(questionKey, value as never, q.flagIf);
+    }
+  };
+
+  const handleDeleteActivity = async (
+    activityId: string,
+    displayName: string
+  ) => {
+    const ok = window.confirm(
+      `Delete "${displayName}"?\n\nThis permanently removes the activity and all of its answers and flags. This cannot be undone.`
+    );
+    if (!ok) return;
+    const isCurrent = currentActivity?.id === activityId;
+    try {
+      await deleteActivityFromStore(activityId);
+      toast.success(`Deleted "${displayName}"`);
+      if (isCurrent) {
+        const remaining = useRopaStore.getState().allActivities;
+        if (remaining.length > 0) {
+          navigate(`/ropa/activity/${remaining[0].id}`);
+        } else {
+          navigate(`/ropa/activities`);
+        }
+      }
+    } catch (e) {
+      toast.error(
+        `Couldn't delete activity: ${(e as Error)?.message ?? "unknown error"}`
+      );
     }
   };
 
@@ -269,6 +297,7 @@ export default function RopaActivity() {
             activities={allActivities}
             currentActivityId={currentActivity.id}
             onSelect={(aid) => navigate(`/ropa/activity/${aid}`)}
+            onDelete={(aid, name) => handleDeleteActivity(aid, name)}
           />
         </aside>
 
@@ -513,6 +542,10 @@ export default function RopaActivity() {
                 setActivityNavOpen(false);
                 navigate(`/ropa/activity/${aid}`);
               }}
+              onDelete={(aid, name) => {
+                setActivityNavOpen(false);
+                handleDeleteActivity(aid, name);
+              }}
             />
           </nav>
         </SheetContent>
@@ -525,10 +558,12 @@ function ActivityNavList({
   activities,
   currentActivityId,
   onSelect,
+  onDelete,
 }: {
   activities: { id: string; display_name: string; status: string }[];
   currentActivityId: string;
   onSelect: (id: string) => void;
+  onDelete?: (id: string, displayName: string) => void;
 }) {
   // Determine which activities are unlocked: all complete ones, plus the
   // first non-complete activity. Everything after that is locked so users
@@ -552,33 +587,52 @@ function ActivityNavList({
               : "Not started";
         return (
           <li key={a.id}>
-            <button
-              onClick={() => !isLocked && onSelect(a.id)}
-              disabled={isLocked}
-              aria-current={isCurrent ? "step" : undefined}
-              aria-disabled={isLocked || undefined}
-              aria-label={`${a.display_name} — ${statusLabel}`}
-              title={isLocked ? "Complete the previous activity first" : undefined}
-              className={`w-full text-left text-sm px-2 py-2 min-h-[44px] rounded flex items-start gap-2 ${
+            <div
+              className={`group w-full rounded flex items-stretch ${
                 isCurrent
-                  ? "bg-primary/10 border-l-2 border-primary font-semibold"
+                  ? "bg-primary/10 border-l-2 border-primary"
                   : isLocked
-                    ? "opacity-40 cursor-not-allowed"
+                    ? "opacity-40"
                     : "hover:bg-muted/40"
               }`}
             >
-              <span aria-hidden className="mt-0.5">
-                {isComplete
-                  ? "✓"
-                  : a.status === "in_progress"
-                    ? "•"
-                    : isLocked
-                      ? "🔒"
-                      : "○"}
-              </span>
-              <span className="flex-1">{a.display_name}</span>
-              <span className="sr-only">{statusLabel}</span>
-            </button>
+              <button
+                onClick={() => !isLocked && onSelect(a.id)}
+                disabled={isLocked}
+                aria-current={isCurrent ? "step" : undefined}
+                aria-disabled={isLocked || undefined}
+                aria-label={`${a.display_name} — ${statusLabel}`}
+                title={isLocked ? "Complete the previous activity first" : undefined}
+                className={`flex-1 text-left text-sm px-2 py-2 min-h-[44px] flex items-start gap-2 ${
+                  isLocked ? "cursor-not-allowed" : ""
+                } ${isCurrent ? "font-semibold" : ""}`}
+              >
+                <span aria-hidden className="mt-0.5">
+                  {isComplete
+                    ? "✓"
+                    : a.status === "in_progress"
+                      ? "•"
+                      : isLocked
+                        ? "🔒"
+                        : "○"}
+                </span>
+                <span className="flex-1">{a.display_name}</span>
+                <span className="sr-only">{statusLabel}</span>
+              </button>
+              {onDelete && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(a.id, a.display_name);
+                  }}
+                  aria-label={`Delete activity ${a.display_name}`}
+                  title="Delete activity (removes all answers and flags)"
+                  className="px-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                >
+                  🗑
+                </button>
+              )}
+            </div>
           </li>
         );
       })}
