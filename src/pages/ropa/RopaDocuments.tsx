@@ -353,7 +353,15 @@ export default function RopaDocuments() {
                           asChild
                           variant="outline"
                         >
-                          <Link to={`/ropa/review/${s.id}`}>Continue Review</Link>
+                          <Link
+                            to={
+                              s.status === "in_progress"
+                                ? withSession("/ropa/activities", s.id)
+                                : `/ropa/review/${s.id}`
+                            }
+                          >
+                            {s.status === "in_progress" ? "Continue editing" : "Continue Review"}
+                          </Link>
                         </Button>
                       )}
                       {isAdmin && (
