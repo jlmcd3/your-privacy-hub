@@ -548,7 +548,7 @@ export default function RopaActivity() {
               currentActivityId={currentActivity.id}
               onSelect={(aid) => {
                 setActivityNavOpen(false);
-                navigate(`/ropa/activity/${aid}`);
+                navigate(withSession(`/ropa/activity/${aid}`, currentSession?.id));
               }}
               onDelete={(aid, name) => {
                 setActivityNavOpen(false);
