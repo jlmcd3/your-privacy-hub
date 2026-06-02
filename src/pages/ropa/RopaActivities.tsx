@@ -325,15 +325,42 @@ export default function RopaActivities() {
   return (
     <RopaShell title="Select Activities — RoPA Builder" heading="">
       {(() => {
-        const { steps, currentIndex } = getRopaSteps("activities");
+        const { steps, currentIndex } = getRopaSteps("activities", sessionId);
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
       })()}
+
+      {existingCount > 0 && existingFirstActivityId && (
+        <div className="mb-4 p-3 border border-border rounded-lg bg-muted/30 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm">
+            You already have <strong>{existingCount}</strong> activit
+            {existingCount === 1 ? "y" : "ies"} added to this RoPA. Your previous
+            picks are pre-selected below. Add more or jump straight back into Q&amp;A.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() =>
+                navigate(
+                  withSession(
+                    `/ropa/activity/${existingFirstActivityId}`,
+                    sessionId
+                  )
+                )
+              }
+              className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-lg"
+            >
+              Continue to Q&amp;A
+            </button>
+          </div>
+        </div>
+      )}
+
       <button
         onClick={loadTypical}
         className="w-full bg-foreground text-background font-semibold text-sm px-4 py-2.5 rounded-lg mb-4 text-left"
       >
         Prefill typical activities for {sector || "your sector"} and adjust as needed →
       </button>
+
 
 
       <div className="space-y-3 mb-32">
