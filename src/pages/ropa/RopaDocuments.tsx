@@ -113,7 +113,7 @@ export default function RopaDocuments() {
       const { data: sess, error: sErr } = await supabase
         .from("ropa_sessions")
         .select("id,status,version_number,completed_at,last_activity_at,total_activities,open_flags_count,is_refresh,payment_confirmed")
-        .in("status", ["generated", "review"])
+        .in("status", ["in_progress", "review", "generated"])
         .order("last_activity_at", { ascending: false });
       if (sErr) throw sErr;
 
@@ -353,7 +353,15 @@ export default function RopaDocuments() {
                           asChild
                           variant="outline"
                         >
-                          <Link to={`/ropa/review/${s.id}`}>Continue Review</Link>
+                          <Link
+                            to={
+                              s.status === "in_progress"
+                                ? withSession("/ropa/activities", s.id)
+                                : `/ropa/review/${s.id}`
+                            }
+                          >
+                            {s.status === "in_progress" ? "Continue editing" : "Continue Review"}
+                          </Link>
                         </Button>
                       )}
                       {isAdmin && (
