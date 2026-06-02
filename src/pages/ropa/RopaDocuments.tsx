@@ -356,7 +356,20 @@ export default function RopaDocuments() {
                           <Link to={`/ropa/review/${s.id}`}>Continue Review</Link>
                         </Button>
                       )}
+                      {isAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setPendingDeleteSession(s)}
+                          className="gap-2 text-destructive hover:text-destructive"
+                          aria-label="Delete entire RoPA session (admin)"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </Button>
+                      )}
                     </div>
+
                   </div>
                 </CardHeader>
                 {generated && (
