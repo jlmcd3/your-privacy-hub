@@ -380,22 +380,34 @@ export default function RopaDocuments() {
                         const meta = FORMAT_META[fmt];
                         const Icon = meta.icon;
                         return (
-                          <Button
-                            key={fmt}
-                            variant="outline"
-                            disabled={!doc || downloadingId === doc?.id}
-                            onClick={() => doc && handleDownload(doc)}
-                            className="h-auto justify-start gap-3 py-3"
-                          >
-                            <Icon className="h-5 w-5 shrink-0" />
-                            <span className="flex flex-col items-start text-left">
-                              <span className="font-medium">{meta.label}</span>
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Download className="h-3 w-3" />
-                                {doc ? "Download" : "Unavailable"}
+                          <div key={fmt} className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              disabled={!doc || downloadingId === doc?.id}
+                              onClick={() => doc && handleDownload(doc)}
+                              className="h-auto flex-1 justify-start gap-3 py-3"
+                            >
+                              <Icon className="h-5 w-5 shrink-0" />
+                              <span className="flex flex-col items-start text-left">
+                                <span className="font-medium">{meta.label}</span>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Download className="h-3 w-3" />
+                                  {doc ? "Download" : "Unavailable"}
+                                </span>
                               </span>
-                            </span>
-                          </Button>
+                            </Button>
+                            {isAdmin && doc && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setPendingDeleteDoc(doc)}
+                                className="text-destructive hover:text-destructive"
+                                aria-label={`Delete ${meta.label} (admin)`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
@@ -411,6 +423,49 @@ export default function RopaDocuments() {
           })}
         </div>
       )}
+
+      <AlertDialog open={!!pendingDeleteSession} onOpenChange={(o) => !o && setPendingDeleteSession(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete entire RoPA session?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the session, all its activities, answers, flags, refresh history, and every generated document version. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void confirmDeleteSession(); }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete session"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!pendingDeleteDoc} onOpenChange={(o) => !o && setPendingDeleteDoc(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this document?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the generated file and its record. The underlying session and answers remain.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void confirmDeleteDoc(); }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       <RelatedToolsChips
         tools={[
