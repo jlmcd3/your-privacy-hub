@@ -11,12 +11,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, FileText, ArrowLeft, Download, Mail, Printer } from "lucide-react";
+import { Loader2, FileText, ArrowLeft, Download, Mail, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import CopyButton from "@/components/CopyButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { adminDelete } from "@/lib/adminDelete";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 
 // Strip markdown syntax characters (*, #, backticks) from AI-generated text
 // so the rendered document reads as a clean letter/report.
@@ -51,6 +64,27 @@ export default function RegistrationDocuments() {
   const [selected, setSelected] = useState<any>(null);
   const [emailing, setEmailing] = useState(false);
   const previewRef = useRef<HTMLPreElement>(null);
+  const { isAdmin } = useIsAdmin();
+  const [pendingDelete, setPendingDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await adminDelete("registration_document", pendingDelete.id);
+      toast.success("Document deleted");
+      const remaining = docs.filter((x) => x.id !== pendingDelete.id);
+      setDocs(remaining);
+      if (selected?.id === pendingDelete.id) setSelected(remaining[0] ?? null);
+      setPendingDelete(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
 
   // Reset scroll position when switching documents
   useEffect(() => {
@@ -152,24 +186,37 @@ export default function RegistrationDocuments() {
               {/* Document list */}
               <div className="space-y-2">
                 {docs.map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => setSelected(d)}
-                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                      selected?.id === d.id
-                        ? "border-brand-navy bg-brand-navy/5"
-                        : "border-border/60 hover:bg-brand-cloud"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <FileText className="w-4 h-4 text-slate flex-shrink-0" />
-                      <span className="text-sm font-medium text-brand-navy truncate">
-                        <span className="font-mono uppercase text-slate mr-1">{d.jurisdiction_code}</span>
-                        - {DOC_LABELS[d.document_type] || d.document_type}
-                      </span>
-                    </div>
-                  </button>
+                  <div key={d.id} className="flex items-stretch gap-1">
+                    <button
+                      onClick={() => setSelected(d)}
+                      className={`flex-1 text-left p-3 rounded-lg border transition-colors ${
+                        selected?.id === d.id
+                          ? "border-brand-navy bg-brand-navy/5"
+                          : "border-border/60 hover:bg-brand-cloud"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FileText className="w-4 h-4 text-slate flex-shrink-0" />
+                        <span className="text-sm font-medium text-brand-navy truncate">
+                          <span className="font-mono uppercase text-slate mr-1">{d.jurisdiction_code}</span>
+                          - {DOC_LABELS[d.document_type] || d.document_type}
+                        </span>
+                      </div>
+                    </button>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setPendingDelete(d)}
+                        className="text-destructive hover:text-destructive"
+                        aria-label="Delete document (admin)"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 ))}
+
               </div>
 
               {/* Document preview */}
@@ -236,6 +283,27 @@ export default function RegistrationDocuments() {
         </div>
       </PageContainer>
       <Footer />
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this document?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the generated document. The order and other documents are not affected. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void confirmDelete(); }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

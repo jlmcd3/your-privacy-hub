@@ -9,17 +9,31 @@ import {
   Sparkles,
   CheckCircle2,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { USNoticeShell } from "@/components/us-notices/USNoticeShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useUsNoticeSessionGuard } from "@/hooks/useUsNoticeSessionGuard";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { adminDelete } from "@/lib/adminDelete";
 import { Globe2 } from "lucide-react";
 import { CrossToolPrompt, RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
+
 
 interface SessionRow {
   id: string;
@@ -75,6 +89,7 @@ export default function USNoticeDocuments() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { toast } = useToast();
   const { authorized } = useUsNoticeSessionGuard(sessionId);
+  const { isAdmin } = useIsAdmin();
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -82,6 +97,28 @@ export default function USNoticeDocuments() {
   const [states, setStates] = useState<StateRow[]>([]);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [hasEuNotices, setHasEuNotices] = useState<boolean>(true);
+  const [pendingDelete, setPendingDelete] = useState<DocumentRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await adminDelete("us_notice_document", pendingDelete.id);
+      toast({ title: "Notice deleted" });
+      setPendingDelete(null);
+      await load();
+    } catch (err) {
+      toast({
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  }
+
 
   useEffect(() => {
     (async () => {
@@ -368,17 +405,30 @@ export default function USNoticeDocuments() {
               {currentDocs
                 .filter((d) => d.is_combined)
                 .map((d) => (
-                  <Button
-                    key={d.id}
-                    onClick={() => handleDownload(d)}
-                    disabled={!d.file_path}
-                    className="w-full sm:w-auto min-h-[44px]"
-                    aria-label="Download combined all-states suite"
-                  >
-                    <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
-                    Download suite
-                  </Button>
+                  <div key={d.id} className="flex items-center gap-1">
+                    <Button
+                      onClick={() => handleDownload(d)}
+                      disabled={!d.file_path}
+                      className="w-full sm:w-auto min-h-[44px]"
+                      aria-label="Download combined all-states suite"
+                    >
+                      <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
+                      Download suite
+                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setPendingDelete(d)}
+                        className="text-destructive hover:text-destructive"
+                        aria-label="Delete combined notice (admin)"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 ))}
+
             </div>
           </CardContent>
         </Card>
@@ -420,19 +470,32 @@ export default function USNoticeDocuments() {
                       </span>
                     ) : (
                       stateDocs.map((d) => (
-                        <Button
-                          key={d.id}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownload(d)}
-                          disabled={!d.file_path}
-                          className="w-full sm:w-auto min-h-[44px]"
-                          aria-label={`Download ${state.state_name} notice (PDF)`}
-                        >
-                          <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
-                          PDF
-                        </Button>
+                        <div key={d.id} className="flex items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownload(d)}
+                            disabled={!d.file_path}
+                            className="w-full sm:w-auto min-h-[44px]"
+                            aria-label={`Download ${state.state_name} notice (PDF)`}
+                          >
+                            <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
+                            PDF
+                          </Button>
+                          {isAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setPendingDelete(d)}
+                              className="text-destructive hover:text-destructive"
+                              aria-label={`Delete ${state.state_name} notice (admin)`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       ))
+
                     )}
                   </div>
                 </CardContent>
@@ -501,6 +564,27 @@ export default function USNoticeDocuments() {
           { label: "🌍 EU Notices", to: "/eu-notices" },
         ]}
       />
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this notice?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the generated document and its file. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void confirmDelete(); }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </USNoticeShell>
   );
 }
