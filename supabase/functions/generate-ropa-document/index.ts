@@ -898,7 +898,6 @@ Deno.serve(async (req: Request) => {
   }> = [];
 
   for (const fmt of formats) {
-    // Idempotency: existing version + file in storage → reuse signed URL
     const { data: existing } = await admin
       .from("ropa_document_versions")
       .select("id, file_path")
@@ -909,85 +908,66 @@ Deno.serve(async (req: Request) => {
 
     let filePath: string | null = null;
     let documentVersionId: string | null = null;
-    let regenerated = false;
 
-    if (existing?.file_path) {
-      // Verify file still exists by attempting to sign it
-      const { data: signed } = await admin.storage
-        .from("ropa-documents")
-        .createSignedUrl(existing.file_path, 60 * 60);
-      if (signed?.signedUrl) {
-        filePath = existing.file_path;
-        documentVersionId = existing.id;
-      }
+    let payload: Uint8Array;
+    let contentType: string;
+    if (fmt === "pdf") {
+      payload = await renderPdf(
+        buildHtml(data),
+        `RoPA — ${data.client?.name ?? "Client"}`,
+      );
+      contentType = "application/pdf";
+    } else if (fmt === "docx") {
+      payload = await buildDocx(data);
+      contentType =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    } else {
+      payload = buildXlsx(data);
+      contentType =
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     }
 
-    if (!filePath) {
-      // Build payload
-      let payload: Uint8Array;
-      let contentType: string;
-      if (fmt === "pdf") {
-        // HTML stored under .html extension (Chromium/PDF rendering not
-        // available in Deno edge functions). Browsers render this inline; the
-        // document library page should label it as "PDF (HTML)" until a true
-        // PDF renderer ships.
-        payload = new TextEncoder().encode(buildHtml(data));
-        contentType = "text/html";
-      } else if (fmt === "docx") {
-        payload = await buildDocx(data);
-        contentType =
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-      } else {
-        payload = buildXlsx(data);
-        contentType =
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      }
+    filePath = `${session.client_id}/${session.id}/v${session.version_number}.${fmt}`;
 
-      const ext = fmt === "pdf" ? "html" : fmt;
-      filePath = `${session.client_id}/${session.id}/v${session.version_number}.${ext}`;
-
-      const { error: upErr } = await admin.storage
-        .from("ropa-documents")
-        .upload(filePath, payload, { contentType, upsert: true });
-      if (upErr) {
-        return jsonResponse(
-          { error: `Storage upload failed (${fmt}): ${upErr.message}` },
-          500,
-        );
-      }
-
-      // Upsert ropa_document_versions on (session_id, document_format)
-      const { data: upserted, error: verErr } = await admin
-        .from("ropa_document_versions")
-        .upsert(
-          {
-            session_id: session.id,
-            client_id: session.client_id,
-            version_number: session.version_number,
-            document_format: fmt,
-            file_path: filePath,
-            file_size_bytes: payload.byteLength,
-            jurisdictions_covered: data.jurisdictions,
-            activities_count: data.activities.length,
-            change_summary: existing
-              ? "Regenerated"
-              : `Generated v${session.version_number}`,
-            generated_at: new Date().toISOString(),
-            is_current: true,
-          },
-          { onConflict: "session_id,document_format" },
-        )
-        .select("id")
-        .single();
-      if (verErr || !upserted) {
-        return jsonResponse(
-          { error: `Failed to record document version: ${verErr?.message}` },
-          500,
-        );
-      }
-      documentVersionId = upserted.id;
-      regenerated = true;
+    const { error: upErr } = await admin.storage
+      .from("ropa-documents")
+      .upload(filePath, payload, { contentType, upsert: true });
+    if (upErr) {
+      return jsonResponse(
+        { error: `Storage upload failed (${fmt}): ${upErr.message}` },
+        500,
+      );
     }
+
+    const { data: upserted, error: verErr } = await admin
+      .from("ropa_document_versions")
+      .upsert(
+        {
+          session_id: session.id,
+          client_id: session.client_id,
+          version_number: session.version_number,
+          document_format: fmt,
+          file_path: filePath,
+          file_size_bytes: payload.byteLength,
+          jurisdictions_covered: data.jurisdictions,
+          activities_count: data.activities.length,
+          change_summary: existing
+            ? "Regenerated"
+            : `Generated v${session.version_number}`,
+          generated_at: new Date().toISOString(),
+          is_current: true,
+        },
+        { onConflict: "session_id,document_format" },
+      )
+      .select("id")
+      .single();
+    if (verErr || !upserted) {
+      return jsonResponse(
+        { error: `Failed to record document version: ${verErr?.message}` },
+        500,
+      );
+    }
+    documentVersionId = upserted.id;
 
     // Update session generated_*_path
     const pathColumn =
@@ -1019,7 +999,6 @@ Deno.serve(async (req: Request) => {
       file_path: filePath,
     });
 
-    void regenerated;
   }
 
   // Single-format spec response
