@@ -666,13 +666,17 @@ function Section({
   title,
   action,
   children,
+  ...rest
 }: {
   title: string;
   action?: React.ReactNode;
   children: React.ReactNode;
-}) {
+} & React.HTMLAttributes<HTMLElement>) {
   return (
-    <section className="border border-border rounded-xl bg-brand-cloud p-5">
+    <section
+      {...rest}
+      className="border border-border rounded-xl bg-brand-cloud p-5"
+    >
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-[15px] font-serif text-brand-navy">{title}</h2>
         {action}
