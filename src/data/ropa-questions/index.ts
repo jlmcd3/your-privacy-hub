@@ -101,6 +101,14 @@ function baseSequence(opts: {
       type: "text_long",
       isRequired: true,
     },
+    {
+      key: "access_controls",
+      text: "Who has access to this data, and how is that access controlled?",
+      whyWeAsk:
+        "Documenting access controls supports Art.32 compliance and is expected by most supervisory authorities during audits.",
+      type: "text_long",
+      isRequired: false,
+    },
     ...(opts.extras ?? []),
   ];
 }
