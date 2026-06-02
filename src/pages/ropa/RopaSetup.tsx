@@ -145,7 +145,7 @@ export default function RopaSetup() {
   const urlSessionId = useRopaSessionParam();
 
   const [step, setStep] = useState(0);
-  const [orgName, setOrgName] = useState(client?.name ?? "");
+  const [orgName, setOrgName] = useState("");
   const [sector, setSector] = useState<string>(
     (client as { sector?: string } | null)?.sector ?? ""
   );
@@ -199,27 +199,31 @@ export default function RopaSetup() {
       // Prefer a session id passed in the URL (so back-navigation always
       // resumes the same RoPA). Fall back to "latest non-archived" for this
       // client.
-      let sess: { id: string; status: string } | null = null;
+      let sess: { id: string; status: string; org_name: string | null } | null = null;
       if (urlSessionId) {
         const { data } = await SUPA.from("ropa_sessions")
-          .select("id, status, client_id")
+          .select("id, status, client_id, org_name")
           .eq("id", urlSessionId)
           .maybeSingle();
         if (data && data.client_id === clientId) {
-          sess = { id: data.id, status: data.status };
+          sess = { id: data.id, status: data.status, org_name: data.org_name ?? null };
         }
       }
       if (!sess) {
         const { data } = await SUPA.from("ropa_sessions")
-          .select("id, status")
+          .select("id, status, org_name")
           .eq("client_id", clientId)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        sess = data ?? null;
+        sess = data ? { id: data.id, status: data.status, org_name: data.org_name ?? null } : null;
       }
       if (cancelled) return;
       if (sess && sess.status !== "archived") setHasExistingSession(sess.id);
+      // Pre-fill the org name from the session (the company this RoPA documents),
+      // never from the workspace name — workspaces are separate from RoPA orgs.
+      if (sess?.org_name) setOrgName(sess.org_name);
+
     })();
     return () => {
       cancelled = true;
@@ -311,9 +315,10 @@ export default function RopaSetup() {
     }
     setSubmitting(true);
     try {
-      // Update client name + sector
+      // Store sector on the workspace, but NEVER rename the workspace itself —
+      // the org being documented in this RoPA is recorded on the session.
       await SUPA.from("clients")
-        .update({ name: orgName, sector: sector || null })
+        .update({ sector: sector || null })
         .eq("id", clientId);
 
       // Replace jurisdiction selections
@@ -332,11 +337,15 @@ export default function RopaSetup() {
       if (rows.length)
         await SUPA.from("ropa_jurisdiction_selections").insert(rows);
 
-      // Create or reuse session
+      // Create or reuse session, then save the org name on the session.
       let sessionId = hasExistingSession;
       if (!sessionId) sessionId = await createSession(clientId);
+      await SUPA.from("ropa_sessions")
+        .update({ org_name: orgName.trim() || null })
+        .eq("id", sessionId);
 
       navigate(withSession("/ropa/activities", sessionId));
+
     } catch (e) {
       toast.error("Could not save setup. Please try again.");
       console.error(e);

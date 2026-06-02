@@ -808,9 +808,18 @@ Deno.serve(async (req: Request) => {
     if (parts.length) refreshNotes.push(`Refresh cycle: ${parts.join(", ")}`);
   }
 
+  // Prefer the org name captured on the session (the company this RoPA
+  // documents) over the workspace name. Falls back to the workspace name for
+  // legacy sessions where org_name was never set.
+  const effectiveClient = {
+    ...(client ?? {}),
+    name: (session as { org_name?: string | null }).org_name?.trim()
+      || (client?.name ?? ""),
+  };
+
   const data: AssembledData = {
     session,
-    client,
+    client: effectiveClient,
     profile,
     jurisdictions: (jurisdictionRows ?? []).map((j: any) => j.jurisdiction_code),
     activities: activities ?? [],
@@ -819,6 +828,7 @@ Deno.serve(async (req: Request) => {
     refreshNotes,
     settings,
   };
+
 
   // ── Generate, upload, record ──
   const results: Array<{

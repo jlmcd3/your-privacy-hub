@@ -108,9 +108,13 @@ export default function RopaReview() {
         .eq("id", sess.client_id)
         .maybeSingle();
       if (client && !cancelled) {
-        setClientName(client.name ?? "");
+        // Show the organisation captured on the session (the company this
+        // RoPA documents), not the workspace name.
+        const sessionOrgName = (sess as { org_name?: string | null }).org_name;
+        setClientName((sessionOrgName?.trim() || client.name) ?? "");
         setClientSector(client.sector ?? null);
       }
+
       const { data: prof } = await SUPA.from("ropa_client_profiles")
         .select("legal_entity_type, employee_band, is_controller, is_processor, dpo_name, selected_jurisdictions")
         .eq("client_id", sess.client_id)

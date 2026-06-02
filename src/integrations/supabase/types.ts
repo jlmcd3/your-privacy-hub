@@ -3899,6 +3899,7 @@ export type Database = {
           is_refresh: boolean
           last_activity_at: string
           open_flags_count: number
+          org_name: string | null
           paid_at: string | null
           parent_session_id: string | null
           payment_confirmed: boolean
@@ -3920,6 +3921,7 @@ export type Database = {
           is_refresh?: boolean
           last_activity_at?: string
           open_flags_count?: number
+          org_name?: string | null
           paid_at?: string | null
           parent_session_id?: string | null
           payment_confirmed?: boolean
@@ -3941,6 +3943,7 @@ export type Database = {
           is_refresh?: boolean
           last_activity_at?: string
           open_flags_count?: number
+          org_name?: string | null
           paid_at?: string | null
           parent_session_id?: string | null
           payment_confirmed?: boolean
