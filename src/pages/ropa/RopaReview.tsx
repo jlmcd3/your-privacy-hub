@@ -144,39 +144,16 @@ export default function RopaReview() {
     }
   }, [user, authorName]);
 
-  const summary = getFlagSummary();
-  const openFlags = useMemo(() => flags.filter((f) => !f.resolved), [flags]);
-  const missingRequired = openFlags.filter((f) => f.flag_type === "missing_required");
-  const warningFlags = openFlags.filter(
-    (f) => f.flag_type !== "missing_required" && (f.severity === "warning" || f.flag_type === "high_risk_activity")
-  );
-  const recommendationFlags = openFlags.filter(
-    (f) => f.flag_type === "recommendation" || f.flag_type === "cross_sell" || f.severity === "info"
-  );
-
-  const flaggedActivityIds = new Set(openFlags.map((f) => f.activity_id).filter(Boolean) as string[]);
   const visibleActivities = useMemo(() => {
     if (showAllActivities) return allActivities;
-    return allActivities.filter(
-      (a) => flaggedActivityIds.has(a.id) || a.status !== "complete"
-    );
-  }, [allActivities, showAllActivities, flaggedActivityIds]);
+    return allActivities.filter((a) => a.status !== "complete");
+  }, [allActivities, showAllActivities]);
 
-  const flagsByActivity = useMemo(() => {
-    const m = new Map<string, number>();
-    openFlags.forEach((f) => {
-      if (!f.activity_id) return;
-      m.set(f.activity_id, (m.get(f.activity_id) ?? 0) + 1);
-    });
-    return m;
-  }, [openFlags]);
-
-  // Gate logic
-  const hasMissingRequired = missingRequired.length > 0;
-  const onlyWarningsOrRecs = !hasMissingRequired && (warningFlags.length > 0 || recommendationFlags.length > 0);
-  const allClean = openFlags.length === 0;
-  const generateDisabled =
-    hasMissingRequired || (onlyWarningsOrRecs && !acknowledged);
+  // Gating disabled — users can always proceed to generation.
+  const hasMissingRequired = false;
+  const onlyWarningsOrRecs = false;
+  const allClean = true;
+  const generateDisabled = false;
 
   // Handle ?payment_success=true
   useEffect(() => {
