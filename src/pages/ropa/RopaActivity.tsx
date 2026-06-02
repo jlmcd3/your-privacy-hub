@@ -242,7 +242,7 @@ export default function RopaActivity() {
     const incomplete = allActivities.find(
       (a) => a.id !== currentActivity.id && a.status !== "complete"
     );
-    if (incomplete) navigate(`/ropa/activity/${incomplete.id}`);
+    if (incomplete) navigate(withSession(`/ropa/activity/${incomplete.id}`, currentSession?.id));
     else navigate(currentSession ? `/ropa/review/${currentSession.id}` : "/ropa/review");
   };
 
