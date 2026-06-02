@@ -379,6 +379,41 @@ export default function RopaActivity() {
                   <p className="mt-2 text-muted-foreground">{q.whyWeAsk}</p>
                 </details>
 
+                {q.key === "data_categories" && (
+                  <details className="mb-3 text-sm">
+                    <summary className="cursor-pointer text-muted-foreground min-h-[32px] flex items-center">
+                      ⓘ Examples of personal data
+                      {clientSector ? ` for ${clientSector}` : ""} under GDPR
+                    </summary>
+                    <div className="mt-2 space-y-3 rounded-md border border-border bg-muted/30 p-3">
+                      <p className="text-xs text-muted-foreground">
+                        Illustrative only. Pick what actually applies to this
+                        activity. Items marked <span className="font-semibold">sensitive</span> are
+                        special category or otherwise heightened-risk data
+                        (GDPR Art.9 / Art.10) and usually need an additional
+                        condition for processing.
+                      </p>
+                      {personalDataExamples.map((group) => (
+                        <div key={group.label}>
+                          <p className="text-sm font-semibold">
+                            {group.label}
+                            {group.sensitive && (
+                              <span className="ml-2 text-[10px] uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">
+                                sensitive
+                              </span>
+                            )}
+                          </p>
+                          <ul className="mt-1 list-disc list-inside text-sm text-muted-foreground space-y-0.5">
+                            {group.examples.map((ex) => (
+                              <li key={ex}>{ex}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+
                 <PriorAnswerSuggestions
                   sessionId={currentSession?.id ?? null}
                   activityId={currentActivity.id}
