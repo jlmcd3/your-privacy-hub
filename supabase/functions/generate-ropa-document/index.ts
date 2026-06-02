@@ -476,9 +476,9 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
       kvRow("Legal entity", d.profile?.legal_entity_type ?? "—"),
       kvRow("Sector", d.client?.sector ?? "—"),
       kvRow("Employee band", d.profile?.employee_band ?? "—"),
-      kvRow("DPO", d.profile?.dpo_name ?? "Not designated"),
-      kvRow("EU representative", d.profile?.eu_rep_name ?? "—"),
-      kvRow("UK representative", d.profile?.uk_rep_name ?? "—"),
+      kvRow("DPO", `${d.profile?.dpo_name ?? "Not designated"}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`),
+      kvRow("EU representative", `${d.profile?.eu_rep_name ?? "—"}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`),
+      kvRow("UK representative", `${d.profile?.uk_rep_name ?? "—"}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`),
       kvRow("Jurisdictions", d.jurisdictions.join(", ") || "—"),
     ],
   });
@@ -495,6 +495,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
       new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [
+          kvRow("Role", activityRole(ans, d.profile)),
           kvRow("Category", a.category),
           kvRow("Purpose", answerToString(ans.purpose)),
           kvRow("Lawful basis", lawfulBasisLabel(ans.lawful_basis)),
@@ -517,6 +518,21 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
       }),
     );
     activityBlocks.push(p(""));
+  }
+
+  const allAnswerBlocks: any[] = [];
+  for (const a of d.activities) {
+    const ans = d.answersByActivity[a.id] ?? {};
+    const entries = Object.entries(ans).filter(([key]) => key !== "info_card");
+    if (entries.length === 0) continue;
+    allAnswerBlocks.push(p(a.display_name, { heading: HeadingLevel.HEADING_3 }));
+    allAnswerBlocks.push(
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: entries.map(([key, value]) => kvRow(questionLabel(key), answerToString(value))),
+      }),
+    );
+    allAnswerBlocks.push(p(""));
   }
 
   const transfers = collectTransfers(d);
@@ -550,28 +566,6 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
         )),
   ];
 
-  const flagBlocks: any[] = [];
-  if (d.flags.length === 0) {
-    flagBlocks.push(p("No flagged items.", { size: 18 }));
-  } else {
-    for (const f of d.flags) {
-      flagBlocks.push(
-        new Paragraph({
-          children: [
-            new TextRun({ text: `• ${f.flag_message}`, bold: true, size: 20 }),
-            new TextRun({
-              text: ` — ${f.resolved ? "Noted — under review" : "Action required"}`,
-              size: 18,
-            }),
-          ],
-        }),
-      );
-      if (!f.resolved && f.consequence) {
-        flagBlocks.push(p(`  ${f.consequence}`, { size: 18 }));
-      }
-    }
-  }
-
   const doc = new Document({
     sections: [
       {
@@ -591,10 +585,11 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
             rows: transferRows,
           }),
           p(""),
-          p("4. Flagged items (appendix)", { heading: HeadingLevel.HEADING_2 }),
-          ...flagBlocks,
+          ...(allAnswerBlocks.length > 0
+            ? [p("4. Complete answer register", { heading: HeadingLevel.HEADING_2 }), ...allAnswerBlocks]
+            : []),
           p(""),
-          p("5. Controller / processor statement", { heading: HeadingLevel.HEADING_2 }),
+          p(allAnswerBlocks.length > 0 ? "5. Controller / processor statement" : "4. Controller / processor statement", { heading: HeadingLevel.HEADING_2 }),
           p(
             `This record was prepared by ${d.settings.authorName} on ${d.settings.documentDate}. It constitutes our record of processing activities under the applicable laws listed above. We are committed to reviewing and updating this record at least annually.`,
           ),
