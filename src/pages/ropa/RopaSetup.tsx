@@ -336,7 +336,7 @@ export default function RopaSetup() {
       let sessionId = hasExistingSession;
       if (!sessionId) sessionId = await createSession(clientId);
 
-      navigate("/ropa/activities");
+      navigate(withSession("/ropa/activities", sessionId));
     } catch (e) {
       toast.error("Could not save setup. Please try again.");
       console.error(e);
