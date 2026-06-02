@@ -125,9 +125,11 @@ export default function RopaActivity() {
       if (isCurrent) {
         const remaining = useRopaStore.getState().allActivities;
         if (remaining.length > 0) {
-          navigate(`/ropa/activity/${remaining[0].id}`);
+          navigate(
+            withSession(`/ropa/activity/${remaining[0].id}`, currentSession?.id)
+          );
         } else {
-          navigate(`/ropa/activities`);
+          navigate(withSession(`/ropa/activities`, currentSession?.id));
         }
       }
     } catch (e) {
