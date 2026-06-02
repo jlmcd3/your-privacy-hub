@@ -238,15 +238,24 @@ export default function RopaActivities() {
   const beginDocumenting = async () => {
     if (!clientId || !sessionId) {
       toast.error("Complete setup first.");
-      navigate("/ropa/setup");
+      navigate(withSession("/ropa/setup", urlSessionId));
       return;
     }
     if (totalSelected === 0) return;
 
     setSubmitting(true);
     try {
+      // Only insert template_keys that aren't already attached to this
+      // session, so coming back here and clicking "Begin documenting" again
+      // doesn't create duplicates. We intentionally don't delete unchecked
+      // existing activities — use the delete button in the Q&A sidebar for
+      // that, which also wipes their answers/flags.
+      const newTemplateKeys = Array.from(selected).filter(
+        (key) => !existingTemplateKeys.has(key)
+      );
+
       const rows = [
-        ...Array.from(selected).map((key, i) => {
+        ...newTemplateKeys.map((key) => {
           const t = templates.find((x) => x.template_key === key)!;
           return {
             session_id: sessionId,
@@ -269,22 +278,31 @@ export default function RopaActivities() {
         })),
       ];
 
-      const { data: inserted, error } = await SUPA.from(
-        "ropa_processing_activities"
-      )
-        .insert(rows)
-        .select("id");
-      if (error) throw error;
+      let firstNewId: string | null = null;
+      if (rows.length > 0) {
+        const { data: inserted, error } = await SUPA.from(
+          "ropa_processing_activities"
+        )
+          .insert(rows)
+          .select("id");
+        if (error) throw error;
+        firstNewId = inserted?.[0]?.id ?? null;
+      }
 
+      // Update total_activities to reflect every row now attached.
       await SUPA.from("ropa_sessions")
         .update({
-          total_activities: rows.length,
+          total_activities: existingCount + rows.length,
           last_activity_at: new Date().toISOString(),
         })
         .eq("id", sessionId);
 
-      const firstId = inserted?.[0]?.id;
-      navigate(firstId ? `/ropa/activity/${firstId}` : "/ropa/review");
+      const goToId = firstNewId ?? existingFirstActivityId;
+      if (goToId) {
+        navigate(withSession(`/ropa/activity/${goToId}`, sessionId));
+      } else {
+        navigate(`/ropa/review/${sessionId}`);
+      }
     } catch (e) {
       console.error(e);
       toast.error("Could not create activities. Try again.");
@@ -292,6 +310,7 @@ export default function RopaActivities() {
       setSubmitting(false);
     }
   };
+
 
   if (!clientId) {
     return (
