@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { CheckCircle2, AlertTriangle, ChevronDown, ChevronRight, Loader2, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +58,8 @@ export default function RopaReview() {
   const [includeExcel, setIncludeExcel] = useState(false);
 
   const [acknowledged, setAcknowledged] = useState(false);
+  const [ackHighlight, setAckHighlight] = useState(false);
+  const ackRef = useRef<HTMLLabelElement | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [genSteps, setGenSteps] = useState<Record<GenStep, "pending" | "done">>({
@@ -220,6 +222,21 @@ export default function RopaReview() {
 
   const handleGenerateClick = async () => {
     if (!currentSession) return;
+    // If blocked only by the acknowledgment checkbox, guide the user to it
+    // instead of silently doing nothing.
+    if (onlyWarningsOrRecs && !acknowledged) {
+      ackRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setAckHighlight(true);
+      window.setTimeout(() => setAckHighlight(false), 1800);
+      return;
+    }
+    if (hasMissingRequired) {
+      // Surface the flags section
+      document
+        .querySelector('[data-ropa-section="flags"]')
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (currentSession.payment_confirmed) {
       await runGeneration();
       return;
