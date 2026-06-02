@@ -89,6 +89,7 @@ export default function USNoticeDocuments() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { toast } = useToast();
   const { authorized } = useUsNoticeSessionGuard(sessionId);
+  const { isAdmin } = useIsAdmin();
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -96,6 +97,28 @@ export default function USNoticeDocuments() {
   const [states, setStates] = useState<StateRow[]>([]);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [hasEuNotices, setHasEuNotices] = useState<boolean>(true);
+  const [pendingDelete, setPendingDelete] = useState<DocumentRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await adminDelete("us_notice_document", pendingDelete.id);
+      toast({ title: "Notice deleted" });
+      setPendingDelete(null);
+      await load();
+    } catch (err) {
+      toast({
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  }
+
 
   useEffect(() => {
     (async () => {
