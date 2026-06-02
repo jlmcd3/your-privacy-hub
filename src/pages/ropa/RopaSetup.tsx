@@ -143,6 +143,10 @@ export default function RopaSetup() {
   const { clientId, client } = useActiveClient();
   const createSession = useRopaStore((s) => s.createSession);
   const urlSessionId = useRopaSessionParam();
+  const [searchParams] = useSearchParams();
+  // `?new=1` forces a brand-new RoPA: do NOT resume any in-progress session
+  // and do NOT hydrate the form from the workspace-scoped profile.
+  const forceNew = searchParams.get("new") === "1";
 
   const [step, setStep] = useState(0);
   const [orgName, setOrgName] = useState("");
