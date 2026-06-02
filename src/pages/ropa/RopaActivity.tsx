@@ -109,6 +109,33 @@ export default function RopaActivity() {
     }
   };
 
+  const handleDeleteActivity = async (
+    activityId: string,
+    displayName: string
+  ) => {
+    const ok = window.confirm(
+      `Delete "${displayName}"?\n\nThis permanently removes the activity and all of its answers and flags. This cannot be undone.`
+    );
+    if (!ok) return;
+    const isCurrent = currentActivity?.id === activityId;
+    try {
+      await deleteActivityFromStore(activityId);
+      toast.success(`Deleted "${displayName}"`);
+      if (isCurrent) {
+        const remaining = useRopaStore.getState().allActivities;
+        if (remaining.length > 0) {
+          navigate(`/ropa/activity/${remaining[0].id}`);
+        } else {
+          navigate(`/ropa/activities`);
+        }
+      }
+    } catch (e) {
+      toast.error(
+        `Couldn't delete activity: ${(e as Error)?.message ?? "unknown error"}`
+      );
+    }
+  };
+
   // Count answered required questions for progress
   const answeredRequired = visibleQuestions.filter(
     (q) =>
