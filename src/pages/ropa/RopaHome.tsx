@@ -19,7 +19,21 @@ import {
   CheckCircle2,
   Clock,
   Download,
+  Trash2,
 } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { adminDelete } from "@/lib/adminDelete";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface SessionRow {
   id: string;
@@ -44,48 +58,78 @@ const REFRESH_REMINDER_DAYS = 335; // ~11 months
 export default function RopaHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { isAdmin } = useIsAdmin();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [activeSession, setActiveSession] = useState<SessionRow | null>(null);
   const [latestGenerated, setLatestGenerated] = useState<SessionRow | null>(null);
   const [allSessions, setAllSessions] = useState<SessionRow[]>([]);
+  const [pendingDelete, setPendingDelete] = useState<SessionRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const reload = async () => {
+    if (!user) return;
+    const { data: clients } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("owner_id", user.id)
+      .eq("is_active", true);
+    const clientIds = (clients ?? []).map((c) => c.id);
+    if (clientIds.length === 0) {
+      setAllSessions([]);
+      setActiveSession(null);
+      setLatestGenerated(null);
+      return;
+    }
+    const { data: sessions } = await supabase
+      .from("ropa_sessions")
+      .select(
+        "id,status,is_refresh,version_number,total_activities,completed_activities,open_flags_count,started_at,last_activity_at,completed_at,paid_at,payment_confirmed,generated_docx_path,generated_pdf_path,generated_xlsx_path"
+      )
+      .in("client_id", clientIds)
+      .order("last_activity_at", { ascending: false });
+    const rows = (sessions ?? []) as SessionRow[];
+    setAllSessions(rows);
+    setActiveSession(
+      rows.find((r) => r.status === "in_progress" || r.status === "review") ?? null
+    );
+    setLatestGenerated(
+      rows.find(
+        (r) => r.status === "generated" && (r.generated_docx_path || r.generated_pdf_path)
+      ) ?? null
+    );
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await adminDelete("ropa_session", pendingDelete.id);
+      toast({ title: "RoPA session deleted" });
+      setPendingDelete(null);
+      await reload();
+    } catch (err) {
+      toast({
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
     (async () => {
       setLoading(true);
       try {
-        const { data: clients } = await supabase
-          .from("clients")
-          .select("id")
-          .eq("owner_id", user.id)
-          .eq("is_active", true);
-        const clientIds = (clients ?? []).map((c) => c.id);
-        if (clientIds.length === 0) {
-          setLoading(false);
-          return;
-        }
-        const { data: sessions } = await supabase
-          .from("ropa_sessions")
-          .select(
-            "id,status,is_refresh,version_number,total_activities,completed_activities,open_flags_count,started_at,last_activity_at,completed_at,paid_at,payment_confirmed,generated_docx_path,generated_pdf_path,generated_xlsx_path"
-          )
-          .in("client_id", clientIds)
-          .order("last_activity_at", { ascending: false });
-
-        const rows = (sessions ?? []) as SessionRow[];
-        setAllSessions(rows);
-        setActiveSession(
-          rows.find((r) => r.status === "in_progress" || r.status === "review") ?? null
-        );
-        setLatestGenerated(
-          rows.find(
-            (r) => r.status === "generated" && (r.generated_docx_path || r.generated_pdf_path)
-          ) ?? null
-        );
+        await reload();
       } finally {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const refreshDue =
@@ -192,6 +236,18 @@ export default function RopaHome() {
                   <Button asChild variant="outline">
                     <Link to={`/ropa/review/${activeSession.id}`}>Review</Link>
                   </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPendingDelete(activeSession)}
+                      className="ml-auto gap-2 text-destructive hover:text-destructive"
+                      aria-label="Delete in-progress RoPA session (admin)"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -307,6 +363,27 @@ export default function RopaHome() {
           )}
         </div>
       )}
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this RoPA session?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the session and all its activities, answers, flags, and generated document versions. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void confirmDelete(); }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete session"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </RopaShell>
   );
 }
