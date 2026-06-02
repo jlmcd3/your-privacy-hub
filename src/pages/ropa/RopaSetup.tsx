@@ -145,7 +145,7 @@ export default function RopaSetup() {
   const urlSessionId = useRopaSessionParam();
 
   const [step, setStep] = useState(0);
-  const [orgName, setOrgName] = useState(client?.name ?? "");
+  const [orgName, setOrgName] = useState("");
   const [sector, setSector] = useState<string>(
     (client as { sector?: string } | null)?.sector ?? ""
   );
