@@ -74,6 +74,8 @@ export default function RopaDocuments() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [hasUsNotices, setHasUsNotices] = useState<boolean>(true);
   const [hasEuNotices, setHasEuNotices] = useState<boolean>(true);
+  const [needsUs, setNeedsUs] = useState<boolean>(false);
+  const [needsEu, setNeedsEu] = useState<boolean>(false);
   const [pendingDeleteSession, setPendingDeleteSession] = useState<SessionRow | null>(null);
   const [pendingDeleteDoc, setPendingDeleteDoc] = useState<DocVersion | null>(null);
   const [deleting, setDeleting] = useState(false);
