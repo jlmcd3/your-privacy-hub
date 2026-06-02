@@ -245,6 +245,52 @@ export default function MyReports() {
         pdf_url: r.pdf_url,
         ...clientMeta(r.client_id),
       }));
+      (ropa.data || []).forEach((r: any) => {
+        const inProgress = r.status === "in_progress";
+        const scopeParts: string[] = [];
+        if (r.version_number) scopeParts.push(`v${r.version_number}`);
+        if (r.scope && typeof r.scope === "object") {
+          const states = Array.isArray((r.scope as any).states) ? (r.scope as any).states : null;
+          const frameworks = Array.isArray((r.scope as any).frameworks) ? (r.scope as any).frameworks : null;
+          if (states?.length) scopeParts.push(states.join(", "));
+          if (frameworks?.length) scopeParts.push(frameworks.join(", "));
+        }
+        all.push({
+          id: r.id, tool: "ropa", tool_label: TOOL_LABEL.ropa,
+          created_at: r.created_at, status: r.status,
+          summary: scopeParts.join(" · ") || "Record of Processing Activities",
+          view_path: inProgress ? `/ropa/activities?session=${r.id}` : "/ropa/documents",
+          ...clientMeta(r.client_id),
+        });
+      });
+      (usNotice.data || []).forEach((r: any) => {
+        const inProgress = r.status === "in_progress" || r.status === "draft";
+        const scopeParts: string[] = [];
+        if (r.version_number) scopeParts.push(`v${r.version_number}`);
+        if (r.scope && typeof r.scope === "object") {
+          const states = Array.isArray((r.scope as any).states) ? (r.scope as any).states : null;
+          if (states?.length) scopeParts.push(states.join(", "));
+        }
+        all.push({
+          id: r.id, tool: "us_notice", tool_label: TOOL_LABEL.us_notice,
+          created_at: r.created_at, status: r.status,
+          summary: scopeParts.join(" · ") || "US Privacy Notice",
+          view_path: inProgress ? `/us-notices/${r.id}/questions` : `/us-notices/${r.id}/documents`,
+          ...clientMeta(r.client_id),
+        });
+      });
+      (euNotice.data || []).forEach((r: any) => {
+        const inProgress = r.status === "in_progress" || r.status === "draft";
+        const scopeParts: string[] = [];
+        if (r.version_number) scopeParts.push(`v${r.version_number}`);
+        all.push({
+          id: r.id, tool: "eu_notice", tool_label: TOOL_LABEL.eu_notice,
+          created_at: r.created_at, status: r.status,
+          summary: scopeParts.join(" · ") || "EU Privacy Notice",
+          view_path: inProgress ? "/eu-notices" : "/eu-notices/documents",
+          ...clientMeta(r.client_id),
+        });
+      });
 
 
 
