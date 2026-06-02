@@ -64,6 +64,27 @@ export default function RegistrationDocuments() {
   const [selected, setSelected] = useState<any>(null);
   const [emailing, setEmailing] = useState(false);
   const previewRef = useRef<HTMLPreElement>(null);
+  const { isAdmin } = useIsAdmin();
+  const [pendingDelete, setPendingDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await adminDelete("registration_document", pendingDelete.id);
+      toast.success("Document deleted");
+      const remaining = docs.filter((x) => x.id !== pendingDelete.id);
+      setDocs(remaining);
+      if (selected?.id === pendingDelete.id) setSelected(remaining[0] ?? null);
+      setPendingDelete(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
 
   // Reset scroll position when switching documents
   useEffect(() => {
