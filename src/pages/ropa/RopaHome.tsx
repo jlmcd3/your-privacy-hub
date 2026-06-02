@@ -236,6 +236,11 @@ export default function RopaHome() {
                   <Button asChild variant="outline">
                     <Link to={`/ropa/review/${activeSession.id}`}>Review</Link>
                   </Button>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link to="/ropa/setup?new=1">
+                      <Plus className="mr-1.5 h-4 w-4" /> Start a new RoPA
+                    </Link>
+                  </Button>
                   {isAdmin && (
                     <Button
                       variant="ghost"
