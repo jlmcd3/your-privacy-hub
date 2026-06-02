@@ -69,6 +69,9 @@ const TOOL_LABEL: Record<string, string> = {
   ir: "Breach Response Playbook",
   biometric: "Biometric Compliance Check",
   registration: "Registration Order",
+  ropa: "RoPA (Article 30)",
+  us_notice: "US Privacy Notice",
+  eu_notice: "EU Privacy Notice",
 };
 
 function statusVariant(s: string): "default" | "secondary" | "outline" {
