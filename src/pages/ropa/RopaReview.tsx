@@ -281,15 +281,6 @@ export default function RopaReview() {
           <div className="flex flex-wrap gap-2">
             <Chip>{allActivities.length} activities</Chip>
             <Chip>{(profile.selected_jurisdictions ?? []).length} jurisdictions</Chip>
-            {summary.total > 0 ? (
-              <Chip color="amber">
-                {summary.total} item{summary.total === 1 ? "" : "s"} to review
-              </Chip>
-            ) : (
-              <Chip color="green">
-                <CheckCircle2 className="w-3 h-3 inline mr-1" /> All items resolved
-              </Chip>
-            )}
           </div>
         </header>
 
