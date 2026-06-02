@@ -106,7 +106,7 @@ export default function NoticesRopaHub() {
           .order("created_at", { ascending: false }),
         supabase
           .from("ropa_sessions" as any)
-          .select("id, created_at, updated_at, completed_at, status, version_number, scope")
+          .select("id, created_at, updated_at, completed_at, status, version_number, org_name")
           .eq("client_id", client.id)
           .order("created_at", { ascending: false }),
       ]);
