@@ -355,6 +355,18 @@ export default function RopaHome() {
                           <Link to={`/ropa/review/${s.id}`}>Open</Link>
                         </Button>
                       )}
+                      {isAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setPendingDelete(s)}
+                          className="gap-1.5 text-destructive hover:text-destructive"
+                          aria-label="Delete RoPA session (admin)"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </Button>
+                      )}
                     </li>
                   ))}
                 </ul>
