@@ -116,14 +116,19 @@ export default function RopaReview() {
       }
 
       const { data: prof } = await SUPA.from("ropa_client_profiles")
-        .select("legal_entity_type, employee_band, is_controller, is_processor, dpo_name, selected_jurisdictions")
+        .select("legal_entity_type, employee_band, is_controller, is_processor, dpo_name")
         .eq("client_id", sess.client_id)
         .maybeSingle();
-      if (prof && !cancelled) setProfile(prof);
-
-      // Run session-level auto-flags, then refresh
-      await runSessionLevelChecks();
-      await loadFlags();
+      const { data: jurs } = await SUPA.from("ropa_jurisdiction_selections")
+        .select("jurisdiction_code")
+        .eq("client_id", sess.client_id);
+      if (!cancelled) {
+        setProfile({
+          ...(prof ?? {}),
+          selected_jurisdictions:
+            jurs?.map((j: { jurisdiction_code: string }) => j.jurisdiction_code) ?? [],
+        });
+      }
 
       if (!cancelled) setLoading(false);
     })();
