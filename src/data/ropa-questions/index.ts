@@ -181,7 +181,7 @@ const HR_MONITORING = baseSequence({
     title: "Employee monitoring is high-risk",
     body: "Closely scrutinised by EU, UK, and US regulators. This activity is treated as high-risk by default.",
   },
-  extras: [{ ...DPA_CROSSSELL_Q }],
+  extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }],
 });
 
 const MARKETING_EMAIL = baseSequence({
@@ -228,17 +228,17 @@ const MARKETING_ADVERTISING = baseSequence({
   ],
 });
 
-const CUSTOMER_ACCOUNTS = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }] });
-const CUSTOMER_SUPPORT = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }] });
+const CUSTOMER_ACCOUNTS = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
+const CUSTOMER_SUPPORT = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
 const CUSTOMER_KYC = baseSequence({
   staticInfoCard: {
     title: "Customer due diligence is high-risk",
     body: "KYC carries simultaneous AML and privacy obligations. DPIA is strongly recommended.",
   },
 });
-const CUSTOMER_CRM = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }] });
+const CUSTOMER_CRM = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
 
-const TECH_IT_SYSTEMS = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }] });
+const TECH_IT_SYSTEMS = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
 const TECH_SECURITY = baseSequence({
   extras: [
     {
@@ -263,7 +263,7 @@ const TECH_SECURITY = baseSequence({
     },
   ],
 });
-const TECH_CLOUD = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }] });
+const TECH_CLOUD = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
 
 const FINANCE_INVOICING = baseSequence({});
 const FINANCE_CREDIT = baseSequence({
@@ -275,7 +275,7 @@ const FINANCE_CREDIT = baseSequence({
 const LEGAL_CONTRACTS = baseSequence({});
 const LEGAL_COMPLIANCE = baseSequence({});
 
-const THIRD_PARTY_VENDORS = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }] });
+const THIRD_PARTY_VENDORS = baseSequence({ extras: [{ ...DPA_CROSSSELL_Q }, { ...PROCESSOR_PLATFORM_Q }] });
 const THIRD_PARTY_SHARING = baseSequence({});
 const THIRD_PARTY_TRANSFERS = baseSequence({
   staticInfoCard: {
