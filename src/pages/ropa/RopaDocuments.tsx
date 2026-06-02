@@ -74,6 +74,8 @@ export default function RopaDocuments() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [hasUsNotices, setHasUsNotices] = useState<boolean>(true);
   const [hasEuNotices, setHasEuNotices] = useState<boolean>(true);
+  const [needsUs, setNeedsUs] = useState<boolean>(false);
+  const [needsEu, setNeedsEu] = useState<boolean>(false);
   const [pendingDeleteSession, setPendingDeleteSession] = useState<SessionRow | null>(null);
   const [pendingDeleteDoc, setPendingDeleteDoc] = useState<DocVersion | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -101,8 +103,20 @@ export default function RopaDocuments() {
       } catch {
         setHasEuNotices(true);
       }
+      try {
+        const { data: regions } = await supabase
+          .from('ropa_jurisdiction_selections')
+          .select('jurisdiction_region');
+        const set = new Set((regions ?? []).map((r: { jurisdiction_region: string }) => r.jurisdiction_region));
+        setNeedsUs(set.has('United States'));
+        setNeedsEu(set.has('EU & UK'));
+      } catch {
+        setNeedsUs(false);
+        setNeedsEu(false);
+      }
     })();
   }, []);
+
 
   useEffect(() => {
     void loadDocuments();
@@ -264,8 +278,8 @@ export default function RopaDocuments() {
         </Button>
       </div>
 
-      {/* Cross-tool prompts: US notice prompt takes priority over EU when both missing. */}
-      {!hasUsNotices ? (
+      {/* Notice CTA is jurisdiction-aware: only promote products that match the company's selected regions. */}
+      {needsUs && !hasUsNotices ? (
         <CrossToolPrompt
           visitKey="/ropa/documents"
           dismissKey="us_notice_prompt_dismissed"
@@ -276,18 +290,19 @@ export default function RopaDocuments() {
           ctaTo="/us-notices/mode?mode=ropa_powered"
           enabled={sessions.length > 0}
         />
-      ) : (
+      ) : needsEu && !hasEuNotices ? (
         <CrossToolPrompt
           visitKey="/ropa/documents"
           dismissKey="eu_notice_prompt_dismissed"
           icon={<Globe2 className="w-5 h-5" />}
-          title="🌍 Add EU & global notices?"
+          title="🌍 Add EU & UK privacy notices?"
           body="Your RoPA data pre-populates most answers. Takes 8–18 minutes."
           ctaLabel="Generate EU notices →"
           ctaTo="/eu-notices/mode?mode=ropa_powered"
-          enabled={sessions.length > 0 && !hasEuNotices}
+          enabled={sessions.length > 0}
         />
-      )}
+      ) : null}
+
 
       {loading ? (
         <div className="space-y-4">
