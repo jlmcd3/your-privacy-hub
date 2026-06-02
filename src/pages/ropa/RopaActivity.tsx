@@ -361,34 +361,51 @@ function ActivityNavList({
   currentActivityId: string;
   onSelect: (id: string) => void;
 }) {
+  // Determine which activities are unlocked: all complete ones, plus the
+  // first non-complete activity. Everything after that is locked so users
+  // are forced to work through the list sequentially.
+  const firstIncompleteIdx = activities.findIndex((a) => a.status !== "complete");
+  const unlockedThroughIdx =
+    firstIncompleteIdx === -1 ? activities.length - 1 : firstIncompleteIdx;
+
   return (
     <ul className="space-y-1">
-      {activities.map((a) => {
+      {activities.map((a, idx) => {
         const isCurrent = a.id === currentActivityId;
-        const statusLabel =
-          a.status === "complete"
-            ? "Complete"
-            : a.status === "in_progress"
-              ? "In progress"
+        const isComplete = a.status === "complete";
+        const isLocked = idx > unlockedThroughIdx && !isCurrent;
+        const statusLabel = isComplete
+          ? "Complete"
+          : a.status === "in_progress"
+            ? "In progress"
+            : isLocked
+              ? "Locked — complete previous activities first"
               : "Not started";
         return (
           <li key={a.id}>
             <button
-              onClick={() => onSelect(a.id)}
+              onClick={() => !isLocked && onSelect(a.id)}
+              disabled={isLocked}
               aria-current={isCurrent ? "step" : undefined}
+              aria-disabled={isLocked || undefined}
               aria-label={`${a.display_name} — ${statusLabel}`}
+              title={isLocked ? "Complete the previous activity first" : undefined}
               className={`w-full text-left text-sm px-2 py-2 min-h-[44px] rounded flex items-start gap-2 ${
                 isCurrent
                   ? "bg-primary/10 border-l-2 border-primary font-semibold"
-                  : "hover:bg-muted/40"
+                  : isLocked
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:bg-muted/40"
               }`}
             >
               <span aria-hidden className="mt-0.5">
-                {a.status === "complete"
+                {isComplete
                   ? "✓"
                   : a.status === "in_progress"
                     ? "•"
-                    : "○"}
+                    : isLocked
+                      ? "🔒"
+                      : "○"}
               </span>
               <span className="flex-1">{a.display_name}</span>
               <span className="sr-only">{statusLabel}</span>
