@@ -345,7 +345,6 @@ export default function RopaReview() {
             <ul className="divide-y divide-border">
               {visibleActivities.map((a) => {
                 const isOpen = expandedActivity === a.id;
-                const flagCount = flagsByActivity.get(a.id) ?? 0;
                 return (
                   <li key={a.id}>
                     <button
@@ -362,7 +361,6 @@ export default function RopaReview() {
                       </span>
                       <Chip color="neutral">{a.category}</Chip>
                       <StatusChip status={a.status} />
-                      {flagCount > 0 && <Chip color="amber">{flagCount} flag{flagCount > 1 ? "s" : ""}</Chip>}
                     </button>
                     {isOpen && (
                       <div className="pl-7 pb-3 pr-2 text-sm text-muted-foreground space-y-1">
