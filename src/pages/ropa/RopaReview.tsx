@@ -155,10 +155,14 @@ export default function RopaReview() {
   const allClean = true;
   const generateDisabled = false;
 
-  // Handle ?payment_success=true
+  // Handle return from Stripe checkout (either ?payment_success=true from
+  // our own callback, or ?session_id=cs_... from a Stripe-hosted redirect).
   useEffect(() => {
     if (!sessionId) return;
-    if (searchParams.get("payment_success") === "true") {
+    const isReturn =
+      searchParams.get("payment_success") === "true" ||
+      !!searchParams.get("session_id");
+    if (isReturn) {
       (async () => {
         const ok = await waitForSessionPaid("ropa_sessions", sessionId);
         const next = new URLSearchParams(searchParams);
@@ -170,6 +174,7 @@ export default function RopaReview() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
+
 
   const runGeneration = async () => {
     if (!sessionId) return;
