@@ -186,24 +186,37 @@ export default function RegistrationDocuments() {
               {/* Document list */}
               <div className="space-y-2">
                 {docs.map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => setSelected(d)}
-                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                      selected?.id === d.id
-                        ? "border-brand-navy bg-brand-navy/5"
-                        : "border-border/60 hover:bg-brand-cloud"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <FileText className="w-4 h-4 text-slate flex-shrink-0" />
-                      <span className="text-sm font-medium text-brand-navy truncate">
-                        <span className="font-mono uppercase text-slate mr-1">{d.jurisdiction_code}</span>
-                        - {DOC_LABELS[d.document_type] || d.document_type}
-                      </span>
-                    </div>
-                  </button>
+                  <div key={d.id} className="flex items-stretch gap-1">
+                    <button
+                      onClick={() => setSelected(d)}
+                      className={`flex-1 text-left p-3 rounded-lg border transition-colors ${
+                        selected?.id === d.id
+                          ? "border-brand-navy bg-brand-navy/5"
+                          : "border-border/60 hover:bg-brand-cloud"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FileText className="w-4 h-4 text-slate flex-shrink-0" />
+                        <span className="text-sm font-medium text-brand-navy truncate">
+                          <span className="font-mono uppercase text-slate mr-1">{d.jurisdiction_code}</span>
+                          - {DOC_LABELS[d.document_type] || d.document_type}
+                        </span>
+                      </div>
+                    </button>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setPendingDelete(d)}
+                        className="text-destructive hover:text-destructive"
+                        aria-label="Delete document (admin)"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 ))}
+
               </div>
 
               {/* Document preview */}
