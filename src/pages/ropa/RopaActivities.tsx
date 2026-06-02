@@ -366,6 +366,12 @@ export default function RopaActivities() {
 
   return (
     <RopaShell title="Select Activities — RoPA Builder" heading="">
+      <SectorPrimerDialog
+        open={primerOpen}
+        sector={sector}
+        onDismiss={dismissPrimer}
+        onUseSampleActivity={useSampleAsFirstActivity}
+      />
       {(() => {
         const { steps, currentIndex } = getRopaSteps("activities", sessionId);
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
