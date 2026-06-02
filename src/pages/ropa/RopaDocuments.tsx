@@ -39,6 +39,7 @@ type SessionRow = {
   open_flags_count: number;
   is_refresh: boolean;
   payment_confirmed: boolean;
+  org_name: string | null;
 };
 
 type DocVersion = {
@@ -112,7 +113,7 @@ export default function RopaDocuments() {
     try {
       const { data: sess, error: sErr } = await supabase
         .from("ropa_sessions")
-        .select("id,status,version_number,completed_at,last_activity_at,total_activities,open_flags_count,is_refresh,payment_confirmed")
+        .select("id,status,version_number,completed_at,last_activity_at,total_activities,open_flags_count,is_refresh,payment_confirmed,org_name")
         .in("status", ["in_progress", "review", "generated"])
         .order("last_activity_at", { ascending: false });
       if (sErr) throw sErr;
@@ -316,7 +317,7 @@ export default function RopaDocuments() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <CardTitle className="font-heading text-lg flex items-center gap-2">
-                        Version {s.version_number}
+                        {s.org_name?.trim() ? `${s.org_name.trim()} - ` : ""}Version {s.version_number}
                         {s.is_refresh && (
                           <Badge variant="outline" className="text-xs">Refresh</Badge>
                         )}
