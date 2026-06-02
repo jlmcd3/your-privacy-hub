@@ -274,7 +274,10 @@ export default function RopaReview() {
     <RopaShell title="Review your RoPA" heading="Review your RoPA">
       <div className="max-w-4xl mx-auto space-y-6">
         {(() => {
-          const { steps, currentIndex } = getRopaSteps("review");
+          const { steps, currentIndex } = getRopaSteps(
+            "review",
+            sessionId ?? currentSession?.id ?? null
+          );
           return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
         })()}
         {/* Header */}
