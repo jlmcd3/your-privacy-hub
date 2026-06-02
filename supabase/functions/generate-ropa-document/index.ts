@@ -338,29 +338,6 @@ function buildHtml(d: AssembledData): string {
       </table>
     `;
 
-  const flagsBySev = (sev: string) =>
-    d.flags.filter((f) =>
-      sev === "errors"
-        ? f.flag_type === "missing_required"
-        : sev === "warnings"
-          ? f.severity === "warning" && f.flag_type !== "missing_required"
-          : f.severity === "info" || f.flag_type === "recommendation" || f.flag_type === "cross_sell",
-    );
-
-  const renderFlagGroup = (label: string, items: any[]) => {
-    if (items.length === 0) return "";
-    const rows = items
-      .map((f) => `
-        <li>
-          <strong>${escapeHtml(f.flag_message)}</strong>
-          <span class="status ${f.resolved ? "resolved" : "open"}">${f.resolved ? "Noted — under review" : "Action required"}</span>
-          ${!f.resolved && f.consequence ? `<br/><em>${escapeHtml(f.consequence)}</em>` : ""}
-        </li>
-      `)
-      .join("");
-    return `<h3>${escapeHtml(label)}</h3><ul class="flags">${rows}</ul>`;
-  };
-
   const refreshNotes = d.refreshNotes.length === 0
     ? ""
     : `
@@ -390,11 +367,6 @@ function buildHtml(d: AssembledData): string {
     table.grid th, table.grid td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; }
     table.grid th { background: #f5f5f5; }
     .activity { page-break-inside: avoid; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px dashed #e0e0e0; }
-    ul.flags { padding-left: 20px; }
-    ul.flags li { margin-bottom: 8px; }
-    .status { display: inline-block; margin-left: 8px; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
-    .status.open { background: #fde68a; color: #78350f; }
-    .status.resolved { background: #d1fae5; color: #065f46; }
     .signature { margin-top: 32px; border-top: 1px solid #ccc; padding-top: 16px; }
     .footer-note { font-size: 11px; color: #777; margin-top: 24px; }
   </style>
@@ -421,9 +393,9 @@ function buildHtml(d: AssembledData): string {
       <tr><th>Legal entity</th><td>${escapeHtml(d.profile?.legal_entity_type ?? "—")}</td></tr>
       <tr><th>Sector</th><td>${escapeHtml(d.client?.sector ?? "—")}</td></tr>
       <tr><th>Employee band</th><td>${escapeHtml(d.profile?.employee_band ?? "—")}</td></tr>
-      <tr><th>DPO</th><td>${escapeHtml(d.profile?.dpo_name ?? "Not designated")}${d.profile?.dpo_email ? ` &lt;${escapeHtml(d.profile.dpo_email)}&gt;` : ""}</td></tr>
-      <tr><th>EU representative</th><td>${escapeHtml(d.profile?.eu_rep_name ?? "—")}</td></tr>
-      <tr><th>UK representative</th><td>${escapeHtml(d.profile?.uk_rep_name ?? "—")}</td></tr>
+      <tr><th>DPO</th><td>${escapeHtml(d.profile?.dpo_name ?? "Not designated")}${d.profile?.dpo_email ? ` &lt;${escapeHtml(d.profile.dpo_email)}&gt;` : ""}${d.profile?.dpo_phone ? ` · ${escapeHtml(d.profile.dpo_phone)}` : ""}</td></tr>
+      <tr><th>EU representative</th><td>${escapeHtml(d.profile?.eu_rep_name ?? "—")}${d.profile?.eu_rep_email ? ` &lt;${escapeHtml(d.profile.eu_rep_email)}&gt;` : ""}</td></tr>
+      <tr><th>UK representative</th><td>${escapeHtml(d.profile?.uk_rep_name ?? "—")}${d.profile?.uk_rep_email ? ` &lt;${escapeHtml(d.profile.uk_rep_email)}&gt;` : ""}</td></tr>
       <tr><th>Jurisdictions</th><td>${escapeHtml(d.jurisdictions.join(", ") || "—")}</td></tr>
     </tbody>
   </table>
@@ -436,14 +408,9 @@ function buildHtml(d: AssembledData): string {
   <h2>3. Cross-border transfer register</h2>
   ${transferTable}
 
-  <h2>4. Flagged items (appendix)</h2>
-  ${renderFlagGroup("Errors — required fields", flagsBySev("errors"))}
-  ${renderFlagGroup("Warnings", flagsBySev("warnings"))}
-  ${renderFlagGroup("Recommendations", flagsBySev("recommendations"))}
-  ${d.flags.length === 0 ? "<p><em>No flagged items.</em></p>" : ""}
   ${refreshNotes}
 
-  <h2>5. Controller / processor statement</h2>
+  <h2>4. Controller / processor statement</h2>
   <p>This record was prepared by <strong>${escapeHtml(d.settings.authorName)}</strong> on <strong>${escapeHtml(d.settings.documentDate)}</strong>.
   It constitutes our Article 30 record of processing activities (Records of Processing Activities — RoPA) maintained under ${escapeHtml(d.jurisdictions.map((j) => LAW_NAMES[j] ?? j).join(", ") || "applicable law")}.
   We are committed to reviewing and updating this record at least annually.</p>
