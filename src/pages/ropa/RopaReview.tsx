@@ -555,7 +555,14 @@ export default function RopaReview() {
             </div>
           )}
           {onlyWarningsOrRecs && (
-            <label className="flex items-start gap-2 text-sm mb-3 p-3 border border-border rounded-md bg-muted/30">
+            <label
+              ref={ackRef}
+              className={`flex items-start gap-2 text-sm mb-3 p-3 border rounded-md transition-all ${
+                ackHighlight
+                  ? "border-amber-500 bg-amber-50 dark:bg-amber-950/40 ring-2 ring-amber-400 animate-pulse"
+                  : "border-border bg-muted/30"
+              }`}
+            >
               <input
                 type="checkbox"
                 checked={acknowledged}
@@ -571,8 +578,13 @@ export default function RopaReview() {
 
           <button
             onClick={handleGenerateClick}
-            disabled={generateDisabled || generating}
-            className="w-full bg-brand-navy text-white text-sm font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-navy/90 transition"
+            disabled={generating}
+            aria-disabled={generateDisabled || generating}
+            className={`w-full text-white text-sm font-semibold py-3 rounded-lg transition ${
+              generateDisabled || generating
+                ? "bg-brand-navy/50 cursor-not-allowed"
+                : "bg-brand-navy hover:bg-brand-navy/90"
+            }`}
           >
             {generating
               ? "Generating…"
@@ -580,12 +592,20 @@ export default function RopaReview() {
                 ? "Generate RoPA documents"
                 : `Continue to payment — $${pricing.price}`}
           </button>
-          {allClean && (
+          {hasMissingRequired ? (
+            <p className="text-meta text-red-700 dark:text-red-400 text-center mt-2">
+              Resolve the required items above before generating.
+            </p>
+          ) : onlyWarningsOrRecs && !acknowledged ? (
+            <p className="text-meta text-amber-700 dark:text-amber-400 text-center mt-2">
+              Tick the acknowledgment above to continue.
+            </p>
+          ) : allClean ? (
             <p className="text-meta text-green-700 dark:text-green-400 text-center mt-2">
               <CheckCircle2 className="w-3 h-3 inline mr-1" />
               All flags resolved — ready to generate.
             </p>
-          )}
+          ) : null}
         </Section>
       </div>
 
