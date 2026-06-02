@@ -58,10 +58,66 @@ const REFRESH_REMINDER_DAYS = 335; // ~11 months
 export default function RopaHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { isAdmin } = useIsAdmin();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [activeSession, setActiveSession] = useState<SessionRow | null>(null);
   const [latestGenerated, setLatestGenerated] = useState<SessionRow | null>(null);
   const [allSessions, setAllSessions] = useState<SessionRow[]>([]);
+  const [pendingDelete, setPendingDelete] = useState<SessionRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const reload = async () => {
+    if (!user) return;
+    const { data: clients } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("owner_id", user.id)
+      .eq("is_active", true);
+    const clientIds = (clients ?? []).map((c) => c.id);
+    if (clientIds.length === 0) {
+      setAllSessions([]);
+      setActiveSession(null);
+      setLatestGenerated(null);
+      return;
+    }
+    const { data: sessions } = await supabase
+      .from("ropa_sessions")
+      .select(
+        "id,status,is_refresh,version_number,total_activities,completed_activities,open_flags_count,started_at,last_activity_at,completed_at,paid_at,payment_confirmed,generated_docx_path,generated_pdf_path,generated_xlsx_path"
+      )
+      .in("client_id", clientIds)
+      .order("last_activity_at", { ascending: false });
+    const rows = (sessions ?? []) as SessionRow[];
+    setAllSessions(rows);
+    setActiveSession(
+      rows.find((r) => r.status === "in_progress" || r.status === "review") ?? null
+    );
+    setLatestGenerated(
+      rows.find(
+        (r) => r.status === "generated" && (r.generated_docx_path || r.generated_pdf_path)
+      ) ?? null
+    );
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await adminDelete("ropa_session", pendingDelete.id);
+      toast({ title: "RoPA session deleted" });
+      setPendingDelete(null);
+      await reload();
+    } catch (err) {
+      toast({
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
