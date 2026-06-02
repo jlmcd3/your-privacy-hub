@@ -405,17 +405,30 @@ export default function USNoticeDocuments() {
               {currentDocs
                 .filter((d) => d.is_combined)
                 .map((d) => (
-                  <Button
-                    key={d.id}
-                    onClick={() => handleDownload(d)}
-                    disabled={!d.file_path}
-                    className="w-full sm:w-auto min-h-[44px]"
-                    aria-label="Download combined all-states suite"
-                  >
-                    <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
-                    Download suite
-                  </Button>
+                  <div key={d.id} className="flex items-center gap-1">
+                    <Button
+                      onClick={() => handleDownload(d)}
+                      disabled={!d.file_path}
+                      className="w-full sm:w-auto min-h-[44px]"
+                      aria-label="Download combined all-states suite"
+                    >
+                      <Download className="h-3.5 w-3.5 mr-1.5" aria-hidden />
+                      Download suite
+                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setPendingDelete(d)}
+                        className="text-destructive hover:text-destructive"
+                        aria-label="Delete combined notice (admin)"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 ))}
+
             </div>
           </CardContent>
         </Card>
