@@ -6,7 +6,7 @@ import { RopaShell } from "@/components/ropa/RopaShell";
 import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
-import { withSession } from "@/lib/ropaSession";
+import { useRopaSessionParam, withSession } from "@/lib/ropaSession";
 import { getQuestionsForActivity } from "@/data/ropa-questions";
 import type { Question } from "@/data/ropa-questions/types";
 import { getPersonalDataExamplesForSector } from "@/data/ropa-personal-data-examples";
@@ -19,6 +19,7 @@ const SUPA = supabase as unknown as { from: (t: string) => any };
 export default function RopaActivity() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const urlSessionId = useRopaSessionParam();
 
   const currentActivity = useRopaStore((s) => s.currentActivity);
   const allActivities = useRopaStore((s) => s.allActivities);
@@ -71,6 +72,15 @@ export default function RopaActivity() {
     (async () => {
       await loadActivity(id);
       const act = useRopaStore.getState().currentActivity;
+      if (!act) {
+        navigate("/ropa", { replace: true });
+        return;
+      }
+      if (act && urlSessionId && act.session_id !== urlSessionId) {
+        useRopaStore.getState().clearSession();
+        navigate(withSession("/ropa/activities", urlSessionId), { replace: true });
+        return;
+      }
       const sess = useRopaStore.getState().currentSession;
       const all = useRopaStore.getState().allActivities;
       const sidebarStale =
@@ -80,8 +90,15 @@ export default function RopaActivity() {
       if (act && sidebarStale) {
         await loadSession(act.session_id);
       }
+      const loadedSession = useRopaStore.getState().currentSession;
+      if (
+        loadedSession &&
+        !["in_progress", "review"].includes(loadedSession.status)
+      ) {
+        navigate(`/ropa/review/${loadedSession.id}`, { replace: true });
+      }
     })();
-  }, [id, loadActivity, loadSession]);
+  }, [id, loadActivity, loadSession, navigate, urlSessionId]);
 
   const questions: Question[] = useMemo(
     () => getQuestionsForActivity(currentActivity?.template_key ?? null),

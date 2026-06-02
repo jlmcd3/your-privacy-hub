@@ -3440,6 +3440,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ropa_answers_activity_session_match_fkey"
+            columns: ["activity_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_processing_activities"
+            referencedColumns: ["id", "session_id"]
+          },
+          {
             foreignKeyName: "ropa_answers_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -3559,6 +3566,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ropa_document_versions_session_client_match_fkey"
+            columns: ["session_id", "client_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id", "client_id"]
+          },
+          {
             foreignKeyName: "ropa_document_versions_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -3620,6 +3634,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "ropa_processing_activities"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_flags_activity_session_match_fkey"
+            columns: ["activity_id", "session_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_processing_activities"
+            referencedColumns: ["id", "session_id"]
           },
           {
             foreignKeyName: "ropa_flags_session_id_fkey"
@@ -3776,6 +3797,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ropa_processing_activities_session_client_match_fkey"
+            columns: ["session_id", "client_id"]
+            isOneToOne: false
+            referencedRelation: "ropa_sessions"
+            referencedColumns: ["id", "client_id"]
           },
           {
             foreignKeyName: "ropa_processing_activities_session_id_fkey"

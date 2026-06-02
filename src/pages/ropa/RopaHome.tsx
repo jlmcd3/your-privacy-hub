@@ -267,7 +267,7 @@ export default function RopaHome() {
                   An Article 30 GDPR-compliant record, generated from a guided wizard
                   customized to your organisation.
                 </p>
-                <Button onClick={() => navigate("/ropa/setup")} size="lg">
+                <Button onClick={() => navigate("/ropa/setup?new=1")} size="lg">
                   <Plus className="mr-1.5 h-4 w-4" /> Start RoPA
                 </Button>
                 <p className="text-xs text-muted-foreground mt-3">

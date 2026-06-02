@@ -272,7 +272,7 @@ export default function RopaDocuments() {
         <p className="font-body text-muted-foreground">
           Download generated Records of Processing Activities and start refresh cycles.
         </p>
-        <Button onClick={() => navigate("/ropa/setup")} className="gap-2">
+        <Button onClick={() => navigate("/ropa/setup?new=1")} className="gap-2">
           <Plus className="h-4 w-4" />
           New RoPA
         </Button>
@@ -318,7 +318,7 @@ export default function RopaDocuments() {
             <p className="font-body text-muted-foreground mb-6">
               Complete the RoPA builder to generate your first Record of Processing Activities.
             </p>
-            <Button onClick={() => navigate("/ropa/setup")}>Start RoPA Builder</Button>
+            <Button onClick={() => navigate("/ropa/setup?new=1")}>Start RoPA Builder</Button>
           </CardContent>
         </Card>
       ) : (

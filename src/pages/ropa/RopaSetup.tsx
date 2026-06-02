@@ -185,14 +185,18 @@ export default function RopaSetup() {
         return;
       }
 
-      // First, figure out whether we are resuming an existing session.
+      // First, figure out whether we are resuming an editable session.
       let sess: { id: string; status: string; org_name: string | null } | null = null;
       if (urlSessionId) {
         const { data } = await SUPA.from("ropa_sessions")
           .select("id, status, client_id, org_name")
           .eq("id", urlSessionId)
           .maybeSingle();
-        if (data && data.client_id === clientId) {
+        if (
+          data &&
+          data.client_id === clientId &&
+          ["in_progress", "review"].includes(data.status)
+        ) {
           sess = { id: data.id, status: data.status, org_name: data.org_name ?? null };
         }
       }
@@ -200,14 +204,14 @@ export default function RopaSetup() {
         const { data } = await SUPA.from("ropa_sessions")
           .select("id, status, org_name")
           .eq("client_id", clientId)
-          .neq("status", "archived")
+          .in("status", ["in_progress", "review"])
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
         sess = data ? { id: data.id, status: data.status, org_name: data.org_name ?? null } : null;
       }
       if (cancelled) return;
-      if (sess && sess.status !== "archived") setHasExistingSession(sess.id);
+      if (sess) setHasExistingSession(sess.id);
 
       // Only hydrate the form from the workspace-scoped profile / jurisdictions
       // when we are resuming an existing session. Brand-new RoPAs start blank.

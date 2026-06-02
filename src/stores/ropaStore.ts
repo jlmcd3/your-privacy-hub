@@ -160,12 +160,20 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
   activeMinutes: 0,
 
   async loadSession(sessionId: string) {
+    set({
+      currentSession: null,
+      allActivities: [],
+      flags: [],
+      currentActivity: null,
+      currentAnswers: {},
+      saveError: null,
+    });
     const { data: session, error: sErr } = await SUPA.from("ropa_sessions")
       .select("*")
       .eq("id", sessionId)
       .single();
     if (sErr) {
-      set({ saveError: sErr.message });
+      set({ saveError: sErr.message, currentSession: null, allActivities: [], flags: [] });
       return;
     }
     const { data: activities } = await SUPA.from("ropa_processing_activities")
@@ -184,6 +192,13 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
   },
 
   async loadActivity(activityId: string) {
+    set({
+      currentActivity: null,
+      currentAnswers: {},
+      currentQuestionIndex: 0,
+      skippedQuestionKeys: new Set<string>(),
+      saveError: null,
+    });
     const { data: activity, error: aErr } = await SUPA.from(
       "ropa_processing_activities"
     )
@@ -191,7 +206,7 @@ export const useRopaStore = create<RopaStore>()((set, get) => ({
       .eq("id", activityId)
       .single();
     if (aErr) {
-      set({ saveError: aErr.message });
+      set({ saveError: aErr.message, currentActivity: null, currentAnswers: {} });
       return;
     }
     const { data: answerRows } = await SUPA.from("ropa_answers")
