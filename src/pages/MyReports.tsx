@@ -159,9 +159,8 @@ export default function MyReports() {
         is_personal_client: cid ? !!clientIsPersonalById.get(cid) : false,
       });
 
-      // Reports tab shows only the six tool outputs.
-      // Registration orders live under Filings; RoPA / US notices / EU notices
-      // live under Notices & RoPA.
+      // Reports tab aggregates every tool output and in-progress session for
+      // the user across all workspaces. Registration orders live under Filings.
       const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
