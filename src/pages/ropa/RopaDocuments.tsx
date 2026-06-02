@@ -48,6 +48,7 @@ const FORMAT_META: Record<string, { label: string; icon: typeof FileText; ext: s
 
 export default function RopaDocuments() {
   const navigate = useNavigate();
+  const urlSessionId = useRopaSessionParam();
   const { toast } = useToast();
   const { clientName, isPersonalActive } = useActiveClient();
   const ownerLabel = !isPersonalActive && clientName ? clientName : "My";
@@ -182,7 +183,7 @@ export default function RopaDocuments() {
   return (
     <RopaShell title={`${ownerLabel} RoPA Documents — End User Privacy`} heading={`${ownerLabel} RoPA Documents`}>
       {(() => {
-        const { steps, currentIndex } = getRopaSteps("documents");
+        const { steps, currentIndex } = getRopaSteps("documents", urlSessionId);
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
       })()}
       <div className="mb-6 flex items-center justify-between">
