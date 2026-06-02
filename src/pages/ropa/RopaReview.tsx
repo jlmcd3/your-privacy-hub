@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { CheckCircle2, AlertTriangle, ChevronDown, ChevronRight, Loader2, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +58,8 @@ export default function RopaReview() {
   const [includeExcel, setIncludeExcel] = useState(false);
 
   const [acknowledged, setAcknowledged] = useState(false);
+  const [ackHighlight, setAckHighlight] = useState(false);
+  const ackRef = useRef<HTMLLabelElement | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [genSteps, setGenSteps] = useState<Record<GenStep, "pending" | "done">>({
@@ -220,6 +222,21 @@ export default function RopaReview() {
 
   const handleGenerateClick = async () => {
     if (!currentSession) return;
+    // If blocked only by the acknowledgment checkbox, guide the user to it
+    // instead of silently doing nothing.
+    if (onlyWarningsOrRecs && !acknowledged) {
+      ackRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setAckHighlight(true);
+      window.setTimeout(() => setAckHighlight(false), 1800);
+      return;
+    }
+    if (hasMissingRequired) {
+      // Surface the flags section
+      document
+        .querySelector('[data-ropa-section="flags"]')
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (currentSession.payment_confirmed) {
       await runGeneration();
       return;
@@ -365,7 +382,7 @@ export default function RopaReview() {
 
         {/* Section 3 — Flags */}
         {(missingRequired.length > 0 || warningFlags.length > 0) && (
-          <Section title="Items requiring attention">
+          <Section title="Items requiring attention" data-ropa-section="flags">
             <div className="space-y-2">
               {[...missingRequired, ...warningFlags].map((f) => {
                 const activityName = allActivities.find((a) => a.id === f.activity_id)?.display_name;
@@ -538,7 +555,14 @@ export default function RopaReview() {
             </div>
           )}
           {onlyWarningsOrRecs && (
-            <label className="flex items-start gap-2 text-sm mb-3 p-3 border border-border rounded-md bg-muted/30">
+            <label
+              ref={ackRef}
+              className={`flex items-start gap-2 text-sm mb-3 p-3 border rounded-md transition-all ${
+                ackHighlight
+                  ? "border-amber-500 bg-amber-50 dark:bg-amber-950/40 ring-2 ring-amber-400 animate-pulse"
+                  : "border-border bg-muted/30"
+              }`}
+            >
               <input
                 type="checkbox"
                 checked={acknowledged}
@@ -554,8 +578,13 @@ export default function RopaReview() {
 
           <button
             onClick={handleGenerateClick}
-            disabled={generateDisabled || generating}
-            className="w-full bg-brand-navy text-white text-sm font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-navy/90 transition"
+            disabled={generating}
+            aria-disabled={generateDisabled || generating}
+            className={`w-full text-white text-sm font-semibold py-3 rounded-lg transition ${
+              generateDisabled || generating
+                ? "bg-brand-navy/50 cursor-not-allowed"
+                : "bg-brand-navy hover:bg-brand-navy/90"
+            }`}
           >
             {generating
               ? "Generating…"
@@ -563,12 +592,20 @@ export default function RopaReview() {
                 ? "Generate RoPA documents"
                 : `Continue to payment — $${pricing.price}`}
           </button>
-          {allClean && (
+          {hasMissingRequired ? (
+            <p className="text-meta text-red-700 dark:text-red-400 text-center mt-2">
+              Resolve the required items above before generating.
+            </p>
+          ) : onlyWarningsOrRecs && !acknowledged ? (
+            <p className="text-meta text-amber-700 dark:text-amber-400 text-center mt-2">
+              Tick the acknowledgment above to continue.
+            </p>
+          ) : allClean ? (
             <p className="text-meta text-green-700 dark:text-green-400 text-center mt-2">
               <CheckCircle2 className="w-3 h-3 inline mr-1" />
               All flags resolved — ready to generate.
             </p>
-          )}
+          ) : null}
         </Section>
       </div>
 
@@ -629,13 +666,17 @@ function Section({
   title,
   action,
   children,
+  ...rest
 }: {
   title: string;
   action?: React.ReactNode;
   children: React.ReactNode;
-}) {
+} & React.HTMLAttributes<HTMLElement>) {
   return (
-    <section className="border border-border rounded-xl bg-brand-cloud p-5">
+    <section
+      {...rest}
+      className="border border-border rounded-xl bg-brand-cloud p-5"
+    >
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-[15px] font-serif text-brand-navy">{title}</h2>
         {action}
