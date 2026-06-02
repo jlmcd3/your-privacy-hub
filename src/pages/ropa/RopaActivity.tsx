@@ -93,6 +93,22 @@ export default function RopaActivity() {
     if (q.flagIf) {
       await evaluateFlagsForAnswer(q.key, value as never, q.flagIf);
     }
+
+    // Auto-advance for single-pick question types so the user gets immediate
+    // visual feedback after choosing an option (e.g. lawful basis).
+    const autoAdvanceTypes = new Set([
+      "single_choice",
+      "lawful_basis",
+      "yes_no",
+      "yes_no_unsure",
+      "date_or_period",
+    ]);
+    if (autoAdvanceTypes.has(q.type)) {
+      // Small delay so the selection state is visible before moving on
+      setTimeout(() => {
+        void goNext();
+      }, 220);
+    }
   };
 
   const goNext = async () => {
