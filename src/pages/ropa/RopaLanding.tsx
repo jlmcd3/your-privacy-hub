@@ -111,7 +111,7 @@ export default function RopaLanding() {
             📚 RoPA Builder · Q&A free · PDF ${pricing.price}
           </span>
           <h1 className="font-serif text-white mb-3">
-            Build an audit-ready RoPA in under an hour
+            Build an audit-ready Record of Processing Activities (RoPA) in minutes
           </h1>
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Guided questions in plain language. Covers GDPR Article 30, LGPD, CCPA, and 20+
