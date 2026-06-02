@@ -243,20 +243,26 @@ export default function MyReports() {
     return () => { cancelled = true; };
   }, [user]);
 
+  const titlePrefix = !isPersonalActive && activeClientId ? (rows.find(r => r.client_id === activeClientId)?.client_name ?? "My") : "My";
+  // Prefer the live workspace name from the hook over a row-derived name.
+  const { clientName: activeClientName } = useActiveClient();
+  const ownerLabel = !isPersonalActive && activeClientName ? activeClientName : "My";
+
   return (
     <WorkspaceLayout>
       <Helmet>
-        <title>My Reports | End User Privacy</title>
+        <title>{ownerLabel} Reports | End User Privacy</title>
         <meta name="description" content="View and download every assessment, playbook, and report you've generated." />
       </Helmet>
       <PageContainer>
         <div className="py-8">
           <div className="mb-6">
-            <h1 className="font-display text-brand-navy">My Reports</h1>
+            <h1 className="font-display text-brand-navy">{ownerLabel} Reports</h1>
             <p className="text-sm text-slate mt-1">
               Every assessment, playbook, and document you've generated. Click any item to re-open it or download the PDF.
             </p>
           </div>
+
 
           {authLoading || loading ? (
             <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-brand-navy" /></div>
