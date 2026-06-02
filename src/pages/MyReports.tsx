@@ -162,7 +162,7 @@ export default function MyReports() {
       // Reports tab shows only the six tool outputs.
       // Registration orders live under Filings; RoPA / US notices / EU notices
       // live under Notices & RoPA.
-      const [li, dpia, gov, dpa, ir, bio] = await Promise.all([
+      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -181,6 +181,15 @@ export default function MyReports() {
         supabase.from("biometric_assessments")
           .select("id, status, created_at, intake_data, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("ropa_sessions")
+          .select("id, status, created_at, version_number, scope, client_id")
+          .order("created_at", { ascending: false }),
+        supabase.from("us_notice_sessions")
+          .select("id, status, created_at, version_number, scope, client_id")
+          .order("created_at", { ascending: false }),
+        supabase.from("eu_notice_sessions")
+          .select("id, status, created_at, version_number, client_id")
+          .order("created_at", { ascending: false }),
       ]);
 
 
