@@ -315,9 +315,10 @@ export default function RopaSetup() {
     }
     setSubmitting(true);
     try {
-      // Update client name + sector
+      // Store sector on the workspace, but NEVER rename the workspace itself —
+      // the org being documented in this RoPA is recorded on the session.
       await SUPA.from("clients")
-        .update({ name: orgName, sector: sector || null })
+        .update({ sector: sector || null })
         .eq("id", clientId);
 
       // Replace jurisdiction selections
@@ -336,11 +337,15 @@ export default function RopaSetup() {
       if (rows.length)
         await SUPA.from("ropa_jurisdiction_selections").insert(rows);
 
-      // Create or reuse session
+      // Create or reuse session, then save the org name on the session.
       let sessionId = hasExistingSession;
       if (!sessionId) sessionId = await createSession(clientId);
+      await SUPA.from("ropa_sessions")
+        .update({ org_name: orgName.trim() || null })
+        .eq("id", sessionId);
 
       navigate(withSession("/ropa/activities", sessionId));
+
     } catch (e) {
       toast.error("Could not save setup. Please try again.");
       console.error(e);
