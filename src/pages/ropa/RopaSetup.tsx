@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useRopaSessionParam, withSession } from "@/lib/ropaSession";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { useRopaStore } from "@/stores/ropaStore";
@@ -141,6 +142,7 @@ export default function RopaSetup() {
   const navigate = useNavigate();
   const { clientId, client } = useActiveClient();
   const createSession = useRopaStore((s) => s.createSession);
+  const urlSessionId = useRopaSessionParam();
 
   const [step, setStep] = useState(0);
   const [orgName, setOrgName] = useState(client?.name ?? "");
@@ -194,19 +196,35 @@ export default function RopaSetup() {
           new Set(jurs.map((j: { jurisdiction_code: string }) => j.jurisdiction_code))
         );
       }
-      const { data: sess } = await SUPA.from("ropa_sessions")
-        .select("id, status")
-        .eq("client_id", clientId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // Prefer a session id passed in the URL (so back-navigation always
+      // resumes the same RoPA). Fall back to "latest non-archived" for this
+      // client.
+      let sess: { id: string; status: string } | null = null;
+      if (urlSessionId) {
+        const { data } = await SUPA.from("ropa_sessions")
+          .select("id, status, client_id")
+          .eq("id", urlSessionId)
+          .maybeSingle();
+        if (data && data.client_id === clientId) {
+          sess = { id: data.id, status: data.status };
+        }
+      }
+      if (!sess) {
+        const { data } = await SUPA.from("ropa_sessions")
+          .select("id, status")
+          .eq("client_id", clientId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        sess = data ?? null;
+      }
       if (cancelled) return;
       if (sess && sess.status !== "archived") setHasExistingSession(sess.id);
     })();
     return () => {
       cancelled = true;
     };
-  }, [clientId]);
+  }, [clientId, urlSessionId]);
 
   // Auto-save profile on change
   useDebouncedAutoSave(
@@ -318,7 +336,7 @@ export default function RopaSetup() {
       let sessionId = hasExistingSession;
       if (!sessionId) sessionId = await createSession(clientId);
 
-      navigate("/ropa/activities");
+      navigate(withSession("/ropa/activities", sessionId));
     } catch (e) {
       toast.error("Could not save setup. Please try again.");
       console.error(e);
@@ -358,7 +376,7 @@ export default function RopaSetup() {
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => navigate("/ropa/activities")}
+              onClick={() => navigate(withSession("/ropa/activities", hasExistingSession))}
               className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-lg"
             >
               Continue

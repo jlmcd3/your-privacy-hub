@@ -2,6 +2,8 @@
 // Shown on: setup · activities · activity · review · documents · refresh.
 // NOT shown on: /ropa (home) or /ropa-builder (landing).
 
+import { withSession } from "@/lib/ropaSession";
+
 export type RopaFlowStep =
   | "setup"
   | "activities"
@@ -18,7 +20,10 @@ export const RopaFlowSteps = [
   { key: "documents", label: "Documents", route: "/ropa/documents" },
 ] as const;
 
-export function getRopaSteps(current: RopaFlowStep): {
+export function getRopaSteps(
+  current: RopaFlowStep,
+  sessionId?: string | null
+): {
   steps: { label: string; route?: string }[];
   currentIndex: number;
 } {
@@ -27,13 +32,30 @@ export function getRopaSteps(current: RopaFlowStep): {
       steps: [
         { label: "Refresh", route: undefined },
         { label: "Q&A", route: undefined },
-        { label: "Review", route: "/ropa/review" },
-        { label: "Documents", route: "/ropa/documents" },
+        {
+          label: "Review",
+          route: sessionId ? `/ropa/review/${sessionId}` : "/ropa/review",
+        },
+        {
+          label: "Documents",
+          route: withSession("/ropa/documents", sessionId),
+        },
       ],
       currentIndex: 0,
     };
   }
-  const steps = RopaFlowSteps.map((s) => ({ label: s.label, route: s.route }));
+
+  // The Review step uses a path-param session id; the others use `?session=`.
+  const steps = RopaFlowSteps.map((s) => {
+    if (!s.route) return { label: s.label, route: undefined };
+    if (s.key === "review") {
+      return {
+        label: s.label,
+        route: sessionId ? `/ropa/review/${sessionId}` : s.route,
+      };
+    }
+    return { label: s.label, route: withSession(s.route, sessionId) };
+  });
   const currentIndex = RopaFlowSteps.findIndex((s) => s.key === current);
   return { steps, currentIndex: currentIndex === -1 ? 0 : currentIndex };
 }

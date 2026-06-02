@@ -6,6 +6,7 @@ import { RopaShell } from "@/components/ropa/RopaShell";
 import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
+import { withSession } from "@/lib/ropaSession";
 import { getQuestionsForActivity } from "@/data/ropa-questions";
 import type { Question } from "@/data/ropa-questions/types";
 import { getPersonalDataExamplesForSector } from "@/data/ropa-personal-data-examples";
@@ -124,9 +125,11 @@ export default function RopaActivity() {
       if (isCurrent) {
         const remaining = useRopaStore.getState().allActivities;
         if (remaining.length > 0) {
-          navigate(`/ropa/activity/${remaining[0].id}`);
+          navigate(
+            withSession(`/ropa/activity/${remaining[0].id}`, currentSession?.id)
+          );
         } else {
-          navigate(`/ropa/activities`);
+          navigate(withSession(`/ropa/activities`, currentSession?.id));
         }
       }
     } catch (e) {
@@ -239,7 +242,7 @@ export default function RopaActivity() {
     const incomplete = allActivities.find(
       (a) => a.id !== currentActivity.id && a.status !== "complete"
     );
-    if (incomplete) navigate(`/ropa/activity/${incomplete.id}`);
+    if (incomplete) navigate(withSession(`/ropa/activity/${incomplete.id}`, currentSession?.id));
     else navigate(currentSession ? `/ropa/review/${currentSession.id}` : "/ropa/review");
   };
 
@@ -280,7 +283,10 @@ export default function RopaActivity() {
       heading=""
     >
       {(() => {
-        const { steps, currentIndex } = getRopaSteps("activity");
+        const { steps, currentIndex } = getRopaSteps(
+          "activity",
+          currentSession?.id ?? null
+        );
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
       })()}
       <div className="grid md:grid-cols-[260px_1fr] gap-6 pb-24 md:pb-0">
@@ -296,7 +302,9 @@ export default function RopaActivity() {
           <ActivityNavList
             activities={allActivities}
             currentActivityId={currentActivity.id}
-            onSelect={(aid) => navigate(`/ropa/activity/${aid}`)}
+            onSelect={(aid) =>
+              navigate(withSession(`/ropa/activity/${aid}`, currentSession?.id))
+            }
             onDelete={(aid, name) => handleDeleteActivity(aid, name)}
           />
         </aside>
@@ -540,7 +548,7 @@ export default function RopaActivity() {
               currentActivityId={currentActivity.id}
               onSelect={(aid) => {
                 setActivityNavOpen(false);
-                navigate(`/ropa/activity/${aid}`);
+                navigate(withSession(`/ropa/activity/${aid}`, currentSession?.id));
               }}
               onDelete={(aid, name) => {
                 setActivityNavOpen(false);

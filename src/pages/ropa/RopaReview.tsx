@@ -9,6 +9,7 @@ import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
+import { withSession } from "@/lib/ropaSession";
 import RopaInlineFlag from "@/components/ropa/RopaInlineFlag";
 import SessionCheckoutModal from "@/components/SessionCheckoutModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -227,7 +228,13 @@ export default function RopaReview() {
           docx: includeWord ? "done" : "pending",
           xlsx: includeExcel ? "done" : "pending",
         });
-        setTimeout(() => navigate("/ropa/documents"), 600);
+        setTimeout(
+          () =>
+            navigate(
+              withSession("/ropa/documents", sessionId ?? currentSession?.id)
+            ),
+          600
+        );
       }
     } catch (e) {
       clearInterval(tickInt);
@@ -274,7 +281,10 @@ export default function RopaReview() {
     <RopaShell title="Review your RoPA" heading="Review your RoPA">
       <div className="max-w-4xl mx-auto space-y-6">
         {(() => {
-          const { steps, currentIndex } = getRopaSteps("review");
+          const { steps, currentIndex } = getRopaSteps(
+            "review",
+            sessionId ?? currentSession?.id ?? null
+          );
           return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
         })()}
         {/* Header */}
@@ -382,7 +392,7 @@ export default function RopaReview() {
                         <p>Completion: {a.completion_pct}%</p>
                         <p>{a.is_high_risk ? "Marked high-risk" : "Standard risk"}</p>
                         <button
-                          onClick={() => navigate(`/ropa/activity/${a.id}`)}
+                          onClick={() => navigate(withSession(`/ropa/activity/${a.id}`, sessionId ?? currentSession?.id))}
                           className="mt-2 inline-flex items-center gap-1 text-brand-teal font-semibold hover:underline"
                         >
                           Edit answers →
@@ -414,7 +424,7 @@ export default function RopaReview() {
                     <div className="flex gap-2 pl-3 mt-1">
                       {f.activity_id && (
                         <button
-                          onClick={() => navigate(`/ropa/activity/${f.activity_id}`)}
+                          onClick={() => navigate(withSession(`/ropa/activity/${f.activity_id}`, sessionId ?? currentSession?.id))}
                           className="text-meta font-semibold text-brand-teal hover:underline"
                         >
                           Resolve in activity →

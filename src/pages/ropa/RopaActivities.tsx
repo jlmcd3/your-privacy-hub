@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { useRopaStore } from "@/stores/ropaStore";
 import { RopaShell } from "@/components/ropa/RopaShell";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
+import { useRopaSessionParam, withSession, ROPA_SESSION_QS_KEY } from "@/lib/ropaSession";
 import { toast } from "sonner";
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
@@ -75,6 +76,8 @@ interface CustomActivity {
 export default function RopaActivities() {
   const navigate = useNavigate();
   const { clientId } = useActiveClient();
+  const urlSessionId = useRopaSessionParam();
+  const [, setSearchParams] = useSearchParams();
   const [templates, setTemplates] = useState<ActivityTemplate[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [customActivities, setCustomActivities] = useState<CustomActivity[]>([]);
@@ -82,6 +85,15 @@ export default function RopaActivities() {
   const [submitting, setSubmitting] = useState(false);
   const [sector, setSector] = useState<string>("");
   const [sessionId, setSessionId] = useState<string | null>(null);
+  // Activities that already exist for this session (from a previous visit).
+  // Keyed by template_key for templated rows; custom rows are keyed by id.
+  const [existingTemplateKeys, setExistingTemplateKeys] = useState<Set<string>>(
+    new Set()
+  );
+  const [existingFirstActivityId, setExistingFirstActivityId] = useState<
+    string | null
+  >(null);
+  const [existingCount, setExistingCount] = useState(0);
 
   useEffect(() => {
     if (!clientId) return;
@@ -95,22 +107,85 @@ export default function RopaActivities() {
         .select("sector")
         .eq("id", clientId)
         .single();
-      const { data: sess } = await SUPA.from("ropa_sessions")
-        .select("id")
-        .eq("client_id", clientId)
-        .neq("status", "archived")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+
+      // Prefer the session passed in via `?session=`. Validate it belongs to
+      // the current client. Otherwise fall back to "latest non-archived".
+      let resolved: { id: string } | null = null;
+      if (urlSessionId) {
+        const { data } = await SUPA.from("ropa_sessions")
+          .select("id, client_id, status")
+          .eq("id", urlSessionId)
+          .maybeSingle();
+        if (data && data.client_id === clientId && data.status !== "archived") {
+          resolved = { id: data.id };
+        }
+      }
+      if (!resolved) {
+        const { data } = await SUPA.from("ropa_sessions")
+          .select("id")
+          .eq("client_id", clientId)
+          .neq("status", "archived")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        resolved = data ?? null;
+      }
+
       if (cancelled) return;
       setTemplates((tmpls ?? []) as ActivityTemplate[]);
       setSector(cli?.sector ?? "");
-      setSessionId(sess?.id ?? null);
+      setSessionId(resolved?.id ?? null);
+
+      // Lock the URL to this session so back-nav from later steps lands here.
+      if (resolved?.id && resolved.id !== urlSessionId) {
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.set(ROPA_SESSION_QS_KEY, resolved!.id);
+            return next;
+          },
+          { replace: true }
+        );
+      }
+
+      // Load any activities already attached to this session so the user
+      // sees their previous picks pre-selected when they navigate back here.
+      if (resolved?.id) {
+        const { data: existing } = await SUPA.from(
+          "ropa_processing_activities"
+        )
+          .select("id, template_key")
+          .eq("session_id", resolved.id)
+          .order("display_order", { ascending: true });
+        if (cancelled) return;
+        const keys = new Set<string>();
+        for (const a of (existing ?? []) as {
+          id: string;
+          template_key: string | null;
+        }[]) {
+          if (a.template_key) keys.add(a.template_key);
+        }
+        setExistingTemplateKeys(keys);
+        setExistingCount((existing ?? []).length);
+        setExistingFirstActivityId(
+          (existing ?? [])[0]?.id ?? null
+        );
+        // Pre-tick the templated activities so the UI reflects current state.
+        setSelected((prev) => {
+          const next = new Set(prev);
+          for (const k of keys) next.add(k);
+          return next;
+        });
+      } else {
+        setExistingTemplateKeys(new Set());
+        setExistingCount(0);
+        setExistingFirstActivityId(null);
+      }
     })();
     return () => {
       cancelled = true;
     };
-  }, [clientId]);
+  }, [clientId, urlSessionId, setSearchParams]);
 
   const grouped = useMemo(() => {
     const g: Record<string, ActivityTemplate[]> = {};
@@ -163,15 +238,24 @@ export default function RopaActivities() {
   const beginDocumenting = async () => {
     if (!clientId || !sessionId) {
       toast.error("Complete setup first.");
-      navigate("/ropa/setup");
+      navigate(withSession("/ropa/setup", urlSessionId));
       return;
     }
     if (totalSelected === 0) return;
 
     setSubmitting(true);
     try {
+      // Only insert template_keys that aren't already attached to this
+      // session, so coming back here and clicking "Begin documenting" again
+      // doesn't create duplicates. We intentionally don't delete unchecked
+      // existing activities — use the delete button in the Q&A sidebar for
+      // that, which also wipes their answers/flags.
+      const newTemplateKeys = Array.from(selected).filter(
+        (key) => !existingTemplateKeys.has(key)
+      );
+
       const rows = [
-        ...Array.from(selected).map((key, i) => {
+        ...newTemplateKeys.map((key) => {
           const t = templates.find((x) => x.template_key === key)!;
           return {
             session_id: sessionId,
@@ -194,22 +278,31 @@ export default function RopaActivities() {
         })),
       ];
 
-      const { data: inserted, error } = await SUPA.from(
-        "ropa_processing_activities"
-      )
-        .insert(rows)
-        .select("id");
-      if (error) throw error;
+      let firstNewId: string | null = null;
+      if (rows.length > 0) {
+        const { data: inserted, error } = await SUPA.from(
+          "ropa_processing_activities"
+        )
+          .insert(rows)
+          .select("id");
+        if (error) throw error;
+        firstNewId = inserted?.[0]?.id ?? null;
+      }
 
+      // Update total_activities to reflect every row now attached.
       await SUPA.from("ropa_sessions")
         .update({
-          total_activities: rows.length,
+          total_activities: existingCount + rows.length,
           last_activity_at: new Date().toISOString(),
         })
         .eq("id", sessionId);
 
-      const firstId = inserted?.[0]?.id;
-      navigate(firstId ? `/ropa/activity/${firstId}` : "/ropa/review");
+      const goToId = firstNewId ?? existingFirstActivityId;
+      if (goToId) {
+        navigate(withSession(`/ropa/activity/${goToId}`, sessionId));
+      } else {
+        navigate(`/ropa/review/${sessionId}`);
+      }
     } catch (e) {
       console.error(e);
       toast.error("Could not create activities. Try again.");
@@ -217,6 +310,7 @@ export default function RopaActivities() {
       setSubmitting(false);
     }
   };
+
 
   if (!clientId) {
     return (
@@ -231,15 +325,42 @@ export default function RopaActivities() {
   return (
     <RopaShell title="Select Activities — RoPA Builder" heading="">
       {(() => {
-        const { steps, currentIndex } = getRopaSteps("activities");
+        const { steps, currentIndex } = getRopaSteps("activities", sessionId);
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
       })()}
+
+      {existingCount > 0 && existingFirstActivityId && (
+        <div className="mb-4 p-3 border border-border rounded-lg bg-muted/30 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm">
+            You already have <strong>{existingCount}</strong> activit
+            {existingCount === 1 ? "y" : "ies"} added to this RoPA. Your previous
+            picks are pre-selected below. Add more or jump straight back into Q&amp;A.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() =>
+                navigate(
+                  withSession(
+                    `/ropa/activity/${existingFirstActivityId}`,
+                    sessionId
+                  )
+                )
+              }
+              className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-lg"
+            >
+              Continue to Q&amp;A
+            </button>
+          </div>
+        </div>
+      )}
+
       <button
         onClick={loadTypical}
         className="w-full bg-foreground text-background font-semibold text-sm px-4 py-2.5 rounded-lg mb-4 text-left"
       >
         Prefill typical activities for {sector || "your sector"} and adjust as needed →
       </button>
+
 
 
       <div className="space-y-3 mb-32">

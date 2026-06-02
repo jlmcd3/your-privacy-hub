@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { RopaShell } from "@/components/ropa/RopaShell";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
+import { useRopaSessionParam, withSession } from "@/lib/ropaSession";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,7 @@ const FORMAT_META: Record<string, { label: string; icon: typeof FileText; ext: s
 
 export default function RopaDocuments() {
   const navigate = useNavigate();
+  const urlSessionId = useRopaSessionParam();
   const { toast } = useToast();
   const { clientName, isPersonalActive } = useActiveClient();
   const ownerLabel = !isPersonalActive && clientName ? clientName : "My";
@@ -181,7 +183,7 @@ export default function RopaDocuments() {
   return (
     <RopaShell title={`${ownerLabel} RoPA Documents — End User Privacy`} heading={`${ownerLabel} RoPA Documents`}>
       {(() => {
-        const { steps, currentIndex } = getRopaSteps("documents");
+        const { steps, currentIndex } = getRopaSteps("documents", urlSessionId);
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
       })()}
       <div className="mb-6 flex items-center justify-between">
