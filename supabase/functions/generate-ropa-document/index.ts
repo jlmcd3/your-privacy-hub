@@ -316,6 +316,29 @@ function buildHtml(d: AssembledData): string {
     })
     .join("");
 
+  const allAnswerSections = d.activities
+    .map((a) => {
+      const ans = d.answersByActivity[a.id] ?? {};
+      const rows = Object.entries(ans)
+        .filter(([key]) => key !== "info_card")
+        .map(([key, value]) => `
+          <tr>
+            <th>${escapeHtml(questionLabel(key))}</th>
+            <td>${escapeHtml(answerToString(value))}</td>
+          </tr>
+        `)
+        .join("");
+      if (!rows) return "";
+      return `
+        <section class="activity">
+          <h3>${escapeHtml(a.display_name)}</h3>
+          <table class="kv"><tbody>${rows}</tbody></table>
+        </section>
+      `;
+    })
+    .filter(Boolean)
+    .join("");
+
   const transfers = collectTransfers(d);
   const transferTable = transfers.length === 0
     ? `<p><em>No cross-border transfers recorded.</em></p>`
@@ -405,12 +428,14 @@ function buildHtml(d: AssembledData): string {
   <h2>2. Processing activities</h2>
   ${activitySections || "<p><em>No activities recorded.</em></p>"}
 
-  <h2>3. Cross-border transfer register</h2>
+  ${allAnswerSections ? `<h2>3. Complete answer register</h2>${allAnswerSections}` : ""}
+
+  <h2>${allAnswerSections ? "4" : "3"}. Cross-border transfer register</h2>
   ${transferTable}
 
   ${refreshNotes}
 
-  <h2>4. Controller / processor statement</h2>
+  <h2>${allAnswerSections ? "5" : "4"}. Controller / processor statement</h2>
   <p>This record was prepared by <strong>${escapeHtml(d.settings.authorName)}</strong> on <strong>${escapeHtml(d.settings.documentDate)}</strong>.
   It constitutes our Article 30 record of processing activities (Records of Processing Activities — RoPA) maintained under ${escapeHtml(d.jurisdictions.map((j) => LAW_NAMES[j] ?? j).join(", ") || "applicable law")}.
   We are committed to reviewing and updating this record at least annually.</p>
