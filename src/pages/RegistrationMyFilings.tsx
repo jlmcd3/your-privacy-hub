@@ -31,7 +31,9 @@ import {
 
 export default function RegistrationMyFilings() {
   const { user } = useAuth();
-  const { clientId: activeClientId, isPersonalActive, personal, hasClients } = useActiveClient();
+  const { clientId: activeClientId, clientName: activeClientName, isPersonalActive, personal, hasClients } = useActiveClient();
+  const ownerLabel = !isPersonalActive && activeClientName ? activeClientName : "My";
+
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -82,13 +84,14 @@ export default function RegistrationMyFilings() {
   return (
     <WorkspaceLayout>
       <Helmet>
-        <title>My Filings | Registration Manager | End User Privacy</title>
+        <title>{ownerLabel} Filings | Registration Manager | End User Privacy</title>
       </Helmet>
       <PageContainer>
         <div className="py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="font-display text-brand-navy">My Filings</h1>
+              <h1 className="font-display text-brand-navy">{ownerLabel} Filings</h1>
+
               <p className="text-sm text-slate mt-1">All your registration orders, documents, and renewal schedules.</p>
             </div>
             <Button asChild>
