@@ -51,6 +51,14 @@ function baseSequence(opts: {
   return [
     ...intro,
     {
+      key: "purpose",
+      text: "What is the purpose of this processing activity?",
+      whyWeAsk:
+        "Article 30(1)(b) requires the purposes of processing to be documented in your RoPA.",
+      type: "text_long",
+      isRequired: true,
+    },
+    {
       key: "lawful_basis",
       text: "What is your lawful basis for this activity?",
       whyWeAsk:
