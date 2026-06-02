@@ -168,7 +168,9 @@ function TopicRedirect() {
 
 function PaymentReturnRedirect({ to }: { to: string }) {
   const { search } = useLocation();
-  return <Navigate to={`${to}${search}`} replace />;
+  const { id } = useParams<{ id: string }>();
+  const target = id ? `${to}/${id}` : to;
+  return <Navigate to={`${target}${search}`} replace />;
 }
 
 const App = () => (
