@@ -376,7 +376,7 @@ export default function RopaSetup() {
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => navigate("/ropa/activities")}
+              onClick={() => navigate(withSession("/ropa/activities", hasExistingSession))}
               className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-lg"
             >
               Continue
