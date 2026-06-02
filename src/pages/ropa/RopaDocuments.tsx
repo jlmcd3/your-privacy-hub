@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { RopaShell } from "@/components/ropa/RopaShell";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
 import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
+import { useRopaSessionParam, withSession } from "@/lib/ropaSession";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
