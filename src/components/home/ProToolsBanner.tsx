@@ -116,7 +116,7 @@ const TOOLS: Tool[] = [
     icon: ShieldAlert,
     title: "CPPA Risk Assessment",
     blurb: "California-specific risk assessment aligned to CPPA regulations — domain findings supported by cited enforcement context.",
-    price: "$55 per run",
+    price: "$89 per run",
     cta: "Run CPPA assessment",
     href: "/cppa-risk-assessment",
   },
