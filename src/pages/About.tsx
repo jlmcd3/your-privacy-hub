@@ -202,7 +202,7 @@ const About = () => {
                 "📅 Compliance Calendar",
                 "📜 Legislation Tracker",
                 "📊 US State Comparison (20 laws × 12 provisions)",
-                "🌐 Global Jurisdiction Map (160+ jurisdictions)",
+                "🌐 Global Jurisdiction Map (150+ jurisdictions)",
                 "⚖️ Enforcement Tracker",
                 "⏱️ Regulatory Timelines",
                 "📖 Privacy Glossary",
