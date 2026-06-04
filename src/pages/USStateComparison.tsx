@@ -62,7 +62,7 @@ const USStateComparison = () => {
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <p className="text-sm text-amber-900 leading-snug">
             <span className="font-semibold">⭐ This tool is free.</span>
-            {" "}Get this analysis delivered every Monday, re-written for your industry and jurisdictions.
+            {" "}Get up-to-date Intelligence every Monday, written for your industry, interests, and jurisdictions.
           </p>
           <Link
             to="/subscribe"
