@@ -796,9 +796,25 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: "Not authorized for this client" }, 403);
   }
 
-  // Require payment confirmation before generating.
+  // Require payment confirmation before generating — unless the user has
+  // an active subscription (monthly or annual). RoPA Builder is included
+  // free with any active subscription.
   if (!session.payment_confirmed) {
-    return jsonResponse({ error: "Session is not paid" }, 402);
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("is_premium, is_pro, subscription_type")
+      .eq("id", userData.user.id)
+      .maybeSingle();
+    const subType = (profile as any)?.subscription_type as string | null;
+    const isSubscriber =
+      profile?.is_premium === true ||
+      profile?.is_pro === true ||
+      subType === "monthly" ||
+      subType === "annual" ||
+      subType === "annual_founding";
+    if (!isSubscriber) {
+      return jsonResponse({ error: "Session is not paid" }, 402);
+    }
   }
 
   // ── Load supporting data in parallel ──
