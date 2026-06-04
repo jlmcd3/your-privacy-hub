@@ -124,7 +124,7 @@ const TOOLS: Tool[] = [
     icon: Lock,
     title: "CPPA Cybersecurity Audit",
     blurb: "Structured cybersecurity audit aligned to CPPA regulations — control gap findings supported by cited enforcement and regulatory guidance.",
-    price: "$70 per run",
+    price: "$99 per run",
     cta: "Run cybersecurity audit",
     href: "/cppa-cybersecurity",
   },
