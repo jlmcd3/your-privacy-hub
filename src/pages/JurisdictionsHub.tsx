@@ -148,8 +148,8 @@ export default function JurisdictionsHub() {
   return (
     <>
       <Helmet>
-        <title>Global Privacy Law Map — 160+ Jurisdictions Tracked | End User Privacy</title>
-        <meta name="description" content="Interactive map of global privacy and data protection laws. Click any country to explore its law, regulator, enforcement actions, and consumer rights. 160+ jurisdictions." />
+        <title>Global Privacy Law Map — 150+ Jurisdictions Tracked | End User Privacy</title>
+        <meta name="description" content="Interactive map of global privacy and data protection laws. Click any country to explore its law, regulator, enforcement actions, and consumer rights. 150+ jurisdictions." />
       </Helmet>
 
       <div className="min-h-screen bg-background flex flex-col">
@@ -166,7 +166,7 @@ export default function JurisdictionsHub() {
                 Global Privacy Law Map
               </h1>
               <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
-                160+ jurisdictions tracked. Click any country on the map to explore its
+                150+ jurisdictions tracked. Click any country on the map to explore its
                 privacy law, regulator, and recent enforcement actions.
                 Switch to Grid view to browse or filter by region.
               </p>
