@@ -91,6 +91,8 @@ export default function RopaActivity() {
         (act && !all.some((a) => a.id === act.id));
       if (act && sidebarStale) {
         await loadSession(act.session_id);
+        // loadSession resets currentActivity to null — restore it.
+        await loadActivity(id);
       }
       const loadedSession = useRopaStore.getState().currentSession;
       if (
