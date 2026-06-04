@@ -18,6 +18,7 @@ type ComparisonRow =
   | { feature: string; free: CellValue; intel: CellValue; platform: CellValue; isSection?: false }
   | { feature: string; isSection: true };
 
+const T = PRICING.tools;
 const comparisonRows: ComparisonRow[] = [
   { isSection: true, feature: "The monitoring layer" },
   { feature: "Regulatory developments, monitored daily", free: true, intel: true, platform: true },
@@ -37,21 +38,21 @@ const comparisonRows: ComparisonRow[] = [
 
   { isSection: true, feature: "The action layer — compliance tools with cited enforcement evidence" },
   { feature: "Sample preview of all tools", free: true, intel: true, platform: true },
-  { feature: "Governance Assessment (Smart Tool)", free: false, intel: "$55", platform: "$55" },
-  { feature: "Legitimate Interest Assessment (Smart Tool)", free: false, intel: "$35", platform: "$35" },
-  { feature: "DPIA / Impact Assessment (Smart Tool)", free: false, intel: "$45", platform: "$45" },
-  { feature: "DPA Generator (Smart Tool)", free: false, intel: "$45", platform: "$45" },
-  { feature: "IR Playbook (Convenience)", free: false, intel: "$25", platform: "$25" },
-  { feature: "Biometric Privacy Checker (Smart Tool)", free: false, intel: "$15", platform: "$15" },
-  { feature: "Records of Processing (RoPA) (Convenience)", free: false, intel: "$40", platform: "$40" },
-  { feature: "US Privacy Notice (Convenience)", free: false, intel: "$25", platform: "$25" },
-  { feature: "EU & Global Privacy Notice (Convenience)", free: false, intel: "$50", platform: "$50" },
-  { feature: "Registration Manager (Convenience)", free: false, intel: "$45", platform: "$45" },
+  { feature: "Governance Assessment (Smart Tool)", free: false, intel: T.governance.display, platform: T.governance.display },
+  { feature: "Legitimate Interest Assessment (Smart Tool)", free: false, intel: T.lia.display, platform: T.lia.display },
+  { feature: "DPIA / Impact Assessment (Smart Tool)", free: false, intel: T.dpia.display, platform: T.dpia.display },
+  { feature: "DPA Generator (Smart Tool)", free: false, intel: T.dpa.display, platform: T.dpa.display },
+  { feature: "IR Playbook (Convenience)", free: false, intel: T.ir_playbook.display, platform: T.ir_playbook.display },
+  { feature: "Biometric Privacy Checker (Smart Tool)", free: false, intel: T.biometric.display, platform: T.biometric.display },
+  { feature: "Records of Processing (RoPA) (Convenience)", free: false, intel: "Included", platform: "Included" },
+  { feature: "US Privacy Notice (Convenience)", free: false, intel: T.us_notice.display, platform: T.us_notice.display },
+  { feature: "EU & Global Privacy Notice (Convenience)", free: false, intel: T.eu_notice.display, platform: T.eu_notice.display },
+  { feature: "Registration Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
   { feature: "1 free Convenience Tool/client/month", free: false, intel: false, platform: "Annual only" },
 
   { isSection: true, feature: "CPPA tools" },
-  { feature: "CPPA Risk Assessment (Smart Tool)", free: false, intel: "$55", platform: "$55" },
-  { feature: "CPPA Cybersecurity Audit (Smart Tool)", free: false, intel: "$70", platform: "$70" },
+  { feature: "CPPA Risk Assessment (Smart Tool)", free: false, intel: T.cppa_risk.display, platform: T.cppa_risk.display },
+  { feature: "CPPA Cybersecurity Audit (Smart Tool)", free: false, intel: T.cppa_cyber.display, platform: T.cppa_cyber.display },
 ];
 
 const Subscribe = () => {
@@ -255,7 +256,7 @@ const Subscribe = () => {
           >
             Try Registration Filings →
           </Link>{" "}
-          <span className="text-brand-mist">— $45 per filing.</span>
+          <span className="text-brand-mist">— {T.registration.display} per filing.</span>
         </div>
       </div>
 
@@ -290,12 +291,12 @@ const Subscribe = () => {
                 ['Privacy authority enforcement tracking', 'Limited', '✓', '✓'],
                 ['Research guides (GDPR, biometric, health, etc.)', '✓', '✓', '✓'],
                 ['1 free Convenience Tool/client/month', '—', '—', '✓ (annual)'],
-                ['Governance Assessment (Smart)', '—', '$55', '$55'],
-                ['Legitimate Interest Assessment (Smart)', '—', '$35', '$35'],
-                ['DPIA Builder (Smart)', '—', '$45', '$45'],
-                ['DPA Generator (Smart)', '—', '$45', '$45'],
-                ['IR Playbook (Convenience)', '—', '$25', '$25'],
-                ['RoPA Builder (Convenience)', '—', '$40', '$40'],
+                ['Governance Assessment (Smart)', '—', T.governance.display, T.governance.display],
+                ['Legitimate Interest Assessment (Smart)', '—', T.lia.display, T.lia.display],
+                ['DPIA Builder (Smart)', '—', T.dpia.display, T.dpia.display],
+                ['DPA Generator (Smart)', '—', T.dpa.display, T.dpa.display],
+                ['IR Playbook (Convenience)', '—', T.ir_playbook.display, T.ir_playbook.display],
+                ['RoPA Builder (Convenience)', '—', 'Included', 'Included'],
                 ['CPPA Suite (Scope free · Risk · Cyber)', 'Scope free', 'Scope free', 'Scope free'],
                 ['Client/matter workspace', '—', '—', '✓'],
                 ['Up to 3 team logins', '—', '—', '✓'],
