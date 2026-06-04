@@ -256,7 +256,7 @@ const Subscribe = () => {
           >
             Try Registration Filings →
           </Link>{" "}
-          <span className="text-brand-mist">— $45 per filing.</span>
+          <span className="text-brand-mist">— {T.registration.display} per filing.</span>
         </div>
       </div>
 
