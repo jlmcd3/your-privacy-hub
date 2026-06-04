@@ -1,11 +1,9 @@
 
 import { useEffect, useState } from "react";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
@@ -116,12 +114,9 @@ export default function IRPlaybook() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-cloud">
+    <WorkspaceLayout>
       <Helmet><title>Incident Response Playbook | End User Privacy</title>
-        <meta name="description" content="A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — with cited enforcement decisions behind every timeline and threshold recommendation." /></Helmet>
-      <Navbar />
-      <DashboardSubnav />
-      <header className="bg-slate-900 text-white py-12">
+        <meta name="description" content="A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — with cited enforcement decisions behind every timeline and threshold recommendation." /></Helmet>      <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             🚨 Breach Response Playbook · ${pricing.price}
@@ -210,7 +205,6 @@ export default function IRPlaybook() {
           if (id) navigate(`/ir-playbook/result/${id}?purchased=true`);
         }}
       />
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }

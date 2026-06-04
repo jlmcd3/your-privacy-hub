@@ -3,10 +3,8 @@
 // confidence model, pricing, jurisdictions, trust signals, FAQ, final CTA.
 
 import { Helmet } from "react-helmet-async";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { Link } from "react-router-dom";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
-import Footer from "@/components/Footer";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import PageContainer from "@/components/PageContainer";
@@ -50,7 +48,7 @@ const FAQS = [
 export default function RegistrationLanding() {
   const { hasToolAccess } = useSubscriptionTier();
   return (
-    <div className="min-h-screen bg-brand-cloud">
+    <WorkspaceLayout>
       <Helmet>
         <title>Privacy Registration Manager — DPO, RoPA, AI Act Filings | End User Privacy</title>
         <meta
@@ -58,11 +56,7 @@ export default function RegistrationLanding() {
           content="Generate DPO appointment letters, RoPA templates, EU AI Act registration drafts, and Article 27 representative letters — tailored to your jurisdictions. You file; we draft and track."
         />
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
-      </Helmet>
-
-      <Navbar />
-      <DashboardSubnav />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      </Helmet>      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
         {hasToolAccess && (
           <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
@@ -280,8 +274,6 @@ export default function RegistrationLanding() {
           </div>
         </section>
       </PageContainer>
-
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }

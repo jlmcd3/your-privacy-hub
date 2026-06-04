@@ -1,11 +1,9 @@
 
 import { useEffect, useState } from "react";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
@@ -93,12 +91,9 @@ export default function BiometricChecker() {
         : `Analyse — $${pricing.price}`;
 
   return (
-    <div className="min-h-screen bg-brand-cloud">
+    <WorkspaceLayout>
       <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
-        <meta name="description" content="Per-jurisdiction biometric privacy compliance covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with cited enforcement decisions behind every priority action." /></Helmet>
-      <Navbar />
-      <DashboardSubnav />
-      <header className="bg-slate-900 text-white py-12">
+        <meta name="description" content="Per-jurisdiction biometric privacy compliance covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with cited enforcement decisions behind every priority action." /></Helmet>      <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             🧬 Biometric Compliance Assessment · ${pricing.price}
@@ -213,7 +208,6 @@ export default function BiometricChecker() {
           if (id) navigate(`/biometric-checker/result/${id}?purchased=true`);
         }}
       />
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }

@@ -1,11 +1,9 @@
 
 import { useState, useMemo } from "react";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -182,12 +180,9 @@ const GovernanceAssessment = () => {
   const summaryStep = step === totalSteps;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <WorkspaceLayout className="bg-background">
       <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title>
-        <meta name="description" content="Score your privacy programme across ten domains against what regulators actually inspect — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>
-      <Navbar />
-      <DashboardSubnav />
-      <header className="bg-slate-900 text-white py-12">
+        <meta name="description" content="Score your privacy programme across ten domains against what regulators actually inspect — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>      <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Privacy Programme Assessment · ${pricing.price}
@@ -390,9 +385,7 @@ const GovernanceAssessment = () => {
           purchasing={purchasing}
         />
       </main>
-
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 };
 

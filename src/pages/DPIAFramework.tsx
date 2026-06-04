@@ -1,11 +1,9 @@
 
 import { useState, useEffect } from "react";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -138,11 +136,8 @@ const DPIAFramework = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <WorkspaceLayout className="bg-background">
       <Helmet><title>{`Impact Assessment Builder — from $${pricing.subscriberPrice ?? ""} | End User Privacy`}</title></Helmet>
-      <Navbar />
-      <DashboardSubnav />
-
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">📋 Data Protection Impact Assessment · ${pricing.price}</span>
@@ -224,9 +219,7 @@ const DPIAFramework = () => {
           purchasing={purchasing}
         />
       </main>
-
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 };
 

@@ -1,11 +1,9 @@
 
 import { useEffect, useState } from "react";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import Footer from "@/components/Footer";
 import CopyButton from "@/components/CopyButton";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
@@ -106,12 +104,9 @@ export default function DPAGenerator() {
 
 
   return (
-    <div className="min-h-screen bg-brand-cloud">
+    <WorkspaceLayout>
       <Helmet><title>Custom Data Processing Agreement — GDPR, US State, Canadian, Dual | End User Privacy</title>
-        <meta name="description" content="Draft a controller-processor DPA tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions." /></Helmet>
-      <Navbar />
-      <DashboardSubnav />
-      <header className="bg-slate-900 text-white py-12">
+        <meta name="description" content="Draft a controller-processor DPA tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions." /></Helmet>      <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             📄 Custom DPA Generator · ${pricing.price}
@@ -247,7 +242,6 @@ export default function DPAGenerator() {
           if (id) navigate(`/dpa-generator/result/${id}?purchased=true`);
         }}
       />
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }
