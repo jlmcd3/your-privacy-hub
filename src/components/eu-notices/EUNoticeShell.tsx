@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { RopaErrorBoundary } from "@/components/ropa/RopaErrorBoundary";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
+import { NoticeAccessGate } from "@/components/notices/NoticeAccessGate";
 import {
   getEUNoticeSteps,
   type EUNoticeFlowStep,
@@ -51,22 +52,24 @@ export function EUNoticeShell({
       ) : null}
       <main className="flex-1 max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <RopaErrorBoundary>
-          {breadcrumb && (
-            <RopaBreadcrumb
-              steps={breadcrumb.steps}
-              currentIndex={breadcrumb.currentIndex}
-            />
-          )}
-          {!description && (
-            <h1 className="font-serif text-foreground mb-6">
-              {heading}
-            </h1>
-          )}
-          {children ?? (
-            <p className="text-muted-foreground text-sm">
-              This page is part of the EU &amp; Global Notice Builder.
-            </p>
-          )}
+          <NoticeAccessGate toolName="EU & Global Privacy Notice Builder">
+            {breadcrumb && (
+              <RopaBreadcrumb
+                steps={breadcrumb.steps}
+                currentIndex={breadcrumb.currentIndex}
+              />
+            )}
+            {!description && (
+              <h1 className="font-serif text-foreground mb-6">
+                {heading}
+              </h1>
+            )}
+            {children ?? (
+              <p className="text-muted-foreground text-sm">
+                This page is part of the EU &amp; Global Notice Builder.
+              </p>
+            )}
+          </NoticeAccessGate>
         </RopaErrorBoundary>
       </main>
       <Footer />

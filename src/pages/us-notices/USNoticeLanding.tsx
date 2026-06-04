@@ -25,12 +25,12 @@ const VIRGINIA_STATES = [
 const PENDING_STATES = ["Kentucky (eff. 2026)", "Rhode Island (eff. 2026)"];
 
 const PRICING_ROWS: Array<{ feature: string; free: string; sub: string; platform: string }> = [
-  { feature: "Answer all questions", free: "✓", sub: "✓", platform: "✓" },
-  { feature: "Save & resume", free: "✓", sub: "✓", platform: "✓" },
-  { feature: "Pre-population from RoPA", free: "✓", sub: "✓", platform: "✓" },
-  { feature: "Single state notice", free: US_NOTICE_PRICING.singleStandalone(), sub: US_NOTICE_PRICING.singleSubscriber(), platform: "Included" },
-  { feature: "All 20 states", free: US_NOTICE_PRICING.allStatesStandalone(), sub: US_NOTICE_PRICING.allStatesSubscriber(), platform: "Included" },
-  { feature: "Annual refresh", free: US_NOTICE_PRICING.singleStandalone(), sub: US_NOTICE_PRICING.singleSubscriber(), platform: "Included" },
+  { feature: "Answer all questions", free: "Subscribers only", sub: "✓", platform: "✓" },
+  { feature: "Save & resume", free: "Subscribers only", sub: "✓", platform: "✓" },
+  { feature: "Pre-population from RoPA", free: "Subscribers only", sub: "✓", platform: "✓" },
+  { feature: "Single state notice", free: "Subscribers only", sub: "Included", platform: "Included" },
+  { feature: "All 20 states", free: "Subscribers only", sub: "Included", platform: "Included" },
+  { feature: "Annual refresh", free: "Subscribers only", sub: "Included", platform: "Included" },
 ];
 
 const FAQ: Array<{ q: string; a: string }> = [
@@ -86,14 +86,14 @@ export default function USNoticeLanding() {
         )}
       </div>
       <PageHero
-        chip={<>📋 US Privacy Notice Builder · From {US_NOTICE_PRICING.singleStandalone()} per state</>}
+        chip={<>📋 US Privacy Notice Builder · Included with any subscription</>}
         title="Generate US privacy notices for all 20 states — in one session."
-        description="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA, or start fresh in under 15 minutes."
+        description="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription — monthly or annual. Not sold as a standalone product."
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg" className="min-h-[48px]">
-            <Link to="/us-notices/mode">
-              Get started <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+            <Link to="/subscribe">
+              View subscription plans <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
           <Button
@@ -212,7 +212,7 @@ export default function USNoticeLanding() {
               Pricing
             </h2>
             <p className="text-muted-foreground mb-8">
-              Answering questions is always free. You only pay when you generate.
+              Included with any active Intelligence or Professional subscription — monthly or annual. Not sold as a standalone product.
             </p>
             <Card>
               <CardContent className="cmp-table p-0 overflow-x-auto">
@@ -272,15 +272,15 @@ export default function USNoticeLanding() {
         <section className="py-16 md:py-20 border-t border-border">
           <div className="max-w-[820px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="font-serif text-foreground mb-4">
-              Start generating — answering questions is free.
+              Included with any subscription.
             </h2>
             <p className="text-muted-foreground mb-8">
-              Build your first state notice in under 15 minutes. Pay only when you're
-              ready to publish.
+              Subscribe to Intelligence or Professional — monthly or annual — to access the
+              US Privacy Notice Builder for every active state at no additional charge.
             </p>
             <Button asChild size="lg" className="min-h-[48px]">
-              <Link to="/us-notices/mode">
-                Get started <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+              <Link to="/subscribe">
+                View subscription plans <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
               </Link>
             </Button>
           </div>

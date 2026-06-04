@@ -325,7 +325,9 @@ export default function EUNoticeReview() {
 
   async function handleGenerateClick() {
     if (!session) return;
-    if (session.payment_confirmed) {
+    // Subscribers (monthly or annual) get notice generation included with
+    // their subscription — bypass checkout entirely.
+    if (session.payment_confirmed || pricing.isSubscriber) {
       await runGeneration();
       return;
     }
