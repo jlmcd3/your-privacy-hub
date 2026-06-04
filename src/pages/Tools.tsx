@@ -210,8 +210,8 @@ const TOOLS: ToolDef[] = [
     name: "Impact Assessment Builder (DPIA)",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing — structured to EDPB guidelines.",
     href: "/dpia-framework",
-    subscriberPrice: "$45",
-    standalonePrice: "$45",
+    subscriberPrice: "$79",
+    standalonePrice: "$79",
     body: [
       "Article 35 requires a DPIA before high-risk processing begins. What regulators assess when they review a DPIA is not whether the form was completed — it is whether the risks were genuinely considered before the processing was authorised, and whether the safeguards implemented reflect that analysis.",
       "The Impact Assessment Builder produces a structured assessment aligned to EDPB guidelines, including the necessity and proportionality analysis most templates omit — with cited supervisory authority decisions.",
