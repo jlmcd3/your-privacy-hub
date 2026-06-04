@@ -179,6 +179,20 @@ const TOOLS: Record<
 // Tools that bypass Stripe entirely for is_pro subscribers (FREE).
 const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker"]);
 
+// Tools that are subscription-only (never sold standalone). Active monthly
+// or annual subscription required; free / unauthenticated users are blocked.
+const SUBSCRIPTION_ONLY_TOOLS = new Set([
+  "ropa_initial",
+  "ropa_refresh",
+  "us_notice_single",
+  "us_notice_all_states",
+  "us_notice_refresh",
+  "eu_notice_single",
+  "eu_notice_suite",
+  "eu_notice_full_international",
+  "eu_notice_refresh",
+]);
+
 // Tools whose row insert needs a `module` discriminator (CPPA family).
 const MODULE_FOR_TOOL: Record<string, string> = {
   cppa_risk_assessment: "risk_assessment",
