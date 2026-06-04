@@ -100,7 +100,7 @@ const TOOLS: Tool[] = [
     icon: FileText,
     title: "U.S. Privacy Notice Builder",
     blurb: "Generate state-specific consumer privacy notices for CCPA, Virginia, Colorado, and other US state laws.",
-    price: "$25 · 1 free run/client/month (Annual)",
+    price: "Included with any subscription",
     cta: "Build U.S. notice",
     href: "/us-notices",
   },
