@@ -336,12 +336,12 @@ const TOOLS: ToolDef[] = [
     name: "EU/UK Privacy Notice Builder",
     tagline: "GDPR & UK GDPR-aligned privacy notices with Article 13/14 disclosures and international transfer language.",
     href: "/eu-notices",
-    subscriberPrice: "$50",
-    standalonePrice: "$50",
+    subscriberPrice: "Included",
+    standalonePrice: "Subscribers only",
     body: [
       "Article 13 and 14 set out what a GDPR-compliant notice must contain. The gap between meeting those requirements on paper and producing a notice that withstands scrutiny is, in practice, the gap between checkbox compliance and an accountability posture that holds up.",
       "The EU/UK Privacy Notice Builder produces a GDPR and UK GDPR-aligned notice covering each Article 13/14 disclosure: identity of the controller, contact details, lawful basis per processing purpose, recipients, retention, international transfer safeguards, and data subject rights. International transfer language is calibrated to the destinations and mechanisms you specify (SCCs, adequacy, derogations).",
-      "The generated notice is structured for review by your privacy or legal professional and intended to be the basis of a documented review — not a substitute for one.",
+      "The generated notice is structured for review by your privacy or legal professional and intended to be the basis of a documented review — not a substitute for one. The EU/UK Privacy Notice Builder is included with any Intelligence or Professional subscription (monthly or annual) and is not sold as a standalone product.",
     ],
     sampleSections: [
       { label: "Lawful basis (per purpose)", content: "Account creation and management: Article 6(1)(b) — necessary for performance of a contract. Marketing communications: Article 6(1)(a) — consent (withdrawable at any time). Fraud prevention: Article 6(1)(f) — legitimate interest, balancing test documented and available on request." },
