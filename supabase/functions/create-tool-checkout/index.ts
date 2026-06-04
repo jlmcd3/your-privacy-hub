@@ -252,6 +252,7 @@ Deno.serve(async (req) => {
     // routing (e.g. Professional free convenience runs are handled client-side).
     let isProfessionalAnnual = false;
     let isPro = false;
+    let isPremium = false;
     let subscriptionType: string | null = null;
     if (user_id) {
       const { data: profile } = await supabase
@@ -261,8 +262,24 @@ Deno.serve(async (req) => {
         .single();
       subscriptionType = (profile as any)?.subscription_type ?? null;
       isPro = (profile as any)?.is_pro === true;
+      isPremium = (profile as any)?.is_premium === true || isPro;
       isProfessionalAnnual = (profile as any)?.professional_annual === true
         || subscriptionType === "annual" || subscriptionType === "annual_founding";
+    }
+
+    // ── Subscription-only tools (RoPA, US/EU Notice Builders) ──
+    // These are included with any active subscription (monthly or annual)
+    // and are not sold on a standalone basis. Reject free / unauthenticated
+    // checkout attempts; subscribers bypass Stripe entirely via their
+    // respective generate-* edge functions and never hit this code path.
+    if (SUBSCRIPTION_ONLY_TOOLS.has(tool_type) && !isPremium) {
+      return new Response(
+        JSON.stringify({
+          error: "subscription_required",
+          message: "This tool is included with an Intelligence or Professional subscription and is not sold on a standalone basis.",
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     // ── Subscriber FREE bypass (IR Playbook, Biometric Checker) ──
