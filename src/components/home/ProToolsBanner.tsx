@@ -108,7 +108,7 @@ const TOOLS: Tool[] = [
     icon: Globe,
     title: "EU/UK Privacy Notice Builder",
     blurb: "GDPR & UK GDPR-aligned notices with Article 13/14 disclosures and international transfer language.",
-    price: "$50 · 1 free run/client/month (Annual)",
+    price: "Included with any subscription",
     cta: "Build EU/UK notice",
     href: "/eu-notices",
   },
