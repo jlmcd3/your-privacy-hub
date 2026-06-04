@@ -52,22 +52,24 @@ export function USNoticeShell({
       ) : null}
       <main className="flex-1 max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <RopaErrorBoundary>
-          {breadcrumb && (
-            <RopaBreadcrumb
-              steps={breadcrumb.steps}
-              currentIndex={breadcrumb.currentIndex}
-            />
-          )}
-          {!description && (
-            <h1 className="font-serif text-foreground mb-6">
-              {heading}
-            </h1>
-          )}
-          {children ?? (
-            <p className="text-muted-foreground text-sm">
-              This page is part of the US Notice Builder. Implementation in progress.
-            </p>
-          )}
+          <NoticeAccessGate toolName="US Privacy Notice Builder">
+            {breadcrumb && (
+              <RopaBreadcrumb
+                steps={breadcrumb.steps}
+                currentIndex={breadcrumb.currentIndex}
+              />
+            )}
+            {!description && (
+              <h1 className="font-serif text-foreground mb-6">
+                {heading}
+              </h1>
+            )}
+            {children ?? (
+              <p className="text-muted-foreground text-sm">
+                This page is part of the US Notice Builder. Implementation in progress.
+              </p>
+            )}
+          </NoticeAccessGate>
         </RopaErrorBoundary>
       </main>
       <Footer />
