@@ -295,14 +295,14 @@ const TOOLS: ToolDef[] = [
     section: "documents",
     icon: "🗃️",
     name: "RoPA Builder (Article 30)",
-    tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction.",
+    tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction. Included with any subscription.",
     href: "/ropa-builder",
-    subscriberPrice: "$40",
-    standalonePrice: "$40",
+    subscriberPrice: "Included",
+    standalonePrice: "Subscribers only",
     body: [
       "Article 30 RoPAs look administrative until a regulator asks for them. Then the gap between a spreadsheet that nominally lists processing activities and a record that actually demonstrates accountability becomes immediately visible. The RoPA Builder is structured around the latter.",
       "Activities are organised per-platform and per-jurisdiction. Each entry captures the lawful basis, data categories, recipients, retention rules, and international transfer safeguards in the structure supervisory authorities expect to see — with prompts calibrated to your sector and the platforms you've already named.",
-      "The output is a versioned, dated record intended to be reviewed by your privacy or legal professional and retained as part of your accountability documentation. Annual subscribers get full access; standalone users can generate per-activity records.",
+      "The output is a versioned, dated record intended to be reviewed by your privacy or legal professional and retained as part of your accountability documentation. RoPA Builder is included with any Intelligence or Professional subscription (monthly or annual) and is not sold as a standalone product.",
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
     sampleSections: [

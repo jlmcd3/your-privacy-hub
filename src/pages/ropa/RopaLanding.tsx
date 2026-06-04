@@ -48,12 +48,12 @@ const JURISDICTIONS: { region: string; items: string[] }[] = [
 ];
 
 const PRICING_ROWS: { feature: string; free: string; intel: string }[] = [
-  { feature: "Complete Q&A tool", free: "Included", intel: "Included" },
-  { feature: "Save & resume", free: "Included", intel: "Included" },
-  { feature: "25+ jurisdictions", free: "Included", intel: "Included" },
-  { feature: "Generate PDF", free: "$79", intel: "$40" },
-  { feature: "Annual refresh", free: "$35", intel: "$15" },
-  { feature: "Multi-client management", free: "$149/yr", intel: "Included" },
+  { feature: "Complete Q&A tool", free: "Subscribers only", intel: "Included" },
+  { feature: "Save & resume", free: "Subscribers only", intel: "Included" },
+  { feature: "25+ jurisdictions", free: "Subscribers only", intel: "Included" },
+  { feature: "Generate PDF / Word / Excel", free: "Subscribers only", intel: "Included" },
+  { feature: "Annual refresh", free: "Subscribers only", intel: "Included" },
+  { feature: "Multi-client management", free: "Subscribers only", intel: "Included" },
 ];
 
 const FAQ = [
@@ -104,20 +104,20 @@ export default function RopaLanding() {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            📚 RoPA Builder · Q&A free · PDF ${pricing.price}
+            📚 RoPA Builder · Included with any subscription
           </span>
           <h1 className="font-serif text-white mb-3">
             Build an audit-ready Record of Processing Activities (RoPA) in minutes
           </h1>
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Guided questions in plain language. Covers GDPR Article 30, LGPD, CCPA, and 20+
-            frameworks. Used by DPOs, privacy consultants, and compliance teams to keep
-            records of processing activities current and regulator-ready.
+            frameworks. Included with every Intelligence and Professional subscription —
+            monthly or annual. Not sold as a standalone product.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
-              <Link to="/ropa">
-                Start for free <ArrowRight className="ml-1.5 h-4 w-4" />
+              <Link to="/get-intelligence">
+                View subscription plans <ArrowRight className="ml-1.5 h-4 w-4" />
               </Link>
             </Button>
             <Button
@@ -212,7 +212,7 @@ export default function RopaLanding() {
               Pricing
             </h2>
             <p className="text-center text-muted-foreground mb-10 text-sm">
-              Start free. Pay only when you generate a document.
+              Included with any active subscription — no per-document fees.
             </p>
 
             <div className="cmp-table overflow-x-auto border border-border rounded-2xl">
@@ -223,10 +223,10 @@ export default function RopaLanding() {
                       Feature
                     </th>
                     <th className="text-center p-4 font-serif text-base text-foreground">
-                      Free to use
+                      Free / unregistered
                     </th>
                     <th className="text-center p-4 font-serif text-base text-foreground">
-                      Intelligence ({INTELLIGENCE_PRICING.monthly()})
+                      Subscribers ({INTELLIGENCE_PRICING.monthly()})
                     </th>
                   </tr>
                 </thead>

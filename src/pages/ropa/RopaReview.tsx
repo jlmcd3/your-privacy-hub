@@ -245,7 +245,7 @@ export default function RopaReview() {
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    if (currentSession.payment_confirmed) {
+    if (currentSession.payment_confirmed || pricing.isIncluded) {
       await runGeneration();
       return;
     }
@@ -429,7 +429,7 @@ export default function RopaReview() {
           >
             {generating
               ? "Generating…"
-              : currentSession?.payment_confirmed
+              : currentSession?.payment_confirmed || pricing.isIncluded
                 ? "Generate RoPA documents"
                 : pricing.loading
                   ? "Continue to payment"
@@ -437,14 +437,14 @@ export default function RopaReview() {
           </button>
           {!currentSession?.payment_confirmed && !pricing.isSubscriber && !pricing.loading && (
             <p className="text-meta text-brand-teal mt-2 text-center">
-              Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
+              RoPA Builder is included with any{" "}
               <a
                 href="/get-intelligence"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline font-semibold"
               >
-                Intelligence <ExternalLink className="w-3 h-3 inline" />
+                subscription <ExternalLink className="w-3 h-3 inline" />
               </a>
             </p>
           )}
