@@ -25,12 +25,12 @@ const VIRGINIA_STATES = [
 const PENDING_STATES = ["Kentucky (eff. 2026)", "Rhode Island (eff. 2026)"];
 
 const PRICING_ROWS: Array<{ feature: string; free: string; sub: string; platform: string }> = [
-  { feature: "Answer all questions", free: "✓", sub: "✓", platform: "✓" },
-  { feature: "Save & resume", free: "✓", sub: "✓", platform: "✓" },
-  { feature: "Pre-population from RoPA", free: "✓", sub: "✓", platform: "✓" },
-  { feature: "Single state notice", free: US_NOTICE_PRICING.singleStandalone(), sub: US_NOTICE_PRICING.singleSubscriber(), platform: "Included" },
-  { feature: "All 20 states", free: US_NOTICE_PRICING.allStatesStandalone(), sub: US_NOTICE_PRICING.allStatesSubscriber(), platform: "Included" },
-  { feature: "Annual refresh", free: US_NOTICE_PRICING.singleStandalone(), sub: US_NOTICE_PRICING.singleSubscriber(), platform: "Included" },
+  { feature: "Answer all questions", free: "Subscribers only", sub: "✓", platform: "✓" },
+  { feature: "Save & resume", free: "Subscribers only", sub: "✓", platform: "✓" },
+  { feature: "Pre-population from RoPA", free: "Subscribers only", sub: "✓", platform: "✓" },
+  { feature: "Single state notice", free: "Subscribers only", sub: "Included", platform: "Included" },
+  { feature: "All 20 states", free: "Subscribers only", sub: "Included", platform: "Included" },
+  { feature: "Annual refresh", free: "Subscribers only", sub: "Included", platform: "Included" },
 ];
 
 const FAQ: Array<{ q: string; a: string }> = [
