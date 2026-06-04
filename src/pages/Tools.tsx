@@ -466,7 +466,7 @@ export default function Tools() {
     <>
       <Helmet>
         <title>Compliance Tools — Enforcement-Calibrated Assessments & Documents | End User Privacy</title>
-        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Available individually at standalone prices from $15." />
+        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Available individually at standalone prices from $45." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
