@@ -317,12 +317,12 @@ const TOOLS: ToolDef[] = [
     name: "U.S. Privacy Notice Builder",
     tagline: "State-specific consumer privacy notices for CCPA, Virginia, Colorado, and other US state privacy laws.",
     href: "/us-notices",
-    subscriberPrice: "$25",
-    standalonePrice: "$25",
+    subscriberPrice: "Included",
+    standalonePrice: "Subscribers only",
     body: [
       "US state privacy laws are not interchangeable. CCPA disclosure requirements differ from Virginia's, which differ from Colorado's, which differ again from the more recent state laws. A single 'US privacy notice' that does not surface those differences is itself a compliance risk — and increasingly, an enforcement one.",
       "The U.S. Privacy Notice Builder produces state-specific notices that include the disclosures each statute actually requires: categories of personal information, sources, purposes, sale and sharing disclosures, sensitive data handling, and consumer rights mechanisms. State-specific overlays are applied automatically based on the jurisdictions you select.",
-      "The output is a draft notice for review by your privacy or legal professional before publication. It is structured to be read by counsel quickly — clearly delineating the state-specific provisions from the universal ones — and to be updated as state laws continue to evolve.",
+      "The output is a draft notice for review by your privacy or legal professional before publication. It is structured to be read by counsel quickly — clearly delineating the state-specific provisions from the universal ones — and to be updated as state laws continue to evolve. The U.S. Privacy Notice Builder is included with any Intelligence or Professional subscription (monthly or annual) and is not sold as a standalone product.",
     ],
     sampleSections: [
       { label: "California (CCPA/CPRA) — sensitive personal information", content: "We collect the following categories of sensitive personal information: government identifiers, account log-in credentials, and precise geolocation. You have the right to limit the use and disclosure of this information." },
