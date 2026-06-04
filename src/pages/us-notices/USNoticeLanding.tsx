@@ -86,14 +86,14 @@ export default function USNoticeLanding() {
         )}
       </div>
       <PageHero
-        chip={<>📋 US Privacy Notice Builder · From {US_NOTICE_PRICING.singleStandalone()} per state</>}
+        chip={<>📋 US Privacy Notice Builder · Included with any subscription</>}
         title="Generate US privacy notices for all 20 states — in one session."
-        description="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA, or start fresh in under 15 minutes."
+        description="Covers CCPA/CPRA, Virginia CDPA, Texas TDPSA, and every active US state privacy law. Pre-populated from your RoPA. Included with every Intelligence and Professional subscription — monthly or annual. Not sold as a standalone product."
       >
         <div className="flex flex-wrap gap-3">
           <Button asChild size="lg" className="min-h-[48px]">
-            <Link to="/us-notices/mode">
-              Get started <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+            <Link to="/subscribe">
+              View subscription plans <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
           <Button
