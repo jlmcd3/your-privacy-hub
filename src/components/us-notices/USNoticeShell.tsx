@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { RopaErrorBoundary } from "@/components/ropa/RopaErrorBoundary";
 import { RopaBreadcrumb } from "@/components/ropa/RopaBreadcrumb";
+import { NoticeAccessGate } from "@/components/notices/NoticeAccessGate";
 import {
   getUSNoticeSteps,
   type USNoticeFlowStep,
