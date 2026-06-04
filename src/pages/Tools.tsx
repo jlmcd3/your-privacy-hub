@@ -435,19 +435,19 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Privacy Programme Assessment", "$55 (Smart)"],
-  ["Legitimate Interest Assessment", "$35 (Smart)"],
-  ["Impact Assessment (DPIA)", "$45 (Smart)"],
-  ["DPA Generator", "$45 (Smart)"],
-  ["Incident Response Playbook", "$25 (Convenience)"],
-  ["Biometric Privacy Check", "$15 (Smart)"],
-  ["RoPA Builder", "$40 (Convenience)"],
+  ["Privacy Programme Assessment", "$89 (Smart)"],
+  ["Legitimate Interest Assessment", "$69 (Smart)"],
+  ["Impact Assessment (DPIA)", "$79 (Smart)"],
+  ["DPA Generator", "$49 (Smart)"],
+  ["Incident Response Playbook", "$59 (Convenience)"],
+  ["Biometric Privacy Check", "$49 (Smart)"],
+  ["RoPA Builder", "Included with subscription"],
   ["U.S. Privacy Notice Builder", "Included with subscription"],
   ["EU/UK Privacy Notice Builder", "Included with subscription"],
   ["Registration Manager", "$45 per filing (Convenience)"],
   ["CPPA Scope Checker", "Always free"],
-  ["CPPA Risk Assessment", "$55 (Smart)"],
-  ["CPPA Cybersecurity Audit", "$70 (Smart)"],
+  ["CPPA Risk Assessment", "$89 (Smart)"],
+  ["CPPA Cybersecurity Audit", "$99 (Smart)"],
   ["Professional annual", "1 free Convenience Tool run/client/month"],
 ];
 
