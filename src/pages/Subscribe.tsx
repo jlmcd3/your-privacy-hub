@@ -45,8 +45,8 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "IR Playbook (Convenience)", free: false, intel: T.ir_playbook.display, platform: T.ir_playbook.display },
   { feature: "Biometric Privacy Checker (Smart Tool)", free: false, intel: T.biometric.display, platform: T.biometric.display },
   { feature: "Records of Processing (RoPA) (Convenience)", free: false, intel: "Included", platform: "Included" },
-  { feature: "US Privacy Notice (Convenience)", free: false, intel: T.us_notice.display, platform: T.us_notice.display },
-  { feature: "EU & Global Privacy Notice (Convenience)", free: false, intel: T.eu_notice.display, platform: T.eu_notice.display },
+  { feature: "US Privacy Notice Builder", free: false, intel: "Included", platform: "Included" },
+  { feature: "EU & Global Privacy Notice Builder", free: false, intel: "Included", platform: "Included" },
   { feature: "Registration Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
   { feature: "1 free Convenience Tool/client/month", free: false, intel: false, platform: "Annual only" },
 
