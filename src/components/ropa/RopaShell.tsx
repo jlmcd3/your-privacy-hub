@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { RopaErrorBoundary } from "@/components/ropa/RopaErrorBoundary";
+import { RopaAccessGate } from "@/components/ropa/RopaAccessGate";
 
 interface RopaShellProps {
   title: string;
@@ -34,16 +35,18 @@ export function RopaShell({ title, heading, children, description, chip }: RopaS
       ) : null}
       <main className="flex-1 max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <RopaErrorBoundary>
-          {!description && (
-            <h1 className="font-serif text-foreground mb-6">
-              {heading}
-            </h1>
-          )}
-          {children ?? (
-            <p className="text-muted-foreground text-sm">
-              This page is part of the RoPA Builder. Implementation in progress.
-            </p>
-          )}
+          <RopaAccessGate>
+            {!description && (
+              <h1 className="font-serif text-foreground mb-6">
+                {heading}
+              </h1>
+            )}
+            {children ?? (
+              <p className="text-muted-foreground text-sm">
+                This page is part of the RoPA Builder. Implementation in progress.
+              </p>
+            )}
+          </RopaAccessGate>
         </RopaErrorBoundary>
       </main>
       <Footer />
