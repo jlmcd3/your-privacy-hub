@@ -60,7 +60,7 @@ const TOOLS: Tool[] = [
     icon: FileSearch,
     title: "Impact Assessment Builder (DPIA)",
     blurb: "Article 35-aligned DPIA — risk items annotated with cited supervisory authority decisions.",
-    price: "$45",
+    price: "$79",
     cta: "Build DPIA",
     href: "/dpia-framework",
   },
