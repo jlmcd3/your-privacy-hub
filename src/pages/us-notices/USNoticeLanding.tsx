@@ -212,7 +212,7 @@ export default function USNoticeLanding() {
               Pricing
             </h2>
             <p className="text-muted-foreground mb-8">
-              Answering questions is always free. You only pay when you generate.
+              Included with any active Intelligence or Professional subscription — monthly or annual. Not sold as a standalone product.
             </p>
             <Card>
               <CardContent className="cmp-table p-0 overflow-x-auto">
