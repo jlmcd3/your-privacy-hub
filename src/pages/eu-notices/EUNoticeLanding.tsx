@@ -1,10 +1,8 @@
 import { PageHero } from "@/components/PageHero";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2 } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
-import Footer from "@/components/Footer";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,15 +28,12 @@ const FRAMEWORKS = [
 export default function EUNoticeLanding() {
   const { hasToolAccess } = useSubscriptionTier();
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <WorkspaceLayout className="bg-background">
       <Helmet>
         <title>EU & Global Privacy Notice Builder | EndUserPrivacy</title>
         <meta name="description" content="Generate GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA, PIPEDA and 4 more privacy notices in one session." />
         <link rel="canonical" href="https://www.enduserprivacy.com/eu-global-notice-builder" />
-      </Helmet>
-      <Navbar />
-      <DashboardSubnav />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      </Helmet>      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
         {hasToolAccess && (
           <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
@@ -117,7 +112,6 @@ export default function EUNoticeLanding() {
           </div>
         </section>
       </main>
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }

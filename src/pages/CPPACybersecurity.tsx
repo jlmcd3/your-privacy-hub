@@ -1,11 +1,9 @@
 // CPPA Cybersecurity Audit Readiness — Module 2 intake. Covers 18 programme components.
 import { useMemo, useState } from "react";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -101,11 +99,8 @@ export default function CPPACybersecurity() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title></Helmet>
-      <Navbar />
-      <DashboardSubnav />
-      <header className="bg-slate-900 text-white py-12">
+    <WorkspaceLayout className="bg-background">
+      <Helmet><title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title></Helmet>      <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
@@ -220,7 +215,6 @@ export default function CPPACybersecurity() {
           }}
         />
       </main>
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }

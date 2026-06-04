@@ -3,11 +3,9 @@
 
 
 import { useEffect, useMemo, useState } from "react";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
@@ -137,7 +135,7 @@ export default function CPPAScopeChecker() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <WorkspaceLayout className="bg-background">
       <Helmet>
         <title>CPPA Scope Checker — Do You Meet the CCPA/CPRA Threshold? | End User Privacy</title>
         <meta
@@ -145,9 +143,6 @@ export default function CPPAScopeChecker() {
           content="Free 2-minute check to determine whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA enforcement obligations apply to your business."
         />
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
-
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
@@ -273,9 +268,7 @@ export default function CPPAScopeChecker() {
           />
         )}
       </main>
-
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }
 

@@ -1,12 +1,10 @@
 // CPPA Privacy Risk Assessment — Module 1 intake. 5-step wizard + summary.
 
 import { useMemo, useState, useEffect } from "react";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -148,12 +146,9 @@ export default function CPPARiskAssessment() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <WorkspaceLayout className="bg-background">
       <Helmet><title>CPPA Privacy Risk Assessment — Module 1 | End User Privacy</title>
-        <meta name="description" content="California CPPA risk assessment structured to the agency's regulations — domain findings supported by cited CPPA and AG enforcement context." /></Helmet>
-      <Navbar />
-      <DashboardSubnav />
-      <header className="bg-slate-900 text-white py-12">
+        <meta name="description" content="California CPPA risk assessment structured to the agency's regulations — domain findings supported by cited CPPA and AG enforcement context." /></Helmet>      <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
@@ -284,8 +279,7 @@ export default function CPPARiskAssessment() {
           }}
         />
       </main>
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 }
 

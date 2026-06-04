@@ -1,11 +1,9 @@
 
 import { useState } from "react";
+import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import Navbar from "@/components/Navbar";
-import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
-import Footer from "@/components/Footer";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
@@ -156,14 +154,11 @@ const LIAssessment = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-brand-cloud">
+    <WorkspaceLayout>
       <Helmet>
         <title>Legitimate Interest Assessment — Free Preliminary Signal | End User Privacy</title>
         <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest. Full assessment includes cited enforcement precedents alongside every test verdict." />
       </Helmet>
-      <Navbar />
-      <DashboardSubnav />
-
       {/* Header */}
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -384,9 +379,7 @@ const LIAssessment = () => {
           </section>
         )}
       </main>
-
-      <Footer />
-    </div>
+    </WorkspaceLayout>
   );
 };
 
