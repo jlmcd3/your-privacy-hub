@@ -92,7 +92,7 @@ const TOOLS: Tool[] = [
     icon: Database,
     title: "RoPA Builder",
     blurb: "Build and maintain your Article 30 Record of Processing Activities — calibrated to your platforms and jurisdictions.",
-    price: "$40 · 1 free run/client/month (Annual)",
+    price: "Included with any subscription",
     cta: "Build RoPA",
     href: "/ropa-builder",
   },
