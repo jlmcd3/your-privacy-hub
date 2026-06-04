@@ -844,7 +844,7 @@ function FlagPreview({
         >
           <p className="text-sm font-semibold">⚠ {c.message}</p>
           <p className="text-xs text-muted-foreground mt-1">{c.consequence}</p>
-          {c.actionLabel && c.actionRoute && (
+          {c.actionLabel && c.actionRoute ? (
             <a
               href={c.actionRoute}
               target="_blank"
@@ -853,7 +853,11 @@ function FlagPreview({
             >
               {c.actionLabel} →
             </a>
-          )}
+          ) : c.actionLabel ? (
+            <p className="text-xs text-primary mt-2 inline-block">
+              {c.actionLabel}
+            </p>
+          ) : null}
         </div>
       ))}
     </div>

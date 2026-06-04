@@ -121,8 +121,7 @@ const LIA_CROSSSELL: FlagCondition = {
   message: "Legitimate interests requires a documented LIA.",
   consequence:
     "Without a documented Legitimate Interests Assessment, this basis is hard to defend.",
-  actionLabel: "Run a Legitimate Interest Assessment",
-  actionRoute: "/li-assessment",
+  actionLabel: "You should run a Legitimate Interest Assessment separately.",
 };
 
 const DPIA_CROSSSELL: FlagCondition = {
