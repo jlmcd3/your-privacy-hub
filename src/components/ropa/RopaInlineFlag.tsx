@@ -67,7 +67,7 @@ export default function RopaInlineFlag({
               Related compliance tool
             </p>
             <p className="text-sm text-brand-navy dark:text-white">{message}</p>
-            {actionRoute && actionLabel && (
+            {actionLabel && actionRoute ? (
               <a
                 href={actionRoute}
                 target="_blank"
@@ -76,7 +76,11 @@ export default function RopaInlineFlag({
               >
                 {actionLabel} →
               </a>
-            )}
+            ) : actionLabel ? (
+              <p className="mt-2 text-[12px] font-semibold text-brand-teal">
+                {actionLabel}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
