@@ -42,19 +42,21 @@ export default function EUNoticeLanding() {
         )}
       </div>
       <PageHero
-        chip={<>🌐 EU & Global Notice Builder · From {EU_NOTICE_PRICING.singleStandalone()} per framework</>}
+        chip={<>🌐 EU & Global Notice Builder · Included with any subscription</>}
         title="EU & Global Privacy Notice Builder"
-        description="Build privacy notices for GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA and 5 more frameworks — in a single guided session."
+        description="Build privacy notices for GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA and 5 more frameworks — in a single guided session. Included with every Intelligence and Professional subscription (monthly or annual). Not sold as a standalone product."
       >
         <div className="flex flex-wrap gap-3">
-          <Button asChild size="lg"><Link to="/eu-notices">Get started <ArrowRight className="h-4 w-4 ml-2" /></Link></Button>
+          <Button asChild size="lg">
+            <Link to="/subscribe">View subscription plans <ArrowRight className="h-4 w-4 ml-2" /></Link>
+          </Button>
           <Button
             asChild
             variant="outline"
             size="lg"
             className="bg-transparent border-slate-500 text-white hover:bg-slate-800 hover:text-white"
           >
-            <Link to="/eu-notices/mode">New notice</Link>
+            <Link to="/eu-notices">My notice projects</Link>
           </Button>
         </div>
       </PageHero>
