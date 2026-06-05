@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-06-05T09:46:07.317Z",
+  "generatedAt": "2026-06-05T10:19:41.466Z",
   "routesScanned": 147,
-  "filesScanned": 423,
+  "filesScanned": 424,
   "summary": {
     "high": 3,
     "medium": 0,
-    "info": 27
+    "info": 1
   },
   "findings": [
     {
@@ -15,10 +15,7 @@
       "component": "Tools",
       "file": "src/pages/Tools.tsx",
       "labels": [
-        "Professional subscribers",
-        "Subscribers only",
-        "Subscribers only",
-        "Subscribers only"
+        "Professional subscribers"
       ],
       "message": "Public route uses \"Pro/Premium-only\" language but has no runtime premium check."
     },
@@ -28,46 +25,6 @@
       "route": "/notices-ropa",
       "component": "NoticesRopaHub",
       "file": "src/pages/NoticesRopaHub.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/ropa",
-      "component": "RopaHome",
-      "file": "src/pages/ropa/RopaHome.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/ropa/activities",
-      "component": "RopaActivities",
-      "file": "src/pages/ropa/RopaActivities.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/ropa/activity/:id",
-      "component": "RopaActivity",
-      "file": "src/pages/ropa/RopaActivity.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/ropa/documents",
-      "component": "RopaDocuments",
-      "file": "src/pages/ropa/RopaDocuments.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/ropa/refresh/:sessionId",
-      "component": "RopaRefresh",
-      "file": "src/pages/ropa/RopaRefresh.tsx",
       "message": "Auth-protected route does not differentiate free vs premium logged-in users."
     },
     {
@@ -86,110 +43,6 @@
       "message": "Public route uses \"Pro/Premium-only\" language but has no runtime premium check."
     },
     {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices",
-      "component": "USNoticeHome",
-      "file": "src/pages/us-notices/USNoticeHome.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/mode",
-      "component": "USNoticeMode",
-      "file": "src/pages/us-notices/USNoticeMode.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/:sessionId/mode",
-      "component": "USNoticeMode",
-      "file": "src/pages/us-notices/USNoticeMode.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/:sessionId/states",
-      "component": "USNoticeStates",
-      "file": "src/pages/us-notices/USNoticeStates.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/:sessionId/questions",
-      "component": "USNoticeQuestions",
-      "file": "src/pages/us-notices/USNoticeQuestions.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/:sessionId/review",
-      "component": "USNoticeReview",
-      "file": "src/pages/us-notices/USNoticeReview.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/:sessionId/documents",
-      "component": "USNoticeDocuments",
-      "file": "src/pages/us-notices/USNoticeDocuments.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/:sessionId/refresh",
-      "component": "USNoticeRefresh",
-      "file": "src/pages/us-notices/USNoticeRefresh.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/states/:sessionId",
-      "component": "USNoticeStates",
-      "file": "src/pages/us-notices/USNoticeStates.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/questions/:sessionId",
-      "component": "USNoticeQuestions",
-      "file": "src/pages/us-notices/USNoticeQuestions.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/review/:sessionId",
-      "component": "USNoticeReview",
-      "file": "src/pages/us-notices/USNoticeReview.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/review",
-      "component": "USNoticeReview",
-      "file": "src/pages/us-notices/USNoticeReview.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/us-notices/refresh/:sessionId",
-      "component": "USNoticeRefresh",
-      "file": "src/pages/us-notices/USNoticeRefresh.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
       "severity": "high",
       "type": "label_without_gate",
       "route": "/us-notice-builder",
@@ -203,70 +56,6 @@
         "Subscribers only"
       ],
       "message": "Public route uses \"Pro/Premium-only\" language but has no runtime premium check."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/eu-notices",
-      "component": "EUNoticeHome",
-      "file": "src/pages/eu-notices/EUNoticeHome.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/eu-notices/mode",
-      "component": "EUNoticeMode",
-      "file": "src/pages/eu-notices/EUNoticeMode.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/eu-notices/frameworks/:sessionId",
-      "component": "EUNoticeFrameworks",
-      "file": "src/pages/eu-notices/EUNoticeFrameworks.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/eu-notices/questions/:sessionId",
-      "component": "EUNoticeQuestions",
-      "file": "src/pages/eu-notices/EUNoticeQuestions.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/eu-notices/review/:sessionId",
-      "component": "EUNoticeReview",
-      "file": "src/pages/eu-notices/EUNoticeReview.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/eu-notices/review",
-      "component": "EUNoticeReview",
-      "file": "src/pages/eu-notices/EUNoticeReview.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/eu-notices/documents",
-      "component": "EUNoticeDocuments",
-      "file": "src/pages/eu-notices/EUNoticeDocuments.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
-    },
-    {
-      "severity": "info",
-      "type": "protected_route_no_inner_gate",
-      "route": "/eu-notices/refresh/:sessionId",
-      "component": "EUNoticeRefresh",
-      "file": "src/pages/eu-notices/EUNoticeRefresh.tsx",
-      "message": "Auth-protected route does not differentiate free vs premium logged-in users."
     }
   ]
 }
