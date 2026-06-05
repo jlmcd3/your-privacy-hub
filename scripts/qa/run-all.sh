@@ -22,7 +22,7 @@ run "links-static"   node scripts/qa/link-audit.mjs
 run "content-static" node scripts/qa/content-audit.mjs
 run "pricing-drift"  node scripts/check-pricing-drift.mjs
 run "gating-leak"    node scripts/scan-gating-leaks.mjs
-run "playwright"     npx playwright test tests/launch --reporter=line
+run "playwright"     npx playwright test --config=playwright.launch.config.ts
 
 echo
 echo "=== SUMMARY ==="
