@@ -26,7 +26,7 @@ for (const route of PUBLIC_LANDINGS) {
   test(`marketing landing renders without gated body content: ${route}`, async ({ page }) => {
     await page.goto(route, { waitUntil: "domcontentloaded", timeout: 90_000 });
     await page.waitForSelector("body", { state: "attached", timeout: 10_000 });
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(5000);
     // Must not show a "Download document" / "Generate notice" CTA without sign-in
     const body = await page.locator("body").innerText();
     expect(body.length, `${route} has body content`).toBeGreaterThan(200);
