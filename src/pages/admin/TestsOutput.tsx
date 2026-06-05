@@ -209,7 +209,7 @@ export default function TestsOutput() {
       const id = data.testId as string;
       if (!REGISTRY.find((r) => r.id === id)) return;
       // Ignore unless this is the test we're currently running
-      if (runIndex === null || REGISTRY[runIndex]?.id !== id) return;
+      if (runIndex === null || queueRef.current[runIndex] !== id) return;
 
       updateResult(id, {
         status: data.status,
