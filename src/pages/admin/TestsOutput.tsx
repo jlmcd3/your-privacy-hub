@@ -561,9 +561,10 @@ export default function TestsOutput() {
   // ticking 500ms interval does NOT re-render this entire page (which would
   // thrash the iframe and kill in-flight tests).
   const timeoutSec = Math.floor(TEST_TIMEOUT_MS / 1000);
-  const currentEntry = runIndex !== null ? results[REGISTRY[runIndex].id] : null;
-  const overallPct = Math.round(
-    ((runIndex ?? REGISTRY.length) / REGISTRY.length) * 100,
+  const currentEntry = currentId ? results[currentId] : null;
+  const queueLength = queueRef.current.length;
+  const overallPct = queueLength === 0 ? 0 : Math.round(
+    ((runIndex ?? queueLength) / queueLength) * 100,
   );
   const [showIframe, setShowIframe] = useState(false);
 
