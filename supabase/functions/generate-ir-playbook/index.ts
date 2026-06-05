@@ -44,7 +44,7 @@ const DPA_PORTALS: Record<string, string> = {
   California:
     "California AG Breach Report (500+ CA residents): https://oag.ca.gov/ecrime/databreach/reporting | CPPA Enforcement: https://cppa.ca.gov/",
   Texas:
-    "Texas AG Breach Notification (prompt notice to AG if 250+ Texans): https://www.texasattorneygeneral.gov/consumer-protection/file-consumer-complaint",
+    "Texas AG Breach Notification (written notice required if 250+ Texans affected — no dedicated online breach notification portal exists; use the consumer protection contact page as reference only): https://www.texasattorneygeneral.gov/consumer-protection/file-consumer-complaint",
   "New York":
     "NY AG Breach Notification (most expedient time, notify AG if 500+ NY residents): https://ag.ny.gov/resources/individuals/data-security",
   Connecticut:
