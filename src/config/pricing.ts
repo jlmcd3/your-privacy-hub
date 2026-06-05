@@ -664,6 +664,23 @@ export const EU_NOTICE_PRICING = {
 } as const;
 
 // ============================================================================
+//  v8 DRIFT LOG — subscriber-only tools (2026-06-05)
+//  ──────────────────────────────────────────────────────────────────────────
+//  RoPA Builder, US Privacy Notice Builder, and EU & Global Privacy Notice
+//  Builder are SUBSCRIBER-ONLY. They are included with any active Intelligence
+//  or Professional subscription (monthly or annual) and are NEVER sold
+//  standalone. In this file:
+//    - PRICING.tools.ropa / us_notice / eu_notice → dollars: 0,
+//      display: "Included with subscription", stripePriceId: null
+//    - PRICING_REGISTRY.ropa_initial_standalone / ropa_refresh_standalone /
+//      us_notice_v7_standalone / eu_notice_v7_standalone → active: false
+//    - SUBSCRIBER_ONLY_TOOL_KEYS lists them; they are excluded from
+//      CONVENIENCE_TOOL_KEYS and from the free-run pool accounting.
+//    - isToolFreeForTier() returns true for these tools for any active
+//      subscription tier; false for free / anonymous users.
+// ============================================================================
+
+// ============================================================================
 //  NEW PRICING MODEL (v7) — Coexists with legacy registry above.
 //  Source of truth for the v7 redesign (Intelligence $20/mo, Professional
 //  $35/mo base + $150/client/yr, per-use tools with subscriber discounts,
