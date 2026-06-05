@@ -75,11 +75,15 @@ const report = {
     findings: findings.length,
     high: findings.filter((f) => f.severity === "high").length,
     medium: findings.filter((f) => f.severity === "medium").length,
+    info: findings.filter((f) => f.severity === "info").length,
   },
   findings,
 };
 writeFileSync(OUT, JSON.stringify(report, null, 2));
-console.log(`[content] pages=${pages.length} findings=${findings.length} high=${report.totals.high}`);
+console.log(
+  `[content] pages=${pages.length} findings=${findings.length} ` +
+  `high=${report.totals.high} medium=${report.totals.medium} info=${report.totals.info}`,
+);
 if (report.totals.high) {
   console.log("[content] HIGH FINDINGS:");
   for (const f of findings.filter((x) => x.severity === "high").slice(0, 30)) {
