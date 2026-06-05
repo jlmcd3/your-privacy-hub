@@ -921,12 +921,14 @@ export type SmartToolKey = typeof SMART_TOOL_KEYS[number];
 /**
  * CONVENIENCE TOOLS — document generators. Valuable time-savers.
  * Professional annual subscribers receive 1 free run per client per month.
+ *
+ * NOTE: RoPA Builder, US Privacy Notice Builder, and EU/Global Privacy
+ * Notice Builder are SUBSCRIBER-ONLY (never sold standalone and never
+ * eligible for the free-run pool — they are always included with any
+ * active subscription). They are deliberately excluded from this list.
  */
 export const CONVENIENCE_TOOL_KEYS = [
   'ir_playbook',  // IR Playbook — structured notification timelines
-  'us_notice',    // US Privacy Notice — state-specific generation
-  'eu_notice',    // EU/Global Notice — multi-jurisdiction generation
-  'ropa',         // RoPA Builder — Article 30 structured record
   'registration', // Registration Filings — DPO/AI Act registration docs
 ] as const;
 
@@ -935,9 +937,27 @@ export type ConvenienceToolKey = typeof CONVENIENCE_TOOL_KEYS[number];
 /** Always free — CPPA Scope Checker */
 export const FREE_TOOL_KEYS = ['cppa_scope'] as const;
 
+/**
+ * Subscriber-only tools: included with any active Intelligence/Professional
+ * subscription (monthly or annual). Never sold standalone, never pool-eligible.
+ * Free / anonymous users have no access.
+ */
+export const SUBSCRIBER_ONLY_TOOL_KEYS = [
+  'ropa',
+  'us_notice',
+  'eu_notice',
+] as const;
+export type SubscriberOnlyToolKey = typeof SUBSCRIBER_ONLY_TOOL_KEYS[number];
+
 // camelCase aliases for the same tool keys (so callers using either form work)
 const SMART_TOOL_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber','dpa','biometric']);
-const CONVENIENCE_TOOL_CAMEL = new Set(['irPlaybook','usNotice','euNotice','ropa','registration']);
+const CONVENIENCE_TOOL_CAMEL = new Set(['irPlaybook','registration']);
+const SUBSCRIBER_ONLY_TOOL_CAMEL = new Set(['ropa','usNotice','euNotice']);
+
+/** Returns true if the tool requires a subscription (not sold standalone). */
+export function isSubscriberOnlyTool(toolKey: string): boolean {
+  return (SUBSCRIBER_ONLY_TOOL_KEYS as readonly string[]).includes(toolKey) || SUBSCRIBER_ONLY_TOOL_CAMEL.has(toolKey);
+}
 
 /** Returns true if the tool uses multi-stage enforcement-corpus reasoning */
 export function isSmartTool(toolKey: string): boolean {
