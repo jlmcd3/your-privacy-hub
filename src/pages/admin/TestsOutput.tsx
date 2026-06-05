@@ -599,11 +599,33 @@ export default function TestsOutput() {
                 Stage 1 — wired for {REGISTRY.length} tests: {REGISTRY.map((r) => r.label).join(", ")}.
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={startRunAll} disabled={running} className="gap-1.5">
+            <div className="flex gap-2 items-center flex-wrap">
+              <button
+                type="button"
+                onClick={selectAll}
+                disabled={running}
+                className="text-xs text-brand-teal hover:underline disabled:opacity-50"
+              >
+                Select all
+              </button>
+              <span className="text-xs text-slate-300">·</span>
+              <button
+                type="button"
+                onClick={selectNone}
+                disabled={running}
+                className="text-xs text-brand-teal hover:underline disabled:opacity-50"
+              >
+                Select none
+              </button>
+              <Button onClick={startRunSelected} disabled={running || selected.size === 0} className="gap-1.5">
                 {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
-                {running ? `Running ${runIndex! + 1}/${REGISTRY.length}` : `Run all ${REGISTRY.length}`}
+                {running
+                  ? `Running ${runIndex! + 1}/${queueLength}`
+                  : selected.size === REGISTRY.length
+                    ? `Run all ${REGISTRY.length}`
+                    : `Run selected (${selected.size})`}
               </Button>
+
               <Button variant="outline" onClick={() => exportPdf()} disabled={pdfBusy} className="gap-1.5">
                 {pdfBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 {pdfBusy ? "Rendering…" : "Export PDF"}
