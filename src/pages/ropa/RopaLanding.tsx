@@ -284,15 +284,16 @@ export default function RopaLanding() {
         {/* FOOTER CTA */}
         <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center">
           <h2 className="font-serif text-foreground mb-4">
-            Start documenting — free to begin.
+            Included with any subscription.
           </h2>
           <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-            Build your Article 30 record at your own pace. Pay only when you're
-            ready to generate the final document.
+            RoPA Builder is included with every Intelligence and Professional
+            subscription — monthly or annual. It is not sold as a standalone
+            product.
           </p>
           <Button asChild size="lg">
-            <Link to="/ropa">
-              Get started <ArrowRight className="ml-1.5 h-4 w-4" />
+            <Link to="/subscribe">
+              Included with any subscription — Subscribe <ArrowRight className="ml-1.5 h-4 w-4" />
             </Link>
           </Button>
         </section>
