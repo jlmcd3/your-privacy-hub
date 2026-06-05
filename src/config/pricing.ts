@@ -391,25 +391,25 @@ export const PRICING_REGISTRY = {
     kind: "one_time",
     lookupKey: "ropa_initial_standalone",
     productKey: "rofa",
-    productName: "RoPA Builder — Initial Generation (Standalone)",
-    description: "Standalone per-use price for RoPA initial generation.",
+    productName: "RoPA Builder — Initial Generation (Standalone — RETIRED)",
+    description: "Retired: RoPA Builder is subscriber-only. Not sold standalone.",
     amountCents: 7900,
     currency: "usd",
     displayPrice: "$79",
     displaySuffix: " flat",
-    active: true,
+    active: false,
   },
   ropa_refresh_standalone: {
     kind: "one_time",
     lookupKey: "ropa_refresh_standalone",
     productKey: "rofa",
-    productName: "RoPA Builder — Annual Refresh (Standalone)",
-    description: "Standalone per-use price for RoPA annual refresh.",
+    productName: "RoPA Builder — Annual Refresh (Standalone — RETIRED)",
+    description: "Retired: RoPA Builder is subscriber-only. Not sold standalone.",
     amountCents: 7900,
     currency: "usd",
     displayPrice: "$79",
     displaySuffix: " flat",
-    active: true,
+    active: false,
   },
   ropa_initial_subscriber: {
     kind: "addon",
@@ -443,13 +443,13 @@ export const PRICING_REGISTRY = {
     kind: "one_time",
     lookupKey: "us_notice_v7_standalone",
     productKey: "us_notice_v8",
-    productName: "US Privacy Notice Builder (Standalone)",
-    description: "Uniform per-use price for any US notice variant (single state, all-states, refresh).",
+    productName: "US Privacy Notice Builder (Standalone — RETIRED)",
+    description: "Retired: US Privacy Notice Builder is subscriber-only. Not sold standalone.",
     amountCents: 2500,
     currency: "usd",
     displayPrice: "$25",
     displaySuffix: " flat",
-    active: true,
+    active: false,
   },
   us_notice_v7_subscriber: {
     kind: "addon",
@@ -469,13 +469,13 @@ export const PRICING_REGISTRY = {
     kind: "one_time",
     lookupKey: "eu_notice_v7_standalone",
     productKey: "eu_notice_v8",
-    productName: "EU & Global Privacy Notice Builder (Standalone)",
-    description: "Uniform per-use price for any EU/global notice variant.",
+    productName: "EU & Global Privacy Notice Builder (Standalone — RETIRED)",
+    description: "Retired: EU & Global Privacy Notice Builder is subscriber-only. Not sold standalone.",
     amountCents: 4000,
     currency: "usd",
     displayPrice: "$40",
     displaySuffix: " flat",
-    active: true,
+    active: false,
   },
   eu_notice_v7_subscriber: {
     kind: "addon",
@@ -664,6 +664,23 @@ export const EU_NOTICE_PRICING = {
 } as const;
 
 // ============================================================================
+//  v8 DRIFT LOG — subscriber-only tools (2026-06-05)
+//  ──────────────────────────────────────────────────────────────────────────
+//  RoPA Builder, US Privacy Notice Builder, and EU & Global Privacy Notice
+//  Builder are SUBSCRIBER-ONLY. They are included with any active Intelligence
+//  or Professional subscription (monthly or annual) and are NEVER sold
+//  standalone. In this file:
+//    - PRICING.tools.ropa / us_notice / eu_notice → dollars: 0,
+//      display: "Included with subscription", stripePriceId: null
+//    - PRICING_REGISTRY.ropa_initial_standalone / ropa_refresh_standalone /
+//      us_notice_v7_standalone / eu_notice_v7_standalone → active: false
+//    - SUBSCRIBER_ONLY_TOOL_KEYS lists them; they are excluded from
+//      CONVENIENCE_TOOL_KEYS and from the free-run pool accounting.
+//    - isToolFreeForTier() returns true for these tools for any active
+//      subscription tier; false for free / anonymous users.
+// ============================================================================
+
+// ============================================================================
 //  NEW PRICING MODEL (v7) — Coexists with legacy registry above.
 //  Source of truth for the v7 redesign (Intelligence $20/mo, Professional
 //  $35/mo base + $150/client/yr, per-use tools with subscriber discounts,
@@ -806,11 +823,11 @@ export const PRICING = {
     biometric:    { name: 'Biometric Compliance Check',         dollars: 49,  display: '$49',  stripePriceId: 'biometric_standalone_v2' },
     ir_playbook:  { name: 'Breach IR Playbook',                 dollars: 59,  display: '$59',  stripePriceId: 'ir_standalone_v2' },
     lia:          { name: 'Legitimate Interest Assessment',     dollars: 69,  display: '$69',  stripePriceId: 'li_standalone_v2' },
-    us_notice:    { name: 'US Privacy Notice Builder',          dollars: 25,  display: '$25',  stripePriceId: 'us_notice_v7_standalone' },
+    us_notice:    { name: 'US Privacy Notice Builder',          dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     dpia:         { name: 'Data Protection Impact Assessment',  dollars: 79,  display: '$79',  stripePriceId: 'dpia_standalone_v2' },
     dpa:          { name: 'Custom DPA Generator',               dollars: 49,  display: '$49',  stripePriceId: 'dpa_standalone_v2' },
-    ropa:         { name: 'RoPA Builder',                       dollars: 79,  display: '$79',  stripePriceId: 'ropa_initial_standalone' },
-    eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 40,  display: '$40',  stripePriceId: 'eu_notice_v7_standalone' },
+    ropa:         { name: 'RoPA Builder',                       dollars: 0,   display: 'Included with subscription', stripePriceId: null },
+    eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     registration: { name: 'Registration Filings',               dollars: 45,  display: '$45',  stripePriceId: 'registration_standalone' },
     governance:   { name: 'Privacy Program Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
     cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 89,  display: '$89',  stripePriceId: 'cppa_risk_standalone' },
@@ -820,8 +837,8 @@ export const PRICING = {
     // ── Legacy camelCase aliases (kept so existing imports keep compiling) ──
     cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,   display: 'Free', stripePriceId: null },
     irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 59,  display: '$59',  stripePriceId: 'ir_standalone_v2' },
-    usNotice:     { name: 'US Privacy Notice Builder',          dollars: 25,  display: '$25',  stripePriceId: 'us_notice_v7_standalone' },
-    euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 40,  display: '$40',  stripePriceId: 'eu_notice_v7_standalone' },
+    usNotice:     { name: 'US Privacy Notice Builder',          dollars: 0,   display: 'Included with subscription', stripePriceId: null },
+    euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 89,  display: '$89',  stripePriceId: 'cppa_risk_standalone' },
     cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 99,  display: '$99',  stripePriceId: 'cppa_cyber_standalone' },
     cppaSuite:    { name: 'CPPA Full Audit Suite',              dollars: 299, display: '$299', stripePriceId: 'cppa_suite_standalone' },
@@ -880,12 +897,17 @@ export function getToolPriceDisplay(toolKey: ToolKey, _tier?: string): string {
 }
 
 /**
- * A tool is "free" for a tier iff the tier has a non-zero free-run pool
- * AND the tool is a Convenience Tool. Smart Tools are never pool-eligible.
+ * A tool is "free" for a tier iff:
+ *  - it is a Subscriber-Only tool (RoPA / US Notice / EU Notice) AND the
+ *    tier is any active subscription (non-zero free-run pool), OR
+ *  - it is a Convenience Tool AND the tier has a non-zero free-run pool.
+ * Smart Tools are never pool-eligible. Free / anonymous users get nothing.
  */
 export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
   if (!tier) return false;
-  return getFreeRunPoolSize(tier) > 0 && isConvenienceTool(toolKey);
+  const hasSubscription = getFreeRunPoolSize(tier) > 0;
+  if (!hasSubscription) return false;
+  return isSubscriberOnlyTool(toolKey) || isConvenienceTool(toolKey);
 }
 
 /**
@@ -921,12 +943,14 @@ export type SmartToolKey = typeof SMART_TOOL_KEYS[number];
 /**
  * CONVENIENCE TOOLS — document generators. Valuable time-savers.
  * Professional annual subscribers receive 1 free run per client per month.
+ *
+ * NOTE: RoPA Builder, US Privacy Notice Builder, and EU/Global Privacy
+ * Notice Builder are SUBSCRIBER-ONLY (never sold standalone and never
+ * eligible for the free-run pool — they are always included with any
+ * active subscription). They are deliberately excluded from this list.
  */
 export const CONVENIENCE_TOOL_KEYS = [
   'ir_playbook',  // IR Playbook — structured notification timelines
-  'us_notice',    // US Privacy Notice — state-specific generation
-  'eu_notice',    // EU/Global Notice — multi-jurisdiction generation
-  'ropa',         // RoPA Builder — Article 30 structured record
   'registration', // Registration Filings — DPO/AI Act registration docs
 ] as const;
 
@@ -935,9 +959,27 @@ export type ConvenienceToolKey = typeof CONVENIENCE_TOOL_KEYS[number];
 /** Always free — CPPA Scope Checker */
 export const FREE_TOOL_KEYS = ['cppa_scope'] as const;
 
+/**
+ * Subscriber-only tools: included with any active Intelligence/Professional
+ * subscription (monthly or annual). Never sold standalone, never pool-eligible.
+ * Free / anonymous users have no access.
+ */
+export const SUBSCRIBER_ONLY_TOOL_KEYS = [
+  'ropa',
+  'us_notice',
+  'eu_notice',
+] as const;
+export type SubscriberOnlyToolKey = typeof SUBSCRIBER_ONLY_TOOL_KEYS[number];
+
 // camelCase aliases for the same tool keys (so callers using either form work)
 const SMART_TOOL_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber','dpa','biometric']);
-const CONVENIENCE_TOOL_CAMEL = new Set(['irPlaybook','usNotice','euNotice','ropa','registration']);
+const CONVENIENCE_TOOL_CAMEL = new Set(['irPlaybook','registration']);
+const SUBSCRIBER_ONLY_TOOL_CAMEL = new Set(['ropa','usNotice','euNotice']);
+
+/** Returns true if the tool requires a subscription (not sold standalone). */
+export function isSubscriberOnlyTool(toolKey: string): boolean {
+  return (SUBSCRIBER_ONLY_TOOL_KEYS as readonly string[]).includes(toolKey) || SUBSCRIBER_ONLY_TOOL_CAMEL.has(toolKey);
+}
 
 /** Returns true if the tool uses multi-stage enforcement-corpus reasoning */
 export function isSmartTool(toolKey: string): boolean {

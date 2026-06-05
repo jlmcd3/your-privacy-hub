@@ -33,6 +33,13 @@ const CPPA_TOOL_SLUGS = new Set([
   "cppa-cybersecurity",
 ]);
 
+// Tools that are subscriber-only — never sold standalone, never per-use.
+const SUBSCRIBER_ONLY_SLUGS = new Set([
+  "ropa-builder",
+  "us-notices",
+  "eu-notices",
+]);
+
 // ── Section header definitions ────────────────────────────────────────────
 const SECTION_HEADERS: Record<ToolSection, {
   label: string;
@@ -441,9 +448,9 @@ const PRICING_GRID: [string, string][] = [
   ["DPA Generator", `${PRICING.tools.dpa.display} (Smart)`],
   ["Incident Response Playbook", `${PRICING.tools.ir_playbook.display} (Convenience)`],
   ["Biometric Privacy Check", `${PRICING.tools.biometric.display} (Smart)`],
-  ["RoPA Builder", `${PRICING.tools.ropa.display} (Convenience)`],
-  ["U.S. Privacy Notice Builder", `${PRICING.tools.us_notice.display} (Convenience)`],
-  ["EU/UK Privacy Notice Builder", `${PRICING.tools.eu_notice.display} (Convenience)`],
+  ["RoPA Builder", "Included with subscription"],
+  ["U.S. Privacy Notice Builder", "Included with subscription"],
+  ["EU/UK Privacy Notice Builder", "Included with subscription"],
   ["Registration Manager", `${PRICING.tools.registration.display} (Convenience)`],
   ["CPPA Scope Checker", PRICING.tools.cppa_scope.display],
   ["CPPA Risk Assessment", `${PRICING.tools.cppa_risk.display} (Smart)`],
@@ -564,6 +571,10 @@ export default function Tools() {
                           <span className="inline-block text-eyebrow bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
                             Always free
                           </span>
+                        ) : SUBSCRIBER_ONLY_SLUGS.has(tool.slug) ? (
+                          <span className="inline-block text-eyebrow bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1 rounded-full">
+                            Included with subscription
+                          </span>
                         ) : hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug) ? (
                           <span className="inline-block text-eyebrow bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
                             ✓ Included
@@ -593,7 +604,11 @@ export default function Tools() {
                     )}
                     {!tool.alwaysFree && (
                       <div className="text-meta text-muted-foreground mt-2">
-                        {hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
+                        {SUBSCRIBER_ONLY_SLUGS.has(tool.slug)
+                          ? hasToolAccess
+                            ? "Included in your subscription"
+                            : "Subscriber-only — not sold standalone"
+                          : hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
                           ? "Included in your Professional"
                           : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug)
                           ? "Paid — subscriber rate applied"
@@ -617,9 +632,15 @@ export default function Tools() {
                     >
                       See a sample output →
                     </button>
-                    <Link to={tool.href} className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
-                      Open tool →
-                    </Link>
+                    {SUBSCRIBER_ONLY_SLUGS.has(tool.slug) && !hasToolAccess ? (
+                      <Link to="/subscribe" className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                        Subscribe to access →
+                      </Link>
+                    ) : (
+                      <Link to={tool.href} className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                        Open tool →
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}
