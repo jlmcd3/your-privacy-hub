@@ -714,43 +714,44 @@ const App = () => (
             {/* Combined Notices & RoPA hub */}
             <Route path="/notices-ropa" element={<ProtectedRoute><NoticesRopaHub /></ProtectedRoute>} />
             {/* RoPA Builder */}
-            <Route path="/ropa" element={<ProtectedRoute><RopaHome /></ProtectedRoute>} />
-            <Route path="/ropa/setup" element={<ProtectedRoute><RopaSetup /></ProtectedRoute>} />
-            <Route path="/ropa/activities" element={<ProtectedRoute><RopaActivities /></ProtectedRoute>} />
-            <Route path="/ropa/activity/:id" element={<ProtectedRoute><RopaActivity /></ProtectedRoute>} />
-            <Route path="/ropa/review/:sessionId" element={<ProtectedRoute><RopaReview /></ProtectedRoute>} />
-            <Route path="/ropa/review" element={<ProtectedRoute><RopaReview /></ProtectedRoute>} />
-            <Route path="/ropa/documents" element={<ProtectedRoute><RopaDocuments /></ProtectedRoute>} />
-            <Route path="/ropa/refresh/:sessionId" element={<ProtectedRoute><RopaRefresh /></ProtectedRoute>} />
+            <Route path="/ropa" element={<SubscriberRoute><RopaHome /></SubscriberRoute>} />
+            <Route path="/ropa/setup" element={<SubscriberRoute><RopaSetup /></SubscriberRoute>} />
+            <Route path="/ropa/activities" element={<SubscriberRoute><RopaActivities /></SubscriberRoute>} />
+            <Route path="/ropa/activity/:id" element={<SubscriberRoute><RopaActivity /></SubscriberRoute>} />
+            <Route path="/ropa/review/:sessionId" element={<SubscriberRoute><RopaReview /></SubscriberRoute>} />
+            <Route path="/ropa/review" element={<SubscriberRoute><RopaReview /></SubscriberRoute>} />
+            <Route path="/ropa/documents" element={<SubscriberRoute><RopaDocuments /></SubscriberRoute>} />
+            <Route path="/ropa/refresh/:sessionId" element={<SubscriberRoute><RopaRefresh /></SubscriberRoute>} />
             <Route path="/ropa-builder" element={<RopaLanding />} />
             <Route path="/rofa" element={<Navigate to="/ropa-builder" replace />} />
             <Route path="/ropa-builder/home" element={<Navigate to="/ropa-builder" replace />} />
             <Route path="/article-30" element={<Navigate to="/ropa-builder" replace />} />
-            <Route path="/us-notices" element={<ProtectedRoute><USNoticeHome /></ProtectedRoute>} />
-            <Route path="/us-notices/mode" element={<ProtectedRoute><USNoticeMode /></ProtectedRoute>} />
-            <Route path="/us-notices/:sessionId/mode" element={<ProtectedRoute><USNoticeMode /></ProtectedRoute>} />
-            <Route path="/us-notices/:sessionId/states" element={<ProtectedRoute><USNoticeStates /></ProtectedRoute>} />
-            <Route path="/us-notices/:sessionId/questions" element={<ProtectedRoute><USNoticeQuestions /></ProtectedRoute>} />
-            <Route path="/us-notices/:sessionId/review" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
-            <Route path="/us-notices/:sessionId/documents" element={<ProtectedRoute><USNoticeDocuments /></ProtectedRoute>} />
-            <Route path="/us-notices/:sessionId/refresh" element={<ProtectedRoute><USNoticeRefresh /></ProtectedRoute>} />
+            <Route path="/us-notices" element={<SubscriberRoute><USNoticeHome /></SubscriberRoute>} />
+            <Route path="/us-notices/mode" element={<SubscriberRoute><USNoticeMode /></SubscriberRoute>} />
+            <Route path="/us-notices/:sessionId/mode" element={<SubscriberRoute><USNoticeMode /></SubscriberRoute>} />
+            <Route path="/us-notices/:sessionId/states" element={<SubscriberRoute><USNoticeStates /></SubscriberRoute>} />
+            <Route path="/us-notices/:sessionId/questions" element={<SubscriberRoute><USNoticeQuestions /></SubscriberRoute>} />
+            <Route path="/us-notices/:sessionId/review" element={<SubscriberRoute><USNoticeReview /></SubscriberRoute>} />
+            <Route path="/us-notices/:sessionId/documents" element={<SubscriberRoute><USNoticeDocuments /></SubscriberRoute>} />
+            <Route path="/us-notices/:sessionId/refresh" element={<SubscriberRoute><USNoticeRefresh /></SubscriberRoute>} />
             {/* Legacy redirects (old order: step/sessionId) */}
-            <Route path="/us-notices/states/:sessionId" element={<ProtectedRoute><USNoticeStates /></ProtectedRoute>} />
-            <Route path="/us-notices/questions/:sessionId" element={<ProtectedRoute><USNoticeQuestions /></ProtectedRoute>} />
-            <Route path="/us-notices/review/:sessionId" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
-            <Route path="/us-notices/review" element={<ProtectedRoute><USNoticeReview /></ProtectedRoute>} />
-            <Route path="/us-notices/refresh/:sessionId" element={<ProtectedRoute><USNoticeRefresh /></ProtectedRoute>} />
+            <Route path="/us-notices/states/:sessionId" element={<SubscriberRoute><USNoticeStates /></SubscriberRoute>} />
+            <Route path="/us-notices/questions/:sessionId" element={<SubscriberRoute><USNoticeQuestions /></SubscriberRoute>} />
+            <Route path="/us-notices/review/:sessionId" element={<SubscriberRoute><USNoticeReview /></SubscriberRoute>} />
+            <Route path="/us-notices/review" element={<SubscriberRoute><USNoticeReview /></SubscriberRoute>} />
+            <Route path="/us-notices/refresh/:sessionId" element={<SubscriberRoute><USNoticeRefresh /></SubscriberRoute>} />
             <Route path="/us-notice-builder" element={<USNoticeLanding />} />
             {/* EU & Global Notice Builder */}
-            <Route path="/eu-notices" element={<ProtectedRoute><EUNoticeHome /></ProtectedRoute>} />
-            <Route path="/eu-notices/mode" element={<ProtectedRoute><EUNoticeMode /></ProtectedRoute>} />
-            <Route path="/eu-notices/frameworks/:sessionId" element={<ProtectedRoute><EUNoticeFrameworks /></ProtectedRoute>} />
-            <Route path="/eu-notices/questions/:sessionId" element={<ProtectedRoute><EUNoticeQuestions /></ProtectedRoute>} />
-            <Route path="/eu-notices/review/:sessionId" element={<ProtectedRoute><EUNoticeReview /></ProtectedRoute>} />
-            <Route path="/eu-notices/review" element={<ProtectedRoute><EUNoticeReview /></ProtectedRoute>} />
-            <Route path="/eu-notices/documents" element={<ProtectedRoute><EUNoticeDocuments /></ProtectedRoute>} />
-            <Route path="/eu-notices/refresh/:sessionId" element={<ProtectedRoute><EUNoticeRefresh /></ProtectedRoute>} />
+            <Route path="/eu-notices" element={<SubscriberRoute><EUNoticeHome /></SubscriberRoute>} />
+            <Route path="/eu-notices/mode" element={<SubscriberRoute><EUNoticeMode /></SubscriberRoute>} />
+            <Route path="/eu-notices/frameworks/:sessionId" element={<SubscriberRoute><EUNoticeFrameworks /></SubscriberRoute>} />
+            <Route path="/eu-notices/questions/:sessionId" element={<SubscriberRoute><EUNoticeQuestions /></SubscriberRoute>} />
+            <Route path="/eu-notices/review/:sessionId" element={<SubscriberRoute><EUNoticeReview /></SubscriberRoute>} />
+            <Route path="/eu-notices/review" element={<SubscriberRoute><EUNoticeReview /></SubscriberRoute>} />
+            <Route path="/eu-notices/documents" element={<SubscriberRoute><EUNoticeDocuments /></SubscriberRoute>} />
+            <Route path="/eu-notices/refresh/:sessionId" element={<SubscriberRoute><EUNoticeRefresh /></SubscriberRoute>} />
             <Route path="/eu-global-notice-builder" element={<EUNoticeLanding />} />
+            <Route path="/eu-notice-builder" element={<Navigate to="/eu-global-notice-builder" replace />} />
             <Route path="/registration-manager" element={<RegistrationLanding />} />
             <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
             <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
