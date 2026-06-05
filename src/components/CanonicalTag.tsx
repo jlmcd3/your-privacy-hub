@@ -13,29 +13,64 @@ import { useLocation } from "react-router-dom";
  */
 const SITE_ORIGIN = "https://enduserprivacy.com";
 
+const ROUTE_TITLES: Record<string, string> = {
+  "/": "Global Privacy Law, Tracked Daily | End User Privacy",
+  "/about": "About | End User Privacy",
+  "/contact": "Contact | End User Privacy",
+  "/faq": "FAQ | End User Privacy",
+  "/privacy-policy": "Privacy Policy | End User Privacy",
+  "/terms": "Terms of Service | End User Privacy",
+  "/ropa-builder": "RoPA Builder | End User Privacy",
+  "/registration-manager": "Privacy Registration Manager | End User Privacy",
+  "/legitimate-interest-tracker": "Legitimate Interest Tracker | End User Privacy",
+  "/li-assessment": "Legitimate Interest Assessment | End User Privacy",
+  "/breach-notification": "Breach Notification Requirements | End User Privacy",
+  "/cross-border-transfers": "Cross-Border Data Transfers | End User Privacy",
+  "/cppa-scope-checker": "CPPA Scope Checker | End User Privacy",
+  "/us-privacy-laws": "U.S. Privacy Laws Guide | End User Privacy",
+};
+
 export default function CanonicalTag() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
 
   useEffect(() => {
-    const href = `${SITE_ORIGIN}${pathname}`;
-    // Remove any pre-existing canonical link(s) we previously injected.
-    const existing = document.querySelectorAll<HTMLLinkElement>(
-      'link[rel="canonical"][data-canonical-tag="auto"]',
-    );
-    existing.forEach((el) => el.remove());
+    const href = new URL(`${pathname}${search}`, SITE_ORIGIN).toString();
+    const title = ROUTE_TITLES[pathname];
 
-    // If a page-level Helmet already set a canonical, leave it alone.
-    const pageCanonical = document.querySelector<HTMLLinkElement>(
-      'link[rel="canonical"]:not([data-canonical-tag="auto"])',
-    );
-    if (pageCanonical) return;
+    const syncHead = () => {
+      const canonicals = Array.from(
+        document.querySelectorAll<HTMLLinkElement>('link[rel="canonical"]'),
+      );
+      const link = canonicals[0] ?? document.createElement("link");
 
-    const link = document.createElement("link");
-    link.setAttribute("rel", "canonical");
-    link.setAttribute("href", href);
-    link.setAttribute("data-canonical-tag", "auto");
-    document.head.appendChild(link);
-  }, [pathname]);
+      if (!link.parentNode) {
+        link.setAttribute("rel", "canonical");
+        document.head.appendChild(link);
+      }
+
+      if (link.getAttribute("href") !== href) {
+        link.setAttribute("href", href);
+      }
+      link.setAttribute("data-canonical-tag", "route");
+      canonicals.slice(1).forEach((el) => el.remove());
+
+      if (title && document.title !== title) {
+        document.title = title;
+      }
+    };
+
+    syncHead();
+    const raf = window.requestAnimationFrame(syncHead);
+    const timeout = window.setTimeout(syncHead, 0);
+    const observer = new MutationObserver(syncHead);
+    observer.observe(document.head, { childList: true, subtree: true });
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(timeout);
+      observer.disconnect();
+    };
+  }, [pathname, search]);
 
   return null;
 }

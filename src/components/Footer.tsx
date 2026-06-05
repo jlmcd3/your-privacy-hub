@@ -20,9 +20,9 @@ const Footer = () => {
               <a href="https://x.com/enduserprivacy" target="_blank" rel="noopener noreferrer" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-brand-mist text-sm hover:bg-white/[0.12] hover:text-white transition-all no-underline">
                 𝕏
               </a>
-              <a href="mailto:contact@enduserprivacy.com" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-brand-mist hover:bg-white/[0.12] hover:text-white transition-all no-underline">
+              <Link to="/contact" aria-label="Contact End User Privacy" className="w-8 h-8 bg-white/[0.06] border border-white/10 rounded-sm flex items-center justify-center text-brand-mist hover:bg-white/[0.12] hover:text-white transition-all no-underline">
                 <Mail className="w-3.5 h-3.5" />
-              </a>
+              </Link>
             </div>
           </div>
 
