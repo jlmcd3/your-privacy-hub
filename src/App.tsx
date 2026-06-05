@@ -55,6 +55,7 @@ import Dashboard from "./pages/Dashboard.tsx";
 import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import SubscriberRoute from "./components/SubscriberRoute.tsx";
 import TestGovernanceAssessment from "./pages/admin/TestGovernanceAssessment";
 import TestLIA from "./pages/admin/TestLIA";
 import TestDPIA from "./pages/admin/TestDPIA";
