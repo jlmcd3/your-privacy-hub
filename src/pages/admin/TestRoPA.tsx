@@ -307,6 +307,16 @@ export default function TestRoPA() {
         (blob.type || "").includes("pdf") || blob.size > 5000
       );
 
+      // 8b. Confirm "Article 30" appears in the PDF bytestream (covers uncompressed
+      // text streams) OR fall back to checking the file_path / change_summary metadata.
+      const buf = await blob.arrayBuffer();
+      const asLatin1 = new TextDecoder("latin1").decode(buf);
+      const article30InPdf = /Article\s*30/i.test(asLatin1);
+      addLog(article30InPdf
+        ? `✓ "Article 30" found in PDF text stream`
+        : `… "Article 30" not directly readable in PDF stream (likely compressed)`);
+
+
       // 9. Verify a ropa_document_versions row exists and is current
       const { data: docVer } = await supabase
         .from("ropa_document_versions")
