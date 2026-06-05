@@ -19,7 +19,7 @@ const MOCK_INTAKE = {
 
 const ASSERTIONS = [
   { label: 'Contains California breach notification requirement', fn: (t: string) => /california/i.test(t) && /30 day|thirty day|oag\.ca\.gov/i.test(t) },
-  { label: 'Contains Texas AG notification requirement', fn: (t: string) => /texas/i.test(t) && /(attorney general|250.*texan|texan.*250)/i.test(t) },
+  { label: 'Contains Texas AG notification requirement', fn: (t: string) => /texas/i.test(t) && /(attorney general|250.*Texas resident|Texas.*250|250.*texan|texan.*250)/i.test(t) },
   { label: 'Contains PIPEDA / OPC notification requirement', fn: (t: string) => /PIPEDA|OPC|Privacy Commissioner/i.test(t) },
   { label: 'Contains Quebec Law 25 / CAI notification', fn: (t: string) => /Law 25|Loi 25|CAI|Commission.*accès/i.test(t) },
   { label: 'Contains processor notification step (ADP)', fn: (t: string) => /processor|service provider|vendor/i.test(t) && /notif/i.test(t) },
