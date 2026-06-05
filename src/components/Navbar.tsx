@@ -93,7 +93,7 @@ const navItems: NavItem[] = [
           { icon: "⭐", label: "Weekly Privacy Intelligence Report", href: "/get-intelligence" },
           { icon: "🛰️", label: "Regulatory Trend Forecast", href: "/horizon" },
           { icon: "🗄️", label: "Global Enforcement Database", href: "/enforcement?view=archive",
-            description: "Full archive · 4,800+ decisions" },
+            description: "Full archive · 3,700+ decisions" },
         ],
       },
       {
