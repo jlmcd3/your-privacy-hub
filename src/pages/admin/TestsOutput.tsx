@@ -171,6 +171,10 @@ export default function TestsOutput() {
       REGISTRY.map((r) => [r.id, { testId: r.id, label: r.label, status: "pending" }]),
     );
   });
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(REGISTRY.map((r) => r.id)),
+  );
+  const queueRef = useRef<string[]>([]);
   const [runIndex, setRunIndex] = useState<number | null>(null);
   const [iframeSrc, setIframeSrc] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -182,6 +186,20 @@ export default function TestsOutput() {
   const updateResult = useCallback((id: string, patch: Partial<TestResult>) => {
     setResults((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   }, []);
+
+  const currentId = runIndex !== null ? queueRef.current[runIndex] : null;
+  const currentRegistryEntry = currentId ? REGISTRY.find((r) => r.id === currentId) ?? null : null;
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+  function selectAll() { setSelected(new Set(REGISTRY.map((r) => r.id))); }
+  function selectNone() { setSelected(new Set()); }
+
 
   // ---- iframe postMessage listener ----
   useEffect(() => {
