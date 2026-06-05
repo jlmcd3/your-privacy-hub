@@ -82,7 +82,7 @@ const ASSERTIONS: { label: string; fn: (docs: Doc[]) => boolean }[] = [
   {
     label: "AI Act high-risk obligations referenced (any document)",
     fn: (d) =>
-      d.some((x) => /AI Act|high[- ]risk AI|Article\s*6\b/i.test(x.content_text || "")),
+      d.some((x) => /AI Act|Annex III|high[- ]risk AI system|Article\s*6\(2\)/i.test(x.content_text || "")),
   },
   {
     label: "Disclaimer / legal review note present",
