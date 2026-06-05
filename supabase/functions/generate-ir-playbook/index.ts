@@ -304,7 +304,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 Output ONLY the playbook. No preamble or commentary.`,
         messages: [{ role: "user", content: prompt }],
       }),
-      signal: AbortSignal.timeout(145000),
+      signal: AbortSignal.timeout(300000),
     });
 
     if (!aiRes.ok) {
