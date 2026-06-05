@@ -81,7 +81,7 @@ const ASSERTIONS: { label: string; fn: (r: any) => boolean }[] = [
     fn: (r) =>
       Array.isArray(r.domains) &&
       r.domains.some((d: any) =>
-        /(Critical Gap|Gap|High)/i.test(d.status ?? "")
+        /(Critical Gap|High)/i.test(d.status ?? "")
       ),
   },
   {
