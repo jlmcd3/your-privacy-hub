@@ -108,7 +108,7 @@ export default function CrossBorderTransfersPage() {
         })}</script>
       </Helmet>
       <ResearchPageLayout
-        metaTitle="Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules | End User Privacy"
+        metaTitle="Cross-Border Data Transfers | End User Privacy"
         metaDescription="Reference on international data transfer mechanisms — GDPR Chapter V, the 2021 SCCs, the EU-U.S. Data Privacy Framework, Transfer Impact Assessments, and Asia-Pacific frameworks."
         header={{
           eyebrow: "Research · Cross-Border Transfers",

@@ -167,7 +167,7 @@ export default function Horizon() {
   return (
     <div className="min-h-screen bg-brand-cloud">
       <Helmet>
-        <title>Enforcement Forecast Intelligence | Anticipated Privacy Developments — End User Privacy</title>
+        <title>Enforcement Forecast Intelligence | End User Privacy</title>
         <meta
           name="description"
           content="Forward-looking intelligence on anticipated privacy law and enforcement developments — filtered to the jurisdictions and topics you follow. Updated weekly."

@@ -16,7 +16,7 @@ export default function BreachNotificationPage() {
         })}</script>
       </Helmet>
       <ResearchPageLayout
-        metaTitle="Data Breach Notification Requirements by Jurisdiction | End User Privacy"
+        metaTitle="Data Breach Notification Requirements | End User Privacy"
         metaDescription="Reference on global breach notification obligations: GDPR's 72-hour rule, all 50 U.S. state laws, sector-specific federal requirements, and 20+ international frameworks."
         header={{
           eyebrow: "Research · Breach Notification",

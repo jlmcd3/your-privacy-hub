@@ -16,7 +16,7 @@ import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { useToolPrice } from "@/hooks/useToolPrice";
 
 const TITLE =
-  "RoPA Builder — Records of Processing Activities Tool | End User Privacy";
+  "RoPA Builder — Records of Processing | End User Privacy";
 const META_DESCRIPTION =
   "Build a GDPR-compliant Records of Processing Activities in under an hour. Covers 25+ jurisdictions including EU GDPR, UK GDPR, LGPD, and CCPA.";
 

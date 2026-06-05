@@ -50,7 +50,7 @@ export default function RegistrationLanding() {
   return (
     <WorkspaceLayout>
       <Helmet>
-        <title>Privacy Registration Manager — DPO, RoPA, AI Act Filings | End User Privacy</title>
+        <title>Privacy Registration Manager | End User Privacy</title>
         <meta
           name="description"
           content="Generate DPO appointment letters, RoPA templates, EU AI Act registration drafts, and Article 27 representative letters — tailored to your jurisdictions. You file; we draft and track."

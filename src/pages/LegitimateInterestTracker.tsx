@@ -83,7 +83,7 @@ const LegitimateInterestTracker = () => {
   return (
     <div className="min-h-screen bg-brand-cloud">
       <Helmet>
-        <title>Legitimate Interest Tracker — GDPR & UK GDPR Article 6(1)(f) | End User Privacy</title>
+        <title>Legitimate Interest Tracker | End User Privacy</title>
         <meta name="description" content="Track what EU and UK data protection authorities have accepted, rejected, and conditioned under GDPR and UK GDPR legitimate interest. Updated weekly from regulatory decisions and guidance." />
       </Helmet>
       <Navbar />

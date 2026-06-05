@@ -3,7 +3,7 @@ import { JurisdictionDirectory } from "@/components/research/JurisdictionDirecto
 
 const GlobalPrivacyLaws = () => (
   <ResearchPageLayout
-    metaTitle="Global Privacy Laws — Jurisdiction Directory & Adequacy Status | End User Privacy"
+    metaTitle="Global Privacy Laws Directory | End User Privacy"
     metaDescription="Browse 70+ privacy regimes by region, status, and EU GDPR adequacy. Comparative reference covering APAC, Latin America, Middle East, and Africa frameworks."
     header={{
       eyebrow: "Research · Global Privacy",

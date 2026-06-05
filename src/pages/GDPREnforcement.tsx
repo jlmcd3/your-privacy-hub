@@ -210,7 +210,7 @@ export default function GDPREnforcement() {
         })}</script>
       </Helmet>
       <ResearchPageLayout
-        metaTitle="GDPR vs UK GDPR — Side-by-Side Comparison & Divergence Tracker | End User Privacy"
+        metaTitle="GDPR vs UK GDPR — Divergence Tracker | End User Privacy"
         metaDescription="Compare EU GDPR and UK GDPR across scope, lawful bases, rights, transfers, authorities, and penalties. Includes post-Brexit divergence tracker and enforcement summary."
         header={{
           eyebrow: "Research · GDPR & UK Privacy",
