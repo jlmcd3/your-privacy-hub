@@ -51,7 +51,9 @@ export default function CanonicalTag() {
       if (link.getAttribute("href") !== href) {
         link.setAttribute("href", href);
       }
-      link.setAttribute("data-canonical-tag", "route");
+      if (link.getAttribute("data-canonical-tag") !== "route") {
+        link.setAttribute("data-canonical-tag", "route");
+      }
       canonicals.slice(1).forEach((el) => el.remove());
 
       if (title && document.title !== title) {
@@ -62,12 +64,19 @@ export default function CanonicalTag() {
     syncHead();
     const raf = window.requestAnimationFrame(syncHead);
     const timeout = window.setTimeout(syncHead, 0);
+    const finalTimeout = window.setTimeout(syncHead, 250);
     const observer = new MutationObserver(syncHead);
-    observer.observe(document.head, { childList: true, subtree: true });
+    observer.observe(document.head, {
+      attributes: true,
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
 
     return () => {
       window.cancelAnimationFrame(raf);
       window.clearTimeout(timeout);
+      window.clearTimeout(finalTimeout);
       observer.disconnect();
     };
   }, [pathname, search]);
