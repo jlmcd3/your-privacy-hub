@@ -44,7 +44,7 @@ const DPA_PORTALS: Record<string, string> = {
   California:
     "California AG Breach Report (500+ CA residents): https://oag.ca.gov/ecrime/databreach/reporting | CPPA Enforcement: https://cppa.ca.gov/",
   Texas:
-    "Texas AG Breach Notification (prompt notice to AG if 250+ Texans): https://www.texasattorneygeneral.gov/consumer-protection/file-consumer-complaint",
+    "Texas AG Breach Notification (written notice required if 250+ Texans affected — no dedicated online breach notification portal exists; use the consumer protection contact page as reference only): https://www.texasattorneygeneral.gov/consumer-protection/file-consumer-complaint",
   "New York":
     "NY AG Breach Notification (most expedient time, notify AG if 500+ NY residents): https://ag.ny.gov/resources/individuals/data-security",
   Connecticut:
@@ -68,7 +68,7 @@ const DPA_PORTALS: Record<string, string> = {
   "Canada (PIPEDA)":
     "OPC PIPEDA Breach Report (report to OPC as soon as feasible when real risk of significant harm): https://www.priv.gc.ca/en/report-a-concern/report-a-privacy-breach-as-an-organization/",
   "Quebec (Law 25)":
-    "CAI Breach Notification (notify CAI and individuals without delay, within 72h of internal discovery): https://www.cai.gouv.qc.ca/en/organizations/breach-of-confidentiality",
+    "CAI Breach Notification (notify CAI and individuals 'without delay' — Quebec Law 25 does NOT set a fixed 72-hour statutory deadline; treat 72 hours as a planning benchmark only, not a legal requirement): https://www.cai.gouv.qc.ca/en/organizations/breach-of-confidentiality",
   "Alberta (PIPA)":
     "OIPC AB Breach Report (notify OIPC and affected individuals as soon as practical): https://www.oipc.ab.ca/actions-decisions/breach-reporting/",
   "British Columbia (PIPA)":
@@ -212,6 +212,8 @@ The following cases show where organisations were penalised for breach notificat
 CITATION RULE: When you reference any of these in section text, use the human-readable CITATION shown (e.g. "ICO (2023)" or "CNIL (2022)") — NEVER the bracketed [E#] code. The [E#] tag is only for your internal lookup. Reserve the exact id values for the ===ANNOTATIONS=== JSON block below.
 ${formatEnforcementContext(enforcement_context)}
 
+CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding.
+
 Generate the following seven sections. Each section MUST begin with a markdown H2 heading using the EXACT format shown (the line "## Section N: TITLE"), so downstream tooling can locate them. Do not omit any section, even if you think it is not applicable — instead, state explicitly within the section why it does not apply.
 
 ## Section 1: IMMEDIATE ACTIONS (0–2 HOURS)
@@ -267,8 +269,8 @@ Output ONLY the playbook (then the ===ANNOTATIONS=== block). No preamble or comm
         system: `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
 
 US STATE BREACH NOTIFICATION — KEY TIMELINES (for Section 3):
-- California: notify individuals in most expedient time / ≤30 days; notify CA AG if 500+ CA residents affected; no set clock for CPPA
-- Texas: notify individuals "as soon as possible" (no fixed window); notify AG if breach affects 250+ Texans; TDPSA adds requirements for personal data breaches
+- California: notify individuals "in the most expedient time possible and without unreasonable delay" (Cal. Civ. Code §1798.82). There is NO fixed statutory deadline — 30 days is California AG guidance only, not statute. Do NOT write "≤30 days" as if it were a legal deadline. Present it as a planning benchmark: "target notification within 30 days but the legal standard is most expedient time possible." Notify CA AG if 500+ CA residents affected.
+- Texas: notify individuals "as soon as possible" under Tex. Bus. & Com. Code §521.053 (Texas Identity Theft Enforcement and Protection Act — NOT the TDPSA, which does not create breach notification obligations); notify TX AG if 250+ Texans affected. Note: the TDPSA (Texas Data Privacy and Security Act, Tex. Bus. & Com. Code Ch. 541) governs data processing rights and obligations but does NOT independently create breach notification duties.
 - New York: notify individuals in most expedient time (no fixed window); notify NY AG, DFS, or other regulators if 500+ NY residents; SHIELD Act triggers
 - Connecticut: notify individuals ≤60 days; notify CT AG simultaneously
 - Colorado: notify individuals ≤60 days; notify CO AG ≤30 days if 500+ CO residents
@@ -280,11 +282,11 @@ US STATE BREACH NOTIFICATION — KEY TIMELINES (for Section 3):
 - Illinois: notify individuals "in most expedient time"; notify IL AG if 500+ IL residents
 
 CANADA BREACH NOTIFICATION — KEY TIMELINES (for Section 3):
-- PIPEDA: internal log all breaches; notify OPC + individuals "as soon as feasible" when real risk of significant harm (RROSH); no fixed clock but OPC expects prompt action
-- Quebec Law 25: notify CAI + affected individuals "without delay" — OPC interprets this as within 72 hours of internal discovery for high-risk incidents
-- Alberta PIPA: notify OIPC + individuals "as soon as practical" when real risk of significant harm
-- BC PIPA: notify OIPC + individuals when real risk of significant harm (no fixed clock)
-- Ontario PHIPA: notify IPC + individuals when breach creates real risk of significant harm to health
+- PIPEDA (federal): log ALL breaches internally regardless of harm. Notify OPC and affected individuals "as soon as feasible" when real risk of significant harm (RROSH) exists. PIPEDA sets NO fixed notification clock — do NOT state a 30-day outer limit or any other fixed deadline as if it were law. The OPC expects prompt action; frame this as "as soon as feasible."
+- Quebec Law 25: notify CAI and affected individuals "without delay" (sans délai). There is NO 72-hour statutory deadline in Quebec Law 25 — that deadline comes from GDPR Article 33 and does NOT apply in Quebec. Present this as: notify the CAI promptly once a risk of serious injury is determined; 72 hours is a planning benchmark, not a legal requirement.
+- Alberta PIPA: notify OIPC and individuals "as soon as practical" when real risk of significant harm exists.
+- BC PIPA: notify OIPC and individuals when real risk of significant harm exists (no fixed clock).
+- Ontario PHIPA: notify IPC and individuals when breach creates real risk of significant harm to health. PHIPA applies only where a party qualifies as a health information custodian under PHIPA s.3.
 
 Note: US state breach notification laws apply to ALL businesses with data on state residents, regardless of whether the business has a physical presence in that state. A breach affecting California residents triggers California law even if the company is Texas-based.
 
@@ -296,6 +298,8 @@ QUALITY STANDARDS:
 3. Notification templates must be immediately usable — mark all placeholder fields as [TO BE COMPLETED: description].
 4. Where enforcement context shows regulators have penalised specific omissions (late notification, vague disclosure, missing categories), incorporate concrete steps that close those gaps.
 5. DPA portal URLs: use only URLs provided in the prompt. Do not fabricate or recall URLs from training.
+
+CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name, section number, subsection letter) must be verifiable against the actual statute. Known hallucination risks to guard against: (1) PIPEDA does not use decimal sub-principle numbering — cite as "Schedule 1, Principle N (Name)" only. (2) The Breach of Security Safeguards Regulations under PIPEDA are SOR/2018-64 — no other SOR number is correct. (3) US state privacy laws do not have a universal 72-hour breach notification deadline — that is a GDPR Article 33 concept only. Apply it only where GDPR explicitly applies. (4) Quebec Law 25 uses "without delay" not "72 hours" — present 72 hours as a planning benchmark only. (5) The California breach notification standard is "most expedient time possible" under Cal. Civ. Code §1798.82 — not 30 days or 72 hours. If you are uncertain of a specific section number, write the section in descriptive terms and flag it: "[statutory reference to be confirmed with counsel]" rather than inventing a section number.
 
 Output ONLY the playbook. No preamble or commentary.`,
         messages: [{ role: "user", content: prompt }],
