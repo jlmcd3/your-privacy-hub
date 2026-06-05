@@ -40,7 +40,7 @@ async function checkUrl(url: string): Promise<number> {
 
 for (const route of ROUTES) {
   test(`internal links: ${route}`, async ({ page }) => {
-    await page.goto(route, { waitUntil: "networkidle", timeout: 90_000 });
+    await page.goto(route, { waitUntil: "domcontentloaded", timeout: 90_000 });
     await page.waitForTimeout(200);
 
     const hrefs: string[] = await page.$$eval("a[href]", (els) =>

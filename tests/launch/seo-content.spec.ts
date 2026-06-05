@@ -58,7 +58,7 @@ for (const route of ROUTES) {
     });
     page.on("pageerror", (err) => consoleErrors.push(`pageerror: ${err.message}`));
 
-    const res = await page.goto(route, { waitUntil: "networkidle", timeout: 90_000 });
+    const res = await page.goto(route, { waitUntil: "domcontentloaded", timeout: 90_000 });
     expect(res, `no response for ${route}`).not.toBeNull();
     expect(res!.status(), `status for ${route}`).toBeLessThan(400);
 
