@@ -47,7 +47,7 @@ const Footer = () => {
             ].map((l) => (
               <Link key={l.label} to={l.href} className="block text-sm text-brand-mist mb-2 hover:text-white transition-colors no-underline">{l.label}</Link>
             ))}
-            <a href="mailto:contact@enduserprivacy.com" className="block text-sm text-brand-mist mb-2 hover:text-white transition-colors no-underline">Contact</a>
+            <Link to="/contact" className="block text-sm text-brand-mist mb-2 hover:text-white transition-colors no-underline">Contact</Link>
           </div>
         </div>
 
