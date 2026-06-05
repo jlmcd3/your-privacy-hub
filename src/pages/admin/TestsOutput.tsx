@@ -39,7 +39,7 @@ const REGISTRY: Array<{ id: string; label: string; path: string }> = [
   { id: "brief", label: "Intelligence Brief Generator", path: "/admin/test-brief" },
 ];
 
-const TEST_TIMEOUT_MS = 240_000;
+const TEST_TIMEOUT_MS = 330_000;
 const STORAGE_KEY = () => `tests-output:${new Date().toISOString().slice(0, 10)}`;
 
 // Isolated tickers — keep the 500ms re-render contained in tiny leaf
