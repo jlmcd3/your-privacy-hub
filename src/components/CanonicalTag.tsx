@@ -34,7 +34,11 @@ export default function CanonicalTag() {
   const { pathname, search } = useLocation();
 
   useEffect(() => {
-    const href = new URL(`${pathname}${search}`, SITE_ORIGIN).toString();
+    const currentUrl = new URL(window.location.href);
+    currentUrl.protocol = "https:";
+    currentUrl.host = new URL(SITE_ORIGIN).host;
+    currentUrl.hash = "";
+    const href = currentUrl.toString();
     const title = ROUTE_TITLES[pathname];
 
     const syncHead = () => {
