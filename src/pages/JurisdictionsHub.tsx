@@ -95,7 +95,7 @@ export default function JurisdictionsHub() {
       setRecentLoading(true);
       const { data } = await supabase
         .from("updates")
-        .select("id, title, source_url, direct_jurisdictions, published_at, ai_summary")
+        .select("id, title, url, direct_jurisdictions, published_at, ai_summary")
         .eq("is_hidden", false)
         .not("direct_jurisdictions", "is", null)
         .order("published_at", { ascending: false })
@@ -128,7 +128,7 @@ export default function JurisdictionsHub() {
           update: title.length > 55 ? title.substring(0, 52) + "…" : title,
           fullTitle: title,
           days: relativeDays(a.published_at),
-          source_url: a.source_url ?? null,
+          source_url: a.url ?? null,
         });
         if (items.length >= 6) break;
       }
