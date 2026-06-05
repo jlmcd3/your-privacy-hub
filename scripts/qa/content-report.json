@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-05T09:46:07.082Z",
+  "generatedAt": "2026-06-05T10:24:06.172Z",
   "totals": {
-    "pages": 92,
-    "findings": 276,
-    "high": 184,
-    "medium": 92
+    "pages": 93,
+    "findings": 279,
+    "high": 186,
+    "medium": 93
   },
   "findings": [
     {
@@ -1070,6 +1070,21 @@
     {
       "severity": "medium",
       "route": "/eu-global-notice-builder",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-notice-builder",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-notice-builder",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/eu-notice-builder",
       "kind": "missing_contact_link"
     },
     {
