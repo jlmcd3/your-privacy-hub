@@ -33,6 +33,13 @@ const CPPA_TOOL_SLUGS = new Set([
   "cppa-cybersecurity",
 ]);
 
+// Tools that are subscriber-only — never sold standalone, never per-use.
+const SUBSCRIBER_ONLY_SLUGS = new Set([
+  "ropa-builder",
+  "us-notices",
+  "eu-notices",
+]);
+
 // ── Section header definitions ────────────────────────────────────────────
 const SECTION_HEADERS: Record<ToolSection, {
   label: string;
