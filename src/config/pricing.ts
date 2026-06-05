@@ -880,12 +880,17 @@ export function getToolPriceDisplay(toolKey: ToolKey, _tier?: string): string {
 }
 
 /**
- * A tool is "free" for a tier iff the tier has a non-zero free-run pool
- * AND the tool is a Convenience Tool. Smart Tools are never pool-eligible.
+ * A tool is "free" for a tier iff:
+ *  - it is a Subscriber-Only tool (RoPA / US Notice / EU Notice) AND the
+ *    tier is any active subscription (non-zero free-run pool), OR
+ *  - it is a Convenience Tool AND the tier has a non-zero free-run pool.
+ * Smart Tools are never pool-eligible. Free / anonymous users get nothing.
  */
 export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
   if (!tier) return false;
-  return getFreeRunPoolSize(tier) > 0 && isConvenienceTool(toolKey);
+  const hasSubscription = getFreeRunPoolSize(tier) > 0;
+  if (!hasSubscription) return false;
+  return isSubscriberOnlyTool(toolKey) || isConvenienceTool(toolKey);
 }
 
 /**
