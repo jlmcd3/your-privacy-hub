@@ -145,15 +145,12 @@ function parseEdgeFunction(rel) {
 // ─── Canonical price lookup for a slug (May 2026 memo) ──────────────────
 // Per-slug subscriber overrides where memo introduces a discount.
 // All values in cents. Tools not listed → subscriber == standalone.
+// v8 (June 2026): RoPA, US Notice, EU Notice are subscriber-only — included
+// free with any active subscription (canonical dollars: 0, subscriber: 0).
+// No standalone purchase, no subscriber price override. Only dpa_generator
+// retains a structural subscriber discount.
 const SUBSCRIBER_OVERRIDE_CENTS = {
-  dpa_generator:                2500,
-  us_notice_single:             2000,
-  us_notice_all_states:         2000,
-  us_notice_refresh:            2000,
-  eu_notice_single:             3000,
-  eu_notice_suite:              3000,
-  eu_notice_full_international: 3000,
-  eu_notice_refresh:            3000,
+  dpa_generator: 2500,
 };
 // cppa_suite is its own PRICING_REGISTRY entry (110 flat), not risk+cyber.
 const SUITE_STANDALONE_CENTS = 11000;
