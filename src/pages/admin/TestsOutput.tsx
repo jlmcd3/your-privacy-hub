@@ -188,7 +188,7 @@ export default function TestsOutput() {
   }, []);
 
   const currentId = runIndex !== null ? queueRef.current[runIndex] : null;
-  const currentRegistryEntry = currentId ? REGISTRY.find((r) => r.id === currentId) ?? null : null;
+
 
   function toggleSelected(id: string) {
     setSelected((prev) => {
