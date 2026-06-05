@@ -44,9 +44,9 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "DPA Generator (Smart Tool)", free: false, intel: T.dpa.display, platform: T.dpa.display },
   { feature: "IR Playbook (Convenience)", free: false, intel: T.ir_playbook.display, platform: T.ir_playbook.display },
   { feature: "Biometric Privacy Checker (Smart Tool)", free: false, intel: T.biometric.display, platform: T.biometric.display },
-  { feature: "Records of Processing (RoPA) (Convenience)", free: false, intel: "Included", platform: "Included" },
-  { feature: "US Privacy Notice Builder", free: false, intel: "Included", platform: "Included" },
-  { feature: "EU & Global Privacy Notice Builder", free: false, intel: "Included", platform: "Included" },
+  { feature: "Records of Processing (RoPA) — subscriber-only", free: "—", intel: "Included", platform: "Included" },
+  { feature: "US Privacy Notice Builder — subscriber-only", free: "—", intel: "Included", platform: "Included" },
+  { feature: "EU & Global Privacy Notice Builder — subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "Registration Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
   { feature: "1 free Convenience Tool/client/month", free: false, intel: false, platform: "Annual only" },
 
