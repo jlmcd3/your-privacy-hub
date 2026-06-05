@@ -68,7 +68,7 @@ const DPA_PORTALS: Record<string, string> = {
   "Canada (PIPEDA)":
     "OPC PIPEDA Breach Report (report to OPC as soon as feasible when real risk of significant harm): https://www.priv.gc.ca/en/report-a-concern/report-a-privacy-breach-as-an-organization/",
   "Quebec (Law 25)":
-    "CAI Breach Notification (notify CAI and individuals without delay, within 72h of internal discovery): https://www.cai.gouv.qc.ca/en/organizations/breach-of-confidentiality",
+    "CAI Breach Notification (notify CAI and individuals 'without delay' — Quebec Law 25 does NOT set a fixed 72-hour statutory deadline; treat 72 hours as a planning benchmark only, not a legal requirement): https://www.cai.gouv.qc.ca/en/organizations/breach-of-confidentiality",
   "Alberta (PIPA)":
     "OIPC AB Breach Report (notify OIPC and affected individuals as soon as practical): https://www.oipc.ab.ca/actions-decisions/breach-reporting/",
   "British Columbia (PIPA)":
