@@ -36,7 +36,7 @@ const TOOLS: Record<
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 8900,
     classification: "smart",
   },
   governance_assessment: {
@@ -44,7 +44,7 @@ const TOOLS: Record<
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 8900,
     classification: "smart",
   },
   li_analyzer: {
@@ -52,7 +52,7 @@ const TOOLS: Record<
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 3500,
+    fallback_subscriber_cents: 6900,
     classification: "smart",
   },
   li_assessment: {
@@ -60,7 +60,7 @@ const TOOLS: Record<
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 3500,
+    fallback_subscriber_cents: 6900,
     classification: "smart",
   },
   dpia_builder: {
@@ -68,7 +68,7 @@ const TOOLS: Record<
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 7900,
     classification: "smart",
   },
   dpia_framework: {
@@ -76,7 +76,7 @@ const TOOLS: Record<
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 7900,
     classification: "smart",
   },
   ropa_initial: {
@@ -84,7 +84,7 @@ const TOOLS: Record<
     standalone_lookup: "ropa_initial_standalone",
     subscriber_lookup: "ropa_initial_subscriber",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 7900,
     classification: "convenience",
   },
   ropa_refresh: {
@@ -92,7 +92,7 @@ const TOOLS: Record<
     standalone_lookup: "ropa_refresh_standalone",
     subscriber_lookup: "ropa_refresh_subscriber",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 7900,
     classification: "convenience",
   },
   us_notice_single: {
@@ -100,7 +100,7 @@ const TOOLS: Record<
     standalone_lookup: "us_notice_v7_standalone",
     subscriber_lookup: "us_notice_v7_subscriber",
     fallback_standalone_cents: 2500,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 2000,
     classification: "convenience",
   },
   us_notice_all_states: {
@@ -108,7 +108,7 @@ const TOOLS: Record<
     standalone_lookup: "us_notice_v7_standalone",
     subscriber_lookup: "us_notice_v7_subscriber",
     fallback_standalone_cents: 2500,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 2000,
     classification: "convenience",
   },
   us_notice_refresh: {
@@ -116,7 +116,7 @@ const TOOLS: Record<
     standalone_lookup: "us_notice_v7_standalone",
     subscriber_lookup: "us_notice_v7_subscriber",
     fallback_standalone_cents: 2500,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 2000,
     classification: "convenience",
   },
   eu_notice_single: {
@@ -124,7 +124,7 @@ const TOOLS: Record<
     standalone_lookup: "eu_notice_v7_standalone",
     subscriber_lookup: "eu_notice_v7_subscriber",
     fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 4000,
+    fallback_subscriber_cents: 3000,
     classification: "convenience",
   },
   eu_notice_suite: {
@@ -132,7 +132,7 @@ const TOOLS: Record<
     standalone_lookup: "eu_notice_v7_standalone",
     subscriber_lookup: "eu_notice_v7_subscriber",
     fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 4000,
+    fallback_subscriber_cents: 3000,
     classification: "convenience",
   },
   eu_notice_full_international: {
@@ -140,7 +140,7 @@ const TOOLS: Record<
     standalone_lookup: "eu_notice_v7_standalone",
     subscriber_lookup: "eu_notice_v7_subscriber",
     fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 4000,
+    fallback_subscriber_cents: 3000,
     classification: "convenience",
   },
   eu_notice_refresh: {
@@ -148,7 +148,7 @@ const TOOLS: Record<
     standalone_lookup: "eu_notice_v7_standalone",
     subscriber_lookup: "eu_notice_v7_subscriber",
     fallback_standalone_cents: 4000,
-    fallback_subscriber_cents: 4000,
+    fallback_subscriber_cents: 3000,
     classification: "convenience",
   },
   cppa_risk_assessment: {
@@ -156,7 +156,7 @@ const TOOLS: Record<
     standalone_lookup: "cppa_risk_standalone",
     subscriber_lookup: "cppa_risk_subscriber",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 7900,
+    fallback_subscriber_cents: 8900,
     classification: "smart",
   },
   cppa_cybersecurity: {
@@ -171,8 +171,8 @@ const TOOLS: Record<
     name: "CPPA Full Audit Suite",
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
-    fallback_standalone_cents: 29900,
-    fallback_subscriber_cents: 14900,
+    fallback_standalone_cents: 11000,
+    fallback_subscriber_cents: 11000,
     classification: "smart",
   },
   dpa_generator: {
@@ -180,7 +180,7 @@ const TOOLS: Record<
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
     fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 2500,
     classification: "smart",
   },
   ir_playbook: {
@@ -188,7 +188,7 @@ const TOOLS: Record<
     standalone_lookup: "ir_standalone_v2",
     subscriber_lookup: "ir_subscriber_v2",
     fallback_standalone_cents: 5900,
-    fallback_subscriber_cents: 0,
+    fallback_subscriber_cents: 5900,
     classification: "convenience",
   },
   biometric_checker: {
@@ -196,7 +196,7 @@ const TOOLS: Record<
     standalone_lookup: "biometric_standalone_v2",
     subscriber_lookup: "biometric_subscriber_v2",
     fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 0,
+    fallback_subscriber_cents: 4900,
     classification: "smart",
   },
 };
