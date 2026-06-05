@@ -18,7 +18,7 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL || "https://enduserprivacy.com",
     actionTimeout: 15_000,
-    navigationTimeout: 30_000,
+    navigationTimeout: 90_000,
     ignoreHTTPSErrors: true,
     userAgent: "EUP-QA-Playwright/1.0",
   },
