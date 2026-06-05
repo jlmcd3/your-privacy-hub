@@ -260,9 +260,12 @@ serve(async (req) => {
       }
     }
 
-    // Resolve standalone & subscriber prices from Stripe (fallbacks otherwise).
+    // Resolve standalone price from Stripe (fallback otherwise).
+    // Subscriber price is ALWAYS the canonical fallback — we do not look it
+    // up from Stripe because the canonical PRICING registry is the source of
+    // truth for subscriber pricing (memo May 2026: unified pricing model).
     let standaloneCents = tool.fallback_standalone_cents;
-    let subscriberCents = tool.fallback_subscriber_cents;
+    const subscriberCents = tool.fallback_subscriber_cents;
     let stripeConfigured = false;
     try {
       const stripe = createStripeClient(detectEnv());
@@ -270,10 +273,6 @@ serve(async (req) => {
       if (standalonePrice) {
         standaloneCents = standalonePrice.unit_amount ?? standaloneCents;
         stripeConfigured = true;
-      }
-      if (tool.subscriber_lookup && tool.fallback_subscriber_cents > 0) {
-        const subPrice = await resolvePriceId(stripe, tool.subscriber_lookup);
-        if (subPrice) subscriberCents = subPrice.unit_amount ?? subscriberCents;
       }
     } catch (e) {
       console.warn("get-tool-price: gateway lookup failed, using fallback:", (e as Error).message);
