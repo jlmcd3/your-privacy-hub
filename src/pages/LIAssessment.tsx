@@ -156,7 +156,7 @@ const LIAssessment = () => {
   return (
     <WorkspaceLayout>
       <Helmet>
-        <title>Legitimate Interest Assessment — Free Preliminary Signal | End User Privacy</title>
+        <title>Legitimate Interest Assessment | End User Privacy</title>
         <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest. Full assessment includes cited enforcement precedents alongside every test verdict." />
       </Helmet>
       {/* Header */}

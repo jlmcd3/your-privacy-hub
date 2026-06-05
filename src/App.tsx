@@ -56,6 +56,7 @@ import Subscribe from "./pages/Subscribe.tsx";
 import SubscribeSuccess from "./pages/SubscribeSuccess.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import SubscriberRoute from "./components/SubscriberRoute.tsx";
+import CanonicalTag from "./components/CanonicalTag.tsx";
 import TestGovernanceAssessment from "./pages/admin/TestGovernanceAssessment";
 import TestLIA from "./pages/admin/TestLIA";
 import TestDPIA from "./pages/admin/TestDPIA";
@@ -185,6 +186,7 @@ const App = () => (
           <ScrollToTopButton />
           <PaymentTestModeBanner />
           <BlankScreenDiagnostic />
+          <CanonicalTag />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/logo-preview" element={<LogoPreview />} />

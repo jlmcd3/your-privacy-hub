@@ -64,7 +64,7 @@ export default function USNoticeLanding() {
   const { hasToolAccess } = useSubscriptionTier();
   useEffect(() => {
     document.title =
-      "US Privacy Notice Builder — CCPA, Virginia, Texas & All 20 States | End User Privacy";
+      "US Privacy Notice Builder | End User Privacy";
     const meta =
       document.querySelector('meta[name="description"]') ||
       Object.assign(document.createElement("meta"), { name: "description" });

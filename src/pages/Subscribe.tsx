@@ -95,7 +95,7 @@ const Subscribe = () => {
   return (
     <div className="min-h-screen bg-brand-cloud">
       <Helmet>
-        <title>{`Two products. One mission. — ${PRICING.intelligence.monthly.display}/month or Professional from ${PRICING.professional.monthly.display}/month | End User Privacy`}</title>
+        <title>Pricing & Plans | End User Privacy</title>
         <meta
           name="description"
           content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month — client workspaces, branded outputs, 1 free Convenience Tool run per client per month (annual).`}

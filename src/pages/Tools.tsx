@@ -472,7 +472,7 @@ export default function Tools() {
   return (
     <>
       <Helmet>
-        <title>Compliance Tools — Enforcement-Calibrated Assessments & Documents | End User Privacy</title>
+        <title>Privacy Compliance Tools | End User Privacy</title>
         <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Available individually at standalone prices." />
       </Helmet>
       <Navbar />

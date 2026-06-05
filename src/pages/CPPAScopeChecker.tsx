@@ -137,7 +137,7 @@ export default function CPPAScopeChecker() {
   return (
     <WorkspaceLayout className="bg-background">
       <Helmet>
-        <title>CPPA Scope Checker — Do You Meet the CCPA/CPRA Threshold? | End User Privacy</title>
+        <title>CPPA Scope Checker — CCPA/CPRA | End User Privacy</title>
         <meta
           name="description"
           content="Free 2-minute check to determine whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA enforcement obligations apply to your business."

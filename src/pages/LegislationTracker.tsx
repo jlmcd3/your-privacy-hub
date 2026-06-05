@@ -281,7 +281,7 @@ export default function LegislationTracker() {
   return (
     <>
       <Helmet>
-        <title>Global Privacy Legislation Tracker — Bills &amp; Laws Worldwide | End User Privacy</title>
+        <title>Global Privacy Legislation Tracker | End User Privacy</title>
         <meta name="description" content="Track privacy bills worldwide from introduction through enactment. US, UK, EU, Canada, Australia, Brazil — refreshed daily from official government sources." />
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">

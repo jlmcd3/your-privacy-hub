@@ -169,7 +169,7 @@ const USPrivacyLaws = () => {
   return (
     <div className="min-h-screen bg-brand-cloud">
       <Helmet>
-        <title>U.S. Privacy Laws — Federal & State Privacy Guide 2026 | End User Privacy</title>
+        <title>U.S. Privacy Laws Guide 2026 | End User Privacy</title>
         <meta
           name="description"
           content="A complete guide to the U.S. privacy regulatory framework — federal enforcement authorities, state-level authorities and privacy laws across all 50 states, and the latest regulatory developments."
