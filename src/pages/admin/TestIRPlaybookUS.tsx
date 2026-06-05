@@ -25,7 +25,7 @@ const ASSERTIONS = [
   { label: 'Contains processor notification step (ADP)', fn: (t: string) => /processor|service provider|vendor/i.test(t) && /notif/i.test(t) },
   { label: 'Contains individual notification section', fn: (t: string) => /individual notification|notify.*individual|notification.*individual/i.test(t) },
   { label: 'Contains documentation checklist', fn: (t: string) => /documentation.*checklist|checklist.*documentation/i.test(t) },
-  { label: 'Contains 7 numbered sections', fn: (t: string) => /section\s*[67]/i.test(t) },
+  { label: 'Contains 7 numbered sections', fn: (t: string) => (t.match(/(^|\n)\s*(#{1,3}\s*)?(section\s+|##\s*)?[1-7][\.\)\s]/gi) || []).length >= 7 || /section\s*7\b/i.test(t) },
   { label: 'Document length > 3000 characters', fn: (t: string) => t.length > 3000 },
 ];
 
