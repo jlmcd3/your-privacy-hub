@@ -128,7 +128,7 @@ export default function JurisdictionsHub() {
           update: title.length > 55 ? title.substring(0, 52) + "…" : title,
           fullTitle: title,
           days: relativeDays(a.published_at),
-          source_url: a.source_url ?? null,
+          source_url: a.url ?? null,
         });
         if (items.length >= 6) break;
       }
