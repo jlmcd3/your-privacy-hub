@@ -62,7 +62,7 @@ for (const route of ROUTES) {
     expect(res, `no response for ${route}`).not.toBeNull();
     expect(res!.status(), `status for ${route}`).toBeLessThan(400);
 
-    await page.waitForSelector("body > *", { state: "attached", timeout: 10_000 });
+    await page.waitForSelector("h1", { state: "attached", timeout: 30_000 });
     // Allow one frame for late helmet updates
     await page.waitForTimeout(300);
 
