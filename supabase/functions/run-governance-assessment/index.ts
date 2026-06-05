@@ -105,7 +105,11 @@ Employee privacy training conducted: ${intake.has_privacy_training ? "Yes" : "No
 Health or special category data processed: ${intake.special_category_data ? "Yes" : "No"}
 `;
 
-    const domainSystem = `You are a senior privacy and data protection compliance analyst. You are assessing an organisation's data governance practices against applicable regulatory requirements. Be specific, cite regulatory provisions where applicable (GDPR Article numbers, CCPA sections, etc.), and be direct about findings. This is a compliance framework tool. Return ONLY valid JSON, no preamble.`;
+    const domainSystem = `You are a senior privacy and data protection compliance analyst. You are assessing an organisation's data governance practices against applicable regulatory requirements. Be specific, cite regulatory provisions where applicable (GDPR Article numbers, CCPA sections, etc.), and be direct about findings. This is a compliance framework tool. Return ONLY valid JSON, no preamble.
+
+CITATION RULE: In the 'regulatory_basis' field, cite provision numbers only where you are certain they exist (e.g. 'GDPR Article 28', 'CCPA §1798.100'). Do not invent specific subsection letters or paragraph numbers. If uncertain, name the law and the obligation in plain language (e.g. 'CCPA — service provider contract requirement') rather than risk a fabricated citation.
+
+ENFORCEMENT CASE RULE: Do NOT reference specific enforcement case names, fine amounts, or regulator decisions in any domain field. Enforcement precedents are injected only into the synthesis stage. Domain findings must cite statutes only.`;
 
     const domainResults: Record<string, any> = {};
 

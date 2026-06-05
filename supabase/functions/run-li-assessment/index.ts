@@ -318,7 +318,9 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
 
 
     // ── STAGE 3: Documentation recommendations ──
-    const docsSystem = `You are a privacy regulatory analyst producing practical documentation guidance. Focus on what documentation would make this legitimate interest assessment defensible. Return ONLY valid JSON, no preamble.`;
+    const docsSystem = `You are a privacy regulatory analyst producing practical documentation guidance. Focus on what documentation would make this legitimate interest assessment defensible. Return ONLY valid JSON, no preamble.
+
+CITATION ACCURACY RULE: In the 'basis' field for each recommended document, cite regulatory instruments by name and provision in general terms only (e.g. 'GDPR Article 35 and EDPB Guidelines on DPIA'). Do NOT cite specific enforcement case names, fine amounts, or decision dates — those are only available in Stage 2 where the enforcement corpus is injected. If you are uncertain of a specific provision number, describe the obligation in plain language rather than citing a potentially incorrect section number.`;
 
     const docsText = await callAnthropic(
       "claude-sonnet-4-6",
