@@ -238,7 +238,7 @@ export default function TestsOutput() {
 
   // Watch the current run for completion. Driven only by the currently-running
   // test's status to avoid re-entrancy from unrelated state changes.
-  const currentStatus = runIndex !== null ? results[REGISTRY[runIndex].id]?.status : null;
+  const currentStatus = currentId ? results[currentId]?.status : null;
   const advancingRef = useRef(false);
 
   useEffect(() => {
@@ -247,20 +247,22 @@ export default function TestsOutput() {
     if (currentStatus !== "complete" && currentStatus !== "failed" && currentStatus !== "timeout") return;
 
     advancingRef.current = true;
-    const entry = REGISTRY[runIndex];
-    const current = results[entry.id];
-
-    // Claude review disabled — skip reviewOne call
     void reviewOne; // keep reference to avoid unused warnings
-    if (false && current?.status === "complete" && current.result && !current.review) {
-      void reviewOne(current);
-    }
+
+    const queue = queueRef.current;
     const next = runIndex + 1;
-    if (next < REGISTRY.length) {
-      startedAtRef.current = Date.now();
-      setIframeSrc(REGISTRY[next].path + "?embed=runner&t=" + Date.now());
-      setRunIndex(next);
-      updateResult(REGISTRY[next].id, { status: "running" });
+    if (next < queue.length) {
+      const nextId = queue[next];
+      const nextEntry = REGISTRY.find((r) => r.id === nextId);
+      if (nextEntry) {
+        startedAtRef.current = Date.now();
+        setIframeSrc(nextEntry.path + "?embed=runner&t=" + Date.now());
+        setRunIndex(next);
+        updateResult(nextId, { status: "running" });
+      } else {
+        setRunIndex(null);
+        setIframeSrc(null);
+      }
     } else {
       setRunIndex(null);
       setIframeSrc(null);
@@ -275,10 +277,11 @@ export default function TestsOutput() {
     if (runIndex === null) return;
     const id = window.setInterval(() => {
       if (Date.now() - startedAtRef.current > TEST_TIMEOUT_MS) {
-        const entry = REGISTRY[runIndex];
-        const cur = results[entry.id];
+        const cid = queueRef.current[runIndex];
+        if (!cid) return;
+        const cur = results[cid];
         if (cur && cur.status !== "complete" && cur.status !== "failed" && cur.status !== "timeout") {
-          updateResult(entry.id, { status: "timeout", error: `Test exceeded ${Math.floor(TEST_TIMEOUT_MS / 1000)}s` });
+          updateResult(cid, { status: "timeout", error: `Test exceeded ${Math.floor(TEST_TIMEOUT_MS / 1000)}s` });
         }
       }
     }, 2000);
@@ -286,26 +289,36 @@ export default function TestsOutput() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runIndex]);
 
-  function startRunAll() {
-    const fresh = Object.fromEntries(
-      REGISTRY.map((r) => [r.id, { testId: r.id, label: r.label, status: "pending" as const }]),
-    );
-    setResults(fresh);
+  function startRunSelected() {
+    const queue = REGISTRY.filter((r) => selected.has(r.id)).map((r) => r.id);
+    if (queue.length === 0) return;
+    queueRef.current = queue;
+    // Reset only the selected tests; preserve cached results for the rest.
+    setResults((prev) => {
+      const next = { ...prev };
+      for (const id of queue) {
+        const reg = REGISTRY.find((r) => r.id === id)!;
+        next[id] = { testId: id, label: reg.label, status: "pending" };
+      }
+      return next;
+    });
+    const first = REGISTRY.find((r) => r.id === queue[0])!;
     startedAtRef.current = Date.now();
-    setIframeSrc(REGISTRY[0].path + "?embed=runner&t=" + Date.now());
+    setIframeSrc(first.path + "?embed=runner&t=" + Date.now());
     setRunIndex(0);
-    // Mark first as running
-    updateResult(REGISTRY[0].id, { status: "running" });
+    updateResult(queue[0], { status: "running" });
   }
 
   function rerunOne(id: string) {
-    const idx = REGISTRY.findIndex((r) => r.id === id);
-    if (idx < 0) return;
+    const entry = REGISTRY.find((r) => r.id === id);
+    if (!entry) return;
+    queueRef.current = [id];
     updateResult(id, { status: "running", result: undefined, review: undefined, reviewError: undefined, assertions: undefined, log: undefined });
     startedAtRef.current = Date.now();
-    setIframeSrc(REGISTRY[idx].path + "?embed=runner&t=" + Date.now());
-    setRunIndex(idx);
+    setIframeSrc(entry.path + "?embed=runner&t=" + Date.now());
+    setRunIndex(0);
   }
+
 
   function rerunReviewOnly(id: string) {
     const entry = results[id];
