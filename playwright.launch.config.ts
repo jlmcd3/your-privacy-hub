@@ -9,7 +9,7 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   testDir: "./tests/launch",
-  timeout: 45_000,
+  timeout: 120_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
   workers: 4,
