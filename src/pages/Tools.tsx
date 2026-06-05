@@ -571,6 +571,10 @@ export default function Tools() {
                           <span className="inline-block text-eyebrow bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
                             Always free
                           </span>
+                        ) : SUBSCRIBER_ONLY_SLUGS.has(tool.slug) ? (
+                          <span className="inline-block text-eyebrow bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1 rounded-full">
+                            Included with subscription
+                          </span>
                         ) : hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug) ? (
                           <span className="inline-block text-eyebrow bg-green-100 text-green-800 border border-green-200 px-3 py-1 rounded-full">
                             ✓ Included
@@ -600,7 +604,11 @@ export default function Tools() {
                     )}
                     {!tool.alwaysFree && (
                       <div className="text-meta text-muted-foreground mt-2">
-                        {hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
+                        {SUBSCRIBER_ONLY_SLUGS.has(tool.slug)
+                          ? hasToolAccess
+                            ? "Included in your subscription"
+                            : "Subscriber-only — not sold standalone"
+                          : hasToolAccess && !CPPA_TOOL_SLUGS.has(tool.slug)
                           ? "Included in your Professional"
                           : hasToolAccess && CPPA_TOOL_SLUGS.has(tool.slug)
                           ? "Paid — subscriber rate applied"
@@ -624,9 +632,15 @@ export default function Tools() {
                     >
                       See a sample output →
                     </button>
-                    <Link to={tool.href} className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
-                      Open tool →
-                    </Link>
+                    {SUBSCRIBER_ONLY_SLUGS.has(tool.slug) && !hasToolAccess ? (
+                      <Link to="/subscribe" className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                        Subscribe to access →
+                      </Link>
+                    ) : (
+                      <Link to={tool.href} className="text-sm font-semibold text-white bg-brand-navy px-5 py-2.5 rounded-xl hover:opacity-90 transition-all no-underline">
+                        Open tool →
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}
