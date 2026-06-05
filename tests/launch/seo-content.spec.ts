@@ -63,6 +63,7 @@ for (const route of ROUTES) {
     expect(res!.status(), `status for ${route}`).toBeLessThan(400);
 
     await page.waitForSelector("h1", { state: "attached", timeout: 30_000 });
+    await page.waitForFunction(() => document.title.length > 5, { timeout: 10_000 }).catch(() => {});
     // Wait for react-helmet-async / CanonicalTag to mutate <title> past the
     // static index.html / preview-shell placeholder.
     await page
