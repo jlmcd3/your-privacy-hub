@@ -140,7 +140,7 @@ const Subscribe = () => {
                   "Daily privacy intelligence feed",
                   "Weekly Privacy Intelligence Report — personalised by role, jurisdiction & topics",
                   "AI investigation prompt on every article",
-                  "Access to all compliance tools at standalone prices",
+                  "Access to some compliance tools at standalone prices",
                   "Enforcement corpus citations in every Smart Tool output",
 
                 ].map((item) => (
