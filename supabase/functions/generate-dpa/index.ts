@@ -420,6 +420,11 @@ ${ANNOTATIONS_INSTRUCTIONS}`;
     else if (documentType === "dual-eu-us") { systemPrompt = DUAL_EU_US_SYSTEM; userPrompt = DUAL_EU_US_USER; }
     else if (documentType === "dual-eu-ca") { systemPrompt = DUAL_EU_CA_SYSTEM; userPrompt = DUAL_EU_CA_USER; }
 
+    const CITATION_INTEGRITY_RULE = `
+
+CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name, section number, subsection letter) must be verifiable against the actual statute. Known hallucination risks to guard against: (1) PIPEDA does not use decimal sub-principle numbering — cite as "Schedule 1, Principle N (Name)" only. (2) The Breach of Security Safeguards Regulations under PIPEDA are SOR/2018-64 — no other SOR number is correct. (3) US state privacy laws do not have a universal 72-hour breach notification deadline — that is a GDPR Article 33 concept only. Apply it only where GDPR explicitly applies. (4) Quebec Law 25 uses "without delay" not "72 hours" — present 72 hours as a planning benchmark only. (5) The California breach notification standard is "most expedient time possible" under Cal. Civ. Code §1798.82 — not 30 days or 72 hours. If you are uncertain of a specific section number, write the section in descriptive terms and flag it: "[statutory reference to be confirmed with counsel]" rather than inventing a section number.`;
+    systemPrompt = systemPrompt + CITATION_INTEGRITY_RULE;
+
 
     const aiController = new AbortController();
     const aiTimeout = setTimeout(() => aiController.abort(), 180_000);
