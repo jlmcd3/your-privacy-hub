@@ -260,26 +260,19 @@ serve(async (req) => {
       }
     }
 
-    // Resolve standalone price from Stripe (fallback otherwise).
-    // Subscriber price is ALWAYS the canonical fallback — we do not look it
-    // up from Stripe because the canonical PRICING registry is the source of
-    // truth for subscriber pricing (memo May 2026: unified pricing model).
-    let standaloneCents = tool.fallback_standalone_cents;
+    // Canonical PRICING (src/config/pricing.ts) is the source of truth.
+    // We use the in-file fallbacks (which are kept in sync by
+    // scripts/check-pricing-drift.mjs) rather than reading from Stripe — Stripe
+    // is the destination for sync-pricing, not a source we trust at runtime.
+    const standaloneCents = tool.fallback_standalone_cents;
     const subscriberCents = tool.fallback_subscriber_cents;
-    let stripeConfigured = false;
-    try {
-      const stripe = createStripeClient(detectEnv());
-      const standalonePrice = await resolvePriceId(stripe, tool.standalone_lookup);
-      if (standalonePrice) {
-        standaloneCents = standalonePrice.unit_amount ?? standaloneCents;
-        stripeConfigured = true;
-      }
-    } catch (e) {
-      console.warn("get-tool-price: gateway lookup failed, using fallback:", (e as Error).message);
-    }
+    const stripeConfigured = tool.fallback_standalone_cents > 0;
 
     const subscriberFree = SUBSCRIBER_FREE_TOOLS.has(tool_slug);
     const isSubscriberFree = subscriberFree && isPro;
+    // `effectiveCents` is what we'd charge THIS caller right now. Subscriber-
+    // free tools resolve to 0 only for the active subscriber; everyone else
+    // pays the canonical standalone price.
     const effectiveCents = isPro ? (subscriberFree ? 0 : subscriberCents) : standaloneCents;
 
     return new Response(
@@ -295,10 +288,12 @@ serve(async (req) => {
         classification: tool.classification,
         amount_cents: effectiveCents,
         standalone_amount_cents: standaloneCents,
-        subscriber_amount_cents: subscriberFree ? 0 : subscriberCents,
-        founding_amount_cents: subscriberFree ? 0 : subscriberCents,
+        // Report the canonical subscriber price; `is_subscriber_free` separately
+        // tells callers when this caller will be charged 0.
+        subscriber_amount_cents: subscriberCents,
+        founding_amount_cents: subscriberCents,
         stripe_price_id: null,
-        stripe_configured: stripeConfigured || tool.fallback_standalone_cents > 0,
+        stripe_configured: stripeConfigured,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
