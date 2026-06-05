@@ -18,10 +18,11 @@ run() {
 }
 
 run "crawl"          node scripts/qa/crawl-routes.mjs
-run "links"          node scripts/qa/link-audit.mjs
-run "content"        node scripts/qa/content-audit.mjs
+run "links-static"   node scripts/qa/link-audit.mjs
+run "content-static" node scripts/qa/content-audit.mjs
 run "pricing-drift"  node scripts/check-pricing-drift.mjs
 run "gating-leak"    node scripts/scan-gating-leaks.mjs
+run "playwright"     npx playwright test tests/launch --reporter=line
 
 echo
 echo "=== SUMMARY ==="
