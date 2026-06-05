@@ -13,7 +13,7 @@ const REDIRECT_ROUTES = ["/ropa", "/us-notices", "/eu-notices", "/notices-ropa"]
 
 for (const route of REDIRECT_ROUTES) {
   test(`gated route redirects anon: ${route}`, async ({ page }) => {
-    await page.goto(route, { waitUntil: "networkidle", timeout: 90_000 });
+    await page.goto(route, { waitUntil: "domcontentloaded", timeout: 90_000 });
     const url = page.url();
     expect(url, `expected ${route} to redirect to /login`).toMatch(/\/login/);
   });
@@ -23,7 +23,7 @@ const PUBLIC_LANDINGS = ["/tools", "/ropa-builder", "/us-notice-builder", "/eu-g
 
 for (const route of PUBLIC_LANDINGS) {
   test(`marketing landing renders without gated body content: ${route}`, async ({ page }) => {
-    await page.goto(route, { waitUntil: "networkidle", timeout: 90_000 });
+    await page.goto(route, { waitUntil: "domcontentloaded", timeout: 90_000 });
     // Must not show a "Download document" / "Generate notice" CTA without sign-in
     const body = await page.locator("body").innerText();
     expect(body.length, `${route} has body content`).toBeGreaterThan(200);
