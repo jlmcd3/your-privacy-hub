@@ -119,7 +119,7 @@ export default function IRPlaybook() {
         <meta name="description" content="A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — with cited enforcement decisions behind every timeline and threshold recommendation." /></Helmet>      <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            🚨 Breach Response Playbook · ${pricing.price}
+            🚨 Incident Response Playbook · ${pricing.price}
           </span>
           <h1 className="font-serif mb-3">Incident Response Playbook</h1>
           <p className="text-slate-300 text-lg max-w-3xl">
@@ -136,7 +136,7 @@ export default function IRPlaybook() {
 
         {phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4"><h2 className="font-display text-brand-navy">Your Breach Response Playbook</h2><CopyButton text={result} /></div>
+            <div className="flex items-center justify-between mb-4"><h2 className="font-display text-brand-navy">Your Incident Response Playbook</h2><CopyButton text={result} /></div>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
             <p className="text-meta text-muted-foreground mt-4">This playbook and its documentation checklist (Section 6) contribute to your Article 33(5) accountability record.</p>
             <ToolDisclaimer addition="This playbook is generated for informational purposes and should be reviewed by qualified legal counsel before use in a live incident. Notification deadlines and thresholds are based on publicly available regulatory guidance and may have changed. Verify current requirements with your legal team before filing any regulatory notification." />
@@ -144,7 +144,7 @@ export default function IRPlaybook() {
         ) : phase === "generating" ? (
           <div className="text-center py-16">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-sm font-semibold text-brand-navy mb-1">Generating your Breach Response Playbook</p>
+            <p className="text-sm font-semibold text-brand-navy mb-1">Generating your Incident Response Playbook</p>
             <p className="text-meta text-muted-foreground">Checking notification deadlines and enforcement precedents for {form.jurisdictions.join(", ")} — this usually takes 15–20 seconds.</p>
           </div>
         ) : phase === "form" ? (
@@ -183,7 +183,7 @@ export default function IRPlaybook() {
           </div>
         ) : (
           <ToolSampleOverlay
-            toolName="Your Breach Response Playbook" priceLabel={access.priceLabel} onPurchase={handlePurchase}
+            toolName="Your Incident Response Playbook" priceLabel={access.priceLabel} onPurchase={handlePurchase}
             isFreeForUser={access.isFreeForUser} isPremium={access.isPremium}
           >
             <div className="bg-card border border-border rounded-2xl p-6">

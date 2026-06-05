@@ -112,7 +112,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "ir",
-    label: "Breach Response Playbook",
+    label: "Incident Response Playbook",
     blurb: "Jurisdiction-aware incident response runbook.",
     startPath: "/ir-playbook",
     viewPath: "/dashboard/reports",

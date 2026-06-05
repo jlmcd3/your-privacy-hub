@@ -50,7 +50,7 @@ const DISPLAY_NAMES: Record<string, string> = {
   cppa_cybersecurity:           "CPPA Cybersecurity Readiness — Module 2",
   cppa_suite:                   "CPPA Full Audit Suite (Modules 1 + 2)",
   dpa_generator:                "Your Custom DPA",
-  ir_playbook:                  "Breach Response Playbook",
+  ir_playbook:                  "Incident Response Playbook",
   biometric_checker:            "Biometric Privacy Compliance Assessment",
 };
 

@@ -74,7 +74,7 @@ const NAV_HIERARCHY = [
       { label: "Legitimate Interest Assessment", href: "/li-assessment", badge: "PRO" },
       { label: "Impact Assessment Builder (DPIA)", href: "/dpia-framework", badge: "PRO" },
       { label: "Custom DPA", href: "/dpa-generator", badge: "PRO" },
-      { label: "Breach Response Playbook", href: "/ir-playbook", badge: "PRO" },
+      { label: "Incident Response Playbook", href: "/ir-playbook", badge: "PRO" },
       { label: "Biometric Compliance Assessment", href: "/biometric-checker", badge: "PRO" },
       { label: "Registration Manager", href: "/registration-manager", badge: "PRO" },
     ],

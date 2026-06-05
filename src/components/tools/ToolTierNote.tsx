@@ -37,7 +37,7 @@ export default function ToolTierNote({ isCppa = false, className = "" }: ToolTie
       <p
         className={`text-[12px] text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mt-2 ${className}`}
       >
-        ✓ Included in your Annual Platform — generate as many as you need.
+        ✓ Included in your Annual Platform.
       </p>
     );
   }

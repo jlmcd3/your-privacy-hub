@@ -570,7 +570,7 @@ function makeEmailSubject(toolType: string): string {
     governance_assessment: "Data Governance Readiness Assessment",
     dpia_framework: "DPIA Framework",
     biometric_checker: "Biometric Compliance Assessment",
-    ir_playbook: "Breach Response Playbook",
+    ir_playbook: "Incident Response Playbook",
     dpa_generator: "Custom DPA",
   };
   return `Your ${labels[toolType] || "Report"} is ready — EndUserPrivacy.com`;
@@ -748,7 +748,7 @@ Deno.serve(async (req) => {
     } else if (tool_type === "ir_playbook") {
       const intake = record.intake_data || {};
       html = buildTextReportHTML({
-        title: "Your Breach Response Playbook",
+        title: "Your Incident Response Playbook",
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
           ((intake.jurisdictions || []).length ? ` · ${intake.jurisdictions.join(", ")}` : ""),
         text: record.playbook_text || "",
@@ -867,7 +867,7 @@ Deno.serve(async (req) => {
         governance_assessment: "Data Governance Readiness Assessment",
         dpia_framework: "DPIA Framework",
         biometric_checker: "Biometric Compliance Assessment",
-        ir_playbook: "Breach Response Playbook",
+        ir_playbook: "Incident Response Playbook",
         dpa_generator: "Custom DPA",
       };
       emailSent = await sendEmail({

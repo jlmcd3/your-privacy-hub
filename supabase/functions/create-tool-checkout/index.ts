@@ -63,7 +63,7 @@ const TOOLS: Record<
     fallback_subscriber_cents: 2500,
   },
   ir_playbook: {
-    name: "Your Breach Response Playbook",
+    name: "Your Incident Response Playbook",
     standalone_lookup: "ir_standalone_v2",
     subscriber_lookup: "ir_subscriber_v2",
     table: "ir_playbooks",
