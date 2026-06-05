@@ -15,6 +15,10 @@ for (const route of REDIRECT_ROUTES) {
   test(`gated route redirects anon: ${route}`, async ({ page }) => {
     await page.goto(route, { waitUntil: "domcontentloaded", timeout: 90_000 });
     await page.waitForSelector("body > *", { state: "attached", timeout: 10_000 });
+    // Auth resolves async after hydration — wait for the client-side redirect.
+    await page
+      .waitForURL(/\/login|auth-bridge/, { timeout: 15_000 })
+      .catch(() => {});
     const url = page.url();
     expect(url, `expected ${route} to redirect to /login`).toMatch(/\/login|auth-bridge/);
   });
