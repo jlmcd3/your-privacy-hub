@@ -1,0 +1,1391 @@
+{
+  "generatedAt": "2026-06-05T09:29:25.601Z",
+  "totals": {
+    "pages": 92,
+    "findings": 276,
+    "high": 184,
+    "medium": 92
+  },
+  "findings": [
+    {
+      "severity": "high",
+      "route": "/",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/logo-preview",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/logo-preview",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/logo-preview",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-state-privacy-authorities",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-state-privacy-authorities",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/us-state-privacy-authorities",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/global-privacy-authorities",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/global-privacy-authorities",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/global-privacy-authorities",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/enforcement",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/enforcement",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/enforcement",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/enforcement-tracker",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/enforcement-tracker",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/enforcement-tracker",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/enforcement-intelligence",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/enforcement-intelligence",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/enforcement-intelligence",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-privacy-laws",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-privacy-laws",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/us-privacy-laws",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-state-privacy-laws",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-state-privacy-laws",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/us-state-privacy-laws",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-federal-privacy-law",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-federal-privacy-law",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/us-federal-privacy-law",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/gdpr-enforcement",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/gdpr-enforcement",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/gdpr-enforcement",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ai-privacy-regulations",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ai-privacy-regulations",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/ai-privacy-regulations",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/global-privacy-laws",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/global-privacy-laws",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/global-privacy-laws",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdictions",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdictions",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/jurisdictions",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/glossary",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/glossary",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/glossary",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/calendar",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/calendar",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/calendar",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/timelines",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/timelines",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/timelines",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/compare/us-states",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/compare/us-states",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/compare/us-states",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/legislation-tracker",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/legislation-tracker",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/legislation-tracker",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/tools",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/tools",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/tools",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/start",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/start",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/start",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cookie-consent",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cookie-consent",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/cookie-consent",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/health-data-privacy",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/health-data-privacy",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/health-data-privacy",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/biometric-privacy",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/biometric-privacy",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/biometric-privacy",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/breach-notification",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/breach-notification",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/breach-notification",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cross-border-transfers",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cross-border-transfers",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/cross-border-transfers",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/brief-preferences",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/brief-preferences",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/brief-preferences",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/signup",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/signup",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/signup",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/login",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/login",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/login",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/forgot-password",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/forgot-password",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/forgot-password",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/reset-password",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/reset-password",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/reset-password",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/check-email",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/check-email",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/check-email",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/onboarding-profile",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/onboarding-profile",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/onboarding-profile",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/account",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/account",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/account",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/clients",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/clients",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/clients",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/subscribe",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/subscribe",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/subscribe",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/subscribe/success",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/subscribe/success",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/subscribe/success",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/dashboard",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/dashboard",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/dashboard",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/dashboard/reports",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/dashboard/reports",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/dashboard/reports",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/get-intelligence",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/get-intelligence",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/get-intelligence",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/legitimate-interest-tracker",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/legitimate-interest-tracker",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/legitimate-interest-tracker",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/li-assessment",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/li-assessment",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/li-assessment",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/governance-assessment",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/governance-assessment",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/governance-assessment",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/dpia-framework",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/dpia-framework",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/dpia-framework",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/dpa-generator",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/dpa-generator",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/dpa-generator",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ir-playbook",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ir-playbook",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/ir-playbook",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/biometric-checker",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/biometric-checker",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/biometric-checker",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cppa-scope-checker",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cppa-scope-checker",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/cppa-scope-checker",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cppa-risk-assessment",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cppa-risk-assessment",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/cppa-risk-assessment",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cppa-cybersecurity",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cppa-cybersecurity",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/cppa-cybersecurity",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cppa-suite/result",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/cppa-suite/result",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/cppa-suite/result",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/horizon",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/horizon",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/horizon",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/notices-ropa",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/notices-ropa",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/notices-ropa",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/ropa",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa/setup",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa/setup",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/ropa/setup",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa/activities",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa/activities",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/ropa/activities",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa/review",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa/review",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/ropa/review",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa/documents",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa/documents",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/ropa/documents",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa-builder",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa-builder",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/ropa-builder",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/rofa",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/rofa",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/rofa",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa-builder/home",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/ropa-builder/home",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/ropa-builder/home",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/article-30",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/article-30",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/article-30",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-notices",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-notices",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/us-notices",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-notices/mode",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-notices/mode",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/us-notices/mode",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-notices/review",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-notices/review",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/us-notices/review",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-notice-builder",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/us-notice-builder",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/us-notice-builder",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-notices",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-notices",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/eu-notices",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-notices/mode",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-notices/mode",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/eu-notices/mode",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-notices/review",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-notices/review",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/eu-notices/review",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-notices/documents",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-notices/documents",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/eu-notices/documents",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-global-notice-builder",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/eu-global-notice-builder",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/eu-global-notice-builder",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/registration-manager",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/registration-manager",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/registration-manager",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/registration-manager/start",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/registration-manager/start",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/registration-manager/start",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/registration-manager/my-filings",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/registration-manager/my-filings",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/registration-manager/my-filings",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/watchlist",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/watchlist",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/watchlist",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/updates",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/updates",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/updates",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/faq",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/faq",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/faq",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/terms",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/terms",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/terms",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/laws",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/laws",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/laws",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/assessments",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/assessments",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/assessments",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/privacy-policy",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/privacy-policy",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/privacy-policy",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/about",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/about",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/about",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/contact",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/contact",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/contact",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/sample-brief",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/sample-brief",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/sample-brief",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/european-union",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/european-union",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/jurisdiction/european-union",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/austria",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/austria",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/jurisdiction/austria",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/belgium",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/belgium",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/jurisdiction/belgium",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/bulgaria",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/bulgaria",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/jurisdiction/bulgaria",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/croatia",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/croatia",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/jurisdiction/croatia",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/cyprus",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/cyprus",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/jurisdiction/cyprus",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/czech-republic",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/czech-republic",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/jurisdiction/czech-republic",
+      "kind": "missing_contact_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/denmark",
+      "kind": "missing_privacy_link"
+    },
+    {
+      "severity": "high",
+      "route": "/jurisdiction/denmark",
+      "kind": "missing_terms_link"
+    },
+    {
+      "severity": "medium",
+      "route": "/jurisdiction/denmark",
+      "kind": "missing_contact_link"
+    }
+  ]
+}

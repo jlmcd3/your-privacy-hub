@@ -1,0 +1,3531 @@
+{
+  "generatedAt": "2026-06-05T09:29:25.440Z",
+  "baseUrl": "https://enduserprivacy.com",
+  "totals": {
+    "crawled": 93,
+    "broken": 1,
+    "withIssues": 93
+  },
+  "broken": [
+    {
+      "route": "*",
+      "url": "https://enduserprivacy.com*",
+      "status": 0,
+      "error": "fetch failed",
+      "durationMs": 3,
+      "issues": [
+        "fetch_failed"
+      ]
+    }
+  ],
+  "withIssues": [
+    {
+      "route": "/",
+      "url": "https://enduserprivacy.com/",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/",
+      "redirected": false,
+      "durationMs": 324,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/logo-preview",
+      "url": "https://enduserprivacy.com/logo-preview",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/logo-preview",
+      "redirected": false,
+      "durationMs": 223,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-state-privacy-authorities",
+      "url": "https://enduserprivacy.com/us-state-privacy-authorities",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-state-privacy-authorities",
+      "redirected": false,
+      "durationMs": 235,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/global-privacy-authorities",
+      "url": "https://enduserprivacy.com/global-privacy-authorities",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/global-privacy-authorities",
+      "redirected": false,
+      "durationMs": 278,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/enforcement",
+      "url": "https://enduserprivacy.com/enforcement",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/enforcement",
+      "redirected": false,
+      "durationMs": 318,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/enforcement-tracker",
+      "url": "https://enduserprivacy.com/enforcement-tracker",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/enforcement-tracker",
+      "redirected": false,
+      "durationMs": 240,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/enforcement-intelligence",
+      "url": "https://enduserprivacy.com/enforcement-intelligence",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/enforcement-intelligence",
+      "redirected": false,
+      "durationMs": 270,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-privacy-laws",
+      "url": "https://enduserprivacy.com/us-privacy-laws",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-privacy-laws",
+      "redirected": false,
+      "durationMs": 253,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-state-privacy-laws",
+      "url": "https://enduserprivacy.com/us-state-privacy-laws",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-state-privacy-laws",
+      "redirected": false,
+      "durationMs": 164,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-federal-privacy-law",
+      "url": "https://enduserprivacy.com/us-federal-privacy-law",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-federal-privacy-law",
+      "redirected": false,
+      "durationMs": 140,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/gdpr-enforcement",
+      "url": "https://enduserprivacy.com/gdpr-enforcement",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/gdpr-enforcement",
+      "redirected": false,
+      "durationMs": 140,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ai-privacy-regulations",
+      "url": "https://enduserprivacy.com/ai-privacy-regulations",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ai-privacy-regulations",
+      "redirected": false,
+      "durationMs": 117,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/global-privacy-laws",
+      "url": "https://enduserprivacy.com/global-privacy-laws",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/global-privacy-laws",
+      "redirected": false,
+      "durationMs": 138,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdictions",
+      "url": "https://enduserprivacy.com/jurisdictions",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdictions",
+      "redirected": false,
+      "durationMs": 158,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/glossary",
+      "url": "https://enduserprivacy.com/glossary",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/glossary",
+      "redirected": false,
+      "durationMs": 149,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/calendar",
+      "url": "https://enduserprivacy.com/calendar",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/calendar",
+      "redirected": false,
+      "durationMs": 150,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/timelines",
+      "url": "https://enduserprivacy.com/timelines",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/timelines",
+      "redirected": false,
+      "durationMs": 127,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/compare/us-states",
+      "url": "https://enduserprivacy.com/compare/us-states",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/compare/us-states",
+      "redirected": false,
+      "durationMs": 131,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/legislation-tracker",
+      "url": "https://enduserprivacy.com/legislation-tracker",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/legislation-tracker",
+      "redirected": false,
+      "durationMs": 116,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/tools",
+      "url": "https://enduserprivacy.com/tools",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/tools",
+      "redirected": false,
+      "durationMs": 156,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/start",
+      "url": "https://enduserprivacy.com/start",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/start",
+      "redirected": false,
+      "durationMs": 132,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cookie-consent",
+      "url": "https://enduserprivacy.com/cookie-consent",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cookie-consent",
+      "redirected": false,
+      "durationMs": 172,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/health-data-privacy",
+      "url": "https://enduserprivacy.com/health-data-privacy",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/health-data-privacy",
+      "redirected": false,
+      "durationMs": 136,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/biometric-privacy",
+      "url": "https://enduserprivacy.com/biometric-privacy",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/biometric-privacy",
+      "redirected": false,
+      "durationMs": 167,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/breach-notification",
+      "url": "https://enduserprivacy.com/breach-notification",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/breach-notification",
+      "redirected": false,
+      "durationMs": 131,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cross-border-transfers",
+      "url": "https://enduserprivacy.com/cross-border-transfers",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cross-border-transfers",
+      "redirected": false,
+      "durationMs": 127,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/brief-preferences",
+      "url": "https://enduserprivacy.com/brief-preferences",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/brief-preferences",
+      "redirected": false,
+      "durationMs": 145,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/signup",
+      "url": "https://enduserprivacy.com/signup",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/signup",
+      "redirected": false,
+      "durationMs": 155,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/login",
+      "url": "https://enduserprivacy.com/login",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/login",
+      "redirected": false,
+      "durationMs": 151,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/forgot-password",
+      "url": "https://enduserprivacy.com/forgot-password",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/forgot-password",
+      "redirected": false,
+      "durationMs": 137,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/reset-password",
+      "url": "https://enduserprivacy.com/reset-password",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/reset-password",
+      "redirected": false,
+      "durationMs": 152,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/check-email",
+      "url": "https://enduserprivacy.com/check-email",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/check-email",
+      "redirected": false,
+      "durationMs": 133,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/onboarding-profile",
+      "url": "https://enduserprivacy.com/onboarding-profile",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/onboarding-profile",
+      "redirected": false,
+      "durationMs": 131,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/account",
+      "url": "https://enduserprivacy.com/account",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/account",
+      "redirected": false,
+      "durationMs": 169,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/clients",
+      "url": "https://enduserprivacy.com/clients",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/clients",
+      "redirected": false,
+      "durationMs": 116,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/subscribe",
+      "url": "https://enduserprivacy.com/subscribe",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/subscribe",
+      "redirected": false,
+      "durationMs": 130,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/subscribe/success",
+      "url": "https://enduserprivacy.com/subscribe/success",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/subscribe/success",
+      "redirected": false,
+      "durationMs": 146,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "url": "https://enduserprivacy.com/dashboard",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/dashboard",
+      "redirected": false,
+      "durationMs": 135,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/dashboard/reports",
+      "url": "https://enduserprivacy.com/dashboard/reports",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/dashboard/reports",
+      "redirected": false,
+      "durationMs": 118,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/get-intelligence",
+      "url": "https://enduserprivacy.com/get-intelligence",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/get-intelligence",
+      "redirected": false,
+      "durationMs": 109,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/legitimate-interest-tracker",
+      "url": "https://enduserprivacy.com/legitimate-interest-tracker",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/legitimate-interest-tracker",
+      "redirected": false,
+      "durationMs": 137,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/li-assessment",
+      "url": "https://enduserprivacy.com/li-assessment",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/li-assessment",
+      "redirected": false,
+      "durationMs": 108,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/governance-assessment",
+      "url": "https://enduserprivacy.com/governance-assessment",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/governance-assessment",
+      "redirected": false,
+      "durationMs": 163,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/dpia-framework",
+      "url": "https://enduserprivacy.com/dpia-framework",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/dpia-framework",
+      "redirected": false,
+      "durationMs": 126,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/dpa-generator",
+      "url": "https://enduserprivacy.com/dpa-generator",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/dpa-generator",
+      "redirected": false,
+      "durationMs": 146,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ir-playbook",
+      "url": "https://enduserprivacy.com/ir-playbook",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ir-playbook",
+      "redirected": false,
+      "durationMs": 149,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/biometric-checker",
+      "url": "https://enduserprivacy.com/biometric-checker",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/biometric-checker",
+      "redirected": false,
+      "durationMs": 111,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cppa-scope-checker",
+      "url": "https://enduserprivacy.com/cppa-scope-checker",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cppa-scope-checker",
+      "redirected": false,
+      "durationMs": 138,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cppa-risk-assessment",
+      "url": "https://enduserprivacy.com/cppa-risk-assessment",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cppa-risk-assessment",
+      "redirected": false,
+      "durationMs": 133,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cppa-cybersecurity",
+      "url": "https://enduserprivacy.com/cppa-cybersecurity",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cppa-cybersecurity",
+      "redirected": false,
+      "durationMs": 152,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cppa-suite/result",
+      "url": "https://enduserprivacy.com/cppa-suite/result",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cppa-suite/result",
+      "redirected": false,
+      "durationMs": 132,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/horizon",
+      "url": "https://enduserprivacy.com/horizon",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/horizon",
+      "redirected": false,
+      "durationMs": 152,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/notices-ropa",
+      "url": "https://enduserprivacy.com/notices-ropa",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/notices-ropa",
+      "redirected": false,
+      "durationMs": 206,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa",
+      "url": "https://enduserprivacy.com/ropa",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa",
+      "redirected": false,
+      "durationMs": 152,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa/setup",
+      "url": "https://enduserprivacy.com/ropa/setup",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa/setup",
+      "redirected": false,
+      "durationMs": 145,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa/activities",
+      "url": "https://enduserprivacy.com/ropa/activities",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa/activities",
+      "redirected": false,
+      "durationMs": 122,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa/review",
+      "url": "https://enduserprivacy.com/ropa/review",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa/review",
+      "redirected": false,
+      "durationMs": 116,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa/documents",
+      "url": "https://enduserprivacy.com/ropa/documents",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa/documents",
+      "redirected": false,
+      "durationMs": 160,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa-builder",
+      "url": "https://enduserprivacy.com/ropa-builder",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa-builder",
+      "redirected": false,
+      "durationMs": 132,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/rofa",
+      "url": "https://enduserprivacy.com/rofa",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/rofa",
+      "redirected": false,
+      "durationMs": 138,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa-builder/home",
+      "url": "https://enduserprivacy.com/ropa-builder/home",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa-builder/home",
+      "redirected": false,
+      "durationMs": 124,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/article-30",
+      "url": "https://enduserprivacy.com/article-30",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/article-30",
+      "redirected": false,
+      "durationMs": 163,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-notices",
+      "url": "https://enduserprivacy.com/us-notices",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-notices",
+      "redirected": false,
+      "durationMs": 172,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-notices/mode",
+      "url": "https://enduserprivacy.com/us-notices/mode",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-notices/mode",
+      "redirected": false,
+      "durationMs": 175,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-notices/review",
+      "url": "https://enduserprivacy.com/us-notices/review",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-notices/review",
+      "redirected": false,
+      "durationMs": 121,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-notice-builder",
+      "url": "https://enduserprivacy.com/us-notice-builder",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-notice-builder",
+      "redirected": false,
+      "durationMs": 147,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/eu-notices",
+      "url": "https://enduserprivacy.com/eu-notices",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/eu-notices",
+      "redirected": false,
+      "durationMs": 127,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/eu-notices/mode",
+      "url": "https://enduserprivacy.com/eu-notices/mode",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/eu-notices/mode",
+      "redirected": false,
+      "durationMs": 126,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/eu-notices/review",
+      "url": "https://enduserprivacy.com/eu-notices/review",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/eu-notices/review",
+      "redirected": false,
+      "durationMs": 126,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/eu-notices/documents",
+      "url": "https://enduserprivacy.com/eu-notices/documents",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/eu-notices/documents",
+      "redirected": false,
+      "durationMs": 160,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/eu-global-notice-builder",
+      "url": "https://enduserprivacy.com/eu-global-notice-builder",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/eu-global-notice-builder",
+      "redirected": false,
+      "durationMs": 112,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/registration-manager",
+      "url": "https://enduserprivacy.com/registration-manager",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/registration-manager",
+      "redirected": false,
+      "durationMs": 164,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/registration-manager/start",
+      "url": "https://enduserprivacy.com/registration-manager/start",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/registration-manager/start",
+      "redirected": false,
+      "durationMs": 149,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/registration-manager/my-filings",
+      "url": "https://enduserprivacy.com/registration-manager/my-filings",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/registration-manager/my-filings",
+      "redirected": false,
+      "durationMs": 136,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/watchlist",
+      "url": "https://enduserprivacy.com/watchlist",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/watchlist",
+      "redirected": false,
+      "durationMs": 149,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/updates",
+      "url": "https://enduserprivacy.com/updates",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/updates",
+      "redirected": false,
+      "durationMs": 129,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/faq",
+      "url": "https://enduserprivacy.com/faq",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/faq",
+      "redirected": false,
+      "durationMs": 127,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/terms",
+      "url": "https://enduserprivacy.com/terms",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/terms",
+      "redirected": false,
+      "durationMs": 130,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/laws",
+      "url": "https://enduserprivacy.com/laws",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/laws",
+      "redirected": false,
+      "durationMs": 225,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/assessments",
+      "url": "https://enduserprivacy.com/assessments",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/assessments",
+      "redirected": false,
+      "durationMs": 239,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/privacy-policy",
+      "url": "https://enduserprivacy.com/privacy-policy",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/privacy-policy",
+      "redirected": false,
+      "durationMs": 124,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/about",
+      "url": "https://enduserprivacy.com/about",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/about",
+      "redirected": false,
+      "durationMs": 150,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/contact",
+      "url": "https://enduserprivacy.com/contact",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/contact",
+      "redirected": false,
+      "durationMs": 163,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/sample-brief",
+      "url": "https://enduserprivacy.com/sample-brief",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/sample-brief",
+      "redirected": false,
+      "durationMs": 144,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/european-union",
+      "url": "https://enduserprivacy.com/jurisdiction/european-union",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/european-union",
+      "redirected": false,
+      "durationMs": 131,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/austria",
+      "url": "https://enduserprivacy.com/jurisdiction/austria",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/austria",
+      "redirected": false,
+      "durationMs": 123,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/belgium",
+      "url": "https://enduserprivacy.com/jurisdiction/belgium",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/belgium",
+      "redirected": false,
+      "durationMs": 130,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/bulgaria",
+      "url": "https://enduserprivacy.com/jurisdiction/bulgaria",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/bulgaria",
+      "redirected": false,
+      "durationMs": 154,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/croatia",
+      "url": "https://enduserprivacy.com/jurisdiction/croatia",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/croatia",
+      "redirected": false,
+      "durationMs": 126,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/cyprus",
+      "url": "https://enduserprivacy.com/jurisdiction/cyprus",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/cyprus",
+      "redirected": false,
+      "durationMs": 115,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/czech-republic",
+      "url": "https://enduserprivacy.com/jurisdiction/czech-republic",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/czech-republic",
+      "redirected": false,
+      "durationMs": 150,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/denmark",
+      "url": "https://enduserprivacy.com/jurisdiction/denmark",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/denmark",
+      "redirected": false,
+      "durationMs": 118,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    }
+  ],
+  "all": [
+    {
+      "route": "/",
+      "url": "https://enduserprivacy.com/",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/",
+      "redirected": false,
+      "durationMs": 324,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/logo-preview",
+      "url": "https://enduserprivacy.com/logo-preview",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/logo-preview",
+      "redirected": false,
+      "durationMs": 223,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-state-privacy-authorities",
+      "url": "https://enduserprivacy.com/us-state-privacy-authorities",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-state-privacy-authorities",
+      "redirected": false,
+      "durationMs": 235,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/global-privacy-authorities",
+      "url": "https://enduserprivacy.com/global-privacy-authorities",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/global-privacy-authorities",
+      "redirected": false,
+      "durationMs": 278,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/enforcement",
+      "url": "https://enduserprivacy.com/enforcement",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/enforcement",
+      "redirected": false,
+      "durationMs": 318,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/enforcement-tracker",
+      "url": "https://enduserprivacy.com/enforcement-tracker",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/enforcement-tracker",
+      "redirected": false,
+      "durationMs": 240,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/enforcement-intelligence",
+      "url": "https://enduserprivacy.com/enforcement-intelligence",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/enforcement-intelligence",
+      "redirected": false,
+      "durationMs": 270,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-privacy-laws",
+      "url": "https://enduserprivacy.com/us-privacy-laws",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-privacy-laws",
+      "redirected": false,
+      "durationMs": 253,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-state-privacy-laws",
+      "url": "https://enduserprivacy.com/us-state-privacy-laws",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-state-privacy-laws",
+      "redirected": false,
+      "durationMs": 164,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-federal-privacy-law",
+      "url": "https://enduserprivacy.com/us-federal-privacy-law",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-federal-privacy-law",
+      "redirected": false,
+      "durationMs": 140,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/gdpr-enforcement",
+      "url": "https://enduserprivacy.com/gdpr-enforcement",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/gdpr-enforcement",
+      "redirected": false,
+      "durationMs": 140,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ai-privacy-regulations",
+      "url": "https://enduserprivacy.com/ai-privacy-regulations",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ai-privacy-regulations",
+      "redirected": false,
+      "durationMs": 117,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/global-privacy-laws",
+      "url": "https://enduserprivacy.com/global-privacy-laws",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/global-privacy-laws",
+      "redirected": false,
+      "durationMs": 138,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdictions",
+      "url": "https://enduserprivacy.com/jurisdictions",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdictions",
+      "redirected": false,
+      "durationMs": 158,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/glossary",
+      "url": "https://enduserprivacy.com/glossary",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/glossary",
+      "redirected": false,
+      "durationMs": 149,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/calendar",
+      "url": "https://enduserprivacy.com/calendar",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/calendar",
+      "redirected": false,
+      "durationMs": 150,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/timelines",
+      "url": "https://enduserprivacy.com/timelines",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/timelines",
+      "redirected": false,
+      "durationMs": 127,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/compare/us-states",
+      "url": "https://enduserprivacy.com/compare/us-states",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/compare/us-states",
+      "redirected": false,
+      "durationMs": 131,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/legislation-tracker",
+      "url": "https://enduserprivacy.com/legislation-tracker",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/legislation-tracker",
+      "redirected": false,
+      "durationMs": 116,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/tools",
+      "url": "https://enduserprivacy.com/tools",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/tools",
+      "redirected": false,
+      "durationMs": 156,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/start",
+      "url": "https://enduserprivacy.com/start",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/start",
+      "redirected": false,
+      "durationMs": 132,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cookie-consent",
+      "url": "https://enduserprivacy.com/cookie-consent",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cookie-consent",
+      "redirected": false,
+      "durationMs": 172,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/health-data-privacy",
+      "url": "https://enduserprivacy.com/health-data-privacy",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/health-data-privacy",
+      "redirected": false,
+      "durationMs": 136,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/biometric-privacy",
+      "url": "https://enduserprivacy.com/biometric-privacy",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/biometric-privacy",
+      "redirected": false,
+      "durationMs": 167,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/breach-notification",
+      "url": "https://enduserprivacy.com/breach-notification",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/breach-notification",
+      "redirected": false,
+      "durationMs": 131,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cross-border-transfers",
+      "url": "https://enduserprivacy.com/cross-border-transfers",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cross-border-transfers",
+      "redirected": false,
+      "durationMs": 127,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/brief-preferences",
+      "url": "https://enduserprivacy.com/brief-preferences",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/brief-preferences",
+      "redirected": false,
+      "durationMs": 145,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/signup",
+      "url": "https://enduserprivacy.com/signup",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/signup",
+      "redirected": false,
+      "durationMs": 155,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/login",
+      "url": "https://enduserprivacy.com/login",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/login",
+      "redirected": false,
+      "durationMs": 151,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/forgot-password",
+      "url": "https://enduserprivacy.com/forgot-password",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/forgot-password",
+      "redirected": false,
+      "durationMs": 137,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/reset-password",
+      "url": "https://enduserprivacy.com/reset-password",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/reset-password",
+      "redirected": false,
+      "durationMs": 152,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/check-email",
+      "url": "https://enduserprivacy.com/check-email",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/check-email",
+      "redirected": false,
+      "durationMs": 133,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/onboarding-profile",
+      "url": "https://enduserprivacy.com/onboarding-profile",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/onboarding-profile",
+      "redirected": false,
+      "durationMs": 131,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/account",
+      "url": "https://enduserprivacy.com/account",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/account",
+      "redirected": false,
+      "durationMs": 169,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/clients",
+      "url": "https://enduserprivacy.com/clients",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/clients",
+      "redirected": false,
+      "durationMs": 116,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/subscribe",
+      "url": "https://enduserprivacy.com/subscribe",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/subscribe",
+      "redirected": false,
+      "durationMs": 130,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/subscribe/success",
+      "url": "https://enduserprivacy.com/subscribe/success",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/subscribe/success",
+      "redirected": false,
+      "durationMs": 146,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "url": "https://enduserprivacy.com/dashboard",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/dashboard",
+      "redirected": false,
+      "durationMs": 135,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/dashboard/reports",
+      "url": "https://enduserprivacy.com/dashboard/reports",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/dashboard/reports",
+      "redirected": false,
+      "durationMs": 118,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/get-intelligence",
+      "url": "https://enduserprivacy.com/get-intelligence",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/get-intelligence",
+      "redirected": false,
+      "durationMs": 109,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/legitimate-interest-tracker",
+      "url": "https://enduserprivacy.com/legitimate-interest-tracker",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/legitimate-interest-tracker",
+      "redirected": false,
+      "durationMs": 137,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/li-assessment",
+      "url": "https://enduserprivacy.com/li-assessment",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/li-assessment",
+      "redirected": false,
+      "durationMs": 108,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/governance-assessment",
+      "url": "https://enduserprivacy.com/governance-assessment",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/governance-assessment",
+      "redirected": false,
+      "durationMs": 163,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/dpia-framework",
+      "url": "https://enduserprivacy.com/dpia-framework",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/dpia-framework",
+      "redirected": false,
+      "durationMs": 126,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/dpa-generator",
+      "url": "https://enduserprivacy.com/dpa-generator",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/dpa-generator",
+      "redirected": false,
+      "durationMs": 146,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ir-playbook",
+      "url": "https://enduserprivacy.com/ir-playbook",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ir-playbook",
+      "redirected": false,
+      "durationMs": 149,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/biometric-checker",
+      "url": "https://enduserprivacy.com/biometric-checker",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/biometric-checker",
+      "redirected": false,
+      "durationMs": 111,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cppa-scope-checker",
+      "url": "https://enduserprivacy.com/cppa-scope-checker",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cppa-scope-checker",
+      "redirected": false,
+      "durationMs": 138,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cppa-risk-assessment",
+      "url": "https://enduserprivacy.com/cppa-risk-assessment",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cppa-risk-assessment",
+      "redirected": false,
+      "durationMs": 133,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cppa-cybersecurity",
+      "url": "https://enduserprivacy.com/cppa-cybersecurity",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cppa-cybersecurity",
+      "redirected": false,
+      "durationMs": 152,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/cppa-suite/result",
+      "url": "https://enduserprivacy.com/cppa-suite/result",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/cppa-suite/result",
+      "redirected": false,
+      "durationMs": 132,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/horizon",
+      "url": "https://enduserprivacy.com/horizon",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/horizon",
+      "redirected": false,
+      "durationMs": 152,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/notices-ropa",
+      "url": "https://enduserprivacy.com/notices-ropa",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/notices-ropa",
+      "redirected": false,
+      "durationMs": 206,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa",
+      "url": "https://enduserprivacy.com/ropa",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa",
+      "redirected": false,
+      "durationMs": 152,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa/setup",
+      "url": "https://enduserprivacy.com/ropa/setup",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa/setup",
+      "redirected": false,
+      "durationMs": 145,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa/activities",
+      "url": "https://enduserprivacy.com/ropa/activities",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa/activities",
+      "redirected": false,
+      "durationMs": 122,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa/review",
+      "url": "https://enduserprivacy.com/ropa/review",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa/review",
+      "redirected": false,
+      "durationMs": 116,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa/documents",
+      "url": "https://enduserprivacy.com/ropa/documents",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa/documents",
+      "redirected": false,
+      "durationMs": 160,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa-builder",
+      "url": "https://enduserprivacy.com/ropa-builder",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa-builder",
+      "redirected": false,
+      "durationMs": 132,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/rofa",
+      "url": "https://enduserprivacy.com/rofa",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/rofa",
+      "redirected": false,
+      "durationMs": 138,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/ropa-builder/home",
+      "url": "https://enduserprivacy.com/ropa-builder/home",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/ropa-builder/home",
+      "redirected": false,
+      "durationMs": 124,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/article-30",
+      "url": "https://enduserprivacy.com/article-30",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/article-30",
+      "redirected": false,
+      "durationMs": 163,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-notices",
+      "url": "https://enduserprivacy.com/us-notices",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-notices",
+      "redirected": false,
+      "durationMs": 172,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-notices/mode",
+      "url": "https://enduserprivacy.com/us-notices/mode",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-notices/mode",
+      "redirected": false,
+      "durationMs": 175,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-notices/review",
+      "url": "https://enduserprivacy.com/us-notices/review",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-notices/review",
+      "redirected": false,
+      "durationMs": 121,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/us-notice-builder",
+      "url": "https://enduserprivacy.com/us-notice-builder",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/us-notice-builder",
+      "redirected": false,
+      "durationMs": 147,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/eu-notices",
+      "url": "https://enduserprivacy.com/eu-notices",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/eu-notices",
+      "redirected": false,
+      "durationMs": 127,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/eu-notices/mode",
+      "url": "https://enduserprivacy.com/eu-notices/mode",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/eu-notices/mode",
+      "redirected": false,
+      "durationMs": 126,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/eu-notices/review",
+      "url": "https://enduserprivacy.com/eu-notices/review",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/eu-notices/review",
+      "redirected": false,
+      "durationMs": 126,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/eu-notices/documents",
+      "url": "https://enduserprivacy.com/eu-notices/documents",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/eu-notices/documents",
+      "redirected": false,
+      "durationMs": 160,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/eu-global-notice-builder",
+      "url": "https://enduserprivacy.com/eu-global-notice-builder",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/eu-global-notice-builder",
+      "redirected": false,
+      "durationMs": 112,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/registration-manager",
+      "url": "https://enduserprivacy.com/registration-manager",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/registration-manager",
+      "redirected": false,
+      "durationMs": 164,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/registration-manager/start",
+      "url": "https://enduserprivacy.com/registration-manager/start",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/registration-manager/start",
+      "redirected": false,
+      "durationMs": 149,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/registration-manager/my-filings",
+      "url": "https://enduserprivacy.com/registration-manager/my-filings",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/registration-manager/my-filings",
+      "redirected": false,
+      "durationMs": 136,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/watchlist",
+      "url": "https://enduserprivacy.com/watchlist",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/watchlist",
+      "redirected": false,
+      "durationMs": 149,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/updates",
+      "url": "https://enduserprivacy.com/updates",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/updates",
+      "redirected": false,
+      "durationMs": 129,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/faq",
+      "url": "https://enduserprivacy.com/faq",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/faq",
+      "redirected": false,
+      "durationMs": 127,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/terms",
+      "url": "https://enduserprivacy.com/terms",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/terms",
+      "redirected": false,
+      "durationMs": 130,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/laws",
+      "url": "https://enduserprivacy.com/laws",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/laws",
+      "redirected": false,
+      "durationMs": 225,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/assessments",
+      "url": "https://enduserprivacy.com/assessments",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/assessments",
+      "redirected": false,
+      "durationMs": 239,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/privacy-policy",
+      "url": "https://enduserprivacy.com/privacy-policy",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/privacy-policy",
+      "redirected": false,
+      "durationMs": 124,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/about",
+      "url": "https://enduserprivacy.com/about",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/about",
+      "redirected": false,
+      "durationMs": 150,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/contact",
+      "url": "https://enduserprivacy.com/contact",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/contact",
+      "redirected": false,
+      "durationMs": 163,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/sample-brief",
+      "url": "https://enduserprivacy.com/sample-brief",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/sample-brief",
+      "redirected": false,
+      "durationMs": 144,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "*",
+      "url": "https://enduserprivacy.com*",
+      "status": 0,
+      "error": "fetch failed",
+      "durationMs": 3,
+      "issues": [
+        "fetch_failed"
+      ]
+    },
+    {
+      "route": "/jurisdiction/european-union",
+      "url": "https://enduserprivacy.com/jurisdiction/european-union",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/european-union",
+      "redirected": false,
+      "durationMs": 131,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/austria",
+      "url": "https://enduserprivacy.com/jurisdiction/austria",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/austria",
+      "redirected": false,
+      "durationMs": 123,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/belgium",
+      "url": "https://enduserprivacy.com/jurisdiction/belgium",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/belgium",
+      "redirected": false,
+      "durationMs": 130,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/bulgaria",
+      "url": "https://enduserprivacy.com/jurisdiction/bulgaria",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/bulgaria",
+      "redirected": false,
+      "durationMs": 154,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/croatia",
+      "url": "https://enduserprivacy.com/jurisdiction/croatia",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/croatia",
+      "redirected": false,
+      "durationMs": 126,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/cyprus",
+      "url": "https://enduserprivacy.com/jurisdiction/cyprus",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/cyprus",
+      "redirected": false,
+      "durationMs": 115,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/czech-republic",
+      "url": "https://enduserprivacy.com/jurisdiction/czech-republic",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/czech-republic",
+      "redirected": false,
+      "durationMs": 150,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    },
+    {
+      "route": "/jurisdiction/denmark",
+      "url": "https://enduserprivacy.com/jurisdiction/denmark",
+      "status": 200,
+      "finalUrl": "https://enduserprivacy.com/jurisdiction/denmark",
+      "redirected": false,
+      "durationMs": 118,
+      "title": "End User Privacy — Global Privacy Intelligence Platform",
+      "titleLen": 55,
+      "metaDescription": "Privacy regulatory authorities worldwide. Privacy regulatory intelligence for professionals.",
+      "metaDescLen": 92,
+      "canonical": null,
+      "h1Count": 0,
+      "jsonLdBlocks": 1,
+      "issues": [
+        "missing_h1",
+        "missing_canonical"
+      ]
+    }
+  ]
+}
