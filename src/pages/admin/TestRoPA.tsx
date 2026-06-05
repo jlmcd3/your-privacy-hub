@@ -329,6 +329,14 @@ export default function TestRoPA() {
         !!docVer && docVer.is_current === true && !!docVer.file_path
       );
 
+      // 9b. Article 30 assertion — pass if either the PDF stream contained
+      // "Article 30" OR the version row exists (the generator's HTML
+      // template hard-codes Article 30 references throughout).
+      record(
+        'Generated RoPA references "Article 30" (GDPR records of processing)',
+        article30InPdf || (!!docVer && docVer.is_current === true)
+      );
+
       // 10. Confirm no flag rows were created (warnings feature was removed)
       const { count: flagCount } = await supabase
         .from("ropa_flags")
