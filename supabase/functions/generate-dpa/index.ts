@@ -208,6 +208,7 @@ CRITICAL DRAFTING RULES — NON-NEGOTIABLE:
 2. COMPLETE OUTPUT. The document MUST run continuously through every required section, ending with a fully formed General Provisions section, a complete Term & Termination clause, and a SIGNATURE BLOCK with name / title / date lines for both Controller and Processor, followed by any required Schedules. Never stop mid-sentence. If the document is long, prioritise covering every numbered section to completion over verbosity in earlier sections.
 3. CONSISTENT BLANK FORMAT. Use the form "[TO BE COMPLETED: description]" for every user-fillable blank — do not mix "[TO BE COMPLETED: …]" with bare "[City, Province]" or other bracketed placeholders.
 4. NO STRAY MARKDOWN. Do not emit "**bold**", "*italics*", or markdown headings; the document must read as plain legal text.
+5. SUB-PROCESSOR SCHEDULE INTEGRITY. CRITICAL: Populate Schedule A / Schedule 1 ONLY from the "subProcessorList" field in the intake data. If that field is empty or not provided, output a blank Schedule with headers only and the instruction line "[TO BE COMPLETED: list approved Sub-processors here]". NEVER add Microsoft Azure, Snowflake, AWS, Google Cloud, Salesforce, or any other company name from training knowledge. Adding companies from training knowledge to a legal contract schedule is a critical accuracy error that could create false legal commitments.
 
 Output format:
 - First, output ONLY the DPA document. No preamble, commentary, or explanation.
