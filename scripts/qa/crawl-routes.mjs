@@ -24,7 +24,9 @@ const TIMEOUT_MS = 15000;
 // --- 1. Enumerate routes ----------------------------------------------------
 const app = readFileSync(resolve(ROOT, "src/App.tsx"), "utf8");
 const routeMatches = [...app.matchAll(/path="([^"]+)"/g)].map((m) => m[1]);
-const staticRoutes = [...new Set(routeMatches.filter((r) => !r.includes(":")))];
+const staticRoutes = [
+  ...new Set(routeMatches.filter((r) => !r.includes(":") && !r.includes("*"))),
+];
 
 // Admin routes are intentionally excluded from public crawl
 const PUBLIC_ROUTES = staticRoutes.filter((r) => !r.startsWith("/admin"));
