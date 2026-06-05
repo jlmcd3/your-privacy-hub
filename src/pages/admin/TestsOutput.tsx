@@ -757,6 +757,15 @@ export default function TestsOutput() {
                   <details className="group">
                     <summary className="cursor-pointer p-4 flex items-center justify-between gap-3 list-none">
                       <div className="flex items-center gap-3 min-w-0">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(r.id)}
+                          disabled={running}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={() => toggleSelected(r.id)}
+                          className="w-4 h-4 accent-brand-teal cursor-pointer"
+                          aria-label={`Select ${r.label}`}
+                        />
                         <StatusDot status={entry.status} />
                         <div className="min-w-0">
                           <div className="font-semibold text-brand-navy truncate">{r.label}</div>
