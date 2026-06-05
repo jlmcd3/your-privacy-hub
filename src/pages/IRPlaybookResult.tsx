@@ -1,4 +1,4 @@
-// View a previously generated Breach Response Playbook by ID.
+// View a previously generated Incident Response Playbook by ID.
 
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
@@ -41,7 +41,7 @@ export default function IRPlaybookResult() {
 
   return (
     <div className="min-h-screen bg-brand-cloud">
-      <Helmet><title>Your Breach Response Playbook | End User Privacy</title></Helmet>
+      <Helmet><title>Your Incident Response Playbook | End User Privacy</title></Helmet>
       <Navbar />
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <BackLink to="/dashboard/reports" label="Back to My Reports" className="mb-4" />
@@ -69,7 +69,7 @@ export default function IRPlaybookResult() {
                 obligations with qualified legal counsel before taking action.
               </>
             }
-            title="Your Breach Response Playbook"
+            title="Your Incident Response Playbook"
             meta={
               <>
                 Generated {new Date(row.created_at).toLocaleDateString()}
@@ -84,7 +84,7 @@ export default function IRPlaybookResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
-                <DownloadWordButton text={row?.playbook_text || ""} label="Breach Response Playbook" />
+                <DownloadWordButton text={row?.playbook_text || ""} label="Incident Response Playbook" />
                 {row.playbook_text && <CopyButton text={row.playbook_text} />}
               </>
             }

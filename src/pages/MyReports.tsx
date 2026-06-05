@@ -66,7 +66,7 @@ const TOOL_LABEL: Record<string, string> = {
   dpia: "DPIA Framework",
   governance: "Governance Assessment",
   dpa: "Custom DPA",
-  ir: "Breach Response Playbook",
+  ir: "Incident Response Playbook",
   biometric: "Biometric Compliance Check",
   registration: "Registration Order",
   ropa: "RoPA (Article 30)",

@@ -54,7 +54,7 @@ const TOOLS = [
   },
   {
     icon: "🚨",
-    title: "Your Breach Response Playbook",
+    title: "Your Incident Response Playbook",
     description:
       "Your jurisdiction-specific data breach response playbook with hour-by-hour actions, notification timelines, DPA portal links, and notification templates.",
     cta: "View Sample & Purchase",

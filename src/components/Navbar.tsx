@@ -143,7 +143,7 @@ const navItems: NavItem[] = [
         columnBg: "bg-[#F3FAF0]",
         column: 2,
         items: [
-          { icon: "🚨", label: "Breach Response Playbook", href: "/ir-playbook",
+          { icon: "🚨", label: "Incident Response Playbook", href: "/ir-playbook",
             tooltip: "Sequenced incident response plan with regulator notification deadlines. Free within Intel/Pro pool." },
           { icon: "📋", label: "US Privacy Notice Builder", href: "/us-notice-builder",
             tooltip: "State-specific notices: CCPA, Virginia, Colorado, and more. Free within Intel/Pro pool." },

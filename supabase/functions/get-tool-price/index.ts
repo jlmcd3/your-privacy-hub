@@ -184,7 +184,7 @@ const TOOLS: Record<
     classification: "smart",
   },
   ir_playbook: {
-    name: "Breach Response Playbook",
+    name: "Incident Response Playbook",
     standalone_lookup: "ir_standalone_v2",
     subscriber_lookup: "ir_subscriber_v2",
     fallback_standalone_cents: 5900,

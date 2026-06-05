@@ -47,7 +47,7 @@ export default function RecentReportsCard() {
           summary: `${r.intake_data?.controllerName || "Controller"} → ${r.intake_data?.processorName || "Processor"}`,
         })),
         fetchTool("ir_playbooks", user.id, "id, created_at, intake_data", (r: any) => ({
-          id: r.id, tool_label: "Breach Response Playbook", created_at: r.created_at,
+          id: r.id, tool_label: "Incident Response Playbook", created_at: r.created_at,
           view_path: `/ir-playbook/result/${r.id}`,
           summary: `Incident · ${(r.intake_data?.jurisdictions || []).join(", ") || "—"}`,
         })),
