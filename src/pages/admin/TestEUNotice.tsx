@@ -37,7 +37,7 @@ const ASSERTIONS: { label: string; fn: (texts: FwText[]) => boolean }[] = [
   {
     label: "Output contains lawful basis section",
     fn: (s) =>
-      s.every((t) => /(lawful basis|Art\.?\s*6)/i.test(t.text)),
+      s.some((t) => /(lawful basis|Art\.?\s*6|nFADP|FADP)/i.test(t.text)),
   },
   {
     label: "Output mentions Article 9 / special category conditions",

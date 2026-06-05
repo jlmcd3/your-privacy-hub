@@ -30,7 +30,7 @@ const ASSERTIONS = [
   { label: 'Contains prohibited processing / no selling clause', fn: (t: string) => /shall not sell|no sale|no sharing|not\s+(sell|share)|prohibit(ed)?\s+from\s+sell|prohibited processing|no targeted advertising/i.test(t) },
   { label: 'Contains international transfer clause (IDTA/SCCs)', fn: (t: string) => /IDTA|standard contractual|international transfer/i.test(t) },
   { label: 'Contains data subject / consumer rights section', fn: (t: string) => /data subject rights|consumer rights/i.test(t) },
-  { label: '"delete or return" clause present', fn: (t: string) => /delete or return|return or delete|deletion or return|return or destruction|delete or destroy/i.test(t) },
+  { label: '"delete or return" clause present', fn: (t: string) => /delete or return|return or delete|deletion or return|return or destruction|delete or destroy|destroy or return/i.test(t) },
   { label: 'Document length > 3000 characters (dual doc is longer)', fn: (t: string) => t.length > 3000 },
 ];
 

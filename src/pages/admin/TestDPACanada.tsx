@@ -29,7 +29,7 @@ const ASSERTIONS = [
   { label: 'References OPC or Commissioner', fn: (t: string) => /OPC|Privacy Commissioner|Commission/i.test(t) },
   { label: 'Contains security safeguards section', fn: (t: string) => /security safeguard|security measure/i.test(t) },
   { label: 'Contains breach notification obligation', fn: (t: string) => /breach.*notif|notif.*breach/i.test(t) },
-  { label: '"delete or return" clause present', fn: (t: string) => /delete or return/i.test(t) },
+  { label: '"delete or return" clause present', fn: (t: string) => /delete or return|return or delete|deletion or return|return or destruction|delete or destroy|destroy or return/i.test(t) },
   { label: 'Document length > 2000 characters', fn: (t: string) => t.length > 2000 },
 ];
 

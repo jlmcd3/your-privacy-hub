@@ -19,13 +19,13 @@ const MOCK_INTAKE = {
 
 const ASSERTIONS = [
   { label: 'Contains California breach notification requirement', fn: (t: string) => /california/i.test(t) && /30 day|thirty day|oag\.ca\.gov/i.test(t) },
-  { label: 'Contains Texas AG notification requirement', fn: (t: string) => /texas/i.test(t) && /(attorney general|250.*texan|texan.*250)/i.test(t) },
+  { label: 'Contains Texas AG notification requirement', fn: (t: string) => /texas/i.test(t) && /(attorney general|250.*Texas resident|Texas.*250|250.*texan|texan.*250)/i.test(t) },
   { label: 'Contains PIPEDA / OPC notification requirement', fn: (t: string) => /PIPEDA|OPC|Privacy Commissioner/i.test(t) },
   { label: 'Contains Quebec Law 25 / CAI notification', fn: (t: string) => /Law 25|Loi 25|CAI|Commission.*accès/i.test(t) },
   { label: 'Contains processor notification step (ADP)', fn: (t: string) => /processor|service provider|vendor/i.test(t) && /notif/i.test(t) },
   { label: 'Contains individual notification section', fn: (t: string) => /individual notification|notify.*individual|notification.*individual/i.test(t) },
   { label: 'Contains documentation checklist', fn: (t: string) => /documentation.*checklist|checklist.*documentation/i.test(t) },
-  { label: 'Contains 7 numbered sections', fn: (t: string) => /section\s*[67]/i.test(t) },
+  { label: 'Contains 7 numbered sections', fn: (t: string) => (t.match(/(^|\n)\s*(#{1,3}\s*)?(section\s+|##\s*)?[1-7][\.\)\s]/gi) || []).length >= 7 || /section\s*7\b/i.test(t) },
   { label: 'Document length > 3000 characters', fn: (t: string) => t.length > 3000 },
 ];
 

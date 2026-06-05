@@ -81,7 +81,7 @@ const ASSERTIONS: { label: string; fn: (r: any) => boolean }[] = [
     fn: (r) =>
       Array.isArray(r.domains) &&
       r.domains.some((d: any) =>
-        /(Critical Gap|Gap|High)/i.test(d.status ?? "")
+        /(Critical Gap|High)/i.test(d.status ?? "")
       ),
   },
   {
@@ -104,7 +104,7 @@ const ASSERTIONS: { label: string; fn: (r: any) => boolean }[] = [
   {
     label: "Mentions 2027 CPPA audit deadline or upcoming enforcement timeline",
     fn: (r) => {
-      const txt = JSON.stringify(r);
+      const txt = `${r.executive_summary ?? ""}\n${r.enforcement_context ?? ""}`;
       return /2027|December.*2027|Dec.*2027|audit.*deadline|upcoming.*audit|enforcement.*timeline|high.risk.*deadline/i.test(txt);
     },
   },

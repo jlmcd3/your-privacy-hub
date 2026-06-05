@@ -65,7 +65,7 @@ function isStrength(entry: any): boolean {
 const ASSERTIONS: { label: string; fn: (r: any) => boolean }[] = [
   {
     label: "report_data covers all 18 controls",
-    fn: (r) => Array.isArray(r.controls) && r.controls.length >= 16,
+    fn: (r) => Array.isArray(r.controls) && r.controls.length >= 18,
   },
   {
     label: "c5 (inventory), c13 (secure dev), c15 (retention) all flagged as gaps",
