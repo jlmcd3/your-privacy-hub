@@ -63,8 +63,15 @@ for (const route of ROUTES) {
     expect(res!.status(), `status for ${route}`).toBeLessThan(400);
 
     await page.waitForSelector("h1", { state: "attached", timeout: 30_000 });
-    // Allow one frame for late helmet updates
-    await page.waitForTimeout(300);
+    // Wait for react-helmet-async / CanonicalTag to mutate <title> past the
+    // static index.html / preview-shell placeholder.
+    await page
+      .waitForFunction(
+        () => document.title && document.title.length >= 10 && document.title !== "Internal Lovable project",
+        null,
+        { timeout: 15_000 },
+      )
+      .catch(() => {});
 
     // --- SEO basics ---
     const title = await page.title();
