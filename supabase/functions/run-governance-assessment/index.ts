@@ -109,7 +109,9 @@ Health or special category data processed: ${intake.special_category_data ? "Yes
 
 CITATION RULE: In the 'regulatory_basis' field, cite provision numbers only where you are certain they exist (e.g. 'GDPR Article 28', 'CCPA §1798.100'). Do not invent specific subsection letters or paragraph numbers. If uncertain, name the law and the obligation in plain language (e.g. 'CCPA — service provider contract requirement') rather than risk a fabricated citation.
 
-ENFORCEMENT CASE RULE: Do NOT reference specific enforcement case names, fine amounts, or regulator decisions in any domain field. Enforcement precedents are injected only into the synthesis stage. Domain findings must cite statutes only.`;
+ENFORCEMENT CASE RULE: Do NOT reference specific enforcement case names, fine amounts, or regulator decisions in any domain field. Enforcement precedents are injected only into the synthesis stage. Domain findings must cite statutes only.
+
+MONETARY PENALTY RULE: In the synthesis stage, never state a specific monetary fine, penalty, or settlement amount unless that exact figure appears in the ENFORCEMENT PRECEDENTS or ENFORCEMENT CONTEXT block provided in this prompt. Training knowledge of regulatory fines is unreliable — amounts change on appeal and training data may be wrong. If a relevant case exists but its amount is not in the provided block, write "[Regulator] imposed a significant penalty for this type of violation — verify the current figure at the regulator's enforcement register" instead of recalling an amount. Known correct figures (use only if the case is in your enforcement block): ICO Clearview AI (2022) £7,552,800; ICO Interserve (2022) £4,400,000 (NOT £5.03M); ICO Capita Pension Solutions (2024) £6,090,000 (NOT £6.88M); ICO British Airways (2020) £20,000,000.`;
 
     const domainResults: Record<string, any> = {};
 
