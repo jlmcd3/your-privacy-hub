@@ -70,5 +70,75 @@ Exception rule: if the user selects **"No formal process in place"**, all other 
 
 UI: use checkboxes (or a multi-select component) instead of radio buttons. Keep the existing validation toast pattern if required.
 
-## 9. Scope guardrail
-All of the above are frontend-only changes unless Option B (server drafts) from #3 is chosen.
+## 9. Q7–Q10 — Multi-select, expanded answers, and exclusion guards
+Apply the same review pattern from Q6 to **Q7, Q8, Q9, and Q10** in `/cppa-risk-assessment`.
+
+For each question:
+- Determine whether the current options are too narrow for real-world CPPA/CCPA compliance programs.
+- Add additional answer choices where practical use cases are missing.
+- Decide whether the question should support more than one selection.
+- If an option such as **"Not yet implemented"**, **"No formal process"**, or equivalent is selected, automatically de-select all other choices.
+- Conversely, if the user selects any substantive implementation option, automatically clear the negative/no-process option.
+- Preserve clean downstream intake data so the report logic can distinguish between mature, partial, informal, outsourced, and not-yet-started controls.
+
+## 10. Full question-by-question rigor review
+Before implementation, review **every question in the CPPA Risk Assessment flow**, not only Q3–Q10.
+
+For each question, document and decide:
+- Whether the answer list should be expanded for real-world use cases.
+- Whether single-select or multi-select is legally/compliance-operationally appropriate.
+- Whether any answer should be mutually exclusive.
+- Whether **Other** free-text is needed.
+- Whether the response needs to feed any scoring, branching, or report-generation logic differently.
+
+Output should be a review matrix before coding: question number, current control type, proposed control type, new options, mutually exclusive options, validation rules, and downstream data impact.
+
+## 11. Pricing consistency and CPPA Risk Assessment monetization decision
+**Reported discrepancy:** the final assessment page states **$79**, while checkout shows **$89**.
+
+Before implementation:
+- Audit every CPPA Risk Assessment price reference in the app, checkout setup, pricing config, backend/payment function inputs, dashboard copy, and success/confirmation pages.
+- Confirm the correct price by user type/subscription state.
+- Ensure all stated prices match checkout exactly.
+- Resolve whether the CPPA Risk Assessment should be offered **free** as a lead-in to encourage purchases of other CPPA products.
+- If free, document the gating/funnel logic and remove paid-checkout friction for the risk assessment while preserving promotion of paid CPPA products.
+- If paid, document the price source of truth and ensure it cannot drift between UI and checkout.
+
+## 12. CPPA Risk Assessment logic documentation
+Create a reviewable logic document for the assessment before or alongside implementation.
+
+It should document:
+- Intake questions and normalized fields.
+- Validation and branching rules.
+- Single-select vs multi-select decisions.
+- Mutually exclusive answer rules.
+- Scoring/risk-rating assumptions.
+- How answers map to report domains.
+- How enforcement context is used.
+- How citations and tooltips support each question.
+- Any assumptions that need legal/product review before being locked into the build.
+
+## 13. Post-purchase/document-generation status UX
+**Reported issue:** after purchase, the user is stuck on a static **"PURCHASE CONFIRMED"** page and cannot tell whether the assessment report is being produced.
+
+Improve the planned flow so the user sees active progress after payment:
+- Poll for assessment/payment/report status after checkout confirmation.
+- Show a clear production state such as **payment confirmed → report queued → report generating → report ready**.
+- Add a polished loading indicator, e.g. Apple-style spinning lines or Google-style spinning colors.
+- Consider a rolling CTA area while the report is generating that promotes related CPPA products, explaining why they are needed.
+- Once ready, provide a direct CTA to open the generated report instead of requiring manual navigation back to the workspace.
+- If generation takes too long or fails, show a clear fallback message and link to the workspace/reports area.
+
+## 14. Paid report missing from dashboard/workspace bug
+**Reported bug:** after paying for a CPPA Risk Assessment, no CPPA risk assessment report appears in the dashboard/workspace.
+
+Investigate and fix during CA Build:
+- Confirm whether the paid assessment row is created before checkout.
+- Confirm payment confirmation updates the correct assessment/session record.
+- Confirm the report-generation function runs and marks the assessment complete.
+- Confirm the completed report has the correct `user_id`/ownership fields used by the dashboard.
+- Confirm `/dashboard/reports` queries include CPPA Risk Assessment reports and display their status while pending/processing/complete.
+- Add defensive handling for orphaned paid records or failed generation so a paid user is never left without a visible report/status.
+
+## 15. Scope guardrail
+Most UX/question changes are frontend-only unless Option B (server drafts) from #3 is chosen. Pricing/payment, post-purchase status, and missing-dashboard-report fixes may require checkout/backend/report query changes after the audit confirms the root cause.
