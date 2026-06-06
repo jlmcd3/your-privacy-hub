@@ -857,17 +857,21 @@ Deno.serve(async (req) => {
         showJurisdictionChip: false,
       });
       generatedAt = record.created_at || new Date().toISOString();
-    } else if (tool_type === "cppa_cybersecurity" || tool_type === "cppa_risk") {
+    } else if (tool_type === "cppa_risk") {
+      if (!record.report_data) {
+        return new Response(JSON.stringify({ error: "Report data not found or not yet complete" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      html = buildCPPARiskReportHTML(record.report_data, record);
+      generatedAt = record.created_at || new Date().toISOString();
+    } else if (tool_type === "cppa_cybersecurity") {
       const intake = record.intake_data || {};
-      const title = tool_type === "cppa_cybersecurity"
-        ? "CPPA Cybersecurity Audit"
-        : "CPPA Risk Assessment";
       const parts = [record.document_a_text, record.document_b_text].filter(Boolean);
       const text = parts.length
         ? parts.join("\n\n──────────────────────────────\n\n")
         : summaryToText(record.report_data);
       html = buildTextReportHTML({
-        title,
+        title: "CPPA Cybersecurity Audit",
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
           (intake.organizationName ? ` · ${intake.organizationName}` : "") + " · California (CPPA)",
         text,
