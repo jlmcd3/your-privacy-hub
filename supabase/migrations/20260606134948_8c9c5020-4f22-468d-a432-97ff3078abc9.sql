@@ -1,0 +1,1 @@
+ALTER TABLE public.cppa_assessments ADD COLUMN IF NOT EXISTS pdf_url text;
