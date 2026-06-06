@@ -72,6 +72,8 @@ const TOOL_LABEL: Record<string, string> = {
   ropa: "RoPA (Article 30)",
   us_notice: "US Privacy Notice",
   eu_notice: "EU Privacy Notice",
+  cppa_risk: "CPPA Risk Assessment",
+  cppa_cyber: "CPPA Cybersecurity Audit",
 };
 
 function statusVariant(s: string): "default" | "secondary" | "outline" {
