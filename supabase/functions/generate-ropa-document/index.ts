@@ -886,23 +886,48 @@ Deno.serve(async (req: Request) => {
   // Prefer the org name captured on the session (the company this RoPA
   // documents) over the workspace name. Falls back to the workspace name for
   // legacy sessions where org_name was never set.
+  // Sector override: prefer ropa_client_profiles.sector_override over clients.sector
+  // so that the sector captured during RoPA intake wins over the workspace-creation value.
   const effectiveClient = {
     ...(client ?? {}),
     name: (session as { org_name?: string | null }).org_name?.trim()
       || (client?.name ?? ""),
+    sector: ((profile as any)?.sector_override
+      ?? (session as any)?.org_sector
+      ?? (client as any)?.sector
+      ?? null),
   };
+
+  const jurisdictionCodes = (jurisdictionRows ?? []).map((j: any) => j.jurisdiction_code);
+
+  // Pre-generation validation: refuse to render a document with blank
+  // jurisdictions or author — forces the user to provide the data rather than
+  // silently emitting '—' placeholders.
+  if (!jurisdictionCodes.length) {
+    return jsonResponse(
+      { error: "At least one jurisdiction must be selected before generating a RoPA document." },
+      400,
+    );
+  }
+  if (!settings.authorName || settings.authorName === "—" || settings.authorName.trim() === "") {
+    return jsonResponse(
+      { error: "Author name is required. Please complete the document settings step." },
+      400,
+    );
+  }
 
   const data: AssembledData = {
     session,
     client: effectiveClient,
     profile,
-    jurisdictions: (jurisdictionRows ?? []).map((j: any) => j.jurisdiction_code),
+    jurisdictions: jurisdictionCodes,
     activities: activities ?? [],
     answersByActivity,
     flags: flags ?? [],
     refreshNotes,
     settings,
   };
+
 
 
   // ── Generate, upload, record ──
