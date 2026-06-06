@@ -192,9 +192,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const prompt = `You are a senior data protection incident response specialist. Generate a complete, actionable incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
-
-INCIDENT DETAILS
+    // ── Split into TWO sequential Sonnet calls to stay inside the edge runtime
+    // wall-clock budget. Call A produces Sections 1–4; Call B is seeded with
+    // Call A's output as an assistant message (Anthropic's natural
+    // continuation pattern) and produces Sections 5–7 + ANNOTATIONS. Both
+    // calls share the same SYSTEM prompt and intake block, so quality and
+    // jurisdictional consistency are preserved.
+    const INTAKE_BLOCK = `INCIDENT DETAILS
 Discovery: ${body.discoveryDateTime}
 Cause: ${body.cause}
 Data types: ${body.dataTypes.join(", ")}
@@ -209,12 +213,16 @@ ${relevantPortals || "(No portal URLs available for the selected jurisdictions �
 
 ENFORCEMENT CONTEXT — BREACH NOTIFICATION FAILURES
 The following cases show where organisations were penalised for breach notification failures. Use this to calibrate your timeline and content recommendations.
-CITATION RULE: When you reference any of these in section text, use the human-readable CITATION shown (e.g. "ICO (2023)" or "CNIL (2022)") — NEVER the bracketed [E#] code. The [E#] tag is only for your internal lookup. Reserve the exact id values for the ===ANNOTATIONS=== JSON block below.
+CITATION RULE: When you reference any of these in section text, use the human-readable CITATION shown (e.g. "ICO (2023)" or "CNIL (2022)") — NEVER the bracketed [E#] code. The [E#] tag is only for your internal lookup. Reserve the exact id values for the ===ANNOTATIONS=== JSON block at the very end of the playbook.
 ${formatEnforcementContext(enforcement_context)}
 
-CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding.
+CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding.`;
 
-Generate the following seven sections. Each section MUST begin with a markdown H2 heading using the EXACT format shown (the line "## Section N: TITLE"), so downstream tooling can locate them. Do not omit any section, even if you think it is not applicable — instead, state explicitly within the section why it does not apply.
+    const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate the FIRST HALF (Sections 1–4) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+
+${INTAKE_BLOCK}
+
+Generate ONLY the following four sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown (the line "## Section N: TITLE"), so downstream tooling can locate them. Do not omit any section, even if you think it is not applicable — instead, state explicitly within the section why it does not apply. Do NOT output Sections 5, 6, 7, or the ===ANNOTATIONS=== block in this response — those will be generated in a follow-up call.
 
 ## Section 1: IMMEDIATE ACTIONS (0–2 HOURS)
 Numbered, specific steps. Name the role responsible for each. Be direct.
@@ -228,6 +236,10 @@ For each jurisdiction: the deadline (hours from discovery), the notification por
 ## Section 4: INDIVIDUAL NOTIFICATION DECISION TREE
 Step-by-step logic for determining whether individuals must be notified, with jurisdiction-specific thresholds. If required: content elements, delivery method, and deadline. Include the verbatim phrase "individual notification" in the section body.
 
+Output ONLY Sections 1–4. No preamble, no commentary, no Sections 5–7, no annotations.`;
+
+    const PROMPT_PART_B = `Now generate the SECOND HALF of the same playbook — Sections 5, 6, and 7, followed by the ===ANNOTATIONS=== block. The incident facts, jurisdictions, DPA portals, and enforcement context from your previous turn still apply — stay consistent with the deadlines, thresholds, and citations you used in Sections 1–4. Each section MUST begin with a markdown H2 heading using the EXACT format shown.
+
 ## Section 5: NOTIFICATION TEMPLATES
 (a) A DPA initial notification letter template for the primary jurisdiction.
 (b) An individual notification template if individual notification is required.
@@ -239,9 +251,9 @@ A documentation checklist of records to create and maintain under GDPR Article 3
 ## Section 7: POST-INCIDENT ACTIONS
 Remediation steps, root cause analysis requirements, and follow-up obligations.
 
-ANNOTATIONS: After the seven sections, add a line:
+ANNOTATIONS: After Section 7, add a line:
 ===ANNOTATIONS===
-followed by a JSON array of enforcement citations that directly supported a timeline deadline, threshold test, or notification requirement in sections 1-7. Use the exact id values from the enforcement context above (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT above — never from training knowledge. Each annotation object has this shape:
+followed by a JSON array of enforcement citations that directly supported a timeline deadline, threshold test, or notification requirement anywhere in the full 7-section playbook (including Sections 1–4 you produced earlier). Use the exact id values from the enforcement context (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT — never from training knowledge. Each annotation object has this shape:
 {
   "enforcement_action_id": "exact id string",
   "regulator": "regulator name",
@@ -253,20 +265,9 @@ followed by a JSON array of enforcement citations that directly supported a time
 }
 If no cases informed the playbook, output an empty array [].
 
-Output ONLY the playbook (then the ===ANNOTATIONS=== block). No preamble or commentary.`;
+Output ONLY Sections 5–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT re-output Sections 1–4.`;
 
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 12000,
-        stream: true,
-        system: `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
+    const SYSTEM_PROMPT = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
 
 US STATE BREACH NOTIFICATION — KEY TIMELINES (for Section 3):
 - California: notify individuals "in the most expedient time possible and without unreasonable delay" (Cal. Civ. Code §1798.82). There is NO fixed statutory deadline — 30 days is California AG guidance only, not statute. Do NOT write "≤30 days" as if it were a legal deadline. Present it as a planning benchmark: "target notification within 30 days but the legal standard is most expedient time possible." Notify CA AG if 500+ CA residents affected.
@@ -290,7 +291,7 @@ CANADA BREACH NOTIFICATION — KEY TIMELINES (for Section 3):
 
 Note: US state breach notification laws apply to ALL businesses with data on state residents, regardless of whether the business has a physical presence in that state. A breach affecting California residents triggers California law even if the company is Texas-based.
 
-Your task: generate a complete, immediately usable incident response playbook tailored to the incident facts and jurisdictions provided.
+Your task: generate a complete, immediately usable incident response playbook tailored to the incident facts and jurisdictions provided. The playbook is generated in TWO sequential turns: Sections 1–4 first, then Sections 5–7 + annotations. Stay perfectly consistent between turns — the deadlines, thresholds, and case citations you use in the second turn must match what you established in the first turn.
 
 QUALITY STANDARDS:
 1. Every notification deadline must state the specific hour count from discovery, the legal basis, and the regulator or affected-individual recipient.
@@ -301,46 +302,79 @@ QUALITY STANDARDS:
 
 CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name, section number, subsection letter) must be verifiable against the actual statute. Known hallucination risks to guard against: (1) PIPEDA does not use decimal sub-principle numbering — cite as "Schedule 1, Principle N (Name)" only. (2) The Breach of Security Safeguards Regulations under PIPEDA are SOR/2018-64 — no other SOR number is correct. (3) US state privacy laws do not have a universal 72-hour breach notification deadline — that is a GDPR Article 33 concept only. Apply it only where GDPR explicitly applies. (4) Quebec Law 25 uses "without delay" not "72 hours" — present 72 hours as a planning benchmark only. (5) The California breach notification standard is "most expedient time possible" under Cal. Civ. Code §1798.82 — not 30 days or 72 hours. If you are uncertain of a specific section number, write the section in descriptive terms and flag it: "[statutory reference to be confirmed with counsel]" rather than inventing a section number.
 
-Output ONLY the playbook. No preamble or commentary.`,
-        messages: [{ role: "user", content: prompt }],
-      }),
-      signal: AbortSignal.timeout(300000),
-    });
+Output ONLY the playbook content requested in each turn. No preamble or commentary.`;
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      console.error("Claude error:", errText);
+    async function callClaude(messages: any[], maxTokens: number): Promise<string> {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": ANTHROPIC_API_KEY!,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: maxTokens,
+          stream: true,
+          system: SYSTEM_PROMPT,
+          messages,
+        }),
+        signal: AbortSignal.timeout(180000),
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error("Claude error:", errText);
+        throw new Error("AI generation failed");
+      }
+      let out = "";
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          try {
+            const evt = JSON.parse(payload);
+            if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+              out += evt.delta.text ?? "";
+            }
+          } catch { /* keepalive */ }
+        }
+      }
+      return out;
+    }
+
+    let partA = "";
+    let partB = "";
+    try {
+      partA = await callClaude(
+        [{ role: "user", content: PROMPT_PART_A }],
+        7000,
+      );
+      partB = await callClaude(
+        [
+          { role: "user", content: PROMPT_PART_A },
+          { role: "assistant", content: partA },
+          { role: "user", content: PROMPT_PART_B },
+        ],
+        7000,
+      );
+    } catch (e: any) {
+      console.error("Claude split-call failure:", e?.message || e);
       return new Response(JSON.stringify({ error: "AI generation failed" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Consume SSE stream and concatenate text deltas. Streaming keeps the
-    // connection warm for long generations that previously hit the 105s
-    // AbortSignal cap when using non-streaming mode.
-    let fullText = "";
-    const reader = aiRes.body!.getReader();
-    const decoder = new TextDecoder();
-    let buf = "";
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const lines = buf.split("\n");
-      buf = lines.pop() ?? "";
-      for (const line of lines) {
-        if (!line.startsWith("data:")) continue;
-        const payload = line.slice(5).trim();
-        if (!payload || payload === "[DONE]") continue;
-        try {
-          const evt = JSON.parse(payload);
-          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
-            fullText += evt.delta.text ?? "";
-          }
-        } catch { /* ignore keepalives / non-JSON */ }
-      }
-    }
+    const fullText = `${partA.trim()}\n\n${partB.trim()}`;
     let playbook_text = fullText
       .replace(/^#{1,6}\s+/gm, '')
       .replace(/\*\*\*/g, '')
