@@ -26,7 +26,11 @@ type ToolKey =
   | "ropa"
   | "us_notice"
   | "eu_notice"
-  | "registration";
+  | "registration"
+  | "cppa_risk"
+  | "cppa_cyber"
+  | "cppa_scope";
+
 
 type ToolDef = {
   key: ToolKey;
@@ -41,7 +45,11 @@ type ToolDef = {
   statusCol?: string;
   /** Status values that count as "completed". */
   completedStatuses?: string[];
+  /** Optional extra equality filter (e.g. module column for shared tables). */
+  filterCol?: string;
+  filterVal?: string;
 };
+
 
 const TOOLS: ToolDef[] = [
   {
@@ -140,7 +148,39 @@ const TOOLS: ToolDef[] = [
     statusCol: "fulfillment_status",
     completedStatuses: ["complete", "fulfilled", "paid"],
   },
+  {
+    key: "cppa_risk",
+    label: "CPPA Risk Assessment",
+    blurb: "California-specific risk assessment aligned to CPPA regulations.",
+    startPath: "/cppa-risk-assessment",
+    viewPath: "/dashboard/reports",
+    table: "cppa_assessments",
+    statusCol: "status",
+    completedStatuses: ["complete"],
+    filterCol: "module",
+    filterVal: "risk_assessment",
+  },
+  {
+    key: "cppa_cyber",
+    label: "CPPA Cybersecurity Audit",
+    blurb: "Structured cybersecurity audit aligned to CPPA regulations.",
+    startPath: "/cppa-cybersecurity",
+    viewPath: "/dashboard/reports",
+    table: "cppa_assessments",
+    statusCol: "status",
+    completedStatuses: ["complete"],
+    filterCol: "module",
+    filterVal: "cybersecurity",
+  },
+  {
+    key: "cppa_scope",
+    label: "CPPA Scope Checker",
+    blurb: "Quickly check whether your business is in scope of CPPA rules.",
+    startPath: "/cppa-scope-checker",
+    table: null,
+  },
 ];
+
 
 type Counts = { completed: number; inProgress: number; latestId?: string };
 
@@ -159,13 +199,17 @@ export default function StartNew() {
       setLoading(true);
       const queries = TOOLS.map((t) => {
         if (!t.table) return Promise.resolve({ data: [] as any[] });
-        return supabase
+        let q = supabase
           .from(t.table as any)
           .select(`id, ${t.statusCol || "status"}, created_at`)
           .eq("user_id", user.id)
-          .eq("client_id", client.id)
-          .order("created_at", { ascending: false });
+          .eq("client_id", client.id);
+        if (t.filterCol && t.filterVal) {
+          q = q.eq(t.filterCol, t.filterVal);
+        }
+        return q.order("created_at", { ascending: false });
       });
+
       const results = await Promise.all(queries);
       if (cancelled) return;
 
