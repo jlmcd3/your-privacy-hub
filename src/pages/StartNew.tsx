@@ -244,8 +244,11 @@ export default function StartNew() {
   const workspaceLabel = isPersonalActive ? "your personal workspace" : clientName;
 
   const orderedTools = useMemo(() => {
-    // Surface tools with existing work first.
+    const cppaKeys = new Set<ToolKey>(["cppa_risk", "cppa_cyber", "cppa_scope"]);
     return [...TOOLS].sort((a, b) => {
+      const aCppa = cppaKeys.has(a.key) ? 1 : 0;
+      const bCppa = cppaKeys.has(b.key) ? 1 : 0;
+      if (aCppa !== bCppa) return bCppa - aCppa; // CPPA first
       const ac = counts[a.key];
       const bc = counts[b.key];
       const aHas = (ac?.completed || 0) + (ac?.inProgress || 0);
