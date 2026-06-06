@@ -263,7 +263,7 @@ export default function GDPREnforcement() {
               toolName: "Legitimate Interest Assessment",
               toolDescription:
                 "Generate a documented three-part LIA aligned to EDPB guidance and ICO expectations.",
-              href: "/lia-assessment",
+              href: "/li-assessment",
             },
           },
           {
