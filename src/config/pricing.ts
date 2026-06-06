@@ -522,10 +522,10 @@ export const PRICING_REGISTRY = {
     lookupKey: "cppa_suite_standalone",
     productKey: "cppa_suite",
     productName: "CPPA Full Audit Suite — Modules 1 & 2 (Standalone)",
-    description: "Complete CPPA audit readiness bundle.",
-    amountCents: 29900,
+    description: "Complete CPPA audit readiness bundle. Save $19 vs buying modules separately.",
+    amountCents: 16900,
     currency: "usd",
-    displayPrice: "$299",
+    displayPrice: "$169",
     displaySuffix: " flat",
     active: true,
   },
@@ -547,9 +547,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_cybersecurity",
     productName: "CPPA Cybersecurity Readiness — Module 2 (Subscriber)",
     description: "Subscriber per-use price for the CPPA Cybersecurity Readiness assessment.",
-    amountCents: 9900,
+    amountCents: 8900,
     currency: "usd",
-    displayPrice: "$99",
+    displayPrice: "$89",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -832,7 +832,7 @@ export const PRICING = {
     governance:   { name: 'Privacy Program Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
     cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 89,  display: '$89',  stripePriceId: 'cppa_risk_standalone' },
     cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 99,  display: '$99',  stripePriceId: 'cppa_cyber_standalone' },
-    cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 299, display: '$299', stripePriceId: 'cppa_suite_standalone' },
+    cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 169, display: '$169', stripePriceId: 'cppa_suite_standalone' },
 
     // ── Legacy camelCase aliases (kept so existing imports keep compiling) ──
     cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,   display: 'Free', stripePriceId: null },
@@ -841,7 +841,7 @@ export const PRICING = {
     euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 89,  display: '$89',  stripePriceId: 'cppa_risk_standalone' },
     cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 99,  display: '$99',  stripePriceId: 'cppa_cyber_standalone' },
-    cppaSuite:    { name: 'CPPA Full Audit Suite',              dollars: 299, display: '$299', stripePriceId: 'cppa_suite_standalone' },
+    cppaSuite:    { name: 'CPPA Full Audit Suite',              dollars: 169, display: '$169', stripePriceId: 'cppa_suite_standalone' },
   },
 } as const;
 
