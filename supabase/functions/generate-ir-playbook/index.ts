@@ -192,12 +192,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── Split into TWO sequential Sonnet calls to stay inside the edge runtime
-    // wall-clock budget. Call A produces Sections 1–4; Call B is seeded with
-    // Call A's output as an assistant message (Anthropic's natural
-    // continuation pattern) and produces Sections 5–7 + ANNOTATIONS. Both
-    // calls share the same SYSTEM prompt and intake block, so quality and
-    // jurisdictional consistency are preserved.
+    // ── Split into TWO PARALLEL Sonnet calls to stay inside the edge runtime
+    // wall-clock budget. The prior sequential split still exceeded the platform's
+    // ~150s request ceiling because the two generations were additive. Both calls
+    // now share the same system prompt and intake block, plus explicit consistency
+    // rules, so quality is preserved without making Call B wait for Call A.
     const INTAKE_BLOCK = `INCIDENT DETAILS
 Discovery: ${body.discoveryDateTime}
 Cause: ${body.cause}
@@ -238,7 +237,11 @@ Step-by-step logic for determining whether individuals must be notified, with ju
 
 Output ONLY Sections 1–4. No preamble, no commentary, no Sections 5–7, no annotations.`;
 
-    const PROMPT_PART_B = `Now generate the SECOND HALF of the same playbook — Sections 5, 6, and 7, followed by the ===ANNOTATIONS=== block. The incident facts, jurisdictions, DPA portals, and enforcement context from your previous turn still apply — stay consistent with the deadlines, thresholds, and citations you used in Sections 1–4. Each section MUST begin with a markdown H2 heading using the EXACT format shown.
+    const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate the SECOND HALF (Sections 5–7) of the same complete, actionable 7-section incident response playbook for a data breach, followed by the ===ANNOTATIONS=== block. The playbook must be immediately usable by a privacy or legal team during a live incident.
+
+${INTAKE_BLOCK}
+
+Generate ONLY the following three sections plus annotations now. Each section MUST begin with a markdown H2 heading using the EXACT format shown. Maintain the same deadlines, threshold tests, regulator names, portal URLs, and statutory caution rules that Sections 1–4 will use from the same incident facts and system instructions. Do not refer to "the previous section" or "as above" because this half is generated independently and later merged with Sections 1–4.
 
 ## Section 5: NOTIFICATION TEMPLATES
 (a) A DPA initial notification letter template for the primary jurisdiction.
@@ -253,7 +256,7 @@ Remediation steps, root cause analysis requirements, and follow-up obligations.
 
 ANNOTATIONS: After Section 7, add a line:
 ===ANNOTATIONS===
-followed by a JSON array of enforcement citations that directly supported a timeline deadline, threshold test, or notification requirement anywhere in the full 7-section playbook (including Sections 1–4 you produced earlier). Use the exact id values from the enforcement context (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT — never from training knowledge. Each annotation object has this shape:
+followed by a JSON array of enforcement citations that directly supported a timeline deadline, threshold test, or notification requirement anywhere in the intended full 7-section playbook. Use the exact id values from the enforcement context (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT — never from training knowledge. Each annotation object has this shape:
 {
   "enforcement_action_id": "exact id string",
   "regulator": "regulator name",
@@ -354,20 +357,14 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
     let partA = "";
     let partB = "";
     try {
-      partA = await callClaude(
-        [{ role: "user", content: PROMPT_PART_A }],
-        7000,
-      );
-      partB = await callClaude(
-        [
-          { role: "user", content: PROMPT_PART_A },
-          { role: "assistant", content: partA },
-          { role: "user", content: PROMPT_PART_B },
-        ],
-        7000,
-      );
+      console.log("[IR Playbook] starting parallel generation halves");
+      [partA, partB] = await Promise.all([
+        callClaude([{ role: "user", content: PROMPT_PART_A }], 6000),
+        callClaude([{ role: "user", content: PROMPT_PART_B }], 6000),
+      ]);
+      console.log("[IR Playbook] generation halves complete", { partAChars: partA.length, partBChars: partB.length });
     } catch (e: any) {
-      console.error("Claude split-call failure:", e?.message || e);
+      console.error("Claude parallel split-call failure:", e?.message || e);
       return new Response(JSON.stringify({ error: "AI generation failed" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
