@@ -311,8 +311,10 @@ export default function MyReports() {
           status: r.report_data ? (r.status || "complete") : (r.status || "pending"),
           summary: summaryParts.join(" · ") || (isCyber ? "CPPA Cybersecurity Audit" : "CPPA Risk Assessment"),
           view_path: `${basePath}/${r.id}`,
+          pdf_url: r.pdf_url,
           ...clientMeta(r.client_id),
         });
+
       });
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
