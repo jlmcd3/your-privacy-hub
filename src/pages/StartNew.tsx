@@ -26,7 +26,11 @@ type ToolKey =
   | "ropa"
   | "us_notice"
   | "eu_notice"
-  | "registration";
+  | "registration"
+  | "cppa_risk"
+  | "cppa_cyber"
+  | "cppa_scope";
+
 
 type ToolDef = {
   key: ToolKey;
