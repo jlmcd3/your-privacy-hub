@@ -730,7 +730,7 @@ Deno.serve(async (req) => {
     // of calling PDFShift again. Re-sign the stored object and return.
     // Skip cache when `force=true` or when an email send is requested
     // (so a fresh attachment can be delivered).
-    if (!force && !user_email) {
+    if (!force && !user_email && tool_type !== "cppa_risk") {
       try {
         const folder = `reports/${table}/${assessment_id}`;
         const { data: existing } = await supabase.storage
