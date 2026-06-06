@@ -148,7 +148,39 @@ const TOOLS: ToolDef[] = [
     statusCol: "fulfillment_status",
     completedStatuses: ["complete", "fulfilled", "paid"],
   },
+  {
+    key: "cppa_risk",
+    label: "CPPA Risk Assessment",
+    blurb: "California-specific risk assessment aligned to CPPA regulations.",
+    startPath: "/cppa-risk-assessment",
+    viewPath: "/dashboard/reports",
+    table: "cppa_assessments",
+    statusCol: "status",
+    completedStatuses: ["complete"],
+    filterCol: "module",
+    filterVal: "risk_assessment",
+  },
+  {
+    key: "cppa_cyber",
+    label: "CPPA Cybersecurity Audit",
+    blurb: "Structured cybersecurity audit aligned to CPPA regulations.",
+    startPath: "/cppa-cybersecurity",
+    viewPath: "/dashboard/reports",
+    table: "cppa_assessments",
+    statusCol: "status",
+    completedStatuses: ["complete"],
+    filterCol: "module",
+    filterVal: "cybersecurity",
+  },
+  {
+    key: "cppa_scope",
+    label: "CPPA Scope Checker",
+    blurb: "Quickly check whether your business is in scope of CPPA rules.",
+    startPath: "/cppa-scope-checker",
+    table: null,
+  },
 ];
+
 
 type Counts = { completed: number; inProgress: number; latestId?: string };
 
