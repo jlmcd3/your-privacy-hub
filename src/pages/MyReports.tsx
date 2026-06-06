@@ -194,7 +194,7 @@ export default function MyReports() {
           .select("id, status, created_at, version_number, client_id")
           .order("created_at", { ascending: false }),
         supabase.from("cppa_assessments")
-          .select("id, status, created_at, module, intake_data, report_data, client_id")
+          .select("id, status, created_at, module, intake_data, report_data, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
 
@@ -311,8 +311,10 @@ export default function MyReports() {
           status: r.report_data ? (r.status || "complete") : (r.status || "pending"),
           summary: summaryParts.join(" · ") || (isCyber ? "CPPA Cybersecurity Audit" : "CPPA Risk Assessment"),
           view_path: `${basePath}/${r.id}`,
+          pdf_url: r.pdf_url,
           ...clientMeta(r.client_id),
         });
+
       });
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());

@@ -646,6 +646,7 @@ const TABLES_WITH_PDF_URL = new Set([
   "ir_playbooks",
   "dpa_documents",
   "registration_documents",
+  "cppa_assessments",
 ]);
 
 function makeAttachmentName(toolType: string, generatedAt: string): string {
@@ -730,7 +731,7 @@ Deno.serve(async (req) => {
     // of calling PDFShift again. Re-sign the stored object and return.
     // Skip cache when `force=true` or when an email send is requested
     // (so a fresh attachment can be delivered).
-    if (!force && !user_email && tool_type !== "cppa_risk") {
+    if (!force && !user_email) {
       try {
         const folder = `reports/${table}/${assessment_id}`;
         const { data: existing } = await supabase.storage
