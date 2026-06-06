@@ -176,7 +176,7 @@ export default function CrossBorderTransfersPage() {
               toolName: "Legitimate Interest Assessment",
               toolDescription:
                 "Run the three-part LIA — necessity, balancing, safeguards — to support reliance on the Art. 49(1)(g) compelling legitimate interests derogation.",
-              href: "/lia-tool",
+              href: "/li-assessment",
             },
             toolCtaPlacement: "bottom",
           },

@@ -54,16 +54,14 @@ const THEMES: { id: string; label: string; description: string; slugs: string[] 
 
 // "See in practice" — slug → tool route + label
 const TOOL_LINKS: Record<string, { href: string; label: string }> = {
-  "legitimate-interest": { href: "/lia-tool", label: "Run a Legitimate Interest Assessment" },
+  "legitimate-interest": { href: "/li-assessment", label: "Run a Legitimate Interest Assessment" },
   dpia: { href: "/dpia-framework", label: "Open the DPIA Builder" },
   dpa: { href: "/dpa-generator", label: "Generate a Data Processing Agreement" },
   ropa: { href: "/ropa-builder", label: "Build your Record of Processing" },
   consent: { href: "/cookie-consent", label: "Configure a consent banner" },
   "data-breach-notification": { href: "/breach-notification", label: "Breach notification workflow" },
-  dsar: { href: "/dsar-handler", label: "Open the DSAR handler" },
-  "privacy-by-design": { href: "/governance", label: "See Governance framework" },
+  "privacy-by-design": { href: "/governance-assessment", label: "See Governance framework" },
   "standard-contractual-clauses": { href: "/dpa-generator", label: "Add SCCs via DPA Generator" },
-  "data-transfers": { href: "/transfer-impact-assessment", label: "Run a Transfer Impact Assessment" },
   profiling: { href: "/cppa-risk-assessment", label: "CPPA ADMT Risk Assessment" },
   "automated-decision-making": { href: "/cppa-risk-assessment", label: "CPPA ADMT Risk Assessment" },
 };

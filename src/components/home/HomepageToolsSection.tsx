@@ -75,7 +75,7 @@ const DOCUMENTS: Product[] = [
   {
     title: "Registration Documents",
     blurb: "DPO appointments, RoPA templates, EU AI Act registrations, and Article 27 letters — ready for filing.",
-    href: "/registration-documents",
+    href: "/registration-manager",
   },
 ];
 

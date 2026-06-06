@@ -35,7 +35,6 @@ export function ResearchPageHeader({
       ? breadcrumbs
       : [
           { label: "Home", href: "/" },
-          { label: "Research", href: "/research" },
           { label: eyebrow },
         ];
 

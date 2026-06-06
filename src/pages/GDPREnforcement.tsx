@@ -112,7 +112,7 @@ function ComparisonTable() {
           {row.dimension === "Lawful bases" && (
             <div className="px-4 pb-4">
               <Link
-                to="/lia-assessment"
+                to="/li-assessment"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent no-underline hover:underline"
               >
                 Run a Legitimate Interest Assessment →
@@ -263,7 +263,7 @@ export default function GDPREnforcement() {
               toolName: "Legitimate Interest Assessment",
               toolDescription:
                 "Generate a documented three-part LIA aligned to EDPB guidance and ICO expectations.",
-              href: "/lia-assessment",
+              href: "/li-assessment",
             },
           },
           {

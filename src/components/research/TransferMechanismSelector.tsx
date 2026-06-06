@@ -75,7 +75,7 @@ function mechanismsFor(from: FromKey, to: ToKey): Mechanism[] {
       {
         name: "Article 49 derogations",
         why: "Narrow, non-systematic transfers only — explicit consent, contract necessity, or compelling legitimate interests.",
-        tool: { label: "Run a Legitimate Interest Assessment", href: "/lia-tool" },
+        tool: { label: "Run a Legitimate Interest Assessment", href: "/li-assessment" },
       },
     ];
   }
