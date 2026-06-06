@@ -194,7 +194,7 @@ export default function MyReports() {
           .select("id, status, created_at, version_number, client_id")
           .order("created_at", { ascending: false }),
         supabase.from("cppa_assessments")
-          .select("id, status, created_at, module, intake_data, report_data, client_id")
+          .select("id, status, created_at, module, intake_data, report_data, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
 
