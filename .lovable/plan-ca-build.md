@@ -142,3 +142,19 @@ Investigate and fix during CA Build:
 
 ## 15. Scope guardrail
 Most UX/question changes are frontend-only unless Option B (server drafts) from #3 is chosen. Pricing/payment, post-purchase status, and missing-dashboard-report fixes may require checkout/backend/report query changes after the audit confirms the root cause.
+
+## 16. Enforcement action detail page readability (cross-cutting, not CPPA-specific)
+**Reported issue:** the CPPA Risk Assessment cites enforcement actions (e.g., FTC v. Kochava) with a **"View case"** link that navigates to `/enforcement-intelligence/:id`. The destination page is hard to read and review: the violation summary is a single wall of text, there is no at-a-glance fact box, sections are ordered conclusion-before-narrative, the reading measure is too wide, and the basic-RPC fallback for older actions leaves the scaffolding looking empty.
+
+See **`/mnt/documents/enforcement-action-detail-page.md`** for the full breakdown of how the page is generated (data sources, structure, fallback behavior) and the prioritized list of recommended improvements.
+
+Build scope (CA Build phase — quick wins only):
+- Add an "At a glance" fact box (regulator, jurisdiction, statute, date, fine, precedent rating, status, case ID, source).
+- Reorder sections to: at-a-glance → what happened → why it matters → how to avoid it → tools → related cases.
+- Render `violation` / `raw_text` as real paragraphs (split on double newlines, auto-list numbered paras), constrained to `max-w-prose`.
+- Add a sticky in-page TOC/anchor nav (chip row on mobile) with copy-link affordances.
+- Promote the source link into the at-a-glance box.
+- Polish the basic-RPC fallback so older actions don't look broken.
+- Use semantic severity colors for breach / biometric / civil-litigation badges.
+
+Deferred to a follow-up phase (tracked, not in CA Build): procedural timeline, structured statute-by-statute table, "what this means for you" panel, citations sidebar, PDF export, server-side structured enrichment of long-form fields, versioned snapshots.
