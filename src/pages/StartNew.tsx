@@ -45,7 +45,11 @@ type ToolDef = {
   statusCol?: string;
   /** Status values that count as "completed". */
   completedStatuses?: string[];
+  /** Optional extra equality filter (e.g. module column for shared tables). */
+  filterCol?: string;
+  filterVal?: string;
 };
+
 
 const TOOLS: ToolDef[] = [
   {
