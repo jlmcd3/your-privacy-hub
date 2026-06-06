@@ -199,13 +199,17 @@ export default function StartNew() {
       setLoading(true);
       const queries = TOOLS.map((t) => {
         if (!t.table) return Promise.resolve({ data: [] as any[] });
-        return supabase
+        let q = supabase
           .from(t.table as any)
           .select(`id, ${t.statusCol || "status"}, created_at`)
           .eq("user_id", user.id)
-          .eq("client_id", client.id)
-          .order("created_at", { ascending: false });
+          .eq("client_id", client.id);
+        if (t.filterCol && t.filterVal) {
+          q = q.eq(t.filterCol, t.filterVal);
+        }
+        return q.order("created_at", { ascending: false });
       });
+
       const results = await Promise.all(queries);
       if (cancelled) return;
 
