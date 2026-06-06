@@ -158,3 +158,18 @@ Build scope (CA Build phase — quick wins only):
 - Use semantic severity colors for breach / biometric / civil-litigation badges.
 
 Deferred to a follow-up phase (tracked, not in CA Build): procedural timeline, structured statute-by-statute table, "what this means for you" panel, citations sidebar, PDF export, server-side structured enrichment of long-form fields, versioned snapshots.
+
+## 17. Enforcement fine currency bug (data + display)
+**Reported issue:** `/enforcement-intelligence/30d7994d-10cb-44c5-a22d-b454f5d97ad5` is a U.S. FTC matter (FTC v. Kochava) but the page renders the fine as **€920,000**.
+
+**Confirmed root causes:**
+- **Data layer:** the row stores `fine_eur_equivalent = 920000.00` with `fine_amount = NULL` and `fine_eur = NULL`. The enrichment pipeline populated the EUR-equivalent column for a US action without first capturing the original USD amount, so the native-currency value is lost. A scan shows **203 U.S. rows**, 6 Australian rows, and 1 Romanian row in the same state (EUR-equivalent set, native `fine_amount` null).
+- **Display layer:** `src/pages/EnforcementActionDetail.tsx` formats the fine unconditionally with `formatEur(fine_eur_equivalent ?? fine_eur)` using a hard-coded `Intl.NumberFormat("en-EU", { currency: "EUR" })`. There is no branch on jurisdiction or source currency, so any populated value renders with a € sign.
+- **Possible accuracy issue:** the FTC's Kochava resolution was primarily a conduct ban / data-deletion order, not a fixed monetary penalty. The 920,000 figure should be re-validated against the FTC press release before being shown anywhere.
+
+**Build scope:**
+- Frontend (immediate fix): render the fine in the **native currency for the jurisdiction** (USD for US federal + state AG actions, GBP for ICO, AUD for OAIC, EUR for EU DPAs, etc.), and show the EUR equivalent only as a secondary "≈ €X" line when both are present. Apply the same fix everywhere a fine is rendered: `EnforcementActionDetail.tsx`, `EnforcementPrecedents.tsx`, `EnforcementTracker.tsx`, dashboard rails, and any CPPA/Risk report cards that cite a fine.
+- Add a `fine_currency` column to `enforcement_actions` (text, ISO 4217) so the source currency is explicit instead of inferred from jurisdiction.
+- Backfill: for the 210 affected rows, re-run enrichment to recover `fine_amount` + `fine_currency` from `raw_text` / `source_url`, and verify `fine_eur_equivalent` against a published FX rate for `decision_date`.
+- Re-verify the Kochava row specifically against the FTC press release; if the FTC order did not impose a monetary penalty, clear the fine fields and surface a "No monetary penalty — conduct order" badge instead.
+- Add a primary-source verification check to the existing Track 3 verifier so any populated `fine_*` field must match a verbatim substring of the primary source; rows that fail get flagged in the admin verification dashboard instead of being displayed with a fabricated number.
