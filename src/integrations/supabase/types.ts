@@ -5174,6 +5174,24 @@ export type Database = {
           schedule: string
         }[]
       }
+      get_cron_jobs_with_last_run: {
+        Args: never
+        Returns: {
+          active: boolean
+          command_preview: string
+          failures_7d: number
+          jobid: number
+          jobname: string
+          last_duration_ms: number
+          last_error: string
+          last_fetched: number
+          last_inserted: number
+          last_run_at: string
+          last_skipped: number
+          last_status: string
+          schedule: string
+        }[]
+      }
       get_enforcement_action_basic: {
         Args: { _id: string }
         Returns: {
