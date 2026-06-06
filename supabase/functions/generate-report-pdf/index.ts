@@ -646,6 +646,7 @@ const TABLES_WITH_PDF_URL = new Set([
   "ir_playbooks",
   "dpa_documents",
   "registration_documents",
+  "cppa_assessments",
 ]);
 
 function makeAttachmentName(toolType: string, generatedAt: string): string {
