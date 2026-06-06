@@ -44,6 +44,8 @@ const TOOL_TABLE: Partial<Record<string, string>> = {
   registration: "registration_orders",
   us_notice: "us_notice_sessions",
   eu_notice: "eu_notice_sessions",
+  cppa_risk: "cppa_assessments",
+  cppa_cyber: "cppa_assessments",
 };
 
 type ReportRow = {
@@ -72,6 +74,8 @@ const TOOL_LABEL: Record<string, string> = {
   ropa: "RoPA (Article 30)",
   us_notice: "US Privacy Notice",
   eu_notice: "EU Privacy Notice",
+  cppa_risk: "CPPA Risk Assessment",
+  cppa_cyber: "CPPA Cybersecurity Audit",
 };
 
 function statusVariant(s: string): "default" | "secondary" | "outline" {
@@ -161,7 +165,7 @@ export default function MyReports() {
 
       // Reports tab aggregates every tool output and in-progress session for
       // the user across all workspaces. Registration orders live under Filings.
-      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice] = await Promise.all([
+      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice, cppa] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -189,6 +193,9 @@ export default function MyReports() {
         supabase.from("eu_notice_sessions")
           .select("id, status, created_at, version_number, client_id")
           .order("created_at", { ascending: false }),
+        supabase.from("cppa_assessments")
+          .select("id, status, created_at, module, intake_data, report_data, client_id")
+          .eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
 
 
@@ -291,7 +298,22 @@ export default function MyReports() {
         });
       });
 
-
+      (cppa.data || []).forEach((r: any) => {
+        const isCyber = r.module === "cybersecurity";
+        const tool = isCyber ? "cppa_cyber" : "cppa_risk";
+        const basePath = isCyber ? "/cppa-cybersecurity/result" : "/cppa-risk-assessment/result";
+        const sector = r.intake_data?.q3_sector || r.intake_data?.industry_sector || r.intake_data?.profile?.sector;
+        const revenue = r.intake_data?.q1_revenue || r.intake_data?.profile?.revenue;
+        const summaryParts = [sector, revenue].filter(Boolean);
+        all.push({
+          id: r.id, tool, tool_label: TOOL_LABEL[tool],
+          created_at: r.created_at,
+          status: r.report_data ? (r.status || "complete") : (r.status || "pending"),
+          summary: summaryParts.join(" · ") || (isCyber ? "CPPA Cybersecurity Audit" : "CPPA Risk Assessment"),
+          view_path: `${basePath}/${r.id}`,
+          ...clientMeta(r.client_id),
+        });
+      });
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
