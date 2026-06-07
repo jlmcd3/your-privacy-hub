@@ -27,6 +27,20 @@ const statusColor = (s: string) => {
   if (x === "compliant") return "bg-green-100 text-green-800";
   return "bg-muted text-foreground";
 };
+const confidenceColor = (c?: string) => {
+  const x = (c || "").toLowerCase();
+  if (x === "high") return "bg-green-100 text-green-800";
+  if (x === "medium") return "bg-amber-100 text-amber-800";
+  if (x === "low") return "bg-red-100 text-red-800";
+  return "bg-muted text-foreground";
+};
+const ledgerColor = (c?: string) => {
+  const x = (c || "").toLowerCase();
+  if (x === "supported") return "bg-green-100 text-green-800";
+  if (x === "partially supported" || x === "overstated") return "bg-amber-100 text-amber-800";
+  if (x === "unsupported" || x === "not-in-corpus" || x === "contradicted-by-authority") return "bg-red-100 text-red-800";
+  return "bg-muted text-foreground";
+};
 
 export default function CPPARiskAssessmentResult() {
   const { id } = useParams();
