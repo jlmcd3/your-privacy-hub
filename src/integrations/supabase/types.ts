@@ -441,6 +441,197 @@ export type Database = {
           },
         ]
       }
+      cppa_authorities: {
+        Row: {
+          authority_type: string
+          authority_weight: number
+          binding: boolean
+          citation: string
+          created_at: string
+          defines_terms: string[]
+          effective_date: string | null
+          full_text: string
+          id: string
+          official_url: string | null
+          plain_summary: string | null
+          search_vector: unknown
+          source: string
+          status: string
+          supersedes_id: string | null
+          title: string
+          topics: string[]
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        Insert: {
+          authority_type: string
+          authority_weight?: number
+          binding?: boolean
+          citation: string
+          created_at?: string
+          defines_terms?: string[]
+          effective_date?: string | null
+          full_text: string
+          id?: string
+          official_url?: string | null
+          plain_summary?: string | null
+          search_vector?: unknown
+          source: string
+          status?: string
+          supersedes_id?: string | null
+          title: string
+          topics?: string[]
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number
+        }
+        Update: {
+          authority_type?: string
+          authority_weight?: number
+          binding?: boolean
+          citation?: string
+          created_at?: string
+          defines_terms?: string[]
+          effective_date?: string | null
+          full_text?: string
+          id?: string
+          official_url?: string | null
+          plain_summary?: string | null
+          search_vector?: unknown
+          source?: string
+          status?: string
+          supersedes_id?: string | null
+          title?: string
+          topics?: string[]
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cppa_authorities_supersedes_id_fkey"
+            columns: ["supersedes_id"]
+            isOneToOne: false
+            referencedRelation: "cppa_authorities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cppa_corpus_settings: {
+        Row: {
+          corpus_marked_complete: boolean
+          id: number
+          updated_at: string
+          verified_only_mode: boolean
+        }
+        Insert: {
+          corpus_marked_complete?: boolean
+          id?: number
+          updated_at?: string
+          verified_only_mode?: boolean
+        }
+        Update: {
+          corpus_marked_complete?: boolean
+          id?: number
+          updated_at?: string
+          verified_only_mode?: boolean
+        }
+        Relationships: []
+      }
+      cppa_deadlines: {
+        Row: {
+          compliance_deadline: string | null
+          created_at: string
+          effective_date: string | null
+          id: string
+          notes: string | null
+          obligation: string
+          primary_authority_citation: string
+          revenue_tier: string | null
+          status: string
+          supporting_citations: string[] | null
+          topics: string[]
+          trigger_condition: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          compliance_deadline?: string | null
+          created_at?: string
+          effective_date?: string | null
+          id?: string
+          notes?: string | null
+          obligation: string
+          primary_authority_citation: string
+          revenue_tier?: string | null
+          status?: string
+          supporting_citations?: string[] | null
+          topics?: string[]
+          trigger_condition: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          compliance_deadline?: string | null
+          created_at?: string
+          effective_date?: string | null
+          id?: string
+          notes?: string | null
+          obligation?: string
+          primary_authority_citation?: string
+          revenue_tier?: string | null
+          status?: string
+          supporting_citations?: string[] | null
+          topics?: string[]
+          trigger_condition?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
+      cppa_ingestion_log: {
+        Row: {
+          authorities_added: number | null
+          authorities_updated: number | null
+          change_detected: boolean | null
+          citation: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          run_type: string
+          source_url: string | null
+        }
+        Insert: {
+          authorities_added?: number | null
+          authorities_updated?: number | null
+          change_detected?: boolean | null
+          citation?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          run_type: string
+          source_url?: string | null
+        }
+        Update: {
+          authorities_added?: number | null
+          authorities_updated?: number | null
+          change_detected?: boolean | null
+          citation?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          run_type?: string
+          source_url?: string | null
+        }
+        Relationships: []
+      }
       cppa_scope_checks: {
         Row: {
           answers: Json
@@ -468,6 +659,45 @@ export type Database = {
           obligation_map?: Json | null
           session_id?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      cppa_source_registry: {
+        Row: {
+          active: boolean
+          created_at: string
+          extraction_selector: string | null
+          id: string
+          last_changed: string | null
+          last_checked: string | null
+          last_normalised_text: string | null
+          source_name: string
+          source_type: string
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          extraction_selector?: string | null
+          id?: string
+          last_changed?: string | null
+          last_checked?: string | null
+          last_normalised_text?: string | null
+          source_name: string
+          source_type: string
+          url: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          extraction_selector?: string | null
+          id?: string
+          last_changed?: string | null
+          last_checked?: string | null
+          last_normalised_text?: string | null
+          source_name?: string
+          source_type?: string
+          url?: string
         }
         Relationships: []
       }
@@ -5162,6 +5392,23 @@ export type Database = {
           _session_id: string
         }
         Returns: Json
+      }
+      cppa_supersede_and_insert: {
+        Args: {
+          p_authority_type: string
+          p_authority_weight: number
+          p_binding: boolean
+          p_citation: string
+          p_defines_terms: string[]
+          p_effective_date: string
+          p_full_text: string
+          p_official_url: string
+          p_plain_summary: string
+          p_source: string
+          p_title: string
+          p_topics: string[]
+        }
+        Returns: string
       }
       fire_backfill_ai_summaries_async: {
         Args: { p_batch?: number }
