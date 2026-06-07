@@ -187,6 +187,19 @@ Deno.serve(async (req) => {
         return json({ settings: data });
       }
 
+      case "fetch_url_text": {
+        const target = String(body?.url ?? "").trim();
+        if (!/^https?:\/\//i.test(target)) return json({ error: "invalid url" }, 400);
+        // Jina Reader returns clean readable text from any URL.
+        const r = await fetch(`https://r.jina.ai/${target}`, {
+          headers: { "X-Return-Format": "text" },
+          signal: AbortSignal.timeout(60_000),
+        });
+        if (!r.ok) return json({ error: `fetch ${r.status}` }, 502);
+        const text = await r.text();
+        return json({ text: text.slice(0, 200_000) });
+      }
+
       default:
         return json({ error: "unknown action" }, 400);
     }
