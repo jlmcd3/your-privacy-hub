@@ -156,6 +156,7 @@ import CorpusExtractionAdmin from "./pages/admin/CorpusExtractionAdmin";
 import VerificationScanAdmin from "./pages/admin/VerificationScanAdmin";
 import PrimarySourceFetcher from "./pages/admin/PrimarySourceFetcher";
 import CPPACorpusAdmin from "./pages/admin/CPPACorpusAdmin";
+import CPPAEvalHarness from "./pages/admin/CPPAEvalHarness";
 
 const queryClient = new QueryClient();
 
