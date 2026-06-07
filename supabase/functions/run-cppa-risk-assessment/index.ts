@@ -174,9 +174,11 @@ function buildDeadlinesBlock(deadlines: any[]): string {
   ).join("\n");
 }
 function buildValidationAuthBlock(authorities: any[]): string {
-  return authorities.map((a) =>
-    `${a.citation} — ${a.title}\nTEXT: ${a.full_text ?? a.plain_summary ?? ""}`,
-  ).join("\n\n");
+  // Cap each authority text to keep the validator prompt within token budget
+  return authorities.map((a) => {
+    const txt = (a.full_text ?? a.plain_summary ?? "").slice(0, 6000);
+    return `${a.citation} — ${a.title}\nTEXT: ${txt}`;
+  }).join("\n\n");
 }
 function buildValidationDeadlineBlock(deadlines: any[]): string {
   if (!deadlines?.length) return "(none)";
