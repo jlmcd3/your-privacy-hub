@@ -189,3 +189,6 @@ verify_jwt = false
 [functions.cppa-retrieve-context]
 verify_jwt = false
 
+[functions.cppa-check-source-updates]
+verify_jwt = false
+
