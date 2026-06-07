@@ -39,10 +39,10 @@ export default function SearchFirstHero() {
                 </p>
               </a>
 
-              {/* Card 2 — Intelligence Brief (Premium, teal accent) */}
+              {/* Card 2 — Intelligence Brief (Premium, slate-teal) */}
               <a
                 href="#brief"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-accent hover:bg-accent-light border border-accent hover:border-accent-light transition-all duration-200"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-slate-teal hover:bg-brand-slate-teal/80 border border-brand-slate-teal hover:border-brand-slate-teal/80 transition-all duration-200"
               >
                 <p className="text-eyebrow text-white/80 mb-1.5">
                   Intelligence Report
@@ -55,10 +55,10 @@ export default function SearchFirstHero() {
                 </p>
               </a>
 
-              {/* Card 3 — Compliance Tools (Premium, slate-teal) */}
+              {/* Card 3 — Compliance Tools (Premium, midpoint teal) */}
               <a
                 href="#tools"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-slate-teal hover:bg-brand-slate-teal/80 border border-brand-slate-teal hover:border-brand-slate-teal/80 transition-all duration-200"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-[hsl(182,55%,38%)] hover:bg-[hsl(182,55%,38%)]/80 border border-[hsl(182,55%,38%)] hover:border-[hsl(182,55%,38%)]/80 transition-all duration-200"
               >
                 <p className="text-eyebrow text-white/80 mb-1.5">
                   Compliance Tools
