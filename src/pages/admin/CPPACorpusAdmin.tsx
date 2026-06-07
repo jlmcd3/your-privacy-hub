@@ -477,3 +477,128 @@ function LogTab() {
     </div>
   );
 }
+
+function IngestForm({ onIngested }: { onIngested: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [citation, setCitation] = useState("");
+  const [authorityType, setAuthorityType] = useState("statute");
+  const [source, setSource] = useState("CCPA");
+  const [officialUrl, setOfficialUrl] = useState("");
+  const [effectiveDate, setEffectiveDate] = useState("");
+  const [rawText, setRawText] = useState("");
+  const [force, setForce] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [fetching, setFetching] = useState(false);
+
+  const fetchFromUrl = async () => {
+    if (!officialUrl) { toast.error("Enter an official URL first"); return; }
+    setFetching(true);
+    try {
+      const r = await callAdmin("fetch_url_text", { body: { url: officialUrl } });
+      setRawText(r.text ?? "");
+      toast.success(`Fetched ${(r.text ?? "").length} chars — review before submitting`);
+    } catch (e: any) { toast.error(e.message); }
+    finally { setFetching(false); }
+  };
+
+  const submit = async () => {
+    if (!citation.trim() || rawText.trim().length < 40) {
+      toast.error("Citation and at least 40 chars of text required");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("cppa-ingest-authorities", {
+        body: {
+          citation: citation.trim(),
+          authority_type: authorityType,
+          source,
+          official_url: officialUrl || null,
+          effective_date: effectiveDate || null,
+          raw_text: rawText,
+          force,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      if ((data as any)?.skipped) {
+        toast.info(`Skipped: ${(data as any).reason}`);
+      } else {
+        toast.success(`Ingested ${citation} (${(data as any)?.mode ?? "insert"})`);
+        setCitation(""); setRawText(""); setEffectiveDate(""); setForce(false);
+        onIngested();
+      }
+    } catch (e: any) { toast.error(e.message); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="border rounded">
+      <button
+        type="button"
+        className="w-full flex justify-between items-center p-3 hover:bg-muted/30 text-left"
+        onClick={() => setOpen(o => !o)}
+      >
+        <span className="font-medium">+ Ingest authority (paste or fetch)</span>
+        <span>{open ? "▾" : "▸"}</span>
+      </button>
+      {open && (
+        <div className="p-4 border-t space-y-3 bg-muted/10">
+          <div className="grid md:grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs">Citation *</Label>
+              <Input value={citation} onChange={(e) => setCitation(e.target.value)}
+                placeholder="Cal. Civ. Code § 1798.100" />
+            </div>
+            <div>
+              <Label className="text-xs">Authority type *</Label>
+              <select className="block w-full border rounded px-2 py-1 bg-background h-9"
+                value={authorityType} onChange={(e) => setAuthorityType(e.target.value)}>
+                <option value="statute">statute</option>
+                <option value="regulation">regulation</option>
+                <option value="guidance">guidance</option>
+              </select>
+            </div>
+            <div>
+              <Label className="text-xs">Source *</Label>
+              <select className="block w-full border rounded px-2 py-1 bg-background h-9"
+                value={source} onChange={(e) => setSource(e.target.value)}>
+                <option value="CCPA">CCPA</option>
+                <option value="CPPA_REGS">CPPA_REGS</option>
+                <option value="CPPA_GUIDANCE">CPPA_GUIDANCE</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <Label className="text-xs">Official URL</Label>
+              <div className="flex gap-2">
+                <Input value={officialUrl} onChange={(e) => setOfficialUrl(e.target.value)}
+                  placeholder="https://leginfo.legislature.ca.gov/..." />
+                <Button variant="outline" type="button" onClick={fetchFromUrl} disabled={fetching}>
+                  {fetching ? "Fetching…" : "Fetch text"}
+                </Button>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs">Effective date</Label>
+              <Input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Raw text (verbatim) *</Label>
+            <Textarea value={rawText} onChange={(e) => setRawText(e.target.value)} rows={12}
+              placeholder="Paste the official text of this single section…" />
+            <div className="text-xs text-muted-foreground mt-1">{rawText.length.toLocaleString()} chars</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch id="force" checked={force} onCheckedChange={setForce} />
+            <Label htmlFor="force" className="text-xs">Force supersede if a current row already exists</Label>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={submit} disabled={busy}>{busy ? "Ingesting…" : "Ingest"}</Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
