@@ -466,6 +466,16 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/cppa-corpus"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <CPPACorpusAdmin />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
 
 
             <Route
