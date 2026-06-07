@@ -117,6 +117,14 @@ export default function CPPAEvalHarness() {
         pass: t6.some((c) => c.includes("1798.82")),
         detail: `top: ${t6.join(", ") || "(none)"}`,
       });
+
+      r = await retrieve({ topics: ["consumer-rights", "right-to-opt-out"] });
+      const t7 = top(r.authorities ?? []);
+      results.push({
+        name: "consumer-rights + right-to-opt-out → § 1798.100 or § 1798.120 in top 3",
+        pass: t7.some((c) => c.includes("1798.100") || c.includes("1798.120")),
+        detail: `top: ${t7.join(", ") || "(none)"}`,
+      });
     } catch (e: any) {
       results.push({ name: "retrieval call", pass: false, detail: e.message });
     }
