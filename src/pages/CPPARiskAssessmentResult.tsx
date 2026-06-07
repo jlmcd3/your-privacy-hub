@@ -218,6 +218,43 @@ export default function CPPARiskAssessmentResult() {
               </section>
             )}
 
+            {Array.isArray(report?.citation_ledger) && report.citation_ledger.length > 0 && (
+              <section className="bg-card border rounded-lg p-6">
+                <h2 className="mb-3">Citation Ledger</h2>
+                {report?.validation_summary && (
+                  <p className="text-sm text-muted-foreground mb-3 italic">{report.validation_summary}</p>
+                )}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-left bg-muted/40">
+                      <tr>
+                        <th className="p-2">Statement</th>
+                        <th className="p-2">Citation</th>
+                        <th className="p-2">Classification</th>
+                        <th className="p-2">Corrected</th>
+                        <th className="p-2">Note</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.citation_ledger.map((e: any, i: number) => (
+                        <tr key={i} className="border-t align-top">
+                          <td className="p-2">{e.statement}</td>
+                          <td className="p-2 font-mono text-xs">{e.citation}</td>
+                          <td className="p-2">
+                            <span className={`px-2 py-0.5 text-xs rounded ${ledgerColor(e.classification)}`}>
+                              {e.classification}
+                            </span>
+                          </td>
+                          <td className="p-2 font-mono text-xs">{e.corrected_citation ?? "—"}</td>
+                          <td className="p-2 text-xs text-muted-foreground">{e.note}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
+
             <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
               ⚠️ This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.
             </section>
