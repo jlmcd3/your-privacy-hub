@@ -164,6 +164,14 @@ export default function CPPARiskAssessmentResult() {
                           <span>{d.domain}</span>
                           {d.score != null && <span className="text-xs text-muted-foreground">{d.score}/100</span>}
                           {d.status && <span className={`px-2 py-0.5 text-xs rounded ${statusColor(d.status)}`}>{d.status}</span>}
+                          {d.confidence_level && (
+                            <span className={`px-2 py-0.5 text-xs rounded ${confidenceColor(d.confidence_level)}`}>
+                              Confidence: {d.confidence_level}
+                            </span>
+                          )}
+                          {d.attorney_review_needed && (
+                            <span className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800">Attorney review</span>
+                          )}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-2">
