@@ -78,7 +78,8 @@ function deriveTopics(intake: any): string[] {
   return Array.from(topics);
 }
 
-async function callClaude(model: string, system: string, user: string, maxTokens: number): Promise<string> {
+async function callClaude(model: string, system: string, user: string, maxTokens: number, label = "claude"): Promise<string> {
+  const t0 = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -90,13 +91,16 @@ async function callClaude(model: string, system: string, user: string, maxTokens
       model, max_tokens: maxTokens, system,
       messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(300_000),
+    signal: AbortSignal.timeout(180_000),
   });
+  const elapsed = Date.now() - t0;
   if (!res.ok) {
     const t = await res.text();
+    console.error(`[${label}] ${model} HTTP ${res.status} in ${elapsed}ms: ${t.slice(0, 300)}`);
     throw new Error(`Anthropic ${res.status}: ${t.slice(0, 300)}`);
   }
   const d = await res.json();
+  console.log(`[${label}] ${model} ok in ${elapsed}ms, output ~${d.usage?.output_tokens ?? "?"} tokens`);
   return d.content?.[0]?.text || "";
 }
 
@@ -108,15 +112,17 @@ function tryParseJson(text: string): any | null {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
-async function generateOrRetry(model: string, system: string, user: string, maxTokens: number) {
-  let text = await callClaude(model, system, user, maxTokens);
+async function generateOrRetry(model: string, system: string, user: string, maxTokens: number, label = "claude") {
+  let text = await callClaude(model, system, user, maxTokens, label);
   let parsed = tryParseJson(text);
   if (!parsed) {
-    text = await callClaude(model, system, user, maxTokens);
+    console.warn(`[${label}] first parse failed, retrying once`);
+    text = await callClaude(model, system, user, maxTokens, label + "-retry");
     parsed = tryParseJson(text);
   }
   return { parsed, rawText: text };
 }
+
 
 const GENERATION_SYSTEM =
 `You are a senior California privacy compliance analyst. You produce a structured CPPA/CCPA risk assessment. You are NOT a lawyer and you give no legal advice; you map the organisation's intake answers to compliance gaps and ground every legal statement in the authorities provided to you.
@@ -279,26 +285,14 @@ function flagContradiction(report: any, citation: string, note: string, statemen
   }
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-
-  let assessment_id: string | undefined;
+// Background pipeline — wrapped so we can fire-and-forget via EdgeRuntime.waitUntil.
+// Opus validation alone can take 60-120s, plus generation. The HTTP edge has a
+// 150s idle ceiling, so we return 202 immediately and let the client poll the row.
+async function runPipeline(assessment_id: string) {
   try {
-    const body = await req.json();
-    assessment_id = body?.assessment_id;
-    if (!assessment_id) {
-      return new Response(JSON.stringify({ error: "assessment_id required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const { data: row } = await supabase
       .from("cppa_assessments").select("*").eq("id", assessment_id).single();
-    if (!row) {
-      return new Response(JSON.stringify({ error: "Not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!row) return;
 
     await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
 
@@ -311,10 +305,9 @@ Deno.serve(async (req) => {
       await supabase.from("cppa_assessments")
         .update({ status: "error", report_data: { error: e.message } })
         .eq("id", assessment_id);
-      return new Response(JSON.stringify({ error: e.message }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return;
     }
+
 
     // STAGE 1 — Retrieve + enforcement context IN PARALLEL (P2: reduce wall-clock)
     const sector = intake.q3_sector ?? intake.industry_sector ?? intake.sector;
@@ -377,7 +370,9 @@ Domains to assess (one object each): Consumer Rights Infrastructure; Privacy Not
 
 For any domain with no retrieved authority on point, set regulatory_basis to the attorney-review phrase above and attorney_review_needed=true rather than inventing a citation.`;
 
-    const gen = await generateOrRetry("claude-sonnet-4-6", GENERATION_SYSTEM, genUser, 8000);
+    const tGen = Date.now();
+    const gen = await generateOrRetry("claude-sonnet-4-6", GENERATION_SYSTEM, genUser, 8000, "generate");
+    console.log(`[pipeline] generate total ${Date.now() - tGen}ms`);
     if (!gen.parsed) {
       await supabase.from("cppa_assessments").update({
         status: "error",
@@ -405,7 +400,12 @@ ${buildValidationDeadlineBlock(deadlines)}
 Produce the citation_ledger, requires_attorney_review list, and summary per your instructions.
 Remember: never approve or correct from your own knowledge — only from the authorities above.`;
 
-    const val = await generateOrRetry("claude-opus-4-8", VALIDATION_SYSTEM, valUser, 8000);
+    // Validator runs on Sonnet, not Opus: Opus on this prompt was running 3-4 min and
+    // killing the edge function. Sonnet is still capable of cross-referencing the draft
+    // against the provided authority text, and finishes inside the wall-clock budget.
+    const tVal = Date.now();
+    const val = await generateOrRetry("claude-sonnet-4-6", VALIDATION_SYSTEM, valUser, 6000, "validate");
+    console.log(`[pipeline] validate total ${Date.now() - tVal}ms`);
     const validation = val.parsed ?? {
       citation_ledger: [],
       requires_attorney_review: ["Validator output unparseable — entire report needs human review."],
@@ -426,21 +426,51 @@ Remember: never approve or correct from your own knowledge — only from the aut
     await supabase.from("cppa_assessments")
       .update({ status: "complete", report_data: merged })
       .eq("id", assessment_id);
-
-    return new Response(JSON.stringify({ success: true, assessment_id }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
   } catch (e) {
-    console.error("run-cppa-risk-assessment error:", e);
-    if (assessment_id) {
-      try {
-        await supabase.from("cppa_assessments")
-          .update({ status: "error", report_data: { error: String(e) } })
-          .eq("id", assessment_id);
-      } catch { /* ignore */ }
-    }
-    return new Response(JSON.stringify({ error: "Assessment failed" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    console.error("run-cppa-risk-assessment background error:", e);
+    try {
+      await supabase.from("cppa_assessments")
+        .update({ status: "error", report_data: { error: String(e) } })
+        .eq("id", assessment_id);
+    } catch { /* ignore */ }
+  }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  let assessment_id: string | undefined;
+  try {
+    const body = await req.json();
+    assessment_id = body?.assessment_id;
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+  if (!assessment_id) {
+    return new Response(JSON.stringify({ error: "assessment_id required" }), {
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  // Mark processing synchronously so the client sees immediate state change,
+  // then fire-and-forget via EdgeRuntime.waitUntil. Client polls cppa_assessments.status.
+  try {
+    await supabase.from("cppa_assessments")
+      .update({ status: "processing" }).eq("id", assessment_id);
+  } catch { /* row existence is re-checked inside runPipeline */ }
+
+  // @ts-ignore Deno Edge Runtime API
+  const er = (globalThis as any).EdgeRuntime;
+  if (er?.waitUntil) {
+    er.waitUntil(runPipeline(assessment_id));
+  } else {
+    runPipeline(assessment_id).catch((e) => console.error("pipeline error:", e));
+  }
+
+  return new Response(JSON.stringify({ accepted: true, assessment_id }), {
+    status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 });
+
