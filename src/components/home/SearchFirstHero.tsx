@@ -31,7 +31,7 @@ export default function SearchFirstHero() {
                 <p className="text-eyebrow text-white/50 mb-1.5">
                   Privacy Intelligence Feed
                 </p>
-                <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
+                <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Feed — to keep you ahead
                 </p>
                 <p className="text-meta text-white/60 leading-snug">
@@ -47,7 +47,7 @@ export default function SearchFirstHero() {
                 <p className="text-eyebrow text-white/80 mb-1.5">
                   Intelligence Report
                 </p>
-                <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
+                <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Report — to save you time
                 </p>
                 <p className="text-meta text-white/85 leading-snug">
@@ -63,7 +63,7 @@ export default function SearchFirstHero() {
                 <p className="text-eyebrow text-white/80 mb-1.5">
                   Compliance Tools
                 </p>
-                <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
+                <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
                   Your Compliance Tools — to do your job well
                 </p>
                 <p className="text-meta text-white/85 leading-snug">
@@ -79,7 +79,7 @@ export default function SearchFirstHero() {
                 <p className="text-eyebrow text-white/80 mb-1.5">
                   CPPA Compliance
                 </p>
-                <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
+                <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
                   Your CPPA Readiness — assess and act
                 </p>
                 <p className="text-meta text-white/85 leading-snug">
