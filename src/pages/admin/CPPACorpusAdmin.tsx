@@ -158,6 +158,8 @@ function AuthoritiesTab() {
 
   return (
     <div className="space-y-4 pt-4">
+      <IngestForm onIngested={load} />
+
       <div className="flex flex-wrap gap-3 items-end">
         <div>
           <Label className="text-xs">Status</Label>
