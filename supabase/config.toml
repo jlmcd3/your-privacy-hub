@@ -183,3 +183,6 @@ verify_jwt = false
 [functions.cppa-ingest-authorities]
 verify_jwt = false
 
+[functions.cppa-corpus-admin]
+verify_jwt = false
+
