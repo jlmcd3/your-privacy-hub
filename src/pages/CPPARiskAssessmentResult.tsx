@@ -117,6 +117,22 @@ export default function CPPARiskAssessmentResult() {
               {report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
             </section>
 
+            {report?.accuracy_caveat && (
+              <section className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 rounded">
+                <p className="font-semibold text-red-800 dark:text-red-200 mb-1">Accuracy caveat</p>
+                <p className="text-sm">{report.accuracy_caveat}</p>
+              </section>
+            )}
+
+            {Array.isArray(report?.requires_attorney_review) && report.requires_attorney_review.length > 0 && (
+              <section className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 rounded">
+                <p className="font-semibold mb-2">Requires attorney review</p>
+                <ul className="list-disc pl-5 space-y-1 text-sm">
+                  {report.requires_attorney_review.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                </ul>
+              </section>
+            )}
+
             {report?.scope_confirmation && (
               <section className="bg-card border rounded-lg p-6">
                 <h2 className="mb-3">Scope Confirmation</h2>
