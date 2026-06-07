@@ -177,25 +177,43 @@ export default function CPPAEvalHarness() {
         detail: `Not-in-corpus: ${notInCorpus.length}, attorney review entries: ${review.length}`,
       });
 
-      // Banned phrases
-      const blob = JSON.stringify(report).toLowerCase();
+      // Banned phrases — scan ONLY the model's own prose, not enforcement context
+      // (enforcement_context / enforcement_results legitimately cite EU GDPR cases as illustrative).
+      const modelProse = {
+        executive_summary: report.executive_summary,
+        scope_confirmation: report.scope_confirmation,
+        domains: report.domains,
+        top_risks: report.top_risks,
+        next_steps: report.next_steps,
+        validation_summary: report.validation_summary,
+        accuracy_caveat: report.accuracy_caveat,
+        requires_attorney_review: report.requires_attorney_review,
+      };
+      const proseBlob = JSON.stringify(modelProse).toLowerCase();
       const banned = ["lawful basis", "72 hour", "72-hour", "gdpr"];
-      const found = banned.filter((b) => blob.includes(b));
+      const found = banned.filter((b) => proseBlob.includes(b));
       results.push({
-        name: "No banned phrases (lawful basis / 72 hour / GDPR)",
+        name: "No banned phrases in model prose (lawful basis / 72 hour / GDPR)",
         pass: found.length === 0,
         detail: found.length === 0 ? "clean" : `FOUND: ${found.join(", ")}`,
       });
 
-      // Advertising as ADMT significant decision check
+      // Advertising as ADMT "significant decision" — detect AFFIRMATIVE assertion only.
+      // A correct finding says advertising is NOT a significant decision and will mention
+      // both phrases; we must not flag that.
       const admt = (report.domains ?? []).find((d: any) =>
         /automated decision/i.test(d.domain ?? ""));
-      const admtTxt = `${admt?.finding ?? ""} ${admt?.regulatory_basis ?? ""}`.toLowerCase();
-      const advAsSig = /(advertis|audience segment)/.test(admtTxt) && /significant decision/.test(admtTxt);
+      const admtTxt = `${admt?.finding ?? ""} ${admt?.regulatory_basis ?? ""}`;
+      // Affirmative patterns: "advertising is a/constitutes/qualifies as a significant decision"
+      const affirmativeRe =
+        /(advertis\w*|audience segment\w*)[^.]*?\b(is|are|constitutes?|qualif(?:y|ies)\s+as|counts?\s+as|amounts?\s+to)\s+(a |an )?significant decision/i;
+      // Explicit negations override
+      const negationRe =
+        /(advertis\w*|audience segment\w*)[^.]*?\b(is not|are not|does not (include|constitute|qualify)|do not (include|constitute|qualify)|excluded from|not a significant decision)/i;
+      const advAsSig = affirmativeRe.test(admtTxt) && !negationRe.test(admtTxt);
       let admtPass = !advAsSig;
-      let admtDetail = "ADMT domain does not assert advertising as significant decision";
+      let admtDetail = "ADMT domain does not affirmatively assert advertising as significant decision";
       if (advAsSig) {
-        // Then the validator must have caught it
         const contradicted = ledger.some((e) => e.classification === "Contradicted-by-authority");
         const reviewMentions = review.some((r) => /advertis|segment/i.test(r));
         admtPass = contradicted && reviewMentions;
@@ -204,9 +222,11 @@ export default function CPPAEvalHarness() {
           : "ADMT asserts advertising = significant decision and validator did NOT flag it";
       }
       results.push({
-        name: "Advertising NOT labelled an ADMT 'significant decision' (or validator caught it)",
+        name: "Advertising NOT affirmatively labelled an ADMT 'significant decision' (or validator caught it)",
         pass: admtPass, detail: admtDetail,
       });
+
+      const blob = JSON.stringify(modelProse).toLowerCase();
 
       // No general right to appeal / no cure-period entitlement
       const appealAsserted = /right to appeal/i.test(blob) && !/admt|significant decision/i.test(blob);
