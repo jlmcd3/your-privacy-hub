@@ -155,6 +155,8 @@ import TestsOutput from "./pages/admin/TestsOutput.tsx";
 import CorpusExtractionAdmin from "./pages/admin/CorpusExtractionAdmin";
 import VerificationScanAdmin from "./pages/admin/VerificationScanAdmin";
 import PrimarySourceFetcher from "./pages/admin/PrimarySourceFetcher";
+import CPPACorpusAdmin from "./pages/admin/CPPACorpusAdmin";
+import CPPAEvalHarness from "./pages/admin/CPPAEvalHarness";
 
 const queryClient = new QueryClient();
 
@@ -461,6 +463,26 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <PrimarySourceFetcher />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/cppa-corpus"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <CPPACorpusAdmin />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/cppa-eval"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <CPPAEvalHarness />
                   </AdminOnly>
                 </ProtectedRoute>
               }

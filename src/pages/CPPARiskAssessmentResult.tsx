@@ -27,6 +27,20 @@ const statusColor = (s: string) => {
   if (x === "compliant") return "bg-green-100 text-green-800";
   return "bg-muted text-foreground";
 };
+const confidenceColor = (c?: string) => {
+  const x = (c || "").toLowerCase();
+  if (x === "high") return "bg-green-100 text-green-800";
+  if (x === "medium") return "bg-amber-100 text-amber-800";
+  if (x === "low") return "bg-red-100 text-red-800";
+  return "bg-muted text-foreground";
+};
+const ledgerColor = (c?: string) => {
+  const x = (c || "").toLowerCase();
+  if (x === "supported") return "bg-green-100 text-green-800";
+  if (x === "partially supported" || x === "overstated") return "bg-amber-100 text-amber-800";
+  if (x === "unsupported" || x === "not-in-corpus" || x === "contradicted-by-authority") return "bg-red-100 text-red-800";
+  return "bg-muted text-foreground";
+};
 
 export default function CPPARiskAssessmentResult() {
   const { id } = useParams();
@@ -103,6 +117,22 @@ export default function CPPARiskAssessmentResult() {
               {report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
             </section>
 
+            {report?.accuracy_caveat && (
+              <section className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 rounded">
+                <p className="font-semibold text-red-800 dark:text-red-200 mb-1">Accuracy caveat</p>
+                <p className="text-sm">{report.accuracy_caveat}</p>
+              </section>
+            )}
+
+            {Array.isArray(report?.requires_attorney_review) && report.requires_attorney_review.length > 0 && (
+              <section className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 rounded">
+                <p className="font-semibold mb-2">Requires attorney review</p>
+                <ul className="list-disc pl-5 space-y-1 text-sm">
+                  {report.requires_attorney_review.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                </ul>
+              </section>
+            )}
+
             {report?.scope_confirmation && (
               <section className="bg-card border rounded-lg p-6">
                 <h2 className="mb-3">Scope Confirmation</h2>
@@ -134,6 +164,14 @@ export default function CPPARiskAssessmentResult() {
                           <span>{d.domain}</span>
                           {d.score != null && <span className="text-xs text-muted-foreground">{d.score}/100</span>}
                           {d.status && <span className={`px-2 py-0.5 text-xs rounded ${statusColor(d.status)}`}>{d.status}</span>}
+                          {d.confidence_level && (
+                            <span className={`px-2 py-0.5 text-xs rounded ${confidenceColor(d.confidence_level)}`}>
+                              Confidence: {d.confidence_level}
+                            </span>
+                          )}
+                          {d.attorney_review_needed && (
+                            <span className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800">Attorney review</span>
+                          )}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-2">
@@ -177,6 +215,43 @@ export default function CPPARiskAssessmentResult() {
                 <ol className="list-decimal pl-5 space-y-1 text-sm">
                   {report.next_steps.map((s: string, i: number) => <li key={i}>{s}</li>)}
                 </ol>
+              </section>
+            )}
+
+            {Array.isArray(report?.citation_ledger) && report.citation_ledger.length > 0 && (
+              <section className="bg-card border rounded-lg p-6">
+                <h2 className="mb-3">Citation Ledger</h2>
+                {report?.validation_summary && (
+                  <p className="text-sm text-muted-foreground mb-3 italic">{report.validation_summary}</p>
+                )}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-left bg-muted/40">
+                      <tr>
+                        <th className="p-2">Statement</th>
+                        <th className="p-2">Citation</th>
+                        <th className="p-2">Classification</th>
+                        <th className="p-2">Corrected</th>
+                        <th className="p-2">Note</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.citation_ledger.map((e: any, i: number) => (
+                        <tr key={i} className="border-t align-top">
+                          <td className="p-2">{e.statement}</td>
+                          <td className="p-2 font-mono text-xs">{e.citation}</td>
+                          <td className="p-2">
+                            <span className={`px-2 py-0.5 text-xs rounded ${ledgerColor(e.classification)}`}>
+                              {e.classification}
+                            </span>
+                          </td>
+                          <td className="p-2 font-mono text-xs">{e.corrected_citation ?? "—"}</td>
+                          <td className="p-2 text-xs text-muted-foreground">{e.note}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </section>
             )}
 

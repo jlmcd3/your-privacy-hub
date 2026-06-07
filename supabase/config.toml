@@ -180,3 +180,15 @@ verify_jwt = false
 [functions.batch-fetch-primary-sources]
 verify_jwt = false
 
+[functions.cppa-ingest-authorities]
+verify_jwt = false
+
+[functions.cppa-corpus-admin]
+verify_jwt = false
+
+[functions.cppa-retrieve-context]
+verify_jwt = false
+
+[functions.cppa-check-source-updates]
+verify_jwt = false
+
