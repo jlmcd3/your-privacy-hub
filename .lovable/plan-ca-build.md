@@ -93,16 +93,16 @@ For each question, document and decide:
 
 Output should be a review matrix before coding: question number, current control type, proposed control type, new options, mutually exclusive options, validation rules, and downstream data impact.
 
-## 11. Pricing consistency and CPPA Risk Assessment monetization decision
+## 11. Pricing consistency for CPPA Risk Assessment
 **Reported discrepancy:** the final assessment page states **$79**, while checkout shows **$89**.
 
 Before implementation:
 - Audit every CPPA Risk Assessment price reference in the app, checkout setup, pricing config, backend/payment function inputs, dashboard copy, and success/confirmation pages.
 - Confirm the correct price by user type/subscription state.
 - Ensure all stated prices match checkout exactly.
-- Resolve whether the CPPA Risk Assessment should be offered **free** as a lead-in to encourage purchases of other CPPA products.
-- If free, document the gating/funnel logic and remove paid-checkout friction for the risk assessment while preserving promotion of paid CPPA products.
-- If paid, document the price source of truth and ensure it cannot drift between UI and checkout.
+- **The CPPA Risk Assessment is a paid tool.** It is not free. The **CPPA Scope Checker** is the free lead-in tool intended to encourage purchases of other CPPA products.
+- Document the price source of truth for the CPPA Risk Assessment and ensure it cannot drift between UI and checkout.
+- Preserve promotion of the free CPPA Scope Checker (and other paid CPPA products) in relevant funnels.
 
 ## 12. CPPA Risk Assessment logic documentation
 Create a reviewable logic document for the assessment before or alongside implementation.
