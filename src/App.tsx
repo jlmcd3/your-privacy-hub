@@ -155,6 +155,7 @@ import TestsOutput from "./pages/admin/TestsOutput.tsx";
 import CorpusExtractionAdmin from "./pages/admin/CorpusExtractionAdmin";
 import VerificationScanAdmin from "./pages/admin/VerificationScanAdmin";
 import PrimarySourceFetcher from "./pages/admin/PrimarySourceFetcher";
+import CPPACorpusAdmin from "./pages/admin/CPPACorpusAdmin";
 
 const queryClient = new QueryClient();
 
