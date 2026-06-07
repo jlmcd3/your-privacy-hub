@@ -477,6 +477,16 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/cppa-eval"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <CPPAEvalHarness />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
 
 
             <Route
