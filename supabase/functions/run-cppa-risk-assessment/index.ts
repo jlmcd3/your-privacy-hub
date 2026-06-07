@@ -314,19 +314,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // STAGE 1 — Retrieve
-    const retrievalRes = await fetch(`${SUPABASE_URL}/functions/v1/cppa-retrieve-context`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
-      body: JSON.stringify({ topics, include_deadlines: true, full_text_limit: 10, limit: 14 }),
-    });
-    const retrieval = await retrievalRes.json();
+    // STAGE 1 — Retrieve + enforcement context IN PARALLEL (P2: reduce wall-clock)
+    const sector = intake.q3_sector ?? intake.industry_sector ?? intake.sector;
+    const [retrieval, enforcement] = await Promise.all([
+      fetch(`${SUPABASE_URL}/functions/v1/cppa-retrieve-context`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
+        body: JSON.stringify({ topics, include_deadlines: true, full_text_limit: 8, limit: 14 }),
+      }).then((r) => r.json()),
+      getEnforcementContext(sector),
+    ]);
     const authorities = retrieval?.authorities ?? [];
     const deadlines = retrieval?.deadlines ?? [];
     const noAuth = retrieval?.warning === "no_matching_authority" || authorities.length === 0;
-
-    const sector = intake.q3_sector ?? intake.industry_sector ?? intake.sector;
-    const enforcement = await getEnforcementContext(sector);
 
     // STAGE 2 — Generate
     const genUser =
