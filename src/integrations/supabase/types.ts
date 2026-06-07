@@ -670,7 +670,7 @@ export type Database = {
           id: string
           last_changed: string | null
           last_checked: string | null
-          last_normalised_text: string | null
+          last_normalised_text: Json | null
           source_name: string
           source_type: string
           url: string
@@ -682,7 +682,7 @@ export type Database = {
           id?: string
           last_changed?: string | null
           last_checked?: string | null
-          last_normalised_text?: string | null
+          last_normalised_text?: Json | null
           source_name: string
           source_type: string
           url: string
@@ -694,7 +694,7 @@ export type Database = {
           id?: string
           last_changed?: string | null
           last_checked?: string | null
-          last_normalised_text?: string | null
+          last_normalised_text?: Json | null
           source_name?: string
           source_type?: string
           url?: string
