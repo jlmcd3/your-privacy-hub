@@ -405,7 +405,7 @@ ${buildValidationDeadlineBlock(deadlines)}
 Produce the citation_ledger, requires_attorney_review list, and summary per your instructions.
 Remember: never approve or correct from your own knowledge — only from the authorities above.`;
 
-    const val = await generateOrRetry("claude-opus-4-8", VALIDATION_SYSTEM, valUser, 4000);
+    const val = await generateOrRetry("claude-opus-4-8", VALIDATION_SYSTEM, valUser, 8000);
     const validation = val.parsed ?? {
       citation_ledger: [],
       requires_attorney_review: ["Validator output unparseable — entire report needs human review."],
