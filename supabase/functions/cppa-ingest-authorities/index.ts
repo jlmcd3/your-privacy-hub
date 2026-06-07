@@ -68,19 +68,13 @@ async function callAnthropic(system: string, user: string): Promise<string> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  // Dual-mode auth
+  // Admin-only: write path. Require admin token or service role.
   const auth = req.headers.get("Authorization") ?? "";
-  let authorized = ADMIN_TOKEN && auth.includes(ADMIN_TOKEN);
-  if (!authorized) {
-    const token = auth.replace("Bearer ", "");
-    if (token === SUPABASE_ANON_KEY || token === SUPABASE_SERVICE_KEY) {
-      authorized = true;
-    } else if (token) {
-      const tmpClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      const { data: { user } } = await tmpClient.auth.getUser(token);
-      authorized = !!user;
-    }
-  }
+  const xAdmin = req.headers.get("x-admin-token") ?? "";
+  const bearer = auth.replace("Bearer ", "");
+  const authorized =
+    (ADMIN_TOKEN && (auth.includes(ADMIN_TOKEN) || xAdmin === ADMIN_TOKEN)) ||
+    bearer === SUPABASE_SERVICE_KEY;
   if (!authorized) return json({ error: "Unauthorized" }, 401);
 
   let body: any;

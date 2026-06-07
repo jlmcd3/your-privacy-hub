@@ -174,9 +174,11 @@ function buildDeadlinesBlock(deadlines: any[]): string {
   ).join("\n");
 }
 function buildValidationAuthBlock(authorities: any[]): string {
-  return authorities.map((a) =>
-    `${a.citation} — ${a.title}\nTEXT: ${a.full_text ?? a.plain_summary ?? ""}`,
-  ).join("\n\n");
+  // Cap each authority text to keep the validator prompt within token budget
+  return authorities.map((a) => {
+    const txt = (a.full_text ?? a.plain_summary ?? "").slice(0, 6000);
+    return `${a.citation} — ${a.title}\nTEXT: ${txt}`;
+  }).join("\n\n");
 }
 function buildValidationDeadlineBlock(deadlines: any[]): string {
   if (!deadlines?.length) return "(none)";
@@ -314,19 +316,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // STAGE 1 — Retrieve
-    const retrievalRes = await fetch(`${SUPABASE_URL}/functions/v1/cppa-retrieve-context`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
-      body: JSON.stringify({ topics, include_deadlines: true, full_text_limit: 10, limit: 14 }),
-    });
-    const retrieval = await retrievalRes.json();
+    // STAGE 1 — Retrieve + enforcement context IN PARALLEL (P2: reduce wall-clock)
+    const sector = intake.q3_sector ?? intake.industry_sector ?? intake.sector;
+    const [retrieval, enforcement] = await Promise.all([
+      fetch(`${SUPABASE_URL}/functions/v1/cppa-retrieve-context`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
+        body: JSON.stringify({ topics, include_deadlines: true, full_text_limit: 8, limit: 14 }),
+      }).then((r) => r.json()),
+      getEnforcementContext(sector),
+    ]);
     const authorities = retrieval?.authorities ?? [];
     const deadlines = retrieval?.deadlines ?? [];
     const noAuth = retrieval?.warning === "no_matching_authority" || authorities.length === 0;
-
-    const sector = intake.q3_sector ?? intake.industry_sector ?? intake.sector;
-    const enforcement = await getEnforcementContext(sector);
 
     // STAGE 2 — Generate
     const genUser =
@@ -403,7 +405,7 @@ ${buildValidationDeadlineBlock(deadlines)}
 Produce the citation_ledger, requires_attorney_review list, and summary per your instructions.
 Remember: never approve or correct from your own knowledge — only from the authorities above.`;
 
-    const val = await generateOrRetry("claude-opus-4-8", VALIDATION_SYSTEM, valUser, 4000);
+    const val = await generateOrRetry("claude-opus-4-8", VALIDATION_SYSTEM, valUser, 8000);
     const validation = val.parsed ?? {
       citation_ledger: [],
       requires_attorney_review: ["Validator output unparseable — entire report needs human review."],
