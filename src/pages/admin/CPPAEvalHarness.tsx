@@ -143,7 +143,7 @@ export default function CPPAEvalHarness() {
       if (!user) throw new Error("must be signed in");
       const { data: row, error: insErr } = await supabase
         .from("cppa_assessments")
-        .insert({ user_id: user.id, module: "risk", intake_data: SAMPLE_INTAKE, status: "pending" })
+        .insert({ user_id: user.id, module: "risk_assessment", intake_data: SAMPLE_INTAKE, status: "pending" })
         .select().single();
       if (insErr) throw insErr;
 
