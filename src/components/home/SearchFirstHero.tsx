@@ -22,7 +22,7 @@ export default function SearchFirstHero() {
 
             {/* ── Hero CTA Cards ─────────────────────────────────── */}
             <div className="@container flex flex-col gap-3 w-full max-w-3xl mt-2">
-              <div className="grid grid-cols-1 @md:grid-cols-2 @[900px]:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 @md:grid-cols-2 @[900px]:grid-cols-4 gap-3">
               {/* Card 1 — Privacy Intelligence Feed (Free, subdued blue) */}
               <a
                 href="#updates"
@@ -68,6 +68,22 @@ export default function SearchFirstHero() {
                 </p>
                 <p className="text-meta text-white/85 leading-snug">
                   LIA, DPIA, DPA, IR Playbook, Governance. Enforcement-calibrated — with annotated reasoning in every output.
+                </p>
+              </a>
+
+              {/* Card 4 — CPPA Compliance (California-specific) */}
+              <a
+                href="/cppa-scope-checker"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-teal hover:bg-brand-light-teal border border-brand-teal hover:border-brand-light-teal transition-all duration-200"
+              >
+                <p className="text-eyebrow text-white/80 mb-1.5">
+                  CPPA Compliance
+                </p>
+                <p className="font-display text-[15px] font-bold text-white leading-snug mb-1.5">
+                  Your CPPA Readiness — assess and act
+                </p>
+                <p className="text-meta text-white/85 leading-snug">
+                  Scope checker, risk assessment, and cybersecurity audit. Calibrated to California's CPPA regulations.
                 </p>
               </a>
               </div>
