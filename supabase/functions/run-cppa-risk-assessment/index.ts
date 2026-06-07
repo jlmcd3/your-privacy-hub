@@ -404,7 +404,7 @@ Remember: never approve or correct from your own knowledge — only from the aut
     // killing the edge function. Sonnet is still capable of cross-referencing the draft
     // against the provided authority text, and finishes inside the wall-clock budget.
     const tVal = Date.now();
-    const val = await generateOrRetry("claude-sonnet-4-6", VALIDATION_SYSTEM, valUser, 6000, "validate");
+    const val = await generateOrRetry("claude-sonnet-4-6", VALIDATION_SYSTEM, valUser, 8000, "validate");
     console.log(`[pipeline] validate total ${Date.now() - tVal}ms`);
     const validation = val.parsed ?? {
       citation_ledger: [],
