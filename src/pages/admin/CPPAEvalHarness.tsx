@@ -160,9 +160,9 @@ export default function CPPAEvalHarness() {
       });
       if (runErr) throw runErr;
 
-      // Poll up to ~5 min (pipeline runs in background; HTTP returned 202 immediately)
+      // Poll up to ~8 min (pipeline runs in background; HTTP returned 202 immediately)
       let final: any = null;
-      for (let i = 0; i < 60; i++) {
+      for (let i = 0; i < 96; i++) {
         await new Promise((r) => setTimeout(r, 5000));
         const { data } = await supabase.from("cppa_assessments").select("*").eq("id", row.id).maybeSingle();
         if (data?.status === "complete" || data?.status === "error") { final = data; break; }
