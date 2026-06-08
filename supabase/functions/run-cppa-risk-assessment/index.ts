@@ -5,8 +5,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -192,6 +194,69 @@ function buildValidationDeadlineBlock(deadlines: any[]): string {
     `${d.obligation}: effective ${d.effective_date ?? "—"}, deadline ${d.compliance_deadline ?? "—"}, tier ${d.revenue_tier ?? "—"}, basis ${d.primary_authority_citation}`,
   ).join("\n");
 }
+
+async function retrieveFsorCommentary(
+  authorities: any[],
+  topics: string[],
+  intake: any,
+): Promise<any[]> {
+  if (!LOVABLE_API_KEY) return [];
+  if (!authorities?.length && !topics?.length) return [];
+  try {
+    // Build a query that reflects what this org actually does, scoped to the cited regs.
+    const citations = authorities.map((a) => a.citation).filter(Boolean);
+    const queryText =
+      `California privacy compliance issues for: topics=${topics.join(", ")}. ` +
+      `Intake highlights: revenue=${intake.q1_revenue ?? "?"}, consumers=${intake.q2_consumers ?? "?"}, ` +
+      `sensitive_pi=${intake.q15_sensitive_pi ?? "?"}, admt=${intake.q18_admt_use ?? "?"}, ` +
+      `sells_or_shares=${intake.q5_sell_share ?? "?"}.`;
+
+    const er = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "openai/text-embedding-3-small",
+        input: queryText.slice(0, 6000),
+        dimensions: 1536,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!er.ok) {
+      console.warn(`[fsor] embed failed ${er.status}`);
+      return [];
+    }
+    const ed = await er.json();
+    const embedding = ed?.data?.[0]?.embedding;
+    if (!Array.isArray(embedding)) return [];
+
+    const { data, error } = await supabase.rpc("match_cppa_fsor_commentary", {
+      query_embedding: embedding,
+      citation_filter: citations.length ? citations : null,
+      topic_filter: topics.length ? topics : null,
+      match_count: 8,
+    });
+    if (error) {
+      console.warn(`[fsor] rpc error: ${error.message}`);
+      return [];
+    }
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.warn(`[fsor] retrieve threw: ${e}`);
+    return [];
+  }
+}
+
+function buildFsorBlock(fsor: any[]): string {
+  if (!fsor?.length) return "(none)";
+  return fsor.map((f, i) =>
+    `[F${i + 1}] re ${f.regulation_citation} — Agency rationale (FSOR ${f.fsor_package}${f.page_ref ? `, ${f.page_ref}` : ""}):\n` +
+    `Comment: ${f.comment_summary}\nAgency response: ${(f.agency_response ?? "").slice(0, 1500)}`,
+  ).join("\n\n");
+}
+
 
 async function getEnforcementContext(sector?: string) {
   try {
