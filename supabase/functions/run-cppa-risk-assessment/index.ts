@@ -388,6 +388,12 @@ async function runPipeline(assessment_id: string) {
     const deadlines = retrieval?.deadlines ?? [];
     const noAuth = retrieval?.warning === "no_matching_authority" || authorities.length === 0;
 
+    // STAGE 1b — FSOR agency rationale (non-binding interpretive context).
+    // Scoped to the cited regulations + topics so it's relevant, not a firehose.
+    const tFsor = Date.now();
+    const fsorCommentary = await retrieveFsorCommentary(authorities, topics, intake);
+    console.log(`[pipeline] fsor retrieve ${fsorCommentary.length} units in ${Date.now() - tFsor}ms`);
+
     // STAGE 2 — Generate
     const genUser =
 `Produce a CPPA/CCPA risk assessment for this organisation, grounded ONLY in the retrieved authorities and deadlines.
@@ -401,8 +407,12 @@ ${noAuth ? "NONE RETRIEVED — mark every finding requires attorney review." : b
 RETRIEVED DEADLINES (the only permitted source of dates/deadlines):
 ${buildDeadlinesBlock(deadlines)}
 
+AGENCY RATIONALE (Final Statement of Reasons — NON-BINDING interpretive context from the California Privacy Protection Agency. Use to explain WHY a regulation reads as it does or to surface enforcement focus. NEVER cite an [F#] item as the legal basis for an obligation — the legal basis must still be an [A#].):
+${buildFsorBlock(fsorCommentary)}
+
 ENFORCEMENT CONTEXT (illustrative, non-binding):
 ${enforcement.text || "NONE AVAILABLE"}
+
 
 Return JSON:
 {
@@ -480,13 +490,16 @@ Remember: never approve or correct from your own knowledge — only from the aut
     const corpusCitations = new Set<string>(authorities.map((a: any) => a.citation));
     const merged = mergeValidation(draft, validation, corpusCitations);
 
-    // Preserve retrieval & enforcement metadata in the report for transparency
+    // Preserve retrieval, FSOR, & enforcement metadata in the report for transparency
     merged.retrieval = {
       topics, authority_count: authorities.length, deadline_count: deadlines.length,
+      fsor_count: fsorCommentary.length,
       verified_only_mode: retrieval?.verified_only_mode ?? false,
       warning: retrieval?.warning ?? null,
     };
+    merged.fsor_commentary = fsorCommentary;
     merged.enforcement_results = enforcement.results;
+
 
     await supabase.from("cppa_assessments")
       .update({ status: "complete", report_data: merged })
