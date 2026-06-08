@@ -283,63 +283,62 @@ export default function StartNew() {
               <Loader2 className="w-6 h-6 animate-spin text-brand-navy" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-1">
               {orderedTools.map((tool) => {
                 const c = counts[tool.key] || { completed: 0, inProgress: 0 };
                 const has = c.completed + c.inProgress > 0;
                 return (
-                  <Card
+                  <div
                     key={tool.key}
-                    className="p-5 flex flex-col gap-3 border border-brand-cloud hover:border-brand-navy/40 transition-colors"
+                    className="flex items-center gap-4 px-3 py-2.5 border-b border-brand-cloud hover:bg-slate-50 transition-colors"
                   >
-                    <div>
-                      <h2 className="text-base font-semibold text-brand-navy leading-snug">
-                        {tool.label}
-                      </h2>
-                      <p className="text-xs text-slate mt-1.5 leading-relaxed">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Link
+                          to={tool.startPath}
+                          className="text-sm font-semibold text-brand-navy hover:text-brand-teal hover:underline"
+                        >
+                          {tool.label}
+                        </Link>
+                        <div className="flex items-center gap-1.5">
+                          {c.completed > 0 && (
+                            <Badge variant="default" className="text-[10px] gap-1 h-5 px-1.5">
+                              <CheckCircle2 className="w-3 h-3" />
+                              {c.completed}
+                            </Badge>
+                          )}
+                          {c.inProgress > 0 && (
+                            <Badge variant="secondary" className="text-[10px] gap-1 h-5 px-1.5">
+                              <Clock className="w-3 h-3" />
+                              {c.inProgress}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-slate mt-0.5 leading-relaxed truncate">
                         {tool.blurb}
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-1.5 min-h-[1.5rem]">
-                      {c.completed > 0 && (
-                        <Badge variant="default" className="text-[10px] gap-1">
-                          <CheckCircle2 className="w-3 h-3" />
-                          {c.completed} completed
-                        </Badge>
-                      )}
-                      {c.inProgress > 0 && (
-                        <Badge variant="secondary" className="text-[10px] gap-1">
-                          <Clock className="w-3 h-3" />
-                          {c.inProgress} in progress
-                        </Badge>
-                      )}
-                      {!has && tool.table && (
-                        <span className="text-[10px] text-brand-mist">
-                          No work yet for this workspace
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-auto pt-2 flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <Button
                         size="sm"
                         onClick={() => navigate(tool.startPath)}
-                        className="gap-1"
+                        className="gap-1 h-7 text-xs px-2.5"
                       >
-                        {has ? "Start new" : "Start"}
+                        {has ? "New" : "Start"}
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Button>
                       {has && tool.viewPath && (
                         <Link
                           to={tool.viewPath}
-                          className="text-xs text-brand-teal hover:underline"
+                          className="text-[11px] text-brand-teal hover:underline whitespace-nowrap"
                         >
-                          View existing
+                          View
                         </Link>
                       )}
                     </div>
-                  </Card>
+                  </div>
                 );
               })}
             </div>
