@@ -446,7 +446,7 @@ Domains to assess (one object each): Consumer Rights Infrastructure; Privacy Not
 For any domain with no retrieved authority on point, set regulatory_basis to the attorney-review phrase above and attorney_review_needed=true rather than inventing a citation.`;
 
     const tGen = Date.now();
-    const gen = await generateOrRetry("claude-sonnet-4-6", GENERATION_SYSTEM, genUser, 8000, "generate");
+    const gen = await generateOrRetry("claude-sonnet-4-6", GENERATION_SYSTEM, genUser, 16000, "generate");
     console.log(`[pipeline] generate total ${Date.now() - tGen}ms`);
     if (!gen.parsed) {
       await supabase.from("cppa_assessments").update({
