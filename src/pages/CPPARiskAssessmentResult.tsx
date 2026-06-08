@@ -255,6 +255,45 @@ export default function CPPARiskAssessmentResult() {
               </section>
             )}
 
+            {Array.isArray(report?.fsor_commentary) && report.fsor_commentary.length > 0 && (
+              <section className="bg-card border rounded-lg p-6">
+                <h2 className="mb-1">Agency Rationale</h2>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Non-binding interpretive context from the California Privacy Protection Agency's
+                  Final Statement of Reasons (FSOR). Shows why the cited regulations read the way
+                  they do, and what concerns the Agency was responding to.
+                </p>
+                <div className="space-y-4">
+                  {report.fsor_commentary.map((f: any, i: number) => (
+                    <details key={f.id ?? i} className="border rounded p-3 group">
+                      <summary className="cursor-pointer text-sm font-semibold flex flex-wrap gap-2 items-baseline">
+                        <span className="font-mono text-xs text-brand-teal">
+                          {f.regulation_citation}
+                        </span>
+                        <span className="text-foreground">{f.comment_summary}</span>
+                        <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">
+                          {f.fsor_package}{f.page_ref ? ` · ${f.page_ref}` : ""}
+                        </span>
+                      </summary>
+                      <div className="mt-3 text-sm whitespace-pre-wrap text-muted-foreground">
+                        {f.agency_response}
+                      </div>
+                      {Array.isArray(f.topic_tags) && f.topic_tags.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {f.topic_tags.map((t: string) => (
+                            <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </details>
+                  ))}
+                </div>
+              </section>
+            )}
+
+
             <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
               ⚠️ This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.
             </section>
