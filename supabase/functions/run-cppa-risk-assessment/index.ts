@@ -5,8 +5,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -193,6 +195,69 @@ function buildValidationDeadlineBlock(deadlines: any[]): string {
   ).join("\n");
 }
 
+async function retrieveFsorCommentary(
+  authorities: any[],
+  topics: string[],
+  intake: any,
+): Promise<any[]> {
+  if (!LOVABLE_API_KEY) return [];
+  if (!authorities?.length && !topics?.length) return [];
+  try {
+    // Build a query that reflects what this org actually does, scoped to the cited regs.
+    const citations = authorities.map((a) => a.citation).filter(Boolean);
+    const queryText =
+      `California privacy compliance issues for: topics=${topics.join(", ")}. ` +
+      `Intake highlights: revenue=${intake.q1_revenue ?? "?"}, consumers=${intake.q2_consumers ?? "?"}, ` +
+      `sensitive_pi=${intake.q15_sensitive_pi ?? "?"}, admt=${intake.q18_admt_use ?? "?"}, ` +
+      `sells_or_shares=${intake.q5_sell_share ?? "?"}.`;
+
+    const er = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "openai/text-embedding-3-small",
+        input: queryText.slice(0, 6000),
+        dimensions: 1536,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!er.ok) {
+      console.warn(`[fsor] embed failed ${er.status}`);
+      return [];
+    }
+    const ed = await er.json();
+    const embedding = ed?.data?.[0]?.embedding;
+    if (!Array.isArray(embedding)) return [];
+
+    const { data, error } = await supabase.rpc("match_cppa_fsor_commentary", {
+      query_embedding: embedding,
+      citation_filter: citations.length ? citations : null,
+      topic_filter: topics.length ? topics : null,
+      match_count: 8,
+    });
+    if (error) {
+      console.warn(`[fsor] rpc error: ${error.message}`);
+      return [];
+    }
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.warn(`[fsor] retrieve threw: ${e}`);
+    return [];
+  }
+}
+
+function buildFsorBlock(fsor: any[]): string {
+  if (!fsor?.length) return "(none)";
+  return fsor.map((f, i) =>
+    `[F${i + 1}] re ${f.regulation_citation} — Agency rationale (FSOR ${f.fsor_package}${f.page_ref ? `, ${f.page_ref}` : ""}):\n` +
+    `Comment: ${f.comment_summary}\nAgency response: ${(f.agency_response ?? "").slice(0, 1500)}`,
+  ).join("\n\n");
+}
+
+
 async function getEnforcementContext(sector?: string) {
   try {
     const r = await fetch(`${SUPABASE_URL}/functions/v1/get-enforcement-context`, {
@@ -323,6 +388,12 @@ async function runPipeline(assessment_id: string) {
     const deadlines = retrieval?.deadlines ?? [];
     const noAuth = retrieval?.warning === "no_matching_authority" || authorities.length === 0;
 
+    // STAGE 1b — FSOR agency rationale (non-binding interpretive context).
+    // Scoped to the cited regulations + topics so it's relevant, not a firehose.
+    const tFsor = Date.now();
+    const fsorCommentary = await retrieveFsorCommentary(authorities, topics, intake);
+    console.log(`[pipeline] fsor retrieve ${fsorCommentary.length} units in ${Date.now() - tFsor}ms`);
+
     // STAGE 2 — Generate
     const genUser =
 `Produce a CPPA/CCPA risk assessment for this organisation, grounded ONLY in the retrieved authorities and deadlines.
@@ -336,8 +407,12 @@ ${noAuth ? "NONE RETRIEVED — mark every finding requires attorney review." : b
 RETRIEVED DEADLINES (the only permitted source of dates/deadlines):
 ${buildDeadlinesBlock(deadlines)}
 
+AGENCY RATIONALE (Final Statement of Reasons — NON-BINDING interpretive context from the California Privacy Protection Agency. Use to explain WHY a regulation reads as it does or to surface enforcement focus. NEVER cite an [F#] item as the legal basis for an obligation — the legal basis must still be an [A#].):
+${buildFsorBlock(fsorCommentary)}
+
 ENFORCEMENT CONTEXT (illustrative, non-binding):
 ${enforcement.text || "NONE AVAILABLE"}
+
 
 Return JSON:
 {
@@ -415,13 +490,16 @@ Remember: never approve or correct from your own knowledge — only from the aut
     const corpusCitations = new Set<string>(authorities.map((a: any) => a.citation));
     const merged = mergeValidation(draft, validation, corpusCitations);
 
-    // Preserve retrieval & enforcement metadata in the report for transparency
+    // Preserve retrieval, FSOR, & enforcement metadata in the report for transparency
     merged.retrieval = {
       topics, authority_count: authorities.length, deadline_count: deadlines.length,
+      fsor_count: fsorCommentary.length,
       verified_only_mode: retrieval?.verified_only_mode ?? false,
       warning: retrieval?.warning ?? null,
     };
+    merged.fsor_commentary = fsorCommentary;
     merged.enforcement_results = enforcement.results;
+
 
     await supabase.from("cppa_assessments")
       .update({ status: "complete", report_data: merged })

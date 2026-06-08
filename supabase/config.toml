@@ -183,6 +183,9 @@ verify_jwt = false
 [functions.cppa-ingest-authorities]
 verify_jwt = false
 
+[functions.cppa-ingest-fsor]
+verify_jwt = false
+
 [functions.cppa-corpus-admin]
 verify_jwt = false
 
@@ -191,4 +194,5 @@ verify_jwt = false
 
 [functions.cppa-check-source-updates]
 verify_jwt = false
+
 
