@@ -596,6 +596,57 @@ export type Database = {
         }
         Relationships: []
       }
+      cppa_fsor_commentary: {
+        Row: {
+          agency_response: string
+          comment_summary: string
+          content_hash: string
+          created_at: string
+          embedding: string | null
+          embedding_model: string
+          fsor_package: string
+          id: string
+          page_ref: string | null
+          regulation_citation: string
+          related_citations: string[]
+          source_url: string | null
+          topic_tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          agency_response: string
+          comment_summary: string
+          content_hash: string
+          created_at?: string
+          embedding?: string | null
+          embedding_model?: string
+          fsor_package: string
+          id?: string
+          page_ref?: string | null
+          regulation_citation: string
+          related_citations?: string[]
+          source_url?: string | null
+          topic_tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          agency_response?: string
+          comment_summary?: string
+          content_hash?: string
+          created_at?: string
+          embedding?: string | null
+          embedding_model?: string
+          fsor_package?: string
+          id?: string
+          page_ref?: string | null
+          regulation_citation?: string
+          related_citations?: string[]
+          source_url?: string | null
+          topic_tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cppa_ingestion_log: {
         Row: {
           authorities_added: number | null
@@ -5472,6 +5523,26 @@ export type Database = {
       }
       is_current_user_premium: { Args: never; Returns: boolean }
       is_founding_rate_available: { Args: never; Returns: boolean }
+      match_cppa_fsor_commentary: {
+        Args: {
+          citation_filter?: string[]
+          match_count?: number
+          query_embedding: string
+          topic_filter?: string[]
+        }
+        Returns: {
+          agency_response: string
+          comment_summary: string
+          fsor_package: string
+          id: string
+          page_ref: string
+          regulation_citation: string
+          related_citations: string[]
+          similarity: number
+          source_url: string
+          topic_tags: string[]
+        }[]
+      }
       my_client_ids: { Args: never; Returns: string[] }
       owns_client: { Args: { _client_id: string }; Returns: boolean }
       recompute_memo_eligible_interim: { Args: never; Returns: number }
