@@ -416,7 +416,8 @@ export default function CPPACybersecurityResult() {
         {status === "complete" && reportReady && (
           <>
             <CybersecurityReportBody row={row} />
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap" data-print-hide>
+              <AuditorHandoffButton row={row} />
               <PDFDownloadButton
                 toolType="cppa_cybersecurity"
                 assessmentId={row.id}
