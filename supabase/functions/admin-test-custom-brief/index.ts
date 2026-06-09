@@ -75,6 +75,7 @@ Deno.serve(async (req) => {
       : [];
     const topics: string[] = Array.isArray(prefs.topics) ? prefs.topics : [];
     const format: string = typeof prefs.format === "string" ? prefs.format : "full";
+    const role: string | null = typeof prefs.role === "string" && prefs.role ? prefs.role : null;
 
     // ── 3. Reconcile user_watchlist for the three taxonomy fields and
     //    persist `format` to user_brief_preferences. generate-custom-brief
@@ -135,12 +136,16 @@ Deno.serve(async (req) => {
     // ── 4. Ensure is_pro=true (record original to restore) ──────────────────
     const { data: prof } = await admin
       .from("profiles")
-      .select("is_pro")
+      .select("is_pro, brief_role")
       .eq("id", userId)
       .single();
     const wasPro = !!prof?.is_pro;
-    if (!wasPro) {
-      await admin.from("profiles").update({ is_pro: true }).eq("id", userId);
+    const prevRole = (prof as { brief_role?: string | null } | null)?.brief_role ?? null;
+    const profilePatch: Record<string, unknown> = {};
+    if (!wasPro) profilePatch.is_pro = true;
+    if (role !== null && role !== prevRole) profilePatch.brief_role = role;
+    if (Object.keys(profilePatch).length) {
+      await admin.from("profiles").update(profilePatch).eq("id", userId);
     }
 
     // ── 5. Note baseline custom_briefs count BEFORE invoking ────────────────
@@ -177,9 +182,12 @@ Deno.serve(async (req) => {
       invokeError = (e as Error).message;
     }
 
-    // ── 7. Restore is_pro if we toggled it ──────────────────────────────────
-    if (!wasPro) {
-      await admin.from("profiles").update({ is_pro: false }).eq("id", userId);
+    // ── 7. Restore profile fields we toggled ────────────────────────────────
+    const restorePatch: Record<string, unknown> = {};
+    if (!wasPro) restorePatch.is_pro = false;
+    if (role !== null && role !== prevRole) restorePatch.brief_role = prevRole;
+    if (Object.keys(restorePatch).length) {
+      await admin.from("profiles").update(restorePatch).eq("id", userId);
     }
 
     // ── 8. Find the new custom_brief row, if any ────────────────────────────

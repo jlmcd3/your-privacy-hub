@@ -92,11 +92,11 @@ export default function TestGovernanceAssessment() {
       } else if (data?.status === "failed") {
         addLog("❌ Edge function set status to failed");
         setStatus("failed");
-      } else if (polls++ < 30) {
-        addLog(`... poll ${polls}/30 (status: ${data?.status})`);
+      } else if (polls++ < 75) {
+        addLog(`... poll ${polls}/75 (status: ${data?.status})`);
         setTimeout(poll, 4000);
       } else {
-        addLog("❌ Timed out (120s). Edge function may have exceeded Supabase timeout.");
+        addLog("❌ Timed out (300s). Edge function may have exceeded Supabase timeout.");
         setStatus("failed");
       }
     };

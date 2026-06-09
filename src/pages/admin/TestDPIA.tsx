@@ -174,11 +174,11 @@ export default function TestDPIA() {
       } else if (data?.status === "failed" || data?.status === "error") {
         addLog(`❌ Edge function set status to ${data.status}`);
         setStatus("failed");
-      } else if (polls++ < 40) {
-        addLog(`... poll ${polls}/40 (status: ${data?.status})`);
+      } else if (polls++ < 90) {
+        addLog(`... poll ${polls}/90 (status: ${data?.status})`);
         setTimeout(poll, 4000);
       } else {
-        addLog("❌ Timed out (160s). Edge function may have exceeded Supabase timeout.");
+        addLog("❌ Timed out (360s). Edge function may have exceeded Supabase timeout.");
         setStatus("failed");
       }
     };

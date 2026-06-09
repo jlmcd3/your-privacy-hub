@@ -23,8 +23,8 @@ async function callFn(
       Authorization: `Bearer ${ADMIN_SECRET}`,
     },
     body: JSON.stringify(body),
-    // 2-minute timeout per user invocation – covers 3 API calls with margin
-    signal: AbortSignal.timeout(120_000),
+    // 4-minute timeout per user invocation – covers 3 API calls with margin
+    signal: AbortSignal.timeout(240_000),
   });
   const text = await resp.text();
   return { status: resp.status, body: text.slice(0, 500) };
