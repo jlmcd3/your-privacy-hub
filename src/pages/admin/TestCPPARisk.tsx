@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { useTestRunnerBridge } from "@/hooks/useTestRunnerBridge";
 
 const MOCK_INTAKE = {
+  // Legacy step 1-5
   q1_revenue: "Over $500M",
   q2_consumers: "1–10 million",
   q3_sector: "Healthcare/Life Sciences",
@@ -16,6 +17,15 @@ const MOCK_INTAKE = {
     "Employment information",
   ],
   q5_sell_share: "Both",
+  q6_right_know: "Online form with identity verification",
+  q7_right_delete: "Manual process, documented",
+  q8_right_correct: "Handled via support",
+  q9_opt_out: "Yes, but in footer only",
+  q10_id_verification: "Informal verification",
+  q11_policy_review: "12–24 months ago",
+  q12_notice_at_collection: "Yes, partial coverage",
+  q13_notice_content: "Some elements",
+  q14_employee_notice: "No — we use our general privacy policy",
   q15_sensitive_pi: "Yes",
   q16_sensitive_limit: "No",
   q17_sensitive_basis: "Treatment, payment, and healthcare operations",
@@ -23,70 +33,96 @@ const MOCK_INTAKE = {
   q19_admt_description:
     "ML model generates individual patient risk scores used by clinicians. Scores influence clinical prioritisation decisions.",
   q20_admt_opt_out: "No",
-  // Context fields preserved for prompt enrichment
-  processing_activities: [
-    { name: "Patient risk stratification analytics", purpose: "Predictive analytics for clinical risk", automated: true, profiling: true, sensitive: true },
-    { name: "Employee HR processing", purpose: "Payroll, benefits, performance management", automated: false, profiling: false, sensitive: false },
-    { name: "Marketing analytics", purpose: "Clinic client acquisition and retention", automated: true, profiling: true, sensitive: false },
-  ],
-  third_party_sharing: ["Cloud processors (Azure, Snowflake)", "Analytics vendors", "Healthcare data consortiums"],
-  consumer_rights_implemented: ["Right to know", "Right to delete (partial)"],
-  consumer_rights_missing: ["Right to correct", "Right to limit use of sensitive PI", "Right to opt-out of sale/share"],
-  security_measures: "SOC 2 Type II certified. Annual penetration testing. MFA enforced. Data encrypted at rest and in transit.",
-  children_data: false,
+  // v3 additions (I-1 through I-9)
+  i1_processing_purpose:
+    "To generate per-patient clinical-risk scores from 24 months of encounter, lab, and medication data, surfaced to attending clinicians at the point of care to prioritise outreach for patients at elevated risk of 30-day readmission.",
+  i2_retention_period: "60 months from encounter close",
+  i2_retention_criteria: "Statutory or regulatory retention requirement",
+  i2_retention_detail: "California medical-record retention rules apply; rolling deletion after 60 months.",
+  i3_ca_consumer_band: "More than 1,000,000",
+  i4_disclosure_mechanisms: ["Notice at Collection", "Privacy policy", "Just-in-time notice"],
+  i5_admt_logic: "Gradient-boosted ensemble; outputs a risk score 0–100 plus a categorical bucket Low/Med/High.",
+  i5_admt_training_source: "De-identified historical encounter data 2018–2024 across 14 affiliated facilities.",
+  i5_admt_fairness_testing: "Quarterly subgroup AUC + calibration audit across race, ethnicity, language, payer.",
+  i5_admt_human_review: "Score is advisory; treatment decisions require attending physician review and documentation.",
+  i6_vendors: "Azure (cloud hosting); Snowflake (data warehouse); Epic (EHR integration); Acme Analytics (model monitoring)",
+  i7_internal_contributors: "CISO; Chief Privacy Officer; VP Clinical Informatics; General Counsel; Product Owner",
+  i7_external_consultees: "External healthcare-privacy counsel; independent bias auditor (annual)",
+  i8_certifying_exec_name: "Dr. Alex Morgan",
+  i8_certifying_exec_title: "Chief Privacy Officer",
+  i9_has_existing_dpia: "No",
+  i9_existing_dpia_summary: "",
 };
 
 const ASSERTIONS: { label: string; fn: (r: any) => boolean }[] = [
   {
-    label: "report_data.executive_summary present",
-    fn: (r) => typeof r.executive_summary === "string" && r.executive_summary.length > 50,
+    label: "schema_version is v3-part-a-part-b",
+    fn: (r) => r.schema_version === "v3-part-a-part-b",
   },
   {
-    label: "domains array has ≥5 items",
-    fn: (r) => Array.isArray(r.domains) && r.domains.length >= 5,
-  },
-  {
-    label: "≥1 domain rated Critical or High",
+    label: "part_a present with all 11 sections (cover + 1–10)",
     fn: (r) =>
-      Array.isArray(r.domains) &&
-      r.domains.some((d: any) =>
-        /(Critical Gap|High)/i.test(d.status ?? "")
-      ),
+      !!r.part_a?.cover &&
+      !!r.part_a?.sec_1_trigger &&
+      !!r.part_a?.sec_2_purpose &&
+      !!r.part_a?.sec_3_pi_inventory &&
+      !!r.part_a?.sec_4_operations &&
+      !!r.part_a?.sec_5_benefits &&
+      !!r.part_a?.sec_6_harms &&
+      !!r.part_a?.sec_7_safeguards &&
+      !!r.part_a?.sec_8_decision &&
+      !!r.part_a?.sec_9_stakeholders &&
+      !!r.part_a?.sec_10_governance,
   },
   {
-    label: "top_risks array present with ≥1 item",
-    fn: (r) => Array.isArray(r.top_risks) && r.top_risks.length >= 1,
-  },
-  {
-    label: "enforcement_context present",
-    fn: (r) => typeof r.enforcement_context === "string" && r.enforcement_context.length > 20,
-  },
-  {
-    label: "ADMT domain flagged in findings",
+    label: "part_b present with § 7157 fields",
     fn: (r) =>
-      Array.isArray(r.domains) &&
-      r.domains.some((d: any) =>
-        /automat|ADMT|decision.making/i.test(d.domain ?? "") ||
-        /automat|ADMT/i.test(d.finding ?? "")
-      ),
+      !!r.part_b &&
+      typeof r.part_b.perjury_attestation_block === "string" &&
+      r.part_b.perjury_attestation_block.toLowerCase().includes("penalty of perjury"),
   },
   {
-    label: "Mentions 2027 CPPA audit deadline or upcoming enforcement timeline",
+    label: "§ 6 covers all 8 statutory harm categories",
     fn: (r) => {
-      const txt = `${r.executive_summary ?? ""}\n${r.enforcement_context ?? ""}`;
-      return /2027|December.*2027|Dec.*2027|audit.*deadline|upcoming.*audit|enforcement.*timeline|high.risk.*deadline/i.test(txt);
+      const harms = r.part_a?.sec_6_harms?.harms ?? [];
+      const required = [
+        "security", "discrimination", "control", "coercion",
+        "economic", "physical", "reputational", "psychological",
+      ];
+      const lc = harms.map((h: any) => String(h.category ?? "").toLowerCase());
+      return required.every((req) => lc.some((c: string) => c.includes(req)));
     },
   },
   {
-    label: "Consumer rights gaps reflected in findings",
+    label: "§ 7 safeguards have all four groupings",
     fn: (r) =>
-      Array.isArray(r.domains) &&
-      r.domains.some((d: any) =>
-        /consumer|rights|opt.out|deletion/i.test(d.domain ?? "") ||
-        /consumer|rights/i.test(d.finding ?? "")
-      ),
+      Array.isArray(r.part_a?.sec_7_safeguards?.technical) &&
+      Array.isArray(r.part_a?.sec_7_safeguards?.organizational) &&
+      Array.isArray(r.part_a?.sec_7_safeguards?.consumer_facing) &&
+      Array.isArray(r.part_a?.sec_7_safeguards?.contractual),
+  },
+  {
+    label: "§ 8 decision NOT auto-selected (user_decision is null)",
+    fn: (r) => r.part_a?.sec_8_decision?.user_decision === null || r.part_a?.sec_8_decision?.user_decision === undefined,
+  },
+  {
+    label: "§ 8 AI recommendation provided",
+    fn: (r) => typeof r.part_a?.sec_8_decision?.ai_recommended_outcome === "string" && r.part_a.sec_8_decision.ai_recommended_outcome.length > 0,
+  },
+  {
+    label: "Gating block surfaces blockers (sign-off not yet ready)",
+    fn: (r) => r.gating?.ready_for_signoff === false && Array.isArray(r.gating?.blockers) && r.gating.blockers.length > 0,
+  },
+  {
+    label: "Output contains NO 'corpus' reference",
+    fn: (r) => !JSON.stringify({ part_a: r.part_a, part_b: r.part_b, gating: r.gating }).toLowerCase().includes("corpus"),
+  },
+  {
+    label: "ADMT branch generated Appendix C or § 4G",
+    fn: (r) => !!r.part_a?.sec_4_operations?.g_admt || !!r.part_a?.appendices?.c_admt_note,
   },
 ];
+
 
 export default function TestCPPARisk() {
   const { user } = useAuth();

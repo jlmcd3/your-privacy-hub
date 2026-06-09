@@ -1,5 +1,18 @@
-// Retrieve → Generate → Validate pipeline for CPPA Risk Assessment.
-// Preserves existing cppa_assessments I/O (pending → processing → complete/error).
+// CPPA Risk Assessment — v3 (June 2026)
+// Produces a § 7152(a)(1)–(9) Part A report + § 7157 Part B annual submission
+// worksheet. The user document never references our internal corpus or any
+// enforcement record (per locked design principles 4 + 5).
+//
+// Pipeline:
+//   1. Retrieve statute + regulation + FSOR context (existing function).
+//   2. Single generation call → structured Part A / Part B JSON.
+//   3. Code-side banned-phrase validator on §§ 2 and 5.
+//   4. Code-side gating: linked High harms, mandatory user decisions, exec sign-off.
+//   5. Persist to cppa_assessments.report_data.
+//
+// Admin-only fields (citation_ledger, fsor_commentary, retrieval metadata) are
+// preserved when available so the existing admin UI continues to render them.
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -9,77 +22,41 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// --- intake key map: real storage keys used by CPPARiskAssessment.tsx ----
-const INTAKE_KEYS = {
-  q1: "q1_revenue",
-  q2: "q2_consumers",
-  q4: "q4_pi_categories",
-  q5: "q5_sell_share",
-  q15: "q15_sensitive_pi",
-  q18: "q18_admt_use",
-} as const;
-
-const HIGH_REVENUE = new Set(["$100M–$500M", "Over $500M"]);
-const HIGH_VOLUME = new Set(["1–10 million", "Over 10 million"]);
+// ---- Topic derivation (used to scope retrieval) ----
 const SENSITIVE_CATEGORIES = new Set([
-  "Health or medical information",
-  "Biometric information",
-  "Genetic data",
-  "Racial or ethnic origin",
-  "Religious or philosophical beliefs",
-  "Union membership",
-  "Sexual orientation or gender identity",
-  "Citizenship or immigration status",
-  "Financial information",
-  "Geolocation data",
-  "Children's data (under 16)",
+  "Health or medical information", "Biometric information", "Genetic data",
+  "Racial or ethnic origin", "Religious or philosophical beliefs", "Union membership",
+  "Sexual orientation or gender identity", "Citizenship or immigration status",
+  "Financial information", "Geolocation data", "Children's data (under 16)",
 ]);
 
 function deriveTopics(intake: any): string[] {
-  // Assert required keys exist
-  for (const [alias, key] of Object.entries(INTAKE_KEYS)) {
-    if (!(key in intake)) {
-      throw new Error(`intake schema drift: expected key ${alias} (${key})`);
-    }
-  }
   const topics = new Set<string>([
-    "thresholds", "consumer-rights", "notice-at-collection", "privacy-policy",
-    "notice-content", "enforcement", "breach", "private-right-of-action",
+    "thresholds", "risk-assessment", "purpose-limitation", "minimum-necessary",
+    "notice-at-collection", "service-providers", "retention", "governance",
   ]);
-  const q1 = intake[INTAKE_KEYS.q1];
-  const q2 = intake[INTAKE_KEYS.q2];
-  const q4: string[] = Array.isArray(intake[INTAKE_KEYS.q4]) ? intake[INTAKE_KEYS.q4] : [];
-  const q5 = intake[INTAKE_KEYS.q5];
-  const q15 = intake[INTAKE_KEYS.q15];
-  const q18 = intake[INTAKE_KEYS.q18];
-
-  if (q4.some((c) => SENSITIVE_CATEGORIES.has(c))) {
+  const q4: string[] = Array.isArray(intake.q4_pi_categories) ? intake.q4_pi_categories : [];
+  if (q4.some((c) => SENSITIVE_CATEGORIES.has(c)) || intake.q15_sensitive_pi === "Yes") {
     topics.add("sensitive-pi"); topics.add("limit-sensitive-pi");
   }
-  if (q15 === "Yes") {
-    topics.add("sensitive-pi"); topics.add("risk-assessment");
-  }
-  const sells = typeof q5 === "string" && /sell|share|both/i.test(q5) && !/^no/i.test(q5);
+  const sells = typeof intake.q5_sell_share === "string"
+    && /sell|share|both/i.test(intake.q5_sell_share)
+    && !/^no/i.test(intake.q5_sell_share);
   if (sells) {
-    ["opt-out-sale-sharing","opt-out-preference-signals","gpc","opt-out-link",
-     "third-party","contract-requirements"].forEach((t) => topics.add(t));
+    ["opt-out-sale-sharing", "third-party", "contract-requirements"].forEach((t) => topics.add(t));
   }
-  if (q18 === "Yes" || q18 === "In evaluation") {
-    ["admt","significant-decision","profiling","pre-use-notice","risk-assessment"]
-      .forEach((t) => topics.add(t));
-  }
-  if (sells || HIGH_VOLUME.has(q2) || HIGH_REVENUE.has(q1)) {
-    topics.add("cybersecurity-audit");
+  if (intake.q18_admt_use === "Yes" || intake.q18_admt_use === "In evaluation") {
+    ["admt", "significant-decision", "profiling", "pre-use-notice"].forEach((t) => topics.add(t));
   }
   return Array.from(topics);
 }
 
+// ---- Anthropic call helpers ----
 async function callClaude(model: string, system: string, user: string, maxTokens: number, label = "claude"): Promise<string> {
   const t0 = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -93,7 +70,7 @@ async function callClaude(model: string, system: string, user: string, maxTokens
       model, max_tokens: maxTokens, system,
       messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(180_000),
+    signal: AbortSignal.timeout(240_000),
   });
   const elapsed = Date.now() - t0;
   if (!res.ok) {
@@ -105,7 +82,6 @@ async function callClaude(model: string, system: string, user: string, maxTokens
   console.log(`[${label}] ${model} ok in ${elapsed}ms, output ~${d.usage?.output_tokens ?? "?"} tokens`);
   return d.content?.[0]?.text || "";
 }
-
 function tryParseJson(text: string): any | null {
   const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
   try { return JSON.parse(cleaned); } catch { /* fall through */ }
@@ -113,7 +89,6 @@ function tryParseJson(text: string): any | null {
   if (!m) return null;
   try { return JSON.parse(m[0]); } catch { return null; }
 }
-
 async function generateOrRetry(model: string, system: string, user: string, maxTokens: number, label = "claude") {
   let text = await callClaude(model, system, user, maxTokens, label);
   let parsed = tryParseJson(text);
@@ -125,123 +100,51 @@ async function generateOrRetry(model: string, system: string, user: string, maxT
   return { parsed, rawText: text };
 }
 
-
-const GENERATION_SYSTEM =
-`You are a senior California privacy compliance analyst. You produce a structured CPPA/CCPA risk assessment. You are NOT a lawyer and you give no legal advice; you map the organisation's intake answers to compliance gaps and ground every legal statement in the authorities provided to you.
-
-ABSOLUTE GROUNDING RULES (non-negotiable):
-- The RETRIEVED AUTHORITIES block below is the ONLY permitted source of statutory and regulatory citations. Every citation you use must appear VERBATIM in that block's "citation" fields.
-- The RETRIEVED DEADLINES block is the ONLY permitted source of dates and compliance deadlines. Never state a date, effective date, or deadline that is not in that block. Do not compute dates.
-- If you cannot support a statement with a retrieved authority or deadline, you must set finding and regulatory_basis to null for that domain. Do not generate placeholder text or warning phrases — never fill the gap from your own knowledge.
-- The ENFORCEMENT CONTEXT block is ILLUSTRATIVE and NON-BINDING. You may reference it to show enforcement focus, but never cite it as the legal basis for an obligation, and never present an FTC matter as CPPA precedent.
-
-CALIFORNIA-SPECIFIC ACCURACY RULES (apply only as the retrieved text supports; do not import other regimes):
-- CCPA/CPRA is NOT a GDPR-style "lawful basis" regime. Do not describe consent as a "lawful basis."
-- Do NOT import any non-California rule. In particular, do not state a 72-hour breach-notification rule — California breach timing is governed by Cal. Civ. Code § 1798.82's "most expedient time possible / without unreasonable delay" standard, and only if that section is in the retrieved set.
-- There is NO general consumer right to "appeal" a denied CCPA request. A right to appeal exists ONLY in the ADMT context for significant decisions, and only if a retrieved authority states it. Do not assert a general appeals right.
-- CPRA removed the mandatory cure period that existed under the original CCPA. Do not state that a business is entitled to a cure period unless a retrieved authority says so.
-- "Significant decision" for ADMT has a specific definition in the retrieved definitions section. Apply that definition. The final ADMT regulations EXCLUDE behavioural advertising / audience segmentation from "significant decisions." Do NOT characterise advertising or audience segmentation as ADMT for significant decisions unless the retrieved definition's text includes it.
-- Statutes and regulations are both binding; where the retrieved item has binding=false (guidance), treat it as persuasive only and label it as guidance, not a requirement.
-
-Determine CCPA/CPRA applicability and any audit/assessment scope from the retrieved THRESHOLD text, not from assumption.
-
-Return ONLY valid JSON in the schema given in the user message. No markdown, no preamble.`;
-
-const VALIDATION_SYSTEM =
-`You are an independent California privacy law citation validator. You receive a draft CPPA risk assessment and the exact set of legal authorities that were available to its author. Your job is to check, for every legal citation and every dated deadline in the draft, whether the provided authorities actually support it.
-
-RULES:
-- You may ONLY validate against the PROVIDED AUTHORITIES. You have no other source of law. Do not use your own legal knowledge to either approve or "correct" a citation.
-- A proposed corrected_citation is allowed ONLY if that citation string exists in the provided authorities. If the correct authority is not in the provided set, do not invent it — mark the item Not-in-corpus and recommend attorney review.
-- Judge support by reading the authority's TEXT, not just its title. If the cited authority does not actually establish the proposition, mark it Unsupported or Overstated even if the citation "looks" right.
-- CONTRADICTION CHECK (critical): a citation can be real and still be MISAPPLIED. For every finding, read the cited authority's text and check whether the finding's CONCLUSION is actually consistent with that text. If the conclusion is contradicted or excluded by the very authority cited, classify it "Contradicted-by-authority" even though the citation exists and is on-topic. The clearest example: a finding that characterises behavioural advertising or audience segmentation as an ADMT "significant decision" while citing the definitions section whose text EXCLUDES advertising from "significant decision" — the citation is real, the conclusion is wrong; flag it. Apply the same logic to any finding whose conclusion the cited text does not support or affirmatively excludes.
-- Specifically check for these known error patterns and flag any that appear: a citation used for a proposition it does not support; a date or deadline not present in the provided deadlines; GDPR concepts ("lawful basis", "72 hours") applied to California law; a general right to appeal a CCPA request; an entitlement to a cure period; advertising/audience segmentation characterised as an ADMT "significant decision".
-
-Return ONLY valid JSON, no markdown:
-{
-  "citation_ledger": [ {
-    "statement": "the proposition as written in the draft",
-    "citation": "the citation the draft attached",
-    "classification": "Supported|Partially supported|Unsupported|Not-in-corpus|Overstated|Contradicted-by-authority",
-    "corrected_citation": "a citation FROM THE PROVIDED AUTHORITIES, or null",
-    "note": "one sentence explaining the classification"
-  } ],
-  "requires_attorney_review": ["short description of each item needing human legal review"],
-  "summary": "one sentence on overall citation reliability of this draft"
-}`;
-
+// ---- Authority / FSOR retrieval (server-side only; NEVER surfaced to user as "corpus") ----
 function buildAuthoritiesBlock(authorities: any[]): string {
   return authorities.map((a, i) =>
-    `[A${i + 1}] ${a.citation} — ${a.title}\nBINDING: ${a.binding}\nSUMMARY: ${a.plain_summary ?? ""}\nTEXT: ${a.full_text ?? "(summary only)"}`,
+    `[A${i + 1}] ${a.citation} — ${a.title}\nTEXT: ${(a.full_text ?? a.plain_summary ?? "").slice(0, 4000)}`,
   ).join("\n\n");
 }
 function buildDeadlinesBlock(deadlines: any[]): string {
   if (!deadlines?.length) return "(none)";
   return deadlines.map((d, i) =>
-    `[D${i + 1}] ${d.obligation} | trigger: ${d.trigger_condition} | effective: ${d.effective_date ?? "—"} | deadline: ${d.compliance_deadline ?? "—"} | tier: ${d.revenue_tier ?? "—"} | basis: ${d.primary_authority_citation}`,
+    `[D${i + 1}] ${d.obligation} | effective: ${d.effective_date ?? "—"} | deadline: ${d.compliance_deadline ?? "—"} | basis: ${d.primary_authority_citation}`,
   ).join("\n");
 }
-function buildValidationAuthBlock(authorities: any[]): string {
-  // Cap each authority text to keep the validator prompt within token budget
-  return authorities.map((a) => {
-    const txt = (a.full_text ?? a.plain_summary ?? "").slice(0, 6000);
-    return `${a.citation} — ${a.title}\nTEXT: ${txt}`;
-  }).join("\n\n");
-}
-function buildValidationDeadlineBlock(deadlines: any[]): string {
-  if (!deadlines?.length) return "(none)";
-  return deadlines.map((d) =>
-    `${d.obligation}: effective ${d.effective_date ?? "—"}, deadline ${d.compliance_deadline ?? "—"}, tier ${d.revenue_tier ?? "—"}, basis ${d.primary_authority_citation}`,
-  ).join("\n");
+function buildFsorBlock(fsor: any[]): string {
+  if (!fsor?.length) return "(none)";
+  return fsor.map((f, i) =>
+    `[F${i + 1}] re ${f.regulation_citation}: ${(f.comment_summary ?? "").slice(0, 400)} — Agency response: ${(f.agency_response ?? "").slice(0, 800)}`,
+  ).join("\n\n");
 }
 
-async function retrieveFsorCommentary(
-  authorities: any[],
-  topics: string[],
-  intake: any,
-): Promise<any[]> {
+async function retrieveFsorCommentary(authorities: any[], topics: string[], intake: any): Promise<any[]> {
   if (!LOVABLE_API_KEY) return [];
   if (!authorities?.length && !topics?.length) return [];
   try {
-    // Build a query that reflects what this org actually does, scoped to the cited regs.
     const citations = authorities.map((a) => a.citation).filter(Boolean);
     const queryText =
-      `California privacy compliance issues for: topics=${topics.join(", ")}. ` +
-      `Intake highlights: revenue=${intake.q1_revenue ?? "?"}, consumers=${intake.q2_consumers ?? "?"}, ` +
-      `sensitive_pi=${intake.q15_sensitive_pi ?? "?"}, admt=${intake.q18_admt_use ?? "?"}, ` +
-      `sells_or_shares=${intake.q5_sell_share ?? "?"}.`;
-
+      `California privacy risk assessment for: topics=${topics.join(", ")}. ` +
+      `Sensitive PI=${intake.q15_sensitive_pi ?? "?"}, ADMT=${intake.q18_admt_use ?? "?"}, ` +
+      `sells_or_shares=${intake.q5_sell_share ?? "?"}, purpose=${(intake.i1_processing_purpose ?? "").slice(0, 200)}.`;
     const er = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "openai/text-embedding-3-small",
-        input: queryText.slice(0, 6000),
-        dimensions: 1536,
-      }),
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "openai/text-embedding-3-small", input: queryText.slice(0, 6000), dimensions: 1536 }),
       signal: AbortSignal.timeout(15_000),
     });
-    if (!er.ok) {
-      console.warn(`[fsor] embed failed ${er.status}`);
-      return [];
-    }
+    if (!er.ok) return [];
     const ed = await er.json();
     const embedding = ed?.data?.[0]?.embedding;
     if (!Array.isArray(embedding)) return [];
-
     const { data, error } = await supabase.rpc("match_cppa_fsor_commentary", {
       query_embedding: embedding,
       citation_filter: citations.length ? citations : null,
       topic_filter: topics.length ? topics : null,
-      match_count: 8,
+      match_count: 10,
     });
-    if (error) {
-      console.warn(`[fsor] rpc error: ${error.message}`);
-      return [];
-    }
+    if (error) { console.warn(`[fsor] rpc error: ${error.message}`); return []; }
     return Array.isArray(data) ? data : [];
   } catch (e) {
     console.warn(`[fsor] retrieve threw: ${e}`);
@@ -249,339 +152,313 @@ async function retrieveFsorCommentary(
   }
 }
 
-function buildFsorBlock(fsor: any[]): string {
-  if (!fsor?.length) return "(none)";
-  return fsor.map((f, i) =>
-    `[F${i + 1}] re ${f.regulation_citation} — Agency rationale (FSOR ${f.fsor_package}${f.page_ref ? `, ${f.page_ref}` : ""}):\n` +
-    `Comment: ${f.comment_summary}\nAgency response: ${(f.agency_response ?? "").slice(0, 1500)}`,
-  ).join("\n\n");
-}
-
-
-async function getEnforcementContext(sector?: string) {
-  try {
-    const r = await fetch(`${SUPABASE_URL}/functions/v1/get-enforcement-context`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
-      body: JSON.stringify({ tool: "CPPA", jurisdictions: ["California","United States","US-CA"], sector, limit: 6 }),
-    });
-    if (!r.ok) return { text: "", results: [] };
-    const ec = await r.json();
-    const results = ec?.results ?? [];
-    const text = results.map((x: any, i: number) =>
-      `[E${i + 1}] ${x.regulator} v ${x.subject} (${x.decision_date ?? "n.d."}): ${x.violation ?? x.key_compliance_failure ?? ""} | Fine: ${x.fine_amount ?? "n/a"}`,
-    ).join("\n");
-    return { text, results };
-  } catch { return { text: "", results: [] }; }
-}
-
-// Validator-emitted strings that are internal QA diagnostics — never surface in
-// the user-facing "requires_attorney_review" list. They are preserved separately
-// in `debug_review_notes` for admin/eval-harness consumption.
-const DEBUG_PREFIXES = [
-  "Unsupported citation removed",
-  "Review citation",
-  "Contradicted by authority",
-  "Validator output",
+// ---- Banned-phrase validator (post-generation, code-side) ----
+const BANNED_PHRASES = [
+  "improve our services", "improve services",
+  "for security purposes", "for business purposes",
+  "to enhance user experience", "as described in our privacy policy",
+  "to provide better services", "to support our business objectives",
 ];
-const isDebugString = (s: string) => DEBUG_PREFIXES.some((p) => s.startsWith(p));
+const BANNED_BARE_WORDS = ["analytics"]; // bare token, no surrounding specificity
 
-function mergeValidation(report: any, validation: any, corpusCitations: Set<string>) {
-  const ledger = Array.isArray(validation?.citation_ledger) ? validation.citation_ledger : [];
-  const incomingAttorneyReview: string[] = Array.isArray(validation?.requires_attorney_review)
-    ? [...validation.requires_attorney_review] : [];
-  const attorneyReview: string[] = [];
-  const debugEntries: string[] = [];
+/** Returns null if the statement is acceptable; otherwise an explanation. */
+function checkBannedPhrase(statement: string | undefined | null): string | null {
+  if (!statement || typeof statement !== "string") return null;
+  const s = statement.trim();
+  if (!s) return null;
+  const lower = s.toLowerCase();
 
-  for (const m of incomingAttorneyReview) {
-    if (typeof m !== "string") continue;
-    if (isDebugString(m)) debugEntries.push(m); else attorneyReview.push(m);
-  }
-
-  let hasBlocking = false;
-
-  const pushMsg = (m: string) => {
-    if (isDebugString(m)) debugEntries.push(m); else attorneyReview.push(m);
-  };
-
-  for (const entry of ledger) {
-    const cls = entry?.classification ?? "";
-    const cite = entry?.citation ?? "";
-    const note = entry?.note ?? "";
-
-    if (entry?.corrected_citation && !corpusCitations.has(entry.corrected_citation)) {
-      entry.corrected_citation = null;
-      entry.note = `${note} (proposed correction dropped — not in verified authority set)`.trim();
+  // Very short statements that consist mostly of a banned phrase are non-compliant.
+  for (const phrase of BANNED_PHRASES) {
+    if (lower === phrase || lower === phrase + ".") {
+      return `Statement is exactly the banned phrase "${phrase}"; the regulation requires a specific operationalising description.`;
     }
-
-    if (cls === "Unsupported" || cls === "Not-in-corpus") {
-      hasBlocking = true;
-      blankCitation(report, cite);
-      pushMsg(`Unsupported citation removed: "${cite}" — ${note}`);
-    } else if (cls === "Overstated" || cls === "Partially supported") {
-      attachNote(report, cite, note);
-      pushMsg(`Review citation "${cite}": ${note}`);
-    } else if (cls === "Contradicted-by-authority") {
-      hasBlocking = true;
-      flagContradiction(report, cite, note, entry?.statement ?? "");
-      pushMsg(`Contradicted by authority: "${entry?.statement ?? cite}" — ${note}`);
+    // banned phrase makes up most of the statement (no specific detail attached)
+    if (lower.includes(phrase) && s.length < phrase.length + 40) {
+      return `Statement is dominated by the banned phrase "${phrase}" with no specific detail.`;
     }
   }
-
-  report.citation_ledger = ledger;
-  report.validation_summary = validation?.summary ?? null;
-  report.requires_attorney_review = Array.from(new Set(attorneyReview));
-  report.debug_review_notes = Array.from(new Set(debugEntries));
-  if (hasBlocking) {
-    report.accuracy_caveat = "Some legal citations or conclusions in this draft could not be verified against the statutory or regulatory authority on point and have been flagged for attorney review.";
+  for (const word of BANNED_BARE_WORDS) {
+    const re = new RegExp(`\\b${word}\\b`, "i");
+    if (re.test(lower) && s.length < 60) {
+      return `Statement uses the bare term "${word}" without operationalising what is measured or why.`;
+    }
   }
-  return report;
+  return null;
 }
 
-function blankCitation(report: any, citation: string) {
-  if (!citation) return;
-  for (const d of report?.domains ?? []) {
-    if (typeof d.regulatory_basis === "string" && d.regulatory_basis.includes(citation)) {
-      d.regulatory_basis = d.regulatory_basis.replace(citation, "[removed — unsupported]");
-      d.attorney_review_needed = true;
-      d.confidence_level = "Low";
-    }
-  }
-}
-function attachNote(report: any, citation: string, note: string) {
-  if (!citation) return;
-  for (const d of report?.domains ?? []) {
-    if (typeof d.regulatory_basis === "string" && d.regulatory_basis.includes(citation)) {
-      d.finding = `${d.finding ?? ""}\n\n[Validator note: ${note}]`.trim();
-      d.attorney_review_needed = true;
-      if (d.confidence_level !== "Low") d.confidence_level = "Medium";
-    }
-  }
-}
-function flagContradiction(report: any, citation: string, note: string, statement: string) {
-  const warn = `⚠ WARNING — Contradicted by cited authority: ${note}`;
-  for (const d of report?.domains ?? []) {
-    const matches = (typeof d.regulatory_basis === "string" && d.regulatory_basis.includes(citation))
-      || (typeof d.finding === "string" && statement && d.finding.includes(statement.slice(0, 40)));
-    if (matches) {
-      d.finding = `${warn}\n\n${d.finding ?? ""}`;
-      d.confidence_level = "Low";
-      d.attorney_review_needed = true;
-    }
-  }
+function validateSection(text: string | undefined): { status: "pass" | "warn" | "fail"; note: string | null } {
+  const note = checkBannedPhrase(text);
+  if (!text || text.length < 20) return { status: "warn", note: "Statement is too short to satisfy the regulation's specificity requirement." };
+  if (note) return { status: "fail", note };
+  return { status: "pass", note: null };
 }
 
-// Background pipeline — wrapped so we can fire-and-forget via EdgeRuntime.waitUntil.
-// Opus validation alone can take 60-120s, plus generation. The HTTP edge has a
-// 150s idle ceiling, so we return 202 immediately and let the client poll the row.
+// ---- Gating logic ----
+function computeGating(partA: any): { ready_for_signoff: boolean; blockers: string[] } {
+  const blockers: string[] = [];
+  // 1. Banned-phrase validators must pass.
+  if (partA?.sec_2_purpose?.validator?.status === "fail") {
+    blockers.push("§ 2 purpose statement uses non-specific language; edit before sign-off.");
+  }
+  if (partA?.sec_5_benefits?.validator?.status === "fail") {
+    blockers.push("§ 5 benefits statement uses non-specific language; edit before sign-off.");
+  }
+  // 2. Every High harm must have at least one linked safeguard.
+  const harms = Array.isArray(partA?.sec_6_harms?.harms) ? partA.sec_6_harms.harms : [];
+  const allSafeguards = [
+    ...(partA?.sec_7_safeguards?.technical ?? []),
+    ...(partA?.sec_7_safeguards?.organizational ?? []),
+    ...(partA?.sec_7_safeguards?.consumer_facing ?? []),
+    ...(partA?.sec_7_safeguards?.contractual ?? []),
+  ];
+  const linkedHarmCats = new Set<string>();
+  for (const sg of allSafeguards) {
+    for (const h of sg?.linked_harms ?? []) linkedHarmCats.add(String(h).toLowerCase());
+  }
+  const unlinked = harms
+    .filter((h: any) => (h?.residual_after_safeguards ?? h?.magnitude ?? "").toString().toLowerCase() === "high")
+    .filter((h: any) => !linkedHarmCats.has(String(h.category ?? "").toLowerCase()))
+    .map((h: any) => h.category);
+  if (unlinked.length) {
+    blockers.push(`Unlinked High residual-risk harm(s): ${unlinked.join(", ")}. Add a § 7 safeguard linked to each.`);
+  }
+  // 3. § 8 decision must be actively selected by the user.
+  if (!partA?.sec_8_decision?.user_decision) {
+    blockers.push("§ 8 decision has not been recorded. The certifying executive must select Proceed / Proceed with conditions / Do not proceed.");
+  }
+  // 4. Certifying executive identification.
+  if (!partA?.cover?.certifying_executive?.name || !partA?.cover?.certifying_executive?.title) {
+    blockers.push("Certifying executive name and title are required for sign-off.");
+  }
+  return { ready_for_signoff: blockers.length === 0, blockers };
+}
+
+// ---- System prompt for the single Part A / Part B generation call ----
+const GENERATION_SYSTEM =
+`You are a senior California privacy compliance analyst. You are NOT a lawyer and you do not give legal advice. Your job is to draft a structured CPPA Risk Assessment FRAMEWORK that maps 1:1 to Cal. Code Regs. tit. 11 § 7152(a)(1)–(9), pre-populated from the user's intake answers, ready for the user's team to review, complete, and sign.
+
+ABSOLUTE RULES:
+1. Output is JSON only. No prose outside JSON. No markdown fences.
+2. NEVER use the word "corpus", "retrieval", "RAG", or any synonym for an internal source store. The user document must be silent on coverage.
+3. NEVER cite an enforcement record. No FTC matters, no enforcement actions, no settlements as the basis for any conclusion. Guidance is sourced from Cal. Code Regs. tit. 11 §§ 7150–7157, the underlying Civil Code provisions, and the CPPA Final Statement of Reasons only.
+4. The RETRIEVED AUTHORITIES, DEADLINES, and FSOR blocks are the ONLY permitted basis for legal/regulatory statements. If a section has no on-point retrieved authority, do not invent one — provide a clearly-marked fill-in prompt for the user instead.
+5. You NEVER select the § 8 decision (Proceed / Proceed with conditions / Do not proceed). Always leave sec_8_decision.user_decision = null. You MAY propose ai_recommended_outcome with rationale; the user must actively confirm.
+6. You NEVER fabricate counts. Any value the user did not provide must be a clearly-marked fill-in placeholder like "[FILL IN]".
+7. § 2 (Purpose) and § 5 (Benefits) must be specific. Avoid these phrases entirely unless they appear as one component of a larger specific description: "improve services", "for security purposes", "for business purposes", "analytics" (bare), "to enhance user experience", "as described in our privacy policy", "to provide better services", "to support our business objectives".
+8. § 6 (Harms) MUST cover all eight statutory harm categories from § 7152(a)(5): (A) Security, (B) Discrimination on protected characteristics, (C) Loss of control or autonomy over PI, (D) Coercion or compelled disclosure, (E) Economic, (F) Physical, (G) Reputational, (H) Psychological. For each: source/cause, likelihood (Low/Medium/High), magnitude (Low/Medium/High), residual_after_safeguards (Low/Medium/High).
+9. § 7 (Safeguards) MUST be organised into four groupings: technical, organizational, consumer_facing, contractual. Every safeguard MUST include linked_harms = an array of § 6 category names it mitigates.
+10. § 4 sub-mapping is fixed: A=collection sources, B=retention, C=consumer interaction, D=consumer count, E=disclosures to consumers, F=service providers/contractors/third parties, G=ADMT logic (null unless ADMT trigger fires).
+11. § 10 governance commitments: triennial review (§ 7155(a)); 45-day material-change update (§ 7155(a)); 5-year retention (§ 7155(b)); 30-day on-demand production (§ 7156(c)).
+
+OUTPUT SHAPE (every field required unless marked optional):
+{
+  "part_a": {
+    "cover": {
+      "business_legal_name": "[FILL IN — business legal name]",
+      "activity_name": "string drawn from intake",
+      "version": "1.0",
+      "effective_date": "ISO date today",
+      "scope_statement": "1-2 sentence scope, drawn from intake",
+      "next_review_date": "ISO date approx 3 years from today",
+      "certifying_executive": { "name": "from i8_certifying_exec_name or [FILL IN]", "title": "from i8_certifying_exec_title or [FILL IN]" }
+    },
+    "sec_1_trigger": {
+      "statute": "Cal. Code Regs. tit. 11 § 7150(b)",
+      "triggers_selected": ["array of trigger descriptions matched from intake; cite the subdivision letter"],
+      "narrative": "1-2 sentence summary of why this activity is in scope"
+    },
+    "sec_2_purpose": {
+      "statute": "Cal. Code Regs. tit. 11 § 7152(a)(1)",
+      "purpose_statement": "specific purpose drawn primarily from intake i1_processing_purpose; do not paraphrase to be vaguer",
+      "user_guidance": "short instruction on how the user should refine this section"
+    },
+    "sec_3_pi_inventory": {
+      "statute": "Cal. Code Regs. tit. 11 § 7152(a)(2)",
+      "pi_categories": [{"category": "from intake q4", "is_spi": true_or_false_per_7001(ccc)}],
+      "minimum_necessary_justification": "draft justification for why each PI category is the minimum necessary to achieve the § 2 purpose",
+      "user_guidance": "string"
+    },
+    "sec_4_operations": {
+      "statute": "Cal. Code Regs. tit. 11 § 7152(a)(3)(A)–(G)",
+      "a_sources": "collection sources and methods",
+      "b_retention": "retention period + criteria from i2_*",
+      "c_consumer_interaction": "how consumers interact with the activity",
+      "d_consumer_count": "value from i3_ca_consumer_band",
+      "e_disclosures": "list disclosure mechanisms from i4_disclosure_mechanisms, mapped against § 7003 conspicuousness",
+      "f_service_providers": "list from i6_vendors",
+      "g_admt": null_or_object_with_logic_training_fairness_humanReview_from_i5_fields
+    },
+    "sec_5_benefits": {
+      "statute": "Cal. Code Regs. tit. 11 § 7152(a)(4)",
+      "to_business": "specific benefit to the business",
+      "to_consumer": "specific benefit to the consumer",
+      "to_public": "specific benefit to the public (may be 'None identified.' if none)",
+      "user_guidance": "string"
+    },
+    "sec_6_harms": {
+      "statute": "Cal. Code Regs. tit. 11 § 7152(a)(5)",
+      "harms": [
+        {"category": "Security", "source": "...", "likelihood": "...", "magnitude": "...", "residual_after_safeguards": "...", "user_guidance": "..."},
+        {"category": "Discrimination on protected characteristics", ...},
+        {"category": "Loss of control or autonomy over PI", ...},
+        {"category": "Coercion or compelled disclosure", ...},
+        {"category": "Economic", ...},
+        {"category": "Physical", ...},
+        {"category": "Reputational", ...},
+        {"category": "Psychological", ...}
+      ]
+    },
+    "sec_7_safeguards": {
+      "statute": "Cal. Code Regs. tit. 11 § 7152(a)(6)",
+      "technical": [{"name": "...", "description": "...", "linked_harms": ["Security"]}],
+      "organizational": [...],
+      "consumer_facing": [...],
+      "contractual": [...]
+    },
+    "sec_8_decision": {
+      "statute": "Cal. Code Regs. tit. 11 §§ 7152(a)(7), 7154",
+      "analysis": "structured reasoned-analysis paragraph weighing benefits against residual risks after § 7 safeguards",
+      "ai_recommended_outcome": "Proceed | Proceed with conditions | Do not proceed",
+      "recommendation_rationale": "1-2 sentence rationale",
+      "user_decision": null,
+      "user_conditions": null,
+      "user_guidance": "The certifying executive must actively record the decision. This tool's recommendation is not the decision."
+    },
+    "sec_9_stakeholders": {
+      "statute": "Cal. Code Regs. tit. 11 §§ 7151, 7152(a)(8)",
+      "internal_contributors": [{"role": "...", "name": "[FILL IN]"}],
+      "external_consultees": [{"role": "...", "name": "[FILL IN]"}]
+    },
+    "sec_10_governance": {
+      "statute": "Cal. Code Regs. tit. 11 §§ 7152(a)(9), 7155, 7156(c)",
+      "triennial_review_date": "ISO date",
+      "material_change_commitment": "We will update this assessment within 45 days of a material change to the processing activity, per § 7155(a).",
+      "retention_commitment": "This assessment will be retained for at least 5 years, per § 7155(b).",
+      "production_commitment": "We will produce this assessment to the CPPA within 30 days of a written request, per § 7156(c).",
+      "approver": {"name": "from i8", "title": "from i8", "date": null}
+    },
+    "appendices": {
+      "a_data_flow": "textual data flow diagram",
+      "b_vendor_register": [{"vendor": "...", "role": "...", "pi_categories": [...]}],
+      "c_admt_note": null_or_object_when_ADMT,
+      "d_spi_note": null_or_object_when_SPI,
+      "e_dpia_gap_fill": null_or_object_when_i9_yes
+    }
+  },
+  "part_b": {
+    "statute": "Cal. Code Regs. tit. 11 § 7157",
+    "business_legal_name": "[FILL IN]",
+    "point_of_contact": "from i8 fields",
+    "assessment_count_in_period": 1,
+    "pi_categories_aggregated": ["from § 3"],
+    "spi_flagged": ["subset of above flagged as SPI"],
+    "perjury_attestation_block": "I, [NAME], [TITLE], certify under penalty of perjury under the laws of the State of California that the foregoing is true and correct. Executed on [DATE].",
+    "submission_banner": "The California Privacy Protection Agency has not yet opened a submission portal for risk-assessment certifications. Check cppa.ca.gov/regulations for current filing instructions before the April 1, 2028 deadline."
+  }
+}`;
+
+// ---- Background pipeline ----
 async function runPipeline(assessment_id: string) {
   try {
-    const { data: row } = await supabase
-      .from("cppa_assessments").select("*").eq("id", assessment_id).single();
+    const { data: row } = await supabase.from("cppa_assessments").select("*").eq("id", assessment_id).single();
     if (!row) return;
-
     await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
-
     const intake = row.intake_data ?? {};
+    const topics = deriveTopics(intake);
 
-    // STAGE 0 — Topic derivation
-    let topics: string[];
-    try { topics = deriveTopics(intake); }
-    catch (e: any) {
-      await supabase.from("cppa_assessments")
-        .update({ status: "error", report_data: { error: e.message } })
-        .eq("id", assessment_id);
-      return;
-    }
-
-
-    // STAGE 1 — Retrieve + enforcement context IN PARALLEL (P2: reduce wall-clock)
-    // Sector parity with run-cppa-cybersecurity (June 8 hotfix): prefer this
-    // tool's own q3_sector, fall back to a unified profile.industry shape, then
-    // legacy fields. Keeps cross-tool intake compatibility without changing UX.
-    const sector = intake.q3_sector
-      ?? intake?.profile?.industry
-      ?? intake.industry_sector
-      ?? intake.sector;
-    const [retrieval, enforcement] = await Promise.all([
-      fetch(`${SUPABASE_URL}/functions/v1/cppa-retrieve-context`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
-        body: JSON.stringify({ topics, include_deadlines: true, full_text_limit: 8, limit: 14 }),
-      }).then((r) => r.json()),
-      getEnforcementContext(sector),
-    ]);
+    // Retrieve authorities + FSOR (server-side only).
+    const retrieval = await fetch(`${SUPABASE_URL}/functions/v1/cppa-retrieve-context`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
+      body: JSON.stringify({ topics, include_deadlines: true, full_text_limit: 8, limit: 14 }),
+    }).then((r) => r.json()).catch(() => ({}));
     const authorities = retrieval?.authorities ?? [];
     const deadlines = retrieval?.deadlines ?? [];
-    const noAuth = retrieval?.warning === "no_matching_authority" || authorities.length === 0;
-
-    // STAGE 1b — FSOR agency rationale (non-binding interpretive context).
-    // Scoped to the cited regulations + topics so it's relevant, not a firehose.
-    const tFsor = Date.now();
     const fsorCommentary = await retrieveFsorCommentary(authorities, topics, intake);
-    console.log(`[pipeline] fsor retrieve ${fsorCommentary.length} units in ${Date.now() - tFsor}ms`);
 
-    // STAGE 2 — Generate
+    // Generate Part A + Part B.
     const genUser =
-`Produce a CPPA/CCPA risk assessment for this organisation, grounded ONLY in the retrieved authorities and deadlines.
+`Produce the CPPA Risk Assessment framework (Part A + Part B) for this intake, grounded in the authorities and FSOR commentary provided. Never reference "corpus" or any enforcement record.
 
 INTAKE DATA:
 ${JSON.stringify(intake, null, 2)}
 
-RETRIEVED AUTHORITIES (the only permitted source of citations):
-${noAuth ? "NONE RETRIEVED — mark every finding requires attorney review." : buildAuthoritiesBlock(authorities)}
+RETRIEVED AUTHORITIES (the only permitted basis for legal statements):
+${authorities.length ? buildAuthoritiesBlock(authorities) : "(none on point — provide fill-in placeholders rather than inventing citations)"}
 
-RETRIEVED DEADLINES (the only permitted source of dates/deadlines):
+RETRIEVED DEADLINES:
 ${buildDeadlinesBlock(deadlines)}
 
-AGENCY RATIONALE (Final Statement of Reasons — NON-BINDING interpretive context from the California Privacy Protection Agency. Use to explain WHY a regulation reads as it does or to surface enforcement focus. NEVER cite an [F#] item as the legal basis for an obligation — the legal basis must still be an [A#].):
+CPPA FSOR COMMENTARY (Final Statement of Reasons — agency rationale, persuasive only):
 ${buildFsorBlock(fsorCommentary)}
 
-ENFORCEMENT CONTEXT (illustrative, non-binding):
-${enforcement.text || "NONE AVAILABLE"}
-
-
-Return JSON:
-{
-  "executive_summary": "150-200 words. Overall posture and top 3 priorities. Every legal claim must trace to an [A#] or [D#].",
-  "scope_confirmation": {
-    "in_scope": true,
-    "threshold_met": "state which threshold is met, citing the [A#] threshold authority",
-    "applicable_deadlines": ["each item must reference a [D#]"]
-  },
-  "overall_score": 0,
-  "risk_level": "Critical|High|Medium|Low",
-  "domains": [ {
-    "domain": "...",
-    "score": 0,
-    "status": "Compliant|Partial|Gap|Critical Gap",
-    "finding": "2-3 sentences",
-    "regulatory_basis": "cite the exact [A#] citation(s); if no retrieved authority supports this domain, set both finding and regulatory_basis to null",
-    "remediation": "specific steps",
-    "priority": "Immediate|Within 90 days|Within 6 months|Monitor",
-    "confidence_level": "High|Medium|Low",
-    "attorney_review_needed": true
-  } ],
-  "top_risks": [ { "title": "...", "description": "...", "deadline": "reference a [D#] or omit", "consequence": "..." } ],
-  "enforcement_context": "2-3 sentences; may reference [E#] as illustrative only",
-  "next_steps": ["..."],
-  "citations_used": ["every [A#]/[D#] citation string you relied on, verbatim"]
-}
-
-Domains to assess (one object each): Consumer Rights Infrastructure; Privacy Notices and Transparency; Opt-Out of Sale and Sharing; Sensitive Personal Information; Automated Decision-Making; Data Retention and Minimisation; Third-Party Contracts and Data Sharing; Incident Response and Breach Notification; Employee Notice and Training; CPPA Audit Readiness.
-
-For any domain with no retrieved authority on point, set BOTH finding and regulatory_basis to null and attorney_review_needed=true rather than inventing a citation or emitting a placeholder phrase.`;
+Return the full JSON in the exact shape specified by the system message. All eight § 7152(a)(5) harm categories must appear. Every § 7 safeguard must include linked_harms.`;
 
     const tGen = Date.now();
-    const gen = await generateOrRetry("claude-sonnet-4-6", GENERATION_SYSTEM, genUser, 16000, "generate");
-    console.log(`[pipeline] generate total ${Date.now() - tGen}ms`);
-    if (!gen.parsed) {
+    const gen = await generateOrRetry("claude-sonnet-4-6", GENERATION_SYSTEM, genUser, 16000, "generate-v3");
+    console.log(`[v3] generate total ${Date.now() - tGen}ms`);
+    if (!gen.parsed || !gen.parsed.part_a) {
       await supabase.from("cppa_assessments").update({
         status: "error",
         report_data: { error: "generation_parse_failed", debug: gen.rawText?.slice(0, 4000) ?? "" },
       }).eq("id", assessment_id);
-      return new Response(JSON.stringify({ error: "Generation failed" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const draft = gen.parsed;
-
-    // STAGE 3 — Validate
-    const valUser =
-`Validate the citations and deadlines in this draft assessment against the provided authorities.
-
-DRAFT ASSESSMENT (JSON):
-${JSON.stringify(draft, null, 2)}
-
-PROVIDED AUTHORITIES (the only source you may validate against):
-${noAuth ? "(NONE)" : buildValidationAuthBlock(authorities)}
-
-PROVIDED DEADLINES:
-${buildValidationDeadlineBlock(deadlines)}
-
-Produce the citation_ledger, requires_attorney_review list, and summary per your instructions.
-Remember: never approve or correct from your own knowledge — only from the authorities above.`;
-
-    // Validator runs on Sonnet, not Opus: Opus on this prompt was running 3-4 min and
-    // killing the edge function. Sonnet is still capable of cross-referencing the draft
-    // against the provided authority text, and finishes inside the wall-clock budget.
-    const tVal = Date.now();
-    const val = await generateOrRetry("claude-sonnet-4-6", VALIDATION_SYSTEM, valUser, 16000, "validate");
-    console.log(`[pipeline] validate total ${Date.now() - tVal}ms`);
-    const validation = val.parsed ?? {
-      citation_ledger: [],
-      requires_attorney_review: ["Validator output unparseable — entire report needs human review."],
-      summary: "Validator failed to return structured output.",
-    };
-
-    const corpusCitations = new Set<string>(authorities.map((a: any) => a.citation));
-    const merged = mergeValidation(draft, validation, corpusCitations);
-
-    // Preserve retrieval, FSOR, & enforcement metadata in the report for transparency
-    merged.retrieval = {
-      topics, authority_count: authorities.length, deadline_count: deadlines.length,
-      fsor_count: fsorCommentary.length,
-      verified_only_mode: retrieval?.verified_only_mode ?? false,
-      warning: retrieval?.warning ?? null,
-    };
-    merged.fsor_commentary = fsorCommentary;
-    merged.enforcement_results = enforcement.results;
-
-    // Sprint 1 #1 — Per-domain "What the agency said".
-    // For each domain, attach FSOR rows whose regulation_citation appears in
-    // that domain's regulatory_basis. Empty array = UI silently omits callout.
-    if (Array.isArray(merged?.domains)) {
-      merged.domains = merged.domains.map((d: any) => {
-        const basis = typeof d.regulatory_basis === "string" ? d.regulatory_basis : "";
-        const matched = (fsorCommentary ?? []).filter((f: any) =>
-          f?.regulation_citation && basis.includes(f.regulation_citation)
-        ).slice(0, 3);
-        return { ...d, fsor_commentary: matched };
-      });
+      return;
     }
 
-    // Obligation snapshot: freeze the exact regulatory state used so the report
-    // is reproducible even if an authority is later superseded. Keep it lean —
-    // citations + identifiers, not full_text (already echoed in merged where needed).
-    const obligation_snapshot = {
-      captured_at: new Date().toISOString(),
-      module: "risk-assessment",
-      topics,
-      authorities: (authorities ?? []).map((a: any) => ({
-        id: a.id ?? null,
-        citation: a.citation,
-        version: a.version ?? null,
-        authority_type: a.authority_type ?? null,
-        authority_weight: a.authority_weight ?? null,
-        effective_date: a.effective_date ?? null,
-        official_url: a.official_url ?? null,
-        title: a.title ?? null,
-        status: a.status ?? null,
-      })),
-      deadlines: (deadlines ?? []).map((d: any) => ({
-        id: d.id ?? null,
-        citation: d.citation ?? null,
-        label: d.label ?? d.deadline_text ?? null,
-      })),
-      fsor: (fsorCommentary ?? []).map((f: any) => ({
-        id: f.id ?? null,
-        regulation_citation: f.regulation_citation ?? null,
-        page_ref: f.page_ref ?? null,
-      })),
-      retrieval_meta: {
+    const partA = gen.parsed.part_a;
+    const partB = gen.parsed.part_b ?? null;
+
+    // Banned-phrase validators (§§ 2 and 5).
+    const v2 = validateSection(partA?.sec_2_purpose?.purpose_statement);
+    if (partA?.sec_2_purpose) partA.sec_2_purpose.validator = v2;
+    const benefitsConcat = [
+      partA?.sec_5_benefits?.to_business,
+      partA?.sec_5_benefits?.to_consumer,
+      partA?.sec_5_benefits?.to_public,
+    ].filter(Boolean).join(" | ");
+    const v5 = validateSection(benefitsConcat);
+    if (partA?.sec_5_benefits) partA.sec_5_benefits.validator = v5;
+
+    // Gating.
+    const gating = computeGating(partA);
+
+    const report_data: any = {
+      schema_version: "v3-part-a-part-b",
+      generated_at: new Date().toISOString(),
+      part_a: partA,
+      part_b: partB,
+      gating,
+      // Admin-only metadata (preserved for the admin sections of the result page):
+      retrieval: {
+        topics,
         authority_count: authorities.length,
         deadline_count: deadlines.length,
         fsor_count: fsorCommentary.length,
         verified_only_mode: retrieval?.verified_only_mode ?? false,
         warning: retrieval?.warning ?? null,
       },
+      fsor_commentary: fsorCommentary,
+    };
+
+    const obligation_snapshot = {
+      captured_at: new Date().toISOString(),
+      module: "risk-assessment-v3",
+      topics,
+      authorities: (authorities ?? []).map((a: any) => ({
+        id: a.id ?? null, citation: a.citation, version: a.version ?? null,
+        authority_type: a.authority_type ?? null, effective_date: a.effective_date ?? null,
+        official_url: a.official_url ?? null, title: a.title ?? null, status: a.status ?? null,
+      })),
+      deadlines: (deadlines ?? []).map((d: any) => ({ id: d.id ?? null, citation: d.citation ?? null, label: d.label ?? d.deadline_text ?? null })),
+      fsor: (fsorCommentary ?? []).map((f: any) => ({ id: f.id ?? null, regulation_citation: f.regulation_citation ?? null, page_ref: f.page_ref ?? null })),
     };
 
     await supabase.from("cppa_assessments")
-      .update({ status: "complete", report_data: merged, obligation_snapshot })
+      .update({ status: "complete", report_data, obligation_snapshot })
       .eq("id", assessment_id);
   } catch (e) {
-    console.error("run-cppa-risk-assessment background error:", e);
+    console.error("run-cppa-risk-assessment v3 error:", e);
     try {
       await supabase.from("cppa_assessments")
         .update({ status: "error", report_data: { error: String(e) } })
@@ -608,12 +485,9 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Mark processing synchronously so the client sees immediate state change,
-  // then fire-and-forget via EdgeRuntime.waitUntil. Client polls cppa_assessments.status.
   try {
-    await supabase.from("cppa_assessments")
-      .update({ status: "processing" }).eq("id", assessment_id);
-  } catch { /* row existence is re-checked inside runPipeline */ }
+    await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
+  } catch { /* row presence is re-checked inside runPipeline */ }
 
   // @ts-ignore Deno Edge Runtime API
   const er = (globalThis as any).EdgeRuntime;
@@ -627,4 +501,3 @@ Deno.serve(async (req) => {
     status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
-

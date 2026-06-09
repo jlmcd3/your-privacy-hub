@@ -11,6 +11,7 @@ import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCa
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { AdminOnly } from "@/components/AdminOnly";
+import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
 
 // Truncate to first sentence (or 200 chars if no sentence boundary).
 const firstSentence = (text: string): string => {
@@ -114,11 +115,12 @@ export default function CPPARiskAssessmentResult() {
 
   const report = row?.report_data || {};
   const status = row?.status;
+  const isV3 = !!(row?.report_data && (row.report_data as any).schema_version === "v3-part-a-part-b" && (row.report_data as any).part_a);
   const reportReady = !!(
     row?.report_data
     && typeof row.report_data === "object"
     && Object.keys(row.report_data).length > 0
-    && (Array.isArray((row.report_data as any).domains) || typeof (row.report_data as any).executive_summary === "string")
+    && (isV3 || Array.isArray((row.report_data as any).domains) || typeof (row.report_data as any).executive_summary === "string")
   );
   const showRunning = !loading && (
     status === "pending"
@@ -161,20 +163,30 @@ export default function CPPARiskAssessmentResult() {
               <p className="text-slate-300 text-sm">
                 Generated {row?.created_at ? new Date(row.created_at).toLocaleDateString() : ""}
               </p>
-              <div className="mt-4 flex items-center gap-3 flex-wrap">
-                {report?.overall_score != null && (
-                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded font-medium bg-white/10">
-                    Overall score: <strong>{report.overall_score} / 100</strong>
-                  </span>
-                )}
-                {report?.risk_level && (
-                  <span className={`inline-block px-3 py-1.5 rounded font-medium ${riskColor(report.risk_level)}`}>
-                    {report.risk_level} risk
-                  </span>
-                )}
-              </div>
-              {report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
+              {isV3 && (
+                <p className="text-slate-300 text-sm mt-2">
+                  Regulation-mapped framework (Cal. Code Regs. tit. 11 § 7152(a)(1)–(9)) — pre-populated from your intake, ready for review, completion, and executive sign-off.
+                </p>
+              )}
+              {!isV3 && (
+                <div className="mt-4 flex items-center gap-3 flex-wrap">
+                  {report?.overall_score != null && (
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded font-medium bg-white/10">
+                      Overall score: <strong>{report.overall_score} / 100</strong>
+                    </span>
+                  )}
+                  {report?.risk_level && (
+                    <span className={`inline-block px-3 py-1.5 rounded font-medium ${riskColor(report.risk_level)}`}>
+                      {report.risk_level} risk
+                    </span>
+                  )}
+                </div>
+              )}
+              {!isV3 && report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
             </section>
+
+            {isV3 && <RiskAssessmentReportV3 report={report as any} />}
+
 
             {report?.accuracy_caveat && (
               <AdminOnly>
@@ -457,15 +469,17 @@ export default function CPPARiskAssessmentResult() {
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
               />
               <DownloadWordButton
-                text={[
-                  report?.executive_summary,
-                  ...(Array.isArray(report?.domains)
-                    ? report.domains
-                        .filter(hasUserFacingFinding)
-                        .map((d: any) =>
-                          `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding}\n${d.remediation ?? ""}`)
-                    : [])
-                ].filter(Boolean).join("\n\n")}
+                text={isV3
+                  ? buildV3Text(report)
+                  : [
+                      report?.executive_summary,
+                      ...(Array.isArray(report?.domains)
+                        ? report.domains
+                            .filter(hasUserFacingFinding)
+                            .map((d: any) =>
+                              `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding}\n${d.remediation ?? ""}`)
+                        : [])
+                    ].filter(Boolean).join("\n\n")}
                 label="CPPA Risk Assessment"
                 buttonLabel="Download Word — Risk Assessment"
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
@@ -530,3 +544,79 @@ export default function CPPARiskAssessmentResult() {
     </div>
   );
 }
+
+// Build a flat text export for the v3 Part A / Part B structure.
+function buildV3Text(report: any): string {
+  const a = report?.part_a ?? {};
+  const lines: string[] = [];
+  lines.push("CPPA RISK ASSESSMENT — Part A (Cal. Code Regs. tit. 11 § 7152(a)(1)–(9))", "");
+  lines.push(`§ 0 Cover — ${a.cover?.business_legal_name || "[FILL IN]"} | Activity: ${a.cover?.activity_name ?? ""}`);
+  lines.push(`Certifying executive: ${a.cover?.certifying_executive?.name || "[FILL IN]"} — ${a.cover?.certifying_executive?.title || "[FILL IN]"}`, "");
+  lines.push(`§ 1 Regulatory trigger (§ 7150(b)): ${a.sec_1_trigger?.narrative ?? ""}`, "");
+  lines.push(`§ 2 Processing purpose (§ 7152(a)(1)): ${a.sec_2_purpose?.purpose_statement ?? ""}`);
+  if (a.sec_2_purpose?.validator?.note) lines.push(`  Validator: ${a.sec_2_purpose.validator.note}`);
+  lines.push("");
+  lines.push(`§ 3 PI inventory (§ 7152(a)(2)):`);
+  for (const c of a.sec_3_pi_inventory?.pi_categories ?? []) lines.push(`  - ${c.category}${c.is_spi ? " (SPI)" : ""}`);
+  lines.push(`  Minimum-necessary justification: ${a.sec_3_pi_inventory?.minimum_necessary_justification ?? ""}`, "");
+  lines.push(`§ 4 Operations (§ 7152(a)(3)):`);
+  const op = a.sec_4_operations ?? {};
+  lines.push(`  A Sources: ${op.a_sources ?? ""}`);
+  lines.push(`  B Retention: ${op.b_retention ?? ""}`);
+  lines.push(`  C Consumer interaction: ${op.c_consumer_interaction ?? ""}`);
+  lines.push(`  D Consumer count: ${op.d_consumer_count ?? ""}`);
+  lines.push(`  E Disclosures: ${op.e_disclosures ?? ""}`);
+  lines.push(`  F Service providers: ${op.f_service_providers ?? ""}`);
+  if (op.g_admt) lines.push(`  G ADMT: ${JSON.stringify(op.g_admt)}`);
+  lines.push("");
+  lines.push(`§ 5 Benefits (§ 7152(a)(4)):`);
+  lines.push(`  Business: ${a.sec_5_benefits?.to_business ?? ""}`);
+  lines.push(`  Consumer: ${a.sec_5_benefits?.to_consumer ?? ""}`);
+  lines.push(`  Public: ${a.sec_5_benefits?.to_public ?? ""}`, "");
+  lines.push(`§ 6 Negative impacts (§ 7152(a)(5)):`);
+  for (const h of a.sec_6_harms?.harms ?? []) {
+    lines.push(`  - ${h.category}: likelihood ${h.likelihood ?? "?"}, magnitude ${h.magnitude ?? "?"}, residual ${h.residual_after_safeguards ?? "?"}`);
+    if (h.source) lines.push(`      Source: ${h.source}`);
+  }
+  lines.push("");
+  lines.push(`§ 7 Safeguards (§ 7152(a)(6)):`);
+  for (const group of ["technical", "organizational", "consumer_facing", "contractual"] as const) {
+    lines.push(`  ${group}:`);
+    for (const s of (a.sec_7_safeguards?.[group] ?? []) as any[]) {
+      lines.push(`    - ${s.name}${s.description ? `: ${s.description}` : ""} (links: ${(s.linked_harms ?? []).join(", ") || "none"})`);
+    }
+  }
+  lines.push("");
+  lines.push(`§ 8 Decision (§§ 7152(a)(7), 7154):`);
+  lines.push(`  Analysis: ${a.sec_8_decision?.analysis ?? ""}`);
+  lines.push(`  AI recommendation: ${a.sec_8_decision?.ai_recommended_outcome ?? ""} — ${a.sec_8_decision?.recommendation_rationale ?? ""}`);
+  lines.push(`  Executive decision (REQUIRED): ${a.sec_8_decision?.user_decision ?? "[NOT YET RECORDED]"}`, "");
+  lines.push(`§ 9 Stakeholders (§§ 7151, 7152(a)(8)):`);
+  for (const c of a.sec_9_stakeholders?.internal_contributors ?? []) lines.push(`  Internal — ${c.role}: ${c.name ?? "[FILL IN]"}`);
+  for (const c of a.sec_9_stakeholders?.external_consultees ?? []) lines.push(`  External — ${c.role}: ${c.name ?? "[FILL IN]"}`);
+  lines.push("");
+  lines.push(`§ 10 Governance (§§ 7152(a)(9), 7155, 7156(c)):`);
+  lines.push(`  Triennial review: ${a.sec_10_governance?.triennial_review_date ?? ""}`);
+  lines.push(`  ${a.sec_10_governance?.material_change_commitment ?? ""}`);
+  lines.push(`  ${a.sec_10_governance?.retention_commitment ?? ""}`);
+  lines.push(`  ${a.sec_10_governance?.production_commitment ?? ""}`);
+  lines.push(`  Approver: ${a.sec_10_governance?.approver?.name ?? "[FILL IN]"} — ${a.sec_10_governance?.approver?.title ?? "[FILL IN]"} on ${a.sec_10_governance?.approver?.date ?? "[FILL IN]"}`);
+  if (report?.part_b) {
+    const b = report.part_b;
+    lines.push("", "", "PART B — § 7157 ANNUAL SUBMISSION WORKSHEET", "");
+    lines.push(`Business: ${b.business_legal_name || "[FILL IN]"}`);
+    lines.push(`Point of contact: ${b.point_of_contact ?? ""}`);
+    lines.push(`Assessments in period: ${b.assessment_count_in_period ?? 1}`);
+    lines.push(`PI categories: ${(b.pi_categories_aggregated ?? []).join(", ")}`);
+    lines.push(`Sensitive PI: ${(b.spi_flagged ?? []).join(", ") || "None"}`, "");
+    lines.push("Attestation:");
+    lines.push(b.perjury_attestation_block ?? "");
+    lines.push("", b.submission_banner ?? "");
+  }
+  if (report?.gating?.blockers?.length) {
+    lines.push("", "", "SIGN-OFF BLOCKERS:");
+    for (const blk of report.gating.blockers) lines.push(`  - ${blk}`);
+  }
+  return lines.join("\n");
+}
+
