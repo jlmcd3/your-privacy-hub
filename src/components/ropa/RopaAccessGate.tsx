@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
@@ -15,6 +15,7 @@ interface RopaAccessGateProps {
  */
 export function RopaAccessGate({ children }: RopaAccessGateProps) {
   const { user, isPremium, isLoading } = useSubscriptionTier();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -50,7 +51,7 @@ export function RopaAccessGate({ children }: RopaAccessGateProps) {
           </Button>
           {!isSignedIn && (
             <Button asChild size="lg" variant="outline">
-              <Link to="/auth">Sign in</Link>
+              <Link to={`/login?redirect=${encodeURIComponent(location.pathname)}`}>Sign in</Link>
             </Button>
           )}
         </div>

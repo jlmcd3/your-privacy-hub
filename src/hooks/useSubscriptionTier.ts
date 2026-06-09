@@ -51,22 +51,24 @@ export interface SubscriptionTierState {
 }
 
 /**
- * Single source of truth for subscription tier.
+ * Single source of truth for subscription tier (v9 model).
  *
- * Trial enforcement: `isInTrial` collapses `hasToolAccess` to `false` and
- * `granularTier` to `"free"`. This is the only place trial restrictions
- * are applied — every downstream consumer (tool access gates, free-run
- * pool, pricing) inherits the restriction automatically.
+ * `hasToolAccess` = ANY active subscription (monthly or annual, Intelligence
+ * or Professional) post-trial. Layer-1 tools (RoPA, US/EU Notices, IR,
+ * Biometric, DPA) are included with any active subscription under v9 — this
+ * field gates their UI surfaces. Annual-only benefits (the Smart Tool
+ * credit) check `tier === "annual" || tier === "annual_founding"` directly.
  *
- * Tier mapping (post-trial):
- *   annual_founding → hasToolAccess = true (legacy alias for annual)
- *   annual          → hasToolAccess = true
- *   monthly         → hasToolAccess = false (intelligence only)
- *   free            → hasToolAccess = false
+ * Trial enforcement: `isInTrial` collapses `hasToolAccess` to `false`. Every
+ * downstream consumer inherits that automatically.
  *
- * Use hasToolAccess to gate tool generation, not isPremium.
- * Use isPremium to gate intelligence content (trial users see it).
- * Use granularTier for free-run pool lookups (FREE_RUN_POOL_SIZES).
+ * Tier resolution rules (defensive against stale Stripe state):
+ *   - If neither `is_premium` nor `is_pro` is true → tier `"free"` regardless
+ *     of `subscription_type` (closes the canceled-subscriber loophole).
+ *   - If premium with a NULL `subscription_type` → treat as `"monthly"`
+ *     (least privilege) and warn so missing types surface in testing.
+ *   - `"pro_monthly"` / `"pro_annual"` map to monthly/annual tier with
+ *     `isPro=true` even if the `is_pro` profile flag lags behind.
  */
 export function useSubscriptionTier(): SubscriptionTierState {
   const { user, loading: authLoading } = useAuth();
@@ -94,18 +96,29 @@ export function useSubscriptionTier(): SubscriptionTierState {
         if (cancelled) return;
         const subType = (data as any)?.subscription_type as string | null;
         const isPrem = data?.is_premium === true || data?.is_pro === true;
-        const proFlag = data?.is_pro === true;
+        const proFlag =
+          data?.is_pro === true ||
+          subType === "pro_monthly" ||
+          subType === "pro_annual";
         setIsPro(proFlag);
         setTrialEnd(((data as any)?.stripe_trial_end as string | null) ?? null);
 
+        if (!isPrem) {
+          setTier("free");
+          return;
+        }
         if (subType === "annual_founding" || subType === "annual") {
           setTier(subType as SubscriptionTier);
-        } else if (subType === "monthly") {
-          setTier("monthly");
-        } else if (isPrem) {
+        } else if (subType === "pro_annual") {
           setTier("annual");
+        } else if (subType === "monthly" || subType === "pro_monthly") {
+          setTier("monthly");
         } else {
-          setTier("free");
+          // eslint-disable-next-line no-console
+          console.warn(
+            `useSubscriptionTier: premium user ${user.id} has subscription_type=${subType ?? "null"}; defaulting to monthly.`,
+          );
+          setTier("monthly");
         }
       });
 
@@ -117,11 +130,8 @@ export function useSubscriptionTier(): SubscriptionTierState {
   const resolvedTier: SubscriptionTier = tier ?? "free";
   const isInTrial = !!trialEnd && new Date(trialEnd) > new Date();
   const isPremium = resolvedTier !== "free";
-  // Trial users do NOT receive tool benefits, even on the annual plan.
-  const hasToolAccess =
-    !isInTrial &&
-    (resolvedTier === "annual" || resolvedTier === "annual_founding");
-  // Trial users get a zero-sized free-run pool by collapsing to "free".
+  // v9: included = ANY active subscription, post-trial.
+  const hasToolAccess = isPremium && !isInTrial;
   const granularTier = isInTrial ? "free" : toGranularTier(resolvedTier, isPro);
 
   return {
@@ -129,7 +139,7 @@ export function useSubscriptionTier(): SubscriptionTierState {
     granularTier,
     isPremium,
     hasToolAccess,
-    isIntelligenceOnly: resolvedTier === "monthly",
+    isIntelligenceOnly: resolvedTier === "monthly" && !isPro,
     isPro,
     isInTrial,
     isFoundingSubscriber: false,
