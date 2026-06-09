@@ -891,6 +891,13 @@ export type Database = {
             referencedRelation: "weekly_briefs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "custom_briefs_base_brief_id_fkey"
+            columns: ["base_brief_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_briefs_teaser"
+            referencedColumns: ["id"]
+          },
         ]
       }
       dpa_documents: {
@@ -5492,6 +5499,33 @@ export type Database = {
           upgrade_cta_clicks: number | null
           user_id: string | null
           user_role: string | null
+        }
+        Relationships: []
+      }
+      weekly_briefs_teaser: {
+        Row: {
+          article_count: number | null
+          headline: string | null
+          id: string | null
+          published_at: string | null
+          teaser: string | null
+          week_label: string | null
+        }
+        Insert: {
+          article_count?: number | null
+          headline?: string | null
+          id?: string | null
+          published_at?: string | null
+          teaser?: never
+          week_label?: string | null
+        }
+        Update: {
+          article_count?: number | null
+          headline?: string | null
+          id?: string | null
+          published_at?: string | null
+          teaser?: never
+          week_label?: string | null
         }
         Relationships: []
       }
