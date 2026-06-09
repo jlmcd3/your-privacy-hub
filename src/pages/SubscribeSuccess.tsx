@@ -39,15 +39,15 @@ export default function SubscribeSuccess() {
     : "Your Intelligence Feed is active.";
 
   const subheadline = hasToolAccess
-    ? "Your client workspace is live. You get 1 free Convenience Tool run per client per month (annual plan)."
+    ? "Your client workspace is live. RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are now included — annual plans also get 1 free Smart Tool run this year."
     : "Your weekly brief is configured. You'll receive your first issue this Monday at 7am ET.";
 
   const NEXT_STEPS = hasToolAccess
     ? [
         {
           icon: "🛠️",
-          title: "Run compliance tools at standard rates",
-          body: "All tools are available per-run. Professional Annual subscribers get 1 free Convenience Tool run per client per month. Smart Tools (Governance, LIA, DPIA, DPA, Biometric, CPPA) are per-run for all tiers.",
+          title: "Use your included tools",
+          body: "RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are included with your subscription. Smart Tools (Governance, LIA, DPIA, CPPA) are per-run; annual subscribers get 1 free Smart Tool run per year.",
         },
         {
           icon: "🎯",
@@ -145,7 +145,7 @@ export default function SubscribeSuccess() {
         {isIntelligenceOnly && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
             <p className="text-amber-800 text-sm font-medium">
-              Want client workspaces and 1 free Convenience Tool run per client per month? Upgrade to Professional from your account settings — {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr.
+              Want client workspaces and team logins? Upgrade to Professional from your account settings — {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr.
             </p>
           </div>
         )}

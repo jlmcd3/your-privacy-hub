@@ -201,7 +201,7 @@ export default function Account() {
               {PRICING.professional.annual.display}/yr · {PRICING.professional.perClient.display}/additional client
             </p>
             <p className="text-[12px] text-slate mt-1">
-              Client workspaces, 1 free Convenience Tool run per client per month, and the full intelligence brief.
+              Client workspaces, RoPA + Notice Builders + IR Playbook + Biometric + DPA Generator included, plus 1 free Smart Tool run per year.
             </p>
           </div>
         )}
@@ -220,7 +220,7 @@ export default function Account() {
                 Add client workspaces with Professional
               </p>
               <p className="text-[11px] text-slate mb-2">
-                {PRICING.professional.annual.display}/yr · 1 free Convenience Tool run per client per month.
+                {PRICING.professional.annual.display}/yr · client workspaces + 1 free Smart Tool run per year.
               </p>
               <Link to="/subscribe" className="text-[12px] font-bold text-brand-navy underline">
                 Upgrade to Professional →
@@ -295,7 +295,7 @@ export default function Account() {
               Professional or Intelligence
             </h3>
             <p className="text-brand-mist text-sm mb-4 max-w-sm mx-auto">
-              Professional from {PRICING.professional.annual.display}/yr — client workspaces and 1 free Convenience Tool run per client per month. Or Intelligence at {PRICING.intelligence.monthly.display}/month.
+              Professional from {PRICING.professional.annual.display}/yr — client workspaces plus every Layer-1 tool included. Or Intelligence at {PRICING.intelligence.monthly.display}/month with RoPA, Notice Builders, and more bundled in.
             </p>
             <Link
               to="/subscribe"
