@@ -619,7 +619,7 @@ const Dashboard = () => {
                         <div className="bg-slate-100 p-3 md:p-4 border-t border-slate-200">
                           <CustomBriefDocument
                             customBrief={b}
-                            sourceMap={brief?.source_map ?? {}}
+                            sourceMap={(b as any)?.source_map ?? brief?.source_map ?? {}}
                             hideHeader
                           />
                         </div>
