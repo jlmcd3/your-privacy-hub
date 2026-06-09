@@ -120,6 +120,7 @@ import AdminGatingLeaks from "./pages/AdminGatingLeaks.tsx";
 import AdminBriefGenStatus from "./pages/AdminBriefGenStatus.tsx";
 import AdminPricingReconciliation from "./pages/AdminPricingReconciliation.tsx";
 import AdminLawUpdates from "./pages/AdminLawUpdates.tsx";
+import AdminStateLawReview from "./pages/AdminStateLawReview.tsx";
 import LIAssessment from "./pages/LIAssessment.tsx";
 import LIAssessmentIntake from "./pages/LIAssessmentIntake.tsx";
 import LIAssessmentResult from "./pages/LIAssessmentResult.tsx";
@@ -424,6 +425,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <AdminLawUpdates />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/state-law-review"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminStateLawReview />
                   </AdminOnly>
                 </ProtectedRoute>
               }
