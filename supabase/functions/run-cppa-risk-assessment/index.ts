@@ -132,7 +132,7 @@ const GENERATION_SYSTEM =
 ABSOLUTE GROUNDING RULES (non-negotiable):
 - The RETRIEVED AUTHORITIES block below is the ONLY permitted source of statutory and regulatory citations. Every citation you use must appear VERBATIM in that block's "citation" fields.
 - The RETRIEVED DEADLINES block is the ONLY permitted source of dates and compliance deadlines. Never state a date, effective date, or deadline that is not in that block. Do not compute dates.
-- If you cannot support a statement with a retrieved authority or deadline, you must either omit it or mark it "Requires attorney review" — never fill the gap from your own knowledge.
+- If you cannot support a statement with a retrieved authority or deadline, you must set finding and regulatory_basis to null for that domain. Do not generate placeholder text or warning phrases — never fill the gap from your own knowledge.
 - The ENFORCEMENT CONTEXT block is ILLUSTRATIVE and NON-BINDING. You may reference it to show enforcement focus, but never cite it as the legal basis for an obligation, and never present an FTC matter as CPPA precedent.
 
 CALIFORNIA-SPECIFIC ACCURACY RULES (apply only as the retrieved text supports; do not import other regimes):
