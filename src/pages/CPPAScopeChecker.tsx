@@ -2,14 +2,12 @@
 // Determines whether CCPA/CPRA + CPPA enforcement obligations apply.
 
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
@@ -61,7 +59,6 @@ const Radio = ({
 
 export default function CPPAScopeChecker() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [q1, setQ1] = useState<Q1>("");
   const [q2, setQ2] = useState<Q2>("");
   const [q3, setQ3] = useState<Q3>("");
@@ -117,17 +114,6 @@ export default function CPPAScopeChecker() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Fire-and-forget save when results render
-  useEffect(() => {
-    if (!showResults) return;
-    void supabase.from("cppa_scope_checks").insert({
-      user_id: user?.id ?? null,
-      answers,
-      obligation_map: obligationMap,
-      in_scope: obligationMap.inScope,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showResults]);
 
   const reset = () => {
     setQ1(""); setQ2(""); setQ3(""); setQ4("");
@@ -338,6 +324,10 @@ function ResultsPanel({
           </>
         )}
         <p className="text-xs text-muted-foreground italic pt-3 border-t">
+          This is a one-time scope check. Your results are not saved.
+          Run it again any time.
+        </p>
+        <p className="text-xs text-muted-foreground italic pt-1">
           This is a preliminary scope indicator based on your self-reported answers.
           It is not legal advice.
         </p>
@@ -484,7 +474,12 @@ function ResultsPanel({
       </section>
 
       <section className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-sm rounded">
-        ⚠️ This is a preliminary scope indicator based on your self-reported answers. It is
+        <p className="font-medium">This is a one-time scope check. Your results are not saved.</p>
+        <p className="mt-1">Run it again any time. For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.</p>
+      </section>
+
+      <section className="p-4 border-l-4 border-brand-teal bg-slate-50 dark:bg-slate-900/40 text-sm rounded">
+        This is a preliminary scope indicator based on your self-reported answers. It is
         not legal advice. Confirm your obligations with qualified legal counsel.
       </section>
 

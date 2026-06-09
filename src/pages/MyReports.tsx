@@ -78,7 +78,6 @@ const TOOL_LABEL: Record<string, string> = {
   eu_notice: "EU Privacy Notice",
   cppa_risk: "CPPA Risk Assessment",
   cppa_cyber: "CPPA Cybersecurity Audit",
-  cppa_scope: "CPPA Scope Checker",
 };
 
 function statusVariant(s: string): "default" | "secondary" | "outline" {
@@ -168,7 +167,7 @@ export default function MyReports() {
 
       // Reports tab aggregates every tool output and in-progress session for
       // the user across all workspaces. Registration orders live under Filings.
-      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice, cppa, cppaScope] = await Promise.all([
+      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice, cppa] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -198,9 +197,6 @@ export default function MyReports() {
           .order("created_at", { ascending: false }),
         supabase.from("cppa_assessments")
           .select("id, status, created_at, module, intake_data, report_data, pdf_url, client_id")
-          .eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("cppa_scope_checks")
-          .select("id, created_at, in_scope, obligation_map")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
 
@@ -321,18 +317,6 @@ export default function MyReports() {
           ...clientMeta(r.client_id),
         });
 
-      });
-
-      (cppaScope.data || []).forEach((r: any) => {
-        const inScope = r.in_scope === true;
-        all.push({
-          id: r.id, tool: "cppa_scope", tool_label: TOOL_LABEL.cppa_scope,
-          created_at: r.created_at,
-          status: "complete",
-          summary: inScope ? "In scope — CPPA obligations apply" : "Out of scope",
-          view_path: `/cppa-scope-checker`,
-          ...clientMeta(null),
-        });
       });
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
