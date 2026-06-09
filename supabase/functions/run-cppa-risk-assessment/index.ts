@@ -56,19 +56,26 @@ function deriveTopics(intake: any): string[] {
   return Array.from(topics);
 }
 
-// ---- Anthropic call helpers ----
-async function callClaude(model: string, system: string, user: string, maxTokens: number, label = "claude"): Promise<string> {
+// ---- Generation call helpers (Lovable AI Gateway, Gemini Flash) ----
+// Switched from direct Anthropic Claude to Lovable AI Gateway with
+// google/gemini-3-flash-preview to fit the full Part A/B generation
+// inside the edge-function response window. Gemini Flash handles ~16k
+// output tokens an order of magnitude faster than claude-sonnet-4-6.
+async function callModel(model: string, system: string, user: string, maxTokens: number, label = "gen"): Promise<string> {
   const t0 = Date.now();
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
+      "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model, max_tokens: maxTokens, system,
-      messages: [{ role: "user", content: user }],
+      model,
+      max_tokens: maxTokens,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
     }),
     signal: AbortSignal.timeout(240_000),
   });
@@ -76,11 +83,11 @@ async function callClaude(model: string, system: string, user: string, maxTokens
   if (!res.ok) {
     const t = await res.text();
     console.error(`[${label}] ${model} HTTP ${res.status} in ${elapsed}ms: ${t.slice(0, 300)}`);
-    throw new Error(`Anthropic ${res.status}: ${t.slice(0, 300)}`);
+    throw new Error(`Gateway ${res.status}: ${t.slice(0, 300)}`);
   }
   const d = await res.json();
-  console.log(`[${label}] ${model} ok in ${elapsed}ms, output ~${d.usage?.output_tokens ?? "?"} tokens`);
-  return d.content?.[0]?.text || "";
+  console.log(`[${label}] ${model} ok in ${elapsed}ms, output ~${d.usage?.completion_tokens ?? "?"} tokens`);
+  return d.choices?.[0]?.message?.content || "";
 }
 function tryParseJson(text: string): any | null {
   const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
@@ -89,12 +96,12 @@ function tryParseJson(text: string): any | null {
   if (!m) return null;
   try { return JSON.parse(m[0]); } catch { return null; }
 }
-async function generateOrRetry(model: string, system: string, user: string, maxTokens: number, label = "claude") {
-  let text = await callClaude(model, system, user, maxTokens, label);
+async function generateOrRetry(model: string, system: string, user: string, maxTokens: number, label = "gen") {
+  let text = await callModel(model, system, user, maxTokens, label);
   let parsed = tryParseJson(text);
   if (!parsed) {
     console.warn(`[${label}] first parse failed, retrying once`);
-    text = await callClaude(model, system, user, maxTokens, label + "-retry");
+    text = await callModel(model, system, user, maxTokens, label + "-retry");
     parsed = tryParseJson(text);
   }
   return { parsed, rawText: text };
@@ -396,7 +403,7 @@ ${buildFsorBlock(fsorCommentary)}
 Return the full JSON in the exact shape specified by the system message. All eight § 7152(a)(5) harm categories must appear. Every § 7 safeguard must include linked_harms.`;
 
     const tGen = Date.now();
-    const gen = await generateOrRetry("claude-sonnet-4-6", GENERATION_SYSTEM, genUser, 16000, "generate-v3");
+    const gen = await generateOrRetry("google/gemini-3-flash-preview", GENERATION_SYSTEM, genUser, 16000, "generate-v3");
     console.log(`[v3] generate total ${Date.now() - tGen}ms`);
     if (!gen.parsed || !gen.parsed.part_a) {
       await supabase.from("cppa_assessments").update({

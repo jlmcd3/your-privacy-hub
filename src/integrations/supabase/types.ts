@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      annual_tool_credits: {
+        Row: {
+          client_id: string | null
+          cycle_start: string
+          granted_at: string
+          id: string
+          redeemed_assessment_id: string | null
+          redeemed_at: string | null
+          redeemed_tool: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          cycle_start: string
+          granted_at?: string
+          id?: string
+          redeemed_assessment_id?: string | null
+          redeemed_at?: string | null
+          redeemed_tool?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          cycle_start?: string
+          granted_at?: string
+          id?: string
+          redeemed_assessment_id?: string | null
+          redeemed_at?: string | null
+          redeemed_tool?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "annual_tool_credits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_image_pool: {
         Row: {
           approval_status: string
