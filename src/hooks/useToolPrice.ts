@@ -122,7 +122,7 @@ export interface ToolPricing {
 const CPPA_TOOLS = new Set(["cppa_risk_assessment", "cppa_cybersecurity", "cppa_suite"]);
 
 export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
-  const { tier, isPremium, isLoading } = useSubscriptionTier();
+  const { tier, isPremium, isInTrial, isLoading } = useSubscriptionTier();
   const isCppa = CPPA_TOOLS.has(toolSlug);
   const name = DISPLAY_NAMES[toolSlug] ?? toolSlug;
 
@@ -130,7 +130,10 @@ export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
   const subscriberCents = subscriberCentsFor(toolSlug, standaloneCents);
   const standalone = standaloneCents / 100;
   const subscriber = subscriberCents / 100;
-  const isSubscriber = isPremium;
+  // Trial users pay standalone pricing — subscriber discounts are a
+  // post-trial benefit. `isInTrial` is sourced from useSubscriptionTier
+  // (see also: hasToolAccess collapses to false during trial).
+  const isSubscriber = isPremium && !isInTrial;
   const effective = isSubscriber ? subscriber : standalone;
   const isIncluded = isSubscriber && subscriberCents === 0;
 

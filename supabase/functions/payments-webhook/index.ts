@@ -69,6 +69,13 @@ Deno.serve(async (req) => {
             subscription_end_date: periodEnd
               ? new Date(periodEnd * 1000).toISOString()
               : null,
+            // Trial restrictions are enforced client-side via
+            // useSubscriptionTier (`isInTrial`). Stripe sends a past
+            // `trial_end` when the trial converts, which the client
+            // treats as "trial over" automatically.
+            stripe_trial_end: sub.trial_end
+              ? new Date(sub.trial_end * 1000).toISOString()
+              : null,
             // Don't flip is_premium off here — only on actual deletion. A
             // canceled-at-period-end sub still has access until period end.
             ...(isActive ? { is_premium: true, payment_failed: false } : {}),
@@ -86,6 +93,9 @@ Deno.serve(async (req) => {
           .update({
             is_premium: false,
             cancel_at_period_end: false,
+            // Clear stale trial timestamp so a re-subscribed user isn't
+            // ghost-blocked by a future date left from a prior cycle.
+            stripe_trial_end: null,
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_customer_id", sub.customer);
