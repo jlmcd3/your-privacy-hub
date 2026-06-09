@@ -191,10 +191,20 @@ export default function TestCPPAScope() {
 
   const passCount = results.filter((r) => r.verdict.passed).length;
 
+  // Strip the non-cloneable `expect` function before posting via postMessage
+  // (structured clone cannot serialize functions — would throw DataCloneError
+  // and the parent runner would never receive the result, causing a timeout).
+  const cloneableResults = results.map((r) => ({
+    name: r.name,
+    input: r.input,
+    determination: r.determination,
+    verdict: r.verdict,
+  }));
+
   useTestRunnerBridge({
     testId: "cppa-scope",
     status: "complete",
-    result: results as unknown,
+    result: cloneableResults as unknown,
     assertions: results.map((r) => ({ label: `Scenario ${r.name}`, passed: r.verdict.passed })),
     log: results.map((r) => `${r.verdict.passed ? "✓" : "✗"} ${r.name}`),
     elapsedMs: 0,
