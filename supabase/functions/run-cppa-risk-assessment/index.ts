@@ -275,44 +275,65 @@ async function getEnforcementContext(sector?: string) {
   } catch { return { text: "", results: [] }; }
 }
 
+// Validator-emitted strings that are internal QA diagnostics — never surface in
+// the user-facing "requires_attorney_review" list. They are preserved separately
+// in `debug_review_notes` for admin/eval-harness consumption.
+const DEBUG_PREFIXES = [
+  "Unsupported citation removed",
+  "Review citation",
+  "Contradicted by authority",
+  "Validator output",
+];
+const isDebugString = (s: string) => DEBUG_PREFIXES.some((p) => s.startsWith(p));
+
 function mergeValidation(report: any, validation: any, corpusCitations: Set<string>) {
   const ledger = Array.isArray(validation?.citation_ledger) ? validation.citation_ledger : [];
-  const attorneyReview: string[] = Array.isArray(validation?.requires_attorney_review)
+  const incomingAttorneyReview: string[] = Array.isArray(validation?.requires_attorney_review)
     ? [...validation.requires_attorney_review] : [];
+  const attorneyReview: string[] = [];
+  const debugEntries: string[] = [];
+
+  for (const m of incomingAttorneyReview) {
+    if (typeof m !== "string") continue;
+    if (isDebugString(m)) debugEntries.push(m); else attorneyReview.push(m);
+  }
 
   let hasBlocking = false;
+
+  const pushMsg = (m: string) => {
+    if (isDebugString(m)) debugEntries.push(m); else attorneyReview.push(m);
+  };
 
   for (const entry of ledger) {
     const cls = entry?.classification ?? "";
     const cite = entry?.citation ?? "";
     const note = entry?.note ?? "";
 
-    // Strip validator-proposed citations not in corpus
     if (entry?.corrected_citation && !corpusCitations.has(entry.corrected_citation)) {
       entry.corrected_citation = null;
-      entry.note = `${note} (proposed correction dropped — not in corpus)`.trim();
+      entry.note = `${note} (proposed correction dropped — not in verified authority set)`.trim();
     }
 
     if (cls === "Unsupported" || cls === "Not-in-corpus") {
       hasBlocking = true;
-      // Blank that citation across domains and top_risks
       blankCitation(report, cite);
-      attorneyReview.push(`Unsupported citation removed: "${cite}" — ${note}`);
+      pushMsg(`Unsupported citation removed: "${cite}" — ${note}`);
     } else if (cls === "Overstated" || cls === "Partially supported") {
       attachNote(report, cite, note);
-      attorneyReview.push(`Review citation "${cite}": ${note}`);
+      pushMsg(`Review citation "${cite}": ${note}`);
     } else if (cls === "Contradicted-by-authority") {
       hasBlocking = true;
       flagContradiction(report, cite, note, entry?.statement ?? "");
-      attorneyReview.push(`Contradicted by authority: "${entry?.statement ?? cite}" — ${note}`);
+      pushMsg(`Contradicted by authority: "${entry?.statement ?? cite}" — ${note}`);
     }
   }
 
   report.citation_ledger = ledger;
   report.validation_summary = validation?.summary ?? null;
   report.requires_attorney_review = Array.from(new Set(attorneyReview));
+  report.debug_review_notes = Array.from(new Set(debugEntries));
   if (hasBlocking) {
-    report.accuracy_caveat = "Some legal citations or conclusions in this draft could not be verified against the corpus and have been flagged for attorney review.";
+    report.accuracy_caveat = "Some legal citations or conclusions in this draft could not be verified against the statutory or regulatory authority on point and have been flagged for attorney review.";
   }
   return report;
 }
