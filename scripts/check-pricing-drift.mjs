@@ -142,26 +142,34 @@ function parseEdgeFunction(rel) {
   return out;
 }
 
-// ─── Canonical price lookup for a slug (May 2026 memo) ──────────────────
-// Per-slug subscriber overrides where memo introduces a discount.
+// ─── Canonical price lookup for a slug (June 2026 — Sprint 4 reconciliation) ─
+// Subscriber per-use prices come from PRICING_REGISTRY *_subscriber* entries.
+// CPPA tools intentionally carry a subscriber discount; mirror those amounts
+// here so the drift check accepts them as canonical (rather than flagging the
+// intentional gap between standalone and subscriber rates).
 // All values in cents. Tools not listed → subscriber == standalone.
-// v8 (June 2026): RoPA, US Notice, EU Notice are subscriber-only — included
-// free with any active subscription (canonical dollars: 0, subscriber: 0).
-// No standalone purchase, no subscriber price override. Only dpa_generator
-// retains a structural subscriber discount.
 const SUBSCRIBER_OVERRIDE_CENTS = {
-  dpa_generator: 2500,
+  li_assessment:        3500,   // li_subscriber_v2
+  li_analyzer:          3500,   // alias of li_assessment
+  governance_assessment: 2500,  // hc_subscriber_v2
+  healthcheck:          2500,   // alias of governance_assessment
+  dpia_framework:       4900,   // dpia_subscriber_v2
+  dpia_builder:         4900,   // alias of dpia_framework
+  dpa_generator:        4900,   // dpa_subscriber_v2
+  cppa_risk_assessment: 7900,   // cppa_risk_subscriber
+  cppa_cybersecurity:   8900,   // cppa_cyber_subscriber
 };
-// cppa_suite is its own PRICING_REGISTRY entry (110 flat), not risk+cyber.
-const SUITE_STANDALONE_CENTS = 11000;
+
+// cppa_suite is its own PRICING_REGISTRY entry: $169 standalone / $149 subscriber.
+const SUITE_STANDALONE_CENTS = 16900;
+const SUITE_SUBSCRIBER_CENTS = 14900;
 
 function canonicalCentsForSlug(slug, canonical) {
   const key = SLUG_TO_TOOL_KEY[slug];
   if (!key) return null;
   let standaloneDollars;
   if (key === "__suite__") {
-    const standalone = SUITE_STANDALONE_CENTS;
-    return { standalone, subscriber: standalone };
+    return { standalone: SUITE_STANDALONE_CENTS, subscriber: SUITE_SUBSCRIBER_CENTS };
   }
   if (!canonical.tools[key]) return null;
   standaloneDollars = canonical.tools[key].dollars;
@@ -169,6 +177,7 @@ function canonicalCentsForSlug(slug, canonical) {
   const subscriber = SUBSCRIBER_OVERRIDE_CENTS[slug] ?? standalone;
   return { standalone, subscriber };
 }
+
 
 
 // ─── Compare ─────────────────────────────────────────────────────────────

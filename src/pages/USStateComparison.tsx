@@ -153,6 +153,21 @@ const USStateComparison = () => {
           Hover any ✓ checkmark to see the applicable statutory citation. Click to open the full statute in a new tab.
         </p>
 
+        <div className="mt-6 text-[11px] text-muted-foreground border-t border-border pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <p>
+            <span className="font-medium text-foreground">Last reviewed:</span>{" "}
+            {new Date((comparisonData as any).lastReviewed).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+            {" · "}
+            <span className="font-medium text-foreground">Next review due:</span>{" "}
+            {new Date((comparisonData as any).nextReviewDue).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+            {" · "}Reviewed {(comparisonData as any).reviewCadence}.
+          </p>
+          <p className="italic">
+            Spot an outdated entry? <Link to="/contact" className="underline hover:text-accent">Let us know</Link>.
+          </p>
+        </div>
+
+
       </div>
 
       <Footer />
