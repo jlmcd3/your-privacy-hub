@@ -829,7 +829,7 @@ export const PRICING = {
       label: 'month',
       stripePriceId: 'professional_monthly',
     },
-    freeToolRunsPerMonth: 1, // annual only — see freeConvenienceRun.ts
+    // v9: freeToolRunsPerMonth retired — see ANNUAL_CREDIT (Layer 3).
     teamLoginsIncluded: 3,
     additionalLoginMonthly: 10,
   },
