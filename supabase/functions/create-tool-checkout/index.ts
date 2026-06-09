@@ -36,7 +36,7 @@ const TOOLS: Record<
     subscriber_lookup: "li_subscriber_v2",
     table: "li_assessments",
     fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 6900,
+    fallback_subscriber_cents: 3500,
   },
   governance_assessment: {
     name: "Privacy Program Assessment Tool",
@@ -44,7 +44,7 @@ const TOOLS: Record<
     subscriber_lookup: "hc_subscriber_v2",
     table: "governance_assessments",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 8900,
+    fallback_subscriber_cents: 2500,
   },
   dpia_framework: {
     name: "Impact Assessment Builder",
@@ -52,7 +52,7 @@ const TOOLS: Record<
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 7900,
+    fallback_subscriber_cents: 4900,
   },
   dpa_generator: {
     name: "Your Custom DPA",
@@ -60,7 +60,7 @@ const TOOLS: Record<
     subscriber_lookup: "dpa_subscriber_v2",
     table: "dpa_documents",
     fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 4900,
   },
   ir_playbook: {
     name: "Your Incident Response Playbook",
@@ -78,6 +78,7 @@ const TOOLS: Record<
     fallback_standalone_cents: 4900,
     fallback_subscriber_cents: 4900,
   },
+
   ropa_initial: {
     name: "RoPA Builder — Initial Generation",
     standalone_lookup: "ropa_initial_standalone",
@@ -156,7 +157,7 @@ const TOOLS: Record<
     subscriber_lookup: "cppa_risk_subscriber",
     table: "cppa_assessments",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 8900,
+    fallback_subscriber_cents: 7900,
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
@@ -164,16 +165,17 @@ const TOOLS: Record<
     subscriber_lookup: "cppa_cyber_subscriber",
     table: "cppa_assessments",
     fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 9900,
+    fallback_subscriber_cents: 8900,
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 11000,
-    fallback_subscriber_cents: 11000,
+    fallback_standalone_cents: 16900,
+    fallback_subscriber_cents: 14900,
   },
+
 };
 
 // Tools that bypass Stripe entirely for is_pro subscribers (FREE).
@@ -321,13 +323,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Always charge the standalone Stripe price.
-    const lookupKey = tool.standalone_lookup;
+    // Subscribers (any active monthly/annual sub) pay the discounted
+    // per-use subscriber price as an inducement to subscribe. Everyone
+    // else pays the standalone price. SUBSCRIPTION_ONLY tools and
+    // SUBSCRIBER_FREE tools are already short-circuited above.
+    const useSubscriberPrice = isPremium && !!tool.subscriber_lookup;
+    const lookupKey = useSubscriberPrice ? tool.subscriber_lookup! : tool.standalone_lookup;
+    const fallbackCents = useSubscriberPrice
+      ? tool.fallback_subscriber_cents
+      : tool.fallback_standalone_cents;
 
     const env = detectEnv(environment);
     const stripe = createStripeClient(env);
 
-    const standaloneCents = tool.fallback_standalone_cents;
+    const standaloneCents = fallbackCents;
 
     // NOTE: free convenience-run consumption is enforced client-side via
     // checkFreeConvenienceRun()/consumeFreeConvenienceRun() in
@@ -337,6 +346,7 @@ Deno.serve(async (req) => {
 
     const resolved = await resolvePriceId(stripe, lookupKey);
     const amountCents: number = resolved?.unit_amount ?? standaloneCents;
+
 
     // Preserve legacy variable names referenced later in the file.
     const stripePrice: { id: string; unit_amount?: number | null } | null = null;
