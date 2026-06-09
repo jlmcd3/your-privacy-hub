@@ -163,12 +163,12 @@ export default function TestCPPARisk() {
         clearInterval(tick);
         addLog(`❌ status = ${data.status}`);
         setStatus("failed");
-      } else if (polls++ < 45) {
-        addLog(`... poll ${polls}/45 (status: ${data?.status})`);
+      } else if (polls++ < 120) {
+        addLog(`... poll ${polls}/120 (status: ${data?.status})`);
         setTimeout(poll, 4000);
       } else {
         clearInterval(tick);
-        addLog("❌ Timed out (180s).");
+        addLog("❌ Timed out (480s).");
         setStatus("failed");
       }
     };
