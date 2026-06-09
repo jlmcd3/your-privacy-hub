@@ -145,11 +145,28 @@ export default function CPPACybersecurityResult() {
   useEffect(() => {
     if (!id) return;
     let timer: any;
+    let attempts = 0;
     const fetchOnce = async () => {
       const { data } = await supabase.from("cppa_assessments").select("*").eq("id", id).maybeSingle();
       setRow(data);
       setLoading(false);
-      if (data && (data.status === "pending" || data.status === "processing")) {
+      // Dual-polling: keep polling not only on pending/processing, but also when
+      // status flipped to `complete` before report_data was written (race seen in
+      // the cyber hotfix). Stops once both signals agree, or after ~5 min budget.
+      const reportReady = data?.report_data
+        && typeof data.report_data === "object"
+        && Object.keys(data.report_data).length > 0
+        && (
+          Array.isArray((data.report_data as any).controls)
+          || typeof (data.report_data as any).executive_summary === "string"
+        );
+      const stillRunning = data && (
+        data.status === "pending"
+        || data.status === "processing"
+        || (data.status === "complete" && !reportReady)
+      );
+      attempts += 1;
+      if (stillRunning && attempts < 100) {
         timer = setTimeout(fetchOnce, 3000);
       }
     };
@@ -158,6 +175,17 @@ export default function CPPACybersecurityResult() {
   }, [id]);
 
   const status = row?.status;
+  const reportReady = !!(
+    row?.report_data
+    && typeof row.report_data === "object"
+    && Object.keys(row.report_data).length > 0
+    && (Array.isArray(row.report_data.controls) || typeof row.report_data.executive_summary === "string")
+  );
+  const showRunning = !loading && (
+    status === "pending"
+    || status === "processing"
+    || (status === "complete" && !reportReady)
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -172,7 +200,7 @@ export default function CPPACybersecurityResult() {
         )}
         {loading && <p>Loading…</p>}
 
-        {!loading && (status === "pending" || status === "processing") && (
+        {showRunning && (
           <div className="bg-card border rounded-lg p-10 text-center">
             <div className="animate-pulse mb-4 text-2xl">⏳</div>
             <p>Running your CPPA Cybersecurity Readiness assessment.</p>
@@ -187,7 +215,7 @@ export default function CPPACybersecurityResult() {
           </div>
         )}
 
-        {status === "complete" && (
+        {status === "complete" && reportReady && (
           <>
             <CybersecurityReportBody row={row} />
             <div className="flex gap-2 flex-wrap">
