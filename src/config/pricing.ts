@@ -326,13 +326,13 @@ export const PRICING_REGISTRY = {
     lookupKey: "dpa_subscriber_v2",
     productKey: "dpa_v8",
     productName: "Custom DPA Generator (Subscriber)",
-    description: "Subscriber per-use price for the DPA Generator.",
-    amountCents: 4900,
+    description: "Free for subscribers — bypasses Stripe checkout.",
+    amountCents: 0,
     currency: "usd",
-    displayPrice: "$49",
-    displaySuffix: " flat",
+    displayPrice: "Free",
+    displaySuffix: "",
     parentLookupKey: "intelligence_annual",
-    addonReason: "subscriber_discount",
+    addonReason: "subscriber_free",
     active: true,
   },
   ir_standalone_v2: {
@@ -359,7 +359,7 @@ export const PRICING_REGISTRY = {
     displaySuffix: "",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_free",
-    active: false,
+    active: true,
   },
   biometric_standalone_v2: {
     kind: "one_time",
@@ -385,7 +385,7 @@ export const PRICING_REGISTRY = {
     displaySuffix: "",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_free",
-    active: false,
+    active: true,
   },
   ropa_initial_standalone: {
     kind: "one_time",
@@ -463,7 +463,7 @@ export const PRICING_REGISTRY = {
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
-    active: true,
+    active: false,
   },
   eu_notice_v7_standalone: {
     kind: "one_time",
@@ -489,7 +489,7 @@ export const PRICING_REGISTRY = {
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_alias",
-    active: true,
+    active: false,
   },
   cppa_risk_subscriber: {
     kind: "addon",
@@ -628,7 +628,7 @@ export function getActivePrices(): PriceEntry[] {
 
 /** Convenience accessors for the most common copy patterns. */
 export const INTELLIGENCE_PRICING = {
-  monthly: () => formatPrice("intelligence_monthly"),                              // "$29/month"
+  monthly: () => formatPrice("intelligence_monthly"),                              // "$20/month"
   yearly: () => formatPrice("intelligence_yearly"),                                // "$200/year"
   combined: () =>
     `${formatPrice("intelligence_monthly")} or ${formatPrice("intelligence_yearly")}`,
@@ -638,8 +638,8 @@ export const INTELLIGENCE_PRICING = {
 
 /** Platform pricing helpers (annual subscriptions). */
 export const PLATFORM_PRICING = {
-  standard: () => formatPrice("professional_annual"),                              // "$300/year"
-  standardMonthly: () => formatPrice("professional_monthly"),                      // "$30/month"
+  standard: () => formatPrice("professional_annual"),                              // "$350/year"
+  standardMonthly: () => formatPrice("professional_monthly"),                      // "$35/month"
   clientAddon: () => formatPrice("professional_client"),                           // "$150/client/year"
 } as const;
 
@@ -941,13 +941,13 @@ export const SMART_TOOL_KEYS = [
   'dpia',         // DPIA — necessity/proportionality vs enforcement corpus
   'cppa_risk',    // CPPA Risk Assessment — 5-stage CPPA analysis
   'cppa_cyber',   // CPPA Cybersecurity — 18-control gap analysis
-  'dpa',          // DPA Generator — jurisdiction-specific enforcement calibration
-  'biometric',    // Biometric Check — BIPA calculator + enforcement patterns
+  // v9: 'dpa' and 'biometric' moved to Layer 1 (included with subscription).
 ] as const;
 
 export type SmartToolKey = typeof SMART_TOOL_KEYS[number];
 
 /**
+ * @deprecated v9 — removed in cleanup; do not add callers.
  * CONVENIENCE TOOLS — document generators. Valuable time-savers.
  * Professional annual subscribers receive 1 free run per client per month.
  *
@@ -979,7 +979,8 @@ export const SUBSCRIBER_ONLY_TOOL_KEYS = [
 export type SubscriberOnlyToolKey = typeof SUBSCRIBER_ONLY_TOOL_KEYS[number];
 
 // camelCase aliases for the same tool keys (so callers using either form work)
-const SMART_TOOL_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber','dpa','biometric']);
+const SMART_TOOL_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber']);
+/** @deprecated v9 — removed in cleanup; do not add callers */
 const CONVENIENCE_TOOL_CAMEL = new Set(['irPlaybook','registration']);
 const SUBSCRIBER_ONLY_TOOL_CAMEL = new Set(['ropa','usNotice','euNotice']);
 
@@ -993,10 +994,33 @@ export function isSmartTool(toolKey: string): boolean {
   return (SMART_TOOL_KEYS as readonly string[]).includes(toolKey) || SMART_TOOL_CAMEL.has(toolKey);
 }
 
-/** Returns true if the tool is eligible for the Professional free monthly run */
+/** @deprecated v9 — removed in cleanup; do not add callers. Returns true if the tool is eligible for the Professional free monthly run */
 export function isConvenienceTool(toolKey: string): boolean {
   return (CONVENIENCE_TOOL_KEYS as readonly string[]).includes(toolKey) || CONVENIENCE_TOOL_CAMEL.has(toolKey);
 }
+
+// ── v9 LAYER CLASSIFICATION (June 2026) ──────────────────────────────────
+
+/** v9 Layer 1 — included with ANY active subscription (monthly or annual).
+ *  IR, Biometric, and DPA remain purchasable standalone by non-subscribers. */
+export const INCLUDED_TOOL_KEYS = [
+  'ropa', 'us_notice', 'eu_notice', 'ir_playbook', 'biometric', 'dpa',
+] as const;
+const INCLUDED_TOOL_CAMEL = new Set(['ropa','usNotice','euNotice','irPlaybook','biometric','dpa']);
+export function isIncludedTool(toolKey: string): boolean {
+  return (INCLUDED_TOOL_KEYS as readonly string[]).includes(toolKey) || INCLUDED_TOOL_CAMEL.has(toolKey);
+}
+
+/** v9 Layer 3 — Smart Tools redeemable with the annual credit.
+ *  CPPA tools and Registration are deliberately EXCLUDED. */
+export const ANNUAL_CREDIT_ELIGIBLE_KEYS = ['governance','lia','dpia'] as const;
+
+export const ANNUAL_CREDIT = {
+  intelligenceAnnual: 1,          // credits per subscription year (personal)
+  professionalAnnualPerClient: 1, // credits per non-personal client workspace per year
+  maxValueCents: 8900,
+  marketingLabel: 'Includes 1 free Smart Tool run per year (up to $89 value)',
+} as const;
 
 // ── SUBSCRIBER PRICING (no promotional discount) ─────────────────────────
 //
