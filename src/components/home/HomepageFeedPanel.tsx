@@ -220,7 +220,19 @@ const HomepageArticleCard = ({
           <p className="text-eyebrow mt-3 mb-1" style={{ color: 'hsl(var(--cobalt))' }}>
             ⭐ Platform feature preview
           </p>
-          <InvestigationPrompt item={article} />
+          <InvestigationPrompt
+            item={article}
+            demoContext={{
+              role: 'privacy_counsel',
+              industries: ['healthcare', 'saas'],
+              jurisdictions: ['eu', 'uk', 'california'],
+              topics: ['AI governance', 'cross-border transfers'],
+              watchlist: [
+                { type: 'jurisdiction', slug: 'california', label: 'California', flag: null },
+                { type: 'topic', slug: 'ai', label: 'AI governance', flag: null },
+              ],
+            }}
+          />
           <div className="pt-1.5 border-t border-brand-cloud">
             <Link to={toolCTA.href} className="text-meta font-semibold text-brand-teal hover:underline no-underline">
               {toolCTA.label}
