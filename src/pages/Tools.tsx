@@ -432,7 +432,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: PRICING.tools.cppa_cyber.display,
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
-      "The CPPA Cybersecurity Audit Tool produces a structured assessment across each component the regulation enumerates, identifies gaps against the CPPA's specific control expectations, and cites material enforcement and regulatory guidance.",
+      "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the 18 components enumerated at Cal. Code Regs. tit. 11 § 7122(a), and tests independence and scope-memo requirements at § 7122(b) and § 7123. Each control finding is anchored to the regulatory text, the CPPA's reasoning in the Final Statement of Reasons, and a dynamic Breach Precedent Map that surfaces the most relevant recent CPPA and California AG enforcement actions for any gap or critical gap. An Auditor Independence Advisor, Audit Scope Memo Generator, and combined Auditor Handoff Package are included.",
       "Standalone per-use price: $99. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
