@@ -150,12 +150,16 @@ function parseEdgeFunction(rel) {
 // All values in cents. Tools not listed → subscriber == standalone.
 const SUBSCRIBER_OVERRIDE_CENTS = {
   li_assessment:        3500,   // li_subscriber_v2
+  li_analyzer:          3500,   // alias of li_assessment
   governance_assessment: 2500,  // hc_subscriber_v2
+  healthcheck:          2500,   // alias of governance_assessment
   dpia_framework:       4900,   // dpia_subscriber_v2
+  dpia_builder:         4900,   // alias of dpia_framework
   dpa_generator:        4900,   // dpa_subscriber_v2
   cppa_risk_assessment: 7900,   // cppa_risk_subscriber
   cppa_cybersecurity:   8900,   // cppa_cyber_subscriber
 };
+
 // cppa_suite is its own PRICING_REGISTRY entry: $169 standalone / $149 subscriber.
 const SUITE_STANDALONE_CENTS = 16900;
 const SUITE_SUBSCRIBER_CENTS = 14900;
