@@ -912,9 +912,11 @@ export function getToolPriceDisplay(toolKey: ToolKey, _tier?: string): string {
  */
 export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
   if (!tier) return false;
+  // v9: any active subscription gets Layer-1 included tools free.
+  // Pool-size check kept until 0.6 cleanup so deprecated callers still compile.
   const hasSubscription = getFreeRunPoolSize(tier) > 0;
   if (!hasSubscription) return false;
-  return isSubscriberOnlyTool(toolKey) || isConvenienceTool(toolKey);
+  return isIncludedTool(toolKey) || isSubscriberOnlyTool(toolKey);
 }
 
 /**
