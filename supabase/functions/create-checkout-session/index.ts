@@ -15,7 +15,9 @@ const corsHeaders = {
 const PLAN_LOOKUPS: Record<string, string> = {
   intelligence_monthly: "intelligence_monthly",
   intelligence_yearly: "intelligence_yearly",
-  // Legacy aliases — all map to the new monthly Professional price.
+  professional_monthly: "professional_monthly",
+  professional_annual: "professional_annual",
+  // Legacy aliases — all map to the new monthly Intelligence price.
   pro: "intelligence_monthly",
   premium: "intelligence_monthly",
   standard: "intelligence_monthly",
@@ -23,6 +25,8 @@ const PLAN_LOOKUPS: Record<string, string> = {
   yearly: "intelligence_yearly",
   annual: "intelligence_yearly",
 };
+
+const PROFESSIONAL_PLANS = new Set(["professional_monthly", "professional_annual"]);
 
 // Tool one-time purchases via tool_slug
 const TOOL_LOOKUPS: Record<string, { standalone: string; subscriber: string }> = {
