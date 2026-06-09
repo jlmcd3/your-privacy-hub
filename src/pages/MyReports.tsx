@@ -168,8 +168,8 @@ export default function MyReports() {
 
       // Reports tab aggregates every tool output and in-progress session for
       // the user across all workspaces. Registration orders live under Filings.
-      // RLS owner policies already scope ropa_/us_notice_/eu_notice_sessions;
-      // the explicit .eq("user_id", user.id) is defense-in-depth + self-documenting.
+      // ropa_/us_notice_/eu_notice_sessions are scoped by client_id (no user_id
+      // column) — RLS enforces ownership via client ownership.
       const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice, cppa, cppaScope] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
