@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Bell, Plus, X, Lock } from "lucide-react";
+import { Bell, Plus, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   INDUSTRIES,
