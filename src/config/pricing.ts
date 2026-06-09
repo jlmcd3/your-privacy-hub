@@ -1050,3 +1050,28 @@ export function isPromoOpen(): boolean {
 export function foundingPrice(amountCents: number, _smartTool: boolean): number {
   return amountCents;
 }
+
+// ============================================================================
+//  v9 DRIFT LOG — three-layer model (2026-06-09)
+//  ──────────────────────────────────────────────────────────────────────────
+//  The monthly free-run pool (FREE_RUN_POOL_SIZES / freeConvenienceRun.ts)
+//  is RETIRED in favor of a three-layer model:
+//    Layer 1 — Included with any active subscription (monthly or annual):
+//              RoPA, US Notice, EU/Global Notice, IR Playbook, Biometric,
+//              Custom DPA Generator. See INCLUDED_TOOL_KEYS / isIncludedTool.
+//              IR, Biometric, DPA remain purchasable standalone by
+//              non-subscribers at $59 / $49 / $49.
+//    Layer 2 — Per-use tools at subscriber rates for any active subscription:
+//              Governance, LIA, DPIA, CPPA Risk, CPPA Cybersecurity,
+//              CPPA Full Audit Suite. Registration is flat $45 (no discount).
+//    Layer 3 — Annual credit: 1 free Smart Tool run per subscription year
+//              (Intelligence annual) or per non-personal active client
+//              workspace per year (Professional annual). Redeemable on
+//              Governance / LIA / DPIA only. See ANNUAL_CREDIT_ELIGIBLE_KEYS
+//              and ANNUAL_CREDIT.
+//
+//  Pool symbols (FREE_RUN_POOL_SIZES, getFreeRunPoolSize, CONVENIENCE_TOOL_KEYS,
+//  isConvenienceTool, getToolMonthlyCapLimit, PRICING.intelligence/professional
+//  .freeToolRunsPerMonth) are marked @deprecated; they are deleted in
+//  Prompt 0.6 after all callers are migrated.
+// ============================================================================
