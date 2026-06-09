@@ -102,10 +102,6 @@ export default function CPPARiskAssessmentResult() {
   }, [id]);
 
   const report = row?.report_data || {};
-  const ledgerCitations = Array.isArray(report?.citation_ledger)
-    ? report.citation_ledger.map((e: any) => e?.citation || "")
-    : [];
-  const { isVerified } = useCitationVerification(ledgerCitations);
   const status = row?.status;
   const reportReady = !!(
     row?.report_data
