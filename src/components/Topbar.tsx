@@ -9,7 +9,7 @@ const Topbar = () => {
 
   useEffect(() => {
     supabase
-      .from("weekly_briefs")
+      .from("weekly_briefs_teaser")
       .select("published_at")
       .order("published_at", { ascending: false })
       .limit(1)
