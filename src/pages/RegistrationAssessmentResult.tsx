@@ -15,6 +15,7 @@ import { Copy, Loader2, Mail } from "lucide-react";
 import RegistrationCheckoutModal, { type RegistrationTier } from "@/components/RegistrationCheckoutModal";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
+import { PRICING_REGISTRY } from "@/config/pricing";
 
 interface JurisdictionResult {
   code: string;
