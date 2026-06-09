@@ -45,7 +45,7 @@ function brandBorder(color = "D9DDDC") {
   return { style: BorderStyle.SINGLE, size: 4, color };
 }
 
-export default function DownloadWordButton({ text, label, subtitle, className }: Props) {
+export default function DownloadWordButton({ text, label, subtitle, className, buttonLabel }: Props) {
   const [busy, setBusy] = useState(false);
 
   const handleDownload = async () => {
