@@ -45,6 +45,10 @@ const PLAN: Record<
       { table: "us_notice_sessions", column: "parent_session_id" },
     ],
   },
+  cppa_risk: { table: "cppa_assessments" },
+  cppa_cyber: { table: "cppa_assessments" },
+  cppa_scope: { table: "cppa_assessments" },
+  cppa: { table: "cppa_assessments" },
   eu_notice: {
     table: "eu_notice_sessions",
     children: [
