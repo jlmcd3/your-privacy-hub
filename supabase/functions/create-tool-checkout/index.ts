@@ -178,8 +178,8 @@ const TOOLS: Record<
 
 };
 
-// Tools that bypass Stripe entirely for is_pro subscribers (FREE).
-const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker"]);
+// v9: Tools that bypass Stripe entirely for ANY active subscriber (FREE).
+const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker", "dpa_generator"]);
 
 // Tools that are subscription-only (never sold standalone). Active monthly
 // or annual subscription required; free / unauthenticated users are blocked.
