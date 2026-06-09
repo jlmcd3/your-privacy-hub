@@ -212,7 +212,7 @@ export default function RegistrationLanding() {
             </Card>
           </div>
           <p className="text-center text-xs text-brand-mist mt-6">
-            Professional Annual subscribers: 1 free Convenience Tool run per client per month.
+            Annual subscribers (Intelligence or Professional): 1 free Smart Tool run per year — redeemable on Governance, LIA, or DPIA.
           </p>
         </section>
 

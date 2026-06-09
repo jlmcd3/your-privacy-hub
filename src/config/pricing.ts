@@ -170,7 +170,7 @@ export const PRICING_REGISTRY = {
     productKey: "professional",
     productName: "Professional — Annual",
     description:
-      "Annual Professional subscription. Save $70 — pay for 10 months, get 12. Unlocks client/matter workspace, branded outputs, and 1 free Convenience Tool run per client per month.",
+      "Annual Professional subscription. Save $70 — pay for 10 months, get 12. Unlocks client/matter workspace, branded outputs, every Layer-1 tool (RoPA, Notice Builders, IR Playbook, Biometric, DPA), and 1 free Smart Tool run per year.",
     amountCents: 35000,
     currency: "usd",
     displayPrice: "$350",

@@ -48,7 +48,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "US Privacy Notice Builder — subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "EU & Global Privacy Notice Builder — subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "Registration Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
-  { feature: "1 free Convenience Tool/client/month", free: false, intel: false, platform: "Annual only" },
+  { feature: "1 free Smart Tool run/year (Governance, LIA, or DPIA)", free: false, intel: "Annual only", platform: "Annual only" },
 
   { isSection: true, feature: "CPPA tools" },
   { feature: "CPPA Risk Assessment (Smart Tool)", free: false, intel: T.cppa_risk.display, platform: T.cppa_risk.display },
@@ -100,7 +100,7 @@ const Subscribe = () => {
         <title>Pricing & Plans | End User Privacy</title>
         <meta
           name="description"
-          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month — client workspaces, branded outputs, 1 free Convenience Tool run per client per month (annual).`}
+          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month — client workspaces, branded outputs. Any subscription includes RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator; annual plans add 1 free Smart Tool run per year.`}
         />
       </Helmet>
       <Navbar />
@@ -189,7 +189,7 @@ const Subscribe = () => {
                   `${PRICING.professional.teamLoginsIncluded} seats included`,
                   "Client/matter workspace & compliance record",
                   "Branded document outputs",
-                  "1 free Convenience Tool run per client/month (annual only)",
+                  "1 free Smart Tool run per year (annual plans only)",
                   
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
@@ -247,15 +247,14 @@ const Subscribe = () => {
               </p>
             </div>
             <div>
-              <p className="font-semibold text-slate-800 mb-1">Convenience Tools</p>
+              <p className="font-semibold text-slate-800 mb-1">Included with any subscription</p>
               <p>
-                Jurisdiction-specific document generators that save significant
-                drafting time. Professional annual subscribers receive
-                1 free run per client per month.
+                Jurisdiction-specific document generators bundled into every
+                paid plan — Intelligence or Professional, monthly or annual.
               </p>
               <p className="mt-2 text-xs text-slate-500">
-                IR Playbook · US Notice Builder · EU/Global Notice Builder ·
-                RoPA Builder · Registration Filings
+                RoPA Builder · US Notice Builder · EU/Global Notice Builder ·
+                IR Playbook · Biometric Checker · DPA Generator
               </p>
             </div>
           </div>
@@ -306,7 +305,7 @@ const Subscribe = () => {
                 ['AI investigation prompts on every article', '—', '✓', '✓'],
                 ['Privacy authority enforcement tracking', 'Limited', '✓', '✓'],
                 ['Research guides (GDPR, biometric, health, etc.)', '✓', '✓', '✓'],
-                ['1 free Convenience Tool/client/month', '—', '—', '✓ (annual)'],
+                ['1 free Smart Tool run/year (Governance, LIA, or DPIA)', '—', '✓ (annual)', '✓ (annual)'],
                 ['Governance Assessment (Smart)', '—', T.governance.display, T.governance.display],
                 ['Legitimate Interest Assessment (Smart)', '—', T.lia.display, T.lia.display],
                 ['DPIA Builder (Smart)', '—', T.dpia.display, T.dpia.display],
