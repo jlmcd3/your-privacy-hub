@@ -90,9 +90,13 @@ export default function SubscribeCheckoutModal({ open, interval, tier = "intelli
         <div className="px-4 pt-4 pb-2 border-b border-border/40">
           <p className="text-[12px] text-muted-foreground">You're subscribing to:</p>
           <p className="text-[14px] font-bold text-brand-navy">
-            {interval === "year"
-              ? `${PLATFORM_PRICING.standard()}/year`
-              : `${INTELLIGENCE_PRICING.monthly()} (Intelligence Feed)`}
+            {tier === "professional"
+              ? (interval === "year"
+                  ? `${PRICING.professional.annual.display}/year (Professional)`
+                  : `${PRICING.professional.monthly.display}/month (Professional)`)
+              : (interval === "year"
+                  ? `${PRICING.intelligence.annual.display}/year (Privacy Intelligence)`
+                  : `${PRICING.intelligence.monthly.display}/month (Privacy Intelligence)`)}
           </p>
         </div>
         <div className="p-2 sm:p-4">
