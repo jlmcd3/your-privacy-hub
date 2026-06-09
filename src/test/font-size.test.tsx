@@ -77,24 +77,49 @@ beforeAll(() => {
 
 const fontSizePx = (el: Element) => {
   const raw = window.getComputedStyle(el).fontSize || "0";
+  // jsdom may pass through clamp() unevaluated. Extract the min (floor)
+  // expression — that is the value the test expects to see in jsdom.
+  const clampMatch = raw.match(/clamp\(\s*([\d.]+)(rem|em|px)/);
+  if (clampMatch) {
+    const num = parseFloat(clampMatch[1]);
+    const unit = clampMatch[2];
+    return unit === "rem" || unit === "em" ? num * 16 : num;
+  }
   const num = parseFloat(raw);
   if (raw.endsWith("rem") || raw.endsWith("em")) return num * 16;
   return num;
 };
 
 describe("semantic typography utilities", () => {
+  // v9 Prompt 4.5: expected values match Brand v7 typography in index.css.
+  // For clamp() utilities the expected number is the clamp FLOOR (the value
+  // jsdom evaluates to and the minimum we contractually accept).
   const cases: Array<{ cls: string; expected: number; floor?: number }> = [
-    { cls: "text-eyebrow", expected: 11, floor: 11 },
+    { cls: "text-eyebrow", expected: 12 },
     { cls: "text-label", expected: 12 },
-    { cls: "text-meta", expected: 12 },
+    { cls: "text-label-caps", expected: 11, floor: 11 },
+    { cls: "text-meta", expected: 13 },
     { cls: "text-nav", expected: 14 },
-    { cls: "text-body", expected: 14 },
     { cls: "text-cta", expected: 15 },
-    { cls: "text-card-title", expected: 16 },
-    { cls: "text-section-h2", expected: 24 },
-    { cls: "text-page-h1", expected: 28 },
-    { cls: "text-hero-h1", expected: 36 },
+    { cls: "text-body", expected: 16 },
+    { cls: "text-card-title", expected: 20 },     // clamp floor
+    { cls: "text-section-h2", expected: 26 },     // clamp floor
+    { cls: "text-page-h1", expected: 32 },        // clamp floor
+    { cls: "text-hero-h1", expected: 40 },        // clamp floor
   ];
+
+  for (const { cls, expected, floor } of cases) {
+    it(`.${cls} is ${expected}px and respects the 11px floor`, () => {
+      const { container, unmount } = render(
+        <span className={cls}>sample</span>,
+      );
+      const px = fontSizePx(container.firstElementChild!);
+      expect(px).toBeGreaterThanOrEqual(floor ?? 12);
+      expect(px).toBe(expected);
+      unmount();
+    });
+  }
+});
 
   for (const { cls, expected, floor } of cases) {
     it(`.${cls} is ${expected}px and respects the 11px floor`, () => {
