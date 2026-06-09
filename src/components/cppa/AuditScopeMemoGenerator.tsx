@@ -2,7 +2,7 @@
 // Drafts a § 7123 audit-scope statement from the intake the customer already gave us,
 // pre-fills sensible defaults the customer can edit, and renders a memo block they can
 // attach to the engagement letter. Pure client-side, no backend changes.
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
