@@ -1,24 +1,32 @@
 import { useState } from 'react';
-import { Copy, Check, FlaskConical, Loader2 } from 'lucide-react';
+import { Copy, Check, FlaskConical, Loader2, Info } from 'lucide-react';
 import { ArticleItem } from '@/components/ArticleCard';
 import { generatePersonalizedInvestigationPrompt } from '@/lib/generateInvestigationPrompt';
 import { useSubscriberContext } from '@/hooks/useSubscriberContext';
+import type { SubscriberContext } from '@/lib/generateResearchInvestigationPrompt';
 
 interface InvestigationPromptProps {
   item: ArticleItem;
+  /**
+   * Optional demo context. When provided, the hook is bypassed and this
+   * context is used to render the prompt — used by the homepage "paid"
+   * preview slot to show what a personalised prompt looks like.
+   */
+  demoContext?: SubscriberContext;
 }
 
-export function InvestigationPrompt({ item }: InvestigationPromptProps) {
+const PERSONALISATION_TOOLTIP =
+  'Prompts are personalised to your role, industries, jurisdictions, topics, and watchlist.';
+
+export function InvestigationPrompt({ item, demoContext }: InvestigationPromptProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Fetch subscriber context (role, industries, jurisdictions, topics, watchlist).
-  // `context` is null while loading or for non-premium users.
-  const { context, loading } = useSubscriberContext();
+  // When a demo context is supplied, skip the hook entirely.
+  const live = useSubscriberContext();
+  const context = demoContext ?? live.context;
+  const loading = demoContext ? false : live.loading;
 
-  // When context is null the generator falls back to the article-only prompt
-  // with the static placeholder. Once context resolves the component
-  // re-renders with the personalised version.
   const prompt = generatePersonalizedInvestigationPrompt(item, context ?? undefined);
 
   const personalised = !!(
@@ -62,6 +70,14 @@ export function InvestigationPrompt({ item }: InvestigationPromptProps) {
           <FlaskConical className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
           <span className="text-[13px] font-semibold text-gray-900">
             Investigate further
+          </span>
+          <span
+            className="inline-flex items-center text-indigo-500 hover:text-indigo-700 cursor-help"
+            title={PERSONALISATION_TOOLTIP}
+            aria-label={PERSONALISATION_TOOLTIP}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Info className="w-3 h-3" />
           </span>
 
           {loading ? (
