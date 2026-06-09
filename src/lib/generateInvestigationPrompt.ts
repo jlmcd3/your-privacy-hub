@@ -165,21 +165,42 @@ function resolveJurisdictionLabels(ids: string[] | undefined): string[] {
  *
  * The `affected_sectors` column on `updates` is not currently populated by the
  * enrichment pipeline, so industry matches must be inferred from article text.
- * Keys are the `sec-*` slugs used by WatchlistManager.
+ * Keys MUST match the brief-preference industry ids (also used as watchlist
+ * industry slugs by WatchlistManager) so the same identifier feeds both
+ * personalisation paths.
  */
 export const INDUSTRY_KEYWORDS: Record<string, string[]> = {
-  'sec-healthcare':      ['hipaa', 'health', 'medical', 'hospital', 'clinical', 'patient data', 'phi'],
-  'sec-financial':       ['glba', 'bank', 'fintech', 'financial', 'lending', 'payment', 'credit'],
-  'sec-adtech':          ['adtech', 'advertising', 'ad-tech', 'tracking pixel', 'cookie', 'programmatic'],
-  'sec-ai-companies':    ['ai ', 'artificial intelligence', 'machine learning', 'llm', 'generative ai', 'automated decision'],
-  'sec-children-edtech': ['child', 'minor', 'coppa', 'student', 'edtech', 'education technology', 'school'],
-  'sec-data-brokers':    ['data broker', 'data brokerage', 'reseller', 'people search'],
-  'sec-retail-ecom':     ['retail', 'e-commerce', 'ecommerce', 'consumer goods', 'merchant'],
-  'sec-hr-employment':   ['employee', 'employment', 'workplace', 'hr ', 'human resources', 'workforce'],
-  'sec-telecom':         ['telecom', 'carrier', 'isp', 'broadband', 'wireless', 'cpni'],
-  'sec-automotive':      ['vehicle', 'automotive', 'connected car', 'telematics', 'oem'],
-  'sec-government':      ['government', 'public sector', 'agency', 'federal', 'state agency', 'municipal'],
-  'sec-pharma':          ['pharma', 'pharmaceutical', 'clinical trial', 'drug', 'life sciences'],
+  'online-web':         ['website', 'online service', 'web platform', 'saas'],
+  'mobile-apps':        ['mobile app', 'ios', 'android', 'app store', 'sdk'],
+  'adtech':             ['adtech', 'advertising', 'ad-tech', 'tracking pixel', 'cookie', 'programmatic'],
+  'ai-companies':       ['ai ', 'artificial intelligence', 'machine learning', 'llm', 'generative ai', 'automated decision'],
+  'healthcare':         ['hipaa', 'health', 'medical', 'hospital', 'clinical', 'patient data', 'phi'],
+  'financial':          ['glba', 'bank', 'fintech', 'financial', 'lending', 'payment', 'credit'],
+  'hr-employment':      ['employee', 'employment', 'workplace', 'hr ', 'human resources', 'workforce'],
+  'children-edtech':    ['child', 'minor', 'coppa', 'student', 'edtech', 'education technology', 'school'],
+  'retail-ecom':        ['retail', 'e-commerce', 'ecommerce', 'consumer goods', 'merchant'],
+  'data-brokers':       ['data broker', 'data brokerage', 'reseller', 'people search'],
+  'legal-services':     ['law firm', 'legal services', 'attorney', 'counsel', 'litigation'],
+  'insurance':          ['insurer', 'insurance', 'underwriting', 'actuarial', 'claims'],
+  'telecom':            ['telecom', 'carrier', 'isp', 'broadband', 'wireless', 'cpni'],
+  'gaming':             ['gaming', 'game ', 'esports', 'console', 'in-game'],
+  'automotive':         ['vehicle', 'automotive', 'connected car', 'telematics', 'oem'],
+  'smart-home':         ['smart home', 'iot', 'connected device', 'home assistant', 'voice assistant'],
+  'nonprofit':          ['nonprofit', 'non-profit', 'ngo', 'charity'],
+  'media-publishing':   ['publisher', 'media outlet', 'newsroom', 'broadcaster', 'journalism'],
+  'government':         ['government', 'public sector', 'agency', 'federal', 'state agency', 'municipal'],
+  'cybersecurity':      ['cybersecurity', 'infosec', 'security vendor', 'soc ', 'edr', 'mssp'],
+  'real-estate':        ['real estate', 'proptech', 'landlord', 'tenant screening', 'property'],
+  'education':          ['university', 'higher ed', 'college', 'ferpa', 'academic'],
+  'consulting':         ['consultancy', 'consulting', 'advisory', 'professional services'],
+  'pharma':             ['pharma', 'pharmaceutical', 'clinical trial', 'drug', 'life sciences'],
+  'social_media':       ['social media', 'social network', 'platform', 'creator', 'feed'],
+  'travel_hospitality': ['airline', 'hotel', 'travel', 'hospitality', 'booking'],
+  'biotech_genomics':   ['biotech', 'genomic', 'dna ', 'sequencing', 'genetic'],
+  'energy_utilities':   ['utility', 'utilities', 'energy', 'grid', 'smart meter'],
+  'identity_kyc':       ['kyc', 'identity verification', 'aml', 'onboarding', 'liveness'],
+  'manufacturing_iot':  ['manufacturing', 'industrial iot', 'iiot', 'factory', 'ot security'],
+  'cpg_loyalty':        ['consumer goods', 'cpg', 'loyalty program', 'rewards program', 'brand'],
 };
 
 /**
