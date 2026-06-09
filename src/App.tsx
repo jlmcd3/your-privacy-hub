@@ -441,6 +441,16 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/trial-users"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminTrialUsers />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/tests"
               element={
                 <ProtectedRoute>
