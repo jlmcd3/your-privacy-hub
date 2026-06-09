@@ -35,24 +35,18 @@ export function useSubscriberContext(): {
         .eq('id', user.id)
         .maybeSingle(),
 
-      // 2. Brief preferences (industries / jurisdictions / topics)
-      supabase
-        .from('user_brief_preferences')
-        .select('industries, jurisdictions, topics')
-        .eq('user_id', user.id)
-        .maybeSingle(),
-
-      // 3. Watchlist items
+      // 2. Watchlist items — the single source of truth for industries,
+      //    jurisdictions, and topics. Anything the user has ticked on
+      //    /watchlist (which mirrors /brief-preferences) feeds the AI prompt.
       supabase
         .from('user_watchlist')
         .select('type, slug, label, flag')
         .eq('user_id', user.id),
     ])
-      .then(([profileResult, prefsResult, watchlistResult]) => {
+      .then(([profileResult, watchlistResult]) => {
         if (cancelled) return;
 
-        // Surface the first non-PGRST116 error (row-not-found is fine)
-        const firstError = [profileResult, prefsResult, watchlistResult].find(
+        const firstError = [profileResult, watchlistResult].find(
           (r) => r.error && r.error.code !== 'PGRST116'
         );
         if (firstError?.error) {
@@ -60,27 +54,32 @@ export function useSubscriberContext(): {
         }
 
         const role = (profileResult.data as any)?.brief_role ?? undefined;
-        const prefs = prefsResult.data as any;
-        const watchlist: SubscriberContext['watchlist'] =
-          (watchlistResult.data ?? []) as SubscriberContext['watchlist'];
+        const watchlist = (watchlistResult.data ?? []) as Array<{
+          type: string; slug: string; label: string; flag?: string;
+        }>;
+
+        // Derive preference arrays from the watchlist so the AI prompt
+        // matches exactly what the subscriber sees ticked on /watchlist.
+        const industries    = watchlist.filter(w => w.type === 'industry').map(w => w.slug);
+        const jurisdictions = watchlist.filter(w => w.type === 'jurisdiction').map(w => w.slug);
+        const topics        = watchlist.filter(w => w.type === 'topic').map(w => w.slug);
 
         setContext({
           role,
-          industries: prefs?.industries ?? [],
-          jurisdictions: prefs?.jurisdictions ?? [],
-          topics: prefs?.topics ?? [],
-          watchlist: watchlist ?? [],
+          industries,
+          jurisdictions,
+          topics,
+          watchlist: watchlist as SubscriberContext['watchlist'],
         });
         setLoading(false);
       })
       .catch((e) => {
         if (cancelled) return;
-        // On any unexpected error, surface a minimal context so the prompt
-        // still renders (just without personalisation).
         setError(e?.message ?? 'Failed to load subscriber profile');
         setContext({ industries: [], jurisdictions: [], topics: [], watchlist: [] });
         setLoading(false);
       });
+
 
     return () => {
       cancelled = true;

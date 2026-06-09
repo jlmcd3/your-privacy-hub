@@ -84,24 +84,42 @@ export default function BriefPreferences() {
   const [saved, setSaved] = useState(false);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
 
+  // Build label/flag lookup once so we can persist watchlist rows with
+  // the same display metadata the watchlist UI uses.
+  const TAXONOMY_LOOKUP: Record<string, { type: string; label: string; flag: string }> = {};
+  INDUSTRIES.forEach(i => { TAXONOMY_LOOKUP[i.id] = { type: "industry", label: i.label, flag: i.icon }; });
+  PREF_JURISDICTIONS.forEach(j => { TAXONOMY_LOOKUP[j.id] = { type: "jurisdiction", label: j.label, flag: j.icon }; });
+  TOPICS.forEach(t => { TAXONOMY_LOOKUP[t.id] = { type: "topic", label: t.label, flag: t.icon }; });
+
   useEffect(() => {
     if (!user) return;
-    // Fetch preferences
+    // Industries / jurisdictions / topics now live in user_watchlist —
+    // the single source of truth shared with /watchlist and the AI prompt.
+    (supabase as any)
+      .from("user_watchlist")
+      .select("type, slug")
+      .eq("user_id", user.id)
+      .then(({ data }: any) => {
+        const rows = (data ?? []) as Array<{ type: string; slug: string }>;
+        setPrefs(prev => ({
+          ...prev,
+          industries:    rows.filter(r => r.type === "industry").map(r => r.slug),
+          jurisdictions: rows.filter(r => r.type === "jurisdiction").map(r => r.slug),
+          topics:        rows.filter(r => r.type === "topic").map(r => r.slug),
+        }));
+      });
+
+    // Format still lives in user_brief_preferences (it isn't a watchlist item).
     (supabase as any)
       .from("user_brief_preferences")
-      .select("*")
+      .select("format")
       .eq("user_id", user.id)
-      .single()
+      .maybeSingle()
       .then(({ data }: any) => {
-        if (data)
-          setPrefs({
-            industries: data.industries ?? [],
-            jurisdictions: data.jurisdictions ?? [],
-            topics: data.topics ?? [],
-            format: data.format ?? "full",
-          });
+        if (data?.format) setPrefs(prev => ({ ...prev, format: data.format }));
       });
-    // Fetch role from profile
+
+    // Role from profile
     supabase
       .from("profiles")
       .select("brief_role, is_premium")
@@ -126,18 +144,60 @@ export default function BriefPreferences() {
   const save = async () => {
     if (!user) return;
     setSaving(true);
+
+    // 1. Reconcile watchlist rows for the three taxonomy fields.
+    const { data: existing } = await (supabase as any)
+      .from("user_watchlist")
+      .select("id, type, slug")
+      .eq("user_id", user.id)
+      .in("type", ["industry", "jurisdiction", "topic"]);
+
+    const existingRows = (existing ?? []) as Array<{ id: string; type: string; slug: string }>;
+    const existingKey = new Set(existingRows.map(r => `${r.type}:${r.slug}`));
+
+    const desired: Array<{ type: string; slug: string }> = [
+      ...prefs.industries.map(slug => ({ type: "industry", slug })),
+      ...prefs.jurisdictions.map(slug => ({ type: "jurisdiction", slug })),
+      ...prefs.topics.map(slug => ({ type: "topic", slug })),
+    ];
+    const desiredKey = new Set(desired.map(d => `${d.type}:${d.slug}`));
+
+    const toInsert = desired
+      .filter(d => !existingKey.has(`${d.type}:${d.slug}`))
+      .map(d => {
+        const meta = TAXONOMY_LOOKUP[d.slug];
+        return {
+          user_id: user.id,
+          type: d.type,
+          slug: d.slug,
+          label: meta?.label ?? d.slug,
+          flag:  meta?.flag  ?? null,
+        };
+      });
+    const idsToDelete = existingRows
+      .filter(r => !desiredKey.has(`${r.type}:${r.slug}`))
+      .map(r => r.id);
+
     await Promise.all([
+      toInsert.length
+        ? (supabase as any).from("user_watchlist").insert(toInsert)
+        : Promise.resolve(),
+      idsToDelete.length
+        ? (supabase as any).from("user_watchlist").delete().in("id", idsToDelete)
+        : Promise.resolve(),
+      // 2. Format still goes to user_brief_preferences.
       (supabase as any)
         .from("user_brief_preferences")
-        .upsert({ user_id: user.id, ...prefs, updated_at: new Date().toISOString() }, { onConflict: "user_id" }),
-      // Save role to profile
+        .upsert(
+          { user_id: user.id, format: prefs.format, updated_at: new Date().toISOString() },
+          { onConflict: "user_id" }
+        ),
+      // 3. Role to profile.
       role
-        ? supabase
-            .from("profiles")
-            .update({ brief_role: role } as any)
-            .eq("id", user.id)
+        ? supabase.from("profiles").update({ brief_role: role } as any).eq("id", user.id)
         : Promise.resolve(),
     ]);
+
     setSaving(false);
     setSaved(true);
     if (!isPremium) {
@@ -147,6 +207,7 @@ export default function BriefPreferences() {
     }
     setTimeout(() => navigate("/dashboard"), 800);
   };
+
 
   return (
     <>
