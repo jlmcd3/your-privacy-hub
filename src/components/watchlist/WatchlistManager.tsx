@@ -125,25 +125,31 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
           </h3>
           <div className="flex flex-wrap gap-2">
             {SUGGESTED[type].map(s => {
-              const inList = items.some(i => i.slug === s.slug);
+              const existing = items.find(i => i.slug === s.slug);
+              const inList = !!existing;
               return (
                 <button
                   key={s.slug}
-                  onClick={() => !inList && addItem(TYPE_FOR_KEY[type], s.slug, s.label, s.flag)}
-                  disabled={inList}
+                  onClick={() =>
+                    inList
+                      ? removeItem(existing!.id)
+                      : addItem(TYPE_FOR_KEY[type], s.slug, s.label, s.flag)
+                  }
+                  title={inList ? "Click to remove from your watchlist" : "Click to add to your watchlist"}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                     inList
-                      ? "bg-brand-teal/10 text-brand-teal border-brand-teal/30 cursor-default"
+                      ? "bg-brand-teal/10 text-brand-teal border-brand-teal/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                       : "bg-white text-slate border-brand-cloud hover:border-brand-teal/30 hover:text-brand-navy"
                   }`}
                 >
                   {s.flag && <span>{s.flag}</span>}
                   {s.label}
                   {!inList && <Plus className="w-3 h-3" />}
-                  {inList  && <span className="text-brand-teal">✓</span>}
+                  {inList  && <span>✓</span>}
                 </button>
               );
             })}
+
           </div>
         </div>
       ))}
