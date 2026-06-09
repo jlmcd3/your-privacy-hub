@@ -642,7 +642,7 @@ pass: true only if overall score is 3.5 or above.`,
 Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
             }],
           }),
-          signal: AbortSignal.timeout(15000),
+          signal: AbortSignal.timeout(30000),
         });
         if (verifyResp.ok) {
           const vData = await verifyResp.json();
