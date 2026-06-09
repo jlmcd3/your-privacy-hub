@@ -84,7 +84,7 @@ const TOOLS: Tool[] = [
     icon: Siren,
     title: "Incident Response Playbook",
     blurb: "Jurisdiction-specific breach notification timelines and a step-by-step IR playbook — cited enforcement decisions behind every deadline recommendation.",
-    price: "$59 per run · 1 free run/client/month (Pro Annual)",
+    price: "Included with any subscription · $59 standalone",
     cta: "Build playbook",
     href: "/ir-playbook",
   },
