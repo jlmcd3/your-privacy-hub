@@ -228,8 +228,8 @@ const HomepageArticleCard = ({
               jurisdictions: ['eu-all', 'uk', 'us-ca'],
               topics: ['AI governance', 'Cross-border transfers'],
               watchlist: [
-                { type: 'jurisdiction', slug: 'us-ca', label: 'California', flag: null },
-                { type: 'topic', slug: 'ai-governance', label: 'AI governance', flag: null },
+                { type: 'jurisdiction', slug: 'us-ca', label: 'California' },
+                { type: 'topic', slug: 'ai-governance', label: 'AI governance' },
               ],
             }}
           />
