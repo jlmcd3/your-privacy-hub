@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Bell, BellRing } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,22 +13,25 @@ interface FollowButtonProps {
 const FollowButton = ({ followType, followKey, label }: FollowButtonProps) => {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
-  const [email, setEmail] = useState(user?.email || "");
+  // Email is always the signed-in user's email — RLS binds inserts to auth.email().
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "duplicate">("idle");
 
   const handleFollow = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.includes("@")) return;
+    if (!user?.email) return;
     setStatus("loading");
 
     const { error } = await supabase.from("regulator_follows").insert({
-      email: email.toLowerCase().trim(),
+      email: user.email.toLowerCase().trim(),
       follow_type: followType,
       follow_key: followKey,
     });
 
     if (error?.code === "23505") {
       setStatus("duplicate");
+    } else if (error) {
+      console.error("Follow insert failed:", error.message);
+      setStatus("idle");
     } else {
       setStatus("success");
     }
