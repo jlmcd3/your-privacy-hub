@@ -1,0 +1,1 @@
+ALTER TABLE public.custom_briefs ADD COLUMN IF NOT EXISTS source_map jsonb;

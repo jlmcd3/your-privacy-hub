@@ -853,6 +853,7 @@ export type Database = {
           id: string
           issue_tags: Json | null
           preferences_snapshot: Json | null
+          source_map: Json | null
           user_id: string
           verification_result: Json | null
           week_label: string
@@ -866,6 +867,7 @@ export type Database = {
           id?: string
           issue_tags?: Json | null
           preferences_snapshot?: Json | null
+          source_map?: Json | null
           user_id: string
           verification_result?: Json | null
           week_label: string
@@ -879,6 +881,7 @@ export type Database = {
           id?: string
           issue_tags?: Json | null
           preferences_snapshot?: Json | null
+          source_map?: Json | null
           user_id?: string
           verification_result?: Json | null
           week_label?: string
