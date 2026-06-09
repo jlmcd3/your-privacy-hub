@@ -2,14 +2,12 @@
 // Determines whether CCPA/CPRA + CPPA enforcement obligations apply.
 
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
