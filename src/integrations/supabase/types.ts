@@ -391,6 +391,7 @@ export type Database = {
           id: string
           intake_data: Json
           module: string
+          obligation_snapshot: Json | null
           pdf_url: string | null
           purchase_price_cents: number | null
           report_data: Json | null
@@ -407,6 +408,7 @@ export type Database = {
           id?: string
           intake_data?: Json
           module: string
+          obligation_snapshot?: Json | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           report_data?: Json | null
@@ -423,6 +425,7 @@ export type Database = {
           id?: string
           intake_data?: Json
           module?: string
+          obligation_snapshot?: Json | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           report_data?: Json | null

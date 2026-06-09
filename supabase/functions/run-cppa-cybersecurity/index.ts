@@ -223,9 +223,40 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       typeof s === "string" ? stripMd(s) : s
     );
 
+    // Obligation snapshot: freeze the cybersecurity audit corpus (§§ 7120–7124)
+    // used to evaluate the 18 controls, so the report stays reproducible if any
+    // section is later superseded. Pull current rows once at completion.
+    const CYBER_CITATIONS = [
+      "11 CCR § 7120",
+      "11 CCR § 7121",
+      "11 CCR § 7122",
+      "11 CCR § 7123",
+      "11 CCR § 7124",
+    ];
+    const { data: authRows } = await supabase
+      .from("cppa_authorities")
+      .select("id, citation, version, authority_type, authority_weight, effective_date, official_url, title, status")
+      .in("citation", CYBER_CITATIONS)
+      .eq("status", "current");
+    const { data: fsorRows } = await supabase
+      .from("cppa_fsor_commentary")
+      .select("id, regulation_citation, page_ref")
+      .in("regulation_citation", CYBER_CITATIONS);
+
+    const obligation_snapshot = {
+      captured_at: new Date().toISOString(),
+      module: "cybersecurity",
+      authorities: authRows ?? [],
+      fsor: fsorRows ?? [],
+      retrieval_meta: {
+        authority_count: (authRows ?? []).length,
+        fsor_count: (fsorRows ?? []).length,
+      },
+    };
+
     await supabase
       .from("cppa_assessments")
-      .update({ status: "complete", report_data: report })
+      .update({ status: "complete", report_data: report, obligation_snapshot })
       .eq("id", assessment_id);
   } catch (e) {
     console.error("[CPPA Cyber] runAssessment error:", e);
