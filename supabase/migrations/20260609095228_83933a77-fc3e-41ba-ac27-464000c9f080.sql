@@ -1,0 +1,1 @@
+CREATE POLICY cppa_assessments_admin_read ON public.cppa_assessments FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::app_role));
