@@ -12,6 +12,7 @@ import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
 import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdvisor";
+import AuditScopeMemoGenerator from "@/components/cppa/AuditScopeMemoGenerator";
 
 export const readinessColor = (r: string) => {
   const x = (r || "").toLowerCase();
