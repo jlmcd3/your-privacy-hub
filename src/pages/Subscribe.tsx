@@ -68,15 +68,17 @@ const Subscribe = () => {
   const [error, setError] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutInterval, setCheckoutInterval] = useState<"month" | "year">("month");
-  const startCheckout = async (interval: "month" | "year") => {
+  const [checkoutTier, setCheckoutTier] = useState<"intelligence" | "professional">("intelligence");
+  const startCheckout = async (interval: "month" | "year", tier: "intelligence" | "professional" = "intelligence") => {
     if (!user) {
       navigate(`/signup?redirect=/subscribe`);
       return;
     }
-    setLoading(interval);
+    setLoading(`${tier}_${interval}`);
     setError(null);
     try {
       setCheckoutInterval(interval);
+      setCheckoutTier(tier);
       setCheckoutOpen(true);
       setLoading(null);
     } catch (e: any) {
