@@ -15,6 +15,8 @@ import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdv
 import AuditScopeMemoGenerator from "@/components/cppa/AuditScopeMemoGenerator";
 import AuditorHandoffButton, { AuditorHandoffCover } from "@/components/cppa/AuditorHandoffPackage";
 import BreachPrecedentMap from "@/components/cppa/BreachPrecedentMap";
+import { useCitationVerification } from "@/hooks/useCitationVerification";
+import CitationVerificationBadge from "@/components/cppa/CitationVerificationBadge";
 
 export const readinessColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -35,6 +37,10 @@ export const controlStatusColor = (s: string) => {
 
 export function CybersecurityReportBody({ row }: { row: any }) {
   const report = row?.report_data || {};
+  const ledgerCitations = Array.isArray(report?.citation_ledger)
+    ? report.citation_ledger.map((c: any) => c?.citation || c?.cite || "")
+    : [];
+  const { isVerified } = useCitationVerification(ledgerCitations);
   return (
     <div className="space-y-6">
       {/* Sprint 2 #3 — Cover (print-only by default; visible when handoff package is being generated) */}
@@ -311,19 +317,24 @@ export function CybersecurityReportBody({ row }: { row: any }) {
                   <th className="p-2 border">Citation</th>
                   <th className="p-2 border">Type</th>
                   <th className="p-2 border">Status</th>
+                  <th className="p-2 border">Corpus</th>
                   <th className="p-2 border">Context</th>
                 </tr>
               </thead>
               <tbody>
-                {report.citation_ledger.map((c: any, i: number) => (
-                  <tr key={i} className="border-t align-top">
-                    <td className="p-2 border font-mono">{i + 1}</td>
-                    <td className="p-2 border font-mono text-[11px]">{c.citation || c.cite || "—"}</td>
-                    <td className="p-2 border text-[11px]">{c.type || c.source_type || "—"}</td>
-                    <td className="p-2 border text-[11px]">{c.status || c.verification || "—"}</td>
-                    <td className="p-2 border">{c.context || c.note || c.where || "—"}</td>
-                  </tr>
-                ))}
+                {report.citation_ledger.map((c: any, i: number) => {
+                  const cite = c.citation || c.cite || "";
+                  return (
+                    <tr key={i} className="border-t align-top">
+                      <td className="p-2 border font-mono">{i + 1}</td>
+                      <td className="p-2 border font-mono text-[11px]">{cite || "—"}</td>
+                      <td className="p-2 border text-[11px]">{c.type || c.source_type || "—"}</td>
+                      <td className="p-2 border text-[11px]">{c.status || c.verification || "—"}</td>
+                      <td className="p-2 border"><CitationVerificationBadge verified={isVerified(cite)} /></td>
+                      <td className="p-2 border">{c.context || c.note || c.where || "—"}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

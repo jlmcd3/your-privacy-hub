@@ -144,6 +144,8 @@ import RegistrationMyFilings from "./pages/RegistrationMyFilings.tsx";
 import Watchlist from "./pages/Watchlist.tsx";
 import MyReports from "./pages/MyReports.tsx";
 import AccountCPPARuns from "./pages/AccountCPPARuns.tsx";
+import CPPAHub from "./pages/CPPAHub.tsx";
+import AdminCPPARuns from "./pages/AdminCPPARuns.tsx";
 import DPAResult from "./pages/DPAResult.tsx";
 import IRPlaybookResult from "./pages/IRPlaybookResult.tsx";
 import BiometricCheckerResult from "./pages/BiometricCheckerResult.tsx";
@@ -460,6 +462,16 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/cppa-runs"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminCPPARuns />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/tests"
               element={
                 <ProtectedRoute>
@@ -743,6 +755,7 @@ const App = () => (
             <Route path="/ir-playbook" element={<IRPlaybook />} />
             <Route path="/biometric-checker" element={<BiometricChecker />} />
             {/* CPPA Audit Readiness Suite */}
+            <Route path="/cppa" element={<CPPAHub />} />
             <Route path="/cppa-scope-checker" element={<CPPAScopeChecker />} />
             <Route path="/cppa-risk-assessment" element={<CPPARiskAssessment />} />
             <Route
