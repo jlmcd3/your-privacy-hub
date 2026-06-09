@@ -443,6 +443,11 @@ export default function CPPACybersecurityResult() {
             <CybersecurityReportBody row={row} />
             <div className="flex gap-2 flex-wrap" data-print-hide>
               <AuditorHandoffButton row={row} />
+              {priorId && (
+                <Button asChild variant="outline">
+                  <Link to={`/cppa-cybersecurity/drift/${row.id}/${priorId}`}>Compare to previous</Link>
+                </Button>
+              )}
               <PDFDownloadButton
                 toolType="cppa_cybersecurity"
                 assessmentId={row.id}
