@@ -87,6 +87,40 @@ export function CybersecurityReportBody({ row }: { row: any }) {
                   {d.regulatory_basis && <p className="text-sm"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>}
                   {d.remediation && <p className="text-sm"><strong>Remediation:</strong> {d.remediation}</p>}
                   {d.priority && <p className="text-xs text-muted-foreground">Priority: {d.priority}</p>}
+                  {Array.isArray(d.fsor_commentary) && d.fsor_commentary.length > 0 && (
+                    <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-900/40 border-l-4 border-brand-teal rounded text-sm">
+                      <p className="font-semibold mb-2">
+                        What the agency said
+                        {d.fsor_citation && (
+                          <span className="ml-2 text-xs font-normal text-muted-foreground">
+                            {d.fsor_citation}
+                          </span>
+                        )}
+                      </p>
+                      <ul className="space-y-2">
+                        {d.fsor_commentary.slice(0, 3).map((f: any) => (
+                          <li key={f.id} className="space-y-1">
+                            {f.comment_summary && (
+                              <p className="text-xs text-muted-foreground">
+                                <strong>Comment:</strong> {f.comment_summary}
+                              </p>
+                            )}
+                            {f.agency_response && (
+                              <p className="text-xs">
+                                <strong>Agency response:</strong> {f.agency_response}
+                              </p>
+                            )}
+                            <p className="text-[11px] text-muted-foreground">
+                              {f.fsor_package}{f.page_ref ? ` · ${f.page_ref}` : ""}
+                              {f.source_url && (
+                                <> · <a href={f.source_url} target="_blank" rel="noreferrer" className="underline">source</a></>
+                              )}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   {(d.status === "Gap" || d.status === "Partial Gap") && (
                     <AnnotationCallout
                       annotations={(report?.annotations || []).filter(
@@ -97,6 +131,7 @@ export function CybersecurityReportBody({ row }: { row: any }) {
                     />
                   )}
                 </AccordionContent>
+
               </AccordionItem>
             ))}
           </Accordion>
