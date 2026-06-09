@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Copy, Check, FlaskConical } from 'lucide-react';
+import { Copy, Check, FlaskConical, Loader2 } from 'lucide-react';
 import { ArticleItem } from '@/components/ArticleCard';
-import { generateInvestigationPrompt } from '@/lib/generateInvestigationPrompt';
+import { generatePersonalizedInvestigationPrompt } from '@/lib/generateInvestigationPrompt';
+import { useSubscriberContext } from '@/hooks/useSubscriberContext';
 
 interface InvestigationPromptProps {
   item: ArticleItem;
@@ -11,13 +12,27 @@ export function InvestigationPrompt({ item }: InvestigationPromptProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const prompt = generateInvestigationPrompt(item);
+  // Fetch subscriber context (role, industries, jurisdictions, topics, watchlist).
+  // `context` is null while loading or for non-premium users.
+  const { context, loading } = useSubscriberContext();
+
+  // When context is null the generator falls back to the article-only prompt
+  // with the static placeholder. Once context resolves the component
+  // re-renders with the personalised version.
+  const prompt = generatePersonalizedInvestigationPrompt(item, context ?? undefined);
+
+  const personalised = !!(
+    context &&
+    (context.role ||
+      (context.industries?.length ?? 0) > 0 ||
+      (context.jurisdictions?.length ?? 0) > 0 ||
+      (context.topics?.length ?? 0) > 0 ||
+      (context.watchlist?.length ?? 0) > 0)
+  );
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(prompt);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
       const el = document.createElement('textarea');
       el.value = prompt;
@@ -25,9 +40,9 @@ export function InvestigationPrompt({ item }: InvestigationPromptProps) {
       el.select();
       document.execCommand('copy');
       document.body.removeChild(el);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -48,9 +63,19 @@ export function InvestigationPrompt({ item }: InvestigationPromptProps) {
           <span className="text-[13px] font-semibold text-gray-900">
             Investigate further
           </span>
-          <span className="text-[11px] text-gray-500 truncate hidden sm:inline">
-            — AI prompt pre-built from this article
-          </span>
+
+          {loading ? (
+            <span className="hidden sm:flex items-center gap-1 text-[11px] text-gray-400">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              personalising…
+            </span>
+          ) : (
+            <span className="text-[11px] text-gray-500 truncate hidden sm:inline">
+              {personalised
+                ? '— AI prompt tailored to your profile'
+                : '— AI prompt pre-built from this article'}
+            </span>
+          )}
         </span>
         <span
           className="text-gray-500 text-sm transition-transform"
@@ -63,11 +88,23 @@ export function InvestigationPrompt({ item }: InvestigationPromptProps) {
       {/* Expanded content */}
       {open && (
         <div className="px-3 pb-3 pt-1 border-t border-silver">
-          {/* Header row with copy button */}
+          {/* Header row */}
           <div className="flex items-start justify-between gap-2 mt-2">
             <p className="text-xs text-gray-600 leading-relaxed">
               Copy this prompt into Claude, ChatGPT, or any AI assistant.
-              Fill in the organization context section before sending.
+              {!loading && !personalised && (
+                <span className="block mt-0.5 text-indigo-600">
+                  Set your{' '}
+                  <a href="/brief-preferences" className="underline hover:no-underline">
+                    preferences
+                  </a>{' '}
+                  and{' '}
+                  <a href="/watchlist" className="underline hover:no-underline">
+                    watchlist
+                  </a>{' '}
+                  to personalise this prompt automatically.
+                </span>
+              )}
             </p>
             <button
               type="button"
@@ -99,12 +136,16 @@ export function InvestigationPrompt({ item }: InvestigationPromptProps) {
             onClick={(e) => e.stopPropagation()}
             className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-md bg-gray-50 border border-silver p-3 text-xs text-gray-800 font-mono leading-relaxed"
           >
-            {prompt}
+            {loading ? 'Assembling your personalised prompt…' : prompt}
           </pre>
 
           {/* Footer note */}
           <p className="mt-2 text-[11px] text-gray-500">
-            Generated from article intelligence data · no additional AI call
+            {loading
+              ? 'Loading your profile…'
+              : personalised
+                ? 'Personalised from your profile and watchlist · no AI call'
+                : 'Generated from article intelligence · no AI call'}
           </p>
         </div>
       )}
