@@ -17,6 +17,16 @@ import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import TrialCountdownBanner from "@/components/dashboard/TrialCountdownBanner";
