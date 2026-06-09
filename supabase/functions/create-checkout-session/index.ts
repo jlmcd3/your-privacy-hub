@@ -15,7 +15,9 @@ const corsHeaders = {
 const PLAN_LOOKUPS: Record<string, string> = {
   intelligence_monthly: "intelligence_monthly",
   intelligence_yearly: "intelligence_yearly",
-  // Legacy aliases — all map to the new monthly Professional price.
+  professional_monthly: "professional_monthly",
+  professional_annual: "professional_annual",
+  // Legacy aliases — all map to the new monthly Intelligence price.
   pro: "intelligence_monthly",
   premium: "intelligence_monthly",
   standard: "intelligence_monthly",
@@ -23,6 +25,8 @@ const PLAN_LOOKUPS: Record<string, string> = {
   yearly: "intelligence_yearly",
   annual: "intelligence_yearly",
 };
+
+const PROFESSIONAL_PLANS = new Set(["professional_monthly", "professional_annual"]);
 
 // Tool one-time purchases via tool_slug
 const TOOL_LOOKUPS: Record<string, { standalone: string; subscriber: string }> = {
@@ -162,15 +166,23 @@ serve(async (req) => {
       metadata.tool_slug = tool_slug;
       metadata.tier = isSubscriber ? "subscriber" : "standalone";
     } else if (!addon) {
-      // Resolve interval-aware plan key.
-      if (interval === "year") {
+      // Resolve plan key. Honor explicit professional_* plans regardless
+      // of `interval`. Otherwise default to interval-aware intelligence.
+      const requestedKey = plan || "";
+      if (PROFESSIONAL_PLANS.has(requestedKey)) {
+        lookupKey = requestedKey;
+        const isAnnual = requestedKey === "professional_annual";
+        metadata.subscription_tier = "professional";
+        metadata.subscription_interval = isAnnual ? "year" : "month";
+        metadata.subscription_type = isAnnual ? "pro_annual" : "pro_monthly";
+      } else if (interval === "year") {
         lookupKey = "intelligence_yearly";
         metadata.subscription_tier = "intelligence";
         metadata.subscription_interval = "year";
         metadata.subscription_type = "annual";
       } else {
-        const requestedKey = plan || "intelligence_monthly";
-        lookupKey = PLAN_LOOKUPS[requestedKey] || PLAN_LOOKUPS.intelligence_monthly;
+        const reqKey = requestedKey || "intelligence_monthly";
+        lookupKey = PLAN_LOOKUPS[reqKey] || PLAN_LOOKUPS.intelligence_monthly;
         metadata.subscription_tier = "intelligence";
         metadata.subscription_interval = "month";
         metadata.subscription_type = "monthly";

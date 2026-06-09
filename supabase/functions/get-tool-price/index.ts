@@ -180,7 +180,7 @@ const TOOLS: Record<
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
     fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 0,
 
     classification: "smart",
   },
@@ -189,7 +189,7 @@ const TOOLS: Record<
     standalone_lookup: "ir_standalone_v2",
     subscriber_lookup: "ir_subscriber_v2",
     fallback_standalone_cents: 5900,
-    fallback_subscriber_cents: 5900,
+    fallback_subscriber_cents: 0,
     classification: "convenience",
   },
   biometric_checker: {
@@ -197,13 +197,13 @@ const TOOLS: Record<
     standalone_lookup: "biometric_standalone_v2",
     subscriber_lookup: "biometric_subscriber_v2",
     fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 0,
     classification: "smart",
   },
 };
 
-// Tools that bypass Stripe entirely for is_pro subscribers (FREE).
-const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker"]);
+// v9: Tools that bypass Stripe entirely for ANY active subscriber (FREE).
+const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker", "dpa_generator"]);
 
 function detectEnv(): StripeEnv {
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
@@ -230,10 +230,12 @@ serve(async (req) => {
     ]);
     const isCppa = CPPA_TOOLS.has(tool_slug);
 
-    // Resolve subscriber identity. `is_pro` users on the SUBSCRIBER_FREE_TOOLS
-    // list (IR Playbook, Biometric Checker) bypass Stripe entirely.
+    // v9: Resolve subscriber identity. Any active subscription (is_premium
+    // OR is_pro) qualifies for subscriber-free Layer-1 tools and subscriber
+    // pricing on Layer-2 tools.
     let subscriptionType: string | null = null;
     let isPro = false;
+    let isPremium = false;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
       try {
@@ -250,11 +252,12 @@ serve(async (req) => {
           );
           const { data: profile } = await admin
             .from("profiles")
-            .select("subscription_type, is_pro")
+            .select("subscription_type, is_pro, is_premium")
             .eq("id", user.id)
             .single();
           subscriptionType = (profile as any)?.subscription_type ?? null;
           isPro = (profile as any)?.is_pro === true;
+          isPremium = (profile as any)?.is_premium === true || isPro;
         }
       } catch (_) {
         // ignore
@@ -262,35 +265,32 @@ serve(async (req) => {
     }
 
     // Canonical PRICING (src/config/pricing.ts) is the source of truth.
-    // We use the in-file fallbacks (which are kept in sync by
-    // scripts/check-pricing-drift.mjs) rather than reading from Stripe — Stripe
-    // is the destination for sync-pricing, not a source we trust at runtime.
     const standaloneCents = tool.fallback_standalone_cents;
     const subscriberCents = tool.fallback_subscriber_cents;
     const stripeConfigured = tool.fallback_standalone_cents > 0;
 
     const subscriberFree = SUBSCRIBER_FREE_TOOLS.has(tool_slug);
-    const isSubscriberFree = subscriberFree && isPro;
-    // `effectiveCents` is what we'd charge THIS caller right now. Subscriber-
-    // free tools resolve to 0 only for the active subscriber; everyone else
-    // pays the canonical standalone price.
-    const effectiveCents = isPro ? (subscriberFree ? 0 : subscriberCents) : standaloneCents;
+    const isSubscriberFree = subscriberFree && isPremium;
+    // v9: any active subscriber pays subscriber rate; Layer-1 tools resolve
+    // to 0 for subscribers; non-subscribers pay standalone.
+    const effectiveCents = isPremium
+      ? (subscriberFree ? 0 : subscriberCents)
+      : standaloneCents;
 
     return new Response(
       JSON.stringify({
-        tier: isPro ? "subscriber" : "standalone",
+        tier: isPremium ? "subscriber" : "standalone",
         tool_slug,
         tool_name: tool.name,
         subscription_type: subscriptionType,
         is_pro: isPro,
+        is_premium: isPremium,
         is_subscriber_free: isSubscriberFree,
         is_cppa: isCppa,
         is_included: isSubscriberFree,
         classification: tool.classification,
         amount_cents: effectiveCents,
         standalone_amount_cents: standaloneCents,
-        // Report the canonical subscriber price; `is_subscriber_free` separately
-        // tells callers when this caller will be charged 0.
         subscriber_amount_cents: subscriberCents,
         founding_amount_cents: subscriberCents,
         stripe_price_id: null,

@@ -52,9 +52,9 @@ function diyPriceLabel(numJurisdictions: number): string {
   return `Registration Manager — DIY Toolkit (${suffix})`;
 }
 
-const COUNSEL_REVIEW_CENTS = 39900; // $399 flat
-const COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS = 7500; // -$75 for Pro
-const RENEWAL_PER_JURISDICTION_CENTS = 7900; // $79/yr
+const COUNSEL_REVIEW_CENTS = 29900; // $299 flat — MIRRORS pricing.ts registration_counsel_review
+const COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS = 7500; // -$75 for Pro — MIRRORS pricing.ts
+const RENEWAL_PER_JURISDICTION_CENTS = 7900; // $79/yr/jurisdiction — MIRRORS pricing.ts (no registry kind models recurring-per-unit)
 
 const PRICING = {
   diy: { unit_amount: 0 /* dynamic */, name: "Registration Manager — DIY Toolkit", recurring: false, per_jurisdiction: false },

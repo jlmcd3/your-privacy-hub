@@ -6,7 +6,7 @@ import { Helmet } from "react-helmet-async";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
-import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+// useSubscriptionTier removed — registration is per-filing for all tiers.
 import PageContainer from "@/components/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,11 +33,11 @@ const FAQS = [
   },
   {
     q: "How does pricing work?",
-    a: "Registration filings are $50 per filing — flat, regardless of jurisdiction. The free assessment scopes which jurisdictions you must file in; you then pay only for the filings you generate. Each filing includes the draft documents, the jurisdiction-specific filing checklist, and portal URLs. You (or your counsel) submit the filings.",
+    a: "Registration filings are $45 per filing — flat, regardless of jurisdiction. The free assessment scopes which jurisdictions you must file in; you then pay only for the filings you generate. Each filing includes the draft documents, the jurisdiction-specific filing checklist, and portal URLs. You (or your counsel) submit the filings.",
   },
   {
     q: "Do you create EU AI Act registration documents?",
-    a: "Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, priced at the same $50 per filing. You review with your counsel and you or they submit the filings — we do not file for you.",
+    a: "Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, priced at the same $45 per filing. You review with your counsel and you or they submit the filings — we do not file for you.",
   },
   {
     q: "Can I get reminders before renewals are due?",
@@ -46,7 +46,7 @@ const FAQS = [
 ];
 
 export default function RegistrationLanding() {
-  const { hasToolAccess } = useSubscriptionTier();
+  // hasToolAccess no longer used here (registration is always per-filing).
   return (
     <WorkspaceLayout>
       <Helmet>
@@ -58,11 +58,6 @@ export default function RegistrationLanding() {
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
-        {hasToolAccess && (
-          <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            ✓ Included in your Annual Platform — all registration documents included at no additional charge.
-          </div>
-        )}
       </div>
 
       <header className="bg-slate-900 text-white py-12">
@@ -117,7 +112,7 @@ export default function RegistrationLanding() {
             {[
               ["1", "Free assessment", "Answer ~12 questions about your organization and processing activities. No account required."],
               ["2", "Personalized scope", "We map your activities to every jurisdiction that applies — with confidence ratings."],
-              ["3", "Generate documents", "Pay only when you generate documents — $50 per filing, flat. We draft every required filing in minutes."],
+              ["3", "Generate documents", "Pay only when you generate documents — $45 per filing, flat. We draft every required filing in minutes."],
               ["4", "You file & we track renewals", "You (or your counsel) submit the filings. Optional annual renewal monitoring keeps you ahead of expiry dates."],
             ].map(([n, t, b]) => (
               <Card key={n} className="border-border/60">

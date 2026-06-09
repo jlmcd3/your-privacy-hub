@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
 import { useAuth } from "@/hooks/useAuth";
 import { waitForSubscriptionActive } from "@/lib/checkoutConfirmation";
-import { PLATFORM_PRICING, INTELLIGENCE_PRICING } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
@@ -14,20 +14,24 @@ const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 interface Props {
   open: boolean;
   interval: "month" | "year";
+  tier?: "intelligence" | "professional";
   onClose: () => void;
   onComplete: () => void;
 }
 
-export default function SubscribeCheckoutModal({ open, interval, onClose, onComplete }: Props) {
+export default function SubscribeCheckoutModal({ open, interval, tier = "intelligence", onClose, onComplete }: Props) {
   const { user } = useAuth();
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
 
   const fetchClientSecret = useCallback(async () => {
+    const plan = tier === "professional"
+      ? (interval === "year" ? "professional_annual" : "professional_monthly")
+      : (interval === "year" ? "intelligence_yearly" : "intelligence_monthly");
     const { data, error } = await supabase.functions.invoke("create-checkout-session", {
       body: {
-        plan: interval === "year" ? "intelligence_yearly" : "intelligence_monthly",
+        plan,
         interval,
         environment: getStripeEnvironment(),
         embedded: true,
@@ -37,7 +41,7 @@ export default function SubscribeCheckoutModal({ open, interval, onClose, onComp
       throw new Error(error?.message || data?.error || "Failed to create checkout session");
     }
     return data.client_secret as string;
-  }, [interval]);
+  }, [interval, tier]);
 
   const confirmAndComplete = useCallback(async () => {
     if (!user) {
@@ -86,9 +90,13 @@ export default function SubscribeCheckoutModal({ open, interval, onClose, onComp
         <div className="px-4 pt-4 pb-2 border-b border-border/40">
           <p className="text-[12px] text-muted-foreground">You're subscribing to:</p>
           <p className="text-[14px] font-bold text-brand-navy">
-            {interval === "year"
-              ? `${PLATFORM_PRICING.standard()}/year`
-              : `${INTELLIGENCE_PRICING.monthly()} (Intelligence Feed)`}
+            {tier === "professional"
+              ? (interval === "year"
+                  ? `${PRICING.professional.annual.display}/year (Professional)`
+                  : `${PRICING.professional.monthly.display}/month (Professional)`)
+              : (interval === "year"
+                  ? `${PRICING.intelligence.annual.display}/year (Privacy Intelligence)`
+                  : `${PRICING.intelligence.monthly.display}/month (Privacy Intelligence)`)}
           </p>
         </div>
         <div className="p-2 sm:p-4">

@@ -60,7 +60,7 @@ const TOOLS: Record<
     subscriber_lookup: "dpa_subscriber_v2",
     table: "dpa_documents",
     fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 0,
   },
   ir_playbook: {
     name: "Your Incident Response Playbook",
@@ -178,8 +178,8 @@ const TOOLS: Record<
 
 };
 
-// Tools that bypass Stripe entirely for is_pro subscribers (FREE).
-const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker"]);
+// v9: Tools that bypass Stripe entirely for ANY active subscriber (FREE).
+const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker", "dpa_generator"]);
 
 // Tools that are subscription-only (never sold standalone). Active monthly
 // or annual subscription required; free / unauthenticated users are blocked.
@@ -227,7 +227,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { tool_type, user_id, client_id, intake_data, return_url, environment, embedded, success_path } = await req.json();
+    const { tool_type, user_id, client_id, intake_data, return_url, environment, embedded, success_path, redeem_annual_credit } = await req.json();
     const tool = TOOLS[tool_type];
     if (!tool) {
       return new Response(JSON.stringify({ error: "Invalid tool type" }), {
@@ -284,11 +284,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Subscriber FREE bypass (IR Playbook, Biometric Checker) ──
+    // ── Subscriber FREE bypass (IR Playbook, Biometric Checker, DPA) ──
+    // v9: gated on isPremium (ANY active subscription), not isPro alone.
     // Stripe disallows $0 sessions; insert the assessment row directly
     // with is_subscriber_credit=true and return the success path so the
     // client navigates straight to the result page.
-    if (isPro && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
+    if (isPremium && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
       const insertRow: Record<string, unknown> = {
         user_id,
         client_id: client_id || null,
@@ -322,6 +323,77 @@ Deno.serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // ── v9 Annual Credit redemption (Governance / LIA / DPIA only) ──
+    // Server is authoritative. Verify an unredeemed credit row exists for
+    // this user + scope (client_id or personal/null). Valid → mark
+    // redeemed, insert assessment with purchase_price_cents=0, return
+    // bypass response. Invalid → 409 no_credit_available.
+    const ANNUAL_CREDIT_TOOL_MAP: Record<string, string> = {
+      governance_assessment: "governance",
+      li_assessment: "lia",
+      dpia_framework: "dpia",
+    };
+    if (redeem_annual_credit === true && user_id && ANNUAL_CREDIT_TOOL_MAP[tool_type]) {
+      const creditTool = ANNUAL_CREDIT_TOOL_MAP[tool_type];
+      let creditQ = supabase
+        .from("annual_tool_credits")
+        .select("id, cycle_start")
+        .eq("user_id", user_id)
+        .is("redeemed_at", null)
+        .order("cycle_start", { ascending: false })
+        .limit(1);
+      if (client_id) creditQ = creditQ.eq("client_id", client_id);
+      else creditQ = creditQ.is("client_id", null);
+      const { data: creditRow } = await creditQ.maybeSingle();
+      if (!creditRow) {
+        return new Response(
+          JSON.stringify({ error: "no_credit_available" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const insertRow: Record<string, unknown> = {
+        user_id,
+        client_id: client_id || null,
+        status: "pending",
+        intake_data: intake_data || {},
+        purchased_as_standalone: false,
+        is_subscriber_credit: true,
+        purchase_price_cents: 0,
+      };
+      const { data: row, error: insErr } = await supabase
+        .from(tool.table)
+        .insert(insertRow)
+        .select("id")
+        .single();
+      if (insErr || !row) {
+        return new Response(JSON.stringify({ error: "Failed to create assessment row" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      await supabase
+        .from("annual_tool_credits")
+        .update({
+          redeemed_at: new Date().toISOString(),
+          redeemed_tool: creditTool,
+          redeemed_assessment_id: row.id,
+        })
+        .eq("id", creditRow.id);
+      const toolPath = tool_type.replace(/_/g, "-");
+      const successPath = `/${toolPath}/result/${row.id}?purchased=true&annual_credit=true`;
+      return new Response(
+        JSON.stringify({
+          bypassed: true,
+          assessment_id: row.id,
+          url: successPath,
+          redirect_path: successPath,
+          annual_credit_redeemed: true,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
 
     // Subscribers (any active monthly/annual sub) pay the discounted
     // per-use subscriber price as an inducement to subscribe. Everyone
