@@ -71,6 +71,14 @@ export function InvestigationPrompt({ item, demoContext }: InvestigationPromptPr
           <span className="text-[13px] font-semibold text-gray-900">
             Investigate further
           </span>
+          <span
+            className="inline-flex items-center text-indigo-500 hover:text-indigo-700 cursor-help"
+            title={PERSONALISATION_TOOLTIP}
+            aria-label={PERSONALISATION_TOOLTIP}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Info className="w-3 h-3" />
+          </span>
 
           {loading ? (
             <span className="hidden sm:flex items-center gap-1 text-[11px] text-gray-400">
