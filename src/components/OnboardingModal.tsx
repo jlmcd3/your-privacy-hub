@@ -27,7 +27,7 @@ const JURISDICTIONS = [
 ];
 
 const FEATURES = [
-  { icon: "📋", label: "Weekly Intelligence Brief", desc: "Every Monday, synthesized from 67+ regulatory sources" },
+  { icon: "📋", label: "Weekly Privacy Intelligence Report", desc: "Every Monday, synthesized from 67+ regulatory sources" },
   { icon: "📊", label: "Comparison Tools", desc: "20 US states and 10 global jurisdictions, side by side" },
   { icon: "🌍", label: "Jurisdiction Explorer", desc: "Country profiles with regulator contacts worldwide" },
 ];

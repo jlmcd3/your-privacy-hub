@@ -747,7 +747,7 @@ const JurisdictionPage = () => {
           <div className="text-eyebrow text-brand-mist mb-2">⭐ Intelligence Intelligence</div>
           <h3 className="text-white mb-3">Get weekly updates on {jurisdiction.name}</h3>
           <p className="text-sm text-brand-mist mb-2 max-w-[500px] mx-auto">
-            Intelligence subscribers receive the weekly Intelligence Brief covering all global developments.
+            Intelligence subscribers receive the weekly Privacy Intelligence Report covering all global developments.
           </p>
           <p className="text-meta text-brand-mist mb-5 max-w-[500px] mx-auto">
             ✦ Intelligence subscribers get a brief tailored specifically to their industry and chosen jurisdictions — including {jurisdiction.name}.

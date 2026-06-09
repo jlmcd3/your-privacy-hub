@@ -144,7 +144,7 @@ export default function ProToolsBanner() {
               Compliance documents, calibrated to enforcement precedent
             </h2>
             <p className="text-blue-100 text-sm md:text-base leading-relaxed">
-              Structured assessments and generated documents that draw from 3,500+ enforcement
+              Structured assessments and generated documents that draw from 3,700+ enforcement
               decisions — designed for professional review. RoPA, U.S. and EU/UK notices, IR
               Playbook, Biometric Check, and the DPA Generator are included with any active
               subscription. Annual subscribers also receive 1 free Smart Tool run per year.

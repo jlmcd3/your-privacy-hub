@@ -240,7 +240,7 @@ const CategoryPage = () => {
               Get {meta.title} analysis in your Privacy Intelligence Report
             </p>
             <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-              Intelligence subscribers receive a full weekly Intelligence Brief with sector-specific context and action items.
+              Intelligence subscribers receive a full weekly Privacy Intelligence Report with sector-specific context and action items.
             </p>
             <Link
               to="/subscribe"

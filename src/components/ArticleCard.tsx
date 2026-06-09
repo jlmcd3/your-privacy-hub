@@ -303,8 +303,8 @@ const BriefBuilderCTA = ({ item }: { item: ArticleItem }) => {
   const qs = params.toString();
   const href = qs ? `/#brief?${qs}` : '/#brief';
   const label = jur
-    ? `Build a sample ${jur} Intelligence Brief →`
-    : 'Build a sample Intelligence Brief →';
+    ? `Build a sample ${jur} Privacy Intelligence Report →`
+    : 'Build a sample Privacy Intelligence Report →';
   return (
     <div className="mt-2">
       <Link
