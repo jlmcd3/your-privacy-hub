@@ -29,6 +29,8 @@ interface Props {
   /** Optional subtitle line below the title (e.g. controller/processor names). */
   subtitle?: string;
   className?: string;
+  /** Override the default "Download Word" button text. */
+  buttonLabel?: string;
 }
 
 // Brand tokens (matches index.css / tailwind.config.ts)
