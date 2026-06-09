@@ -307,38 +307,35 @@ Deno.serve(async (req) => {
     // No per-user monthly credit cap. Each Pro subscriber gets a fresh
     // personalized brief on the standard cadence.
 
-    const { data: prefs } = await supabase
-      .from("user_brief_preferences")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
+    // Industries / jurisdictions / topics come from user_watchlist — the
+    // single source of truth shared with /watchlist and AI prompt rendering.
+    // The format field still lives on user_brief_preferences.
+    const [{ data: watchlistRows }, { data: prefs }] = await Promise.all([
+      supabase
+        .from("user_watchlist")
+        .select("type, slug")
+        .eq("user_id", user.id),
+      supabase
+        .from("user_brief_preferences")
+        .select("format")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
 
-    // Fallback defaults: paying subscribers without explicit preferences should
-    // still receive a brief. We pull a wide-coverage default so they get value
-    // immediately, then nudge them to refine in /brief-preferences.
-    const DEFAULT_PREFS = {
-      industries: [] as string[],
-      jurisdictions: ["us-federal", "us-states", "us-ca", "eu-all", "global"],
-      topics: [] as string[],
-      format: "full",
-      _is_default: true,
-    };
+    const wl = (watchlistRows ?? []) as Array<{ type: string; slug: string }>;
+    let industries    = wl.filter(r => r.type === "industry").map(r => r.slug);
+    let jurisdictions = wl.filter(r => r.type === "jurisdiction").map(r => r.slug);
+    const topics      = wl.filter(r => r.type === "topic").map(r => r.slug);
+    const briefFormat = (prefs as any)?.format || "full";
 
-    const effective = prefs ?? DEFAULT_PREFS;
-    if (!prefs) {
-      console.log(`[generate-custom-brief] user=${user.id} has no preferences row — using defaults`);
-    }
-
-    const industries    = effective.industries || [];
-    let   jurisdictions = effective.jurisdictions || [];
-    const topics        = effective.topics || [];
-    const briefFormat   = (effective as any).format || "full";
-
-    // If a row exists but every field is empty, treat it like missing prefs.
+    // Fallback defaults: paying subscribers with an empty watchlist should
+    // still receive a brief. Use a wide-coverage default for jurisdictions.
+    const DEFAULT_JURISDICTIONS = ["us-federal", "us-states", "us-ca", "eu-all", "global"];
     if (industries.length === 0 && jurisdictions.length === 0 && topics.length === 0) {
-      console.log(`[generate-custom-brief] user=${user.id} has empty preferences — applying default jurisdictions`);
-      jurisdictions = DEFAULT_PREFS.jurisdictions;
+      console.log(`[generate-custom-brief] user=${user.id} has empty watchlist — applying default jurisdictions`);
+      jurisdictions = DEFAULT_JURISDICTIONS;
     }
+
 
     const industryList     = industries.join(", ") || "General";
     const jurisdictionList = jurisdictions.join(", ") || "All jurisdictions";
