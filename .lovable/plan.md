@@ -1,85 +1,54 @@
-# Responsive optimization — phased plan
+# Remaining CPPA Build Plan
 
-Goal: the site should look intentional at **every** width from 320px to 1920px, not just at the `sm/md/lg/xl` breakpoints. This matters most for users who resize browser windows, use split-screen, or zoom.
+Three CPPA intake flows (Scope, Risk, Cyber), the Suite Result, Cyber Drift, and Breach Precedent Map are already shipped, plus the audit-adjacent helpers (Audit Scope Memo, Auditor Handoff Package, Auditor Independence Advisor) and the cross-link footer. This plan covers what remains to call the CPPA cluster complete.
 
-The plan is split into 4 phases. Each phase is independently shippable — we can stop after any phase if you've gotten what you need.
+## Sprint 6 — Subscriber utility + delivery polish
 
----
+1. **CPPA Suite PDF export (PDFshift)**
+   - Add "Download PDF" action on `CPPASuiteResult`, `CPPARiskAssessmentResult`, `CPPACybersecurityResult`.
+   - Reuse existing PDFshift edge function pattern (same as other report PDFs). Pull rendered HTML from a print-styled route (`/cppa/suite/print/:id`) so PDFshift renders an authenticated snapshot.
+   - Subscriber-only; standalone purchasers get a one-time signed URL after checkout success.
 
-## Phase 1 — Fluid design tokens (foundation)
+2. **CPPA Suite history & re-open**
+   - New `cppa_suite_runs` table (run_id, user_id, inputs JSONB, results JSONB, scope_in_scope bool, risk_tier, cyber_tier, created_at).
+   - List view at `/account/cppa-runs` with re-open + download PDF.
+   - Save on completion of the Suite (gated by subscriber OR paid standalone unlock).
 
-Touches design tokens only. Every page benefits automatically. Lowest risk.
+3. **Drift watch automation**
+   - Cron (weekly) on `cppa-drift-scan` edge function: re-runs Cyber Drift against latest CCPA/CPPA regs source and flags changed citations.
+   - Email subscribers whose last Cyber run pre-dates a detected change; surface `DriftReminderBanner` on their dashboard.
 
-**`tailwind.config.ts`**
-- Convert `fontSize.sm` and `fontSize.base` from hardcoded `14px`/`16px` to `rem` so they respect user zoom and OS font-size preferences.
-- Add a fluid type scale using `clamp()`:
-  - `text-fluid-sm`, `text-fluid-base`, `text-fluid-lg`, `text-fluid-xl`, `text-fluid-2xl`, `text-fluid-hero` — each scales smoothly between a min and max width (e.g. `clamp(1rem, 0.95rem + 0.3vw, 1.125rem)`).
-- Add fluid spacing utilities: `space-fluid-sm/md/lg` using `clamp()` for section padding and gaps.
-- Enable container queries plugin (`@tailwindcss/container-queries`) so cards can respond to their parent width, not just viewport width.
+4. **Auditor Handoff bundle ZIP**
+   - Combine Suite PDF + Scope Memo + Independence Advisor output + Handoff Package checklist into a single ZIP via the existing PDF function path (generate parts, zip in edge function, return signed URL).
 
-**`src/index.css`**
-- Add CSS custom properties for fluid scales so non-Tailwind CSS (PDF templates, report shells) can use them.
+## Sprint 7 — Trust, SEO & closing gaps
 
-**`src/components/PageContainer.tsx`**
-- Replace the 4 fixed widths with fluid versions that use `clamp()` for padding (`clamp(1rem, 3vw, 2rem)` instead of stepped `px-4 sm:px-6 lg:px-8`).
-- Keep the `narrow/default/wide/full` API the same — internal change only.
+5. **Verification badge for CPPA citations**
+   - Apply the existing 40-char verbatim verification (used for enforcement) to every CCPA/CPPA citation rendered in Suite/Cyber/Risk results.
+   - Show pass/fail chip; failures route to admin review queue (reuse pattern from State Law Review page).
 
-**Acceptance:** No visual regression at standard breakpoints; smooth scaling between them.
+6. **CPPA landing hub `/cppa`**
+   - Single canonical hub page linking Scope → Risk → Cyber → Drift → Breach Map, with JSON-LD `ItemList` + FAQ schema.
+   - Replaces ad-hoc cross-links as the primary nav entry. Add to top nav under Tools.
 
----
+7. **CPPA Pricing & access QA pass**
+   - Verify trial users see standalone CPPA prices (already shipped) end-to-end through checkout.
+   - Verify subscriber discount applies on Scope, Risk, Cyber individually and as a bundled Suite price.
+   - Add a single "CPPA Suite" bundle SKU in `src/config/pricing.ts` + `sync-pricing` so standalone buyers can get all three at a discount.
 
-## Phase 2 — Fix the known offenders
+8. **Admin: CPPA runs dashboard**
+   - `/admin/cppa-runs` — counts by tier, drift-affected users, verification failures. Mirrors `/admin/trial-users` styling.
 
-Pages and components that visibly break at in-between widths.
-
-1. **`SearchFirstHero`** — 3-card row collapses awkwardly between ~900–1100px. Switch to a container-query grid that goes 1 → 2 → 3 columns based on available width rather than viewport.
-2. **`WorkspaceLayout` + `WorkspaceSidebar`** — Sidebar is hardcoded 220px and binary (visible on `md+`, hidden below). Add an intermediate collapsed-icon state for ~768–1024px so subscribers don't lose nav when resizing.
-3. **Comparison/matrix tables** — `CookieConsent`, `CrossBorderTransfers`, `HealthDataPrivacy`, `USStateComparison`. Currently `overflow-x-auto` which is unusable on narrow widths. Implement a shared `<ResponsiveComparisonTable>` that:
-   - Keeps the first column sticky horizontally
-   - Collapses to a stacked card layout below a container threshold (not viewport — so it works in sidebar contexts too)
-4. **`SectionShell` header** — flex row with CTA on the right wraps poorly; switch to a container query that stacks the CTA below the heading when width < ~500px.
-5. **Article cards** (`ArticleCard`, `NewsfeedList`) — verify meta row (date · source · tags) wraps cleanly at narrow widths.
-
-**Acceptance:** Manual screenshot pass of these 5 areas at 360 / 600 / 768 / 900 / 1100 / 1280 / 1600px.
-
----
-
-## Phase 3 — Tables specifically (deeper)
-
-If Phase 2's `<ResponsiveComparisonTable>` lands well, apply it consistently:
-
-- Audit every `<table>` in `src/pages/` (there are ~15).
-- Migrate the comparison-style ones to the shared component.
-- Leave data-grid tables (admin pages, ingestion dashboard) alone — those legitimately need horizontal scroll.
-- Add a Storybook-style page at `/dev/responsive` (admin-only) that renders all shared layout components at multiple widths for visual regression.
-
-**Acceptance:** All public-facing comparison tables readable at 375px without horizontal scroll.
-
----
-
-## Phase 4 — Tooling & guardrails
-
-Prevent future regressions.
-
-1. **Screenshot script** — `scripts/responsive-screenshots.mjs` using Playwright, capturing the top 10 pages at `[360, 600, 900, 1200, 1600]`px. Output to `/tmp/responsive/` for manual review.
-2. **ESLint rule (or simple convention doc)** — discourage new hardcoded `w-[NNNpx]` and `text-[NNpx]` in layout components.
-3. **Memory entry** — add a Core rule to `mem://index.md`: "Layout components use fluid tokens (clamp, container queries). Avoid fixed `px` widths outside icons."
-4. **Playwright test** — extend existing `tests/subscribe-layout.spec.ts` pattern to assert no horizontal overflow on key pages at 5 widths.
-
-**Acceptance:** Screenshot script runnable locally; one Playwright test guarding overflow.
-
----
+## Out of scope (explicitly excluded)
+- Colorado CPA, Texas TDPSA, Quebec Law 25 — separate future modules.
+- Proposed-bill tracking (already at `/legislation-tracker`).
+- Any new CPPA intake questions beyond what the three flows already collect.
 
 ## Technical notes
+- All new tables follow the project's GRANT + RLS pattern; `cppa_suite_runs` policies scoped to `auth.uid()`, plus admin read via `has_role`.
+- All PDFs go through PDFshift edge function — no client-side PDF libs.
+- Cron uses `pg_net` + `pg_cron` like `state-law-review-nudge-monthly`.
+- New routes registered in `src/App.tsx`; admin routes wrapped in `AdminOnly`.
 
-- Container queries require the `@tailwindcss/container-queries` plugin (one `bun add` away) and Tailwind v3.2+ (we're on v3 — fine).
-- `clamp()` is supported in all evergreen browsers; no polyfill needed.
-- Phase 1 changes are token-level and shouldn't require touching component files — that's the point. If any component overrides tokens with hardcoded values, that's a Phase 2 item.
-- We can ship Phase 1 today. Phases 2–4 are roughly 1 session each.
-
----
-
-## What I need from you
-
-1. **Confirm to proceed with Phase 1** (or pick a different starting point).
-2. **Optional:** any specific pages you'd like prioritized in Phase 2 beyond the 5 listed.
+## Estimate
+**2 sprints** to fully close out CPPA. After Sprint 7 the cluster is feature-complete and you can either declare done or move to the next state module.
