@@ -11,6 +11,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { CybersecurityReportBody } from "./CPPACybersecurityResult";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
+import CPPASuitePDFButton from "@/components/cppa/CPPASuitePDFButton";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -223,6 +224,12 @@ export default function CPPASuiteResult() {
         )}
 
         <div className="flex gap-2 flex-wrap pt-4 border-t">
+          {(riskRow?.status === "complete" || cyberRow?.status === "complete") && (
+            <CPPASuitePDFButton
+              riskId={riskRow?.status === "complete" ? riskRow?.id : null}
+              cyberId={cyberRow?.status === "complete" ? cyberRow?.id : null}
+            />
+          )}
           {riskRow?.id && riskRow.status === "complete" && (
             <>
               <PDFDownloadButton
@@ -264,6 +271,7 @@ export default function CPPASuiteResult() {
             </>
           )}
           <Button asChild variant="outline"><Link to="/dashboard/reports">Back to My Reports</Link></Button>
+          <Button asChild variant="ghost"><Link to="/account/cppa-runs">View all CPPA runs</Link></Button>
         </div>
       </main>
       <Footer />
