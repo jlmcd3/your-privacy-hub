@@ -181,11 +181,14 @@ export default function BriefPreferences() {
 
     await Promise.all([
       toInsert.length
-        ? (supabase as any).from("user_watchlist").insert(toInsert)
+        ? (supabase as any)
+            .from("user_watchlist")
+            .upsert(toInsert, { onConflict: "user_id,type,slug", ignoreDuplicates: true })
         : Promise.resolve(),
       idsToDelete.length
         ? (supabase as any).from("user_watchlist").delete().in("id", idsToDelete)
         : Promise.resolve(),
+
       // 2. Format still goes to user_brief_preferences.
       (supabase as any)
         .from("user_brief_preferences")
