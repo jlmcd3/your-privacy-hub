@@ -2242,6 +2242,7 @@ export type Database = {
           filing_currency: string | null
           filing_fee_cents: number | null
           filing_portal_url: string | null
+          filing_steps: Json | null
           id: string
           jurisdiction_code: string
           jurisdiction_name: string
@@ -2269,6 +2270,7 @@ export type Database = {
           filing_currency?: string | null
           filing_fee_cents?: number | null
           filing_portal_url?: string | null
+          filing_steps?: Json | null
           id?: string
           jurisdiction_code: string
           jurisdiction_name: string
@@ -2296,6 +2298,7 @@ export type Database = {
           filing_currency?: string | null
           filing_fee_cents?: number | null
           filing_portal_url?: string | null
+          filing_steps?: Json | null
           id?: string
           jurisdiction_code?: string
           jurisdiction_name?: string
@@ -2708,6 +2711,36 @@ export type Database = {
         }
         Relationships: []
       }
+      obligation_acknowledgements: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          note: string | null
+          obligation_id: string
+          snooze_until: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          obligation_id: string
+          snooze_until?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          obligation_id?: string
+          snooze_until?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       primary_source_fetch_runs: {
         Row: {
           completed_at: string | null
@@ -3077,6 +3110,7 @@ export type Database = {
           pdf_url: string | null
           status: string
           updated_at: string
+          validation_notes: string | null
           version: number
         }
         Insert: {
@@ -3091,6 +3125,7 @@ export type Database = {
           pdf_url?: string | null
           status?: string
           updated_at?: string
+          validation_notes?: string | null
           version?: number
         }
         Update: {
@@ -3105,6 +3140,7 @@ export type Database = {
           pdf_url?: string | null
           status?: string
           updated_at?: string
+          validation_notes?: string | null
           version?: number
         }
         Relationships: [

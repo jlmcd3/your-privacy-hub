@@ -360,20 +360,20 @@ const TOOLS: ToolDef[] = [
     section: "documents",
     icon: "🗂️",
     name: "Registration Manager",
-    tagline: "Identify where your organisation must register, generate the filings, and stay on top of annual renewals. You submit the filings.",
+    tagline: "Identify where your organisation must register, generate the filings, and stay on top of deadlines. Renewal tracking included with any subscription. You submit the filings.",
     href: "/registration-manager",
     subscriberPrice: PRICING.tools.registration.display,
     standalonePrice: PRICING.tools.registration.display,
     body: [
       "Most privacy programmes know they need to register a DPO somewhere. Far fewer have a current, jurisdiction-by-jurisdiction map of where formal registration with the supervisory authority is mandatory, where an EU/UK representative must be appointed, where the AI Act register applies, and when each filing must be renewed.",
       "The Registration Manager begins with a free assessment: organisation type, size, sectors, and the markets in which you operate. From that, it produces a recommended registration footprint across 50+ jurisdictions — flagging where DPO registration, controller registration, representative appointment, and AI Act notification are required, and on what timeline.",
-      "Every output is a structured document intended for review by your privacy or legal professional before submission. We do not submit filings on your behalf. Annual renewal monitoring is available so the obligation does not quietly lapse a year later.",
+      "Every output is a structured document intended for review by your privacy or legal professional before submission. We do not submit filings on your behalf. Renewal deadline tracking is included with any active End User Privacy subscription, so the obligation does not quietly lapse a year later.",
     ],
     sampleSections: [
       { label: "Recommended jurisdictions (sample)", content: "Germany (BfDI / state DPA), France (CNIL), Italy (Garante), Spain (AEPD), United Kingdom (ICO), Ireland (DPC). AI Act registration: required for one EU deployment. EU representative: required (no establishment in the Union)." },
       { label: "Filing summary — Germany", content: "DPO designation must be notified to the competent state DPA in writing. Filing language: German. Renewal: not required, but updates within 30 days of personnel change. Online filing: state-dependent." },
       { label: "Counsel-Ready Pack deliverable", content: "Per-jurisdiction document set including: cover letter draft in local language, DPO designation form, RoPA template aligned to local DPA expectations, and AI Act registration entry where applicable — packaged with a counsel handoff brief. You submit the filings." },
-      { label: "Renewal monitoring", content: "Automated reminders at 90, 60, 30, and 7 days before each filing's renewal date, with a link to the most recent generated version of your filing for re-use." },
+      { label: "Renewal tracking (included with subscription)", content: "Subscribers get automated reminders at 90, 60, 30, and 7 days before each filing's renewal date, with a link to the most recent generated version of your filing for re-use — included free with any active subscription." },
     ],
   },
 

@@ -16,6 +16,7 @@ import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import { AnnotationAppendix } from "@/components/AnnotationCallout";
+import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { detectDocumentType } from "@/lib/dpaDocumentType";
 
 
@@ -86,6 +87,13 @@ export default function DPAResult() {
             }
           >
             <AssessmentReport text={row.document_text || ""} sectionChipLabel={null} />
+            <EnforcementPrecedents
+              precedents={(row?.report_data as any)?.enforcement_precedents}
+              variant="standard"
+              attempted={Boolean((row?.report_data as any)?.enforcement_meta?.attempted)}
+              totalMatched={(row?.report_data as any)?.enforcement_meta?.total_matched}
+              queryDescriptor={(row?.report_data as any)?.enforcement_meta?.query_descriptor}
+            />
             <AnnotationAppendix annotations={(row?.report_data as any)?.annotations} />
           </ReportShell>
 

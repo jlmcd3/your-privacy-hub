@@ -54,12 +54,11 @@ function diyPriceLabel(numJurisdictions: number): string {
 
 const COUNSEL_REVIEW_CENTS = 29900; // $299 flat — MIRRORS pricing.ts registration_counsel_review
 const COUNSEL_REVIEW_SUBSCRIBER_DISCOUNT_CENTS = 7500; // -$75 for Pro — MIRRORS pricing.ts
-const RENEWAL_PER_JURISDICTION_CENTS = 7900; // $79/yr/jurisdiction — MIRRORS pricing.ts (no registry kind models recurring-per-unit)
+// V7-B3: "renewal" tier retired — renewal tracking now bundled with any active subscription.
 
 const PRICING = {
   diy: { unit_amount: 0 /* dynamic */, name: "Registration Manager — DIY Toolkit", recurring: false, per_jurisdiction: false },
   counsel_review: { unit_amount: COUNSEL_REVIEW_CENTS, name: "Registration Manager — Counsel-Ready Pack", recurring: false, per_jurisdiction: false },
-  renewal: { unit_amount: RENEWAL_PER_JURISDICTION_CENTS, name: "Registration Manager — Annual Renewal Monitoring", recurring: true, per_jurisdiction: true },
 } as const;
 
 serve(async (req) => {
@@ -90,6 +89,13 @@ serve(async (req) => {
     // Backwards-compat: map legacy tier name
     const tier = raw.tier === "done_for_you" ? "counsel_review" : raw.tier;
     const { jurisdictions, assessment_id, organization_snapshot, environment, embedded, return_url } = raw;
+    // V7-B3: renewal SKU retired — return 410 Gone with a clear message.
+    if (tier === "renewal") {
+      return new Response(
+        JSON.stringify({ error: "tier_retired", message: "Renewal monitoring is now included with any active subscription." }),
+        { status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     if (!tier || !PRICING[tier as keyof typeof PRICING]) {
       return new Response(JSON.stringify({ error: "Invalid tier" }), {
         status: 400,

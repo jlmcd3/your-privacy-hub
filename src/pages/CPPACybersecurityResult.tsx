@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
+import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
@@ -452,6 +453,13 @@ export default function CPPACybersecurityResult() {
         {status === "complete" && reportReady && (
           <>
             <CybersecurityReportBody row={row} />
+            <EnforcementPrecedents
+              precedents={(row?.report_data as any)?.enforcement_precedents}
+              variant="cppa"
+              attempted={Boolean((row?.report_data as any)?.enforcement_meta?.attempted)}
+              totalMatched={(row?.report_data as any)?.enforcement_meta?.total_matched}
+              queryDescriptor={(row?.report_data as any)?.enforcement_meta?.query_descriptor}
+            />
             <div className="flex gap-2 flex-wrap" data-print-hide>
               <AuditorHandoffButton row={row} />
               {priorId && (

@@ -52,6 +52,7 @@ const EUNoticeRefresh = lazy(() => import("./pages/eu-notices/EUNoticeRefresh.ts
 const EUNoticeLanding = lazy(() => import("./pages/eu-notices/EUNoticeLanding.tsx"));
 const NoticesRopaHub = lazy(() => import("./pages/NoticesRopaHub.tsx"));
 import Dashboard from "./pages/Dashboard.tsx";
+const Obligations = lazy(() => import("./pages/Obligations.tsx"));
 const Subscribe = lazy(() => import("./pages/Subscribe.tsx"));
 const SubscribeSuccess = lazy(() => import("./pages/SubscribeSuccess.tsx"));
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
@@ -292,6 +293,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <MyReports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/obligations"
+              element={
+                <ProtectedRoute>
+                  <Obligations />
                 </ProtectedRoute>
               }
             />

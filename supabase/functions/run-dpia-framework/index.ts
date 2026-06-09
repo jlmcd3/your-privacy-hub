@@ -82,6 +82,7 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
 
     // Fetch enforcement precedents (3-5) for this DPIA scope
     let enforcementPrecedents: any[] = [];
+    let enforcementMeta: any = { attempted: false };
     try {
       const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
         body: {
@@ -93,6 +94,14 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
         },
       });
       enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
+      const descParts: string[] = [];
+      if (intake.sector) descParts.push(`${intake.sector} sector`);
+      if ((intake.jurisdictions || []).length) descParts.push(`processing in ${(intake.jurisdictions || []).join(", ")}`);
+      enforcementMeta = {
+        attempted: true,
+        total_matched: typeof ctxData?.total_matched === "number" ? ctxData.total_matched : null,
+        query_descriptor: descParts.join(" — ") || undefined,
+      };
     } catch (e) {
       console.error("get-enforcement-context failed (non-fatal):", e);
     }
@@ -245,6 +254,7 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
     reportData.generated_at = new Date().toISOString();
     reportData.dpia_id = dpia_id;
     reportData.enforcement_precedents = enforcementPrecedents;
+    reportData.enforcement_meta = enforcementMeta;
     try {
       reportData.annotations = Array.isArray(reportData?.section_3_risks?.annotations)
         ? reportData.section_3_risks.annotations

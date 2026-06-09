@@ -86,6 +86,7 @@ Deno.serve(async (req) => {
 
     // Step 1 — enforcement context
     let enforcement_context: any[] = [];
+    let enforcementMeta: any = { attempted: false };
     try {
       const er = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/get-enforcement-context`, {
         method: "POST",
@@ -104,6 +105,11 @@ Deno.serve(async (req) => {
       if (er.ok) {
         const j = await er.json();
         enforcement_context = j.results || j.enforcement_context || [];
+        enforcementMeta = {
+          attempted: true,
+          total_matched: typeof j?.total_matched === "number" ? j.total_matched : null,
+          query_descriptor: `biometric processing in ${(body.jurisdictions || []).join(", ") || "—"}`,
+        };
       }
     } catch (e) {
       console.error("enforcement fetch failed:", e);
@@ -304,6 +310,7 @@ Output ONLY the compliance assessment. No preamble.`,
       bipa_risk: bipaRisk,
       jurisdictions_analysed: body.jurisdictions,
       enforcement_precedents: enforcement_context.slice(0, 5),
+      enforcement_meta: enforcementMeta,
       annotations: parsedAnnotations,
       generated_at: new Date().toISOString(),
     };

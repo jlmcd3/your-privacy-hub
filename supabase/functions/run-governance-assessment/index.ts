@@ -174,6 +174,7 @@ Return JSON:
 
     // Fetch enforcement precedents (3-5) relevant to this org's profile (before synthesis so they can be cited)
     let enforcementPrecedents: any[] = [];
+    let enforcementMeta: any = { attempted: false };
     try {
       const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
         body: {
@@ -185,6 +186,14 @@ Return JSON:
         },
       });
       enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
+      const descParts: string[] = [];
+      if (intake.sector) descParts.push(`${intake.sector} sector`);
+      if ((intake.jurisdictions || []).length) descParts.push(`governance in ${(intake.jurisdictions || []).join(", ")}`);
+      enforcementMeta = {
+        attempted: true,
+        total_matched: typeof ctxData?.total_matched === "number" ? ctxData.total_matched : null,
+        query_descriptor: descParts.join(" — ") || undefined,
+      };
     } catch (e) {
       console.error("get-enforcement-context failed (non-fatal):", e);
     }
@@ -289,6 +298,7 @@ Return JSON:
       interaction_effects: stripMd(synthesis.interaction_effects || ""),
       domain_findings: strippedDomainFindings,
       enforcement_precedents: enforcementPrecedents,
+      enforcement_meta: enforcementMeta,
       annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
       disclaimer: "This report is a compliance framework tool produced to assist organisations in identifying governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };

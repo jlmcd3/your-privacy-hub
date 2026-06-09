@@ -125,8 +125,20 @@ Deno.serve(async (req) => {
     } catch { classification = { use_case_category: "other" }; }
 
     let enforcementPrecedents: any[] = [];
+    let enforcementMeta: any = { attempted: false };
     try {
-      enforcementPrecedents = ((enforcementCtxResult as any)?.data?.results || []).slice(0, 5);
+      const ctx = (enforcementCtxResult as any)?.data;
+      enforcementPrecedents = (ctx?.results || []).slice(0, 5);
+      if (ctx) {
+        const descParts: string[] = [];
+        if (assessment.sector) descParts.push(`${assessment.sector} sector`);
+        if ((assessment.jurisdictions || []).length) descParts.push(`processing in ${(assessment.jurisdictions || []).join(", ")}`);
+        enforcementMeta = {
+          attempted: true,
+          total_matched: typeof ctx.total_matched === "number" ? ctx.total_matched : null,
+          query_descriptor: descParts.join(" — ") || undefined,
+        };
+      }
     } catch { /* non-fatal */ }
 
     const enforcementContextStr = enforcementPrecedents.length > 0
@@ -381,6 +393,7 @@ Return JSON:
       precedents_reviewed: precedents.length,
       precedent_database_size: (allPrecedents || []).length,
       enforcement_precedents: enforcementPrecedents,
+      enforcement_meta: enforcementMeta,
       enforcement_precedents_note: enforcementPrecedents.length === 0
         ? "No enforcement decisions matching this jurisdiction and processing theory were retrieved from the precedent database. The analysis above may reference relevant decisions that are not yet indexed against this scenario — verify any cited cases directly."
         : null,

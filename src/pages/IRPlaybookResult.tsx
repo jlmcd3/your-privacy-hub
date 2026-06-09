@@ -16,6 +16,7 @@ import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
+import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 
 export default function IRPlaybookResult() {
   const { id } = useParams();
@@ -95,6 +96,13 @@ export default function IRPlaybookResult() {
             }
           >
             <AssessmentReport text={row.playbook_text || ""} sectionChipLabel={null} />
+            <EnforcementPrecedents
+              precedents={(row?.report_data as any)?.enforcement_precedents}
+              variant="standard"
+              attempted={Boolean((row?.report_data as any)?.enforcement_meta?.attempted)}
+              totalMatched={(row?.report_data as any)?.enforcement_meta?.total_matched}
+              queryDescriptor={(row?.report_data as any)?.enforcement_meta?.query_descriptor}
+            />
             {Array.isArray((row?.report_data as any)?.annotations) && (row?.report_data as any).annotations.length > 0 && (
               <div className="mt-8 border-t pt-6">
                 <h3 className="text-lg font-semibold mb-3">

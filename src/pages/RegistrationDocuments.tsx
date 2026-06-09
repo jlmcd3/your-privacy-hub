@@ -225,11 +225,22 @@ export default function RegistrationDocuments() {
                   <CardTitle className="text-base">
                     {selected ? DOC_LABELS[selected.document_type] : "Select a document"}
                     {selected && <span className="text-xs font-normal text-slate ml-2">({selected.jurisdiction_code})</span>}
+                    {selected?.status === "needs_review" && (
+                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-100 text-amber-900 border border-amber-300">
+                        Needs review — see notes
+                      </span>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
                   {selected ? (
                     <>
+                      {selected.status === "needs_review" && selected.validation_notes && (
+                        <details className="mb-3 text-xs rounded border border-amber-300 bg-amber-50 p-2">
+                          <summary className="cursor-pointer font-medium text-amber-900">Validation notes</summary>
+                          <p className="mt-2 whitespace-pre-wrap text-amber-900">{selected.validation_notes}</p>
+                        </details>
+                      )}
                       <pre ref={previewRef} className="whitespace-pre-wrap text-brand-navy max-h-[600px] overflow-y-auto p-3 bg-brand-cloud/30 rounded" style={{ fontFamily: "'Times New Roman', Times, serif", fontSize: "11pt" }}>
                         {cleanMarkdown(selected.content_text || "") || "(empty)"}
                       </pre>

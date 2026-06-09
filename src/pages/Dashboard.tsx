@@ -17,6 +17,7 @@ import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
+import DashboardObligationsCard from "@/components/obligations/DashboardObligationsCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -529,6 +530,9 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+
+        {/* V7-C3: Obligations card above brief/archive (premium users only) */}
+        <DashboardObligationsCard />
 
         {/* Custom briefs for Pro users — collapsible list, most recent first */}
         {customBrief && (

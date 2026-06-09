@@ -41,7 +41,7 @@ const FAQS = [
   },
   {
     q: "Can I get reminders before renewals are due?",
-    a: "Yes. Annual renewal monitoring is available — reminders 60/30/7 days before expiry, plus a regenerated filing pack. You can opt in or out at any time from your filing dashboard, but you must provide an accurate filing date for our tracking to be of use to you.",
+    a: "Yes — renewal deadline tracking is included with any End User Privacy subscription. Subscribers get reminders at 90, 60, 30, and 7 days before each filing expires plus regenerated filing packs at no extra cost. Non-subscribers receive a single courtesy notice 60 days out.",
   },
 ];
 
@@ -203,7 +203,7 @@ export default function RegistrationLanding() {
                   <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Draft documents in the local language where required</li>
                   <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Jurisdiction-specific filing checklist</li>
                   <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Verified portal URLs and submission instructions</li>
-                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Optional annual renewal monitoring</li>
+                  <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" /> Renewal deadline tracking included with any subscription</li>
                 </ul>
                 <p className="text-meta text-brand-mist mt-3 italic">
                   You (or your counsel) submit all filings. We do not file on your behalf.
