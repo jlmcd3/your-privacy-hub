@@ -456,7 +456,7 @@ Return JSON:
     "score": 0,
     "status": "Compliant|Partial|Gap|Critical Gap",
     "finding": "2-3 sentences",
-    "regulatory_basis": "cite the exact [A#] citation(s); if none supports this domain, write 'No retrieved authority on point — requires attorney review'",
+    "regulatory_basis": "cite the exact [A#] citation(s); if no retrieved authority supports this domain, set both finding and regulatory_basis to null",
     "remediation": "specific steps",
     "priority": "Immediate|Within 90 days|Within 6 months|Monitor",
     "confidence_level": "High|Medium|Low",
