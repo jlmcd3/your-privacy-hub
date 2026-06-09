@@ -325,6 +325,31 @@ export default function MyReports() {
 
       });
 
+      (cppaScope.data || []).forEach((r: any) => {
+        const obligations = r.obligation_map && typeof r.obligation_map === "object"
+          ? Object.entries(r.obligation_map).filter(([, v]) => v === true).map(([k]) => k)
+          : [];
+        const outcome = r.in_scope === true
+          ? (obligations.length > 0
+              ? `In scope · ${obligations.length} obligation${obligations.length === 1 ? "" : "s"}`
+              : "In scope")
+          : r.in_scope === false ? "Out of scope" : "Scope check";
+        all.push({
+          id: r.id,
+          tool: "cppa_scope",
+          tool_label: TOOL_LABEL.cppa_scope,
+          created_at: r.created_at,
+          status: r.in_scope === null ? "in_progress" : "complete",
+          summary: outcome,
+          // No per-result page exists; the checker re-renders the latest run.
+          view_path: "/cppa-scope-checker",
+          client_id: null,
+          client_name: null,
+          is_personal_client: false,
+        });
+      });
+
+
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
       setLoading(false);
