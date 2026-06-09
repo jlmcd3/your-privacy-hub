@@ -58,11 +58,6 @@ export default function RegistrationLanding() {
         <link rel="canonical" href="https://enduserprivacy.com/registration-manager" />
       </Helmet>      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
-        {hasToolAccess && (
-          <div className="mt-2 text-meta text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-            ✓ Included in your Annual Platform — all registration documents included at no additional charge.
-          </div>
-        )}
       </div>
 
       <header className="bg-slate-900 text-white py-12">
