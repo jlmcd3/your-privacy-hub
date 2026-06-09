@@ -254,11 +254,11 @@ export default function CPPARiskAssessmentResult() {
               );
             })()}
 
-            {Array.isArray(report?.domains) && report.domains.length > 0 && (
+            {Array.isArray(report?.domains) && report.domains.filter(hasUserFacingFinding).length > 0 && (
               <section className="bg-card border rounded-lg p-6">
                 <h2 className="mb-4">Domain Findings</h2>
                 <Accordion type="multiple">
-                  {report.domains.map((d: any, i: number) => {
+                  {report.domains.filter(hasUserFacingFinding).map((d: any, i: number) => {
                     const tier = classifyDomain(d);
                     return (
                     <AccordionItem key={i} value={`d${i}`}>
@@ -267,39 +267,45 @@ export default function CPPARiskAssessmentResult() {
                           <span>{d.domain}</span>
                           {d.score != null && <span className="text-xs text-muted-foreground">{d.score}/100</span>}
                           {d.status && <span className={`px-2 py-0.5 text-xs rounded ${statusColor(d.status)}`}>{d.status}</span>}
-                          <span className={`px-2 py-0.5 text-xs rounded border ${tierColor(tier)}`}>{tier}</span>
-                          {d.attorney_review_needed && (
-                            <span className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800">Attorney review</span>
-                          )}
+                          <AdminOnly>
+                            <span className={`px-2 py-0.5 text-xs rounded border ${tierColor(tier)}`}>{tier}</span>
+                            {d.attorney_review_needed && (
+                              <span className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800">Attorney review</span>
+                            )}
+                          </AdminOnly>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-2">
                         {d.finding && <p className="text-sm"><strong>Finding:</strong> {d.finding}</p>}
-                        {d.regulatory_basis && <p className="text-sm"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>}
+                        <AdminOnly>
+                          {d.regulatory_basis && <p className="text-sm"><strong>Regulatory basis <span className="text-[10px] uppercase tracking-wider text-muted-foreground">(admin)</span>:</strong> {d.regulatory_basis}</p>}
+                        </AdminOnly>
                         {d.remediation && <p className="text-sm"><strong>Remediation:</strong> {d.remediation}</p>}
                         {d.priority && <p className="text-xs text-muted-foreground">Priority: {d.priority}</p>}
                         {Array.isArray(d.fsor_commentary) && d.fsor_commentary.length > 0 && (
                           <div className="mt-3 border-l-2 border-brand-teal bg-brand-teal/5 pl-3 py-2 space-y-2">
                             <p className="text-[11px] font-bold tracking-wider uppercase text-brand-teal">
-                              What the agency said
+                              Background
                             </p>
                             {d.fsor_commentary.slice(0, 3).map((f: any, fi: number) => (
                               <div key={f.id ?? fi} className="text-xs space-y-1">
-                                <p className="font-mono text-[10px] text-muted-foreground">
-                                  {f.regulation_citation}
-                                  {f.fsor_package ? ` · ${f.fsor_package}` : ""}
-                                  {f.page_ref ? ` · ${f.page_ref}` : ""}
-                                </p>
                                 {f.comment_summary && (
-                                  <p><strong>Comment:</strong> {f.comment_summary}</p>
+                                  <p>{firstSentence(f.comment_summary)}</p>
                                 )}
-                                {f.agency_response && (
-                                  <p><strong>Agency response:</strong> {f.agency_response}</p>
-                                )}
-                                {f.source_url && (
-                                  <a href={f.source_url} target="_blank" rel="noopener noreferrer"
-                                    className="text-brand-teal underline">Source</a>
-                                )}
+                                <AdminOnly>
+                                  <p className="font-mono text-[10px] text-muted-foreground">
+                                    {f.regulation_citation}
+                                    {f.fsor_package ? ` · ${f.fsor_package}` : ""}
+                                    {f.page_ref ? ` · ${f.page_ref}` : ""}
+                                  </p>
+                                  {f.agency_response && (
+                                    <p><strong>Agency response:</strong> {f.agency_response}</p>
+                                  )}
+                                  {f.source_url && (
+                                    <a href={f.source_url} target="_blank" rel="noopener noreferrer"
+                                      className="text-brand-teal underline">Source</a>
+                                  )}
+                                </AdminOnly>
                               </div>
                             ))}
                           </div>
