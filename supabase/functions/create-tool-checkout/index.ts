@@ -324,6 +324,77 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── v9 Annual Credit redemption (Governance / LIA / DPIA only) ──
+    // Server is authoritative. Verify an unredeemed credit row exists for
+    // this user + scope (client_id or personal/null). Valid → mark
+    // redeemed, insert assessment with purchase_price_cents=0, return
+    // bypass response. Invalid → 409 no_credit_available.
+    const ANNUAL_CREDIT_TOOL_MAP: Record<string, string> = {
+      governance_assessment: "governance",
+      li_assessment: "lia",
+      dpia_framework: "dpia",
+    };
+    if (redeem_annual_credit === true && user_id && ANNUAL_CREDIT_TOOL_MAP[tool_type]) {
+      const creditTool = ANNUAL_CREDIT_TOOL_MAP[tool_type];
+      let creditQ = supabase
+        .from("annual_tool_credits")
+        .select("id, cycle_start")
+        .eq("user_id", user_id)
+        .is("redeemed_at", null)
+        .order("cycle_start", { ascending: false })
+        .limit(1);
+      if (client_id) creditQ = creditQ.eq("client_id", client_id);
+      else creditQ = creditQ.is("client_id", null);
+      const { data: creditRow } = await creditQ.maybeSingle();
+      if (!creditRow) {
+        return new Response(
+          JSON.stringify({ error: "no_credit_available" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const insertRow: Record<string, unknown> = {
+        user_id,
+        client_id: client_id || null,
+        status: "pending",
+        intake_data: intake_data || {},
+        purchased_as_standalone: false,
+        is_subscriber_credit: true,
+        purchase_price_cents: 0,
+      };
+      const { data: row, error: insErr } = await supabase
+        .from(tool.table)
+        .insert(insertRow)
+        .select("id")
+        .single();
+      if (insErr || !row) {
+        return new Response(JSON.stringify({ error: "Failed to create assessment row" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      await supabase
+        .from("annual_tool_credits")
+        .update({
+          redeemed_at: new Date().toISOString(),
+          redeemed_tool: creditTool,
+          redeemed_assessment_id: row.id,
+        })
+        .eq("id", creditRow.id);
+      const toolPath = tool_type.replace(/_/g, "-");
+      const successPath = `/${toolPath}/result/${row.id}?purchased=true&annual_credit=true`;
+      return new Response(
+        JSON.stringify({
+          bypassed: true,
+          assessment_id: row.id,
+          url: successPath,
+          redirect_path: successPath,
+          annual_credit_redeemed: true,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+
     // Subscribers (any active monthly/annual sub) pay the discounted
     // per-use subscriber price as an inducement to subscribe. Everyone
     // else pays the standalone price. SUBSCRIPTION_ONLY tools and
