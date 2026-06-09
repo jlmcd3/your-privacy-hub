@@ -60,7 +60,7 @@ const TOOLS: Record<
     subscriber_lookup: "dpa_subscriber_v2",
     table: "dpa_documents",
     fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 0,
   },
   ir_playbook: {
     name: "Your Incident Response Playbook",
