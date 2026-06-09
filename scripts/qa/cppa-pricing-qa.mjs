@@ -40,7 +40,7 @@ for (const tool of ["cppa_scope", "cppa_risk", "cppa_cyber", "cppa_suite"]) {
 
 // Subscriber prices must be < standalone for paid CPPA tools
 const amountFor = (key) => {
-  const re = new RegExp(`${key}[^}]*?amount\\s*:\\s*(\\d+)`, "s");
+  const re = new RegExp(`${key}\\s*:\\s*\\{[\\s\\S]*?amountCents\\s*:\\s*(\\d+)`);
   const m = src.match(re);
   return m ? Number(m[1]) : null;
 };
