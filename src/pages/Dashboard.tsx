@@ -295,6 +295,9 @@ const Dashboard = () => {
         const rows = Array.isArray(data) ? data : [];
         setCustomBrief(rows[0] ?? null);
         setBriefArchive(rows);
+        // v9 Prompt 4.2: auto-expand most recent custom brief so subscribers
+        // don't land on a list of fully-collapsed accordions.
+        if (rows[0]?.id) setExpandedBriefId(rows[0].id);
         setCustomBriefLoading(false);
       });
   }, [user]);
