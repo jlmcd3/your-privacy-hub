@@ -100,7 +100,7 @@ export default function BreachPrecedentMap({ report }: { report: any }) {
         <h2 className="mb-1">Breach Precedent Map</h2>
         <p className="text-xs text-muted-foreground">
           We checked our enforcement database for actions tied to your flagged controls and didn't find a
-          close precedent at this time. Our enforcement corpus is continuously updated — re-run this report
+          close precedent at this time. Our enforcement records are continuously updated — re-run this report
           in a few months to surface any new matches.
         </p>
       </section>
