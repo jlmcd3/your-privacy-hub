@@ -2,13 +2,20 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Shield, ClipboardCheck, Lock, Activity, AlertTriangle } from "lucide-react";
+import { ArrowRight, Shield, ClipboardCheck, Lock } from "lucide-react";
+import { PRICING_REGISTRY } from "@/config/pricing";
 
 /**
  * Sprint 7 — Canonical /cppa hub page.
- * Single entry point linking Scope → Risk → Cyber → Drift → Breach Map.
- * Ships ItemList + FAQ JSON-LD for SEO.
+ * Single entry point linking Scope → Risk → Cyber. Drift Watch and
+ * Breach Precedent Map are embedded inside the Cyber result, not
+ * separate destinations — they are mentioned in the Cyber card copy.
+ * Pricing sourced from `pricing.ts`; canonical handled globally by
+ * <CanonicalTag /> so we do NOT inject a duplicate <link rel="canonical">.
  */
+const riskStandalone = PRICING_REGISTRY.cppa_risk_standalone.displayPrice;
+const cyberStandalone = PRICING_REGISTRY.cppa_cyber_standalone.displayPrice;
+
 const TOOLS = [
   {
     href: "/cppa-scope-checker",
@@ -21,29 +28,15 @@ const TOOLS = [
     href: "/cppa-risk-assessment",
     title: "CPPA Risk Assessment",
     description: "Module 1 risk assessment built directly on the final CPPA regulations and FSOR agency commentary.",
-    price: "$89 standalone · discounted with a subscription",
+    price: `${riskStandalone} standalone · discounted with a subscription`,
     icon: Shield,
   },
   {
     href: "/cppa-cybersecurity",
     title: "CPPA Cybersecurity Readiness",
-    description: "Module 2 cybersecurity audit readiness across all 18 required controls, mapped to NIST CSF and ISO 27001.",
-    price: "$99 standalone · discounted with a subscription",
+    description: "Module 2 audit readiness across all 18 required controls, mapped to NIST CSF and ISO 27001. Includes Drift Watch (compare re-runs) and Breach Precedent Map (real enforcement actions for each control gap).",
+    price: `${cyberStandalone} standalone · discounted with a subscription`,
     icon: Lock,
-  },
-  {
-    href: "/cppa-cybersecurity",
-    title: "Cybersecurity Drift Watch",
-    description: "Re-run your readiness assessment and see exactly what changed since the last audit cycle.",
-    price: "Included with any Cyber run",
-    icon: Activity,
-  },
-  {
-    href: "/cppa-cybersecurity",
-    title: "Breach Precedent Map",
-    description: "For every flagged control gap, see the most recent enforcement actions where that exact failure was cited.",
-    price: "Included with Cyber report",
-    icon: AlertTriangle,
   },
 ];
 
