@@ -11,6 +11,7 @@ import { AnnotationCallout } from "@/components/AnnotationCallout";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
+import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdvisor";
 
 export const readinessColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -138,6 +139,9 @@ export function CybersecurityReportBody({ row }: { row: any }) {
           </Accordion>
         </section>
       )}
+      {/* Sprint 2 #1 — Auditor Independence Advisor (§ 7122(b)) */}
+      <AuditorIndependenceAdvisor />
+
       {/* Sprint 1 #4 — Pre-audit readiness gap log */}
       {Array.isArray(report?.controls) && (() => {
         const isGap = (s?: string) => {
