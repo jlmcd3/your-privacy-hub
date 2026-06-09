@@ -68,6 +68,12 @@ const Toggle = ({
   </button>
 );
 
+// Module-level lookup so it isn't rebuilt every render.
+const TAXONOMY_LOOKUP: Record<string, { type: string; label: string; flag: string }> = {};
+INDUSTRIES.forEach((i) => { TAXONOMY_LOOKUP[i.id] = { type: "industry", label: i.label, flag: i.icon }; });
+PREF_JURISDICTIONS.forEach((j) => { TAXONOMY_LOOKUP[j.id] = { type: "jurisdiction", label: j.label, flag: j.icon }; });
+TOPICS.forEach((t) => { TAXONOMY_LOOKUP[t.id] = { type: "topic", label: t.label, flag: t.icon }; });
+
 export default function BriefPreferences() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -84,12 +90,7 @@ export default function BriefPreferences() {
   const [saved, setSaved] = useState(false);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
 
-  // Build label/flag lookup once so we can persist watchlist rows with
-  // the same display metadata the watchlist UI uses.
-  const TAXONOMY_LOOKUP: Record<string, { type: string; label: string; flag: string }> = {};
-  INDUSTRIES.forEach(i => { TAXONOMY_LOOKUP[i.id] = { type: "industry", label: i.label, flag: i.icon }; });
-  PREF_JURISDICTIONS.forEach(j => { TAXONOMY_LOOKUP[j.id] = { type: "jurisdiction", label: j.label, flag: j.icon }; });
-  TOPICS.forEach(t => { TAXONOMY_LOOKUP[t.id] = { type: "topic", label: t.label, flag: t.icon }; });
+
 
   useEffect(() => {
     if (!user) return;
@@ -180,11 +181,14 @@ export default function BriefPreferences() {
 
     await Promise.all([
       toInsert.length
-        ? (supabase as any).from("user_watchlist").insert(toInsert)
+        ? (supabase as any)
+            .from("user_watchlist")
+            .upsert(toInsert, { onConflict: "user_id,type,slug", ignoreDuplicates: true })
         : Promise.resolve(),
       idsToDelete.length
         ? (supabase as any).from("user_watchlist").delete().in("id", idsToDelete)
         : Promise.resolve(),
+
       // 2. Format still goes to user_brief_preferences.
       (supabase as any)
         .from("user_brief_preferences")
