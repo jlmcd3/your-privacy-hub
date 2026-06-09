@@ -51,7 +51,7 @@ const FAQ = [
   },
   {
     q: "Do I need a subscription?",
-    a: "No. Scope Checker is free. Risk and Cyber assessments are sold standalone or at a discounted per-use rate for annual subscribers. The full Suite bundle is also discounted for subscribers.",
+    a: "No. Scope Checker is free. Risk and Cyber assessments are sold standalone or at a discounted per-use rate for subscribers. The full Suite bundle is also discounted for subscribers.",
   },
   {
     q: "Are citations verified?",
