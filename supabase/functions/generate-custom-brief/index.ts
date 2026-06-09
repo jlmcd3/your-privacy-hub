@@ -127,7 +127,7 @@ SCORING PRINCIPLES:
 - Cap scores at 10, floor at 0`,
         messages: [{ role: "user", content: prompt }],
       }),
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(40000),
     });
     if (!resp.ok) return articles;
     const data = await resp.json();
