@@ -49,6 +49,7 @@ export default function RopaActivity() {
   const [bulkSaving, setBulkSaving] = useState(false);
   const [activityReady, setActivityReady] = useState(false);
   const [clientSector, setClientSector] = useState<string>("");
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const formCardRef = useRef<HTMLDivElement>(null);
 
   // Fetch the client sector for the current session, so we can show
