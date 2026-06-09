@@ -11,6 +11,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { CybersecurityReportBody } from "./CPPACybersecurityResult";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
+import CPPASuitePDFButton from "@/components/cppa/CPPASuitePDFButton";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
