@@ -46,7 +46,7 @@ const FAQS = [
 ];
 
 export default function RegistrationLanding() {
-  const { hasToolAccess } = useSubscriptionTier();
+  // hasToolAccess no longer used here (registration is always per-filing).
   return (
     <WorkspaceLayout>
       <Helmet>
