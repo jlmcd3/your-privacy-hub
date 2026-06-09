@@ -182,9 +182,12 @@ Deno.serve(async (req) => {
       invokeError = (e as Error).message;
     }
 
-    // ── 7. Restore is_pro if we toggled it ──────────────────────────────────
-    if (!wasPro) {
-      await admin.from("profiles").update({ is_pro: false }).eq("id", userId);
+    // ── 7. Restore profile fields we toggled ────────────────────────────────
+    const restorePatch: Record<string, unknown> = {};
+    if (!wasPro) restorePatch.is_pro = false;
+    if (role !== null && role !== prevRole) restorePatch.brief_role = prevRole;
+    if (Object.keys(restorePatch).length) {
+      await admin.from("profiles").update(restorePatch).eq("id", userId);
     }
 
     // ── 8. Find the new custom_brief row, if any ────────────────────────────
