@@ -36,6 +36,9 @@ export function CybersecurityReportBody({ row }: { row: any }) {
   const report = row?.report_data || {};
   return (
     <div className="space-y-6">
+      {/* Sprint 2 #3 — Cover (print-only by default; visible when handoff package is being generated) */}
+      <AuditorHandoffCover row={row} />
+
       <section className="p-4 bg-red-50 dark:bg-red-950/20 border-l-4 border-red-600 rounded">
         <p className="text-sm font-semibold text-red-900 dark:text-red-200">
           Compliance deadline: April 1, 2028
