@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, FileText, Download, ArrowRight, Trash2 } from "lucide-react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import DriftReminderBanner from "@/components/cppa/DriftReminderBanner";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import {
@@ -341,6 +342,10 @@ export default function MyReports() {
               Every assessment, playbook, and document you've generated. Click any item to re-open it or download the PDF.
             </p>
           </div>
+          <div className="mb-4">
+            <DriftReminderBanner />
+          </div>
+
 
 
           {authLoading || loading ? (

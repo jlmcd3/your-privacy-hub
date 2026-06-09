@@ -149,6 +149,7 @@ import CPPARiskAssessment from "./pages/CPPARiskAssessment.tsx";
 import CPPARiskAssessmentResult from "./pages/CPPARiskAssessmentResult.tsx";
 import CPPACybersecurity from "./pages/CPPACybersecurity.tsx";
 import CPPACybersecurityResult from "./pages/CPPACybersecurityResult.tsx";
+import CPPACybersecurityDrift from "./pages/CPPACybersecurityDrift.tsx";
 import CPPASuiteResult from "./pages/CPPASuiteResult.tsx";
 import TestsDashboard from "./pages/admin/TestsDashboard.tsx";
 import TestsOutput from "./pages/admin/TestsOutput.tsx";
@@ -727,6 +728,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <CPPACybersecurityResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cppa-cybersecurity/drift/:newId/:oldId"
+              element={
+                <ProtectedRoute>
+                  <CPPACybersecurityDrift />
                 </ProtectedRoute>
               }
             />

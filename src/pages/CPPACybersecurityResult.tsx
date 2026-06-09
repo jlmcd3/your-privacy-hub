@@ -14,6 +14,7 @@ import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mappin
 import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdvisor";
 import AuditScopeMemoGenerator from "@/components/cppa/AuditScopeMemoGenerator";
 import AuditorHandoffButton, { AuditorHandoffCover } from "@/components/cppa/AuditorHandoffPackage";
+import BreachPrecedentMap from "@/components/cppa/BreachPrecedentMap";
 
 export const readinessColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -229,6 +230,9 @@ export function CybersecurityReportBody({ row }: { row: any }) {
         );
       })()}
 
+      {/* Sprint 3 — Breach Precedent Map (dynamic, scoped to flagged gaps) */}
+      <BreachPrecedentMap report={report} />
+
       {/* Sprint 1 #7 — Existing-framework cross-walk */}
       <section className="bg-card border rounded-lg p-6">
         <h2 className="mb-1">Framework Mapping</h2>
@@ -339,6 +343,27 @@ export default function CPPACybersecurityResult() {
   const purchased = searchParams.get("purchased") === "true";
   const [row, setRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [priorId, setPriorId] = useState<string | null>(null);
+
+  // Look for an earlier cybersecurity assessment by the same user (for drift compare).
+  useEffect(() => {
+    if (!row?.user_id || !row?.id || !row?.created_at) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("cppa_assessments")
+        .select("id")
+        .eq("user_id", row.user_id)
+        .eq("module", "cybersecurity")
+        .eq("status", "complete")
+        .lt("created_at", row.created_at)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled) setPriorId((data as any)?.id ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [row?.user_id, row?.id, row?.created_at]);
 
   useEffect(() => {
     if (!id) return;
@@ -418,6 +443,11 @@ export default function CPPACybersecurityResult() {
             <CybersecurityReportBody row={row} />
             <div className="flex gap-2 flex-wrap" data-print-hide>
               <AuditorHandoffButton row={row} />
+              {priorId && (
+                <Button asChild variant="outline">
+                  <Link to={`/cppa-cybersecurity/drift/${row.id}/${priorId}`}>Compare to previous</Link>
+                </Button>
+              )}
               <PDFDownloadButton
                 toolType="cppa_cybersecurity"
                 assessmentId={row.id}
