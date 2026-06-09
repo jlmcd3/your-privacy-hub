@@ -7,6 +7,11 @@ import { toast } from "sonner";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { FlagIcon } from "@/components/FlagIcon";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
+import {
+  INDUSTRIES,
+  JURISDICTIONS as PREF_JURISDICTIONS,
+  TOPICS,
+} from "@/config/briefTaxonomy";
 
 const ROLES = [
   { id: "general_counsel", label: "General Counsel / CLO", icon: "⚖️" },
