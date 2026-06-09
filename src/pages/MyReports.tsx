@@ -342,6 +342,10 @@ export default function MyReports() {
               Every assessment, playbook, and document you've generated. Click any item to re-open it or download the PDF.
             </p>
           </div>
+          <div className="mb-4">
+            <DriftReminderBanner />
+          </div>
+
 
 
           {authLoading || loading ? (
