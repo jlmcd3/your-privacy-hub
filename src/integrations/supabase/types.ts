@@ -4337,6 +4337,7 @@ export type Database = {
       }
       ropa_sessions: {
         Row: {
+          accumulated_activities: Json
           client_id: string
           completed_activities: number
           completed_at: string | null
@@ -4359,6 +4360,7 @@ export type Database = {
           version_number: number
         }
         Insert: {
+          accumulated_activities?: Json
           client_id: string
           completed_activities?: number
           completed_at?: string | null
@@ -4381,6 +4383,7 @@ export type Database = {
           version_number?: number
         }
         Update: {
+          accumulated_activities?: Json
           client_id?: string
           completed_activities?: number
           completed_at?: string | null
