@@ -290,6 +290,42 @@ export function CybersecurityReportBody({ row }: { row: any }) {
         </section>
       )}
 
+      {/* Sprint 2 #3 — Citation ledger (included so the handoff PDF is self-contained) */}
+      {Array.isArray(report?.citation_ledger) && report.citation_ledger.length > 0 && (
+        <section className="bg-card border rounded-lg p-6">
+          <h2 className="mb-1">Citation Ledger</h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            Every authority cited in this report with the validator's verification status. Entries marked
+            "Not in corpus" or "Unsupported" must be independently verified against the primary source
+            before being relied upon.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs border-collapse">
+              <thead className="text-left bg-muted/40">
+                <tr>
+                  <th className="p-2 border">#</th>
+                  <th className="p-2 border">Citation</th>
+                  <th className="p-2 border">Type</th>
+                  <th className="p-2 border">Status</th>
+                  <th className="p-2 border">Context</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.citation_ledger.map((c: any, i: number) => (
+                  <tr key={i} className="border-t align-top">
+                    <td className="p-2 border font-mono">{i + 1}</td>
+                    <td className="p-2 border font-mono text-[11px]">{c.citation || c.cite || "—"}</td>
+                    <td className="p-2 border text-[11px]">{c.type || c.source_type || "—"}</td>
+                    <td className="p-2 border text-[11px]">{c.status || c.verification || "—"}</td>
+                    <td className="p-2 border">{c.context || c.note || c.where || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
         ⚠️ This compliance framework report does not constitute legal or security advice. Findings should be reviewed with qualified legal counsel and your security team.
       </section>
