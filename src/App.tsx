@@ -296,6 +296,14 @@ const App = () => (
               }
             />
             <Route
+              path="/account/cppa-runs"
+              element={
+                <ProtectedRoute>
+                  <AccountCPPARuns />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/dpa-generator/result/:id"
               element={
                 <ProtectedRoute>
