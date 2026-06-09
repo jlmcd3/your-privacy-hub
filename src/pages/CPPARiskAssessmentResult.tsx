@@ -341,7 +341,6 @@ export default function CPPARiskAssessmentResult() {
                         <th className="p-2">Statement</th>
                         <th className="p-2">Citation</th>
                         <th className="p-2">Classification</th>
-                        <th className="p-2">Corpus</th>
                         <th className="p-2">Corrected</th>
                         <th className="p-2">Note</th>
                       </tr>
@@ -356,7 +355,6 @@ export default function CPPARiskAssessmentResult() {
                               {e.classification}
                             </span>
                           </td>
-                          <td className="p-2"><CitationVerificationBadge verified={isVerified(e.citation)} /></td>
                           <td className="p-2 font-mono text-xs">{e.corrected_citation ?? "—"}</td>
                           <td className="p-2 text-xs text-muted-foreground">{e.note}</td>
                         </tr>
