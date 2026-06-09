@@ -500,9 +500,45 @@ Remember: never approve or correct from your own knowledge — only from the aut
     merged.fsor_commentary = fsorCommentary;
     merged.enforcement_results = enforcement.results;
 
+    // Obligation snapshot: freeze the exact regulatory state used so the report
+    // is reproducible even if an authority is later superseded. Keep it lean —
+    // citations + identifiers, not full_text (already echoed in merged where needed).
+    const obligation_snapshot = {
+      captured_at: new Date().toISOString(),
+      module: "risk-assessment",
+      topics,
+      authorities: (authorities ?? []).map((a: any) => ({
+        id: a.id ?? null,
+        citation: a.citation,
+        version: a.version ?? null,
+        authority_type: a.authority_type ?? null,
+        authority_weight: a.authority_weight ?? null,
+        effective_date: a.effective_date ?? null,
+        official_url: a.official_url ?? null,
+        title: a.title ?? null,
+        status: a.status ?? null,
+      })),
+      deadlines: (deadlines ?? []).map((d: any) => ({
+        id: d.id ?? null,
+        citation: d.citation ?? null,
+        label: d.label ?? d.deadline_text ?? null,
+      })),
+      fsor: (fsorCommentary ?? []).map((f: any) => ({
+        id: f.id ?? null,
+        regulation_citation: f.regulation_citation ?? null,
+        page_ref: f.page_ref ?? null,
+      })),
+      retrieval_meta: {
+        authority_count: authorities.length,
+        deadline_count: deadlines.length,
+        fsor_count: fsorCommentary.length,
+        verified_only_mode: retrieval?.verified_only_mode ?? false,
+        warning: retrieval?.warning ?? null,
+      },
+    };
 
     await supabase.from("cppa_assessments")
-      .update({ status: "complete", report_data: merged })
+      .update({ status: "complete", report_data: merged, obligation_snapshot })
       .eq("id", assessment_id);
   } catch (e) {
     console.error("run-cppa-risk-assessment background error:", e);
