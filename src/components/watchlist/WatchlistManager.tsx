@@ -135,10 +135,10 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
         </p>
       )}
 
-      {(["jurisdictions", "topics"] as const).map(type => (
+      {(["jurisdictions", "topics", "industries"] as const).map(type => (
         <div key={type}>
-          <h3 className="text-brand-navy uppercase tracking-widest mb-3 capitalize">
-            {type === "jurisdictions" ? "🌐 Jurisdictions" : "📂 Topics"}
+          <h3 className="text-brand-navy uppercase tracking-widest mb-3">
+            {SECTION_HEADINGS[type]}
           </h3>
           <div className="flex flex-wrap gap-2">
             {SUGGESTED[type].map(s => {
@@ -146,7 +146,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
               return (
                 <button
                   key={s.slug}
-                  onClick={() => !inList && addItem(type.slice(0, -1), s.slug, s.label, s.flag)}
+                  onClick={() => !inList && addItem(TYPE_FOR_KEY[type], s.slug, s.label, s.flag)}
                   disabled={inList}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                     inList
