@@ -12,6 +12,16 @@ import type { Question } from "@/data/ropa-questions/types";
 import { getPersonalDataExamplesForSector } from "@/data/ropa-personal-data-examples";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Art9Art10Checklist from "@/components/ropa/Art9Art10Checklist";
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
@@ -39,6 +49,7 @@ export default function RopaActivity() {
   const [bulkSaving, setBulkSaving] = useState(false);
   const [activityReady, setActivityReady] = useState(false);
   const [clientSector, setClientSector] = useState<string>("");
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const formCardRef = useRef<HTMLDivElement>(null);
 
   // Fetch the client sector for the current session, so we can show
@@ -143,14 +154,14 @@ export default function RopaActivity() {
     }
   };
 
-  const handleDeleteActivity = async (
-    activityId: string,
-    displayName: string
-  ) => {
-    const ok = window.confirm(
-      `Delete "${displayName}"?\n\nThis permanently removes the activity and all of its answers and flags. This cannot be undone.`
-    );
-    if (!ok) return;
+  const handleDeleteActivity = (activityId: string, displayName: string) => {
+    setPendingDelete({ id: activityId, name: displayName });
+  };
+
+  const confirmDeleteActivity = async () => {
+    if (!pendingDelete) return;
+    const { id: activityId, name: displayName } = pendingDelete;
+    setPendingDelete(null);
     const isCurrent = currentActivity?.id === activityId;
     try {
       await deleteActivityFromStore(activityId);
@@ -595,6 +606,21 @@ export default function RopaActivity() {
           </nav>
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={pendingDelete !== null} onOpenChange={(open) => { if (!open) setPendingDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{pendingDelete?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the activity and all of its answers and flags. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteActivity}>Delete activity</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </RopaShell>
   );
 }

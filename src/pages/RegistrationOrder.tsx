@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -32,7 +32,7 @@ export default function RegistrationOrder() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!id) return;
     const { data: o } = await supabase
       .from("registration_orders").select("*").eq("id", id).maybeSingle();
@@ -41,9 +41,9 @@ export default function RegistrationOrder() {
       .from("registration_documents").select("*").eq("order_id", id).order("jurisdiction_code");
     setDocs(d || []);
     setLoading(false);
-  }
+  }, [id]);
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { load(); }, [load]);
 
   // Auto-trigger doc generation for DIY orders (free toolkit) on first arrival
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function RegistrationOrder() {
         })
         .finally(() => setGenerating(false));
     }
-  }, [order]);
+  }, [order, docs.length, generating, load]);
 
   async function generateDocs() {
     setGenerating(true);

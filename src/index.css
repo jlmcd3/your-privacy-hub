@@ -194,7 +194,8 @@
 .text-label-caps {
   font-family: 'DM Sans', system-ui, sans-serif;
   font-weight: 500;
-  font-size: 10px;
+  /* v9 Prompt 4.5: raised to 11px to meet the suite's hard floor. */
+  font-size: 11px;
   line-height: 1.4;
   letter-spacing: 0.12em;
   text-transform: uppercase;

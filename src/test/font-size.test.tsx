@@ -75,6 +75,30 @@ beforeAll(() => {
   document.head.appendChild(style);
 });
 
+/**
+ * Read the font-size floor for a class from raw index.css. For clamp()
+ * declarations we parse the first (min) value — jsdom cannot evaluate
+ * clamp() and returns an empty string, so the test reads the contract
+ * directly from the CSS source.
+ */
+function cssFontSizeFor(cls: string): number | null {
+  const ruleRe = new RegExp(`\\.${cls}\\s*\\{[^}]*?font-size:\\s*([^;]+);`);
+  const m = RAW_INDEX_CSS.match(ruleRe);
+  if (!m) return null;
+  const value = m[1].trim();
+  const clampMatch = value.match(/clamp\(\s*([\d.]+)(rem|em|px)/);
+  if (clampMatch) {
+    const num = parseFloat(clampMatch[1]);
+    return clampMatch[2] === "px" ? num : num * 16;
+  }
+  const direct = value.match(/^([\d.]+)(rem|em|px)/);
+  if (direct) {
+    const num = parseFloat(direct[1]);
+    return direct[2] === "px" ? num : num * 16;
+  }
+  return null;
+}
+
 const fontSizePx = (el: Element) => {
   const raw = window.getComputedStyle(el).fontSize || "0";
   const num = parseFloat(raw);
@@ -83,17 +107,21 @@ const fontSizePx = (el: Element) => {
 };
 
 describe("semantic typography utilities", () => {
+  // v9 Prompt 4.5: expected values match Brand v7 typography in index.css.
+  // For clamp() utilities the expected number is the clamp FLOOR (the value
+  // jsdom evaluates to and the minimum we contractually accept).
   const cases: Array<{ cls: string; expected: number; floor?: number }> = [
-    { cls: "text-eyebrow", expected: 11, floor: 11 },
+    { cls: "text-eyebrow", expected: 12 },
     { cls: "text-label", expected: 12 },
-    { cls: "text-meta", expected: 12 },
+    { cls: "text-label-caps", expected: 11, floor: 11 },
+    { cls: "text-meta", expected: 13 },
     { cls: "text-nav", expected: 14 },
-    { cls: "text-body", expected: 14 },
     { cls: "text-cta", expected: 15 },
-    { cls: "text-card-title", expected: 16 },
-    { cls: "text-section-h2", expected: 24 },
-    { cls: "text-page-h1", expected: 28 },
-    { cls: "text-hero-h1", expected: 36 },
+    { cls: "text-body", expected: 16 },
+    { cls: "text-card-title", expected: 20 },     // clamp floor
+    { cls: "text-section-h2", expected: 26 },     // clamp floor
+    { cls: "text-page-h1", expected: 32 },        // clamp floor
+    { cls: "text-hero-h1", expected: 40 },        // clamp floor
   ];
 
   for (const { cls, expected, floor } of cases) {
@@ -101,9 +129,15 @@ describe("semantic typography utilities", () => {
       const { container, unmount } = render(
         <span className={cls}>sample</span>,
       );
-      const px = fontSizePx(container.firstElementChild!);
-      expect(px).toBe(expected);
+      // Prefer computed style; fall back to CSS source for clamp() values
+      // (jsdom returns "" for unevaluated clamp expressions).
+      let px = fontSizePx(container.firstElementChild!);
+      if (!px) {
+        const fromCss = cssFontSizeFor(cls);
+        if (fromCss !== null) px = fromCss;
+      }
       expect(px).toBeGreaterThanOrEqual(floor ?? 12);
+      expect(px).toBe(expected);
       unmount();
     });
   }

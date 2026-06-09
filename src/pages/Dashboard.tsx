@@ -17,6 +17,16 @@ import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import TrialCountdownBanner from "@/components/dashboard/TrialCountdownBanner";
@@ -129,13 +139,6 @@ function BriefSkeleton() {
   );
 }
 
-/** Truncate to first N sentences for the free-user teaser */
-function truncateToSentences(text: string | null, count = 2): string {
-  if (!text) return "";
-  const sentences = text.match(/[^.!?]+[.!?]+/g);
-  if (!sentences) return text.slice(0, 150) + "…";
-  return sentences.slice(0, count).join("").trim();
-}
 
 /**
  * Plain-English description of when the brief was published, so readers
@@ -202,7 +205,7 @@ const Dashboard = () => {
   const [brief, setBrief] = useState<WeeklyBrief | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
-  const [subscriptionInterval, setSubscriptionInterval] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [customBrief, setCustomBrief] = useState<any>(null);
   const [briefArchive, setBriefArchive] = useState<any[]>([]);
   const [customBriefLoading, setCustomBriefLoading] = useState(true);
@@ -213,8 +216,10 @@ const Dashboard = () => {
   const [freeDigest, setFreeDigest] = useState<any>(null);
   const { isAdmin } = useIsAdmin();
 
-  async function handleDeleteBrief(id: string) {
-    if (!window.confirm("Delete this weekly report? This cannot be undone.")) return;
+  async function confirmDeleteBrief() {
+    const id = pendingDeleteId;
+    if (!id) return;
+    setPendingDeleteId(null);
     const { error } = await (supabase as any).from("custom_briefs").delete().eq("id", id);
     if (error) {
       toast({ title: "Delete failed", description: error.message, variant: "destructive" });
@@ -249,7 +254,7 @@ const Dashboard = () => {
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
-        setSubscriptionInterval((data as any)?.subscription_interval ?? null);
+        // subscription_interval no longer tracked in component state (unused)
         // Show onboarding for free users who haven't completed it
         if (!premium && !(data as any)?.onboarding_complete) {
           setShowOnboarding(true);
@@ -290,6 +295,9 @@ const Dashboard = () => {
         const rows = Array.isArray(data) ? data : [];
         setCustomBrief(rows[0] ?? null);
         setBriefArchive(rows);
+        // v9 Prompt 4.2: auto-expand most recent custom brief so subscribers
+        // don't land on a list of fully-collapsed accordions.
+        if (rows[0]?.id) setExpandedBriefId(rows[0].id);
         setCustomBriefLoading(false);
       });
   }, [user]);
@@ -600,7 +608,7 @@ const Dashboard = () => {
                       {isAdmin && (
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); handleDeleteBrief(b.id); }}
+                          onClick={(e) => { e.stopPropagation(); setPendingDeleteId(b.id); }}
                           aria-label="Delete report (admin)"
                           title="Delete report"
                           className="px-3 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors bg-transparent border-none border-l border-slate-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
@@ -628,6 +636,44 @@ const Dashboard = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* v9 Prompt 4.2: Top 10 enforcement signals — also shown to subscribers
+            with custom briefs (previously only rendered inside the public-brief
+            branch which is hidden once any custom brief exists). */}
+        {briefArchive.length > 0 && brief?.top_enforcement_signals && brief.top_enforcement_signals.length > 0 && (
+          <div className="mb-8 bg-white rounded-2xl border border-slate-200 p-6">
+            <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-1">
+              🔝 Top 10 Enforcement Signals
+            </h3>
+            <p className="text-meta text-slate-500 mb-4">
+              Ranked by precedent significance and recency across the last 90 days.
+            </p>
+            <ol className="space-y-3 list-none p-0 m-0">
+              {brief.top_enforcement_signals.map((s, i) => (
+                <li key={s.id} className="flex gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-colors">
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-brand-navy text-white text-meta font-bold flex items-center justify-center">{i + 1}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3 mb-1">
+                      <Link to={`/enforcement-intelligence/${s.id}`} className="font-display font-semibold text-brand-navy hover:text-brand-navy/80 text-sm leading-snug no-underline">
+                        {s.subject || s.regulator}
+                      </Link>
+                      {s.fine && (<span className="text-meta font-semibold text-brand-navy whitespace-nowrap tabular-nums">{s.fine}</span>)}
+                    </div>
+                    <div className="text-meta text-slate-500 mb-1.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                      <span className="font-medium">{s.regulator}</span><span>·</span><span>{s.jurisdiction}</span>
+                      {s.decision_date && (<><span>·</span><span>{new Date(s.decision_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></>)}
+                      {s.precedent_significance != null && (<><span>·</span><span title="Precedent significance">{"★".repeat(s.precedent_significance)}{"☆".repeat(Math.max(0, 5 - s.precedent_significance))}</span></>)}
+                    </div>
+                    {s.summary && (<p className="text-xs text-slate-600 leading-relaxed line-clamp-2 m-0">{s.summary}</p>)}
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-4">
+              <Link to="/enforcement-intelligence" className="text-meta font-semibold text-brand-navy hover:underline">Browse all enforcement actions →</Link>
             </div>
           </div>
         )}
@@ -872,6 +918,21 @@ const Dashboard = () => {
         )}
 
       </div>
+
+      <AlertDialog open={pendingDeleteId !== null} onOpenChange={(open) => { if (!open) setPendingDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this weekly report?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the personalized report. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteBrief}>Delete report</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </WorkspaceLayout>
   );
 };
