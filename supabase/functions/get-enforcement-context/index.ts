@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
     return { row: r, score };
   }).sort((a, b) => b.score - a.score).slice(0, limit).map((x) => x.row);
 
-  const response = { count: scored.length, results: scored, cached: false };
+  const response = { count: scored.length, total_matched: finalRows.length, results: scored, cached: false };
 
   await supabase.from("enforcement_context_cache").upsert({
     cache_key: cacheKey,

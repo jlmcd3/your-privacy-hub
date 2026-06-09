@@ -118,6 +118,7 @@ Deno.serve(async (req) => {
 
     // Step 1 — fetch enforcement context
     let enforcement_context: EnforcementCtx[] = [];
+    let enforcementMeta: any = { attempted: false };
     try {
       const enforcementController = new AbortController();
       const enforcementTimeout = setTimeout(() => enforcementController.abort(), 8_000);
@@ -144,6 +145,11 @@ Deno.serve(async (req) => {
       if (enforcementRes.ok) {
         const json = await enforcementRes.json();
         enforcement_context = json.results || json.enforcement_context || [];
+        enforcementMeta = {
+          attempted: true,
+          total_matched: typeof json?.total_matched === "number" ? json.total_matched : null,
+          query_descriptor: `${documentType} between ${body.controllerJurisdiction || "—"} and ${body.processorJurisdiction || "—"}`,
+        };
       }
     } catch (e) {
       console.error("get-enforcement-context fetch failed:", e);
@@ -510,6 +516,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
     const report_data = {
       enforcement_precedents: enforcement_context.slice(0, 5),
+      enforcement_meta: enforcementMeta,
       annotations: parsedAnnotations,
       generated_at: new Date().toISOString(),
     };

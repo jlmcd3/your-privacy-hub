@@ -9,7 +9,7 @@ import { getStripeEnvironment } from "@/lib/env";
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
-export type RegistrationTier = "diy" | "counsel_review" | "renewal";
+export type RegistrationTier = "diy";
 
 interface Props {
   open: boolean;

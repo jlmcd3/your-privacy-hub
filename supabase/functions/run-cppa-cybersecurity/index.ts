@@ -66,6 +66,8 @@ async function runAssessment(assessment_id: string): Promise<void> {
     // Fetch CPPA cybersecurity-relevant enforcement context (breach + CA focus)
     let enforcementContext = "";
     let enforcementResults: any[] = [];
+    let enforcementMeta: any = { attempted: false };
+    let enforcementSector: string | undefined;
     try {
       // Hotfix (June 8): intake submits `{ profile: { industry, ... }, maturity, notes }`,
       // so the correct sector path is intake_data.profile.industry.
@@ -74,6 +76,7 @@ async function runAssessment(assessment_id: string): Promise<void> {
         ?? intake?.industry_sector
         ?? intake?.sector
         ?? undefined;
+      enforcementSector = sector;
       const ecRes = await fetch(
         `${Deno.env.get("SUPABASE_URL")}/functions/v1/get-enforcement-context`,
         {
@@ -94,6 +97,11 @@ async function runAssessment(assessment_id: string): Promise<void> {
       if (ecRes.ok) {
         const ec = await ecRes.json();
         enforcementResults = ec?.results || [];
+        enforcementMeta = {
+          attempted: true,
+          total_matched: typeof ec?.total_matched === "number" ? ec.total_matched : null,
+          query_descriptor: `cybersecurity breach context${enforcementSector ? ` in ${enforcementSector}` : ""}`,
+        };
         if (enforcementResults.length) {
           enforcementContext = enforcementResults.map((r: any, i: number) =>
             `[E${i + 1}] id:${r.id} ${r.regulator} v ${r.subject} (${r.decision_date ?? "n.d."}): ${r.violation ?? r.key_compliance_failure ?? ""} | Fine: ${r.fine_amount ?? "n/a"} | ${r.source_url ?? ""}`
@@ -276,6 +284,9 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
         fsor_count: (fsorRows ?? []).length,
       },
     };
+
+    (report as any).enforcement_precedents = enforcementResults.slice(0, 5);
+    (report as any).enforcement_meta = enforcementMeta;
 
     await supabase
       .from("cppa_assessments")

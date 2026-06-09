@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -95,7 +95,7 @@ export default function RegistrationAssessmentResult() {
     }
   }
 
-  async function purchase(tier: "diy" | "counsel_review" | "renewal") {
+  async function purchase(tier: "diy") {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast.error("Sign in to purchase");
@@ -345,25 +345,15 @@ export default function RegistrationAssessmentResult() {
                   onClick={() => purchase("diy")}
                   disabled={purchasing !== null || selectedCount === 0}
                 />
-                <PlanCard
-                  title="Counsel-Ready Pack"
-                  highlight
-                  price={`$${crpTotal}`}
-                  priceFootnote="Flat — any number of jurisdictions"
-                  blurb="Everything in DIY plus enhanced jurisdiction notes, a pre-filing walkthrough, the rules-fired trace for your lawyer, and a counsel handoff doc."
-                  cta={purchasing === "counsel_review" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Get counsel-ready pack"}
-                  onClick={() => purchase("counsel_review")}
-                  disabled={purchasing !== null || selectedCount === 0}
-                />
-                <PlanCard
-                  title="Annual Renewal Monitoring"
-                  price="$79 / yr / jurisdiction"
-                  priceFootnote="Recurring · cancel anytime"
-                  blurb="Already filed? We monitor renewal deadlines, send reminders 90/60/30/7 days out, and regenerate updated documents. You submit the renewal."
-                  cta={purchasing === "renewal" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Subscribe"}
-                  onClick={() => purchase("renewal")}
-                  disabled={purchasing !== null || selectedCount === 0}
-                />
+                <div className="rounded-2xl border border-border bg-muted/30 p-6 flex flex-col">
+                  <h3 className="text-lg font-semibold text-brand-navy mb-2">Renewal tracking — included with subscription</h3>
+                  <p className="text-sm text-slate flex-1">
+                    Subscribers get renewal deadline reminders for every filing automatically — nothing extra to buy.
+                  </p>
+                  <Link to="/subscribe" className="mt-4 text-sm font-medium text-brand-teal hover:underline">
+                    See subscription plans →
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           </div>

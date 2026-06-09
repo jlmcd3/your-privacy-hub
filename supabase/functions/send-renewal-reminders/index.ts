@@ -29,14 +29,20 @@ function renderEmail(args: {
   days_until: number;
   order_id: string;
   filing_reference?: string | null;
+  courtesy?: boolean;
 }): string {
   const url = `https://enduserprivacy.com/registration-manager/order/${args.order_id}`;
+  const subscribeUrl = `https://enduserprivacy.com/subscribe`;
+  const courtesyFooter = args.courtesy
+    ? `<p style="margin:24px 0 0;padding:12px;background:#f1f5f9;border-radius:6px;font-size:13px;color:#334155">Renewal reminders are included with an End User Privacy subscription — get reminders at every window plus regenerated filing packs. <a href="${subscribeUrl}">See plans →</a></p>`
+    : "";
   return `<!doctype html><html><body style="font-family:system-ui,-apple-system,sans-serif;color:#0f172a;max-width:560px;margin:0 auto;padding:24px">
   <h2 style="margin:0 0 16px">Registration renewal due in ${args.days_until} days</h2>
   <p>Your data protection registration in <strong>${args.jurisdiction_code}</strong> expires on <strong>${new Date(args.expires_at).toDateString()}</strong>.</p>
   ${args.filing_reference ? `<p>Filing reference: <code>${args.filing_reference}</code></p>` : ""}
   <p>Open your order to regenerate the renewal documents and submit them to the authority:</p>
   <p><a href="${url}" style="display:inline-block;background:#0f172a;color:#fff;padding:10px 16px;text-decoration:none;border-radius:6px">Open registration order</a></p>
+  ${courtesyFooter}
   <p style="color:#64748b;font-size:12px;margin-top:32px">EndUserPrivacy — automated renewal reminder.</p>
   </body></html>`;
 }
@@ -61,25 +67,40 @@ Deno.serve(async (req) => {
 
       for (const f of filings || []) {
         stats.scanned++;
-        // Already notified for this window?
-        const { data: existing } = await supabase
-          .from("renewal_notifications")
-          .select("id")
-          .eq("filing_id", f.id)
-          .eq("notification_type", w.type)
-          .maybeSingle();
-        if (existing) {
-          stats.skipped++;
-          continue;
-        }
 
-        // Look up recipient via order → user → auth.users
+        // Look up recipient + subscriber status
         const { data: order } = await supabase
           .from("registration_orders")
           .select("user_id,organization_snapshot")
           .eq("id", f.order_id)
           .single();
         if (!order?.user_id) { stats.skipped++; continue; }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_premium,is_pro")
+          .eq("id", order.user_id)
+          .maybeSingle();
+        const isSubscriber = !!(profile?.is_premium || profile?.is_pro);
+
+        // Non-subscribers only get the 60-day courtesy notice, dedup'd as a distinct type.
+        const notificationType = isSubscriber ? w.type : "courtesy_60";
+        if (!isSubscriber && w.days !== 60) {
+          stats.skipped++;
+          continue;
+        }
+
+        // Already notified for this window?
+        const { data: existing } = await supabase
+          .from("renewal_notifications")
+          .select("id")
+          .eq("filing_id", f.id)
+          .eq("notification_type", notificationType)
+          .maybeSingle();
+        if (existing) {
+          stats.skipped++;
+          continue;
+        }
 
         const { data: { user } } = await supabase.auth.admin.getUserById(order.user_id);
         const recipient = (order.organization_snapshot as any)?.contact_email || user?.email;
@@ -94,14 +115,18 @@ Deno.serve(async (req) => {
             days_until: w.days,
             order_id: f.order_id,
             filing_reference: f.filing_reference,
+            courtesy: !isSubscriber,
           }),
-          tags: [{ name: "category", value: "renewal_reminder" }, { name: "window_days", value: String(w.days) }],
+          tags: [
+            { name: "category", value: isSubscriber ? "renewal_reminder" : "renewal_courtesy" },
+            { name: "window_days", value: String(w.days) },
+          ],
         });
 
         await supabase.from("renewal_notifications").insert({
           order_id: f.order_id,
           filing_id: f.id,
-          notification_type: w.type,
+          notification_type: notificationType,
           recipient_email: recipient,
           delivery_status: result.skipped ? "skipped_no_provider" : result.error ? "failed" : "sent",
         });

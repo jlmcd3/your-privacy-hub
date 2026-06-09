@@ -17,6 +17,7 @@ import { SourcesList } from "@/components/brief/SourcesList";
 import type { SourceMap } from "@/components/brief/CitedText";
 import { ExternalLink, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import CustomBriefDocument from "@/components/dashboard/CustomBriefDocument";
+import DashboardObligationsCard from "@/components/obligations/DashboardObligationsCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -358,6 +359,14 @@ const Dashboard = () => {
           <title>Intelligence Dashboard | End User Privacy</title>
         </Helmet>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* V7-C3: Obligations placeholder (free users) */}
+          <div className="bg-card border border-border rounded-2xl p-6 mb-6">
+            <h2 className="font-display text-lg text-brand-navy mb-1">Obligations</h2>
+            <p className="text-sm text-muted-foreground">
+              Subscribers see renewal and review deadlines derived from their documents here.{" "}
+              <Link to="/subscribe" className="text-brand-teal hover:underline">See plans →</Link>
+            </p>
+          </div>
           {/* Premium upsell banner */}
           <div className="mb-6">
             <div className="bg-gradient-to-br from-brand-navy to-brand-steel rounded-2xl p-6 text-center">
@@ -529,6 +538,9 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+
+        {/* V7-C3: Obligations card above brief/archive (premium users only) */}
+        <DashboardObligationsCard />
 
         {/* Custom briefs for Pro users — collapsible list, most recent first */}
         {customBrief && (
