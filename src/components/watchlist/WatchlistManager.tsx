@@ -3,10 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Bell, Plus, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import {
   INDUSTRIES,
   JURISDICTIONS,
   TOPICS,
+  ROLES,
+  BRIEF_FORMATS,
   type TaxonomyItem,
 } from "@/config/briefTaxonomy";
 
@@ -41,6 +44,10 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
   const { user } = useAuth();
   const [items, setItems] = useState<WatchItem[]>([]);
   const [loading, setLoading] = useState(true);
+  // Single-select choices — stored separately from the watchlist multi-selects.
+  // role -> profiles.brief_role, format -> user_brief_preferences.format.
+  const [role, setRole] = useState<string>("");
+  const [format, setFormat] = useState<string>("full");
 
   useEffect(() => {
     if (!user) return;
@@ -49,6 +56,24 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
       .select("*")
       .eq("user_id", user.id)
       .then(({ data }: any) => { setItems(data ?? []); setLoading(false); });
+
+    supabase
+      .from("profiles")
+      .select("brief_role")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data?.brief_role) setRole(data.brief_role);
+      });
+
+    (supabase as any)
+      .from("user_brief_preferences")
+      .select("format")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (data?.format) setFormat(data.format);
+      });
   }, [user]);
 
   const addItem = async (type: string, slug: string, label: string, flag?: string) => {
@@ -66,10 +91,32 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
     if (data) setItems(prev => (prev.find(i => i.id === data.id) ? prev : [...prev, data]));
   };
 
-
   const removeItem = async (id: string) => {
     await (supabase as any).from("user_watchlist").delete().eq("id", id);
     setItems(prev => prev.filter(i => i.id !== id));
+  };
+
+  const selectRole = async (id: string) => {
+    if (!user) return;
+    const next = role === id ? "" : id;
+    setRole(next);
+    const { error } = await (supabase as any)
+      .from("profiles")
+      .update({ brief_role: next || null })
+      .eq("id", user.id);
+    if (error) toast.error("Couldn't save role");
+  };
+
+  const selectFormat = async (id: string) => {
+    if (!user) return;
+    setFormat(id);
+    const { error } = await (supabase as any)
+      .from("user_brief_preferences")
+      .upsert(
+        { user_id: user.id, format: id, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
+    if (error) toast.error("Couldn't save report format");
   };
 
   if (!isPremium) {
@@ -99,13 +146,41 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
         <span className="text-xs text-brand-mist">· Click any item below to add or remove. Selections power your weekly digest and AI prompts.</span>
       </div>
 
-      {items.length === 0 && !loading && (
+      {items.length === 0 && !loading && !role && (
         <p className="text-slate text-sm">
           You have nothing in your watchlist yet. Click items below to start following them.
         </p>
       )}
 
-
+      {/* Role — single select (writes to profiles.brief_role) */}
+      <div>
+        <h3 className="text-brand-navy uppercase tracking-widest mb-3">
+          👤 Your Role
+        </h3>
+        <p className="text-slate text-xs mb-3">Pick the one that fits best. Shapes how your brief and AI prompts are written.</p>
+        <div className="flex flex-wrap gap-2">
+          {ROLES.map(r => {
+            const selected = role === r.id;
+            return (
+              <button
+                key={r.id}
+                onClick={() => selectRole(r.id)}
+                title={selected ? "Click again to clear" : "Click to select this role"}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                  selected
+                    ? "bg-brand-teal/10 text-brand-teal border-brand-teal/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                    : "bg-white text-slate border-brand-cloud hover:border-brand-teal/30 hover:text-brand-navy"
+                }`}
+              >
+                <span>{r.icon}</span>
+                {r.label}
+                {!selected && <Plus className="w-3 h-3" />}
+                {selected && <span>✓</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {(["jurisdictions", "topics", "industries"] as const).map(type => (
         <div key={type}>
@@ -138,10 +213,38 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
                 </button>
               );
             })}
-
           </div>
         </div>
       ))}
+
+      {/* Report format — single select (writes to user_brief_preferences.format) */}
+      <div>
+        <h3 className="text-brand-navy uppercase tracking-widest mb-3">
+          📄 Report Format
+        </h3>
+        <p className="text-slate text-xs mb-3">How your weekly Privacy Intelligence Report is structured.</p>
+        <div className="flex flex-wrap gap-2">
+          {BRIEF_FORMATS.map(f => {
+            const selected = format === f.id;
+            return (
+              <button
+                key={f.id}
+                onClick={() => selectFormat(f.id)}
+                title="Click to choose this format"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                  selected
+                    ? "bg-brand-teal/10 text-brand-teal border-brand-teal/30"
+                    : "bg-white text-slate border-brand-cloud hover:border-brand-teal/30 hover:text-brand-navy"
+                }`}
+              >
+                <span>{f.icon}</span>
+                {f.label}
+                {selected && <span>✓</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
