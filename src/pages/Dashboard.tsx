@@ -252,7 +252,7 @@ const Dashboard = () => {
       .then(({ data }) => {
         const premium = data?.is_premium ?? false;
         setIsPremium(premium);
-        setSubscriptionInterval((data as any)?.subscription_interval ?? null);
+        // subscription_interval no longer tracked in component state (unused)
         // Show onboarding for free users who haven't completed it
         if (!premium && !(data as any)?.onboarding_complete) {
           setShowOnboarding(true);
