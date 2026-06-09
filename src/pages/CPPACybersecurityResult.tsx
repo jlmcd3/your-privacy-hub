@@ -230,6 +230,9 @@ export function CybersecurityReportBody({ row }: { row: any }) {
         );
       })()}
 
+      {/* Sprint 3 — Breach Precedent Map (dynamic, scoped to flagged gaps) */}
+      <BreachPrecedentMap report={report} />
+
       {/* Sprint 1 #7 — Existing-framework cross-walk */}
       <section className="bg-card border rounded-lg p-6">
         <h2 className="mb-1">Framework Mapping</h2>
