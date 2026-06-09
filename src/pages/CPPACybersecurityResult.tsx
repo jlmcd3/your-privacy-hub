@@ -10,6 +10,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
 
 export const readinessColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -137,6 +138,41 @@ export function CybersecurityReportBody({ row }: { row: any }) {
           </Accordion>
         </section>
       )}
+      {/* Sprint 1 #7 — Existing-framework cross-walk */}
+      <section className="bg-card border rounded-lg p-6">
+        <h2 className="mb-1">Framework Mapping</h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Where your existing NIST CSF, ISO 27001, or SOC 2 controls likely apply to each CPPA cybersecurity component, and the
+          CPPA-specific evidence the agency expects in addition. The FSOR is explicit that holding a NIST / ISO / SOC 2
+          certification does <strong>not</strong>, on its own, satisfy the CPPA cybersecurity audit.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs border-collapse">
+            <thead className="text-left bg-muted/40">
+              <tr>
+                <th className="p-2 border">#</th>
+                <th className="p-2 border">CPPA component (§ 7122(a))</th>
+                <th className="p-2 border">NIST CSF 2.0</th>
+                <th className="p-2 border">ISO 27001:2022</th>
+                <th className="p-2 border">SOC 2 (TSC)</th>
+                <th className="p-2 border">CPPA-specific evidence required</th>
+              </tr>
+            </thead>
+            <tbody>
+              {CPPA_CYBER_FRAMEWORK_MAPPING.map((r) => (
+                <tr key={r.index} className="border-t align-top">
+                  <td className="p-2 border font-mono">{r.index}</td>
+                  <td className="p-2 border">{r.cppa_component}</td>
+                  <td className="p-2 border font-mono text-[11px]">{r.nist_csf}</td>
+                  <td className="p-2 border font-mono text-[11px]">{r.iso_27001}</td>
+                  <td className="p-2 border font-mono text-[11px]">{r.soc2}</td>
+                  <td className="p-2 border">{r.cppa_specific_evidence}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       {Array.isArray(report?.top_risks) && report.top_risks.length > 0 && (
         <section>
