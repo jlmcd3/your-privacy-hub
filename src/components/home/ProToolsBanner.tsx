@@ -68,7 +68,7 @@ const TOOLS: Tool[] = [
     icon: FileSignature,
     title: "DPA Generator",
     blurb: "Generate a controller-to-processor DPA — includes a Drafting Notes appendix citing the enforcement decisions behind every clause choice.",
-    price: "$49 per run",
+    price: "Included with any subscription · $49 standalone",
     cta: "Generate DPA",
     href: "/dpa-generator",
   },
@@ -76,7 +76,7 @@ const TOOLS: Tool[] = [
     icon: Fingerprint,
     title: "Biometric Compliance Check",
     blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state statutes — priority actions cited to enforcement actions.",
-    price: "$49 per run",
+    price: "Included with any subscription · $49 standalone",
     cta: "Check compliance",
     href: "/biometric-checker",
   },
@@ -84,7 +84,7 @@ const TOOLS: Tool[] = [
     icon: Siren,
     title: "Incident Response Playbook",
     blurb: "Jurisdiction-specific breach notification timelines and a step-by-step IR playbook — cited enforcement decisions behind every deadline recommendation.",
-    price: "$59 per run · 1 free run/client/month (Pro Annual)",
+    price: "Included with any subscription · $59 standalone",
     cta: "Build playbook",
     href: "/ir-playbook",
   },
@@ -145,9 +145,9 @@ export default function ProToolsBanner() {
             </h2>
             <p className="text-blue-100 text-sm md:text-base leading-relaxed">
               Structured assessments and generated documents that draw from 3,500+ enforcement
-              decisions — designed for professional review, priced per output. Per-run pricing for
-              all tiers. Professional Annual subscribers receive 1 free Convenience Tool run per
-              client per month.
+              decisions — designed for professional review. RoPA, U.S. and EU/UK notices, IR
+              Playbook, Biometric Check, and the DPA Generator are included with any active
+              subscription. Annual subscribers also receive 1 free Smart Tool run per year.
             </p>
           </div>
           <Button

@@ -1,40 +1,58 @@
 import { useEffect, useState } from "react";
-import { getFreeRunPoolStatus } from "@/lib/freeConvenienceRun";
+import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { isConvenienceTool } from "@/config/pricing";
+import { isIncludedTool } from "@/config/pricing";
+import {
+  isAnnualCreditEligible,
+  getAvailableAnnualCredit,
+} from "@/lib/annualToolCredit";
 
 interface Props {
-  /** Tool key (snake_case or camelCase). Indicator only renders for Convenience Tools. */
+  /** Tool key (snake_case). */
   toolKey: string;
 }
 
 /**
- * Small pool indicator shown on Convenience Tool intake pages.
- * Renders only for logged-in subscribers whose tier has a non-zero free-run pool
- * AND when the tool itself is a Convenience Tool.
+ * Subscription-aware status badge for tool intake pages.
+ *
+ * v9 three-layer model:
+ *   • Layer 1 (Included tools)         → "Included with your subscription"
+ *   • Layer 3 (Annual credit eligible) → "1 free Smart Tool run available this year"
+ *   • Otherwise                        → render nothing (Layer 2 standard pricing)
  */
 export default function FreeRunIndicator({ toolKey }: Props) {
-  const { user, granularTier, isLoading } = useSubscriptionTier();
-  const [status, setStatus] = useState<{ used: number; total: number; resetDate: string | null } | null>(null);
+  const { user } = useAuth();
+  const { isPremium, isLoading } = useSubscriptionTier();
+  const [hasCredit, setHasCredit] = useState<boolean>(false);
+
+  const eligible = isAnnualCreditEligible(toolKey);
 
   useEffect(() => {
-    if (isLoading || !user || !granularTier) return;
-    if (!isConvenienceTool(toolKey)) return;
+    if (isLoading || !user || !isPremium || !eligible) return;
     let cancelled = false;
-    getFreeRunPoolStatus(user.id, granularTier).then((s) => {
-      if (!cancelled) setStatus(s);
+    getAvailableAnnualCredit(user.id).then((s) => {
+      if (!cancelled) setHasCredit(s.hasCredit);
     });
     return () => { cancelled = true; };
-  }, [user, granularTier, isLoading, toolKey]);
+  }, [user, isPremium, isLoading, eligible]);
 
-  if (!status || status.total === 0) return null;
-  const remaining = status.total - status.used;
+  if (isLoading || !user || !isPremium) return null;
 
-  return (
-    <p className="text-sm font-medium text-brand-teal">
-      {remaining > 0
-        ? `✓ ${remaining} free run${remaining !== 1 ? "s" : ""} remaining this month (resets ${status.resetDate})`
-        : `Free runs used for this month — resets ${status.resetDate}`}
-    </p>
-  );
+  if (isIncludedTool(toolKey)) {
+    return (
+      <p className="text-sm font-medium text-brand-teal">
+        ✓ Included with your subscription
+      </p>
+    );
+  }
+
+  if (eligible && hasCredit) {
+    return (
+      <p className="text-sm font-medium text-brand-teal">
+        🎁 1 free Smart Tool run available this year — redeemable on this assessment
+      </p>
+    );
+  }
+
+  return null;
 }

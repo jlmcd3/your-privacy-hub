@@ -42,6 +42,8 @@ Deno.serve(async (req) => {
       case "customer.subscription.updated": {
         const sub = event.data.object;
         const item = sub.items?.data?.[0];
+        const periodStart =
+          item?.current_period_start ?? sub.current_period_start ?? null;
         const periodEnd =
           item?.current_period_end ?? sub.current_period_end ?? null;
         const isActive = ["active", "trialing", "past_due"].includes(sub.status);
@@ -54,14 +56,32 @@ Deno.serve(async (req) => {
           item?.price?.metadata?.lovable_external_id ||
           null;
 
-        let subscriptionType: "monthly" | "annual" | null = null;
+        // v9: 4 subscription_type values — intelligence (monthly|annual) +
+        // professional (pro_monthly|pro_annual). Annual variants make the
+        // user eligible for the Layer-3 Smart Tool credit.
+        let subscriptionType:
+          | "monthly"
+          | "annual"
+          | "pro_monthly"
+          | "pro_annual"
+          | null = null;
         if (lookupKey === "intelligence_yearly" || lookupKey === "intelligence_annual") {
           subscriptionType = "annual";
         } else if (lookupKey === "intelligence_monthly") {
           subscriptionType = "monthly";
+        } else if (lookupKey === "professional_annual" || lookupKey === "professional_yearly") {
+          subscriptionType = "pro_annual";
+        } else if (lookupKey === "professional_monthly") {
+          subscriptionType = "pro_monthly";
         }
 
-        await supabase
+        const isProTier =
+          subscriptionType === "pro_monthly" || subscriptionType === "pro_annual";
+        const isAnnualTier =
+          subscriptionType === "annual" || subscriptionType === "pro_annual";
+
+        // Update the profile row (matched by stripe_customer_id).
+        const { data: updatedProfile } = await supabase
           .from("profiles")
           .update({
             stripe_subscription_id: sub.id,
@@ -69,20 +89,42 @@ Deno.serve(async (req) => {
             subscription_end_date: periodEnd
               ? new Date(periodEnd * 1000).toISOString()
               : null,
-            // Trial restrictions are enforced client-side via
-            // useSubscriptionTier (`isInTrial`). Stripe sends a past
-            // `trial_end` when the trial converts, which the client
-            // treats as "trial over" automatically.
             stripe_trial_end: sub.trial_end
               ? new Date(sub.trial_end * 1000).toISOString()
               : null,
-            // Don't flip is_premium off here — only on actual deletion. A
-            // canceled-at-period-end sub still has access until period end.
-            ...(isActive ? { is_premium: true, payment_failed: false } : {}),
+            ...(isActive
+              ? {
+                  is_premium: true,
+                  payment_failed: false,
+                  ...(isProTier ? { is_pro: true } : {}),
+                }
+              : {}),
             ...(subscriptionType ? { subscription_type: subscriptionType } : {}),
             updated_at: new Date().toISOString(),
           })
-          .eq("stripe_customer_id", sub.customer);
+          .eq("stripe_customer_id", sub.customer)
+          .select("id")
+          .maybeSingle();
+
+        // v9 Layer 3 — Annual subscribers get 1 free Smart Tool run per
+        // cycle. Idempotent: the (user_id, client_id, cycle_start) unique
+        // index makes the insert a no-op when re-applied for the same cycle.
+        if (isActive && isAnnualTier && updatedProfile?.id && periodStart) {
+          const cycleStart = new Date(periodStart * 1000)
+            .toISOString()
+            .split("T")[0];
+          const { error: creditErr } = await supabase
+            .from("annual_tool_credits")
+            .insert({
+              user_id: updatedProfile.id,
+              client_id: null,
+              cycle_start: cycleStart,
+            });
+          // 23505 = unique_violation → expected on replay; everything else is real.
+          if (creditErr && (creditErr as any).code !== "23505") {
+            console.error("annual_tool_credits insert failed:", creditErr.message);
+          }
+        }
         break;
       }
       case "customer.subscription.deleted":
