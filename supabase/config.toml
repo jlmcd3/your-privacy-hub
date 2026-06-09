@@ -195,4 +195,8 @@ verify_jwt = false
 [functions.cppa-check-source-updates]
 verify_jwt = false
 
+[functions.send-cppa-drift-reminders]
+verify_jwt = false
+
+
 
