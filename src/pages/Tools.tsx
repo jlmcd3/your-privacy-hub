@@ -391,6 +391,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "The CPPA formally stood up its Audits Division in February 2026. The December 31, 2027 deadline for existing processing activities is not a proposed regulation — it is in effect. Before investing in risk assessment or cybersecurity audit work, the first question is always: does your organisation meet the thresholds that trigger the obligation?",
       "The CPPA Scope Checker works through eight questions covering revenue thresholds, data processing volumes, the types of personal information involved, and whether your processing of personal information presents a significant risk to consumers. The result is a clear obligation map — which CPPA audit requirements apply, on what timeline, and what you need to do next.",
+      "Every threshold and trigger is mapped to the underlying authority — the Cal. Civ. Code sections of the CCPA/CPRA, the CPPA's implementing regulations, and the agency's own statements of reasoning in the Final Statement of Reasons (FSOR). You see the source behind each obligation, not a paraphrase.",
       "No account is required. The tool is free for all users and always will be.",
     ],
     sampleSections: [
@@ -410,7 +411,8 @@ const TOOLS: ToolDef[] = [
     standalonePrice: PRICING.tools.cppa_risk.display,
     body: [
       "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
-      "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews. Each domain finding is supported by cited CPPA and AG enforcement context.",
+      "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews.",
+      "Every domain finding cites the underlying authority — the statute (Cal. Civ. Code § 1798.x), the implementing regulation (Cal. Code Regs. tit. 11 § 7150 et seq.), the CPPA's own reasoning in the Final Statement of Reasons, and any on-point AG or CPPA enforcement action. The result is a current obligation snapshot you can defend in regulatory review, with the source text attached to each conclusion. After completion, a Control-Drift Monitor schedules an annual re-run nudge so the assessment doesn't go stale.",
       "Standalone per-use price: $89. The output is structured for review by California privacy counsel before being relied upon.",
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
@@ -430,7 +432,7 @@ const TOOLS: ToolDef[] = [
     standalonePrice: PRICING.tools.cppa_cyber.display,
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
-      "The CPPA Cybersecurity Audit Tool produces a structured assessment across each component the regulation enumerates, identifies gaps against the CPPA's specific control expectations, and cites material enforcement and regulatory guidance.",
+      "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the 18 components enumerated at Cal. Code Regs. tit. 11 § 7122(a), and tests independence and scope-memo requirements at § 7122(b) and § 7123. Each control finding is anchored to the regulatory text, the CPPA's reasoning in the Final Statement of Reasons, and a dynamic Breach Precedent Map that surfaces the most relevant recent CPPA and California AG enforcement actions for any gap or critical gap. An Auditor Independence Advisor, Audit Scope Memo Generator, and combined Auditor Handoff Package are included.",
       "Standalone per-use price: $99. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
