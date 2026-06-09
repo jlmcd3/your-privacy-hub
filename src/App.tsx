@@ -732,6 +732,14 @@ const App = () => (
               }
             />
             <Route
+              path="/cppa-cybersecurity/drift/:newId/:oldId"
+              element={
+                <ProtectedRoute>
+                  <CPPACybersecurityDrift />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/cppa-suite/result"
               element={
                 <ProtectedRoute>
