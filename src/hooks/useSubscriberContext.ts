@@ -15,7 +15,10 @@ export function useSubscriberContext(): {
 
   useEffect(() => {
     if (authLoading) return;
+
+    // Non-premium users get no context — components must handle context === null.
     if (!isPremium || !user) {
+      setContext(null);
       setLoading(false);
       return;
     }
@@ -25,34 +28,57 @@ export function useSubscriberContext(): {
     setError(null);
 
     Promise.all([
-      supabase.from('profiles').select('brief_role').eq('id', user.id).maybeSingle(),
+      // 1. Role from profile
+      supabase
+        .from('profiles')
+        .select('brief_role')
+        .eq('id', user.id)
+        .maybeSingle(),
+
+      // 2. Brief preferences (industries / jurisdictions / topics)
       supabase
         .from('user_brief_preferences')
         .select('industries, jurisdictions, topics')
         .eq('user_id', user.id)
         .maybeSingle(),
+
+      // 3. Watchlist items
+      supabase
+        .from('user_watchlist')
+        .select('type, slug, label, flag')
+        .eq('user_id', user.id),
     ])
-      .then(([profileResult, prefsResult]) => {
+      .then(([profileResult, prefsResult, watchlistResult]) => {
         if (cancelled) return;
-        if (profileResult.error && profileResult.error.code !== 'PGRST116') {
-          setError(profileResult.error.message);
-        } else if (prefsResult.error && prefsResult.error.code !== 'PGRST116') {
-          setError(prefsResult.error.message);
+
+        // Surface the first non-PGRST116 error (row-not-found is fine)
+        const firstError = [profileResult, prefsResult, watchlistResult].find(
+          (r) => r.error && r.error.code !== 'PGRST116'
+        );
+        if (firstError?.error) {
+          setError(firstError.error.message);
         }
+
         const role = (profileResult.data as any)?.brief_role ?? undefined;
         const prefs = prefsResult.data as any;
+        const watchlist: SubscriberContext['watchlist'] =
+          (watchlistResult.data ?? []) as SubscriberContext['watchlist'];
+
         setContext({
           role,
           industries: prefs?.industries ?? [],
           jurisdictions: prefs?.jurisdictions ?? [],
           topics: prefs?.topics ?? [],
+          watchlist: watchlist ?? [],
         });
         setLoading(false);
       })
       .catch((e) => {
         if (cancelled) return;
-        setError(e?.message ?? 'Failed to load profile');
-        setContext({ industries: [], jurisdictions: [], topics: [] });
+        // On any unexpected error, surface a minimal context so the prompt
+        // still renders (just without personalisation).
+        setError(e?.message ?? 'Failed to load subscriber profile');
+        setContext({ industries: [], jurisdictions: [], topics: [], watchlist: [] });
         setLoading(false);
       });
 
