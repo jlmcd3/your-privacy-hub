@@ -17,7 +17,7 @@ export default function Watchlist() {
           <div className="mb-6">
             <h1 className="font-display text-brand-navy">Watchlist</h1>
             <p className="text-sm text-slate mt-1">
-              Follow jurisdictions and topics. Updates appear in your weekly digest.
+              Follow jurisdictions, topics, and industries. Updates appear in your weekly digest and personalise your investigation prompts.
             </p>
           </div>
           <WatchlistManager isPremium={isPremium} />
