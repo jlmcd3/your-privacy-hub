@@ -284,11 +284,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Subscriber FREE bypass (IR Playbook, Biometric Checker) ──
+    // ── Subscriber FREE bypass (IR Playbook, Biometric Checker, DPA) ──
+    // v9: gated on isPremium (ANY active subscription), not isPro alone.
     // Stripe disallows $0 sessions; insert the assessment row directly
     // with is_subscriber_credit=true and return the success path so the
     // client navigates straight to the result page.
-    if (isPro && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
+    if (isPremium && SUBSCRIBER_FREE_TOOLS.has(tool_type)) {
       const insertRow: Record<string, unknown> = {
         user_id,
         client_id: client_id || null,
