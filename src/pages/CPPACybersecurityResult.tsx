@@ -14,6 +14,7 @@ import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mappin
 import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdvisor";
 import AuditScopeMemoGenerator from "@/components/cppa/AuditScopeMemoGenerator";
 import AuditorHandoffButton, { AuditorHandoffCover } from "@/components/cppa/AuditorHandoffPackage";
+import BreachPrecedentMap from "@/components/cppa/BreachPrecedentMap";
 
 export const readinessColor = (r: string) => {
   const x = (r || "").toLowerCase();
