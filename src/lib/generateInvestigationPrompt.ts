@@ -373,9 +373,13 @@ export function generatePersonalizedInvestigationPrompt(
     );
   }
 
-  if (industryLabels.length > 0) {
+  // Industry task — merge brief-preference industries with watchlist industries.
+  const combinedIndustryLabels = Array.from(
+    new Set([...industryLabels, ...watchlistIndustryLabels])
+  );
+  if (combinedIndustryLabels.length > 0) {
     tasks.push(
-      `3. Our organization operates in ${industryLabels.join(' and ')}. ` +
+      `3. Our organization operates in ${combinedIndustryLabels.join(' and ')}. ` +
         `Are there sector-specific obligations, exemptions, or enforcement patterns ` +
         `that apply to this development in our industry? Name any relevant ` +
         `sector-specific regulators, guidance, or precedent.`
