@@ -391,6 +391,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "The CPPA formally stood up its Audits Division in February 2026. The December 31, 2027 deadline for existing processing activities is not a proposed regulation — it is in effect. Before investing in risk assessment or cybersecurity audit work, the first question is always: does your organisation meet the thresholds that trigger the obligation?",
       "The CPPA Scope Checker works through eight questions covering revenue thresholds, data processing volumes, the types of personal information involved, and whether your processing of personal information presents a significant risk to consumers. The result is a clear obligation map — which CPPA audit requirements apply, on what timeline, and what you need to do next.",
+      "Every threshold and trigger is mapped to the underlying authority — the Cal. Civ. Code sections of the CCPA/CPRA, the CPPA's implementing regulations, and the agency's own statements of reasoning in the Final Statement of Reasons (FSOR). You see the source behind each obligation, not a paraphrase.",
       "No account is required. The tool is free for all users and always will be.",
     ],
     sampleSections: [
