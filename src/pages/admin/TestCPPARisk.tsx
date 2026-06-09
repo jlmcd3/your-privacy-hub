@@ -5,66 +5,35 @@ import Navbar from "@/components/Navbar";
 import { useTestRunnerBridge } from "@/hooks/useTestRunnerBridge";
 
 const MOCK_INTAKE = {
-  profile: {
-    revenue: "Over $500M",
-    california_consumers: "1–10 million",
-    sector: "Healthcare/Life Sciences",
-    sell_share_pi: "Both",
-  },
-  data_categories: [
+  q1_revenue: "Over $500M",
+  q2_consumers: "1–10 million",
+  q3_sector: "Healthcare/Life Sciences",
+  q4_pi_categories: [
     "Health or medical information",
     "Contact identifiers (name, email, phone)",
     "Device identifiers (IP, cookies, device IDs)",
     "Internet or network activity",
     "Employment information",
   ],
-  processing_activities: [
-    {
-      name: "Patient risk stratification analytics",
-      purpose: "Predictive analytics for clinical risk",
-      automated: true,
-      profiling: true,
-      sensitive: true,
-    },
-    {
-      name: "Employee HR processing",
-      purpose: "Payroll, benefits, performance management",
-      automated: false,
-      profiling: false,
-      sensitive: false,
-    },
-    {
-      name: "Marketing analytics",
-      purpose: "Clinic client acquisition and retention",
-      automated: true,
-      profiling: true,
-      sensitive: false,
-    },
-  ],
-  data_sources: [
-    "Direct collection from clinic EHR systems",
-    "Third-party data brokers (clinic demographic data)",
-    "Web tracking (clinic client portal)",
-  ],
-  third_party_sharing: [
-    "Cloud processors (Azure, Snowflake)",
-    "Analytics vendors",
-    "Healthcare data consortiums",
-  ],
-  consumer_rights_implemented: ["Right to know", "Right to delete (partial)"],
-  consumer_rights_missing: [
-    "Right to correct",
-    "Right to limit use of sensitive PI",
-    "Right to opt-out of sale/share",
-  ],
-  security_measures:
-    "SOC 2 Type II certified. Annual penetration testing. MFA enforced. Data encrypted at rest and in transit.",
-  admt_used: true,
-  admt_description:
+  q5_sell_share: "Both",
+  q15_sensitive_pi: "Yes",
+  q16_sensitive_limit: "No",
+  q17_sensitive_basis: "Treatment, payment, and healthcare operations",
+  q18_admt_use: "Yes",
+  q19_admt_description:
     "ML model generates individual patient risk scores used by clinicians. Scores influence clinical prioritisation decisions.",
+  q20_admt_opt_out: "No",
+  // Context fields preserved for prompt enrichment
+  processing_activities: [
+    { name: "Patient risk stratification analytics", purpose: "Predictive analytics for clinical risk", automated: true, profiling: true, sensitive: true },
+    { name: "Employee HR processing", purpose: "Payroll, benefits, performance management", automated: false, profiling: false, sensitive: false },
+    { name: "Marketing analytics", purpose: "Clinic client acquisition and retention", automated: true, profiling: true, sensitive: false },
+  ],
+  third_party_sharing: ["Cloud processors (Azure, Snowflake)", "Analytics vendors", "Healthcare data consortiums"],
+  consumer_rights_implemented: ["Right to know", "Right to delete (partial)"],
+  consumer_rights_missing: ["Right to correct", "Right to limit use of sensitive PI", "Right to opt-out of sale/share"],
+  security_measures: "SOC 2 Type II certified. Annual penetration testing. MFA enforced. Data encrypted at rest and in transit.",
   children_data: false,
-  sensitive_pi: true,
-  industry_sector: "Healthcare/Life Sciences",
 };
 
 const ASSERTIONS: { label: string; fn: (r: any) => boolean }[] = [
