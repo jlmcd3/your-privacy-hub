@@ -180,7 +180,7 @@ const TOOLS: Record<
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
     fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 0,
 
     classification: "smart",
   },
@@ -189,7 +189,7 @@ const TOOLS: Record<
     standalone_lookup: "ir_standalone_v2",
     subscriber_lookup: "ir_subscriber_v2",
     fallback_standalone_cents: 5900,
-    fallback_subscriber_cents: 5900,
+    fallback_subscriber_cents: 0,
     classification: "convenience",
   },
   biometric_checker: {
@@ -197,13 +197,13 @@ const TOOLS: Record<
     standalone_lookup: "biometric_standalone_v2",
     subscriber_lookup: "biometric_subscriber_v2",
     fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 0,
     classification: "smart",
   },
 };
 
-// Tools that bypass Stripe entirely for is_pro subscribers (FREE).
-const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker"]);
+// v9: Tools that bypass Stripe entirely for ANY active subscriber (FREE).
+const SUBSCRIBER_FREE_TOOLS = new Set(["ir_playbook", "biometric_checker", "dpa_generator"]);
 
 function detectEnv(): StripeEnv {
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
