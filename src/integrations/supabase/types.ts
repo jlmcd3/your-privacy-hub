@@ -4458,6 +4458,39 @@ export type Database = {
         }
         Relationships: []
       }
+      state_law_review_log: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          reviewed_at: string
+          reviewed_by: string | null
+          state_name: string
+          state_slug: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reviewed_at?: string
+          reviewed_by?: string | null
+          state_name: string
+          state_slug: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reviewed_at?: string
+          reviewed_by?: string | null
+          state_name?: string
+          state_slug?: string
+          status?: string
+        }
+        Relationships: []
+      }
       state_law_update_candidates: {
         Row: {
           confidence: string | null
