@@ -136,12 +136,16 @@ Deno.serve(async (req) => {
     // ── 4. Ensure is_pro=true (record original to restore) ──────────────────
     const { data: prof } = await admin
       .from("profiles")
-      .select("is_pro")
+      .select("is_pro, brief_role")
       .eq("id", userId)
       .single();
     const wasPro = !!prof?.is_pro;
-    if (!wasPro) {
-      await admin.from("profiles").update({ is_pro: true }).eq("id", userId);
+    const prevRole = (prof as { brief_role?: string | null } | null)?.brief_role ?? null;
+    const profilePatch: Record<string, unknown> = {};
+    if (!wasPro) profilePatch.is_pro = true;
+    if (role !== null && role !== prevRole) profilePatch.brief_role = role;
+    if (Object.keys(profilePatch).length) {
+      await admin.from("profiles").update(profilePatch).eq("id", userId);
     }
 
     // ── 5. Note baseline custom_briefs count BEFORE invoking ────────────────
