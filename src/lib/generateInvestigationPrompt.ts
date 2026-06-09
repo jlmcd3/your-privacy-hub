@@ -297,8 +297,8 @@ export function generatePersonalizedInvestigationPrompt(
     const matchedLabels = matchedWatchlistItems.map((w) => w.label).join(', ');
     watchlistMatchBanner =
       `⚑ WATCHLIST MATCH: This article involves ${matchedLabels}, ` +
-      `which you are actively tracking. Pay particular attention to ` +
-      `the jurisdiction-specific and topic-specific tasks below.\n\n`;
+      `which you are actively tracking. Pay particular attention to the ` +
+      `jurisdiction-, topic-, and industry-specific tasks below.\n\n`;
   }
 
   // 5. "ABOUT" section
