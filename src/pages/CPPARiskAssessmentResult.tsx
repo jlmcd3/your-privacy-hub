@@ -52,11 +52,23 @@ export default function CPPARiskAssessmentResult() {
   useEffect(() => {
     if (!id) return;
     let timer: any;
+    let attempts = 0;
     const fetchOnce = async () => {
       const { data } = await supabase.from("cppa_assessments").select("*").eq("id", id).maybeSingle();
       setRow(data);
       setLoading(false);
-      if (data && (data.status === "pending" || data.status === "processing")) {
+      // Dual-polling: keep polling not only on pending/processing, but also when
+      // status === 'complete' arrived before report_data was written.
+      const rd = data?.report_data as any;
+      const reportReady = rd && typeof rd === "object" && Object.keys(rd).length > 0
+        && (Array.isArray(rd.domains) || typeof rd.executive_summary === "string");
+      const stillRunning = data && (
+        data.status === "pending"
+        || data.status === "processing"
+        || (data.status === "complete" && !reportReady)
+      );
+      attempts += 1;
+      if (stillRunning && attempts < 100) {
         timer = setTimeout(fetchOnce, 3000);
       }
     };
@@ -66,6 +78,17 @@ export default function CPPARiskAssessmentResult() {
 
   const report = row?.report_data || {};
   const status = row?.status;
+  const reportReady = !!(
+    row?.report_data
+    && typeof row.report_data === "object"
+    && Object.keys(row.report_data).length > 0
+    && (Array.isArray((row.report_data as any).domains) || typeof (row.report_data as any).executive_summary === "string")
+  );
+  const showRunning = !loading && (
+    status === "pending"
+    || status === "processing"
+    || (status === "complete" && !reportReady)
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -80,7 +103,7 @@ export default function CPPARiskAssessmentResult() {
         )}
         {loading && <p>Loading…</p>}
 
-        {!loading && (status === "pending" || status === "processing") && (
+        {showRunning && (
           <div className="bg-card border rounded-lg p-10 text-center">
             <div className="animate-pulse mb-4 text-2xl">⏳</div>
             <p>Running your CPPA Risk Assessment.</p>
@@ -95,7 +118,7 @@ export default function CPPARiskAssessmentResult() {
           </div>
         )}
 
-        {status === "complete" && (
+        {status === "complete" && reportReady && (
           <>
             <section className="bg-slate-900 text-white rounded-lg p-8">
               <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
