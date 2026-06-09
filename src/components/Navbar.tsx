@@ -332,9 +332,9 @@ const Navbar = () => {
 
   useEffect(() => {
     supabase
-      .from("weekly_briefs")
+      .from("weekly_briefs_teaser")
       .select("week_label")
-      .order("created_at", { ascending: false })
+      .order("published_at", { ascending: false })
       .limit(1)
       .then(({ data }) => {
         if (data && data.length > 0) {

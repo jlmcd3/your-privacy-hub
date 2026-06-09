@@ -70,7 +70,7 @@ const FollowButton = ({ followType, followKey, label }: FollowButtonProps) => {
                   Sign in to follow {label}. Alerts are sent to your account email.
                 </p>
                 <Link
-                  to="/auth"
+                  to="/login"
                   className="block w-full py-2.5 text-center text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-colors"
                 >
                   Sign in
