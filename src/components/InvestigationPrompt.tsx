@@ -18,17 +18,15 @@ interface InvestigationPromptProps {
 const PERSONALISATION_TOOLTIP =
   'Prompts are personalised to your role, industries, jurisdictions, topics, and watchlist.';
 
-export function InvestigationPrompt({ item }: InvestigationPromptProps) {
+export function InvestigationPrompt({ item, demoContext }: InvestigationPromptProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Fetch subscriber context (role, industries, jurisdictions, topics, watchlist).
-  // `context` is null while loading or for non-premium users.
-  const { context, loading } = useSubscriberContext();
+  // When a demo context is supplied, skip the hook entirely.
+  const live = useSubscriberContext();
+  const context = demoContext ?? live.context;
+  const loading = demoContext ? false : live.loading;
 
-  // When context is null the generator falls back to the article-only prompt
-  // with the static placeholder. Once context resolves the component
-  // re-renders with the personalised version.
   const prompt = generatePersonalizedInvestigationPrompt(item, context ?? undefined);
 
   const personalised = !!(
