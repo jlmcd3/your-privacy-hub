@@ -863,45 +863,13 @@ export const PRICING = {
 export type ToolKey = keyof typeof PRICING.tools;
 export type SubscriptionTier = 'anonymous' | 'free' | 'intelligence' | 'professional';
 
-/**
- * Monthly free Convenience Tool run pool sizes by subscription tier.
- * Pools reset on the 1st of each calendar month. No carry-over.
- * Smart Tools are NEVER pool-eligible — isConvenienceTool() gates eligibility.
- *
- * Canonical tier keys: free | intel_monthly | intel_annual | pro_monthly | pro_annual.
- * Legacy single-value aliases (monthly / annual / annual_founding / intelligence /
- * professional / *_monthly / *_annual longhand) are mapped here so older callers
- * keep resolving without conditional logic at every call site.
- */
-export const FREE_RUN_POOL_SIZES: Record<string, number> = {
-  free:                 0,
-  intel_monthly:        1,
-  intel_annual:         5,
-  pro_monthly:          3,
-  pro_annual:          10,
-  // ── Legacy aliases ───────────────────────────────────────────────────
-  annual:               5,   // → intel_annual
-  annual_founding:      5,   // → intel_annual
-  monthly:              1,   // → intel_monthly
-  intelligence:         1,   // → intel_monthly
-  professional:        10,   // → pro_annual
-  intelligence_monthly: 1,
-  intelligence_annual:  5,
-  professional_monthly: 3,
-  professional_annual: 10,
-};
+// ── v9 PRICING HELPERS ────────────────────────────────────────────────────
+//
+// Every tier pays the standalone per-use tool price. Layer 1 tools (RoPA,
+// US/EU Notices, IR Playbook, Biometric, DPA) are included with any active
+// subscription. Layer 3 (Smart Tool annual credit: Governance, LIA, DPIA)
+// is redeemed server-side via `create-tool-checkout` → `annual_tool_credits`.
 
-/** Returns the free-run pool size for a tier string. 0 = not eligible. */
-export function getFreeRunPoolSize(tier: string | null | undefined): number {
-  if (!tier) return 0;
-  return FREE_RUN_POOL_SIZES[tier] ?? 0;
-}
-
-/**
- * v8 model — every tier pays the standalone per-use tool price.
- * Subscriber discounts no longer exist; Convenience-Tool affordability is
- * delivered via the monthly free-run pool (see FREE_RUN_POOL_SIZES).
- */
 export function getToolPrice(toolKey: ToolKey, _tier?: string): number {
   return PRICING.tools[toolKey].dollars;
 }
@@ -912,36 +880,26 @@ export function getToolPriceDisplay(toolKey: ToolKey, _tier?: string): string {
 }
 
 /**
- * A tool is "free" for a tier iff:
- *  - it is a Subscriber-Only tool (RoPA / US Notice / EU Notice) AND the
- *    tier is any active subscription (non-zero free-run pool), OR
- *  - it is a Convenience Tool AND the tier has a non-zero free-run pool.
- * Smart Tools are never pool-eligible. Free / anonymous users get nothing.
+ * A tool is "free" for a tier iff the tier is an active subscription AND
+ * the tool is Layer-1 included (or a subscriber-only tool like RoPA /
+ * US Notice / EU Notice).
  *
- * IMPORTANT: This function has no knowledge of trial status. Callers that
- * need to enforce trial restrictions should read `granularTier` from
- * `useSubscriptionTier` — it already collapses to `"free"` during a trial,
- * so passing it here yields the correct (no-access) result automatically.
- * Do not pass a raw `subscription_type` string from `profiles` without
- * the trial override applied.
+ * Callers that need to enforce trial restrictions should read `granularTier`
+ * from `useSubscriptionTier` — it already collapses to `"free"` during a
+ * trial, so passing it here yields the correct (no-access) result.
  */
-export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
-  if (!tier) return false;
-  // v9: any active subscription gets Layer-1 included tools free.
-  // Pool-size check kept until 0.6 cleanup so deprecated callers still compile.
-  const hasSubscription = getFreeRunPoolSize(tier) > 0;
-  if (!hasSubscription) return false;
-  return isIncludedTool(toolKey) || isSubscriberOnlyTool(toolKey);
-}
+const SUBSCRIBED_TIERS = new Set([
+  'intel_monthly', 'intel_annual', 'pro_monthly', 'pro_annual',
+  // Legacy aliases still emitted by some callers.
+  'intelligence', 'professional',
+  'intelligence_monthly', 'intelligence_annual',
+  'professional_monthly', 'professional_annual',
+  'monthly', 'annual', 'annual_founding',
+]);
 
-/**
- * The monthly free-run pool for the tier (replaces the legacy per-tool
- * "abuse cap"). Returns null for tiers with no pool.
- */
-export function getToolMonthlyCapLimit(_toolKey: string, tier?: string): number | null {
-  if (!tier) return null;
-  const pool = getFreeRunPoolSize(tier);
-  return pool > 0 ? pool : null;
+export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
+  if (!tier || !SUBSCRIBED_TIERS.has(tier)) return false;
+  return isIncludedTool(toolKey) || isSubscriberOnlyTool(toolKey);
 }
 
 // ── TOOL CLASSIFICATION ───────────────────────────────────────────────────
@@ -950,7 +908,6 @@ export function getToolMonthlyCapLimit(_toolKey: string, tier?: string): number 
  * SMART TOOLS — enforcement-calibrated, multi-stage reasoning against the
  * enforcement corpus. Methodology reviewed by qualified privacy counsel.
  * Cannot be replicated by prompting a general AI.
- * Never eligible for free monthly runs.
  */
 export const SMART_TOOL_KEYS = [
   'governance',   // Privacy Program Assessment — 10-domain scoring
@@ -958,35 +915,16 @@ export const SMART_TOOL_KEYS = [
   'dpia',         // DPIA — necessity/proportionality vs enforcement corpus
   'cppa_risk',    // CPPA Risk Assessment — 5-stage CPPA analysis
   'cppa_cyber',   // CPPA Cybersecurity — 18-control gap analysis
-  // v9: 'dpa' and 'biometric' moved to Layer 1 (included with subscription).
 ] as const;
 
 export type SmartToolKey = typeof SMART_TOOL_KEYS[number];
-
-/**
- * @deprecated v9 — removed in cleanup; do not add callers.
- * CONVENIENCE TOOLS — document generators. Valuable time-savers.
- * Professional annual subscribers receive 1 free run per client per month.
- *
- * NOTE: RoPA Builder, US Privacy Notice Builder, and EU/Global Privacy
- * Notice Builder are SUBSCRIBER-ONLY (never sold standalone and never
- * eligible for the free-run pool — they are always included with any
- * active subscription). They are deliberately excluded from this list.
- */
-export const CONVENIENCE_TOOL_KEYS = [
-  'ir_playbook',  // IR Playbook — structured notification timelines
-  'registration', // Registration Filings — DPO/AI Act registration docs
-] as const;
-
-export type ConvenienceToolKey = typeof CONVENIENCE_TOOL_KEYS[number];
 
 /** Always free — CPPA Scope Checker */
 export const FREE_TOOL_KEYS = ['cppa_scope'] as const;
 
 /**
  * Subscriber-only tools: included with any active Intelligence/Professional
- * subscription (monthly or annual). Never sold standalone, never pool-eligible.
- * Free / anonymous users have no access.
+ * subscription (monthly or annual). Never sold standalone.
  */
 export const SUBSCRIBER_ONLY_TOOL_KEYS = [
   'ropa',
@@ -997,8 +935,6 @@ export type SubscriberOnlyToolKey = typeof SUBSCRIBER_ONLY_TOOL_KEYS[number];
 
 // camelCase aliases for the same tool keys (so callers using either form work)
 const SMART_TOOL_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber']);
-/** @deprecated v9 — removed in cleanup; do not add callers */
-const CONVENIENCE_TOOL_CAMEL = new Set(['irPlaybook','registration']);
 const SUBSCRIBER_ONLY_TOOL_CAMEL = new Set(['ropa','usNotice','euNotice']);
 
 /** Returns true if the tool requires a subscription (not sold standalone). */
@@ -1009,11 +945,6 @@ export function isSubscriberOnlyTool(toolKey: string): boolean {
 /** Returns true if the tool uses multi-stage enforcement-corpus reasoning */
 export function isSmartTool(toolKey: string): boolean {
   return (SMART_TOOL_KEYS as readonly string[]).includes(toolKey) || SMART_TOOL_CAMEL.has(toolKey);
-}
-
-/** @deprecated v9 — removed in cleanup; do not add callers. Returns true if the tool is eligible for the Professional free monthly run */
-export function isConvenienceTool(toolKey: string): boolean {
-  return (CONVENIENCE_TOOL_KEYS as readonly string[]).includes(toolKey) || CONVENIENCE_TOOL_CAMEL.has(toolKey);
 }
 
 // ── v9 LAYER CLASSIFICATION (June 2026) ──────────────────────────────────
