@@ -216,8 +216,10 @@ const Dashboard = () => {
   const [freeDigest, setFreeDigest] = useState<any>(null);
   const { isAdmin } = useIsAdmin();
 
-  async function handleDeleteBrief(id: string) {
-    if (!window.confirm("Delete this weekly report? This cannot be undone.")) return;
+  async function confirmDeleteBrief() {
+    const id = pendingDeleteId;
+    if (!id) return;
+    setPendingDeleteId(null);
     const { error } = await (supabase as any).from("custom_briefs").delete().eq("id", id);
     if (error) {
       toast({ title: "Delete failed", description: error.message, variant: "destructive" });
