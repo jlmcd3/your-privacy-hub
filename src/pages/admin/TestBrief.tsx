@@ -4,7 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import { useTestRunnerBridge } from "@/hooks/useTestRunnerBridge";
 
-// Mapped to the codes expected by generate-custom-brief
+// Mapped to the codes expected by generate-custom-brief. Industries /
+// jurisdictions / topics flow through `user_watchlist` (the single source of
+// truth); `role` is written to `profiles.brief_role` and drives ROLE_LENS in
+// the system prompt; `format` is written to user_brief_preferences.
 const PREFS = {
   industries: ["healthcare"],
   jurisdictions: ["eu-uk"],
@@ -15,6 +18,7 @@ const PREFS = {
     "Biometric Data Privacy",
     "Data Breach & Incident Response",
   ],
+  role: "cpo_dpo",
   format: "full",
 };
 
