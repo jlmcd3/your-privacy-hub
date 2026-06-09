@@ -368,6 +368,52 @@ export default function CPPARiskAssessmentResult() {
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
               />
 
+              {/* Sprint 1 #2 — Regulator-Rationale Memo */}
+              {Array.isArray(report?.fsor_commentary) && report.fsor_commentary.length > 0 && (() => {
+                const memoLines: string[] = [
+                  "REGULATOR RATIONALE MEMO",
+                  "CPPA Risk Assessment — Final Statement of Reasons (FSOR) Appendix",
+                  "",
+                  "This memo bundles the agency commentary cited in the assessment, drawn verbatim from the California Privacy Protection Agency's Final Statement of Reasons. It is non-binding interpretive context — included to support legal review of the regulatory conclusions in the underlying report.",
+                  "",
+                ];
+                // Per-domain section
+                if (Array.isArray(report?.domains)) {
+                  for (const d of report.domains) {
+                    const rows = Array.isArray(d.fsor_commentary) ? d.fsor_commentary : [];
+                    if (rows.length === 0) continue;
+                    memoLines.push(`DOMAIN: ${d.domain}`);
+                    if (d.regulatory_basis) memoLines.push(`Regulatory basis: ${d.regulatory_basis}`);
+                    memoLines.push("");
+                    for (const f of rows) {
+                      memoLines.push(`Citation: ${f.regulation_citation ?? ""}${f.fsor_package ? ` (${f.fsor_package}${f.page_ref ? `, ${f.page_ref}` : ""})` : ""}`);
+                      if (f.comment_summary) memoLines.push(`Comment: ${f.comment_summary}`);
+                      if (f.agency_response) memoLines.push(`Agency response: ${f.agency_response}`);
+                      if (f.source_url) memoLines.push(`Source: ${f.source_url}`);
+                      memoLines.push("");
+                    }
+                  }
+                }
+                // Full FSOR appendix
+                memoLines.push("FULL FSOR APPENDIX");
+                memoLines.push("");
+                for (const f of report.fsor_commentary) {
+                  memoLines.push(`Citation: ${f.regulation_citation ?? ""}${f.fsor_package ? ` (${f.fsor_package}${f.page_ref ? `, ${f.page_ref}` : ""})` : ""}`);
+                  if (f.comment_summary) memoLines.push(`Comment: ${f.comment_summary}`);
+                  if (f.agency_response) memoLines.push(`Agency response: ${f.agency_response}`);
+                  if (f.source_url) memoLines.push(`Source: ${f.source_url}`);
+                  memoLines.push("");
+                }
+                return (
+                  <DownloadWordButton
+                    text={memoLines.join("\n")}
+                    label="Regulator Rationale Memo"
+                    subtitle="CPPA Risk Assessment — FSOR Appendix"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
+                  />
+                );
+              })()}
+
               <Button asChild variant="outline"><Link to="/cppa-risk-assessment">Run New Assessment</Link></Button>
               <Button asChild><Link to="/dashboard/reports">Back to My Reports</Link></Button>
             </div>
