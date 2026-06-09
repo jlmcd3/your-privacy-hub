@@ -216,7 +216,7 @@ export default function CPPARiskAssessmentResult() {
                 <section className="bg-card border rounded-lg p-6">
                   <h2 className="mb-1">Confidence Stratification</h2>
                   <p className="text-xs text-muted-foreground mb-4">
-                    Domains grouped by how strongly the conclusion is grounded in the retrieved corpus and agency commentary (FSOR). Use this to prioritise attorney review.
+                    Domains grouped by how strongly the conclusion is grounded in statutory or regulatory authority and agency commentary (FSOR). Use this to prioritise attorney review.
                   </p>
                   <div className="grid md:grid-cols-3 gap-3">
                     {order.map((tier) => (
