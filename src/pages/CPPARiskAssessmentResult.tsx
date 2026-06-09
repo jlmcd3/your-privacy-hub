@@ -428,6 +428,7 @@ export default function CPPARiskAssessmentResult() {
                     `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding ?? ""}\n${d.remediation ?? ""}`) : [])
                 ].filter(Boolean).join("\n\n")}
                 label="CPPA Risk Assessment"
+                buttonLabel="Download Word — Risk Assessment"
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
               />
 
@@ -472,6 +473,7 @@ export default function CPPARiskAssessmentResult() {
                     text={memoLines.join("\n")}
                     label="Regulator Rationale Memo"
                     subtitle="CPPA Risk Assessment — FSOR Appendix"
+                    buttonLabel="Download Word — Regulator Memo"
                     className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
                   />
                 );

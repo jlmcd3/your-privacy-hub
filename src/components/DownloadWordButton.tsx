@@ -29,6 +29,8 @@ interface Props {
   /** Optional subtitle line below the title (e.g. controller/processor names). */
   subtitle?: string;
   className?: string;
+  /** Override the default "Download Word" button text. */
+  buttonLabel?: string;
 }
 
 // Brand tokens (matches index.css / tailwind.config.ts)
@@ -43,7 +45,7 @@ function brandBorder(color = "D9DDDC") {
   return { style: BorderStyle.SINGLE, size: 4, color };
 }
 
-export default function DownloadWordButton({ text, label, subtitle, className }: Props) {
+export default function DownloadWordButton({ text, label, subtitle, className, buttonLabel }: Props) {
   const [busy, setBusy] = useState(false);
 
   const handleDownload = async () => {
@@ -328,7 +330,7 @@ export default function DownloadWordButton({ text, label, subtitle, className }:
           <path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z" />
         </svg>
       )}
-      {busy ? "Preparing…" : "Download Word"}
+      {busy ? "Preparing…" : (buttonLabel ?? "Download Word")}
     </button>
   );
 }
