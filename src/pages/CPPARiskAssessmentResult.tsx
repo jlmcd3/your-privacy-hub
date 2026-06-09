@@ -42,6 +42,30 @@ const ledgerColor = (c?: string) => {
   return "bg-muted text-foreground";
 };
 
+// Sprint 1 #5 — Confidence stratification.
+// Tier derived from corpus + FSOR alignment so attorneys can prioritise review.
+type ConfidenceTier = "High-confidence" | "Inference" | "Heuristic";
+const NO_AUTH_PHRASE = "no retrieved authority";
+function classifyDomain(d: any): ConfidenceTier {
+  const basis = typeof d?.regulatory_basis === "string" ? d.regulatory_basis : "";
+  const hasFsor = Array.isArray(d?.fsor_commentary) && d.fsor_commentary.length > 0;
+  const noCorpus = !basis || basis.toLowerCase().includes(NO_AUTH_PHRASE) || basis.includes("[removed");
+  if (noCorpus) return "Heuristic";
+  if (hasFsor) return "High-confidence";
+  return "Inference";
+}
+const tierColor = (t: ConfidenceTier) => {
+  if (t === "High-confidence") return "bg-green-100 text-green-800 border-green-300";
+  if (t === "Inference") return "bg-amber-100 text-amber-800 border-amber-300";
+  return "bg-red-100 text-red-800 border-red-300";
+};
+const tierBlurb: Record<ConfidenceTier, string> = {
+  "High-confidence": "Corpus authority on point AND agency commentary (FSOR) reinforces the conclusion.",
+  "Inference": "Corpus authority is on point, but no agency commentary (FSOR) was matched. Treat the legal conclusion as well-grounded but the interpretation as a reasoned inference.",
+  "Heuristic": "No retrieved authority on point in the corpus. Conclusion is a best-effort heuristic and requires attorney review before relying on it.",
+};
+
+
 export default function CPPARiskAssessmentResult() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
