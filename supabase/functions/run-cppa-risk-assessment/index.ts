@@ -403,7 +403,7 @@ ${buildFsorBlock(fsorCommentary)}
 Return the full JSON in the exact shape specified by the system message. All eight § 7152(a)(5) harm categories must appear. Every § 7 safeguard must include linked_harms.`;
 
     const tGen = Date.now();
-    const gen = await generateOrRetry("claude-sonnet-4-6", GENERATION_SYSTEM, genUser, 16000, "generate-v3");
+    const gen = await generateOrRetry("google/gemini-3-flash-preview", GENERATION_SYSTEM, genUser, 16000, "generate-v3");
     console.log(`[v3] generate total ${Date.now() - tGen}ms`);
     if (!gen.parsed || !gen.parsed.part_a) {
       await supabase.from("cppa_assessments").update({
