@@ -52,15 +52,23 @@ export default function ThisWeekInPrivacy() {
         if (data) {
           setReport(data as unknown as TrendReport);
         } else {
-          // Fallback to weekly_briefs
-          supabase
-            .from("weekly_briefs")
-            .select("id, week_label, headline, executive_summary, published_at")
+          // v9 Prompt 2.1: anon-safe teaser view (base weekly_briefs is premium-only).
+          (supabase as any)
+            .from("weekly_briefs_teaser")
+            .select("id, week_label, headline, teaser, published_at")
             .order("published_at", { ascending: false })
             .limit(1)
-            .single()
-            .then(({ data: briefData }) => {
-              if (briefData) setBrief(briefData as WeeklyBrief);
+            .maybeSingle()
+            .then(({ data: briefData }: any) => {
+              if (briefData) {
+                setBrief({
+                  id: briefData.id,
+                  week_label: briefData.week_label,
+                  headline: briefData.headline,
+                  executive_summary: briefData.teaser ?? "",
+                  published_at: briefData.published_at,
+                });
+              }
             });
         }
       });
