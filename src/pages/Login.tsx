@@ -73,7 +73,7 @@ const Login = () => {
     <div className="min-h-screen bg-brand-cloud flex flex-col">
       <Helmet>
         <title>Sign In | End User Privacy</title>
-        <meta name="description" content="Sign in to your End User Privacy account to access your personalized dashboard, weekly digest, and Intelligence Briefs." />
+        <meta name="description" content="Sign in to your End User Privacy account to access your personalized dashboard, weekly digest, and Privacy Intelligence Reports." />
       </Helmet>
       <Navbar />
       <div className="flex-1 flex flex-col lg:flex-row">

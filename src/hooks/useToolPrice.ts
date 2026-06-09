@@ -80,7 +80,10 @@ const SLUG_TO_SUBSCRIBER_KEY: Partial<Record<ToolSlug, string>> = {
 function standaloneCentsFor(slug: ToolSlug): number {
   const key = SLUG_TO_TOOL_KEY[slug];
   if (key === "cppa_suite_combo") {
-    return (PRICING.tools.cppaRisk.dollars + PRICING.tools.cppaCyber.dollars) * 100;
+    // v9 Prompt 0.5.1: bundle price is $169 — NOT the sum of risk+cyber ($188).
+    return (PRICING.tools as any).cppa_suite?.dollars
+      ? (PRICING.tools as any).cppa_suite.dollars * 100
+      : 16900;
   }
   return PRICING.tools[key].dollars * 100;
 }

@@ -15,6 +15,7 @@ import { Copy, Loader2, Mail } from "lucide-react";
 import RegistrationCheckoutModal, { type RegistrationTier } from "@/components/RegistrationCheckoutModal";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
+import { PRICING_REGISTRY } from "@/config/pricing";
 
 interface JurisdictionResult {
   code: string;
@@ -145,11 +146,14 @@ export default function RegistrationAssessmentResult() {
   const jurisdictions: JurisdictionResult[] = summary.jurisdictions || [];
   const confidence = summary.confidence || assessment.confidence_tier || "medium";
   const selectedCount = selected.size;
-  const crpTotal = 299;
-
-  // Flat DIY pricing — mirrors diyPriceCents() in create-registration-checkout
-  // and PRICING.tools.registration in src/config/pricing.ts (May 2026 memo).
-  const diyPrice = 45;
+  // v9 Prompt 1.3: read prices from PRICING_REGISTRY (single source of truth).
+  // Falls back to verified defaults if a registry lookup ever fails.
+  const crpTotal = Math.round(
+    (((PRICING_REGISTRY as any).registration_counsel_review?.amountCents ?? 29900) as number) / 100,
+  );
+  const diyPrice = Math.round(
+    (((PRICING_REGISTRY as any).registration_standalone?.amountCents ?? 4500) as number) / 100,
+  );
 
   // Confidence-tier copy: rewrite CTA framing so users understand WHY to upgrade
   const confidenceCopy: Record<string, { headline: string; subline: string }> = {

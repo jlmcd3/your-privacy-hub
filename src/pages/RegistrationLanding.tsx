@@ -195,7 +195,7 @@ export default function RegistrationLanding() {
               <CardHeader>
                 <Badge className="w-fit mb-2 bg-brand-navy text-white">PER FILING</Badge>
                 <CardTitle className="text-brand-navy">Generate a filing</CardTitle>
-                <div className="text-3xl font-bold text-brand-navy">$50<span className="text-sm font-normal text-slate"> per filing</span></div>
+                <div className="text-3xl font-bold text-brand-navy">$45<span className="text-sm font-normal text-slate"> per filing</span></div>
                 <p className="text-xs text-slate">Flat rate. Same price for every jurisdiction.</p>
               </CardHeader>
               <CardContent>

@@ -475,7 +475,7 @@ export default function Tools() {
     <>
       <Helmet>
         <title>Privacy Compliance Tools | End User Privacy</title>
-        <meta name="description" content="Privacy compliance tools built on 3,500+ enforcement decisions. Available individually at standalone prices." />
+        <meta name="description" content="Privacy compliance tools built on 3,700+ enforcement decisions. Available individually at standalone prices." />
       </Helmet>
       <Navbar />
       <DashboardSubnav />
@@ -490,7 +490,7 @@ export default function Tools() {
             Intelligence, assessments, and compliance documents
           </h1>
           <p className="text-slate-300 text-lg max-w-3xl">
-            Every tool draws from a live database of 3,500+ enforcement decisions before producing a single word of output. Available individually at standalone prices.
+            Every tool draws from a live database of 3,700+ enforcement decisions before producing a single word of output. Available individually at standalone prices.
           </p>
           <div className="flex gap-3 mt-6 flex-wrap">
             <Link to="/subscribe" className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
@@ -715,7 +715,7 @@ export default function Tools() {
                   How the enforcement intelligence layer works
                 </p>
                 <p className="text-meta text-blue-700 leading-relaxed">
-                  Before generating output, the tool reviewed enforcement decisions from a structured database of 3,500+ cases relevant to your inputs.
+                  Before generating output, the tool reviewed enforcement decisions from a structured database of 3,700+ cases relevant to your inputs.
                 </p>
               </div>
               <div className="flex gap-3 pt-2">

@@ -572,7 +572,7 @@ const UpdateDetail = () => {
                       </div>
                       <h2 className="font-display text-foreground mb-2">Contextual Record</h2>
                       <p className="italic text-sm text-muted-foreground mb-4">
-                        Drawn from 3,500+ enforcement decisions. Patterns and precedents from the EUP corpus.
+                        Drawn from 3,700+ enforcement decisions. Patterns and precedents from the EUP corpus.
                       </p>
                       <div className="bg-brand-navy/[0.02] rounded-xl p-6 border border-border space-y-4">
                         {(cr?.regulatory_theory || legacyTheory) && (

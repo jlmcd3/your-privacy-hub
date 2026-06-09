@@ -60,8 +60,8 @@ const SpotlightCard = ({
   if (cat) briefParams.set("pre_topic", cat);
   const briefHref = briefParams.toString() ? `/#brief?${briefParams}` : "/#brief";
   const briefLabel = jur
-    ? `Build a sample ${jur} Intelligence Brief →`
-    : "Build a sample Intelligence Brief →";
+    ? `Build a sample ${jur} Privacy Intelligence Report →`
+    : "Build a sample Privacy Intelligence Report →";
 
   return (
     <div className="flex gap-4 items-start">
@@ -347,7 +347,7 @@ export default function HomepageSpotlight() {
               to="/#brief"
               className="text-xs px-4 py-2 rounded-lg border border-brand-cloud text-brand-navy font-medium hover:bg-white transition-colors no-underline"
             >
-              Build an Intelligence Brief
+              Build an Privacy Intelligence Report
             </Link>
           </div>
         </div>

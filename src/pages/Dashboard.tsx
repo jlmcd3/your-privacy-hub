@@ -619,7 +619,7 @@ const Dashboard = () => {
                         <div className="bg-slate-100 p-3 md:p-4 border-t border-slate-200">
                           <CustomBriefDocument
                             customBrief={b}
-                            sourceMap={brief?.source_map ?? {}}
+                            sourceMap={(b as any)?.source_map ?? brief?.source_map ?? {}}
                             hideHeader
                           />
                         </div>
@@ -640,7 +640,7 @@ const Dashboard = () => {
             <p className="text-4xl mb-4">📅</p>
             <p className="font-display text-xl text-foreground mb-2">First report coming Monday</p>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Your Privacy Intelligence Report is generated every Monday at 7am UTC from the past week's regulatory activity. Check back then.
+              Your Privacy Intelligence Report is generated every Monday morning from the past week's regulatory activity. Check back then.
             </p>
           </div>
         )}

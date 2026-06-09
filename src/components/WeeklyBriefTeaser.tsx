@@ -17,13 +17,22 @@ const WeeklyBriefTeaser = () => {
 
   useEffect(() => {
     async function load() {
+      // v9 Prompt 2.1: read from the public teaser view (anon-safe).
+      // The base `weekly_briefs` table is now premium-only.
       const { data } = await (supabase as any)
-        .from("weekly_briefs")
-        .select("week_label, headline, executive_summary, article_count")
+        .from("weekly_briefs_teaser")
+        .select("week_label, headline, teaser, article_count")
         .order("published_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (data) setBrief(data as BriefPreview);
+      if (data) {
+        setBrief({
+          week_label: data.week_label,
+          headline: data.headline,
+          executive_summary: data.teaser ?? "",
+          article_count: data.article_count ?? 0,
+        });
+      }
     }
     load();
   }, []);

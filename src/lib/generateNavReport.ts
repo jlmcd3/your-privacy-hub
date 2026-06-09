@@ -131,7 +131,7 @@ const NAV_HIERARCHY = [
 const ACCESS_TIERS: Array<[string, string, string, string]> = [
   ["Latest news articles", "Up to 15 articles (hard cap)", "21-day rolling window", "Unlimited + breaking-news banner"],
   ['"Why This Matters" AI analysis', "Hidden", "Hidden", "Full inline analysis"],
-  ["Weekly Intelligence Brief", "Sample brief only", "Sample brief only", "Full 8-section brief, custom synthesis"],
+  ["Weekly Privacy Intelligence Report", "Sample brief only", "Sample brief only", "Full 8-section brief, custom synthesis"],
   ["Enforcement archive", "Recent fines", "Recent fines", "Full archive + pattern intelligence"],
   ["Horizon (forecast feed)", "Visible (leak — see §3)", "Visible (leak — see §3)", "Visible + watchlist filter"],
   ["Registration Manager", "Free assessment + pricing", "Free assessment + pricing", "20% off DIY · -$75 Counsel-Ready"],

@@ -40,7 +40,7 @@ export default function SubscribeSuccess() {
 
   const subheadline = hasToolAccess
     ? "Your client workspace is live. RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are now included — annual plans also get 1 free Smart Tool run this year."
-    : "Your weekly brief is configured. You'll receive your first issue this Monday at 7am ET.";
+    : "Your weekly report is configured. You'll receive your first issue this coming Monday morning.";
 
   const NEXT_STEPS = hasToolAccess
     ? [
@@ -52,12 +52,12 @@ export default function SubscribeSuccess() {
         {
           icon: "🎯",
           title: "Configure your Privacy Intelligence Report",
-          body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your brief is only as tailored as the context you provide.",
+          body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide.",
         },
         {
           icon: "📧",
-          title: "Brief arrives Monday",
-          body: "Your first Weekly Intelligence Brief will land in your inbox this coming Monday at 7am ET — customized and analyzed for your priorities and responsibilities.",
+          title: "Report arrives Monday",
+          body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities.",
         },
         {
           icon: "📁",
@@ -69,12 +69,12 @@ export default function SubscribeSuccess() {
         {
           icon: "🎯",
           title: "Configure your Privacy Intelligence Report",
-          body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your brief is only as tailored as the context you provide.",
+          body: "Tell us your industry, primary jurisdictions, and subject-matter priorities. Your report is only as tailored as the context you provide.",
         },
         {
           icon: "📧",
-          title: "Brief arrives Monday",
-          body: "Your first Weekly Intelligence Brief will land in your inbox this coming Monday at 7am ET — customized and analyzed for your priorities and responsibilities.",
+          title: "Report arrives Monday",
+          body: "Your first Privacy Intelligence Report will land in your inbox this coming Monday morning — customized and analyzed for your priorities and responsibilities.",
         },
         {
           icon: "⚖️",

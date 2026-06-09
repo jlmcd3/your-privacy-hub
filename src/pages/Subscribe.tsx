@@ -237,7 +237,7 @@ const Subscribe = () => {
             <div>
               <p className="font-semibold text-slate-800 mb-1">Smart Tools</p>
               <p>
-                Multi-stage assessments calibrated against 3,500+ enforcement
+                Multi-stage assessments calibrated against 3,700+ enforcement
                 decisions. Methodology reviewed by qualified privacy counsel.
                 Cannot be replicated by prompting a general AI.
               </p>

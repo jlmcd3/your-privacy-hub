@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 
 const Topbar = () => {
-  const [briefLabel, setBriefLabel] = useState("Latest Intelligence Brief now available");
+  const [briefLabel, setBriefLabel] = useState("Latest Privacy Intelligence Report now available");
   const [lastUpdate, setLastUpdate] = useState("Today");
 
   useEffect(() => {
@@ -22,7 +22,7 @@ const Topbar = () => {
           const sameMonth = start.getMonth() === published.getMonth() && start.getFullYear() === published.getFullYear();
           const startFmt = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
           const endFmt = published.toLocaleDateString("en-US", sameMonth ? { day: "numeric" } : { month: "short", day: "numeric" });
-          setBriefLabel(`Latest Intelligence Brief: ${startFmt}–${endFmt}`);
+          setBriefLabel(`Latest Privacy Intelligence Report: ${startFmt}–${endFmt}`);
         }
       });
 

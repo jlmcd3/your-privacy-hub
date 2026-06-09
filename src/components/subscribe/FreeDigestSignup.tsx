@@ -26,7 +26,7 @@ const FreeDigestSignup = ({ source = "website", className = "" }: FreeDigestSign
           id="free-digest-signup-heading"
           className="font-display text-foreground mb-2"
         >
-          Not ready for the full Intelligence Brief?
+          Not ready for the full Privacy Intelligence Report?
         </h2>
         <p className="text-sm text-muted-foreground mb-6">
           Create a free account to get the personalized weekly digest — filtered to your regions and topics, every Monday — plus minimal enrichment views on articles.
