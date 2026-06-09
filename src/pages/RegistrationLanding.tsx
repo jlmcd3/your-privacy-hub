@@ -33,11 +33,11 @@ const FAQS = [
   },
   {
     q: "How does pricing work?",
-    a: "Registration filings are $50 per filing — flat, regardless of jurisdiction. The free assessment scopes which jurisdictions you must file in; you then pay only for the filings you generate. Each filing includes the draft documents, the jurisdiction-specific filing checklist, and portal URLs. You (or your counsel) submit the filings.",
+    a: "Registration filings are $45 per filing — flat, regardless of jurisdiction. The free assessment scopes which jurisdictions you must file in; you then pay only for the filings you generate. Each filing includes the draft documents, the jurisdiction-specific filing checklist, and portal URLs. You (or your counsel) submit the filings.",
   },
   {
     q: "Do you create EU AI Act registration documents?",
-    a: "Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, priced at the same $50 per filing. You review with your counsel and you or they submit the filings — we do not file for you.",
+    a: "Yes. We generate draft AI System Registration filings for high-risk AI systems under the EU AI Act, priced at the same $45 per filing. You review with your counsel and you or they submit the filings — we do not file for you.",
   },
   {
     q: "Can I get reminders before renewals are due?",
@@ -117,7 +117,7 @@ export default function RegistrationLanding() {
             {[
               ["1", "Free assessment", "Answer ~12 questions about your organization and processing activities. No account required."],
               ["2", "Personalized scope", "We map your activities to every jurisdiction that applies — with confidence ratings."],
-              ["3", "Generate documents", "Pay only when you generate documents — $50 per filing, flat. We draft every required filing in minutes."],
+              ["3", "Generate documents", "Pay only when you generate documents — $45 per filing, flat. We draft every required filing in minutes."],
               ["4", "You file & we track renewals", "You (or your counsel) submit the filings. Optional annual renewal monitoring keeps you ahead of expiry dates."],
             ].map(([n, t, b]) => (
               <Card key={n} className="border-border/60">
