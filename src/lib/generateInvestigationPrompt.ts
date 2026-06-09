@@ -161,6 +161,28 @@ function resolveJurisdictionLabels(ids: string[] | undefined): string[] {
 }
 
 /**
+ * Keyword fallback for industry-typed watchlist items.
+ *
+ * The `affected_sectors` column on `updates` is not currently populated by the
+ * enrichment pipeline, so industry matches must be inferred from article text.
+ * Keys are the `sec-*` slugs used by WatchlistManager.
+ */
+export const INDUSTRY_KEYWORDS: Record<string, string[]> = {
+  'sec-healthcare':      ['hipaa', 'health', 'medical', 'hospital', 'clinical', 'patient data', 'phi'],
+  'sec-financial':       ['glba', 'bank', 'fintech', 'financial', 'lending', 'payment', 'credit'],
+  'sec-adtech':          ['adtech', 'advertising', 'ad-tech', 'tracking pixel', 'cookie', 'programmatic'],
+  'sec-ai-companies':    ['ai ', 'artificial intelligence', 'machine learning', 'llm', 'generative ai', 'automated decision'],
+  'sec-children-edtech': ['child', 'minor', 'coppa', 'student', 'edtech', 'education technology', 'school'],
+  'sec-data-brokers':    ['data broker', 'data brokerage', 'reseller', 'people search'],
+  'sec-retail-ecom':     ['retail', 'e-commerce', 'ecommerce', 'consumer goods', 'merchant'],
+  'sec-hr-employment':   ['employee', 'employment', 'workplace', 'hr ', 'human resources', 'workforce'],
+  'sec-telecom':         ['telecom', 'carrier', 'isp', 'broadband', 'wireless', 'cpni'],
+  'sec-automotive':      ['vehicle', 'automotive', 'connected car', 'telematics', 'oem'],
+  'sec-government':      ['government', 'public sector', 'agency', 'federal', 'state agency', 'municipal'],
+  'sec-pharma':          ['pharma', 'pharmaceutical', 'clinical trial', 'drug', 'life sciences'],
+};
+
+/**
  * Match watchlist items to the article. Both sides are normalised to lowercase
  * and trimmed. We require BOTH sides to be non-empty before using
  * reverse-`includes` checks — otherwise `someLabel.includes('')` would always
@@ -175,6 +197,14 @@ function detectWatchlistMatches(
   const articleJurisdiction = (item.jurisdiction ?? '').toLowerCase().trim();
   const articleCategory = (item.category ?? '').toLowerCase().trim();
   const firstJurToken = articleJurisdiction.split(',')[0]?.trim() ?? '';
+
+  // Pre-compute a lowercased text blob for industry keyword matching.
+  const articleText = (
+    (item.title ?? '') + ' ' +
+    (item.ai_summary?.why_it_matters ?? '') + ' ' +
+    (item.ai_summary?.compliance_impact ?? '') + ' ' +
+    (item.category ?? '')
+  ).toLowerCase();
 
   return watchlist.filter((w) => {
     const label = (w.label ?? '').toLowerCase().trim();
@@ -194,6 +224,12 @@ function detectWatchlistMatches(
       if (slug && articleCategory.includes(slug)) return true;
       if (label && label.includes(articleCategory)) return true;
       return false;
+    }
+    if (w.type === 'industry') {
+      // Keyword fallback — affected_sectors is not reliably populated.
+      const keywords = INDUSTRY_KEYWORDS[slug] ?? (label ? [label] : []);
+      if (keywords.length === 0 || !articleText.trim()) return false;
+      return keywords.some((k) => k && articleText.includes(k));
     }
     return false;
   });
