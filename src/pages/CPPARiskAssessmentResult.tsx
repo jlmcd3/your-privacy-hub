@@ -10,8 +10,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCallout";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
-import { useCitationVerification } from "@/hooks/useCitationVerification";
-import CitationVerificationBadge from "@/components/cppa/CitationVerificationBadge";
+// CitationVerificationBadge removed from user-facing report; verification handled in admin/auditor tools.
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -62,9 +61,9 @@ const tierColor = (t: ConfidenceTier) => {
   return "bg-red-100 text-red-800 border-red-300";
 };
 const tierBlurb: Record<ConfidenceTier, string> = {
-  "High-confidence": "Corpus authority on point AND agency commentary (FSOR) reinforces the conclusion.",
-  "Inference": "Corpus authority is on point, but no agency commentary (FSOR) was matched. Treat the legal conclusion as well-grounded but the interpretation as a reasoned inference.",
-  "Heuristic": "No retrieved authority on point in the corpus. Conclusion is a best-effort heuristic and requires attorney review before relying on it.",
+  "High-confidence": "Statutory or regulatory authority on point AND agency commentary (FSOR) reinforces the conclusion.",
+  "Inference": "Statutory or regulatory authority is on point, but no agency commentary (FSOR) was matched. Treat the legal conclusion as well-grounded but the interpretation as a reasoned inference.",
+  "Heuristic": "Conclusion is a best-effort interpretation and requires attorney review before relying on it.",
 };
 
 
@@ -103,10 +102,6 @@ export default function CPPARiskAssessmentResult() {
   }, [id]);
 
   const report = row?.report_data || {};
-  const ledgerCitations = Array.isArray(report?.citation_ledger)
-    ? report.citation_ledger.map((e: any) => e?.citation || "")
-    : [];
-  const { isVerified } = useCitationVerification(ledgerCitations);
   const status = row?.status;
   const reportReady = !!(
     row?.report_data
@@ -216,7 +211,7 @@ export default function CPPARiskAssessmentResult() {
                 <section className="bg-card border rounded-lg p-6">
                   <h2 className="mb-1">Confidence Stratification</h2>
                   <p className="text-xs text-muted-foreground mb-4">
-                    Domains grouped by how strongly the conclusion is grounded in the retrieved corpus and agency commentary (FSOR). Use this to prioritise attorney review.
+                    Domains grouped by how strongly the conclusion is grounded in statutory or regulatory authority and agency commentary (FSOR). Use this to prioritise attorney review.
                   </p>
                   <div className="grid md:grid-cols-3 gap-3">
                     {order.map((tier) => (
@@ -341,7 +336,6 @@ export default function CPPARiskAssessmentResult() {
                         <th className="p-2">Statement</th>
                         <th className="p-2">Citation</th>
                         <th className="p-2">Classification</th>
-                        <th className="p-2">Corpus</th>
                         <th className="p-2">Corrected</th>
                         <th className="p-2">Note</th>
                       </tr>
@@ -356,7 +350,6 @@ export default function CPPARiskAssessmentResult() {
                               {e.classification}
                             </span>
                           </td>
-                          <td className="p-2"><CitationVerificationBadge verified={isVerified(e.citation)} /></td>
                           <td className="p-2 font-mono text-xs">{e.corrected_citation ?? "—"}</td>
                           <td className="p-2 text-xs text-muted-foreground">{e.note}</td>
                         </tr>
