@@ -324,6 +324,10 @@ function ResultsPanel({
           </>
         )}
         <p className="text-xs text-muted-foreground italic pt-3 border-t">
+          This is a one-time scope check. Your results are not saved.
+          Run it again any time.
+        </p>
+        <p className="text-xs text-muted-foreground italic pt-1">
           This is a preliminary scope indicator based on your self-reported answers.
           It is not legal advice.
         </p>
@@ -470,7 +474,12 @@ function ResultsPanel({
       </section>
 
       <section className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-sm rounded">
-        ⚠️ This is a preliminary scope indicator based on your self-reported answers. It is
+        <p className="font-medium">This is a one-time scope check. Your results are not saved.</p>
+        <p className="mt-1">Run it again any time. For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.</p>
+      </section>
+
+      <section className="p-4 border-l-4 border-brand-teal bg-slate-50 dark:bg-slate-900/40 text-sm rounded">
+        This is a preliminary scope indicator based on your self-reported answers. It is
         not legal advice. Confirm your obligations with qualified legal counsel.
       </section>
 
