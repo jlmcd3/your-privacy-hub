@@ -622,7 +622,7 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
           headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
           body: JSON.stringify({
             model: "claude-haiku-4-5-20251001",
-            max_tokens: 500,
+            max_tokens: 800,
             system: `You are a quality reviewer for personalized compliance action items. Your task: rate each action item for specificity and compliance value.
 
 Return ONLY valid JSON. No preamble, no explanation.
