@@ -100,7 +100,7 @@ export default function CPPAHub() {
           <p className="text-xs uppercase tracking-[0.18em] text-brand-teal font-medium">California Privacy Protection Agency</p>
           <h1 className="font-serif text-4xl md:text-5xl">CPPA Audit Readiness Suite</h1>
           <p className="text-lg text-muted-foreground max-w-3xl">
-            Five purpose-built tools to scope, risk-assess, and prepare your cybersecurity audit ahead of the
+            Purpose-built tools to scope, risk-assess, and prepare your cybersecurity audit ahead of the
             April 1, 2028 CPPA certification deadline. Built directly on the final regulations and FSOR agency commentary.
           </p>
         </header>
