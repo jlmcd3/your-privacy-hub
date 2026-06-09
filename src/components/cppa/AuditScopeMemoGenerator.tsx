@@ -160,7 +160,7 @@ export default function AuditScopeMemoGenerator({ intake, report }: Props) {
 
       <details open className="mt-4 bg-muted/30 border rounded p-4">
         <summary className="text-xs font-semibold cursor-pointer">Generated memo (copy into engagement letter)</summary>
-        <pre className="mt-3 text-xs leading-relaxed font-mono whitespace-pre-wrap">{`AUDIT SCOPE MEMO
+        <pre ref={preRef} className="mt-3 text-xs leading-relaxed font-mono whitespace-pre-wrap">{`AUDIT SCOPE MEMO
 CPPA Cybersecurity Audit — 11 CCR § 7123
 Date prepared: ${today}
 
@@ -221,14 +221,7 @@ Acknowledged by auditor:   ______________________________  Date: __________
           variant="outline"
           size="sm"
           onClick={() => {
-            const memo = (document.querySelector(
-              "section h2 + p + div + div + details pre"
-            ) as HTMLElement | null)?.innerText;
-            // Simpler: copy the pre text by re-rendering — use a ref-free approach via Clipboard with the same template:
-            // (Fallback to selecting all pre tags in this section.)
-            const allPres = document.querySelectorAll("section pre");
-            const last = allPres[allPres.length - 1] as HTMLElement | undefined;
-            const text = memo || last?.innerText || "";
+            const text = preRef.current?.innerText || "";
             if (text) navigator.clipboard?.writeText(text);
           }}
         >
@@ -238,3 +231,4 @@ Acknowledged by auditor:   ______________________________  Date: __________
     </section>
   );
 }
+
