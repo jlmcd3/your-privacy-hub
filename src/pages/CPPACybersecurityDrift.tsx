@@ -115,8 +115,9 @@ export default function CPPACybersecurityDrift() {
 
             <section className="bg-card border rounded-lg p-6">
               <h2 className="mb-3">Control Drift</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs border-collapse">
+              <div className="overflow-x-auto -mx-2 sm:mx-0">
+                <table className="w-full min-w-[640px] text-xs border-collapse">
+
                   <thead className="text-left bg-muted/40">
                     <tr>
                       <th className="p-2 border">Control</th>
