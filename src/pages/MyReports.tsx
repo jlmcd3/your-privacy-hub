@@ -168,7 +168,9 @@ export default function MyReports() {
 
       // Reports tab aggregates every tool output and in-progress session for
       // the user across all workspaces. Registration orders live under Filings.
-      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice, cppa] = await Promise.all([
+      // RLS owner policies already scope ropa_/us_notice_/eu_notice_sessions;
+      // the explicit .eq("user_id", user.id) is defense-in-depth + self-documenting.
+      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice, cppa, cppaScope] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -189,15 +191,18 @@ export default function MyReports() {
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("ropa_sessions")
           .select("id, status, created_at, version_number, scope, client_id")
-          .order("created_at", { ascending: false }),
+          .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("us_notice_sessions")
           .select("id, status, created_at, version_number, scope, client_id")
-          .order("created_at", { ascending: false }),
+          .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("eu_notice_sessions")
           .select("id, status, created_at, version_number, client_id")
-          .order("created_at", { ascending: false }),
+          .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("cppa_assessments")
           .select("id, status, created_at, module, intake_data, report_data, pdf_url, client_id")
+          .eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("cppa_scope_checks")
+          .select("id, created_at, in_scope, obligation_map, answers")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
 
