@@ -10,6 +10,8 @@ import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCallout";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import { useCitationVerification } from "@/hooks/useCitationVerification";
+import CitationVerificationBadge from "@/components/cppa/CitationVerificationBadge";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
