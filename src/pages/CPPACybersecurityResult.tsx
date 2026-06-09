@@ -10,6 +10,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
 
 export const readinessColor = (r: string) => {
   const x = (r || "").toLowerCase();
