@@ -351,78 +351,93 @@ export default function CPPARiskAssessmentResult() {
             )}
 
             {Array.isArray(report?.citation_ledger) && report.citation_ledger.length > 0 && (
-              <section className="bg-card border rounded-lg p-6">
-                <h2 className="mb-3">Citation Ledger</h2>
-                {report?.validation_summary && (
-                  <p className="text-sm text-muted-foreground mb-3 italic">{report.validation_summary}</p>
-                )}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="text-left bg-muted/40">
-                      <tr>
-                        <th className="p-2">Statement</th>
-                        <th className="p-2">Citation</th>
-                        <th className="p-2">Classification</th>
-                        <th className="p-2">Corrected</th>
-                        <th className="p-2">Note</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {report.citation_ledger.map((e: any, i: number) => (
-                        <tr key={i} className="border-t align-top">
-                          <td className="p-2">{e.statement}</td>
-                          <td className="p-2 font-mono text-xs">{e.citation}</td>
-                          <td className="p-2">
-                            <span className={`px-2 py-0.5 text-xs rounded ${ledgerColor(e.classification)}`}>
-                              {e.classification}
-                            </span>
-                          </td>
-                          <td className="p-2 font-mono text-xs">{e.corrected_citation ?? "—"}</td>
-                          <td className="p-2 text-xs text-muted-foreground">{e.note}</td>
+              <AdminOnly>
+                <section className="bg-card border rounded-lg p-6">
+                  <h2 className="mb-3">Citation Ledger <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span></h2>
+                  {report?.validation_summary && (
+                    <p className="text-sm text-muted-foreground mb-3 italic">{report.validation_summary}</p>
+                  )}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="text-left bg-muted/40">
+                        <tr>
+                          <th className="p-2">Statement</th>
+                          <th className="p-2">Citation</th>
+                          <th className="p-2">Classification</th>
+                          <th className="p-2">Corrected</th>
+                          <th className="p-2">Note</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
+                      </thead>
+                      <tbody>
+                        {report.citation_ledger.map((e: any, i: number) => (
+                          <tr key={i} className="border-t align-top">
+                            <td className="p-2">{e.statement}</td>
+                            <td className="p-2 font-mono text-xs">{e.citation}</td>
+                            <td className="p-2">
+                              <span className={`px-2 py-0.5 text-xs rounded ${ledgerColor(e.classification)}`}>
+                                {e.classification}
+                              </span>
+                            </td>
+                            <td className="p-2 font-mono text-xs">{e.corrected_citation ?? "—"}</td>
+                            <td className="p-2 text-xs text-muted-foreground">{e.note}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              </AdminOnly>
+            )}
+
+            {Array.isArray(report?.debug_review_notes) && report.debug_review_notes.length > 0 && (
+              <AdminOnly>
+                <section className="p-4 border-l-4 border-slate-400 bg-slate-50 dark:bg-slate-950/20 rounded">
+                  <p className="font-semibold mb-2">Debug review notes <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span></p>
+                  <ul className="list-disc pl-5 space-y-1 text-xs text-muted-foreground">
+                    {report.debug_review_notes.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                  </ul>
+                </section>
+              </AdminOnly>
             )}
 
             {Array.isArray(report?.fsor_commentary) && report.fsor_commentary.length > 0 && (
-              <section className="bg-card border rounded-lg p-6">
-                <h2 className="mb-1">Agency Rationale</h2>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Non-binding interpretive context from the California Privacy Protection Agency's
-                  Final Statement of Reasons (FSOR). Shows why the cited regulations read the way
-                  they do, and what concerns the Agency was responding to.
-                </p>
-                <div className="space-y-4">
-                  {report.fsor_commentary.map((f: any, i: number) => (
-                    <details key={f.id ?? i} className="border rounded p-3 group">
-                      <summary className="cursor-pointer text-sm font-semibold flex flex-wrap gap-2 items-baseline">
-                        <span className="font-mono text-xs text-brand-teal">
-                          {f.regulation_citation}
-                        </span>
-                        <span className="text-foreground">{f.comment_summary}</span>
-                        <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">
-                          {f.fsor_package}{f.page_ref ? ` · ${f.page_ref}` : ""}
-                        </span>
-                      </summary>
-                      <div className="mt-3 text-sm whitespace-pre-wrap text-muted-foreground">
-                        {f.agency_response}
-                      </div>
-                      {Array.isArray(f.topic_tags) && f.topic_tags.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {f.topic_tags.map((t: string) => (
-                            <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                              {t}
-                            </span>
-                          ))}
+              <AdminOnly>
+                <section className="bg-card border rounded-lg p-6">
+                  <h2 className="mb-1">Agency Rationale <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span></h2>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Non-binding interpretive context from the California Privacy Protection Agency's
+                    Final Statement of Reasons (FSOR). Shows why the cited regulations read the way
+                    they do, and what concerns the Agency was responding to.
+                  </p>
+                  <div className="space-y-4">
+                    {report.fsor_commentary.map((f: any, i: number) => (
+                      <details key={f.id ?? i} className="border rounded p-3 group">
+                        <summary className="cursor-pointer text-sm font-semibold flex flex-wrap gap-2 items-baseline">
+                          <span className="font-mono text-xs text-brand-teal">
+                            {f.regulation_citation}
+                          </span>
+                          <span className="text-foreground">{f.comment_summary}</span>
+                          <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">
+                            {f.fsor_package}{f.page_ref ? ` · ${f.page_ref}` : ""}
+                          </span>
+                        </summary>
+                        <div className="mt-3 text-sm whitespace-pre-wrap text-muted-foreground">
+                          {f.agency_response}
                         </div>
-                      )}
-                    </details>
-                  ))}
-                </div>
-              </section>
+                        {Array.isArray(f.topic_tags) && f.topic_tags.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {f.topic_tags.map((t: string) => (
+                              <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </details>
+                    ))}
+                  </div>
+                </section>
+              </AdminOnly>
             )}
 
 
