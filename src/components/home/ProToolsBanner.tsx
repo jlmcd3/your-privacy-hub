@@ -5,6 +5,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PRICING, ANNUAL_CREDIT } from "@/config/pricing";
 import {
   ArrowRight,
   ShieldCheck,
@@ -21,6 +22,9 @@ import {
   ShieldAlert,
   Lock,
 } from "lucide-react";
+
+const T = PRICING.tools;
+const includedSuffix = (standalone: string) => `Included with any subscription · ${standalone} standalone`;
 
 type Tool = {
   icon: React.ComponentType<{ className?: string }>;
@@ -44,7 +48,7 @@ const TOOLS: Tool[] = [
     icon: ShieldCheck,
     title: "Privacy Program Assessment",
     blurb: "Score your program against the domains regulators actually inspect — cited enforcement decisions behind every risk finding.",
-    price: "$89",
+    price: T.governance.display,
     cta: "Run assessment",
     href: "/governance-assessment",
   },
@@ -52,7 +56,7 @@ const TOOLS: Tool[] = [
     icon: Scale,
     title: "Legitimate Interest Assessment",
     blurb: "Build a defensible three-part LIA — each test verdict annotated with cited enforcement precedents.",
-    price: "$69",
+    price: T.lia.display,
     cta: "Build LIA",
     href: "/li-assessment",
   },
@@ -60,7 +64,7 @@ const TOOLS: Tool[] = [
     icon: FileSearch,
     title: "Impact Assessment Builder (DPIA)",
     blurb: "Article 35-aligned DPIA — risk items annotated with cited supervisory authority decisions.",
-    price: "$79",
+    price: T.dpia.display,
     cta: "Build DPIA",
     href: "/dpia-framework",
   },
@@ -68,7 +72,7 @@ const TOOLS: Tool[] = [
     icon: FileSignature,
     title: "DPA Generator",
     blurb: "Generate a controller-to-processor DPA — includes a Drafting Notes appendix citing the enforcement decisions behind every clause choice.",
-    price: "Included with any subscription · $49 standalone",
+    price: includedSuffix(T.dpa.display),
     cta: "Generate DPA",
     href: "/dpa-generator",
   },
@@ -76,7 +80,7 @@ const TOOLS: Tool[] = [
     icon: Fingerprint,
     title: "Biometric Compliance Check",
     blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state statutes — priority actions cited to enforcement actions.",
-    price: "Included with any subscription · $49 standalone",
+    price: includedSuffix(T.biometric.display),
     cta: "Check compliance",
     href: "/biometric-checker",
   },
@@ -84,7 +88,7 @@ const TOOLS: Tool[] = [
     icon: Siren,
     title: "Incident Response Playbook",
     blurb: "Jurisdiction-specific breach notification timelines and a step-by-step IR playbook — cited enforcement decisions behind every deadline recommendation.",
-    price: "Included with any subscription · $59 standalone",
+    price: includedSuffix(T.ir_playbook.display),
     cta: "Build playbook",
     href: "/ir-playbook",
   },
@@ -116,7 +120,7 @@ const TOOLS: Tool[] = [
     icon: ShieldAlert,
     title: "CPPA Risk Assessment",
     blurb: "California-specific risk assessment aligned to CPPA regulations — domain findings supported by cited enforcement context.",
-    price: "$89 per run",
+    price: `${T.cppaRisk.display} per run`,
     cta: "Run CPPA assessment",
     href: "/cppa-risk-assessment",
   },
@@ -124,7 +128,7 @@ const TOOLS: Tool[] = [
     icon: Lock,
     title: "CPPA Cybersecurity Audit",
     blurb: "Structured cybersecurity audit aligned to CPPA regulations — control gap findings supported by cited enforcement and regulatory guidance.",
-    price: "$99 per run",
+    price: `${T.cppaCyber.display} per run`,
     cta: "Run cybersecurity audit",
     href: "/cppa-cybersecurity",
   },
@@ -147,7 +151,7 @@ export default function ProToolsBanner() {
               Structured assessments and generated documents that draw from 3,700+ enforcement
               decisions — designed for professional review. RoPA, U.S. and EU/UK notices, IR
               Playbook, Biometric Check, and the DPA Generator are included with any active
-              subscription. Annual subscribers also receive 1 free Smart Tool run per year.
+              subscription. {ANNUAL_CREDIT.marketingLabel}.
             </p>
           </div>
           <Button
