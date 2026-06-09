@@ -506,6 +506,19 @@ Remember: never approve or correct from your own knowledge — only from the aut
     merged.fsor_commentary = fsorCommentary;
     merged.enforcement_results = enforcement.results;
 
+    // Sprint 1 #1 — Per-domain "What the agency said".
+    // For each domain, attach FSOR rows whose regulation_citation appears in
+    // that domain's regulatory_basis. Empty array = UI silently omits callout.
+    if (Array.isArray(merged?.domains)) {
+      merged.domains = merged.domains.map((d: any) => {
+        const basis = typeof d.regulatory_basis === "string" ? d.regulatory_basis : "";
+        const matched = (fsorCommentary ?? []).filter((f: any) =>
+          f?.regulation_citation && basis.includes(f.regulation_citation)
+        ).slice(0, 3);
+        return { ...d, fsor_commentary: matched };
+      });
+    }
+
     // Obligation snapshot: freeze the exact regulatory state used so the report
     // is reproducible even if an authority is later superseded. Keep it lean —
     // citations + identifiers, not full_text (already echoed in merged where needed).

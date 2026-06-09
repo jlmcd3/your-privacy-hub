@@ -202,6 +202,32 @@ export default function CPPARiskAssessmentResult() {
                         {d.regulatory_basis && <p className="text-sm"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>}
                         {d.remediation && <p className="text-sm"><strong>Remediation:</strong> {d.remediation}</p>}
                         {d.priority && <p className="text-xs text-muted-foreground">Priority: {d.priority}</p>}
+                        {Array.isArray(d.fsor_commentary) && d.fsor_commentary.length > 0 && (
+                          <div className="mt-3 border-l-2 border-brand-teal bg-brand-teal/5 pl-3 py-2 space-y-2">
+                            <p className="text-[11px] font-bold tracking-wider uppercase text-brand-teal">
+                              What the agency said
+                            </p>
+                            {d.fsor_commentary.slice(0, 3).map((f: any, fi: number) => (
+                              <div key={f.id ?? fi} className="text-xs space-y-1">
+                                <p className="font-mono text-[10px] text-muted-foreground">
+                                  {f.regulation_citation}
+                                  {f.fsor_package ? ` · ${f.fsor_package}` : ""}
+                                  {f.page_ref ? ` · ${f.page_ref}` : ""}
+                                </p>
+                                {f.comment_summary && (
+                                  <p><strong>Comment:</strong> {f.comment_summary}</p>
+                                )}
+                                {f.agency_response && (
+                                  <p><strong>Agency response:</strong> {f.agency_response}</p>
+                                )}
+                                {f.source_url && (
+                                  <a href={f.source_url} target="_blank" rel="noopener noreferrer"
+                                    className="text-brand-teal underline">Source</a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         <AnnotationCallout
                           annotations={(report?.annotations || []).filter(
                             (a: any) => a.relevance?.toLowerCase().includes(
