@@ -75,16 +75,32 @@ beforeAll(() => {
   document.head.appendChild(style);
 });
 
-const fontSizePx = (el: Element) => {
-  const raw = window.getComputedStyle(el).fontSize || "0";
-  // jsdom may pass through clamp() unevaluated. Extract the min (floor)
-  // expression — that is the value the test expects to see in jsdom.
-  const clampMatch = raw.match(/clamp\(\s*([\d.]+)(rem|em|px)/);
+/**
+ * Read the font-size floor for a class from raw index.css. For clamp()
+ * declarations we parse the first (min) value — jsdom cannot evaluate
+ * clamp() and returns an empty string, so the test reads the contract
+ * directly from the CSS source.
+ */
+function cssFontSizeFor(cls: string): number | null {
+  const ruleRe = new RegExp(`\\.${cls}\\s*\\{[^}]*?font-size:\\s*([^;]+);`);
+  const m = RAW_INDEX_CSS.match(ruleRe);
+  if (!m) return null;
+  const value = m[1].trim();
+  const clampMatch = value.match(/clamp\(\s*([\d.]+)(rem|em|px)/);
   if (clampMatch) {
     const num = parseFloat(clampMatch[1]);
-    const unit = clampMatch[2];
-    return unit === "rem" || unit === "em" ? num * 16 : num;
+    return clampMatch[2] === "px" ? num : num * 16;
   }
+  const direct = value.match(/^([\d.]+)(rem|em|px)/);
+  if (direct) {
+    const num = parseFloat(direct[1]);
+    return direct[2] === "px" ? num : num * 16;
+  }
+  return null;
+}
+
+const fontSizePx = (el: Element) => {
+  const raw = window.getComputedStyle(el).fontSize || "0";
   const num = parseFloat(raw);
   if (raw.endsWith("rem") || raw.endsWith("em")) return num * 16;
   return num;
@@ -113,7 +129,13 @@ describe("semantic typography utilities", () => {
       const { container, unmount } = render(
         <span className={cls}>sample</span>,
       );
-      const px = fontSizePx(container.firstElementChild!);
+      // Prefer computed style; fall back to CSS source for clamp() values
+      // (jsdom returns "" for unevaluated clamp expressions).
+      let px = fontSizePx(container.firstElementChild!);
+      if (!px) {
+        const fromCss = cssFontSizeFor(cls);
+        if (fromCss !== null) px = fromCss;
+      }
       expect(px).toBeGreaterThanOrEqual(floor ?? 12);
       expect(px).toBe(expected);
       unmount();
