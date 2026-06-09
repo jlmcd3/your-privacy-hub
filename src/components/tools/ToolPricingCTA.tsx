@@ -1,15 +1,21 @@
 /**
- * ToolPricingCTA — shared price + free-run indicator block for tool intake pages.
+ * ToolPricingCTA — shared price + subscriber-status block for tool intake pages.
  *
- * Renders the standalone tool price for all users.
- * For logged-in paid subscribers, also shows the monthly free-run status.
- *
- * Reads from the v7 PRICING config (src/config/pricing.ts).
+ * v9 three-layer model:
+ *   • Layer 1 (INCLUDED_TOOL_KEYS)         → "Included with your subscription"
+ *   • Layer 3 (ANNUAL_CREDIT_ELIGIBLE)     → standalone price + credit banner
+ *                                            when the user has an unredeemed
+ *                                            annual credit
+ *   • Otherwise                            → standalone price only
  */
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { checkFreeToolRun, type AnyTier } from "@/lib/freeToolRun";
-import { PRICING, type ToolKey } from "@/config/pricing";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { PRICING, type ToolKey, isIncludedTool } from "@/config/pricing";
+import {
+  isAnnualCreditEligible,
+  getAvailableAnnualCredit,
+} from "@/lib/annualToolCredit";
 
 interface Props {
   toolKey: ToolKey;
@@ -20,26 +26,19 @@ interface Props {
 
 export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: Props) {
   const { user } = useAuth();
-  const [tier, setTier] = useState<AnyTier>("free");
-  const [hasFreeRun, setHasFreeRun] = useState<boolean>(false);
-  const [loaded, setLoaded] = useState<boolean>(!user);
+  const { isPremium, isLoading } = useSubscriptionTier();
+  const [hasCredit, setHasCredit] = useState<boolean>(false);
+
+  const eligible = isAnnualCreditEligible(toolKey);
 
   useEffect(() => {
+    if (isLoading || !user || !isPremium || !eligible) return;
     let cancelled = false;
-    if (!user) {
-      setTier("free");
-      setHasFreeRun(false);
-      setLoaded(true);
-      return;
-    }
-    checkFreeToolRun(user.id).then((res) => {
-      if (cancelled) return;
-      setTier(res.tier);
-      setHasFreeRun(res.hasFreeRun);
-      setLoaded(true);
+    getAvailableAnnualCredit(user.id).then((s) => {
+      if (!cancelled) setHasCredit(s.hasCredit);
     });
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, isPremium, isLoading, eligible]);
 
   const tool = PRICING.tools[toolKey];
   const standaloneDollars = tool.dollars;
@@ -56,32 +55,38 @@ export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: P
     );
   }
 
-  if (!loaded) {
-    return <div className={`text-sm text-muted-foreground ${className}`}>Loading pricing…</div>;
-  }
-
-  // Anonymous or free tier — show standalone price only
-  if (tier === "free") {
+  // Layer 1 — included with any active subscription
+  if (isPremium && isIncludedTool(toolKey)) {
     return (
       <div className={`text-sm ${className}`}>
-        <div className="font-bold text-brand-navy">{standaloneDisplay}{unit}</div>
+        <div className="font-bold text-brand-teal">Included with your subscription</div>
+        <div className="text-meta text-muted-foreground mt-1">
+          Standalone price: {standaloneDisplay}{unit}
+        </div>
       </div>
     );
   }
 
-  // Paid subscriber — show standalone price plus free-run status
+  if (isLoading) {
+    return <div className={`text-sm text-muted-foreground ${className}`}>Loading pricing…</div>;
+  }
+
+  // Layer 3 — annual credit redeemable on this tool
+  if (isPremium && eligible && hasCredit) {
+    return (
+      <div className={`text-sm ${className}`}>
+        <div className="font-bold text-brand-navy">{standaloneDisplay}{unit}</div>
+        <div className="mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-md text-meta text-green-800">
+          🎁 You have 1 free Smart Tool run available this year — this run will be free.
+        </div>
+      </div>
+    );
+  }
+
+  // Standalone / Layer 2 — show price only
   return (
     <div className={`text-sm ${className}`}>
       <div className="font-bold text-brand-navy">{standaloneDisplay}{unit}</div>
-      {hasFreeRun ? (
-        <div className="mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-md text-meta text-green-800">
-          🎁 You have 1 free Convenience Tool run available this month — this run will be free.
-        </div>
-      ) : (
-        <div className="mt-2 text-meta text-muted-foreground">
-          Free run used this month — standard pricing applies.
-        </div>
-      )}
     </div>
   );
 }
