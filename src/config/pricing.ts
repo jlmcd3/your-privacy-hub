@@ -595,6 +595,21 @@ export const PRICING_REGISTRY = {
     addonReason: "subscriber_alias",
     active: true,
   },
+  // v9: Registration Counsel-Ready Pack — $299 flat one-time (subscriber discount applied server-side).
+  registration_counsel_review: {
+    kind: "one_time",
+    lookupKey: "registration_counsel_review",
+    productKey: "registration",
+    productName: "Registration Manager — Counsel-Ready Pack",
+    description: "Counsel-ready bundle of jurisdiction-specific registration documents with attorney review notes.",
+    amountCents: 29900,
+    currency: "usd",
+    displayPrice: "$299",
+    displaySuffix: " flat",
+    active: true,
+  },
+  // Renewal monitoring: $79/yr/jurisdiction — priced in create-registration-checkout
+  // (RENEWAL_PER_JURISDICTION_CENTS); no registry kind models recurring-per-unit.
 } as const satisfies Record<string, PriceEntry>;
 
 export type PriceLookupKey = keyof typeof PRICING_REGISTRY;
