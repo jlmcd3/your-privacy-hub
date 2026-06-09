@@ -375,7 +375,13 @@ async function runPipeline(assessment_id: string) {
 
 
     // STAGE 1 — Retrieve + enforcement context IN PARALLEL (P2: reduce wall-clock)
-    const sector = intake.q3_sector ?? intake.industry_sector ?? intake.sector;
+    // Sector parity with run-cppa-cybersecurity (June 8 hotfix): prefer this
+    // tool's own q3_sector, fall back to a unified profile.industry shape, then
+    // legacy fields. Keeps cross-tool intake compatibility without changing UX.
+    const sector = intake.q3_sector
+      ?? intake?.profile?.industry
+      ?? intake.industry_sector
+      ?? intake.sector;
     const [retrieval, enforcement] = await Promise.all([
       fetch(`${SUPABASE_URL}/functions/v1/cppa-retrieve-context`, {
         method: "POST",
