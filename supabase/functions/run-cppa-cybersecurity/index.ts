@@ -24,8 +24,6 @@ function stripMd(s: string | undefined | null): string {
     .replace(/^\s*[-_]{3,}\s*$/gm, '');
 }
 
-
-
 async function callAnthropic(system: string, user: string): Promise<string> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -47,42 +45,34 @@ async function callAnthropic(system: string, user: string): Promise<string> {
   return d.content?.[0]?.text || "";
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+async function runAssessment(assessment_id: string): Promise<void> {
+  const { data: row } = await supabase
+    .from("cppa_assessments")
+    .select("*")
+    .eq("id", assessment_id)
+    .single();
+
+  if (!row) {
+    console.error(`[CPPA Cyber] assessment ${assessment_id} not found`);
+    return;
+  }
+
+  await supabase
+    .from("cppa_assessments")
+    .update({ status: "processing" })
+    .eq("id", assessment_id);
 
   try {
-    const { assessment_id } = await req.json();
-    if (!assessment_id) {
-      return new Response(JSON.stringify({ error: "assessment_id required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: row } = await supabase
-      .from("cppa_assessments")
-      .select("*")
-      .eq("id", assessment_id)
-      .single();
-
-    if (!row) {
-      return new Response(JSON.stringify({ error: "Not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    await supabase
-      .from("cppa_assessments")
-      .update({ status: "processing" })
-      .eq("id", assessment_id);
-
     // Fetch CPPA cybersecurity-relevant enforcement context (breach + CA focus)
     let enforcementContext = "";
     let enforcementResults: any[] = [];
     try {
-      const sector = (row.intake_data as any)?.industry_sector
-        ?? (row.intake_data as any)?.sector
+      // Hotfix (June 8): intake submits `{ profile: { industry, ... }, maturity, notes }`,
+      // so the correct sector path is intake_data.profile.industry.
+      const intake = (row.intake_data as any) ?? {};
+      const sector = intake?.profile?.industry
+        ?? intake?.industry_sector
+        ?? intake?.sector
         ?? undefined;
       const ecRes = await fetch(
         `${Deno.env.get("SUPABASE_URL")}/functions/v1/get-enforcement-context`,
@@ -111,7 +101,7 @@ Deno.serve(async (req) => {
         }
       }
     } catch (e) {
-      console.warn("enforcement context fetch failed:", e);
+      console.warn("[CPPA Cyber] enforcement context fetch failed:", e);
     }
 
     const system = `You are a cybersecurity readiness analyst specialising in California's CPPA cybersecurity audit regulations (effective 2026 for highest-risk businesses). You map an organisation's controls against the CPPA's 18 enumerated cybersecurity programme components and produce a structured readiness report. You never give legal advice.
@@ -178,24 +168,46 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
 18. Business continuity and disaster recovery`;
 
     const text = await callAnthropic(system, userPrompt);
-    let report: any = {};
+    let report: any = null;
     const m = text.match(/\{[\s\S]*\}/);
     if (!m) {
-      console.error("[CPPA Cyber] No JSON found in response. Length:", text.length, "Preview:", text.slice(0, 300));
+      // Structured parse-failure log (hotfix): never silently mark `complete` with an empty report.
+      console.error(JSON.stringify({
+        event: "cppa_cyber_parse_failure",
+        reason: "no_json_object_in_response",
+        assessment_id,
+        response_length: text.length,
+        preview: text.slice(0, 300),
+      }));
     } else {
-      try { report = JSON.parse(m[0]); } catch (e) {
-        console.error("[CPPA Cyber] Parse error:", e, "Tail:", text.slice(-200));
+      try {
+        report = JSON.parse(m[0]);
+      } catch (e) {
+        console.error(JSON.stringify({
+          event: "cppa_cyber_parse_failure",
+          reason: "json_parse_error",
+          assessment_id,
+          error: String(e),
+          tail: text.slice(-300),
+        }));
       }
     }
 
-    try {
-      report.annotations = Array.isArray(report?.annotations) ? report.annotations : [];
-    } catch { report.annotations = []; }
+    if (!report || typeof report !== "object" || !Array.isArray(report.controls) || report.controls.length === 0) {
+      // Don't land an empty report as `complete` — surface as error so UI shows retry, not blank page.
+      await supabase
+        .from("cppa_assessments")
+        .update({ status: "error" })
+        .eq("id", assessment_id);
+      return;
+    }
+
+    report.annotations = Array.isArray(report?.annotations) ? report.annotations : [];
 
     // Strip any stray markdown the model produced in prose fields
     report.executive_summary = stripMd(report.executive_summary);
     report.enforcement_context = stripMd(report.enforcement_context);
-    report.controls = (Array.isArray(report.controls) ? report.controls : []).map((c: any) => ({
+    report.controls = report.controls.map((c: any) => ({
       ...c,
       finding: stripMd(c?.finding),
       regulatory_basis: stripMd(c?.regulatory_basis),
@@ -215,20 +227,40 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       .from("cppa_assessments")
       .update({ status: "complete", report_data: report })
       .eq("id", assessment_id);
+  } catch (e) {
+    console.error("[CPPA Cyber] runAssessment error:", e);
+    await supabase
+      .from("cppa_assessments")
+      .update({ status: "error" })
+      .eq("id", assessment_id);
+  }
+}
 
-    return new Response(JSON.stringify({ success: true, assessment_id }), {
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const { assessment_id } = await req.json();
+    if (!assessment_id) {
+      return new Response(JSON.stringify({ error: "assessment_id required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Hotfix (June 8): Anthropic call can run for several minutes; return 202 immediately
+    // and continue work in the background so the client doesn't time out (504).
+    // Client polls cppa_assessments.status to know when the report is ready.
+    // @ts-ignore — EdgeRuntime is provided by the Supabase edge runtime
+    EdgeRuntime.waitUntil(runAssessment(assessment_id));
+
+    return new Response(JSON.stringify({ accepted: true, assessment_id }), {
+      status: 202,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("run-cppa-cybersecurity error:", e);
-    try {
-      const body = await req.clone().json().catch(() => ({}));
-      if (body?.assessment_id) {
-        await supabase.from("cppa_assessments").update({ status: "error" }).eq("id", body.assessment_id);
-      }
-    } catch (_) { /* ignore */ }
-    const isTimeout = (e as any)?.name === "TimeoutError";
-    return new Response(JSON.stringify({ error: isTimeout ? "Assessment timed out — please retry" : "Assessment failed" }), {
+    console.error("run-cppa-cybersecurity dispatch error:", e);
+    return new Response(JSON.stringify({ error: "Assessment dispatch failed" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
