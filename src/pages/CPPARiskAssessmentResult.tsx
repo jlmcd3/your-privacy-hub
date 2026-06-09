@@ -177,19 +177,23 @@ export default function CPPARiskAssessmentResult() {
             </section>
 
             {report?.accuracy_caveat && (
-              <section className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 rounded">
-                <p className="font-semibold text-red-800 dark:text-red-200 mb-1">Accuracy caveat</p>
-                <p className="text-sm">{report.accuracy_caveat}</p>
-              </section>
+              <AdminOnly>
+                <section className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 rounded">
+                  <p className="font-semibold text-red-800 dark:text-red-200 mb-1">Accuracy caveat <span className="text-[10px] font-normal uppercase tracking-wider text-red-700">(admin)</span></p>
+                  <p className="text-sm">{report.accuracy_caveat}</p>
+                </section>
+              </AdminOnly>
             )}
 
             {Array.isArray(report?.requires_attorney_review) && report.requires_attorney_review.length > 0 && (
-              <section className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 rounded">
-                <p className="font-semibold mb-2">Requires attorney review</p>
-                <ul className="list-disc pl-5 space-y-1 text-sm">
-                  {report.requires_attorney_review.map((s: string, i: number) => <li key={i}>{s}</li>)}
-                </ul>
-              </section>
+              <AdminOnly>
+                <section className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 rounded">
+                  <p className="font-semibold mb-2">Requires attorney review <span className="text-[10px] font-normal uppercase tracking-wider text-amber-700">(admin)</span></p>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    {report.requires_attorney_review.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                  </ul>
+                </section>
+              </AdminOnly>
             )}
 
             {report?.scope_confirmation && (
@@ -205,42 +209,48 @@ export default function CPPARiskAssessmentResult() {
               </section>
             )}
 
-            {report?.enforcement_context && (
+            {report?.enforcement_context
+              && typeof report.enforcement_context === "string"
+              && report.enforcement_context.trim() !== ""
+              && report.enforcement_context.trim().toLowerCase() !== "null" && (
               <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
                 <p className="font-semibold mb-1">Enforcement Context</p>
                 <p>{report.enforcement_context}</p>
               </section>
             )}
 
-            {Array.isArray(report?.domains) && report.domains.length > 0 && (() => {
+            {Array.isArray(report?.domains) && report.domains.filter(hasUserFacingFinding).length > 0 && (() => {
+              const visibleDomains = report.domains.filter(hasUserFacingFinding);
               const stratified: Record<ConfidenceTier, any[]> = {
                 "High-confidence": [], "Inference": [], "Heuristic": [],
               };
-              for (const d of report.domains) stratified[classifyDomain(d)].push(d);
+              for (const d of visibleDomains) stratified[classifyDomain(d)].push(d);
               const order: ConfidenceTier[] = ["High-confidence", "Inference", "Heuristic"];
               return (
-                <section className="bg-card border rounded-lg p-6">
-                  <h2 className="mb-1">Confidence Stratification</h2>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Domains grouped by how strongly the conclusion is grounded in statutory or regulatory authority and agency commentary (FSOR). Use this to prioritise attorney review.
-                  </p>
-                  <div className="grid md:grid-cols-3 gap-3">
-                    {order.map((tier) => (
-                      <div key={tier} className={`rounded-lg border p-3 ${tierColor(tier)}`}>
-                        <p className="text-[11px] font-bold tracking-wider uppercase">{tier}</p>
-                        <p className="text-2xl font-semibold mt-1">{stratified[tier].length}</p>
-                        <p className="text-[11px] leading-snug mt-1 opacity-80">{tierBlurb[tier]}</p>
-                        {stratified[tier].length > 0 && (
-                          <ul className="mt-2 text-[11px] list-disc pl-4 space-y-0.5">
-                            {stratified[tier].map((d: any, i: number) => (
-                              <li key={i}>{d.domain}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </section>
+                <AdminOnly>
+                  <section className="bg-card border rounded-lg p-6">
+                    <h2 className="mb-1">Confidence Stratification <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span></h2>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Domains grouped by how strongly the conclusion is grounded in statutory or regulatory authority and agency commentary (FSOR). Use this to prioritise attorney review.
+                    </p>
+                    <div className="grid md:grid-cols-3 gap-3">
+                      {order.map((tier) => (
+                        <div key={tier} className={`rounded-lg border p-3 ${tierColor(tier)}`}>
+                          <p className="text-[11px] font-bold tracking-wider uppercase">{tier}</p>
+                          <p className="text-2xl font-semibold mt-1">{stratified[tier].length}</p>
+                          <p className="text-[11px] leading-snug mt-1 opacity-80">{tierBlurb[tier]}</p>
+                          {stratified[tier].length > 0 && (
+                            <ul className="mt-2 text-[11px] list-disc pl-4 space-y-0.5">
+                              {stratified[tier].map((d: any, i: number) => (
+                                <li key={i}>{d.domain}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </AdminOnly>
               );
             })()}
 
