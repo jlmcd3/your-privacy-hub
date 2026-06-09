@@ -224,12 +224,12 @@ const HomepageArticleCard = ({
             item={article}
             demoContext={{
               role: 'privacy_counsel',
-              industries: ['healthcare', 'saas'],
-              jurisdictions: ['eu', 'uk', 'california'],
-              topics: ['AI governance', 'cross-border transfers'],
+              industries: ['healthcare', 'ai-companies'],
+              jurisdictions: ['eu-all', 'uk', 'us-ca'],
+              topics: ['AI governance', 'Cross-border transfers'],
               watchlist: [
-                { type: 'jurisdiction', slug: 'california', label: 'California', flag: null },
-                { type: 'topic', slug: 'ai', label: 'AI governance', flag: null },
+                { type: 'jurisdiction', slug: 'us-ca', label: 'California', flag: null },
+                { type: 'topic', slug: 'ai-governance', label: 'AI governance', flag: null },
               ],
             }}
           />
