@@ -95,7 +95,7 @@ export function AuditorHandoffCover({ row }: { row: any }) {
       <div className="mt-6 p-4 border-l-4 border-brand-teal bg-brand-teal/5 text-xs">
         <p className="font-semibold mb-1">Note to the auditor</p>
         <p>
-          Findings flagged "requires attorney review" or "not in corpus" in the citation ledger should be
+          Findings flagged "requires attorney review" in the citation ledger should be
           independently verified against the primary source before being relied upon. The independence
           determination and scope memo reflect the business's representations; the auditor remains responsible
           for confirming both under § 7122(b) and § 7123.
