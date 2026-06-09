@@ -121,19 +121,6 @@ describe("semantic typography utilities", () => {
   }
 });
 
-  for (const { cls, expected, floor } of cases) {
-    it(`.${cls} is ${expected}px and respects the 11px floor`, () => {
-      const { container, unmount } = render(
-        <span className={cls}>sample</span>,
-      );
-      const px = fontSizePx(container.firstElementChild!);
-      expect(px).toBe(expected);
-      expect(px).toBeGreaterThanOrEqual(floor ?? 12);
-      unmount();
-    });
-  }
-});
-
 describe("rendered page components", () => {
   it("Footer: every text element is >= 12px (eyebrow allowed at 11px)", () => {
     const { container } = render(
