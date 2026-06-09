@@ -47,6 +47,7 @@ const TOOL_TABLE: Partial<Record<string, string>> = {
   eu_notice: "eu_notice_sessions",
   cppa_risk: "cppa_assessments",
   cppa_cyber: "cppa_assessments",
+  cppa_scope: "cppa_scope_checks",
 };
 
 type ReportRow = {
