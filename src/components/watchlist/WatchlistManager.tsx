@@ -15,13 +15,20 @@ const SUGGESTED = {
     { slug: "australia",      label: "Australia",      flag: "🇦🇺" },
     { slug: "brazil",         label: "Brazil",         flag: "🇧🇷" },
   ],
+  // Canonical topic list — kept in sync with TOPICS in src/pages/BriefPreferences.tsx
+  // so that what users follow on /watchlist matches what they can select for
+  // their weekly brief. Slugs MUST match BriefPreferences ids.
   topics: [
-    { slug: "ai-governance",    label: "AI Governance",    flag: "🤖" },
-    { slug: "data-transfers",   label: "Data Transfers",   flag: "🌐" },
-    { slug: "enforcement",      label: "Enforcement",      flag: "⚖️" },
-    { slug: "children-privacy", label: "Children's Privacy",flag: "👶" },
-    { slug: "biometric-data",   label: "Biometric Data",   flag: "🔍" },
-    { slug: "adtech",           label: "AdTech & Consent", flag: "🍪" },
+    { slug: "us-state-laws",       label: "US State Privacy Laws",                  flag: "🗺️" },
+    { slug: "gdpr-enforcement",    label: "GDPR Enforcement & DPA Activity",        flag: "🇪🇺" },
+    { slug: "ai-act-compliance",   label: "EU AI Act Compliance",                   flag: "🤖" },
+    { slug: "children-privacy",    label: "Children's Privacy & Age Verification",  flag: "👶" },
+    { slug: "adtech-consent",      label: "AdTech, Consent & Cookie Compliance",    flag: "🍪" },
+    { slug: "data-transfers",      label: "Cross-Border Data Transfers",            flag: "🔀" },
+    { slug: "health-data",         label: "Health & Medical Data Privacy",          flag: "🏥" },
+    { slug: "privacy-litigation",  label: "Privacy Litigation & Class Actions",     flag: "🏛️" },
+    { slug: "biometric-data",      label: "Biometric Data Privacy",                 flag: "👁️" },
+    { slug: "data-breach-response",label: "Data Breach & Incident Response",        flag: "🔓" },
   ],
   industries: [
     { slug: "sec-healthcare",      label: "Healthcare & Life Sciences",     flag: "🏥" },
