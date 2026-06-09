@@ -197,13 +197,22 @@ const Subscribe = () => {
                   </li>
                 ))}
               </ul>
-              <button
-                onClick={() => startCheckout("year")}
-                disabled={!!loading}
-                className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-brand-navy hover:opacity-90 disabled:opacity-50"
-              >
-                Start Professional →
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => startCheckout("month", "professional")}
+                  disabled={!!loading}
+                  className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
+                >
+                  Monthly →
+                </button>
+                <button
+                  onClick={() => startCheckout("year", "professional")}
+                  disabled={!!loading}
+                  className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-brand-navy hover:opacity-90 disabled:opacity-50"
+                >
+                  Annual →
+                </button>
+              </div>
               <p className="text-center text-amber-100/80 text-meta mt-2">
                 Add clients at {PRICING.professional.perClient.display}/client/year — no minimum.
               </p>
