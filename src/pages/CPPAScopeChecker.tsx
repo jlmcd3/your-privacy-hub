@@ -59,7 +59,6 @@ const Radio = ({
 
 export default function CPPAScopeChecker() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [q1, setQ1] = useState<Q1>("");
   const [q2, setQ2] = useState<Q2>("");
   const [q3, setQ3] = useState<Q3>("");
