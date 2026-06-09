@@ -96,33 +96,16 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
       <div className="flex items-center gap-2">
         <Bell className="w-5 h-5 text-brand-teal" />
         <h2 className="text-brand-navy text-[16px]">My Watchlist</h2>
-        <span className="text-xs text-brand-mist">· Alerts delivered in your weekly digest</span>
+        <span className="text-xs text-brand-mist">· Click any item below to add or remove. Selections power your weekly digest and AI prompts.</span>
       </div>
 
-      {items.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {items.map(item => (
-            <div
-              key={item.id}
-              className="flex items-center gap-1.5 bg-brand-teal/5 text-brand-navy border border-brand-teal/20 px-3 py-1.5 rounded-full text-xs font-semibold"
-            >
-              {item.flag && <span>{item.flag}</span>}
-              {item.label}
-              <button
-                onClick={() => removeItem(item.id)}
-                className="ml-0.5 hover:text-red-500 transition-colors cursor-pointer bg-transparent border-none p-0"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
       {items.length === 0 && !loading && (
         <p className="text-slate text-sm">
-          You have nothing in your watchlist yet. Add items below.
+          You have nothing in your watchlist yet. Click items below to start following them.
         </p>
       )}
+
+
 
       {(["jurisdictions", "topics", "industries"] as const).map(type => (
         <div key={type}>
