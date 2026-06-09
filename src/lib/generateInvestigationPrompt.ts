@@ -264,8 +264,10 @@ export function generatePersonalizedInvestigationPrompt(
 
   const watchlistJurisdictions = watchlist.filter((w) => w.type === 'jurisdiction');
   const watchlistTopics = watchlist.filter((w) => w.type === 'topic');
+  const watchlistIndustriesList = watchlist.filter((w) => w.type === 'industry');
   const watchlistJurLabels = watchlistJurisdictions.map((w) => w.label).filter(Boolean);
   const watchlistTopicLabels = watchlistTopics.map((w) => w.label).filter(Boolean);
+  const watchlistIndustryLabels = watchlistIndustriesList.map((w) => w.label).filter(Boolean);
 
   const hasAnyContext = !!(
     roleLabel ||
@@ -273,7 +275,8 @@ export function generatePersonalizedInvestigationPrompt(
     jurisdictionLabels.length > 0 ||
     watchlistJurLabels.length > 0 ||
     topics.length > 0 ||
-    watchlistTopicLabels.length > 0
+    watchlistTopicLabels.length > 0 ||
+    watchlistIndustryLabels.length > 0
   );
 
   const matchedWatchlistItems = detectWatchlistMatches(item, watchlist);
