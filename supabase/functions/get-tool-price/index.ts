@@ -36,7 +36,7 @@ const TOOLS: Record<
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 8900,
+    fallback_subscriber_cents: 2500,
     classification: "smart",
   },
   governance_assessment: {
@@ -44,7 +44,7 @@ const TOOLS: Record<
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 8900,
+    fallback_subscriber_cents: 2500,
     classification: "smart",
   },
   li_analyzer: {
@@ -52,7 +52,7 @@ const TOOLS: Record<
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 6900,
+    fallback_subscriber_cents: 3500,
     classification: "smart",
   },
   li_assessment: {
@@ -60,7 +60,7 @@ const TOOLS: Record<
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 6900,
+    fallback_subscriber_cents: 3500,
     classification: "smart",
   },
   dpia_builder: {
@@ -68,7 +68,7 @@ const TOOLS: Record<
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 7900,
+    fallback_subscriber_cents: 4900,
     classification: "smart",
   },
   dpia_framework: {
@@ -76,7 +76,7 @@ const TOOLS: Record<
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 7900,
+    fallback_subscriber_cents: 4900,
     classification: "smart",
   },
   ropa_initial: {
@@ -156,7 +156,7 @@ const TOOLS: Record<
     standalone_lookup: "cppa_risk_standalone",
     subscriber_lookup: "cppa_risk_subscriber",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 8900,
+    fallback_subscriber_cents: 7900,
     classification: "smart",
   },
   cppa_cybersecurity: {
@@ -164,15 +164,15 @@ const TOOLS: Record<
     standalone_lookup: "cppa_cyber_standalone",
     subscriber_lookup: "cppa_cyber_subscriber",
     fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 9900,
+    fallback_subscriber_cents: 8900,
     classification: "smart",
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
-    fallback_standalone_cents: 11000,
-    fallback_subscriber_cents: 11000,
+    fallback_standalone_cents: 16900,
+    fallback_subscriber_cents: 14900,
     classification: "smart",
   },
   dpa_generator: {
@@ -180,7 +180,8 @@ const TOOLS: Record<
     standalone_lookup: "dpa_standalone_v2",
     subscriber_lookup: "dpa_subscriber_v2",
     fallback_standalone_cents: 4900,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 4900,
+
     classification: "smart",
   },
   ir_playbook: {
