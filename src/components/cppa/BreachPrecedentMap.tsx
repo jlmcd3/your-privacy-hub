@@ -60,6 +60,7 @@ async function fetchActionsForPatterns(patterns: string[]): Promise<Action[]> {
 export default function BreachPrecedentMap({ report }: { report: any }) {
   const [matches, setMatches] = useState<ControlMatch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [gapCount, setGapCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +70,7 @@ export default function BreachPrecedentMap({ report }: { report: any }) {
     };
     const controls = Array.isArray(report?.controls) ? report.controls : [];
     const gaps = controls.filter((c: any) => isGap(c.status));
+    setGapCount(gaps.length);
     if (gaps.length === 0) { setLoading(false); return; }
     (async () => {
       const results: ControlMatch[] = [];
@@ -87,7 +89,24 @@ export default function BreachPrecedentMap({ report }: { report: any }) {
   }, [report]);
 
   if (loading) return null;
-  if (matches.length === 0) return null;
+  // No gaps in the report — nothing to map. Stay silent.
+  if (gapCount === 0) return null;
+
+  // Gaps exist but no enforcement precedents matched. Show an explicit, calm
+  // empty state so the user knows the lookup ran and didn't silently fail.
+  if (matches.length === 0) {
+    return (
+      <section className="bg-card border rounded-lg p-6">
+        <h2 className="mb-1">Breach Precedent Map</h2>
+        <p className="text-xs text-muted-foreground">
+          We checked our enforcement database for actions tied to your flagged controls and didn't find a
+          close precedent at this time. Our enforcement corpus is continuously updated — re-run this report
+          in a few months to surface any new matches.
+        </p>
+      </section>
+    );
+  }
+
 
   return (
     <section className="bg-card border rounded-lg p-6">
