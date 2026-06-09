@@ -11,27 +11,14 @@ import {
   INDUSTRIES,
   JURISDICTIONS as PREF_JURISDICTIONS,
   TOPICS,
+  ROLES,
+  BRIEF_FORMATS,
 } from "@/config/briefTaxonomy";
 
-const ROLES = [
-  { id: "general_counsel", label: "General Counsel / CLO", icon: "⚖️" },
-  { id: "cpo_dpo", label: "CPO / DPO / Privacy Officer", icon: "🛡️" },
-  { id: "privacy_counsel", label: "Privacy / Product Counsel", icon: "📋" },
-  { id: "privacy_ops", label: "Privacy Operations / Compliance", icon: "⚙️" },
-  { id: "ciso_security", label: "CISO / Security Leader", icon: "🔒" },
-  { id: "outside_counsel", label: "Outside Counsel / Consultant", icon: "🏛️" },
-  { id: "policy_affairs", label: "Public Policy / Regulatory Affairs", icon: "📣" },
-];
+// INDUSTRIES, PREF_JURISDICTIONS, TOPICS, ROLES, BRIEF_FORMATS are all imported
+// from @/config/briefTaxonomy — the single source of truth shared with
+// /watchlist so both surfaces show identical options.
 
-// INDUSTRIES, PREF_JURISDICTIONS, and TOPICS are imported from
-// @/config/briefTaxonomy — the single source of truth shared with the
-// /watchlist surface.
-
-const BRIEF_FORMATS = [
-  { id: "full", label: "Full 9-section report", icon: "📄" },
-  { id: "exec-only", label: "Executive summary only", icon: "⚡" },
-  { id: "actions-only", label: "Action items only", icon: "🎯" },
-];
 
 const Toggle = ({
   id,
