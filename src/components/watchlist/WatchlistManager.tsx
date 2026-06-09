@@ -23,6 +23,33 @@ const SUGGESTED = {
     { slug: "biometric-data",   label: "Biometric Data",   flag: "🔍" },
     { slug: "adtech",           label: "AdTech & Consent", flag: "🍪" },
   ],
+  industries: [
+    { slug: "sec-healthcare",      label: "Healthcare & Life Sciences",     flag: "🏥" },
+    { slug: "sec-financial",       label: "Financial Services & Fintech",   flag: "🏦" },
+    { slug: "sec-adtech",          label: "AdTech & Digital Media",         flag: "📊" },
+    { slug: "sec-ai-companies",    label: "AI & Machine Learning",          flag: "🤖" },
+    { slug: "sec-children-edtech", label: "Children & EdTech",              flag: "👶" },
+    { slug: "sec-data-brokers",    label: "Data Brokers",                   flag: "📂" },
+    { slug: "sec-retail-ecom",     label: "Retail & E-Commerce",            flag: "🛒" },
+    { slug: "sec-hr-employment",   label: "HR & Employment Data",           flag: "👔" },
+    { slug: "sec-telecom",         label: "Telecommunications",             flag: "📞" },
+    { slug: "sec-automotive",      label: "Automotive & Connected Vehicles",flag: "🚗" },
+    { slug: "sec-government",      label: "Government & Public Sector",     flag: "🏛️" },
+    { slug: "sec-pharma",          label: "Pharma & Clinical Research",     flag: "💊" },
+  ],
+};
+
+// Map watchlist type-key -> singular type stored in user_watchlist.type
+const TYPE_FOR_KEY: Record<keyof typeof SUGGESTED, string> = {
+  jurisdictions: "jurisdiction",
+  topics: "topic",
+  industries: "industry",
+};
+
+const SECTION_HEADINGS: Record<keyof typeof SUGGESTED, string> = {
+  jurisdictions: "🌐 Jurisdictions",
+  topics: "📂 Topics",
+  industries: "🏭 Industries",
 };
 
 interface WatchItem { id: string; type: string; slug: string; label: string; flag?: string; }
@@ -108,10 +135,10 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
         </p>
       )}
 
-      {(["jurisdictions", "topics"] as const).map(type => (
+      {(["jurisdictions", "topics", "industries"] as const).map(type => (
         <div key={type}>
-          <h3 className="text-brand-navy uppercase tracking-widest mb-3 capitalize">
-            {type === "jurisdictions" ? "🌐 Jurisdictions" : "📂 Topics"}
+          <h3 className="text-brand-navy uppercase tracking-widest mb-3">
+            {SECTION_HEADINGS[type]}
           </h3>
           <div className="flex flex-wrap gap-2">
             {SUGGESTED[type].map(s => {
@@ -119,7 +146,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
               return (
                 <button
                   key={s.slug}
-                  onClick={() => !inList && addItem(type.slice(0, -1), s.slug, s.label, s.flag)}
+                  onClick={() => !inList && addItem(TYPE_FOR_KEY[type], s.slug, s.label, s.flag)}
                   disabled={inList}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                     inList
