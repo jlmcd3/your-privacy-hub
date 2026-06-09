@@ -795,7 +795,7 @@ export const PRICING = {
       stripePriceId: 'intelligence_annual',
     },
     trialDays: 10,
-    freeToolRunsPerMonth: 0,
+    // v9: freeToolRunsPerMonth retired — see ANNUAL_CREDIT (Layer 3).
   },
   professional: {
     monthly: {
