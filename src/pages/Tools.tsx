@@ -447,9 +447,9 @@ const PRICING_GRID: [string, string][] = [
   ["Privacy Programme Assessment", `${PRICING.tools.governance.display} (Smart)`],
   ["Legitimate Interest Assessment", `${PRICING.tools.lia.display} (Smart)`],
   ["Impact Assessment (DPIA)", `${PRICING.tools.dpia.display} (Smart)`],
-  ["DPA Generator", `${PRICING.tools.dpa.display} (Smart)`],
-  ["Incident Response Playbook", `${PRICING.tools.ir_playbook.display} (Convenience)`],
-  ["Biometric Privacy Check", `${PRICING.tools.biometric.display} (Smart)`],
+  ["DPA Generator", "Included with subscription · $49 standalone"],
+  ["Incident Response Playbook", "Included with subscription · $59 standalone"],
+  ["Biometric Privacy Check", "Included with subscription · $49 standalone"],
   ["RoPA Builder", "Included with subscription"],
   ["U.S. Privacy Notice Builder", "Included with subscription"],
   ["EU/UK Privacy Notice Builder", "Included with subscription"],
@@ -457,7 +457,7 @@ const PRICING_GRID: [string, string][] = [
   ["CPPA Scope Checker", PRICING.tools.cppa_scope.display],
   ["CPPA Risk Assessment", `${PRICING.tools.cppa_risk.display} (Smart)`],
   ["CPPA Cybersecurity Audit", `${PRICING.tools.cppa_cyber.display} (Smart)`],
-  ["Professional annual", "1 free Convenience Tool run/client/month"],
+  ["Annual subscription bonus", "1 free Smart Tool run/year (Governance, LIA, or DPIA)"],
 ];
 
 export default function Tools() {
