@@ -1,16 +1,18 @@
 import { Link } from "react-router-dom";
 import { PLATFORM_PRICING } from "@/config/pricing";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import SectionShell from "./SectionShell";
 
 type Product = {
   title: string;
   blurb: string;
-  href: string;
+  /** Either a static path or a function returning the right path for the viewer. */
+  href: string | ((ctx: { hasToolAccess: boolean }) => string);
 };
 
 const ASSESSMENTS: Product[] = [
   {
-    title: "Privacy Program Assessment",
+    title: "Privacy Programme Assessment",
     blurb: "Score your program against the domains regulators actually inspect — with cited enforcement decisions behind every risk finding.",
     href: "/governance-assessment",
   },
@@ -25,9 +27,14 @@ const ASSESSMENTS: Product[] = [
     href: "/dpia-framework",
   },
   {
-    title: "Biometric Compliance Check",
+    title: "Biometric Privacy Compliance Assessment",
     blurb: "Pressure-test biometric processing against BIPA, GDPR Art. 9, and emerging state statutes — priority actions backed by cited enforcement decisions.",
     href: "/biometric-checker",
+  },
+  {
+    title: "CPPA Scope Checker",
+    blurb: "Quickly determine whether your business is in scope of the California Privacy Rights Act and CPPA regulations.",
+    href: "/cppa-scope-checker",
   },
   {
     title: "CPPA Risk Assessment",
@@ -40,7 +47,7 @@ const ASSESSMENTS: Product[] = [
     href: "/cppa-cybersecurity",
   },
   {
-    title: "Registration Assessment",
+    title: "Registration Manager",
     blurb: "Identify DPO, RoPA, EU AI Act, and Article 27 registration obligations across your jurisdictions.",
     href: "/registration-manager",
   },
@@ -58,53 +65,61 @@ const DOCUMENTS: Product[] = [
     href: "/ir-playbook",
   },
   {
-    title: "RoPA Builder",
+    title: "RoPA Builder (Article 30)",
     blurb: "Build and maintain your Article 30 Record of Processing Activities — calibrated to your platforms and jurisdictions.",
-    href: "/ropa-builder",
+    href: ({ hasToolAccess }) => (hasToolAccess ? "/ropa" : "/ropa-builder"),
   },
   {
     title: "U.S. Privacy Notice Builder",
     blurb: "Generate state-specific consumer privacy notices for CCPA, Virginia, Colorado, and other US state laws.",
-    href: "/us-notices",
+    href: ({ hasToolAccess }) => (hasToolAccess ? "/us-notices" : "/us-notice-builder"),
   },
   {
     title: "EU/UK Privacy Notice Builder",
     blurb: "GDPR & UK GDPR-aligned notices with Article 13/14 disclosures and international transfer language.",
-    href: "/eu-notices",
+    href: ({ hasToolAccess }) => (hasToolAccess ? "/eu-notices" : "/eu-global-notice-builder"),
   },
   {
-    title: "Registration Documents",
+    title: "Registration Manager",
     blurb: "DPO appointments, RoPA templates, EU AI Act registrations, and Article 27 letters — ready for filing.",
     href: "/registration-manager",
   },
 ];
 
-function ProductColumn({ label, products }: { label: string; products: Product[] }) {
+function ProductColumn({
+  label,
+  products,
+  hasToolAccess,
+}: {
+  label: string;
+  products: Product[];
+  hasToolAccess: boolean;
+}) {
   return (
     <div>
-      <p className="text-eyebrow text-[hsl(var(--cobalt))] mb-3">
-        {label}
-      </p>
+      <p className="text-eyebrow text-[hsl(var(--cobalt))] mb-3">{label}</p>
       <ul className="space-y-2">
-        {products.map((p) => (
-          <li key={p.href}>
-            <Link
-              to={p.href}
-              className="block rounded-lg border border-brand-cloud bg-brand-cloud px-4 py-3 no-underline hover:border-[hsl(var(--cobalt)/0.35)] hover:bg-card transition-colors"
-            >
-              <h3 className="text-brand-navy mb-1 leading-snug">
-                {p.title}
-              </h3>
-              <p className="text-meta text-slate leading-relaxed">{p.blurb}</p>
-            </Link>
-          </li>
-        ))}
+        {products.map((p, idx) => {
+          const href = typeof p.href === "function" ? p.href({ hasToolAccess }) : p.href;
+          return (
+            <li key={`${p.title}-${idx}`}>
+              <Link
+                to={href}
+                className="block rounded-lg border border-brand-cloud bg-brand-cloud px-4 py-3 no-underline hover:border-[hsl(var(--cobalt)/0.35)] hover:bg-card transition-colors"
+              >
+                <h3 className="text-brand-navy mb-1 leading-snug">{p.title}</h3>
+                <p className="text-meta text-slate leading-relaxed">{p.blurb}</p>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
 }
 
 export default function HomepageToolsSection() {
+  const { hasToolAccess } = useSubscriptionTier();
   return (
     <SectionShell
       eyebrow="Compliance Toolkit"
@@ -121,8 +136,8 @@ export default function HomepageToolsSection() {
         <span>📅 Updated with each regulatory development</span>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5">
-        <ProductColumn label="Assessments" products={ASSESSMENTS} />
-        <ProductColumn label="Compliance documents" products={DOCUMENTS} />
+        <ProductColumn label="Assessments" products={ASSESSMENTS} hasToolAccess={hasToolAccess} />
+        <ProductColumn label="Compliance documents" products={DOCUMENTS} hasToolAccess={hasToolAccess} />
       </div>
     </SectionShell>
   );
