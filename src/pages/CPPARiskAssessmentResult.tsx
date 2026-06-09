@@ -459,8 +459,12 @@ export default function CPPARiskAssessmentResult() {
               <DownloadWordButton
                 text={[
                   report?.executive_summary,
-                  ...(Array.isArray(report?.domains) ? report.domains.map((d: any) =>
-                    `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding ?? ""}\n${d.remediation ?? ""}`) : [])
+                  ...(Array.isArray(report?.domains)
+                    ? report.domains
+                        .filter(hasUserFacingFinding)
+                        .map((d: any) =>
+                          `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding}\n${d.remediation ?? ""}`)
+                    : [])
                 ].filter(Boolean).join("\n\n")}
                 label="CPPA Risk Assessment"
                 buttonLabel="Download Word — Risk Assessment"
