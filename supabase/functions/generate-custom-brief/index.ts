@@ -657,6 +657,10 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
       // Extract issue_tags from the generated brief
       const issueTags = customSections.issue_tags || [];
 
+      // v9 Prompt 4.1: persist the source_map actually used for THIS generation
+      // so archived citations don't bind to the latest public brief's map.
+      const baseSourceMap = (latestBrief as any)?.source_map ?? null;
+
       await supabase.from("custom_briefs").insert({
         user_id: user.id,
         base_brief_id: latestBrief.id,
@@ -668,6 +672,7 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         generation_model: "claude-sonnet-4-6",
         verification_result: verificationResult,
         issue_tags: issueTags,
+        source_map: baseSourceMap,
       });
 
       processed++;
