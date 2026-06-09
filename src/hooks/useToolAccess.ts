@@ -4,44 +4,35 @@ interface ToolAccessConfig {
   /** null = free for everyone (non-subscribers); otherwise standalone price in dollars */
   standalonePrice: number | null;
   /**
-   * Per-use rate for ANNUAL Platform subscribers (only). null = included
-   * (free) for annual subscribers. Monthly subscribers do NOT get this rate
-   * — they pay standalonePrice.
+   * Per-use rate for ANY active subscriber (v9: monthly or annual,
+   * Intelligence or Professional). null = included (free) for subscribers.
+   * Non-subscribers always pay standalonePrice.
    */
   subscriberPrice: number | null;
   /** Optional: max number of free jurisdictions for freemium tools */
   freeJurisdictionLimit?: number;
   /**
-   * CPPA tools remain paid for everyone, but annual subscribers get the
+   * CPPA tools remain paid for everyone, but subscribers get the discounted
    * subscriberPrice. Set true to use that semantic; default false (standard
-   * tool: annual = included free, monthly/free = standalonePrice).
+   * tool: subscriber = included free OR subscriberPrice, non-sub = standalonePrice).
    */
   isCppa?: boolean;
 }
 
 /**
- * Determines access tier and effective price for a paid tool under the
- * New Model (Doc 4):
+ * v9 access tier resolution:
  *
- *   Standard tool (default):
- *     annual / annual_founding → effectivePrice = subscriberPrice (0 for IR Playbook + Biometric; standalonePrice for all others)
- *     monthly / free           → effectivePrice = standalonePrice
+ *   Any active subscription (monthly or annual, post-trial)
+ *     → effectivePrice = subscriberPrice (often 0 / null = included)
+ *   Free / trial / canceled
+ *     → effectivePrice = standalonePrice
  *
- *   CPPA tool (isCppa = true):
- *     annual / annual_founding → effectivePrice = subscriberPrice (discounted, still paid)
- *     monthly / free           → effectivePrice = standalonePrice
- *
- * `isPremium` here is preserved for backwards compatibility with existing
- * callers, but it now means "has tool access" (annual subscriber) — NOT
- * "has any active subscription". Monthly Intelligence subscribers do not
- * get tool access and will be treated as standalone purchasers.
+ * `isPremium` is preserved for backwards compatibility and now mirrors
+ * `hasToolAccess` (any active subscription, post-trial).
  */
 export function useToolAccess(config: ToolAccessConfig) {
   const { user, hasToolAccess, isLoading, tier } = useSubscriptionTier();
 
-  // Annual subscribers (incl. annual_founding) get the subscriber rate.
-  // For standard tools, subscriberPrice is typically null (included free).
-  // For CPPA tools, subscriberPrice is the discounted paid rate.
   const effectivePrice = hasToolAccess ? config.subscriberPrice : config.standalonePrice;
 
   const isFreeForUser = effectivePrice === null || effectivePrice === 0;
@@ -52,11 +43,11 @@ export function useToolAccess(config: ToolAccessConfig) {
 
   return {
     user,
-    /** True when this user has annual-tier tool access (formerly: any premium). */
+    /** v9: any active subscription, post-trial. */
     isPremium: hasToolAccess,
-    /** True only when the user is an Annual Platform subscriber. */
+    /** v9: any active subscription, post-trial. */
     hasToolAccess,
-    /** True for monthly Intelligence subscribers (no tool access). */
+    /** Convenience flag — true for monthly Intelligence subscribers only. */
     isMonthlyIntelligence: tier === "monthly",
     isLoading,
     effectivePrice,
