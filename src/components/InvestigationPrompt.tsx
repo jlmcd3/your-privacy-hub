@@ -1,12 +1,22 @@
 import { useState } from 'react';
-import { Copy, Check, FlaskConical, Loader2 } from 'lucide-react';
+import { Copy, Check, FlaskConical, Loader2, Info } from 'lucide-react';
 import { ArticleItem } from '@/components/ArticleCard';
 import { generatePersonalizedInvestigationPrompt } from '@/lib/generateInvestigationPrompt';
 import { useSubscriberContext } from '@/hooks/useSubscriberContext';
+import type { SubscriberContext } from '@/lib/generateResearchInvestigationPrompt';
 
 interface InvestigationPromptProps {
   item: ArticleItem;
+  /**
+   * Optional demo context. When provided, the hook is bypassed and this
+   * context is used to render the prompt — used by the homepage "paid"
+   * preview slot to show what a personalised prompt looks like.
+   */
+  demoContext?: SubscriberContext;
 }
+
+const PERSONALISATION_TOOLTIP =
+  'Prompts are personalised to your role, industries, jurisdictions, topics, and watchlist.';
 
 export function InvestigationPrompt({ item }: InvestigationPromptProps) {
   const [open, setOpen] = useState(false);
