@@ -90,7 +90,7 @@ export default function CPPAHub() {
           name="description"
           content="Scope, risk-assess, and cybersecurity-audit-ready your business for the California Privacy Protection Agency's 2028 deadline."
         />
-        <link rel="canonical" href="https://enduserprivacy.com/cppa" />
+        {/* Canonical injected globally by <CanonicalTag /> — do not duplicate here. */}
         <script type="application/ld+json">{JSON.stringify(itemListLd)}</script>
         <script type="application/ld+json">{JSON.stringify(faqLd)}</script>
       </Helmet>
