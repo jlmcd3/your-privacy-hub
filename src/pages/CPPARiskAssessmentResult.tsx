@@ -62,9 +62,9 @@ const tierColor = (t: ConfidenceTier) => {
   return "bg-red-100 text-red-800 border-red-300";
 };
 const tierBlurb: Record<ConfidenceTier, string> = {
-  "High-confidence": "Corpus authority on point AND agency commentary (FSOR) reinforces the conclusion.",
-  "Inference": "Corpus authority is on point, but no agency commentary (FSOR) was matched. Treat the legal conclusion as well-grounded but the interpretation as a reasoned inference.",
-  "Heuristic": "No retrieved authority on point in the corpus. Conclusion is a best-effort heuristic and requires attorney review before relying on it.",
+  "High-confidence": "Statutory or regulatory authority on point AND agency commentary (FSOR) reinforces the conclusion.",
+  "Inference": "Statutory or regulatory authority is on point, but no agency commentary (FSOR) was matched. Treat the legal conclusion as well-grounded but the interpretation as a reasoned inference.",
+  "Heuristic": "Conclusion is a best-effort interpretation and requires attorney review before relying on it.",
 };
 
 
