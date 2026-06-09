@@ -271,6 +271,7 @@ export default function CPPASuiteResult() {
             </>
           )}
           <Button asChild variant="outline"><Link to="/dashboard/reports">Back to My Reports</Link></Button>
+          <Button asChild variant="ghost"><Link to="/account/cppa-runs">View all CPPA runs</Link></Button>
         </div>
       </main>
       <Footer />
