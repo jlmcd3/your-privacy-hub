@@ -143,6 +143,7 @@ import RegistrationDocuments from "./pages/RegistrationDocuments.tsx";
 import RegistrationMyFilings from "./pages/RegistrationMyFilings.tsx";
 import Watchlist from "./pages/Watchlist.tsx";
 import MyReports from "./pages/MyReports.tsx";
+import AccountCPPARuns from "./pages/AccountCPPARuns.tsx";
 import DPAResult from "./pages/DPAResult.tsx";
 import IRPlaybookResult from "./pages/IRPlaybookResult.tsx";
 import BiometricCheckerResult from "./pages/BiometricCheckerResult.tsx";
