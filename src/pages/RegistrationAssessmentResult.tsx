@@ -353,7 +353,7 @@ export default function RegistrationAssessmentResult() {
                 />
                 <PlanCard
                   title="Annual Renewal Monitoring"
-                  price="$199 / yr / jurisdiction"
+                  price="$79 / yr / jurisdiction"
                   priceFootnote="Recurring · cancel anytime"
                   blurb="Already filed? We monitor renewal deadlines, send reminders 90/60/30/7 days out, and regenerate updated documents. You submit the renewal."
                   cta={purchasing === "renewal" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Subscribe"}
