@@ -102,6 +102,7 @@ export default function AuditScopeMemoGenerator({ intake, report }: Props) {
   const [activities, setActivities] = useState(defaultActivities);
   const [exclusions, setExclusions] = useState(defaultExclusions);
   const [frameworkRef, setFrameworkRef] = useState(defaultFrameworkRef);
+  const preRef = useRef<HTMLPreElement>(null);
 
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
