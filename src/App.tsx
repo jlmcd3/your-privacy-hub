@@ -121,6 +121,7 @@ import AdminBriefGenStatus from "./pages/AdminBriefGenStatus.tsx";
 import AdminPricingReconciliation from "./pages/AdminPricingReconciliation.tsx";
 import AdminLawUpdates from "./pages/AdminLawUpdates.tsx";
 import AdminStateLawReview from "./pages/AdminStateLawReview.tsx";
+import AdminTrialUsers from "./pages/AdminTrialUsers.tsx";
 import LIAssessment from "./pages/LIAssessment.tsx";
 import LIAssessmentIntake from "./pages/LIAssessmentIntake.tsx";
 import LIAssessmentResult from "./pages/LIAssessmentResult.tsx";

@@ -6,6 +6,7 @@ import comparisonData from "@/data/us_state_comparison.json";
 import { STATUTES } from "@/data/statutes";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import StateReviewPastDueBanner from "@/components/admin/StateReviewPastDueBanner";
 
 const STATE_FLAGS: Record<string, string> = {
   CA: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_California.svg?width=32",
@@ -58,6 +59,7 @@ const USStateComparison = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        <StateReviewPastDueBanner />
         {/* Premium upsell — slim contextual banner */}
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <p className="text-sm text-amber-900 leading-snug">
