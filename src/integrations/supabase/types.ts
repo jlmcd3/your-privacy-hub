@@ -599,6 +599,53 @@ export type Database = {
         }
         Relationships: []
       }
+      cppa_drift_reminders: {
+        Row: {
+          assessment_id: string
+          client_id: string | null
+          created_at: string
+          dismissed_at: string | null
+          id: string
+          module: string
+          scheduled_for: string
+          sent_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assessment_id: string
+          client_id?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          module?: string
+          scheduled_for: string
+          sent_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assessment_id?: string
+          client_id?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          module?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cppa_drift_reminders_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: true
+            referencedRelation: "cppa_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cppa_fsor_commentary: {
         Row: {
           agency_response: string
