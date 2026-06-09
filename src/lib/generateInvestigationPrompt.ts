@@ -334,6 +334,9 @@ export function generatePersonalizedInvestigationPrompt(
     if (watchlistTopicLabels.length > 0) {
       aboutLines.push(`Topics on Watchlist: ${watchlistTopicLabels.join(', ')}`);
     }
+    if (watchlistIndustryLabels.length > 0) {
+      aboutLines.push(`Industries on Watchlist: ${watchlistIndustryLabels.join(', ')}`);
+    }
     aboutSection =
       `ABOUT OUR ORGANIZATION:\n` +
       aboutLines.join('\n') +
