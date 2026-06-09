@@ -470,7 +470,7 @@ Return JSON:
 
 Domains to assess (one object each): Consumer Rights Infrastructure; Privacy Notices and Transparency; Opt-Out of Sale and Sharing; Sensitive Personal Information; Automated Decision-Making; Data Retention and Minimisation; Third-Party Contracts and Data Sharing; Incident Response and Breach Notification; Employee Notice and Training; CPPA Audit Readiness.
 
-For any domain with no retrieved authority on point, set regulatory_basis to the attorney-review phrase above and attorney_review_needed=true rather than inventing a citation.`;
+For any domain with no retrieved authority on point, set BOTH finding and regulatory_basis to null and attorney_review_needed=true rather than inventing a citation or emitting a placeholder phrase.`;
 
     const tGen = Date.now();
     const gen = await generateOrRetry("claude-sonnet-4-6", GENERATION_SYSTEM, genUser, 16000, "generate");
