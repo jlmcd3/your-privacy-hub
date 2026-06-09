@@ -583,11 +583,11 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
           headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
           body: JSON.stringify({
             model: "claude-sonnet-4-6",
-            max_tokens: 4000,
+            max_tokens: 6000,
             system: systemPrompt,
             messages: [{ role: "user", content: userPrompt }],
           }),
-          signal: AbortSignal.timeout(120000),
+          signal: AbortSignal.timeout(180000),
         });
         if (response.status !== 429 && response.status !== 529) break;
         if (attempt === 0) {
