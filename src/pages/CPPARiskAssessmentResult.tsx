@@ -200,22 +200,52 @@ export default function CPPARiskAssessmentResult() {
               </section>
             )}
 
+            {Array.isArray(report?.domains) && report.domains.length > 0 && (() => {
+              const stratified: Record<ConfidenceTier, any[]> = {
+                "High-confidence": [], "Inference": [], "Heuristic": [],
+              };
+              for (const d of report.domains) stratified[classifyDomain(d)].push(d);
+              const order: ConfidenceTier[] = ["High-confidence", "Inference", "Heuristic"];
+              return (
+                <section className="bg-card border rounded-lg p-6">
+                  <h2 className="mb-1">Confidence Stratification</h2>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Domains grouped by how strongly the conclusion is grounded in the retrieved corpus and agency commentary (FSOR). Use this to prioritise attorney review.
+                  </p>
+                  <div className="grid md:grid-cols-3 gap-3">
+                    {order.map((tier) => (
+                      <div key={tier} className={`rounded-lg border p-3 ${tierColor(tier)}`}>
+                        <p className="text-[11px] font-bold tracking-wider uppercase">{tier}</p>
+                        <p className="text-2xl font-semibold mt-1">{stratified[tier].length}</p>
+                        <p className="text-[11px] leading-snug mt-1 opacity-80">{tierBlurb[tier]}</p>
+                        {stratified[tier].length > 0 && (
+                          <ul className="mt-2 text-[11px] list-disc pl-4 space-y-0.5">
+                            {stratified[tier].map((d: any, i: number) => (
+                              <li key={i}>{d.domain}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
+
             {Array.isArray(report?.domains) && report.domains.length > 0 && (
               <section className="bg-card border rounded-lg p-6">
                 <h2 className="mb-4">Domain Findings</h2>
                 <Accordion type="multiple">
-                  {report.domains.map((d: any, i: number) => (
+                  {report.domains.map((d: any, i: number) => {
+                    const tier = classifyDomain(d);
+                    return (
                     <AccordionItem key={i} value={`d${i}`}>
                       <AccordionTrigger>
                         <div className="flex items-center gap-3 flex-wrap">
                           <span>{d.domain}</span>
                           {d.score != null && <span className="text-xs text-muted-foreground">{d.score}/100</span>}
                           {d.status && <span className={`px-2 py-0.5 text-xs rounded ${statusColor(d.status)}`}>{d.status}</span>}
-                          {d.confidence_level && (
-                            <span className={`px-2 py-0.5 text-xs rounded ${confidenceColor(d.confidence_level)}`}>
-                              Confidence: {d.confidence_level}
-                            </span>
-                          )}
+                          <span className={`px-2 py-0.5 text-xs rounded border ${tierColor(tier)}`}>{tier}</span>
                           {d.attorney_review_needed && (
                             <span className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800">Attorney review</span>
                           )}
