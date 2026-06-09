@@ -10,6 +10,12 @@ export interface SubscriberContext {
   industries?: string[];
   jurisdictions?: string[];
   topics?: string[];
+  watchlist?: Array<{
+    type: string; // 'jurisdiction' | 'topic'
+    slug: string;
+    label: string;
+    flag?: string;
+  }>;
 }
 
 export function generateResearchInvestigationPrompt(
