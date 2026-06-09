@@ -169,6 +169,8 @@ const navItems: NavItem[] = [
           { icon: "🏛️", label: "CPPA Scope Checker", href: "/cppa-scope-checker",
             badge: "FREE", badgeGreen: true,
             tooltip: "Find out if your organisation is in scope for the Dec 31, 2027 audit" },
+          { icon: "📚", label: "CPPA Audit Hub", href: "/cppa",
+            tooltip: "Single landing page for all CPPA tools, FAQs, and the April 2028 deadline" },
           { icon: "🧭", label: "Explore the full toolkit →", href: "/tools", bottom: true,
             tooltip: "See descriptions, pricing, and access details for every tool" },
         ],
