@@ -139,6 +139,9 @@ export function CybersecurityReportBody({ row }: { row: any }) {
           </Accordion>
         </section>
       )}
+      {/* Sprint 2 #1 — Auditor Independence Advisor (§ 7122(b)) */}
+      <AuditorIndependenceAdvisor />
+
       {/* Sprint 1 #4 — Pre-audit readiness gap log */}
       {Array.isArray(report?.controls) && (() => {
         const isGap = (s?: string) => {
