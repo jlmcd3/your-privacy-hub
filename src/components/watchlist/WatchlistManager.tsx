@@ -23,6 +23,33 @@ const SUGGESTED = {
     { slug: "biometric-data",   label: "Biometric Data",   flag: "🔍" },
     { slug: "adtech",           label: "AdTech & Consent", flag: "🍪" },
   ],
+  industries: [
+    { slug: "sec-healthcare",      label: "Healthcare & Life Sciences",     flag: "🏥" },
+    { slug: "sec-financial",       label: "Financial Services & Fintech",   flag: "🏦" },
+    { slug: "sec-adtech",          label: "AdTech & Digital Media",         flag: "📊" },
+    { slug: "sec-ai-companies",    label: "AI & Machine Learning",          flag: "🤖" },
+    { slug: "sec-children-edtech", label: "Children & EdTech",              flag: "👶" },
+    { slug: "sec-data-brokers",    label: "Data Brokers",                   flag: "📂" },
+    { slug: "sec-retail-ecom",     label: "Retail & E-Commerce",            flag: "🛒" },
+    { slug: "sec-hr-employment",   label: "HR & Employment Data",           flag: "👔" },
+    { slug: "sec-telecom",         label: "Telecommunications",             flag: "📞" },
+    { slug: "sec-automotive",      label: "Automotive & Connected Vehicles",flag: "🚗" },
+    { slug: "sec-government",      label: "Government & Public Sector",     flag: "🏛️" },
+    { slug: "sec-pharma",          label: "Pharma & Clinical Research",     flag: "💊" },
+  ],
+};
+
+// Map watchlist type-key -> singular type stored in user_watchlist.type
+const TYPE_FOR_KEY: Record<keyof typeof SUGGESTED, string> = {
+  jurisdictions: "jurisdiction",
+  topics: "topic",
+  industries: "industry",
+};
+
+const SECTION_HEADINGS: Record<keyof typeof SUGGESTED, string> = {
+  jurisdictions: "🌐 Jurisdictions",
+  topics: "📂 Topics",
+  industries: "🏭 Industries",
 };
 
 interface WatchItem { id: string; type: string; slug: string; label: string; flag?: string; }
