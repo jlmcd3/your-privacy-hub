@@ -133,3 +133,25 @@ export const TOPICS: TaxonomyItem[] = [
     description: "Breach notification law changes, SEC disclosure rules, enforcement for late reporting",
   },
 ];
+
+/**
+ * Single-select choices shared by /brief-preferences and /watchlist.
+ * ROLES persists to `profiles.brief_role` (id string).
+ * BRIEF_FORMATS persists to `user_brief_preferences.format` (id string).
+ */
+export const ROLES: TaxonomyItem[] = [
+  { id: "general_counsel", label: "General Counsel / CLO",            icon: "⚖️" },
+  { id: "cpo_dpo",         label: "CPO / DPO / Privacy Officer",      icon: "🛡️" },
+  { id: "privacy_counsel", label: "Privacy / Product Counsel",        icon: "📋" },
+  { id: "privacy_ops",     label: "Privacy Operations / Compliance",  icon: "⚙️" },
+  { id: "ciso_security",   label: "CISO / Security Leader",           icon: "🔒" },
+  { id: "outside_counsel", label: "Outside Counsel / Consultant",     icon: "🏛️" },
+  { id: "policy_affairs",  label: "Public Policy / Regulatory Affairs", icon: "📣" },
+];
+
+export const BRIEF_FORMATS: TaxonomyItem[] = [
+  { id: "full",         label: "Full 9-section report",   icon: "📄" },
+  { id: "exec-only",    label: "Executive summary only",  icon: "⚡" },
+  { id: "actions-only", label: "Action items only",       icon: "🎯" },
+];
+
