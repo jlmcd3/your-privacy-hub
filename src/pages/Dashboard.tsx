@@ -605,7 +605,7 @@ const Dashboard = () => {
                       {isAdmin && (
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); handleDeleteBrief(b.id); }}
+                          onClick={(e) => { e.stopPropagation(); setPendingDeleteId(b.id); }}
                           aria-label="Delete report (admin)"
                           title="Delete report"
                           className="px-3 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors bg-transparent border-none border-l border-slate-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
