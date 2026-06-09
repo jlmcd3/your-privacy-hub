@@ -1,4 +1,8 @@
 {
+  "lastReviewed": "2026-06-09",
+  "nextReviewDue": "2026-09-09",
+  "reviewCadence": "quarterly",
+  "maintenanceNotes": "Maintained quarterly. On each review, walk each enacted state's official statute URL (already linked from every ✓), confirm provisions, and add any newly-enacted laws. Update lastReviewed + nextReviewDue when complete.",
   "provisions": [
     "Consumer access right",
     "Deletion right",
