@@ -2,13 +2,20 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Shield, ClipboardCheck, Lock, Activity, AlertTriangle } from "lucide-react";
+import { ArrowRight, Shield, ClipboardCheck, Lock } from "lucide-react";
+import { PRICING_REGISTRY } from "@/config/pricing";
 
 /**
  * Sprint 7 — Canonical /cppa hub page.
- * Single entry point linking Scope → Risk → Cyber → Drift → Breach Map.
- * Ships ItemList + FAQ JSON-LD for SEO.
+ * Single entry point linking Scope → Risk → Cyber. Drift Watch and
+ * Breach Precedent Map are embedded inside the Cyber result, not
+ * separate destinations — they are mentioned in the Cyber card copy.
+ * Pricing sourced from `pricing.ts`; canonical handled globally by
+ * <CanonicalTag /> so we do NOT inject a duplicate <link rel="canonical">.
  */
+const riskStandalone = PRICING_REGISTRY.cppa_risk_standalone.displayPrice;
+const cyberStandalone = PRICING_REGISTRY.cppa_cyber_standalone.displayPrice;
+
 const TOOLS = [
   {
     href: "/cppa-scope-checker",
@@ -21,29 +28,15 @@ const TOOLS = [
     href: "/cppa-risk-assessment",
     title: "CPPA Risk Assessment",
     description: "Module 1 risk assessment built directly on the final CPPA regulations and FSOR agency commentary.",
-    price: "$89 standalone · discounted with a subscription",
+    price: `${riskStandalone} standalone · discounted with a subscription`,
     icon: Shield,
   },
   {
     href: "/cppa-cybersecurity",
     title: "CPPA Cybersecurity Readiness",
-    description: "Module 2 cybersecurity audit readiness across all 18 required controls, mapped to NIST CSF and ISO 27001.",
-    price: "$99 standalone · discounted with a subscription",
+    description: "Module 2 audit readiness across all 18 required controls, mapped to NIST CSF and ISO 27001. Includes Drift Watch (compare re-runs) and Breach Precedent Map (real enforcement actions for each control gap).",
+    price: `${cyberStandalone} standalone · discounted with a subscription`,
     icon: Lock,
-  },
-  {
-    href: "/cppa-cybersecurity",
-    title: "Cybersecurity Drift Watch",
-    description: "Re-run your readiness assessment and see exactly what changed since the last audit cycle.",
-    price: "Included with any Cyber run",
-    icon: Activity,
-  },
-  {
-    href: "/cppa-cybersecurity",
-    title: "Breach Precedent Map",
-    description: "For every flagged control gap, see the most recent enforcement actions where that exact failure was cited.",
-    price: "Included with Cyber report",
-    icon: AlertTriangle,
   },
 ];
 
@@ -97,7 +90,7 @@ export default function CPPAHub() {
           name="description"
           content="Scope, risk-assess, and cybersecurity-audit-ready your business for the California Privacy Protection Agency's 2028 deadline."
         />
-        <link rel="canonical" href="https://enduserprivacy.com/cppa" />
+        {/* Canonical injected globally by <CanonicalTag /> — do not duplicate here. */}
         <script type="application/ld+json">{JSON.stringify(itemListLd)}</script>
         <script type="application/ld+json">{JSON.stringify(faqLd)}</script>
       </Helmet>
@@ -107,7 +100,7 @@ export default function CPPAHub() {
           <p className="text-xs uppercase tracking-[0.18em] text-brand-teal font-medium">California Privacy Protection Agency</p>
           <h1 className="font-serif text-4xl md:text-5xl">CPPA Audit Readiness Suite</h1>
           <p className="text-lg text-muted-foreground max-w-3xl">
-            Five purpose-built tools to scope, risk-assess, and prepare your cybersecurity audit ahead of the
+            Purpose-built tools to scope, risk-assess, and prepare your cybersecurity audit ahead of the
             April 1, 2028 CPPA certification deadline. Built directly on the final regulations and FSOR agency commentary.
           </p>
         </header>

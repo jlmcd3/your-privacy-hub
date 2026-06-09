@@ -22,23 +22,27 @@ export function useCitationVerification(citations: string[]) {
 
   useEffect(() => {
     let cancelled = false;
-    const list = Array.from(new Set(citations.map((c) => (c || "").trim()).filter(Boolean)));
+    const list = Array.from(new Set(citations.map((c) => (c || "").trim().toLowerCase()).filter(Boolean)));
     if (list.length === 0) {
       setVerified(new Set());
       setLoading(false);
       return;
     }
     setLoading(true);
+    // Fetch ALL current citations (corpus is small, ~100 rows) and match
+    // case-insensitively in JS — PostgREST `.in()` is case-sensitive and would
+    // miss rows whose stored casing differs from caller input.
     supabase
       .from("cppa_authorities")
       .select("citation")
       .eq("status", "current")
-      .in("citation", list)
       .then(({ data }) => {
         if (cancelled) return;
         const ok = new Set<string>();
+        const lookup = new Set(list);
         (data ?? []).forEach((r: any) => {
-          if (r?.citation) ok.add(String(r.citation).trim().toLowerCase());
+          const norm = String(r?.citation ?? "").trim().toLowerCase();
+          if (norm && lookup.has(norm)) ok.add(norm);
         });
         setVerified(ok);
         setLoading(false);
