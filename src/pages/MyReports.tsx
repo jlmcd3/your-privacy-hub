@@ -78,7 +78,6 @@ const TOOL_LABEL: Record<string, string> = {
   eu_notice: "EU Privacy Notice",
   cppa_risk: "CPPA Risk Assessment",
   cppa_cyber: "CPPA Cybersecurity Audit",
-  cppa_scope: "CPPA Scope Checker",
 };
 
 function statusVariant(s: string): "default" | "secondary" | "outline" {
