@@ -117,17 +117,6 @@ export default function CPPAScopeChecker() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Fire-and-forget save when results render
-  useEffect(() => {
-    if (!showResults) return;
-    void supabase.from("cppa_scope_checks").insert({
-      user_id: user?.id ?? null,
-      answers,
-      obligation_map: obligationMap,
-      in_scope: obligationMap.inScope,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showResults]);
 
   const reset = () => {
     setQ1(""); setQ2(""); setQ3(""); setQ4("");
