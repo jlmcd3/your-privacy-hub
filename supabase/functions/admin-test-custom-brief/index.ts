@@ -76,21 +76,61 @@ Deno.serve(async (req) => {
     const topics: string[] = Array.isArray(prefs.topics) ? prefs.topics : [];
     const format: string = typeof prefs.format === "string" ? prefs.format : "full";
 
-    // ── 3. Upsert user_brief_preferences ────────────────────────────────────
+    // ── 3. Reconcile user_watchlist for the three taxonomy fields and
+    //    persist `format` to user_brief_preferences. generate-custom-brief
+    //    reads industries/jurisdictions/topics from user_watchlist (the
+    //    single source of truth), so writing them only to
+    //    user_brief_preferences would be ignored.
+    const desired: Array<{ type: string; slug: string }> = [
+      ...industries.map((slug) => ({ type: "industry", slug })),
+      ...jurisdictions.map((slug) => ({ type: "jurisdiction", slug })),
+      ...topics.map((slug) => ({ type: "topic", slug })),
+    ];
+    const desiredKey = new Set(desired.map((d) => `${d.type}:${d.slug}`));
+
+    const { data: existing } = await admin
+      .from("user_watchlist")
+      .select("id, type, slug")
+      .eq("user_id", userId)
+      .in("type", ["industry", "jurisdiction", "topic"]);
+    const existingRows = (existing ?? []) as Array<{ id: string; type: string; slug: string }>;
+
+    const idsToDelete = existingRows
+      .filter((r) => !desiredKey.has(`${r.type}:${r.slug}`))
+      .map((r) => r.id);
+    if (idsToDelete.length) {
+      await admin.from("user_watchlist").delete().in("id", idsToDelete);
+    }
+
+    if (desired.length) {
+      // Admin test tooling — label/flag are not user-facing here, so we use
+      // slug as label and leave flag null. The real watchlist UI snapshots
+      // proper label/flag when users tick items on /watchlist or /brief-preferences.
+      const rows = desired.map((d) => ({
+        user_id: userId,
+        type: d.type,
+        slug: d.slug,
+        label: d.slug,
+        flag: null as string | null,
+      }));
+      const { error: wlErr } = await admin
+        .from("user_watchlist")
+        .upsert(rows, { onConflict: "user_id,type,slug", ignoreDuplicates: true });
+      if (wlErr) throw new Error(`watchlist upsert: ${wlErr.message}`);
+    }
+
     const { error: prefsErr } = await admin
       .from("user_brief_preferences")
       .upsert(
         {
           user_id: userId,
-          industries,
-          jurisdictions,
-          topics,
           format,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" }
       );
     if (prefsErr) throw new Error(`prefs upsert: ${prefsErr.message}`);
+
 
     // ── 4. Ensure is_pro=true (record original to restore) ──────────────────
     const { data: prof } = await admin
