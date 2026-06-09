@@ -191,13 +191,13 @@ export default function MyReports() {
           .eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("ropa_sessions")
           .select("id, status, created_at, version_number, scope, client_id")
-          .eq("user_id", user.id).order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false }),
         supabase.from("us_notice_sessions")
           .select("id, status, created_at, version_number, scope, client_id")
-          .eq("user_id", user.id).order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false }),
         supabase.from("eu_notice_sessions")
           .select("id, status, created_at, version_number, client_id")
-          .eq("user_id", user.id).order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false }),
         supabase.from("cppa_assessments")
           .select("id, status, created_at, module, intake_data, report_data, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
