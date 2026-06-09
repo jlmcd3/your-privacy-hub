@@ -76,7 +76,7 @@ const SECTION_HEADERS: Record<ToolSection, {
   documents: {
     label: "Compliance documents",
     title: "Produce the documents tailored to your jurisdictions and stack",
-    note: "Pro annual: 1 free Convenience Tool run/client/month",
+    note: "Included with any active subscription",
     iconPath: "M5 3h8l4 4v10a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z M13 3v4h4 M7 11h8 M7 14h6",
     colors: {
       bg: "bg-amber-50",
