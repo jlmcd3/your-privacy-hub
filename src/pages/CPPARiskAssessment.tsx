@@ -15,6 +15,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 
 const REVENUE_OPTS = ["Under $25M", "$25M–$100M", "$100M–$500M", "Over $500M"];
 const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
@@ -147,8 +148,21 @@ export default function CPPARiskAssessment() {
 
   return (
     <WorkspaceLayout className="bg-background">
-      <Helmet><title>CPPA Privacy Risk Assessment — Module 1 | End User Privacy</title>
-        <meta name="description" content="California CPPA risk assessment structured to the agency's regulations — domain findings supported by cited CPPA and AG enforcement context." /></Helmet>      <header className="bg-slate-900 text-white py-12">
+      <Helmet>
+        <title>CPPA Privacy Risk Assessment — Module 1 | End User Privacy</title>
+        <meta name="description" content="California CPPA privacy risk assessment mapped to the agency's regulations. Domain findings are cited to the statute, the CPPA's implementing regulations, and the agency's Final Statement of Reasons." />
+        <link rel="canonical" href="https://enduserprivacy.com/cppa-risk-assessment" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "CPPA Privacy Risk Assessment (Module 1)",
+          description: "Structured CCPA/CPRA risk assessment with findings cited to statute, regulation, FSOR commentary, and on-point enforcement actions.",
+          brand: { "@type": "Brand", name: "End User Privacy" },
+          url: "https://enduserprivacy.com/cppa-risk-assessment",
+          offers: { "@type": "Offer", price: "89", priceCurrency: "USD", availability: "https://schema.org/InStock" },
+        })}</script>
+      </Helmet>
+      <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
@@ -279,6 +293,7 @@ export default function CPPARiskAssessment() {
           }}
         />
       </main>
+      <CPPAToolsCrossLinks current="risk" />
     </WorkspaceLayout>
   );
 }

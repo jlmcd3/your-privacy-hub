@@ -14,6 +14,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
+import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 
 const MATURITY = [
   "Not implemented",
@@ -100,7 +101,21 @@ export default function CPPACybersecurity() {
 
   return (
     <WorkspaceLayout className="bg-background">
-      <Helmet><title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title></Helmet>      <header className="bg-slate-900 text-white py-12">
+      <Helmet>
+        <title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title>
+        <meta name="description" content="CPPA cybersecurity audit readiness mapped to the 18 programme components in the agency's regulations. Includes Breach Precedent Map, Auditor Independence Advisor, and Auditor Handoff Package." />
+        <link rel="canonical" href="https://enduserprivacy.com/cppa-cybersecurity" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "CPPA Cybersecurity Audit Readiness (Module 2)",
+          description: "18-control gap assessment with dynamic Breach Precedent Map, FSOR-cited findings, and auditor handoff package.",
+          brand: { "@type": "Brand", name: "End User Privacy" },
+          url: "https://enduserprivacy.com/cppa-cybersecurity",
+          offers: { "@type": "Offer", price: "99", priceCurrency: "USD", availability: "https://schema.org/InStock" },
+        })}</script>
+      </Helmet>
+      <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
@@ -215,6 +230,7 @@ export default function CPPACybersecurity() {
           }}
         />
       </main>
+      <CPPAToolsCrossLinks current="cyber" />
     </WorkspaceLayout>
   );
 }

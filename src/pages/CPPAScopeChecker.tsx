@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
@@ -140,8 +141,18 @@ export default function CPPAScopeChecker() {
         <title>CPPA Scope Checker — CCPA/CPRA | End User Privacy</title>
         <meta
           name="description"
-          content="Free 2-minute check to determine whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA enforcement obligations apply to your business."
+          content="Free 2-minute CCPA/CPRA scope check. Determine whether the California Consumer Privacy Act and CPPA enforcement obligations apply to your business. No account, no payment."
         />
+        <link rel="canonical" href="https://enduserprivacy.com/cppa-scope-checker" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "CPPA Scope Checker",
+          description: "Free deterministic check for CCPA/CPRA applicability and CPPA enforcement scope.",
+          brand: { "@type": "Brand", name: "End User Privacy" },
+          url: "https://enduserprivacy.com/cppa-scope-checker",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD", availability: "https://schema.org/InStock" },
+        })}</script>
       </Helmet>
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -268,6 +279,7 @@ export default function CPPAScopeChecker() {
           />
         )}
       </main>
+      <CPPAToolsCrossLinks current="scope" />
     </WorkspaceLayout>
   );
 }
