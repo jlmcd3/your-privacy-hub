@@ -152,7 +152,7 @@ const Subscribe = () => {
                 ))}
               </ul>
               <button
-                onClick={() => startCheckout("month")}
+                onClick={() => startCheckout("month", "intelligence")}
                 disabled={!!loading}
                 className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
               >
