@@ -10,7 +10,18 @@ import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCallout";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
-// CitationVerificationBadge removed from user-facing report; verification handled in admin/auditor tools.
+import { AdminOnly } from "@/components/AdminOnly";
+
+// Truncate to first sentence (or 200 chars if no sentence boundary).
+const firstSentence = (text: string): string => {
+  if (!text) return "";
+  const match = text.match(/^[^.!?]+[.!?]/);
+  return match ? match[0].trim() : text.slice(0, 200).trim();
+};
+
+// Filter: a domain only displays in the user-facing report if it has a non-empty finding.
+const hasUserFacingFinding = (d: any): boolean =>
+  typeof d?.finding === "string" && d.finding.trim().length > 0;
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
