@@ -154,14 +154,14 @@ export default function RopaActivity() {
     }
   };
 
-  const handleDeleteActivity = async (
-    activityId: string,
-    displayName: string
-  ) => {
-    const ok = window.confirm(
-      `Delete "${displayName}"?\n\nThis permanently removes the activity and all of its answers and flags. This cannot be undone.`
-    );
-    if (!ok) return;
+  const handleDeleteActivity = (activityId: string, displayName: string) => {
+    setPendingDelete({ id: activityId, name: displayName });
+  };
+
+  const confirmDeleteActivity = async () => {
+    if (!pendingDelete) return;
+    const { id: activityId, name: displayName } = pendingDelete;
+    setPendingDelete(null);
     const isCurrent = currentActivity?.id === activityId;
     try {
       await deleteActivityFromStore(activityId);
