@@ -12,6 +12,16 @@ import type { Question } from "@/data/ropa-questions/types";
 import { getPersonalDataExamplesForSector } from "@/data/ropa-personal-data-examples";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Art9Art10Checklist from "@/components/ropa/Art9Art10Checklist";
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
