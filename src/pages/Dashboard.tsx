@@ -139,13 +139,6 @@ function BriefSkeleton() {
   );
 }
 
-/** Truncate to first N sentences for the free-user teaser */
-function truncateToSentences(text: string | null, count = 2): string {
-  if (!text) return "";
-  const sentences = text.match(/[^.!?]+[.!?]+/g);
-  if (!sentences) return text.slice(0, 150) + "…";
-  return sentences.slice(0, count).join("").trim();
-}
 
 /**
  * Plain-English description of when the brief was published, so readers
