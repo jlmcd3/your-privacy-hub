@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
 import { useAuth } from "@/hooks/useAuth";
 import { waitForSubscriptionActive } from "@/lib/checkoutConfirmation";
-import { PLATFORM_PRICING, INTELLIGENCE_PRICING } from "@/config/pricing";
+import { PRICING } from "@/config/pricing";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
