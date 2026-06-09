@@ -596,6 +596,7 @@ const Subscribe = () => {
       <SubscribeCheckoutModal
         open={checkoutOpen}
         interval={checkoutInterval}
+        tier={checkoutTier}
         onClose={() => setCheckoutOpen(false)}
         onComplete={handleCheckoutComplete}
       />
