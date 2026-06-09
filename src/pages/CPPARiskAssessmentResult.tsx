@@ -291,7 +291,8 @@ export default function CPPARiskAssessmentResult() {
                         />
                       </AccordionContent>
                     </AccordionItem>
-                  ))}
+                    );
+                  })}
                 </Accordion>
               </section>
             )}
