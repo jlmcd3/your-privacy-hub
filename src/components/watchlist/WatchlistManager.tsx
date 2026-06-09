@@ -3,70 +3,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Bell, Plus, X, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  INDUSTRIES,
+  JURISDICTIONS,
+  TOPICS,
+  type TaxonomyItem,
+} from "@/config/briefTaxonomy";
+
+// Map BriefPreferences taxonomy items to the {slug,label,flag} shape used by
+// the watchlist chips. Using the same source as BriefPreferences guarantees
+// that every option a user can pick for their weekly brief is also followable
+// here, with identical identifiers feeding the AI prompt personalisation.
+const toChip = (t: TaxonomyItem) => ({ slug: t.id, label: t.label, flag: t.icon });
 
 const SUGGESTED = {
-  jurisdictions: [
-    { slug: "european-union", label: "European Union", flag: "🇪🇺" },
-    { slug: "united-states",  label: "United States",  flag: "🇺🇸" },
-    { slug: "united-kingdom", label: "United Kingdom", flag: "🇬🇧" },
-    { slug: "france",         label: "France",         flag: "🇫🇷" },
-    { slug: "india",          label: "India",          flag: "🇮🇳" },
-    { slug: "china",          label: "China",          flag: "🇨🇳" },
-    { slug: "australia",      label: "Australia",      flag: "🇦🇺" },
-    { slug: "brazil",         label: "Brazil",         flag: "🇧🇷" },
-  ],
-  // Canonical topic list — kept in sync with TOPICS in src/pages/BriefPreferences.tsx
-  // so that what users follow on /watchlist matches what they can select for
-  // their weekly brief. Slugs MUST match BriefPreferences ids.
-  topics: [
-    { slug: "us-state-laws",       label: "US State Privacy Laws",                  flag: "🗺️" },
-    { slug: "gdpr-enforcement",    label: "GDPR Enforcement & DPA Activity",        flag: "🇪🇺" },
-    { slug: "ai-act-compliance",   label: "EU AI Act Compliance",                   flag: "🤖" },
-    { slug: "children-privacy",    label: "Children's Privacy & Age Verification",  flag: "👶" },
-    { slug: "adtech-consent",      label: "AdTech, Consent & Cookie Compliance",    flag: "🍪" },
-    { slug: "data-transfers",      label: "Cross-Border Data Transfers",            flag: "🔀" },
-    { slug: "health-data",         label: "Health & Medical Data Privacy",          flag: "🏥" },
-    { slug: "privacy-litigation",  label: "Privacy Litigation & Class Actions",     flag: "🏛️" },
-    { slug: "biometric-data",      label: "Biometric Data Privacy",                 flag: "👁️" },
-    { slug: "data-breach-response",label: "Data Breach & Incident Response",        flag: "🔓" },
-  ],
-  // Canonical industry list — kept in sync with INDUSTRIES in
-  // src/pages/BriefPreferences.tsx. Slugs MUST match BriefPreferences ids so
-  // a watchlist industry uses the same identifier as a brief-preference
-  // industry (INDUSTRY_SHORT_LABELS and INDUSTRY_KEYWORDS both key on these).
-  industries: [
-    { slug: "online-web",         label: "Online & Web Services",            flag: "🌐" },
-    { slug: "mobile-apps",        label: "Mobile Applications",              flag: "📱" },
-    { slug: "adtech",             label: "AdTech & Digital Media",           flag: "📊" },
-    { slug: "ai-companies",       label: "AI & Machine Learning",            flag: "🤖" },
-    { slug: "healthcare",         label: "Healthcare & Life Sciences",       flag: "🏥" },
-    { slug: "financial",          label: "Financial Services & Fintech",     flag: "🏦" },
-    { slug: "hr-employment",      label: "HR & Employment Data",             flag: "👔" },
-    { slug: "children-edtech",    label: "Children & EdTech",                flag: "👶" },
-    { slug: "retail-ecom",        label: "Retail & E-Commerce",              flag: "🛒" },
-    { slug: "data-brokers",       label: "Data Brokers",                     flag: "📂" },
-    { slug: "legal-services",     label: "Law Firm / Legal Services",        flag: "⚖️" },
-    { slug: "insurance",          label: "Insurance",                        flag: "🛡️" },
-    { slug: "telecom",            label: "Telecommunications",               flag: "📞" },
-    { slug: "gaming",             label: "Gaming & Entertainment",           flag: "🎮" },
-    { slug: "automotive",         label: "Automotive & Connected Vehicles",  flag: "🚗" },
-    { slug: "smart-home",         label: "Smart Home & IoT",                 flag: "🏠" },
-    { slug: "nonprofit",          label: "Non-Profit & NGO",                 flag: "🤝" },
-    { slug: "media-publishing",   label: "Media & Publishing",               flag: "📰" },
-    { slug: "government",         label: "Government & Public Sector",       flag: "🏛️" },
-    { slug: "cybersecurity",      label: "Cybersecurity",                    flag: "🔒" },
-    { slug: "real-estate",        label: "Real Estate & PropTech",           flag: "🏘️" },
-    { slug: "education",          label: "Education (Higher Ed)",            flag: "🎓" },
-    { slug: "consulting",         label: "Consulting & Advisory",            flag: "💼" },
-    { slug: "pharma",             label: "Pharma & Clinical Research",       flag: "💊" },
-    { slug: "social_media",       label: "Social Media & Platforms",         flag: "📱" },
-    { slug: "travel_hospitality", label: "Travel & Hospitality",             flag: "✈️" },
-    { slug: "biotech_genomics",   label: "Biotech & Genomics",               flag: "🧬" },
-    { slug: "energy_utilities",   label: "Energy & Utilities",               flag: "⚡" },
-    { slug: "identity_kyc",       label: "Identity Verification & KYC",      flag: "🪪" },
-    { slug: "manufacturing_iot",  label: "Manufacturing & Industrial IoT",   flag: "🏭" },
-    { slug: "cpg_loyalty",        label: "Consumer Goods & Loyalty Programs",flag: "🛍️" },
-  ],
+  jurisdictions: JURISDICTIONS.map(toChip),
+  topics: TOPICS.map(toChip),
+  industries: INDUSTRIES.map(toChip),
 };
 
 // Map watchlist type-key -> singular type stored in user_watchlist.type
