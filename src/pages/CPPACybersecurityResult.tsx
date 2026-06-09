@@ -138,6 +138,84 @@ export function CybersecurityReportBody({ row }: { row: any }) {
           </Accordion>
         </section>
       )}
+      {/* Sprint 1 #4 — Pre-audit readiness gap log */}
+      {Array.isArray(report?.controls) && (() => {
+        const isGap = (s?: string) => {
+          const x = (s || "").toLowerCase();
+          return x === "critical gap" || x === "gap" || x === "partial gap";
+        };
+        const gaps = report.controls.filter((c: any) => isGap(c.status));
+        if (gaps.length === 0) return null;
+        // Back-solve from the fixed April 1, 2028 audit submission deadline.
+        // Tighter buffer for higher-severity gaps so remediation lands well
+        // before the auditor walks in.
+        const AUDIT_DEADLINE = new Date("2028-04-01T00:00:00Z");
+        const targetForSeverity = (status: string): Date => {
+          const x = (status || "").toLowerCase();
+          const d = new Date(AUDIT_DEADLINE);
+          if (x === "critical gap") d.setUTCMonth(d.getUTCMonth() - 6);
+          else if (x === "gap") d.setUTCMonth(d.getUTCMonth() - 3);
+          else d.setUTCMonth(d.getUTCMonth() - 1);
+          return d;
+        };
+        const fmt = (d: Date) =>
+          d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+        // Acceptance criteria: prefer the first matched FSOR agency_response
+        // (that's what the regulator explicitly said it expects to see).
+        // Fall back to the control's remediation text.
+        const acceptanceFor = (c: any): { text: string; source: "FSOR" | "Remediation" | "None" } => {
+          const fsor = Array.isArray(c.fsor_commentary) ? c.fsor_commentary : [];
+          const firstResp = fsor.find((f: any) => f?.agency_response)?.agency_response;
+          if (firstResp) return { text: firstResp, source: "FSOR" };
+          if (c.remediation) return { text: c.remediation, source: "Remediation" };
+          return { text: "Document evidence demonstrating the control is implemented, tested, and reviewed on the cadence the regulation contemplates.", source: "None" };
+        };
+        return (
+          <section className="bg-card border rounded-lg p-6">
+            <h2 className="mb-1">Pre-Audit Readiness Gap Log</h2>
+            <p className="text-xs text-muted-foreground mb-4">
+              Remediation tasks for every Gap, Critical Gap, and Partial Gap control. Target dates back-solved
+              from the April 1, 2028 audit submission deadline (Critical Gap = 6 months before, Gap = 3 months
+              before, Partial Gap = 1 month before). Acceptance criteria use the FSOR agency response where
+              available — that's what the agency explicitly said it expects to see.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead className="text-left bg-muted/40">
+                  <tr>
+                    <th className="p-2 border">Control</th>
+                    <th className="p-2 border">Status</th>
+                    <th className="p-2 border">Target date</th>
+                    <th className="p-2 border">Acceptance criteria</th>
+                    <th className="p-2 border">Source</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gaps.map((c: any, i: number) => {
+                    const accept = acceptanceFor(c);
+                    return (
+                      <tr key={i} className="border-t align-top">
+                        <td className="p-2 border">{c.control}</td>
+                        <td className="p-2 border">
+                          <span className={`px-2 py-0.5 text-xs rounded ${controlStatusColor(c.status)}`}>
+                            {c.status}
+                          </span>
+                        </td>
+                        <td className="p-2 border font-mono text-[11px] whitespace-nowrap">
+                          {fmt(targetForSeverity(c.status))}
+                        </td>
+                        <td className="p-2 border">{accept.text}</td>
+                        <td className="p-2 border text-[11px] text-muted-foreground">{accept.source}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        );
+      })()}
+
       {/* Sprint 1 #7 — Existing-framework cross-walk */}
       <section className="bg-card border rounded-lg p-6">
         <h2 className="mb-1">Framework Mapping</h2>
