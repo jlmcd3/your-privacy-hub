@@ -319,18 +319,6 @@ export default function MyReports() {
 
       });
 
-      (cppaScope.data || []).forEach((r: any) => {
-        const inScope = r.in_scope === true;
-        all.push({
-          id: r.id, tool: "cppa_scope", tool_label: TOOL_LABEL.cppa_scope,
-          created_at: r.created_at,
-          status: "complete",
-          summary: inScope ? "In scope — CPPA obligations apply" : "Out of scope",
-          view_path: `/cppa-scope-checker`,
-          ...clientMeta(null),
-        });
-      });
-
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
       setLoading(false);
