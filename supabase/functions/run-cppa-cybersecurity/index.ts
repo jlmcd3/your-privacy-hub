@@ -240,8 +240,31 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       .eq("status", "current");
     const { data: fsorRows } = await supabase
       .from("cppa_fsor_commentary")
-      .select("id, regulation_citation, page_ref")
+      .select("id, regulation_citation, page_ref, fsor_package, comment_summary, agency_response, source_url")
       .in("regulation_citation", CYBER_CITATIONS);
+
+    // Per-control "What the agency said" attachment.
+    // The 18 enumerated cybersecurity components live in § 7122(a)(1)–(18).
+    // For each control, attach matching subsection commentary plus the
+    // section-level § 7122 commentary as context. Controls whose mapping
+    // resolves to §§ 7125–7128 (currently none of the 18) will produce
+    // an empty array — the UI omits the callout in that case.
+    const fsorByCitation = new Map<string, any[]>();
+    for (const row of fsorRows ?? []) {
+      const key = row.regulation_citation;
+      if (!fsorByCitation.has(key)) fsorByCitation.set(key, []);
+      fsorByCitation.get(key)!.push(row);
+    }
+    const sectionFsor = fsorByCitation.get("11 CCR § 7122") ?? [];
+    report.controls = report.controls.map((c: any, idx: number) => {
+      const subsection = `11 CCR § 7122(a)(${idx + 1})`;
+      const subFsor = fsorByCitation.get(subsection) ?? [];
+      return {
+        ...c,
+        fsor_citation: subsection,
+        fsor_commentary: [...subFsor, ...sectionFsor],
+      };
+    });
 
     const obligation_snapshot = {
       captured_at: new Date().toISOString(),
@@ -258,6 +281,7 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       .from("cppa_assessments")
       .update({ status: "complete", report_data: report, obligation_snapshot })
       .eq("id", assessment_id);
+
   } catch (e) {
     console.error("[CPPA Cyber] runAssessment error:", e);
     await supabase
