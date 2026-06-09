@@ -53,13 +53,19 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
 
   const addItem = async (type: string, slug: string, label: string, flag?: string) => {
     if (!user || items.find(i => i.slug === slug)) return;
+    // Upsert against the (user_id, type, slug) unique constraint so a
+    // double-click or two open tabs can't create duplicate rows.
     const { data } = await (supabase as any)
       .from("user_watchlist")
-      .insert({ user_id: user.id, type, slug, label, flag })
+      .upsert(
+        { user_id: user.id, type, slug, label, flag },
+        { onConflict: "user_id,type,slug", ignoreDuplicates: false }
+      )
       .select()
       .single();
-    if (data) setItems(prev => [...prev, data]);
+    if (data) setItems(prev => (prev.find(i => i.id === data.id) ? prev : [...prev, data]));
   };
+
 
   const removeItem = async (id: string) => {
     await (supabase as any).from("user_watchlist").delete().eq("id", id);
