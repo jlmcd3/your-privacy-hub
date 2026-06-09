@@ -56,7 +56,7 @@ export default function RegistrationMyFilings() {
     toast.success("Order deleted");
   }
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from("registration_orders")
@@ -65,9 +65,9 @@ export default function RegistrationMyFilings() {
       .order("created_at", { ascending: false });
     setOrders(data || []);
     setLoading(false);
-  }
+  }, [user]);
 
-  useEffect(() => { load(); }, [user]);
+  useEffect(() => { load(); }, [load]);
 
   async function toggleReminders(orderId: string, enabled: boolean) {
     const { error } = await supabase
