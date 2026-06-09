@@ -343,6 +343,27 @@ export default function CPPACybersecurityResult() {
   const purchased = searchParams.get("purchased") === "true";
   const [row, setRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [priorId, setPriorId] = useState<string | null>(null);
+
+  // Look for an earlier cybersecurity assessment by the same user (for drift compare).
+  useEffect(() => {
+    if (!row?.user_id || !row?.id || !row?.created_at) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("cppa_assessments")
+        .select("id")
+        .eq("user_id", row.user_id)
+        .eq("module", "cybersecurity")
+        .eq("status", "complete")
+        .lt("created_at", row.created_at)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled) setPriorId((data as any)?.id ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [row?.user_id, row?.id, row?.created_at]);
 
   useEffect(() => {
     if (!id) return;
