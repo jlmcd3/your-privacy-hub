@@ -75,6 +75,7 @@ Deno.serve(async (req) => {
       : [];
     const topics: string[] = Array.isArray(prefs.topics) ? prefs.topics : [];
     const format: string = typeof prefs.format === "string" ? prefs.format : "full";
+    const role: string | null = typeof prefs.role === "string" && prefs.role ? prefs.role : null;
 
     // ── 3. Reconcile user_watchlist for the three taxonomy fields and
     //    persist `format` to user_brief_preferences. generate-custom-brief
