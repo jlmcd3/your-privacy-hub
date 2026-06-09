@@ -6,7 +6,7 @@ import { Helmet } from "react-helmet-async";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
-import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+// useSubscriptionTier removed — registration is per-filing for all tiers.
 import PageContainer from "@/components/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
