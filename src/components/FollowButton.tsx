@@ -64,16 +64,23 @@ const FollowButton = ({ followType, followKey, label }: FollowButtonProps) => {
 
             {status === "duplicate" ? (
               <p className="text-sm text-primary font-medium">You're already following {label}!</p>
+            ) : !user ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Sign in to follow {label}. Alerts are sent to your account email.
+                </p>
+                <Link
+                  to="/auth"
+                  className="block w-full py-2.5 text-center text-sm font-semibold text-primary-foreground bg-primary rounded-lg hover:opacity-90 transition-colors"
+                >
+                  Sign in
+                </Link>
+              </div>
             ) : (
               <form onSubmit={handleFollow} className="space-y-3">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                  required
-                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground outline-none focus:border-primary transition-colors"
-                />
+                <p className="text-sm text-muted-foreground">
+                  Alerts will be sent to <span className="font-medium text-foreground">{user.email}</span>.
+                </p>
                 <button
                   type="submit"
                   disabled={status === "loading"}
