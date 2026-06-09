@@ -200,7 +200,7 @@ export function AccountClientsSection() {
 
   useEffect(() => {
     if (personal) setPersonalName(personal.name);
-  }, [personal?.name]);
+  }, [personal]);
 
   function handleAddClick() {
     if (!isPremium) {
