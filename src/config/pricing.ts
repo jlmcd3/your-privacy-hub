@@ -902,6 +902,13 @@ export function getToolPriceDisplay(toolKey: ToolKey, _tier?: string): string {
  *    tier is any active subscription (non-zero free-run pool), OR
  *  - it is a Convenience Tool AND the tier has a non-zero free-run pool.
  * Smart Tools are never pool-eligible. Free / anonymous users get nothing.
+ *
+ * IMPORTANT: This function has no knowledge of trial status. Callers that
+ * need to enforce trial restrictions should read `granularTier` from
+ * `useSubscriptionTier` — it already collapses to `"free"` during a trial,
+ * so passing it here yields the correct (no-access) result automatically.
+ * Do not pass a raw `subscription_type` string from `profiles` without
+ * the trial override applied.
  */
 export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
   if (!tier) return false;
