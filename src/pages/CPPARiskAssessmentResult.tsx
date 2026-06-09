@@ -10,7 +10,18 @@ import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCallout";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
-// CitationVerificationBadge removed from user-facing report; verification handled in admin/auditor tools.
+import { AdminOnly } from "@/components/AdminOnly";
+
+// Truncate to first sentence (or 200 chars if no sentence boundary).
+const firstSentence = (text: string): string => {
+  if (!text) return "";
+  const match = text.match(/^[^.!?]+[.!?]/);
+  return match ? match[0].trim() : text.slice(0, 200).trim();
+};
+
+// Filter: a domain only displays in the user-facing report if it has a non-empty finding.
+const hasUserFacingFinding = (d: any): boolean =>
+  typeof d?.finding === "string" && d.finding.trim().length > 0;
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -166,19 +177,23 @@ export default function CPPARiskAssessmentResult() {
             </section>
 
             {report?.accuracy_caveat && (
-              <section className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 rounded">
-                <p className="font-semibold text-red-800 dark:text-red-200 mb-1">Accuracy caveat</p>
-                <p className="text-sm">{report.accuracy_caveat}</p>
-              </section>
+              <AdminOnly>
+                <section className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-950/20 rounded">
+                  <p className="font-semibold text-red-800 dark:text-red-200 mb-1">Accuracy caveat <span className="text-[10px] font-normal uppercase tracking-wider text-red-700">(admin)</span></p>
+                  <p className="text-sm">{report.accuracy_caveat}</p>
+                </section>
+              </AdminOnly>
             )}
 
             {Array.isArray(report?.requires_attorney_review) && report.requires_attorney_review.length > 0 && (
-              <section className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 rounded">
-                <p className="font-semibold mb-2">Requires attorney review</p>
-                <ul className="list-disc pl-5 space-y-1 text-sm">
-                  {report.requires_attorney_review.map((s: string, i: number) => <li key={i}>{s}</li>)}
-                </ul>
-              </section>
+              <AdminOnly>
+                <section className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 rounded">
+                  <p className="font-semibold mb-2">Requires attorney review <span className="text-[10px] font-normal uppercase tracking-wider text-amber-700">(admin)</span></p>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    {report.requires_attorney_review.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                  </ul>
+                </section>
+              </AdminOnly>
             )}
 
             {report?.scope_confirmation && (
@@ -194,50 +209,56 @@ export default function CPPARiskAssessmentResult() {
               </section>
             )}
 
-            {report?.enforcement_context && (
+            {report?.enforcement_context
+              && typeof report.enforcement_context === "string"
+              && report.enforcement_context.trim() !== ""
+              && report.enforcement_context.trim().toLowerCase() !== "null" && (
               <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
                 <p className="font-semibold mb-1">Enforcement Context</p>
                 <p>{report.enforcement_context}</p>
               </section>
             )}
 
-            {Array.isArray(report?.domains) && report.domains.length > 0 && (() => {
+            {Array.isArray(report?.domains) && report.domains.filter(hasUserFacingFinding).length > 0 && (() => {
+              const visibleDomains = report.domains.filter(hasUserFacingFinding);
               const stratified: Record<ConfidenceTier, any[]> = {
                 "High-confidence": [], "Inference": [], "Heuristic": [],
               };
-              for (const d of report.domains) stratified[classifyDomain(d)].push(d);
+              for (const d of visibleDomains) stratified[classifyDomain(d)].push(d);
               const order: ConfidenceTier[] = ["High-confidence", "Inference", "Heuristic"];
               return (
-                <section className="bg-card border rounded-lg p-6">
-                  <h2 className="mb-1">Confidence Stratification</h2>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Domains grouped by how strongly the conclusion is grounded in statutory or regulatory authority and agency commentary (FSOR). Use this to prioritise attorney review.
-                  </p>
-                  <div className="grid md:grid-cols-3 gap-3">
-                    {order.map((tier) => (
-                      <div key={tier} className={`rounded-lg border p-3 ${tierColor(tier)}`}>
-                        <p className="text-[11px] font-bold tracking-wider uppercase">{tier}</p>
-                        <p className="text-2xl font-semibold mt-1">{stratified[tier].length}</p>
-                        <p className="text-[11px] leading-snug mt-1 opacity-80">{tierBlurb[tier]}</p>
-                        {stratified[tier].length > 0 && (
-                          <ul className="mt-2 text-[11px] list-disc pl-4 space-y-0.5">
-                            {stratified[tier].map((d: any, i: number) => (
-                              <li key={i}>{d.domain}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </section>
+                <AdminOnly>
+                  <section className="bg-card border rounded-lg p-6">
+                    <h2 className="mb-1">Confidence Stratification <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span></h2>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Domains grouped by how strongly the conclusion is grounded in statutory or regulatory authority and agency commentary (FSOR). Use this to prioritise attorney review.
+                    </p>
+                    <div className="grid md:grid-cols-3 gap-3">
+                      {order.map((tier) => (
+                        <div key={tier} className={`rounded-lg border p-3 ${tierColor(tier)}`}>
+                          <p className="text-[11px] font-bold tracking-wider uppercase">{tier}</p>
+                          <p className="text-2xl font-semibold mt-1">{stratified[tier].length}</p>
+                          <p className="text-[11px] leading-snug mt-1 opacity-80">{tierBlurb[tier]}</p>
+                          {stratified[tier].length > 0 && (
+                            <ul className="mt-2 text-[11px] list-disc pl-4 space-y-0.5">
+                              {stratified[tier].map((d: any, i: number) => (
+                                <li key={i}>{d.domain}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </AdminOnly>
               );
             })()}
 
-            {Array.isArray(report?.domains) && report.domains.length > 0 && (
+            {Array.isArray(report?.domains) && report.domains.filter(hasUserFacingFinding).length > 0 && (
               <section className="bg-card border rounded-lg p-6">
                 <h2 className="mb-4">Domain Findings</h2>
                 <Accordion type="multiple">
-                  {report.domains.map((d: any, i: number) => {
+                  {report.domains.filter(hasUserFacingFinding).map((d: any, i: number) => {
                     const tier = classifyDomain(d);
                     return (
                     <AccordionItem key={i} value={`d${i}`}>
@@ -246,39 +267,45 @@ export default function CPPARiskAssessmentResult() {
                           <span>{d.domain}</span>
                           {d.score != null && <span className="text-xs text-muted-foreground">{d.score}/100</span>}
                           {d.status && <span className={`px-2 py-0.5 text-xs rounded ${statusColor(d.status)}`}>{d.status}</span>}
-                          <span className={`px-2 py-0.5 text-xs rounded border ${tierColor(tier)}`}>{tier}</span>
-                          {d.attorney_review_needed && (
-                            <span className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800">Attorney review</span>
-                          )}
+                          <AdminOnly>
+                            <span className={`px-2 py-0.5 text-xs rounded border ${tierColor(tier)}`}>{tier}</span>
+                            {d.attorney_review_needed && (
+                              <span className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800">Attorney review</span>
+                            )}
+                          </AdminOnly>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-2">
                         {d.finding && <p className="text-sm"><strong>Finding:</strong> {d.finding}</p>}
-                        {d.regulatory_basis && <p className="text-sm"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>}
+                        <AdminOnly>
+                          {d.regulatory_basis && <p className="text-sm"><strong>Regulatory basis <span className="text-[10px] uppercase tracking-wider text-muted-foreground">(admin)</span>:</strong> {d.regulatory_basis}</p>}
+                        </AdminOnly>
                         {d.remediation && <p className="text-sm"><strong>Remediation:</strong> {d.remediation}</p>}
                         {d.priority && <p className="text-xs text-muted-foreground">Priority: {d.priority}</p>}
                         {Array.isArray(d.fsor_commentary) && d.fsor_commentary.length > 0 && (
                           <div className="mt-3 border-l-2 border-brand-teal bg-brand-teal/5 pl-3 py-2 space-y-2">
                             <p className="text-[11px] font-bold tracking-wider uppercase text-brand-teal">
-                              What the agency said
+                              Background
                             </p>
                             {d.fsor_commentary.slice(0, 3).map((f: any, fi: number) => (
                               <div key={f.id ?? fi} className="text-xs space-y-1">
-                                <p className="font-mono text-[10px] text-muted-foreground">
-                                  {f.regulation_citation}
-                                  {f.fsor_package ? ` · ${f.fsor_package}` : ""}
-                                  {f.page_ref ? ` · ${f.page_ref}` : ""}
-                                </p>
                                 {f.comment_summary && (
-                                  <p><strong>Comment:</strong> {f.comment_summary}</p>
+                                  <p>{firstSentence(f.comment_summary)}</p>
                                 )}
-                                {f.agency_response && (
-                                  <p><strong>Agency response:</strong> {f.agency_response}</p>
-                                )}
-                                {f.source_url && (
-                                  <a href={f.source_url} target="_blank" rel="noopener noreferrer"
-                                    className="text-brand-teal underline">Source</a>
-                                )}
+                                <AdminOnly>
+                                  <p className="font-mono text-[10px] text-muted-foreground">
+                                    {f.regulation_citation}
+                                    {f.fsor_package ? ` · ${f.fsor_package}` : ""}
+                                    {f.page_ref ? ` · ${f.page_ref}` : ""}
+                                  </p>
+                                  {f.agency_response && (
+                                    <p><strong>Agency response:</strong> {f.agency_response}</p>
+                                  )}
+                                  {f.source_url && (
+                                    <a href={f.source_url} target="_blank" rel="noopener noreferrer"
+                                      className="text-brand-teal underline">Source</a>
+                                  )}
+                                </AdminOnly>
                               </div>
                             ))}
                           </div>
@@ -324,78 +351,93 @@ export default function CPPARiskAssessmentResult() {
             )}
 
             {Array.isArray(report?.citation_ledger) && report.citation_ledger.length > 0 && (
-              <section className="bg-card border rounded-lg p-6">
-                <h2 className="mb-3">Citation Ledger</h2>
-                {report?.validation_summary && (
-                  <p className="text-sm text-muted-foreground mb-3 italic">{report.validation_summary}</p>
-                )}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="text-left bg-muted/40">
-                      <tr>
-                        <th className="p-2">Statement</th>
-                        <th className="p-2">Citation</th>
-                        <th className="p-2">Classification</th>
-                        <th className="p-2">Corrected</th>
-                        <th className="p-2">Note</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {report.citation_ledger.map((e: any, i: number) => (
-                        <tr key={i} className="border-t align-top">
-                          <td className="p-2">{e.statement}</td>
-                          <td className="p-2 font-mono text-xs">{e.citation}</td>
-                          <td className="p-2">
-                            <span className={`px-2 py-0.5 text-xs rounded ${ledgerColor(e.classification)}`}>
-                              {e.classification}
-                            </span>
-                          </td>
-                          <td className="p-2 font-mono text-xs">{e.corrected_citation ?? "—"}</td>
-                          <td className="p-2 text-xs text-muted-foreground">{e.note}</td>
+              <AdminOnly>
+                <section className="bg-card border rounded-lg p-6">
+                  <h2 className="mb-3">Citation Ledger <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span></h2>
+                  {report?.validation_summary && (
+                    <p className="text-sm text-muted-foreground mb-3 italic">{report.validation_summary}</p>
+                  )}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="text-left bg-muted/40">
+                        <tr>
+                          <th className="p-2">Statement</th>
+                          <th className="p-2">Citation</th>
+                          <th className="p-2">Classification</th>
+                          <th className="p-2">Corrected</th>
+                          <th className="p-2">Note</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
+                      </thead>
+                      <tbody>
+                        {report.citation_ledger.map((e: any, i: number) => (
+                          <tr key={i} className="border-t align-top">
+                            <td className="p-2">{e.statement}</td>
+                            <td className="p-2 font-mono text-xs">{e.citation}</td>
+                            <td className="p-2">
+                              <span className={`px-2 py-0.5 text-xs rounded ${ledgerColor(e.classification)}`}>
+                                {e.classification}
+                              </span>
+                            </td>
+                            <td className="p-2 font-mono text-xs">{e.corrected_citation ?? "—"}</td>
+                            <td className="p-2 text-xs text-muted-foreground">{e.note}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              </AdminOnly>
+            )}
+
+            {Array.isArray(report?.debug_review_notes) && report.debug_review_notes.length > 0 && (
+              <AdminOnly>
+                <section className="p-4 border-l-4 border-slate-400 bg-slate-50 dark:bg-slate-950/20 rounded">
+                  <p className="font-semibold mb-2">Debug review notes <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span></p>
+                  <ul className="list-disc pl-5 space-y-1 text-xs text-muted-foreground">
+                    {report.debug_review_notes.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                  </ul>
+                </section>
+              </AdminOnly>
             )}
 
             {Array.isArray(report?.fsor_commentary) && report.fsor_commentary.length > 0 && (
-              <section className="bg-card border rounded-lg p-6">
-                <h2 className="mb-1">Agency Rationale</h2>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Non-binding interpretive context from the California Privacy Protection Agency's
-                  Final Statement of Reasons (FSOR). Shows why the cited regulations read the way
-                  they do, and what concerns the Agency was responding to.
-                </p>
-                <div className="space-y-4">
-                  {report.fsor_commentary.map((f: any, i: number) => (
-                    <details key={f.id ?? i} className="border rounded p-3 group">
-                      <summary className="cursor-pointer text-sm font-semibold flex flex-wrap gap-2 items-baseline">
-                        <span className="font-mono text-xs text-brand-teal">
-                          {f.regulation_citation}
-                        </span>
-                        <span className="text-foreground">{f.comment_summary}</span>
-                        <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">
-                          {f.fsor_package}{f.page_ref ? ` · ${f.page_ref}` : ""}
-                        </span>
-                      </summary>
-                      <div className="mt-3 text-sm whitespace-pre-wrap text-muted-foreground">
-                        {f.agency_response}
-                      </div>
-                      {Array.isArray(f.topic_tags) && f.topic_tags.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {f.topic_tags.map((t: string) => (
-                            <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                              {t}
-                            </span>
-                          ))}
+              <AdminOnly>
+                <section className="bg-card border rounded-lg p-6">
+                  <h2 className="mb-1">Agency Rationale <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span></h2>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Non-binding interpretive context from the California Privacy Protection Agency's
+                    Final Statement of Reasons (FSOR). Shows why the cited regulations read the way
+                    they do, and what concerns the Agency was responding to.
+                  </p>
+                  <div className="space-y-4">
+                    {report.fsor_commentary.map((f: any, i: number) => (
+                      <details key={f.id ?? i} className="border rounded p-3 group">
+                        <summary className="cursor-pointer text-sm font-semibold flex flex-wrap gap-2 items-baseline">
+                          <span className="font-mono text-xs text-brand-teal">
+                            {f.regulation_citation}
+                          </span>
+                          <span className="text-foreground">{f.comment_summary}</span>
+                          <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">
+                            {f.fsor_package}{f.page_ref ? ` · ${f.page_ref}` : ""}
+                          </span>
+                        </summary>
+                        <div className="mt-3 text-sm whitespace-pre-wrap text-muted-foreground">
+                          {f.agency_response}
                         </div>
-                      )}
-                    </details>
-                  ))}
-                </div>
-              </section>
+                        {Array.isArray(f.topic_tags) && f.topic_tags.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {f.topic_tags.map((t: string) => (
+                              <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </details>
+                    ))}
+                  </div>
+                </section>
+              </AdminOnly>
             )}
 
 
@@ -417,8 +459,12 @@ export default function CPPARiskAssessmentResult() {
               <DownloadWordButton
                 text={[
                   report?.executive_summary,
-                  ...(Array.isArray(report?.domains) ? report.domains.map((d: any) =>
-                    `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding ?? ""}\n${d.remediation ?? ""}`) : [])
+                  ...(Array.isArray(report?.domains)
+                    ? report.domains
+                        .filter(hasUserFacingFinding)
+                        .map((d: any) =>
+                          `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding}\n${d.remediation ?? ""}`)
+                    : [])
                 ].filter(Boolean).join("\n\n")}
                 label="CPPA Risk Assessment"
                 buttonLabel="Download Word — Risk Assessment"
@@ -462,13 +508,15 @@ export default function CPPARiskAssessmentResult() {
                   memoLines.push("");
                 }
                 return (
-                  <DownloadWordButton
-                    text={memoLines.join("\n")}
-                    label="Regulator Rationale Memo"
-                    subtitle="CPPA Risk Assessment — FSOR Appendix"
-                    buttonLabel="Download Word — Regulator Memo"
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
-                  />
+                  <AdminOnly>
+                    <DownloadWordButton
+                      text={memoLines.join("\n")}
+                      label="Regulator Rationale Memo"
+                      subtitle="CPPA Risk Assessment — FSOR Appendix"
+                      buttonLabel="Download Word — Regulator Memo (admin)"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
+                    />
+                  </AdminOnly>
                 );
               })()}
 

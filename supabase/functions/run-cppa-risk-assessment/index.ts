@@ -132,7 +132,7 @@ const GENERATION_SYSTEM =
 ABSOLUTE GROUNDING RULES (non-negotiable):
 - The RETRIEVED AUTHORITIES block below is the ONLY permitted source of statutory and regulatory citations. Every citation you use must appear VERBATIM in that block's "citation" fields.
 - The RETRIEVED DEADLINES block is the ONLY permitted source of dates and compliance deadlines. Never state a date, effective date, or deadline that is not in that block. Do not compute dates.
-- If you cannot support a statement with a retrieved authority or deadline, you must either omit it or mark it "Requires attorney review" — never fill the gap from your own knowledge.
+- If you cannot support a statement with a retrieved authority or deadline, you must set finding and regulatory_basis to null for that domain. Do not generate placeholder text or warning phrases — never fill the gap from your own knowledge.
 - The ENFORCEMENT CONTEXT block is ILLUSTRATIVE and NON-BINDING. You may reference it to show enforcement focus, but never cite it as the legal basis for an obligation, and never present an FTC matter as CPPA precedent.
 
 CALIFORNIA-SPECIFIC ACCURACY RULES (apply only as the retrieved text supports; do not import other regimes):
@@ -275,44 +275,65 @@ async function getEnforcementContext(sector?: string) {
   } catch { return { text: "", results: [] }; }
 }
 
+// Validator-emitted strings that are internal QA diagnostics — never surface in
+// the user-facing "requires_attorney_review" list. They are preserved separately
+// in `debug_review_notes` for admin/eval-harness consumption.
+const DEBUG_PREFIXES = [
+  "Unsupported citation removed",
+  "Review citation",
+  "Contradicted by authority",
+  "Validator output",
+];
+const isDebugString = (s: string) => DEBUG_PREFIXES.some((p) => s.startsWith(p));
+
 function mergeValidation(report: any, validation: any, corpusCitations: Set<string>) {
   const ledger = Array.isArray(validation?.citation_ledger) ? validation.citation_ledger : [];
-  const attorneyReview: string[] = Array.isArray(validation?.requires_attorney_review)
+  const incomingAttorneyReview: string[] = Array.isArray(validation?.requires_attorney_review)
     ? [...validation.requires_attorney_review] : [];
+  const attorneyReview: string[] = [];
+  const debugEntries: string[] = [];
+
+  for (const m of incomingAttorneyReview) {
+    if (typeof m !== "string") continue;
+    if (isDebugString(m)) debugEntries.push(m); else attorneyReview.push(m);
+  }
 
   let hasBlocking = false;
+
+  const pushMsg = (m: string) => {
+    if (isDebugString(m)) debugEntries.push(m); else attorneyReview.push(m);
+  };
 
   for (const entry of ledger) {
     const cls = entry?.classification ?? "";
     const cite = entry?.citation ?? "";
     const note = entry?.note ?? "";
 
-    // Strip validator-proposed citations not in corpus
     if (entry?.corrected_citation && !corpusCitations.has(entry.corrected_citation)) {
       entry.corrected_citation = null;
-      entry.note = `${note} (proposed correction dropped — not in corpus)`.trim();
+      entry.note = `${note} (proposed correction dropped — not in verified authority set)`.trim();
     }
 
     if (cls === "Unsupported" || cls === "Not-in-corpus") {
       hasBlocking = true;
-      // Blank that citation across domains and top_risks
       blankCitation(report, cite);
-      attorneyReview.push(`Unsupported citation removed: "${cite}" — ${note}`);
+      pushMsg(`Unsupported citation removed: "${cite}" — ${note}`);
     } else if (cls === "Overstated" || cls === "Partially supported") {
       attachNote(report, cite, note);
-      attorneyReview.push(`Review citation "${cite}": ${note}`);
+      pushMsg(`Review citation "${cite}": ${note}`);
     } else if (cls === "Contradicted-by-authority") {
       hasBlocking = true;
       flagContradiction(report, cite, note, entry?.statement ?? "");
-      attorneyReview.push(`Contradicted by authority: "${entry?.statement ?? cite}" — ${note}`);
+      pushMsg(`Contradicted by authority: "${entry?.statement ?? cite}" — ${note}`);
     }
   }
 
   report.citation_ledger = ledger;
   report.validation_summary = validation?.summary ?? null;
   report.requires_attorney_review = Array.from(new Set(attorneyReview));
+  report.debug_review_notes = Array.from(new Set(debugEntries));
   if (hasBlocking) {
-    report.accuracy_caveat = "Some legal citations or conclusions in this draft could not be verified against the corpus and have been flagged for attorney review.";
+    report.accuracy_caveat = "Some legal citations or conclusions in this draft could not be verified against the statutory or regulatory authority on point and have been flagged for attorney review.";
   }
   return report;
 }
@@ -435,7 +456,7 @@ Return JSON:
     "score": 0,
     "status": "Compliant|Partial|Gap|Critical Gap",
     "finding": "2-3 sentences",
-    "regulatory_basis": "cite the exact [A#] citation(s); if none supports this domain, write 'No retrieved authority on point — requires attorney review'",
+    "regulatory_basis": "cite the exact [A#] citation(s); if no retrieved authority supports this domain, set both finding and regulatory_basis to null",
     "remediation": "specific steps",
     "priority": "Immediate|Within 90 days|Within 6 months|Monitor",
     "confidence_level": "High|Medium|Low",
@@ -449,7 +470,7 @@ Return JSON:
 
 Domains to assess (one object each): Consumer Rights Infrastructure; Privacy Notices and Transparency; Opt-Out of Sale and Sharing; Sensitive Personal Information; Automated Decision-Making; Data Retention and Minimisation; Third-Party Contracts and Data Sharing; Incident Response and Breach Notification; Employee Notice and Training; CPPA Audit Readiness.
 
-For any domain with no retrieved authority on point, set regulatory_basis to the attorney-review phrase above and attorney_review_needed=true rather than inventing a citation.`;
+For any domain with no retrieved authority on point, set BOTH finding and regulatory_basis to null and attorney_review_needed=true rather than inventing a citation or emitting a placeholder phrase.`;
 
     const tGen = Date.now();
     const gen = await generateOrRetry("claude-sonnet-4-6", GENERATION_SYSTEM, genUser, 16000, "generate");
