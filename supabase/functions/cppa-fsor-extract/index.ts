@@ -384,14 +384,27 @@ Deno.serve(async (req) => {
       units = extractFsor(pageText, pageFrom, body.start_anchor, body.stop_anchor);
     } else {
       // Document-shape guard: page-count uses cheap doc.numPages; shape sample
-      // is the first 5 pages of the requested window only.
+      // is the first 5 pages of the requested window only. Whitespace is
+      // collapsed before testing because per-page running headers contain
+      // artifacts that defeat literal substring matching. Column-header tokens
+      // appear only on table-start pages, so they are informational only.
       const sampleEnd = Math.min(pageTo, pageFrom + 4);
       const { pageText: sampleText } = await loadPagesRange(doc, pageFrom, sampleEnd);
-      const appendixHits = sampleText.filter((t) => /FSOR APPENDIX/i.test(t)).length;
-      const tableHits = sampleText.filter(
-        (t) => /Summary of Comments/i.test(t) || /Agency Response/i.test(t),
-      ).length;
-      const shapeOk = appendixHits > sampleText.length / 2 && tableHits >= 1;
+      const perPage = sampleText.map((t, i) => {
+        const norm = (t || "").replace(/\s+/g, " ").trim();
+        return {
+          page: pageFrom + i,
+          matched: {
+            fsor_appendix: /FSOR\s+APPENDIX/i.test(norm),
+            summary_of_comments: /Summary\s+of\s+Comments?/i.test(norm),
+            agency_response: /Agency\s+Response/i.test(norm),
+          },
+        };
+      });
+      const appendixHits = perPage.filter((p) => p.matched.fsor_appendix).length;
+      const anySummary = perPage.some((p) => p.matched.summary_of_comments);
+      const anyAgency = perPage.some((p) => p.matched.agency_response);
+      const shapeOk = appendixHits > perPage.length / 2;
       const lengthOk = totalPages > 100;
       if (!shapeOk || !lengthOk) {
         return json(
@@ -399,9 +412,14 @@ Deno.serve(async (req) => {
             error: "document_shape_mismatch",
             url: source_url,
             page_count: totalPages,
-            failed_check: !shapeOk
-              ? `shape: appendix_markers=${appendixHits}/${sampleText.length}, table_markers=${tableHits}/${sampleText.length}`
-              : `length: ${totalPages} pages (need > 100)`,
+            failed_check: !lengthOk
+              ? `length: ${totalPages} pages (need > 100)`
+              : `shape: appendix_markers=${appendixHits}/${perPage.length} (need majority match on /FSOR\\s+APPENDIX/i)`,
+            sampled_pages: perPage,
+            informational: {
+              any_summary_of_comments: anySummary,
+              any_agency_response: anyAgency,
+            },
             total_units: 0,
             units: [],
             total_pages: totalPages,
