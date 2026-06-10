@@ -153,6 +153,8 @@ export default function WorkspaceSidebar() {
 
   const isPersonalActive = !!personal && activeClient?.id === personal.id;
 
+  if (!user) return null;
+
   return (
     <aside
       aria-label="Workspace navigation"
