@@ -576,7 +576,7 @@ export default function CPPARiskAssessment() {
               </div>
 
               <div>
-                <Label>I-9: Is there an existing GDPR DPIA (or other PIA) for this activity? * <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
+                <Label>I-9: Is there an existing GDPR DPIA (or other PIA) for this activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
                 <div className="mt-2"><Radio name="i9" options={["Yes", "No"]} value={i9HasDpia} onChange={setI9HasDpia} /></div>
                 {i9HasDpia === "Yes" && (
                   <Textarea
