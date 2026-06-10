@@ -113,7 +113,9 @@ function extractFsor(
   for (let i = 0; i < pageText.length; i++) {
     parts.push(`${MARK}${i + 1}\u0002 ${pageText[i]}`);
   }
-  let full = parts.join(" ");
+  const baseFull = parts.join(" ");
+  let full = baseFull;
+  let sliceOffset = 0;
 
   // Whitespace- and case-insensitive anchor finder.
   // PDF text extraction can insert arbitrary spacing, NBSPs, or page markers
