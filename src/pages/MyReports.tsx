@@ -63,6 +63,16 @@ type ReportRow = {
   client_id?: string | null;
   client_name?: string | null;
   is_personal_client?: boolean;
+  is_draft?: boolean;
+};
+
+// Map tool_sessions.tool_type -> intake route + label key used for drafts.
+const DRAFT_TOOL_MAP: Record<string, { route: string; labelKey: string }> = {
+  cppa_risk: { route: "/cppa-risk-assessment", labelKey: "cppa_risk" },
+  cppa_cybersecurity: { route: "/cppa-cybersecurity", labelKey: "cppa_cyber" },
+  dpia: { route: "/dpia-framework", labelKey: "dpia" },
+  governance: { route: "/governance-assessment", labelKey: "governance" },
+  lia: { route: "/li-assessment", labelKey: "li" },
 };
 
 const TOOL_LABEL: Record<string, string> = {
