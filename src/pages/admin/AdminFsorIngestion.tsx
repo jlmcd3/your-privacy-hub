@@ -80,7 +80,25 @@ type ExtractResp = {
   sections: Record<string, number>;
   units: Unit[];
   error?: string;
+  total_pages?: number;
+  page_from?: number;
+  page_to?: number;
 };
+
+function parseStartPage(pageRef: string): number | null {
+  const m = (pageRef || "").match(/(\d+)/);
+  return m ? Number(m[1]) : null;
+}
+
+function computeSections(units: Unit[]): Record<string, number> {
+  const sections: Record<string, number> = {};
+  for (const u of units) {
+    const m = u.regulation_citation.match(/§\s*(7\d{3})/);
+    const root = m ? m[1] : "unknown";
+    sections[root] = (sections[root] ?? 0) + 1;
+  }
+  return sections;
+}
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
@@ -111,34 +129,125 @@ export default function AdminFsorIngestion() {
     setExtractResult(null);
   }
 
+  async function callExtractWindow(
+    payload: any,
+    pageFrom?: number,
+    pageTo?: number,
+  ): Promise<{ ok: boolean; status: number; data: ExtractResp }> {
+    const body: any = { ...payload };
+    if (pageFrom !== undefined) body.page_from = pageFrom;
+    if (pageTo !== undefined) body.page_to = pageTo;
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/cppa-fsor-extract`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-token": adminToken,
+      },
+      body: JSON.stringify(body),
+    });
+    const data = (await r.json()) as ExtractResp;
+    return { ok: r.ok, status: r.status, data };
+  }
+
   async function runExtract() {
     if (!config) { toast.error("Config JSON invalid"); return; }
     if (!adminToken) { toast.error("Admin token required"); return; }
     setExtracting(true);
     setExtractResult(null);
+    setLog([]);
     try {
       const { fsor_package: _fp, ...payload } = config as any;
-      const r = await fetch(`${SUPABASE_URL}/functions/v1/cppa-fsor-extract`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-token": adminToken,
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = (await r.json()) as ExtractResp;
-      if (!r.ok || data.error) {
-        toast.error(`Extract failed: ${data.error ?? r.status}`);
-        setExtractResult({ total_units: 0, sections: {}, units: [], error: data.error ?? `HTTP ${r.status}` });
-      } else {
+
+      // For appendix45 mode, always iterate 50-page windows with 1-page overlap
+      // to stay under the edge runtime resource limit. For fsor mode, single call;
+      // if the function reports total_pages > 100, fall back to windowing as well.
+      const shouldWindow = config.mode === "appendix45";
+
+      if (!shouldWindow) {
+        const { ok, status, data } = await callExtractWindow(payload);
+        if (!ok || data.error) {
+          toast.error(`Extract failed: ${data.error ?? status}`);
+          setExtractResult({ total_units: 0, sections: {}, units: [], error: data.error ?? `HTTP ${status}` });
+          return;
+        }
+        // Edge case: large fsor docs — re-run as windowed.
+        if ((data.total_pages ?? 0) > 100) {
+          appendLog(`Document reports ${data.total_pages} pages (>100). Switching to windowed extraction.`);
+          await runWindowed(payload, data.total_pages!);
+          return;
+        }
         setExtractResult(data);
         toast.success(`Extracted ${data.total_units} units`);
+        return;
       }
+
+      await runWindowed(payload, null);
     } catch (e: any) {
       toast.error(`Extract error: ${e?.message ?? e}`);
     } finally {
       setExtracting(false);
     }
+  }
+
+  async function runWindowed(payload: any, knownTotalPages: number | null) {
+    const WIN = 50;
+    const OVERLAP = 1;
+    const STEP = WIN - OVERLAP; // 49
+    const merged: Unit[] = [];
+    let totalPages: number | null = knownTotalPages;
+    let start = 1;
+    let windowIdx = 0;
+    // estimated total windows once we know totalPages
+    const estWindows = () =>
+      totalPages ? Math.max(1, Math.ceil((totalPages - 1) / STEP) + 1) : null;
+
+    while (true) {
+      windowIdx++;
+      const end = start + WIN - 1; // inclusive
+      const label = `Window ${windowIdx}${estWindows() ? `/${estWindows()}` : ""} — pages ${start}–${end}`;
+      appendLog(`${label} → POST`);
+      const { ok, status, data } = await callExtractWindow(payload, start, end);
+      if (!ok || data.error) {
+        appendLog(`${label} ERROR: ${data.error ?? `HTTP ${status}`}`);
+        toast.error(`Window ${windowIdx} failed: ${data.error ?? status}`);
+        setExtractResult({
+          total_units: merged.length,
+          sections: computeSections(merged),
+          units: merged,
+          error: `Window ${windowIdx} (pages ${start}–${end}): ${data.error ?? `HTTP ${status}`}`,
+          total_pages: totalPages ?? undefined,
+        });
+        return;
+      }
+      if (totalPages === null && typeof data.total_pages === "number") {
+        totalPages = data.total_pages;
+      }
+      const effectiveEnd = data.page_to ?? end;
+      const rawUnits = data.units ?? [];
+      // Drop any unit whose start page equals the window's final page —
+      // it will be re-extracted complete in the next window (which starts on
+      // that page) thanks to the 1-page overlap. Skip this drop on the last
+      // window since there is no next window.
+      const isLast = totalPages !== null && effectiveEnd >= totalPages;
+      const kept = isLast
+        ? rawUnits
+        : rawUnits.filter((u) => parseStartPage(u.page_ref) !== effectiveEnd);
+      merged.push(...kept);
+      appendLog(
+        `${label} → ${rawUnits.length} units (kept ${kept.length}, cumulative ${merged.length})`,
+      );
+      if (isLast) break;
+      if (totalPages === null) break; // safety: shouldn't happen after window 1
+      start = effectiveEnd; // 1-page overlap: next window starts on the dropped page
+    }
+
+    setExtractResult({
+      total_units: merged.length,
+      sections: computeSections(merged),
+      units: merged,
+      total_pages: totalPages ?? undefined,
+    });
+    toast.success(`Extracted ${merged.length} units across ${windowIdx} window(s)`);
   }
 
   async function runIngest() {

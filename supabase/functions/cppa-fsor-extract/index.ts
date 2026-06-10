@@ -6,7 +6,7 @@
 // Auth: same as cppa-ingest-fsor — x-admin-token = ADMIN_SECRET_TOKEN, or
 // Authorization: Bearer <service-role key>.
 //
-// Output: { total_units, sections: {root: count}, units: [...] }
+// Output: { total_units, sections: {root: count}, units: [...], total_pages }
 
 // unpdf bundles a serverless build of pdfjs (no node-canvas), works in Deno edge.
 // @ts-ignore esm.sh resolves bare modules
@@ -35,6 +35,8 @@ interface ExtractInput {
   start_anchor?: string;
   stop_anchor?: string;
   column_x?: [number, number, number];
+  page_from?: number;
+  page_to?: number;
 }
 
 interface Unit {
@@ -51,15 +53,22 @@ interface PageItem {
   page: number;
 }
 
-async function loadPages(url: string): Promise<{ pageText: string[]; pageItems: PageItem[][] }> {
+async function openDoc(url: string): Promise<any> {
   const r = await fetch(url, { signal: AbortSignal.timeout(60_000) });
   if (!r.ok) throw new Error(`fetch_failed_${r.status}`);
   const buf = new Uint8Array(await r.arrayBuffer());
   await getResolvedPDFJS();
-  const doc = await getDocumentProxy(buf);
+  return await getDocumentProxy(buf);
+}
+
+async function loadPagesRange(
+  doc: any,
+  from: number,
+  to: number,
+): Promise<{ pageText: string[]; pageItems: PageItem[][] }> {
   const pageText: string[] = [];
   const pageItems: PageItem[][] = [];
-  for (let i = 1; i <= doc.numPages; i++) {
+  for (let i = from; i <= to; i++) {
     const p = await doc.getPage(i);
     const tc = await p.getTextContent();
     const items: PageItem[] = [];
@@ -72,6 +81,8 @@ async function loadPages(url: string): Promise<{ pageText: string[]; pageItems: 
     }
     pageItems.push(items);
     pageText.push(items.map((it) => it.str).join(" "));
+    // Release pdf.js page-level resources to keep memory bounded across long PDFs.
+    try { p.cleanup?.(); } catch { /* ignore */ }
   }
   return { pageText, pageItems };
 }
@@ -104,22 +115,20 @@ const SUB_LEAD_G = new RegExp(SUB_LEAD.source, "gi");
 
 function extractFsor(
   pageText: string[],
+  pageStart: number,
   startAnchor?: string,
   stopAnchor?: string,
 ): Unit[] {
-  // build joined text with page markers we can map back to page numbers
+  // build joined text with page markers we can map back to real page numbers
   const MARK = "\u0001PG";
   const parts: string[] = [];
   for (let i = 0; i < pageText.length; i++) {
-    parts.push(`${MARK}${i + 1}\u0002 ${pageText[i]}`);
+    parts.push(`${MARK}${i + pageStart}\u0002 ${pageText[i]}`);
   }
   const baseFull = parts.join(" ");
   let full = baseFull;
   let sliceOffset = 0;
 
-  // Whitespace- and case-insensitive anchor finder.
-  // PDF text extraction can insert arbitrary spacing, NBSPs, or page markers
-  // between words, so search a normalized shadow string but return original offset.
   function searchableWithMap(value: string, trim = false): { text: string; map: number[] } {
     let text = "";
     const map: number[] = [];
@@ -165,17 +174,11 @@ function extractFsor(
     full = full.slice(0, ei);
   }
 
-  // helper: page number at a given offset (resolves against baseFull so
-  // markers preceding the slice are still considered).
   function pageAt(offset: number): number {
     const sub = baseFull.slice(0, sliceOffset + offset);
     const matches = [...sub.matchAll(/\u0001PG(\d+)\u0002/g)];
-    return matches.length ? Number(matches[matches.length - 1][1]) : 1;
+    return matches.length ? Number(matches[matches.length - 1][1]) : pageStart;
   }
-  // strip markers for downstream regex but keep mapping via pageAt on original
-  const stripped = full.replace(/\u0001PG\d+\u0002/g, " ");
-  // mapping function from stripped offset -> full offset
-  // simpler: we'll do header detection on `full` directly (markers don't match header regexes)
 
   const patterns: { re: RegExp; name: string }[] = [
     { re: /(?:Amend|Adopt|Delete)\s+§\s*(7\s*\d\s*\d\s*\d)\s*\./g, name: "2025" },
@@ -203,7 +206,6 @@ function extractFsor(
     const block = full.slice(start, end);
     const section = headers[h].section;
 
-    // find subsection leads inside block
     const leads = [...block.matchAll(SUB_LEAD_G)];
     const cuts: { start: number; head?: RegExpMatchArray }[] = [
       { start: 0 },
@@ -219,7 +221,6 @@ function extractFsor(
       if (/^Non-substantial change/i.test(seg)) continue;
       if (seg.length < 40) continue;
 
-      // build citation
       let citation = `11 CCR § ${section}`;
       const head = cuts[c].head;
       if (head && head[1]) {
@@ -250,6 +251,7 @@ const SECTION_PAT = /^(?:Previous\s+)?(7\d{3})((?:\([a-z0-9]+\))*)$/i;
 function extractAppendix(
   pageItems: PageItem[][],
   columnX: [number, number, number],
+  pageStart: number,
 ): Unit[] {
   const [c1, c2, c3] = columnX;
   const Y_TOL = 5;
@@ -258,11 +260,10 @@ function extractAppendix(
   const rows: Row[] = [];
 
   for (let p = 0; p < pageItems.length; p++) {
-    const pageNo = p + 1;
+    const pageNo = pageItems[p][0]?.page ?? (p + pageStart);
     const items = pageItems[p].filter(
       (it) => it.str.trim() && !APPENDIX_NOISE.test(it.str),
     );
-    // group items by y (within tolerance)
     const buckets: { y: number; items: PageItem[] }[] = [];
     for (const it of items) {
       let b = buckets.find((bb) => Math.abs(bb.y - it.y) <= Y_TOL);
@@ -272,7 +273,7 @@ function extractAppendix(
       }
       b.items.push(it);
     }
-    buckets.sort((a, b) => b.y - a.y); // top to bottom in PDF coords
+    buckets.sort((a, b) => b.y - a.y);
     for (const b of buckets) {
       const cols: [string, string, string, string] = ["", "", "", ""];
       const sorted = b.items.sort((a, z) => a.x - z.x);
@@ -323,7 +324,6 @@ function extractAppendix(
     const secCell = r.cols[0].trim();
     const m = secCell.match(SECTION_PAT);
     if (m) {
-      // new section -> flush prior
       flush();
       cur = {
         section: m[1],
@@ -333,10 +333,8 @@ function extractAppendix(
         startPage: r.page,
       };
     } else if (cur) {
-      // continuation row of the open unit
       if (r.cols[2]) cur.summary += " " + r.cols[2];
       if (r.cols[3]) cur.response += " " + r.cols[3];
-      // emit early if response too long
       if (cur.response.length > 6000) flush(true);
     }
   }
@@ -373,37 +371,47 @@ Deno.serve(async (req) => {
     : null;
 
   try {
-    const { pageText, pageItems } = await loadPages(source_url);
+    const doc = await openDoc(source_url);
+    const totalPages: number = doc.numPages;
+    const reqFrom = Number.isFinite(body.page_from as number) ? Number(body.page_from) : 1;
+    const reqTo = Number.isFinite(body.page_to as number) ? Number(body.page_to) : totalPages;
+    const pageFrom = Math.max(1, Math.min(totalPages, reqFrom));
+    const pageTo = Math.max(pageFrom, Math.min(totalPages, reqTo));
+
     let units: Unit[];
     if (mode === "fsor") {
-      units = extractFsor(pageText, body.start_anchor, body.stop_anchor);
+      const { pageText } = await loadPagesRange(doc, pageFrom, pageTo);
+      units = extractFsor(pageText, pageFrom, body.start_anchor, body.stop_anchor);
     } else {
-      // Document-shape guard: appendix45 must be a long FSOR appendix table.
-      const pageCount = pageText.length;
-      const sample = pageText.slice(0, 5);
-      const appendixHits = sample.filter((t) => /FSOR APPENDIX/i.test(t)).length;
-      const tableHits = sample.filter(
+      // Document-shape guard: page-count uses cheap doc.numPages; shape sample
+      // is the first 5 pages of the requested window only.
+      const sampleEnd = Math.min(pageTo, pageFrom + 4);
+      const { pageText: sampleText } = await loadPagesRange(doc, pageFrom, sampleEnd);
+      const appendixHits = sampleText.filter((t) => /FSOR APPENDIX/i.test(t)).length;
+      const tableHits = sampleText.filter(
         (t) => /Summary of Comments/i.test(t) || /Agency Response/i.test(t),
       ).length;
-      const shapeOk = appendixHits > sample.length / 2 && tableHits >= 1;
-      const lengthOk = pageCount > 100;
+      const shapeOk = appendixHits > sampleText.length / 2 && tableHits >= 1;
+      const lengthOk = totalPages > 100;
       if (!shapeOk || !lengthOk) {
         return json(
           {
             error: "document_shape_mismatch",
             url: source_url,
-            page_count: pageCount,
+            page_count: totalPages,
             failed_check: !shapeOk
-              ? `shape: appendix_markers=${appendixHits}/${sample.length}, table_markers=${tableHits}/${sample.length}`
-              : `length: ${pageCount} pages (need > 100)`,
+              ? `shape: appendix_markers=${appendixHits}/${sampleText.length}, table_markers=${tableHits}/${sampleText.length}`
+              : `length: ${totalPages} pages (need > 100)`,
             total_units: 0,
             units: [],
+            total_pages: totalPages,
           },
           422,
         );
       }
+      const { pageItems } = await loadPagesRange(doc, pageFrom, pageTo);
       const cx = body.column_x ?? [75, 160, 430];
-      units = extractAppendix(pageItems, cx);
+      units = extractAppendix(pageItems, cx, pageFrom);
     }
 
     if (includeRoots) {
@@ -420,7 +428,14 @@ Deno.serve(async (req) => {
       sections[root] = (sections[root] ?? 0) + 1;
     }
 
-    return json({ total_units: units.length, sections, units });
+    return json({
+      total_units: units.length,
+      sections,
+      units,
+      total_pages: totalPages,
+      page_from: pageFrom,
+      page_to: pageTo,
+    });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return json({ error: msg }, 400);
