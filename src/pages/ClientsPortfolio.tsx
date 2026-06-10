@@ -293,16 +293,38 @@ export default function ClientsPortfolio() {
   useEffect(() => {
     if (clients.length === 0) {
       setCountsLoading(false);
+      setCounts({});
       return;
     }
+    let cancelled = false;
     setCountsLoading(true);
-    Promise.all(clients.map((c) => loadCountsForClient(c.id))).then((results) => {
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) {
+        if (!cancelled) setCountsLoading(false);
+        return;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any).rpc('get_portfolio_summary', { _user_id: uid });
+      if (cancelled) return;
+      if (error || !Array.isArray(data)) {
+        setCounts({});
+        setCountsLoading(false);
+        return;
+      }
       const map: Record<string, PerClientCounts> = {};
-      for (const r of results) map[r.clientId] = r;
+      for (const r of data as RpcRow[]) {
+        map[r.client_id] = rpcRowToCounts(r);
+      }
       setCounts(map);
       setCountsLoading(false);
-    });
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [clients]);
+
 
   const sortedClients = useMemo(() => {
     return [...clients].sort((a, b) => {
