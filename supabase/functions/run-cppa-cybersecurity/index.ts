@@ -253,10 +253,11 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
 
     // Per-control "What the agency said" attachment.
     // The 18 enumerated cybersecurity components live in § 7122(a)(1)–(18).
-    // For each control, attach matching subsection commentary plus the
-    // section-level § 7122 commentary as context. Controls whose mapping
-    // resolves to §§ 7125–7128 (currently none of the 18) will produce
-    // an empty array — the UI omits the callout in that case.
+    // Primary source: deterministic exact lookup on the § 7122(a)(N) subsection
+    // plus the section-level § 7122 commentary. Secondary source: semantic
+    // fallback/enrichment via embeddings + match_cppa_fsor_commentary RPC,
+    // mirroring run-cppa-risk-assessment. On any embedding/RPC failure we
+    // silently fall back to exact-only — never fail the run.
     const fsorByCitation = new Map<string, any[]>();
     for (const row of fsorRows ?? []) {
       const key = row.regulation_citation;
@@ -264,15 +265,107 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       fsorByCitation.get(key)!.push(row);
     }
     const sectionFsor = fsorByCitation.get("11 CCR § 7122") ?? [];
-    report.controls = report.controls.map((c: any, idx: number) => {
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const PKG_PRIORITY: Record<string, number> = {
+      "ccpa-2025-cyber-risk-admt": 0,
+      "dbr-2024-registration": 1,
+      "ccpa-2023-original": 2,
+    };
+
+    async function semanticFsorForControl(controlName: string, gapContext: string): Promise<any[]> {
+      if (!LOVABLE_API_KEY) return [];
+      try {
+        const queryText =
+          `California CPPA cybersecurity control: ${controlName}. ` +
+          `Gap/finding context: ${gapContext}`;
+        const er = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "openai/text-embedding-3-small",
+            input: queryText.slice(0, 6000),
+            dimensions: 1536,
+          }),
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (!er.ok) {
+          console.warn(`[cppa-cyber fsor-semantic] embedding HTTP ${er.status}`);
+          return [];
+        }
+        const ed = await er.json();
+        const embedding = ed?.data?.[0]?.embedding;
+        if (!Array.isArray(embedding)) return [];
+        const { data, error } = await supabase.rpc("match_cppa_fsor_commentary", {
+          query_embedding: embedding,
+          citation_filter: null,
+          topic_filter: null,
+          match_count: 10,
+        });
+        if (error) {
+          console.warn(`[cppa-cyber fsor-semantic] rpc error: ${error.message}`);
+          return [];
+        }
+        const rowsArr = Array.isArray(data) ? data : [];
+        const indexed = rowsArr.map((r: any, i: number) => ({ r, i }));
+        indexed.sort((a, b) => {
+          const pa = PKG_PRIORITY[a.r?.fsor_package] ?? 99;
+          const pb = PKG_PRIORITY[b.r?.fsor_package] ?? 99;
+          if (pa !== pb) return pa - pb;
+          return a.i - b.i;
+        });
+        return indexed.map((x) => x.r);
+      } catch (e) {
+        console.warn(`[cppa-cyber fsor-semantic] threw: ${e}`);
+        return [];
+      }
+    }
+
+    function shapeFsorItem(r: any): any {
+      return {
+        ...r,
+        agency_response: r?.agency_response ?? null,
+        agency_response_verbatim: true,
+        comment_summary: r?.comment_summary ?? null,
+        comment_summary_verbatim: false,
+        citation: r?.regulation_citation ?? r?.citation ?? null,
+        package: r?.fsor_package ?? null,
+      };
+    }
+
+    const controlsOut: any[] = [];
+    for (let idx = 0; idx < report.controls.length; idx++) {
+      const c = report.controls[idx];
       const subsection = `11 CCR § 7122(a)(${idx + 1})`;
       const subFsor = fsorByCitation.get(subsection) ?? [];
-      return {
+      const exact = [...subFsor, ...sectionFsor];
+      const exactIds = new Set(exact.map((r: any) => r?.id).filter(Boolean));
+
+      const gapContext = [c?.finding, c?.remediation, c?.regulatory_basis]
+        .filter(Boolean).join(" ").slice(0, 1500);
+      const semantic = await semanticFsorForControl(c?.control ?? "", gapContext);
+
+      let merged = exact.slice();
+      if (exact.length === 0) {
+        merged = semantic.slice(0, 5);
+      } else {
+        const extras: any[] = [];
+        for (const r of semantic) {
+          if (extras.length >= 2) break;
+          if (r?.id && exactIds.has(r.id)) continue;
+          extras.push(r);
+          if (r?.id) exactIds.add(r.id);
+        }
+        merged = [...exact, ...extras];
+      }
+
+      controlsOut.push({
         ...c,
         fsor_citation: subsection,
-        fsor_commentary: [...subFsor, ...sectionFsor],
-      };
-    });
+        fsor_commentary: merged.map(shapeFsorItem),
+      });
+    }
+    report.controls = controlsOut;
 
     const obligation_snapshot = {
       captured_at: new Date().toISOString(),
