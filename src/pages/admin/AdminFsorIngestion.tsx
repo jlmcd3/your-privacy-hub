@@ -198,8 +198,33 @@ export default function AdminFsorIngestion() {
         .sort()
         .map(([k, v]) => `  ${k}: ${v}`)
         .join("\n");
+
+      const checks = [
+        { label: "substantially replace human decisionmaking", phrase: "substantially replace human decisionmaking" },
+        { label: "no later than 45 calendar days from the date of the material change", phrase: "no later than 45 calendar days from the date of the material change" },
+        { label: "In re Marriage of Reese", phrase: "In re Marriage of Reese" },
+        { label: "NIST Cybersecurity Framework 2.0", phrase: "NIST Cybersecurity Framework 2.0" },
+        { label: "providing reasonable accommodation as required by law", phrase: "providing reasonable accommodation as required by law" },
+        { label: "Colorado Privacy Act", phrase: "Colorado Privacy Act" },
+      ];
+      const checkResults: string[] = [];
+      for (const c of checks) {
+        const { data: matches, error: ce } = await supabase
+          .from("cppa_fsor_commentary")
+          .select("regulation_citation")
+          .ilike("agency_response", `%${c.phrase}%`);
+        if (ce) throw ce;
+        const citations = (matches ?? []).map((m: any) => m.regulation_citation).filter(Boolean);
+        if (citations.length > 0) {
+          checkResults.push(`PASS — ${c.label}\n  ${citations.join(", ")}`);
+        } else {
+          checkResults.push(`FAIL — ${c.label}`);
+        }
+      }
+
       setVerifyResult(
-        `Counts by fsor_package:\n${lines}\n\nRows with NULL embedding: ${nullCount ?? 0}`,
+        `Counts by fsor_package:\n${lines}\n\nRows with NULL embedding: ${nullCount ?? 0}\n\n` +
+        checkResults.join("\n\n"),
       );
     } catch (e: any) {
       setVerifyResult(`Error: ${e?.message ?? e}`);
