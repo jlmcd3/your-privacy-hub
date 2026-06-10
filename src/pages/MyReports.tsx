@@ -118,10 +118,27 @@ export default function MyReports() {
   });
 
   async function handleDelete(row: ReportRow) {
-    const table = TOOL_TABLE[row.tool];
+    const table = row.is_draft ? "tool_sessions" : TOOL_TABLE[row.tool];
     if (!table) return;
     const key = `${row.tool}-${row.id}`;
     setDeletingId(key);
+
+    // Drafts: mark completed=true so the autosave doesn't resurrect them,
+    // matching the hook's clearDraft() behavior.
+    if (row.is_draft) {
+      const { error } = await supabase
+        .from("tool_sessions" as any)
+        .update({ completed: true })
+        .eq("id", row.id);
+      setDeletingId(null);
+      if (error) {
+        toast({ title: "Couldn't discard draft", description: error.message, variant: "destructive" });
+        return;
+      }
+      setRows((prev) => prev.filter((x) => !(x.tool === row.tool && x.id === row.id)));
+      toast({ title: "Draft discarded", description: row.tool_label });
+      return;
+    }
 
     // Admins always go through the force-delete edge function so blocking
     // child rows (NO ACTION FKs, paid registration orders, etc.) are cleared
