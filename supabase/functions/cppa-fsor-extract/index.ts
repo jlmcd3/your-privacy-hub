@@ -378,6 +378,30 @@ Deno.serve(async (req) => {
     if (mode === "fsor") {
       units = extractFsor(pageText, body.start_anchor, body.stop_anchor);
     } else {
+      // Document-shape guard: appendix45 must be a long FSOR appendix table.
+      const pageCount = pageText.length;
+      const sample = pageText.slice(0, 5);
+      const appendixHits = sample.filter((t) => /FSOR APPENDIX/i.test(t)).length;
+      const tableHits = sample.filter(
+        (t) => /Summary of Comments/i.test(t) || /Agency Response/i.test(t),
+      ).length;
+      const shapeOk = appendixHits > sample.length / 2 && tableHits >= 1;
+      const lengthOk = pageCount > 100;
+      if (!shapeOk || !lengthOk) {
+        return json(
+          {
+            error: "document_shape_mismatch",
+            url: source_url,
+            page_count: pageCount,
+            failed_check: !shapeOk
+              ? `shape: appendix_markers=${appendixHits}/${sample.length}, table_markers=${tableHits}/${sample.length}`
+              : `length: ${pageCount} pages (need > 100)`,
+            total_units: 0,
+            units: [],
+          },
+          422,
+        );
+      }
       const cx = body.column_x ?? [75, 160, 430];
       units = extractAppendix(pageItems, cx);
     }
