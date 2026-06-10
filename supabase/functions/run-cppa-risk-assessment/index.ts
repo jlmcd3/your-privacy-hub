@@ -152,7 +152,23 @@ async function retrieveFsorCommentary(authorities: any[], topics: string[], inta
       match_count: 10,
     });
     if (error) { console.warn(`[fsor] rpc error: ${error.message}`); return []; }
-    return Array.isArray(data) ? data : [];
+    const rows = Array.isArray(data) ? data : [];
+    // Supersession ordering: 2025 cyber/risk/ADMT package controls over older
+    // packages on the same regulation section. Stable sort preserves similarity
+    // order within each package.
+    const PKG_PRIORITY: Record<string, number> = {
+      "ccpa-2025-cyber-risk-admt": 0,
+      "dbr-2024-registration": 1,
+      "ccpa-2023-original": 2,
+    };
+    const indexed = rows.map((r: any, i: number) => ({ r, i }));
+    indexed.sort((a, b) => {
+      const pa = PKG_PRIORITY[a.r?.fsor_package] ?? 99;
+      const pb = PKG_PRIORITY[b.r?.fsor_package] ?? 99;
+      if (pa !== pb) return pa - pb;
+      return a.i - b.i;
+    });
+    return indexed.map((x) => x.r);
   } catch (e) {
     console.warn(`[fsor] retrieve threw: ${e}`);
     return [];
@@ -257,6 +273,7 @@ ABSOLUTE RULES:
 9. § 7 (Safeguards) MUST be organised into four groupings: technical, organizational, consumer_facing, contractual. Every safeguard MUST include linked_harms = an array of § 6 category names it mitigates.
 10. § 4 sub-mapping is fixed: A=collection sources, B=retention, C=consumer interaction, D=consumer count, E=disclosures to consumers, F=service providers/contractors/third parties, G=ADMT logic (null unless ADMT trigger fires).
 11. § 10 governance commitments: triennial review (§ 7155(a)); 45-day material-change update (§ 7155(a)); 5-year retention (§ 7155(b)); 30-day on-demand production (§ 7156(c)).
+12. Where commentary from both the 2025 and 2023 rulemaking packages addresses the same regulation section, treat the 2025 package as controlling and the 2023 package as historical background.
 
 OUTPUT SHAPE (every field required unless marked optional):
 {

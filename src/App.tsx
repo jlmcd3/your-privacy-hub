@@ -163,6 +163,7 @@ const VerificationScanAdmin = lazy(() => import("./pages/admin/VerificationScanA
 const PrimarySourceFetcher = lazy(() => import("./pages/admin/PrimarySourceFetcher"));
 const CPPACorpusAdmin = lazy(() => import("./pages/admin/CPPACorpusAdmin"));
 const CPPAEvalHarness = lazy(() => import("./pages/admin/CPPAEvalHarness"));
+const AdminFsorIngestion = lazy(() => import("./pages/admin/AdminFsorIngestion"));
 const queryClient = new QueryClient();
 
 function CategoryRedirect() {
@@ -535,6 +536,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <CPPAEvalHarness />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/fsor-ingestion"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminFsorIngestion />
                   </AdminOnly>
                 </ProtectedRoute>
               }
