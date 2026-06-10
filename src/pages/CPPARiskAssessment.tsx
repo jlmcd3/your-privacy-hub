@@ -536,7 +536,7 @@ export default function CPPARiskAssessment() {
               )}
 
               <div>
-                <Label>I-6: Service providers, contractors, third parties involved * <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-6: Service providers, contractors, third parties involved <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="I-6 · Vendors / service providers" summary="Identify the service providers, contractors, and third parties to whom personal information is disclosed for this processing." cite="11 CCR § 7152(a)(4)(F)" /></div>
                 <Textarea
                   className="mt-2"
                   rows={3}
