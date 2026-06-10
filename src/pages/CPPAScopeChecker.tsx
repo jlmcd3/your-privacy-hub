@@ -2,13 +2,17 @@
 // Determines whether CCPA/CPRA + CPPA enforcement obligations apply.
 
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+import { PRICING_REGISTRY } from "@/config/pricing";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
@@ -59,6 +63,7 @@ const Radio = ({
 
 export default function CPPAScopeChecker() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [q1, setQ1] = useState<Q1>("");
   const [q2, setQ2] = useState<Q2>("");
   const [q3, setQ3] = useState<Q3>("");
@@ -68,6 +73,9 @@ export default function CPPAScopeChecker() {
   const [q7, setQ7] = useState<Q7>("");
   const [q8, setQ8] = useState<Q8>("");
   const [showResults, setShowResults] = useState(false);
+  // One UUID per page load, never persisted to browser storage (per spec).
+  const sessionIdRef = useRef<string>(crypto.randomUUID());
+  const insertedKeyRef = useRef<string | null>(null);
 
   const allAnswered = q1 && q2 && q3 && q4 && q5 && q6 && q7 && q8;
 
@@ -114,11 +122,33 @@ export default function CPPAScopeChecker() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Persist each completed check exactly once per result computation.
+  // Fire-and-forget — failure must NEVER block results.
+  useEffect(() => {
+    if (!showResults) return;
+    const key = JSON.stringify(answers);
+    if (insertedKeyRef.current === key) return;
+    insertedKeyRef.current = key;
+    (async () => {
+      try {
+        await supabase.from("cppa_scope_checks" as any).insert({
+          user_id: user?.id ?? null,
+          session_id: sessionIdRef.current,
+          answers,
+          obligation_map: obligationMap,
+          in_scope: obligationMap.inScope,
+        });
+      } catch {
+        // Silent — persistence must not block UX.
+      }
+    })();
+  }, [showResults, answers, obligationMap, user?.id]);
 
   const reset = () => {
     setQ1(""); setQ2(""); setQ3(""); setQ4("");
     setQ5(""); setQ6(""); setQ7(""); setQ8("");
     setShowResults(false);
+    insertedKeyRef.current = null;
   };
 
   return (
@@ -262,11 +292,90 @@ export default function CPPAScopeChecker() {
             q5={q5}
             onReset={reset}
             navigate={navigate}
+            isAuthed={!!user}
           />
         )}
       </main>
       <CPPAToolsCrossLinks current="scope" />
     </WorkspaceLayout>
+  );
+}
+
+function SavedNote({ isAuthed }: { isAuthed: boolean }) {
+  if (isAuthed) {
+    return (
+      <p className="text-xs text-muted-foreground italic pt-3 border-t">
+        Saved to your account — find it any time in{" "}
+        <Link to="/my-reports" className="underline hover:text-foreground">My Reports</Link>.
+      </p>
+    );
+  }
+  return (
+    <p className="text-xs text-muted-foreground italic pt-3 border-t">
+      <Link to="/signup" className="underline hover:text-foreground">Create a free account</Link>{" "}
+      to keep this result and see it in My Reports.
+    </p>
+  );
+}
+
+function EmailResultsCapture() {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  if (hidden || done) {
+    return done ? (
+      <p className="text-xs text-brand-teal pt-2">✓ Sent. Check your inbox.</p>
+    ) : null;
+  }
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || submitting) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.functions.invoke("subscribe-email", {
+        body: { email, source: "cppa-scope-results" },
+      });
+      if (error) throw error;
+      setDone(true);
+      toast({ title: "Sent", description: "Your obligation map is on its way." });
+    } catch (err) {
+      toast({
+        title: "Couldn't send",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  return (
+    <section className="bg-card border rounded-lg p-4">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-medium">Email me this obligation map</p>
+        <button
+          type="button"
+          onClick={() => setHidden(true)}
+          className="text-xs text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer"
+          aria-label="Dismiss email capture"
+        >
+          Dismiss
+        </button>
+      </div>
+      <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2 mt-2">
+        <input
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@company.com"
+          className="flex-1 px-3 py-2 rounded border border-brand-cloud bg-background text-sm focus:outline-none focus:border-brand-teal"
+        />
+        <Button type="submit" size="sm" disabled={submitting}>
+          {submitting ? "Sending…" : "Email me"}
+        </Button>
+      </form>
+    </section>
   );
 }
 
@@ -278,6 +387,7 @@ function ResultsPanel({
   q5,
   onReset,
   navigate,
+  isAuthed,
 }: {
   obligationMap: {
     inScope: boolean;
@@ -294,6 +404,7 @@ function ResultsPanel({
   q5: string;
   onReset: () => void;
   navigate: (to: string) => void;
+  isAuthed: boolean;
 }) {
 
   // Out of scope, no Unsure: confidently out of scope
@@ -323,10 +434,7 @@ function ResultsPanel({
             </p>
           </>
         )}
-        <p className="text-xs text-muted-foreground italic pt-3 border-t">
-          This is a one-time scope check. Your results are not saved.
-          Run it again any time.
-        </p>
+        <SavedNote isAuthed={isAuthed} />
         <p className="text-xs text-muted-foreground italic pt-1">
           This is a preliminary scope indicator based on your self-reported answers.
           It is not legal advice.
@@ -474,9 +582,26 @@ function ResultsPanel({
       </section>
 
       <section className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-sm rounded">
-        <p className="font-medium">This is a one-time scope check. Your results are not saved.</p>
-        <p className="mt-1">Run it again any time. For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.</p>
+        {isAuthed ? (
+          <>
+            <p className="font-medium">Saved to your account.</p>
+            <p className="mt-1">
+              Find this result any time in{" "}
+              <Link to="/my-reports" className="underline">My Reports</Link>.
+              For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="font-medium">
+              <Link to="/signup" className="underline">Create a free account</Link> to keep this result and see it in My Reports.
+            </p>
+            <p className="mt-1">Run it again any time. For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.</p>
+          </>
+        )}
       </section>
+
+      {!isAuthed && <EmailResultsCapture />}
 
       <section className="p-4 border-l-4 border-brand-teal bg-slate-50 dark:bg-slate-900/40 text-sm rounded">
         This is a preliminary scope indicator based on your self-reported answers. It is
@@ -496,15 +621,28 @@ function ResultsPanel({
               Run CPPA Cybersecurity Readiness — Module 2 →
             </Button>
           )}
-          {obligationMap.riskAssessmentRequired && cyberRequiredConfirmed && (
-            <Button
-              variant="outline"
-              onClick={() => navigate("/cppa-risk-assessment?suite=true")}
-            >
-              Get the full CPPA Audit Suite — $169 ($149 subscriber) →
-            </Button>
-          )}
         </div>
+        {obligationMap.riskAssessmentRequired && cyberRequiredConfirmed && (
+          <p className="text-sm text-muted-foreground">
+            Need both? The{" "}
+            <Link to="/cppa" className="underline text-brand-teal">CPPA Full Audit Suite</Link>{" "}
+            covers risk assessment and cybersecurity readiness together —{" "}
+            <span className="font-semibold text-foreground">
+              {PRICING_REGISTRY.cppa_suite_standalone.displayPrice} (subscribers {PRICING_REGISTRY.cppa_suite_subscriber.displayPrice})
+            </span>
+            , versus{" "}
+            <span className="font-semibold text-foreground">
+              ${
+                (PRICING_REGISTRY.cppa_risk_standalone.amountCents +
+                  PRICING_REGISTRY.cppa_cyber_standalone.amountCents) / 100
+              }
+            </span>{" "}
+            separately.
+          </p>
+        )}
+        <p className="text-xs text-muted-foreground italic">
+          When you complete a risk assessment here, we track your § 7155(a) triennial review date for you — it goes straight into your Obligations Register.
+        </p>
         <button
           onClick={onReset}
           className="text-sm text-muted-foreground underline hover:text-foreground bg-transparent border-none cursor-pointer p-0"

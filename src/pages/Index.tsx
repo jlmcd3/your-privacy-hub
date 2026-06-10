@@ -5,6 +5,7 @@ import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import AdBanner from "@/components/AdBanner";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
+import CPPADeadlineStrip from "@/components/CPPADeadlineStrip";
 import HomepageFeedSection from "@/components/home/HomepageFeedSection";
 import HomepageBriefSection from "@/components/home/HomepageBriefSection";
 import HomepageToolsSection from "@/components/home/HomepageToolsSection";
@@ -21,6 +22,7 @@ const Index = () => (
     <Navbar />
     <BreakingNewsBanner />
     <SearchFirstHero />
+    <CPPADeadlineStrip />
 
     <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-8 space-y-6">
       <div id="updates" className="scroll-mt-20">
