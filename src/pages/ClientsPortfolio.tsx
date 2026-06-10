@@ -27,132 +27,69 @@ interface PerClientCounts {
   totalFlags: number; // crude urgency proxy
 }
 
-async function safeCount(
-  table: string,
-  clientId: string
-): Promise<number> {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { count, error } = await (supabase as any)
-      .from(table)
-      .select('id', { count: 'exact', head: true })
-      .eq('client_id', clientId);
-    if (error) return 0;
-    return count ?? 0;
-  } catch {
-    return 0;
-  }
+interface RpcRow {
+  client_id: string;
+  name: string;
+  sector: string | null;
+  lia_count: number;
+  dpia_count: number;
+  dpa_count: number;
+  ir_count: number;
+  gov_count: number;
+  biometric_count: number;
+  registration_count: number;
+  ropa: { latest_version: number | null; latest_date: string | null };
+  us_notices: { state_count: number; latest_date: string | null };
+  eu_notices: { frameworks: string[]; latest_date: string | null; earliest_date: string | null };
 }
 
-async function loadUsNoticeStatus(
-  clientId: string
-): Promise<{ stateCount: number; latestDate: string | null }> {
-  try {
-    // Find the latest completed session for this client.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: sessions, error } = await (supabase as any)
-      .from('us_notice_sessions')
-      .select('id, completed_at, status')
-      .eq('client_id', clientId)
-      .order('completed_at', { ascending: false, nullsFirst: false })
-      .limit(1);
-    if (error || !sessions || sessions.length === 0) {
-      return { stateCount: 0, latestDate: null };
-    }
-    const latest = sessions[0];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { count } = await (supabase as any)
-      .from('us_notice_state_selections')
-      .select('id', { count: 'exact', head: true })
-      .eq('session_id', latest.id);
-    return {
-      stateCount: count ?? 0,
-      latestDate: latest.completed_at ?? null,
-    };
-  } catch {
-    return { stateCount: 0, latestDate: null };
-  }
-}
-
-interface EuNoticeStatus {
-  frameworkCount: number;
-  frameworks: string[];
-  latestDate: string | null;
-  refreshDueDate: string | null;
-  daysUntilRefresh: number | null;
-}
-
-async function loadEuNoticeStatus(clientId: string): Promise<EuNoticeStatus> {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
-      .from('eu_notice_documents')
-      .select('framework_code, generated_at, is_combined, is_current')
-      .eq('client_id', clientId)
-      .eq('is_current', true)
-      .eq('is_combined', false);
-    if (error || !data || data.length === 0) {
-      return { frameworkCount: 0, frameworks: [], latestDate: null, refreshDueDate: null, daysUntilRefresh: null };
-    }
-    const frameworks = Array.from(new Set(data.map((d: { framework_code: string }) => d.framework_code))).sort();
-    const dates = data
-      .map((d: { generated_at: string }) => new Date(d.generated_at).getTime())
-      .filter((n: number) => !Number.isNaN(n));
-    const latestMs = dates.length ? Math.max(...dates) : null;
-    const earliestMs = dates.length ? Math.min(...dates) : null;
-    const refreshMs = earliestMs !== null ? earliestMs + 365 * 24 * 60 * 60 * 1000 : null;
-    const days = refreshMs !== null ? Math.floor((refreshMs - Date.now()) / (24 * 60 * 60 * 1000)) : null;
-    return {
-      frameworkCount: frameworks.length,
-      frameworks: frameworks as string[],
-      latestDate: latestMs ? new Date(latestMs).toISOString() : null,
-      refreshDueDate: refreshMs ? new Date(refreshMs).toISOString() : null,
-      daysUntilRefresh: days,
-    };
-  } catch {
+function buildEuStatus(eu: RpcRow['eu_notices']): EuNoticeStatus {
+  const frameworks = eu?.frameworks ?? [];
+  if (!frameworks.length) {
     return { frameworkCount: 0, frameworks: [], latestDate: null, refreshDueDate: null, daysUntilRefresh: null };
   }
-}
-
-async function loadCountsForClient(clientId: string): Promise<PerClientCounts> {
-  const [
-    liaCount,
-    dpiaCount,
-    dpaCount,
-    irCount,
-    govCount,
-    biometricCount,
-    registrationCount,
-    usNotices,
-    euNotices,
-  ] = await Promise.all([
-    safeCount('li_assessments', clientId),
-    safeCount('dpia_frameworks', clientId),
-    safeCount('dpa_documents', clientId),
-    safeCount('ir_playbooks', clientId),
-    safeCount('governance_assessments', clientId),
-    safeCount('biometric_assessments', clientId),
-    safeCount('registration_orders', clientId),
-    loadUsNoticeStatus(clientId),
-    loadEuNoticeStatus(clientId),
-  ]);
-
+  const earliestMs = eu.earliest_date ? new Date(eu.earliest_date).getTime() : null;
+  const refreshMs = earliestMs !== null ? earliestMs + 365 * 24 * 60 * 60 * 1000 : null;
+  const days = refreshMs !== null ? Math.floor((refreshMs - Date.now()) / (24 * 60 * 60 * 1000)) : null;
   return {
-    clientId,
-    liaCount,
-    dpiaCount,
-    dpaCount,
-    irCount,
-    govCount,
-    biometricCount,
-    registrationCount,
-    ropa: { latestVersion: null, latestDate: null },
-    usNotices,
-    euNotices,
-    totalFlags:
-      liaCount + dpiaCount + dpaCount + irCount + govCount + biometricCount + registrationCount,
+    frameworkCount: frameworks.length,
+    frameworks,
+    latestDate: eu.latest_date,
+    refreshDueDate: refreshMs ? new Date(refreshMs).toISOString() : null,
+    daysUntilRefresh: days,
   };
 }
+
+function rpcRowToCounts(r: RpcRow): PerClientCounts {
+  return {
+    clientId: r.client_id,
+    liaCount: r.lia_count ?? 0,
+    dpiaCount: r.dpia_count ?? 0,
+    dpaCount: r.dpa_count ?? 0,
+    irCount: r.ir_count ?? 0,
+    govCount: r.gov_count ?? 0,
+    biometricCount: r.biometric_count ?? 0,
+    registrationCount: r.registration_count ?? 0,
+    ropa: {
+      latestVersion: r.ropa?.latest_version ?? null,
+      latestDate: r.ropa?.latest_date ?? null,
+    },
+    usNotices: {
+      stateCount: r.us_notices?.state_count ?? 0,
+      latestDate: r.us_notices?.latest_date ?? null,
+    },
+    euNotices: buildEuStatus(r.eu_notices),
+    totalFlags:
+      (r.lia_count ?? 0) +
+      (r.dpia_count ?? 0) +
+      (r.dpa_count ?? 0) +
+      (r.ir_count ?? 0) +
+      (r.gov_count ?? 0) +
+      (r.biometric_count ?? 0) +
+      (r.registration_count ?? 0),
+  };
+}
+
 
 function CountRow({
   label,
