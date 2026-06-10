@@ -27,10 +27,30 @@ const T1: PresetConfig = {
   mode: "fsor",
   start_anchor: "UPDATE TO INITIAL STATEMENT OF REASONS",
 };
-const T2a: PresetConfig = { ...T1, mode: "appendix45", start_anchor: undefined };
-const T2b: PresetConfig = { ...T1, mode: "appendix45", start_anchor: undefined };
-const T2c: PresetConfig = { ...T1, mode: "appendix45", start_anchor: undefined };
-const T2d: PresetConfig = { ...T1, mode: "appendix45", start_anchor: undefined };
+const APPEN_A =
+  "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_fsor_appen_a.pdf";
+const APPEN_B =
+  "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_fsor_appen_b.pdf";
+const T2a: PresetConfig = {
+  fsor_package: "ccpa-2025-cyber-risk-admt",
+  source_url: APPEN_A,
+  mode: "appendix45",
+};
+const T2b: PresetConfig = {
+  fsor_package: "ccpa-2025-cyber-risk-admt",
+  source_url: APPEN_A,
+  mode: "appendix45",
+};
+const T2c: PresetConfig = {
+  fsor_package: "ccpa-2025-cyber-risk-admt",
+  source_url: APPEN_A,
+  mode: "appendix45",
+};
+const T2d: PresetConfig = {
+  fsor_package: "ccpa-2025-cyber-risk-admt",
+  source_url: APPEN_B,
+  mode: "appendix45",
+};
 const T3a: PresetConfig = {
   fsor_package: "ccpa-2023-original",
   source_url: "",
