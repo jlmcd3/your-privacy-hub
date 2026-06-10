@@ -3,7 +3,9 @@
 // confidence model, pricing, jurisdictions, trust signals, FAQ, final CTA.
 
 import { Helmet } from "react-helmet-async";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 // useSubscriptionTier removed — registration is per-filing for all tiers.
