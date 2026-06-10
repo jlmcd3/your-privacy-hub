@@ -14,6 +14,10 @@
 // preserved when available so the existing admin UI continues to render them.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { BANNED_PHRASES, checkBannedPhrases } from "../_shared/citation-verifier.ts";
+
+// Re-export so any downstream importers of this module see no behavioural change.
+export { BANNED_PHRASES, checkBannedPhrases };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -176,12 +180,7 @@ async function retrieveFsorCommentary(authorities: any[], topics: string[], inta
 }
 
 // ---- Banned-phrase validator (post-generation, code-side) ----
-const BANNED_PHRASES = [
-  "improve our services", "improve services",
-  "for security purposes", "for business purposes",
-  "to enhance user experience", "as described in our privacy policy",
-  "to provide better services", "to support our business objectives",
-];
+// BANNED_PHRASES is imported from ../_shared/citation-verifier.ts (unchanged contents).
 const BANNED_BARE_WORDS = ["analytics"]; // bare token, no surrounding specificity
 
 /** Returns null if the statement is acceptable; otherwise an explanation. */
