@@ -157,6 +157,7 @@ function extractFsor(
     const si = findAnchor(full, startAnchor);
     if (si < 0) throw new Error(`start_anchor_not_found:${startAnchor}`);
     full = full.slice(si);
+    sliceOffset = si;
   }
   if (stopAnchor) {
     const ei = findAnchor(full, stopAnchor);
@@ -164,9 +165,10 @@ function extractFsor(
     full = full.slice(0, ei);
   }
 
-  // helper: page number at a given offset
+  // helper: page number at a given offset (resolves against baseFull so
+  // markers preceding the slice are still considered).
   function pageAt(offset: number): number {
-    const sub = full.slice(0, offset);
+    const sub = baseFull.slice(0, sliceOffset + offset);
     const matches = [...sub.matchAll(/\u0001PG(\d+)\u0002/g)];
     return matches.length ? Number(matches[matches.length - 1][1]) : 1;
   }
