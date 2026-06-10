@@ -208,6 +208,7 @@ export default function NoticeBuilderLanding() {
           </div>
         </section>
       </main>
-    </WorkspaceLayout>
+      <Footer />
+    </div>
   );
 }
