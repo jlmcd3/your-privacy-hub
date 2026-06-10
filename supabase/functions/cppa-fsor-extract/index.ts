@@ -30,11 +30,12 @@ function json(b: unknown, s = 200) {
 
 interface ExtractInput {
   source_url: string;
-  mode: "fsor" | "appendix45";
+  mode: "fsor" | "appendix45" | "appendix2023";
   include_sections?: string[];
   start_anchor?: string;
   stop_anchor?: string;
   column_x?: [number, number, number];
+  col_bounds?: [number, number, number, number];
   page_from?: number;
   page_to?: number;
   force_shape?: boolean;
