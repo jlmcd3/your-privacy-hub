@@ -63,6 +63,7 @@ const Radio = ({
 
 export default function CPPAScopeChecker() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [q1, setQ1] = useState<Q1>("");
   const [q2, setQ2] = useState<Q2>("");
   const [q3, setQ3] = useState<Q3>("");
@@ -72,6 +73,9 @@ export default function CPPAScopeChecker() {
   const [q7, setQ7] = useState<Q7>("");
   const [q8, setQ8] = useState<Q8>("");
   const [showResults, setShowResults] = useState(false);
+  // One UUID per page load, never persisted to browser storage (per spec).
+  const sessionIdRef = useRef<string>(crypto.randomUUID());
+  const insertedKeyRef = useRef<string | null>(null);
 
   const allAnswered = q1 && q2 && q3 && q4 && q5 && q6 && q7 && q8;
 
