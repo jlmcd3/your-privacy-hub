@@ -344,6 +344,141 @@ function extractAppendix(
   return units;
 }
 
+// --- mode: appendix2023 ---
+
+async function loadPagesWithRotation(
+  doc: any,
+  from: number,
+  to: number,
+): Promise<{ page: number; rotate: number; items: PageItem[] }[]> {
+  const out: { page: number; rotate: number; items: PageItem[] }[] = [];
+  for (let i = from; i <= to; i++) {
+    const p = await doc.getPage(i);
+    const rotate = Number(p.rotate ?? 0) || 0;
+    const tc = await p.getTextContent();
+    const items: PageItem[] = [];
+    for (const it of tc.items as any[]) {
+      const str = String(it.str ?? "");
+      const tr = it.transform as number[] | undefined;
+      const x = tr ? tr[4] : 0;
+      const y = tr ? tr[5] : 0;
+      items.push({ str, x, y, page: i });
+    }
+    out.push({ page: i, rotate, items });
+    try { p.cleanup?.(); } catch { /* ignore */ }
+  }
+  return out;
+}
+
+const APPENDIX2023_NOISE =
+  /F\s*S\s*O\s*R\s*A\s*P\s*P\s*E\s*N\s*D\s*I\s*X|Page\s+\d+|^CPPA_RM1/i;
+const APPENDIX2023_HEADER_WORDS =
+  /^(Response\s*#?|Summary(\s+of\s+Comments?)?|of\s+Comments?|Comments?\s*#?s?|Bates(\s+Label)?|Label|#)$/i;
+
+function appendixLabelFromUrl(url: string): string {
+  const m = url.toLowerCase().match(/_app_([a-z])_/);
+  return m ? `App ${m[1].toUpperCase()}` : "App ?";
+}
+
+function extractAppendix2023(
+  pages: { page: number; rotate: number; items: PageItem[] }[],
+  colBounds: [number, number, number, number],
+  appendixLabel: string,
+  includeRoots: Set<string> | null,
+): { units: Unit[]; noCitationDropped: number } {
+  const [b1, b2, b3, b4] = colBounds;
+  const units: Unit[] = [];
+  let noCitationDropped = 0;
+  let cur: {
+    summary: string;
+    response: string;
+    startPage: number;
+  } | null = null;
+
+  function flush(continuation = false) {
+    if (!cur) return;
+    const summary = cur.summary.replace(/\s+/g, " ").trim();
+    const response = cur.response.replace(/\s+/g, " ").trim();
+    const startPage = cur.startPage;
+    cur = null;
+    if (response.length < 40) return;
+    const citRe = /§\s*(7\d{3}(?:\s*\([a-z0-9]+\))*)/i;
+    const cm = response.match(citRe) ?? summary.match(citRe);
+    if (!cm) { noCitationDropped++; return; }
+    const citationTail = cm[1].replace(/\s+/g, "");
+    const rootMatch = citationTail.match(/^(7\d{3})/);
+    const root = rootMatch ? rootMatch[1] : null;
+    if (includeRoots && (!root || !includeRoots.has(root))) return;
+    const citation = `11 CCR § ${citationTail}`;
+    const pageRef = `2023 ${appendixLabel}, p. ${startPage}${continuation ? " (cont.)" : ""}`;
+    const respChunks = splitLongUnit(response);
+    for (let i = 0; i < respChunks.length; i++) {
+      units.push({
+        agency_response: respChunks[i],
+        comment_text: i === 0 && summary ? summary : undefined,
+        regulation_citation: citation,
+        page_ref: i === 0 ? pageRef : `2023 ${appendixLabel}, p. ${startPage} (cont.)`,
+      });
+    }
+  }
+
+  const ROW_TOL = 5;
+  for (const pg of pages) {
+    const rotated = pg.rotate === 90 || pg.rotate === 270;
+    const items = pg.items.filter((it) => {
+      const t = it.str.trim();
+      if (!t) return false;
+      if (APPENDIX2023_NOISE.test(t)) return false;
+      if (APPENDIX2023_HEADER_WORDS.test(t)) return false;
+      return true;
+    });
+    type Row = { rowAxis: number; items: PageItem[] };
+    const rows: Row[] = [];
+    for (const it of items) {
+      const rowAxis = rotated ? it.x : it.y;
+      let r = rows.find((rr) => Math.abs(rr.rowAxis - rowAxis) <= ROW_TOL);
+      if (!r) { r = { rowAxis, items: [] }; rows.push(r); }
+      r.items.push(it);
+    }
+    // Reading order: rotated -> ascending x; unrotated -> descending y.
+    rows.sort((a, b) => rotated ? a.rowAxis - b.rowAxis : b.rowAxis - a.rowAxis);
+
+    for (const row of rows) {
+      row.items.sort((a, z) => {
+        const ca = rotated ? a.y : a.x;
+        const cb = rotated ? z.y : z.x;
+        return ca - cb;
+      });
+      const buckets: [string, string, string, string, string] = ["", "", "", "", ""];
+      for (const it of row.items) {
+        const c = rotated ? it.y : it.x;
+        let bi = 4;
+        if (c < b1) bi = 0;
+        else if (c < b2) bi = 1;
+        else if (c < b3) bi = 2;
+        else if (c < b4) bi = 3;
+        buckets[bi] = (buckets[bi] ? buckets[bi] + " " : "") + it.str;
+      }
+      const respCell = buckets[0].trim();
+      if (/^\d+\.?$/.test(respCell)) {
+        flush();
+        cur = {
+          summary: buckets[1],
+          response: buckets[2],
+          startPage: pg.page,
+        };
+      } else if (cur) {
+        if (buckets[1]) cur.summary += " " + buckets[1];
+        if (buckets[2]) cur.response += " " + buckets[2];
+        if (cur.response.length > 6000) flush(true);
+      }
+    }
+  }
+  flush();
+  return { units, noCitationDropped };
+}
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
