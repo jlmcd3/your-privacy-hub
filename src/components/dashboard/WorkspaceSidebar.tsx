@@ -136,6 +136,7 @@ function WorkspaceSection({
 export default function WorkspaceSidebar() {
   const location = useLocation();
   const { user } = useAuth();
+  const { isPremium, isLoading } = useSubscriptionTier();
 
   const clients = useClientStore((s) => s.clients);
   const personal = useClientStore((s) => s.personal);
