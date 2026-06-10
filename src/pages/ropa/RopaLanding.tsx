@@ -302,6 +302,7 @@ export default function RopaLanding() {
           </Button>
         </section>
       </main>
-    </WorkspaceLayout>
+      <Footer />
+    </div>
   );
 }
