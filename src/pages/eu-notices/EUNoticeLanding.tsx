@@ -30,7 +30,9 @@ const FRAMEWORKS = [
 export default function EUNoticeLanding() {
   const { hasToolAccess } = useSubscriptionTier();
   return (
-    <WorkspaceLayout className="bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <DashboardSubnav />
       <Helmet>
         <title>EU & Global Privacy Notice Builder | EndUserPrivacy</title>
         <meta name="description" content="Generate GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA, PIPEDA and 4 more privacy notices in one session." />
