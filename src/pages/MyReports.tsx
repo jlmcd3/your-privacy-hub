@@ -63,6 +63,16 @@ type ReportRow = {
   client_id?: string | null;
   client_name?: string | null;
   is_personal_client?: boolean;
+  is_draft?: boolean;
+};
+
+// Map tool_sessions.tool_type -> intake route + label key used for drafts.
+const DRAFT_TOOL_MAP: Record<string, { route: string; labelKey: string }> = {
+  cppa_risk: { route: "/cppa-risk-assessment", labelKey: "cppa_risk" },
+  cppa_cybersecurity: { route: "/cppa-cybersecurity", labelKey: "cppa_cyber" },
+  dpia: { route: "/dpia-framework", labelKey: "dpia" },
+  governance: { route: "/governance-assessment", labelKey: "governance" },
+  lia: { route: "/li-assessment", labelKey: "li" },
 };
 
 const TOOL_LABEL: Record<string, string> = {
@@ -108,10 +118,27 @@ export default function MyReports() {
   });
 
   async function handleDelete(row: ReportRow) {
-    const table = TOOL_TABLE[row.tool];
+    const table = row.is_draft ? "tool_sessions" : TOOL_TABLE[row.tool];
     if (!table) return;
     const key = `${row.tool}-${row.id}`;
     setDeletingId(key);
+
+    // Drafts: mark completed=true so the autosave doesn't resurrect them,
+    // matching the hook's clearDraft() behavior.
+    if (row.is_draft) {
+      const { error } = await supabase
+        .from("tool_sessions" as any)
+        .update({ completed: true })
+        .eq("id", row.id);
+      setDeletingId(null);
+      if (error) {
+        toast({ title: "Couldn't discard draft", description: error.message, variant: "destructive" });
+        return;
+      }
+      setRows((prev) => prev.filter((x) => !(x.tool === row.tool && x.id === row.id)));
+      toast({ title: "Draft discarded", description: row.tool_label });
+      return;
+    }
 
     // Admins always go through the force-delete edge function so blocking
     // child rows (NO ACTION FKs, paid registration orders, etc.) are cleared
@@ -170,7 +197,7 @@ export default function MyReports() {
       // the user across all workspaces. Registration orders live under Filings.
       // ropa_/us_notice_/eu_notice_sessions are scoped by client_id (no user_id
       // column) — RLS enforces ownership via client ownership.
-      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice, cppa, cppaScope] = await Promise.all([
+      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice, cppa, cppaScope, drafts] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -204,6 +231,11 @@ export default function MyReports() {
         supabase.from("cppa_scope_checks")
           .select("id, created_at, in_scope, obligation_map, answers")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("tool_sessions" as any)
+          .select("id, tool_type, client_id, current_stage, updated_at, created_at, session_data")
+          .eq("user_id", user.id)
+          .eq("completed", false)
+          .order("updated_at", { ascending: false }),
       ]);
 
 
@@ -349,6 +381,36 @@ export default function MyReports() {
         });
       });
 
+      // Drafts from tool_sessions (autosave). Skip drafts whose tool_type
+      // doesn't have a known intake route — they'd be unresumable.
+      (drafts.data || []).forEach((r: any) => {
+        const map = DRAFT_TOOL_MAP[r.tool_type as string];
+        if (!map) return;
+        const baseLabel = TOOL_LABEL[map.labelKey] || r.tool_type;
+        const orgGuess =
+          r.session_data?.organisation_name ||
+          r.session_data?.organization_name ||
+          r.session_data?.companyName ||
+          r.session_data?.company_name ||
+          r.session_data?.profile?.organisation_name ||
+          r.session_data?.profile?.organization_name ||
+          r.session_data?.q2_org_name ||
+          null;
+        const stage = typeof r.current_stage === "number" ? `Step ${r.current_stage}` : "In progress";
+        all.push({
+          id: r.id,
+          tool: `draft_${map.labelKey}`,
+          tool_label: `${baseLabel} (draft)`,
+          created_at: r.updated_at || r.created_at,
+          status: "in_progress",
+          summary: orgGuess ? `${orgGuess} · ${stage}` : stage,
+          view_path: map.route,
+          ...clientMeta(r.client_id),
+          is_draft: true,
+        });
+      });
+
+
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
@@ -392,7 +454,9 @@ export default function MyReports() {
             </Card>
           ) : (
             (() => {
+              const draftToolKeys = Object.values(DRAFT_TOOL_MAP).map((m) => `draft_${m.labelKey}`);
               const GROUPS: { key: string; label: string; tools: string[] }[] = [
+                { key: "drafts", label: "Drafts (autosaved)", tools: draftToolKeys },
                 { key: "assessments", label: "Compliance Assessments", tools: ["li", "dpia", "governance", "biometric"] },
                 { key: "documents", label: "Privacy & Legal Documents", tools: ["dpa", "ir", "ropa", "us_notice", "eu_notice"] },
                 { key: "cppa", label: "CPPA Audit Suite", tools: ["cppa_risk", "cppa_cyber", "cppa_scope"] },
@@ -475,7 +539,7 @@ export default function MyReports() {
                                   {r.status === "in_progress" ? "Continue →" : "View →"}
                                 </Link>
                               </Button>
-                              {TOOL_TABLE[r.tool] && (
+                              {(r.is_draft || TOOL_TABLE[r.tool]) && (
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button
