@@ -373,7 +373,7 @@ async function loadPagesWithRotation(
 const APPENDIX2023_NOISE =
   /F\s*S\s*O\s*R\s*A\s*P\s*P\s*E\s*N\s*D\s*I\s*X|Page\s+\d+|^CPPA_RM1/i;
 const APPENDIX2023_HEADER_WORDS =
-  /^(Response\s*#?|Summary(\s+of\s+Comments?)?|of\s+Comments?|Comments?\s*#?s?|Bates(\s+Label)?|Label|#)$/i;
+  /^(Response|Summary|Comment|Comments|Bates|Label|Transcript|#s|No\.?|Number|#)$/i;
 
 function appendixLabelFromUrl(url: string): string {
   const m = url.toLowerCase().match(/_app_([a-z])_/);
