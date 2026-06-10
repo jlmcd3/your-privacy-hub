@@ -193,10 +193,10 @@ export default function AdminFsorIngestion() {
     try {
       const { fsor_package: _fp, ...payload } = config as any;
 
-      // For appendix45 mode, always iterate 50-page windows with 1-page overlap
-      // to stay under the edge runtime resource limit. For fsor mode, single call;
-      // if the function reports total_pages > 100, fall back to windowing as well.
-      const shouldWindow = config.mode === "appendix45";
+      // For appendix45 + appendix2023 modes, always iterate 50-page windows with
+      // 1-page overlap to stay under the edge runtime resource limit. For fsor
+      // mode, single call; if total_pages > 100, fall back to windowing.
+      const shouldWindow = config.mode === "appendix45" || config.mode === "appendix2023";
 
       if (!shouldWindow) {
         const { ok, status, data } = await callExtractWindow(payload);
