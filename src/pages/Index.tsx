@@ -5,6 +5,7 @@ import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 import AdBanner from "@/components/AdBanner";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
+import CPPADeadlineStrip from "@/components/CPPADeadlineStrip";
 import HomepageFeedSection from "@/components/home/HomepageFeedSection";
 import HomepageBriefSection from "@/components/home/HomepageBriefSection";
 import HomepageToolsSection from "@/components/home/HomepageToolsSection";
