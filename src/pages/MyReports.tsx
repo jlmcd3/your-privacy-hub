@@ -539,7 +539,7 @@ export default function MyReports() {
                                   {r.status === "in_progress" ? "Continue →" : "View →"}
                                 </Link>
                               </Button>
-                              {TOOL_TABLE[r.tool] && (
+                              {(r.is_draft || TOOL_TABLE[r.tool]) && (
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button
