@@ -312,6 +312,22 @@ Return JSON:
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
 
+    // C4 RoPA accumulator: governance assessment surfaces a "Programme governance" obligation
+    if (assessment.client_id) {
+      supabase.functions.invoke("accumulate-ropa-activity", {
+        body: {
+          client_id: assessment.client_id,
+          source_tool: "governance_assessment",
+          source_assessment_id: assessment_id,
+          display_name: "Privacy programme governance",
+          source_summary: "Drafted from Governance Assessment — review domain findings and link to RoPA categories.",
+          is_high_risk: false,
+          category: "finance_legal",
+        },
+      }).catch((e: Error) => console.error("[gov] accumulate-ropa failed (non-fatal):", e.message));
+    }
+
+
     const { data: userData } = await supabase.auth.admin.getUserById(
       assessment.user_id
     ).catch(() => ({ data: null as any }));
