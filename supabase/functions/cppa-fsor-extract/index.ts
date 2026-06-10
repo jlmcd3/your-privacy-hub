@@ -500,8 +500,8 @@ Deno.serve(async (req) => {
   const source_url = String(body?.source_url ?? "").trim();
   const mode = body?.mode;
   if (!source_url) return json({ error: "source_url required" }, 400);
-  if (mode !== "fsor" && mode !== "appendix45") {
-    return json({ error: "mode must be 'fsor' or 'appendix45'" }, 400);
+  if (mode !== "fsor" && mode !== "appendix45" && mode !== "appendix2023") {
+    return json({ error: "mode must be 'fsor', 'appendix45', or 'appendix2023'" }, 400);
   }
   const includeRoots = Array.isArray(body?.include_sections)
     ? new Set(body.include_sections!.map((s) => String(s).trim()))
@@ -516,17 +516,18 @@ Deno.serve(async (req) => {
     const pageTo = Math.max(pageFrom, Math.min(totalPages, reqTo));
 
     let units: Unit[];
+    let noCitationDropped: number | undefined;
     if (mode === "fsor") {
       const { pageText } = await loadPagesRange(doc, pageFrom, pageTo);
       units = extractFsor(pageText, pageFrom, body.start_anchor, body.stop_anchor);
     } else {
-      // Document-shape guard: page-count uses cheap doc.numPages; shape sample
-      // is the first 5 pages of the requested window only. Whitespace is
-      // collapsed before testing because per-page running headers contain
-      // artifacts that defeat literal substring matching. The header regex is
-      // letter-tolerant because the PDF extractor splits inside words.
-      // Column-header tokens appear only on table-start pages, so they are
-      // informational only. force_shape=true skips the guard entirely.
+      // Document-shape guard (shared by appendix45 + appendix2023).
+      // Page-count uses cheap doc.numPages; shape sample is the first 5 pages
+      // of the requested window. Whitespace is collapsed before testing because
+      // per-page running headers contain artifacts that defeat literal substring
+      // matching. The header regex is letter-tolerant because the PDF extractor
+      // splits inside words. Column-header tokens are informational only.
+      // force_shape=true skips the guard entirely.
       const FSOR_APPENDIX_RE =
         /F\s*S\s*O\s*R\s*A\s*P\s*P\s*E\s*N\s*D\s*I\s*X/i;
       const sampleEnd = Math.min(pageTo, pageFrom + 4);
@@ -547,17 +548,18 @@ Deno.serve(async (req) => {
       const anySummary = perPage.some((p) => p.matched.summary_of_comments);
       const anyAgency = perPage.some((p) => p.matched.agency_response);
       const shapeOk = appendixHits > perPage.length / 2;
-      const lengthOk = totalPages > 100;
+      const lengthOk = mode === "appendix2023" ? true : totalPages > 100;
       const forceShape = body?.force_shape === true;
       if (forceShape) {
         console.warn(
-          `[cppa-fsor-extract] force_shape=true — bypassing document-shape guard for ${source_url} (pages=${totalPages}, appendix_hits=${appendixHits}/${perPage.length})`,
+          `[cppa-fsor-extract] force_shape=true — bypassing document-shape guard for ${source_url} (mode=${mode}, pages=${totalPages}, appendix_hits=${appendixHits}/${perPage.length})`,
         );
       } else if (!shapeOk || !lengthOk) {
         return json(
           {
             error: "document_shape_mismatch",
             url: source_url,
+            mode,
             page_count: totalPages,
             failed_check: !lengthOk
               ? `length: ${totalPages} pages (need > 100)`
@@ -574,9 +576,19 @@ Deno.serve(async (req) => {
           422,
         );
       }
-      const { pageItems } = await loadPagesRange(doc, pageFrom, pageTo);
-      const cx = body.column_x ?? [75, 160, 430];
-      units = extractAppendix(pageItems, cx, pageFrom);
+      if (mode === "appendix45") {
+        const { pageItems } = await loadPagesRange(doc, pageFrom, pageTo);
+        const cx = body.column_x ?? [75, 160, 430];
+        units = extractAppendix(pageItems, cx, pageFrom);
+      } else {
+        const pages = await loadPagesWithRotation(doc, pageFrom, pageTo);
+        const cb = (body.col_bounds as [number, number, number, number] | undefined)
+          ?? [90, 420, 610, 670];
+        const label = appendixLabelFromUrl(source_url);
+        const res = extractAppendix2023(pages, cb, label, includeRoots);
+        units = res.units;
+        noCitationDropped = res.noCitationDropped;
+      }
     }
 
     if (includeRoots) {
@@ -600,6 +612,7 @@ Deno.serve(async (req) => {
       total_pages: totalPages,
       page_from: pageFrom,
       page_to: pageTo,
+      ...(noCitationDropped !== undefined ? { no_citation_dropped: noCitationDropped } : {}),
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
