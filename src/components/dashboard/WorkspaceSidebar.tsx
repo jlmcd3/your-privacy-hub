@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 px-3 mb-2 hidden lg:block">
+    <p className="text-[9px] font-semibold tracking-[0.18em] uppercase text-slate-400/70 px-3 pb-1 mb-2 border-b border-brand-cloud/60 hidden lg:block">
       {children}
     </p>
   );
