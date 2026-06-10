@@ -267,6 +267,24 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
       updated_at: new Date().toISOString(),
     }).eq("id", dpia_id);
 
+    // C4 RoPA accumulator
+    if (dpia.client_id) {
+      const intakeAny = (dpia.intake_data as any) || {};
+      const summary = intakeAny.processing_description || intakeAny.activity_description || "Processing activity requiring DPIA";
+      supabase.functions.invoke("accumulate-ropa-activity", {
+        body: {
+          client_id: dpia.client_id,
+          source_tool: "dpia_framework",
+          source_assessment_id: dpia_id,
+          display_name: String(summary).slice(0, 120),
+          source_summary: String(summary),
+          is_high_risk: true,
+          category: "other",
+        },
+      }).catch((e: Error) => console.error("[dpia] accumulate-ropa failed (non-fatal):", e.message));
+    }
+
+
     const { data: userData } = await supabase.auth.admin.getUserById(
       dpia.user_id
     ).catch(() => ({ data: null as any }));

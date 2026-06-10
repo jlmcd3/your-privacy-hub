@@ -558,6 +558,25 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       console.error("dpa_documents persist failed:", persistErr);
     }
 
+    // C4 RoPA accumulator: third-party processor onboarding is a RoPA event
+    const dpaClientId = (body as any).client_id as string | null | undefined;
+    if (savedId && dpaClientId) {
+      const processorName = (body as any).processor_name || (body as any).vendor_name || "third-party processor";
+      const purpose = (body as any).processing_purpose || (body as any).description || "Data sharing with processor";
+      supabase.functions.invoke("accumulate-ropa-activity", {
+        body: {
+          client_id: dpaClientId,
+          source_tool: "dpa_generator",
+          source_assessment_id: savedId,
+          display_name: `Processor: ${String(processorName).slice(0, 80)}`,
+          source_summary: String(purpose),
+          is_high_risk: false,
+          category: "third_party",
+        },
+      }).catch((e: Error) => console.error("[dpa] accumulate-ropa failed (non-fatal):", e.message));
+    }
+
+
     return new Response(
       JSON.stringify({
         id: savedId,

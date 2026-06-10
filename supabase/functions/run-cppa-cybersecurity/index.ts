@@ -293,6 +293,22 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       .update({ status: "complete", report_data: report, obligation_snapshot })
       .eq("id", assessment_id);
 
+    // C4 RoPA accumulator: cybersecurity controls map to a Security activity
+    if ((row as any).client_id) {
+      supabase.functions.invoke("accumulate-ropa-activity", {
+        body: {
+          client_id: (row as any).client_id,
+          source_tool: "cppa_cybersecurity",
+          source_assessment_id: assessment_id,
+          display_name: "Cybersecurity & threat monitoring",
+          source_summary: "Drafted from CPPA Cybersecurity Audit — review control gaps and link safeguards.",
+          is_high_risk: false,
+          category: "technology",
+        },
+      }).catch((e: Error) => console.error("[cppa-cyber] accumulate-ropa failed (non-fatal):", e.message));
+    }
+
+
   } catch (e) {
     console.error("[CPPA Cyber] runAssessment error:", e);
     await supabase

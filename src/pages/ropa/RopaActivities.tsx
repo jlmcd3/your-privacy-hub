@@ -95,6 +95,8 @@ export default function RopaActivities() {
     string | null
   >(null);
   const [existingCount, setExistingCount] = useState(0);
+  const [suggestedDrafts, setSuggestedDrafts] = useState<{ id: string; source_tool: string; display_name: string }[]>([]);
+
   const [primerOpen, setPrimerOpen] = useState(false);
   const [primerEvaluated, setPrimerEvaluated] = useState(false);
 
@@ -161,23 +163,30 @@ export default function RopaActivities() {
         const { data: existing } = await SUPA.from(
           "ropa_processing_activities"
         )
-          .select("id, template_key")
+          .select("id, template_key, status, source_tool, display_name")
           .eq("session_id", resolved.id)
           .order("display_order", { ascending: true });
         if (cancelled) return;
         const keys = new Set<string>();
+        const drafted: { id: string; source_tool: string; display_name: string }[] = [];
         for (const a of (existing ?? []) as {
           id: string;
           template_key: string | null;
+          status: string | null;
+          source_tool: string | null;
+          display_name: string | null;
         }[]) {
           if (a.template_key) keys.add(a.template_key);
+          if (a.status === "draft_suggested" && a.source_tool) {
+            drafted.push({ id: a.id, source_tool: a.source_tool, display_name: a.display_name || "Untitled activity" });
+          }
         }
         setExistingTemplateKeys(keys);
         setExistingCount((existing ?? []).length);
         setExistingFirstActivityId(
           (existing ?? [])[0]?.id ?? null
         );
-        // Pre-tick the templated activities so the UI reflects current state.
+        setSuggestedDrafts(drafted);
         setSelected((prev) => {
           const next = new Set(prev);
           for (const k of keys) next.add(k);
@@ -187,7 +196,9 @@ export default function RopaActivities() {
         setExistingTemplateKeys(new Set());
         setExistingCount(0);
         setExistingFirstActivityId(null);
+        setSuggestedDrafts([]);
       }
+
     })();
     return () => {
       cancelled = true;
@@ -405,6 +416,43 @@ export default function RopaActivities() {
           </div>
         </div>
       )}
+
+      {suggestedDrafts.length > 0 && (
+        <div className="mb-4 p-3 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 rounded-r-lg">
+          <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-2">
+            {suggestedDrafts.length} activit{suggestedDrafts.length === 1 ? "y" : "ies"} drafted from other assessments
+          </p>
+          <ul className="space-y-1 mb-2">
+            {suggestedDrafts.slice(0, 5).map((d) => {
+              const toolLabel: Record<string, string> = {
+                li_assessment: "LIA",
+                dpia_framework: "DPIA",
+                dpa_generator: "DPA",
+                biometric_checker: "Biometric Check",
+                governance_assessment: "Governance",
+                cppa_cybersecurity: "CPPA Cyber",
+              };
+              return (
+                <li key={d.id} className="text-xs text-amber-900 dark:text-amber-100">
+                  <button
+                    onClick={() => navigate(withSession(`/ropa/activity/${d.id}`, sessionId))}
+                    className="underline hover:no-underline"
+                  >
+                    {d.display_name}
+                  </button>
+                  <span className="ml-2 text-amber-700 dark:text-amber-300">
+                    · from {toolLabel[d.source_tool] || d.source_tool}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="text-[11px] text-amber-800 dark:text-amber-300">
+            Open each to confirm details and complete the Q&amp;A.
+          </p>
+        </div>
+      )}
+
 
       <button
         onClick={loadTypical}

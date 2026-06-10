@@ -4177,6 +4177,9 @@ export type Database = {
           is_high_risk: boolean
           is_public_facing: boolean
           session_id: string
+          source_assessment_id: string | null
+          source_summary: string | null
+          source_tool: string | null
           status: string
           template_key: string | null
           updated_at: string
@@ -4192,6 +4195,9 @@ export type Database = {
           is_high_risk?: boolean
           is_public_facing?: boolean
           session_id: string
+          source_assessment_id?: string | null
+          source_summary?: string | null
+          source_tool?: string | null
           status?: string
           template_key?: string | null
           updated_at?: string
@@ -4207,6 +4213,9 @@ export type Database = {
           is_high_risk?: boolean
           is_public_facing?: boolean
           session_id?: string
+          source_assessment_id?: string | null
+          source_summary?: string | null
+          source_tool?: string | null
           status?: string
           template_key?: string | null
           updated_at?: string

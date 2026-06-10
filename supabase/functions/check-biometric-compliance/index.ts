@@ -356,6 +356,23 @@ Output ONLY the compliance assessment. No preamble.`,
       console.error("biometric_assessments persist failed:", persistErr);
     }
 
+    // C4 RoPA accumulator: biometric processing is always RoPA-relevant & high-risk
+    if (savedId && body.client_id) {
+      const useCase = (body as any).use_case || (body as any).biometric_use_case || "Biometric processing";
+      supabase.functions.invoke("accumulate-ropa-activity", {
+        body: {
+          client_id: body.client_id,
+          source_tool: "biometric_checker",
+          source_assessment_id: savedId,
+          display_name: `Biometric: ${String(useCase).slice(0, 80)}`,
+          source_summary: String(useCase),
+          is_high_risk: true,
+          category: "technology",
+        },
+      }).catch((e: Error) => console.error("[biometric] accumulate-ropa failed (non-fatal):", e.message));
+    }
+
+
     return new Response(
       JSON.stringify({
         id: savedId,
