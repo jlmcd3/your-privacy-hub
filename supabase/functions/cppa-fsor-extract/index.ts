@@ -92,8 +92,15 @@ function splitLongUnit(text: string, max = 6000): string[] {
   return out;
 }
 
-const SUB_LEAD = /(?:Subsections?\s*\(([^)]+)\)(?:\([^)]+\))*|Previous\s+subsections?\s*[^:]*|Title)\s*:/i;
-const SUB_LEAD_G = /(?:Subsections?\s*\(([^)]+)\)((?:\([^)]+\))*)|Previous\s+subsections?\s*[^:]*|Title)\s*:/gi;
+// Tolerant of PDF letter-spacing artifacts (e.g. "S u bsection (e)( 3)").
+const SUB_WORD = String.raw`S\s*u\s*b\s*s\s*e\s*c\s*t\s*i\s*o\s*n\s*s?`;
+const PREV_WORD = String.raw`P\s*r\s*e\s*v\s*i\s*o\s*u\s*s\s+` + SUB_WORD;
+const TITLE_WORD = String.raw`T\s*i\s*t\s*l\s*e`;
+const SUB_LEAD = new RegExp(
+  `(?:${SUB_WORD}\\s*\\(\\s*([^)]+?)\\s*\\)((?:\\s*\\(\\s*[^)]+?\\s*\\))*)|${PREV_WORD}[^:]*|${TITLE_WORD})\\s*:`,
+  "i",
+);
+const SUB_LEAD_G = new RegExp(SUB_LEAD.source, "gi");
 
 function extractFsor(
   pageText: string[],
@@ -106,7 +113,9 @@ function extractFsor(
   for (let i = 0; i < pageText.length; i++) {
     parts.push(`${MARK}${i + 1}\u0002 ${pageText[i]}`);
   }
-  let full = parts.join(" ");
+  const baseFull = parts.join(" ");
+  let full = baseFull;
+  let sliceOffset = 0;
 
   // Whitespace- and case-insensitive anchor finder.
   // PDF text extraction can insert arbitrary spacing, NBSPs, or page markers
@@ -148,6 +157,7 @@ function extractFsor(
     const si = findAnchor(full, startAnchor);
     if (si < 0) throw new Error(`start_anchor_not_found:${startAnchor}`);
     full = full.slice(si);
+    sliceOffset = si;
   }
   if (stopAnchor) {
     const ei = findAnchor(full, stopAnchor);
@@ -155,9 +165,10 @@ function extractFsor(
     full = full.slice(0, ei);
   }
 
-  // helper: page number at a given offset
+  // helper: page number at a given offset (resolves against baseFull so
+  // markers preceding the slice are still considered).
   function pageAt(offset: number): number {
-    const sub = full.slice(0, offset);
+    const sub = baseFull.slice(0, sliceOffset + offset);
     const matches = [...sub.matchAll(/\u0001PG(\d+)\u0002/g)];
     return matches.length ? Number(matches[matches.length - 1][1]) : 1;
   }
