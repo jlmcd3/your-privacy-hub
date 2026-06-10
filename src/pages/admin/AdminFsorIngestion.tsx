@@ -179,58 +179,83 @@ export default function AdminFsorIngestion() {
   async function runVerify() {
     setVerifying(true);
     setVerifyResult("");
+    const sections: string[] = [];
+
+    // Total row count
+    try {
+      const { count, error } = await supabase
+        .from("cppa_fsor_commentary")
+        .select("*", { count: "exact", head: true });
+      if (error) throw error;
+      sections.push(`Total rows in cppa_fsor_commentary: ${count ?? 0}`);
+    } catch (e: any) {
+      sections.push(`Total rows: ERROR — ${e?.message ?? e}`);
+    }
+
+    // Package counts (client-side tally)
     try {
       const { data: rows, error } = await supabase
         .from("cppa_fsor_commentary")
-        .select("fsor_package");
+        .select("fsor_package")
+        .limit(2000);
       if (error) throw error;
       const counts: Record<string, number> = {};
       for (const r of rows ?? []) {
         const k = (r as any).fsor_package ?? "unknown";
         counts[k] = (counts[k] ?? 0) + 1;
       }
-      const { count: nullCount, error: e2 } = await supabase
+      const lines = Object.entries(counts)
+        .sort()
+        .map(([k, v]) => `  ${k} — ${v}`)
+        .join("\n");
+      sections.push(`Counts by fsor_package:\n${lines || "  (none)"}`);
+    } catch (e: any) {
+      sections.push(`Package counts: ERROR — ${e?.message ?? e}`);
+    }
+
+    // NULL embedding count
+    try {
+      const { count: nullCount, error } = await supabase
         .from("cppa_fsor_commentary")
         .select("id", { count: "exact", head: true })
         .is("embedding", null);
-      if (e2) throw e2;
-      const lines = Object.entries(counts)
-        .sort()
-        .map(([k, v]) => `  ${k}: ${v}`)
-        .join("\n");
+      if (error) throw error;
+      sections.push(`Rows with NULL embedding: ${nullCount ?? 0}`);
+    } catch (e: any) {
+      sections.push(`NULL embedding count: ERROR — ${e?.message ?? e}`);
+    }
 
-      const checks = [
-        { label: "substantially replace human decisionmaking", phrase: "substantially replace human decisionmaking" },
-        { label: "no later than 45 calendar days from the date of the material change", phrase: "no later than 45 calendar days from the date of the material change" },
-        { label: "In re Marriage of Reese", phrase: "In re Marriage of Reese" },
-        { label: "NIST Cybersecurity Framework 2.0", phrase: "NIST Cybersecurity Framework 2.0" },
-        { label: "providing reasonable accommodation as required by law", phrase: "providing reasonable accommodation as required by law" },
-        { label: "Colorado Privacy Act", phrase: "Colorado Privacy Act" },
-      ];
-      const checkResults: string[] = [];
-      for (const c of checks) {
-        const { data: matches, error: ce } = await supabase
+    // Six spot-checks
+    const checks = [
+      "substantially replace human decisionmaking",
+      "no later than 45 calendar days from the date of the material change",
+      "In re Marriage of Reese",
+      "NIST Cybersecurity Framework 2.0",
+      "providing reasonable accommodation as required by law",
+      "Colorado Privacy Act",
+    ];
+    for (const phrase of checks) {
+      try {
+        const { data: matches, error } = await supabase
           .from("cppa_fsor_commentary")
           .select("regulation_citation")
-          .ilike("agency_response", `%${c.phrase}%`);
-        if (ce) throw ce;
-        const citations = (matches ?? []).map((m: any) => m.regulation_citation).filter(Boolean);
+          .ilike("agency_response", `%${phrase}%`);
+        if (error) throw error;
+        const citations = (matches ?? [])
+          .map((m: any) => m.regulation_citation)
+          .filter(Boolean);
         if (citations.length > 0) {
-          checkResults.push(`PASS — ${c.label}\n  ${citations.join(", ")}`);
+          sections.push(`PASS — ${phrase}\n  ${citations.join(", ")}`);
         } else {
-          checkResults.push(`FAIL — ${c.label}`);
+          sections.push(`FAIL — ${phrase}`);
         }
+      } catch (e: any) {
+        sections.push(`ERROR — ${phrase}: ${e?.message ?? e}`);
       }
-
-      setVerifyResult(
-        `Counts by fsor_package:\n${lines}\n\nRows with NULL embedding: ${nullCount ?? 0}\n\n` +
-        checkResults.join("\n\n"),
-      );
-    } catch (e: any) {
-      setVerifyResult(`Error: ${e?.message ?? e}`);
-    } finally {
-      setVerifying(false);
     }
+
+    setVerifyResult(sections.join("\n\n"));
+    setVerifying(false);
   }
 
   return (
