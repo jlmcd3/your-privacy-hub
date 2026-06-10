@@ -41,7 +41,7 @@ export default function NoticeBuilderLanding() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <DashboardSubnav>
+      <DashboardSubnav />
       <Helmet>
         <title>Privacy Notice Builder · US & EU/Global | End User Privacy</title>
         <meta
