@@ -50,7 +50,9 @@ const FAQS = [
 export default function RegistrationLanding() {
   // hasToolAccess no longer used here (registration is always per-filing).
   return (
-    <WorkspaceLayout>
+    <>
+      <Navbar />
+      <DashboardSubnav />
       <Helmet>
         <title>Privacy Registration Manager | End User Privacy</title>
         <meta
