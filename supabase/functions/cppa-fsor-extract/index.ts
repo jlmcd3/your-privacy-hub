@@ -307,10 +307,11 @@ function extractAppendix(
     const citation = `11 CCR § ${cur.section}${cur.citationSubs}`;
     const pageRef = `Appendix, p. ${cur.startPage}${continuation ? " (cont.)" : ""}`;
     const respChunks = splitLongUnit(response);
+    const commentChunks = summary ? splitLongUnit(summary) : [];
     for (let i = 0; i < respChunks.length; i++) {
       units.push({
         agency_response: respChunks[i],
-        comment_text: i === 0 ? summary || undefined : undefined,
+        comment_text: i === 0 && commentChunks.length > 0 ? commentChunks[0] : undefined,
         regulation_citation: citation,
         page_ref: i === 0 ? pageRef : `Appendix, p. ${cur!.startPage} (cont.)`,
       });
