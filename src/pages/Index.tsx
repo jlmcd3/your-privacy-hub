@@ -22,6 +22,7 @@ const Index = () => (
     <Navbar />
     <BreakingNewsBanner />
     <SearchFirstHero />
+    <CPPADeadlineStrip />
 
     <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-8 space-y-6">
       <div id="updates" className="scroll-mt-20">
