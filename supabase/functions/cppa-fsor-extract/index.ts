@@ -109,16 +109,35 @@ function extractFsor(
   let full = parts.join(" ");
 
   // Whitespace- and case-insensitive anchor finder.
-  // PDF text extraction often inserts line breaks, double spaces, or NBSPs
-  // between words, so exact indexOf on a literal anchor frequently misses.
+  // PDF text extraction can insert arbitrary spacing, NBSPs, or page markers
+  // between words, so search a normalized shadow string but return original offset.
+  function searchableWithMap(value: string): { text: string; map: number[] } {
+    let text = "";
+    const map: number[] = [];
+    let lastWasSpace = false;
+    for (let i = 0; i < value.length; i++) {
+      const ch = value[i];
+      if (/\s|[\u00a0\u2000-\u200d\ufeff]/.test(ch)) {
+        if (!lastWasSpace) {
+          text += " ";
+          map.push(i);
+          lastWasSpace = true;
+        }
+      } else {
+        text += ch.toLowerCase();
+        map.push(i);
+        lastWasSpace = false;
+      }
+    }
+    return { text: text.trim(), map };
+  }
+
   function findAnchor(hay: string, needle: string): number {
     if (!needle) return -1;
-    const pattern = needle
-      .trim()
-      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-      .replace(/\s+/g, "\\s+");
-    const m = new RegExp(pattern, "i").exec(hay);
-    return m ? m.index : -1;
+    const normalizedHay = searchableWithMap(hay);
+    const normalizedNeedle = searchableWithMap(needle).text;
+    const idx = normalizedHay.text.indexOf(normalizedNeedle);
+    return idx >= 0 ? normalizedHay.map[idx] : -1;
   }
 
   if (startAnchor) {
@@ -144,9 +163,9 @@ function extractFsor(
   // simpler: we'll do header detection on `full` directly (markers don't match header regexes)
 
   const patterns: { re: RegExp; name: string }[] = [
-    { re: /(?:Amend|Adopt|Delete)\s+§\s*(7\d{3})/g, name: "2025" },
-    { re: /\b[A-Z]{1,2}\.\s+§\s*(7\d{3})\./g, name: "2023" },
-    { re: /§\s*(7\d{3})\./g, name: "fallback" },
+    { re: /(?:Amend|Adopt|Delete)\s+§\s*(7\s*\d\s*\d\s*\d)\s*\./g, name: "2025" },
+    { re: /\b[A-Z]{1,2}\.\s+§\s*(7\s*\d\s*\d\s*\d)\s*\./g, name: "2023" },
+    { re: /§\s*(7\s*\d\s*\d\s*\d)\s*\./g, name: "fallback" },
   ];
   let best: { name: string; matches: { index: number; section: string }[] } = {
     name: "none",
@@ -155,7 +174,7 @@ function extractFsor(
   for (const p of patterns) {
     const m = [...full.matchAll(p.re)].map((x) => ({
       index: x.index ?? 0,
-      section: x[1],
+      section: x[1].replace(/\s+/g, ""),
     }));
     if (m.length > best.matches.length) best = { name: p.name, matches: m };
     if (best.matches.length > 20) break;
