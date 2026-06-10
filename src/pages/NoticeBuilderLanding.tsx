@@ -39,7 +39,9 @@ export default function NoticeBuilderLanding() {
   const euHref = hasToolAccess ? "/eu-notices" : "/subscribe";
 
   return (
-    <WorkspaceLayout className="bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <DashboardSubnav>
       <Helmet>
         <title>Privacy Notice Builder · US & EU/Global | End User Privacy</title>
         <meta
