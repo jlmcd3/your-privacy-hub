@@ -290,7 +290,8 @@ export default function USNoticeLanding() {
           </div>
         </section>
       </main>
-    </WorkspaceLayout>
+      <Footer />
+    </div>
   );
 }
 
