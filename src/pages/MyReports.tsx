@@ -391,111 +391,150 @@ export default function MyReports() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-3">
-              {visibleRows.map((r) => (
-                <Card key={`${r.tool}-${r.id}`} className="border-border/60">
-                  <CardContent className="py-4 flex items-start justify-between gap-4 flex-wrap">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-display font-semibold text-brand-navy text-[14px]">{r.tool_label}</span>
-                        {r.status === "in_progress" ? (
-                          <Badge className="text-[11px] bg-amber-100 text-amber-800 hover:bg-amber-100 border-transparent">
-                            in progress
-                          </Badge>
-                        ) : (
-                          <Badge variant={statusVariant(r.status)} className="text-[11px]">
-                            {(r.status || "—").replace(/_/g, " ")}
-                          </Badge>
-                        )}
-                        {r.client_name && !r.is_personal_client && (
-                          <Badge
-                            variant="outline"
-                            className="text-[11px] border-brand-teal/40 text-brand-teal"
-                            title={`Client workspace: ${r.client_name}`}
-                          >
-                            {r.client_name}
-                          </Badge>
-                        )}
-                        {r.is_personal_client && (
-                          <Badge variant="outline" className="text-[11px] text-muted-foreground">
-                            Personal
-                          </Badge>
-                        )}
+            (() => {
+              const GROUPS: { key: string; label: string; tools: string[] }[] = [
+                { key: "assessments", label: "Compliance Assessments", tools: ["li", "dpia", "governance", "biometric"] },
+                { key: "documents", label: "Privacy & Legal Documents", tools: ["dpa", "ir", "ropa", "us_notice", "eu_notice"] },
+                { key: "cppa", label: "CPPA Audit Suite", tools: ["cppa_risk", "cppa_cyber", "cppa_scope"] },
+                { key: "registration", label: "Registration", tools: ["registration"] },
+              ];
+              const grouped = GROUPS.map((g) => ({
+                ...g,
+                rows: visibleRows.filter((r) => g.tools.includes(r.tool)),
+              })).filter((g) => g.rows.length > 0);
+
+              return (
+                <div className="space-y-8">
+                  {grouped.map((group) => (
+                    <section key={group.key}>
+                      <div className="border-l-2 border-[#2563EB] pl-3 mb-3 flex items-baseline gap-2">
+                        <h2 className="text-[11px] uppercase tracking-widest text-slate-400 font-semibold m-0">
+                          {group.label}
+                        </h2>
+                        <span className="text-[11px] text-muted-foreground">
+                          {group.rows.length} {group.rows.length === 1 ? "item" : "items"}
+                        </span>
                       </div>
-                      <p className="text-sm text-slate truncate">{r.summary}</p>
-                      <p className="text-[11px] text-muted-foreground mt-1">
-                        {new Date(r.created_at).toLocaleDateString()} · {new Date(r.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      {r.pdf_url && (
-                        <Button asChild size="sm" variant="outline">
-                          <a href={r.pdf_url} target="_blank" rel="noopener noreferrer">
-                            <Download className="w-3.5 h-3.5 mr-1" /> PDF
-                          </a>
-                        </Button>
-                      )}
-                      <Button asChild size="sm">
-                        <Link to={r.view_path}>
-                          {r.status === "in_progress" ? "Continue" : "View"} <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                        </Link>
-                      </Button>
-                      {TOOL_TABLE[r.tool] && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-destructive hover:text-destructive"
-                              disabled={deletingId === `${r.tool}-${r.id}`}
-                              aria-label={`Delete ${r.tool_label}`}
-                            >
-                              {deletingId === `${r.tool}-${r.id}` ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <div className="border border-border/40 rounded-lg overflow-hidden bg-card">
+                        {group.rows.map((r) => (
+                          <div
+                            key={`${r.tool}-${r.id}`}
+                            className="flex items-center justify-between gap-4 py-3 px-4 border-b border-border/30 last:border-0"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-baseline gap-2 min-w-0">
+                                <span className="font-medium text-[13px] text-brand-navy shrink-0">
+                                  {r.tool_label}
+                                </span>
+                                <span className="text-[12px] text-slate-500 truncate max-w-[420px]">
+                                  — {r.summary}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">
+                                {new Date(r.created_at).toLocaleDateString()} · {new Date(r.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </div>
+                            <div className="flex-shrink-0 flex items-center gap-2">
+                              {r.status === "in_progress" ? (
+                                <Badge className="text-[10px] py-0 px-1.5 h-5 bg-amber-100 text-amber-800 hover:bg-amber-100 border-transparent">
+                                  in progress
+                                </Badge>
                               ) : (
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Badge variant={statusVariant(r.status)} className="text-[10px] py-0 px-1.5 h-5">
+                                  {(r.status || "—").replace(/_/g, " ")}
+                                </Badge>
                               )}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                {r.client_name && !r.is_personal_client
-                                  ? `Delete this ${r.client_name} report?`
-                                  : "Delete this report?"}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {r.client_name && !r.is_personal_client ? (
-                                  <>
-                                    This report belongs to <strong>{r.client_name}</strong>. Deleting it
-                                    here permanently removes it from that client workspace too.
-                                    {r.summary ? <> Report: "{r.summary}".</> : null} This action cannot be undone.
-                                  </>
-                                ) : (
-                                  <>
-                                    This will permanently remove your {r.tool_label.toLowerCase()}
-                                    {r.summary ? ` ("${r.summary}")` : ""}. This action cannot be undone.
-                                  </>
-                                )}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(r)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                              {r.client_name && !r.is_personal_client && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] py-0 px-1.5 h-5 border-brand-teal/40 text-brand-teal"
+                                  title={`Client workspace: ${r.client_name}`}
+                                >
+                                  {r.client_name}
+                                </Badge>
+                              )}
+                              {r.is_personal_client && (
+                                <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-5 text-muted-foreground">
+                                  Personal
+                                </Badge>
+                              )}
+                              {r.pdf_url && (
+                                <a
+                                  href={r.pdf_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="PDF available — click to open"
+                                  className="inline-flex items-center gap-1 text-brand-navy/60 hover:text-brand-navy no-underline"
+                                >
+                                  <FileText className="w-[14px] h-[14px]" />
+                                  <span className="text-[10px] text-slate-400">PDF</span>
+                                </a>
+                              )}
+                              <Button asChild size="sm" variant="outline" className="text-[12px] h-7">
+                                <Link to={r.view_path}>
+                                  {r.status === "in_progress" ? "Continue →" : "View →"}
+                                </Link>
+                              </Button>
+                              {TOOL_TABLE[r.tool] && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-destructive/50 hover:text-destructive h-7 w-7 p-0"
+                                      disabled={deletingId === `${r.tool}-${r.id}`}
+                                      aria-label={`Delete ${r.tool_label}`}
+                                    >
+                                      {deletingId === `${r.tool}-${r.id}` ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      )}
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>
+                                        {r.client_name && !r.is_personal_client
+                                          ? `Delete this ${r.client_name} report?`
+                                          : "Delete this report?"}
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        {r.client_name && !r.is_personal_client ? (
+                                          <>
+                                            This report belongs to <strong>{r.client_name}</strong>. Deleting it
+                                            here permanently removes it from that client workspace too.
+                                            {r.summary ? <> Report: "{r.summary}".</> : null} This action cannot be undone.
+                                          </>
+                                        ) : (
+                                          <>
+                                            This will permanently remove your {r.tool_label.toLowerCase()}
+                                            {r.summary ? ` ("${r.summary}")` : ""}. This action cannot be undone.
+                                          </>
+                                        )}
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDelete(r)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              );
+            })()
           )}
         </div>
       </PageContainer>
