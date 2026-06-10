@@ -51,6 +51,7 @@ const EUNoticeDocuments = lazy(() => import("./pages/eu-notices/EUNoticeDocument
 const EUNoticeRefresh = lazy(() => import("./pages/eu-notices/EUNoticeRefresh.tsx"));
 const EUNoticeLanding = lazy(() => import("./pages/eu-notices/EUNoticeLanding.tsx"));
 const NoticesRopaHub = lazy(() => import("./pages/NoticesRopaHub.tsx"));
+const NoticeBuilderLanding = lazy(() => import("./pages/NoticeBuilderLanding.tsx"));
 import Dashboard from "./pages/Dashboard.tsx";
 const Obligations = lazy(() => import("./pages/Obligations.tsx"));
 const Subscribe = lazy(() => import("./pages/Subscribe.tsx"));
