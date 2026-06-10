@@ -180,7 +180,7 @@ export default function MyReports() {
       // the user across all workspaces. Registration orders live under Filings.
       // ropa_/us_notice_/eu_notice_sessions are scoped by client_id (no user_id
       // column) — RLS enforces ownership via client ownership.
-      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice, cppa, cppaScope] = await Promise.all([
+      const [li, dpia, gov, dpa, ir, bio, ropa, usNotice, euNotice, cppa, cppaScope, drafts] = await Promise.all([
         supabase.from("li_assessments")
           .select("id, status, created_at, processing_description, jurisdictions, pdf_url, client_id")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
@@ -214,6 +214,11 @@ export default function MyReports() {
         supabase.from("cppa_scope_checks")
           .select("id, created_at, in_scope, obligation_map, answers")
           .eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("tool_sessions" as any)
+          .select("id, tool_type, client_id, current_stage, updated_at, created_at, session_data")
+          .eq("user_id", user.id)
+          .eq("completed", false)
+          .order("updated_at", { ascending: false }),
       ]);
 
 
