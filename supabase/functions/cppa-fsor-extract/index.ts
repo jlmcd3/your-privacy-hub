@@ -37,6 +37,7 @@ interface ExtractInput {
   column_x?: [number, number, number];
   page_from?: number;
   page_to?: number;
+  force_shape?: boolean;
 }
 
 interface Unit {
@@ -386,8 +387,12 @@ Deno.serve(async (req) => {
       // Document-shape guard: page-count uses cheap doc.numPages; shape sample
       // is the first 5 pages of the requested window only. Whitespace is
       // collapsed before testing because per-page running headers contain
-      // artifacts that defeat literal substring matching. Column-header tokens
-      // appear only on table-start pages, so they are informational only.
+      // artifacts that defeat literal substring matching. The header regex is
+      // letter-tolerant because the PDF extractor splits inside words.
+      // Column-header tokens appear only on table-start pages, so they are
+      // informational only. force_shape=true skips the guard entirely.
+      const FSOR_APPENDIX_RE =
+        /F\s*S\s*O\s*R\s*A\s*P\s*P\s*E\s*N\s*D\s*I\s*X/i;
       const sampleEnd = Math.min(pageTo, pageFrom + 4);
       const { pageText: sampleText } = await loadPagesRange(doc, pageFrom, sampleEnd);
       const perPage = sampleText.map((t, i) => {
@@ -395,10 +400,11 @@ Deno.serve(async (req) => {
         return {
           page: pageFrom + i,
           matched: {
-            fsor_appendix: /FSOR\s+APPENDIX/i.test(norm),
+            fsor_appendix: FSOR_APPENDIX_RE.test(norm),
             summary_of_comments: /Summary\s+of\s+Comments?/i.test(norm),
             agency_response: /Agency\s+Response/i.test(norm),
           },
+          normalized_preview: norm.slice(0, 80),
         };
       });
       const appendixHits = perPage.filter((p) => p.matched.fsor_appendix).length;
@@ -406,7 +412,12 @@ Deno.serve(async (req) => {
       const anyAgency = perPage.some((p) => p.matched.agency_response);
       const shapeOk = appendixHits > perPage.length / 2;
       const lengthOk = totalPages > 100;
-      if (!shapeOk || !lengthOk) {
+      const forceShape = body?.force_shape === true;
+      if (forceShape) {
+        console.warn(
+          `[cppa-fsor-extract] force_shape=true — bypassing document-shape guard for ${source_url} (pages=${totalPages}, appendix_hits=${appendixHits}/${perPage.length})`,
+        );
+      } else if (!shapeOk || !lengthOk) {
         return json(
           {
             error: "document_shape_mismatch",
@@ -414,7 +425,7 @@ Deno.serve(async (req) => {
             page_count: totalPages,
             failed_check: !lengthOk
               ? `length: ${totalPages} pages (need > 100)`
-              : `shape: appendix_markers=${appendixHits}/${perPage.length} (need majority match on /FSOR\\s+APPENDIX/i)`,
+              : `shape: appendix_markers=${appendixHits}/${perPage.length} (need majority match on letter-tolerant /F S O R A P P E N D I X/i)`,
             sampled_pages: perPage,
             informational: {
               any_summary_of_comments: anySummary,

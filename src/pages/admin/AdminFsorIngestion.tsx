@@ -166,6 +166,7 @@ export default function AdminFsorIngestion() {
       if (!shouldWindow) {
         const { ok, status, data } = await callExtractWindow(payload);
         if (!ok || data.error) {
+          appendLog(`Extract ERROR (HTTP ${status}): ${JSON.stringify(data, null, 2)}`);
           toast.error(`Extract failed: ${data.error ?? status}`);
           setExtractResult({ total_units: 0, sections: {}, units: [], error: data.error ?? `HTTP ${status}` });
           return;
@@ -208,7 +209,7 @@ export default function AdminFsorIngestion() {
       appendLog(`${label} → POST`);
       const { ok, status, data } = await callExtractWindow(payload, start, end);
       if (!ok || data.error) {
-        appendLog(`${label} ERROR: ${data.error ?? `HTTP ${status}`}`);
+        appendLog(`${label} ERROR (HTTP ${status}): ${JSON.stringify(data, null, 2)}`);
         toast.error(`Window ${windowIdx} failed: ${data.error ?? status}`);
         setExtractResult({
           total_units: merged.length,
