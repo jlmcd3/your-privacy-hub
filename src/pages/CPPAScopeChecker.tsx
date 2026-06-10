@@ -582,9 +582,26 @@ function ResultsPanel({
       </section>
 
       <section className="p-4 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 text-sm rounded">
-        <p className="font-medium">This is a one-time scope check. Your results are not saved.</p>
-        <p className="mt-1">Run it again any time. For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.</p>
+        {isAuthed ? (
+          <>
+            <p className="font-medium">Saved to your account.</p>
+            <p className="mt-1">
+              Find this result any time in{" "}
+              <Link to="/my-reports" className="underline">My Reports</Link>.
+              For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="font-medium">
+              <Link to="/signup" className="underline">Create a free account</Link> to keep this result and see it in My Reports.
+            </p>
+            <p className="mt-1">Run it again any time. For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.</p>
+          </>
+        )}
       </section>
+
+      {!isAuthed && <EmailResultsCapture />}
 
       <section className="p-4 border-l-4 border-brand-teal bg-slate-50 dark:bg-slate-900/40 text-sm rounded">
         This is a preliminary scope indicator based on your self-reported answers. It is
@@ -604,15 +621,28 @@ function ResultsPanel({
               Run CPPA Cybersecurity Readiness — Module 2 →
             </Button>
           )}
-          {obligationMap.riskAssessmentRequired && cyberRequiredConfirmed && (
-            <Button
-              variant="outline"
-              onClick={() => navigate("/cppa-risk-assessment?suite=true")}
-            >
-              Get the full CPPA Audit Suite — $169 ($149 subscriber) →
-            </Button>
-          )}
         </div>
+        {obligationMap.riskAssessmentRequired && cyberRequiredConfirmed && (
+          <p className="text-sm text-muted-foreground">
+            Need both? The{" "}
+            <Link to="/cppa" className="underline text-brand-teal">CPPA Full Audit Suite</Link>{" "}
+            covers risk assessment and cybersecurity readiness together —{" "}
+            <span className="font-semibold text-foreground">
+              {PRICING_REGISTRY.cppa_suite_standalone.displayPrice} (subscribers {PRICING_REGISTRY.cppa_suite_subscriber.displayPrice})
+            </span>
+            , versus{" "}
+            <span className="font-semibold text-foreground">
+              ${
+                (PRICING_REGISTRY.cppa_risk_standalone.amountCents +
+                  PRICING_REGISTRY.cppa_cyber_standalone.amountCents) / 100
+              }
+            </span>{" "}
+            separately.
+          </p>
+        )}
+        <p className="text-xs text-muted-foreground italic">
+          When you complete a risk assessment here, we track your § 7155(a) triennial review date for you — it goes straight into your Obligations Register.
+        </p>
         <button
           onClick={onReset}
           className="text-sm text-muted-foreground underline hover:text-foreground bg-transparent border-none cursor-pointer p-0"
@@ -620,6 +650,9 @@ function ResultsPanel({
           Start over
         </button>
       </section>
+    </div>
+  );
+}
     </div>
   );
 }
