@@ -224,7 +224,7 @@ export default function CPPARiskAssessment() {
 
   const stepValid = (): string | null => {
     if (step === 1 && (!q1 || !q2 || !q3 || !q4.length || !q5)) return "Please complete the business profile.";
-    if (step === 2 && (!q6 || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
+    if (step === 2 && (!q6Multi.length || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
     if (step === 3 && (!q11 || !q12 || !q13 || !q14)) return "Please complete privacy notice questions.";
     if (step === 4) {
       if (!q15) return "Please answer Q15.";
