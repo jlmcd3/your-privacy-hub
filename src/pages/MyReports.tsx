@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, FileText, Download, ArrowRight, Trash2 } from "lucide-react";
+import { Loader2, FileText, Trash2 } from "lucide-react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import DriftReminderBanner from "@/components/cppa/DriftReminderBanner";
 import { useActiveClient } from "@/hooks/useActiveClient";
