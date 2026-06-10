@@ -186,6 +186,9 @@ verify_jwt = false
 [functions.cppa-ingest-fsor]
 verify_jwt = false
 
+[functions.cppa-fsor-extract]
+verify_jwt = false
+
 [functions.cppa-corpus-admin]
 verify_jwt = false
 
