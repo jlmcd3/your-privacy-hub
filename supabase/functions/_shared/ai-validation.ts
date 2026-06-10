@@ -223,3 +223,101 @@ function logFail(
   }));
   return { ok: false, errors };
 }
+
+// ── Date consistency checker ─────────────────────────────────────────────────
+// Deterministic, read-only check that flags likely year-drift in AI-written
+// text. Never mutates; never throws. Designed for near-zero false positives —
+// historical references like "GDPR (2016)" are not flagged.
+
+export interface DateIssue {
+  found: string;
+  reason: "month_prior_year" | "stale_event_year" | "future_year";
+}
+
+const MONTHS: Record<string, number> = {
+  january: 1, february: 2, march: 3, april: 4, may: 5, june: 6,
+  july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+  jan: 1, feb: 2, mar: 3, apr: 4, jun: 6, jul: 7,
+  aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12,
+};
+
+const EVENT_VERB_RE = /\b(adopted|published|issued|announced|released|launched|held|met|opened|finalized|finalised|enacted|signed|today|this week|this month|plenary|session|latest)\b/i;
+
+export function checkDateConsistency(
+  text: string,
+  publishedAt: string,
+  ctx: ValidationCtx,
+): { ok: boolean; issues: DateIssue[] } {
+  if (typeof text !== "string" || text.length === 0) {
+    return { ok: true, issues: [] };
+  }
+  const pub = new Date(publishedAt);
+  if (isNaN(pub.getTime())) return { ok: true, issues: [] };
+  const pubYear = pub.getUTCFullYear();
+  const pubMonth = pub.getUTCMonth() + 1;
+  const nowYear = new Date().getUTCFullYear();
+
+  const issues: DateIssue[] = [];
+  const seen = new Set<string>();
+  const push = (it: DateIssue) => {
+    if (seen.has(it.found)) return;
+    seen.add(it.found);
+    issues.push(it);
+    console.warn(JSON.stringify({
+      evt: "date_inconsistency",
+      fn: ctx.fn,
+      articleId: ctx.articleId ?? null,
+      title: ctx.title ? ctx.title.slice(0, 140) : null,
+      found: it.found,
+      reason: it.reason,
+      publishedAt,
+    }));
+  };
+
+  // (2) MONTH + PRIOR-YEAR DRIFT
+  const monthRe = /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)\s+(\d{4})\b/gi;
+  for (const m of text.matchAll(monthRe)) {
+    const monthNum = MONTHS[m[1].toLowerCase()];
+    const year = parseInt(m[2], 10);
+    if (!monthNum) continue;
+    if (monthNum === pubMonth && year === pubYear - 1) {
+      push({ found: m[0], reason: "month_prior_year" });
+    }
+    if (year > pubYear + 3) {
+      push({ found: m[0], reason: "future_year" });
+    }
+  }
+
+  // (3) STALE EVENT YEAR — bare YYYY near event language
+  const yearRe = /\b(19[9]\d|20\d{2})\b/g;
+  for (const m of text.matchAll(yearRe)) {
+    const year = parseInt(m[1], 10);
+    const idx = m.index ?? 0;
+    if (year === pubYear - 1) {
+      const start = Math.max(0, idx - 40);
+      const end = Math.min(text.length, idx + m[0].length + 40);
+      const window = text.slice(start, end);
+      if (EVENT_VERB_RE.test(window)) {
+        push({ found: m[0], reason: "stale_event_year" });
+      }
+    }
+    // (4) FUTURE YEAR
+    if (year > pubYear + 3 && year <= 2099) {
+      push({ found: m[0], reason: "future_year" });
+    }
+  }
+
+  void nowYear; // reserved for future heuristics; pubYear is the primary anchor
+
+  return { ok: issues.length === 0, issues };
+}
+
+// Expected behaviour examples:
+//   "adopted at its June 2025 plenary"   pub 2026-06-10 → month_prior_year ("June 2025")
+//   "GDPR (2016)"                         pub 2026-06-10 → NOT flagged (no event verb nearby, not pubYear-1)
+//   "CCPA of 2018"                        pub 2026-06-10 → NOT flagged (historical reference)
+//   "April 1, 2028 certification deadline" pub 2026-06-10 → NOT flagged (2028 ≤ 2026+3)
+//   "by 2035"                             pub 2026-06-10 → future_year ("2035")
+//   "issued in 2025"                      pub 2026-06-10 → stale_event_year ("2025", "issued" within 40 chars)
+//   "since 2025"                          pub 2026-06-10 → NOT flagged (no event verb nearby)
+
