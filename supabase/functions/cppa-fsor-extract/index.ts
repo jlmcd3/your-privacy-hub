@@ -108,13 +108,26 @@ function extractFsor(
   }
   let full = parts.join(" ");
 
+  // Whitespace- and case-insensitive anchor finder.
+  // PDF text extraction often inserts line breaks, double spaces, or NBSPs
+  // between words, so exact indexOf on a literal anchor frequently misses.
+  function findAnchor(hay: string, needle: string): number {
+    if (!needle) return -1;
+    const pattern = needle
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\s+/g, "\\s+");
+    const m = new RegExp(pattern, "i").exec(hay);
+    return m ? m.index : -1;
+  }
+
   if (startAnchor) {
-    const si = full.indexOf(startAnchor);
+    const si = findAnchor(full, startAnchor);
     if (si < 0) throw new Error(`start_anchor_not_found:${startAnchor}`);
     full = full.slice(si);
   }
   if (stopAnchor) {
-    const ei = full.indexOf(stopAnchor);
+    const ei = findAnchor(full, stopAnchor);
     if (ei < 0) throw new Error(`stop_anchor_not_found:${stopAnchor}`);
     full = full.slice(0, ei);
   }
