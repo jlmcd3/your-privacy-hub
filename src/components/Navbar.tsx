@@ -114,13 +114,78 @@ const navItems: NavItem[] = [
   },
   {
     label: "CPPA",
-    href: "/cppa",
-    directLink: true,
+    wide: true,
+    columns: 2,
+    sections: [
+      {
+        header: "CPPA Audit Tools",
+        headerSub: "California · CPRA regulations",
+        headerColor: "text-[#185FA5]",
+        columnBg: "bg-[#EEF4FB]",
+        column: 1,
+        items: [
+          {
+            icon: "🏛️",
+            label: "CPPA Risk Assessment",
+            href: "/cppa-risk-assessment",
+            tooltip: "Structured risk assessment aligned to CPPA audit regulations",
+          },
+          {
+            icon: "🔒",
+            label: "CPPA Cybersecurity Readiness",
+            href: "/cppa-cybersecurity",
+            tooltip: "18-control gap analysis for the April 2028 certification deadline",
+          },
+          {
+            icon: "🏛️",
+            label: "CPPA Scope Checker",
+            href: "/cppa-scope-checker",
+            badge: "FREE",
+            badgeGreen: true,
+            tooltip: "Find out if your organisation is in scope for the Dec 31 2027 audit",
+          },
+          {
+            icon: "🧭",
+            label: "ADMT Checker",
+            href: "/cppa-admt",
+            badge: "COMING SOON",
+            tooltip: "Automated Decisionmaking Technology disclosure checker · Jan 1 2027 deadline",
+          },
+        ],
+      },
+      {
+        header: "CPPA Hub & Resources",
+        headerSub: "Regulatory background · deadlines · FAQs",
+        headerColor: "text-brand-mist",
+        columnBg: "bg-white",
+        column: 2,
+        items: [
+          {
+            icon: "📚",
+            label: "CPPA Audit Hub",
+            href: "/cppa",
+            tooltip: "Overview of all CPPA tools, regulations, and the April 2028 deadline",
+          },
+          {
+            icon: "📅",
+            label: "Key CPPA Deadlines",
+            href: "/cppa#deadlines",
+            tooltip: "Dec 31 2027 risk assessment · Apr 1 2028 cybersecurity certification · Jan 1 2027 ADMT",
+          },
+          {
+            icon: "📖",
+            label: "CPPA Enforcement Record",
+            href: "/enforcement?regulator=CPPA",
+            tooltip: "CPPA enforcement actions and audit findings from the enforcement database",
+          },
+        ],
+      },
+    ],
   },
   {
     label: "Tools",
     wide: true,
-    columns: 3,
+    columns: 2,
     sections: [
       {
         header: "Smart Assessments",
@@ -158,26 +223,6 @@ const navItems: NavItem[] = [
             tooltip: "Versioned Article 30 record of processing activities. Free within Intel/Pro pool." },
           { icon: "📂", label: "Registration Filings", href: "/registration-manager",
             tooltip: "DPO, controller, and AI Act filings across 50+ jurisdictions. Free within Intel/Pro pool." },
-        ],
-      },
-      {
-        header: "CPPA Suite · California",
-        headerSub: "",
-        headerColor: "text-[#185FA5]",
-        columnBg: "cppa-split",
-        column: 3,
-        items: [
-          { icon: "🏛️", label: "CPPA Risk Assessment", href: "/cppa-risk-assessment",
-            tooltip: "Structured risk assessment aligned to CPPA audit regulations" },
-          { icon: "🔒", label: "CPPA Cybersecurity Readiness", href: "/cppa-cybersecurity",
-            tooltip: "18-control gap analysis for the April 2028 certification deadline" },
-          { icon: "🏛️", label: "CPPA Scope Checker", href: "/cppa-scope-checker",
-            badge: "FREE", badgeGreen: true,
-            tooltip: "Find out if your organisation is in scope for the Dec 31, 2027 audit" },
-          { icon: "📚", label: "CPPA Audit Hub", href: "/cppa",
-            tooltip: "Single landing page for all CPPA tools, FAQs, and the April 2028 deadline" },
-          { icon: "🧭", label: "Explore the full toolkit →", href: "/tools", bottom: true,
-            tooltip: "See descriptions, pricing, and access details for every tool" },
         ],
       },
     ],
@@ -637,7 +682,7 @@ const Navbar = () => {
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 className="text-xs xl:text-sm font-semibold text-white bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent-light))] px-3 xl:px-4 py-1.5 xl:py-2 rounded-lg no-underline transition-all whitespace-nowrap"
               >
-                🧠 My Dashboard
+                My Dashboard
               </Link>
               <UserMenu onSignOut={handleSignOut} />
             </>
@@ -728,7 +773,7 @@ const Navbar = () => {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                 >
-                  🧠 My Dashboard
+                  My Dashboard
                 </Link>
                 {!isPremium && (
                   <Link
