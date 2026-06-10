@@ -260,7 +260,7 @@ export default function CPPARiskAssessment() {
   const intake = useMemo(() => ({
     // legacy keys preserved
     q1_revenue: q1, q2_consumers: q2, q3_sector: q3, q4_pi_categories: q4, q5_sell_share: q5,
-    q6_right_know: q6, q7_right_delete: q7, q8_right_correct: q8, q9_opt_out: q9, q10_id_verification: q10,
+    q6_right_know: q6Multi.join("; "), q6_right_know_multi: q6Multi, q7_right_delete: q7, q8_right_correct: q8, q9_opt_out: q9, q10_id_verification: q10,
     q11_policy_review: q11, q12_notice_at_collection: q12, q13_notice_content: q13, q14_employee_notice: q14,
     q15_sensitive_pi: q15, q16_sensitive_limit: q16, q17_sensitive_basis: q17,
     q18_admt_use: q18, q19_admt_description: q19, q20_admt_opt_out: q20,
