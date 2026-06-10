@@ -582,10 +582,10 @@ Deno.serve(async (req) => {
         units = extractAppendix(pageItems, cx, pageFrom);
       } else {
         const pages = await loadPagesWithRotation(doc, pageFrom, pageTo);
-        const cb = (body.col_bounds as [number, number, number, number] | undefined)
-          ?? [90, 420, 610, 670];
+        const colBounds: [number, number, number, number] =
+          body.col_bounds ?? [90, 420, 610, 670];
         const label = appendixLabelFromUrl(source_url);
-        const res = extractAppendix2023(pages, cb, label, includeRoots);
+        const res = extractAppendix2023(pages, colBounds, label, includeRoots);
         units = res.units;
         noCitationDropped = res.noCitationDropped;
       }
