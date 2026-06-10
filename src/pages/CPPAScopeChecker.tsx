@@ -434,10 +434,7 @@ function ResultsPanel({
             </p>
           </>
         )}
-        <p className="text-xs text-muted-foreground italic pt-3 border-t">
-          This is a one-time scope check. Your results are not saved.
-          Run it again any time.
-        </p>
+        <SavedNote isAuthed={isAuthed} />
         <p className="text-xs text-muted-foreground italic pt-1">
           This is a preliminary scope indicator based on your self-reported answers.
           It is not legal advice.
