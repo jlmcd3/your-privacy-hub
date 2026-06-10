@@ -446,7 +446,7 @@ export default function CPPARiskAssessment() {
               </div>
 
               <div>
-                <Label>I-2: Retention period and criteria * <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(B))</span></Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-2: Retention period and criteria <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(B))</span></Label><StatutePopover term="I-2 · Retention period" summary="State how long each category of personal information will be retained, or the criteria used to determine that period." cite="11 CCR § 7152(a)(4)(B)" /></div>
                 <input
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                   value={i2RetentionPeriod}
