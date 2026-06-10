@@ -11,6 +11,14 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import WorkspaceLayout from '@/components/dashboard/WorkspaceLayout';
 
+interface EuNoticeStatus {
+  frameworkCount: number;
+  frameworks: string[];
+  latestDate: string | null;
+  refreshDueDate: string | null;
+  daysUntilRefresh: number | null;
+}
+
 interface PerClientCounts {
   clientId: string;
   liaCount: number;
@@ -20,12 +28,12 @@ interface PerClientCounts {
   govCount: number;
   biometricCount: number;
   registrationCount: number;
-  // Future tables — still tolerated as missing.
   ropa: { latestVersion: number | null; latestDate: string | null };
   usNotices: { stateCount: number; latestDate: string | null };
   euNotices: EuNoticeStatus;
-  totalFlags: number; // crude urgency proxy
+  totalFlags: number;
 }
+
 
 interface RpcRow {
   client_id: string;
