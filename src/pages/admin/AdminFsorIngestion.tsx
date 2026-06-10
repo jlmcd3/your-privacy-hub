@@ -13,11 +13,12 @@ import { toast } from "sonner";
 type PresetConfig = {
   fsor_package: string;
   source_url: string;
-  mode: "fsor" | "appendix45";
+  mode: "fsor" | "appendix45" | "appendix2023";
   include_sections?: string[];
   start_anchor?: string;
   stop_anchor?: string;
   column_x?: [number, number, number];
+  col_bounds?: [number, number, number, number];
   page_from?: number;
   page_to?: number;
   force_shape?: boolean;
@@ -81,8 +82,25 @@ const T4b: PresetConfig = {
   page_to: 10,
 };
 
+const T5a: PresetConfig = {
+  fsor_package: "ccpa-2023-original",
+  source_url: "https://cppa.ca.gov/regulations/pdf/20230329_final_sor_app_a_comments.pdf",
+  mode: "appendix2023",
+  col_bounds: [90, 420, 610, 670],
+  force_shape: true,
+  include_sections: ["7002","7004","7011","7012","7013","7014","7015","7016","7051"],
+};
+const T5b: PresetConfig = {
+  fsor_package: "ccpa-2023-original",
+  source_url: "https://cppa.ca.gov/regulations/pdf/20230329_final_sor_app_c_comments.pdf",
+  mode: "appendix2023",
+  col_bounds: [90, 280, 610, 670],
+  force_shape: true,
+  include_sections: ["7002","7004","7011","7012","7013","7014","7015","7016","7051"],
+};
+
 const PRESETS: Record<string, PresetConfig> = {
-  T1, T2a, T2b, T2c, T2d, T3a, T3b, T4a, T4b,
+  T1, T2a, T2b, T2c, T2d, T3a, T3b, T4a, T4b, T5a, T5b,
 };
 
 type Unit = {
@@ -100,6 +118,7 @@ type ExtractResp = {
   total_pages?: number;
   page_from?: number;
   page_to?: number;
+  no_citation_dropped?: number;
 };
 
 function parseStartPage(pageRef: string): number | null {
@@ -175,10 +194,10 @@ export default function AdminFsorIngestion() {
     try {
       const { fsor_package: _fp, ...payload } = config as any;
 
-      // For appendix45 mode, always iterate 50-page windows with 1-page overlap
-      // to stay under the edge runtime resource limit. For fsor mode, single call;
-      // if the function reports total_pages > 100, fall back to windowing as well.
-      const shouldWindow = config.mode === "appendix45";
+      // For appendix45 + appendix2023 modes, always iterate 50-page windows with
+      // 1-page overlap to stay under the edge runtime resource limit. For fsor
+      // mode, single call; if total_pages > 100, fall back to windowing.
+      const shouldWindow = config.mode === "appendix45" || config.mode === "appendix2023";
 
       if (!shouldWindow) {
         const { ok, status, data } = await callExtractWindow(payload);
@@ -215,6 +234,7 @@ export default function AdminFsorIngestion() {
     let totalPages: number | null = knownTotalPages;
     let start = 1;
     let windowIdx = 0;
+    let totalNoCitationDropped = 0;
     // estimated total windows once we know totalPages
     const estWindows = () =>
       totalPages ? Math.max(1, Math.ceil((totalPages - 1) / STEP) + 1) : null;
@@ -234,6 +254,7 @@ export default function AdminFsorIngestion() {
           units: merged,
           error: `Window ${windowIdx} (pages ${start}–${end}): ${data.error ?? `HTTP ${status}`}`,
           total_pages: totalPages ?? undefined,
+          no_citation_dropped: totalNoCitationDropped,
         });
         return;
       }
@@ -242,21 +263,23 @@ export default function AdminFsorIngestion() {
       }
       const effectiveEnd = data.page_to ?? end;
       const rawUnits = data.units ?? [];
-      // Drop any unit whose start page equals the window's final page —
-      // it will be re-extracted complete in the next window (which starts on
-      // that page) thanks to the 1-page overlap. Skip this drop on the last
-      // window since there is no next window.
       const isLast = totalPages !== null && effectiveEnd >= totalPages;
       const kept = isLast
         ? rawUnits
         : rawUnits.filter((u) => parseStartPage(u.page_ref) !== effectiveEnd);
       merged.push(...kept);
+      if (typeof data.no_citation_dropped === "number") {
+        totalNoCitationDropped += data.no_citation_dropped;
+      }
+      const ncSuffix = typeof data.no_citation_dropped === "number"
+        ? `, no_citation_dropped=${data.no_citation_dropped}`
+        : "";
       appendLog(
-        `${label} → ${rawUnits.length} units (kept ${kept.length}, cumulative ${merged.length})`,
+        `${label} → ${rawUnits.length} units (kept ${kept.length}, cumulative ${merged.length})${ncSuffix}`,
       );
       if (isLast) break;
-      if (totalPages === null) break; // safety: shouldn't happen after window 1
-      start = effectiveEnd; // 1-page overlap: next window starts on the dropped page
+      if (totalPages === null) break;
+      start = effectiveEnd;
     }
 
     setExtractResult({
@@ -264,7 +287,11 @@ export default function AdminFsorIngestion() {
       sections: computeSections(merged),
       units: merged,
       total_pages: totalPages ?? undefined,
+      no_citation_dropped: totalNoCitationDropped,
     });
+    if (totalNoCitationDropped > 0) {
+      appendLog(`Total no_citation_dropped across all windows: ${totalNoCitationDropped}`);
+    }
     toast.success(`Extracted ${merged.length} units across ${windowIdx} window(s)`);
   }
 
