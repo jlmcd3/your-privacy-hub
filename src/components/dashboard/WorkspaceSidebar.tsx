@@ -76,7 +76,7 @@ function WorkspaceSection({
   };
 
   return (
-    <div className={cn("mb-1", isActiveWorkspace && "border-l-2 border-[#2563EB] pl-1")}>
+    <div className={cn("mb-1", isActiveWorkspace && "border-l-2 border-[#2563EB] pl-0.5")}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -169,7 +169,7 @@ export default function WorkspaceSidebar() {
           </nav>
         </div>
 
-        <div className="hidden lg:block border-t border-brand-cloud/40 mt-4 mb-4" />
+        <div className="border-t border-brand-cloud/40 my-3" />
 
         {/* Personal workspace */}
         {personal && (
@@ -185,7 +185,7 @@ export default function WorkspaceSidebar() {
           </div>
         )}
 
-        <div className="hidden lg:block border-t border-brand-cloud/40 mt-4 mb-4" />
+        <div className="border-t border-brand-cloud/40 my-3" />
 
 
         {/* Clients */}
@@ -230,7 +230,7 @@ export default function WorkspaceSidebar() {
           )}
         </div>
 
-        <div className="border-t border-gray-100 my-2" />
+        <div className="border-t border-brand-cloud/40 my-3" />
 
         <nav className="flex flex-col gap-0.5">
           {ACCOUNT_ITEMS.map((item) => (
