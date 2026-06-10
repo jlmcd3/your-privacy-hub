@@ -409,6 +409,17 @@ export default function CPPARiskAssessment() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid, not legal advice, and does not constitute a certified audit or regulatory submission. Review all output with qualified counsel before relying on it." />
+        {draftFound && !touched && (
+          <div className="flex items-start justify-between gap-3 p-3 rounded-md border border-brand-teal/40 bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] text-sm">
+            <div className="text-foreground">
+              You have a saved draft{draftUpdatedAt ? ` from ${formatRelativeTime(draftUpdatedAt)}` : ""}.
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Button size="sm" variant="outline" onClick={applyRestore}>Resume draft</Button>
+              <Button size="sm" variant="ghost" onClick={() => { void clearDraft(); }}>Discard</Button>
+            </div>
+          </div>
+        )}
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
         <div className="bg-card border rounded-lg p-6 space-y-6">
