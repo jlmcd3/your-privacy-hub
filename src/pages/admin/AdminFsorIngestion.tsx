@@ -82,8 +82,25 @@ const T4b: PresetConfig = {
   page_to: 10,
 };
 
+const T5a: PresetConfig = {
+  fsor_package: "ccpa-2023-original",
+  source_url: "https://cppa.ca.gov/regulations/pdf/20230329_final_sor_app_a_comments.pdf",
+  mode: "appendix2023",
+  col_bounds: [90, 420, 610, 670],
+  force_shape: true,
+  include_sections: ["7002","7004","7011","7012","7013","7014","7015","7016","7051"],
+};
+const T5b: PresetConfig = {
+  fsor_package: "ccpa-2023-original",
+  source_url: "https://cppa.ca.gov/regulations/pdf/20230329_final_sor_app_c_comments.pdf",
+  mode: "appendix2023",
+  col_bounds: [90, 280, 610, 670],
+  force_shape: true,
+  include_sections: ["7002","7004","7011","7012","7013","7014","7015","7016","7051"],
+};
+
 const PRESETS: Record<string, PresetConfig> = {
-  T1, T2a, T2b, T2c, T2d, T3a, T3b, T4a, T4b,
+  T1, T2a, T2b, T2c, T2d, T3a, T3b, T4a, T4b, T5a, T5b,
 };
 
 type Unit = {
