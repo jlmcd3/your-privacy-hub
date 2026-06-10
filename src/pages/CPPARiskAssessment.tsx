@@ -21,6 +21,8 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { InfoPopover } from "@/components/InfoPopover";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import AutosaveIndicator from "@/components/AutosaveIndicator";
 
 const REVENUE_OPTS = ["Under $25M", "$25M–$100M", "$100M–$500M", "Over $500M"];
 const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
