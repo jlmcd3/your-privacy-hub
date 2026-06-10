@@ -5727,6 +5727,7 @@ export type Database = {
           violation: string
         }[]
       }
+      get_portfolio_summary: { Args: { _user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
