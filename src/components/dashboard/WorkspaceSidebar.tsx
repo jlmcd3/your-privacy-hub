@@ -103,7 +103,7 @@ function WorkspaceSection({
       </button>
 
       {open && (
-        <ul className="hidden lg:flex flex-col gap-0.5 mt-0.5 ml-2 pl-3 border-l border-brand-cloud">
+        <ul className="hidden lg:flex flex-col gap-0 mt-0.5 ml-2 pl-3 border-l border-brand-cloud">
           {WORK_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = isActiveWorkspace && activeTo === item.to;
@@ -113,7 +113,7 @@ function WorkspaceSection({
                   href={item.to}
                   onClick={(e) => handleWorkClick(e, item.to)}
                   className={cn(
-                    "inline-flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors no-underline w-full",
+                    "inline-flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors no-underline w-full",
                     active
                       ? "bg-brand-navy text-white font-medium"
                       : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
