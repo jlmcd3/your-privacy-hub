@@ -92,8 +92,15 @@ function splitLongUnit(text: string, max = 6000): string[] {
   return out;
 }
 
-const SUB_LEAD = /(?:Subsections?\s*\(([^)]+)\)(?:\([^)]+\))*|Previous\s+subsections?\s*[^:]*|Title)\s*:/i;
-const SUB_LEAD_G = /(?:Subsections?\s*\(([^)]+)\)((?:\([^)]+\))*)|Previous\s+subsections?\s*[^:]*|Title)\s*:/gi;
+// Tolerant of PDF letter-spacing artifacts (e.g. "S u bsection (e)( 3)").
+const SUB_WORD = String.raw`S\s*u\s*b\s*s\s*e\s*c\s*t\s*i\s*o\s*n\s*s?`;
+const PREV_WORD = String.raw`P\s*r\s*e\s*v\s*i\s*o\s*u\s*s\s+` + SUB_WORD;
+const TITLE_WORD = String.raw`T\s*i\s*t\s*l\s*e`;
+const SUB_LEAD = new RegExp(
+  `(?:${SUB_WORD}\\s*\\(\\s*([^)]+?)\\s*\\)((?:\\s*\\(\\s*[^)]+?\\s*\\))*)|${PREV_WORD}[^:]*|${TITLE_WORD})\\s*:`,
+  "i",
+);
+const SUB_LEAD_G = new RegExp(SUB_LEAD.source, "gi");
 
 function extractFsor(
   pageText: string[],
