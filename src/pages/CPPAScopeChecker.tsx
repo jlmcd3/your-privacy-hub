@@ -2,13 +2,17 @@
 // Determines whether CCPA/CPRA + CPPA enforcement obligations apply.
 
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+import { PRICING_REGISTRY } from "@/config/pricing";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
