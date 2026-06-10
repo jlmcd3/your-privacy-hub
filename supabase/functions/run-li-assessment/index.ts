@@ -410,6 +410,23 @@ Return JSON:
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
 
+    // C4 RoPA accumulator: draft a suggested processing activity into the
+    // client's active RoPA session (fire-and-forget, non-fatal).
+    if (assessment.client_id) {
+      supabase.functions.invoke("accumulate-ropa-activity", {
+        body: {
+          client_id: assessment.client_id,
+          source_tool: "li_assessment",
+          source_assessment_id: assessment_id,
+          display_name: (assessment.processing_description || "").slice(0, 120) || "Processing requiring LIA",
+          source_summary: assessment.processing_description || null,
+          is_high_risk: false,
+          category: "other",
+        },
+      }).catch((e: Error) => console.error("[li] accumulate-ropa failed (non-fatal):", e.message));
+    }
+
+
     // Fetch user email for delivery
     const { data: userData } = await supabase.auth.admin.getUserById(
       assessment.user_id
