@@ -121,6 +121,7 @@ export default function EUNoticeLanding() {
           </div>
         </section>
       </main>
-    </WorkspaceLayout>
+      <Footer />
+    </div>
   );
 }
