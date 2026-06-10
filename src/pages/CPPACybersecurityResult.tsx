@@ -36,7 +36,7 @@ export const controlStatusColor = (s: string) => {
   return "bg-muted text-foreground";
 };
 
-export function CybersecurityReportBody({ row }: { row: any }) {
+export function CybersecurityReportBody({ row, hideHeader = false }: { row: any; hideHeader?: boolean }) {
   const report = row?.report_data || {};
   const ledgerCitations = Array.isArray(report?.citation_ledger)
     ? report.citation_ledger.map((c: any) => c?.citation || c?.cite || "")
@@ -57,25 +57,45 @@ export function CybersecurityReportBody({ row }: { row: any }) {
           processing) trigger earlier obligations. Use this assessment to scope remediation now.
         </p>
       </section>
-      <section className="bg-slate-900 text-white rounded-lg p-8">
-        <h1 className="font-serif mb-2">CPPA Cybersecurity Audit Readiness</h1>
-        <p className="text-slate-300 text-sm">
-          Generated {row?.created_at ? new Date(row.created_at).toLocaleDateString() : ""}
-        </p>
-        <div className="mt-4 flex items-center gap-3 flex-wrap">
-          {report?.overall_score != null && (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded font-medium bg-white/10">
-              Overall score: <strong>{report.overall_score} / 100</strong>
-            </span>
-          )}
-          {report?.readiness_level && (
-            <span className={`inline-block px-3 py-1.5 rounded font-medium ${readinessColor(report.readiness_level)}`}>
-              {report.readiness_level}
-            </span>
-          )}
-        </div>
-        {report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
-      </section>
+      {!hideHeader && (
+        <section className="bg-slate-900 text-white rounded-lg p-8">
+          <h1 className="font-serif mb-2">CPPA Cybersecurity Audit Readiness</h1>
+          <p className="text-slate-300 text-sm">
+            Generated {row?.created_at ? new Date(row.created_at).toLocaleDateString() : ""}
+          </p>
+          <div className="mt-4 flex items-center gap-3 flex-wrap">
+            {report?.overall_score != null && (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded font-medium bg-white/10">
+                Overall score: <strong>{report.overall_score} / 100</strong>
+              </span>
+            )}
+            {report?.readiness_level && (
+              <span className={`inline-block px-3 py-1.5 rounded font-medium ${readinessColor(report.readiness_level)}`}>
+                {report.readiness_level}
+              </span>
+            )}
+          </div>
+          {report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
+        </section>
+      )}
+      {hideHeader && (report?.overall_score != null || report?.readiness_level || report?.executive_summary) && (
+        <section className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-6">
+          <div className="flex items-center gap-3 flex-wrap mb-3">
+            {report?.overall_score != null && (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded font-medium bg-muted">
+                Overall score: <strong>{report.overall_score} / 100</strong>
+              </span>
+            )}
+            {report?.readiness_level && (
+              <span className={`inline-block px-3 py-1.5 rounded font-medium ${readinessColor(report.readiness_level)}`}>
+                {report.readiness_level}
+              </span>
+            )}
+          </div>
+          {report?.executive_summary && <p className="text-sm text-foreground">{report.executive_summary}</p>}
+        </section>
+      )}
+
 
       {report?.enforcement_context && (
         <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
