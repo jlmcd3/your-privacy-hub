@@ -1,5 +1,7 @@
 import { PageHero } from "@/components/PageHero";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2 } from "lucide-react";
@@ -28,7 +30,9 @@ const FRAMEWORKS = [
 export default function EUNoticeLanding() {
   const { hasToolAccess } = useSubscriptionTier();
   return (
-    <WorkspaceLayout className="bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <DashboardSubnav />
       <Helmet>
         <title>EU & Global Privacy Notice Builder | EndUserPrivacy</title>
         <meta name="description" content="Generate GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA, PIPEDA and 4 more privacy notices in one session." />
@@ -117,6 +121,7 @@ export default function EUNoticeLanding() {
           </div>
         </section>
       </main>
-    </WorkspaceLayout>
+      <Footer />
+    </div>
   );
 }

@@ -2,7 +2,9 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { ArrowRight, Check, Globe2, MapPin, RefreshCw, Shield } from "lucide-react";
 
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { PageHero } from "@/components/PageHero";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
@@ -37,7 +39,9 @@ export default function NoticeBuilderLanding() {
   const euHref = hasToolAccess ? "/eu-notices" : "/subscribe";
 
   return (
-    <WorkspaceLayout className="bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <DashboardSubnav />
       <Helmet>
         <title>Privacy Notice Builder · US & EU/Global | End User Privacy</title>
         <meta
@@ -204,6 +208,7 @@ export default function NoticeBuilderLanding() {
           </div>
         </section>
       </main>
-    </WorkspaceLayout>
+      <Footer />
+    </div>
   );
 }

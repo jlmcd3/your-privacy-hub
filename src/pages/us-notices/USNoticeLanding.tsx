@@ -1,5 +1,7 @@
 import { PageHero } from "@/components/PageHero";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
@@ -76,7 +78,9 @@ export default function USNoticeLanding() {
   }, []);
 
   return (
-    <WorkspaceLayout className="bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <DashboardSubnav />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
         {hasToolAccess && (
@@ -286,7 +290,8 @@ export default function USNoticeLanding() {
           </div>
         </section>
       </main>
-    </WorkspaceLayout>
+      <Footer />
+    </div>
   );
 }
 

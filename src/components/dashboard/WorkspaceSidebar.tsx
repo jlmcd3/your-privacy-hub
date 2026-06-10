@@ -11,6 +11,7 @@ import {
 } from "@/lib/workspaceNav";
 import { useClientStore, type Client } from "@/stores/clientStore";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -135,6 +136,7 @@ function WorkspaceSection({
 export default function WorkspaceSidebar() {
   const location = useLocation();
   const { user } = useAuth();
+  const { isPremium, isLoading } = useSubscriptionTier();
 
   const clients = useClientStore((s) => s.clients);
   const personal = useClientStore((s) => s.personal);
@@ -153,7 +155,7 @@ export default function WorkspaceSidebar() {
 
   const isPersonalActive = !!personal && activeClient?.id === personal.id;
 
-  if (!user) return null;
+  if (!user || isLoading || !isPremium) return null;
 
   return (
     <aside

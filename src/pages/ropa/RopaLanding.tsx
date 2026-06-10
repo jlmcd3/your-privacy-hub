@@ -1,6 +1,8 @@
 
 import { useEffect } from "react";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
@@ -97,7 +99,9 @@ export default function RopaLanding() {
   }, []);
 
   return (
-    <WorkspaceLayout className="bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <DashboardSubnav />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
       </div>
@@ -298,6 +302,7 @@ export default function RopaLanding() {
           </Button>
         </section>
       </main>
-    </WorkspaceLayout>
+      <Footer />
+    </div>
   );
 }
