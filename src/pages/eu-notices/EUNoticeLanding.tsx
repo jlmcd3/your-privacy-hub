@@ -1,5 +1,7 @@
 import { PageHero } from "@/components/PageHero";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowRight, Globe2, ShieldCheck, FileText, Clock, CheckCircle2 } from "lucide-react";
