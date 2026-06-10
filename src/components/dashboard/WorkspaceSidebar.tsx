@@ -155,7 +155,7 @@ export default function WorkspaceSidebar() {
 
   const isPersonalActive = !!personal && activeClient?.id === personal.id;
 
-  if (!user) return null;
+  if (!user || isLoading || !isPremium) return null;
 
   return (
     <aside
