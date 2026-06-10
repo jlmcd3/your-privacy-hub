@@ -4712,6 +4712,42 @@ export type Database = {
           },
         ]
       }
+      tool_sessions: {
+        Row: {
+          client_id: string | null
+          completed: boolean
+          created_at: string
+          current_stage: number
+          id: string
+          session_data: Json
+          tool_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          completed?: boolean
+          created_at?: string
+          current_stage?: number
+          id?: string
+          session_data?: Json
+          tool_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          completed?: boolean
+          created_at?: string
+          current_stage?: number
+          id?: string
+          session_data?: Json
+          tool_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       translation_glossary: {
         Row: {
           authority: string | null
