@@ -111,13 +111,13 @@ function extractFsor(
   // Whitespace- and case-insensitive anchor finder.
   // PDF text extraction can insert arbitrary spacing, NBSPs, or page markers
   // between words, so search a normalized shadow string but return original offset.
-  function searchableWithMap(value: string): { text: string; map: number[] } {
+  function searchableWithMap(value: string, trim = false): { text: string; map: number[] } {
     let text = "";
     const map: number[] = [];
     let lastWasSpace = false;
     for (let i = 0; i < value.length; i++) {
       const ch = value[i];
-      if (/\s|[\u00a0\u2000-\u200d\ufeff]/.test(ch)) {
+      if (/\s|[\u0001\u0002\u00a0\u2000-\u200d\ufeff]/.test(ch)) {
         if (!lastWasSpace) {
           text += " ";
           map.push(i);
@@ -129,13 +129,17 @@ function extractFsor(
         lastWasSpace = false;
       }
     }
-    return { text: text.trim(), map };
+    if (!trim) return { text, map };
+    const start = text.search(/\S/);
+    if (start < 0) return { text: "", map: [] };
+    const trimmedText = text.slice(start).trimEnd();
+    return { text: trimmedText, map: map.slice(start, start + trimmedText.length) };
   }
 
   function findAnchor(hay: string, needle: string): number {
     if (!needle) return -1;
     const normalizedHay = searchableWithMap(hay);
-    const normalizedNeedle = searchableWithMap(needle).text;
+    const normalizedNeedle = searchableWithMap(needle, true).text;
     const idx = normalizedHay.text.indexOf(normalizedNeedle);
     return idx >= 0 ? normalizedHay.map[idx] : -1;
   }
