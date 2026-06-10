@@ -37,6 +37,7 @@ interface ExtractInput {
   column_x?: [number, number, number];
   page_from?: number;
   page_to?: number;
+  force_shape?: boolean;
 }
 
 interface Unit {
