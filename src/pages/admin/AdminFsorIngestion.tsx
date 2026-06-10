@@ -118,6 +118,7 @@ type ExtractResp = {
   total_pages?: number;
   page_from?: number;
   page_to?: number;
+  no_citation_dropped?: number;
 };
 
 function parseStartPage(pageRef: string): number | null {
