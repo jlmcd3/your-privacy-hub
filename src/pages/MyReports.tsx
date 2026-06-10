@@ -364,6 +364,36 @@ export default function MyReports() {
         });
       });
 
+      // Drafts from tool_sessions (autosave). Skip drafts whose tool_type
+      // doesn't have a known intake route — they'd be unresumable.
+      (drafts.data || []).forEach((r: any) => {
+        const map = DRAFT_TOOL_MAP[r.tool_type as string];
+        if (!map) return;
+        const baseLabel = TOOL_LABEL[map.labelKey] || r.tool_type;
+        const orgGuess =
+          r.session_data?.organisation_name ||
+          r.session_data?.organization_name ||
+          r.session_data?.companyName ||
+          r.session_data?.company_name ||
+          r.session_data?.profile?.organisation_name ||
+          r.session_data?.profile?.organization_name ||
+          r.session_data?.q2_org_name ||
+          null;
+        const stage = typeof r.current_stage === "number" ? `Step ${r.current_stage}` : "In progress";
+        all.push({
+          id: r.id,
+          tool: `draft_${map.labelKey}`,
+          tool_label: `${baseLabel} (draft)`,
+          created_at: r.updated_at || r.created_at,
+          status: "in_progress",
+          summary: orgGuess ? `${orgGuess} · ${stage}` : stage,
+          view_path: map.route,
+          ...clientMeta(r.client_id),
+          is_draft: true,
+        });
+      });
+
+
 
       all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setRows(all);
