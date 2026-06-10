@@ -522,7 +522,7 @@ export default function CPPARiskAssessment() {
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
-                      <span className="text-sm font-medium">Human review process for outputs *</span>
+                      <span className="text-sm font-medium">Human review process for outputs <Req /></span>
                       <InfoPopover term="Examples" cite="Illustrative examples — not exhaustive">
                         <div className="space-y-1">
                           <p>Borderline scores routed to an underwriter.</p>
