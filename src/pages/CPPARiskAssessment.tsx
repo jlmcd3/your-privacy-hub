@@ -737,6 +737,7 @@ export default function CPPARiskAssessment() {
           onComplete={(id, suiteCyberId) => {
             setCheckoutOpen(false);
             if (!id) return;
+            void clearDraft();
             if (isSuite && suiteCyberId) {
               navigate(`/cppa-suite/result?risk_id=${id}&cyber_id=${suiteCyberId}&purchased=true`);
             } else if (isSuite && !suiteCyberId) {
