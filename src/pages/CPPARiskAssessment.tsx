@@ -20,6 +20,7 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
+import { InfoPopover } from "@/components/InfoPopover";
 
 const REVENUE_OPTS = ["Under $25M", "$25M–$100M", "$100M–$500M", "Over $500M"];
 const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
@@ -72,6 +73,54 @@ const RETENTION_CRITERIA = [
   "Until purpose is fulfilled, then deletion",
   "Other criteria (described below)",
 ];
+
+const DEFINITIONS = {
+  sensitive_pi: {
+    term: "Sensitive personal information",
+    definition: "Personal information revealing a consumer's Social Security, driver's license, state ID, or passport number; account log-in credentials; precise geolocation; racial or ethnic origin, religious or philosophical beliefs, or union membership; the contents of mail, email, or text messages where the business is not the intended recipient; genetic data; biometric information processed to identify a consumer; health data; or data concerning sex life or sexual orientation. (summary)",
+    cite: "Cal. Civ. Code § 1798.140(ae)",
+  },
+  ccba: {
+    term: "Cross-context behavioral advertising",
+    definition: "The targeting of advertising to a consumer based on personal information obtained from the consumer's activity across businesses, distinctly-branded websites, applications, or services other than the one with which the consumer intentionally interacts. (verbatim, condensed)",
+    cite: "Cal. Civ. Code § 1798.140(k)",
+  },
+  right_to_know: {
+    term: "Right to Know / Access",
+    definition: "A consumer's right to request that a business disclose the categories and specific pieces of personal information collected about them, the sources, the purposes for collection, and the categories of third parties to whom it is disclosed. (summary)",
+    cite: "Cal. Civ. Code §§ 1798.110, 1798.115",
+  },
+  right_to_delete: {
+    term: "Right to Deletion",
+    definition: "A consumer's right to request deletion of personal information the business has collected from them, subject to statutory exceptions such as completing a transaction, security, or legal compliance. (summary)",
+    cite: "Cal. Civ. Code § 1798.105",
+  },
+  right_to_correct: {
+    term: "Right to Correction",
+    definition: "A consumer's right to request that a business correct inaccurate personal information it maintains about them, taking into account the nature of the information and purposes of processing. (summary)",
+    cite: "Cal. Civ. Code § 1798.106",
+  },
+  right_to_opt_out: {
+    term: "Right to Opt-Out",
+    definition: "A consumer's right to direct a business not to sell or share their personal information. Businesses that sell or share PI must provide a clear and conspicuous 'Do Not Sell or Share My Personal Information' link on their homepage. (summary)",
+    cite: "Cal. Civ. Code §§ 1798.120, 1798.135(a)",
+  },
+  notice_at_collection: {
+    term: "Notice at collection",
+    definition: "At or before collection, a business must inform consumers of the categories of personal information collected, the purposes of use, whether it is sold or shared, the retention period, and how to exercise opt-out rights. (summary — full disclosure contents are detailed in the statute)",
+    cite: "Cal. Civ. Code §§ 1798.100(a), 1798.130",
+  },
+  admt: {
+    term: "Automated Decision-Making Technology (ADMT)",
+    definition: "Technology that processes personal information and uses computation to replace, or substantially replace, human decisionmaking, as defined in the CPPA's 2025 regulations. (summary)",
+    cite: "11 CCR § 7001",
+  },
+} as const;
+
+function DefPopover({ termKey }: { termKey: keyof typeof DEFINITIONS }) {
+  const d = DEFINITIONS[termKey];
+  return <InfoPopover term={d.term} cite={d.cite}>{d.definition}</InfoPopover>;
+}
 
 const Pills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
   <div className="flex flex-wrap gap-2">
@@ -279,7 +328,7 @@ export default function CPPARiskAssessment() {
                 </select>
               </div>
               <div><Label>Q4: Categories of personal information processed *</Label><div className="mt-2"><Pills options={PI_CATEGORIES} value={q4} onChange={setQ4} /></div></div>
-              <div><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? *</Label>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? *</Label><DefPopover termKey="ccba" /></div>
                 <div className="mt-2"><Radio name="q5" options={["Yes — sell only", "Yes — share for advertising only", "Both", "No"]} value={q5} onChange={setQ5} /></div>
               </div>
             </>
@@ -288,10 +337,10 @@ export default function CPPARiskAssessment() {
           {step === 2 && (
             <>
               <h2>Step 2 — Consumer Rights Infrastructure</h2>
-              <div><Label>Q6: Right to Know / Access mechanism *</Label><div className="mt-2"><Radio name="q6" options={["Online form with identity verification", "Email or written request process", "In-app account settings", "No formal process in place"]} value={q6} onChange={setQ6} /></div></div>
-              <div><Label>Q7: Right to Deletion mechanism *</Label><div className="mt-2"><Radio name="q7" options={["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"]} value={q7} onChange={setQ7} /></div></div>
-              <div><Label>Q8: Right to Correction mechanism *</Label><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
-              <div><Label>Q9: Right to Opt-Out — do you have a "Do Not Sell or Share" link? *</Label><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q6: Right to Know / Access mechanism *</Label><DefPopover termKey="right_to_know" /></div><div className="mt-2"><Radio name="q6" options={["Online form with identity verification", "Email or written request process", "In-app account settings", "No formal process in place"]} value={q6} onChange={setQ6} /></div></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q7: Right to Deletion mechanism *</Label><DefPopover termKey="right_to_delete" /></div><div className="mt-2"><Radio name="q7" options={["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"]} value={q7} onChange={setQ7} /></div></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q8: Right to Correction mechanism *</Label><DefPopover termKey="right_to_correct" /></div><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q9: Right to Opt-Out — do you have a "Do Not Sell or Share" link? *</Label><DefPopover termKey="right_to_opt_out" /></div><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
               <div><Label>Q10: Identity verification for rights requests *</Label><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
             </>
           )}
@@ -301,7 +350,7 @@ export default function CPPARiskAssessment() {
               <h2>Step 3 — Privacy Notices</h2>
               <div><Label>Q11: Privacy policy last reviewed/updated *</Label><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div></div>
               <div><Label>Q12: Notice at Collection (displayed before or at time of data collection) *</Label><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>
-              <div><Label>Q13: Do your notices include the categories of PI collected, the purpose, and the right to opt-out? *</Label><div className="mt-2"><Radio name="q13" options={["Yes, all three", "Some elements", "No"]} value={q13} onChange={setQ13} /></div></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q13: Do your notices include the categories of PI collected, the purpose, and the right to opt-out? *</Label><DefPopover termKey="notice_at_collection" /></div><div className="mt-2"><Radio name="q13" options={["Yes, all three", "Some elements", "No"]} value={q13} onChange={setQ13} /></div></div>
               <div><Label>Q14: For employees/job applicants — do you provide a separate California-specific notice? *</Label><div className="mt-2"><Radio name="q14" options={["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"]} value={q14} onChange={setQ14} /></div></div>
             </>
           )}
@@ -309,7 +358,7 @@ export default function CPPARiskAssessment() {
           {step === 4 && (
             <>
               <h2>Step 4 — Sensitive Personal Information</h2>
-              <div><Label>Q15: Do you process any sensitive PI? *</Label><div className="mt-2"><Radio name="q15" options={["Yes", "No", "Unsure"]} value={q15} onChange={setQ15} /></div></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? *</Label><DefPopover termKey="sensitive_pi" /></div><div className="mt-2"><Radio name="q15" options={["Yes", "No", "Unsure"]} value={q15} onChange={setQ15} /></div></div>
               {q15 === "Yes" && (<>
                 <div><Label>Q16: Do you provide consumers the right to limit use of their sensitive PI? *</Label><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
                 <div><Label>Q17: What is your legal basis for processing sensitive PI? *</Label><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
@@ -319,8 +368,8 @@ export default function CPPARiskAssessment() {
 
           {step === 5 && (
             <>
-              <h2>Step 5 — Automated Decision-Making Technology (ADMT)</h2>
-              <div><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? *</Label><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
+              <div className="inline-flex items-center gap-1.5 flex-wrap"><h2>Step 5 — Automated Decision-Making Technology (ADMT)</h2><DefPopover termKey="admt" /></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? *</Label><DefPopover termKey="admt" /></div><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
                 <div><Label>Q19: Describe the ADMT system and its decisions *</Label>
                   <Textarea value={q19} onChange={(e) => setQ19(e.target.value)} rows={3} placeholder="E.g. Credit scoring algorithm, automated fraud detection, hiring screening software…" className="mt-2" />
@@ -392,10 +441,54 @@ export default function CPPARiskAssessment() {
               {admtTriggered && (
                 <div className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
                   <Label className="font-semibold">I-5: ADMT specifics (required because you indicated ADMT use) <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(G))</span></Label>
-                  <Textarea className="mt-2" rows={3} value={i5AdmtLogic} onChange={(e) => setI5AdmtLogic(e.target.value)} placeholder="ADMT logic summary — what the system decides and how *" />
-                  <Textarea className="mt-2" rows={2} value={i5AdmtTrainingSource} onChange={(e) => setI5AdmtTrainingSource(e.target.value)} placeholder="Training-data source(s)" />
-                  <Textarea className="mt-2" rows={2} value={i5AdmtFairnessTesting} onChange={(e) => setI5AdmtFairnessTesting(e.target.value)} placeholder="Fairness / bias testing approach" />
-                  <Textarea className="mt-2" rows={2} value={i5AdmtHumanReview} onChange={(e) => setI5AdmtHumanReview(e.target.value)} placeholder="Human review process for outputs *" />
+                  <div className="mt-2">
+                    <div className="inline-flex items-center gap-1.5 mb-1">
+                      <span className="text-sm font-medium">ADMT logic summary *</span>
+                      <InfoPopover term="Examples" cite="Illustrative examples — not exhaustive">
+                        <div className="space-y-1">
+                          <p>A gradient-boosted model scores loan applications 0–100; scores below 40 are auto-declined.</p>
+                          <p>A scheduling algorithm assigns shifts based on predicted productivity.</p>
+                        </div>
+                      </InfoPopover>
+                    </div>
+                    <Textarea rows={3} value={i5AdmtLogic} onChange={(e) => setI5AdmtLogic(e.target.value)} placeholder="ADMT logic summary — what the system decides and how *" />
+                  </div>
+                  <div className="mt-2">
+                    <div className="inline-flex items-center gap-1.5 mb-1">
+                      <span className="text-sm font-medium">Training-data source(s)</span>
+                      <InfoPopover term="Examples" cite="Illustrative examples — not exhaustive">
+                        <div className="space-y-1">
+                          <p>Five years of internal application outcomes.</p>
+                          <p>Third-party credit bureau data.</p>
+                        </div>
+                      </InfoPopover>
+                    </div>
+                    <Textarea rows={2} value={i5AdmtTrainingSource} onChange={(e) => setI5AdmtTrainingSource(e.target.value)} placeholder="Training-data source(s)" />
+                  </div>
+                  <div className="mt-2">
+                    <div className="inline-flex items-center gap-1.5 mb-1">
+                      <span className="text-sm font-medium">Fairness / bias testing approach</span>
+                      <InfoPopover term="Examples" cite="Illustrative examples — not exhaustive">
+                        <div className="space-y-1">
+                          <p>Annual disparate-impact analysis across protected classes.</p>
+                          <p>Score-threshold parity review by an external auditor.</p>
+                        </div>
+                      </InfoPopover>
+                    </div>
+                    <Textarea rows={2} value={i5AdmtFairnessTesting} onChange={(e) => setI5AdmtFairnessTesting(e.target.value)} placeholder="Fairness / bias testing approach" />
+                  </div>
+                  <div className="mt-2">
+                    <div className="inline-flex items-center gap-1.5 mb-1">
+                      <span className="text-sm font-medium">Human review process for outputs *</span>
+                      <InfoPopover term="Examples" cite="Illustrative examples — not exhaustive">
+                        <div className="space-y-1">
+                          <p>Borderline scores routed to an underwriter.</p>
+                          <p>Consumers may request human reconsideration of any automated decision.</p>
+                        </div>
+                      </InfoPopover>
+                    </div>
+                    <Textarea rows={2} value={i5AdmtHumanReview} onChange={(e) => setI5AdmtHumanReview(e.target.value)} placeholder="Human review process for outputs *" />
+                  </div>
                 </div>
               )}
 
