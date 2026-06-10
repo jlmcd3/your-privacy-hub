@@ -301,6 +301,84 @@ export default function CPPAScopeChecker() {
   );
 }
 
+function SavedNote({ isAuthed }: { isAuthed: boolean }) {
+  if (isAuthed) {
+    return (
+      <p className="text-xs text-muted-foreground italic pt-3 border-t">
+        Saved to your account — find it any time in{" "}
+        <Link to="/my-reports" className="underline hover:text-foreground">My Reports</Link>.
+      </p>
+    );
+  }
+  return (
+    <p className="text-xs text-muted-foreground italic pt-3 border-t">
+      <Link to="/signup" className="underline hover:text-foreground">Create a free account</Link>{" "}
+      to keep this result and see it in My Reports.
+    </p>
+  );
+}
+
+function EmailResultsCapture() {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  if (hidden || done) {
+    return done ? (
+      <p className="text-xs text-brand-teal pt-2">✓ Sent. Check your inbox.</p>
+    ) : null;
+  }
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || submitting) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.functions.invoke("subscribe-email", {
+        body: { email, source: "cppa-scope-results" },
+      });
+      if (error) throw error;
+      setDone(true);
+      toast({ title: "Sent", description: "Your obligation map is on its way." });
+    } catch (err) {
+      toast({
+        title: "Couldn't send",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  return (
+    <section className="bg-card border rounded-lg p-4">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-medium">Email me this obligation map</p>
+        <button
+          type="button"
+          onClick={() => setHidden(true)}
+          className="text-xs text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer"
+          aria-label="Dismiss email capture"
+        >
+          Dismiss
+        </button>
+      </div>
+      <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2 mt-2">
+        <input
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@company.com"
+          className="flex-1 px-3 py-2 rounded border border-brand-cloud bg-background text-sm focus:outline-none focus:border-brand-teal"
+        />
+        <Button type="submit" size="sm" disabled={submitting}>
+          {submitting ? "Sending…" : "Email me"}
+        </Button>
+      </form>
+    </section>
+  );
+}
+
 function ResultsPanel({
   obligationMap,
   q1,
@@ -309,6 +387,7 @@ function ResultsPanel({
   q5,
   onReset,
   navigate,
+  isAuthed,
 }: {
   obligationMap: {
     inScope: boolean;
@@ -325,6 +404,7 @@ function ResultsPanel({
   q5: string;
   onReset: () => void;
   navigate: (to: string) => void;
+  isAuthed: boolean;
 }) {
 
   // Out of scope, no Unsure: confidently out of scope
