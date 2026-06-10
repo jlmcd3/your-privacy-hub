@@ -566,11 +566,11 @@ export default function CPPARiskAssessment() {
 
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <Label>I-8: Certifying executive name * <span className="text-xs text-muted-foreground">(§ 7157(b)(5))</span></Label>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-8: Certifying executive name <Req /> <span className="text-xs text-muted-foreground">(§ 7157(b)(5))</span></Label><StatutePopover term="I-8 · Certifying executive" summary="The risk assessment must be certified by an executive responsible for oversight of the processing." cite="11 CCR § 7157" /></div>
                   <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={i8ExecName} onChange={(e) => setI8ExecName(e.target.value)} placeholder="Full legal name" />
                 </div>
                 <div>
-                  <Label>Certifying executive title *</Label>
+                  <Label>Certifying executive title <Req /></Label>
                   <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={i8ExecTitle} onChange={(e) => setI8ExecTitle(e.target.value)} placeholder="E.g. Chief Privacy Officer" />
                 </div>
               </div>
