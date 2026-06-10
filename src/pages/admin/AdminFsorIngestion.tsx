@@ -18,6 +18,9 @@ type PresetConfig = {
   start_anchor?: string;
   stop_anchor?: string;
   column_x?: [number, number, number];
+  page_from?: number;
+  page_to?: number;
+  force_shape?: boolean;
 };
 
 const T1: PresetConfig = {
