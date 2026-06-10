@@ -55,7 +55,8 @@ async function loadPages(url: string): Promise<{ pageText: string[]; pageItems: 
   const r = await fetch(url, { signal: AbortSignal.timeout(60_000) });
   if (!r.ok) throw new Error(`fetch_failed_${r.status}`);
   const buf = new Uint8Array(await r.arrayBuffer());
-  const doc = await pdfjsLib.getDocument({ data: buf, disableFontFace: true, useSystemFonts: false }).promise;
+  await getResolvedPDFJS();
+  const doc = await getDocumentProxy(buf);
   const pageText: string[] = [];
   const pageItems: PageItem[][] = [];
   for (let i = 1; i <= doc.numPages; i++) {
