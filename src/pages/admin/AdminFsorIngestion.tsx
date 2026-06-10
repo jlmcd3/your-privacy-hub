@@ -56,16 +56,30 @@ const T2d: PresetConfig = {
 };
 const T3a: PresetConfig = {
   fsor_package: "ccpa-2023-original",
-  source_url: "",
+  source_url: "https://cppa.ca.gov/regulations/pdf/20230329_final_sor.pdf",
+  mode: "fsor",
+  start_anchor: "STATEMENT OF REASONS",
+};
+const T3b: PresetConfig = {
+  fsor_package: "ccpa-2023-original",
+  source_url: "https://cppa.ca.gov/regulations/pdf/20230329_final_sor_addendum.pdf",
   mode: "fsor",
 };
-const T3b: PresetConfig = { ...T3a, mode: "appendix45" };
 const T4a: PresetConfig = {
   fsor_package: "dbr-2024-registration",
-  source_url: "",
-  mode: "fsor",
+  source_url: "https://cppa.ca.gov/regulations/pdf/20241224_dbr_fsor.pdf",
+  mode: "appendix45",
+  page_from: 3,
+  page_to: 43,
+  force_shape: true,
 };
-const T4b: PresetConfig = { ...T4a, mode: "appendix45" };
+const T4b: PresetConfig = {
+  fsor_package: "dbr-2024-registration",
+  source_url: "https://cppa.ca.gov/regulations/pdf/20241224_dbr_fsor_addm.pdf",
+  mode: "fsor",
+  page_from: 1,
+  page_to: 10,
+};
 
 const PRESETS: Record<string, PresetConfig> = {
   T1, T2a, T2b, T2c, T2d, T3a, T3b, T4a, T4b,
