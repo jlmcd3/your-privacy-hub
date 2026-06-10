@@ -90,12 +90,32 @@ const GovernanceAssessmentResult = () => {
         ? report.domain_findings
         : [];
 
+  const metaBits: string[] = [];
+  if (intake.sector) metaBits.push(intake.sector);
+  if (report?.generated_at) metaBits.push(new Date(report.generated_at).toLocaleDateString());
+
+  const actions = (
+    <>
+      <Button asChild variant="secondary" size="sm">
+        <Link to="/governance-assessment">Run New Assessment</Link>
+      </Button>
+      {status === "complete" && (
+        <PDFDownloadButton
+          toolType="governance_assessment"
+          assessmentId={assessment?.id}
+          pdfUrl={assessment?.pdf_url}
+          onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
+        />
+      )}
+    </>
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title></Helmet>
       <Navbar />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         <ClientContextBadge />
         {purchased && (
@@ -103,137 +123,189 @@ const GovernanceAssessmentResult = () => {
             ✅ Purchase confirmed. Your assessment is being generated.
           </div>
         )}
-        {loading && <p>Loading…</p>}
 
-        {!loading && (status === "pending" || status === "processing") && (
-          <div className="bg-card border rounded-lg p-10 text-center">
-            <div className="animate-pulse mb-4 text-2xl">⏳</div>
-            <p>Running your governance assessment.</p>
-            <p className="text-muted-foreground text-sm mt-1">This typically takes 45-60 seconds.</p>
-          </div>
-        )}
+        <ReportShell
+          title="Privacy Program Assessment"
+          meta={metaBits.length ? metaBits.join(" · ") : undefined}
+          actions={status === "complete" || status === "failed" ? actions : undefined}
+        >
+          {loading && <p>Loading…</p>}
 
-        {status === "failed" && (
-          <div className="bg-card border rounded-lg p-6">
-            <p className="font-medium text-red-700 mb-2">Assessment could not be completed.</p>
-            <p className="text-sm text-muted-foreground mb-3">
-              This can happen when the assessment takes longer than expected. Your inputs were saved — please try again.
-            </p>
-            <Button asChild><Link to="/governance-assessment">Try Again</Link></Button>
-          </div>
-        )}
+          {!loading && (status === "pending" || status === "processing") && (
+            <div className="bg-card border rounded-lg p-10 text-center">
+              <div className="animate-pulse mb-4 text-2xl">⏳</div>
+              <p>Running your governance assessment.</p>
+              <p className="text-muted-foreground text-sm mt-1">This typically takes 45-60 seconds.</p>
+            </div>
+          )}
 
-        {status === "complete" && (
-          <>
-            {/* Cover */}
-            <section className="bg-slate-900 text-white rounded-lg p-8">
-              <h1 className="font-serif mb-2">Privacy Program Assessment Tool</h1>
-              <p className="text-slate-300 text-sm">
-                {intake.sector ? `${intake.sector} · ` : ""}{report?.generated_at ? new Date(report.generated_at).toLocaleDateString() : ""}
+          {status === "failed" && (
+            <div className="bg-card border rounded-lg p-6">
+              <p className="font-medium text-red-700 mb-2">Assessment could not be completed.</p>
+              <p className="text-sm text-muted-foreground mb-3">
+                This can happen when the assessment takes longer than expected. Your inputs were saved — please try again.
               </p>
-              {report?.overall_readiness_rating && (
-                <div className="mt-4">
-                  <span className={`inline-block px-3 py-1.5 rounded font-medium ${ratingColor(report.overall_readiness_rating)}`}>
-                    {report.overall_readiness_rating}
-                  </span>
-                </div>
+              <Button asChild><Link to="/governance-assessment">Try Again</Link></Button>
+            </div>
+          )}
+
+          {status === "complete" && (
+            <div className="space-y-6">
+              {/* Executive Summary */}
+              {(report?.overall_readiness_rating || report?.executive_summary) && (
+                <section className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-6">
+                  <h2 className="mb-3">Executive Summary</h2>
+                  {report?.overall_readiness_rating && (
+                    <div className="mb-3">
+                      <span className={`inline-block px-3 py-1.5 rounded font-medium ${ratingColor(report.overall_readiness_rating)}`}>
+                        {report.overall_readiness_rating}
+                      </span>
+                    </div>
+                  )}
+                  {report?.executive_summary && <p className="text-sm text-foreground">{report.executive_summary}</p>}
+                </section>
               )}
-              {report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
-            </section>
 
-            {/* 10-Domain Overview grid */}
-            {domainList.length > 0 && (
-              <section>
-                <h2 className="mb-1">10-Domain Overview</h2>
-                <p className="text-sm text-muted-foreground mb-3">Click any domain below for detailed findings</p>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                  {domainList.map((d: any, i: number) => (
-                    <div key={i} className={`border rounded-lg p-3 ${sevBg(d.severity)}`}>
-                      <p className="text-meta font-semibold leading-snug mb-2">{d.domain_name || d.name}</p>
-                      {d.severity && (
-                        <span className={`inline-block px-1.5 py-0.5 text-eyebrow rounded ${sevColor(d.severity)}`}>
-                          {d.severity}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Top risks */}
-            {Array.isArray(report?.top_three_risks) && report.top_three_risks.length > 0 && (
-              <section>
-                <h2 className="mb-3">Top Risks</h2>
-                <div className="grid md:grid-cols-3 gap-4">
-                  {report.top_three_risks.slice(0, 3).map((r: any, i: number) => (
-                    <div key={i} className="bg-card border rounded-lg p-4">
-                      <p className="font-medium">{r.risk_name || r.name}</p>
-                      {r.domain && <p className="text-xs text-muted-foreground">{r.domain}</p>}
-                      {r.severity && <span className={`inline-block mt-2 px-2 py-1 text-xs rounded ${sevColor(r.severity)}`}>{r.severity}</span>}
-                      {r.why_urgent && <p className="text-sm mt-2">{r.why_urgent}</p>}
-                      <AnnotationCallout
-                        annotations={(report?.annotations || []).filter(
-                          (a: any) => a.relevance?.toLowerCase().includes(
-                            (r.risk_title || r.risk_name || r.name || "").toLowerCase().slice(0, 20)
-                          )
+              {/* 10-Domain Overview grid */}
+              {domainList.length > 0 && (
+                <section>
+                  <h2 className="mb-1">10-Domain Overview</h2>
+                  <p className="text-sm text-muted-foreground mb-3">Click any domain below for detailed findings</p>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {domainList.map((d: any, i: number) => (
+                      <div key={i} className={`border rounded-lg p-3 ${sevBg(d.severity)}`}>
+                        <p className="text-meta font-semibold leading-snug mb-2">{d.domain_name || d.name}</p>
+                        {d.severity && (
+                          <span className={`inline-block px-1.5 py-0.5 text-eyebrow rounded ${sevColor(d.severity)}`}>
+                            {d.severity}
+                          </span>
                         )}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
 
-            {/* Immediate Actions */}
-            {Array.isArray(report?.immediate_actions) && report.immediate_actions.length > 0 && (
-              <section className="bg-card border rounded-lg p-6">
-                <h2 className="mb-3">Immediate Actions</h2>
-                <ol className="list-decimal pl-5 space-y-2">
-                  {report.immediate_actions.map((a: any, i: number) => (
-                    <li key={i} className="text-sm">
-                      <span className="font-medium">{a.action || a.name}</span>
-                      {a.owner && <span className="ml-2 text-xs px-2 py-0.5 rounded bg-muted">{a.owner}</span>}
-                      {a.timeline && <span className="ml-2 text-xs text-muted-foreground">{a.timeline}</span>}
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            )}
+              {/* Top risks */}
+              {Array.isArray(report?.top_three_risks) && report.top_three_risks.length > 0 && (
+                <section>
+                  <h2 className="mb-3">Top Risks</h2>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {report.top_three_risks.slice(0, 3).map((r: any, i: number) => (
+                      <div key={i} className="bg-card border rounded-lg p-4">
+                        <p className="font-medium">{r.risk_name || r.name}</p>
+                        {r.domain && <p className="text-xs text-muted-foreground">{r.domain}</p>}
+                        {r.severity && <span className={`inline-block mt-2 px-2 py-1 text-xs rounded ${sevColor(r.severity)}`}>{r.severity}</span>}
+                        {r.why_urgent && <p className="text-sm mt-2">{r.why_urgent}</p>}
+                        <AnnotationCallout
+                          annotations={(report?.annotations || []).filter(
+                            (a: any) => a.relevance?.toLowerCase().includes(
+                              (r.risk_title || r.risk_name || r.name || "").toLowerCase().slice(0, 20)
+                            )
+                          )}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
 
-            {/* Ten Domains — Domain Findings (handles Record OR Array shape) */}
-            {report?.domain_findings &&
-              typeof report.domain_findings === "object" &&
-              !Array.isArray(report.domain_findings) &&
-              Object.values(report.domain_findings).length > 0 && (
+              {/* Immediate Actions */}
+              {Array.isArray(report?.immediate_actions) && report.immediate_actions.length > 0 && (
+                <section className="bg-card border rounded-lg p-6">
+                  <h2 className="mb-3">Immediate Actions</h2>
+                  <ol className="list-decimal pl-5 space-y-2">
+                    {report.immediate_actions.map((a: any, i: number) => (
+                      <li key={i} className="text-sm">
+                        <span className="font-medium">{a.action || a.name}</span>
+                        {a.owner && <span className="ml-2 text-xs px-2 py-0.5 rounded bg-muted">{a.owner}</span>}
+                        {a.timeline && <span className="ml-2 text-xs text-muted-foreground">{a.timeline}</span>}
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
+
+              {/* Ten Domains — Domain Findings (handles Record OR Array shape) */}
+              {report?.domain_findings &&
+                typeof report.domain_findings === "object" &&
+                !Array.isArray(report.domain_findings) &&
+                Object.values(report.domain_findings).length > 0 && (
+                  <section className="bg-card border rounded-lg p-6">
+                    <h2 className="mb-4">Domain Findings</h2>
+                    <Accordion type="multiple">
+                      {Object.values(report.domain_findings).map((d: any, i: number) => (
+                        <AccordionItem key={i} value={`d${i}`}>
+                          <AccordionTrigger>
+                            <div className="flex items-center gap-3">
+                              <span>{d.domain_name || d.name}</span>
+                              {d.severity && (
+                                <span className={`px-2 py-0.5 text-xs rounded ${sevColor(d.severity)}`}>
+                                  {d.severity}
+                                </span>
+                              )}
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            {d.current_state && (
+                              <p className="text-sm mb-2"><strong>Current state:</strong> {d.current_state}</p>
+                            )}
+                            {d.gap_description && (
+                              <p className="text-sm mb-2"><strong>Gap:</strong> {d.gap_description}</p>
+                            )}
+                            {d.regulatory_basis && (
+                              <p className="text-sm mb-2"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>
+                            )}
+                            {d.recommended_action && (
+                              <p className="text-sm mb-2"><strong>Recommended action:</strong> {d.recommended_action}</p>
+                            )}
+                            <div className="flex gap-3 text-xs text-muted-foreground">
+                              {d.suggested_owner && <span>Owner: {d.suggested_owner}</span>}
+                              {d.suggested_timeline && <span>Timeline: {d.suggested_timeline}</span>}
+                            </div>
+                            <details className="mt-3">
+                              <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-700">
+                                Enforcement citations
+                                <AnnotationBadge
+                                  count={(report?.annotations || []).filter(
+                                    (a: any) => a.relevance?.toLowerCase().includes(
+                                      (d.domain_name || "").toLowerCase().slice(0, 15)
+                                    )
+                                  ).length}
+                                />
+                              </summary>
+                              <AnnotationCallout
+                                annotations={(report?.annotations || []).filter(
+                                  (a: any) => a.relevance?.toLowerCase().includes(
+                                    (d.domain_name || "").toLowerCase().slice(0, 15)
+                                  )
+                                )}
+                              />
+                            </details>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </section>
+                )}
+
+              {Array.isArray(report?.domain_findings) && report.domain_findings.length > 0 && (
                 <section className="bg-card border rounded-lg p-6">
                   <h2 className="mb-4">Domain Findings</h2>
                   <Accordion type="multiple">
-                    {Object.values(report.domain_findings).map((d: any, i: number) => (
+                    {report.domain_findings.map((d: any, i: number) => (
                       <AccordionItem key={i} value={`d${i}`}>
                         <AccordionTrigger>
                           <div className="flex items-center gap-3">
                             <span>{d.domain_name || d.name}</span>
-                            {d.severity && (
-                              <span className={`px-2 py-0.5 text-xs rounded ${sevColor(d.severity)}`}>
-                                {d.severity}
-                              </span>
-                            )}
+                            {d.severity && <span className={`px-2 py-0.5 text-xs rounded ${sevColor(d.severity)}`}>{d.severity}</span>}
                           </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                          {d.current_state && (
-                            <p className="text-sm mb-2"><strong>Current state:</strong> {d.current_state}</p>
-                          )}
-                          {d.gap_description && (
-                            <p className="text-sm mb-2"><strong>Gap:</strong> {d.gap_description}</p>
-                          )}
-                          {d.regulatory_basis && (
-                            <p className="text-sm mb-2"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>
-                          )}
-                          {d.recommended_action && (
-                            <p className="text-sm mb-2"><strong>Recommended action:</strong> {d.recommended_action}</p>
-                          )}
+                          {d.current_state && <p className="text-sm mb-2"><strong>Current state:</strong> {d.current_state}</p>}
+                          {d.gap_description && <p className="text-sm mb-2"><strong>Gap:</strong> {d.gap_description}</p>}
+                          {d.regulatory_basis && <p className="text-sm mb-2"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>}
+                          {d.recommended_action && <p className="text-sm mb-2"><strong>Recommended action:</strong> {d.recommended_action}</p>}
                           <div className="flex gap-3 text-xs text-muted-foreground">
                             {d.suggested_owner && <span>Owner: {d.suggested_owner}</span>}
                             {d.suggested_timeline && <span>Timeline: {d.suggested_timeline}</span>}
@@ -264,108 +336,47 @@ const GovernanceAssessmentResult = () => {
                 </section>
               )}
 
-            {Array.isArray(report?.domain_findings) && report.domain_findings.length > 0 && (
-              <section className="bg-card border rounded-lg p-6">
-                <h2 className="mb-4">Domain Findings</h2>
-                <Accordion type="multiple">
-                  {report.domain_findings.map((d: any, i: number) => (
-                    <AccordionItem key={i} value={`d${i}`}>
-                      <AccordionTrigger>
-                        <div className="flex items-center gap-3">
-                          <span>{d.domain_name || d.name}</span>
-                          {d.severity && <span className={`px-2 py-0.5 text-xs rounded ${sevColor(d.severity)}`}>{d.severity}</span>}
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        {d.current_state && <p className="text-sm mb-2"><strong>Current state:</strong> {d.current_state}</p>}
-                        {d.gap_description && <p className="text-sm mb-2"><strong>Gap:</strong> {d.gap_description}</p>}
-                        {d.regulatory_basis && <p className="text-sm mb-2"><strong>Regulatory basis:</strong> {d.regulatory_basis}</p>}
-                        {d.recommended_action && <p className="text-sm mb-2"><strong>Recommended action:</strong> {d.recommended_action}</p>}
-                        <div className="flex gap-3 text-xs text-muted-foreground">
-                          {d.suggested_owner && <span>Owner: {d.suggested_owner}</span>}
-                          {d.suggested_timeline && <span>Timeline: {d.suggested_timeline}</span>}
-                        </div>
-                        <details className="mt-3">
-                          <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-700">
-                            Enforcement citations
-                            <AnnotationBadge
-                              count={(report?.annotations || []).filter(
-                                (a: any) => a.relevance?.toLowerCase().includes(
-                                  (d.domain_name || "").toLowerCase().slice(0, 15)
-                                )
-                              ).length}
-                            />
-                          </summary>
-                          <AnnotationCallout
-                            annotations={(report?.annotations || []).filter(
-                              (a: any) => a.relevance?.toLowerCase().includes(
-                                (d.domain_name || "").toLowerCase().slice(0, 15)
-                              )
-                            )}
-                          />
-                        </details>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </section>
-            )}
+              {/* DPIA Scope */}
+              {Array.isArray(report?.dpia_scope) && report.dpia_scope.length > 0 && (
+                <section className="bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] border border-[hsl(var(--cobalt)/0.25)] rounded-lg p-6">
+                  <h2 className="mb-3">Processing Activities Requiring a Formal DPIA</h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    The following processing activities identified in your assessment may require a Data Protection Impact Assessment under GDPR Article 35 or equivalent provisions before proceeding. This list is provided as a starting point for review with your Data Protection Officer or legal counsel.
+                  </p>
+                  <ul className="space-y-2 mb-4">
+                    {report.dpia_scope.map((d: any, i: number) => (
+                      <li key={i} className="border bg-card rounded p-3">
+                        <p className="font-medium">{d.processing_activity || d.name}</p>
+                        {d.regulatory_basis && <p className="text-xs text-muted-foreground">{d.regulatory_basis}</p>}
+                        {d.priority && <span className={`inline-block mt-1 px-2 py-0.5 text-xs rounded ${sevColor(d.priority)}`}>{d.priority}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button asChild>
+                    <Link to={`/dpia-framework?source=${id}`}>Open Impact Assessment Builder for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →</Link>
+                  </Button>
+                </section>
+              )}
 
-            {/* DPIA Scope */}
-            {Array.isArray(report?.dpia_scope) && report.dpia_scope.length > 0 && (
-              <section className="bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] border border-[hsl(var(--cobalt)/0.25)] rounded-lg p-6">
-                <h2 className="mb-3">Processing Activities Requiring a Formal DPIA</h2>
-                <p className="text-sm text-muted-foreground mb-4">
-                  The following processing activities identified in your assessment may require a Data Protection Impact Assessment under GDPR Article 35 or equivalent provisions before proceeding. This list is provided as a starting point for review with your Data Protection Officer or legal counsel.
-                </p>
-                <ul className="space-y-2 mb-4">
-                  {report.dpia_scope.map((d: any, i: number) => (
-                    <li key={i} className="border bg-card rounded p-3">
-                      <p className="font-medium">{d.processing_activity || d.name}</p>
-                      {d.regulatory_basis && <p className="text-xs text-muted-foreground">{d.regulatory_basis}</p>}
-                      {d.priority && <span className={`inline-block mt-1 px-2 py-0.5 text-xs rounded ${sevColor(d.priority)}`}>{d.priority}</span>}
-                    </li>
-                  ))}
-                </ul>
-                <Button asChild>
-                  <Link to={`/dpia-framework?source=${id}`}>Open Impact Assessment Builder for {report.dpia_scope[0]?.processing_activity || report.dpia_scope[0]?.name} →</Link>
-                </Button>
-              </section>
-            )}
+              {report?.interaction_effects && (
+                <section className="bg-muted/30 border rounded-lg p-6">
+                  <h2 className="mb-2">Cross-Domain Considerations</h2>
+                  <p className="text-sm">{report.interaction_effects}</p>
+                </section>
+              )}
 
-            {report?.interaction_effects && (
-              <section className="bg-muted/30 border rounded-lg p-6">
-                <h2 className="mb-2">Cross-Domain Considerations</h2>
-                <p className="text-sm">{report.interaction_effects}</p>
-              </section>
-            )}
-
-            <EnforcementPrecedents
-              precedents={report?.enforcement_precedents}
-              context="Enforcement signals from regulators in your jurisdictions and sector — context for the top three risks above."
-            />
-
-            <section className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-              ⚠️ {report?.disclaimer || "This is a compliance framework tool. Review findings with qualified legal counsel."}
-            </section>
-
-            <div className="flex gap-2 flex-wrap">
-              <Button asChild variant="outline"><Link to="/governance-assessment">Run New Assessment</Link></Button>
-              <Button asChild><Link to="/dashboard">Back to Dashboard</Link></Button>
-              <PDFDownloadButton
-                toolType="governance_assessment"
-                assessmentId={assessment?.id}
-                pdfUrl={assessment?.pdf_url}
-                onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-brand-navy hover:bg-brand-navy/90 border border-brand-navy rounded-lg no-underline transition-colors disabled:opacity-60"
+              <EnforcementPrecedents
+                precedents={report?.enforcement_precedents}
+                context="Enforcement signals from regulators in your jurisdictions and sector — context for the top three risks above."
               />
             </div>
-          </>
-        )}
+          )}
+        </ReportShell>
       </main>
       <Footer />
     </div>
   );
 };
+
 
 export default GovernanceAssessmentResult;
