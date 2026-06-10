@@ -147,6 +147,20 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
   </div>
 );
 
+const Req = () => <span className="text-red-600" aria-hidden="true">*</span>;
+const Legend = () => (
+  <p className="text-[11px] text-muted-foreground"><span className="text-red-600">*</span> Required</p>
+);
+
+// Step 6 statute popover helper — one-line plain-language summary with citation.
+function StatutePopover({ term, summary, cite }: { term: string; summary: string; cite: string }) {
+  return (
+    <InfoPopover term={term} cite={cite}>
+      <p><span className="font-mono text-[11px] mr-1">(summary)</span>{summary}</p>
+    </InfoPopover>
+  );
+}
+
 export default function CPPARiskAssessment() {
   const { user } = useAuth();
   const { clientId } = useActiveClient();
