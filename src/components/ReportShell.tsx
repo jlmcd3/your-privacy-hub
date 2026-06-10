@@ -234,3 +234,167 @@ export function ReportSection({
     </section>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Fn — inline superscript citation marker.
+// ---------------------------------------------------------------------------
+
+export function Fn({ n }: { n: number }) {
+  return (
+    <sup>
+      <a
+        href={`#fn-${n}`}
+        className="no-underline text-[0.7em] font-semibold"
+        style={{ color: "hsl(var(--cobalt))" }}
+      >
+        {n}
+      </a>
+    </sup>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// FootnoteList — compact numbered footnotes under a thin top border.
+// ---------------------------------------------------------------------------
+
+export interface FootnoteItem {
+  n: number;
+  text: string;
+  cite?: string;
+  verbatim?: boolean;
+}
+
+export function FootnoteList({ notes }: { notes: FootnoteItem[] }) {
+  return (
+    <div className="border-t pt-3 mt-6">
+      <ol className="list-none space-y-1">
+        {notes.map((note) => (
+          <li
+            key={note.n}
+            id={`fn-${note.n}`}
+            className="text-[12px] leading-snug"
+          >
+            <span className="font-semibold">{note.n}.</span>{" "}
+            {note.text}
+            {note.cite && (
+              <span className="font-mono text-[11px] text-muted-foreground">
+                {" "}
+                {note.cite}
+                {note.verbatim === true
+                  ? " (verbatim)"
+                  : note.verbatim === false
+                    ? " (summary)"
+                    : ""}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AuthoritiesAppendix — closing section listing relied-upon authorities.
+// ---------------------------------------------------------------------------
+
+export interface AuthorityGroup {
+  heading: string;
+  items: Array<{ cite: string; detail?: string; href?: string }>;
+}
+
+export function AuthoritiesAppendix({ groups }: { groups: AuthorityGroup[] }) {
+  return (
+    <ReportSection num="A" title="Authorities Relied Upon">
+      <div className="space-y-5">
+        {groups.map((group) => (
+          <div key={group.heading}>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+              {group.heading}
+            </p>
+            <ul className="space-y-1">
+              {group.items.map((item, idx) => (
+                <li key={idx} className="text-[12px] leading-snug">
+                  {item.href ? (
+                    <Link
+                      to={item.href}
+                      className="font-mono no-underline"
+                      style={{ color: "hsl(var(--cobalt))" }}
+                    >
+                      {item.cite}
+                    </Link>
+                  ) : (
+                    <span className="font-mono">{item.cite}</span>
+                  )}
+                  {item.detail && (
+                    <span className="text-[11px] text-muted-foreground">
+                      {" "}
+                      {item.detail}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </ReportSection>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MethodologySection — how the report was produced.
+// ---------------------------------------------------------------------------
+
+export interface MethodologySectionProps {
+  provided: string[];
+  retrieved: Array<{ label: string; date?: string }>;
+  model: string;
+  generatedAt: string;
+}
+
+export function MethodologySection({
+  provided,
+  retrieved,
+  model,
+  generatedAt,
+}: MethodologySectionProps) {
+  return (
+    <ReportSection num="M" title="Methodology and Sources">
+      <div className="space-y-4 text-[12px] leading-snug">
+        <div>
+          <p className="font-semibold text-brand-navy mb-1">
+            Information you provided
+          </p>
+          <p>{provided.join(", ")}</p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-brand-navy mb-1">
+            Authorities retrieved
+          </p>
+          <ul className="space-y-0.5">
+            {retrieved.map((r, i) => (
+              <li key={i}>
+                {r.label}
+                {r.date && <span className="text-muted-foreground"> ({r.date})</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <p className="font-semibold text-brand-navy mb-1">Drafting</p>
+          <p>
+            Drafted by {model} on {generatedAt}.
+          </p>
+          <p className="text-muted-foreground mt-1">
+            All legal statements derive from the retrieved authorities above;
+            items marked [FILL-IN] had no on-point authority and require
+            counsel review.
+          </p>
+        </div>
+      </div>
+    </ReportSection>
+  );
+}
