@@ -11,6 +11,7 @@ import {
 } from "@/lib/workspaceNav";
 import { useClientStore, type Client } from "@/stores/clientStore";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return (
