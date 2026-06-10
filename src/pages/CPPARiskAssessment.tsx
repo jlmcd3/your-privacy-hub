@@ -147,6 +147,20 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
   </div>
 );
 
+const Req = () => <span className="text-red-600" aria-hidden="true">*</span>;
+const Legend = () => (
+  <p className="text-[11px] text-muted-foreground"><span className="text-red-600">*</span> Required</p>
+);
+
+// Step 6 statute popover helper — one-line plain-language summary with citation.
+function StatutePopover({ term, summary, cite }: { term: string; summary: string; cite: string }) {
+  return (
+    <InfoPopover term={term} cite={cite}>
+      <p><span className="font-mono text-[11px] mr-1">(summary)</span>{summary}</p>
+    </InfoPopover>
+  );
+}
+
 export default function CPPARiskAssessment() {
   const { user } = useAuth();
   const { clientId } = useActiveClient();
@@ -168,7 +182,7 @@ export default function CPPARiskAssessment() {
   const [q1, setQ1] = useState(""); const [q2, setQ2] = useState(""); const [q3, setQ3] = useState("");
   const [q4, setQ4] = useState<string[]>([]); const [q5, setQ5] = useState("");
   // Step 2 — Consumer Rights
-  const [q6, setQ6] = useState(""); const [q7, setQ7] = useState(""); const [q8, setQ8] = useState("");
+  const [q6Multi, setQ6Multi] = useState<string[]>([]); const [q7, setQ7] = useState(""); const [q8, setQ8] = useState("");
   const [q9, setQ9] = useState(""); const [q10, setQ10] = useState("");
   // Step 3 — Notices
   const [q11, setQ11] = useState(""); const [q12, setQ12] = useState("");
@@ -210,7 +224,7 @@ export default function CPPARiskAssessment() {
 
   const stepValid = (): string | null => {
     if (step === 1 && (!q1 || !q2 || !q3 || !q4.length || !q5)) return "Please complete the business profile.";
-    if (step === 2 && (!q6 || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
+    if (step === 2 && (!q6Multi.length || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
     if (step === 3 && (!q11 || !q12 || !q13 || !q14)) return "Please complete privacy notice questions.";
     if (step === 4) {
       if (!q15) return "Please answer Q15.";
@@ -246,7 +260,7 @@ export default function CPPARiskAssessment() {
   const intake = useMemo(() => ({
     // legacy keys preserved
     q1_revenue: q1, q2_consumers: q2, q3_sector: q3, q4_pi_categories: q4, q5_sell_share: q5,
-    q6_right_know: q6, q7_right_delete: q7, q8_right_correct: q8, q9_opt_out: q9, q10_id_verification: q10,
+    q6_right_know: q6Multi.join("; "), q6_right_know_multi: q6Multi, q7_right_delete: q7, q8_right_correct: q8, q9_opt_out: q9, q10_id_verification: q10,
     q11_policy_review: q11, q12_notice_at_collection: q12, q13_notice_content: q13, q14_employee_notice: q14,
     q15_sensitive_pi: q15, q16_sensitive_limit: q16, q17_sensitive_basis: q17,
     q18_admt_use: q18, q19_admt_description: q19, q20_admt_opt_out: q20,
@@ -269,7 +283,7 @@ export default function CPPARiskAssessment() {
     i9_has_existing_dpia: i9HasDpia,
     i9_existing_dpia_summary: i9DpiaSummary,
   }), [
-    q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
+    q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle,
@@ -320,15 +334,16 @@ export default function CPPARiskAssessment() {
           {step === 1 && (
             <>
               <h2>Step 1 — Business Profile</h2>
-              <div><Label>Q1: Annual gross revenue *</Label><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
-              <div><Label>Q2: Number of California consumers whose PI you process annually *</Label><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
-              <div><Label>Q3: Primary business sector *</Label>
+              <Legend />
+              <div><Label>Q1: Annual gross revenue <Req /></Label><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
+              <div><Label>Q2: Number of California consumers whose PI you process annually <Req /></Label><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
+              <div><Label>Q3: Primary business sector <Req /></Label>
                 <select value={q3} onChange={(e) => setQ3(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
-              <div><Label>Q4: Categories of personal information processed *</Label><div className="mt-2"><Pills options={PI_CATEGORIES} value={q4} onChange={setQ4} /></div></div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? *</Label><DefPopover termKey="ccba" /></div>
+              <div><Label>Q4: Categories of personal information processed <Req /></Label><div className="mt-2"><Pills options={PI_CATEGORIES} value={q4} onChange={setQ4} /></div></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /></div>
                 <div className="mt-2"><Radio name="q5" options={["Yes — sell only", "Yes — share for advertising only", "Both", "No"]} value={q5} onChange={setQ5} /></div>
               </div>
             </>
@@ -337,31 +352,55 @@ export default function CPPARiskAssessment() {
           {step === 2 && (
             <>
               <h2>Step 2 — Consumer Rights Infrastructure</h2>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q6: Right to Know / Access mechanism *</Label><DefPopover termKey="right_to_know" /></div><div className="mt-2"><Radio name="q6" options={["Online form with identity verification", "Email or written request process", "In-app account settings", "No formal process in place"]} value={q6} onChange={setQ6} /></div></div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q7: Right to Deletion mechanism *</Label><DefPopover termKey="right_to_delete" /></div><div className="mt-2"><Radio name="q7" options={["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"]} value={q7} onChange={setQ7} /></div></div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q8: Right to Correction mechanism *</Label><DefPopover termKey="right_to_correct" /></div><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q9: Right to Opt-Out — do you have a "Do Not Sell or Share" link? *</Label><DefPopover termKey="right_to_opt_out" /></div><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
-              <div><Label>Q10: Identity verification for rights requests *</Label><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
+              <Legend />
+              <div>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q6: Right to Know / Access mechanism <Req /></Label><DefPopover termKey="right_to_know" /></div>
+                <p className="text-xs text-muted-foreground mt-1">Select all that apply.</p>
+                <div className="mt-2">
+                  <Pills
+                    options={["Online form with identity verification", "Email or written request process", "In-app account settings", "No formal process in place"]}
+                    value={q6Multi}
+                    onChange={(v) => {
+                      const NO = "No formal process in place";
+                      const wasNo = q6Multi.includes(NO);
+                      const hasNo = v.includes(NO);
+                      if (hasNo && !wasNo) {
+                        setQ6Multi([NO]);
+                      } else if (hasNo && v.length > 1) {
+                        setQ6Multi(v.filter((x) => x !== NO));
+                      } else {
+                        setQ6Multi(v);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q7: Right to Deletion mechanism <Req /></Label><DefPopover termKey="right_to_delete" /></div><div className="mt-2"><Radio name="q7" options={["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"]} value={q7} onChange={setQ7} /></div></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q8: Right to Correction mechanism <Req /></Label><DefPopover termKey="right_to_correct" /></div><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q9: Right to Opt-Out — do you have a "Do Not Sell or Share" link? <Req /></Label><DefPopover termKey="right_to_opt_out" /></div><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
+              <div><Label>Q10: Identity verification for rights requests <Req /></Label><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
             </>
           )}
 
           {step === 3 && (
             <>
               <h2>Step 3 — Privacy Notices</h2>
-              <div><Label>Q11: Privacy policy last reviewed/updated *</Label><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div></div>
-              <div><Label>Q12: Notice at Collection (displayed before or at time of data collection) *</Label><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q13: Do your notices include the categories of PI collected, the purpose, and the right to opt-out? *</Label><DefPopover termKey="notice_at_collection" /></div><div className="mt-2"><Radio name="q13" options={["Yes, all three", "Some elements", "No"]} value={q13} onChange={setQ13} /></div></div>
-              <div><Label>Q14: For employees/job applicants — do you provide a separate California-specific notice? *</Label><div className="mt-2"><Radio name="q14" options={["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"]} value={q14} onChange={setQ14} /></div></div>
+              <Legend />
+              <div><Label>Q11: Privacy policy last reviewed/updated <Req /></Label><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div></div>
+              <div><Label>Q12: Notice at Collection (displayed before or at time of data collection) <Req /></Label><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q13: Do your notices include the categories of PI collected, the purpose, and the right to opt-out? <Req /></Label><DefPopover termKey="notice_at_collection" /></div><div className="mt-2"><Radio name="q13" options={["Yes, all three", "Some elements", "No"]} value={q13} onChange={setQ13} /></div></div>
+              <div><Label>Q14: For employees/job applicants — do you provide a separate California-specific notice? <Req /></Label><div className="mt-2"><Radio name="q14" options={["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"]} value={q14} onChange={setQ14} /></div></div>
             </>
           )}
 
           {step === 4 && (
             <>
               <h2>Step 4 — Sensitive Personal Information</h2>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? *</Label><DefPopover termKey="sensitive_pi" /></div><div className="mt-2"><Radio name="q15" options={["Yes", "No", "Unsure"]} value={q15} onChange={setQ15} /></div></div>
+              <Legend />
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /></div><div className="mt-2"><Radio name="q15" options={["Yes", "No", "Unsure"]} value={q15} onChange={setQ15} /></div></div>
               {q15 === "Yes" && (<>
-                <div><Label>Q16: Do you provide consumers the right to limit use of their sensitive PI? *</Label><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
-                <div><Label>Q17: What is your legal basis for processing sensitive PI? *</Label><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
+                <div><Label>Q16: Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
+                <div><Label>Q17: What is your legal basis for processing sensitive PI? <Req /></Label><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
               </>)}
             </>
           )}
@@ -369,27 +408,31 @@ export default function CPPARiskAssessment() {
           {step === 5 && (
             <>
               <div className="inline-flex items-center gap-1.5 flex-wrap"><h2>Step 5 — Automated Decision-Making Technology (ADMT)</h2><DefPopover termKey="admt" /></div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? *</Label><DefPopover termKey="admt" /></div><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
+              <Legend />
+              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /></div><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
-                <div><Label>Q19: Describe the ADMT system and its decisions *</Label>
+                <div><Label>Q19: Describe the ADMT system and its decisions <Req /></Label>
                   <Textarea value={q19} onChange={(e) => setQ19(e.target.value)} rows={3} placeholder="E.g. Credit scoring algorithm, automated fraud detection, hiring screening software…" className="mt-2" />
+                  <p className="text-[11px] text-muted-foreground mt-1">Examples: an automated résumé-screening tool that ranks or rejects job applicants · a credit-decisioning model that sets limits without human review · worker-productivity scoring that drives scheduling or discipline decisions.</p>
                 </div>
               )}
               {q18 === "Yes" && (
-                <div><Label>Q20: Do you provide consumers with the right to opt out of ADMT? *</Label><div className="mt-2"><Radio name="q20" options={["Yes, with documented opt-out", "Planned for implementation", "No"]} value={q20} onChange={setQ20} /></div></div>
+                <div><Label>Q20: Do you provide consumers with the right to opt out of ADMT? <Req /></Label><div className="mt-2"><Radio name="q20" options={["Yes, with documented opt-out", "Planned for implementation", "No"]} value={q20} onChange={setQ20} /></div></div>
               )}
             </>
           )}
 
+
           {step === 6 && (
             <>
               <h2>Step 6 — Risk Assessment Specifics</h2>
+              <Legend />
               <p className="text-sm text-muted-foreground">
                 These questions feed § 7152(a)(1)–(9) Part A and the § 7157 Annual Submission Worksheet. Fields left blank in the generated report will be marked as fill-ins for your team to complete in the review pane before executive sign-off.
               </p>
 
               <div>
-                <Label>I-1: Specific processing purpose * <span className="text-xs text-muted-foreground">(§ 7152(a)(1))</span></Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-1: Specific processing purpose <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(1))</span></Label><StatutePopover term="I-1 · Specific purpose" summary="The assessment must state the specific purpose of the processing; generic purposes such as 'improving services' are insufficient." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Describe what you do with the personal information, who it relates to, and what business outcome it supports. Avoid generic phrases such as "improve services," "for security purposes," "analytics," or "as described in our privacy policy" — these will be flagged by the validator.
                 </p>
@@ -403,7 +446,7 @@ export default function CPPARiskAssessment() {
               </div>
 
               <div>
-                <Label>I-2: Retention period and criteria * <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(B))</span></Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-2: Retention period and criteria <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(B))</span></Label><StatutePopover term="I-2 · Retention period" summary="State how long each category of personal information will be retained, or the criteria used to determine that period." cite="11 CCR § 7152(a)(4)(B)" /></div>
                 <input
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                   value={i2RetentionPeriod}
@@ -428,12 +471,12 @@ export default function CPPARiskAssessment() {
               </div>
 
               <div>
-                <Label>I-3: Approximate number of California consumers affected by this activity * <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(D))</span></Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-3: Approximate number of California consumers affected by this activity <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(D))</span></Label><StatutePopover term="I-3 · California consumer count" summary="State the approximate number of consumers whose personal information the processing affects." cite="11 CCR § 7152(a)(4)(D)" /></div>
                 <div className="mt-2"><Radio name="i3" options={CA_CONSUMER_BAND} value={i3CaConsumerBand} onChange={setI3CaConsumerBand} /></div>
               </div>
 
               <div>
-                <Label>I-4: How are consumers informed of this processing activity? * <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(E))</span></Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-4: How are consumers informed of this processing activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(E))</span></Label><StatutePopover term="I-4 · Disclosure mechanisms" summary="Identify the disclosures made to consumers about the processing and how they are provided." cite="11 CCR § 7152(a)(4)(E)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Select every mechanism that applies. The report will map your selections against the conspicuousness requirements of § 7003.</p>
                 <div className="mt-2"><Pills options={DISCLOSURE_MECHANISMS} value={i4Disclosures} onChange={setI4Disclosures} /></div>
               </div>
@@ -443,7 +486,7 @@ export default function CPPARiskAssessment() {
                   <Label className="font-semibold">I-5: ADMT specifics (required because you indicated ADMT use) <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(G))</span></Label>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
-                      <span className="text-sm font-medium">ADMT logic summary *</span>
+                      <span className="text-sm font-medium">ADMT logic summary <Req /></span>
                       <InfoPopover term="Examples" cite="Illustrative examples — not exhaustive">
                         <div className="space-y-1">
                           <p>A gradient-boosted model scores loan applications 0–100; scores below 40 are auto-declined.</p>
@@ -479,7 +522,7 @@ export default function CPPARiskAssessment() {
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
-                      <span className="text-sm font-medium">Human review process for outputs *</span>
+                      <span className="text-sm font-medium">Human review process for outputs <Req /></span>
                       <InfoPopover term="Examples" cite="Illustrative examples — not exhaustive">
                         <div className="space-y-1">
                           <p>Borderline scores routed to an underwriter.</p>
@@ -493,7 +536,7 @@ export default function CPPARiskAssessment() {
               )}
 
               <div>
-                <Label>I-6: Service providers, contractors, third parties involved * <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-6: Service providers, contractors, third parties involved <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="I-6 · Vendors / service providers" summary="Identify the service providers, contractors, and third parties to whom personal information is disclosed for this processing." cite="11 CCR § 7152(a)(4)(F)" /></div>
                 <Textarea
                   className="mt-2"
                   rows={3}
@@ -504,7 +547,7 @@ export default function CPPARiskAssessment() {
               </div>
 
               <div>
-                <Label>I-7: Internal contributors and external consultees * <span className="text-xs text-muted-foreground">(§§ 7151, 7152(a)(8))</span></Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-7: Internal contributors and external consultees <Req /> <span className="text-xs text-muted-foreground">(§§ 7151, 7152(a)(8))</span></Label><StatutePopover term="I-7 · Contributors and consultees" summary="Identify the individuals and roles who contributed to or were consulted in preparing the risk assessment." cite="11 CCR § 7152(a)(9)" /></div>
                 <Textarea
                   className="mt-2"
                   rows={2}
@@ -523,17 +566,17 @@ export default function CPPARiskAssessment() {
 
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <Label>I-8: Certifying executive name * <span className="text-xs text-muted-foreground">(§ 7157(b)(5))</span></Label>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-8: Certifying executive name <Req /> <span className="text-xs text-muted-foreground">(§ 7157(b)(5))</span></Label><StatutePopover term="I-8 · Certifying executive" summary="The risk assessment must be certified by an executive responsible for oversight of the processing." cite="11 CCR § 7157" /></div>
                   <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={i8ExecName} onChange={(e) => setI8ExecName(e.target.value)} placeholder="Full legal name" />
                 </div>
                 <div>
-                  <Label>Certifying executive title *</Label>
+                  <Label>Certifying executive title <Req /></Label>
                   <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={i8ExecTitle} onChange={(e) => setI8ExecTitle(e.target.value)} placeholder="E.g. Chief Privacy Officer" />
                 </div>
               </div>
 
               <div>
-                <Label>I-9: Is there an existing GDPR DPIA (or other PIA) for this activity? * <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
+                <Label>I-9: Is there an existing GDPR DPIA (or other PIA) for this activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
                 <div className="mt-2"><Radio name="i9" options={["Yes", "No"]} value={i9HasDpia} onChange={setI9HasDpia} /></div>
                 {i9HasDpia === "Yes" && (
                   <Textarea
