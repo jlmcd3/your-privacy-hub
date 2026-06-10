@@ -444,75 +444,84 @@ export default function CPPACybersecurityResult() {
     || (status === "complete" && !reportReady)
   );
 
+  const metaText = row?.created_at ? `Generated ${new Date(row.created_at).toLocaleDateString()}` : undefined;
+
+  const actions = status === "complete" && reportReady ? (
+    <>
+      <AuditorHandoffButton row={row} />
+      {priorId && (
+        <Button asChild variant="outline" size="sm">
+          <Link to={`/cppa-cybersecurity/drift/${row.id}/${priorId}`}>Compare to previous</Link>
+        </Button>
+      )}
+      <PDFDownloadButton
+        toolType="cppa_cybersecurity"
+        assessmentId={row.id}
+        pdfUrl={row.pdf_url}
+        onGenerated={(url) => setRow({ ...row, pdf_url: url })}
+      />
+      <DownloadWordButton
+        text={[
+          row?.report_data?.executive_summary,
+          ...(Array.isArray(row?.report_data?.controls) ? row.report_data.controls.map((c: any) =>
+            `${c.control}\nStatus: ${c.status ?? ""}\n${c.finding ?? ""}\n${c.remediation ?? ""}`) : [])
+        ].filter(Boolean).join("\n\n")}
+        label="CPPA Cybersecurity Readiness"
+      />
+      <Button asChild variant="outline" size="sm"><Link to="/cppa-cybersecurity">Run New Assessment</Link></Button>
+    </>
+  ) : undefined;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title></Helmet>
       <Navbar />
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         {purchased && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             ✅ Purchase confirmed. Your readiness report is being generated.
           </div>
         )}
-        {loading && <p>Loading…</p>}
 
-        {showRunning && (
-          <div className="bg-card border rounded-lg p-10 text-center">
-            <div className="animate-pulse mb-4 text-2xl">⏳</div>
-            <p>Running your CPPA Cybersecurity Readiness assessment.</p>
-            <p className="text-muted-foreground text-sm mt-1">This typically takes 30–60 seconds.</p>
-          </div>
-        )}
+        <ReportShell
+          title="CPPA Cybersecurity Audit Readiness"
+          meta={metaText}
+          actions={actions}
+        >
+          {loading && <p>Loading…</p>}
 
-        {status === "error" && (
-          <div className="bg-card border rounded-lg p-6">
-            <p className="font-medium text-red-700 mb-3">Assessment failed.</p>
-            <Button asChild><Link to="/cppa-cybersecurity">Try Again</Link></Button>
-          </div>
-        )}
-
-        {status === "complete" && reportReady && (
-          <>
-            <CybersecurityReportBody row={row} />
-            <EnforcementPrecedents
-              precedents={(row?.report_data as any)?.enforcement_precedents}
-              variant="cppa"
-              attempted={Boolean((row?.report_data as any)?.enforcement_meta?.attempted)}
-              totalMatched={(row?.report_data as any)?.enforcement_meta?.total_matched}
-              queryDescriptor={(row?.report_data as any)?.enforcement_meta?.query_descriptor}
-            />
-            <div className="flex gap-2 flex-wrap" data-print-hide>
-              <AuditorHandoffButton row={row} />
-              {priorId && (
-                <Button asChild variant="outline">
-                  <Link to={`/cppa-cybersecurity/drift/${row.id}/${priorId}`}>Compare to previous</Link>
-                </Button>
-              )}
-              <PDFDownloadButton
-                toolType="cppa_cybersecurity"
-                assessmentId={row.id}
-                pdfUrl={row.pdf_url}
-                onGenerated={(url) => setRow({ ...row, pdf_url: url })}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
-              />
-              <DownloadWordButton
-                text={[
-                  row?.report_data?.executive_summary,
-                  ...(Array.isArray(row?.report_data?.controls) ? row.report_data.controls.map((c: any) =>
-                    `${c.control}\nStatus: ${c.status ?? ""}\n${c.finding ?? ""}\n${c.remediation ?? ""}`) : [])
-                ].filter(Boolean).join("\n\n")}
-                label="CPPA Cybersecurity Readiness"
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
-              />
-
-              <Button asChild variant="outline"><Link to="/cppa-cybersecurity">Run New Assessment</Link></Button>
-              <Button asChild><Link to="/dashboard/reports">Back to My Reports</Link></Button>
+          {showRunning && (
+            <div className="bg-card border rounded-lg p-10 text-center">
+              <div className="animate-pulse mb-4 text-2xl">⏳</div>
+              <p>Running your CPPA Cybersecurity Readiness assessment.</p>
+              <p className="text-muted-foreground text-sm mt-1">This typically takes 30–60 seconds.</p>
             </div>
-          </>
-        )}
+          )}
+
+          {status === "error" && (
+            <div className="bg-card border rounded-lg p-6">
+              <p className="font-medium text-red-700 mb-3">Assessment failed.</p>
+              <Button asChild><Link to="/cppa-cybersecurity">Try Again</Link></Button>
+            </div>
+          )}
+
+          {status === "complete" && reportReady && (
+            <>
+              <CybersecurityReportBody row={row} hideHeader />
+              <EnforcementPrecedents
+                precedents={(row?.report_data as any)?.enforcement_precedents}
+                variant="cppa"
+                attempted={Boolean((row?.report_data as any)?.enforcement_meta?.attempted)}
+                totalMatched={(row?.report_data as any)?.enforcement_meta?.total_matched}
+                queryDescriptor={(row?.report_data as any)?.enforcement_meta?.query_descriptor}
+              />
+            </>
+          )}
+        </ReportShell>
       </main>
       <Footer />
     </div>
   );
+
 }
