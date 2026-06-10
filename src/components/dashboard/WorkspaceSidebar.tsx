@@ -222,10 +222,9 @@ export default function WorkspaceSidebar() {
               ))}
               <NavLink
                 to="/clients"
-                className="hidden lg:inline-flex items-center gap-2 px-3 py-1.5 mt-1 text-xs text-slate hover:text-brand-navy no-underline"
+                className="hidden lg:inline-flex items-center px-3 py-1.5 mt-1 text-[11px] text-slate-400 hover:text-brand-navy no-underline"
               >
-                <Plus className="w-3 h-3" />
-                Manage clients
+                Manage clients →
               </NavLink>
             </div>
           )}
