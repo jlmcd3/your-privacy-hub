@@ -471,7 +471,7 @@ export default function CPPARiskAssessment() {
               </div>
 
               <div>
-                <Label>I-3: Approximate number of California consumers affected by this activity * <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(D))</span></Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-3: Approximate number of California consumers affected by this activity <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(D))</span></Label><StatutePopover term="I-3 · California consumer count" summary="State the approximate number of consumers whose personal information the processing affects." cite="11 CCR § 7152(a)(4)(D)" /></div>
                 <div className="mt-2"><Radio name="i3" options={CA_CONSUMER_BAND} value={i3CaConsumerBand} onChange={setI3CaConsumerBand} /></div>
               </div>
 
