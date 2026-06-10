@@ -76,7 +76,7 @@ function WorkspaceSection({
   };
 
   return (
-    <div className="mb-1">
+    <div className={cn("mb-1", isActiveWorkspace && "border-l-2 border-[#2563EB] pl-1")}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
