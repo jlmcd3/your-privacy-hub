@@ -1,5 +1,7 @@
 import { PageHero } from "@/components/PageHero";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
