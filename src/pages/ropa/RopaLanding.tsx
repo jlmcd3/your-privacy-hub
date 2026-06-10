@@ -1,6 +1,8 @@
 
 import { useEffect } from "react";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
