@@ -21,6 +21,15 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { InfoPopover } from "@/components/InfoPopover";
+import { useToolDraft } from "@/hooks/useToolDraft";
+
+function formatRelativeTime(d: Date): string {
+  const s = Math.round((Date.now() - d.getTime()) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+  return `${Math.round(s / 86400)}d ago`;
+}
 
 const REVENUE_OPTS = ["Under $25M", "$25M–$100M", "$100M–$500M", "Over $500M"];
 const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
@@ -290,7 +299,86 @@ export default function CPPARiskAssessment() {
     i9HasDpia, i9DpiaSummary,
   ]);
 
+  // ---- Draft autosave ------------------------------------------------------
+  const draftData = useMemo(() => ({
+    q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
+    i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
+    i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
+    i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle,
+    i9HasDpia, i9DpiaSummary,
+  }), [
+    q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
+    i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
+    i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
+    i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle,
+    i9HasDpia, i9DpiaSummary,
+  ]);
+  const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
+    q1: "", q2: "", q3: "", q4: [] as string[], q5: "", q6Multi: [] as string[], q7: "", q8: "", q9: "", q10: "",
+    q11: "", q12: "", q13: "", q14: "", q15: "", q16: "", q17: "", q18: "", q19: "", q20: "",
+    i1Purpose: "", i2RetentionPeriod: "", i2RetentionCriteria: "", i2RetentionDetail: "",
+    i3CaConsumerBand: "", i4Disclosures: [] as string[], i5AdmtLogic: "", i5AdmtTrainingSource: "",
+    i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
+    i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i9HasDpia: "", i9DpiaSummary: "",
+  }), []);
+  const touched = useMemo(() => JSON.stringify(draftData) !== INITIAL_DRAFT_JSON, [draftData, INITIAL_DRAFT_JSON]);
+  const {
+    draftFound, draftUpdatedAt, restoreData, restoreStage,
+    saving: draftSaving, lastSavedAt, clearDraft, dismissDraft,
+  } = useToolDraft({
+    toolType: "cppa_risk",
+    clientId: clientId ?? null,
+    data: draftData,
+    currentStage: step,
+    enabled: !!user && touched,
+  });
+
+  const applyRestore = () => {
+    const d = restoreData as Record<string, any> | null;
+    if (!d) return;
+    if (typeof d.q1 === "string") setQ1(d.q1);
+    if (typeof d.q2 === "string") setQ2(d.q2);
+    if (typeof d.q3 === "string") setQ3(d.q3);
+    if (Array.isArray(d.q4)) setQ4(d.q4);
+    if (typeof d.q5 === "string") setQ5(d.q5);
+    if (Array.isArray(d.q6Multi)) setQ6Multi(d.q6Multi);
+    if (typeof d.q7 === "string") setQ7(d.q7);
+    if (typeof d.q8 === "string") setQ8(d.q8);
+    if (typeof d.q9 === "string") setQ9(d.q9);
+    if (typeof d.q10 === "string") setQ10(d.q10);
+    if (typeof d.q11 === "string") setQ11(d.q11);
+    if (typeof d.q12 === "string") setQ12(d.q12);
+    if (typeof d.q13 === "string") setQ13(d.q13);
+    if (typeof d.q14 === "string") setQ14(d.q14);
+    if (typeof d.q15 === "string") setQ15(d.q15);
+    if (typeof d.q16 === "string") setQ16(d.q16);
+    if (typeof d.q17 === "string") setQ17(d.q17);
+    if (typeof d.q18 === "string") setQ18(d.q18);
+    if (typeof d.q19 === "string") setQ19(d.q19);
+    if (typeof d.q20 === "string") setQ20(d.q20);
+    if (typeof d.i1Purpose === "string") setI1Purpose(d.i1Purpose);
+    if (typeof d.i2RetentionPeriod === "string") setI2RetentionPeriod(d.i2RetentionPeriod);
+    if (typeof d.i2RetentionCriteria === "string") setI2RetentionCriteria(d.i2RetentionCriteria);
+    if (typeof d.i2RetentionDetail === "string") setI2RetentionDetail(d.i2RetentionDetail);
+    if (typeof d.i3CaConsumerBand === "string") setI3CaConsumerBand(d.i3CaConsumerBand);
+    if (Array.isArray(d.i4Disclosures)) setI4Disclosures(d.i4Disclosures);
+    if (typeof d.i5AdmtLogic === "string") setI5AdmtLogic(d.i5AdmtLogic);
+    if (typeof d.i5AdmtTrainingSource === "string") setI5AdmtTrainingSource(d.i5AdmtTrainingSource);
+    if (typeof d.i5AdmtFairnessTesting === "string") setI5AdmtFairnessTesting(d.i5AdmtFairnessTesting);
+    if (typeof d.i5AdmtHumanReview === "string") setI5AdmtHumanReview(d.i5AdmtHumanReview);
+    if (typeof d.i6Vendors === "string") setI6Vendors(d.i6Vendors);
+    if (typeof d.i7InternalContributors === "string") setI7InternalContributors(d.i7InternalContributors);
+    if (typeof d.i7ExternalConsultees === "string") setI7ExternalConsultees(d.i7ExternalConsultees);
+    if (typeof d.i8ExecName === "string") setI8ExecName(d.i8ExecName);
+    if (typeof d.i8ExecTitle === "string") setI8ExecTitle(d.i8ExecTitle);
+    if (typeof d.i9HasDpia === "string") setI9HasDpia(d.i9HasDpia);
+    if (typeof d.i9DpiaSummary === "string") setI9DpiaSummary(d.i9DpiaSummary);
+    if (typeof restoreStage === "number") setStep(restoreStage);
+    dismissDraft();
+  };
+
   const summaryStep = step === totalSteps;
+
 
   const handlePurchase = () => {
     if (!user) { setAuthGateOpen(true); return; }
@@ -328,6 +416,17 @@ export default function CPPARiskAssessment() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid, not legal advice, and does not constitute a certified audit or regulatory submission. Review all output with qualified counsel before relying on it." />
+        {draftFound && !touched && (
+          <div className="flex items-start justify-between gap-3 p-3 rounded-md border border-brand-teal/40 bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] text-sm">
+            <div className="text-foreground">
+              You have a saved draft{draftUpdatedAt ? ` from ${formatRelativeTime(draftUpdatedAt)}` : ""}.
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Button size="sm" variant="outline" onClick={applyRestore}>Resume draft</Button>
+              <Button size="sm" variant="ghost" onClick={() => { void clearDraft(); }}>Discard</Button>
+            </div>
+          </div>
+        )}
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
         <div className="bg-card border rounded-lg p-6 space-y-6">
@@ -593,23 +692,32 @@ export default function CPPARiskAssessment() {
 
           {summaryStep && <SummaryTable intake={intake} />}
 
-          <div className="flex justify-between pt-4 border-t flex-wrap gap-3">
+          <div className="flex justify-between pt-4 border-t flex-wrap gap-3 items-center">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
-            {!summaryStep ? (
-              <Button onClick={next}>Next</Button>
-            ) : (
-              <div className="flex gap-2 flex-wrap">
-                {isSuite ? (
-                  <Button onClick={() => { if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
-                    Purchase CPPA Suite — ${suitePricing.price}
-                  </Button>
-                ) : (
-                  <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
-                    {!pricing.stripeConfigured ? `Payments Coming Soon — $${displayPrice}` : `Run CPPA Risk Assessment — $${displayPrice}`}
-                  </Button>
-                )}
-              </div>
-            )}
+            <div className="flex items-center gap-3 ml-auto">
+              {user && (
+                draftSaving ? (
+                  <span className="text-[11px] text-muted-foreground">Saving…</span>
+                ) : lastSavedAt ? (
+                  <span className="text-[11px] text-muted-foreground">Draft saved {formatRelativeTime(lastSavedAt)}</span>
+                ) : null
+              )}
+              {!summaryStep ? (
+                <Button onClick={next}>Next</Button>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {isSuite ? (
+                    <Button onClick={() => { if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
+                      Purchase CPPA Suite — ${suitePricing.price}
+                    </Button>
+                  ) : (
+                    <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
+                      {!pricing.stripeConfigured ? `Payments Coming Soon — $${displayPrice}` : `Run CPPA Risk Assessment — $${displayPrice}`}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -628,6 +736,7 @@ export default function CPPARiskAssessment() {
           onComplete={(id, suiteCyberId) => {
             setCheckoutOpen(false);
             if (!id) return;
+            void clearDraft();
             if (isSuite && suiteCyberId) {
               navigate(`/cppa-suite/result?risk_id=${id}&cyber_id=${suiteCyberId}&purchased=true`);
             } else if (isSuite && !suiteCyberId) {
