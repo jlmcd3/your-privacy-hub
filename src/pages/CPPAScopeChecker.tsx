@@ -653,6 +653,3 @@ function ResultsPanel({
     </div>
   );
 }
-    </div>
-  );
-}
