@@ -234,6 +234,7 @@ export default function AdminFsorIngestion() {
     let totalPages: number | null = knownTotalPages;
     let start = 1;
     let windowIdx = 0;
+    let totalNoCitationDropped = 0;
     // estimated total windows once we know totalPages
     const estWindows = () =>
       totalPages ? Math.max(1, Math.ceil((totalPages - 1) / STEP) + 1) : null;
@@ -253,6 +254,7 @@ export default function AdminFsorIngestion() {
           units: merged,
           error: `Window ${windowIdx} (pages ${start}–${end}): ${data.error ?? `HTTP ${status}`}`,
           total_pages: totalPages ?? undefined,
+          no_citation_dropped: totalNoCitationDropped,
         });
         return;
       }
@@ -261,21 +263,23 @@ export default function AdminFsorIngestion() {
       }
       const effectiveEnd = data.page_to ?? end;
       const rawUnits = data.units ?? [];
-      // Drop any unit whose start page equals the window's final page —
-      // it will be re-extracted complete in the next window (which starts on
-      // that page) thanks to the 1-page overlap. Skip this drop on the last
-      // window since there is no next window.
       const isLast = totalPages !== null && effectiveEnd >= totalPages;
       const kept = isLast
         ? rawUnits
         : rawUnits.filter((u) => parseStartPage(u.page_ref) !== effectiveEnd);
       merged.push(...kept);
+      if (typeof data.no_citation_dropped === "number") {
+        totalNoCitationDropped += data.no_citation_dropped;
+      }
+      const ncSuffix = typeof data.no_citation_dropped === "number"
+        ? `, no_citation_dropped=${data.no_citation_dropped}`
+        : "";
       appendLog(
-        `${label} → ${rawUnits.length} units (kept ${kept.length}, cumulative ${merged.length})`,
+        `${label} → ${rawUnits.length} units (kept ${kept.length}, cumulative ${merged.length})${ncSuffix}`,
       );
       if (isLast) break;
-      if (totalPages === null) break; // safety: shouldn't happen after window 1
-      start = effectiveEnd; // 1-page overlap: next window starts on the dropped page
+      if (totalPages === null) break;
+      start = effectiveEnd;
     }
 
     setExtractResult({
@@ -283,7 +287,11 @@ export default function AdminFsorIngestion() {
       sections: computeSections(merged),
       units: merged,
       total_pages: totalPages ?? undefined,
+      no_citation_dropped: totalNoCitationDropped,
     });
+    if (totalNoCitationDropped > 0) {
+      appendLog(`Total no_citation_dropped across all windows: ${totalNoCitationDropped}`);
+    }
     toast.success(`Extracted ${merged.length} units across ${windowIdx} window(s)`);
   }
 
