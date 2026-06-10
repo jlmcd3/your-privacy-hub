@@ -486,7 +486,7 @@ export default function CPPARiskAssessment() {
                   <Label className="font-semibold">I-5: ADMT specifics (required because you indicated ADMT use) <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(G))</span></Label>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
-                      <span className="text-sm font-medium">ADMT logic summary *</span>
+                      <span className="text-sm font-medium">ADMT logic summary <Req /></span>
                       <InfoPopover term="Examples" cite="Illustrative examples — not exhaustive">
                         <div className="space-y-1">
                           <p>A gradient-boosted model scores loan applications 0–100; scores below 40 are auto-declined.</p>
