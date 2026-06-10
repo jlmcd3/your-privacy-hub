@@ -437,7 +437,9 @@ export default function MyReports() {
             </Card>
           ) : (
             (() => {
+              const draftToolKeys = Object.values(DRAFT_TOOL_MAP).map((m) => `draft_${m.labelKey}`);
               const GROUPS: { key: string; label: string; tools: string[] }[] = [
+                { key: "drafts", label: "Drafts (autosaved)", tools: draftToolKeys },
                 { key: "assessments", label: "Compliance Assessments", tools: ["li", "dpia", "governance", "biometric"] },
                 { key: "documents", label: "Privacy & Legal Documents", tools: ["dpa", "ir", "ropa", "us_notice", "eu_notice"] },
                 { key: "cppa", label: "CPPA Audit Suite", tools: ["cppa_risk", "cppa_cyber", "cppa_scope"] },
