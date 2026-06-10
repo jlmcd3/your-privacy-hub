@@ -292,6 +292,7 @@ export default function CPPAScopeChecker() {
             q5={q5}
             onReset={reset}
             navigate={navigate}
+            isAuthed={!!user}
           />
         )}
       </main>
