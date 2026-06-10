@@ -417,6 +417,43 @@ export default function RopaActivities() {
         </div>
       )}
 
+      {suggestedDrafts.length > 0 && (
+        <div className="mb-4 p-3 border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/20 rounded-r-lg">
+          <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-2">
+            {suggestedDrafts.length} activit{suggestedDrafts.length === 1 ? "y" : "ies"} drafted from other assessments
+          </p>
+          <ul className="space-y-1 mb-2">
+            {suggestedDrafts.slice(0, 5).map((d) => {
+              const toolLabel: Record<string, string> = {
+                li_assessment: "LIA",
+                dpia_framework: "DPIA",
+                dpa_generator: "DPA",
+                biometric_checker: "Biometric Check",
+                governance_assessment: "Governance",
+                cppa_cybersecurity: "CPPA Cyber",
+              };
+              return (
+                <li key={d.id} className="text-xs text-amber-900 dark:text-amber-100">
+                  <button
+                    onClick={() => navigate(withSession(`/ropa/activity/${d.id}`, sessionId))}
+                    className="underline hover:no-underline"
+                  >
+                    {d.display_name}
+                  </button>
+                  <span className="ml-2 text-amber-700 dark:text-amber-300">
+                    · from {toolLabel[d.source_tool] || d.source_tool}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="text-[11px] text-amber-800 dark:text-amber-300">
+            Open each to confirm details and complete the Q&amp;A.
+          </p>
+        </div>
+      )}
+
+
       <button
         onClick={loadTypical}
         className="w-full bg-foreground text-background font-semibold text-sm px-4 py-2.5 rounded-lg mb-4 text-left"
