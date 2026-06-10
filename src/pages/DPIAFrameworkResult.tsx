@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
+import ReportShell from "@/components/ReportShell";
+
 
 const sevColor = (s: string) => {
   const x = (s || "").toLowerCase();
@@ -71,12 +73,55 @@ const DPIAFrameworkResult = () => {
   const meta = report?.dpia_metadata || {};
   const status = dpia?.status;
 
+  const titleText = "Impact Assessment Builder";
+  const activityName = meta.processing_activity_name || dpia?.intake_data?.processing_activity_name;
+  const metaBits: string[] = [];
+  if (activityName) metaBits.push(activityName);
+  if (meta.framework_version) metaBits.push(`Version ${meta.framework_version}`);
+  if (meta.generated_at) metaBits.push(`Generated ${new Date(meta.generated_at).toLocaleDateString()}`);
+
+  const actions = status === "complete" ? (
+    <>
+      <PDFDownloadButton
+        toolType="dpia_framework"
+        assessmentId={dpia?.id}
+        pdfUrl={dpia?.pdf_url}
+        onGenerated={(url) => setDpia({ ...dpia, pdf_url: url })}
+      />
+      <DownloadWordButton
+        text={[
+          ["Section 1 — Description", [
+            report?.section_1_description?.processing_nature,
+            report?.section_1_description?.processing_scope,
+            report?.section_1_description?.processing_context,
+            report?.section_1_description?.processing_purposes,
+            report?.section_1_description?.legal_basis_proposed,
+          ].filter(Boolean).join("\n")],
+          ["Section 2 — Necessity & Proportionality", [
+            report?.section_2_necessity?.necessity_analysis,
+            report?.section_2_necessity?.proportionality_analysis,
+            report?.section_2_necessity?.alternatives_considered,
+          ].filter(Boolean).join("\n")],
+          ["Section 3 — Risks", report?.section_3_risks?.residual_risk_assessment],
+          ["Section 4 — Mitigation", (report?.section_4_mitigation?.proposed_measures || [])
+            .map((m: any) => m?.measure || m?.description).filter(Boolean).join("\n")],
+          ["Section 6 — Conclusion", report?.section_6_conclusion?.review_schedule],
+        ]
+          .filter(([, body]) => body)
+          .map(([title, body]) => `${title}\n\n${body}`)
+          .join("\n\n")}
+        label="DPIA Framework"
+      />
+      <Button onClick={() => window.print()} variant="outline" size="sm">Print</Button>
+    </>
+  ) : undefined;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet><title>Impact Assessment Builder | End User Privacy</title></Helmet>
       <Navbar />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         <ClientContextBadge />
         {purchased && (
@@ -84,206 +129,159 @@ const DPIAFrameworkResult = () => {
             ✅ Purchase confirmed. Your assessment is being generated.
           </div>
         )}
-        {loading && <p>Loading…</p>}
 
-        {!loading && (status === "pending" || status === "processing") && (
-          <div className="bg-card border rounded-lg p-10 text-center">
-            <div className="animate-pulse mb-4 text-2xl">⏳</div>
-            <p>Generating your Impact Assessment report — this takes about 30 seconds.</p>
-          </div>
-        )}
+        <ReportShell title={titleText} meta={metaBits.length ? metaBits.join(" · ") : undefined} actions={actions}>
+          {loading && <p>Loading…</p>}
 
-        {status === "failed" && (
-          <div className="bg-card border rounded-lg p-6">
-            <p className="font-medium text-red-700 mb-3">Generation failed.</p>
-            <Button asChild><Link to="/dpia-framework">Try Again</Link></Button>
-          </div>
-        )}
+          {!loading && (status === "pending" || status === "processing") && (
+            <div className="bg-card border rounded-lg p-10 text-center">
+              <div className="animate-pulse mb-4 text-2xl">⏳</div>
+              <p>Generating your Impact Assessment report — this takes about 30 seconds.</p>
+            </div>
+          )}
 
-        {status === "complete" && (
-          <>
-            <header className="bg-slate-900 text-white rounded-lg p-8">
-              <h1 className="font-serif mb-1">Impact Assessment Builder</h1>
-              <p className="text-slate-300">{meta.processing_activity_name || dpia?.intake_data?.processing_activity_name}</p>
-              <p className="text-slate-400 text-xs mt-2">
-                {meta.framework_version && `Version ${meta.framework_version} · `}
-                {meta.generated_at && `Generated ${new Date(meta.generated_at).toLocaleDateString()}`}
-              </p>
-              {Array.isArray(meta.applicable_frameworks) && (
-                <div className="mt-3 flex flex-wrap gap-2">
+          {status === "failed" && (
+            <div className="bg-card border rounded-lg p-6">
+              <p className="font-medium text-red-700 mb-3">Generation failed.</p>
+              <Button asChild><Link to="/dpia-framework">Try Again</Link></Button>
+            </div>
+          )}
+
+          {status === "complete" && (
+            <div className="space-y-6">
+              {Array.isArray(meta.applicable_frameworks) && meta.applicable_frameworks.length > 0 && (
+                <div className="flex flex-wrap gap-2">
                   {meta.applicable_frameworks.map((f: string) => (
-                    <span key={f} className="px-2 py-1 text-xs rounded bg-white/10">{f}</span>
+                    <span key={f} className="px-2 py-1 text-xs rounded bg-muted">{f}</span>
                   ))}
                 </div>
               )}
-            </header>
 
-            <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-sm rounded">
-              <p className="font-medium mb-1">IMPORTANT</p>
-              <p>This is a compliance framework document provided as a starting point for your organisation's DPIA process. It must be completed, reviewed, and owned by your Data Protection Officer or qualified legal counsel. It does not satisfy the requirements of GDPR Article 35 on its own. This document does not constitute legal advice.</p>
-            </div>
+              {report?.supervisory_authority_consultation?.trigger_conditions && (
+                <div className="p-4 bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 text-sm rounded">
+                  <p className="font-medium mb-1">Supervisory authority consultation may be required</p>
+                  <p>{report.supervisory_authority_consultation.trigger_conditions}</p>
+                </div>
+              )}
 
-            {report?.supervisory_authority_consultation?.trigger_conditions && (
-              <div className="p-4 bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 text-sm rounded">
-                <p className="font-medium mb-1">Supervisory authority consultation may be required</p>
-                <p>{report.supervisory_authority_consultation.trigger_conditions}</p>
-              </div>
-            )}
+              {/* Section 1 */}
+              <Section num={1} title="Description of Processing"
+                guidance={report?.section_1_description?.guidance_note}
+                completion={report?.section_1_description?.completion_guidance}>
+                <Field label="Processing nature" value={report?.section_1_description?.processing_nature} />
+                <Field label="Processing scope" value={report?.section_1_description?.processing_scope} />
+                <Field label="Processing context" value={report?.section_1_description?.processing_context} />
+                <Field label="Processing purposes" value={report?.section_1_description?.processing_purposes} />
+                <Field label="Legal basis proposed" value={report?.section_1_description?.legal_basis_proposed} />
+              </Section>
 
-            {/* Section 1 */}
-            <Section num={1} title="Description of Processing"
-              guidance={report?.section_1_description?.guidance_note}
-              completion={report?.section_1_description?.completion_guidance}>
-              <Field label="Processing nature" value={report?.section_1_description?.processing_nature} />
-              <Field label="Processing scope" value={report?.section_1_description?.processing_scope} />
-              <Field label="Processing context" value={report?.section_1_description?.processing_context} />
-              <Field label="Processing purposes" value={report?.section_1_description?.processing_purposes} />
-              <Field label="Legal basis proposed" value={report?.section_1_description?.legal_basis_proposed} />
-            </Section>
+              {/* Section 2 */}
+              <Section num={2} title="Necessity and Proportionality"
+                guidance={report?.section_2_necessity?.guidance_note}
+                completion={report?.section_2_necessity?.completion_guidance}>
+                <Field label="Necessity analysis" value={report?.section_2_necessity?.necessity_analysis} />
+                <Field label="Proportionality analysis" value={report?.section_2_necessity?.proportionality_analysis} />
+                <Field label="Alternatives considered" value={report?.section_2_necessity?.alternatives_considered} />
+              </Section>
 
-            {/* Section 2 */}
-            <Section num={2} title="Necessity and Proportionality"
-              guidance={report?.section_2_necessity?.guidance_note}
-              completion={report?.section_2_necessity?.completion_guidance}>
-              <Field label="Necessity analysis" value={report?.section_2_necessity?.necessity_analysis} />
-              <Field label="Proportionality analysis" value={report?.section_2_necessity?.proportionality_analysis} />
-              <Field label="Alternatives considered" value={report?.section_2_necessity?.alternatives_considered} />
-            </Section>
-
-            {/* Section 3 */}
-            <Section num={3} title="Risk Assessment"
-              guidance={report?.section_3_risks?.guidance_note}
-              completion={report?.section_3_risks?.completion_guidance}>
-              {Array.isArray(report?.section_3_risks?.risk_assessment) && report.section_3_risks.risk_assessment.map((r: any, i: number) => (
-                <div key={i} className="border rounded p-4">
-                  <p className="font-medium">{r.risk_type || r.type}</p>
-                  {r.description && <p className="text-sm mt-1">{r.description}</p>}
-                  <div className="flex gap-2 mt-2 flex-wrap">
-                    {r.likelihood && <span className={`px-2 py-0.5 text-xs rounded ${sevColor(r.likelihood)}`}>Likelihood: {r.likelihood}</span>}
-                    {r.severity && <span className={`px-2 py-0.5 text-xs rounded ${sevColor(r.severity)}`}>Severity: {r.severity}</span>}
+              {/* Section 3 */}
+              <Section num={3} title="Risk Assessment"
+                guidance={report?.section_3_risks?.guidance_note}
+                completion={report?.section_3_risks?.completion_guidance}>
+                {Array.isArray(report?.section_3_risks?.risk_assessment) && report.section_3_risks.risk_assessment.map((r: any, i: number) => (
+                  <div key={i} className="border rounded p-4">
+                    <p className="font-medium">{r.risk_type || r.type}</p>
+                    {r.description && <p className="text-sm mt-1">{r.description}</p>}
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      {r.likelihood && <span className={`px-2 py-0.5 text-xs rounded ${sevColor(r.likelihood)}`}>Likelihood: {r.likelihood}</span>}
+                      {r.severity && <span className={`px-2 py-0.5 text-xs rounded ${sevColor(r.severity)}`}>Severity: {r.severity}</span>}
+                    </div>
+                    {r.affected_rights && <p className="text-xs text-muted-foreground mt-2">Affected rights: {Array.isArray(r.affected_rights) ? r.affected_rights.join(", ") : r.affected_rights}</p>}
+                    <AnnotationCallout
+                      annotations={(report?.annotations || []).filter(
+                        (a: any) => a.relevance?.toLowerCase().includes(
+                          (r.risk_type || r.type || "").toLowerCase().slice(0, 20)
+                        )
+                      )}
+                    />
                   </div>
-                  {r.affected_rights && <p className="text-xs text-muted-foreground mt-2">Affected rights: {Array.isArray(r.affected_rights) ? r.affected_rights.join(", ") : r.affected_rights}</p>}
-                  <AnnotationCallout
-                    annotations={(report?.annotations || []).filter(
-                      (a: any) => a.relevance?.toLowerCase().includes(
-                        (r.risk_type || r.type || "").toLowerCase().slice(0, 20)
-                      )
-                    )}
+                ))}
+                <Field label="Residual risk guidance" value={report?.section_3_risks?.residual_risk_assessment} />
+              </Section>
+
+              {/* Section 4 */}
+              <Section num={4} title="Mitigation Measures"
+                guidance={report?.section_4_mitigation?.guidance_note}
+                completion={report?.section_4_mitigation?.completion_guidance}>
+                {Array.isArray(report?.section_4_mitigation?.proposed_measures) && report.section_4_mitigation.proposed_measures.map((m: any, i: number) => (
+                  <div key={i} className="border rounded p-4">
+                    <p className="font-medium">{m.measure || m.name}</p>
+                    {m.addresses_risk && <p className="text-xs text-muted-foreground mt-1">Addresses: {m.addresses_risk}</p>}
+                    {m.implementation_guidance && <p className="text-sm mt-2">{m.implementation_guidance}</p>}
+                    {m.residual_risk_after && <p className="text-xs mt-2 text-muted-foreground">Residual risk: {m.residual_risk_after}</p>}
+                  </div>
+                ))}
+              </Section>
+
+              {/* Section 5 */}
+              <Section num={5} title="Consultation"
+                guidance={report?.section_5_consultation?.guidance_note}
+                completion={report?.section_5_consultation?.completion_guidance}>
+                {report?.section_5_consultation?.dpo_consultation_required !== undefined && (
+                  <Field
+                    label="DPO consultation requirement"
+                    value={report.section_5_consultation.dpo_consultation_required ? "Required" : "Not required"}
+                  />
+                )}
+                <div>
+                  <Label className="text-xs uppercase font-medium text-muted-foreground">Record consultation outcome</Label>
+                  <Textarea
+                    value={consultationNote}
+                    onChange={(e) => setConsultationNote(e.target.value)}
+                    placeholder={report?.section_5_consultation?.dpo_consultation_record || "Capture consultation outcome here…"}
+                    className="mt-2 min-h-24"
                   />
                 </div>
-              ))}
-              <Field label="Residual risk guidance" value={report?.section_3_risks?.residual_risk_assessment} />
-            </Section>
+                <Field label="Stakeholder consultation" value={report?.section_5_consultation?.stakeholder_consultation} />
+              </Section>
 
-            {/* Section 4 */}
-            <Section num={4} title="Mitigation Measures"
-              guidance={report?.section_4_mitigation?.guidance_note}
-              completion={report?.section_4_mitigation?.completion_guidance}>
-              {Array.isArray(report?.section_4_mitigation?.proposed_measures) && report.section_4_mitigation.proposed_measures.map((m: any, i: number) => (
-                <div key={i} className="border rounded p-4">
-                  <p className="font-medium">{m.measure || m.name}</p>
-                  {m.addresses_risk && <p className="text-xs text-muted-foreground mt-1">Addresses: {m.addresses_risk}</p>}
-                  {m.implementation_guidance && <p className="text-sm mt-2">{m.implementation_guidance}</p>}
-                  {m.residual_risk_after && <p className="text-xs mt-2 text-muted-foreground">Residual risk: {m.residual_risk_after}</p>}
-                </div>
-              ))}
-            </Section>
-
-            {/* Section 5 */}
-            <Section num={5} title="Consultation"
-              guidance={report?.section_5_consultation?.guidance_note}
-              completion={report?.section_5_consultation?.completion_guidance}>
-              {report?.section_5_consultation?.dpo_consultation_required !== undefined && (
+              {/* Section 6 */}
+              <Section num={6} title="Conclusion and Sign-Off"
+                guidance={report?.section_6_conclusion?.guidance_note}
+                completion={report?.section_6_conclusion?.completion_guidance}>
                 <Field
-                  label="DPO consultation requirement"
-                  value={report.section_5_consultation.dpo_consultation_required ? "Required" : "Not required"}
+                  label="Supervisory authority consultation conditions"
+                  value={report?.section_6_conclusion?.supervisory_authority_consultation_required}
                 />
-              )}
-              <div>
-                <Label className="text-xs uppercase font-medium text-muted-foreground">Record consultation outcome</Label>
-                <Textarea
-                  value={consultationNote}
-                  onChange={(e) => setConsultationNote(e.target.value)}
-                  placeholder={report?.section_5_consultation?.dpo_consultation_record || "Capture consultation outcome here…"}
-                  className="mt-2 min-h-24"
-                />
-              </div>
-              <Field label="Stakeholder consultation" value={report?.section_5_consultation?.stakeholder_consultation} />
-            </Section>
+                <div className="border rounded p-4 bg-muted/30 font-mono text-sm space-y-2">
+                  {report?.section_6_conclusion?.sign_off_template ? (
+                    <p className="whitespace-pre-wrap font-mono text-sm">{report.section_6_conclusion.sign_off_template}</p>
+                  ) : (
+                    <>
+                      <div>Name: ___________________________</div>
+                      <div>Role: ___________________________</div>
+                      <div>Date of review: ___________________________</div>
+                      <div>Decision: [ ] Processing may proceed as described &nbsp;&nbsp; [ ] Processing requires further mitigation</div>
+                      <div>Signature: ___________________________</div>
+                    </>
+                  )}
+                </div>
+                <Field label="Review schedule" value={report?.section_6_conclusion?.review_schedule} />
+              </Section>
 
-            {/* Section 6 */}
-            <Section num={6} title="Conclusion and Sign-Off"
-              guidance={report?.section_6_conclusion?.guidance_note}
-              completion={report?.section_6_conclusion?.completion_guidance}>
-              <Field
-                label="Supervisory authority consultation conditions"
-                value={report?.section_6_conclusion?.supervisory_authority_consultation_required}
+              <EnforcementPrecedents
+                precedents={report?.enforcement_precedents}
+                context="Recent regulator decisions on similar processing activities — review these alongside Section 3 (Risks) and Section 4 (Mitigation)."
               />
-              <div className="border rounded p-4 bg-muted/30 font-mono text-sm space-y-2">
-                {report?.section_6_conclusion?.sign_off_template ? (
-                  <p className="whitespace-pre-wrap font-mono text-sm">{report.section_6_conclusion.sign_off_template}</p>
-                ) : (
-                  <>
-                    <div>Name: ___________________________</div>
-                    <div>Role: ___________________________</div>
-                    <div>Date of review: ___________________________</div>
-                    <div>Decision: [ ] Processing may proceed as described &nbsp;&nbsp; [ ] Processing requires further mitigation</div>
-                    <div>Signature: ___________________________</div>
-                  </>
-                )}
-              </div>
-              <Field label="Review schedule" value={report?.section_6_conclusion?.review_schedule} />
-            </Section>
-
-            <EnforcementPrecedents
-              precedents={report?.enforcement_precedents}
-              context="Recent regulator decisions on similar processing activities — review these alongside Section 3 (Risks) and Section 4 (Mitigation)."
-            />
-
-            <div className="flex flex-wrap gap-2 print:hidden">
-              <PDFDownloadButton
-                toolType="dpia_framework"
-                assessmentId={dpia?.id}
-                pdfUrl={dpia?.pdf_url}
-                onGenerated={(url) => setDpia({ ...dpia, pdf_url: url })}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-brand-navy hover:bg-brand-navy/90 border border-brand-navy rounded-lg no-underline transition-colors disabled:opacity-60"
-              />
-              <DownloadWordButton
-                text={[
-                  ["Section 1 — Description", [
-                    report?.section_1_description?.processing_nature,
-                    report?.section_1_description?.processing_scope,
-                    report?.section_1_description?.processing_context,
-                    report?.section_1_description?.processing_purposes,
-                    report?.section_1_description?.legal_basis_proposed,
-                  ].filter(Boolean).join("\n")],
-                  ["Section 2 — Necessity & Proportionality", [
-                    report?.section_2_necessity?.necessity_analysis,
-                    report?.section_2_necessity?.proportionality_analysis,
-                    report?.section_2_necessity?.alternatives_considered,
-                  ].filter(Boolean).join("\n")],
-                  ["Section 3 — Risks", report?.section_3_risks?.residual_risk_assessment],
-                  ["Section 4 — Mitigation", (report?.section_4_mitigation?.proposed_measures || [])
-                    .map((m: any) => m?.measure || m?.description).filter(Boolean).join("\n")],
-                  ["Section 6 — Conclusion", report?.section_6_conclusion?.review_schedule],
-                ]
-                  .filter(([, body]) => body)
-                  .map(([title, body]) => `${title}\n\n${body}`)
-                  .join("\n\n")}
-                label="DPIA Framework"
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-white border border-brand-navy/30 hover:bg-brand-navy/5 rounded-lg transition-colors disabled:opacity-60"
-              />
-              <Button onClick={() => window.print()} variant="outline">Print</Button>
-              <Button asChild variant="outline"><Link to="/dashboard">Back to Dashboard</Link></Button>
-              <Button asChild variant="outline"><Link to="/governance-assessment">Run Privacy Program Assessment Tool</Link></Button>
             </div>
-          </>
-        )}
+          )}
+        </ReportShell>
       </main>
       <Footer />
     </div>
   );
 };
+
 
 const Label = ({ children, className }: any) => <label className={className}>{children}</label>;
 
