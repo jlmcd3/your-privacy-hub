@@ -95,6 +95,8 @@ export default function RopaActivities() {
     string | null
   >(null);
   const [existingCount, setExistingCount] = useState(0);
+  const [suggestedDrafts, setSuggestedDrafts] = useState<{ id: string; source_tool: string; display_name: string }[]>([]);
+
   const [primerOpen, setPrimerOpen] = useState(false);
   const [primerEvaluated, setPrimerEvaluated] = useState(false);
 
