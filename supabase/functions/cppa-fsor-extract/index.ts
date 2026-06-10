@@ -422,9 +422,15 @@ function extractAppendix2023(
     }
   }
 
-  const ROW_TOL = 5;
+  const ROW_GAP = 8;
   for (const pg of pages) {
     const rotated = pg.rotate === 90 || pg.rotate === 270;
+    // Normalize row_axis so ascending = reading order (top-to-bottom).
+    // Rotated (90/270): row_axis = x, ascending already top-to-bottom in rotated view.
+    // Unrotated: row_axis = -y (invert), since PDF y grows upward.
+    const rowAxisOf = (it: PageItem) => rotated ? it.x : -it.y;
+    const colAxisOf = (it: PageItem) => rotated ? it.y : it.x;
+
     const items = pg.items.filter((it) => {
       const t = it.str.trim();
       if (!t) return false;
@@ -432,26 +438,28 @@ function extractAppendix2023(
       if (APPENDIX2023_HEADER_WORDS.test(t)) return false;
       return true;
     });
+
+    // PASS 1: cluster items into rows by row_axis gap.
+    const sorted = [...items].sort((a, z) => rowAxisOf(a) - rowAxisOf(z));
     type Row = { rowAxis: number; items: PageItem[] };
     const rows: Row[] = [];
-    for (const it of items) {
-      const rowAxis = rotated ? it.x : it.y;
-      let r = rows.find((rr) => Math.abs(rr.rowAxis - rowAxis) <= ROW_TOL);
-      if (!r) { r = { rowAxis, items: [] }; rows.push(r); }
-      r.items.push(it);
+    let prevAxis: number | null = null;
+    for (const it of sorted) {
+      const ra = rowAxisOf(it);
+      if (prevAxis === null || ra - prevAxis > ROW_GAP) {
+        rows.push({ rowAxis: ra, items: [it] });
+      } else {
+        rows[rows.length - 1].items.push(it);
+      }
+      prevAxis = ra;
     }
-    // Reading order: rotated -> ascending x; unrotated -> descending y.
-    rows.sort((a, b) => rotated ? a.rowAxis - b.rowAxis : b.rowAxis - a.rowAxis);
 
+    // PASS 2 + 3: within each row, bucket items by col_axis; accumulate units.
     for (const row of rows) {
-      row.items.sort((a, z) => {
-        const ca = rotated ? a.y : a.x;
-        const cb = rotated ? z.y : z.x;
-        return ca - cb;
-      });
+      row.items.sort((a, z) => colAxisOf(a) - colAxisOf(z));
       const buckets: [string, string, string, string, string] = ["", "", "", "", ""];
       for (const it of row.items) {
-        const c = rotated ? it.y : it.x;
+        const c = colAxisOf(it);
         let bi = 4;
         if (c < b1) bi = 0;
         else if (c < b2) bi = 1;
