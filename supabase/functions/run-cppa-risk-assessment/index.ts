@@ -152,7 +152,23 @@ async function retrieveFsorCommentary(authorities: any[], topics: string[], inta
       match_count: 10,
     });
     if (error) { console.warn(`[fsor] rpc error: ${error.message}`); return []; }
-    return Array.isArray(data) ? data : [];
+    const rows = Array.isArray(data) ? data : [];
+    // Supersession ordering: 2025 cyber/risk/ADMT package controls over older
+    // packages on the same regulation section. Stable sort preserves similarity
+    // order within each package.
+    const PKG_PRIORITY: Record<string, number> = {
+      "ccpa-2025-cyber-risk-admt": 0,
+      "dbr-2024-registration": 1,
+      "ccpa-2023-original": 2,
+    };
+    const indexed = rows.map((r: any, i: number) => ({ r, i }));
+    indexed.sort((a, b) => {
+      const pa = PKG_PRIORITY[a.r?.fsor_package] ?? 99;
+      const pb = PKG_PRIORITY[b.r?.fsor_package] ?? 99;
+      if (pa !== pb) return pa - pb;
+      return a.i - b.i;
+    });
+    return indexed.map((x) => x.r);
   } catch (e) {
     console.warn(`[fsor] retrieve threw: ${e}`);
     return [];
