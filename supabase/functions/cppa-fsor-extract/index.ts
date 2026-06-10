@@ -371,9 +371,9 @@ async function loadPagesWithRotation(
 }
 
 const APPENDIX2023_NOISE =
-  /F\s*S\s*O\s*R\s*A\s*P\s*P\s*E\s*N\s*D\s*I\s*X|Page\s+\d+|^CPPA_RM1/i;
+  /F\s*S\s*O\s*R\s*A\s*P\s*P\s*E\s*N\s*D\s*I\s*X|Page\s+\d+|^CPPA_RM1|^FSOR$|^APPENDIX$|^SUMMARY$|^SUBMITTED$|^DURING$|^PERIOD$|^AND$|^RESPONSE$|^TO$|^COMMENTS$|^OF$|^45$/i;
 const APPENDIX2023_HEADER_WORDS =
-  /^(Response|Summary|Comment|Comments|Bates|Label|Transcript|#s|No\.?|Number|#)$/i;
+  /^(Response|Summary|Comment|Comments|Bates|Label|Transcript|#s|No\.?|Number|#|A:|Written|Oral|Received|California|Privacy|Protection|Agency|FSOR|APPENDIX|DAY)$/i;
 
 function appendixLabelFromUrl(url: string): string {
   const m = url.toLowerCase().match(/_app_([a-z])_/);
