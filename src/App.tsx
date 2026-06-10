@@ -777,6 +777,7 @@ const App = () => (
             {/* CPPA Audit Readiness Suite */}
             <Route path="/cppa" element={<CPPAHub />} />
             <Route path="/cppa-scope-checker" element={<CPPAScopeChecker />} />
+            <Route path="/cppa-admt" element={<CPPAAdmtPlaceholder />} />
             <Route path="/cppa-risk-assessment" element={<CPPARiskAssessment />} />
             <Route
               path="/cppa-risk-assessment/result/:id"
