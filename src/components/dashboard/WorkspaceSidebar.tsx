@@ -169,6 +169,8 @@ export default function WorkspaceSidebar() {
           </nav>
         </div>
 
+        <div className="hidden lg:block border-t border-brand-cloud/40 mt-4 mb-4" />
+
         {/* Personal workspace */}
         {personal && (
           <div className="mb-4">
@@ -182,6 +184,9 @@ export default function WorkspaceSidebar() {
             />
           </div>
         )}
+
+        <div className="hidden lg:block border-t border-brand-cloud/40 mt-4 mb-4" />
+
 
         {/* Clients */}
         <div className="mb-4">
