@@ -182,7 +182,7 @@ export default function CPPARiskAssessment() {
   const [q1, setQ1] = useState(""); const [q2, setQ2] = useState(""); const [q3, setQ3] = useState("");
   const [q4, setQ4] = useState<string[]>([]); const [q5, setQ5] = useState("");
   // Step 2 — Consumer Rights
-  const [q6, setQ6] = useState(""); const [q7, setQ7] = useState(""); const [q8, setQ8] = useState("");
+  const [q6Multi, setQ6Multi] = useState<string[]>([]); const [q7, setQ7] = useState(""); const [q8, setQ8] = useState("");
   const [q9, setQ9] = useState(""); const [q10, setQ10] = useState("");
   // Step 3 — Notices
   const [q11, setQ11] = useState(""); const [q12, setQ12] = useState("");
