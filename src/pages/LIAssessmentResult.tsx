@@ -10,6 +10,8 @@ import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import ReportShell from "@/components/ReportShell";
+
 
 const strengthColor = (s: string) => {
   const v = (s || "").toLowerCase();
