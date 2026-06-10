@@ -24,6 +24,14 @@ import { InfoPopover } from "@/components/InfoPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import AutosaveIndicator from "@/components/AutosaveIndicator";
 
+function formatRelativeTime(d: Date): string {
+  const s = Math.round((Date.now() - d.getTime()) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+  return `${Math.round(s / 86400)}d ago`;
+}
+
 const REVENUE_OPTS = ["Under $25M", "$25M–$100M", "$100M–$500M", "Over $500M"];
 const CONSUMER_OPTS = ["Fewer than 100,000", "100,000–1 million", "1–10 million", "Over 10 million", "Unsure"];
 const SECTORS = ["Technology/SaaS", "Healthcare/Life Sciences", "Financial services", "Retail/ecommerce", "Media/advertising", "Professional services", "Education", "Government/public sector", "Legal services", "Manufacturing", "Other"];
