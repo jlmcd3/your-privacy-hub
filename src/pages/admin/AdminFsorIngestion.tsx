@@ -13,11 +13,12 @@ import { toast } from "sonner";
 type PresetConfig = {
   fsor_package: string;
   source_url: string;
-  mode: "fsor" | "appendix45";
+  mode: "fsor" | "appendix45" | "appendix2023";
   include_sections?: string[];
   start_anchor?: string;
   stop_anchor?: string;
   column_x?: [number, number, number];
+  col_bounds?: [number, number, number, number];
   page_from?: number;
   page_to?: number;
   force_shape?: boolean;
