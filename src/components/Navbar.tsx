@@ -113,6 +113,11 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    label: "CPPA",
+    href: "/cppa",
+    directLink: true,
+  },
+  {
     label: "Tools",
     wide: true,
     columns: 3,
