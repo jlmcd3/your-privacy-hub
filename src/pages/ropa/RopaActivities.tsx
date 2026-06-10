@@ -161,23 +161,30 @@ export default function RopaActivities() {
         const { data: existing } = await SUPA.from(
           "ropa_processing_activities"
         )
-          .select("id, template_key")
+          .select("id, template_key, status, source_tool, display_name")
           .eq("session_id", resolved.id)
           .order("display_order", { ascending: true });
         if (cancelled) return;
         const keys = new Set<string>();
+        const drafted: { id: string; source_tool: string; display_name: string }[] = [];
         for (const a of (existing ?? []) as {
           id: string;
           template_key: string | null;
+          status: string | null;
+          source_tool: string | null;
+          display_name: string | null;
         }[]) {
           if (a.template_key) keys.add(a.template_key);
+          if (a.status === "draft_suggested" && a.source_tool) {
+            drafted.push({ id: a.id, source_tool: a.source_tool, display_name: a.display_name || "Untitled activity" });
+          }
         }
         setExistingTemplateKeys(keys);
         setExistingCount((existing ?? []).length);
         setExistingFirstActivityId(
           (existing ?? [])[0]?.id ?? null
         );
-        // Pre-tick the templated activities so the UI reflects current state.
+        setSuggestedDrafts(drafted);
         setSelected((prev) => {
           const next = new Set(prev);
           for (const k of keys) next.add(k);
@@ -187,7 +194,9 @@ export default function RopaActivities() {
         setExistingTemplateKeys(new Set());
         setExistingCount(0);
         setExistingFirstActivityId(null);
+        setSuggestedDrafts([]);
       }
+
     })();
     return () => {
       cancelled = true;
