@@ -8,8 +8,9 @@
 //
 // Output: { total_units, sections: {root: count}, units: [...] }
 
-// @ts-ignore - pdfjs legacy build
-import * as pdfjsLib from "https://esm.sh/pdfjs-dist@4.0.379/legacy/build/pdf.mjs";
+// unpdf bundles a serverless build of pdfjs (no node-canvas), works in Deno edge.
+// @ts-ignore esm.sh resolves bare modules
+import { getDocumentProxy, getResolvedPDFJS } from "https://esm.sh/unpdf@0.12.1";
 
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const ADMIN_TOKEN = Deno.env.get("ADMIN_SECRET_TOKEN") ?? "";
