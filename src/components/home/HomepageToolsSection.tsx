@@ -70,14 +70,9 @@ const DOCUMENTS: Product[] = [
     href: ({ hasToolAccess }) => (hasToolAccess ? "/ropa" : "/ropa-builder"),
   },
   {
-    title: "U.S. Privacy Notice Builder",
-    blurb: "Generate state-specific consumer privacy notices for CCPA, Virginia, Colorado, and other US state laws.",
-    href: ({ hasToolAccess }) => (hasToolAccess ? "/us-notices" : "/us-notice-builder"),
-  },
-  {
-    title: "EU/UK Privacy Notice Builder",
-    blurb: "GDPR & UK GDPR-aligned notices with Article 13/14 disclosures and international transfer language.",
-    href: ({ hasToolAccess }) => (hasToolAccess ? "/eu-notices" : "/eu-global-notice-builder"),
+    title: "Privacy Notice Builder (US + EU/Global)",
+    blurb: "Generate US state notices (CCPA + 19 more) and GDPR/UK GDPR/LGPD/APPI/DPDPA notices — one builder, one workspace. Included with any subscription.",
+    href: ({ hasToolAccess }) => (hasToolAccess ? "/notices-ropa" : "/notice-builder"),
   },
   {
     title: "Registration Manager",

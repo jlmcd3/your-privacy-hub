@@ -51,6 +51,7 @@ const EUNoticeDocuments = lazy(() => import("./pages/eu-notices/EUNoticeDocument
 const EUNoticeRefresh = lazy(() => import("./pages/eu-notices/EUNoticeRefresh.tsx"));
 const EUNoticeLanding = lazy(() => import("./pages/eu-notices/EUNoticeLanding.tsx"));
 const NoticesRopaHub = lazy(() => import("./pages/NoticesRopaHub.tsx"));
+const NoticeBuilderLanding = lazy(() => import("./pages/NoticeBuilderLanding.tsx"));
 import Dashboard from "./pages/Dashboard.tsx";
 const Obligations = lazy(() => import("./pages/Obligations.tsx"));
 const Subscribe = lazy(() => import("./pages/Subscribe.tsx"));
@@ -839,7 +840,10 @@ const App = () => (
             <Route path="/eu-notices/documents" element={<SubscriberRoute><EUNoticeDocuments /></SubscriberRoute>} />
             <Route path="/eu-notices/refresh/:sessionId" element={<SubscriberRoute><EUNoticeRefresh /></SubscriberRoute>} />
             <Route path="/eu-global-notice-builder" element={<EUNoticeLanding />} />
-            <Route path="/eu-notice-builder" element={<Navigate to="/eu-global-notice-builder" replace />} />
+            <Route path="/eu-notice-builder" element={<Navigate to="/notice-builder" replace />} />
+            {/* Merged Notice Builder landing (D3) */}
+            <Route path="/notice-builder" element={<NoticeBuilderLanding />} />
+            <Route path="/notices" element={<Navigate to="/notice-builder" replace />} />
             <Route path="/registration-manager" element={<RegistrationLanding />} />
             <Route path="/registration-manager/start" element={<RegistrationAssessment />} />
             <Route path="/registration-manager/result/:token" element={<RegistrationAssessmentResult />} />
