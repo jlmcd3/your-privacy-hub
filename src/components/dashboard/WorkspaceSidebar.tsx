@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 px-3 mb-2 hidden lg:block">
+    <p className="text-[9px] font-semibold tracking-[0.18em] uppercase text-slate-400/70 px-3 pb-1 mb-2 border-b border-brand-cloud/60 hidden lg:block">
       {children}
     </p>
   );
@@ -76,7 +76,7 @@ function WorkspaceSection({
   };
 
   return (
-    <div className="mb-1">
+    <div className={cn("mb-1", isActiveWorkspace && "border-l-2 border-[#2563EB] pl-1")}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -103,7 +103,7 @@ function WorkspaceSection({
       </button>
 
       {open && (
-        <ul className="hidden lg:flex flex-col gap-0.5 mt-0.5 ml-2 pl-3 border-l border-brand-cloud">
+        <ul className="hidden lg:flex flex-col gap-0 mt-0.5 ml-2 pl-3 border-l border-brand-cloud">
           {WORK_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = isActiveWorkspace && activeTo === item.to;
@@ -113,7 +113,7 @@ function WorkspaceSection({
                   href={item.to}
                   onClick={(e) => handleWorkClick(e, item.to)}
                   className={cn(
-                    "inline-flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors no-underline w-full",
+                    "inline-flex items-center gap-2 px-2 py-1 rounded-md text-sm transition-colors no-underline w-full",
                     active
                       ? "bg-brand-navy text-white font-medium"
                       : "text-slate hover:bg-brand-cloud hover:text-brand-navy",
@@ -169,6 +169,8 @@ export default function WorkspaceSidebar() {
           </nav>
         </div>
 
+        <div className="hidden lg:block border-t border-brand-cloud/40 mt-4 mb-4" />
+
         {/* Personal workspace */}
         {personal && (
           <div className="mb-4">
@@ -182,6 +184,9 @@ export default function WorkspaceSidebar() {
             />
           </div>
         )}
+
+        <div className="hidden lg:block border-t border-brand-cloud/40 mt-4 mb-4" />
+
 
         {/* Clients */}
         <div className="mb-4">
@@ -217,10 +222,9 @@ export default function WorkspaceSidebar() {
               ))}
               <NavLink
                 to="/clients"
-                className="hidden lg:inline-flex items-center gap-2 px-3 py-1.5 mt-1 text-xs text-slate hover:text-brand-navy no-underline"
+                className="hidden lg:inline-flex items-center px-3 py-1.5 mt-1 text-[11px] text-slate-400 hover:text-brand-navy no-underline"
               >
-                <Plus className="w-3 h-3" />
-                Manage clients
+                Manage clients →
               </NavLink>
             </div>
           )}
