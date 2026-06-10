@@ -80,7 +80,25 @@ type ExtractResp = {
   sections: Record<string, number>;
   units: Unit[];
   error?: string;
+  total_pages?: number;
+  page_from?: number;
+  page_to?: number;
 };
+
+function parseStartPage(pageRef: string): number | null {
+  const m = (pageRef || "").match(/(\d+)/);
+  return m ? Number(m[1]) : null;
+}
+
+function computeSections(units: Unit[]): Record<string, number> {
+  const sections: Record<string, number> = {};
+  for (const u of units) {
+    const m = u.regulation_citation.match(/§\s*(7\d{3})/);
+    const root = m ? m[1] : "unknown";
+    sections[root] = (sections[root] ?? 0) + 1;
+  }
+  return sections;
+}
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
