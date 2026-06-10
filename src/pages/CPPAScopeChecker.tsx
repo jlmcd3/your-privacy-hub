@@ -122,11 +122,33 @@ export default function CPPAScopeChecker() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Persist each completed check exactly once per result computation.
+  // Fire-and-forget — failure must NEVER block results.
+  useEffect(() => {
+    if (!showResults) return;
+    const key = JSON.stringify(answers);
+    if (insertedKeyRef.current === key) return;
+    insertedKeyRef.current = key;
+    (async () => {
+      try {
+        await supabase.from("cppa_scope_checks" as any).insert({
+          user_id: user?.id ?? null,
+          session_id: sessionIdRef.current,
+          answers,
+          obligation_map: obligationMap,
+          in_scope: obligationMap.inScope,
+        });
+      } catch {
+        // Silent — persistence must not block UX.
+      }
+    })();
+  }, [showResults, answers, obligationMap, user?.id]);
 
   const reset = () => {
     setQ1(""); setQ2(""); setQ3(""); setQ4("");
     setQ5(""); setQ6(""); setQ7(""); setQ8("");
     setShowResults(false);
+    insertedKeyRef.current = null;
   };
 
   return (
