@@ -188,6 +188,7 @@ export default function CPPAScopeChecker() {
       </header>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <ToolDisclaimer addition="This checker provides an indicative obligation map based on your answers. Applicability thresholds under the CCPA/CPRA are fact-specific; confirm scope conclusions with qualified counsel." />
         {!showResults && (
           <div className="bg-card border rounded-lg p-6 space-y-6">
             <div>

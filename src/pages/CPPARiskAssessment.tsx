@@ -264,6 +264,7 @@ export default function CPPARiskAssessment() {
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
+        <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid, not legal advice, and does not constitute a certified audit or regulatory submission. Review all output with qualified counsel before relying on it." />
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
         <div className="bg-card border rounded-lg p-6 space-y-6">

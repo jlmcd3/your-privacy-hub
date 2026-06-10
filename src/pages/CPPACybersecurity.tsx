@@ -136,6 +136,7 @@ export default function CPPACybersecurity() {
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
+        <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7122(a). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
         <section className="bg-card border rounded-lg p-6 space-y-4">
           <h2 className="">Organisation Profile</h2>
           <div>
