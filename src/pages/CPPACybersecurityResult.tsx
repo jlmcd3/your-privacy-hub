@@ -11,6 +11,8 @@ import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
+import ReportShell from "@/components/ReportShell";
+
 import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
 import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdvisor";
 import AuditScopeMemoGenerator from "@/components/cppa/AuditScopeMemoGenerator";
