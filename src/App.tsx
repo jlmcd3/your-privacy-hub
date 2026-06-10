@@ -540,6 +540,16 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/fsor-ingestion"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminFsorIngestion />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
 
 
             <Route
