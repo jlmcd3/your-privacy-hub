@@ -382,7 +382,7 @@ Deno.serve(async (req) => {
 
     return json({ total_units: units.length, sections, units });
   } catch (e) {
-    const msg = String(e?.message ?? e);
+    const msg = e instanceof Error ? e.message : String(e);
     return json({ error: msg }, 400);
   }
 });
