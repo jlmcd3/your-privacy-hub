@@ -22,7 +22,6 @@ import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { InfoPopover } from "@/components/InfoPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
-import AutosaveIndicator from "@/components/AutosaveIndicator";
 
 function formatRelativeTime(d: Date): string {
   const s = Math.round((Date.now() - d.getTime()) / 1000);
