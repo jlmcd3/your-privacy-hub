@@ -547,7 +547,7 @@ export default function CPPARiskAssessment() {
               </div>
 
               <div>
-                <Label>I-7: Internal contributors and external consultees * <span className="text-xs text-muted-foreground">(§§ 7151, 7152(a)(8))</span></Label>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-7: Internal contributors and external consultees <Req /> <span className="text-xs text-muted-foreground">(§§ 7151, 7152(a)(8))</span></Label><StatutePopover term="I-7 · Contributors and consultees" summary="Identify the individuals and roles who contributed to or were consulted in preparing the risk assessment." cite="11 CCR § 7152(a)(9)" /></div>
                 <Textarea
                   className="mt-2"
                   rows={2}
