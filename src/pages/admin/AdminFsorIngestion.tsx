@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-// Presets — RUN SHEET placeholders. Replace verbatim when the RUN SHEET arrives.
 type PresetConfig = {
   fsor_package: string;
   source_url: string;
@@ -24,83 +23,83 @@ type PresetConfig = {
   force_shape?: boolean;
 };
 
-const T1: PresetConfig = {
-  fsor_package: "ccpa-2025-cyber-risk-admt",
-  source_url:
-    "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_fsor_and_uid.pdf",
-  mode: "fsor",
-  start_anchor: "UPDATE TO INITIAL STATEMENT OF REASONS",
-};
-const APPEN_A =
-  "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_fsor_appen_a.pdf";
-const APPEN_B =
-  "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_fsor_appen_b.pdf";
-const T2a: PresetConfig = {
-  fsor_package: "ccpa-2025-cyber-risk-admt",
-  source_url: APPEN_A,
-  mode: "appendix45",
-};
-const T2b: PresetConfig = {
-  fsor_package: "ccpa-2025-cyber-risk-admt",
-  source_url: APPEN_A,
-  mode: "appendix45",
-};
-const T2c: PresetConfig = {
-  fsor_package: "ccpa-2025-cyber-risk-admt",
-  source_url: APPEN_A,
-  mode: "appendix45",
-};
-const T2d: PresetConfig = {
-  fsor_package: "ccpa-2025-cyber-risk-admt",
-  source_url: APPEN_B,
-  mode: "appendix45",
-};
-const T3a: PresetConfig = {
-  fsor_package: "ccpa-2023-original",
-  source_url: "https://cppa.ca.gov/regulations/pdf/20230329_final_sor.pdf",
-  mode: "fsor",
-  start_anchor: "STATEMENT OF REASONS",
-};
-const T3b: PresetConfig = {
-  fsor_package: "ccpa-2023-original",
-  source_url: "https://cppa.ca.gov/regulations/pdf/20230329_final_sor_addendum.pdf",
-  mode: "fsor",
-};
-const T4a: PresetConfig = {
-  fsor_package: "dbr-2024-registration",
-  source_url: "https://cppa.ca.gov/regulations/pdf/20241224_dbr_fsor.pdf",
-  mode: "appendix45",
-  page_from: 3,
-  page_to: 43,
-  force_shape: true,
-};
-const T4b: PresetConfig = {
-  fsor_package: "dbr-2024-registration",
-  source_url: "https://cppa.ca.gov/regulations/pdf/20241224_dbr_fsor_addm.pdf",
-  mode: "fsor",
-  page_from: 1,
-  page_to: 10,
-};
+const PDF = "https://cppa.ca.gov/regulations/pdf/";
 
-const T5a: PresetConfig = {
-  fsor_package: "ccpa-2023-original",
-  source_url: "https://cppa.ca.gov/regulations/pdf/20230329_final_sor_app_a_comments.pdf",
-  mode: "appendix2023",
-  col_bounds: [90, 420, 610, 670],
-  force_shape: true,
-  include_sections: ["7002","7004","7011","7012","7013","7014","7015","7016","7051"],
-};
-const T5b: PresetConfig = {
-  fsor_package: "ccpa-2023-original",
-  source_url: "https://cppa.ca.gov/regulations/pdf/20230329_final_sor_app_c_comments.pdf",
-  mode: "appendix2023",
-  col_bounds: [90, 280, 610, 670],
-  force_shape: true,
-  include_sections: ["7002","7004","7011","7012","7013","7014","7015","7016","7051"],
-};
+const P2025 = "ccpa-2025-cyber-risk-admt";
+
+const P2023 = "ccpa-2023-original";
+
+const PDBR = "dbr-2024-registration";
 
 const PRESETS: Record<string, PresetConfig> = {
-  T1, T2a, T2b, T2c, T2d, T3a, T3b, T4a, T4b, T5a, T5b,
+  T1: {
+    fsor_package: P2025,
+    source_url: PDF+"ccpa_updates_cyber_risk_admt_fsor_and_uid.pdf",
+    mode: "fsor",
+    start_anchor: "UPDATE TO INITIAL STATEMENT OF REASONS",
+    stop_anchor: "UDPATE TO ECONOMIC AND FISCAL IMPACT"
+    // "UDPATE" typo is verbatim in the official PDF — do not fix it
+  },
+  T2a: {
+    fsor_package: P2025,
+    source_url: PDF+"ccpa_updates_cyber_risk_admt_fsor_appen_a.pdf",
+    mode: "appendix45"
+  },
+  T2b: {
+    fsor_package: P2025,
+    source_url: PDF+"ccpa_updates_cyber_risk_admt_fsor_appen_a.pdf",
+    mode: "appendix45"
+  },
+  T2c: {
+    fsor_package: P2025,
+    source_url: PDF+"ccpa_updates_cyber_risk_admt_fsor_appen_a.pdf",
+    mode: "appendix45"
+  },
+  T2d: {
+    fsor_package: P2025,
+    source_url: PDF+"ccpa_updates_cyber_risk_admt_fsor_appen_b.pdf",
+    mode: "appendix45"
+  },
+  T3a: {
+    fsor_package: P2023,
+    source_url: PDF+"20230329_final_sor.pdf",
+    mode: "fsor",
+    start_anchor: "STATEMENT OF REASONS"
+  },
+  T3b: {
+    fsor_package: P2023,
+    source_url: PDF+"20230329_final_sor_addendum.pdf",
+    mode: "fsor"
+  },
+  T4a: {
+    fsor_package: PDBR,
+    source_url: PDF+"20241224_dbr_fsor.pdf",
+    mode: "appendix45",
+    page_from: 3,
+    page_to: 43,
+    force_shape: true
+  },
+  T4b: {
+    fsor_package: PDBR,
+    source_url: PDF+"20241224_dbr_fsoraddm.pdf",
+    mode: "fsor"
+  },
+  T5a: {
+    fsor_package: P2023,
+    source_url: PDF+"20230329_final_sor_app_a_comments.pdf",
+    mode: "appendix2023",
+    col_bounds: [110, 400, 610, 670],
+    force_shape: true,
+    include_sections: ["7002","7004","7011","7012","7013","7014","7015","7016","7051"]
+  },
+  T5b: {
+    fsor_package: P2023,
+    source_url: PDF+"20230329_final_sor_app_c_comments.pdf",
+    mode: "appendix2023",
+    col_bounds: [90, 280, 610, 670],
+    force_shape: true,
+    include_sections: ["7002","7004","7011","7012","7013","7014","7015","7016","7051"]
+  }
 };
 
 type Unit = {
