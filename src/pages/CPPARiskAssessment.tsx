@@ -693,23 +693,32 @@ export default function CPPARiskAssessment() {
 
           {summaryStep && <SummaryTable intake={intake} />}
 
-          <div className="flex justify-between pt-4 border-t flex-wrap gap-3">
+          <div className="flex justify-between pt-4 border-t flex-wrap gap-3 items-center">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
-            {!summaryStep ? (
-              <Button onClick={next}>Next</Button>
-            ) : (
-              <div className="flex gap-2 flex-wrap">
-                {isSuite ? (
-                  <Button onClick={() => { if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
-                    Purchase CPPA Suite — ${suitePricing.price}
-                  </Button>
-                ) : (
-                  <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
-                    {!pricing.stripeConfigured ? `Payments Coming Soon — $${displayPrice}` : `Run CPPA Risk Assessment — $${displayPrice}`}
-                  </Button>
-                )}
-              </div>
-            )}
+            <div className="flex items-center gap-3 ml-auto">
+              {user && (
+                draftSaving ? (
+                  <span className="text-[11px] text-muted-foreground">Saving…</span>
+                ) : lastSavedAt ? (
+                  <span className="text-[11px] text-muted-foreground">Draft saved {formatRelativeTime(lastSavedAt)}</span>
+                ) : null
+              )}
+              {!summaryStep ? (
+                <Button onClick={next}>Next</Button>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {isSuite ? (
+                    <Button onClick={() => { if (!user) { setAuthGateOpen(true); return; } setCheckoutOpen(true); }}>
+                      Purchase CPPA Suite — ${suitePricing.price}
+                    </Button>
+                  ) : (
+                    <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
+                      {!pricing.stripeConfigured ? `Payments Coming Soon — $${displayPrice}` : `Run CPPA Risk Assessment — $${displayPrice}`}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
