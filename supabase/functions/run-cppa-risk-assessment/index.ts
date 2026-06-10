@@ -180,12 +180,7 @@ async function retrieveFsorCommentary(authorities: any[], topics: string[], inta
 }
 
 // ---- Banned-phrase validator (post-generation, code-side) ----
-const BANNED_PHRASES = [
-  "improve our services", "improve services",
-  "for security purposes", "for business purposes",
-  "to enhance user experience", "as described in our privacy policy",
-  "to provide better services", "to support our business objectives",
-];
+// BANNED_PHRASES is imported from ../_shared/citation-verifier.ts (unchanged contents).
 const BANNED_BARE_WORDS = ["analytics"]; // bare token, no surrounding specificity
 
 /** Returns null if the statement is acceptable; otherwise an explanation. */
