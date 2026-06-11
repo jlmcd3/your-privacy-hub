@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
 
   let query = supabase
     .from("enforcement_actions")
-    .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related")
+    .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related, statutory_provisions, provisions_normalized")
     .gte("enrichment_version", 1)
     .not("source_database", "is", null)
     .order("precedent_significance", { ascending: false, nullsFirst: false })
@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
 
   // tool_relevance is now a soft preference (scoring boost only), not a hard filter
   if (q.data_categories?.length) query = query.overlaps("data_categories", q.data_categories);
+  if (q.articles?.length) query = query.overlaps("provisions_normalized", q.articles);
   if (q.jurisdictions?.length) {
     const jurisdictionAliases: Record<string, string[]> = {
       "United Kingdom": ["United Kingdom", "UK", "GB", "England", "Great Britain"],
