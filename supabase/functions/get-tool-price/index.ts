@@ -70,7 +70,7 @@ const TOOLS: Record<
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 4500,
     classification: "smart",
   },
   dpia_framework: {
