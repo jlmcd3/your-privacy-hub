@@ -58,6 +58,10 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact, on
             section_heading: row.section_heading ?? "",
             headlines: Array.isArray(row.headlines) ? (row.headlines as unknown as Headline[]) : [],
           });
+          onLoaded?.({
+            generated_at: row.generated_at ?? "",
+            article_count: row.article_count ?? 0,
+          });
         }
         setLoading(false);
       });
