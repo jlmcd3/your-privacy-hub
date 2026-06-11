@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { BiometricDecisionChecklist } from "@/components/research/BiometricDecisionChecklist";
 import { getProduct } from "@/lib/productRegistry";
+import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
 
 const TIERED_STATE_LAWS = `
 <div class="space-y-5">
@@ -101,7 +102,7 @@ export default function BiometricPrivacyPage() {
         }}
         pageSynthesisKey="biometric__page"
         introBlock={<BiometricDecisionChecklist />}
-        sections={[
+        sections={linkGlossaryFirstMentions([
           {
             id: "state-laws",
             h2: "State biometric laws — ranked by obligation stringency",
@@ -135,7 +136,7 @@ export default function BiometricPrivacyPage() {
             synthesisKey: "biometric__workplace",
             content: `<p>Biometric timekeeping, access control, and identity verification in the workplace are among the highest-risk use cases. BIPA litigation is dominated by workplace claims — fingerprint time clocks, facial recognition entry systems, and palm scanners. <a href="https://www.eeoc.gov/artificial-intelligence-and-algorithmic-fairness" target="_blank" rel="noopener noreferrer">EEOC guidance</a> warns that biometric screening tools may create disparate impact liability. The <a href="https://www.nlrb.gov/" target="_blank" rel="noopener noreferrer">NLRB</a> has indicated that implementation of biometric monitoring may be a mandatory subject of bargaining.</p>`,
           },
-        ]}
+        ])}
         relatedLinks={[
           { label: "Enforcement Tracker", href: "/enforcement-tracker" },
           { label: "U.S. State Privacy Laws", href: "/us-state-privacy-laws" },

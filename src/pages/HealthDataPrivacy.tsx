@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { getProduct } from "@/lib/productRegistry";
+import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
 
 const TRACK_OVERVIEW = `
 <div class="grid gap-4 md:grid-cols-3">
@@ -172,7 +173,7 @@ export default function HealthDataPrivacyPage() {
             "Structured assessment covering HIPAA, the FTC Health Breach Rule, and state health data laws — formatted for leadership or counsel review.",
           href: getProduct("governance-assessment").route,
         }}
-        sections={[
+        sections={linkGlossaryFirstMentions([
           {
             id: "tracks",
             h2: "Which track applies to you?",
@@ -224,7 +225,7 @@ export default function HealthDataPrivacyPage() {
             },
             toolCtaPlacement: "bottom",
           },
-        ]}
+        ])}
         relatedLinks={[
           { label: "Enforcement Tracker", href: "/enforcement-tracker" },
           { label: "Breach Notification", href: "/breach-notification" },

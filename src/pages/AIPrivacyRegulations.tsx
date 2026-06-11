@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { getProduct } from "@/lib/productRegistry";
+import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
 
 const AIPrivacyRegulations = () => (
   <>
@@ -53,7 +54,7 @@ const AIPrivacyRegulations = () => (
         </p>
       </div>
     }
-    sections={[
+    sections={linkGlossaryFirstMentions([
       {
         id: "eu-ai-act",
         h2: "The EU AI Act",
@@ -151,7 +152,7 @@ const AIPrivacyRegulations = () => (
 
 <p><strong>Practical implication:</strong> China and the EU are the only jurisdictions with active AI-specific enforcement right now. The rest are still in guidance or legislative phases.</p>`,
       },
-    ]}
+    ])}
     relatedLinks={[
       { label: "Biometric Privacy Guide", href: "/biometric-privacy" },
       { label: "GDPR Enforcement", href: "/gdpr-enforcement" },

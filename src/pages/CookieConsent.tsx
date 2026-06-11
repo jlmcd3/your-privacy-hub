@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { getProduct } from "@/lib/productRegistry";
+import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
 
 const REQUIREMENTS_MATRIX = `
 <div class="cmp-table overflow-x-auto rounded-xl border border-brand-cloud">
@@ -179,7 +180,7 @@ export default function CookieConsentPage() {
           ],
         }}
         pageSynthesisKey="cookie__page"
-        sections={[
+        sections={linkGlossaryFirstMentions([
           {
             id: "matrix",
             h2: "Requirements matrix — GDPR vs. PECR vs. CCPA vs. other US states",
@@ -218,7 +219,7 @@ export default function CookieConsentPage() {
             },
             toolCtaPlacement: "bottom",
           },
-        ]}
+        ])}
         relatedLinks={[
           { label: "Enforcement Tracker", href: "/enforcement-tracker" },
           { label: "AdTech & Consent Hub", href: "/topics/adtech" },

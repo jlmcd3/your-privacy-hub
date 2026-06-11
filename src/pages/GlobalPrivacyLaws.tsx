@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { JurisdictionDirectory } from "@/components/research/JurisdictionDirectory";
 import { getProduct } from "@/lib/productRegistry";
+import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
 
 const GlobalPrivacyLaws = () => (
   <>
@@ -40,7 +41,7 @@ const GlobalPrivacyLaws = () => (
         "Generate a jurisdiction-specific DPA covering LGPD, PIPL, APPI, PDPA and other frameworks tracked on this page.",
       href: getProduct("dpa-generator").route,
     }}
-    sections={[
+    sections={linkGlossaryFirstMentions([
       {
         id: "directory",
         h2: "Jurisdiction Directory",
@@ -88,7 +89,7 @@ const GlobalPrivacyLaws = () => (
           href: "/governance-assessment",
         },
       },
-    ]}
+    ])}
     relatedLinks={[
       { label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
       { label: "Global Privacy Authority Directory", href: "/global-privacy-authorities" },

@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { getProduct } from "@/lib/productRegistry";
+import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
 
 const COMPARISON_ROWS: {
   dimension: string;
@@ -234,7 +235,7 @@ export default function GDPREnforcement() {
             "Generate a GDPR-compliant DPIA structured to EDPB WP 248 requirements, calibrated to DPA enforcement patterns.",
           href: getProduct("dpia").route,
         }}
-        sections={[
+        sections={linkGlossaryFirstMentions([
           {
             id: "comparison",
             h2: "EU GDPR vs UK GDPR — Side by Side",
@@ -288,7 +289,7 @@ export default function GDPREnforcement() {
               </div>
             ),
           },
-        ]}
+        ])}
         relatedLinks={[
           { label: "Global Privacy Authority Directory", href: "/global-privacy-authorities" },
           { label: "Enforcement Tracker", href: "/enforcement-tracker" },
