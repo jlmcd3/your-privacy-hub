@@ -347,13 +347,13 @@ function parseTextBlocks(body: string): TextBlock[] {
       i++; continue;
     }
     if (numberedRe.test(line)) {
-      const items: string[] = [];
+      const items: { num: string; text: string }[] = [];
       while (i < lines.length) {
         const cur = lines[i].trim();
         const m = numberedRe.exec(cur);
-        if (m) { items.push(m[2]); i++; }
+        if (m) { items.push({ num: m[1], text: m[2] }); i++; }
         else if (cur && !subheadRe.test(cur) && !bulletRe.test(cur) && items.length > 0) {
-          items[items.length - 1] += " " + cur; i++;
+          items[items.length - 1].text += " " + cur; i++;
         } else break;
       }
       blocks.push({ type: "ol", items });
