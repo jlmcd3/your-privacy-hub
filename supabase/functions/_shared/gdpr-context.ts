@@ -82,6 +82,7 @@ export async function getGdprContext(
     semantic_attempted: false,
     truncated: false,
     final_chars: 0,
+    gdprCites: [],
   };
 
   // (1) Articles in requested jurisdiction
