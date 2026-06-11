@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
   const fetch_errors: Array<{ id: string; error: string }> = [];
 
   for (const id of ids) {
-    const xmlUrl = `https://www.legislation.gov.uk/eur/2016/679/article/${id}/data.xml`;
+    const xmlUrl = ukArticleXmlUrl(id);
     try {
       const r = await fetch(xmlUrl, {
         headers: { "User-Agent": userAgent, "Accept": "application/xml,text/xml" },
