@@ -4629,6 +4629,63 @@ export type Database = {
         }
         Relationships: []
       }
+      sample_reports: {
+        Row: {
+          created_at: string
+          document_text: string | null
+          fixture: Json
+          id: string
+          pdf_path: string | null
+          published_at: string | null
+          report_data: Json | null
+          scenario_summary: string
+          source_row_id: string | null
+          source_table: string | null
+          status: string
+          title: string
+          tool_slug: string
+          updated_at: string
+          variant: string
+          verification: Json | null
+        }
+        Insert: {
+          created_at?: string
+          document_text?: string | null
+          fixture?: Json
+          id?: string
+          pdf_path?: string | null
+          published_at?: string | null
+          report_data?: Json | null
+          scenario_summary: string
+          source_row_id?: string | null
+          source_table?: string | null
+          status?: string
+          title: string
+          tool_slug: string
+          updated_at?: string
+          variant?: string
+          verification?: Json | null
+        }
+        Update: {
+          created_at?: string
+          document_text?: string | null
+          fixture?: Json
+          id?: string
+          pdf_path?: string | null
+          published_at?: string | null
+          report_data?: Json | null
+          scenario_summary?: string
+          source_row_id?: string | null
+          source_table?: string | null
+          status?: string
+          title?: string
+          tool_slug?: string
+          updated_at?: string
+          variant?: string
+          verification?: Json | null
+        }
+        Relationships: []
+      }
       source_document_cache: {
         Row: {
           content_hash: string
