@@ -11,6 +11,20 @@ const corsHeaders = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// NARRATIVE SANITIZER
+// Strips internal status tags and bracketed citation markers from prose
+// before it lands in HTML/PDF. Preserves [TO BE COMPLETED: ...] placeholders.
+// ─────────────────────────────────────────────────────────────────────────
+function sanitizeNarrative(s: string): string {
+  if (!s || typeof s !== "string") return s as unknown as string;
+  return s
+    .replace(/\[(REJECTED|ACCEPTED|PENALISED|REQUIRED|UNKNOWN)\]\s*/g, "")
+    .replace(/\[(Recital\s+\d+[a-z]?)\]/g, "$1")
+    .replace(/\[(Art(?:icle)?\.?\s+[\dA-Za-z()]+)\]/g, "$1")
+    .replace(/\[(EDPB[^\]]{0,60})\]/g, "$1");
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // PDF GENERATION HELPER
 // ─────────────────────────────────────────────────────────────────────────
 // PLACEHOLDER: Replace the body of this function with your PDF service call.
@@ -168,27 +182,29 @@ ul { padding-left: 20px; } li { margin-bottom: 4px; }
 <h2>Assessment Summary</h2>
 <div class="section">
 <span class="strength strength-${(overall.argument_strength || "uncertain").toLowerCase()}">Argument strength: ${overall.argument_strength || "Uncertain"}</span>
-<p>${overall.strength_basis || ""}</p>
+<p>${sanitizeNarrative(overall.strength_basis || "")}</p>
 </div>
 <h2>Three-Part Test</h2>
 ${["purpose_test", "necessity_test", "balancing_test"].map(key => {
     const t = d[key] || {};
     const label = key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
     const verdictClass = (t.verdict || "uncertain").includes("pass") ? "pass" : (t.verdict || "").includes("fail") ? "fail" : "uncertain";
-    return `<div class="section"><h3>${label} <span class="verdict-${verdictClass}">— ${t.verdict || "Uncertain"}</span></h3>
-<p>${t.analysis || ""}</p>
-${(t.risk_factors || []).length ? `<p class="label">Risk factors:</p><ul>${(t.risk_factors || []).map((r: string) => `<li>${r}</li>`).join("")}</ul>` : ""}
-${(t.supporting_factors || []).length ? `<p class="label">Supporting factors:</p><ul>${(t.supporting_factors || []).map((s: string) => `<li>${s}</li>`).join("")}</ul>` : ""}
+    const rawVerdict = t.verdict || "Uncertain";
+    const verdictLabel = (rawVerdict.charAt(0).toUpperCase() + rawVerdict.slice(1)).replace(/_/g, " ");
+    return `<div class="section"><h3>${label} <span class="verdict-${verdictClass}">— ${verdictLabel}</span></h3>
+<p>${sanitizeNarrative(t.analysis || "")}</p>
+${(t.risk_factors || []).length ? `<p class="label">Risk factors:</p><ul>${(t.risk_factors || []).map((r: string) => `<li>${sanitizeNarrative(r)}</li>`).join("")}</ul>` : ""}
+${(t.supporting_factors || []).length ? `<p class="label">Supporting factors:</p><ul>${(t.supporting_factors || []).map((s: string) => `<li>${sanitizeNarrative(s)}</li>`).join("")}</ul>` : ""}
 </div>`;
   }).join("")}
 <h2>Documentation Recommendations</h2>
 ${((docRecs.recommended_documentation) || []).map((doc: any) =>
     `<div class="section"><h3>${doc.document || ""}</h3>
-<p>${doc.purpose || ""}</p>
-${(doc.key_elements || []).length ? `<ul>${(doc.key_elements || []).map((e: string) => `<li>${e}</li>`).join("")}</ul>` : ""}</div>`
+<p>${sanitizeNarrative(doc.purpose || "")}</p>
+${(doc.key_elements || []).length ? `<ul>${(doc.key_elements || []).map((e: string) => `<li>${sanitizeNarrative(e)}</li>`).join("")}</ul>` : ""}</div>`
   ).join("")}
 ${((docRecs.balancing_record_elements) || []).length ? `<h2>Balancing Record — Must Include</h2>
-<ul>${(docRecs.balancing_record_elements).map((e: string) => `<li>${e}</li>`).join("")}</ul>` : ""}
+<ul>${(docRecs.balancing_record_elements).map((e: string) => `<li>${sanitizeNarrative(e)}</li>`).join("")}</ul>` : ""}
 <p class="meta">${report.data_currency_note || ""}</p>
 <div class="disclaimer">${report.disclaimer || ""}</div>
 </body></html>`;
@@ -283,18 +299,18 @@ ${sections.map(([key, heading]) => {
     return `<h2>${heading}</h2>
 ${s.guidance_note ? `<div class="guidance"><strong>Article 35 requirement: </strong>${s.guidance_note}</div>` : ""}
 ${(s.risk_assessment || []).length ? `<ul>${(s.risk_assessment || []).map((r: any) =>
-        `<li><strong>${r.risk_type || ""}</strong> — Likelihood: ${r.likelihood || ""}, Severity: ${r.severity || ""}. ${r.description || ""}</li>`
+        `<li><strong>${r.risk_type || ""}</strong> — Likelihood: ${r.likelihood || ""}, Severity: ${r.severity || ""}. ${sanitizeNarrative(r.description || "")}</li>`
       ).join("")}</ul>` : ""}
 ${(s.proposed_measures || []).length ? `<ul>${(s.proposed_measures || []).map((m: any) =>
-        `<li><strong>${m.measure || ""}</strong>: ${m.implementation_guidance || ""} (Residual risk: ${m.residual_risk_after || ""})</li>`
+        `<li><strong>${m.measure || ""}</strong>: ${sanitizeNarrative(m.implementation_guidance || "")} (Residual risk: ${m.residual_risk_after || ""})</li>`
       ).join("")}</ul>` : ""}
 ${Object.entries(s)
         .filter(([k, v]) => !["title", "guidance_note", "completion_guidance", "risk_assessment", "proposed_measures", "annotations"].includes(k)
           && (typeof v === "string" ? v.trim().length > 0 : typeof v === "boolean"))
-        .map(([k, v]) => `<p><span class="label">${k.replace(/_/g, " ")}:</span> ${typeof v === "boolean" ? (v ? "Yes" : "No") : v}</p>`)
+        .map(([k, v]) => `<p><span class="label">${k.replace(/_/g, " ")}:</span> ${typeof v === "boolean" ? (v ? "Yes" : "No") : sanitizeNarrative(String(v))}</p>`)
         .join("")}
 ${Array.isArray(s.annotations) && s.annotations.length ? `<p class="label">Enforcement annotations:</p><ul>${s.annotations.map((a: any) =>
-        `<li><strong>${a.regulator || "Enforcement source"}</strong>${a.summary ? ` — ${a.summary}` : ""}${a.relevance ? ` (Relevance: ${a.relevance})` : ""}</li>`
+        `<li><strong>${a.regulator || "Enforcement source"}</strong>${a.summary ? ` — ${sanitizeNarrative(a.summary)}` : ""}${a.relevance ? ` (Relevance: ${sanitizeNarrative(a.relevance)})` : ""}</li>`
       ).join("")}</ul>` : ""}
 ${s.completion_guidance ? `<div class="completion"><strong>Your DPO/Counsel must complete: </strong>${s.completion_guidance}</div>` : ""}`;
   }).join("")}

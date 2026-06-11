@@ -26,6 +26,7 @@ const verdictColor = (v: string) => {
   if (x.includes("fail")) return "bg-red-100 text-red-800";
   return "bg-amber-100 text-amber-800";
 };
+const verdictLabel = (v: string) => ({ likely_passes: "Likely passes", likely_fails: "Likely fails", passes: "Passes", fails: "Fails", uncertain: "Uncertain" } as Record<string,string>)[v] ?? v.replace(/_/g, " ");
 
 const AnnotationCallout = ({ annotations }: { annotations: any[] }) => {
   if (!Array.isArray(annotations) || annotations.length === 0) return null;
@@ -70,7 +71,7 @@ const TestCard = ({ title, test, annotations }: { title: string; test: any; anno
   <div className="bg-card border rounded-lg p-5">
     <div className="flex items-center justify-between mb-3">
       <h3 className="">{title}</h3>
-      {test?.verdict && <span className={`px-2 py-1 text-xs rounded ${verdictColor(test.verdict)}`}>{test.verdict}</span>}
+      {test?.verdict && <span className={`px-2 py-1 text-xs rounded ${verdictColor(test.verdict)}`}>{verdictLabel(test.verdict)}</span>}
     </div>
     {test?.analysis && <p className="text-sm text-foreground mb-3">{test.analysis}</p>}
     {test?.special_category_flag && (
