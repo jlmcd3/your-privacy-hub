@@ -9,6 +9,7 @@ import Index from "./pages/Index.tsx";
 
 const GlobalAuthorities = lazy(() => import("./pages/GlobalAuthorities.tsx"));
 const USPrivacyLaws = lazy(() => import("./pages/USPrivacyLaws.tsx"));
+const USStateLawPage = lazy(() => import("./pages/USStateLawPage.tsx"));
 const GDPREnforcement = lazy(() => import("./pages/GDPREnforcement.tsx"));
 const AIPrivacyRegulations = lazy(() => import("./pages/AIPrivacyRegulations.tsx"));
 const GlobalPrivacyLaws = lazy(() => import("./pages/GlobalPrivacyLaws.tsx"));
