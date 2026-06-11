@@ -12,13 +12,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Tool catalog. Lookup keys map to Stripe Price objects. Under the v8
-// pricing model (May 2026 memo): every tier pays the same standalone
-// price; the only discount is the founding-subscriber promotion
-// (20% off Smart Tools, 15% off Convenience Tools), applied at runtime
-// to founding_subscriber = true. `fallback_subscriber_cents` is the
-// founding-rate fallback. Keep in sync with src/config/pricing.ts
-// PRICING.tools and PRICING_REGISTRY.
+// PRICE MIRROR — these cents MUST mirror src/config/pricing.ts (v10).
+// Any price change updates BOTH files in the same commit. Verify with
+// /admin/pricing-reconciliation.
+const ANNUAL_GATED_TOOLS = new Set([
+  "li_assessment",
+  "governance_assessment",
+  "dpia_framework",
+  "cppa_risk_assessment",
+  "cppa_cybersecurity",
+  "cppa_suite",
+]);
 const TOOLS: Record<
   string,
   {
@@ -44,7 +48,7 @@ const TOOLS: Record<
     subscriber_lookup: "hc_subscriber_v2",
     table: "governance_assessments",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 4900,
   },
   dpia_framework: {
     name: "Impact Assessment Builder",
@@ -52,7 +56,7 @@ const TOOLS: Record<
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 4500,
   },
   dpa_generator: {
     name: "Your Custom DPA",
@@ -156,24 +160,24 @@ const TOOLS: Record<
     standalone_lookup: "cppa_risk_standalone",
     subscriber_lookup: "cppa_risk_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 7900,
+    fallback_standalone_cents: 17900,
+    fallback_subscriber_cents: 9900,
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
     standalone_lookup: "cppa_cyber_standalone",
     subscriber_lookup: "cppa_cyber_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 8900,
+    fallback_standalone_cents: 24900,
+    fallback_subscriber_cents: 13900,
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 16900,
-    fallback_subscriber_cents: 14900,
+    fallback_standalone_cents: 34900,
+    fallback_subscriber_cents: 18900,
   },
 
 };
@@ -268,6 +272,9 @@ Deno.serve(async (req) => {
       isProfessionalAnnual = (profile as any)?.professional_annual === true
         || subscriptionType === "annual" || subscriptionType === "annual_founding";
     }
+    const isAnnualSubscriber =
+      isProfessionalAnnual ||
+      String(subscriptionType ?? "").toLowerCase().includes("annual");
 
     // ── Subscription-only tools (RoPA, US/EU Notice Builders) ──
     // These are included with any active subscription (monthly or annual)
@@ -399,7 +406,12 @@ Deno.serve(async (req) => {
     // per-use subscriber price as an inducement to subscribe. Everyone
     // else pays the standalone price. SUBSCRIPTION_ONLY tools and
     // SUBSCRIBER_FREE tools are already short-circuited above.
-    const useSubscriberPrice = isPremium && !!tool.subscriber_lookup;
+    // v10: Layer-2 subscriber rates require an annual subscription. Monthly
+    // subscribers pay the standalone price for gated tools.
+    const gatedToolRequiresAnnual =
+      ANNUAL_GATED_TOOLS.has(tool_type) && !isAnnualSubscriber;
+    const useSubscriberPrice =
+      isPremium && !!tool.subscriber_lookup && !gatedToolRequiresAnnual;
     const lookupKey = useSubscriberPrice ? tool.subscriber_lookup! : tool.standalone_lookup;
     const fallbackCents = useSubscriberPrice
       ? tool.fallback_subscriber_cents

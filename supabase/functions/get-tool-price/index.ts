@@ -8,18 +8,20 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// v8 pricing model (May 2026 memo):
-//   Standalone = the per-use price for every tier — Intelligence and
-//   Professional subscribers pay the SAME standalone price. The only
-//   discount is the founding-subscriber promotion (20% off Smart Tools,
-//   15% off Convenience Tools), applied to founding_subscriber = true.
-//
-//   `subscriber_lookup` is retained as the Stripe lookup key for the
-//   founding-rate Price object; `fallback_subscriber_cents` is the
-//   founding-rate fallback used when Stripe lookup fails.
-//
-//   Keep in sync with src/config/pricing.ts PRICING.tools and the
-//   PRICING_REGISTRY v8 entries.
+// PRICE MIRROR — these cents MUST mirror src/config/pricing.ts (v10).
+// Any price change updates BOTH files in the same commit. Verify with
+// /admin/pricing-reconciliation.
+const ANNUAL_GATED_TOOLS = new Set([
+  "governance_assessment",
+  "healthcheck",
+  "li_assessment",
+  "li_analyzer",
+  "dpia_framework",
+  "dpia_builder",
+  "cppa_risk_assessment",
+  "cppa_cybersecurity",
+  "cppa_suite",
+]);
 const TOOLS: Record<
   string,
   {
@@ -36,7 +38,7 @@ const TOOLS: Record<
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 4900,
     classification: "smart",
   },
   governance_assessment: {
@@ -44,7 +46,7 @@ const TOOLS: Record<
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 4900,
     classification: "smart",
   },
   li_analyzer: {
@@ -68,7 +70,7 @@ const TOOLS: Record<
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 4500,
     classification: "smart",
   },
   dpia_framework: {
@@ -76,7 +78,7 @@ const TOOLS: Record<
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 4500,
     classification: "smart",
   },
   ropa_initial: {
@@ -155,24 +157,24 @@ const TOOLS: Record<
     name: "CPPA Risk Assessment — Module 1",
     standalone_lookup: "cppa_risk_standalone",
     subscriber_lookup: "cppa_risk_subscriber",
-    fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 7900,
+    fallback_standalone_cents: 17900,
+    fallback_subscriber_cents: 9900,
     classification: "smart",
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
     standalone_lookup: "cppa_cyber_standalone",
     subscriber_lookup: "cppa_cyber_subscriber",
-    fallback_standalone_cents: 9900,
-    fallback_subscriber_cents: 8900,
+    fallback_standalone_cents: 24900,
+    fallback_subscriber_cents: 13900,
     classification: "smart",
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
-    fallback_standalone_cents: 16900,
-    fallback_subscriber_cents: 14900,
+    fallback_standalone_cents: 34900,
+    fallback_subscriber_cents: 18900,
     classification: "smart",
   },
   dpa_generator: {
@@ -236,6 +238,7 @@ serve(async (req) => {
     let subscriptionType: string | null = null;
     let isPro = false;
     let isPremium = false;
+    let professionalAnnual = false;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
       try {
@@ -252,17 +255,23 @@ serve(async (req) => {
           );
           const { data: profile } = await admin
             .from("profiles")
-            .select("subscription_type, is_pro, is_premium")
+            .select("subscription_type, is_pro, is_premium, professional_annual")
             .eq("id", user.id)
             .single();
           subscriptionType = (profile as any)?.subscription_type ?? null;
           isPro = (profile as any)?.is_pro === true;
           isPremium = (profile as any)?.is_premium === true || isPro;
+          professionalAnnual = (profile as any)?.professional_annual === true;
         }
       } catch (_) {
         // ignore
       }
     }
+
+    // v10: annual gating for Layer-2 subscriber rates.
+    const isAnnual =
+      professionalAnnual ||
+      String(subscriptionType ?? "").toLowerCase().includes("annual");
 
     // Canonical PRICING (src/config/pricing.ts) is the source of truth.
     const standaloneCents = tool.fallback_standalone_cents;
@@ -271,10 +280,10 @@ serve(async (req) => {
 
     const subscriberFree = SUBSCRIBER_FREE_TOOLS.has(tool_slug);
     const isSubscriberFree = subscriberFree && isPremium;
-    // v9: any active subscriber pays subscriber rate; Layer-1 tools resolve
-    // to 0 for subscribers; non-subscribers pay standalone.
+    // v10: Layer-2 subscriber rates require annual; monthly subs pay standalone.
+    const gated = ANNUAL_GATED_TOOLS.has(tool_slug);
     const effectiveCents = isPremium
-      ? (subscriberFree ? 0 : subscriberCents)
+      ? (subscriberFree ? 0 : (gated && !isAnnual ? standaloneCents : subscriberCents))
       : standaloneCents;
 
     return new Response(
@@ -285,6 +294,7 @@ serve(async (req) => {
         subscription_type: subscriptionType,
         is_pro: isPro,
         is_premium: isPremium,
+        is_annual: isAnnual,
         is_subscriber_free: isSubscriberFree,
         is_cppa: isCppa,
         is_included: isSubscriberFree,
