@@ -209,6 +209,7 @@ export default function RegistrationAssessment() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <RequiredLegend />
                 {step === 1 && (
                   <>
                     <div className="space-y-2">
