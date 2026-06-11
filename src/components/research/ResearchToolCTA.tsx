@@ -15,13 +15,7 @@ export function ResearchToolCTA({
   context,
 }: ResearchToolCTAProps) {
   return (
-    <div
-      className="mt-5 rounded-lg px-4 py-3 flex items-center justify-between gap-4"
-      style={{
-        background: "hsl(36 57% 97%)",
-        border: "1px solid hsl(36 57% 85%)",
-      }}
-    >
+    <div className="mt-5 rounded-r-lg bg-card border border-brand-cloud border-l-[3px] border-l-brand-navy px-4 py-3 flex items-center justify-between gap-4">
       <div className="min-w-0">
         <p className="text-eyebrow mb-0.5" style={{ color: "hsl(var(--gold))" }}>
           {context ?? "Compliance Tool"}
