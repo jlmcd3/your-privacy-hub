@@ -62,6 +62,10 @@ const pricingFaqs = [
     q: "Can I try the tools before subscribing?",
     a: "The CPPA Scope Checker is free and requires no account. The Privacy Intelligence Feed is free to browse. Registering a free account gives you access to the Context layer on all articles. The weekly Privacy Intelligence Report and compliance tools require a paid subscription.",
   },
+  {
+    q: "Can I get my reports in other languages?",
+    a: "Yes. Every generated report and document can be translated into more than 20 languages — including French, German, Spanish, Italian, Dutch, Polish, Portuguese, Japanese, and Chinese — directly from the report page, at no extra charge (up to 4 languages per report). The English original remains the authoritative version. The weekly Privacy Intelligence Report is likewise available in your preferred language.",
+  },
 ];
 
 const FAQ = () => {
