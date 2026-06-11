@@ -616,6 +616,15 @@ export default function AdminFsorIngestion() {
           <p className="text-xs text-muted-foreground">
             Ingest GDPR articles, recitals, and EDPB guidelines into the corpus. Uses the admin token above.
           </p>
+          <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={gdprDryRun}
+              onChange={(e) => setGdprDryRun(e.target.checked)}
+              className="rounded border-border"
+            />
+            Dry run (parse and count only — no database writes)
+          </label>
           <div className="flex flex-wrap gap-2">
             <Button
               onClick={() => runGdprIngest("ingest-gdpr-eu", "Ingest EU GDPR")}
