@@ -273,7 +273,7 @@ Return this JSON object:
   "source_fidelity_note": "Short note: e.g. 'RSS summary only (${textLen} chars, tier ${sourceTier}) — specific claims limited.'"
 }
 
-Generate 0-3 action_items. Return [] if source does not support specific named-law actions. For entities: populate ONLY from content present in the article — not from training knowledge.`,
+Generate 0-3 action_items. Return [] if source does not support specific named-law actions. For entities: populate ONLY from content present in the article — not from training knowledge.` + correctionSuffix,
           },
         ],
       }),
