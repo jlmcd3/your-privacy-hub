@@ -19,7 +19,16 @@ export const SOURCE_FETCH_HEADERS: Record<string, string> = {
   "Accept-Language": "en-GB,en;q=0.9",
 };
 
-export const UK_INSERTED_IDS = ["4A", "44A", "45A", "45B", "45C", "47A", "49A"];
+// All inserted articles listed on https://www.legislation.gov.uk/eur/2016/679/contents
+// as of June 11, 2026 (includes DUA Act 2025 insertions, e.g. ADM Articles 22A-22D).
+export const UK_INSERTED_IDS = [
+  "4A", "8A", "11A", "12A",
+  "22A", "22B", "22C", "22D",
+  "44A", "45A", "45B", "45C",
+  "47A", "49A",
+  "84A", "84B", "84C", "84D",
+  "86A", "91A",
+];
 
 export function ukArticleXmlUrl(id: string): string {
   return `https://www.legislation.gov.uk/eur/2016/679/article/${id}/data.xml`;
