@@ -151,6 +151,8 @@ export default function AdminFsorIngestion() {
   const [verifyResult, setVerifyResult] = useState<string>("");
   const [gdprBusy, setGdprBusy] = useState<string | null>(null);
   const [gdprResult, setGdprResult] = useState<string>("");
+  const [gdprDryRun, setGdprDryRun] = useState(true);
+
 
   async function runGdprIngest(fn: "ingest-gdpr-eu" | "ingest-gdpr-uk" | "ingest-edpb-guidelines", label: string) {
     if (!adminToken) { toast.error("Admin token required"); return; }
