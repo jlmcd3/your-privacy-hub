@@ -102,18 +102,26 @@ function linkFirstMention(html: string, term: CuratedTerm): { html: string; link
 }
 
 /**
- * Generic section type accepted by ResearchPageLayout. We only touch `content`
- * (HTML string); everything else passes through unchanged.
- */
-type SectionLike = { content?: string } & Record<string, unknown>;
-
-/**
  * Wrap the FIRST page-wide occurrence of each curated glossary term in a
  * /glossary#{slug} link. Returns a new array of sections; never mutates input.
+ * Generic preserves the caller's literal property types.
  */
-export function linkGlossaryFirstMentions<T extends SectionLike>(sections: T[]): T[] {
+export function linkGlossaryFirstMentions<T extends { content?: string }>(sections: T[]): T[] {
   const remaining = new Set(TERMS.map((t) => t.slug));
   return sections.map((section) => {
+    if (!section.content || remaining.size === 0) return section;
+    let html = section.content;
+    for (const term of TERMS) {
+      if (!remaining.has(term.slug)) continue;
+      const result = linkFirstMention(html, term);
+      if (result.linked) {
+        html = result.html;
+        remaining.delete(term.slug);
+      }
+    }
+    return html === section.content ? section : { ...section, content: html };
+  });
+}
     if (!section.content || remaining.size === 0) return section;
     let html = section.content;
     for (const term of TERMS) {
