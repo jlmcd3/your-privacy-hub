@@ -1,0 +1,1 @@
+ALTER TABLE public.dpa_documents ADD COLUMN IF NOT EXISTS lint_warnings jsonb;

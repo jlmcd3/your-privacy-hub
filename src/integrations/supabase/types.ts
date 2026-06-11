@@ -911,6 +911,7 @@ export type Database = {
           id: string
           intake_data: Json
           is_subscriber_credit: boolean | null
+          lint_warnings: Json | null
           pdf_url: string | null
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
@@ -927,6 +928,7 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          lint_warnings?: Json | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
@@ -943,6 +945,7 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          lint_warnings?: Json | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
