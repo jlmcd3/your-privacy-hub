@@ -8,7 +8,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// PRICE MIRROR — these cents MUST mirror src/config/pricing.ts (v10).
+// PRICE MIRROR — these cents MUST mirror src/config/pricing.ts (v10). (v10 deployed 2026-06-11)
 // Any price change updates BOTH files in the same commit. Verify with
 // /admin/pricing-reconciliation.
 const ANNUAL_GATED_TOOLS = new Set([
