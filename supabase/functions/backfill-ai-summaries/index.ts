@@ -342,6 +342,40 @@ Generate 0-3 action_items. Return [] if source does not support specific named-l
   }
 }
 
+async function generateAISummary(
+  title: string,
+  summary: string | null,
+  sourceName: string | null,
+  sourceDomain: string | null,
+  apiKey: string,
+  publishedAt: string | null = null,
+): Promise<EnrichResult> {
+  const todayDay = new Date().toISOString().slice(0, 10);
+  const pubDateObj = publishedAt ? new Date(publishedAt) : null;
+  const pubDay = pubDateObj && !isNaN(pubDateObj.getTime())
+    ? pubDateObj.toISOString().slice(0, 10)
+    : todayDay;
+
+  const first = await _enrichAttempt(title, summary, sourceName, sourceDomain, apiKey, pubDay, null);
+  if (first.kind !== "ok") return first;
+
+  const ctx = { fn: "backfill-ai-summaries", title };
+  const d1 = checkDateConsistency(JSON.stringify(first.data), pubDay, ctx);
+  if (d1.ok) return first;
+
+  // ONE bounded retry with correction note
+  const found = d1.issues.map(i => i.found).join(", ");
+  const retry = await _enrichAttempt(title, summary, sourceName, sourceDomain, apiKey, pubDay, found);
+  if (retry.kind === "ok") {
+    const d2 = checkDateConsistency(JSON.stringify(retry.data), pubDay, ctx);
+    if (d2.ok) return retry;
+    console.error(JSON.stringify({ evt: "date_inconsistency_unresolved", fn: "backfill-ai-summaries", articleId: null, title, issues: d2.issues }));
+    return retry;
+  }
+  console.error(JSON.stringify({ evt: "date_inconsistency_unresolved", fn: "backfill-ai-summaries", articleId: null, title, issues: d1.issues }));
+  return first;
+}
+
 type EnrichResult =
   | { kind: "ok"; data: Record<string, unknown> }
   | { kind: "model_skip"; detail: string }
