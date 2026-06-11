@@ -100,8 +100,13 @@ Deno.serve(async (req) => {
     // ── STAGE 1: Classify use case ──
     const classifySystem = `You are a privacy regulatory analyst. Classify processing activities for legitimate interest analysis. Return ONLY valid JSON, no preamble.`;
 
-    // Run classification and enforcement context fetch in parallel
-    const [classifyText, enforcementCtxResult] = await Promise.all([
+    // Determine jurisdiction for GDPR authority retrieval (UK if any verified
+    // assessment.jurisdictions value matches /united kingdom|uk|gb/i, else EU).
+    const liaJurisdictions: string[] = Array.isArray(assessment.jurisdictions) ? assessment.jurisdictions : [];
+    const gdprJurisdiction: "eu" | "uk" = liaJurisdictions.some((j: string) => /united kingdom|uk|gb/i.test(String(j))) ? "uk" : "eu";
+
+    // Run classification, enforcement context fetch, and GDPR authority retrieval in parallel
+    const [classifyText, enforcementCtxResult, gdprCtxResult] = await Promise.all([
       callAnthropic(
         "claude-haiku-4-5-20251001",
         classifySystem,
@@ -112,11 +117,19 @@ Deno.serve(async (req) => {
         body: {
           tool: "LIA",
           data_categories: assessment.data_categories || [],
-          jurisdictions: assessment.jurisdictions || [],
+          jurisdictions: liaJurisdictions,
           sector: assessment.sector || undefined,
+          articles: ["gdpr:6"],
           limit: 5,
         },
-      }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; })
+      }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; }),
+      getGdprContext(supabase, {
+        articles: ["6"],
+        jurisdiction: gdprJurisdiction,
+        recitals: [47],
+        guidelineArticles: ["6"],
+        semanticQuery: assessment.processing_description || "",
+      }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; })
     ]);
 
     let classification: any = {};
