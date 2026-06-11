@@ -199,7 +199,7 @@ export default function GDPREnforcement() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="https://enduserprivacy.com/gdpr-enforcement" />
+        <link rel="canonical" href="/gdpr-enforcement" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",
