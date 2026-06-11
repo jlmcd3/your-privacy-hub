@@ -182,7 +182,7 @@ ul { padding-left: 20px; } li { margin-bottom: 4px; }
 <h2>Assessment Summary</h2>
 <div class="section">
 <span class="strength strength-${(overall.argument_strength || "uncertain").toLowerCase()}">Argument strength: ${overall.argument_strength || "Uncertain"}</span>
-<p>${overall.strength_basis || ""}</p>
+<p>${sanitizeNarrative(overall.strength_basis || "")}</p>
 </div>
 <h2>Three-Part Test</h2>
 ${["purpose_test", "necessity_test", "balancing_test"].map(key => {
