@@ -254,17 +254,23 @@ serve(async (req) => {
           );
           const { data: profile } = await admin
             .from("profiles")
-            .select("subscription_type, is_pro, is_premium")
+            .select("subscription_type, is_pro, is_premium, professional_annual")
             .eq("id", user.id)
             .single();
           subscriptionType = (profile as any)?.subscription_type ?? null;
           isPro = (profile as any)?.is_pro === true;
           isPremium = (profile as any)?.is_premium === true || isPro;
+          var _profile = profile;
         }
       } catch (_) {
         // ignore
       }
     }
+
+    // v10: annual gating for Layer-2 subscriber rates.
+    const isAnnual =
+      (typeof _profile !== "undefined" && (_profile as any)?.professional_annual === true) ||
+      String(subscriptionType ?? "").toLowerCase().includes("annual");
 
     // Canonical PRICING (src/config/pricing.ts) is the source of truth.
     const standaloneCents = tool.fallback_standalone_cents;
@@ -273,10 +279,10 @@ serve(async (req) => {
 
     const subscriberFree = SUBSCRIBER_FREE_TOOLS.has(tool_slug);
     const isSubscriberFree = subscriberFree && isPremium;
-    // v9: any active subscriber pays subscriber rate; Layer-1 tools resolve
-    // to 0 for subscribers; non-subscribers pay standalone.
+    // v10: Layer-2 subscriber rates require annual; monthly subs pay standalone.
+    const gated = ANNUAL_GATED_TOOLS.has(tool_slug);
     const effectiveCents = isPremium
-      ? (subscriberFree ? 0 : subscriberCents)
+      ? (subscriberFree ? 0 : (gated && !isAnnual ? standaloneCents : subscriberCents))
       : standaloneCents;
 
     return new Response(
