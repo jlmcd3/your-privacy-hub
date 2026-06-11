@@ -406,7 +406,12 @@ Deno.serve(async (req) => {
     // per-use subscriber price as an inducement to subscribe. Everyone
     // else pays the standalone price. SUBSCRIPTION_ONLY tools and
     // SUBSCRIBER_FREE tools are already short-circuited above.
-    const useSubscriberPrice = isPremium && !!tool.subscriber_lookup;
+    // v10: Layer-2 subscriber rates require an annual subscription. Monthly
+    // subscribers pay the standalone price for gated tools.
+    const gatedToolRequiresAnnual =
+      ANNUAL_GATED_TOOLS.has(tool_type) && !isAnnualSubscriber;
+    const useSubscriberPrice =
+      isPremium && !!tool.subscriber_lookup && !gatedToolRequiresAnnual;
     const lookupKey = useSubscriberPrice ? tool.subscriber_lookup! : tool.standalone_lookup;
     const fallbackCents = useSubscriberPrice
       ? tool.fallback_subscriber_cents
