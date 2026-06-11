@@ -1106,6 +1106,7 @@ export type Database = {
           primary_source_status: string | null
           primary_source_url: string | null
           primary_source_url_discovered_at: string | null
+          provisions_normalized: string[]
           raw_text: string | null
           regulator: string
           regulator_canonical: string | null
@@ -1176,6 +1177,7 @@ export type Database = {
           primary_source_status?: string | null
           primary_source_url?: string | null
           primary_source_url_discovered_at?: string | null
+          provisions_normalized?: string[]
           raw_text?: string | null
           regulator: string
           regulator_canonical?: string | null
@@ -1246,6 +1248,7 @@ export type Database = {
           primary_source_status?: string | null
           primary_source_url?: string | null
           primary_source_url_discovered_at?: string | null
+          provisions_normalized?: string[]
           raw_text?: string | null
           regulator?: string
           regulator_canonical?: string | null
@@ -5830,6 +5833,7 @@ export type Database = {
         }[]
       }
       my_client_ids: { Args: never; Returns: string[] }
+      normalize_provisions: { Args: { provs: string[] }; Returns: string[] }
       owns_client: { Args: { _client_id: string }; Returns: boolean }
       recompute_memo_eligible_interim: { Args: never; Returns: number }
     }
