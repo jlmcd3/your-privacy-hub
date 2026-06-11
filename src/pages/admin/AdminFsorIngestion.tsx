@@ -686,7 +686,7 @@ export default function AdminFsorIngestion() {
               {gdprBusy === "ingest-gdpr-uk" ? "Ingesting…" : "Ingest UK GDPR"}
             </Button>
             <Button
-              onClick={() => runGdprIngest("ingest-edpb-guidelines", "Ingest EDPB Guidelines")}
+              onClick={runEdpbSequential}
               disabled={gdprBusy !== null}
               variant="outline"
             >
