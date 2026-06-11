@@ -188,7 +188,7 @@ export function ResearchPageLayout({
 
         {/* Intelligence upsell */}
         {!isPremium && (
-          <div className="mt-12 bg-gradient-to-br from-brand-navy to-brand-ocean rounded-2xl p-6 md:p-8 text-center">
+          <div className="mt-12 bg-gradient-to-br from-brand-navy to-brand-ocean rounded-2xl p-6 md:p-8 text-center print:hidden">
             <div className="text-[11px] font-bold tracking-widest uppercase text-brand-mist mb-2">
               ⭐ Weekly Intelligence
             </div>
