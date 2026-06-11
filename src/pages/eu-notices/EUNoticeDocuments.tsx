@@ -24,6 +24,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 import DownloadWordButton from "@/components/DownloadWordButton";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 interface DocRow {
   id: string;
