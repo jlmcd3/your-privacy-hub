@@ -8,18 +8,20 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// v8 pricing model (May 2026 memo):
-//   Standalone = the per-use price for every tier — Intelligence and
-//   Professional subscribers pay the SAME standalone price. The only
-//   discount is the founding-subscriber promotion (20% off Smart Tools,
-//   15% off Convenience Tools), applied to founding_subscriber = true.
-//
-//   `subscriber_lookup` is retained as the Stripe lookup key for the
-//   founding-rate Price object; `fallback_subscriber_cents` is the
-//   founding-rate fallback used when Stripe lookup fails.
-//
-//   Keep in sync with src/config/pricing.ts PRICING.tools and the
-//   PRICING_REGISTRY v8 entries.
+// PRICE MIRROR — these cents MUST mirror src/config/pricing.ts (v10).
+// Any price change updates BOTH files in the same commit. Verify with
+// /admin/pricing-reconciliation.
+const ANNUAL_GATED_TOOLS = new Set([
+  "governance_assessment",
+  "healthcheck",
+  "li_assessment",
+  "li_analyzer",
+  "dpia_framework",
+  "dpia_builder",
+  "cppa_risk_assessment",
+  "cppa_cybersecurity",
+  "cppa_suite",
+]);
 const TOOLS: Record<
   string,
   {
