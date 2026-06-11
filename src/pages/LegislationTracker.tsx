@@ -47,7 +47,7 @@ const FLAG_BY_ISO: Record<string, string> = {
   IN: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_India.svg?width=40",
 };
 
-const REGIONS = ["All Regions", "Americas", "Europe", "Asia-Pacific"];
+const REGIONS = ["All Regions", "United States", "Americas", "Europe", "Asia-Pacific"];
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
