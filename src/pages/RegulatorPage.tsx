@@ -49,6 +49,15 @@ const RegulatorPage = () => {
       <Helmet>
         <title>{regulator.name}{regulator.abbreviation && !regulator.name.includes(`(${regulator.abbreviation})`) ? ` (${regulator.abbreviation})` : ''} — Regulator Profile | End User Privacy</title>
         <meta name="description" content={`${regulator.name} (${regulator.abbreviation}) profile: ${regulator.country} data protection authority. Legislation, enforcement updates, complaint portal, and monitoring tier.`} />
+        <link rel="canonical" href={`https://enduserprivacy.com/regulator/${slug}`} />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "GovernmentOrganization",
+          name: regulator.name,
+          alternateName: regulator.abbreviation || undefined,
+          url: regulator.website || undefined,
+          areaServed: regulator.country,
+        })}</script>
       </Helmet>
       <Navbar />
       <div className="bg-gradient-to-br from-brand-ocean to-brand-slate-teal py-10 md:py-14 px-4 md:px-8">
