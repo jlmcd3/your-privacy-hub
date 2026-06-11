@@ -359,6 +359,7 @@ export default function CPPARiskAssessment() {
           <p className="text-slate-400 text-xs italic mt-2">
             Built on the CPPA's final regulations and Final Statement of Reasons, paragraph-cited. This tool never invents precedent — where the agency hasn't spoken, it says so.
           </p>
+          <div className="mt-4"><SampleReportLink toolSlug="cppa_risk" tone="onDark" variant="link" /></div>
         </div>
       </header>
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
