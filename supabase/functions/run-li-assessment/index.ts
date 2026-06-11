@@ -221,10 +221,7 @@ MANDATORY FIELD RULES — violations will cause downstream system failures:
 4. PRECEDENT PROSE RULE: The precedent block above tags each entry with a bracketed outcome marker like [REJECTED] for machine readability. NEVER reproduce these bracketed markers in your prose. Refer to precedents in natural language naming the deciding regulator from the entry, e.g. 'a rejected decision by the Hessian DPA concerning keystroke logging'. Never attribute an enforcement decision to the EDPB unless the entry's source field is an EDPB Article 65 binding decision; the EDPB is not a first-instance enforcement body.`
       + (gdprBlock ? `\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "");
 
-    const analysisText = await callAnthropic(
-      "claude-sonnet-4-6",
-      analysisSystem,
-      `Conduct a three-part legitimate interest assessment for the following proposed processing.
+    const analysisUserBase = `Conduct a three-part legitimate interest assessment for the following proposed processing.
 
 PROPOSED PROCESSING (Stage A):
 Description: ${assessment.processing_description}
@@ -306,16 +303,91 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
       "relevance": "one sentence why this case is relevant to this assessment"
     }
   ]
-}`,
-      5000
-    );
+}`;
 
+    async function runStage2(extraUser: string): Promise<string> {
+      const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
+      return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, 5000);
+    }
+
+    let analysisText = await runStage2("");
     let analysis: any = parseLlmJson(analysisText);
     if (!analysis) {
       console.error("[LIA] Stage 2 parse failed even with repair. Length:", analysisText.length);
       console.error("[LIA] Tail:", analysisText.slice(-300));
       analysis = { overall_assessment: { argument_strength: "uncertain" } };
     }
+
+    // Lint narrative fields and retry once on hard violations.
+    const lintViolations: any[] = [];
+    function lintAnalysis(a: any): boolean {
+      let hardSeen = false;
+      const testKeys = ["purpose_test", "necessity_test", "balancing_test"];
+      for (const tk of testKeys) {
+        const t = a?.[tk];
+        if (!t || typeof t !== "object") continue;
+        for (const f of ["analysis"]) {
+          if (typeof t[f] === "string") {
+            const r = lintReportText(t[f]);
+            t[f] = r.clean;
+            for (const v of r.violations) lintViolations.push({ field: `${tk}.${f}`, ...v });
+            if (hasHardViolations(r)) hardSeen = true;
+          }
+        }
+        for (const f of ["risk_factors", "supporting_factors", "open_questions"]) {
+          if (Array.isArray(t[f])) {
+            t[f] = t[f].map((s: any) => {
+              if (typeof s !== "string") return s;
+              const r = lintReportText(s);
+              for (const v of r.violations) lintViolations.push({ field: `${tk}.${f}`, ...v });
+              if (hasHardViolations(r)) hardSeen = true;
+              return r.clean;
+            });
+          }
+        }
+      }
+      const oa = a?.overall_assessment;
+      if (oa && typeof oa === "object") {
+        for (const f of ["strength_basis", "closest_accepted_precedent", "closest_rejected_precedent"]) {
+          if (typeof oa[f] === "string") {
+            const r = lintReportText(oa[f]);
+            oa[f] = r.clean;
+            for (const v of r.violations) lintViolations.push({ field: `overall_assessment.${f}`, ...v });
+            if (hasHardViolations(r)) hardSeen = true;
+          }
+        }
+        for (const f of ["key_distinguishing_factors", "blocking_issues"]) {
+          if (Array.isArray(oa[f])) {
+            oa[f] = oa[f].map((s: any) => {
+              if (typeof s !== "string") return s;
+              const r = lintReportText(s);
+              for (const v of r.violations) lintViolations.push({ field: `overall_assessment.${f}`, ...v });
+              if (hasHardViolations(r)) hardSeen = true;
+              return r.clean;
+            });
+          }
+        }
+      }
+      return hardSeen;
+    }
+
+    if (lintAnalysis(analysis)) {
+      try {
+        const details = lintViolations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+        lintViolations.length = 0;
+        const retryText = await runStage2(
+          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
+        );
+        const retryParsed = parseLlmJson(retryText);
+        if (retryParsed) {
+          analysis = retryParsed;
+          lintAnalysis(analysis);
+        }
+      } catch (e) {
+        console.warn("[LIA] lint retry failed (non-fatal):", e);
+      }
+    }
+
 
     // Normalize overall_assessment so downstream consumers (and tests) get a
     // guaranteed contract even when the LLM omits or mis-fills required fields.
