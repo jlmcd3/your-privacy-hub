@@ -436,6 +436,16 @@ const UpdateDetail = () => {
                   )}
                 </section>
 
+                {article.product_ctas && article.product_ctas.length > 0 && (
+                  <div className="mt-4">
+                    <ProductCtaChip
+                      slug={article.product_ctas[0].slug}
+                      matchedTrigger={article.product_ctas[0].trigger}
+                      placement="article_detail"
+                    />
+                  </div>
+                )}
+
                 <InFeedAd />
 
                 {/* ========================================================
