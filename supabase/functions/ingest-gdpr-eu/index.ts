@@ -33,12 +33,6 @@ function json(b: unknown, s = 200) {
   });
 }
 
-async function sha256(s: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 async function embed(text: string): Promise<number[]> {
   const r = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
