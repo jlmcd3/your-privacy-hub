@@ -359,6 +359,14 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/ingest-legislation"
+              element={
+                <ProtectedRoute>
+                  <AdminIngestLegislation />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/jurisdiction-audit"
               element={
                 <ProtectedRoute>
