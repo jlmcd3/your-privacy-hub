@@ -389,7 +389,7 @@ const USPrivacyLaws = () => {
               const status = state.statute_status || "None";
               const style = getStatusStyle(state.statute_status);
               const showView = status === "Enacted" || status === "Pending";
-              const slug = slugify(state.state);
+              const slug = state.slug || slugify(state.state);
               return (
                 <div
                   key={state.id}
@@ -399,7 +399,7 @@ const USPrivacyLaws = () => {
                   <div className="px-4 py-3 md:px-5 md:py-4">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <Link
-                        to={`/jurisdiction/${slug}`}
+                        to={`/us-privacy-laws/${slug}`}
                         className="font-display text-base md:text-[17px] leading-tight text-brand-navy no-underline hover:underline"
                       >
                         {state.state}
@@ -440,7 +440,7 @@ const USPrivacyLaws = () => {
                     {showView && (
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta font-medium">
                         <Link
-                          to={`/jurisdiction/${slug}`}
+                          to={`/us-privacy-laws/${slug}`}
                           className="text-brand-teal hover:text-brand-navy no-underline font-semibold"
                         >
                           View →
