@@ -293,6 +293,7 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
     reportData.dpia_id = dpia_id;
     reportData.enforcement_precedents = enforcementPrecedents;
     reportData.enforcement_meta = enforcementMeta;
+    reportData.gdpr_meta = gdprMeta;
     try {
       reportData.annotations = Array.isArray(reportData?.section_3_risks?.annotations)
         ? reportData.section_3_risks.annotations
