@@ -645,7 +645,7 @@ export default function AdminFsorIngestion() {
               disabled={gdprBusy !== null}
               variant="outline"
             >
-            {gdprBusy === "ingest-edpb-guidelines" ? "Ingesting…" : "Ingest EDPB Guidelines"}
+              {gdprBusy === "ingest-edpb-guidelines" ? "Ingesting…" : "Ingest EDPB Guidelines"}
             </Button>
             <Button
               onClick={runGdprVerify}
