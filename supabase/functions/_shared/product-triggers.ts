@@ -16,7 +16,10 @@ export const PRODUCT_TRIGGERS: ProductTrigger[] = [
     triggers: [
       "cppa risk assessment",
       "california risk assessment",
+      "risk assessment regulations",
       "automated decisionmaking",
+      "automated decision-making",
+      "admt",
       "ccpa risk assessment",
       "cppa audit",
     ],
@@ -27,6 +30,7 @@ export const PRODUCT_TRIGGERS: ProductTrigger[] = [
     triggers: [
       "cppa cybersecurity",
       "california cybersecurity audit",
+      "cybersecurity audit regulations",
       "cppa audit",
       "cybersecurity readiness",
       "ccpa cybersecurity",
@@ -40,6 +44,8 @@ export const PRODUCT_TRIGGERS: ProductTrigger[] = [
       "ccpa threshold",
       "california privacy threshold",
       "cppa applicability",
+      "cppa",
+      "california privacy protection agency",
       "do i need a cppa audit",
     ],
   },
