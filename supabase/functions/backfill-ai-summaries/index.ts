@@ -521,7 +521,8 @@ Deno.serve(async (req) => {
       article.summary,
       article.source_name,
       (article as { source_domain?: string | null }).source_domain ?? null,
-      anthropicKey
+      anthropicKey,
+      (article as { published_at?: string | null }).published_at ?? null
     );
 
     if (result.kind === "ok") {
