@@ -241,7 +241,11 @@ export default function LegislationTracker() {
   }, []);
 
   const filtered = bills
-    .filter((b) => region === "All Regions" || b.region === region)
+    .filter((b) => {
+      if (region === "All Regions") return true;
+      if (region === "United States") return b.iso2 === "US";
+      return b.region === region;
+    })
     .filter((b) => stage === "All Stages" || b.stage === stage);
 
   // Track groupings (default priority sort)
