@@ -5524,6 +5524,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_events: {
+        Row: {
+          created_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          page_path: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json
+          event_type: string
+          id?: string
+          page_path?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          page_path?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -5684,6 +5714,7 @@ export type Database = {
           privacy_litigation: string | null
           published_at: string
           source_map: Json | null
+          toolkit_ctas: Json
           top_enforcement_signals: Json | null
           trend_signal: string | null
           us_federal: string | null
@@ -5709,6 +5740,7 @@ export type Database = {
           privacy_litigation?: string | null
           published_at?: string
           source_map?: Json | null
+          toolkit_ctas?: Json
           top_enforcement_signals?: Json | null
           trend_signal?: string | null
           us_federal?: string | null
@@ -5734,6 +5766,7 @@ export type Database = {
           privacy_litigation?: string | null
           published_at?: string
           source_map?: Json | null
+          toolkit_ctas?: Json
           top_enforcement_signals?: Json | null
           trend_signal?: string | null
           us_federal?: string | null
