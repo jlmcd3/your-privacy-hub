@@ -452,7 +452,7 @@ Deno.serve(async (req) => {
 
   let articleQuery = supabase
     .from("updates")
-    .select("id, title, summary, source_name, source_domain");
+    .select("id, title, summary, source_name, source_domain, published_at");
 
   if (targetIds && targetIds.length > 0) {
     // Explicit ID list: process these rows regardless of enrichment state.
