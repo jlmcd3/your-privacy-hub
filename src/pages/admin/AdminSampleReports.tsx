@@ -1,0 +1,468 @@
+// Admin page for generating + curating public sample reports.
+// Mirrors the AdminFsorIngestion admin-token pattern. Per-card actions:
+//   Generate · View result · Save as sample · Set status · Attach PDF
+// The "Generate" step uses the EXACT insert+invoke shape from each Test*.tsx,
+// driven by the discriminator inside sampleFixtures.ts (`fixture.insert` /
+// `fixture.invoke_body` etc.). The current admin user runs as themselves so
+// RLS-owned polling works exactly like the existing Test pages.
+
+import { useEffect, useMemo, useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { SAMPLE_FIXTURES, type SampleFixture } from "@/lib/sampleFixtures";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+
+type SampleRow = {
+  id: string;
+  tool_slug: string;
+  variant: string;
+  title: string;
+  status: string;
+  source_row_id: string | null;
+  source_table: string | null;
+  verification: Record<string, unknown> | null;
+  pdf_path: string | null;
+  updated_at: string;
+};
+
+type RunState = {
+  status: "idle" | "running" | "complete" | "failed";
+  log: string[];
+  sourceRowId: string | null;
+  resultUrl: string | null;
+};
+
+const EMPTY_RUN: RunState = { status: "idle", log: [], sourceRowId: null, resultUrl: null };
+
+async function getOrCreatePersonalClient(userId: string): Promise<string> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("owner_id", userId)
+    .eq("is_active", true)
+    .limit(1);
+  if (error) throw error;
+  if (!data?.length) throw new Error("No personal workspace client found for admin user");
+  return data[0].id;
+}
+
+async function runGenerator(
+  fix: SampleFixture,
+  userId: string,
+  log: (msg: string) => void,
+): Promise<{ sourceRowId: string; resultUrl: string }> {
+  const f = fix.fixture as Record<string, unknown>;
+
+  // -- LIA / DPIA / Governance / CPPA risk / CPPA cyber -------------------
+  if (fix.tool_slug === "li_assessment" || fix.tool_slug === "dpia" ||
+      fix.tool_slug === "governance" || fix.tool_slug === "cppa_risk" ||
+      fix.tool_slug === "cppa_cyber") {
+    const insert = { ...(f.insert as Record<string, unknown>), user_id: userId };
+    const invoke = f.invoke as { fn: string; id_key: string };
+    const poll = f.poll as { table: string; terminal: string[]; max: number; interval_ms: number };
+
+    log(`▶ Insert into ${fix.source_table}...`);
+    const { data: rec, error: insErr } = await (supabase as any).from(fix.source_table).insert(insert).select("id").single();
+    if (insErr || !rec) throw new Error(`insert failed: ${insErr?.message}`);
+    log(`✓ id=${rec.id}`);
+    log(`▶ Invoking ${invoke.fn}...`);
+    const { error: fnErr } = await supabase.functions.invoke(invoke.fn, { body: { [invoke.id_key]: rec.id } });
+    if (fnErr) log(`⚠ fn error (polling anyway): ${fnErr.message}`);
+    log(`▶ Polling ${poll.table} for completion...`);
+    for (let i = 0; i < poll.max; i++) {
+      await new Promise((r) => setTimeout(r, poll.interval_ms));
+      const { data } = await (supabase as any).from(poll.table).select("status").eq("id", rec.id).single();
+      if (data?.status === "complete") {
+        log(`✅ status=complete after ${i + 1} polls`);
+        return { sourceRowId: rec.id, resultUrl: fix.result_url_pattern.replace("{id}", rec.id) };
+      }
+      if (poll.terminal.includes(data?.status) && data?.status !== "complete") {
+        throw new Error(`generator status=${data?.status}`);
+      }
+      if (i % 3 === 0) log(`… poll ${i + 1}/${poll.max} (status=${data?.status})`);
+    }
+    throw new Error("polling timed out");
+  }
+
+  // -- DPA / IR / Biometric (single-call generators that return id) -------
+  if (fix.tool_slug === "dpa" || fix.tool_slug === "ir_playbook" || fix.tool_slug === "biometric") {
+    const invoke = f.invoke as { fn: string };
+    const body =
+      fix.tool_slug === "ir_playbook" && f.invoke_body
+        ? { ...(f.invoke_body as Record<string, unknown>), user_id: userId }
+        : { ...((f.invoke_body_extras as Record<string, unknown>) ?? {}), user_id: userId };
+    log(`▶ Invoking ${invoke.fn}...`);
+    const { data, error } = await supabase.functions.invoke(invoke.fn, { body });
+    if (error || !data?.id) throw new Error(`generator: ${error?.message || data?.error || "no id"}`);
+    log(`✅ id=${data.id}`);
+    return { sourceRowId: data.id, resultUrl: fix.result_url_pattern.replace("{id}", data.id) };
+  }
+
+  // -- RoPA --------------------------------------------------------------
+  if (fix.tool_slug === "ropa") {
+    const clientId = await getOrCreatePersonalClient(userId);
+    log(`✓ client ${clientId}`);
+
+    log("▶ Upsert ropa_client_profiles...");
+    const { error: pErr } = await supabase.from("ropa_client_profiles").upsert(
+      { client_id: clientId, ...(f.profile as Record<string, unknown>) },
+      { onConflict: "client_id" },
+    );
+    if (pErr) throw new Error(`profile: ${pErr.message}`);
+
+    log("▶ Upsert ropa_jurisdiction_selections...");
+    const jurs = (f.jurisdictions as Array<Record<string, unknown>>).map((j) => ({ client_id: clientId, ...j }));
+    const { error: jErr } = await supabase
+      .from("ropa_jurisdiction_selections")
+      .upsert(jurs, { onConflict: "client_id,jurisdiction_code" });
+    if (jErr) throw new Error(`jurisdictions: ${jErr.message}`);
+
+    log("▶ Create ropa_session...");
+    const activities = f.activities as Array<Record<string, unknown>>;
+    const { data: session, error: sErr } = await supabase
+      .from("ropa_sessions")
+      .insert({
+        client_id: clientId,
+        status: "review",
+        version_number: 1,
+        total_activities: activities.length,
+        completed_activities: activities.length,
+        payment_confirmed: true,
+        paid_at: new Date().toISOString(),
+        org_name: f.org_name as string,
+      })
+      .select("id")
+      .single();
+    if (sErr || !session) throw new Error(`session: ${sErr?.message}`);
+    log(`✓ session ${session.id}`);
+
+    log(`▶ Insert ${activities.length} activities + answers...`);
+    const activityRows = activities.map((a, i) => ({
+      session_id: session.id,
+      client_id: clientId,
+      display_name: a.activity_name,
+      category: a.category,
+      status: "complete",
+      completion_pct: 100,
+      display_order: i,
+    }));
+    const { data: insertedActs, error: aErr } = await supabase
+      .from("ropa_processing_activities")
+      .insert(activityRows)
+      .select("id, display_order");
+    if (aErr || !insertedActs) throw new Error(`activities: ${aErr?.message}`);
+
+    const answerRows: Array<Record<string, unknown>> = [];
+    for (const inserted of insertedActs) {
+      const src = activities[inserted.display_order as number];
+      const map: Record<string, unknown> = {
+        purpose: src.purpose,
+        lawful_basis: src.lawful_basis,
+        special_category_basis: src.special_category_basis,
+        data_subjects: src.data_subjects,
+        data_categories: src.data_categories,
+        recipients: src.recipients,
+        processor_platform: src.recipients,
+        transfer_destination: src.transfer_destination,
+        transfer_mechanism: src.transfer_mechanism,
+        retention_period: src.retention_period,
+        security_measures: src.security_measures,
+        access_controls: "Role-based access; quarterly access reviews; least-privilege enforced",
+      };
+      for (const [k, v] of Object.entries(map)) {
+        answerRows.push({ activity_id: inserted.id, session_id: session.id, question_key: k, answer_value: v });
+      }
+    }
+    const { error: ansErr } = await supabase.from("ropa_answers").insert(answerRows);
+    if (ansErr) throw new Error(`answers: ${ansErr.message}`);
+
+    log("▶ Invoking generate-ropa-document...");
+    const { data: gen, error: genErr } = await supabase.functions.invoke("generate-ropa-document", {
+      body: {
+        session_id: session.id,
+        format: "pdf",
+        document_date: new Date().toISOString().slice(0, 10),
+        author_name: f.author_name as string,
+      },
+    });
+    if (genErr || !gen?.download_url) throw new Error(`gen: ${genErr?.message || gen?.error}`);
+    log(`✅ pdf generated`);
+
+    // The "result" is the documents list page; the source row is the latest
+    // ropa_document_versions row for this session.
+    const { data: ver } = await supabase
+      .from("ropa_document_versions")
+      .select("id")
+      .eq("session_id", session.id)
+      .eq("document_format", "pdf")
+      .maybeSingle();
+    return {
+      sourceRowId: ver?.id ?? session.id,
+      resultUrl: "/ropa/documents",
+    };
+  }
+
+  // -- US / EU Notice (template generators) -------------------------------
+  if (fix.tool_slug === "us_notice" || fix.tool_slug === "eu_notice") {
+    const clientId = await getOrCreatePersonalClient(userId);
+    log(`✓ client ${clientId}`);
+
+    const sessionTable = fix.tool_slug === "us_notice" ? "us_notice_sessions" : "eu_notice_sessions";
+    const selectionsTable = fix.tool_slug === "us_notice"
+      ? "us_notice_state_selections" : "eu_notice_framework_selections";
+    const answersTable = fix.tool_slug === "us_notice" ? "us_notice_answers" : "eu_notice_answers";
+    const genFn = fix.tool_slug === "us_notice" ? "generate-us-notice" : "generate-eu-notice";
+
+    log(`▶ Create ${sessionTable}...`);
+    const session_init = {
+      client_id: clientId,
+      status: "review",
+      payment_confirmed: true,
+      paid_at: new Date().toISOString(),
+      ...(f.session as Record<string, unknown>),
+    };
+    const { data: session, error: sErr } = await (supabase as any).from(sessionTable).insert(session_init).select("id").single();
+    if (sErr || !session) throw new Error(`session: ${sErr?.message}`);
+    log(`✓ session ${session.id}`);
+
+    log("▶ Insert selections...");
+    let selections: Array<Record<string, unknown>>;
+    if (fix.tool_slug === "us_notice") {
+      selections = (f.states as Array<{ name: string; code: string; framework: string }>).map((s) => ({
+        session_id: session.id, state_code: s.code, state_name: s.name, framework_type: s.framework,
+      }));
+    } else {
+      selections = (f.frameworks as Array<{ code: string; name: string; region: string }>).map((fw) => ({
+        session_id: session.id, framework_code: fw.code, framework_name: fw.name, region: fw.region,
+      }));
+    }
+    const { error: selErr } = await (supabase as any).from(selectionsTable).insert(selections);
+    if (selErr) throw new Error(`selections: ${selErr.message}`);
+
+    log("▶ Insert universal answers...");
+    const universal = f.universal as Record<string, unknown>;
+    const answerRows = Object.entries(universal).map(([k, v]) => ({
+      session_id: session.id, question_key: k, answer_value: v,
+    }));
+    const { error: aErr } = await (supabase as any).from(answersTable).insert(answerRows);
+    if (aErr) throw new Error(`answers: ${aErr.message}`);
+
+    log(`▶ Invoking ${genFn}...`);
+    const { data: gen, error: gErr } = await supabase.functions.invoke(genFn, { body: { session_id: session.id } });
+    if (gErr || !gen?.documents?.length) throw new Error(`gen: ${gErr?.message || gen?.error}`);
+    log(`✅ ${gen.documents.length} document(s) generated`);
+
+    return { sourceRowId: session.id, resultUrl: fix.result_url_pattern.replace("{id}", session.id) };
+  }
+
+  throw new Error(`unknown tool_slug ${fix.tool_slug}`);
+}
+
+async function callSaveSampleReport(adminToken: string, action: string, payload: Record<string, unknown>) {
+  const r = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+    body: JSON.stringify({ action, ...payload }),
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data?.error || `HTTP ${r.status}`);
+  return data;
+}
+
+export default function AdminSampleReports() {
+  const { user } = useAuth();
+  const [adminToken, setAdminToken] = useState("");
+  const [runs, setRuns] = useState<Record<string, RunState>>({});
+  const [samples, setSamples] = useState<SampleRow[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const samplesByKey = useMemo(() => {
+    const m: Record<string, SampleRow> = {};
+    for (const s of samples) m[`${s.tool_slug}::${s.variant}`] = s;
+    return m;
+  }, [samples]);
+
+  async function reloadSamples() {
+    if (!adminToken) return;
+    try {
+      const { rows } = await callSaveSampleReport(adminToken, "list", {});
+      setSamples(rows as SampleRow[]);
+    } catch (e) {
+      toast.error(`List failed: ${(e as Error).message}`);
+    }
+  }
+
+  useEffect(() => { if (adminToken) reloadSamples(); /* eslint-disable-next-line */ }, [adminToken]);
+
+  const setRun = (key: string, patch: Partial<RunState>) =>
+    setRuns((r) => ({ ...r, [key]: { ...(r[key] ?? EMPTY_RUN), ...patch } }));
+  const appendLog = (key: string, msg: string) =>
+    setRuns((r) => {
+      const cur = r[key] ?? EMPTY_RUN;
+      return { ...r, [key]: { ...cur, log: [...cur.log, msg] } };
+    });
+
+  async function onGenerate(fix: SampleFixture) {
+    if (!user) { toast.error("Sign in first"); return; }
+    const key = `${fix.tool_slug}::${fix.variant}`;
+    setRun(key, { status: "running", log: [], sourceRowId: null, resultUrl: null });
+    try {
+      const { sourceRowId, resultUrl } = await runGenerator(fix, user.id, (m) => appendLog(key, m));
+      setRun(key, { status: "complete", sourceRowId, resultUrl });
+      toast.success(`${fix.title} generated`);
+    } catch (e) {
+      appendLog(key, `❌ ${(e as Error).message}`);
+      setRun(key, { status: "failed" });
+      toast.error(`Generate failed: ${(e as Error).message}`);
+    }
+  }
+
+  async function onSaveAsSample(fix: SampleFixture) {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    const key = `${fix.tool_slug}::${fix.variant}`;
+    const run = runs[key];
+    if (!run?.sourceRowId) { toast.error("Generate first"); return; }
+    setBusy(`save::${key}`);
+    try {
+      await callSaveSampleReport(adminToken, "snapshot", {
+        tool_slug: fix.tool_slug,
+        variant: fix.variant,
+        title: fix.title,
+        scenario_summary: fix.scenario_summary,
+        fixture: fix.fixture,
+        source_table: fix.source_table,
+        source_row_id: run.sourceRowId,
+      });
+      toast.success("Saved as sample");
+      await reloadSamples();
+    } catch (e) {
+      toast.error(`Save failed: ${(e as Error).message}`);
+    } finally { setBusy(null); }
+  }
+
+  async function onSetStatus(sample: SampleRow, status: string) {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    setBusy(`status::${sample.id}`);
+    try {
+      await callSaveSampleReport(adminToken, "set_status", { id: sample.id, status });
+      toast.success(`Status → ${status}`);
+      await reloadSamples();
+    } catch (e) {
+      toast.error(`Status change failed: ${(e as Error).message}`);
+    } finally { setBusy(null); }
+  }
+
+  async function onAttachPdf(sample: SampleRow, file: File) {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    setBusy(`pdf::${sample.id}`);
+    try {
+      const buf = await file.arrayBuffer();
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      await callSaveSampleReport(adminToken, "attach_pdf", {
+        id: sample.id, filename: file.name, base64: b64,
+      });
+      toast.success("PDF attached");
+      await reloadSamples();
+    } catch (e) {
+      toast.error(`PDF attach failed: ${(e as Error).message}`);
+    } finally { setBusy(null); }
+  }
+
+  return (
+    <div className="min-h-screen bg-brand-cloud flex flex-col">
+      <Helmet><title>Admin — Sample Reports</title></Helmet>
+      <Navbar />
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8 space-y-6">
+        <header>
+          <h1 className="font-serif text-3xl mb-1">Admin — Sample Reports</h1>
+          <p className="text-sm text-muted-foreground">
+            Generate each fixture through the live tool, save the result as a sample, attach the downloaded PDF, then flip to <code>published</code> after John+Mara review.
+          </p>
+        </header>
+
+        <div className="border rounded-lg bg-card p-4 space-y-2">
+          <Label htmlFor="admin-token">Admin token</Label>
+          <Input id="admin-token" type="password" value={adminToken} onChange={(e) => setAdminToken(e.target.value)} placeholder="ADMIN_SECRET_TOKEN" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {SAMPLE_FIXTURES.map((fix) => {
+            const key = `${fix.tool_slug}::${fix.variant}`;
+            const run = runs[key] ?? EMPTY_RUN;
+            const sample = samplesByKey[key];
+            return (
+              <div key={key} className="border rounded-lg bg-card p-4 space-y-3">
+                <div>
+                  <div className="text-xs font-mono text-muted-foreground">{fix.tool_slug} · {fix.variant}</div>
+                  <h2 className="font-serif text-lg leading-tight">{fix.title}</h2>
+                  <p className="text-xs text-muted-foreground mt-1">{fix.scenario_summary}</p>
+                </div>
+
+                <div className="text-xs font-mono flex flex-wrap gap-3">
+                  <span>Run: <strong>{run.status}</strong></span>
+                  <span>Sample: <strong>{sample ? sample.status : "—"}</strong></span>
+                  {sample?.pdf_path && <span>PDF: <strong>attached</strong></span>}
+                  {sample?.verification && <span>Verification: <strong>present</strong></span>}
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => onGenerate(fix)} disabled={run.status === "running"}>
+                    {run.status === "running" ? "Generating…" : "Generate"}
+                  </Button>
+                  {run.resultUrl && (
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={run.resultUrl} target="_blank" rel="noreferrer">View result</a>
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => onSaveAsSample(fix)}
+                    disabled={!run.sourceRowId || busy === `save::${key}`}>
+                    {busy === `save::${key}` ? "Saving…" : "Save as sample"}
+                  </Button>
+                </div>
+
+                {sample && (
+                  <div className="flex flex-wrap items-center gap-2 pt-1 border-t">
+                    <select
+                      className="text-xs border rounded px-2 py-1 bg-background"
+                      value={sample.status}
+                      onChange={(e) => onSetStatus(sample, e.target.value)}
+                      disabled={busy === `status::${sample.id}`}
+                    >
+                      <option value="draft">draft</option>
+                      <option value="approved">approved</option>
+                      <option value="published">published</option>
+                    </select>
+                    <label className="text-xs cursor-pointer underline">
+                      Attach PDF
+                      <input type="file" accept="application/pdf" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) onAttachPdf(sample, f); e.target.value = ""; }} />
+                    </label>
+                    {sample.pdf_path && <span className="text-xs font-mono text-muted-foreground">{sample.pdf_path}</span>}
+                  </div>
+                )}
+
+                {run.log.length > 0 && (
+                  <details className="text-xs">
+                    <summary className="cursor-pointer">Log ({run.log.length})</summary>
+                    <pre className="bg-black text-green-400 font-mono p-2 mt-1 rounded max-h-40 overflow-auto">
+{run.log.join("\n")}
+                    </pre>
+                  </details>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
