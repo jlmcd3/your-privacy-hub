@@ -272,6 +272,9 @@ Deno.serve(async (req) => {
       isProfessionalAnnual = (profile as any)?.professional_annual === true
         || subscriptionType === "annual" || subscriptionType === "annual_founding";
     }
+    const isAnnualSubscriber =
+      isProfessionalAnnual ||
+      String(subscriptionType ?? "").toLowerCase().includes("annual");
 
     // ── Subscription-only tools (RoPA, US/EU Notice Builders) ──
     // These are included with any active subscription (monthly or annual)
