@@ -187,8 +187,8 @@ ${((docRecs.recommended_documentation) || []).map((doc: any) =>
 <p>${doc.purpose || ""}</p>
 ${(doc.key_elements || []).length ? `<ul>${(doc.key_elements || []).map((e: string) => `<li>${e}</li>`).join("")}</ul>` : ""}</div>`
   ).join("")}
-<h2>Balancing Record — Must Include</h2>
-<ul>${((docRecs.balancing_record_elements) || []).map((e: string) => `<li>${e}</li>`).join("")}</ul>
+${((docRecs.balancing_record_elements) || []).length ? `<h2>Balancing Record — Must Include</h2>
+<ul>${(docRecs.balancing_record_elements).map((e: string) => `<li>${e}</li>`).join("")}</ul>` : ""}
 <p class="meta">${report.data_currency_note || ""}</p>
 <div class="disclaimer">${report.disclaimer || ""}</div>
 </body></html>`;
@@ -282,15 +282,19 @@ ${sections.map(([key, heading]) => {
     const s = report[key] || {};
     return `<h2>${heading}</h2>
 ${s.guidance_note ? `<div class="guidance"><strong>Article 35 requirement: </strong>${s.guidance_note}</div>` : ""}
-${Object.entries(s)
-        .filter(([k]) => !["title", "guidance_note", "completion_guidance", "risk_assessment", "proposed_measures"].includes(k))
-        .map(([k, v]) => `<p><span class="label">${k.replace(/_/g, " ")}:</span> ${v || ""}</p>`)
-        .join("")}
 ${(s.risk_assessment || []).length ? `<ul>${(s.risk_assessment || []).map((r: any) =>
         `<li><strong>${r.risk_type || ""}</strong> — Likelihood: ${r.likelihood || ""}, Severity: ${r.severity || ""}. ${r.description || ""}</li>`
       ).join("")}</ul>` : ""}
 ${(s.proposed_measures || []).length ? `<ul>${(s.proposed_measures || []).map((m: any) =>
         `<li><strong>${m.measure || ""}</strong>: ${m.implementation_guidance || ""} (Residual risk: ${m.residual_risk_after || ""})</li>`
+      ).join("")}</ul>` : ""}
+${Object.entries(s)
+        .filter(([k, v]) => !["title", "guidance_note", "completion_guidance", "risk_assessment", "proposed_measures", "annotations"].includes(k)
+          && (typeof v === "string" ? v.trim().length > 0 : typeof v === "boolean"))
+        .map(([k, v]) => `<p><span class="label">${k.replace(/_/g, " ")}:</span> ${typeof v === "boolean" ? (v ? "Yes" : "No") : v}</p>`)
+        .join("")}
+${Array.isArray(s.annotations) && s.annotations.length ? `<p class="label">Enforcement annotations:</p><ul>${s.annotations.map((a: any) =>
+        `<li><strong>${a.regulator || "Enforcement source"}</strong>${a.summary ? ` — ${a.summary}` : ""}${a.relevance ? ` (Relevance: ${a.relevance})` : ""}</li>`
       ).join("")}</ul>` : ""}
 ${s.completion_guidance ? `<div class="completion"><strong>Your DPO/Counsel must complete: </strong>${s.completion_guidance}</div>` : ""}`;
   }).join("")}
@@ -327,7 +331,7 @@ function renderInlineHtml(text: string): string {
 type TextBlock =
   | { type: "subhead"; text: string; trailing?: string }
   | { type: "para"; text: string }
-  | { type: "ol"; items: string[] }
+  | { type: "ol"; items: { num: string; text: string }[] }
   | { type: "ul"; items: string[] };
 
 function parseTextBlocks(body: string): TextBlock[] {
@@ -347,13 +351,13 @@ function parseTextBlocks(body: string): TextBlock[] {
       i++; continue;
     }
     if (numberedRe.test(line)) {
-      const items: string[] = [];
+      const items: { num: string; text: string }[] = [];
       while (i < lines.length) {
         const cur = lines[i].trim();
         const m = numberedRe.exec(cur);
-        if (m) { items.push(m[2]); i++; }
+        if (m) { items.push({ num: m[1], text: m[2] }); i++; }
         else if (cur && !subheadRe.test(cur) && !bulletRe.test(cur) && items.length > 0) {
-          items[items.length - 1] += " " + cur; i++;
+          items[items.length - 1].text += " " + cur; i++;
         } else break;
       }
       blocks.push({ type: "ol", items });
@@ -387,8 +391,8 @@ function blocksToHtml(blocks: TextBlock[]): string {
     }
     if (b.type === "para") return `<p class="body-p">${renderInlineHtml(b.text)}</p>`;
     if (b.type === "ol") {
-      return `<ol class="num-list">${b.items.map((it, j) =>
-        `<li><span class="num">${j + 1}</span><span class="li-body">${renderInlineHtml(it)}</span></li>`).join("")}</ol>`;
+      return `<ol class="num-list">${b.items.map((it) =>
+        `<li><span class="num">${escHtml(it.num)}</span><span class="li-body">${renderInlineHtml(it.text)}</span></li>`).join("")}</ol>`;
     }
     return `<ul class="dot-list">${b.items.map((it) =>
       `<li><span class="dot"></span><span class="li-body">${renderInlineHtml(it)}</span></li>`).join("")}</ul>`;
