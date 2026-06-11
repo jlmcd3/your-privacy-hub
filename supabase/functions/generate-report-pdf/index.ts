@@ -691,9 +691,12 @@ function buildCPPARiskReportHTML(report: any, record: any): string {
       ${d.regulatory_basis ? `<p><span class="label">Regulatory basis:</span> ${text(d.regulatory_basis)}</p>` : ""}
       ${d.remediation ? `<p><span class="label">Remediation:</span> ${text(d.remediation)}</p>` : ""}
       ${d.priority ? `<p><span class="label">Priority:</span> ${text(d.priority)}</p>` : ""}
+      ${renderCppaFsorCompact(d.fsor_commentary)}
     </article>`).join("")}</section>` : ""}
     ${topRisks.length ? `<section class="section"><h2>Top Risks</h2>${topRisks.slice(0, 3).map((r: any) => `<article class="risk"><h3>${text(r.title)}</h3>${r.description ? `<p>${text(r.description)}</p>` : ""}${r.deadline ? `<p><span class="label">Deadline:</span> ${text(r.deadline)}</p>` : ""}${r.consequence ? `<p><span class="label">Consequence:</span> ${text(r.consequence)}</p>` : ""}</article>`).join("")}</section>` : ""}
     ${nextSteps.length ? `<section class="section"><h2>Next Steps</h2><ol>${nextSteps.map((step: any) => `<li>${text(step)}</li>`).join("")}</ol></section>` : ""}
+    ${renderCppaSectionCommentary(report?.fsor_section_commentary)}
+    ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
     <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
