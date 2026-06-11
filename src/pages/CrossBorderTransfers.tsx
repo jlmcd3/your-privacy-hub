@@ -115,7 +115,7 @@ export default function CrossBorderTransfersPage() {
           title: "Cross-Border Data Transfers: GDPR, SCCs, DPF & Global Rules",
           description:
             "International transfers sit on top of fragile legal foundations — Schrems II reset the world, and the DPF could be next. This is the working reference for the mechanisms still in force today.",
-          lastUpdated: "March 24, 2026",
+          lastUpdated: "June 10, 2026",
           feedCategory: "cross-border",
           stats: [
             { value: "~15", label: "EU adequacy decisions" },
@@ -187,7 +187,7 @@ export default function CrossBorderTransfersPage() {
             content: `<ul>
 <li><strong><a href="/jurisdiction/china">China PIPL</a></strong> (Articles 38–43) — security assessments, standard contracts, or certification. Enforced by the <a href="/regulator/cac">CAC</a>.</li>
 <li><strong><a href="/jurisdiction/japan">Japan APPI</a></strong> — equivalent-protection model; mutual EU adequacy. Enforced by the <a href="/regulator/ppc">PPC</a>.</li>
-<li><strong><a href="/jurisdiction/south-korea">South Korea PIPA</a></strong> — mutual EU adequacy since 2024. Enforced by the <a href="/regulator/pipc">PIPC</a>.</li>
+<li><strong><a href="/jurisdiction/south-korea">South Korea PIPA</a></strong> — EU adequacy since December 2021. Enforced by the <a href="/regulator/pipc">PIPC</a>.</li>
 <li><strong><a href="/jurisdiction/india">India DPDP Act</a></strong> — permits transfers except to a future government blacklist.</li>
 <li><strong><a href="/jurisdiction/singapore">Singapore PDPA</a></strong> — comparable-protection standard. Enforced by the <a href="/regulator/pdpc">PDPC</a>.</li>
 <li><strong><a href="https://globalcbpr.org/" target="_blank" rel="noopener noreferrer">Global CBPR Forum</a></strong> — voluntary certification framework succeeding APEC CBPR.</li>
