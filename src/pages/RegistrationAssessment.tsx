@@ -360,7 +360,7 @@ export default function RegistrationAssessment() {
                         label="We have an EU establishment (office, employees, or subsidiary)" />
                       {intake.has_eu_establishment && (
                         <div className="ml-6 space-y-2">
-                          <Label className="text-sm">EU lead supervisory authority (if known)</Label>
+                          <Label className="text-sm">EU lead supervisory authority (if known) <DefPopover termKey="gdpr_supervisory_authority" /></Label>
                           <Select value={intake.eu_lead_member_state}
                             onValueChange={(v) => setIntake({ ...intake, eu_lead_member_state: v })}>
                             <SelectTrigger className="max-w-xs"><SelectValue placeholder="Auto-pick from establishment" /></SelectTrigger>
