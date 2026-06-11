@@ -192,7 +192,7 @@ export const PRODUCT_TRIGGERS: ProductTrigger[] = [
 
 export function matchProductCtas(
   text: string,
-  maxResults = 1,
+  maxResults = 3,
 ): { slug: string; trigger: string }[] {
   if (!text) return [];
   const haystack = text.toLowerCase();
