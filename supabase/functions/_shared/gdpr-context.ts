@@ -228,5 +228,22 @@ export async function getGdprContext(
   }
 
   meta.final_chars = body.length;
+
+  // Build gdprCites: ready-made array matching the bracket tokens emitted
+  // above (e.g. "Art. 6 EU", "Recital 47", "EDPB Guidelines 1/2024 — …").
+  const gdprCites: string[] = [];
+  for (const a of articles) {
+    const jur = String(a.jurisdiction || opts.jurisdiction).toUpperCase();
+    gdprCites.push(`Art. ${a.article_number} ${jur}`);
+  }
+  for (const r of recitals) {
+    gdprCites.push(`Recital ${r.recital_number}`);
+  }
+  for (const g of guidelineHits) {
+    const heading = g.section_heading || g.title || g.guideline_ref;
+    gdprCites.push(`EDPB ${g.guideline_ref} — ${heading}`);
+  }
+  meta.gdprCites = gdprCites;
+
   return { block: body, meta };
 }
