@@ -1031,6 +1031,60 @@ export type Database = {
           },
         ]
       }
+      edpb_guidelines: {
+        Row: {
+          adopted_date: string | null
+          content_hash: string
+          created_at: string
+          doc_version: string | null
+          embedding: string | null
+          embedding_model: string
+          excerpt_text: string
+          guideline_ref: string
+          id: string
+          related_articles: string[]
+          section_heading: string | null
+          source_url: string | null
+          status: string
+          title: string
+          topic_tags: string[]
+        }
+        Insert: {
+          adopted_date?: string | null
+          content_hash: string
+          created_at?: string
+          doc_version?: string | null
+          embedding?: string | null
+          embedding_model?: string
+          excerpt_text: string
+          guideline_ref: string
+          id?: string
+          related_articles?: string[]
+          section_heading?: string | null
+          source_url?: string | null
+          status?: string
+          title: string
+          topic_tags?: string[]
+        }
+        Update: {
+          adopted_date?: string | null
+          content_hash?: string
+          created_at?: string
+          doc_version?: string | null
+          embedding?: string | null
+          embedding_model?: string
+          excerpt_text?: string
+          guideline_ref?: string
+          id?: string
+          related_articles?: string[]
+          section_heading?: string | null
+          source_url?: string | null
+          status?: string
+          title?: string
+          topic_tags?: string[]
+        }
+        Relationships: []
+      }
       email_signups: {
         Row: {
           confirmed: boolean | null
@@ -1710,6 +1764,87 @@ export type Database = {
           function_name?: string
           last_result?: Json | null
           last_run_at?: string | null
+        }
+        Relationships: []
+      }
+      gdpr_articles: {
+        Row: {
+          article_number: string
+          article_title: string | null
+          body_text: string
+          chapter: string | null
+          content_hash: string
+          created_at: string
+          embedding: string | null
+          embedding_model: string
+          id: string
+          jurisdiction: string
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          article_number: string
+          article_title?: string | null
+          body_text: string
+          chapter?: string | null
+          content_hash: string
+          created_at?: string
+          embedding?: string | null
+          embedding_model?: string
+          id?: string
+          jurisdiction: string
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          article_number?: string
+          article_title?: string | null
+          body_text?: string
+          chapter?: string | null
+          content_hash?: string
+          created_at?: string
+          embedding?: string | null
+          embedding_model?: string
+          id?: string
+          jurisdiction?: string
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gdpr_recitals: {
+        Row: {
+          body_text: string
+          content_hash: string
+          created_at: string
+          embedding: string | null
+          embedding_model: string
+          id: string
+          jurisdiction: string
+          recital_number: number
+          source_url: string | null
+        }
+        Insert: {
+          body_text: string
+          content_hash: string
+          created_at?: string
+          embedding?: string | null
+          embedding_model?: string
+          id?: string
+          jurisdiction: string
+          recital_number: number
+          source_url?: string | null
+        }
+        Update: {
+          body_text?: string
+          content_hash?: string
+          created_at?: string
+          embedding?: string | null
+          embedding_model?: string
+          id?: string
+          jurisdiction?: string
+          recital_number?: number
+          source_url?: string | null
         }
         Relationships: []
       }
@@ -5830,6 +5965,40 @@ export type Database = {
           similarity: number
           source_url: string
           topic_tags: string[]
+        }[]
+      }
+      match_edpb_guidelines: {
+        Args: {
+          article_filter?: string[]
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          excerpt_text: string
+          guideline_ref: string
+          id: string
+          related_articles: string[]
+          section_heading: string
+          similarity: number
+          source_url: string
+          title: string
+        }[]
+      }
+      match_gdpr_provisions: {
+        Args: {
+          article_filter?: string[]
+          jurisdiction_filter?: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          article_number: string
+          article_title: string
+          body_text: string
+          id: string
+          jurisdiction: string
+          similarity: number
+          source_url: string
         }[]
       }
       my_client_ids: { Args: never; Returns: string[] }
