@@ -137,6 +137,20 @@ function computeSections(units: Unit[]): Record<string, number> {
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
+// Must match guideline_ref values in supabase/functions/ingest-edpb-guidelines SEED_REGISTRY exactly.
+const EDPB_REFS = [
+  "EDPB Guidelines 1/2024",
+  "EDPB Guidelines 2/2019",
+  "WP248 rev.01",
+  "EDPB Guidelines 9/2022",
+  "EDPB Guidelines 07/2020",
+  "EDPB Guidelines 05/2020",
+  "EDPB Guidelines 3/2018",
+  "EDPB Recommendations 01/2020",
+  "EDPB Guidelines 01/2022",
+  "WP260 rev.01",
+];
+
 export default function AdminFsorIngestion() {
   const [adminToken, setAdminToken] = useState("");
   const [presetKey, setPresetKey] = useState<string>("T1");
