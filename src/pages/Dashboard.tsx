@@ -69,6 +69,7 @@ interface WeeklyBrief {
   published_at: string;
   source_map: Record<string, { title: string; url: string; source: string }> | null;
   top_enforcement_signals?: TopEnforcementSignal[] | null;
+  toolkit_ctas?: { slug: string; triggered_by: string }[] | null;
 }
 
 interface TopEnforcementSignal {
