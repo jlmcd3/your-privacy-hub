@@ -83,6 +83,15 @@ export function ResearchPageHeader({
           {description}
         </p>
 
+        {(lastUpdated || contextUpdatedLabel) && (
+          <div className="text-xs text-slate-400 space-y-0.5">
+            {lastUpdated && <div>Last updated {lastUpdated}</div>}
+            {contextUpdatedLabel && <div>Context updated {contextUpdatedLabel}</div>}
+          </div>
+        )}
+
+
+
       </div>
     </header>
   );
