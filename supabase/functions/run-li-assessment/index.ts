@@ -214,7 +214,8 @@ MANDATORY FIELD RULES — violations will cause downstream system failures:
 
 2. The "closest_accepted_precedent" field MUST be a non-empty string. If no close match exists in the database, write "None identified in current database" — never return null.
 
-3. The "closest_rejected_precedent" field MUST be a non-empty string. If none, write "None identified in current database".`;
+3. The "closest_rejected_precedent" field MUST be a non-empty string. If none, write "None identified in current database".`
+      + (gdprBlock ? `\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "");
 
     const analysisText = await callAnthropic(
       "claude-sonnet-4-6",
