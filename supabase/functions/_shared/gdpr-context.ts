@@ -32,6 +32,8 @@ export interface GdprContextResult {
     semantic_error?: string;
     truncated: boolean;
     final_chars: number;
+    /** Ready-made array for verifyCitations' RetrievalPayload.gdprCites. */
+    gdprCites: string[];
   };
 }
 
