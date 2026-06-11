@@ -35,7 +35,7 @@ export default function ProductCtaChip({ slug, matchedTrigger, placement }: Prop
       onClick={() =>
         trackEvent("cta_click", { slug, placement, trigger: matchedTrigger })
       }
-      className="no-underline block border border-brand-cloud rounded-md bg-white hover:border-brand-cobalt transition-colors px-4 py-3"
+      className="no-underline block border border-brand-cloud rounded-md bg-white hover:border-cobalt transition-colors px-4 py-3"
     >
       <div className="flex items-center gap-3">
         <Wrench className="w-5 h-5 text-brand-teal shrink-0" />
@@ -54,7 +54,7 @@ export default function ProductCtaChip({ slug, matchedTrigger, placement }: Prop
             {product.shortPitch}
           </p>
         </div>
-        <span className="text-sm font-semibold text-brand-cobalt shrink-0">
+        <span className="text-sm font-semibold text-cobalt shrink-0">
           Open →
         </span>
       </div>
