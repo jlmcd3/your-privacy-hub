@@ -2,6 +2,13 @@
 // Parses CLML XML per article, strips F-code amendment markers and commentary, embeds, upserts.
 // Idempotent via sha256(body_text). UK recitals are intentionally NOT ingested.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  UK_INSERTED_IDS,
+  ukArticleXmlUrl,
+  ukArticleSourceUrl,
+  parseUkArticleXml,
+  sha256,
+} from "../_shared/gdpr-parsers.ts";
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -13,8 +20,6 @@ const EMBEDDING_DIMS = 1536;
 const EMBED_INPUT_MAX = 6000;
 const FETCH_GAP_MS = 250;
 const EMBED_GAP_MS = 150;
-
-const UK_INSERTED_IDS = ["4A", "44A", "45A", "45B", "45C", "47A", "49A"];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
