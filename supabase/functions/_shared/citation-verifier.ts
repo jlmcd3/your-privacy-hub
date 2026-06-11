@@ -64,6 +64,9 @@ const FLAG = " [citation removed — verify with counsel]";
 // Bracketed markers like [A1], [E3], [F12]
 const BRACKET_RE = /\[([AEF])(\d+)\]/g;
 
+// Bracketed GDPR/EDPB markers like [Art. 6 EU], [Recital 47], [EDPB Guidelines 1/2024]
+const GDPR_BRACKET_RE = /\[(?:Art\.|Recital|EDPB)[^\]]*\]/g;
+
 // Statutory-citation patterns we care about.
 const STAT_PATTERNS: RegExp[] = [
   // 11 CCR § 7152  /  11 CCR §7152  /  11 CCR Section 7152
