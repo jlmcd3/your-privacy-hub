@@ -550,6 +550,68 @@ function buildTextReportHTML(opts: TextReportOpts): string {
 </div></body></html>`;
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// CPPA shared compact renderers — never emit verbatim agency_response or
+// raw internal field-name dumps. Used by both cppa_risk and cppa_cybersecurity.
+// ─────────────────────────────────────────────────────────────────────────
+function renderCppaFsorCompact(items: any[], maxItems = 2): string {
+  if (!Array.isArray(items) || items.length === 0) return "";
+  const rows = items.slice(0, maxItems).map((it: any) => {
+    const cite = escHtml(it?.citation || it?.regulation_citation || "");
+    const summary = escHtml(it?.comment_summary || "");
+    const url = it?.source_url ? String(it.source_url) : "";
+    const urlHtml = url ? ` · <a href="${escHtml(url)}">${escHtml(url)}</a>` : "";
+    if (!cite && !summary && !url) return "";
+    return `<li><span class="label">${cite}</span>${summary ? ` — ${summary}` : ""}${urlHtml}</li>`;
+  }).filter(Boolean).join("");
+  if (!rows) return "";
+  return `<p class="label" style="margin-top:8px;">Rulemaking references</p><ul class="fsor-refs">${rows}</ul>`;
+}
+
+function renderCppaSectionCommentary(sectionMap: any): string {
+  if (!sectionMap || typeof sectionMap !== "object") return "";
+  const all: any[] = [];
+  for (const v of Object.values(sectionMap)) {
+    if (Array.isArray(v)) for (const r of v) all.push(r);
+  }
+  if (all.length === 0) return "";
+  const rows = all.slice(0, 6).map((it: any) => {
+    const cite = escHtml(it?.citation || it?.regulation_citation || "");
+    const summary = escHtml(it?.comment_summary || "");
+    const url = it?.source_url ? String(it.source_url) : "";
+    const urlHtml = url ? ` · <a href="${escHtml(url)}">${escHtml(url)}</a>` : "";
+    if (!cite && !summary && !url) return "";
+    return `<li><span class="label">${cite}</span>${summary ? ` — ${summary}` : ""}${urlHtml}</li>`;
+  }).filter(Boolean).join("");
+  if (!rows) return "";
+  return `<section class="section"><h2>Rulemaking context</h2><ul class="fsor-refs">${rows}</ul></section>`;
+}
+
+function renderCppaEnforcementPrecedents(items: any[]): string {
+  if (!Array.isArray(items) || items.length === 0) return "";
+  const cards = items.map((p: any) => {
+    const regulator = escHtml(p?.regulator || "");
+    const subject = escHtml(p?.subject || "");
+    const year = p?.decision_date ? escHtml(String(p.decision_date).slice(0, 4)) : "";
+    const articlesRaw = p?.violated_articles ?? p?.articles_violated ?? p?.violation ?? "";
+    const articles = Array.isArray(articlesRaw)
+      ? articlesRaw.map((a: any) => String(a)).join(", ")
+      : String(articlesRaw || "");
+    const failure = escHtml(p?.key_compliance_failure || "");
+    const fineRaw = p?.fine_amount;
+    const fineLine = (fineRaw !== null && fineRaw !== undefined && String(fineRaw).trim() !== "")
+      ? `<p><span class="label">Fine:</span> ${escHtml(String(fineRaw))}</p>` : "";
+    const head = [regulator, subject].filter(Boolean).join(" v ") + (year ? ` (${year})` : "");
+    return `<article class="annotation">
+      <h3>${head || "Enforcement action"}</h3>
+      ${articles ? `<p><span class="label">Violated articles:</span> ${escHtml(articles)}</p>` : ""}
+      ${failure ? `<p>${failure}</p>` : ""}
+      ${fineLine}
+    </article>`;
+  }).join("");
+  return `<section class="section"><h2>Enforcement Precedents</h2>${cards}</section>`;
+}
+
 function buildCPPARiskReportHTML(report: any, record: any): string {
   const generatedDate = new Date(record.created_at || report?.generated_at || Date.now()).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
@@ -629,15 +691,110 @@ function buildCPPARiskReportHTML(report: any, record: any): string {
       ${d.regulatory_basis ? `<p><span class="label">Regulatory basis:</span> ${text(d.regulatory_basis)}</p>` : ""}
       ${d.remediation ? `<p><span class="label">Remediation:</span> ${text(d.remediation)}</p>` : ""}
       ${d.priority ? `<p><span class="label">Priority:</span> ${text(d.priority)}</p>` : ""}
+      ${renderCppaFsorCompact(d.fsor_commentary)}
     </article>`).join("")}</section>` : ""}
     ${topRisks.length ? `<section class="section"><h2>Top Risks</h2>${topRisks.slice(0, 3).map((r: any) => `<article class="risk"><h3>${text(r.title)}</h3>${r.description ? `<p>${text(r.description)}</p>` : ""}${r.deadline ? `<p><span class="label">Deadline:</span> ${text(r.deadline)}</p>` : ""}${r.consequence ? `<p><span class="label">Consequence:</span> ${text(r.consequence)}</p>` : ""}</article>`).join("")}</section>` : ""}
     ${nextSteps.length ? `<section class="section"><h2>Next Steps</h2><ol>${nextSteps.map((step: any) => `<li>${text(step)}</li>`).join("")}</ol></section>` : ""}
+    ${renderCppaSectionCommentary(report?.fsor_section_commentary)}
+    ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
     <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
 }
+
+function buildCPPACyberReportHTML(report: any, record: any): string {
+  const generatedDate = new Date(record.created_at || report?.generated_at || Date.now()).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+  const controls = Array.isArray(report?.controls) ? report.controls : [];
+  const topRisks = Array.isArray(report?.top_risks) ? report.top_risks : [];
+  const nextSteps = Array.isArray(report?.next_steps) ? report.next_steps : [];
+  const annotations = Array.isArray(report?.annotations) ? report.annotations : [];
+  const text = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
+
+  const statusClass = (status: string) => {
+    const s = (status || "").toLowerCase();
+    if (s === "critical gap") return "critical";
+    if (s === "gap") return "gap";
+    if (s === "partial") return "partial";
+    if (s === "implemented") return "compliant";
+    return "neutral";
+  };
+
+  const intake = record?.intake_data || {};
+  const orgName = intake?.organizationName || intake?.profile?.organizationName || "";
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Cybersecurity Audit</title>
+<style>
+  :root { --navy:#0f172a; --ink:#1a1916; --paper:#faf8f3; --card:#ffffff; --border:#e6e3da; --muted:#5c5a54; --gold:#c0911f; --gold-soft:#fbf3df; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  * { box-sizing:border-box; }
+  body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .header { background:var(--navy); color:#fff; padding:24px 28px; }
+  .logo { display:inline-block; background:#fff; color:var(--navy); border-radius:6px; padding:5px 10px; font-size:13px; font-weight:700; margin-bottom:12px; }
+  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93c5fd; margin:0 0 4px; }
+  h1 { font-size:24px; margin:0; line-height:1.2; }
+  .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+  .summary-bar { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
+  .pill { display:inline-block; border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700; background:rgba(255,255,255,.12); color:#fff; }
+  .body { padding:22px 28px 28px; }
+  h2 { color:var(--navy); font-size:17px; margin:24px 0 10px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+  h3 { color:var(--navy); font-size:14px; margin:0 0 8px; }
+  p { margin:0 0 9px; }
+  ul, ol { margin:8px 0 0; padding-left:20px; } li { margin-bottom:5px; }
+  ul.fsor-refs { font-size:10.5px; color:var(--muted); }
+  ul.fsor-refs li { margin-bottom:4px; }
+  ul.fsor-refs a { color:var(--muted); word-break:break-all; }
+  .notice { border-left:4px solid var(--gold); background:var(--gold-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .callout { border-left:4px solid var(--orange); background:var(--orange-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin:16px 0; }
+  .section { margin-bottom:16px; }
+  .control, .risk, .annotation { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
+  .control-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px; }
+  .score { color:var(--muted); font-size:11px; font-weight:700; white-space:nowrap; }
+  .status { display:inline-block; border-radius:999px; padding:2px 8px; font-size:10px; font-weight:700; margin-left:6px; }
+  .status-critical { background:var(--red-soft); color:var(--red); }
+  .status-gap { background:var(--orange-soft); color:var(--orange); }
+  .status-partial { background:var(--amber-soft); color:var(--amber); }
+  .status-compliant { background:var(--green-soft); color:var(--green); }
+  .status-neutral { background:#f3f4f6; color:var(--muted); }
+  .label { font-weight:700; color:var(--navy); }
+  .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
+</style></head><body><div class="shell">
+  <header class="header">
+    <span class="logo">enduserprivacy.com</span>
+    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+    <h1>CPPA Cybersecurity Audit</h1>
+    <div class="meta">Generated ${text(generatedDate)}${orgName ? ` · ${text(orgName)}` : ""} · California (CPPA)</div>
+    <div class="summary-bar">
+      ${report?.overall_score !== undefined ? `<span class="pill">Overall score: ${text(report.overall_score)} / 100</span>` : ""}
+      ${report?.readiness_level ? `<span class="pill">${text(report.readiness_level)}</span>` : ""}
+    </div>
+  </header>
+  <div class="body">
+    <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
+    ${report?.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(report.enforcement_context)}</p></div>` : ""}
+    ${controls.length ? `<section class="section"><h2>Control Findings</h2>${controls.map((c: any) => `<article class="control">
+      <div class="control-head"><h3>${text(c.control)}${c.status ? `<span class="status status-${statusClass(c.status)}">${text(c.status)}</span>` : ""}</h3>${c.score !== undefined ? `<span class="score">${text(c.score)}/100</span>` : ""}</div>
+      ${c.finding ? `<p><span class="label">Finding:</span> ${text(c.finding)}</p>` : ""}
+      ${c.regulatory_basis ? `<p><span class="label">Regulatory basis:</span> ${text(c.regulatory_basis)}</p>` : ""}
+      ${c.remediation ? `<p><span class="label">Remediation:</span> ${text(c.remediation)}</p>` : ""}
+      ${c.priority ? `<p><span class="label">Priority:</span> ${text(c.priority)}</p>` : ""}
+      ${renderCppaFsorCompact(c.fsor_commentary)}
+    </article>`).join("")}</section>` : ""}
+    ${topRisks.length ? `<section class="section"><h2>Top Risks</h2>${topRisks.slice(0, 3).map((r: any) => `<article class="risk"><h3>${text(r.title)}</h3>${r.description ? `<p>${text(r.description)}</p>` : ""}${r.deadline ? `<p><span class="label">Deadline:</span> ${text(r.deadline)}</p>` : ""}${r.consequence ? `<p><span class="label">Consequence:</span> ${text(r.consequence)}</p>` : ""}</article>`).join("")}</section>` : ""}
+    ${nextSteps.length ? `<section class="section"><h2>Next Steps</h2><ol>${nextSteps.map((step: any) => `<li>${text(step)}</li>`).join("")}</ol></section>` : ""}
+    ${renderCppaSectionCommentary(report?.fsor_section_commentary)}
+    ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
+    ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
+    <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
+  </div>
+</div></body></html>`;
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────
 // FILENAME HELPERS
@@ -788,6 +945,20 @@ Deno.serve(async (req) => {
     // Helper: turn a JSON summary into bullet-styled plain text for the
     // generic text builder. Keeps PDF output readable for tools that don't
     // (yet) have a bespoke HTML template.
+    // Keys we never want surfaced in customer-facing PDFs (internal DB fields,
+    // verbatim FSOR text, raw enforcement-precedent metadata). Also excludes
+    // structured blocks that have dedicated compact renderers below so they
+    // are not double-dumped by the generic walker.
+    const EXCLUDE_KEYS = new Set([
+      "id", "ids",
+      "enforcement_action_id", "precedent_significance",
+      "fine_eur_equivalent", "breach_related", "biometric_related",
+      "agency_response", "agency_response_verbatim",
+      "comment_summary_verbatim", "embedding", "obligation_snapshot",
+      // Rendered separately via structured helpers, never dumped raw:
+      "fsor_commentary", "fsor_section_commentary",
+      "enforcement_precedents", "enforcement_meta",
+    ]);
     const summaryToText = (obj: any): string => {
       if (!obj) return "";
       if (typeof obj === "string") return obj;
@@ -802,6 +973,7 @@ Deno.serve(async (req) => {
             });
           } else if (o && typeof o === "object") {
             for (const [k, v] of Object.entries(o)) {
+              if (EXCLUDE_KEYS.has(k)) continue;
               const label = k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
               if (v && typeof v === "object") {
                 out.push(`\n${pad}${label}`);
@@ -888,16 +1060,25 @@ Deno.serve(async (req) => {
     } else if (tool_type === "cppa_cybersecurity") {
       const intake = record.intake_data || {};
       const parts = [record.document_a_text, record.document_b_text].filter(Boolean);
-      const text = parts.length
-        ? parts.join("\n\n──────────────────────────────\n\n")
-        : summaryToText(record.report_data);
-      html = buildTextReportHTML({
-        title: "CPPA Cybersecurity Audit",
-        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
-          (intake.organizationName ? ` · ${intake.organizationName}` : "") + " · California (CPPA)",
-        text,
-        showJurisdictionChip: false,
-      });
+      const hasStructured = record.report_data && typeof record.report_data === "object"
+        && Array.isArray((record.report_data as any).controls);
+      if (parts.length === 0 && hasStructured) {
+        // Structured report path: render via dedicated HTML template that
+        // emits compact FSOR refs + formatted enforcement precedents and
+        // never dumps internal field names or verbatim agency_response text.
+        html = buildCPPACyberReportHTML(record.report_data, record);
+      } else {
+        const text = parts.length
+          ? parts.join("\n\n──────────────────────────────\n\n")
+          : summaryToText(record.report_data);
+        html = buildTextReportHTML({
+          title: "CPPA Cybersecurity Audit",
+          metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
+            (intake.organizationName ? ` · ${intake.organizationName}` : "") + " · California (CPPA)",
+          text,
+          showJurisdictionChip: false,
+        });
+      }
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_scope") {
       const text = summaryToText({
