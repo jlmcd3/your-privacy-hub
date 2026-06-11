@@ -135,6 +135,10 @@ Deno.serve(async (req) => {
       const overlap = r.data_categories.filter((c: string) => q.data_categories!.includes(c)).length;
       score += overlap * 3;
     }
+    if (q.articles?.length && r.provisions_normalized?.length) {
+      const provOverlap = r.provisions_normalized.some((p: string) => q.articles!.includes(p));
+      if (provOverlap) score += 3;
+    }
     if (q.tool && r.tool_relevance?.includes(q.tool)) score += 4;
     if (q.sector && r.industry_sector === q.sector) score += 2;
     if (r.fine_eur_equivalent) score += Math.min(3, Math.log10(r.fine_eur_equivalent) - 4);
