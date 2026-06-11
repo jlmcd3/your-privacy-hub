@@ -49,6 +49,14 @@ export interface RetrievalPayload {
   enforcementIds: string[];
   /** FSOR indices present in the model's context, e.g. ["1","12"] for [F1] [F12]. */
   fsorIds: string[];
+  /**
+   * GDPR/EDPB reference strings actually retrieved, e.g. "Art. 6 EU", "Recital 47",
+   * "EDPB Guidelines 1/2024". When undefined, bracketed GDPR-style citations are
+   * NOT verified (backwards compatible). When provided, bracketed citations
+   * matching /\[(Art\.|Recital|EDPB)[^\]]*\]/ are checked against this list using
+   * the same normalisation approach as authority cites.
+   */
+  gdprCites?: string[];
 }
 
 const FLAG = " [citation removed — verify with counsel]";
