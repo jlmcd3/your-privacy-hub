@@ -429,6 +429,11 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
 
     (report as any).enforcement_precedents = enforcementResults.slice(0, 5);
     (report as any).enforcement_meta = enforcementMeta;
+    (report as any).lint_warnings = [
+      ...(Array.isArray((report as any).lint_warnings) ? (report as any).lint_warnings : []),
+      ...lintViolations,
+    ];
+
 
     await supabase
       .from("cppa_assessments")
