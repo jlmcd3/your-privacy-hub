@@ -8,6 +8,7 @@ import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { PageHero } from "@/components/PageHero";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
+import SampleReportLink from "@/components/SampleReportLink";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
