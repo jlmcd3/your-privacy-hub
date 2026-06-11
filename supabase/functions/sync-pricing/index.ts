@@ -34,9 +34,8 @@ const corsHeaders = {
 };
 
 // ---------------------------------------------------------------------------
-//  Registry snapshot — keep in sync with src/config/pricing.ts
-//  (Edge functions can't import from src/. When you change a price in
-//  pricing.ts, mirror the amountCents here, then call this function.)
+//  PRICE MIRROR — MUST mirror src/config/pricing.ts PRICING_REGISTRY exactly.
+//  Update both in the same commit.
 // ---------------------------------------------------------------------------
 type PriceKind = "subscription" | "one_time" | "tiered" | "addon";
 interface RegistryEntry {
