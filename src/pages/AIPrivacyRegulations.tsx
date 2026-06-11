@@ -98,13 +98,13 @@ const AIPrivacyRegulations = () => (
 
 <ul>
 
-<li><strong><a href="/regulator/garante">Garante (Italy)</a>:</strong> Temporarily banned ChatGPT in 2023; imposed €15M on OpenAI in November 2024 — annulled in full by the Court of Rome on March 18, 2026, on jurisdictional one-stop-shop grounds, leaving the substantive questions undecided. Significant: AI enforcement decisions face serious appellate scrutiny.</li>
+<li><strong><a href="/regulator/garante">Italian Data Protection Authority (Garante)</a>:</strong> Temporarily banned ChatGPT in 2023; imposed €15M on OpenAI in November 2024 — annulled in full by the Court of Rome on March 18, 2026, on jurisdictional one-stop-shop grounds, leaving the substantive questions undecided. Significant: AI enforcement decisions face serious appellate scrutiny.</li>
 
-<li><strong><a href="/regulator/edpb">EDPB:</a></strong> Opinion 28/2024 on AI training data guides supervisory authorities across the EEA. Expect coordinated enforcement actions against AI developers without documented legal bases for training data.</li>
+<li><strong><a href="/regulator/edpb">EDPB</a>:</strong> Opinion 28/2024 on AI training data guides supervisory authorities across the EEA. Expect coordinated enforcement actions against AI developers without documented legal bases for training data.</li>
 
-<li><strong><a href="/regulator/ftc">FTC (U.S.):</a></strong> Active enforcement against AI-driven deceptive practices and voice-cloning fraud. The FTC's <em>Section 5 unfairness</em> theory is being extended to AI systems that produce harmful outputs.</li>
+<li><strong><a href="/regulator/ftc">Federal Trade Commission (FTC)</a>:</strong> Active enforcement against AI-driven deceptive practices and voice-cloning fraud. The FTC's <em>Section 5 unfairness</em> theory is being extended to AI systems that produce harmful outputs.</li>
 
-<li><strong><a href="/regulator/ico">ICO (UK):</a></strong> Published AI and data protection guidance in 2024; enforcement focus is on transparency and purpose limitation in AI systems.</li>
+<li><strong><a href="/regulator/ico">ICO</a>:</strong> Published AI and data protection guidance in 2024; enforcement focus is on transparency and purpose limitation in AI systems.</li>
 
 <li><strong>CPPA (California):</strong> Adopted ADMT regulations in July 2025 (effective January 1, 2026). First enforcement actions expected H2 2026.</li>
 
