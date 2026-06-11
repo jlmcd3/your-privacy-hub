@@ -547,6 +547,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     const report_data = {
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
+      gdpr_meta: gdprMeta,
       annotations: parsedAnnotations,
       generated_at: new Date().toISOString(),
     };
