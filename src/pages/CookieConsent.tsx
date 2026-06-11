@@ -139,10 +139,10 @@ const GDPR_DETAIL = `
 `;
 
 const ENFORCEMENT = `<ul>
-<li><strong><a href="/regulator/cnil">CNIL (France)</a></strong> — fined Google €150M and Facebook €60M (2022) for making cookie refusal harder than acceptance.</li>
-<li><strong><a href="/regulator/apdgba">Belgian APD</a></strong> — fined IAB Europe €250K over the TCF framework's legal basis.</li>
-<li><strong><a href="/regulator/ico">ICO (UK)</a></strong> — issued formal warnings to over 100 top <a href="/jurisdiction/united-kingdom">UK</a> websites about non-compliant banners.</li>
-<li><strong><a href="/regulator/aepd">AEPD (Spain)</a></strong> — fined companies for pre-ticked consent boxes.</li>
+<li><strong><a href="/regulator/cnil">National Commission on Informatics and Liberty (CNIL)</a></strong> — fined Google €150M and Facebook €60M (2022) for making cookie refusal harder than acceptance.</li>
+<li><strong><a href="/regulator/apdgba">Belgian Data Protection Authority (APD/GBA)</a></strong> — fined IAB Europe €250K over the TCF framework's legal basis.</li>
+<li><strong><a href="/regulator/ico">Information Commissioner's Office (ICO)</a></strong> — issued formal warnings to over 100 top <a href="/jurisdiction/united-kingdom">UK</a> websites about non-compliant banners.</li>
+<li><strong><a href="/regulator/aepd">Spanish Data Protection Agency (AEPD)</a></strong> — fined companies for pre-ticked consent boxes.</li>
 <li><strong>California AG / CPPA</strong> — Sephora ($1.2M, 2022) and Tilting Point ($500K, 2024) for failing to honour opt-outs / GPC.</li>
 </ul>`;
 
