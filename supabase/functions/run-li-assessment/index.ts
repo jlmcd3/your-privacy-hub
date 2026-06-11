@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { getGdprContext } from "../_shared/gdpr-context.ts";
 
 // Robustly parse a JSON object from an LLM response that may include
 // code fences, prose preamble, or unescaped quotes/newlines inside strings.
