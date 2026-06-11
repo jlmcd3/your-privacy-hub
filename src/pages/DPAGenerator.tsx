@@ -202,7 +202,7 @@ export default function DPAGenerator() {
               <label className="block"><span className="font-semibold text-brand-navy">Services description<Req /> <DefPopover termKey="gdpr_processor_contract" /></span>
                 <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>
 
-              <fieldset><legend className="font-semibold text-brand-navy">Data categories<Req /> <DefPopover termKey="gdpr_breach_notification" /></legend>
+              <fieldset><legend className="font-semibold text-brand-navy">Data categories<Req /></legend>
                 <div className="grid grid-cols-2 gap-1.5 mt-1">
                   {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-meta">
                     <input type="checkbox" checked={form.dataCategories.includes(c)} onChange={() => toggleCat(c)} />{c}</label>)}
