@@ -596,6 +596,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
             intake_data: body,
             document_text: dpa_text,
             report_data,
+            lint_warnings: lint.violations,
             updated_at: new Date().toISOString(),
           })
           .eq("id", body.assessment_id)
@@ -613,6 +614,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
             intake_data: body,
             document_text: dpa_text,
             report_data,
+            lint_warnings: lint.violations,
           })
           .select("id")
           .single();
