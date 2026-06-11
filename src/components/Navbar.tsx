@@ -254,8 +254,8 @@ const navItems: NavItem[] = [
         divider: true,
         column: 1,
         items: [
-          { icon: "🌍", label: "Global Privacy Authorities", href: "/global-privacy-authorities" },
-          { icon: "📖", label: "Key Privacy Terms", href: "/glossary" },
+          { icon: <Building2 className="w-4 h-4 text-muted-foreground" />, label: "Global Privacy Authorities", href: "/global-privacy-authorities" },
+          { icon: <BookOpen className="w-4 h-4 text-muted-foreground" />, label: "Key Privacy Terms", href: "/glossary" },
         ],
       },
       {
@@ -265,11 +265,11 @@ const navItems: NavItem[] = [
         columnBg: "bg-white",
         column: 2,
         items: [
-          { icon: "🔄", label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
-          { icon: "👁️", label: "Biometric Privacy Guide", href: "/biometric-privacy" },
-          { icon: "🏥", label: "Health Data Privacy Guide", href: "/health-data-privacy" },
-          { icon: "🍪", label: "Cookie Consent Guide", href: "/cookie-consent" },
-          { icon: "🚨", label: "Breach Response Guide", href: "/breach-notification" },
+          { icon: <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />, label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
+          { icon: <ScanFace className="w-4 h-4 text-muted-foreground" />, label: "Biometric Privacy Guide", href: "/biometric-privacy" },
+          { icon: <HeartPulse className="w-4 h-4 text-muted-foreground" />, label: "Health Data Privacy Guide", href: "/health-data-privacy" },
+          { icon: <Cookie className="w-4 h-4 text-muted-foreground" />, label: "Cookie Consent Guide", href: "/cookie-consent" },
+          { icon: <Siren className="w-4 h-4 text-muted-foreground" />, label: "Breach Response Guide", href: "/breach-notification" },
         ],
       },
     ],
