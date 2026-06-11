@@ -579,6 +579,39 @@ export default function AdminFsorIngestion() {
             <pre className="text-xs bg-muted p-2 whitespace-pre-wrap">{verifyResult}</pre>
           </section>
         )}
+
+        <section className="bg-white p-4 rounded border space-y-3">
+          <h2 className="font-semibold">GDPR Corpus</h2>
+          <p className="text-xs text-muted-foreground">
+            Ingest GDPR articles, recitals, and EDPB guidelines into the corpus. Uses the admin token above.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => runGdprIngest("ingest-gdpr-eu", "Ingest EU GDPR")}
+              disabled={gdprBusy !== null}
+              variant="outline"
+            >
+              {gdprBusy === "ingest-gdpr-eu" ? "Ingesting…" : "Ingest EU GDPR"}
+            </Button>
+            <Button
+              onClick={() => runGdprIngest("ingest-gdpr-uk", "Ingest UK GDPR")}
+              disabled={gdprBusy !== null}
+              variant="outline"
+            >
+              {gdprBusy === "ingest-gdpr-uk" ? "Ingesting…" : "Ingest UK GDPR"}
+            </Button>
+            <Button
+              onClick={() => runGdprIngest("ingest-edpb-guidelines", "Ingest EDPB Guidelines")}
+              disabled={gdprBusy !== null}
+              variant="outline"
+            >
+              {gdprBusy === "ingest-edpb-guidelines" ? "Ingesting…" : "Ingest EDPB Guidelines"}
+            </Button>
+          </div>
+          {gdprResult && (
+            <pre className="text-xs bg-muted p-2 whitespace-pre-wrap overflow-auto max-h-96">{gdprResult}</pre>
+          )}
+        </section>
       </main>
       <Footer />
     </div>
