@@ -382,6 +382,7 @@ const GovernanceAssessmentResult = () => {
               />
             </div>
           )}
+          </div>
         </ReportShell>
       </main>
       <Footer />
