@@ -54,7 +54,7 @@ const GovernanceAssessmentResult = () => {
     if (!id) return;
     let timer: any;
     let pollCount = 0;
-    const MAX_POLLS = 20; // 80 seconds at 4s intervals
+    const MAX_POLLS = 75; // 5 minutes at 4s intervals — generator runs can exceed 2 min
 
     const fetchOnce = async () => {
       const { data } = await supabase
