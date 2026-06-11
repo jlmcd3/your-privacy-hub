@@ -121,7 +121,7 @@ const navItems: NavItem[] = [
         header: "CPPA Audit Tools",
         headerSub: "California · CPRA regulations",
         headerColor: "text-[#185FA5]",
-        columnBg: "bg-[#EEF4FB]",
+        columnBg: "cppa-split",
         column: 1,
         items: [
           {
@@ -641,7 +641,7 @@ const Navbar = () => {
                             >
                               {colSections.map(renderSectionBc)}
                               {bottomItems.length > 0 && (
-                                <div className="mt-auto pt-2 px-3 pb-3">
+                                <div className="mt-auto border-t border-brand-cloud bg-white px-3 py-2">
                                   {bottomItems.map((sub) => renderSubItem(sub))}
                                 </div>
                               )}
