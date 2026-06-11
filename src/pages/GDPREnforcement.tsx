@@ -168,20 +168,20 @@ function RecentEnforcement() {
       <div className="px-4 pb-4 pt-1 text-sm text-brand-navy leading-relaxed space-y-3">
         <p>
           The largest GDPR fines include <strong>Meta's €1.2 billion</strong> from the Irish{" "}
-          <Link to="/regulator/dpc" className="text-brand-teal no-underline hover:underline">DPC</Link> for
+          <Link to="/regulator/dpc" className="text-brand-teal no-underline hover:underline">Data Protection Commission (DPC)</Link> for
           transfers to the U.S. without adequate safeguards (2023), <strong>Amazon's €746 million</strong> from
-          Luxembourg's <Link to="/regulator/cnpd" className="text-brand-teal no-underline hover:underline">CNPD</Link>{" "}
+          Luxembourg's <Link to="/regulator/cnpd" className="text-brand-teal no-underline hover:underline">National Data Protection Commission (CNPD)</Link>{" "}
           for targeted advertising violations (2021), and multiple fines against{" "}
           <strong>Google, TikTok, and Clearview AI</strong> across various jurisdictions.
         </p>
         <p>
           Enforcement activity is concentrated in <strong>Ireland (
           <Link to="/regulator/dpc" className="text-brand-teal no-underline hover:underline">DPC</Link>), France (
-          <Link to="/regulator/cnil" className="text-brand-teal no-underline hover:underline">CNIL</Link>), Luxembourg (
+          <Link to="/regulator/cnil" className="text-brand-teal no-underline hover:underline">National Commission on Informatics and Liberty (CNIL)</Link>), Luxembourg (
           <Link to="/regulator/cnpd" className="text-brand-teal no-underline hover:underline">CNPD</Link>), Italy (
-          <Link to="/regulator/garante" className="text-brand-teal no-underline hover:underline">Garante</Link>), and Spain (
-          <Link to="/regulator/aepd" className="text-brand-teal no-underline hover:underline">AEPD</Link>)</strong>. The{" "}
-          <Link to="/regulator/edpb" className="text-brand-teal no-underline hover:underline">EDPB</Link> has
+          <Link to="/regulator/garante" className="text-brand-teal no-underline hover:underline">Italian Data Protection Authority (Garante)</Link>), and Spain (
+          <Link to="/regulator/aepd" className="text-brand-teal no-underline hover:underline">Spanish Data Protection Agency (AEPD)</Link>)</strong>. The{" "}
+          <Link to="/regulator/edpb" className="text-brand-teal no-underline hover:underline">European Data Protection Board (EDPB)</Link> has
           increasingly used dispute resolution to override lead-authority draft decisions, and its 2026 binding
           guidance on AI training data marks a significant expansion of enforcement scope.
         </p>
