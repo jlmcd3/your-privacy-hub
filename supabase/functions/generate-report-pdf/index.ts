@@ -550,6 +550,68 @@ function buildTextReportHTML(opts: TextReportOpts): string {
 </div></body></html>`;
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// CPPA shared compact renderers — never emit verbatim agency_response or
+// raw internal field-name dumps. Used by both cppa_risk and cppa_cybersecurity.
+// ─────────────────────────────────────────────────────────────────────────
+function renderCppaFsorCompact(items: any[], maxItems = 2): string {
+  if (!Array.isArray(items) || items.length === 0) return "";
+  const rows = items.slice(0, maxItems).map((it: any) => {
+    const cite = escHtml(it?.citation || it?.regulation_citation || "");
+    const summary = escHtml(it?.comment_summary || "");
+    const url = it?.source_url ? String(it.source_url) : "";
+    const urlHtml = url ? ` · <a href="${escHtml(url)}">${escHtml(url)}</a>` : "";
+    if (!cite && !summary && !url) return "";
+    return `<li><span class="label">${cite}</span>${summary ? ` — ${summary}` : ""}${urlHtml}</li>`;
+  }).filter(Boolean).join("");
+  if (!rows) return "";
+  return `<p class="label" style="margin-top:8px;">Rulemaking references</p><ul class="fsor-refs">${rows}</ul>`;
+}
+
+function renderCppaSectionCommentary(sectionMap: any): string {
+  if (!sectionMap || typeof sectionMap !== "object") return "";
+  const all: any[] = [];
+  for (const v of Object.values(sectionMap)) {
+    if (Array.isArray(v)) for (const r of v) all.push(r);
+  }
+  if (all.length === 0) return "";
+  const rows = all.slice(0, 6).map((it: any) => {
+    const cite = escHtml(it?.citation || it?.regulation_citation || "");
+    const summary = escHtml(it?.comment_summary || "");
+    const url = it?.source_url ? String(it.source_url) : "";
+    const urlHtml = url ? ` · <a href="${escHtml(url)}">${escHtml(url)}</a>` : "";
+    if (!cite && !summary && !url) return "";
+    return `<li><span class="label">${cite}</span>${summary ? ` — ${summary}` : ""}${urlHtml}</li>`;
+  }).filter(Boolean).join("");
+  if (!rows) return "";
+  return `<section class="section"><h2>Rulemaking context</h2><ul class="fsor-refs">${rows}</ul></section>`;
+}
+
+function renderCppaEnforcementPrecedents(items: any[]): string {
+  if (!Array.isArray(items) || items.length === 0) return "";
+  const cards = items.map((p: any) => {
+    const regulator = escHtml(p?.regulator || "");
+    const subject = escHtml(p?.subject || "");
+    const year = p?.decision_date ? escHtml(String(p.decision_date).slice(0, 4)) : "";
+    const articlesRaw = p?.violated_articles ?? p?.articles_violated ?? p?.violation ?? "";
+    const articles = Array.isArray(articlesRaw)
+      ? articlesRaw.map((a: any) => String(a)).join(", ")
+      : String(articlesRaw || "");
+    const failure = escHtml(p?.key_compliance_failure || "");
+    const fineRaw = p?.fine_amount;
+    const fineLine = (fineRaw !== null && fineRaw !== undefined && String(fineRaw).trim() !== "")
+      ? `<p><span class="label">Fine:</span> ${escHtml(String(fineRaw))}</p>` : "";
+    const head = [regulator, subject].filter(Boolean).join(" v ") + (year ? ` (${year})` : "");
+    return `<article class="annotation">
+      <h3>${head || "Enforcement action"}</h3>
+      ${articles ? `<p><span class="label">Violated articles:</span> ${escHtml(articles)}</p>` : ""}
+      ${failure ? `<p>${failure}</p>` : ""}
+      ${fineLine}
+    </article>`;
+  }).join("");
+  return `<section class="section"><h2>Enforcement Precedents</h2>${cards}</section>`;
+}
+
 function buildCPPARiskReportHTML(report: any, record: any): string {
   const generatedDate = new Date(record.created_at || report?.generated_at || Date.now()).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
