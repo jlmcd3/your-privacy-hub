@@ -160,6 +160,20 @@ export function verifyCitations(
       });
     }
 
+    // --- Bracketed GDPR/EDPB citations (only when gdprCites was provided) ---
+    if (gdprProvided) {
+      sentence = sentence.replace(GDPR_BRACKET_RE, (match) => {
+        const inner = match.slice(1, -1);
+        if (allowedGdpr.has(normCite(inner)) || allowedGdpr.has(normCite(match))) {
+          return match;
+        }
+        removed.push({ citation: match, kind: "authority", sentence: original });
+        flagged = true;
+        return "";
+      });
+    }
+
+
     if (flagged) {
       // Clean up leftover " ," or doubled spaces from the stripped tokens,
       // then append the flag once before the trailing punctuation/whitespace.
