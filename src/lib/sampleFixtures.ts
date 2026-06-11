@@ -545,7 +545,7 @@ const F_US_NOTICE: SampleFixture = {
   scenario_summary:
     "Busted Sled Solutions, Inc. consumer shipment-tracking app privacy notice covering California (CCPA/CPRA), Colorado (CPA), and Virginia (VCDPA). Contact email routes to privacy@bustedsled.example.",
   source_table: "us_notice_sessions",
-  result_url_pattern: "/us-notices/session/{id}",
+  result_url_pattern: "/us-notices/{id}/documents",
   fixture: {
     session: { scope: "all_states", mode: "standalone" },
     states: [
@@ -584,7 +584,7 @@ const F_EU_NOTICE: SampleFixture = {
   scenario_summary:
     "Misfit Toys Logistics Ltd customer-facing privacy notice spanning EU GDPR and UK GDPR. The notice covers fulfilment, returns, marketing (opt-in), and the SCC + UK addendum transfer story for US-based marketing tooling.",
   source_table: "eu_notice_sessions",
-  result_url_pattern: "/eu-notices/session/{id}",
+  result_url_pattern: "/eu-notices/{id}/documents",
   fixture: {
     session: { scope: "suite", mode: "standalone" },
     frameworks: [

@@ -118,13 +118,6 @@ async function runGenerator(
     );
     if (pErr) throw new Error(`profile: ${pErr.message}`);
 
-    log("▶ Upsert ropa_jurisdiction_selections...");
-    const jurs = (f.jurisdictions as Array<Record<string, unknown>>).map((j) => ({ client_id: clientId, ...j }));
-    const { error: jErr } = await (supabase as any)
-      .from("ropa_jurisdiction_selections")
-      .upsert(jurs, { onConflict: "client_id,jurisdiction_code" });
-    if (jErr) throw new Error(`jurisdictions: ${jErr.message}`);
-
     log("▶ Create ropa_session...");
     const activities = f.activities as Array<Record<string, unknown>>;
     const { data: session, error: sErr } = await supabase
@@ -143,6 +136,13 @@ async function runGenerator(
       .single();
     if (sErr || !session) throw new Error(`session: ${sErr?.message}`);
     log(`✓ session ${session.id}`);
+
+    log("▶ Upsert ropa_jurisdiction_selections...");
+    const jurs = (f.jurisdictions as Array<Record<string, unknown>>).map((j) => ({ client_id: clientId, session_id: session.id, ...j }));
+    const { error: jErr } = await (supabase as any)
+      .from("ropa_jurisdiction_selections")
+      .upsert(jurs, { onConflict: "client_id,jurisdiction_code" });
+    if (jErr) throw new Error(`jurisdictions: ${jErr.message}`);
 
     log(`▶ Insert ${activities.length} activities + answers...`);
     const activityRows = activities.map((a, i) => ({
