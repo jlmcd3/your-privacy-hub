@@ -113,6 +113,7 @@ const GetIntelligence = lazy(() => import("./pages/GetIntelligence.tsx"));
 const LegitimateInterestTracker = lazy(() => import("./pages/LegitimateInterestTracker.tsx"));
 const AdminSeedLI = lazy(() => import("./pages/AdminSeedLI.tsx"));
 const AdminIngestionDashboard = lazy(() => import("./pages/AdminIngestionDashboard.tsx"));
+const AdminIngestLegislation = lazy(() => import("./pages/AdminIngestLegislation.tsx"));
 const AdminJurisdictionAudit = lazy(() => import("./pages/admin/AdminJurisdictionAudit.tsx"));
 const AdminArticles = lazy(() => import("./pages/AdminArticles.tsx"));
 const AdminEmailSignups = lazy(() => import("./pages/AdminEmailSignups.tsx"));
@@ -354,6 +355,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdminIngestionDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/ingest-legislation"
+              element={
+                <ProtectedRoute>
+                  <AdminIngestLegislation />
                 </ProtectedRoute>
               }
             />
