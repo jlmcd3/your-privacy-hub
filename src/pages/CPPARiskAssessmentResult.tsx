@@ -12,6 +12,7 @@ import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { AdminOnly } from "@/components/AdminOnly";
 import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 // Truncate to first sentence (or 200 chars if no sentence boundary).
 const firstSentence = (text: string): string => {
@@ -85,6 +86,8 @@ export default function CPPARiskAssessmentResult() {
   const purchased = searchParams.get("purchased") === "true";
   const [row, setRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [translated, setTranslated] = useState<any | null>(null);
+  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
   useEffect(() => {
     if (!id) return;
@@ -113,7 +116,7 @@ export default function CPPARiskAssessmentResult() {
     return () => timer && clearTimeout(timer);
   }, [id]);
 
-  const report = row?.report_data || {};
+  const report = (translated?.report_data ?? row?.report_data) || {};
   const status = row?.status;
   const isV3 = !!(row?.report_data && (row.report_data as any).schema_version === "v3-part-a-part-b" && (row.report_data as any).part_a);
   const reportReady = !!(
@@ -157,7 +160,16 @@ export default function CPPARiskAssessmentResult() {
         )}
 
         {status === "complete" && reportReady && (
-          <>
+          <div dir={dir} className="space-y-6">
+            {row?.id && (
+              <div className="flex justify-end">
+                <ReportTranslateMenu
+                  toolType="cppa_risk"
+                  reportId={row.id}
+                  onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
+                />
+              </div>
+            )}
             <section className="bg-slate-900 text-white rounded-lg p-8">
               <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
               <p className="text-slate-300 text-sm">
