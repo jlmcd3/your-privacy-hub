@@ -1695,7 +1695,7 @@ Deno.serve(async (req) => {
         if (anthropicKey) {
           try {
             const sourceTier = inferSourceTier(source);
-            const aiSummary = await generateAISummary(title, description.slice(0, 800), source.source, anthropicKey, sourceTier);
+            const aiSummary = await generateAISummary(title, description.slice(0, 800), source.source, anthropicKey, sourceTier, row.published_at);
             if (aiSummary) {
               row.ai_summary = aiSummary;
               // Extract affected_jurisdictions from AI response into dedicated column
