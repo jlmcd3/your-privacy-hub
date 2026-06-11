@@ -98,7 +98,7 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact, on
       >
         <p className="text-meta" style={{ lineHeight: 1.5 }}>
           <span className="text-eyebrow mr-2" style={{ color: "hsl(var(--cobalt))" }}>
-            What changed
+            {`Intelligence context${updatedDate ? ` · updated ${updatedDate}` : ""}`}
           </span>
           <span className="text-brand-navy font-semibold">{topHeadline.title}</span>
           {!isAnon && topHeadline.why_it_matters && (
