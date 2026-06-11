@@ -168,7 +168,7 @@ ${enforcementContextStr}
 ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a risk identification, severity rating, or mitigation measure in section_3_risks, include it in the section_3_risks.annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.`;
 
     const [textA, textB] = await Promise.all([
-      callAnthropic("claude-sonnet-4-6", system,
+      callAnthropic("claude-sonnet-4-6", systemWithGdpr,
         `${sharedContext}
 
 Generate the first half of a DPIA framework document. Return ONLY this JSON structure, no preamble:
@@ -228,7 +228,7 @@ Generate the first half of a DPIA framework document. Return ONLY this JSON stru
 }`,
         6000
       ),
-      callAnthropic("claude-sonnet-4-6", system,
+      callAnthropic("claude-sonnet-4-6", systemWithGdpr,
         `${sharedContext}
 
 Generate the second half of a DPIA framework document. Return ONLY this JSON structure, no preamble:
