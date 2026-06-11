@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown, ChevronRight, UserCircle2 } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight, UserCircle2, Landmark, Scale, Globe, Cpu, ScrollText, Building2, BookOpen, ArrowLeftRight, ScanFace, HeartPulse, Cookie, Siren } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
@@ -8,7 +8,7 @@ import ClientContextBar from "@/components/ClientContextBar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 // Helper component for icon images with fallback
-const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: string; alt?: string }) => {
+const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: ReactNode; alt?: string }) => {
   const [hasError, setHasError] = useState(false);
 
   if (!src || hasError) {
@@ -26,7 +26,7 @@ const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: string
 };
 
 interface NavSubItem {
-  icon: string;
+  icon: ReactNode;
   iconImage?: string;
   label: string;
   description?: string;
@@ -403,12 +403,21 @@ const Navbar = () => {
       <Link
         key={sub.label}
         to={sub.href}
-        className={`flex items-start px-3 py-2 rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy ${mobile ? "" : ""}`}
+        className={`flex items-start gap-2 px-3 py-2 rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy ${mobile ? "" : ""}`}
         onClick={() => {
           if (mobile) setMobileOpen(false);
           setOpenDropdown(null);
         }}
       >
+        {sub.iconImage ? (
+          <span className="shrink-0 mt-0.5">
+            <IconImage src={sub.iconImage} fallback={sub.icon} alt="" />
+          </span>
+        ) : sub.icon ? (
+          <span className="shrink-0 flex items-center justify-center w-4 h-4">
+            {sub.icon}
+          </span>
+        ) : null}
         <span className="flex-1 text-left min-w-0">
           <span className="flex items-center gap-2 flex-wrap">
             <span className="font-medium">{sub.label}</span>
