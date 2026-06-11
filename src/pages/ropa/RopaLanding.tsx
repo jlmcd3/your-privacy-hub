@@ -135,6 +135,7 @@ export default function RopaLanding() {
                 See sample document <ExternalLink className="ml-1.5 h-4 w-4" />
               </Link>
             </Button>
+            <SampleReportLink toolSlug="ropa" tone="onDark" />
           </div>
         </div>
       </header>
