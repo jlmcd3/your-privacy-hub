@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
+import { getProduct } from "@/lib/productRegistry";
 
 const COMPARISON_ROWS: {
   dimension: string;
@@ -228,10 +229,10 @@ export default function GDPREnforcement() {
         }}
         pageSynthesisKey="gdpr__page"
         topToolCta={{
-          toolName: "Impact Assessment Builder (DPIA)",
+          toolName: getProduct("dpia").name,
           toolDescription:
             "Generate a GDPR-compliant DPIA structured to EDPB WP 248 requirements, calibrated to DPA enforcement patterns.",
-          href: "/dpia-framework",
+          href: getProduct("dpia").route,
         }}
         sections={[
           {

@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
+import { getProduct } from "@/lib/productRegistry";
 
 export default function BreachNotificationPage() {
   return (
@@ -34,10 +35,10 @@ export default function BreachNotificationPage() {
         }}
         pageSynthesisKey="breach__page"
         topToolCta={{
-          toolName: "Incident Response Playbook",
+          toolName: getProduct("ir-playbook").name,
           toolDescription:
             "A structured, jurisdiction-specific incident response guide generated for your organization. Covers GDPR, HIPAA, and active U.S. state laws.",
-          href: "/ir-playbook",
+          href: getProduct("ir-playbook").route,
         }}
         sections={[
           {

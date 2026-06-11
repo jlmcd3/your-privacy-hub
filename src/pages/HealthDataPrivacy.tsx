@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
+import { getProduct } from "@/lib/productRegistry";
 
 const TRACK_OVERVIEW = `
 <div class="grid gap-4 md:grid-cols-3">
@@ -166,10 +167,10 @@ export default function HealthDataPrivacyPage() {
         }}
         pageSynthesisKey="health__page"
         topToolCta={{
-          toolName: "Privacy Programme Assessment",
+          toolName: getProduct("governance-assessment").name,
           toolDescription:
             "Structured assessment covering HIPAA, the FTC Health Breach Rule, and state health data laws — formatted for leadership or counsel review.",
-          href: "/governance-assessment",
+          href: getProduct("governance-assessment").route,
         }}
         sections={[
           {

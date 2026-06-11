@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { BiometricDecisionChecklist } from "@/components/research/BiometricDecisionChecklist";
+import { getProduct } from "@/lib/productRegistry";
 
 const TIERED_STATE_LAWS = `
 <div class="space-y-5">
@@ -107,10 +108,10 @@ export default function BiometricPrivacyPage() {
             synthesisKey: "biometric__state_laws",
             content: TIERED_STATE_LAWS,
             toolCta: {
-              toolName: "Biometric Compliance Checker",
+              toolName: getProduct("biometric-checker").name,
               toolDescription:
                 "Covers BIPA, Texas CUBI, Washington and GDPR biometric requirements in a single structured assessment.",
-              href: "/biometric-checker",
+              href: getProduct("biometric-checker").route,
             },
             toolCtaPlacement: "top",
           },

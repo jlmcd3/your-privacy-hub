@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
+import { getProduct } from "@/lib/productRegistry";
 
 const REQUIREMENTS_MATRIX = `
 <div class="cmp-table overflow-x-auto rounded-xl border border-brand-cloud">
@@ -191,10 +192,10 @@ export default function CookieConsentPage() {
             synthesisKey: "cookie__checklist",
             content: STRICTEST_CHECKLIST,
             toolCta: {
-              toolName: "EU / Global Privacy Notice Builder",
+              toolName: getProduct("eu-global-notice").name,
               toolDescription:
                 "Generate a GDPR- and CPRA-aligned privacy notice with cookie consent disclosures, legal basis tables and data subject rights wording.",
-              href: "/eu-notice-builder",
+              href: getProduct("eu-global-notice").route,
             },
             toolCtaPlacement: "bottom",
           },

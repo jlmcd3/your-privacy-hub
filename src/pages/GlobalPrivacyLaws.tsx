@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { JurisdictionDirectory } from "@/components/research/JurisdictionDirectory";
+import { getProduct } from "@/lib/productRegistry";
 
 const GlobalPrivacyLaws = () => (
   <>
@@ -34,10 +35,10 @@ const GlobalPrivacyLaws = () => (
       ],
     }}
     topToolCta={{
-      toolName: "DPA Generator",
+      toolName: getProduct("dpa-generator").name,
       toolDescription:
         "Generate a jurisdiction-specific DPA covering LGPD, PIPL, APPI, PDPA and other frameworks tracked on this page.",
-      href: "/dpa-generator",
+      href: getProduct("dpa-generator").route,
     }}
     sections={[
       {

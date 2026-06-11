@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import usStates from "@/data/us_state_privacy_authorities.json";
 import comparison from "@/data/us_state_comparison.json";
+import { getProduct } from "@/lib/productRegistry";
 
 type Stage = "enacted" | "passed" | "committee" | "introduced" | "proposed" | "withdrawn";
 
@@ -72,9 +73,13 @@ export default function USStateLawPage() {
   }
 
   const isCA = state.slug === "california";
-  const topToolCta = isCA
-    ? { label: "Run CPPA Risk Assessment", href: "/cppa-risk-assessment" }
-    : { label: "Generate a U.S. Privacy Notice", href: "/us-notice-builder" };
+  const topToolProduct = isCA
+    ? getProduct("cppa-risk-assessment")
+    : getProduct("us-notice");
+  const topToolCta = {
+    label: isCA ? `Run ${topToolProduct.name}` : `Generate a ${topToolProduct.name}`,
+    href: topToolProduct.route,
+  };
 
   const metaDescription = state.statute_name
     ? `${state.state} privacy law (${state.statute_name}) — statute, regulator (${state.authority_name}), and currently active privacy bills.`

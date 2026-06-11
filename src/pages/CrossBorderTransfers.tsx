@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { TransferMechanismSelector } from "@/components/research/TransferMechanismSelector";
+import { getProduct } from "@/lib/productRegistry";
 
 const MECHANISM_TABLE = `
 <div class="cmp-table overflow-x-auto rounded-xl border border-brand-cloud">
@@ -126,10 +127,10 @@ export default function CrossBorderTransfersPage() {
         }}
         pageSynthesisKey="crossborder__page"
         topToolCta={{
-          toolName: "Impact Assessment Builder (DPIA)",
+          toolName: getProduct("dpia").name,
           toolDescription:
             "Transfer risk lives inside your impact assessments. Build a structured DPIA covering your cross-border processing — Schrems II factors, supplementary measures, and documentation formatted for counsel review.",
-          href: "/dpia-framework",
+          href: getProduct("dpia").route,
         }}
         introBlock={<TransferMechanismSelector />}
         sections={[
