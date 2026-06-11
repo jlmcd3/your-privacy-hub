@@ -2362,6 +2362,7 @@ export type Database = {
           bill_number: string | null
           created_at: string
           external_id: string
+          feed_promoted_at: string | null
           id: string
           introduced_at: string | null
           iso2: string | null
@@ -2387,6 +2388,7 @@ export type Database = {
           bill_number?: string | null
           created_at?: string
           external_id: string
+          feed_promoted_at?: string | null
           id?: string
           introduced_at?: string | null
           iso2?: string | null
@@ -2412,6 +2414,7 @@ export type Database = {
           bill_number?: string | null
           created_at?: string
           external_id?: string
+          feed_promoted_at?: string | null
           id?: string
           introduced_at?: string | null
           iso2?: string | null

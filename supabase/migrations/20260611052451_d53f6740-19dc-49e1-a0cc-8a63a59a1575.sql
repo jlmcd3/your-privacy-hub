@@ -1,0 +1,2 @@
+ALTER TABLE public.legislation_bills ADD COLUMN IF NOT EXISTS feed_promoted_at TIMESTAMPTZ DEFAULT NULL;
+CREATE INDEX IF NOT EXISTS idx_legislation_bills_feed_promoted ON public.legislation_bills(feed_promoted_at) WHERE feed_promoted_at IS NULL;
