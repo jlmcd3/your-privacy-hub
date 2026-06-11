@@ -89,7 +89,7 @@ export default function BiometricPrivacyPage() {
           title: "Biometric Privacy Laws: BIPA, State Laws & GDPR",
           description:
             "Biometric data is regulated more strictly than almost any other category — and exposure compounds quickly under BIPA's per-scan damages model. Start with the checklist to see what applies.",
-          lastUpdated: "March 24, 2026",
+          lastUpdated: "June 10, 2026",
           feedCategory: "biometric",
           stats: [
             { value: "$1K–$5K", label: "BIPA per-violation damages" },
@@ -126,7 +126,7 @@ export default function BiometricPrivacyPage() {
             id: "gdpr-eu",
             h2: "GDPR Article 9 and EU AI Act — Biometric data in Europe",
             synthesisKey: "biometric__gdpr_eu",
-            content: `<p>Under <a href="https://gdpr-info.eu/art-9-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 9</a>, biometric data processed for the purpose of uniquely identifying an individual is a special category requiring explicit consent or another Article 9 lawful basis. The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a> further restricts biometric identification systems in public spaces, with narrow law-enforcement exceptions. Clearview AI has been fined €20M+ by multiple DPAs (France, Italy, UK, Greece) for scraping facial images.</p>`,
+            content: `<p>Under <a href="https://gdpr-info.eu/art-9-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 9</a>, biometric data processed for the purpose of uniquely identifying an individual is a special category requiring explicit consent or another Article 9 lawful basis. The <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689" target="_blank" rel="noopener noreferrer">EU AI Act</a> further restricts biometric identification systems in public spaces, with narrow law-enforcement exceptions. Clearview AI has been fined €20M each by the DPAs of France, Italy, and Greece for scraping facial images; the UK ICO's £7.5M fine was overturned on jurisdictional grounds by the First-tier Tribunal in 2023.</p>`,
           },
           {
             id: "workplace",

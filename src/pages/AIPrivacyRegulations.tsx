@@ -8,14 +8,14 @@ const AIPrivacyRegulations = () => (
       eyebrow: "Research · AI & Privacy",
       title: "AI Privacy Regulations",
       description:
-        "AI regulation is moving faster than any other area of privacy law. The EDPB's March 2026 binding guidance on AI training data is a live compliance obligation. The EU AI Act's high-risk provisions are phasing in through 2027. California's ADMT rules are finalized. This reference covers the frameworks, the enforcement, and what each means for your compliance program.",
-      lastUpdated: "March 9, 2026",
+        "AI regulation is moving faster than any other area of privacy law. EDPB Opinion 28/2024 (adopted 17 December 2024) on personal data in AI models is the most significant regulatory statement at the AI–privacy intersection. The EU AI Act's high-risk provisions are phasing in through 2027. California's ADMT rules are effective. This reference covers the frameworks, the enforcement, and what each means for your compliance program.",
+      lastUpdated: "June 10, 2026",
       feedCategory: "ai-privacy",
       stats: [
         { value: "Aug 2024", label: "EU AI Act in force" },
         { value: "Art. 22", label: "GDPR right against ADM" },
-        { value: "Mar 2026", label: "EDPB AI training guidance" },
-        { value: "Mar 2026", label: "CPPA ADMT rules finalized" },
+        { value: "Dec 2024", label: "EDPB Opinion 28/2024 on AI models" },
+        { value: "Jan 2026", label: "CPPA ADMT rules effective" },
       ],
     }}
     pageSynthesisKey="ai_privacy__page"
@@ -32,9 +32,8 @@ const AIPrivacyRegulations = () => (
         </div>
         <p className="text-sm text-brand-navy leading-relaxed m-0">
           AI compliance is no longer prospective. The EU AI Act's prohibitions and
-          general-purpose-model obligations are live, the EDPB's March 2026 binding
-          guidance on AI training data is enforceable across all 27 EU DPAs, and
-          California's CPPA finalised its ADMT regulations the same month — first
+          general-purpose-model obligations are live, EDPB Opinion 28/2024 on AI training data guides supervisory authorities across the EEA, and
+          California's CPPA adopted its ADMT regulations in July 2025 (OAL-approved September 23, 2025; effective January 1, 2026) — first
           enforcement actions are expected H2 2026.
         </p>
       </div>
@@ -61,12 +60,12 @@ const AIPrivacyRegulations = () => (
         complianceTrigger:
           "Applies if you train, fine-tune, or deploy a model using personal data of EU/EEA individuals — including scraped public web data.",
         toolCtaPlacement: "top",
-        toolCta: {
-          toolName: "Legitimate Interest Assessment",
-          toolDescription: "The EDPB's March 2026 guidance requires a documented balancing test for each AI training use case. Generate a structured LIA aligned to EDPB guidance.",
-          href: "/li-assessment",
-        },
-        content: `<p>The <a href="/regulator/edpb">EDPB</a>'s <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/opinion-board-art-64/opinion-282024-certain-data-protection-aspects_en" target="_blank" rel="noopener noreferrer">March 2026 binding guidance</a> on personal data use in AI model training represents the most significant regulatory development at the AI–privacy intersection. The guidance establishes that training large language models on scraped personal data without a valid legal basis constitutes a GDPR violation. Controllers must identify a legal basis under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6</a> for each distinct phase of AI development: data collection, pre-processing, and model training. Legitimate interest cannot be automatically assumed; controllers must conduct and document a balancing test for each use case.</p>`,
+          toolCta: {
+            toolName: "Legitimate Interest Assessment",
+            toolDescription: "The EDPB's Opinion 28/2024 requires a documented balancing test for each AI training use case. Generate a structured LIA aligned to EDPB guidance.",
+            href: "/li-assessment",
+          },
+        content: `<p>The <a href="/regulator/edpb">EDPB</a>'s <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/opinion-board-art-64/opinion-282024-certain-data-protection-aspects_en" target="_blank" rel="noopener noreferrer">Opinion 28/2024</a> on personal data in AI model training is the most significant regulatory statement at the AI–privacy intersection. The opinion establishes that training large language models on scraped personal data without a valid legal basis constitutes a GDPR violation. Controllers must identify a legal basis under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6</a> for each distinct phase of AI development: data collection, pre-processing, and model training. Legitimate interest cannot be automatically assumed; controllers must conduct and document a balancing test for each use case.</p>`,
       },
       {
         id: "admt",
@@ -81,7 +80,7 @@ const AIPrivacyRegulations = () => (
             "Generate a CPPA-aligned risk assessment for automated decision-making and high-risk processing.",
           href: "/cppa-risk-assessment",
         },
-        content: `<p>Automated decision-making technology (ADMT) is a key area of regulatory focus. <a href="/us-state-privacy-laws">California</a>'s CPPA <a href="https://cppa.ca.gov/regulations/automated_decisionmaking.html" target="_blank" rel="noopener noreferrer">finalized ADMT regulations</a> in March 2026, requiring businesses to provide pre-use notices and opt-out rights for automated decisions in employment, housing, and credit. <a href="https://gdpr-info.eu/art-22-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 22</a> provides rights regarding automated individual decision-making, including profiling. The <a href="/regulator/ico">ICO</a>'s <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/employment/biometric-data-guidance-biometric-recognition/" target="_blank" rel="noopener noreferrer">March 2026 guidance on biometric data in workplace AI systems</a> clarifies that biometric processing by AI requires explicit consent and DPIAs.</p>`,
+        content: `<p>Automated decision-making technology (ADMT) is a key area of regulatory focus. <a href="/us-state-privacy-laws">California</a>'s CPPA <a href="https://cppa.ca.gov/regulations/automated_decisionmaking.html" target="_blank" rel="noopener noreferrer">adopted its ADMT regulations in July 2025 (OAL-approved September 23, 2025; effective January 1, 2026)</a>, requiring businesses to provide pre-use notices and opt-out rights for automated decisions in employment, housing, and credit. <a href="https://gdpr-info.eu/art-22-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 22</a> provides rights regarding automated individual decision-making, including profiling. The <a href="/regulator/ico">ICO</a>'s <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/employment/biometric-data-guidance-biometric-recognition/" target="_blank" rel="noopener noreferrer">AI and Biometrics Strategy (June 2025, updated March 2026) prioritizes automated decision-making in recruitment and biometric technologies; its February 2024 workplace biometrics guidance makes clear that biometric recognition generally needs an Article 9 condition — usually explicit consent — plus a DPIA</a>.</p>`,
       },
       {
         id: "enforcement",
@@ -99,15 +98,15 @@ const AIPrivacyRegulations = () => (
 
 <ul>
 
-<li><strong><a href="/regulator/garante">Garante (Italy)</a>:</strong> Temporarily banned ChatGPT in 2023; imposed €15M on OpenAI in November 2024 — overturned by the Court of Rome in March 2026. Significant for establishing that AI enforcement decisions face serious appellate scrutiny.</li>
+<li><strong><a href="/regulator/garante">Garante (Italy)</a>:</strong> Temporarily banned ChatGPT in 2023; imposed €15M on OpenAI in November 2024 — annulled in full by the Court of Rome on March 18, 2026, on jurisdictional one-stop-shop grounds, leaving the substantive questions undecided. Significant: AI enforcement decisions face serious appellate scrutiny.</li>
 
-<li><strong><a href="/regulator/edpb">EDPB:</a></strong> March 2026 binding guidance on AI training data is enforceable across all 27 EU DPAs. Expect coordinated enforcement actions against AI developers without documented legal bases for training data.</li>
+<li><strong><a href="/regulator/edpb">EDPB:</a></strong> Opinion 28/2024 on AI training data guides supervisory authorities across the EEA. Expect coordinated enforcement actions against AI developers without documented legal bases for training data.</li>
 
 <li><strong><a href="/regulator/ftc">FTC (U.S.):</a></strong> Active enforcement against AI-driven deceptive practices and voice-cloning fraud. The FTC's <em>Section 5 unfairness</em> theory is being extended to AI systems that produce harmful outputs.</li>
 
 <li><strong><a href="/regulator/ico">ICO (UK):</a></strong> Published AI and data protection guidance in 2024; enforcement focus is on transparency and purpose limitation in AI systems.</li>
 
-<li><strong>CPPA (California):</strong> Finalized ADMT regulations in March 2026. First enforcement actions expected H2 2026.</li>
+<li><strong>CPPA (California):</strong> Adopted ADMT regulations in July 2025 (effective January 1, 2026). First enforcement actions expected H2 2026.</li>
 
 </ul>
 
@@ -125,7 +124,7 @@ const AIPrivacyRegulations = () => (
 
 <li><strong><a href="/jurisdiction/united-kingdom">UK:</a></strong> Sector-specific regulation through existing regulators. The <a href="/regulator/ico">ICO</a> has published binding guidance on AI and data protection. No dedicated AI Act equivalent — deliberate policy choice to stay flexible.</li>
 
-<li><strong><a href="/jurisdiction/canada">Canada:</a></strong> <a href="https://ised-isde.canada.ca/site/innovation-better-canada/en/artificial-intelligence-and-data-act" target="_blank" rel="noopener noreferrer">AIDA</a> proposes mandatory impact assessments for high-impact AI systems, alongside PIPEDA amendments. Still in legislative process as of 2026.</li>
+<li><strong><a href="/jurisdiction/canada">Canada:</a></strong> <a href="https://ised-isde.canada.ca/site/innovation-better-canada/en/artificial-intelligence-and-data-act" target="_blank" rel="noopener noreferrer">AIDA</a> (Bill C-27) proposed mandatory impact assessments for high-impact AI systems but died on prorogation in January 2025; federal AI legislation awaits reintroduction.</li>
 
 <li><strong><a href="/jurisdiction/china">China:</a></strong> The most active non-EU regulator. The <a href="/regulator/cac">CAC</a> has issued binding regulations on algorithmic recommendations (2022), deep synthesis (2023), and generative AI (2023) — with active enforcement. China's approach is sovereignty-driven and moves faster than Western equivalents.</li>
 

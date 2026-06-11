@@ -217,10 +217,10 @@ export default function GDPREnforcement() {
           title: "GDPR vs UK GDPR — Framework & Divergence",
           description:
             "EU GDPR and UK GDPR started identical and have steadily drifted apart since Brexit. This reference compares the two regimes side by side, tracks where they have materially diverged, and points to the tools that resolve the close cases.",
-          lastUpdated: "March 24, 2026",
+          lastUpdated: "June 10, 2026",
           feedCategory: "eu-uk",
           stats: [
-            { value: "€4.5B+", label: "GDPR fines issued" },
+            { value: "€7B+", label: "GDPR fines issued" },
             { value: "27+1", label: "EU DPAs + ICO" },
             { value: "DUA 2025", label: "latest UK divergence" },
             { value: "Art. 83", label: "penalty framework" },
@@ -271,7 +271,8 @@ export default function GDPREnforcement() {
             h2: "The GDPR Regulatory Framework",
             synthesisKey: "gdpr__framework",
             content: `<p>GDPR enforcement operates through a decentralized network of independent Data Protection Authorities in each EU member state, coordinated by the <a href="/regulator/edpb">European Data Protection Board (EDPB)</a>. The one-stop-shop mechanism designates a lead supervisory authority based on a company's main establishment, while the consistency mechanism ensures uniform application across member states.</p>
-<p>DPAs can impose administrative fines up to <strong>€20 million or 4% of global annual turnover</strong>, whichever is higher. Beyond fines, DPAs can issue warnings, reprimands, orders to comply, temporary or definitive processing bans, and orders to communicate breaches to affected individuals.</p>`,
+<p>DPAs can impose administrative fines up to <strong>€20 million or 4% of global annual turnover</strong>, whichever is higher. Beyond fines, DPAs can issue warnings, reprimands, orders to comply, temporary or definitive processing bans, and orders to communicate breaches to affected individuals.</p>
+<p>Appellate review is now a major factor: a substantial share of headline fines is under challenge, and in March 2026 courts annulled both Amazon's €746M fine (Luxembourg) and OpenAI's €15M fine (Rome).</p>`,
           },
           {
             id: "enforcement-actions",
