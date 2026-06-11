@@ -5,6 +5,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import CopyButton from "@/components/CopyButton";
+import SampleReportLink from "@/components/SampleReportLink";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import ToolSampleOverlay from "@/components/ToolSampleOverlay";
