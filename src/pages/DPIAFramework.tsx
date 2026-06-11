@@ -164,32 +164,33 @@ const DPIAFramework = () => {
         )}
 
         <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="bg-card border rounded-lg p-6 space-y-6">
+          <RequiredLegend />
           <div>
-            <Label>Name this processing activity *</Label>
+            <Label>Name this processing activity<Req /></Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Employee location monitoring via mobile app" className="mt-2" />
           </div>
           <div>
-            <Label>Describe the processing activity in detail *</Label>
+            <Label>Describe the processing activity in detail<Req /></Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe: what data is collected, how it is used, who has access, where it is stored." className="mt-2 min-h-32" />
             <p className="text-xs text-muted-foreground mt-1">Min 100 characters.</p>
           </div>
           <div>
-            <Label>What is the purpose of this processing? *</Label>
+            <Label>What is the purpose of this processing?<Req /></Label>
             <Textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">Be specific. Vague purposes weaken both the legal basis and the DPIA.</p>
           </div>
-          <div><Label>Data categories *</Label><div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div></div>
-          <div><Label>Who are the data subjects? *</Label><Input value={dataSubjects} onChange={(e) => setDataSubjects(e.target.value)} placeholder="e.g. Employees in the UK and Ireland aged 18+" className="mt-2" /></div>
-          <div><Label>Volume and frequency *</Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="e.g. 250 employees, continuous monitoring during working hours" className="mt-2" /></div>
+          <div><Label>Data categories<Req /> <DefPopover termKey="gdpr_special_categories" /></Label><div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div></div>
+          <div><Label>Who are the data subjects?<Req /> <DefPopover termKey="gdpr_personal_data" /></Label><Input value={dataSubjects} onChange={(e) => setDataSubjects(e.target.value)} placeholder="e.g. Employees in the UK and Ireland aged 18+" className="mt-2" /></div>
+          <div><Label>Volume and frequency<Req /></Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="e.g. 250 employees, continuous monitoring during working hours" className="mt-2" /></div>
           <div>
             <Label>Third-party processors</Label>
             <div className="mt-2"><Pills options={TOOLS} value={processors} onChange={setProcessors} /></div>
             <Input placeholder="Other (specify)" value={otherProcessor} onChange={(e) => setOtherProcessor(e.target.value)} className="mt-2" />
           </div>
           <div><Label>Existing safeguards</Label><div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div></div>
-          <div><Label>Jurisdictions *</Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
+          <div><Label>Jurisdictions<Req /> <DefPopover termKey="gdpr_international_transfer" /></Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
           <div>
-            <Label>Legal basis proposed *</Label>
+            <Label>Legal basis proposed<Req /></Label>
             <select value={legalBasis} onChange={(e) => setLegalBasis(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>{LEGAL_BASES.map((b) => <option key={b}>{b}</option>)}
             </select>
