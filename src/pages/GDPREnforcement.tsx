@@ -199,7 +199,7 @@ export default function GDPREnforcement() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="https://enduserprivacy.com/gdpr-enforcement" />
+        <link rel="canonical" href="/gdpr-enforcement" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",
@@ -228,7 +228,7 @@ export default function GDPREnforcement() {
         }}
         pageSynthesisKey="gdpr__page"
         topToolCta={{
-          toolName: "Data Protection Impact Assessment",
+          toolName: "Impact Assessment Builder (DPIA)",
           toolDescription:
             "Generate a GDPR-compliant DPIA structured to EDPB WP 248 requirements, calibrated to DPA enforcement patterns.",
           href: "/dpia-framework",

@@ -13,6 +13,7 @@ import { slugify } from "@/lib/utils";
 import usStatesRaw from "@/data/us_state_privacy_authorities.json";
 import { useStateLawOverrides, applyOverride } from "@/hooks/useStateLawOverrides";
 import { ResearchSynthesisBlock } from "@/components/research/ResearchSynthesisBlock";
+import { ResearchToolCTA } from "@/components/research/ResearchToolCTA";
 
 const RELATED_LINKS = [
   { icon: "📊", label: "U.S. State Law Comparison", href: "/compare/us-states" },
@@ -219,6 +220,11 @@ const USPrivacyLaws = () => {
 
       {/* Landscape at a glance */}
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <ResearchToolCTA
+          toolName="Privacy Programme Assessment"
+          toolDescription="See where your privacy program stands against the state laws on this page — a structured, enforcement-calibrated assessment across ten governance domains."
+          href="/governance-assessment"
+        />
         <div className="grid grid-cols-3 gap-3">
           {[
             { label: "Enacted", count: enactedCount, stripe: "bg-emerald-600", text: "text-emerald-700", bg: "bg-emerald-600/5" },

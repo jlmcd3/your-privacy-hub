@@ -137,7 +137,7 @@ export default function HealthDataPrivacyPage() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="https://enduserprivacy.com/health-data-privacy" />
+        <link rel="canonical" href="/health-data-privacy" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",
@@ -166,7 +166,7 @@ export default function HealthDataPrivacyPage() {
         }}
         pageSynthesisKey="health__page"
         topToolCta={{
-          toolName: "Privacy Program Assessment",
+          toolName: "Privacy Programme Assessment",
           toolDescription:
             "Structured assessment covering HIPAA, the FTC Health Breach Rule, and state health data laws — formatted for leadership or counsel review.",
           href: "/governance-assessment",

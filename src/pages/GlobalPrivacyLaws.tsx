@@ -20,7 +20,7 @@ const GlobalPrivacyLaws = () => (
       ],
     }}
     topToolCta={{
-      toolName: "Data Processing Agreement Generator",
+      toolName: "DPA Generator",
       toolDescription:
         "Generate a jurisdiction-specific DPA covering LGPD, PIPL, APPI, PDPA and other frameworks tracked on this page.",
       href: "/dpa-generator",

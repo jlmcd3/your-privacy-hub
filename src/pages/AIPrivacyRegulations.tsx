@@ -20,7 +20,7 @@ const AIPrivacyRegulations = () => (
     }}
     pageSynthesisKey="ai_privacy__page"
     topToolCta={{
-      toolName: "Governance Assessment",
+      toolName: "Privacy Programme Assessment",
       toolDescription:
         "Assess your AI governance program against the EU AI Act, GDPR Article 22, and CPPA ADMT enforcement patterns.",
       href: "/governance-assessment",

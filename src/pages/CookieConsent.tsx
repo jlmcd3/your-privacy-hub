@@ -150,7 +150,7 @@ export default function CookieConsentPage() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="https://enduserprivacy.com/cookie-consent" />
+        <link rel="canonical" href="/cookie-consent" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",

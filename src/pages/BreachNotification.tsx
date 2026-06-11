@@ -5,7 +5,7 @@ export default function BreachNotificationPage() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="https://enduserprivacy.com/breach-notification" />
+        <link rel="canonical" href="/breach-notification" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",

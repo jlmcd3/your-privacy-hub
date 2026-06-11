@@ -6,6 +6,7 @@ import glossaryData from "@/data/glossary.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import { ResearchToolCTA } from "@/components/research/ResearchToolCTA";
 
 type Term = (typeof glossaryData)[number];
 
@@ -183,6 +184,12 @@ const Glossary = () => {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        <ResearchToolCTA
+          toolName="Privacy Intelligence Feed"
+          toolDescription="Terms are the start — the Feed shows you how regulators are applying them, updated daily."
+          href="/updates"
+        />
+
         {/* Search */}
         <div className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-brand-cloud/95 backdrop-blur border-b border-brand-cloud mb-6">
           <div className="relative">
