@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
   if (finalRows.length === 0 && q.jurisdictions?.length) {
     let fallbackQuery = supabase
       .from("enforcement_actions")
-      .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related")
+      .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related, statutory_provisions, provisions_normalized")
       .gte("enrichment_version", 1)
       .not("source_database", "is", null)
       .order("precedent_significance", { ascending: false, nullsFirst: false })
