@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
 
   for (const art of parsed) {
     const content_hash = await sha256(art.body);
-    const sourceUrl = `https://www.legislation.gov.uk/eur/2016/679/article/${art.number}`;
+    const sourceUrl = ukArticleSourceUrl(art.number);
 
     const { data: existing } = await admin
       .from("gdpr_articles")
