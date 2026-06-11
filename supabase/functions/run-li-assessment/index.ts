@@ -415,6 +415,7 @@ Return JSON:
       precedent_database_size: (allPrecedents || []).length,
       enforcement_precedents: enforcementPrecedents,
       enforcement_meta: enforcementMeta,
+      gdpr_meta: gdprMeta,
       enforcement_precedents_note: enforcementPrecedents.length === 0
         ? "No enforcement decisions matching this jurisdiction and processing theory were retrieved from the precedent database. The analysis above may reference relevant decisions that are not yet indexed against this scenario — verify any cited cases directly."
         : null,
