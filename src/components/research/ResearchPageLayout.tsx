@@ -101,7 +101,7 @@ export function ResearchPageLayout({
       <ResearchPageHeader {...header} contextUpdated={contextUpdated} />
 
       {adAfterHeader && (
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-6 print:hidden">
           <AdBanner variant="leaderboard" className="my-4" />
         </div>
       )}
