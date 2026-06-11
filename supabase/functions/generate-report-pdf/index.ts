@@ -282,15 +282,19 @@ ${sections.map(([key, heading]) => {
     const s = report[key] || {};
     return `<h2>${heading}</h2>
 ${s.guidance_note ? `<div class="guidance"><strong>Article 35 requirement: </strong>${s.guidance_note}</div>` : ""}
-${Object.entries(s)
-        .filter(([k]) => !["title", "guidance_note", "completion_guidance", "risk_assessment", "proposed_measures"].includes(k))
-        .map(([k, v]) => `<p><span class="label">${k.replace(/_/g, " ")}:</span> ${v || ""}</p>`)
-        .join("")}
 ${(s.risk_assessment || []).length ? `<ul>${(s.risk_assessment || []).map((r: any) =>
         `<li><strong>${r.risk_type || ""}</strong> — Likelihood: ${r.likelihood || ""}, Severity: ${r.severity || ""}. ${r.description || ""}</li>`
       ).join("")}</ul>` : ""}
 ${(s.proposed_measures || []).length ? `<ul>${(s.proposed_measures || []).map((m: any) =>
         `<li><strong>${m.measure || ""}</strong>: ${m.implementation_guidance || ""} (Residual risk: ${m.residual_risk_after || ""})</li>`
+      ).join("")}</ul>` : ""}
+${Object.entries(s)
+        .filter(([k, v]) => !["title", "guidance_note", "completion_guidance", "risk_assessment", "proposed_measures", "annotations"].includes(k)
+          && (typeof v === "string" ? v.trim().length > 0 : typeof v === "boolean"))
+        .map(([k, v]) => `<p><span class="label">${k.replace(/_/g, " ")}:</span> ${typeof v === "boolean" ? (v ? "Yes" : "No") : v}</p>`)
+        .join("")}
+${Array.isArray(s.annotations) && s.annotations.length ? `<p class="label">Enforcement annotations:</p><ul>${s.annotations.map((a: any) =>
+        `<li><strong>${a.regulator || "Enforcement source"}</strong>${a.summary ? ` — ${a.summary}` : ""}${a.relevance ? ` (Relevance: ${a.relevance})` : ""}</li>`
       ).join("")}</ul>` : ""}
 ${s.completion_guidance ? `<div class="completion"><strong>Your DPO/Counsel must complete: </strong>${s.completion_guidance}</div>` : ""}`;
   }).join("")}
