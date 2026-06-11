@@ -1569,7 +1569,7 @@ Description: ${(description || "").substring(0, 1000)}`,
 }
 
 import { startRun, finishRun, failRun } from "../_shared/run-logger.ts";
-import { validateAISummary } from "../_shared/ai-validation.ts";
+import { validateAISummary, checkDateConsistency } from "../_shared/ai-validation.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
