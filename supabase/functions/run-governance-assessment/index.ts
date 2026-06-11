@@ -107,7 +107,21 @@ Health or special category data processed: ${intake.special_category_data ? "Yes
 
     const domainSystem = `You are a senior privacy and data protection compliance analyst. You are assessing an organisation's data governance practices against applicable regulatory requirements. Be specific, cite regulatory provisions where applicable (GDPR Article numbers, CCPA sections, etc.), and be direct about findings. This is a compliance framework tool. Return ONLY valid JSON, no preamble.
 
-CITATION RULE: In the 'regulatory_basis' field, cite provision numbers only where you are certain they exist (e.g. 'GDPR Article 28', 'CCPA §1798.100'). Do not invent specific subsection letters or paragraph numbers. If uncertain, name the law and the obligation in plain language (e.g. 'CCPA — service provider contract requirement') rather than risk a fabricated citation.
+CITATION INTEGRITY: Cite provisions ONLY in the exact forms below. If you cannot match a citation to one of these patterns with certainty, name the law and obligation in plain language instead (e.g. 'CCPA — service provider contract requirement') rather than fabricate.
+- Illinois BIPA: only the form "740 ILCS 14/<section>" (e.g. 740 ILCS 14/15(b)). NEVER write "§15-101", "§15-2", "§1401", "15 ILCS", or "15 USC".
+- Colorado CPA: only "C.R.S. §6-1-1301" through "§6-1-1313". Consumer rights §6-1-1306; controller duties §6-1-1308; processor duties §6-1-1305; data protection assessments §6-1-1309.
+- Virginia VCDPA: only "Va. Code §59.1-575" through "§59.1-585". Consumer rights §59.1-577; controller duties §59.1-578; processor duties §59.1-579; data protection assessments §59.1-580.
+- CCPA/CPRA right to correct is §1798.106. NEVER cite §1798.120 (that is opt-out of sale) or §1798.100(a)(2) for the right to correct.
+- §1798.150 is ONLY the data-breach private right of action. Do not cite §1798.150 for any other proposition.
+- The CPRA service provider definition is §1798.140(ag).
+- UK DPA 2018 Schedule 1 contains special-category processing conditions ONLY. Never cite Schedule 1 for general processing principles. The UK GDPR has NO Schedules — do not invent any.
+- Ireland: NEVER cite specific Irish Data Protection Act 2018 section numbers. Cite the GDPR article directly and refer to "the Data Protection Act 2018 (Ireland)" generally. There is NO general registration or notification requirement with the Irish DPC.
+- GDPR Recital 47 concerns legitimate interests only. Recital 39 concerns transparency and awareness. Do not swap them.
+- DPO awareness-raising and training tasks are Article 39(1)(b), NOT Article 37(5). Article 37 has no SME or sector exemption — do not assert one.
+
+VENDOR NAMING RULE: Name ONLY vendors that are explicitly provided in the intake. Never introduce additional vendor or company names that the organisation did not list.
+
+MICROSOFT 365 COPILOT RULE: Never assert as fact that Microsoft 365 Copilot uses tenant data for AI model training. Frame any such concern as "verify Microsoft's data-handling and model-training commitments for the tenant".
 
 ENFORCEMENT CASE RULE: Do NOT reference specific enforcement case names, fine amounts, or regulator decisions in any domain field. Enforcement precedents are injected only into the synthesis stage. Domain findings must cite statutes only.
 
@@ -130,15 +144,19 @@ MONETARY PENALTY RULE: In the synthesis stage, never state a specific monetary f
         ["us-federal", "california", "new-york"].includes(j)
       );
 
+    const tryParseJson = (text: string): any | null => {
+      try {
+        const m = text.match(/\{[\s\S]*\}/);
+        return m ? JSON.parse(m[0]) : null;
+      } catch { return null; }
+    };
+
     const domainResultsArray = await Promise.all(
       DOMAIN_DEFINITIONS.map(async (domain) => {
         const model = (domain.escalate && needsHigherQuality)
           ? "claude-sonnet-4-6"
           : "claude-haiku-4-5-20251001";
-        const text = await callAnthropic(
-          model,
-          domainSystem,
-          `DOMAIN ${domain.id}: ${domain.name}
+        const userPrompt = `DOMAIN ${domain.id}: ${domain.name}
 
 ORGANISATION PROFILE:
 ${intakeSummary}
@@ -157,20 +175,42 @@ Return JSON:
   "recommended_action": "specific action required — must name the regulation and the action",
   "suggested_owner": "DPO | Legal Counsel | CISO | CTO | HR | Compliance Manager",
   "suggested_timeline": "Immediate (within 7 days) | This quarter | This year | Ongoing"
-}`,
-          1200
-        );
-        try {
-          const m = text.match(/\{[\s\S]*\}/);
-          if (m) return { key: domain.key, result: JSON.parse(m[0]) };
-        } catch { /* fall through */ }
-        return { key: domain.key, result: { domain_id: domain.id, severity: "Low", regulatory_basis: "Could not be determined — assessment incomplete", current_state: "Assessment parse error", gap_description: null, recommended_action: "Re-run assessment", suggested_owner: "DPO", suggested_timeline: "This quarter" } };
+}`;
+        const firstText = await callAnthropic(model, domainSystem, userPrompt, 1200);
+        let parsed = tryParseJson(firstText);
+        if (!parsed) {
+          // Retry once before giving up. Never emit placeholder "parse error"
+          // copy into customer-facing report; failed domains are excluded
+          // from the report entirely and recorded as a lint warning.
+          console.warn(`[Governance] domain ${domain.id} (${domain.name}) parse failed; retrying once.`);
+          const retryText = await callAnthropic(model, domainSystem, userPrompt, 1200);
+          parsed = tryParseJson(retryText);
+        }
+        if (!parsed) {
+          return {
+            key: domain.key,
+            result: { assessment_failed: true, domain_id: domain.id, domain_name: domain.name },
+          };
+        }
+        return { key: domain.key, result: parsed };
       })
     );
 
+    // Partition successful vs failed domains. Failed domains are excluded
+    // from synthesis input, from the rendered report, and from any
+    // immediate-actions list.
+    const failedDomains: Array<{ domain_id: any; domain_name: string }> = [];
     for (const { key, result } of domainResultsArray) {
+      if (result && (result as any).assessment_failed) {
+        failedDomains.push({
+          domain_id: (result as any).domain_id,
+          domain_name: (result as any).domain_name,
+        });
+        continue;
+      }
       domainResults[key] = result;
     }
+    const failedDomainNames = new Set(failedDomains.map((d) => String(d.domain_name || "").toLowerCase()));
 
     // Fetch enforcement precedents (3-5) relevant to this org's profile (before synthesis so they can be cited)
     let enforcementPrecedents: any[] = [];
@@ -289,10 +329,12 @@ Return JSON:
         risk: stripMd(r?.risk),
         why_urgent: stripMd(r?.why_urgent),
       })),
-      immediate_actions: (synthesis.immediate_actions || []).map((a: any) => ({
-        ...a,
-        action: stripMd(a?.action),
-      })),
+      immediate_actions: (synthesis.immediate_actions || [])
+        .filter((a: any) => !failedDomainNames.has(String(a?.domain || "").toLowerCase()))
+        .map((a: any) => ({
+          ...a,
+          action: stripMd(a?.action),
+        })),
       overall_readiness_rating: synthesis.overall_readiness_rating || "Initial",
       readiness_rationale: stripMd(synthesis.readiness_rationale || ""),
       interaction_effects: stripMd(synthesis.interaction_effects || ""),
@@ -300,6 +342,11 @@ Return JSON:
       enforcement_precedents: enforcementPrecedents,
       enforcement_meta: enforcementMeta,
       annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
+      lint_warnings: failedDomains.map((d) => ({
+        code: "domain_assessment_failed",
+        severity: "hard",
+        detail: d.domain_name,
+      })),
       disclaimer: "This report is a compliance framework tool produced to assist organisations in identifying governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
 
