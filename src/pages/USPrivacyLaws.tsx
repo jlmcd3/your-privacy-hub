@@ -13,6 +13,7 @@ import { slugify } from "@/lib/utils";
 import usStatesRaw from "@/data/us_state_privacy_authorities.json";
 import { useStateLawOverrides, applyOverride } from "@/hooks/useStateLawOverrides";
 import { ResearchSynthesisBlock } from "@/components/research/ResearchSynthesisBlock";
+import { ResearchToolCTA } from "@/components/research/ResearchToolCTA";
 
 const RELATED_LINKS = [
   { icon: "📊", label: "U.S. State Law Comparison", href: "/compare/us-states" },
