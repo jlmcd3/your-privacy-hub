@@ -423,6 +423,16 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/pricing-reconciliation"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminPricingReconciliation />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/cron-status"
               element={
                 <ProtectedRoute>
