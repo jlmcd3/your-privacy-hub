@@ -215,7 +215,38 @@ export default function AdminFsorIngestion() {
         toast.error(`Verify failed: ${data.error ?? r.status}`);
       } else {
         toast.success("Verification complete");
+  }
+
+  async function runEdpbSequential() {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    setGdprBusy("ingest-edpb-guidelines");
+    const mode = gdprDryRun ? " [DRY RUN]" : " [LIVE]";
+    let out = `Ingest EDPB Guidelines${mode} — one guideline per request to stay within worker limits\n`;
+    setGdprResult(out);
+    let failures = 0;
+    for (const ref of EDPB_REFS) {
+      try {
+        const r = await fetch(`${SUPABASE_URL}/functions/v1/ingest-edpb-guidelines`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-token": adminToken,
+          },
+          body: JSON.stringify({ dry_run: gdprDryRun, only: [ref] }),
+        });
+        const data = await r.json();
+        out += `\n--- ${ref} (HTTP ${r.status}) ---\n${JSON.stringify(data?.per_guideline ?? data, null, 2)}\n`;
+        if (!r.ok || data?.error) failures++;
+      } catch (e: any) {
+        out += `\n--- ${ref} THREW: ${e?.message ?? e} ---\n`;
+        failures++;
       }
+      setGdprResult(out);
+    }
+    setGdprBusy(null);
+    if (failures) toast.error(`EDPB ingest: ${failures} of ${EDPB_REFS.length} failed`);
+    else toast.success(`EDPB ingest: all ${EDPB_REFS.length} guidelines processed`);
+  }
     } catch (e: any) {
       toast.error(`Verify error: ${e?.message ?? e}`);
       setGdprResult(`Verify threw: ${e?.message ?? e}`);
