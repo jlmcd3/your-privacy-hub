@@ -16,6 +16,7 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
 
 const MATURITY = [
   "Not implemented",
