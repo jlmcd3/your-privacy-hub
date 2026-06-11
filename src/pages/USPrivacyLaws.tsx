@@ -440,7 +440,7 @@ const USPrivacyLaws = () => {
                     {showView && (
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta font-medium">
                         <Link
-                          to={`/jurisdiction/${slug}`}
+                          to={`/us-privacy-laws/${slug}`}
                           className="text-brand-teal hover:text-brand-navy no-underline font-semibold"
                         >
                           View →
