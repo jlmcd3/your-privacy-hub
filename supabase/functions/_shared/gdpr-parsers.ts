@@ -162,6 +162,12 @@ export function xmlToText(xml: string): string {
   s = s.replace(/Textual Amendments[\s\S]{0,200}?(?=\n|$)/gi, " ");
   s = s.replace(/Modifications etc[^.\n]{0,200}/gi, " ");
   s = s.replace(/\s+/g, " ").trim();
+  // legislation.gov.uk marks repealed/omitted provisions with runs of
+  // ". . . ." — collapse each run to a single ellipsis so the omission
+  // signal survives but the noise does not. Three-or-more spaced dots
+  // never occur in prose, so this cannot touch real sentence text.
+  s = s.replace(/\.(?:\s+\.){2,}/g, " …");
+  s = s.replace(/\s+/g, " ").trim();
   return s;
 }
 

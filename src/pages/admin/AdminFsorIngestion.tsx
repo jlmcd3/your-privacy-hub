@@ -137,6 +137,20 @@ function computeSections(units: Unit[]): Record<string, number> {
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
+// Must match guideline_ref values in supabase/functions/ingest-edpb-guidelines SEED_REGISTRY exactly.
+const EDPB_REFS = [
+  "EDPB Guidelines 1/2024",
+  "EDPB Guidelines 2/2019",
+  "WP248 rev.01",
+  "EDPB Guidelines 9/2022",
+  "EDPB Guidelines 07/2020",
+  "EDPB Guidelines 05/2020",
+  "EDPB Guidelines 3/2018",
+  "EDPB Recommendations 01/2020",
+  "EDPB Guidelines 01/2022",
+  "WP260 rev.01",
+];
+
 export default function AdminFsorIngestion() {
   const [adminToken, setAdminToken] = useState("");
   const [presetKey, setPresetKey] = useState<string>("T1");
@@ -208,6 +222,37 @@ export default function AdminFsorIngestion() {
     } finally {
       setGdprBusy(null);
     }
+  }
+
+  async function runEdpbSequential() {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    setGdprBusy("ingest-edpb-guidelines");
+    const mode = gdprDryRun ? " [DRY RUN]" : " [LIVE]";
+    let out = `Ingest EDPB Guidelines${mode} — one guideline per request to stay within worker limits\n`;
+    setGdprResult(out);
+    let failures = 0;
+    for (const ref of EDPB_REFS) {
+      try {
+        const r = await fetch(`${SUPABASE_URL}/functions/v1/ingest-edpb-guidelines`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-token": adminToken,
+          },
+          body: JSON.stringify({ dry_run: gdprDryRun, only: [ref] }),
+        });
+        const data = await r.json();
+        out += `\n--- ${ref} (HTTP ${r.status}) ---\n${JSON.stringify(data?.per_guideline ?? data, null, 2)}\n`;
+        if (!r.ok || data?.error) failures++;
+      } catch (e: any) {
+        out += `\n--- ${ref} THREW: ${e?.message ?? e} ---\n`;
+        failures++;
+      }
+      setGdprResult(out);
+    }
+    setGdprBusy(null);
+    if (failures) toast.error(`EDPB ingest: ${failures} of ${EDPB_REFS.length} failed`);
+    else toast.success(`EDPB ingest: all ${EDPB_REFS.length} guidelines processed`);
   }
 
 
@@ -641,7 +686,7 @@ export default function AdminFsorIngestion() {
               {gdprBusy === "ingest-gdpr-uk" ? "Ingesting…" : "Ingest UK GDPR"}
             </Button>
             <Button
-              onClick={() => runGdprIngest("ingest-edpb-guidelines", "Ingest EDPB Guidelines")}
+              onClick={runEdpbSequential}
               disabled={gdprBusy !== null}
               variant="outline"
             >
