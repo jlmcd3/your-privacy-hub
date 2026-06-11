@@ -249,9 +249,9 @@ export const PRICING_REGISTRY = {
     productKey: "governance_v8",
     productName: "Privacy Program Assessment (Subscriber)",
     description: "Subscriber per-use price for the Privacy Program Assessment Tool.",
-    amountCents: 2500,
+    amountCents: 4900,
     currency: "usd",
-    displayPrice: "$25",
+    displayPrice: "$49",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -301,9 +301,9 @@ export const PRICING_REGISTRY = {
     productKey: "dpia_v8",
     productName: "Impact Assessment Builder (Subscriber)",
     description: "Subscriber per-use price for the DPIA Tool.",
-    amountCents: 4900,
+    amountCents: 4500,
     currency: "usd",
-    displayPrice: "$49",
+    displayPrice: "$45",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -497,9 +497,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_risk",
     productName: "CPPA Risk Assessment — Module 1 (Subscriber)",
     description: "Subscriber per-use price for the CPPA Risk Assessment.",
-    amountCents: 7900,
+    amountCents: 9900,
     currency: "usd",
-    displayPrice: "$79",
+    displayPrice: "$99",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -511,9 +511,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_risk",
     productName: "CPPA Risk Assessment — Module 1 (Standalone)",
     description: "Standalone per-use price for the CPPA Risk Assessment.",
-    amountCents: 8900,
+    amountCents: 17900,
     currency: "usd",
-    displayPrice: "$89",
+    displayPrice: "$179",
     displaySuffix: " flat",
     active: true,
   },
@@ -522,10 +522,10 @@ export const PRICING_REGISTRY = {
     lookupKey: "cppa_suite_standalone",
     productKey: "cppa_suite",
     productName: "CPPA Full Audit Suite — Modules 1 & 2 (Standalone)",
-    description: "Complete CPPA audit readiness bundle. Save $19 vs buying modules separately.",
-    amountCents: 16900,
+    description: "Complete CPPA audit readiness bundle. Save $79 vs buying modules separately.",
+    amountCents: 34900,
     currency: "usd",
-    displayPrice: "$169",
+    displayPrice: "$349",
     displaySuffix: " flat",
     active: true,
   },
@@ -535,9 +535,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_cybersecurity",
     productName: "CPPA Cybersecurity Readiness — Module 2 (Standalone)",
     description: "Standalone per-use price for the CPPA Cybersecurity Readiness assessment.",
-    amountCents: 9900,
+    amountCents: 24900,
     currency: "usd",
-    displayPrice: "$99",
+    displayPrice: "$249",
     displaySuffix: " flat",
     active: true,
   },
@@ -547,9 +547,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_cybersecurity",
     productName: "CPPA Cybersecurity Readiness — Module 2 (Subscriber)",
     description: "Subscriber per-use price for the CPPA Cybersecurity Readiness assessment.",
-    amountCents: 8900,
+    amountCents: 13900,
     currency: "usd",
-    displayPrice: "$89",
+    displayPrice: "$139",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -561,9 +561,9 @@ export const PRICING_REGISTRY = {
     productKey: "cppa_suite",
     productName: "CPPA Full Audit Suite — Modules 1 & 2 (Subscriber)",
     description: "Subscriber per-use price for the CPPA Full Audit Suite.",
-    amountCents: 14900,
+    amountCents: 18900,
     currency: "usd",
-    displayPrice: "$149",
+    displayPrice: "$189",
     displaySuffix: " flat",
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
@@ -845,18 +845,18 @@ export const PRICING = {
     eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     registration: { name: 'Registration Filings',               dollars: 45,  display: '$45',  stripePriceId: 'registration_standalone' },
     governance:   { name: 'Privacy Program Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
-    cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 89,  display: '$89',  stripePriceId: 'cppa_risk_standalone' },
-    cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 99,  display: '$99',  stripePriceId: 'cppa_cyber_standalone' },
-    cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 169, display: '$169', stripePriceId: 'cppa_suite_standalone' },
+    cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 179, display: '$179', stripePriceId: 'cppa_risk_standalone' },
+    cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 249, display: '$249', stripePriceId: 'cppa_cyber_standalone' },
+    cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 349, display: '$349', stripePriceId: 'cppa_suite_standalone' },
 
     // ── Legacy camelCase aliases (kept so existing imports keep compiling) ──
     cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,   display: 'Free', stripePriceId: null },
     irPlaybook:   { name: 'Breach IR Playbook',                 dollars: 59,  display: '$59',  stripePriceId: 'ir_standalone_v2' },
     usNotice:     { name: 'US Privacy Notice Builder',          dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     euNotice:     { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
-    cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 89,  display: '$89',  stripePriceId: 'cppa_risk_standalone' },
-    cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 99,  display: '$99',  stripePriceId: 'cppa_cyber_standalone' },
-    cppaSuite:    { name: 'CPPA Full Audit Suite',              dollars: 169, display: '$169', stripePriceId: 'cppa_suite_standalone' },
+    cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 179, display: '$179', stripePriceId: 'cppa_risk_standalone' },
+    cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 249, display: '$249', stripePriceId: 'cppa_cyber_standalone' },
+    cppaSuite:    { name: 'CPPA Full Audit Suite',              dollars: 349, display: '$349', stripePriceId: 'cppa_suite_standalone' },
   },
 } as const;
 
@@ -962,6 +962,17 @@ export function isIncludedTool(toolKey: string): boolean {
 /** v9 Layer 3 — Smart Tools redeemable with the annual credit.
  *  CPPA tools and Registration are deliberately EXCLUDED. */
 export const ANNUAL_CREDIT_ELIGIBLE_KEYS = ['governance','lia','dpia'] as const;
+
+// v10 (2026-06-11): Layer-2 subscriber per-use rates are ANNUAL-SUBSCRIBER-ONLY.
+// Monthly subscribers pay standalone on Layer-2 tools.
+// Layer-1 included tools (RoPA, notices, IR, Biometric, DPA) remain included for
+// ANY active subscription including monthly. CPPA repriced: 179/99, 249/139, 349/189.
+// Governance subscriber 25→49, DPIA subscriber 49→45.
+export const ANNUAL_GATED_SUBSCRIBER_RATE_KEYS = ['governance','lia','dpia','cppa_risk','cppa_cyber','cppa_suite'] as const;
+const ANNUAL_GATED_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber','cppaSuite']);
+export function requiresAnnualForSubscriberRate(toolKey: string): boolean {
+  return (ANNUAL_GATED_SUBSCRIBER_RATE_KEYS as readonly string[]).includes(toolKey) || ANNUAL_GATED_CAMEL.has(toolKey);
+}
 
 export const ANNUAL_CREDIT = {
   intelligenceAnnual: 1,          // credits per subscription year (personal)
