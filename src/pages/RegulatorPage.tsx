@@ -6,65 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-import globalAuthorities from "@/data/global_privacy_authorities.json";
-
-// Build regulator lookup from JSON
-const buildRegulatorData = () => {
-  const regulators: Record<string, {
-    name: string;
-    abbreviation: string;
-    country: string;
-    region: string;
-    website: string;
-    complaint_portal?: string;
-    legislation?: string;
-    legislation_abbreviation?: string;
-    monitoring_tier?: number;
-  }> = {};
-
-  (globalAuthorities as any[]).forEach((region: any) => {
-    region.entries.forEach((entry: any) => {
-      const slug = (entry.authority_abbreviation || entry.authority_name)
-        .toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-+/g, "-");
-      regulators[slug] = {
-        name: entry.authority_name,
-        abbreviation: entry.authority_abbreviation || "",
-        country: entry.country,
-        region: region.region,
-        website: entry.website,
-        complaint_portal: entry.complaint_portal,
-        legislation: entry.primary_legislation,
-        legislation_abbreviation: entry.legislation_abbreviation,
-        monitoring_tier: entry.monitoring_tier,
-      };
-    });
-  });
-
-  // Add some common aliases
-  const aliases: Record<string, string> = {
-    "edpb": "edpb",
-    "ico": "ico",
-    "ftc": "ftc",
-    "cnil": "cnil",
-    "dpc": "dpc",
-  };
-
-  // FTC (not in global JSON, add manually)
-  regulators["ftc"] = {
-    name: "Federal Trade Commission",
-    abbreviation: "FTC",
-    country: "United States",
-    region: "Americas",
-    website: "https://www.ftc.gov",
-    complaint_portal: "https://reportfraud.ftc.gov",
-    legislation: "FTC Act Section 5, COPPA, various sector-specific statutes",
-    monitoring_tier: 1,
-  };
-
-  return regulators;
-};
-
-const allRegulators = buildRegulatorData();
+import { REGULATORS as allRegulators } from "@/lib/regulators";
 
 const RegulatorPage = () => {
   const { slug } = useParams<{ slug: string }>();
