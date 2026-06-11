@@ -18,6 +18,16 @@ import { useEuNoticeSessionGuard } from "@/hooks/useEuNoticeSessionGuard";
 import { buildEuQuestionSections } from "@/data/eu-notice-questions";
 import type { EuFrameworkCode } from "@/data/eu-notice-questions/types";
 import type { Question, FlagCondition } from "@/data/ropa-questions/types";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
+
+function popoverKeyForQuestion(key: string): string | null {
+  const k = key.toLowerCase();
+  if (k.includes("lawful_basis") || k.includes("legal_basis")) return "gdpr_lawful_basis";
+  if (k.includes("transfer") || k.includes("scc")) return "gdpr_international_transfer";
+  if (k.includes("special_categor") || k.includes("sensitive")) return "gdpr_special_categories";
+  return null;
+}
 
 type AnswerValue = string | string[] | null;
 
