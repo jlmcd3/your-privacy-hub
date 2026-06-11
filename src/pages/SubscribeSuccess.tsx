@@ -145,7 +145,7 @@ export default function SubscribeSuccess() {
         {isIntelligenceOnly && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-center">
             <p className="text-amber-800 text-sm font-medium">
-              Want client workspaces and team logins? Upgrade to Professional from your account settings — {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr.
+              Want client workspaces? Upgrade to Professional from your account settings — {PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr.
             </p>
           </div>
         )}

@@ -186,7 +186,6 @@ const Subscribe = () => {
               <ul className="space-y-2 mb-6">
                 {[
                   "Everything in Intelligence (for account holder)",
-                  `${PRICING.professional.teamLoginsIncluded} seats included`,
                   "Client/matter workspace & compliance record",
                   "Branded document outputs",
                   "1 free Smart Tool run per year (annual plans only)",
@@ -320,7 +319,6 @@ const Subscribe = () => {
                 ['EU & Global Privacy Notice Builder', '—', 'Included', 'Included'],
                 ['Registration Filings (Convenience)', '—', T.registration.display, T.registration.display],
                 ['Client/matter workspace', '—', '—', '✓'],
-                ['Up to 3 team logins', '—', '—', '✓'],
                 ['Saved reports in My Reports', '—', '✓', '✓'],
                 ['Personalized investigation prompts', '—', '✓', '✓'],
               ] as const).map(([feature, anon, intel, platform], i) => (
