@@ -477,68 +477,99 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     }
 
 
-    const aiController = new AbortController();
-    const aiTimeout = setTimeout(() => aiController.abort(), 180_000);
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: AI_MODEL,
-        max_tokens: 16000,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-      signal: aiController.signal,
-    });
-    clearTimeout(aiTimeout);
+    async function callAi(extraUser: string): Promise<string> {
+      const aiController = new AbortController();
+      const aiTimeout = setTimeout(() => aiController.abort(), 180_000);
+      const finalUser = extraUser ? `${userPrompt}\n\n${extraUser}` : userPrompt;
+      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: AI_MODEL,
+          max_tokens: 16000,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: finalUser },
+          ],
+        }),
+        signal: aiController.signal,
+      });
+      clearTimeout(aiTimeout);
+      if (!aiRes.ok) {
+        const errText = await aiRes.text();
+        console.error("DPA AI generation failed:", aiRes.status, errText);
+        throw new Error("AI generation failed");
+      }
+      const aiData = await aiRes.json();
+      return aiData.choices?.[0]?.message?.content ?? "";
+    }
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      console.error("DPA AI generation failed:", aiRes.status, errText);
+    function parseDpa(fullText: string): { dpa_text: string; annotations: any[] } {
+      let dpa_text = fullText
+        .replace(/^#{1,6}\s+/gm, '')
+        .replace(/\*\*\*/g, '')
+        .replace(/\*\*/g, '')
+        .replace(/\*([^*\n]+)\*/g, '$1')
+        .replace(/^>\s?/gm, '')
+        .replace(/^\*\s+/gm, '• ');
+      let parsedAnnotations: any[] = [];
+      try {
+        const sepIdx = fullText.indexOf("===ANNOTATIONS===");
+        if (sepIdx !== -1) {
+          dpa_text = fullText.slice(0, sepIdx).trim()
+            .replace(/^#{1,6}\s+/gm, '')
+            .replace(/\*\*\*/g, '')
+            .replace(/\*\*/g, '')
+            .replace(/\*([^*\n]+)\*/g, '$1')
+            .replace(/^>\s?/gm, '')
+            .replace(/^\*\s+/gm, '• ');
+          const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
+          const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+          const start = cleaned.indexOf("[");
+          const end = cleaned.lastIndexOf("]");
+          if (start !== -1 && end !== -1) {
+            const arr = JSON.parse(cleaned.slice(start, end + 1));
+            if (Array.isArray(arr)) parsedAnnotations = arr;
+          }
+        }
+      } catch (e) {
+        console.warn("[DPA] annotation parse failed (non-fatal):", e);
+        parsedAnnotations = [];
+      }
+      return { dpa_text, annotations: parsedAnnotations };
+    }
+
+    let fullText: string;
+    try {
+      fullText = await callAi("");
+    } catch (_e) {
       return new Response(JSON.stringify({ error: "AI generation failed" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const aiData = await aiRes.json();
-    const fullText = aiData.choices?.[0]?.message?.content ?? "";
-    let dpa_text = fullText
-      .replace(/^#{1,6}\s+/gm, '')
-      .replace(/\*\*\*/g, '')
-      .replace(/\*\*/g, '')
-      .replace(/\*([^*\n]+)\*/g, '$1')
-      .replace(/^>\s?/gm, '')
-      .replace(/^\*\s+/gm, '• ');
-    let parsedAnnotations: any[] = [];
-    try {
-      const sepIdx = fullText.indexOf("===ANNOTATIONS===");
-      if (sepIdx !== -1) {
-        dpa_text = fullText.slice(0, sepIdx).trim()
-          .replace(/^#{1,6}\s+/gm, '')
-          .replace(/\*\*\*/g, '')
-          .replace(/\*\*/g, '')
-          .replace(/\*([^*\n]+)\*/g, '$1')
-          .replace(/^>\s?/gm, '')
-          .replace(/^\*\s+/gm, '• ');
-        const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
-        const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-        const start = cleaned.indexOf("[");
-        const end = cleaned.lastIndexOf("]");
-        if (start !== -1 && end !== -1) {
-          const arr = JSON.parse(cleaned.slice(start, end + 1));
-          if (Array.isArray(arr)) parsedAnnotations = arr;
-        }
+    let parsed = parseDpa(fullText);
+    let lint = lintReportText(parsed.dpa_text, { checkClauseNumbering: true });
+    if (hasHardViolations(lint)) {
+      try {
+        const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+        const retryText = await callAi(
+          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the document again, correcting these defects silently. Do not mention this instruction or the defects in the document.`
+        );
+        const retryParsed = parseDpa(retryText);
+        const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
+        parsed = retryParsed;
+        lint = retryLint;
+      } catch (e) {
+        console.warn("[DPA] lint retry failed (non-fatal):", e);
       }
-    } catch (e) {
-      console.warn("[DPA] annotation parse failed (non-fatal):", e);
-      parsedAnnotations = [];
     }
+    let dpa_text = lint.clean;
+    let parsedAnnotations = parsed.annotations;
 
     if (!dpa_text.trim()) {
       return new Response(JSON.stringify({ error: "AI generation returned an empty document" }), {
