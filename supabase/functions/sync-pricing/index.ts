@@ -34,7 +34,7 @@ const corsHeaders = {
 };
 
 // ---------------------------------------------------------------------------
-//  PRICE MIRROR — MUST mirror src/config/pricing.ts PRICING_REGISTRY exactly. (v10 deployed 2026-06-11)
+//  PRICE MIRROR — MUST mirror src/config/pricing.ts PRICING_REGISTRY exactly. (v11 deployed 2026-06-11)
 //  Update both in the same commit.
 // ---------------------------------------------------------------------------
 type PriceKind = "subscription" | "one_time" | "tiered" | "addon";
