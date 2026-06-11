@@ -13,6 +13,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
@@ -22,6 +23,8 @@ export default function IRPlaybookResult() {
   const { id } = useParams();
   const [row, setRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [translated, setTranslated] = useState<any | null>(null);
+  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
   useEffect(() => {
     if (!id) return;
@@ -79,14 +82,19 @@ export default function IRPlaybookResult() {
             }
             actions={
               <>
+                <ReportTranslateMenu
+                  toolType="ir_playbook"
+                  reportId={row.id}
+                  onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
+                />
                 <PDFDownloadButton
                   toolType="ir_playbook"
                   assessmentId={row.id}
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
-                <DownloadWordButton text={row?.playbook_text || ""} label="Incident Response Playbook" />
-                {row.playbook_text && <CopyButton text={row.playbook_text} />}
+                <DownloadWordButton text={(translated?.playbook_text ?? row?.playbook_text) || ""} label="Incident Response Playbook" />
+                {(translated?.playbook_text ?? row.playbook_text) && <CopyButton text={translated?.playbook_text ?? row.playbook_text} />}
               </>
             }
             callout={
@@ -95,7 +103,8 @@ export default function IRPlaybookResult() {
               </p>
             }
           >
-            <AssessmentReport text={row.playbook_text || ""} sectionChipLabel={null} />
+            <div dir={dir} style={{ display: "contents" }}>
+            <AssessmentReport text={(translated?.playbook_text ?? row.playbook_text) || ""} sectionChipLabel={null} />
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
               variant="standard"
@@ -111,6 +120,7 @@ export default function IRPlaybookResult() {
                 <AnnotationCallout annotations={(row?.report_data as any)?.annotations} />
               </div>
             )}
+            </div>
           </ReportShell>
         )}
       </main>

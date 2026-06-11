@@ -24,6 +24,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
 import DownloadWordButton from "@/components/DownloadWordButton";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 interface DocRow {
   id: string;
@@ -197,10 +198,17 @@ export default function EUNoticeDocuments() {
 
   return (
     <EUNoticeShell title="Documents — EU & Global Notice Builder" heading="Your generated notices" step="documents">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
         <Button asChild variant="ghost" size="sm">
           <Link to="/dashboard"><ArrowLeft className="h-4 w-4 mr-1.5" /> Back to dashboard</Link>
         </Button>
+        {docs[0]?.session_id && (
+          <ReportTranslateMenu
+            toolType="eu_notice"
+            reportId={docs[0].session_id}
+            onTranslated={() => { /* file-based notices: payload swap not yet wired */ }}
+          />
+        )}
       </div>
 
       {loading ? (

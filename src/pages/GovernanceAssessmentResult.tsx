@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
@@ -49,6 +50,8 @@ const GovernanceAssessmentResult = () => {
   const purchased = searchParams.get("purchased") === "true";
   const [assessment, setAssessment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [translated, setTranslated] = useState<any | null>(null);
+  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
   useEffect(() => {
     if (!id) return;
@@ -79,7 +82,7 @@ const GovernanceAssessmentResult = () => {
     return () => timer && clearTimeout(timer);
   }, [id]);
 
-  const report = assessment?.report_data || {};
+  const report = (translated?.report_data ?? assessment?.report_data) || {};
   const intake = assessment?.intake_data || {};
   const status = assessment?.status;
 
@@ -99,6 +102,13 @@ const GovernanceAssessmentResult = () => {
       <Button asChild variant="secondary" size="sm">
         <Link to="/governance-assessment">Run New Assessment</Link>
       </Button>
+      {status === "complete" && assessment?.id && (
+        <ReportTranslateMenu
+          toolType="governance_assessment"
+          reportId={assessment.id}
+          onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
+        />
+      )}
       {status === "complete" && (
         <PDFDownloadButton
           toolType="governance_assessment"
@@ -129,6 +139,7 @@ const GovernanceAssessmentResult = () => {
           meta={metaBits.length ? metaBits.join(" · ") : undefined}
           actions={status === "complete" || status === "failed" ? actions : undefined}
         >
+          <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 
           {!loading && (status === "pending" || status === "processing") && (
@@ -371,6 +382,7 @@ const GovernanceAssessmentResult = () => {
               />
             </div>
           )}
+          </div>
         </ReportShell>
       </main>
       <Footer />

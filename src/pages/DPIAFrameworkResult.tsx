@@ -13,6 +13,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import ReportShell from "@/components/ReportShell";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 
 const sevColor = (s: string) => {
@@ -53,6 +54,8 @@ const DPIAFrameworkResult = () => {
   const [dpia, setDpia] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [consultationNote, setConsultationNote] = useState("");
+  const [translated, setTranslated] = useState<any | null>(null);
+  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
   useEffect(() => {
     if (!id) return;
@@ -69,7 +72,7 @@ const DPIAFrameworkResult = () => {
     return () => timer && clearTimeout(timer);
   }, [id]);
 
-  const report = dpia?.report_data || {};
+  const report = (translated?.report_data ?? dpia?.report_data) || {};
   const meta = report?.dpia_metadata || {};
   const status = dpia?.status;
 
@@ -82,6 +85,13 @@ const DPIAFrameworkResult = () => {
 
   const actions = status === "complete" ? (
     <>
+      {dpia?.id && (
+        <ReportTranslateMenu
+          toolType="dpia_framework"
+          reportId={dpia.id}
+          onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
+        />
+      )}
       <PDFDownloadButton
         toolType="dpia_framework"
         assessmentId={dpia?.id}
@@ -131,6 +141,7 @@ const DPIAFrameworkResult = () => {
         )}
 
         <ReportShell title={titleText} meta={metaBits.length ? metaBits.join(" · ") : undefined} actions={actions}>
+          <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 
           {!loading && (status === "pending" || status === "processing") && (
@@ -275,6 +286,7 @@ const DPIAFrameworkResult = () => {
               />
             </div>
           )}
+          </div>
         </ReportShell>
       </main>
       <Footer />

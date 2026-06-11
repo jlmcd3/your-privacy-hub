@@ -17,13 +17,14 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
-import TranslateReportButton from "@/components/TranslateReportButton";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 export default function BiometricCheckerResult() {
   const { id } = useParams();
   const [row, setRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [translation, setTranslation] = useState<{ lang: string; text: string } | null>(null);
+  const [translated, setTranslated] = useState<any | null>(null);
+  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
   useEffect(() => {
     if (!id) return;
@@ -40,9 +41,9 @@ export default function BiometricCheckerResult() {
     return () => timer && clearTimeout(timer);
   }, [id]);
 
-  const report = row?.report_data || {};
-  const sourceText = row?.analysis_text || report?.assessment_text;
-  const text = translation?.text ?? sourceText;
+  const report = (translated?.report_data ?? row?.report_data) || {};
+  const sourceText = (translated?.analysis_text ?? row?.analysis_text) || report?.assessment_text;
+  const text = sourceText;
   const bipaRisk = report?.bipa_risk;
 
   const meta = row && (
@@ -54,15 +55,10 @@ export default function BiometricCheckerResult() {
 
   const actions = row && (
     <>
-      <TranslateReportButton
-        reportType="biometric"
+      <ReportTranslateMenu
+        toolType="biometric"
         reportId={row.id}
-        onTranslated={(translated: any, lang) => {
-          // Edge function returns { report_data, analysis_text? }
-          const t = translated?.analysis_text || translated?.report_data?.assessment_text || "";
-          if (t) setTranslation({ lang, text: t });
-        }}
-        onReverted={() => setTranslation(null)}
+        onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
       />
       <PDFDownloadButton
         toolType="biometric_checker"
@@ -71,7 +67,7 @@ export default function BiometricCheckerResult() {
         onGenerated={(url) => setRow({ ...row, pdf_url: url })}
       />
       <DownloadWordButton
-        text={row?.analysis_text || (row?.report_data as any)?.assessment_text || ""}
+        text={text || ""}
         label="Biometric Compliance Assessment"
       />
       {text && <CopyButton text={text} />}
@@ -114,6 +110,7 @@ export default function BiometricCheckerResult() {
             actions={actions}
             callout={callout}
           >
+            <div dir={dir} style={{ display: "contents" }}>
             <AssessmentReport text={text || ""} sectionChipLabel={null} />
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
@@ -131,6 +128,7 @@ export default function BiometricCheckerResult() {
                 <AnnotationCallout annotations={(row?.report_data as any)?.annotations} />
               </div>
             )}
+            </div>
           </ReportShell>
         )}
       </main>

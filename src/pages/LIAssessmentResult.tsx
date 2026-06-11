@@ -11,6 +11,7 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 
 const strengthColor = (s: string) => {
@@ -103,6 +104,8 @@ const LIAssessmentResult = () => {
   const purchased = searchParams.get("purchased") === "true";
   const [assessment, setAssessment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [translated, setTranslated] = useState<any | null>(null);
+  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
   useEffect(() => {
     if (!id) return;
@@ -129,7 +132,7 @@ const LIAssessmentResult = () => {
     return () => timer && clearTimeout(timer);
   }, [id]);
 
-  const report = assessment?.report_data || {};
+  const report = (translated?.report_data ?? assessment?.report_data) || {};
   const status = assessment?.status;
   const overall = report?.three_part_test?.overall_assessment;
   const docs = report?.documentation_recommendations;
@@ -151,6 +154,13 @@ const LIAssessmentResult = () => {
       <Button asChild variant="secondary" size="sm">
         <Link to="/li-assessment">Run New Assessment</Link>
       </Button>
+      {status === "complete" && assessment?.id && (
+        <ReportTranslateMenu
+          toolType="li_assessment"
+          reportId={assessment.id}
+          onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
+        />
+      )}
       {status === "complete" && (
         <PDFDownloadButton
           toolType="li_assessment"
@@ -192,6 +202,7 @@ const LIAssessmentResult = () => {
           meta={metaParts.length ? metaParts.join(" · ") : undefined}
           actions={status === "complete" || status === "failed" ? actions : undefined}
         >
+          <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 
           {!loading && (status === "pending" || status === "processing") && (
@@ -331,6 +342,7 @@ const LIAssessmentResult = () => {
               </section>
             </div>
           )}
+          </div>
         </ReportShell>
       </main>
 

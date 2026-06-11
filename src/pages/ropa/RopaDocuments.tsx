@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 
 
@@ -268,14 +269,23 @@ export default function RopaDocuments() {
         const { steps, currentIndex } = getRopaSteps("documents", urlSessionId);
         return <RopaBreadcrumb steps={steps} currentIndex={currentIndex} />;
       })()}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
         <p className="font-body text-muted-foreground">
           Download generated Records of Processing Activities and start refresh cycles.
         </p>
-        <Button onClick={() => navigate("/ropa/setup?new=1")} className="gap-2">
-          <Plus className="h-4 w-4" />
-          New RoPA
-        </Button>
+        <div className="flex items-center gap-2">
+          {sessions[0]?.id && (
+            <ReportTranslateMenu
+              toolType="ropa"
+              reportId={sessions[0].id}
+              onTranslated={() => { /* file-based RoPA: payload swap not yet wired */ }}
+            />
+          )}
+          <Button onClick={() => navigate("/ropa/setup?new=1")} className="gap-2">
+            <Plus className="h-4 w-4" />
+            New RoPA
+          </Button>
+        </div>
       </div>
 
       {/* Notice CTA is jurisdiction-aware: only promote products that match the company's selected regions. */}

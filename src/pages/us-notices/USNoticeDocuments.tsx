@@ -33,6 +33,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { adminDelete } from "@/lib/adminDelete";
 import { Globe2 } from "lucide-react";
 import { CrossToolPrompt, RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 
 interface SessionRow {
@@ -306,10 +307,19 @@ export default function USNoticeDocuments() {
       step="documents"
       sessionId={sessionId}
     >
-      <p className="text-muted-foreground mb-8 max-w-3xl">
-        Download your generated notices below. Each state-specific notice reflects the
-        legal framework that applies in that jurisdiction based on your answers.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+        <p className="text-muted-foreground max-w-3xl">
+          Download your generated notices below. Each state-specific notice reflects the
+          legal framework that applies in that jurisdiction based on your answers.
+        </p>
+        {sessionId && (
+          <ReportTranslateMenu
+            toolType="us_notice"
+            reportId={sessionId}
+            onTranslated={() => { /* file-based notices: payload not yet swapped client-side */ }}
+          />
+        )}
+      </div>
 
       <CrossToolPrompt
         visitKey={`/us-notices/${sessionId}/documents`}

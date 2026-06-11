@@ -13,6 +13,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import { AnnotationAppendix } from "@/components/AnnotationCallout";
@@ -24,6 +25,8 @@ export default function DPAResult() {
   const { id } = useParams();
   const [row, setRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [translated, setTranslated] = useState<any | null>(null);
+  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
   useEffect(() => {
     if (!id) return;
@@ -75,18 +78,24 @@ export default function DPAResult() {
 
             actions={
               <>
+                <ReportTranslateMenu
+                  toolType="dpa"
+                  reportId={row.id}
+                  onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
+                />
                 <PDFDownloadButton
                   toolType="dpa_generator"
                   assessmentId={row.id}
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
-                <DownloadWordButton text={row?.document_text || ""} label="Custom DPA" />
-                {row.document_text && <CopyButton text={row.document_text} />}
+                <DownloadWordButton text={(translated?.document_text ?? row?.document_text) || ""} label="Custom DPA" />
+                {(translated?.document_text ?? row.document_text) && <CopyButton text={translated?.document_text ?? row.document_text} />}
               </>
             }
           >
-            <AssessmentReport text={row.document_text || ""} sectionChipLabel={null} />
+            <div dir={dir} style={{ display: "contents" }}>
+            <AssessmentReport text={(translated?.document_text ?? row.document_text) || ""} sectionChipLabel={null} />
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
               variant="standard"
@@ -95,6 +104,7 @@ export default function DPAResult() {
               queryDescriptor={(row?.report_data as any)?.enforcement_meta?.query_descriptor}
             />
             <AnnotationAppendix annotations={(row?.report_data as any)?.annotations} />
+            </div>
           </ReportShell>
 
           );

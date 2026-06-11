@@ -12,6 +12,7 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import DownloadWordButton from "@/components/DownloadWordButton";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
+import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
 import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdvisor";
@@ -378,6 +379,8 @@ export default function CPPACybersecurityResult() {
   const [row, setRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [priorId, setPriorId] = useState<string | null>(null);
+  const [translated, setTranslated] = useState<any | null>(null);
+  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
 
   // Look for an earlier cybersecurity assessment by the same user (for drift compare).
   useEffect(() => {
@@ -446,9 +449,16 @@ export default function CPPACybersecurityResult() {
 
   const metaText = row?.created_at ? `Generated ${new Date(row.created_at).toLocaleDateString()}` : undefined;
 
+  const viewRow = translated ? { ...row, ...translated } : row;
+
   const actions = status === "complete" && reportReady ? (
     <>
-      <AuditorHandoffButton row={row} />
+      <ReportTranslateMenu
+        toolType="cppa_cyber"
+        reportId={row.id}
+        onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
+      />
+      <AuditorHandoffButton row={viewRow} />
       {priorId && (
         <Button asChild variant="outline" size="sm">
           <Link to={`/cppa-cybersecurity/drift/${row.id}/${priorId}`}>Compare to previous</Link>
@@ -462,8 +472,8 @@ export default function CPPACybersecurityResult() {
       />
       <DownloadWordButton
         text={[
-          row?.report_data?.executive_summary,
-          ...(Array.isArray(row?.report_data?.controls) ? row.report_data.controls.map((c: any) =>
+          viewRow?.report_data?.executive_summary,
+          ...(Array.isArray(viewRow?.report_data?.controls) ? viewRow.report_data.controls.map((c: any) =>
             `${c.control}\nStatus: ${c.status ?? ""}\n${c.finding ?? ""}\n${c.remediation ?? ""}`) : [])
         ].filter(Boolean).join("\n\n")}
         label="CPPA Cybersecurity Readiness"
@@ -507,16 +517,16 @@ export default function CPPACybersecurityResult() {
           )}
 
           {status === "complete" && reportReady && (
-            <>
-              <CybersecurityReportBody row={row} hideHeader />
+            <div dir={dir} style={{ display: "contents" }}>
+              <CybersecurityReportBody row={viewRow} hideHeader />
               <EnforcementPrecedents
-                precedents={(row?.report_data as any)?.enforcement_precedents}
+                precedents={(viewRow?.report_data as any)?.enforcement_precedents}
                 variant="cppa"
                 attempted={Boolean((row?.report_data as any)?.enforcement_meta?.attempted)}
                 totalMatched={(row?.report_data as any)?.enforcement_meta?.total_matched}
                 queryDescriptor={(row?.report_data as any)?.enforcement_meta?.query_descriptor}
               />
-            </>
+            </div>
           )}
         </ReportShell>
       </main>
