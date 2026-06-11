@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
-import { ReactNode } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { ReactNode, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -8,6 +8,8 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { ResearchPageHeader, type BreadcrumbItem } from "./ResearchPageHeader";
 import { ResearchSynthesisBlock } from "./ResearchSynthesisBlock";
 import { ResearchToolCTA } from "./ResearchToolCTA";
+
+const SITE_ORIGIN = "https://enduserprivacy.com";
 
 export interface ResearchToolCtaConfig {
   toolName: string;
