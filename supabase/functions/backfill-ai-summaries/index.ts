@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { validateAISummary } from "../_shared/ai-validation.ts";
+import { validateAISummary, checkDateConsistency } from "../_shared/ai-validation.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -144,13 +144,20 @@ function inferSourceTier(sourceDomain: string | null | undefined): 1 | 2 | 3 {
   return 3;
 }
 
-async function generateAISummary(
+async function _enrichAttempt(
   title: string,
   summary: string | null,
   sourceName: string | null,
   sourceDomain: string | null,
-  apiKey: string
+  apiKey: string,
+  pubDay: string,
+  correction: string | null,
 ): Promise<EnrichResult> {
+  const todayDay = new Date().toISOString().slice(0, 10);
+  const dateContext = `DATE CONTEXT: Today's date is ${todayDay}. This article was published on ${pubDay}. Every date you write must be consistent with these. If the source text does not state an explicit year for an event, refer to the event by month or relative phrasing WITHOUT guessing a year. Never date the article's own events to a year earlier than its publication date.\n\n`;
+  const correctionSuffix = correction
+    ? `\n\nCORRECTION REQUIRED: your previous draft contained date errors: ${correction}. Re-generate the full JSON with all dates consistent with the DATE CONTEXT block. If the source does not state a year, omit the year.`
+    : "";
   const sourceTier = inferSourceTier(sourceDomain);
   const textLen = (summary || "").length;
   try {
@@ -208,7 +215,7 @@ QUALITY STANDARDS:
         messages: [
           {
             role: "user",
-            content: `Analyze this privacy and data protection article and return a JSON enrichment object.
+            content: dateContext + `Analyze this privacy and data protection article and return a JSON enrichment object.
 
 Title: ${title}
 Description: ${summary || "No description available."}
@@ -266,7 +273,7 @@ Return this JSON object:
   "source_fidelity_note": "Short note: e.g. 'RSS summary only (${textLen} chars, tier ${sourceTier}) — specific claims limited.'"
 }
 
-Generate 0-3 action_items. Return [] if source does not support specific named-law actions. For entities: populate ONLY from content present in the article — not from training knowledge.`,
+Generate 0-3 action_items. Return [] if source does not support specific named-law actions. For entities: populate ONLY from content present in the article — not from training knowledge.` + correctionSuffix,
           },
         ],
       }),
@@ -333,6 +340,40 @@ Generate 0-3 action_items. Return [] if source does not support specific named-l
     const transient = msg.includes("timeout") || msg.includes("network") || msg.includes("fetch");
     return { kind: transient ? "transient_error" : "permanent_error", detail: msg };
   }
+}
+
+async function generateAISummary(
+  title: string,
+  summary: string | null,
+  sourceName: string | null,
+  sourceDomain: string | null,
+  apiKey: string,
+  publishedAt: string | null = null,
+): Promise<EnrichResult> {
+  const todayDay = new Date().toISOString().slice(0, 10);
+  const pubDateObj = publishedAt ? new Date(publishedAt) : null;
+  const pubDay = pubDateObj && !isNaN(pubDateObj.getTime())
+    ? pubDateObj.toISOString().slice(0, 10)
+    : todayDay;
+
+  const first = await _enrichAttempt(title, summary, sourceName, sourceDomain, apiKey, pubDay, null);
+  if (first.kind !== "ok") return first;
+
+  const ctx = { fn: "backfill-ai-summaries", title };
+  const d1 = checkDateConsistency(JSON.stringify(first.data), pubDay, ctx);
+  if (d1.ok) return first;
+
+  // ONE bounded retry with correction note
+  const found = d1.issues.map(i => i.found).join(", ");
+  const retry = await _enrichAttempt(title, summary, sourceName, sourceDomain, apiKey, pubDay, found);
+  if (retry.kind === "ok") {
+    const d2 = checkDateConsistency(JSON.stringify(retry.data), pubDay, ctx);
+    if (d2.ok) return retry;
+    console.error(JSON.stringify({ evt: "date_inconsistency_unresolved", fn: "backfill-ai-summaries", articleId: null, title, issues: d2.issues }));
+    return retry;
+  }
+  console.error(JSON.stringify({ evt: "date_inconsistency_unresolved", fn: "backfill-ai-summaries", articleId: null, title, issues: d1.issues }));
+  return first;
 }
 
 type EnrichResult =
@@ -411,7 +452,7 @@ Deno.serve(async (req) => {
 
   let articleQuery = supabase
     .from("updates")
-    .select("id, title, summary, source_name, source_domain");
+    .select("id, title, summary, source_name, source_domain, published_at");
 
   if (targetIds && targetIds.length > 0) {
     // Explicit ID list: process these rows regardless of enrichment state.
@@ -480,7 +521,8 @@ Deno.serve(async (req) => {
       article.summary,
       article.source_name,
       (article as { source_domain?: string | null }).source_domain ?? null,
-      anthropicKey
+      anthropicKey,
+      (article as { published_at?: string | null }).published_at ?? null
     );
 
     if (result.kind === "ok") {

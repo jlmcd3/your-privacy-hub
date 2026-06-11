@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { validateAISummary } from "../_shared/ai-validation.ts";
+import { validateAISummary, checkDateConsistency } from "../_shared/ai-validation.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -291,17 +291,11 @@ Deno.serve(async (req) => {
 
         if (anthropicKey) {
           try {
-            const aiRes = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
-              method: "POST",
-              headers: {
-                "x-api-key": anthropicKey,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "claude-sonnet-4-6",
-                max_tokens: 2500,
-                system: `You are a privacy regulatory intelligence analyst processing commercial news articles for a compliance platform.
+            const todayDay = new Date().toISOString().slice(0, 10);
+            const pubDateObj = new Date(article.publishedAt || todayDay);
+            const pubDay = isNaN(pubDateObj.getTime()) ? todayDay : pubDateObj.toISOString().slice(0, 10);
+            const dateContext = `DATE CONTEXT: Today's date is ${todayDay}. This article was published on ${pubDay}. Every date you write must be consistent with these. If the source text does not state an explicit year for an event, refer to the event by month or relative phrasing WITHOUT guessing a year. Never date the article's own events to a year earlier than its publication date.\n\n`;
+            const systemPrompt = `You are a privacy regulatory intelligence analyst processing commercial news articles for a compliance platform.
 
 IMPORTANT: These articles come from commercial news sources (NewsAPI). They are TERTIARY sources — journalist reports, not official regulatory publications. Apply strict source calibration.
 
@@ -317,10 +311,8 @@ THIN SOURCE DISCIPLINE: NewsAPI descriptions are often 1-3 sentences. Generate a
 
 VOICE: Attribution is mandatory. "The ICO has announced..." is acceptable only if the article text states this. "The ICO is likely to..." is never acceptable.
 
-Return ONLY valid JSON. No preamble, no explanation.`,
-                messages: [{
-                  role: "user",
-                  content: `Analyze this privacy/data protection news article.
+Return ONLY valid JSON. No preamble, no explanation.`;
+            const baseUserContent = `Analyze this privacy/data protection news article.
 
 Title: ${article.title}
 Description: ${article.description || "No description available."}
@@ -372,48 +364,81 @@ STEP 2 — If relevant, return:
   "defense_considerations": null,
 
   "source_fidelity_note": "news-article: ${(article.description||'').length} chars available"
-}`,
-                }],
-              }),
-              signal: AbortSignal.timeout(15000),
-            });
-            if (aiRes.ok) {
+}`;
+            const aiCtx = { fn: "fetch-newsapi", title: article.title, url: article.url };
+            const callOnce = async (correction: string | null): Promise<any | null> => {
+              const userContent = dateContext + baseUserContent + (correction
+                ? `\n\nCORRECTION REQUIRED: your previous draft contained date errors: ${correction}. Re-generate the full JSON with all dates consistent with the DATE CONTEXT block. If the source does not state a year, omit the year.`
+                : "");
+              const aiRes = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: { "x-api-key": anthropicKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+                body: JSON.stringify({
+                  model: "claude-sonnet-4-6",
+                  max_tokens: 2500,
+                  system: systemPrompt,
+                  messages: [{ role: "user", content: userContent }],
+                }),
+                signal: AbortSignal.timeout(15000),
+              });
+              if (!aiRes.ok) return null;
               const aiData = await aiRes.json();
               const aiText = aiData.content?.[0]?.text || "";
               const match = aiText.match(/\{[\s\S]*\}/);
-              if (match) {
-                const parsed = JSON.parse(match[0]);
-                if (!parsed.skip) {
-                  const v = validateAISummary(parsed, { fn: "fetch-newsapi", title: article.title, url: article.url });
-                  if (!v.ok) {
-                    results.validation_failed++;
-                  } else {
-                    const summary = v.data as Record<string, any>;
-                    row.ai_summary = summary;
-                    if (Array.isArray(summary.affected_jurisdictions) && summary.affected_jurisdictions.length > 0) {
-                      row.affected_jurisdictions = summary.affected_jurisdictions;
+              if (!match) return null;
+              try { return JSON.parse(match[0]); } catch { return null; }
+            };
+
+            const first = await callOnce(null);
+            if (first && !first.skip) {
+              const v = validateAISummary(first, aiCtx);
+              if (!v.ok) {
+                results.validation_failed++;
+              } else {
+                let summary = v.data as Record<string, any>;
+                const d1 = checkDateConsistency(JSON.stringify(summary), pubDay, aiCtx);
+                if (!d1.ok) {
+                  const found = d1.issues.map(i => i.found).join(", ");
+                  const retry = await callOnce(found).catch(() => null);
+                  let useRetry = false;
+                  if (retry && !retry.skip) {
+                    const v2 = validateAISummary(retry, aiCtx);
+                    if (v2.ok) {
+                      const d2 = checkDateConsistency(JSON.stringify(v2.data), pubDay, aiCtx);
+                      summary = v2.data as Record<string, any>;
+                      useRetry = true;
+                      if (!d2.ok) {
+                        console.error(JSON.stringify({ evt: "date_inconsistency_unresolved", fn: "fetch-newsapi", articleId: null, title: article.title, issues: d2.issues }));
+                      }
                     }
-                    if (typeof summary.regulatory_theory === "string" && summary.regulatory_theory.trim()) {
-                      row.regulatory_theory = summary.regulatory_theory;
-                    }
-                    if (Array.isArray(summary.action_items) && summary.action_items.length > 0) {
-                      row.action_items = summary.action_items;
-                    }
-                    if (typeof summary.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(summary.key_date)) {
-                      row.key_date = summary.key_date;
-                    }
-                    if (typeof summary.why_it_matters_short === "string" && summary.why_it_matters_short.trim()) {
-                      row.why_it_matters_short = summary.why_it_matters_short.trim();
-                    }
-                    if (summary.entities && typeof summary.entities === "object") {
-                      row.entities = summary.entities;
-                    }
-                    if (typeof summary.defense_considerations === "string" && summary.defense_considerations.trim()) {
-                      row.defense_considerations = summary.defense_considerations;
-                    }
-                    results.summaries_generated++;
+                  }
+                  if (!useRetry) {
+                    console.error(JSON.stringify({ evt: "date_inconsistency_unresolved", fn: "fetch-newsapi", articleId: null, title: article.title, issues: d1.issues }));
                   }
                 }
+                row.ai_summary = summary;
+                if (Array.isArray(summary.affected_jurisdictions) && summary.affected_jurisdictions.length > 0) {
+                  row.affected_jurisdictions = summary.affected_jurisdictions;
+                }
+                if (typeof summary.regulatory_theory === "string" && summary.regulatory_theory.trim()) {
+                  row.regulatory_theory = summary.regulatory_theory;
+                }
+                if (Array.isArray(summary.action_items) && summary.action_items.length > 0) {
+                  row.action_items = summary.action_items;
+                }
+                if (typeof summary.key_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(summary.key_date)) {
+                  row.key_date = summary.key_date;
+                }
+                if (typeof summary.why_it_matters_short === "string" && summary.why_it_matters_short.trim()) {
+                  row.why_it_matters_short = summary.why_it_matters_short.trim();
+                }
+                if (summary.entities && typeof summary.entities === "object") {
+                  row.entities = summary.entities;
+                }
+                if (typeof summary.defense_considerations === "string" && summary.defense_considerations.trim()) {
+                  row.defense_considerations = summary.defense_considerations;
+                }
+                results.summaries_generated++;
               }
             }
           } catch { /* AI enrichment is best-effort */ }
