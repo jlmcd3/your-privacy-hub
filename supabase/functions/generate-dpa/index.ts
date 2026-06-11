@@ -157,18 +157,41 @@ Deno.serve(async (req) => {
       console.error("get-enforcement-context fetch failed:", e);
     }
 
+    // Step 1b — GDPR authority context (deterministic articles + EDPB Art. 28 guidance)
+    const dpaJurisdiction: "eu" | "uk" =
+      [body.controllerJurisdiction, body.processorJurisdiction]
+        .some((j) => /united kingdom|uk|gb/i.test(String(j ?? "")))
+        ? "uk" : "eu";
+    let gdprBlock = "";
+    let gdprMeta: any = { attempted: false };
+    try {
+      const semanticQuery =
+        `Controller-processor DPA: ${body.controllerName} (${body.controllerJurisdiction}) engages ${body.processorName} (${body.processorJurisdiction}) for ${body.services}. Data: ${(body.dataCategories || []).join(", ")}.`;
+      const r = await getGdprContext(supabase, {
+        articles: ["28", "32", "33"],
+        jurisdiction: dpaJurisdiction,
+        guidelineArticles: ["28"],
+        semanticQuery,
+      });
+      gdprBlock = r.block;
+      gdprMeta = r.meta;
+    } catch (e) {
+      console.error("getGdprContext failed (non-fatal):", e);
+    }
+
     // Step 2 — format for injection
     const enforcementBlock =
       enforcement_context.length > 0
         ? enforcement_context
-            .map(
-              (e, i) =>
-                `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${fmtYear(e)}, ${
-                  e.industry_sector ?? e.sector ?? "—"
-                } sector\n   Fine: ${fmtFine(e)}\n   What went wrong: ${
-                  e.key_compliance_failure ?? e.violation ?? "—"
-                }\n   What should have been done: ${e.preventive_measures ?? "—"}`
-            )
+            .map((e, i) => {
+              const provs = Array.isArray((e as any).statutory_provisions) && (e as any).statutory_provisions.length
+                ? ` — citing ${(e as any).statutory_provisions.join(", ")}` : "";
+              return `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${fmtYear(e)}, ${
+                e.industry_sector ?? e.sector ?? "—"
+              } sector${provs}\n   Fine: ${fmtFine(e)}\n   What went wrong: ${
+                e.key_compliance_failure ?? e.violation ?? "—"
+              }\n   What should have been done: ${e.preventive_measures ?? "—"}`;
+            })
             .join("\n\n")
         : "No specific enforcement precedents retrieved for these parameters.";
 
