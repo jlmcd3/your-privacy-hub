@@ -108,7 +108,7 @@ const LIAssessmentResult = () => {
     if (!id) return;
     let timer: any;
     let pollCount = 0;
-    const MAX_POLLS = 25; // 75 seconds at 3s intervals
+    const MAX_POLLS = 100; // 5 minutes at 3s intervals — corpus-grounded runs take ~3 min
 
     const fetchOnce = async () => {
       const { data } = await supabase.from("li_assessments").select("*").eq("id", id).maybeSingle();

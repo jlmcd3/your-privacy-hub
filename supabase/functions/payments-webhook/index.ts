@@ -253,7 +253,12 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       const fn = fnMap[tool_type];
       if (fn) {
         const bodyKey = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
-        await supabase.functions.invoke(fn, { body: { [bodyKey]: assessment_id } });
+        // Fire-and-forget: generators can run 2-3 minutes; awaiting them makes
+        // Stripe time out this webhook delivery and retry it, risking duplicate
+        // runs. waitUntil keeps the invoke alive after we respond to Stripe.
+        EdgeRuntime.waitUntil(
+          supabase.functions.invoke(fn, { body: { [bodyKey]: assessment_id } })
+        );
       }
     }
     return;

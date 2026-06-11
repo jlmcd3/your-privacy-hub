@@ -303,7 +303,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
     }
   ]
 }`,
-      3500
+      5000
     );
 
     let analysis: any = parseLlmJson(analysisText);
