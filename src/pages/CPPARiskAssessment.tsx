@@ -384,7 +384,7 @@ export default function CPPARiskAssessment() {
           {step === 1 && (
             <>
               <h2>Step 1 — Business Profile</h2>
-              <Legend />
+              <RequiredLegend />
               <div><Label>Q1: Annual gross revenue <Req /></Label><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
               <div><Label>Q2: Number of California consumers whose PI you process annually <Req /></Label><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
               <div><Label>Q3: Primary business sector <Req /></Label>
@@ -402,7 +402,7 @@ export default function CPPARiskAssessment() {
           {step === 2 && (
             <>
               <h2>Step 2 — Consumer Rights Infrastructure</h2>
-              <Legend />
+              <RequiredLegend />
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q6: Right to Know / Access mechanism <Req /></Label><DefPopover termKey="right_to_know" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Select all that apply.</p>
@@ -435,7 +435,7 @@ export default function CPPARiskAssessment() {
           {step === 3 && (
             <>
               <h2>Step 3 — Privacy Notices</h2>
-              <Legend />
+              <RequiredLegend />
               <div><Label>Q11: Privacy policy last reviewed/updated <Req /></Label><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div></div>
               <div><Label>Q12: Notice at Collection (displayed before or at time of data collection) <Req /></Label><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q13: Do your notices include the categories of PI collected, the purpose, and the right to opt-out? <Req /></Label><DefPopover termKey="notice_at_collection" /></div><div className="mt-2"><Radio name="q13" options={["Yes, all three", "Some elements", "No"]} value={q13} onChange={setQ13} /></div></div>
@@ -446,7 +446,7 @@ export default function CPPARiskAssessment() {
           {step === 4 && (
             <>
               <h2>Step 4 — Sensitive Personal Information</h2>
-              <Legend />
+              <RequiredLegend />
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /></div><div className="mt-2"><Radio name="q15" options={["Yes", "No", "Unsure"]} value={q15} onChange={setQ15} /></div></div>
               {q15 === "Yes" && (<>
                 <div><Label>Q16: Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
@@ -458,7 +458,7 @@ export default function CPPARiskAssessment() {
           {step === 5 && (
             <>
               <div className="inline-flex items-center gap-1.5 flex-wrap"><h2>Step 5 — Automated Decision-Making Technology (ADMT)</h2><DefPopover termKey="admt" /></div>
-              <Legend />
+              <RequiredLegend />
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /></div><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
                 <div><Label>Q19: Describe the ADMT system and its decisions <Req /></Label>
@@ -476,7 +476,7 @@ export default function CPPARiskAssessment() {
           {step === 6 && (
             <>
               <h2>Step 6 — Risk Assessment Specifics</h2>
-              <Legend />
+              <RequiredLegend />
               <p className="text-sm text-muted-foreground">
                 These questions feed § 7152(a)(1)–(9) Part A and the § 7157 Annual Submission Worksheet. Fields left blank in the generated report will be marked as fill-ins for your team to complete in the review pane before executive sign-off.
               </p>

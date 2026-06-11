@@ -46,6 +46,135 @@ export const DEFINITIONS: Record<string, TermDefinition> = {
     definition: "Technology that processes personal information and uses computation to replace, or substantially replace, human decisionmaking, as defined in the CPPA's 2025 regulations. (summary)",
     cite: "11 CCR § 7001",
   },
+
+  // === GDPR Article 4 core terms (P1-1b) ===
+  gdpr_personal_data: {
+    term: "Personal data",
+    definition: "Any information relating to an identified or identifiable natural person ('data subject'); an identifiable natural person is one who can be identified, directly or indirectly, in particular by reference to an identifier such as a name, an identification number, location data, an online identifier or to one or more factors specific to the physical, physiological, genetic, mental, economic, cultural or social identity of that natural person. (verbatim)",
+    cite: "Art. 4(1) GDPR / UK GDPR",
+  },
+  gdpr_processing: {
+    term: "Processing",
+    definition: "Any operation or set of operations performed on personal data, whether or not by automated means, such as collection, recording, organisation, structuring, storage, adaptation or alteration, retrieval, consultation, use, disclosure by transmission, dissemination or otherwise making available, alignment or combination, restriction, erasure or destruction. (verbatim, condensed)",
+    cite: "Art. 4(2) GDPR / UK GDPR",
+  },
+  gdpr_profiling: {
+    term: "Profiling",
+    definition: "Any form of automated processing of personal data consisting of the use of personal data to evaluate certain personal aspects relating to a natural person, in particular to analyse or predict aspects concerning that person's performance at work, economic situation, health, personal preferences, interests, reliability, behaviour, location or movements. (verbatim)",
+    cite: "Art. 4(4) GDPR / UK GDPR",
+  },
+  gdpr_pseudonymisation: {
+    term: "Pseudonymisation",
+    definition: "The processing of personal data in such a manner that the personal data can no longer be attributed to a specific data subject without the use of additional information, provided that such additional information is kept separately and is subject to technical and organisational measures. (verbatim, condensed)",
+    cite: "Art. 4(5) GDPR / UK GDPR",
+  },
+  gdpr_controller: {
+    term: "Controller",
+    definition: "The natural or legal person, public authority, agency or other body which, alone or jointly with others, determines the purposes and means of the processing of personal data. (verbatim, condensed)",
+    cite: "Art. 4(7) GDPR / UK GDPR",
+  },
+  gdpr_processor: {
+    term: "Processor",
+    definition: "A natural or legal person, public authority, agency or other body which processes personal data on behalf of the controller. (verbatim)",
+    cite: "Art. 4(8) GDPR / UK GDPR",
+  },
+  gdpr_recipient: {
+    term: "Recipient",
+    definition: "A natural or legal person, public authority, agency or another body, to which the personal data are disclosed, whether a third party or not. (verbatim, condensed)",
+    cite: "Art. 4(9) GDPR / UK GDPR",
+  },
+  gdpr_consent: {
+    term: "Consent",
+    definition: "Any freely given, specific, informed and unambiguous indication of the data subject's wishes by which he or she, by a statement or by a clear affirmative action, signifies agreement to the processing of personal data relating to him or her. (verbatim)",
+    cite: "Art. 4(11) GDPR / UK GDPR",
+  },
+  gdpr_personal_data_breach: {
+    term: "Personal data breach",
+    definition: "A breach of security leading to the accidental or unlawful destruction, loss, alteration, unauthorised disclosure of, or access to, personal data transmitted, stored or otherwise processed. (verbatim)",
+    cite: "Art. 4(12) GDPR / UK GDPR",
+  },
+  gdpr_biometric_data: {
+    term: "Biometric data",
+    definition: "Personal data resulting from specific technical processing relating to the physical, physiological or behavioural characteristics of a natural person, which allow or confirm the unique identification of that natural person, such as facial images or dactyloscopic data. (verbatim)",
+    cite: "Art. 4(14) GDPR / UK GDPR",
+  },
+  gdpr_health_data: {
+    term: "Data concerning health",
+    definition: "Personal data related to the physical or mental health of a natural person, including the provision of health care services, which reveal information about his or her health status. (verbatim)",
+    cite: "Art. 4(15) GDPR / UK GDPR",
+  },
+  gdpr_supervisory_authority: {
+    term: "Supervisory authority",
+    definition: "An independent public authority established by a Member State pursuant to Article 51, responsible for monitoring the application of the GDPR. (verbatim, condensed)",
+    cite: "Art. 4(21), Art. 51 GDPR",
+    ukNote: "UK GDPR: the supervisory authority is the Information Commissioner (ICO).",
+  },
+
+  // === GDPR operative-concept definitions (P1-1c) ===
+  gdpr_special_categories: {
+    term: "Special categories of personal data",
+    definition: "Personal data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, or trade union membership, and the processing of genetic data, biometric data for the purpose of uniquely identifying a natural person, data concerning health or data concerning a natural person's sex life or sexual orientation. Processing is prohibited unless an Art. 9(2) condition applies. (verbatim, condensed)",
+    cite: "Art. 9(1)–(2) GDPR / UK GDPR",
+  },
+  gdpr_lawful_basis: {
+    term: "Lawful basis (Article 6)",
+    definition: "Processing is lawful only if at least one of six bases applies: consent; necessity for a contract; compliance with a legal obligation; protection of vital interests; performance of a task in the public interest or official authority; or legitimate interests. (summary)",
+    cite: "Art. 6(1)(a)–(f) GDPR / UK GDPR",
+  },
+  gdpr_legitimate_interests: {
+    term: "Legitimate interests",
+    definition: "Processing necessary for the purposes of the legitimate interests pursued by the controller or by a third party, except where such interests are overridden by the interests or fundamental rights and freedoms of the data subject, in particular where the data subject is a child. Requires a documented three-part assessment: purpose, necessity, and balancing. (verbatim + summary)",
+    cite: "Art. 6(1)(f) GDPR; Recital 47",
+    ukNote: "UK GDPR: the Data (Use and Access) Act 2025 added 'recognised legitimate interests' (new Annex 1) that do not require a balancing test.",
+  },
+  gdpr_dpia: {
+    term: "Data Protection Impact Assessment (DPIA)",
+    definition: "Where a type of processing, in particular using new technologies, is likely to result in a high risk to the rights and freedoms of natural persons, the controller shall, prior to the processing, carry out an assessment of the impact of the envisaged processing operations on the protection of personal data. (verbatim, condensed)",
+    cite: "Art. 35(1), (3) GDPR / UK GDPR",
+  },
+  gdpr_ropa: {
+    term: "Record of Processing Activities (RoPA)",
+    definition: "Each controller shall maintain a record of processing activities under its responsibility, containing: the controller's details; the purposes of processing; categories of data subjects and personal data; categories of recipients; third-country transfers; envisaged retention periods; and a general description of security measures. (summary)",
+    cite: "Art. 30(1) GDPR / UK GDPR",
+  },
+  gdpr_processor_contract: {
+    term: "Processor contract (Article 28)",
+    definition: "Processing by a processor shall be governed by a binding contract setting out the subject-matter and duration of the processing, its nature and purpose, the type of personal data and categories of data subjects, and the obligations and rights of the controller, including the specific terms required by Art. 28(3)(a)–(h) — documented instructions, confidentiality, security, sub-processor authorisation, data subject rights assistance, breach assistance, deletion or return, and audit rights. (summary)",
+    cite: "Art. 28(3) GDPR / UK GDPR",
+  },
+  gdpr_breach_notification: {
+    term: "Breach notification (72 hours)",
+    definition: "In the case of a personal data breach, the controller shall without undue delay and, where feasible, not later than 72 hours after having become aware of it, notify the breach to the competent supervisory authority, unless the breach is unlikely to result in a risk to the rights and freedoms of natural persons. (verbatim, condensed)",
+    cite: "Art. 33(1) GDPR / UK GDPR",
+    ukNote: "UK GDPR: notification is to the ICO.",
+  },
+  gdpr_breach_communication: {
+    term: "Communication to data subjects",
+    definition: "When a personal data breach is likely to result in a high risk to the rights and freedoms of natural persons, the controller shall communicate the breach to the data subject without undue delay. (verbatim, condensed)",
+    cite: "Art. 34(1) GDPR / UK GDPR",
+  },
+  gdpr_transparency: {
+    term: "Transparency information (Arts. 13–14)",
+    definition: "At the time personal data are obtained, the controller must provide the data subject with prescribed information including the controller's identity and contact details, the purposes and legal basis of processing, recipients, third-country transfers, retention period, data subject rights, and the source of the data where not collected from the data subject. (summary)",
+    cite: "Arts. 13–14 GDPR / UK GDPR",
+  },
+  gdpr_international_transfer: {
+    term: "International transfer (Chapter V)",
+    definition: "Personal data may be transferred to a third country or international organisation only where the conditions of Chapter V are met: an adequacy decision (Art. 45), appropriate safeguards such as standard contractual clauses or binding corporate rules (Art. 46), or a specific derogation (Art. 49). (summary)",
+    cite: "Arts. 44–49 GDPR / UK GDPR",
+    ukNote: "UK GDPR: UK adequacy regulations and the ICO's IDTA or UK Addendum replace the EU mechanisms.",
+  },
+  gdpr_sccs: {
+    term: "Standard Contractual Clauses (SCCs)",
+    definition: "Standard data protection clauses adopted by the European Commission providing appropriate safeguards for transfers to third countries. Following the Schrems II judgment, reliance on SCCs requires a documented transfer impact assessment and, where needed, supplementary measures. (summary)",
+    cite: "Art. 46(2)(c) GDPR; EDPB Recommendations 01/2020",
+    ukNote: "UK GDPR: the ICO's International Data Transfer Agreement (IDTA) or the UK Addendum to the EU SCCs apply.",
+  },
+  gdpr_dpo: {
+    term: "Data Protection Officer (DPO)",
+    definition: "A controller or processor must designate a DPO where processing is carried out by a public authority, or where core activities consist of regular and systematic monitoring of data subjects on a large scale, or large-scale processing of special categories of data or criminal conviction data. (summary)",
+    cite: "Arts. 37–39 GDPR / UK GDPR",
+  },
 };
 
 export type DefinitionKey = keyof typeof DEFINITIONS;
