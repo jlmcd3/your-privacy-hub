@@ -46,7 +46,7 @@ const TOOLS: Record<
     standalone_lookup: "hc_standalone_v2",
     subscriber_lookup: "hc_subscriber_v2",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 4900,
     classification: "smart",
   },
   li_analyzer: {
