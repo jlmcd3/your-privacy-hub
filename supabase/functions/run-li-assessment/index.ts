@@ -214,7 +214,9 @@ MANDATORY FIELD RULES — violations will cause downstream system failures:
 
 2. The "closest_accepted_precedent" field MUST be a non-empty string. If no close match exists in the database, write "None identified in current database" — never return null.
 
-3. The "closest_rejected_precedent" field MUST be a non-empty string. If none, write "None identified in current database".`
+3. The "closest_rejected_precedent" field MUST be a non-empty string. If none, write "None identified in current database".
+
+4. PRECEDENT PROSE RULE: The precedent block above tags each entry with a bracketed outcome marker like [REJECTED] for machine readability. NEVER reproduce these bracketed markers in your prose. Refer to precedents in natural language naming the deciding regulator from the entry, e.g. 'a rejected decision by the Hessian DPA concerning keystroke logging'. Never attribute an enforcement decision to the EDPB unless the entry's source field is an EDPB Article 65 binding decision; the EDPB is not a first-instance enforcement body.`
       + (gdprBlock ? `\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "");
 
     const analysisText = await callAnthropic(
