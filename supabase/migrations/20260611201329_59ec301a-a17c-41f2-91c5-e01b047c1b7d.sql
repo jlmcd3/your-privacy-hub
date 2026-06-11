@@ -1,0 +1,1 @@
+UPDATE public.li_tracker_entries SET dpa_source = 'EDPB/WP29 guidance (Guidelines 1/2024; Opinion 2/2017)' WHERE processing_activity ILIKE '%keystroke%';
