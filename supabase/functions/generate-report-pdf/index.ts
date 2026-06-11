@@ -11,6 +11,20 @@ const corsHeaders = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// NARRATIVE SANITIZER
+// Strips internal status tags and bracketed citation markers from prose
+// before it lands in HTML/PDF. Preserves [TO BE COMPLETED: ...] placeholders.
+// ─────────────────────────────────────────────────────────────────────────
+function sanitizeNarrative(s: string): string {
+  if (!s || typeof s !== "string") return s as unknown as string;
+  return s
+    .replace(/\[(REJECTED|ACCEPTED|PENALISED|REQUIRED|UNKNOWN)\]\s*/g, "")
+    .replace(/\[(Recital\s+\d+[a-z]?)\]/g, "$1")
+    .replace(/\[(Art(?:icle)?\.?\s+[\dA-Za-z()]+)\]/g, "$1")
+    .replace(/\[(EDPB[^\]]{0,60})\]/g, "$1");
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // PDF GENERATION HELPER
 // ─────────────────────────────────────────────────────────────────────────
 // PLACEHOLDER: Replace the body of this function with your PDF service call.
