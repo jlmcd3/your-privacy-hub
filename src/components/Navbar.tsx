@@ -240,10 +240,10 @@ const navItems: NavItem[] = [
         column: 1,
         items: [
           { icon: <Landmark className="w-4 h-4 text-muted-foreground" />, iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
-          { icon: "⚖️", label: "GDPR & UK GDPR", href: "/gdpr-enforcement" },
-          { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
-          { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
-          { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
+          { icon: <Scale className="w-4 h-4 text-muted-foreground" />, label: "GDPR & UK GDPR", href: "/gdpr-enforcement" },
+          { icon: <Globe className="w-4 h-4 text-muted-foreground" />, label: "Global Privacy Laws", href: "/global-privacy-laws" },
+          { icon: <Cpu className="w-4 h-4 text-muted-foreground" />, label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
+          { icon: <ScrollText className="w-4 h-4 text-muted-foreground" />, label: "Legislation in Progress", href: "/legislation-tracker" },
         ],
       },
       {
