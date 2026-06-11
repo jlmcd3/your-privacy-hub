@@ -252,19 +252,20 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       .in("regulation_citation", CYBER_CITATIONS);
 
     // Per-control "What the agency said" attachment.
-    // The 18 enumerated cybersecurity components live in § 7122(a)(1)–(18).
-    // Primary source: deterministic exact lookup on the § 7122(a)(N) subsection
-    // plus the section-level § 7122 commentary. Secondary source: semantic
-    // fallback/enrichment via embeddings + match_cppa_fsor_commentary RPC,
-    // mirroring run-cppa-risk-assessment. On any embedding/RPC failure we
-    // silently fall back to exact-only — never fail the run.
+    // The 18 enumerated cybersecurity components live in § 7123(b) (audit scope
+    // / programme components); § 7122 covers thoroughness and independence of
+    // audits and is attached once at report level, not per control.
+    // Primary source: deterministic exact lookup on the § 7123 control-level
+    // commentary. Secondary source: semantic fallback/enrichment via embeddings
+    // + match_cppa_fsor_commentary RPC, mirroring run-cppa-risk-assessment. On
+    // any embedding/RPC failure we silently fall back to exact-only — never
+    // fail the run.
     const fsorByCitation = new Map<string, any[]>();
     for (const row of fsorRows ?? []) {
       const key = row.regulation_citation;
       if (!fsorByCitation.has(key)) fsorByCitation.set(key, []);
       fsorByCitation.get(key)!.push(row);
     }
-    const sectionFsor = fsorByCitation.get("11 CCR § 7122") ?? [];
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const PKG_PRIORITY: Record<string, number> = {
@@ -336,9 +337,8 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
     const controlsOut: any[] = [];
     for (let idx = 0; idx < report.controls.length; idx++) {
       const c = report.controls[idx];
-      const subsection = `11 CCR § 7122(a)(${idx + 1})`;
-      const subFsor = fsorByCitation.get(subsection) ?? [];
-      const exact = [...subFsor, ...sectionFsor];
+      const citation = `11 CCR § 7123(b)`;
+      const exact = (fsorByCitation.get("11 CCR § 7123") ?? []).slice();
       const exactIds = new Set(exact.map((r: any) => r?.id).filter(Boolean));
 
       const gapContext = [c?.finding, c?.remediation, c?.regulatory_basis]
@@ -361,11 +361,18 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
 
       controlsOut.push({
         ...c,
-        fsor_citation: subsection,
-        fsor_commentary: merged.map(shapeFsorItem),
+        fsor_citation: citation,
+        fsor_commentary: merged.slice(0, 2).map(shapeFsorItem),
       });
     }
     report.controls = controlsOut;
+
+    // Section-level FSOR commentary attached once at report level (not per
+    // control) to avoid 18x duplication of the same agency text.
+    (report as any).fsor_section_commentary = {
+      "11 CCR § 7122": (fsorByCitation.get("11 CCR § 7122") ?? []).map(shapeFsorItem),
+      "11 CCR § 7123": (fsorByCitation.get("11 CCR § 7123") ?? []).map(shapeFsorItem),
+    };
 
     const obligation_snapshot = {
       captured_at: new Date().toISOString(),
