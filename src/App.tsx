@@ -214,6 +214,7 @@ const App = () => (
             <Route path="/registration-documents" element={<Navigate to="/registration-manager" replace />} />
             <Route path="/enforcement-intelligence/:id" element={<EnforcementActionDetail />} />
             <Route path="/us-privacy-laws" element={<USPrivacyLaws />} />
+            <Route path="/us-privacy-laws/:slug" element={<USStateLawPage />} />
             <Route path="/us-state-privacy-laws" element={<Navigate to="/us-privacy-laws" replace />} />
             <Route path="/us-federal-privacy-law" element={<Navigate to="/us-privacy-laws" replace />} />
             <Route path="/gdpr-enforcement" element={<GDPREnforcement />} />
