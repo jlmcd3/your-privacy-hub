@@ -1,6 +1,20 @@
+import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 
 const AIPrivacyRegulations = () => (
+  <>
+    <Helmet>
+      <link rel="canonical" href="https://enduserprivacy.com/ai-privacy-regulations" />
+      <script type="application/ld+json">{JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "AI Privacy Regulations — EU AI Act, GDPR, ADMT",
+        "description": "Global overview of AI-specific privacy regulation: the EU AI Act, GDPR and AI training, national AI strategies, automated decision-making, and emerging enforcement.",
+        "publisher": { "@type": "Organization", "name": "End User Privacy" },
+        "datePublished": "2025-02-10",
+        "dateModified": "2026-06-10",
+      })}</script>
+    </Helmet>
   <ResearchPageLayout
     metaTitle="AI Privacy Regulations — EU AI Act, GDPR, ADMT | End User Privacy"
     metaDescription="Global overview of AI-specific privacy regulation: the EU AI Act, GDPR and AI training, national AI strategies, automated decision-making, and emerging enforcement."
