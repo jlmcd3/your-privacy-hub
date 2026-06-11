@@ -197,6 +197,7 @@ const GovernanceAssessment = () => {
               ? "Estimated completion time: 10-15 minutes. Your completed report will be saved to My Reports."
               : "Estimated completion time: 10-15 minutes. Sign in to save your completed report to My Reports."}
           </p>
+          <div className="mt-4"><SampleReportLink toolSlug="governance" tone="onDark" variant="link" /></div>
         </div>
       </header>
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
