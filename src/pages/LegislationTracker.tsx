@@ -131,7 +131,9 @@ function BillCard({
               />
             )}
             <span className="text-xs font-bold text-slate uppercase tracking-wider">
-              {bill.jurisdiction}
+              {bill.iso2 === "US" && bill.jurisdiction !== "United States"
+                ? `${bill.jurisdiction}, U.S.`
+                : bill.jurisdiction}
             </span>
             {bill.bill_number && (
               <span className="font-mono text-[11px] text-brand-mist">{bill.bill_number}</span>
