@@ -788,6 +788,20 @@ Deno.serve(async (req) => {
     // Helper: turn a JSON summary into bullet-styled plain text for the
     // generic text builder. Keeps PDF output readable for tools that don't
     // (yet) have a bespoke HTML template.
+    // Keys we never want surfaced in customer-facing PDFs (internal DB fields,
+    // verbatim FSOR text, raw enforcement-precedent metadata). Also excludes
+    // structured blocks that have dedicated compact renderers below so they
+    // are not double-dumped by the generic walker.
+    const EXCLUDE_KEYS = new Set([
+      "id", "ids",
+      "enforcement_action_id", "precedent_significance",
+      "fine_eur_equivalent", "breach_related", "biometric_related",
+      "agency_response", "agency_response_verbatim",
+      "comment_summary_verbatim", "embedding", "obligation_snapshot",
+      // Rendered separately via structured helpers, never dumped raw:
+      "fsor_commentary", "fsor_section_commentary",
+      "enforcement_precedents", "enforcement_meta",
+    ]);
     const summaryToText = (obj: any): string => {
       if (!obj) return "";
       if (typeof obj === "string") return obj;
@@ -802,6 +816,7 @@ Deno.serve(async (req) => {
             });
           } else if (o && typeof o === "object") {
             for (const [k, v] of Object.entries(o)) {
+              if (EXCLUDE_KEYS.has(k)) continue;
               const label = k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
               if (v && typeof v === "object") {
                 out.push(`\n${pad}${label}`);
