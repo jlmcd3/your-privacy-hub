@@ -1,8 +1,22 @@
+import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { JurisdictionDirectory } from "@/components/research/JurisdictionDirectory";
 
 const GlobalPrivacyLaws = () => (
-  <ResearchPageLayout
+  <>
+    <Helmet>
+      <link rel="canonical" href="https://enduserprivacy.com/global-privacy-laws" />
+      <script type="application/ld+json">{JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Global Privacy Laws Directory",
+        "description": "Comparative reference to 140+ national privacy regimes, covering APAC, Latin America, Middle East, and Africa frameworks and EU GDPR adequacy status.",
+        "publisher": { "@type": "Organization", "name": "End User Privacy" },
+        "datePublished": "2025-01-15",
+        "dateModified": "2026-06-10",
+      })}</script>
+    </Helmet>
+    <ResearchPageLayout
     metaTitle="Global Privacy Laws Directory | End User Privacy"
     metaDescription="Browse 70+ privacy regimes by region, status, and EU GDPR adequacy. Comparative reference covering APAC, Latin America, Middle East, and Africa frameworks."
     header={{
