@@ -298,7 +298,7 @@ const LIAssessmentResult = () => {
                       {d.basis && <p className="text-xs text-muted-foreground mt-2">Basis: {d.basis}</p>}
                     </div>
                   ))}
-                  {Array.isArray(docs?.balancing_record_elements) && (
+                  {Array.isArray(docs?.balancing_record_elements) && docs.balancing_record_elements.length > 0 && (
                     <>
                       <h3 className="mt-4 mb-2">Balancing Record — Must Include</h3>
                       <ol className="list-decimal pl-5 text-sm space-y-1">{docs.balancing_record_elements.map((e: string, i: number) => <li key={i}>{e}</li>)}</ol>
