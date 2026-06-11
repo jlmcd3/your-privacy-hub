@@ -144,13 +144,20 @@ function inferSourceTier(sourceDomain: string | null | undefined): 1 | 2 | 3 {
   return 3;
 }
 
-async function generateAISummary(
+async function _enrichAttempt(
   title: string,
   summary: string | null,
   sourceName: string | null,
   sourceDomain: string | null,
-  apiKey: string
+  apiKey: string,
+  pubDay: string,
+  correction: string | null,
 ): Promise<EnrichResult> {
+  const todayDay = new Date().toISOString().slice(0, 10);
+  const dateContext = `DATE CONTEXT: Today's date is ${todayDay}. This article was published on ${pubDay}. Every date you write must be consistent with these. If the source text does not state an explicit year for an event, refer to the event by month or relative phrasing WITHOUT guessing a year. Never date the article's own events to a year earlier than its publication date.\n\n`;
+  const correctionSuffix = correction
+    ? `\n\nCORRECTION REQUIRED: your previous draft contained date errors: ${correction}. Re-generate the full JSON with all dates consistent with the DATE CONTEXT block. If the source does not state a year, omit the year.`
+    : "";
   const sourceTier = inferSourceTier(sourceDomain);
   const textLen = (summary || "").length;
   try {
