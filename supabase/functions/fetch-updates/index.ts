@@ -1136,20 +1136,14 @@ async function generateAISummary(
   sourceName: string,
   apiKey: string,
   sourceTier: 1 | 2 | 3 = 3,
+  publishedAt: string = new Date().toISOString(),
 ): Promise<Record<string, unknown> | null> {
+  const todayDay = new Date().toISOString().slice(0, 10);
+  const pubDate = new Date(publishedAt);
+  const pubDay = isNaN(pubDate.getTime()) ? todayDay : pubDate.toISOString().slice(0, 10);
+  const dateContext = `DATE CONTEXT: Today's date is ${todayDay}. This article was published on ${pubDay}. Every date you write must be consistent with these. If the source text does not state an explicit year for an event, refer to the event by month or relative phrasing WITHOUT guessing a year. Never date the article's own events to a year earlier than its publication date.\n\n`;
 
-  try {
-    const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 2500,
-        system: `You are a privacy regulatory intelligence analyst processing articles for a professional-grade compliance platform serving Data Protection Officers, General Counsel, and privacy lawyers at multinational organizations.
+  const systemPrompt = `You are a privacy regulatory intelligence analyst processing articles for a professional-grade compliance platform serving Data Protection Officers, General Counsel, and privacy lawyers at multinational organizations.
 
 Your task: analyze each article and return a single valid JSON object. Return ONLY the JSON — no preamble, no markdown, no explanation. Return {"skip": true} for non-privacy articles, or the full enrichment object for privacy articles.
 
@@ -1183,11 +1177,10 @@ Cross-border transfers: SCCs, BCRs, adequacy decisions, Schrems II.
 Biometric: BIPA, Texas CUBI, GDPR Article 9(1).
 Children: COPPA, FERPA, UK Age Appropriate Design Code.
 
-VOICE: Write in direct, active voice. Lead with the compliance implication, not the regulatory action. Apply SOURCE CALIBRATION above — match your declarative confidence to your source type.`,
-        messages: [
-          {
-            role: "user",
-            content: `Analyze this privacy/data protection article.
+VOICE: Write in direct, active voice. Lead with the compliance implication, not the regulatory action. Apply SOURCE CALIBRATION above — match your declarative confidence to your source type.`;
+
+  const buildUserContent = (correction: string | null) => {
+    const base = `Analyze this privacy/data protection article.
 
 Source type: ${sourceTier === 1 ? "PRIMARY — official regulator publication. Use direct declarative voice." : sourceTier === 2 ? "SECONDARY — legal analysis or commentary. Use attribution (\"According to [source]...\")." : "TERTIARY — media or civil society coverage. Use attribution. Apply extra caution on specific factual claims."}
 Title: ${title}
@@ -1261,36 +1254,68 @@ STEP 3 — If relevant, return this JSON:
   "source_fidelity_note": "One sentence summarising the quality of the source text available. Example: 'Full article body available — high confidence in specific claims.' or 'RSS summary only (82 words) — specific claims limited to what description states; action items and case references not inferable.' This field is stored for downstream quality control and not shown to users."
 }
 
-Generate 0-3 action_items. Return [] if the source text does not support specific named-law actions. For entities: populate ONLY from content present in the article text — not from training knowledge.`,
-          },
-        ],
+Generate 0-3 action_items. Return [] if the source text does not support specific named-law actions. For entities: populate ONLY from content present in the article text — not from training knowledge.`;
+    const correctionSuffix = correction
+      ? `\n\nCORRECTION REQUIRED: your previous draft contained date errors: ${correction}. Re-generate the full JSON with all dates consistent with the DATE CONTEXT block. If the source does not state a year, omit the year.`
+      : "";
+    return dateContext + base + correctionSuffix;
+  };
+
+  const ctx = { fn: "fetch-updates", title };
+
+  const attempt = async (correction: string | null): Promise<Record<string, unknown> | null> => {
+    const res = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 2500,
+        system: systemPrompt,
+        messages: [{ role: "user", content: buildUserContent(correction) }],
       }),
       signal: AbortSignal.timeout(15000),
     });
-
     if (!res.ok) {
-      if (res.status === 429) {
-        throw new Error("ANTHROPIC_429");
-      }
+      if (res.status === 429) throw new Error("ANTHROPIC_429");
       console.error(`Anthropic API error: ${res.status}`);
       throw new Error(`ANTHROPIC_${res.status}`);
     }
-
     const data = await res.json();
     const text = data.content?.[0]?.text;
-    if (!text) { console.warn(`[fetch-updates][AI] no text in response for "${title.slice(0,80)}"`); return null; }
-
+    if (!text) return null;
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) { console.warn(`[fetch-updates][AI] no JSON match for "${title.slice(0,80)}"`); return null; }
+    if (!jsonMatch) return null;
+    try { return JSON.parse(jsonMatch[0]); } catch { return null; }
+  };
 
-    const parsed = JSON.parse(jsonMatch[0]);
+  try {
+    const first = await attempt(null);
+    if (!first) { console.warn(`[fetch-updates][AI] no parse for "${title.slice(0,80)}"`); return null; }
+    if (first.skip === true) { console.log(`[fetch-updates][AI] model returned skip=true for "${title.slice(0,80)}"`); return null; }
+    const v1 = validateAISummary(first, ctx);
+    if (!v1.ok) { console.warn(`[fetch-updates][AI] validation failed for "${title.slice(0,80)}"`); return null; }
+    const d1 = checkDateConsistency(JSON.stringify(v1.data), pubDay, ctx);
+    if (d1.ok) return v1.data;
 
-    // If the AI determined the article is not relevant, skip it
-    if (parsed.skip === true) { console.log(`[fetch-updates][AI] model returned skip=true for "${title.slice(0,80)}"`); return null; }
-
-    const v = validateAISummary(parsed, { fn: "fetch-updates", title });
-    if (!v.ok) { console.warn(`[fetch-updates][AI] validation failed for "${title.slice(0,80)}": ${v.error ?? "unknown"}`); return null; }
-    return v.data;
+    // ONE bounded retry with correction note
+    const foundList = d1.issues.map(i => i.found).join(", ");
+    let retry: Record<string, unknown> | null = null;
+    try { retry = await attempt(foundList); } catch (e) { console.warn(`[fetch-updates][AI] retry threw: ${(e as Error).message}`); }
+    if (retry && retry.skip !== true) {
+      const v2 = validateAISummary(retry, ctx);
+      if (v2.ok) {
+        const d2 = checkDateConsistency(JSON.stringify(v2.data), pubDay, ctx);
+        if (d2.ok) return v2.data;
+        console.error(JSON.stringify({ evt: "date_inconsistency_unresolved", fn: "fetch-updates", articleId: null, title, issues: d2.issues }));
+        return v2.data;
+      }
+    }
+    console.error(JSON.stringify({ evt: "date_inconsistency_unresolved", fn: "fetch-updates", articleId: null, title, issues: d1.issues }));
+    return v1.data;
   } catch (e) {
     console.error("AI summary generation failed:", e);
     return null;
