@@ -103,6 +103,15 @@ const GlobalAuthorities = () => {
           name="description"
           content="Searchable directory of data protection authorities across the world, ranked by enforcement activity. Find DPA contacts, complaint portals, and legislation."
         />
+        <link rel="canonical" href="https://enduserprivacy.com/global-privacy-authorities" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "name": "Global Privacy Authority Directory",
+          "description": `Directory of ${ALL_ENTRIES.length} government data protection authorities worldwide.`,
+          "numberOfItems": ALL_ENTRIES.length,
+          "publisher": { "@type": "Organization", "name": "End User Privacy" },
+        })}</script>
       </Helmet>
       <Navbar />
       <header className="bg-slate-900 text-white py-12">

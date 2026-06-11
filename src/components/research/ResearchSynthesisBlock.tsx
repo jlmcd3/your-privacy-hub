@@ -18,9 +18,11 @@ interface ResearchSynthesisBlockProps {
   promoteHeading?: boolean;
   /** Render a tight one-line "What changed" pullquote instead of the full tiered card. */
   compact?: boolean;
+  /** Called once the synthesis row is loaded, exposing freshness metadata. */
+  onLoaded?: (info: { generated_at: string; article_count: number }) => void;
 }
 
-export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: ResearchSynthesisBlockProps) {
+export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact, onLoaded }: ResearchSynthesisBlockProps) {
   const [data, setData] = useState<{
     synthesis_text: string;
     generated_at: string;
@@ -55,6 +57,10 @@ export function ResearchSynthesisBlock({ sectionKey, promoteHeading, compact }: 
             article_count: row.article_count ?? 0,
             section_heading: row.section_heading ?? "",
             headlines: Array.isArray(row.headlines) ? (row.headlines as unknown as Headline[]) : [],
+          });
+          onLoaded?.({
+            generated_at: row.generated_at ?? "",
+            article_count: row.article_count ?? 0,
           });
         }
         setLoading(false);

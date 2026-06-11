@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
-import { ReactNode } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { ReactNode, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
@@ -8,6 +8,8 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { ResearchPageHeader, type BreadcrumbItem } from "./ResearchPageHeader";
 import { ResearchSynthesisBlock } from "./ResearchSynthesisBlock";
 import { ResearchToolCTA } from "./ResearchToolCTA";
+
+const SITE_ORIGIN = "https://enduserprivacy.com";
 
 export interface ResearchToolCtaConfig {
   toolName: string;
@@ -71,6 +73,19 @@ export function ResearchPageLayout({
   introBlock,
 }: ResearchPageLayoutProps) {
   const { isPremium } = usePremiumStatus();
+  const { pathname } = useLocation();
+  const canonicalUrl = `${SITE_ORIGIN}${pathname}`;
+  const [contextUpdated, setContextUpdated] = useState<string | undefined>(undefined);
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_ORIGIN },
+      { "@type": "ListItem", position: 2, name: "Research", item: `${SITE_ORIGIN}/research` },
+      { "@type": "ListItem", position: 3, name: header.title, item: canonicalUrl },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-brand-cloud">
@@ -79,10 +94,11 @@ export function ResearchPageLayout({
         <meta name="description" content={metaDescription} />
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDescription} />
+        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
       </Helmet>
       <Navbar />
 
-      <ResearchPageHeader {...header} />
+      <ResearchPageHeader {...header} contextUpdated={contextUpdated} />
 
       {adAfterHeader && (
         <div className="max-w-4xl mx-auto px-6">
@@ -93,9 +109,14 @@ export function ResearchPageLayout({
       <div className="max-w-4xl mx-auto px-6 py-8">
         {pageSynthesisKey && (
           <div className="mb-10">
-            <ResearchSynthesisBlock sectionKey={pageSynthesisKey} promoteHeading />
+            <ResearchSynthesisBlock
+              sectionKey={pageSynthesisKey}
+              promoteHeading
+              onLoaded={(info) => setContextUpdated(info.generated_at || undefined)}
+            />
           </div>
         )}
+
 
         {topToolCta && <ResearchToolCTA {...topToolCta} />}
 

@@ -284,6 +284,14 @@ export default function LegislationTracker() {
       <Helmet>
         <title>Global Privacy Legislation Tracker | End User Privacy</title>
         <meta name="description" content="Track privacy bills worldwide from introduction through enactment. US, UK, EU, Canada, Australia, Brazil — refreshed daily from official government sources." />
+        <link rel="canonical" href="https://enduserprivacy.com/legislation-tracker" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Dataset",
+          "name": "Global Privacy Legislation Tracker",
+          "description": "Live dataset of privacy and data-protection bills tracked across major jurisdictions, refreshed daily from official government sources.",
+          "publisher": { "@type": "Organization", "name": "End User Privacy" },
+        })}</script>
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />

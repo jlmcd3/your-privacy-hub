@@ -180,6 +180,14 @@ const USPrivacyLaws = () => {
           property="og:description"
           content="Federal & state privacy law guide covering FTC, FCC, CFPB, HHS/OCR, SPPO, CPPA and all 50 state privacy statutes."
         />
+        <link rel="canonical" href="https://enduserprivacy.com/us-privacy-laws" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Dataset",
+          "name": "U.S. Privacy Laws Directory",
+          "description": "Reference dataset covering federal privacy enforcement authorities and comprehensive privacy laws across all 50 U.S. states.",
+          "publisher": { "@type": "Organization", "name": "End User Privacy" },
+        })}</script>
       </Helmet>
       <Navbar />
 
