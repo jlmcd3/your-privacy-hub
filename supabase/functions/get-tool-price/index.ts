@@ -294,6 +294,7 @@ serve(async (req) => {
         subscription_type: subscriptionType,
         is_pro: isPro,
         is_premium: isPremium,
+        is_annual: isAnnual,
         is_subscriber_free: isSubscriberFree,
         is_cppa: isCppa,
         is_included: isSubscriberFree,
