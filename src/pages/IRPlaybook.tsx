@@ -152,18 +152,19 @@ export default function IRPlaybook() {
         ) : phase === "form" ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <h2 className="font-display text-brand-navy">Incident details</h2>
-            <label className="block text-sm"><span className="font-semibold text-brand-navy">Date & time of discovery</span>
+            <RequiredLegend />
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Date & time of discovery<Req /></span>
               <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
-            <label className="block text-sm"><span className="font-semibold text-brand-navy">Apparent cause</span>
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Apparent cause <DefPopover termKey="gdpr_personal_data_breach" /></span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.cause} onChange={e => setForm(f => ({ ...f, cause: e.target.value }))}>
                 {CAUSES.map(c => <option key={c}>{c}</option>)}</select></label>
-            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Data types affected</legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Data types affected<Req /></legend>
               <div className="grid grid-cols-2 gap-1 mt-1">{DATA_TYPES.map(d => <label key={d} className="flex items-center gap-2 text-meta">
                 <input type="checkbox" checked={form.dataTypes.includes(d)} onChange={() => toggle("dataTypes", d)} />{d}</label>)}</div></fieldset>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Affected individuals</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.affectedCount} onChange={e => setForm(f => ({ ...f, affectedCount: e.target.value }))}>
                 {COUNTS.map(c => <option key={c}>{c}</option>)}</select></label>
-            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions</legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions<Req /> <DefPopover termKey="gdpr_breach_notification" /></legend>
               <div className="mt-1 space-y-3">{JUR_GROUPS.map(g => (
                 <div key={g.label}>
                   <div className="text-meta font-semibold text-brand-navy/70 uppercase tracking-wide mb-1">{g.label}</div>
