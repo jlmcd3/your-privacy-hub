@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ImagePoolPanel from "@/components/admin/ImagePoolPanel";
+import ResearchFreshnessPanel from "@/components/admin/ResearchFreshnessPanel";
 import { X } from "lucide-react";
 
 interface RunRow {
