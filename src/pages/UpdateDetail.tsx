@@ -11,6 +11,7 @@ import EmailSignup from "@/components/EmailSignup";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { ArrowLeft, ExternalLink, Tag, Lock } from "lucide-react";
 import InFeedAd from "@/components/InFeedAd";
+import ProductCtaChip from "@/components/ProductCtaChip";
 import { getSeverityLabel } from "@/lib/severity";
 
 interface AISummary {
