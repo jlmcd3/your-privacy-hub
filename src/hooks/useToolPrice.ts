@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { PRICING, PRICING_REGISTRY, type ToolKey } from "@/config/pricing";
+import { PRICING, PRICING_REGISTRY, type ToolKey, requiresAnnualForSubscriberRate } from "@/config/pricing";
 
 /**
  * Pricing hook — restores differentiated subscriber pricing per the
@@ -108,6 +108,8 @@ export interface ToolPricing {
   isIncluded: boolean;
   /** True for monthly Intelligence subscribers. */
   isMonthlyIntelligence: boolean;
+  /** True for annual-plan subscribers (Intelligence or Professional annual). */
+  isAnnualSubscriber: boolean;
   /** True for CPPA tools (purely informational). */
   isCppa: boolean;
   /** Retired program — always `false`. */
@@ -137,7 +139,11 @@ export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
   // post-trial benefit. `isInTrial` is sourced from useSubscriptionTier
   // (see also: hasToolAccess collapses to false during trial).
   const isSubscriber = isPremium && !isInTrial;
-  const effective = isSubscriber ? subscriber : standalone;
+  const isAnnualSubscriber = isSubscriber && String(tier ?? "").toLowerCase().includes("annual");
+  const baseKey = SLUG_TO_TOOL_KEY[toolSlug] === "cppa_suite_combo" ? "cppa_suite" : String(SLUG_TO_TOOL_KEY[toolSlug]);
+  const gated = requiresAnnualForSubscriberRate(baseKey);
+  const qualifiesForSubscriberRate = isSubscriber && (subscriberCents === 0 || !gated || isAnnualSubscriber);
+  const effective = qualifiesForSubscriberRate ? subscriber : standalone;
   const isIncluded = isSubscriber && subscriberCents === 0;
 
   const [stripeConfigured, setStripeConfigured] = useState(false);
@@ -168,6 +174,7 @@ export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
     isSubscriber,
     isIncluded,
     isMonthlyIntelligence: tier === "monthly",
+    isAnnualSubscriber,
     isCppa,
     isFoundingSubscriber: false,
     foundingDiscountLabel: "",
