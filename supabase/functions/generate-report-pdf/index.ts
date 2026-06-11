@@ -1060,16 +1060,25 @@ Deno.serve(async (req) => {
     } else if (tool_type === "cppa_cybersecurity") {
       const intake = record.intake_data || {};
       const parts = [record.document_a_text, record.document_b_text].filter(Boolean);
-      const text = parts.length
-        ? parts.join("\n\n──────────────────────────────\n\n")
-        : summaryToText(record.report_data);
-      html = buildTextReportHTML({
-        title: "CPPA Cybersecurity Audit",
-        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
-          (intake.organizationName ? ` · ${intake.organizationName}` : "") + " · California (CPPA)",
-        text,
-        showJurisdictionChip: false,
-      });
+      const hasStructured = record.report_data && typeof record.report_data === "object"
+        && Array.isArray((record.report_data as any).controls);
+      if (parts.length === 0 && hasStructured) {
+        // Structured report path: render via dedicated HTML template that
+        // emits compact FSOR refs + formatted enforcement precedents and
+        // never dumps internal field names or verbatim agency_response text.
+        html = buildCPPACyberReportHTML(record.report_data, record);
+      } else {
+        const text = parts.length
+          ? parts.join("\n\n──────────────────────────────\n\n")
+          : summaryToText(record.report_data);
+        html = buildTextReportHTML({
+          title: "CPPA Cybersecurity Audit",
+          metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
+            (intake.organizationName ? ` · ${intake.organizationName}` : "") + " · California (CPPA)",
+          text,
+          showJurisdictionChip: false,
+        });
+      }
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_scope") {
       const text = summaryToText({
