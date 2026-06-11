@@ -62,7 +62,7 @@ export default function BreachNotificationPage() {
 <li><strong><a href="/us-federal-privacy-law">HIPAA</a> (Health)</strong> — covered entities must notify <a href="https://www.hhs.gov/ocr" target="_blank" rel="noopener noreferrer">HHS</a>, affected individuals, and media (for breaches of 500+) within 60 days.</li>
 <li><strong><a href="/us-federal-privacy-law">GLBA</a> / Interagency Guidance (Financial)</strong> — banking regulators require notification within 36 hours for incidents that could impact services.</li>
 <li><strong><a href="https://www.sec.gov/news/press-release/2023-139" target="_blank" rel="noopener noreferrer">SEC Rules</a> (Public Companies)</strong> — material cybersecurity incidents must be disclosed in Form 8-K within 4 business days.</li>
-<li><strong><a href="https://www.ftc.gov/legal-library/browse/rules/health-breach-notification-rule" target="_blank" rel="noopener noreferrer">FTC Health Breach Notification Rule</a></strong> — non-HIPAA entities handling health data must notify <a href="/regulator/ftc">FTC</a> and affected individuals within 60 days.</li>
+<li><strong><a href="https://www.ftc.gov/legal-library/browse/rules/health-breach-notification-rule" target="_blank" rel="noopener noreferrer">FTC Health Breach Notification Rule</a></strong> — non-HIPAA entities handling health data must notify <a href="/regulator/ftc">Federal Trade Commission (FTC)</a> and affected individuals within 60 days.</li>
 </ul>`,
           },
           {
