@@ -179,7 +179,22 @@ function isHeadingLine(line: string): boolean {
 interface Chunk { text: string; section_heading: string | null; }
 
 function chunkText(full: string): Chunk[] {
-  const paragraphs = full.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  // unpdf's mergePages extraction often returns whole documents without blank
+  // lines, which would make the entire PDF a single "paragraph" and therefore a
+  // single chunk. Split any oversized paragraph on sentence boundaries first.
+  const paragraphs = full.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+    .flatMap((p) => {
+      if (p.length <= CHUNK_TARGET_CHARS * 1.5) return [p];
+      const pieces: string[] = [];
+      let piece = "";
+      for (const sentence of p.split(/(?<=[.!?])\s+/)) {
+        const cand = piece ? piece + " " + sentence : sentence;
+        if (cand.length > CHUNK_TARGET_CHARS && piece) { pieces.push(piece); piece = sentence; }
+        else piece = cand;
+      }
+      if (piece) pieces.push(piece);
+      return pieces;
+    });
   const chunks: Chunk[] = [];
   let buf = "";
   let currentHeading: string | null = null;
