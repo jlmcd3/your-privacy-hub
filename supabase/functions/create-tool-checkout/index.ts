@@ -56,7 +56,7 @@ const TOOLS: Record<
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
     fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4900,
+    fallback_subscriber_cents: 4500,
   },
   dpa_generator: {
     name: "Your Custom DPA",
