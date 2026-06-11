@@ -342,6 +342,7 @@ const LIAssessmentResult = () => {
               </section>
             </div>
           )}
+          </div>
         </ReportShell>
       </main>
 
