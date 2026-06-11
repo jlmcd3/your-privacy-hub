@@ -167,6 +167,7 @@ const PrimarySourceFetcher = lazy(() => import("./pages/admin/PrimarySourceFetch
 const CPPACorpusAdmin = lazy(() => import("./pages/admin/CPPACorpusAdmin"));
 const CPPAEvalHarness = lazy(() => import("./pages/admin/CPPAEvalHarness"));
 const AdminFsorIngestion = lazy(() => import("./pages/admin/AdminFsorIngestion"));
+const TestsGdprDocs = lazy(() => import("./pages/admin/TestsGdprDocs"));
 const queryClient = new QueryClient();
 
 function CategoryRedirect() {
@@ -760,6 +761,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <TestsOutput />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/tests-gdprdocs"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestsGdprDocs />
                   </AdminOnly>
                 </ProtectedRoute>
               }
