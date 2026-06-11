@@ -257,8 +257,9 @@ const LIAssessment = () => {
             onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
             className="bg-card border border-brand-cloud rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6"
           >
+            <RequiredLegend />
             <div>
-              <Label htmlFor="desc" className="text-sm font-semibold text-brand-navy">What processing are you considering? *</Label>
+              <Label htmlFor="desc" className="text-sm font-semibold text-brand-navy">What processing are you considering?<Req /> <DefPopover termKey="gdpr_legitimate_interests" /></Label>
               <Textarea
                 id="desc"
                 value={processingDescription}
@@ -270,12 +271,12 @@ const LIAssessment = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-semibold text-brand-navy">Data categories involved *</Label>
+              <Label className="text-sm font-semibold text-brand-navy">Data categories involved<Req /> <DefPopover termKey="gdpr_special_categories" /></Label>
               <div className="mt-2"><MultiPills options={DATA_CATEGORIES} value={dataCategories} onChange={setDataCategories} /></div>
             </div>
 
             <div>
-              <Label htmlFor="rel" className="text-sm font-semibold text-brand-navy">Your relationship with data subjects *</Label>
+              <Label htmlFor="rel" className="text-sm font-semibold text-brand-navy">Your relationship with data subjects<Req /> <DefPopover termKey="gdpr_personal_data" /></Label>
               <select id="rel" value={relationship} onChange={(e) => setRelationship(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm">
                 <option value="">Select…</option>
                 {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -283,7 +284,7 @@ const LIAssessment = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-semibold text-brand-navy">Jurisdictions where this processing applies *</Label>
+              <Label className="text-sm font-semibold text-brand-navy">Jurisdictions where this processing applies<Req /></Label>
               <div className="mt-2"><MultiPills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
             </div>
 
