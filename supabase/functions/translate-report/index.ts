@@ -250,13 +250,20 @@ Requirements:
     translated = { content: translated, translation_notice: TRANSLATION_NOTICE };
   }
 
-  // --- Cache insert (best effort) ---
+  // --- Cache insert (best effort). content_hash is NOT NULL; derive from payload. ---
+  const payloadJson = JSON.stringify(payload);
+  const hashBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payloadJson));
+  const contentHash = Array.from(new Uint8Array(hashBuf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
   const { error: insertErr } = await admin.from("report_translations").insert({
     user_id: user.id,
-    tool_type,
+    report_type: tool_type,
     report_id,
-    language_code,
-    translated_payload: translated,
+    target_lang: language_code,
+    source_lang: "en",
+    content_hash: contentHash,
+    translated_content: translated,
     model: ANTHROPIC_MODEL,
   });
   if (insertErr) {
