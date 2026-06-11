@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { slugify } from "@/lib/utils";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
+import { ResearchToolCTA } from "@/components/research/ResearchToolCTA";
 
 type Entry = {
   id: string;
