@@ -44,6 +44,7 @@ Deno.serve(async (req) => {
       biometric: u.searchParams.get("biometric") === "true" ? true : undefined,
       breach: u.searchParams.get("breach") === "true" ? true : undefined,
       limit: u.searchParams.get("limit") ? parseInt(u.searchParams.get("limit")!) : undefined,
+      articles: u.searchParams.get("articles")?.split(",").filter(Boolean),
     };
   }
 
