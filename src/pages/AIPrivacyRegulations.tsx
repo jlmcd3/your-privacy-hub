@@ -126,7 +126,7 @@ const AIPrivacyRegulations = () => (
 
 <li><strong><a href="/jurisdiction/canada">Canada:</a></strong> <a href="https://ised-isde.canada.ca/site/innovation-better-canada/en/artificial-intelligence-and-data-act" target="_blank" rel="noopener noreferrer">AIDA</a> (Bill C-27) proposed mandatory impact assessments for high-impact AI systems but died on prorogation in January 2025; federal AI legislation awaits reintroduction.</li>
 
-<li><strong><a href="/jurisdiction/china">China:</a></strong> The most active non-EU regulator. The <a href="/regulator/cac">CAC</a> has issued binding regulations on algorithmic recommendations (2022), deep synthesis (2023), and generative AI (2023) — with active enforcement. China's approach is sovereignty-driven and moves faster than Western equivalents.</li>
+<li><strong><a href="/jurisdiction/china">China:</a></strong> The most active non-EU regulator. The <a href="/regulator/cac">Cyberspace Administration of China (CAC)</a> has issued binding regulations on algorithmic recommendations (2022), deep synthesis (2023), and generative AI (2023) — with active enforcement. China's approach is sovereignty-driven and moves faster than Western equivalents.</li>
 
 <li><strong><a href="/jurisdiction/brazil">Brazil:</a></strong> AI regulation bill PL 2338/2023 includes algorithmic impact assessments. Still advancing through Congress.</li>
 
