@@ -5,6 +5,20 @@
 export const EU_SOURCE_URL =
   "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02016R0679-20160504";
 
+// The consolidated text above omits the preamble; recitals exist only in the
+// original act. Articles stay on the consolidated URL (incorporates corrigenda).
+export const EU_RECITALS_SOURCE_URL =
+  "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679";
+
+// EUR-Lex serves bot-style User-Agents a challenge page that parses to nothing.
+// All EUR-Lex fetches must use these browser-equivalent headers.
+export const SOURCE_FETCH_HEADERS: Record<string, string> = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "en-GB,en;q=0.9",
+};
+
 export const UK_INSERTED_IDS = ["4A", "44A", "45A", "45B", "45C", "47A", "49A"];
 
 export function ukArticleXmlUrl(id: string): string {
