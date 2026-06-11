@@ -219,10 +219,10 @@ function BlockList({ blocks }: { blocks: Block[] }) {
                     className="flex-shrink-0 text-sm font-semibold text-brand-navy tabular-nums leading-relaxed min-w-[1.5rem]"
                     aria-hidden
                   >
-                    {j + 1}.
+                    {it.num}.
                   </span>
                   <span className="text-foreground" style={REPORT_BODY_STYLE}>
-                    {renderInline(it, `ol-${idx}-${j}`)}
+                    {renderInline(it.text, `ol-${idx}-${j}`)}
                   </span>
                 </li>
               ))}
