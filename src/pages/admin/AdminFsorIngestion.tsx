@@ -151,6 +151,8 @@ export default function AdminFsorIngestion() {
   const [verifyResult, setVerifyResult] = useState<string>("");
   const [gdprBusy, setGdprBusy] = useState<string | null>(null);
   const [gdprResult, setGdprResult] = useState<string>("");
+  const [gdprDryRun, setGdprDryRun] = useState(true);
+
 
   async function runGdprIngest(fn: "ingest-gdpr-eu" | "ingest-gdpr-uk" | "ingest-edpb-guidelines", label: string) {
     if (!adminToken) { toast.error("Admin token required"); return; }
@@ -162,10 +164,11 @@ export default function AdminFsorIngestion() {
           "Content-Type": "application/json",
           "x-admin-token": adminToken,
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ dry_run: gdprDryRun }),
       });
       const data = await r.json();
-      const header = `${label} (HTTP ${r.status})`;
+      const header = `${label}${gdprDryRun ? " [DRY RUN]" : " [LIVE]"} (HTTP ${r.status})`;
+
       setGdprResult(`${header}\n${JSON.stringify(data, null, 2)}`);
       if (!r.ok || data.error) {
         toast.error(`${label} failed: ${data.error ?? r.status}`);
@@ -179,6 +182,34 @@ export default function AdminFsorIngestion() {
       setGdprBusy(null);
     }
   }
+
+  async function runGdprVerify() {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    setGdprBusy("verify-gdpr-ingestion");
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/verify-gdpr-ingestion`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": adminToken,
+        },
+        body: JSON.stringify({ jurisdiction: "both" }),
+      });
+      const data = await r.json();
+      setGdprResult(`Verify Articles (HTTP ${r.status})\n${JSON.stringify(data, null, 2)}`);
+      if (!r.ok || data.error) {
+        toast.error(`Verify failed: ${data.error ?? r.status}`);
+      } else {
+        toast.success("Verification complete");
+      }
+    } catch (e: any) {
+      toast.error(`Verify error: ${e?.message ?? e}`);
+      setGdprResult(`Verify threw: ${e?.message ?? e}`);
+    } finally {
+      setGdprBusy(null);
+    }
+  }
+
 
 
   const config = useMemo<PresetConfig | null>(() => {
@@ -585,6 +616,15 @@ export default function AdminFsorIngestion() {
           <p className="text-xs text-muted-foreground">
             Ingest GDPR articles, recitals, and EDPB guidelines into the corpus. Uses the admin token above.
           </p>
+          <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={gdprDryRun}
+              onChange={(e) => setGdprDryRun(e.target.checked)}
+              className="rounded border-border"
+            />
+            Dry run (parse and count only — no database writes)
+          </label>
           <div className="flex flex-wrap gap-2">
             <Button
               onClick={() => runGdprIngest("ingest-gdpr-eu", "Ingest EU GDPR")}
@@ -606,6 +646,13 @@ export default function AdminFsorIngestion() {
               variant="outline"
             >
               {gdprBusy === "ingest-edpb-guidelines" ? "Ingesting…" : "Ingest EDPB Guidelines"}
+            </Button>
+            <Button
+              onClick={runGdprVerify}
+              disabled={gdprBusy !== null}
+              variant="secondary"
+            >
+              {gdprBusy === "verify-gdpr-ingestion" ? "Verifying…" : "Verify Articles"}
             </Button>
           </div>
           {gdprResult && (
