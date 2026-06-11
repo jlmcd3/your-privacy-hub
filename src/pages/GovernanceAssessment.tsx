@@ -19,6 +19,7 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
+import SampleReportLink from "@/components/SampleReportLink";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
