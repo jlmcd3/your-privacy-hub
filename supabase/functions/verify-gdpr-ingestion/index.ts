@@ -4,6 +4,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   EU_SOURCE_URL,
+  SOURCE_FETCH_HEADERS,
   htmlToText,
   parseArticles,
   parseUkArticleXml,
