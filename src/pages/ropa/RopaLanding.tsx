@@ -6,6 +6,7 @@ import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
+import SampleReportLink from "@/components/SampleReportLink";
 import {
   Accordion,
   AccordionContent,
@@ -134,6 +135,7 @@ export default function RopaLanding() {
                 See sample document <ExternalLink className="ml-1.5 h-4 w-4" />
               </Link>
             </Button>
+            <SampleReportLink toolSlug="ropa" tone="onDark" />
           </div>
         </div>
       </header>

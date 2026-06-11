@@ -14,6 +14,7 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
+import SampleReportLink from "@/components/SampleReportLink";
 
 
 const DATA_CATEGORIES = [
@@ -175,6 +176,9 @@ const LIAssessment = () => {
             GDPR Article 6(1)(f) — then optionally continue to a full three-part test based on the precedents we've
             tracked. We cannot provide legal advice, but we can provide actionable Intelligence.
           </p>
+          <div className="mt-4">
+            <SampleReportLink toolSlug="li_assessment" tone="onDark" variant="link" />
+          </div>
         </div>
       </header>
 

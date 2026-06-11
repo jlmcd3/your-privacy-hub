@@ -8,6 +8,7 @@ import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { PageHero } from "@/components/PageHero";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
+import SampleReportLink from "@/components/SampleReportLink";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
@@ -79,6 +80,10 @@ export default function NoticeBuilderLanding() {
           >
             <Link to="/notices-ropa">My notice projects</Link>
           </Button>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+          <SampleReportLink toolSlug="us_notice" label="View a sample US notice" tone="onDark" variant="link" />
+          <SampleReportLink toolSlug="eu_notice" label="View a sample EU/Global notice" tone="onDark" variant="link" />
         </div>
       </PageHero>
 

@@ -6,6 +6,7 @@ import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import CopyButton from "@/components/CopyButton";
+import SampleReportLink from "@/components/SampleReportLink";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import AuthGateModal from "@/components/AuthGateModal";
@@ -105,6 +106,7 @@ export default function BiometricChecker() {
           <p className="text-slate-300 text-lg max-w-3xl">
             A per-jurisdiction read on your biometric data processing — surfacing obligations under Illinois BIPA, Texas CUBI, Washington MHMD, GDPR Article 9, and other regimes, with cited enforcement decisions behind every priority action.
           </p>
+          <div className="mt-4"><SampleReportLink toolSlug="biometric" tone="onDark" variant="link" /></div>
         </div>
       </header>
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
