@@ -1,6 +1,7 @@
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { getGdprContext } from "../_shared/gdpr-context.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -135,6 +136,7 @@ Deno.serve(async (req) => {
             jurisdictions: [body.controllerJurisdiction, body.processorJurisdiction],
             data_categories: (body.dataCategories || []).map((c) => c.toLowerCase()),
             document_type: documentType,
+            articles: ["gdpr:28", "gdpr:32", "gdpr:33"],
             limit: 8,
           }),
           signal: enforcementController.signal,
@@ -155,18 +157,41 @@ Deno.serve(async (req) => {
       console.error("get-enforcement-context fetch failed:", e);
     }
 
+    // Step 1b — GDPR authority context (deterministic articles + EDPB Art. 28 guidance)
+    const dpaJurisdiction: "eu" | "uk" =
+      [body.controllerJurisdiction, body.processorJurisdiction]
+        .some((j) => /united kingdom|uk|gb/i.test(String(j ?? "")))
+        ? "uk" : "eu";
+    let gdprBlock = "";
+    let gdprMeta: any = { attempted: false };
+    try {
+      const semanticQuery =
+        `Controller-processor DPA: ${body.controllerName} (${body.controllerJurisdiction}) engages ${body.processorName} (${body.processorJurisdiction}) for ${body.services}. Data: ${(body.dataCategories || []).join(", ")}.`;
+      const r = await getGdprContext(supabase, {
+        articles: ["28", "32", "33"],
+        jurisdiction: dpaJurisdiction,
+        guidelineArticles: ["28"],
+        semanticQuery,
+      });
+      gdprBlock = r.block;
+      gdprMeta = r.meta;
+    } catch (e) {
+      console.error("getGdprContext failed (non-fatal):", e);
+    }
+
     // Step 2 — format for injection
     const enforcementBlock =
       enforcement_context.length > 0
         ? enforcement_context
-            .map(
-              (e, i) =>
-                `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${fmtYear(e)}, ${
-                  e.industry_sector ?? e.sector ?? "—"
-                } sector\n   Fine: ${fmtFine(e)}\n   What went wrong: ${
-                  e.key_compliance_failure ?? e.violation ?? "—"
-                }\n   What should have been done: ${e.preventive_measures ?? "—"}`
-            )
+            .map((e, i) => {
+              const provs = Array.isArray((e as any).statutory_provisions) && (e as any).statutory_provisions.length
+                ? ` — citing ${(e as any).statutory_provisions.join(", ")}` : "";
+              return `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${fmtYear(e)}, ${
+                e.industry_sector ?? e.sector ?? "—"
+              } sector${provs}\n   Fine: ${fmtFine(e)}\n   What went wrong: ${
+                e.key_compliance_failure ?? e.violation ?? "—"
+              }\n   What should have been done: ${e.preventive_measures ?? "—"}`;
+            })
             .join("\n\n")
         : "No specific enforcement precedents retrieved for these parameters.";
 
@@ -442,6 +467,11 @@ ${ANNOTATIONS_INSTRUCTIONS}`;
 
 CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name, section number, subsection letter) must be verifiable against the actual statute. Known hallucination risks to guard against: (1) PIPEDA does not use decimal sub-principle numbering — cite as "Schedule 1, Principle N (Name)" only. (2) The Breach of Security Safeguards Regulations under PIPEDA are SOR/2018-64 — no other SOR number is correct. (3) US state privacy laws do not have a universal 72-hour breach notification deadline — that is a GDPR Article 33 concept only. Apply it only where GDPR explicitly applies. (4) Quebec Law 25 uses "without delay" not "72 hours" — present 72 hours as a planning benchmark only. (5) The California breach notification standard is "most expedient time possible" under Cal. Civ. Code §1798.82 — not 30 days or 72 hours. (6) The EU Artificial Intelligence Act must always be cited as "Regulation (EU) 2024/1689" — never 2024/900 or any other number. (7) MONETARY PENALTY RULE: Never state a specific monetary fine, penalty, or settlement amount unless that exact figure appears in the ENFORCEMENT CONTEXT block provided in this prompt. Training knowledge of regulatory fines is unreliable. If a relevant case exists but its amount is not in the provided block, write "[Regulator] imposed a significant penalty for this type of violation — verify the current figure at the regulator's enforcement register" instead of recalling an amount. Known correct figures (use only if the case is in your enforcement block): ICO Clearview AI (2022) £7,552,800; ICO Interserve (2022) £4,400,000 (NOT £5.03M); ICO Capita Pension Solutions (2024) £6,090,000 (NOT £6.88M); ICO British Airways (2020) £20,000,000. If you are uncertain of a specific section number, write the section in descriptive terms and flag it: "[statutory reference to be confirmed with counsel]" rather than inventing a section number.`;
     systemPrompt = systemPrompt + CITATION_INTEGRITY_RULE;
+    if (gdprBlock) {
+      systemPrompt = systemPrompt +
+        `\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` +
+        `\n\nART. 28(3) FIDELITY: Every Article 28(3) sub-clause provision you draft (instructions, confidentiality, security, sub-processors, assistance with rights, assistance with security/breach/DPIA, deletion/return, audit/information) MUST track the statutory language provided in the AUTHORITY block above. Do not paraphrase away an Art. 28(3) obligation; mirror the verb and the scope of the source text.`;
+    }
 
 
     const aiController = new AbortController();
@@ -517,6 +547,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     const report_data = {
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
+      gdpr_meta: gdprMeta,
       annotations: parsedAnnotations,
       generated_at: new Date().toISOString(),
     };

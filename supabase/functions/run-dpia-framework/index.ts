@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { getGdprContext } from "../_shared/gdpr-context.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -80,19 +81,47 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
     const safeguards = (intake.existing_safeguards || []).join(", ") || "None identified";
     const jurisdictions = (intake.jurisdictions || []).join(", ") || "Not specified";
 
-    // Fetch enforcement precedents (3-5) for this DPIA scope
+    // Determine GDPR jurisdiction from verified jurisdictions (srcIntake preferred).
+    let srcIntakeJurisdictions: string[] | null = null;
+    if (dpia.source_assessment_id) {
+      try {
+        const { data: sa } = await supabase
+          .from("governance_assessments")
+          .select("intake_data")
+          .eq("id", dpia.source_assessment_id).maybeSingle();
+        const sj = (sa?.intake_data as any)?.jurisdictions;
+        if (Array.isArray(sj)) srcIntakeJurisdictions = sj;
+      } catch { /* non-fatal */ }
+    }
+    const effectiveJurisdictions: string[] = srcIntakeJurisdictions ?? (intake.jurisdictions || []);
+    const gdprJurisdiction: "eu" | "uk" = effectiveJurisdictions.some((j: string) => /united kingdom|uk|gb/i.test(String(j))) ? "uk" : "eu";
+
+    // Fetch enforcement precedents (3-5) and GDPR authority context in parallel
     let enforcementPrecedents: any[] = [];
     let enforcementMeta: any = { attempted: false };
+    let gdprBlock = "";
+    let gdprMeta: any = { attempted: false };
     try {
-      const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
-        body: {
-          tool: "DPIA",
-          data_categories: intake.data_categories || [],
-          jurisdictions: intake.jurisdictions || [],
-          sector: intake.sector || undefined,
-          limit: 5,
-        },
-      });
+      const [ecRes, gdprRes] = await Promise.all([
+        supabase.functions.invoke("get-enforcement-context", {
+          body: {
+            tool: "DPIA",
+            data_categories: intake.data_categories || [],
+            jurisdictions: intake.jurisdictions || [],
+            sector: intake.sector || undefined,
+            articles: ["gdpr:35", "gdpr:36"],
+            limit: 5,
+          },
+        }),
+        getGdprContext(supabase, {
+          articles: ["35", "36"],
+          jurisdiction: gdprJurisdiction,
+          recitals: [75, 84, 90],
+          guidelineArticles: ["35"],
+          semanticQuery: processingDesc,
+        }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; }),
+      ]);
+      const ctxData = (ecRes as any)?.data;
       enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
       const descParts: string[] = [];
       if (intake.sector) descParts.push(`${intake.sector} sector`);
@@ -102,15 +131,24 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
         total_matched: typeof ctxData?.total_matched === "number" ? ctxData.total_matched : null,
         query_descriptor: descParts.join(" — ") || undefined,
       };
+      gdprBlock = (gdprRes as any)?.block || "";
+      gdprMeta = (gdprRes as any)?.meta || { attempted: false };
     } catch (e) {
-      console.error("get-enforcement-context failed (non-fatal):", e);
+      console.error("DPIA context fetch failed (non-fatal):", e);
     }
 
     const enforcementContextStr = enforcementPrecedents.length > 0
-      ? enforcementPrecedents.map((r: any, i: number) =>
-          `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"} — Preventive: ${r.preventive_measures || "n/a"}`
-        ).join("\n")
+      ? enforcementPrecedents.map((r: any, i: number) => {
+          const provs = Array.isArray(r.statutory_provisions) && r.statutory_provisions.length
+            ? ` — citing ${r.statutory_provisions.join(", ")}` : "";
+          return `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"} — Preventive: ${r.preventive_measures || "n/a"}${provs}`;
+        }).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
+
+    // Append GDPR authority context to the system prompt for both halves.
+    const systemWithGdpr = gdprBlock
+      ? `${system}\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}`
+      : system;
 
     // ── Split DPIA generation into two parallel calls to stay within timeout ──
     const sharedContext = `PROCESSING ACTIVITY DETAILS:
@@ -130,7 +168,7 @@ ${enforcementContextStr}
 ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a risk identification, severity rating, or mitigation measure in section_3_risks, include it in the section_3_risks.annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.`;
 
     const [textA, textB] = await Promise.all([
-      callAnthropic("claude-sonnet-4-6", system,
+      callAnthropic("claude-sonnet-4-6", systemWithGdpr,
         `${sharedContext}
 
 Generate the first half of a DPIA framework document. Return ONLY this JSON structure, no preamble:
@@ -190,7 +228,7 @@ Generate the first half of a DPIA framework document. Return ONLY this JSON stru
 }`,
         6000
       ),
-      callAnthropic("claude-sonnet-4-6", system,
+      callAnthropic("claude-sonnet-4-6", systemWithGdpr,
         `${sharedContext}
 
 Generate the second half of a DPIA framework document. Return ONLY this JSON structure, no preamble:
@@ -255,6 +293,7 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
     reportData.dpia_id = dpia_id;
     reportData.enforcement_precedents = enforcementPrecedents;
     reportData.enforcement_meta = enforcementMeta;
+    reportData.gdpr_meta = gdprMeta;
     try {
       reportData.annotations = Array.isArray(reportData?.section_3_risks?.annotations)
         ? reportData.section_3_risks.annotations

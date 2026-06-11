@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { getGdprContext } from "../_shared/gdpr-context.ts";
 
 // Robustly parse a JSON object from an LLM response that may include
 // code fences, prose preamble, or unescaped quotes/newlines inside strings.
@@ -99,8 +100,13 @@ Deno.serve(async (req) => {
     // ── STAGE 1: Classify use case ──
     const classifySystem = `You are a privacy regulatory analyst. Classify processing activities for legitimate interest analysis. Return ONLY valid JSON, no preamble.`;
 
-    // Run classification and enforcement context fetch in parallel
-    const [classifyText, enforcementCtxResult] = await Promise.all([
+    // Determine jurisdiction for GDPR authority retrieval (UK if any verified
+    // assessment.jurisdictions value matches /united kingdom|uk|gb/i, else EU).
+    const liaJurisdictions: string[] = Array.isArray(assessment.jurisdictions) ? assessment.jurisdictions : [];
+    const gdprJurisdiction: "eu" | "uk" = liaJurisdictions.some((j: string) => /united kingdom|uk|gb/i.test(String(j))) ? "uk" : "eu";
+
+    // Run classification, enforcement context fetch, and GDPR authority retrieval in parallel
+    const [classifyText, enforcementCtxResult, gdprCtxResult] = await Promise.all([
       callAnthropic(
         "claude-haiku-4-5-20251001",
         classifySystem,
@@ -111,11 +117,19 @@ Deno.serve(async (req) => {
         body: {
           tool: "LIA",
           data_categories: assessment.data_categories || [],
-          jurisdictions: assessment.jurisdictions || [],
+          jurisdictions: liaJurisdictions,
           sector: assessment.sector || undefined,
+          articles: ["gdpr:6"],
           limit: 5,
         },
-      }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; })
+      }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; }),
+      getGdprContext(supabase, {
+        articles: ["6"],
+        jurisdiction: gdprJurisdiction,
+        recitals: [47],
+        guidelineArticles: ["6"],
+        semanticQuery: assessment.processing_description || "",
+      }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; })
     ]);
 
     let classification: any = {};
@@ -142,10 +156,16 @@ Deno.serve(async (req) => {
     } catch { /* non-fatal */ }
 
     const enforcementContextStr = enforcementPrecedents.length > 0
-      ? enforcementPrecedents.map((r: any, i: number) =>
-          `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}`
-        ).join("\n")
+      ? enforcementPrecedents.map((r: any, i: number) => {
+          const provs = Array.isArray(r.statutory_provisions) && r.statutory_provisions.length
+            ? ` — citing ${r.statutory_provisions.join(", ")}` : "";
+          return `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}${provs}`;
+        }).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
+
+    // Unpack GDPR authority context from the parallel call
+    const gdprBlock: string = (gdprCtxResult as any)?.block || "";
+    const gdprMeta: any = (gdprCtxResult as any)?.meta || { attempted: false };
 
     // Fetch precedents from li_tracker_entries
     const { data: allPrecedents } = await supabase
@@ -194,7 +214,8 @@ MANDATORY FIELD RULES — violations will cause downstream system failures:
 
 2. The "closest_accepted_precedent" field MUST be a non-empty string. If no close match exists in the database, write "None identified in current database" — never return null.
 
-3. The "closest_rejected_precedent" field MUST be a non-empty string. If none, write "None identified in current database".`;
+3. The "closest_rejected_precedent" field MUST be a non-empty string. If none, write "None identified in current database".`
+      + (gdprBlock ? `\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "");
 
     const analysisText = await callAnthropic(
       "claude-sonnet-4-6",
@@ -394,6 +415,7 @@ Return JSON:
       precedent_database_size: (allPrecedents || []).length,
       enforcement_precedents: enforcementPrecedents,
       enforcement_meta: enforcementMeta,
+      gdpr_meta: gdprMeta,
       enforcement_precedents_note: enforcementPrecedents.length === 0
         ? "No enforcement decisions matching this jurisdiction and processing theory were retrieved from the precedent database. The analysis above may reference relevant decisions that are not yet indexed against this scenario — verify any cited cases directly."
         : null,
