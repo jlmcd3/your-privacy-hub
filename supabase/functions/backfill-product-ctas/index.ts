@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     for (const r of rows as Array<{ id: string; title: string | null; ai_summary: any; product_ctas: any }>) {
       scanned++;
       const ai = r.ai_summary ?? {};
-      const text = [r.title, ai?.why_it_matters, ai?.summary, ai?.compliance_impact]
+      const text = [r.title, ai?.why_it_matters, ai?.why_it_matters_short, ai?.compliance_impact]
         .filter(Boolean)
         .join(" ");
       const ctas = matchProductCtas(text);
