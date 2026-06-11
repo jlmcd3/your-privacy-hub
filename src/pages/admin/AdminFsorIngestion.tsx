@@ -164,10 +164,11 @@ export default function AdminFsorIngestion() {
           "Content-Type": "application/json",
           "x-admin-token": adminToken,
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ dry_run: gdprDryRun }),
       });
       const data = await r.json();
-      const header = `${label} (HTTP ${r.status})`;
+      const header = `${label}${gdprDryRun ? " [DRY RUN]" : " [LIVE]"} (HTTP ${r.status})`;
+
       setGdprResult(`${header}\n${JSON.stringify(data, null, 2)}`);
       if (!r.ok || data.error) {
         toast.error(`${label} failed: ${data.error ?? r.status}`);
