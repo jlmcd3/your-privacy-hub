@@ -21,6 +21,7 @@ interface Query {
   biometric?: boolean;
   breach?: boolean;
   limit?: number;
+  articles?: string[];       // canonical provision keys e.g. ["gdpr:6"] — primary-query-only filter
 }
 
 async function sha256(s: string): Promise<string> {
@@ -43,6 +44,7 @@ Deno.serve(async (req) => {
       biometric: u.searchParams.get("biometric") === "true" ? true : undefined,
       breach: u.searchParams.get("breach") === "true" ? true : undefined,
       limit: u.searchParams.get("limit") ? parseInt(u.searchParams.get("limit")!) : undefined,
+      articles: u.searchParams.get("articles")?.split(",").filter(Boolean),
     };
   }
 
@@ -63,7 +65,7 @@ Deno.serve(async (req) => {
 
   let query = supabase
     .from("enforcement_actions")
-    .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related")
+    .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related, statutory_provisions, provisions_normalized")
     .gte("enrichment_version", 1)
     .not("source_database", "is", null)
     .order("precedent_significance", { ascending: false, nullsFirst: false })
@@ -72,6 +74,7 @@ Deno.serve(async (req) => {
 
   // tool_relevance is now a soft preference (scoring boost only), not a hard filter
   if (q.data_categories?.length) query = query.overlaps("data_categories", q.data_categories);
+  if (q.articles?.length) query = query.overlaps("provisions_normalized", q.articles);
   if (q.jurisdictions?.length) {
     const jurisdictionAliases: Record<string, string[]> = {
       "United Kingdom": ["United Kingdom", "UK", "GB", "England", "Great Britain"],
@@ -109,7 +112,7 @@ Deno.serve(async (req) => {
   if (finalRows.length === 0 && q.jurisdictions?.length) {
     let fallbackQuery = supabase
       .from("enforcement_actions")
-      .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related")
+      .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related, statutory_provisions, provisions_normalized")
       .gte("enrichment_version", 1)
       .not("source_database", "is", null)
       .order("precedent_significance", { ascending: false, nullsFirst: false })
@@ -131,6 +134,10 @@ Deno.serve(async (req) => {
     if (q.data_categories?.length && r.data_categories) {
       const overlap = r.data_categories.filter((c: string) => q.data_categories!.includes(c)).length;
       score += overlap * 3;
+    }
+    if (q.articles?.length && r.provisions_normalized?.length) {
+      const provOverlap = r.provisions_normalized.some((p: string) => q.articles!.includes(p));
+      if (provOverlap) score += 3;
     }
     if (q.tool && r.tool_relevance?.includes(q.tool)) score += 4;
     if (q.sector && r.industry_sector === q.sector) score += 2;
