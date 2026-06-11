@@ -490,7 +490,7 @@ export default function Tools() {
             Intelligence, assessments, and compliance documents
           </h1>
           <p className="text-slate-300 text-lg max-w-3xl">
-            Every tool draws from a live database of 3,700+ enforcement decisions before producing a single word of output. Available individually at standalone prices.
+            Every tool draws from a live database of 3,700+ enforcement decisions before producing a single word of output. Available individually at standalone prices. Every report can be translated into more than 20 languages from the report page.
           </p>
           <div className="flex gap-3 mt-6 flex-wrap">
             <Link to="/subscribe" className="text-sm font-semibold text-slate-900 bg-white px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline">
