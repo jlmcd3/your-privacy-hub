@@ -327,7 +327,7 @@ function renderInlineHtml(text: string): string {
 type TextBlock =
   | { type: "subhead"; text: string; trailing?: string }
   | { type: "para"; text: string }
-  | { type: "ol"; items: string[] }
+  | { type: "ol"; items: { num: string; text: string }[] }
   | { type: "ul"; items: string[] };
 
 function parseTextBlocks(body: string): TextBlock[] {
