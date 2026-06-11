@@ -149,6 +149,37 @@ export default function AdminFsorIngestion() {
   const [extractResult, setExtractResult] = useState<ExtractResp | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const [verifyResult, setVerifyResult] = useState<string>("");
+  const [gdprBusy, setGdprBusy] = useState<string | null>(null);
+  const [gdprResult, setGdprResult] = useState<string>("");
+
+  async function runGdprIngest(fn: "ingest-gdpr-eu" | "ingest-gdpr-uk" | "ingest-edpb-guidelines", label: string) {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    setGdprBusy(fn);
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/${fn}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": adminToken,
+        },
+        body: JSON.stringify({}),
+      });
+      const data = await r.json();
+      const header = `${label} (HTTP ${r.status})`;
+      setGdprResult(`${header}\n${JSON.stringify(data, null, 2)}`);
+      if (!r.ok || data.error) {
+        toast.error(`${label} failed: ${data.error ?? r.status}`);
+      } else {
+        toast.success(`${label} done`);
+      }
+    } catch (e: any) {
+      toast.error(`${label} error: ${e?.message ?? e}`);
+      setGdprResult(`${label} threw: ${e?.message ?? e}`);
+    } finally {
+      setGdprBusy(null);
+    }
+  }
+
 
   const config = useMemo<PresetConfig | null>(() => {
     try { return JSON.parse(configJson); } catch { return null; }
@@ -548,6 +579,39 @@ export default function AdminFsorIngestion() {
             <pre className="text-xs bg-muted p-2 whitespace-pre-wrap">{verifyResult}</pre>
           </section>
         )}
+
+        <section className="bg-white p-4 rounded border space-y-3">
+          <h2 className="font-semibold">GDPR Corpus</h2>
+          <p className="text-xs text-muted-foreground">
+            Ingest GDPR articles, recitals, and EDPB guidelines into the corpus. Uses the admin token above.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => runGdprIngest("ingest-gdpr-eu", "Ingest EU GDPR")}
+              disabled={gdprBusy !== null}
+              variant="outline"
+            >
+              {gdprBusy === "ingest-gdpr-eu" ? "Ingesting…" : "Ingest EU GDPR"}
+            </Button>
+            <Button
+              onClick={() => runGdprIngest("ingest-gdpr-uk", "Ingest UK GDPR")}
+              disabled={gdprBusy !== null}
+              variant="outline"
+            >
+              {gdprBusy === "ingest-gdpr-uk" ? "Ingesting…" : "Ingest UK GDPR"}
+            </Button>
+            <Button
+              onClick={() => runGdprIngest("ingest-edpb-guidelines", "Ingest EDPB Guidelines")}
+              disabled={gdprBusy !== null}
+              variant="outline"
+            >
+              {gdprBusy === "ingest-edpb-guidelines" ? "Ingesting…" : "Ingest EDPB Guidelines"}
+            </Button>
+          </div>
+          {gdprResult && (
+            <pre className="text-xs bg-muted p-2 whitespace-pre-wrap overflow-auto max-h-96">{gdprResult}</pre>
+          )}
+        </section>
       </main>
       <Footer />
     </div>

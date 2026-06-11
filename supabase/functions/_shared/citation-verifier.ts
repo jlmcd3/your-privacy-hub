@@ -49,12 +49,23 @@ export interface RetrievalPayload {
   enforcementIds: string[];
   /** FSOR indices present in the model's context, e.g. ["1","12"] for [F1] [F12]. */
   fsorIds: string[];
+  /**
+   * GDPR/EDPB reference strings actually retrieved, e.g. "Art. 6 EU", "Recital 47",
+   * "EDPB Guidelines 1/2024". When undefined, bracketed GDPR-style citations are
+   * NOT verified (backwards compatible). When provided, bracketed citations
+   * matching /\[(Art\.|Recital|EDPB)[^\]]*\]/ are checked against this list using
+   * the same normalisation approach as authority cites.
+   */
+  gdprCites?: string[];
 }
 
 const FLAG = " [citation removed — verify with counsel]";
 
 // Bracketed markers like [A1], [E3], [F12]
 const BRACKET_RE = /\[([AEF])(\d+)\]/g;
+
+// Bracketed GDPR/EDPB markers like [Art. 6 EU], [Recital 47], [EDPB Guidelines 1/2024]
+const GDPR_BRACKET_RE = /\[(?:Art\.|Recital|EDPB)[^\]]*\]/g;
 
 // Statutory-citation patterns we care about.
 const STAT_PATTERNS: RegExp[] = [
@@ -105,6 +116,11 @@ export function verifyCitations(
   const allowedAuthorities = new Set((payload.authorityCites ?? []).map(normCite));
   const allowedE = new Set((payload.enforcementIds ?? []).map(String));
   const allowedF = new Set((payload.fsorIds ?? []).map(String));
+  // When gdprCites is undefined, GDPR-pattern citations pass through untouched
+  // (backwards compatible). When defined (even as an empty array), bracketed
+  // GDPR-style citations are verified against this set.
+  const gdprProvided = payload.gdprCites !== undefined;
+  const allowedGdpr = new Set((payload.gdprCites ?? []).map(normCite));
 
   const sentences = splitSentences(text);
   const rebuilt: string[] = [];
@@ -143,6 +159,20 @@ export function verifyCitations(
         return "";
       });
     }
+
+    // --- Bracketed GDPR/EDPB citations (only when gdprCites was provided) ---
+    if (gdprProvided) {
+      sentence = sentence.replace(GDPR_BRACKET_RE, (match) => {
+        const inner = match.slice(1, -1);
+        if (allowedGdpr.has(normCite(inner)) || allowedGdpr.has(normCite(match))) {
+          return match;
+        }
+        removed.push({ citation: match, kind: "authority", sentence: original });
+        flagged = true;
+        return "";
+      });
+    }
+
 
     if (flagged) {
       // Clean up leftover " ," or doubled spaces from the stripped tokens,
