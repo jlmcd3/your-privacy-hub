@@ -251,7 +251,7 @@ export default function RegistrationAssessment() {
 
                     <div className="grid sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="emp">Employees handling personal data</Label>
+                        <Label htmlFor="emp">Employees handling personal data <DefPopover termKey="gdpr_dpo" /></Label>
                         <Input id="emp" type="number" min={0} placeholder="e.g. 25"
                           value={intake.employee_count}
                           onChange={(e) => setIntake({ ...intake, employee_count: e.target.value })} />
