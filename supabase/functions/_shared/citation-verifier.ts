@@ -116,6 +116,11 @@ export function verifyCitations(
   const allowedAuthorities = new Set((payload.authorityCites ?? []).map(normCite));
   const allowedE = new Set((payload.enforcementIds ?? []).map(String));
   const allowedF = new Set((payload.fsorIds ?? []).map(String));
+  // When gdprCites is undefined, GDPR-pattern citations pass through untouched
+  // (backwards compatible). When defined (even as an empty array), bracketed
+  // GDPR-style citations are verified against this set.
+  const gdprProvided = payload.gdprCites !== undefined;
+  const allowedGdpr = new Set((payload.gdprCites ?? []).map(normCite));
 
   const sentences = splitSentences(text);
   const rebuilt: string[] = [];
