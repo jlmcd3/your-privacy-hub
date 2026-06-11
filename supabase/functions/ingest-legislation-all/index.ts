@@ -9,6 +9,7 @@ const corsHeaders = {
 
 const SOURCES = [
   "ingest-legislation-us",
+  "ingest-legislation-us-states",
   "ingest-legislation-uk",
   "ingest-legislation-eu",
   "ingest-legislation-ca",
