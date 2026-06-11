@@ -413,7 +413,7 @@ const TOOLS: ToolDef[] = [
       "The CPPA's risk assessment regulations require businesses processing personal information that presents a significant risk to consumers' privacy or security to conduct and document a structured risk assessment. The substance of that assessment — not the cover sheet — is what determines whether it satisfies the regulation.",
       "The CPPA Risk Assessment walks through the categories the CPPA specifies: the purpose of processing, the categories of personal information involved, the operational elements of the processing, the benefits, the negative impacts to consumers, and the safeguards that mitigate those impacts. Outputs are produced in the structure the CPPA expects to see in its initial reviews.",
       "Every domain finding cites the underlying authority — the statute (Cal. Civ. Code § 1798.x), the implementing regulation (Cal. Code Regs. tit. 11 § 7150 et seq.), the CPPA's own reasoning in the Final Statement of Reasons, and any on-point AG or CPPA enforcement action. The result is a current obligation snapshot you can defend in regulatory review, with the source text attached to each conclusion. After completion, a Control-Drift Monitor schedules an annual re-run nudge so the assessment doesn't go stale.",
-      "Standalone per-use price: $89. The output is structured for review by California privacy counsel before being relied upon.",
+      `Standalone per-use price: ${PRICING.tools.cppa_risk.display}. The output is structured for review by California privacy counsel before being relied upon.`,
       "Your assessments are your Subscriber Confidential Information and, as such, are protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -433,7 +433,7 @@ const TOOLS: ToolDef[] = [
     body: [
       "The CPPA's cybersecurity audit regulations require qualifying businesses to conduct annual cybersecurity audits covering specified components — access controls, multi-factor authentication, encryption, vulnerability management, incident response, and more. The audit must be thorough, independent, and documented.",
       "The CPPA Cybersecurity Audit Tool produces a structured assessment across each of the 18 components enumerated at Cal. Code Regs. tit. 11 § 7122(a), and tests independence and scope-memo requirements at § 7122(b) and § 7123. Each control finding is anchored to the regulatory text, the CPPA's reasoning in the Final Statement of Reasons, and a dynamic Breach Precedent Map that surfaces the most relevant recent CPPA and California AG enforcement actions for any gap or critical gap. An Auditor Independence Advisor, Audit Scope Memo Generator, and combined Auditor Handoff Package are included.",
-      "Standalone per-use price: $99. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.",
+      `Standalone per-use price: ${PRICING.tools.cppa_cyber.display}. The April 1, 2028 certification deadline applies to businesses with annual revenue exceeding $100M. The output is intended to be reviewed by your security and legal teams.`,
       "The output of this tool is your Subscriber Confidential Information and, as such, is protected as described in our Privacy Policy.",
     ],
     sampleSections: [
@@ -447,9 +447,9 @@ const PRICING_GRID: [string, string][] = [
   ["Privacy Programme Assessment", `${PRICING.tools.governance.display} (Smart)`],
   ["Legitimate Interest Assessment", `${PRICING.tools.lia.display} (Smart)`],
   ["Impact Assessment (DPIA)", `${PRICING.tools.dpia.display} (Smart)`],
-  ["DPA Generator", "Included with subscription · $49 standalone"],
-  ["Incident Response Playbook", "Included with subscription · $59 standalone"],
-  ["Biometric Privacy Check", "Included with subscription · $49 standalone"],
+  ["DPA Generator", `Included with subscription · ${PRICING.tools.dpa.display} standalone`],
+  ["Incident Response Playbook", `Included with subscription · ${PRICING.tools.ir_playbook.display} standalone`],
+  ["Biometric Privacy Check", `Included with subscription · ${PRICING.tools.biometric.display} standalone`],
   ["RoPA Builder", "Included with subscription"],
   ["U.S. Privacy Notice Builder", "Included with subscription"],
   ["EU/UK Privacy Notice Builder", "Included with subscription"],
