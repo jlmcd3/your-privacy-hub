@@ -329,10 +329,12 @@ Return JSON:
         risk: stripMd(r?.risk),
         why_urgent: stripMd(r?.why_urgent),
       })),
-      immediate_actions: (synthesis.immediate_actions || []).map((a: any) => ({
-        ...a,
-        action: stripMd(a?.action),
-      })),
+      immediate_actions: (synthesis.immediate_actions || [])
+        .filter((a: any) => !failedDomainNames.has(String(a?.domain || "").toLowerCase()))
+        .map((a: any) => ({
+          ...a,
+          action: stripMd(a?.action),
+        })),
       overall_readiness_rating: synthesis.overall_readiness_rating || "Initial",
       readiness_rationale: stripMd(synthesis.readiness_rationale || ""),
       interaction_effects: stripMd(synthesis.interaction_effects || ""),
@@ -340,6 +342,11 @@ Return JSON:
       enforcement_precedents: enforcementPrecedents,
       enforcement_meta: enforcementMeta,
       annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
+      lint_warnings: failedDomains.map((d) => ({
+        code: "domain_assessment_failed",
+        severity: "hard",
+        detail: d.domain_name,
+      })),
       disclaimer: "This report is a compliance framework tool produced to assist organisations in identifying governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
 
