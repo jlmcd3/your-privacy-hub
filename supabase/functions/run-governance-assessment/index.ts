@@ -379,11 +379,14 @@ Return JSON:
       enforcement_precedents: enforcementPrecedents,
       enforcement_meta: enforcementMeta,
       annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
-      lint_warnings: failedDomains.map((d) => ({
-        code: "domain_assessment_failed",
-        severity: "hard",
-        detail: d.domain_name,
-      })),
+      lint_warnings: [
+        ...failedDomains.map((d) => ({
+          code: "domain_assessment_failed",
+          severity: "hard",
+          detail: d.domain_name,
+        })),
+        ...lintViolations,
+      ],
       disclaimer: "This report is a compliance framework tool produced to assist organisations in identifying governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
 
