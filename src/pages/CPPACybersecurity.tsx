@@ -14,6 +14,7 @@ import AuthGateModal from "@/components/AuthGateModal";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
+import SampleReportLink from "@/components/SampleReportLink";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
