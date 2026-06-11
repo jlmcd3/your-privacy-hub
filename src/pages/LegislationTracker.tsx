@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { ResearchPageHeader } from "@/components/research/ResearchPageHeader";
+import { ResearchToolCTA } from "@/components/research/ResearchToolCTA";
 import { ResearchSynthesisBlock } from "@/components/research/ResearchSynthesisBlock";
 
 type Stage = "enacted" | "passed" | "committee" | "introduced" | "proposed" | "withdrawn";
