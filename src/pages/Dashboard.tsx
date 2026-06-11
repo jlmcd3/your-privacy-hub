@@ -36,6 +36,7 @@ import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { useClientStore } from "@/stores/clientStore";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { toast } from "@/hooks/use-toast";
+import ProductCtaChip from "@/components/ProductCtaChip";
 
 
 interface EnforcementRow {
