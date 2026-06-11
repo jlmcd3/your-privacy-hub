@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { matchProductCtas } from "../_shared/product-triggers.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -1766,6 +1767,15 @@ Deno.serve(async (req) => {
             }
           }
         }
+
+        // Compute deterministic product CTA matches from title + AI enrichment.
+        const aiForCta: any = (row as any).ai_summary ?? {};
+        const productCtas = matchProductCtas(
+          [row.title, aiForCta?.why_it_matters, aiForCta?.why_it_matters_short, aiForCta?.compliance_impact]
+            .filter(Boolean)
+            .join(" "),
+        );
+        (row as any).product_ctas = productCtas;
 
         // Use .select() so PostgREST returns the inserted row(s). With
         // ignoreDuplicates, a URL conflict returns an empty array (no error),

@@ -5040,6 +5040,7 @@ export type Database = {
           li_processed: boolean | null
           li_relevant: boolean | null
           precedent_novelty: string | null
+          product_ctas: Json
           published_at: string
           regulator: string | null
           regulatory_theory: string | null
@@ -5082,6 +5083,7 @@ export type Database = {
           li_processed?: boolean | null
           li_relevant?: boolean | null
           precedent_novelty?: string | null
+          product_ctas?: Json
           published_at?: string
           regulator?: string | null
           regulatory_theory?: string | null
@@ -5124,6 +5126,7 @@ export type Database = {
           li_processed?: boolean | null
           li_relevant?: boolean | null
           precedent_novelty?: string | null
+          product_ctas?: Json
           published_at?: string
           regulator?: string | null
           regulatory_theory?: string | null
