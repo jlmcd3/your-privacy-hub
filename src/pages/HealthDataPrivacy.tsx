@@ -166,7 +166,7 @@ export default function HealthDataPrivacyPage() {
         }}
         pageSynthesisKey="health__page"
         topToolCta={{
-          toolName: "Privacy Program Assessment",
+          toolName: "Privacy Programme Assessment",
           toolDescription:
             "Structured assessment covering HIPAA, the FTC Health Breach Rule, and state health data laws — formatted for leadership or counsel review.",
           href: "/governance-assessment",
