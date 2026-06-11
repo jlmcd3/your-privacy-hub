@@ -15,6 +15,8 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
 
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
@@ -141,7 +143,7 @@ const DPIAFramework = () => {
       <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">📋 Data Protection Impact Assessment · ${pricing.price}</span>
-          <h1 className="font-serif mb-3">Impact Assessment Builder</h1>
+          <h1 className="font-serif mb-3">Impact Assessment Builder <DefPopover termKey="gdpr_dpia" /></h1>
           <p className="text-slate-300 text-lg">A structured Data Protection Impact Assessment (DPIA) framework for a specific processing activity, built against GDPR Article 35 requirements.</p>
         </div>
       </header>
@@ -162,32 +164,33 @@ const DPIAFramework = () => {
         )}
 
         <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="bg-card border rounded-lg p-6 space-y-6">
+          <RequiredLegend />
           <div>
-            <Label>Name this processing activity *</Label>
+            <Label>Name this processing activity<Req /></Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Employee location monitoring via mobile app" className="mt-2" />
           </div>
           <div>
-            <Label>Describe the processing activity in detail *</Label>
+            <Label>Describe the processing activity in detail<Req /></Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe: what data is collected, how it is used, who has access, where it is stored." className="mt-2 min-h-32" />
             <p className="text-xs text-muted-foreground mt-1">Min 100 characters.</p>
           </div>
           <div>
-            <Label>What is the purpose of this processing? *</Label>
+            <Label>What is the purpose of this processing?<Req /></Label>
             <Textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">Be specific. Vague purposes weaken both the legal basis and the DPIA.</p>
           </div>
-          <div><Label>Data categories *</Label><div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div></div>
-          <div><Label>Who are the data subjects? *</Label><Input value={dataSubjects} onChange={(e) => setDataSubjects(e.target.value)} placeholder="e.g. Employees in the UK and Ireland aged 18+" className="mt-2" /></div>
-          <div><Label>Volume and frequency *</Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="e.g. 250 employees, continuous monitoring during working hours" className="mt-2" /></div>
+          <div><Label>Data categories<Req /> <DefPopover termKey="gdpr_special_categories" /></Label><div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div></div>
+          <div><Label>Who are the data subjects?<Req /> <DefPopover termKey="gdpr_personal_data" /></Label><Input value={dataSubjects} onChange={(e) => setDataSubjects(e.target.value)} placeholder="e.g. Employees in the UK and Ireland aged 18+" className="mt-2" /></div>
+          <div><Label>Volume and frequency<Req /></Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="e.g. 250 employees, continuous monitoring during working hours" className="mt-2" /></div>
           <div>
             <Label>Third-party processors</Label>
             <div className="mt-2"><Pills options={TOOLS} value={processors} onChange={setProcessors} /></div>
             <Input placeholder="Other (specify)" value={otherProcessor} onChange={(e) => setOtherProcessor(e.target.value)} className="mt-2" />
           </div>
           <div><Label>Existing safeguards</Label><div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div></div>
-          <div><Label>Jurisdictions *</Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
+          <div><Label>Jurisdictions<Req /> <DefPopover termKey="gdpr_international_transfer" /></Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
           <div>
-            <Label>Legal basis proposed *</Label>
+            <Label>Legal basis proposed<Req /></Label>
             <select value={legalBasis} onChange={(e) => setLegalBasis(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>{LEGAL_BASES.map((b) => <option key={b}>{b}</option>)}
             </select>

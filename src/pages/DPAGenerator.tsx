@@ -14,6 +14,8 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
 
 import { JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER, detectDocumentType } from "@/lib/dpaDocumentType";
 
@@ -178,7 +180,8 @@ export default function DPAGenerator() {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <h2 className="font-display text-brand-navy">DPA Intake</h2>
             <div className="space-y-3 text-sm">
-              <label className="block"><span className="font-semibold text-brand-navy">Controller name</span>
+              <RequiredLegend />
+              <label className="block"><span className="font-semibold text-brand-navy">Controller name<Req /> <DefPopover termKey="gdpr_controller" /></span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
               <label className="block"><span className="font-semibold text-brand-navy">Controller jurisdiction</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.controllerJurisdiction} onChange={e => setForm(f => ({ ...f, controllerJurisdiction: e.target.value }))}>
@@ -187,19 +190,19 @@ export default function DPAGenerator() {
                   <optgroup label="🇨🇦 Canada">{JURS_CANADA.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🌏 Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
                 </select></label>
-              <label className="block"><span className="font-semibold text-brand-navy">Processor name</span>
+              <label className="block"><span className="font-semibold text-brand-navy">Processor name<Req /> <DefPopover termKey="gdpr_processor" /></span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorName} onChange={e => setForm(f => ({ ...f, processorName: e.target.value }))} /></label>
-              <label className="block"><span className="font-semibold text-brand-navy">Processor jurisdiction</span>
+              <label className="block"><span className="font-semibold text-brand-navy">Processor jurisdiction <DefPopover termKey="gdpr_sccs" /></span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorJurisdiction} onChange={e => setForm(f => ({ ...f, processorJurisdiction: e.target.value }))}>
                   <optgroup label="🇪🇺 EU / EEA / UK">{JURS_EU.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🇺🇸 United States">{JURS_US.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🇨🇦 Canada">{JURS_CANADA.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🌏 Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
                 </select></label>
-              <label className="block"><span className="font-semibold text-brand-navy">Services description</span>
+              <label className="block"><span className="font-semibold text-brand-navy">Services description<Req /> <DefPopover termKey="gdpr_processor_contract" /></span>
                 <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>
 
-              <fieldset><legend className="font-semibold text-brand-navy">Data categories</legend>
+              <fieldset><legend className="font-semibold text-brand-navy">Data categories<Req /></legend>
                 <div className="grid grid-cols-2 gap-1.5 mt-1">
                   {DATA_CATS.map(c => <label key={c} className="flex items-center gap-2 text-meta">
                     <input type="checkbox" checked={form.dataCategories.includes(c)} onChange={() => toggleCat(c)} />{c}</label>)}

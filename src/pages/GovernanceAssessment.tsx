@@ -17,6 +17,8 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { useActiveClient } from "@/hooks/useActiveClient";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -209,31 +211,32 @@ const GovernanceAssessment = () => {
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
         <div className="bg-card border rounded-lg p-6 space-y-6">
+          <RequiredLegend />
           {step === 1 && (
             <>
               <h2 className="">Gateway Questions</h2>
               <div>
-                <Label>Q1: Primary sector *</Label>
+                <Label>Q1: Primary sector<Req /></Label>
                 <select value={sector} onChange={(e) => setSector(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <Label>Q2: Number of employees *</Label>
+                <Label>Q2: Number of employees<Req /></Label>
                 <select value={orgSize} onChange={(e) => setOrgSize(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Select…</option>{SIZES.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <Label>Q3: Jurisdictions where you operate or process personal data *</Label>
+                <Label>Q3: Jurisdictions where you operate or process personal data<Req /></Label>
                 <div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
               </div>
               <div>
-                <Label>Q4: Do you process personal data of EU or UK residents? *</Label>
+                <Label>Q4: Do you process personal data of EU or UK residents?<Req /></Label>
                 <div className="mt-2"><Radio name="euuk" options={["Yes", "No"]} value={euUkData} onChange={(v) => setEuUkData(v as any)} /></div>
               </div>
               <div>
-                <Label>Q5: Technology tools that process personal data *</Label>
+                <Label>Q5: Technology tools that process personal data<Req /></Label>
                 <div className="mt-2"><Pills options={TOOLS} value={tools} onChange={setTools} /></div>
                 <Input placeholder="Other (specify)" value={otherTool} onChange={(e) => setOtherTool(e.target.value)} className="mt-2" />
               </div>
@@ -244,11 +247,11 @@ const GovernanceAssessment = () => {
             <>
               <h2 className="">Data and Processing Profile</h2>
               <div>
-                <Label>Q6: Categories of personal data processed *</Label>
+                <Label>Q6: Categories of personal data processed<Req /></Label>
                 <div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div>
               </div>
               <div>
-                <Label>Q7: Do you process health, biometric, or other special category data? *</Label>
+                <Label>Q7: Do you process health, biometric, or other special category data?<Req /> <DefPopover termKey="gdpr_special_categories" /></Label>
                 <div className="mt-2"><Radio name="spec" options={["Yes", "No"]} value={specialCategory} onChange={(v) => setSpecialCategory(v as any)} /></div>
                 {specialCategory === "Yes" && (
                   <div className="mt-3"><Label>Which categories?</Label><div className="mt-2"><Pills options={SPECIAL_CATS} value={specialCategoriesList} onChange={setSpecialCategoriesList} /></div></div>
@@ -260,27 +263,27 @@ const GovernanceAssessment = () => {
           {step === 3 && (
             <>
               <h2 className="">Governance Infrastructure</h2>
-              <div><Label>Q8: Documented privacy policy/notice *</Label><div className="mt-2"><Radio name="pp" options={["Yes, current (reviewed in last 12 months)", "Yes, but outdated", "No"]} value={privacyPolicy} onChange={setPrivacyPolicy} /></div></div>
-              <div><Label>Q9: Acceptable use policy for technology tools *</Label><div className="mt-2"><Radio name="aup" options={["Yes, covers external technology tools specifically", "Yes, but general only", "No"]} value={acceptableUse} onChange={setAcceptableUse} /></div></div>
-              {showDpoQ && (<div><Label>Q10: Designated DPO or equivalent? *</Label><div className="mt-2"><Radio name="dpo" options={["Yes, formal DPO", "Yes, informal privacy lead", "No"]} value={dpoStatus} onChange={setDpoStatus} /></div></div>)}
-              <div><Label>Q11: Has any DPIA been conducted? *</Label><div className="mt-2"><Radio name="dpia" options={["Yes, multiple DPIAs completed", "Yes, one DPIA completed", "No, none conducted", "Unsure"]} value={dpiaStatus} onChange={setDpiaStatus} /></div></div>
-              <div><Label>Q12: Incident response plan covering personal data breaches *</Label><div className="mt-2"><Radio name="ir" options={["Yes, tested in last 12 months", "Yes, but not tested", "Documented but informal", "No"]} value={incidentResponse} onChange={setIncidentResponse} /></div></div>
+              <div><Label>Q8: Documented privacy policy/notice<Req /> <DefPopover termKey="gdpr_transparency" /></Label><div className="mt-2"><Radio name="pp" options={["Yes, current (reviewed in last 12 months)", "Yes, but outdated", "No"]} value={privacyPolicy} onChange={setPrivacyPolicy} /></div></div>
+              <div><Label>Q9: Acceptable use policy for technology tools<Req /></Label><div className="mt-2"><Radio name="aup" options={["Yes, covers external technology tools specifically", "Yes, but general only", "No"]} value={acceptableUse} onChange={setAcceptableUse} /></div></div>
+              {showDpoQ && (<div><Label>Q10: Designated DPO or equivalent?<Req /> <DefPopover termKey="gdpr_dpo" /></Label><div className="mt-2"><Radio name="dpo" options={["Yes, formal DPO", "Yes, informal privacy lead", "No"]} value={dpoStatus} onChange={setDpoStatus} /></div></div>)}
+              <div><Label>Q11: Has any DPIA been conducted?<Req /></Label><div className="mt-2"><Radio name="dpia" options={["Yes, multiple DPIAs completed", "Yes, one DPIA completed", "No, none conducted", "Unsure"]} value={dpiaStatus} onChange={setDpiaStatus} /></div></div>
+              <div><Label>Q12: Incident response plan covering personal data breaches<Req /> <DefPopover termKey="gdpr_breach_notification" /></Label><div className="mt-2"><Radio name="ir" options={["Yes, tested in last 12 months", "Yes, but not tested", "Documented but informal", "No"]} value={incidentResponse} onChange={setIncidentResponse} /></div></div>
             </>
           )}
 
           {step === 4 && (
             <>
               <h2 className="">Training and Awareness</h2>
-              <div><Label>Q13: Privacy / data protection training *</Label><div className="mt-2"><Radio name="train" options={["Yes, formal onboarding + annual refresh", "Yes, onboarding only", "Ad hoc only", "No formal training"]} value={trainingStatus} onChange={setTrainingStatus} /></div></div>
-              <div><Label>Q14: Instruction on what data may/may not be submitted to external technology tools *</Label><div className="mt-2"><Radio name="ti" options={["Yes, written policy with specific prohibitions", "Verbal guidance only", "No instruction provided"]} value={toolInstruction} onChange={setToolInstruction} /></div></div>
+              <div><Label>Q13: Privacy / data protection training<Req /></Label><div className="mt-2"><Radio name="train" options={["Yes, formal onboarding + annual refresh", "Yes, onboarding only", "Ad hoc only", "No formal training"]} value={trainingStatus} onChange={setTrainingStatus} /></div></div>
+              <div><Label>Q14: Instruction on what data may/may not be submitted to external technology tools<Req /></Label><div className="mt-2"><Radio name="ti" options={["Yes, written policy with specific prohibitions", "Verbal guidance only", "No instruction provided"]} value={toolInstruction} onChange={setToolInstruction} /></div></div>
             </>
           )}
 
           {step === 5 && showStep5 && (
             <>
               <h2 className="">Transfer and Compliance</h2>
-              <div><Label>Q15: DPAs signed with relevant vendors *</Label><div className="mt-2"><Radio name="dpa" options={["Yes, all vendors", "Most vendors", "Some vendors", "No"]} value={dpaStatus} onChange={setDpaStatus} /></div></div>
-              <div><Label>Q16: Cross-border transfers outside EU/UK *</Label><div className="mt-2"><Radio name="xfer" options={["Yes, US-based tools", "Yes, other non-adequate countries", "All tools store data in EU/UK", "Unsure"]} value={transferStatus} onChange={setTransferStatus} /></div></div>
+              <div><Label>Q15: DPAs signed with relevant vendors<Req /></Label><div className="mt-2"><Radio name="dpa" options={["Yes, all vendors", "Most vendors", "Some vendors", "No"]} value={dpaStatus} onChange={setDpaStatus} /></div></div>
+              <div><Label>Q16: Cross-border transfers outside EU/UK<Req /></Label><div className="mt-2"><Radio name="xfer" options={["Yes, US-based tools", "Yes, other non-adequate countries", "All tools store data in EU/UK", "Unsure"]} value={transferStatus} onChange={setTransferStatus} /></div></div>
             </>
           )}
 
