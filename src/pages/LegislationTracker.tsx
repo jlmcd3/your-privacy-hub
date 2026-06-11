@@ -296,7 +296,12 @@ export default function LegislationTracker() {
         />
         <AdBanner variant="leaderboard" className="mt-4" />
         <main className="flex-1 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          <div className="mb-8">
+          <ResearchToolCTA
+            toolName="Privacy Intelligence Report"
+            toolDescription="Bills move weekly. The Privacy Intelligence Report delivers what changed — personalized to your jurisdictions and topics — every Monday."
+            href="/pricing"
+          />
+          <div className="mb-8 mt-6">
             <ResearchSynthesisBlock sectionKey="legislation__page" promoteHeading />
           </div>
 
