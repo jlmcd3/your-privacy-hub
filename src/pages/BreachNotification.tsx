@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { getProduct } from "@/lib/productRegistry";
+import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
 
 export default function BreachNotificationPage() {
   return (
@@ -40,7 +41,7 @@ export default function BreachNotificationPage() {
             "A structured, jurisdiction-specific incident response guide generated for your organization. Covers GDPR, HIPAA, and active U.S. state laws.",
           href: getProduct("ir-playbook").route,
         }}
-        sections={[
+        sections={linkGlossaryFirstMentions([
           {
             id: "gdpr",
             h2: "GDPR Breach Notification — Articles 33 and 34",
@@ -80,7 +81,7 @@ export default function BreachNotificationPage() {
 <li><strong><a href="/jurisdiction/japan">Japan APPI</a></strong> — notification to <a href="/regulator/ppc">Personal Information Protection Commission (PPC)</a> for breaches affecting 1,000+ individuals or sensitive data.</li>
 </ul>`,
           },
-        ]}
+        ])}
         relatedLinks={[
           { label: "Enforcement Tracker", href: "/enforcement-tracker" },
           { label: "Health Data Privacy", href: "/health-data-privacy" },

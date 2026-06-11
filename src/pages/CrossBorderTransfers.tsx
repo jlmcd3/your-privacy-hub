@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { TransferMechanismSelector } from "@/components/research/TransferMechanismSelector";
 import { getProduct } from "@/lib/productRegistry";
+import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
 
 const MECHANISM_TABLE = `
 <div class="cmp-table overflow-x-auto rounded-xl border border-brand-cloud">
@@ -133,7 +134,7 @@ export default function CrossBorderTransfersPage() {
           href: getProduct("dpia").route,
         }}
         introBlock={<TransferMechanismSelector />}
-        sections={[
+        sections={linkGlossaryFirstMentions([
           {
             id: "eu-mechanisms",
             h2: "Transfer mechanisms at a glance",
@@ -200,7 +201,7 @@ export default function CrossBorderTransfersPage() {
             synthesisKey: "crossborder__enforcement",
             content: `<p>Cross-border enforcement has been concentrated in CJEU rulings and major DPA actions: <strong>Schrems II</strong> invalidated Privacy Shield; the Irish <a href="/regulator/dpc">Data Protection Commission (DPC)</a>'s <strong>€1.2B Meta fine</strong> targeted EU-U.S. transfers; the Austrian <a href="/regulator/dsb">Austrian Data Protection Authority (DSB)</a> and <a href="/regulator/cnil">National Commission on Informatics and Liberty (CNIL)</a> ruled <strong>Google Analytics</strong> transfers unlawful absent supplementary measures. China's <a href="/regulator/cac">CAC</a> has actively enforced <a href="/jurisdiction/china">PIPL</a> cross-border transfer requirements against multinational and domestic operators.</p>`,
           },
-        ]}
+        ])}
         relatedLinks={[
           { label: "Jurisdictions Map", href: "/jurisdictions" },
           { label: "GDPR Enforcement", href: "/gdpr-enforcement" },

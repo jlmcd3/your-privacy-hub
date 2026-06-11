@@ -84,12 +84,37 @@ function highlight(text: string, q: string) {
 
 const TermCard = ({ t, q }: { t: Term; q: string }) => {
   const tool = TOOL_LINKS[t.slug];
+  const anchorHref = `/glossary#${t.slug}`;
   return (
-    <div className="block p-4 bg-card border border-brand-cloud rounded-xl hover:border-brand-teal/30 hover:shadow-eup-sm transition-all">
-      <Link to={`/glossary/${t.slug}`} className="no-underline">
-        <h3 className="text-brand-navy mb-1">{highlight(t.term, q)}</h3>
-        <p className="text-xs text-slate line-clamp-2 leading-relaxed">{t.definition}</p>
-      </Link>
+    <div
+      id={t.slug}
+      className="group scroll-mt-24 block p-4 bg-card border border-brand-cloud rounded-xl hover:border-brand-teal/30 hover:shadow-eup-sm transition-all"
+    >
+      <div className="flex items-start gap-2">
+        <div className="flex-1 min-w-0">
+          <Link to={`/glossary/${t.slug}`} className="no-underline">
+            <h3 className="text-brand-navy mb-1 inline">
+              {highlight(t.term, q)}
+            </h3>
+          </Link>
+          <a
+            href={anchorHref}
+            aria-label={`Copy link to ${t.term}`}
+            className="ml-1.5 text-brand-mist hover:text-brand-teal opacity-0 group-hover:opacity-100 transition-opacity text-sm font-mono no-underline"
+            onClick={(e) => {
+              e.preventDefault();
+              const url = `${window.location.origin}/glossary#${t.slug}`;
+              if (navigator.clipboard) navigator.clipboard.writeText(url).catch(() => {});
+              window.history.replaceState(null, "", `/glossary#${t.slug}`);
+            }}
+          >
+            #
+          </a>
+          <p className="text-xs text-slate line-clamp-2 leading-relaxed mt-1">
+            {t.definition}
+          </p>
+        </div>
+      </div>
       <div className="flex gap-1.5 mt-2 flex-wrap items-center">
         {t.regulations && t.regulations.length > 0 && (
           <span className="text-meta text-brand-mist uppercase tracking-wider font-semibold mr-0.5">
@@ -105,6 +130,40 @@ const TermCard = ({ t, q }: { t: Term; q: string }) => {
           </span>
         ))}
       </div>
+      {t.related && t.related.length > 0 && (
+        <div className="mt-2 text-xs text-slate">
+          <span className="text-brand-mist uppercase tracking-wider font-semibold mr-1 text-meta">
+            Related:
+          </span>
+          {t.related.map((rel, i) => (
+            <span key={rel}>
+              <a
+                href={`#${rel}`}
+                className="text-brand-teal hover:underline no-underline"
+              >
+                {rel.replace(/-/g, " ")}
+              </a>
+              {i < (t.related?.length ?? 0) - 1 ? ", " : ""}
+            </span>
+          ))}
+        </div>
+      )}
+      {t.source && (
+        <div className="mt-2 text-meta text-brand-mist font-mono-code">
+          {(t as Term & { sourceUrl?: string }).sourceUrl ? (
+            <a
+              href={(t as Term & { sourceUrl?: string }).sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand-mist hover:text-brand-teal no-underline"
+            >
+              {t.source} ↗
+            </a>
+          ) : (
+            t.source
+          )}
+        </div>
+      )}
       {tool && (
         <div className="mt-3 pt-3 border-t border-brand-cloud">
           <Link to={tool.href} className="text-xs font-semibold text-accent hover:underline no-underline">
@@ -175,6 +234,12 @@ const Glossary = () => {
           "description": `Plain-English definitions of ${glossaryData.length} key privacy and data protection terms.`,
           "numberOfItems": glossaryData.length,
           "publisher": { "@type": "Organization", "name": "End User Privacy" },
+          "itemListElement": (glossaryData as Term[]).map((t) => ({
+            "@type": "DefinedTerm",
+            "name": t.term,
+            "description": t.definition.slice(0, 200),
+            "url": `https://enduserprivacy.com/glossary#${t.slug}`,
+          })),
         })}</script>
       </Helmet>
       <Navbar />
