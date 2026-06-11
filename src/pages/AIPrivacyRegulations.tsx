@@ -159,6 +159,7 @@ const AIPrivacyRegulations = () => (
     ]}
     intelligenceUpsellTopic="AI privacy and the EU AI Act"
   />
+  </>
 );
 
 export default AIPrivacyRegulations;
