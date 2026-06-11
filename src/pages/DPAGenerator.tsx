@@ -14,6 +14,8 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
 
 import { JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER, detectDocumentType } from "@/lib/dpaDocumentType";
 
