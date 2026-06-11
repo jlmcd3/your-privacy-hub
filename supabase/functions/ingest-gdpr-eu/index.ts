@@ -92,7 +92,9 @@ Deno.serve(async (req) => {
   let articlesHtml: string, recitalsHtml: string;
   try {
     articlesHtml = await fetchEurLex(SOURCE_URL);
-    recitalsHtml = await fetchEurLex(EU_RECITALS_SOURCE_URL);
+    recitalsHtml = EU_RECITALS_SOURCE_URL === SOURCE_URL
+      ? articlesHtml
+      : await fetchEurLex(EU_RECITALS_SOURCE_URL);
   } catch (e) {
     return json({ error: `EUR-Lex fetch error: ${String(e).slice(0, 300)}` }, 502);
   }
