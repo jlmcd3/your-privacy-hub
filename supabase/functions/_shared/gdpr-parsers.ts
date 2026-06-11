@@ -56,7 +56,10 @@ export interface ParsedArticle { number: string; title: string; chapter: string 
 
 export function parseRecitals(text: string): ParsedRecital[] {
   const adoptedIdx = text.search(/HAVE\s+ADOPTED\s+THIS\s+REGULATION/i);
-  const preamble = adoptedIdx > 0 ? text.slice(0, adoptedIdx) : text;
+  // No preamble marker means the document contains no recitals (e.g. consolidated
+  // texts). Never scan the enacting terms — numbered paragraphs there are not recitals.
+  if (adoptedIdx <= 0) return [];
+  const preamble = text.slice(0, adoptedIdx);
   const recitals: ParsedRecital[] = [];
   const re = /(?:^|\n)\((\d{1,3})\)\s+([\s\S]*?)(?=\n\(\d{1,3}\)\s+|$)/g;
   let m: RegExpExecArray | null;
