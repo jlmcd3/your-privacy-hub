@@ -60,7 +60,7 @@ function renderInline(text: string, keyPrefix = "i"): ReactNode[] {
 type Block =
   | { type: "subhead"; text: string; trailing?: string }   // **Label:** [optional inline body]
   | { type: "para"; text: string }
-  | { type: "ol"; items: string[] }
+  | { type: "ol"; items: { num: string; text: string }[] }
   | { type: "ul"; items: string[] };
 
 function parseBlocks(body: string): Block[] {
@@ -101,16 +101,16 @@ function parseBlocks(body: string): Block[] {
 
     // Numbered list — collect contiguous items, supporting wrapped lines
     if (numberedRe.test(line)) {
-      const items: string[] = [];
+      const items: { num: string; text: string }[] = [];
       while (i < lines.length) {
         const cur = lines[i].trim();
         const m = numberedRe.exec(cur);
         if (m) {
-          items.push(m[2]);
+          items.push({ num: m[1], text: m[2] });
           i++;
         } else if (cur && !subheadRe.test(cur) && !bulletRe.test(cur) && items.length > 0 && !numberedRe.test(cur)) {
           // continuation line — append to the last item
-          items[items.length - 1] += " " + cur;
+          items[items.length - 1].text += " " + cur;
           i++;
         } else {
           break;
@@ -219,10 +219,10 @@ function BlockList({ blocks }: { blocks: Block[] }) {
                     className="flex-shrink-0 text-sm font-semibold text-brand-navy tabular-nums leading-relaxed min-w-[1.5rem]"
                     aria-hidden
                   >
-                    {j + 1}.
+                    {it.num}.
                   </span>
                   <span className="text-foreground" style={REPORT_BODY_STYLE}>
-                    {renderInline(it, `ol-${idx}-${j}`)}
+                    {renderInline(it.text, `ol-${idx}-${j}`)}
                   </span>
                 </li>
               ))}
