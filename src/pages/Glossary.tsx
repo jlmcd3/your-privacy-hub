@@ -234,6 +234,12 @@ const Glossary = () => {
           "description": `Plain-English definitions of ${glossaryData.length} key privacy and data protection terms.`,
           "numberOfItems": glossaryData.length,
           "publisher": { "@type": "Organization", "name": "End User Privacy" },
+          "itemListElement": (glossaryData as Term[]).map((t) => ({
+            "@type": "DefinedTerm",
+            "name": t.term,
+            "description": t.definition.slice(0, 200),
+            "url": `https://enduserprivacy.com/glossary#${t.slug}`,
+          })),
         })}</script>
       </Helmet>
       <Navbar />
