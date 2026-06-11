@@ -126,6 +126,14 @@ const navItems: NavItem[] = [
         items: [
           {
             icon: "🏛️",
+            label: "CPPA Scope Checker",
+            href: "/cppa-scope-checker",
+            badge: "FREE",
+            badgeGreen: true,
+            tooltip: "Find out if your organisation is in scope for the Dec 31 2027 audit",
+          },
+          {
+            icon: "🏛️",
             label: "CPPA Risk Assessment",
             href: "/cppa-risk-assessment",
             tooltip: "Structured risk assessment aligned to CPPA audit regulations",
@@ -135,14 +143,6 @@ const navItems: NavItem[] = [
             label: "CPPA Cybersecurity Readiness",
             href: "/cppa-cybersecurity",
             tooltip: "18-control gap analysis for the April 2028 certification deadline",
-          },
-          {
-            icon: "🏛️",
-            label: "CPPA Scope Checker",
-            href: "/cppa-scope-checker",
-            badge: "FREE",
-            badgeGreen: true,
-            tooltip: "Find out if your organisation is in scope for the Dec 31 2027 audit",
           },
           {
             icon: "🧭",
@@ -204,6 +204,7 @@ const navItems: NavItem[] = [
             tooltip: "BIPA statutory exposure calculator and multi-jurisdiction analysis" },
           { icon: "📝", label: "Custom DPA Generator", href: "/dpa-generator",
             tooltip: "Article 28-compliant data processing agreement, enforcement-informed" },
+          { icon: "🗂️", label: "All Tools →", href: "/tools", bottom: true },
         ],
       },
       {
