@@ -144,15 +144,19 @@ MONETARY PENALTY RULE: In the synthesis stage, never state a specific monetary f
         ["us-federal", "california", "new-york"].includes(j)
       );
 
+    const tryParseJson = (text: string): any | null => {
+      try {
+        const m = text.match(/\{[\s\S]*\}/);
+        return m ? JSON.parse(m[0]) : null;
+      } catch { return null; }
+    };
+
     const domainResultsArray = await Promise.all(
       DOMAIN_DEFINITIONS.map(async (domain) => {
         const model = (domain.escalate && needsHigherQuality)
           ? "claude-sonnet-4-6"
           : "claude-haiku-4-5-20251001";
-        const text = await callAnthropic(
-          model,
-          domainSystem,
-          `DOMAIN ${domain.id}: ${domain.name}
+        const userPrompt = `DOMAIN ${domain.id}: ${domain.name}
 
 ORGANISATION PROFILE:
 ${intakeSummary}
@@ -171,20 +175,42 @@ Return JSON:
   "recommended_action": "specific action required — must name the regulation and the action",
   "suggested_owner": "DPO | Legal Counsel | CISO | CTO | HR | Compliance Manager",
   "suggested_timeline": "Immediate (within 7 days) | This quarter | This year | Ongoing"
-}`,
-          1200
-        );
-        try {
-          const m = text.match(/\{[\s\S]*\}/);
-          if (m) return { key: domain.key, result: JSON.parse(m[0]) };
-        } catch { /* fall through */ }
-        return { key: domain.key, result: { domain_id: domain.id, severity: "Low", regulatory_basis: "Could not be determined — assessment incomplete", current_state: "Assessment parse error", gap_description: null, recommended_action: "Re-run assessment", suggested_owner: "DPO", suggested_timeline: "This quarter" } };
+}`;
+        const firstText = await callAnthropic(model, domainSystem, userPrompt, 1200);
+        let parsed = tryParseJson(firstText);
+        if (!parsed) {
+          // Retry once before giving up. Never emit placeholder "parse error"
+          // copy into customer-facing report; failed domains are excluded
+          // from the report entirely and recorded as a lint warning.
+          console.warn(`[Governance] domain ${domain.id} (${domain.name}) parse failed; retrying once.`);
+          const retryText = await callAnthropic(model, domainSystem, userPrompt, 1200);
+          parsed = tryParseJson(retryText);
+        }
+        if (!parsed) {
+          return {
+            key: domain.key,
+            result: { assessment_failed: true, domain_id: domain.id, domain_name: domain.name },
+          };
+        }
+        return { key: domain.key, result: parsed };
       })
     );
 
+    // Partition successful vs failed domains. Failed domains are excluded
+    // from synthesis input, from the rendered report, and from any
+    // immediate-actions list.
+    const failedDomains: Array<{ domain_id: any; domain_name: string }> = [];
     for (const { key, result } of domainResultsArray) {
+      if (result && (result as any).assessment_failed) {
+        failedDomains.push({
+          domain_id: (result as any).domain_id,
+          domain_name: (result as any).domain_name,
+        });
+        continue;
+      }
       domainResults[key] = result;
     }
+    const failedDomainNames = new Set(failedDomains.map((d) => String(d.domain_name || "").toLowerCase()));
 
     // Fetch enforcement precedents (3-5) relevant to this org's profile (before synthesis so they can be cited)
     let enforcementPrecedents: any[] = [];
