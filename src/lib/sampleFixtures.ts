@@ -460,7 +460,7 @@ const F_ROPA_EU: SampleFixture = {
     author_name: "Donna Dasher (DPO)",
     profile: {
       legal_entity_type: "Private limited company (UK)",
-      employee_band: "1000-4999",
+      employee_band: "1000+",
       is_controller: true,
       is_processor: false,
       dpo_name: "Donna Dasher",
