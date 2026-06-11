@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -245,8 +246,7 @@ Return JSON:
       : "No directly analogous enforcement precedents retrieved.";
 
     // ── SYNTHESIS ──
-    const synthesisText = await callAnthropic("claude-sonnet-4-6", domainSystem,
-      `Synthesise these ten domain findings into cross-domain patterns and an executive summary.
+    const synthesisUserBase = `Synthesise these ten domain findings into cross-domain patterns and an executive summary.
 
 TEN DOMAIN FINDINGS:
 ${JSON.stringify(domainResults, null, 2)}
@@ -285,26 +285,63 @@ Return JSON:
       "relevance": "one sentence why this case is relevant to this synthesis"
     }
   ]
-}`,
-      5000
-    );
+}`;
 
-    let synthesis: any = {};
-    try {
-      const m = synthesisText.match(/\{[\s\S]*\}/);
-      if (m) synthesis = JSON.parse(m[0]);
-    } catch (e) {
-      console.error("[Governance] Synthesis parse error:", e);
-      synthesis = {
+    async function runSynthesis(extra: string): Promise<any> {
+      const finalUser = extra ? `${synthesisUserBase}\n\n${extra}` : synthesisUserBase;
+      const synthesisText = await callAnthropic("claude-sonnet-4-6", domainSystem, finalUser, 5000);
+      try {
+        const m = synthesisText.match(/\{[\s\S]*\}/);
+        if (m) return JSON.parse(m[0]);
+      } catch (e) {
+        console.error("[Governance] Synthesis parse error:", e);
+      }
+      return {
         executive_summary: "Assessment complete. Review domain findings above for full detail.",
         top_three_risks: [],
         immediate_actions: [],
         overall_readiness_rating: "Initial",
         readiness_rationale: "Synthesis could not be completed.",
         interaction_effects: "",
-        dpia_scope: []
+        dpia_scope: [],
       };
     }
+
+    function assembleSynthesisNarrative(syn: any, domains: Record<string, any>): string {
+      const parts: string[] = [];
+      if (syn?.executive_summary) parts.push(String(syn.executive_summary));
+      if (syn?.interaction_effects) parts.push(String(syn.interaction_effects));
+      if (syn?.readiness_rationale) parts.push(String(syn.readiness_rationale));
+      for (const r of (syn?.top_three_risks || [])) {
+        parts.push([r?.risk, r?.why_urgent].filter(Boolean).join(" "));
+      }
+      for (const a of (syn?.immediate_actions || [])) parts.push(String(a?.action || ""));
+      for (const d of Object.values(domains || {})) {
+        const dn: any = d;
+        parts.push([dn?.current_state, dn?.gap_description, dn?.regulatory_basis, dn?.recommended_action]
+          .filter(Boolean).join(" "));
+      }
+      return parts.join("\n\n");
+    }
+
+    let synthesis: any = await runSynthesis("");
+
+    // Output lint: regenerate synthesis once on hard violations; never block delivery.
+    let lint = lintReportText(assembleSynthesisNarrative(synthesis, domainResults));
+    const lintViolations: any[] = [];
+    if (hasHardViolations(lint)) {
+      try {
+        const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+        synthesis = await runSynthesis(
+          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
+        );
+        lint = lintReportText(assembleSynthesisNarrative(synthesis, domainResults));
+      } catch (e) {
+        console.warn("[Governance] lint retry failed (non-fatal):", e);
+      }
+    }
+    for (const v of lint.violations) lintViolations.push(v);
+
 
 
     const strippedDomainFindings: Record<string, any> = {};
@@ -342,11 +379,14 @@ Return JSON:
       enforcement_precedents: enforcementPrecedents,
       enforcement_meta: enforcementMeta,
       annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
-      lint_warnings: failedDomains.map((d) => ({
-        code: "domain_assessment_failed",
-        severity: "hard",
-        detail: d.domain_name,
-      })),
+      lint_warnings: [
+        ...failedDomains.map((d) => ({
+          code: "domain_assessment_failed",
+          severity: "hard",
+          detail: d.domain_name,
+        })),
+        ...lintViolations,
+      ],
       disclaimer: "This report is a compliance framework tool produced to assist organisations in identifying governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
 

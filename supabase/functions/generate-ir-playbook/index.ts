@@ -1,6 +1,7 @@
 // generate-ir-playbook: produces a 7-section breach response playbook.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -360,14 +361,58 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
       return out;
     }
 
+    async function generateHalves(extra: string): Promise<{ partA: string; partB: string }> {
+      const pA = extra ? `${PROMPT_PART_A}\n\n${extra}` : PROMPT_PART_A;
+      const pB = extra ? `${PROMPT_PART_B}\n\n${extra}` : PROMPT_PART_B;
+      const [a, b] = await Promise.all([
+        callClaude([{ role: "user", content: pA }], 6000),
+        callClaude([{ role: "user", content: pB }], 6000),
+      ]);
+      return { partA: a, partB: b };
+    }
+
+    function assembleFromHalves(partA: string, partB: string): { playbook_text: string; parsedAnnotations: any[] } {
+      const fullText = `${partA.trim()}\n\n${partB.trim()}`;
+      let playbook_text = fullText
+        .replace(/^#{1,6}\s+/gm, '')
+        .replace(/\*\*\*/g, '')
+        .replace(/\*\*/g, '')
+        .replace(/\*([^*\n]+)\*/g, '$1')
+        .replace(/^>\s?/gm, '')
+        .replace(/^\*\s+/gm, '• ');
+      let parsedAnnotations: any[] = [];
+      try {
+        const sepIdx = fullText.indexOf("===ANNOTATIONS===");
+        if (sepIdx !== -1) {
+          playbook_text = fullText.slice(0, sepIdx).trim()
+            .replace(/^#{1,6}\s+/gm, '')
+            .replace(/\*\*\*/g, '')
+            .replace(/\*\*/g, '')
+            .replace(/\*([^*\n]+)\*/g, '$1')
+            .replace(/^>\s?/gm, '')
+            .replace(/^\*\s+/gm, '• ');
+          const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
+          const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+          const start = cleaned.indexOf("[");
+          const end = cleaned.lastIndexOf("]");
+          if (start !== -1 && end !== -1) {
+            const arr = JSON.parse(cleaned.slice(start, end + 1));
+            if (Array.isArray(arr)) parsedAnnotations = arr;
+          }
+        }
+      } catch (e) {
+        console.warn("[IR Playbook] annotation parse failed (non-fatal):", e);
+        parsedAnnotations = [];
+      }
+      return { playbook_text, parsedAnnotations };
+    }
+
     let partA = "";
     let partB = "";
     try {
       console.log("[IR Playbook] starting parallel generation halves");
-      [partA, partB] = await Promise.all([
-        callClaude([{ role: "user", content: PROMPT_PART_A }], 6000),
-        callClaude([{ role: "user", content: PROMPT_PART_B }], 6000),
-      ]);
+      const r = await generateHalves("");
+      partA = r.partA; partB = r.partB;
       console.log("[IR Playbook] generation halves complete", { partAChars: partA.length, partBChars: partB.length });
     } catch (e: any) {
       console.error("Claude parallel split-call failure:", e?.message || e);
@@ -377,38 +422,25 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
       });
     }
 
-    const fullText = `${partA.trim()}\n\n${partB.trim()}`;
-    let playbook_text = fullText
-      .replace(/^#{1,6}\s+/gm, '')
-      .replace(/\*\*\*/g, '')
-      .replace(/\*\*/g, '')
-      .replace(/\*([^*\n]+)\*/g, '$1')
-      .replace(/^>\s?/gm, '')
-      .replace(/^\*\s+/gm, '• ');
-    let parsedAnnotations: any[] = [];
-    try {
-      const sepIdx = fullText.indexOf("===ANNOTATIONS===");
-      if (sepIdx !== -1) {
-        playbook_text = fullText.slice(0, sepIdx).trim()
-          .replace(/^#{1,6}\s+/gm, '')
-          .replace(/\*\*\*/g, '')
-          .replace(/\*\*/g, '')
-          .replace(/\*([^*\n]+)\*/g, '$1')
-          .replace(/^>\s?/gm, '')
-          .replace(/^\*\s+/gm, '• ');
-        const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
-        const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-        const start = cleaned.indexOf("[");
-        const end = cleaned.lastIndexOf("]");
-        if (start !== -1 && end !== -1) {
-          const arr = JSON.parse(cleaned.slice(start, end + 1));
-          if (Array.isArray(arr)) parsedAnnotations = arr;
-        }
+    let assembled = assembleFromHalves(partA, partB);
+    let lint = lintReportText(assembled.playbook_text);
+    const lintWarnings: any[] = [];
+    if (hasHardViolations(lint)) {
+      try {
+        const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+        const retry = await generateHalves(
+          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the playbook again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
+        );
+        partA = retry.partA; partB = retry.partB;
+        assembled = assembleFromHalves(partA, partB);
+        lint = lintReportText(assembled.playbook_text);
+      } catch (e) {
+        console.warn("[IR Playbook] lint retry failed (non-fatal):", e);
       }
-    } catch (e) {
-      console.warn("[IR Playbook] annotation parse failed (non-fatal):", e);
-      parsedAnnotations = [];
     }
+    for (const v of lint.violations) lintWarnings.push(v);
+    const playbook_text = lint.clean;
+    const parsedAnnotations = assembled.parsedAnnotations;
 
     const portals = body.jurisdictions
       .filter((j) => DPA_PORTALS[j])
@@ -419,8 +451,10 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
       annotations: parsedAnnotations,
+      lint_warnings: lintWarnings,
       generated_at: new Date().toISOString(),
     };
+
 
     let savedId: string | null = null;
     try {

@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -175,21 +176,22 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
 17. Incident response and post-incident analysis
 18. Business continuity and disaster recovery`;
 
-    const text = await callAnthropic(system, userPrompt);
-    let report: any = null;
-    const m = text.match(/\{[\s\S]*\}/);
-    if (!m) {
-      // Structured parse-failure log (hotfix): never silently mark `complete` with an empty report.
-      console.error(JSON.stringify({
-        event: "cppa_cyber_parse_failure",
-        reason: "no_json_object_in_response",
-        assessment_id,
-        response_length: text.length,
-        preview: text.slice(0, 300),
-      }));
-    } else {
+    async function generateReport(extra: string): Promise<any | null> {
+      const finalUser = extra ? `${userPrompt}\n\n${extra}` : userPrompt;
+      const text = await callAnthropic(system, finalUser);
+      const m = text.match(/\{[\s\S]*\}/);
+      if (!m) {
+        console.error(JSON.stringify({
+          event: "cppa_cyber_parse_failure",
+          reason: "no_json_object_in_response",
+          assessment_id,
+          response_length: text.length,
+          preview: text.slice(0, 300),
+        }));
+        return null;
+      }
       try {
-        report = JSON.parse(m[0]);
+        return JSON.parse(m[0]);
       } catch (e) {
         console.error(JSON.stringify({
           event: "cppa_cyber_parse_failure",
@@ -198,8 +200,46 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
           error: String(e),
           tail: text.slice(-300),
         }));
+        return null;
       }
     }
+
+    function normaliseReport(r: any): void {
+      r.annotations = Array.isArray(r?.annotations) ? r.annotations : [];
+      r.executive_summary = stripMd(r.executive_summary);
+      r.enforcement_context = stripMd(r.enforcement_context);
+      r.controls = (Array.isArray(r.controls) ? r.controls : []).map((c: any) => ({
+        ...c,
+        finding: stripMd(c?.finding),
+        regulatory_basis: stripMd(c?.regulatory_basis),
+        remediation: stripMd(c?.remediation),
+      }));
+      r.top_risks = (Array.isArray(r.top_risks) ? r.top_risks : []).map((t: any) => ({
+        ...t,
+        title: stripMd(t?.title),
+        description: stripMd(t?.description),
+        consequence: stripMd(t?.consequence),
+      }));
+      r.next_steps = (Array.isArray(r.next_steps) ? r.next_steps : []).map((s: any) =>
+        typeof s === "string" ? stripMd(s) : s
+      );
+    }
+
+    function assembleNarrative(r: any): string {
+      const parts: string[] = [];
+      if (r?.executive_summary) parts.push(String(r.executive_summary));
+      if (r?.enforcement_context) parts.push(String(r.enforcement_context));
+      for (const c of (r?.controls || [])) {
+        parts.push([c?.finding, c?.regulatory_basis, c?.remediation].filter(Boolean).join(" "));
+      }
+      for (const t of (r?.top_risks || [])) {
+        parts.push([t?.title, t?.description, t?.consequence].filter(Boolean).join(" "));
+      }
+      for (const n of (r?.next_steps || [])) parts.push(String(n || ""));
+      return parts.join("\n\n");
+    }
+
+    let report: any = await generateReport("");
 
     if (!report || typeof report !== "object" || !Array.isArray(report.controls) || report.controls.length === 0) {
       // Don't land an empty report as `complete` — surface as error so UI shows retry, not blank page.
@@ -210,26 +250,28 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       return;
     }
 
-    report.annotations = Array.isArray(report?.annotations) ? report.annotations : [];
+    normaliseReport(report);
 
-    // Strip any stray markdown the model produced in prose fields
-    report.executive_summary = stripMd(report.executive_summary);
-    report.enforcement_context = stripMd(report.enforcement_context);
-    report.controls = report.controls.map((c: any) => ({
-      ...c,
-      finding: stripMd(c?.finding),
-      regulatory_basis: stripMd(c?.regulatory_basis),
-      remediation: stripMd(c?.remediation),
-    }));
-    report.top_risks = (Array.isArray(report.top_risks) ? report.top_risks : []).map((r: any) => ({
-      ...r,
-      title: stripMd(r?.title),
-      description: stripMd(r?.description),
-      consequence: stripMd(r?.consequence),
-    }));
-    report.next_steps = (Array.isArray(report.next_steps) ? report.next_steps : []).map((s: any) =>
-      typeof s === "string" ? stripMd(s) : s
-    );
+    // Output lint: regenerate once on hard violations; never block delivery.
+    let lint = lintReportText(assembleNarrative(report));
+    const lintViolations: any[] = [];
+    if (hasHardViolations(lint)) {
+      try {
+        const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+        const retry = await generateReport(
+          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
+        );
+        if (retry && Array.isArray(retry.controls) && retry.controls.length > 0) {
+          report = retry;
+          normaliseReport(report);
+          lint = lintReportText(assembleNarrative(report));
+        }
+      } catch (e) {
+        console.warn("[CPPA Cyber] lint retry failed (non-fatal):", e);
+      }
+    }
+    for (const v of lint.violations) lintViolations.push(v);
+
 
     // Obligation snapshot: freeze the cybersecurity audit corpus (§§ 7120–7124)
     // used to evaluate the 18 controls, so the report stays reproducible if any
@@ -387,6 +429,11 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
 
     (report as any).enforcement_precedents = enforcementResults.slice(0, 5);
     (report as any).enforcement_meta = enforcementMeta;
+    (report as any).lint_warnings = [
+      ...(Array.isArray((report as any).lint_warnings) ? (report as any).lint_warnings : []),
+      ...lintViolations,
+    ];
+
 
     await supabase
       .from("cppa_assessments")
