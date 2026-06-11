@@ -175,10 +175,12 @@ ${["purpose_test", "necessity_test", "balancing_test"].map(key => {
     const t = d[key] || {};
     const label = key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
     const verdictClass = (t.verdict || "uncertain").includes("pass") ? "pass" : (t.verdict || "").includes("fail") ? "fail" : "uncertain";
-    return `<div class="section"><h3>${label} <span class="verdict-${verdictClass}">— ${t.verdict || "Uncertain"}</span></h3>
-<p>${t.analysis || ""}</p>
-${(t.risk_factors || []).length ? `<p class="label">Risk factors:</p><ul>${(t.risk_factors || []).map((r: string) => `<li>${r}</li>`).join("")}</ul>` : ""}
-${(t.supporting_factors || []).length ? `<p class="label">Supporting factors:</p><ul>${(t.supporting_factors || []).map((s: string) => `<li>${s}</li>`).join("")}</ul>` : ""}
+    const rawVerdict = t.verdict || "Uncertain";
+    const verdictLabel = (rawVerdict.charAt(0).toUpperCase() + rawVerdict.slice(1)).replace(/_/g, " ");
+    return `<div class="section"><h3>${label} <span class="verdict-${verdictClass}">— ${verdictLabel}</span></h3>
+<p>${sanitizeNarrative(t.analysis || "")}</p>
+${(t.risk_factors || []).length ? `<p class="label">Risk factors:</p><ul>${(t.risk_factors || []).map((r: string) => `<li>${sanitizeNarrative(r)}</li>`).join("")}</ul>` : ""}
+${(t.supporting_factors || []).length ? `<p class="label">Supporting factors:</p><ul>${(t.supporting_factors || []).map((s: string) => `<li>${sanitizeNarrative(s)}</li>`).join("")}</ul>` : ""}
 </div>`;
   }).join("")}
 <h2>Documentation Recommendations</h2>
