@@ -1,47 +1,17 @@
 import * as React from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SUPPORTED_LANGUAGES, isRtl, type LanguageChip } from "@/lib/languages";
 
 interface Props {
   englishContent: string;
   onLanguageChange: (content: string, dir: "ltr" | "rtl") => void;
 }
 
-interface LangChip {
-  code: string;
-  flag: string;
-  name: string;
-}
+type LangChip = LanguageChip;
 
-const PROMINENT: LangChip[] = [
-  { code: "fr", flag: "🇫🇷", name: "French" },
-  { code: "de", flag: "🇩🇪", name: "German" },
-  { code: "es", flag: "🇪🇸", name: "Spanish" },
-  { code: "pt", flag: "🇧🇷", name: "Portuguese" },
-  { code: "ja", flag: "🇯🇵", name: "Japanese" },
-  { code: "zh-CN", flag: "🇨🇳", name: "Chinese" },
-  { code: "ar", flag: "🇸🇦", name: "Arabic" },
-  { code: "ko", flag: "🇰🇷", name: "Korean" },
-];
-
-const MORE: LangChip[] = [
-  { code: "it", flag: "🇮🇹", name: "Italian" },
-  { code: "nl", flag: "🇳🇱", name: "Dutch" },
-  { code: "pl", flag: "🇵🇱", name: "Polish" },
-  { code: "sv", flag: "🇸🇪", name: "Swedish" },
-  { code: "da", flag: "🇩🇰", name: "Danish" },
-  { code: "no", flag: "🇳🇴", name: "Norwegian" },
-  { code: "fi", flag: "🇫🇮", name: "Finnish" },
-  { code: "cs", flag: "🇨🇿", name: "Czech" },
-  { code: "ro", flag: "🇷🇴", name: "Romanian" },
-  { code: "el", flag: "🇬🇷", name: "Greek" },
-  { code: "tr", flag: "🇹🇷", name: "Turkish" },
-  { code: "th", flag: "🇹🇭", name: "Thai" },
-  { code: "id", flag: "🇮🇩", name: "Indonesian" },
-  { code: "hi", flag: "🇮🇳", name: "Hindi" },
-  { code: "he", flag: "🇮🇱", name: "Hebrew" },
-];
-
-const RTL_LANGS = new Set(["ar", "he"]);
+// Preserve the original two-row layout: 8 prominent chips, then "more" reveals the rest.
+const PROMINENT: LangChip[] = SUPPORTED_LANGUAGES.slice(0, 8);
+const MORE: LangChip[] = SUPPORTED_LANGUAGES.slice(8);
 
 const SampleBriefLanguageToggle: React.FC<Props> = ({ englishContent, onLanguageChange }) => {
   const [activeLang, setActiveLang] = React.useState<string | null>(null);
