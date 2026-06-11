@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
 
     const { data: rawArticles, error: fetchError } = await supabase
       .from("updates")
-      .select("title, summary, source_name, category, topic_tags, published_at, url, attention_level, legal_weight, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date")
+      .select("title, summary, source_name, category, topic_tags, published_at, url, attention_level, legal_weight, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date, product_ctas")
       .gte("published_at", weekStart.toISOString())
       .order("published_at", { ascending: false })
       .limit(60);
