@@ -41,7 +41,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     adopted_date: "2024-10-08",
     related_articles: ["6"],
     topic_tags: ["legitimate-interest", "lawful-basis"],
-    pdf_url: PLACEHOLDER_URL,
+    pdf_url: "https://www.edpb.europa.eu/system/files/2024-10/edpb_guidelines_202401_legitimateinterest_en.pdf",
   },
   {
     guideline_ref: "EDPB Guidelines 2/2019",
@@ -49,7 +49,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     adopted_date: "2019-10-08",
     related_articles: ["6"],
     topic_tags: ["contract", "lawful-basis", "online-services"],
-    pdf_url: PLACEHOLDER_URL,
+    pdf_url: "https://edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines-art_6-1-b-adopted_after_public_consultation_en.pdf",
   },
   {
     guideline_ref: "WP248 rev.01",
@@ -57,7 +57,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     adopted_date: "2017-10-04",
     related_articles: ["35", "36"],
     topic_tags: ["dpia", "risk-assessment"],
-    pdf_url: PLACEHOLDER_URL,
+    pdf_url: "https://ec.europa.eu/newsroom/just/document.cfm?doc_id=47711",
   },
   {
     guideline_ref: "EDPB Guidelines 9/2022",
@@ -65,7 +65,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     adopted_date: "2023-03-28",
     related_articles: ["33", "34"],
     topic_tags: ["breach-notification", "incident-response"],
-    pdf_url: PLACEHOLDER_URL,
+    pdf_url: "https://www.edpb.europa.eu/system/files/2023-04/edpb_guidelines_202209_personal_data_breach_notification_v2.0_en.pdf",
   },
   {
     guideline_ref: "EDPB Guidelines 07/2020",
@@ -73,7 +73,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     adopted_date: "2021-07-07",
     related_articles: ["4", "26", "28"],
     topic_tags: ["controller", "processor", "joint-controllers"],
-    pdf_url: PLACEHOLDER_URL,
+    pdf_url: "https://edpb.europa.eu/system/files/2021-07/eppb_guidelines_202007_controllerprocessor_final_en.pdf",
   },
   {
     guideline_ref: "EDPB Guidelines 05/2020",
@@ -81,7 +81,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     adopted_date: "2020-05-04",
     related_articles: ["4", "7"],
     topic_tags: ["consent", "lawful-basis"],
-    pdf_url: PLACEHOLDER_URL,
+    pdf_url: "https://www.edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines_202005_consent_en.pdf",
   },
   {
     guideline_ref: "EDPB Guidelines 3/2018",
@@ -89,7 +89,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     adopted_date: "2019-11-12",
     related_articles: ["3"],
     topic_tags: ["territorial-scope", "extraterritoriality"],
-    pdf_url: PLACEHOLDER_URL,
+    pdf_url: "https://www.edpb.europa.eu/sites/default/files/files/file1/edpb_guidelines_3_2018_territorial_scope_after_public_consultation_en_0.pdf",
   },
   {
     guideline_ref: "EDPB Recommendations 01/2020",
@@ -97,7 +97,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     adopted_date: "2021-06-18",
     related_articles: ["44", "45", "46", "49"],
     topic_tags: ["international-transfers", "schrems-ii", "supplementary-measures"],
-    pdf_url: PLACEHOLDER_URL,
+    pdf_url: "https://www.edpb.europa.eu/system/files/2021-06/edpb_recommendations_202001vo.2.0_supplementarymeasurestransferstools_en.pdf",
   },
   {
     guideline_ref: "EDPB Guidelines 01/2022",
@@ -105,7 +105,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     adopted_date: "2023-03-28",
     related_articles: ["15"],
     topic_tags: ["data-subject-rights", "right-of-access", "dsar"],
-    pdf_url: PLACEHOLDER_URL,
+    pdf_url: "https://www.edpb.europa.eu/system/files/2023-04/edpb_guidelines_202201_data_subject_rights_access_v2_en.pdf",
   },
   {
     guideline_ref: "WP260 rev.01",
@@ -113,7 +113,7 @@ const SEED_REGISTRY: RegistryEntry[] = [
     adopted_date: "2018-04-11",
     related_articles: ["12", "13", "14"],
     topic_tags: ["transparency", "privacy-notice"],
-    pdf_url: PLACEHOLDER_URL,
+    pdf_url: "https://www.edpb.europa.eu/system/files/2023-09/wp260rev01_en.pdf",
   },
 ];
 
