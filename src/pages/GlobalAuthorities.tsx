@@ -116,7 +116,16 @@ const GlobalAuthorities = () => {
         </div>
       </header>
 
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <ResearchToolCTA
+          toolName="Incident Response Playbook"
+          toolDescription="When an incident hits, you need to know which of these authorities to notify and how fast. Generate a jurisdiction-specific incident response playbook for your organization."
+          href="/ir-playbook"
+        />
+      </div>
+
       <AdBanner variant="leaderboard" className="mt-6" />
+
 
       {/* Sticky filter + search bar */}
       <div className="sticky top-0 z-30 bg-brand-cloud/95 backdrop-blur border-b border-brand-cloud">
