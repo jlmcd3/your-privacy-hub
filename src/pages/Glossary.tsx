@@ -167,6 +167,15 @@ const Glossary = () => {
           name="description"
           content="Plain-English definitions of key privacy and data protection terms, grouped by theme with links to compliance tools. GDPR, CCPA, AI Act and more."
         />
+        <link rel="canonical" href="https://enduserprivacy.com/glossary" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "DefinedTermSet",
+          "name": "Key Privacy Terms",
+          "description": `Plain-English definitions of ${glossaryData.length} key privacy and data protection terms.`,
+          "numberOfItems": glossaryData.length,
+          "publisher": { "@type": "Organization", "name": "End User Privacy" },
+        })}</script>
       </Helmet>
       <Navbar />
 
