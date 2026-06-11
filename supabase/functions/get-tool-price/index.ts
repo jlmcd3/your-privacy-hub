@@ -238,6 +238,7 @@ serve(async (req) => {
     let subscriptionType: string | null = null;
     let isPro = false;
     let isPremium = false;
+    let professionalAnnual = false;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
       try {
@@ -260,7 +261,7 @@ serve(async (req) => {
           subscriptionType = (profile as any)?.subscription_type ?? null;
           isPro = (profile as any)?.is_pro === true;
           isPremium = (profile as any)?.is_premium === true || isPro;
-          var _profile = profile;
+          professionalAnnual = (profile as any)?.professional_annual === true;
         }
       } catch (_) {
         // ignore
@@ -269,7 +270,7 @@ serve(async (req) => {
 
     // v10: annual gating for Layer-2 subscriber rates.
     const isAnnual =
-      (typeof _profile !== "undefined" && (_profile as any)?.professional_annual === true) ||
+      professionalAnnual ||
       String(subscriptionType ?? "").toLowerCase().includes("annual");
 
     // Canonical PRICING (src/config/pricing.ts) is the source of truth.
