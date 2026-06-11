@@ -138,10 +138,17 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
     }
 
     const enforcementContextStr = enforcementPrecedents.length > 0
-      ? enforcementPrecedents.map((r: any, i: number) =>
-          `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"} — Preventive: ${r.preventive_measures || "n/a"}`
-        ).join("\n")
+      ? enforcementPrecedents.map((r: any, i: number) => {
+          const provs = Array.isArray(r.statutory_provisions) && r.statutory_provisions.length
+            ? ` — citing ${r.statutory_provisions.join(", ")}` : "";
+          return `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"} — Preventive: ${r.preventive_measures || "n/a"}${provs}`;
+        }).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
+
+    // Append GDPR authority context to the system prompt for both halves.
+    const systemWithGdpr = gdprBlock
+      ? `${system}\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}`
+      : system;
 
     // ── Split DPIA generation into two parallel calls to stay within timeout ──
     const sharedContext = `PROCESSING ACTIVITY DETAILS:
