@@ -122,16 +122,3 @@ export function linkGlossaryFirstMentions<T extends { content?: string }>(sectio
     return html === section.content ? section : { ...section, content: html };
   });
 }
-    if (!section.content || remaining.size === 0) return section;
-    let html = section.content;
-    for (const term of TERMS) {
-      if (!remaining.has(term.slug)) continue;
-      const result = linkFirstMention(html, term);
-      if (result.linked) {
-        html = result.html;
-        remaining.delete(term.slug);
-      }
-    }
-    return html === section.content ? section : { ...section, content: html };
-  });
-}
