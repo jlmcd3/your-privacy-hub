@@ -215,7 +215,7 @@ QUALITY STANDARDS:
         messages: [
           {
             role: "user",
-            content: `Analyze this privacy and data protection article and return a JSON enrichment object.
+            content: dateContext + `Analyze this privacy and data protection article and return a JSON enrichment object.
 
 Title: ${title}
 Description: ${summary || "No description available."}
