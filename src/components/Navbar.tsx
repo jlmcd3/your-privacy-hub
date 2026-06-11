@@ -239,7 +239,7 @@ const navItems: NavItem[] = [
         columnBg: "bg-white",
         column: 1,
         items: [
-          { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
+          { icon: <Landmark className="w-4 h-4 text-muted-foreground" />, iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
           { icon: "⚖️", label: "GDPR & UK GDPR", href: "/gdpr-enforcement" },
           { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
           { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
