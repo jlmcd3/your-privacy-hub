@@ -60,7 +60,7 @@ function renderInline(text: string, keyPrefix = "i"): ReactNode[] {
 type Block =
   | { type: "subhead"; text: string; trailing?: string }   // **Label:** [optional inline body]
   | { type: "para"; text: string }
-  | { type: "ol"; items: string[] }
+  | { type: "ol"; items: { num: string; text: string }[] }
   | { type: "ul"; items: string[] };
 
 function parseBlocks(body: string): Block[] {
