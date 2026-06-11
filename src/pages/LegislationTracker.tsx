@@ -47,7 +47,7 @@ const FLAG_BY_ISO: Record<string, string> = {
   IN: "https://commons.wikimedia.org/wiki/Special:FilePath/Flag_of_India.svg?width=40",
 };
 
-const REGIONS = ["All Regions", "Americas", "Europe", "Asia-Pacific"];
+const REGIONS = ["All Regions", "United States", "Americas", "Europe", "Asia-Pacific"];
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -131,7 +131,9 @@ function BillCard({
               />
             )}
             <span className="text-xs font-bold text-slate uppercase tracking-wider">
-              {bill.jurisdiction}
+              {bill.iso2 === "US" && bill.jurisdiction !== "United States"
+                ? `${bill.jurisdiction}, U.S.`
+                : bill.jurisdiction}
             </span>
             {bill.bill_number && (
               <span className="font-mono text-[11px] text-brand-mist">{bill.bill_number}</span>
@@ -239,7 +241,11 @@ export default function LegislationTracker() {
   }, []);
 
   const filtered = bills
-    .filter((b) => region === "All Regions" || b.region === region)
+    .filter((b) => {
+      if (region === "All Regions") return true;
+      if (region === "United States") return b.iso2 === "US";
+      return b.region === region;
+    })
     .filter((b) => stage === "All Stages" || b.stage === stage);
 
   // Track groupings (default priority sort)
