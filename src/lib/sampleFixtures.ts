@@ -126,7 +126,7 @@ const F_DPIA_EU: SampleFixture = {
           "4–6 campaigns per year, each producing ~40,000 raw frames. Raw frames retained 30 days; processed mosaics (with all residential edges blurred) retained for the life of the prospecting permit.",
         retention:
           "Raw frames: 30 days from capture, then deleted via automated job. Blurred mosaics: duration of the prospecting permit plus 2 years for regulatory dispute window.",
-        third_party_processors: ["Hetzner (DE) cloud storage; Pix4D (CH) photogrammetry processing"],
+        third_party_processors: ["Glacier Peak Hosting GmbH (DE) cloud storage; OrthoMosaic Alpine SA (CH) photogrammetry processing"],
         automated_decisions:
           "No. Geologists review mosaics manually. The blurring pipeline applies a YOLOv8-based detector for faces, license plates, and house numbers and is reviewed by a human before mosaic release.",
         existing_safeguards: [
