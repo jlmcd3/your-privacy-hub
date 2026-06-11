@@ -1,7 +1,9 @@
 // TRIGGER MIRROR — slugs, triggers, and priority MUST mirror
 // src/lib/productRegistry.ts PRODUCT_REGISTRY exactly. Display fields
-// (name/route/pitch) are intentionally NOT mirrored — they resolve
-// client-side by slug. Update both files in the same commit.
+// (name/route/pitch) are intentionally NOT mirrored for the matcher, but
+// PRODUCT_DISPLAY below DOES mirror name+route for email rendering (no
+// frontend imports allowed in edge functions). Update both files in the
+// same commit.
 
 export interface ProductTrigger {
   slug: string;
