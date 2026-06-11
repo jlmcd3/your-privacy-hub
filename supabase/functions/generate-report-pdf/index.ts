@@ -200,11 +200,11 @@ ${(t.supporting_factors || []).length ? `<p class="label">Supporting factors:</p
 <h2>Documentation Recommendations</h2>
 ${((docRecs.recommended_documentation) || []).map((doc: any) =>
     `<div class="section"><h3>${doc.document || ""}</h3>
-<p>${doc.purpose || ""}</p>
-${(doc.key_elements || []).length ? `<ul>${(doc.key_elements || []).map((e: string) => `<li>${e}</li>`).join("")}</ul>` : ""}</div>`
+<p>${sanitizeNarrative(doc.purpose || "")}</p>
+${(doc.key_elements || []).length ? `<ul>${(doc.key_elements || []).map((e: string) => `<li>${sanitizeNarrative(e)}</li>`).join("")}</ul>` : ""}</div>`
   ).join("")}
 ${((docRecs.balancing_record_elements) || []).length ? `<h2>Balancing Record — Must Include</h2>
-<ul>${(docRecs.balancing_record_elements).map((e: string) => `<li>${e}</li>`).join("")}</ul>` : ""}
+<ul>${(docRecs.balancing_record_elements).map((e: string) => `<li>${sanitizeNarrative(e)}</li>`).join("")}</ul>` : ""}
 <p class="meta">${report.data_currency_note || ""}</p>
 <div class="disclaimer">${report.disclaimer || ""}</div>
 </body></html>`;
