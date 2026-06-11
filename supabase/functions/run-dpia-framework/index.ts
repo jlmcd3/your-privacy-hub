@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
+import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -167,9 +168,7 @@ ${enforcementContextStr}
 
 ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a risk identification, severity rating, or mitigation measure in section_3_risks, include it in the section_3_risks.annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.`;
 
-    const [textA, textB] = await Promise.all([
-      callAnthropic("claude-sonnet-4-6", systemWithGdpr,
-        `${sharedContext}
+    const promptA = `${sharedContext}
 
 Generate the first half of a DPIA framework document. Return ONLY this JSON structure, no preamble:
 
@@ -225,11 +224,9 @@ Generate the first half of a DPIA framework document. Return ONLY this JSON stru
       }
     ]
   }
-}`,
-        6000
-      ),
-      callAnthropic("claude-sonnet-4-6", systemWithGdpr,
-        `${sharedContext}
+}`;
+
+    const promptB = `${sharedContext}
 
 Generate the second half of a DPIA framework document. Return ONLY this JSON structure, no preamble:
 
@@ -263,25 +260,72 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
     "review_schedule": "recommended review triggers for this DPIA"
   },
   "framework_disclaimer": "This DPIA framework document is provided as a compliance framework tool to assist organisations in structuring their Data Protection Impact Assessment process. It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. The organisation's qualified Data Protection Officer or legal counsel must review, complete, and own this document. This framework does not constitute legal advice."
-}`,
-        6000
-      )
-    ]);
+}`;
 
-    let partA: any = {};
-    let partB: any = {};
-    try {
-      const mA = textA.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').match(/\{[\s\S]*\}/);
-      if (mA) partA = JSON.parse(mA[0]);
-      else console.error("[DPIA] No JSON in part A. Length:", textA.length, "Preview:", textA.slice(0, 300));
-    } catch (e) { console.error("[DPIA] Part A parse error:", e, "Tail:", textA.slice(-200)); }
-    try {
-      const mB = textB.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').match(/\{[\s\S]*\}/);
-      if (mB) partB = JSON.parse(mB[0]);
-      else console.error("[DPIA] No JSON in part B. Length:", textB.length, "Preview:", textB.slice(0, 300));
-    } catch (e) { console.error("[DPIA] Part B parse error:", e, "Tail:", textB.slice(-200)); }
+    function parseJsonish(text: string): any {
+      try {
+        const m = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').match(/\{[\s\S]*\}/);
+        return m ? JSON.parse(m[0]) : {};
+      } catch (e) {
+        console.error("[DPIA] parse error:", e, "Tail:", text.slice(-200));
+        return {};
+      }
+    }
+
+    async function genHalf(prompt: string, extraUser: string): Promise<any> {
+      const finalUser = extraUser ? `${prompt}\n\n${extraUser}` : prompt;
+      const t = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, 6000);
+      return parseJsonish(t);
+    }
+
+    let [partA, partB] = await Promise.all([genHalf(promptA, ""), genHalf(promptB, "")]);
 
     let reportData: any = { ...partA, ...partB };
+
+    // Lint narrative strings across the framework JSON; one retry on hard violations.
+    const lintViolations: any[] = [];
+    function walkAndLint(obj: any, path: string): boolean {
+      let hardSeen = false;
+      if (Array.isArray(obj)) {
+        for (let i = 0; i < obj.length; i++) {
+          if (typeof obj[i] === "string") {
+            const r = lintReportText(obj[i]);
+            for (const v of r.violations) lintViolations.push({ field: `${path}[${i}]`, ...v });
+            if (hasHardViolations(r)) hardSeen = true;
+            obj[i] = r.clean;
+          } else if (obj[i] && typeof obj[i] === "object") {
+            if (walkAndLint(obj[i], `${path}[${i}]`)) hardSeen = true;
+          }
+        }
+      } else if (obj && typeof obj === "object") {
+        for (const k of Object.keys(obj)) {
+          const v = obj[k];
+          if (typeof v === "string") {
+            const r = lintReportText(v);
+            for (const vi of r.violations) lintViolations.push({ field: `${path}.${k}`, ...vi });
+            if (hasHardViolations(r)) hardSeen = true;
+            obj[k] = r.clean;
+          } else if (v && typeof v === "object") {
+            if (walkAndLint(v, `${path}.${k}`)) hardSeen = true;
+          }
+        }
+      }
+      return hardSeen;
+    }
+
+    if (walkAndLint(reportData, "report")) {
+      try {
+        const details = lintViolations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+        lintViolations.length = 0;
+        const retryInstr = `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`;
+        const [retryA, retryB] = await Promise.all([genHalf(promptA, retryInstr), genHalf(promptB, retryInstr)]);
+        reportData = { ...retryA, ...retryB };
+        walkAndLint(reportData, "report");
+      } catch (e) {
+        console.warn("[DPIA] lint retry failed (non-fatal):", e);
+      }
+    }
+
     if (!reportData.section_1_description && !reportData.section_4_mitigation) {
       reportData = {
         framework_disclaimer: "This is a compliance framework tool, not legal advice.",
@@ -289,11 +333,13 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
       };
     }
 
+
     reportData.generated_at = new Date().toISOString();
     reportData.dpia_id = dpia_id;
     reportData.enforcement_precedents = enforcementPrecedents;
     reportData.enforcement_meta = enforcementMeta;
     reportData.gdpr_meta = gdprMeta;
+    reportData.lint_warnings = lintViolations;
     try {
       reportData.annotations = Array.isArray(reportData?.section_3_risks?.annotations)
         ? reportData.section_3_risks.annotations
