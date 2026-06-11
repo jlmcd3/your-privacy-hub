@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
+import { getProduct } from "@/lib/productRegistry";
 
 const AIPrivacyRegulations = () => (
   <>
@@ -34,10 +35,10 @@ const AIPrivacyRegulations = () => (
     }}
     pageSynthesisKey="ai_privacy__page"
     topToolCta={{
-      toolName: "Privacy Programme Assessment",
+      toolName: getProduct("governance-assessment").name,
       toolDescription:
         "Assess your AI governance program against the EU AI Act, GDPR Article 22, and CPPA ADMT enforcement patterns.",
-      href: "/governance-assessment",
+      href: getProduct("governance-assessment").route,
     }}
     introBlock={
       <div className="rounded-xl border border-brand-teal/30 bg-brand-teal/5 px-5 py-4">
