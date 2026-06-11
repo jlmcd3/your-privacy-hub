@@ -65,7 +65,7 @@ const AIPrivacyRegulations = () => (
             toolDescription: "The EDPB's Opinion 28/2024 requires a documented balancing test for each AI training use case. Generate a structured LIA aligned to EDPB guidance.",
             href: "/li-assessment",
           },
-        content: `<p>The <a href="/regulator/edpb">EDPB</a>'s <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/opinion-board-art-64/opinion-282024-certain-data-protection-aspects_en" target="_blank" rel="noopener noreferrer">Opinion 28/2024</a> on personal data in AI model training is the most significant regulatory statement at the AI–privacy intersection. The opinion establishes that training large language models on scraped personal data without a valid legal basis constitutes a GDPR violation. Controllers must identify a legal basis under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6</a> for each distinct phase of AI development: data collection, pre-processing, and model training. Legitimate interest cannot be automatically assumed; controllers must conduct and document a balancing test for each use case.</p>`,
+        content: `<p>The <a href="/regulator/edpb">European Data Protection Board (EDPB)</a>'s <a href="https://www.edpb.europa.eu/our-work-tools/our-documents/opinion-board-art-64/opinion-282024-certain-data-protection-aspects_en" target="_blank" rel="noopener noreferrer">Opinion 28/2024</a> on personal data in AI model training is the most significant regulatory statement at the AI–privacy intersection. The opinion establishes that training large language models on scraped personal data without a valid legal basis constitutes a GDPR violation. Controllers must identify a legal basis under <a href="https://gdpr-info.eu/art-6-gdpr/" target="_blank" rel="noopener noreferrer">Article 6</a> for each distinct phase of AI development: data collection, pre-processing, and model training. Legitimate interest cannot be automatically assumed; controllers must conduct and document a balancing test for each use case.</p>`,
       },
       {
         id: "admt",
@@ -80,7 +80,7 @@ const AIPrivacyRegulations = () => (
             "Generate a CPPA-aligned risk assessment for automated decision-making and high-risk processing.",
           href: "/cppa-risk-assessment",
         },
-        content: `<p>Automated decision-making technology (ADMT) is a key area of regulatory focus. <a href="/us-state-privacy-laws">California</a>'s CPPA <a href="https://cppa.ca.gov/regulations/automated_decisionmaking.html" target="_blank" rel="noopener noreferrer">adopted its ADMT regulations in July 2025 (OAL-approved September 23, 2025; effective January 1, 2026)</a>, requiring businesses to provide pre-use notices and opt-out rights for automated decisions in employment, housing, and credit. <a href="https://gdpr-info.eu/art-22-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 22</a> provides rights regarding automated individual decision-making, including profiling. The <a href="/regulator/ico">ICO</a>'s <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/employment/biometric-data-guidance-biometric-recognition/" target="_blank" rel="noopener noreferrer">AI and Biometrics Strategy (June 2025, updated March 2026) prioritizes automated decision-making in recruitment and biometric technologies; its February 2024 workplace biometrics guidance makes clear that biometric recognition generally needs an Article 9 condition — usually explicit consent — plus a DPIA</a>.</p>`,
+        content: `<p>Automated decision-making technology (ADMT) is a key area of regulatory focus. <a href="/us-state-privacy-laws">California</a>'s CPPA <a href="https://cppa.ca.gov/regulations/automated_decisionmaking.html" target="_blank" rel="noopener noreferrer">adopted its ADMT regulations in July 2025 (OAL-approved September 23, 2025; effective January 1, 2026)</a>, requiring businesses to provide pre-use notices and opt-out rights for automated decisions in employment, housing, and credit. <a href="https://gdpr-info.eu/art-22-gdpr/" target="_blank" rel="noopener noreferrer">GDPR Article 22</a> provides rights regarding automated individual decision-making, including profiling. The <a href="/regulator/ico">Information Commissioner's Office (ICO)</a>'s <a href="https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/employment/biometric-data-guidance-biometric-recognition/" target="_blank" rel="noopener noreferrer">AI and Biometrics Strategy (June 2025, updated March 2026) prioritizes automated decision-making in recruitment and biometric technologies; its February 2024 workplace biometrics guidance makes clear that biometric recognition generally needs an Article 9 condition — usually explicit consent — plus a DPIA</a>.</p>`,
       },
       {
         id: "enforcement",
@@ -98,13 +98,13 @@ const AIPrivacyRegulations = () => (
 
 <ul>
 
-<li><strong><a href="/regulator/garante">Garante (Italy)</a>:</strong> Temporarily banned ChatGPT in 2023; imposed €15M on OpenAI in November 2024 — annulled in full by the Court of Rome on March 18, 2026, on jurisdictional one-stop-shop grounds, leaving the substantive questions undecided. Significant: AI enforcement decisions face serious appellate scrutiny.</li>
+<li><strong><a href="/regulator/garante">Italian Data Protection Authority (Garante)</a>:</strong> Temporarily banned ChatGPT in 2023; imposed €15M on OpenAI in November 2024 — annulled in full by the Court of Rome on March 18, 2026, on jurisdictional one-stop-shop grounds, leaving the substantive questions undecided. Significant: AI enforcement decisions face serious appellate scrutiny.</li>
 
-<li><strong><a href="/regulator/edpb">EDPB:</a></strong> Opinion 28/2024 on AI training data guides supervisory authorities across the EEA. Expect coordinated enforcement actions against AI developers without documented legal bases for training data.</li>
+<li><strong><a href="/regulator/edpb">EDPB</a>:</strong> Opinion 28/2024 on AI training data guides supervisory authorities across the EEA. Expect coordinated enforcement actions against AI developers without documented legal bases for training data.</li>
 
-<li><strong><a href="/regulator/ftc">FTC (U.S.):</a></strong> Active enforcement against AI-driven deceptive practices and voice-cloning fraud. The FTC's <em>Section 5 unfairness</em> theory is being extended to AI systems that produce harmful outputs.</li>
+<li><strong><a href="/regulator/ftc">Federal Trade Commission (FTC)</a>:</strong> Active enforcement against AI-driven deceptive practices and voice-cloning fraud. The FTC's <em>Section 5 unfairness</em> theory is being extended to AI systems that produce harmful outputs.</li>
 
-<li><strong><a href="/regulator/ico">ICO (UK):</a></strong> Published AI and data protection guidance in 2024; enforcement focus is on transparency and purpose limitation in AI systems.</li>
+<li><strong><a href="/regulator/ico">ICO</a>:</strong> Published AI and data protection guidance in 2024; enforcement focus is on transparency and purpose limitation in AI systems.</li>
 
 <li><strong>CPPA (California):</strong> Adopted ADMT regulations in July 2025 (effective January 1, 2026). First enforcement actions expected H2 2026.</li>
 
@@ -126,7 +126,7 @@ const AIPrivacyRegulations = () => (
 
 <li><strong><a href="/jurisdiction/canada">Canada:</a></strong> <a href="https://ised-isde.canada.ca/site/innovation-better-canada/en/artificial-intelligence-and-data-act" target="_blank" rel="noopener noreferrer">AIDA</a> (Bill C-27) proposed mandatory impact assessments for high-impact AI systems but died on prorogation in January 2025; federal AI legislation awaits reintroduction.</li>
 
-<li><strong><a href="/jurisdiction/china">China:</a></strong> The most active non-EU regulator. The <a href="/regulator/cac">CAC</a> has issued binding regulations on algorithmic recommendations (2022), deep synthesis (2023), and generative AI (2023) — with active enforcement. China's approach is sovereignty-driven and moves faster than Western equivalents.</li>
+<li><strong><a href="/jurisdiction/china">China:</a></strong> The most active non-EU regulator. The <a href="/regulator/cac">Cyberspace Administration of China (CAC)</a> has issued binding regulations on algorithmic recommendations (2022), deep synthesis (2023), and generative AI (2023) — with active enforcement. China's approach is sovereignty-driven and moves faster than Western equivalents.</li>
 
 <li><strong><a href="/jurisdiction/brazil">Brazil:</a></strong> AI regulation bill PL 2338/2023 includes algorithmic impact assessments. Still advancing through Congress.</li>
 

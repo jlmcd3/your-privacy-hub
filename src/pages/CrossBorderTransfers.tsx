@@ -185,11 +185,11 @@ export default function CrossBorderTransfersPage() {
             h2: "Asia-Pacific Transfer Frameworks",
             synthesisKey: "crossborder__apac",
             content: `<ul>
-<li><strong><a href="/jurisdiction/china">China PIPL</a></strong> (Articles 38–43) — security assessments, standard contracts, or certification. Enforced by the <a href="/regulator/cac">CAC</a>.</li>
-<li><strong><a href="/jurisdiction/japan">Japan APPI</a></strong> — equivalent-protection model; mutual EU adequacy. Enforced by the <a href="/regulator/ppc">PPC</a>.</li>
-<li><strong><a href="/jurisdiction/south-korea">South Korea PIPA</a></strong> — EU adequacy since December 2021. Enforced by the <a href="/regulator/pipc">PIPC</a>.</li>
+<li><strong><a href="/jurisdiction/china">China PIPL</a></strong> (Articles 38–43) — security assessments, standard contracts, or certification. Enforced by the <a href="/regulator/cac">Cyberspace Administration of China (CAC)</a>.</li>
+<li><strong><a href="/jurisdiction/japan">Japan APPI</a></strong> — equivalent-protection model; mutual EU adequacy. Enforced by the <a href="/regulator/ppc">Personal Information Protection Commission (PPC)</a>.</li>
+<li><strong><a href="/jurisdiction/south-korea">South Korea PIPA</a></strong> — EU adequacy since December 2021. Enforced by the <a href="/regulator/pipc">Personal Information Protection Commission (PIPC)</a>.</li>
 <li><strong><a href="/jurisdiction/india">India DPDP Act</a></strong> — permits transfers except to a future government blacklist.</li>
-<li><strong><a href="/jurisdiction/singapore">Singapore PDPA</a></strong> — comparable-protection standard. Enforced by the <a href="/regulator/pdpc">PDPC</a>.</li>
+<li><strong><a href="/jurisdiction/singapore">Singapore PDPA</a></strong> — comparable-protection standard. Enforced by the <a href="/regulator/pdpc">Personal Data Protection Commission (PDPC)</a>.</li>
 <li><strong><a href="https://globalcbpr.org/" target="_blank" rel="noopener noreferrer">Global CBPR Forum</a></strong> — voluntary certification framework succeeding APEC CBPR.</li>
 </ul>`,
           },
@@ -197,7 +197,7 @@ export default function CrossBorderTransfersPage() {
             id: "enforcement",
             h2: "Cross-Border Transfer Enforcement",
             synthesisKey: "crossborder__enforcement",
-            content: `<p>Cross-border enforcement has been concentrated in CJEU rulings and major DPA actions: <strong>Schrems II</strong> invalidated Privacy Shield; the Irish <a href="/regulator/dpc">DPC</a>'s <strong>€1.2B Meta fine</strong> targeted EU-U.S. transfers; the Austrian <a href="/regulator/dsb">DSB</a> and <a href="/regulator/cnil">CNIL</a> ruled <strong>Google Analytics</strong> transfers unlawful absent supplementary measures. China's <a href="/regulator/cac">CAC</a> has actively enforced <a href="/jurisdiction/china">PIPL</a> cross-border transfer requirements against multinational and domestic operators.</p>`,
+            content: `<p>Cross-border enforcement has been concentrated in CJEU rulings and major DPA actions: <strong>Schrems II</strong> invalidated Privacy Shield; the Irish <a href="/regulator/dpc">Data Protection Commission (DPC)</a>'s <strong>€1.2B Meta fine</strong> targeted EU-U.S. transfers; the Austrian <a href="/regulator/dsb">Austrian Data Protection Authority (DSB)</a> and <a href="/regulator/cnil">National Commission on Informatics and Liberty (CNIL)</a> ruled <strong>Google Analytics</strong> transfers unlawful absent supplementary measures. China's <a href="/regulator/cac">CAC</a> has actively enforced <a href="/jurisdiction/china">PIPL</a> cross-border transfer requirements against multinational and domestic operators.</p>`,
           },
         ]}
         relatedLinks={[

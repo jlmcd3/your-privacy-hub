@@ -168,20 +168,20 @@ function RecentEnforcement() {
       <div className="px-4 pb-4 pt-1 text-sm text-brand-navy leading-relaxed space-y-3">
         <p>
           The largest GDPR fines include <strong>Meta's €1.2 billion</strong> from the Irish{" "}
-          <Link to="/regulator/dpc" className="text-brand-teal no-underline hover:underline">DPC</Link> for
+          <Link to="/regulator/dpc" className="text-brand-teal no-underline hover:underline">Data Protection Commission (DPC)</Link> for
           transfers to the U.S. without adequate safeguards (2023), <strong>Amazon's €746 million</strong> from
-          Luxembourg's <Link to="/regulator/cnpd" className="text-brand-teal no-underline hover:underline">CNPD</Link>{" "}
+          Luxembourg's <Link to="/regulator/cnpd" className="text-brand-teal no-underline hover:underline">National Data Protection Commission (CNPD)</Link>{" "}
           for targeted advertising violations (2021), and multiple fines against{" "}
           <strong>Google, TikTok, and Clearview AI</strong> across various jurisdictions.
         </p>
         <p>
           Enforcement activity is concentrated in <strong>Ireland (
           <Link to="/regulator/dpc" className="text-brand-teal no-underline hover:underline">DPC</Link>), France (
-          <Link to="/regulator/cnil" className="text-brand-teal no-underline hover:underline">CNIL</Link>), Luxembourg (
+          <Link to="/regulator/cnil" className="text-brand-teal no-underline hover:underline">National Commission on Informatics and Liberty (CNIL)</Link>), Luxembourg (
           <Link to="/regulator/cnpd" className="text-brand-teal no-underline hover:underline">CNPD</Link>), Italy (
-          <Link to="/regulator/garante" className="text-brand-teal no-underline hover:underline">Garante</Link>), and Spain (
-          <Link to="/regulator/aepd" className="text-brand-teal no-underline hover:underline">AEPD</Link>)</strong>. The{" "}
-          <Link to="/regulator/edpb" className="text-brand-teal no-underline hover:underline">EDPB</Link> has
+          <Link to="/regulator/garante" className="text-brand-teal no-underline hover:underline">Italian Data Protection Authority (Garante)</Link>), and Spain (
+          <Link to="/regulator/aepd" className="text-brand-teal no-underline hover:underline">Spanish Data Protection Agency (AEPD)</Link>)</strong>. The{" "}
+          <Link to="/regulator/edpb" className="text-brand-teal no-underline hover:underline">European Data Protection Board (EDPB)</Link> has
           increasingly used dispute resolution to override lead-authority draft decisions, and its 2026 binding
           guidance on AI training data marks a significant expansion of enforcement scope.
         </p>
@@ -270,7 +270,7 @@ export default function GDPREnforcement() {
             id: "framework",
             h2: "The GDPR Regulatory Framework",
             synthesisKey: "gdpr__framework",
-            content: `<p>GDPR enforcement operates through a decentralized network of independent Data Protection Authorities in each EU member state, coordinated by the <a href="/regulator/edpb">European Data Protection Board (EDPB)</a>. The one-stop-shop mechanism designates a lead supervisory authority based on a company's main establishment, while the consistency mechanism ensures uniform application across member states.</p>
+            content: `<p>GDPR enforcement operates through a decentralized network of independent Data Protection Authorities in each EU member state, coordinated by the <a href="/regulator/edpb">EDPB</a>. The one-stop-shop mechanism designates a lead supervisory authority based on a company's main establishment, while the consistency mechanism ensures uniform application across member states.</p>
 <p>DPAs can impose administrative fines up to <strong>€20 million or 4% of global annual turnover</strong>, whichever is higher. Beyond fines, DPAs can issue warnings, reprimands, orders to comply, temporary or definitive processing bans, and orders to communicate breaches to affected individuals.</p>
 <p>Appellate review is now a major factor: a substantial share of headline fines is under challenge, and in March 2026 courts annulled both Amazon's €746M fine (Luxembourg) and OpenAI's €15M fine (Rome).</p>`,
           },
