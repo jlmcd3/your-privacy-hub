@@ -374,6 +374,15 @@ const JurisdictionPage = () => {
       <Helmet>
         <title>{jurisdiction.name} Privacy Law & Regulatory Updates | End User Privacy</title>
         <meta name="description" content={`Privacy regulations, data protection authorities, and enforcement updates for ${jurisdiction.name}. Monitor regulatory developments across ${jurisdiction.name}'s privacy authorities.`} />
+        <link rel="canonical" href={`https://enduserprivacy.com/jurisdiction/${slug}`} />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: `${jurisdiction.name} Data Privacy Law & Regulator Guide`,
+          description: jurisdiction.overview,
+          publisher: { "@type": "Organization", name: "End User Privacy" },
+          dateModified: new Date().toISOString().slice(0, 10),
+        })}</script>
       </Helmet>
       <Navbar />
       {(() => {
