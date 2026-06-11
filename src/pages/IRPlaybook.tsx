@@ -128,6 +128,7 @@ export default function IRPlaybook() {
           <p className="text-slate-300 text-lg max-w-3xl">
             A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — cited enforcement decisions included for every deadline and threshold recommendation.
           </p>
+          <div className="mt-4"><SampleReportLink toolSlug="ir_playbook" tone="onDark" variant="link" /></div>
         </div>
       </header>
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
