@@ -72,6 +72,7 @@ interface Update {
   precedent_novelty: string | null;
   contextual_record: ContextualRecord | null;
   contextual_teaser: string | null;
+  product_ctas: { slug: string; trigger?: string }[] | null;
 }
 
 interface RelatedUpdate {
