@@ -21,6 +21,8 @@ import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import AuthGateModal from "@/components/AuthGateModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
 
 interface IntakeState {
   // Step 1
