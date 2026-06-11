@@ -81,19 +81,47 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
     const safeguards = (intake.existing_safeguards || []).join(", ") || "None identified";
     const jurisdictions = (intake.jurisdictions || []).join(", ") || "Not specified";
 
-    // Fetch enforcement precedents (3-5) for this DPIA scope
+    // Determine GDPR jurisdiction from verified jurisdictions (srcIntake preferred).
+    let srcIntakeJurisdictions: string[] | null = null;
+    if (dpia.source_assessment_id) {
+      try {
+        const { data: sa } = await supabase
+          .from("governance_assessments")
+          .select("intake_data")
+          .eq("id", dpia.source_assessment_id).maybeSingle();
+        const sj = (sa?.intake_data as any)?.jurisdictions;
+        if (Array.isArray(sj)) srcIntakeJurisdictions = sj;
+      } catch { /* non-fatal */ }
+    }
+    const effectiveJurisdictions: string[] = srcIntakeJurisdictions ?? (intake.jurisdictions || []);
+    const gdprJurisdiction: "eu" | "uk" = effectiveJurisdictions.some((j: string) => /united kingdom|uk|gb/i.test(String(j))) ? "uk" : "eu";
+
+    // Fetch enforcement precedents (3-5) and GDPR authority context in parallel
     let enforcementPrecedents: any[] = [];
     let enforcementMeta: any = { attempted: false };
+    let gdprBlock = "";
+    let gdprMeta: any = { attempted: false };
     try {
-      const { data: ctxData } = await supabase.functions.invoke("get-enforcement-context", {
-        body: {
-          tool: "DPIA",
-          data_categories: intake.data_categories || [],
-          jurisdictions: intake.jurisdictions || [],
-          sector: intake.sector || undefined,
-          limit: 5,
-        },
-      });
+      const [ecRes, gdprRes] = await Promise.all([
+        supabase.functions.invoke("get-enforcement-context", {
+          body: {
+            tool: "DPIA",
+            data_categories: intake.data_categories || [],
+            jurisdictions: intake.jurisdictions || [],
+            sector: intake.sector || undefined,
+            articles: ["gdpr:35", "gdpr:36"],
+            limit: 5,
+          },
+        }),
+        getGdprContext(supabase, {
+          articles: ["35", "36"],
+          jurisdiction: gdprJurisdiction,
+          recitals: [75, 84, 90],
+          guidelineArticles: ["35"],
+          semanticQuery: processingDesc,
+        }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; }),
+      ]);
+      const ctxData = (ecRes as any)?.data;
       enforcementPrecedents = (ctxData?.results || []).slice(0, 5);
       const descParts: string[] = [];
       if (intake.sector) descParts.push(`${intake.sector} sector`);
@@ -103,8 +131,10 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
         total_matched: typeof ctxData?.total_matched === "number" ? ctxData.total_matched : null,
         query_descriptor: descParts.join(" — ") || undefined,
       };
+      gdprBlock = (gdprRes as any)?.block || "";
+      gdprMeta = (gdprRes as any)?.meta || { attempted: false };
     } catch (e) {
-      console.error("get-enforcement-context failed (non-fatal):", e);
+      console.error("DPIA context fetch failed (non-fatal):", e);
     }
 
     const enforcementContextStr = enforcementPrecedents.length > 0
