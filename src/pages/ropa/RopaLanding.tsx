@@ -6,6 +6,7 @@ import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Button } from "@/components/ui/button";
+import SampleReportLink from "@/components/SampleReportLink";
 import {
   Accordion,
   AccordionContent,
