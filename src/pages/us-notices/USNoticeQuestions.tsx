@@ -22,6 +22,7 @@ import {
   type Question,
   type FlagCondition,
 } from "@/data/us-notice-questions";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
 
 type AnswerValue = string | string[] | null;
 
