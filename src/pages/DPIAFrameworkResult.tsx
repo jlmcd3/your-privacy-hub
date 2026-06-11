@@ -286,6 +286,7 @@ const DPIAFrameworkResult = () => {
               />
             </div>
           )}
+          </div>
         </ReportShell>
       </main>
       <Footer />
