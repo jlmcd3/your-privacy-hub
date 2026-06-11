@@ -21,6 +21,8 @@ import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import AuthGateModal from "@/components/AuthGateModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
 
 interface IntakeState {
   // Step 1
@@ -207,6 +209,7 @@ export default function RegistrationAssessment() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <RequiredLegend />
                 {step === 1 && (
                   <>
                     <div className="space-y-2">
@@ -248,7 +251,7 @@ export default function RegistrationAssessment() {
 
                     <div className="grid sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="emp">Employees handling personal data</Label>
+                        <Label htmlFor="emp">Employees handling personal data <DefPopover termKey="gdpr_dpo" /></Label>
                         <Input id="emp" type="number" min={0} placeholder="e.g. 25"
                           value={intake.employee_count}
                           onChange={(e) => setIntake({ ...intake, employee_count: e.target.value })} />
@@ -357,7 +360,7 @@ export default function RegistrationAssessment() {
                         label="We have an EU establishment (office, employees, or subsidiary)" />
                       {intake.has_eu_establishment && (
                         <div className="ml-6 space-y-2">
-                          <Label className="text-sm">EU lead supervisory authority (if known)</Label>
+                          <Label className="text-sm">EU lead supervisory authority (if known) <DefPopover termKey="gdpr_supervisory_authority" /></Label>
                           <Select value={intake.eu_lead_member_state}
                             onValueChange={(v) => setIntake({ ...intake, eu_lead_member_state: v })}>
                             <SelectTrigger className="max-w-xs"><SelectValue placeholder="Auto-pick from establishment" /></SelectTrigger>

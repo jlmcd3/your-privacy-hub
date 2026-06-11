@@ -9,6 +9,8 @@ import { getRopaSteps } from "@/components/ropa/ropaFlowSteps";
 import { useRopaSessionParam, withSession, ROPA_SESSION_QS_KEY } from "@/lib/ropaSession";
 import { toast } from "sonner";
 import SectorPrimerDialog from "@/components/ropa/SectorPrimerDialog";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
 
 const SUPA = supabase as unknown as { from: (t: string) => any };
 
@@ -454,9 +456,14 @@ export default function RopaActivities() {
       )}
 
 
+      <div className="flex items-center gap-2 mb-3">
+        <h2 className="text-lg font-semibold text-foreground">Select processing activities <DefPopover termKey="gdpr_ropa" /></h2>
+      </div>
+      <RequiredLegend />
+
       <button
         onClick={loadTypical}
-        className="w-full bg-foreground text-background font-semibold text-sm px-4 py-2.5 rounded-lg mb-4 text-left"
+        className="w-full bg-foreground text-background font-semibold text-sm px-4 py-2.5 rounded-lg mt-3 mb-4 text-left"
       >
         Prefill typical activities for {sector || "your sector"} and adjust as needed →
       </button>

@@ -18,6 +18,16 @@ import { useEuNoticeSessionGuard } from "@/hooks/useEuNoticeSessionGuard";
 import { buildEuQuestionSections } from "@/data/eu-notice-questions";
 import type { EuFrameworkCode } from "@/data/eu-notice-questions/types";
 import type { Question, FlagCondition } from "@/data/ropa-questions/types";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
+
+function popoverKeyForQuestion(key: string): string | null {
+  const k = key.toLowerCase();
+  if (k.includes("lawful_basis") || k.includes("legal_basis")) return "gdpr_lawful_basis";
+  if (k.includes("transfer") || k.includes("scc")) return "gdpr_international_transfer";
+  if (k.includes("special_categor") || k.includes("sensitive")) return "gdpr_special_categories";
+  return null;
+}
 
 type AnswerValue = string | string[] | null;
 
@@ -151,6 +161,10 @@ export default function EUNoticeQuestions() {
 
   return (
     <EUNoticeShell title="Questions — EU & Global Notice Builder" heading="Tell us about your processing" step="questions" sessionId={sessionId}>
+      <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+        <DefPopover termKey="gdpr_transparency" />
+        <RequiredLegend />
+      </div>
       <div className="mb-4">
         <div className="flex justify-between text-xs text-muted-foreground mb-2">
           <span>Question {currentIndex + 1} of {visibleQuestions.length}</span>
@@ -164,7 +178,7 @@ export default function EUNoticeQuestions() {
 
       <Card className="mb-6">
         <CardContent className="p-6">
-          <h2 className="mb-2">{currentQ.text}</h2>
+          <h2 className="mb-2">{currentQ.text}<Req />{(() => { const k = popoverKeyForQuestion(currentQ.key); return k ? <> <DefPopover termKey={k} /></> : null; })()}</h2>
           {currentQ.whyWeAsk && (
             <p className="text-xs text-muted-foreground mb-4 flex items-start gap-1.5">
               <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />

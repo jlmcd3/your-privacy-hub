@@ -16,6 +16,7 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
 
 const MATURITY = [
   "Not implemented",
@@ -139,26 +140,27 @@ export default function CPPACybersecurity() {
         <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7122(a). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
         <section className="bg-card border rounded-lg p-6 space-y-4">
           <h2 className="">Organisation Profile</h2>
+          <RequiredLegend />
           <div>
-            <Label>Industry sector *</Label>
+            <Label>Industry sector<Req /></Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="e.g. SaaS, healthcare, retail" />
           </div>
           <div>
-            <Label>Reportable security incidents in last 12 months *</Label>
+            <Label>Reportable security incidents in last 12 months<Req /></Label>
             <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.incidents_12mo} onChange={(e) => setProfile({ ...profile, incidents_12mo: e.target.value })}>
               <option value="">Select…</option>
               <option>None</option><option>1</option><option>2–5</option><option>More than 5</option>
             </select>
           </div>
           <div>
-            <Label>Primary security framework in use *</Label>
+            <Label>Primary security framework in use<Req /></Label>
             <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.framework} onChange={(e) => setProfile({ ...profile, framework: e.target.value })}>
               <option value="">Select…</option>
               <option>NIST CSF</option><option>ISO 27001</option><option>SOC 2</option><option>HITRUST</option><option>PCI DSS</option><option>None / informal</option><option>Other</option>
             </select>
           </div>
           <div>
-            <Label>Last independent security audit *</Label>
+            <Label>Last independent security audit<Req /></Label>
             <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.last_audit} onChange={(e) => setProfile({ ...profile, last_audit: e.target.value })}>
               <option value="">Select…</option>
               <option>Within 12 months</option><option>12–24 months ago</option><option>Over 24 months ago</option><option>Never</option>
@@ -181,7 +183,7 @@ export default function CPPACybersecurity() {
               <p className="text-xs text-muted-foreground mt-1 mb-3">{c.description}</p>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">Maturity *</Label>
+                  <Label className="text-xs">Maturity<Req /></Label>
                   <select className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
                     <option value="">Select…</option>
                     {MATURITY.map((m) => <option key={m}>{m}</option>)}

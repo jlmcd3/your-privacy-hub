@@ -22,6 +22,7 @@ import {
   type Question,
   type FlagCondition,
 } from "@/data/us-notice-questions";
+import { Req, RequiredLegend } from "@/components/RequiredMark";
 
 type AnswerValue = string | string[] | null;
 
@@ -271,6 +272,7 @@ export default function USNoticeQuestions() {
 
       <Card>
         <CardContent className="p-6 md:p-8 space-y-6">
+          <RequiredLegend />
           {/* Jurisdiction badges */}
           {currentQuestion.jurisdictionOnly && currentQuestion.jurisdictionOnly.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -285,9 +287,7 @@ export default function USNoticeQuestions() {
           {/* Question text */}
           <h2 className="font-serif text-foreground leading-snug">
             {currentQuestion.text}
-            {currentQuestion.isRequired && (
-              <span className="text-destructive ml-1">*</span>
-            )}
+            {currentQuestion.isRequired && <Req />}
           </h2>
 
           {/* Why we ask */}
