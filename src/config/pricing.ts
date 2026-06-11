@@ -799,18 +799,18 @@ export const PRICING = {
   },
   professional: {
     monthly: {
-      display: '$35',
-      dollars: 35,
-      cents: 3500,
+      display: '$49',
+      dollars: 49,
+      cents: 4900,
       label: 'month',
       stripePriceId: 'professional_monthly',
     },
     annual: {
-      display: '$350',
-      dollars: 350,
-      cents: 35000,
+      display: '$490',
+      dollars: 490,
+      cents: 49000,
       label: 'year',
-      savingDisplay: 'Save $70 — pay for 10 months, get 12',
+      savingDisplay: 'Save $98 — pay for 10 months, get 12',
       note: 'Annual subscription required to activate client management',
       stripePriceId: 'professional_annual',
     },
@@ -823,9 +823,9 @@ export const PRICING = {
     },
     // Legacy alias — some UI still reads `.base`.
     base: {
-      display: '$35',
-      dollars: 35,
-      cents: 3500,
+      display: '$49',
+      dollars: 49,
+      cents: 4900,
       label: 'month',
       stripePriceId: 'professional_monthly',
     },
