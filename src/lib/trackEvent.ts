@@ -35,7 +35,7 @@ export async function trackEvent(
     const page_path =
       typeof window !== "undefined" ? window.location.pathname : null;
 
-    await supabase.from("user_events").insert({
+    await (supabase as any).from("user_events").insert({
       user_id,
       session_id,
       event_type,
