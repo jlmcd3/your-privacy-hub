@@ -2,14 +2,18 @@
 // Parses recitals (1)..(173) and Articles 1..99 into gdpr_recitals / gdpr_articles.
 // Embeds body_text via Lovable AI Gateway. Idempotent via sha256(body_text).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  EU_SOURCE_URL as SOURCE_URL,
+  htmlToText,
+  parseRecitals,
+  parseArticles,
+  sha256,
+} from "../_shared/gdpr-parsers.ts";
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN_TOKEN = Deno.env.get("ADMIN_SECRET_TOKEN") ?? "";
-
-const SOURCE_URL =
-  "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02016R0679-20160504";
 
 const EMBEDDING_MODEL = "openai/text-embedding-3-small";
 const EMBEDDING_DIMS = 1536;
