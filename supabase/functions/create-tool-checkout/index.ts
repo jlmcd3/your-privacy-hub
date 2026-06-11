@@ -12,13 +12,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Tool catalog. Lookup keys map to Stripe Price objects. Under the v8
-// pricing model (May 2026 memo): every tier pays the same standalone
-// price; the only discount is the founding-subscriber promotion
-// (20% off Smart Tools, 15% off Convenience Tools), applied at runtime
-// to founding_subscriber = true. `fallback_subscriber_cents` is the
-// founding-rate fallback. Keep in sync with src/config/pricing.ts
-// PRICING.tools and PRICING_REGISTRY.
+// PRICE MIRROR — these cents MUST mirror src/config/pricing.ts (v10).
+// Any price change updates BOTH files in the same commit. Verify with
+// /admin/pricing-reconciliation.
+const ANNUAL_GATED_TOOLS = new Set([
+  "li_assessment",
+  "governance_assessment",
+  "dpia_framework",
+  "cppa_risk_assessment",
+  "cppa_cybersecurity",
+  "cppa_suite",
+]);
 const TOOLS: Record<
   string,
   {
