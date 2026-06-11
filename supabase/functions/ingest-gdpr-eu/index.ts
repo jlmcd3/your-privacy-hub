@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
       jurisdiction: "eu",
       recital_number: rec.number,
       body_text: rec.body,
-      source_url: SOURCE_URL,
+      source_url: EU_RECITALS_SOURCE_URL,
       content_hash,
       embedding: embedding as any,
       embedding_model: embedding ? EMBEDDING_MODEL : null,
