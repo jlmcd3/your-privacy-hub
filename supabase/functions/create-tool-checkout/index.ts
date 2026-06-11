@@ -48,7 +48,7 @@ const TOOLS: Record<
     subscriber_lookup: "hc_subscriber_v2",
     table: "governance_assessments",
     fallback_standalone_cents: 8900,
-    fallback_subscriber_cents: 2500,
+    fallback_subscriber_cents: 4900,
   },
   dpia_framework: {
     name: "Impact Assessment Builder",
