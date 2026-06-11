@@ -16,9 +16,17 @@ interface ResearchPageHeaderProps {
   title: string;
   description: string;
   lastUpdated?: string;
+  contextUpdated?: string;
   stats?: StatItem[];
   feedCategory?: string;
   breadcrumbs?: BreadcrumbItem[];
+}
+
+function formatContextDate(iso?: string): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 export function ResearchPageHeader({
@@ -26,10 +34,12 @@ export function ResearchPageHeader({
   title,
   description,
   lastUpdated,
+  contextUpdated,
   stats,
   feedCategory,
   breadcrumbs,
 }: ResearchPageHeaderProps) {
+  const contextUpdatedLabel = formatContextDate(contextUpdated);
   const crumbs: BreadcrumbItem[] =
     breadcrumbs && breadcrumbs.length > 0
       ? breadcrumbs
