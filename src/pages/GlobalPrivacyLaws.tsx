@@ -96,6 +96,7 @@ const GlobalPrivacyLaws = () => (
     ]}
     intelligenceUpsellTopic="global privacy law developments"
   />
+  </>
 );
 
 export default GlobalPrivacyLaws;
