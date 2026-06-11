@@ -23,6 +23,7 @@ import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { InfoPopover } from "@/components/InfoPopover";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
+import SampleReportLink from "@/components/SampleReportLink";
 import { useToolDraft } from "@/hooks/useToolDraft";
 
 function formatRelativeTime(d: Date): string {
