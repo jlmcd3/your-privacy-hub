@@ -2,14 +2,18 @@
 // Parses recitals (1)..(173) and Articles 1..99 into gdpr_recitals / gdpr_articles.
 // Embeds body_text via Lovable AI Gateway. Idempotent via sha256(body_text).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  EU_SOURCE_URL as SOURCE_URL,
+  htmlToText,
+  parseRecitals,
+  parseArticles,
+  sha256,
+} from "../_shared/gdpr-parsers.ts";
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ADMIN_TOKEN = Deno.env.get("ADMIN_SECRET_TOKEN") ?? "";
-
-const SOURCE_URL =
-  "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02016R0679-20160504";
 
 const EMBEDDING_MODEL = "openai/text-embedding-3-small";
 const EMBEDDING_DIMS = 1536;
@@ -29,12 +33,6 @@ function json(b: unknown, s = 200) {
   });
 }
 
-async function sha256(s: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 async function embed(text: string): Promise<number[]> {
   const r = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
@@ -57,107 +55,6 @@ async function embed(text: string): Promise<number[]> {
     throw new Error(`Bad embedding shape: len=${v?.length}`);
   }
   return v;
-}
-
-// --- HTML to structured text ---------------------------------------------------
-
-function htmlToText(html: string): string {
-  // Drop scripts/styles
-  let s = html.replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "");
-  // Preserve structure: turn block tags into newlines
-  s = s.replace(/<\/(p|div|li|tr|h[1-6]|br)\s*>/gi, "\n")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/?(p|div|li|tr|td|th|h[1-6]|table|tbody|thead|span|a|b|i|em|strong|sup|sub)[^>]*>/gi, "");
-  // Strip remaining tags
-  s = s.replace(/<[^>]+>/g, "");
-  // Decode common entities
-  s = s.replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&[a-z]+;/gi, " ");
-  // Normalize whitespace: collapse runs of spaces/tabs but keep newlines
-  s = s.replace(/[ \t\u00a0]+/g, " ")
-    .replace(/ *\n */g, "\n")
-    .replace(/\n{3,}/g, "\n\n");
-  return s.trim();
-}
-
-interface ParsedRecital { number: number; body: string; }
-interface ParsedArticle { number: string; title: string; chapter: string | null; body: string; }
-
-function parseRecitals(text: string): ParsedRecital[] {
-  const adoptedIdx = text.search(/HAVE\s+ADOPTED\s+THIS\s+REGULATION/i);
-  const preamble = adoptedIdx > 0 ? text.slice(0, adoptedIdx) : text;
-  const recitals: ParsedRecital[] = [];
-  // Match (N) at start of line/paragraph, capture body until next (N+1) or end
-  const re = /(?:^|\n)\((\d{1,3})\)\s+([\s\S]*?)(?=\n\(\d{1,3}\)\s+|$)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(preamble)) !== null) {
-    const n = parseInt(m[1], 10);
-    if (n >= 1 && n <= 200) {
-      const body = m[2].trim().replace(/\s+/g, " ");
-      if (body.length > 10) recitals.push({ number: n, body });
-    }
-  }
-  // Dedupe by number, keep first
-  const seen = new Set<number>();
-  return recitals.filter((r) => (seen.has(r.number) ? false : (seen.add(r.number), true)));
-}
-
-function parseArticles(text: string): ParsedArticle[] {
-  const adoptedIdx = text.search(/HAVE\s+ADOPTED\s+THIS\s+REGULATION/i);
-  const body = adoptedIdx > 0 ? text.slice(adoptedIdx) : text;
-
-  // Find article headings: "Article N" on its own line
-  const headingRe = /^Article\s+(\d{1,3})\s*$/gm;
-  const matches: Array<{ num: string; start: number; end: number }> = [];
-  let m: RegExpExecArray | null;
-  while ((m = headingRe.exec(body)) !== null) {
-    matches.push({ num: m[1], start: m.index, end: m.index + m[0].length });
-  }
-  const articles: ParsedArticle[] = [];
-  // Also track most recent CHAPTER heading
-  for (let i = 0; i < matches.length; i++) {
-    const cur = matches[i];
-    const next = matches[i + 1];
-    const segment = body.slice(cur.end, next ? next.start : body.length);
-
-    // Title = first non-empty line(s) until a blank line or a numbered "1." paragraph
-    const lines = segment.split("\n").map((l) => l.trim());
-    const titleLines: string[] = [];
-    let bodyStartIdx = 0;
-    for (let j = 0; j < lines.length; j++) {
-      const ln = lines[j];
-      if (!ln) {
-        if (titleLines.length > 0) { bodyStartIdx = j + 1; break; }
-        continue;
-      }
-      if (/^\d+\.\s/.test(ln) || /^\(\d+\)\s/.test(ln)) {
-        bodyStartIdx = j;
-        break;
-      }
-      titleLines.push(ln);
-      if (titleLines.length >= 3) { bodyStartIdx = j + 1; break; }
-    }
-    const title = titleLines.join(" ").trim();
-    const articleBody = lines.slice(bodyStartIdx).join("\n").trim();
-
-    // Find chapter context: scan back from cur.start in body for last "CHAPTER ..."
-    const before = body.slice(0, cur.start);
-    const chapMatches = [...before.matchAll(/\bCHAPTER\s+[IVXLC]+\b[^\n]*(?:\n[^\n]+)?/g)];
-    const chapter = chapMatches.length ? chapMatches[chapMatches.length - 1][0].replace(/\s+/g, " ").trim() : null;
-
-    if (articleBody.length > 20) {
-      articles.push({ number: cur.num, title, chapter, body: articleBody });
-    }
-  }
-  // Dedupe by number (keep first occurrence)
-  const seen = new Set<string>();
-  return articles.filter((a) => (seen.has(a.number) ? false : (seen.add(a.number), true)));
 }
 
 // --- Main handler --------------------------------------------------------------

@@ -2,6 +2,13 @@
 // Parses CLML XML per article, strips F-code amendment markers and commentary, embeds, upserts.
 // Idempotent via sha256(body_text). UK recitals are intentionally NOT ingested.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  UK_INSERTED_IDS,
+  ukArticleXmlUrl,
+  ukArticleSourceUrl,
+  parseUkArticleXml,
+  sha256,
+} from "../_shared/gdpr-parsers.ts";
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -14,8 +21,6 @@ const EMBED_INPUT_MAX = 6000;
 const FETCH_GAP_MS = 250;
 const EMBED_GAP_MS = 150;
 
-const UK_INSERTED_IDS = ["4A", "44A", "45A", "45B", "45C", "47A", "49A"];
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -27,13 +32,6 @@ function json(b: unknown, s = 200) {
     status: s,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-}
-
-async function sha256(s: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
 }
 
 async function embed(text: string): Promise<number[]> {
@@ -59,85 +57,7 @@ async function embed(text: string): Promise<number[]> {
   return v;
 }
 
-// --- CLML XML parsing ---------------------------------------------------------
-
-function decodeEntities(s: string): string {
-  return s.replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&#(\d+);/g, (_m, c) => String.fromCodePoint(parseInt(c, 10)))
-    .replace(/&[a-z]+;/gi, " ");
-}
-
-// Remove a fully-qualified tag (with namespace prefix), including its content.
-function stripTag(xml: string, localName: string): string {
-  // matches <ns:Name ...> ... </ns:Name> or <Name ...> ... </Name>
-  const re = new RegExp(`<(?:[A-Za-z0-9]+:)?${localName}\\b[^>]*>[\\s\\S]*?</(?:[A-Za-z0-9]+:)?${localName}>`, "gi");
-  return xml.replace(re, "");
-}
-
-// Extract first matching element's inner XML.
-function firstInner(xml: string, localName: string): string | null {
-  const re = new RegExp(`<(?:[A-Za-z0-9]+:)?${localName}\\b[^>]*>([\\s\\S]*?)</(?:[A-Za-z0-9]+:)?${localName}>`, "i");
-  const m = xml.match(re);
-  return m ? m[1] : null;
-}
-
-function xmlToText(xml: string): string {
-  let s = xml;
-  // Strip elements that carry annotations/commentary, not operative text.
-  for (const tag of [
-    "Annotations", "Commentary", "CommentaryRef", "CommentaryCitation",
-    "Footnotes", "Footnote", "Reference", "AppendText",
-    "EditorialNote", "AnnotationCitation",
-  ]) {
-    s = stripTag(s, tag);
-  }
-  // Drop element tags but keep inner text.
-  s = s.replace(/<[^>]+>/g, " ");
-  s = decodeEntities(s);
-
-  // Strip F-code amendment markers: leading "F1", "F12", "F123" possibly followed by punctuation/space.
-  // These appear inline as superscript references to amendment annotations.
-  s = s.replace(/\bF\d{1,3}\b/g, " ");
-  // Strip stray "Textual Amendments" / "Modifications etc." headers if any survived
-  s = s.replace(/Textual Amendments[\s\S]{0,200}?(?=\n|$)/gi, " ");
-  s = s.replace(/Modifications etc[^.\n]{0,200}/gi, " ");
-
-  // Collapse whitespace.
-  s = s.replace(/\s+/g, " ").trim();
-  return s;
-}
-
-interface ParsedArticle {
-  number: string;
-  title: string;
-  body: string;
-}
-
-function parseArticleXml(xml: string, identifier: string): ParsedArticle | null {
-  // P1group / P1 typically wraps an article. Title is in Pnumber + Title (or Heading).
-  // Be defensive: take inner of first P1 if present, else whole doc.
-  const body = firstInner(xml, "P1") ?? xml;
-
-  // Title: try Title, then Heading.
-  const rawTitle = firstInner(body, "Title") ?? firstInner(body, "Heading") ?? "";
-  const title = xmlToText(rawTitle);
-
-  // Body text: strip the title block, then collapse the rest.
-  let bodyXml = body;
-  bodyXml = stripTag(bodyXml, "Title");
-  bodyXml = stripTag(bodyXml, "Heading");
-  // Pnumber labels the article number — drop the label, the operative text is in P1para/Text.
-  bodyXml = stripTag(bodyXml, "Pnumber");
-
-  const text = xmlToText(bodyXml);
-  if (text.length < 20) return null;
-  return { number: identifier, title, body: text };
-}
+type ParsedArticle = { number: string; title: string; body: string };
 
 // --- Main handler -------------------------------------------------------------
 
@@ -172,7 +92,7 @@ Deno.serve(async (req) => {
   const fetch_errors: Array<{ id: string; error: string }> = [];
 
   for (const id of ids) {
-    const xmlUrl = `https://www.legislation.gov.uk/eur/2016/679/article/${id}/data.xml`;
+    const xmlUrl = ukArticleXmlUrl(id);
     try {
       const r = await fetch(xmlUrl, {
         headers: { "User-Agent": userAgent, "Accept": "application/xml,text/xml" },
@@ -186,7 +106,7 @@ Deno.serve(async (req) => {
         console.error(`uk-gdpr article ${id}: http ${r.status}`);
       } else {
         const xml = await r.text();
-        const art = parseArticleXml(xml, id);
+        const art = parseUkArticleXml(xml, id);
         if (art) parsed.push(art);
         else fetch_errors.push({ id, error: "empty_after_parse" });
       }
@@ -214,7 +134,7 @@ Deno.serve(async (req) => {
 
   for (const art of parsed) {
     const content_hash = await sha256(art.body);
-    const sourceUrl = `https://www.legislation.gov.uk/eur/2016/679/article/${art.number}`;
+    const sourceUrl = ukArticleSourceUrl(art.number);
 
     const { data: existing } = await admin
       .from("gdpr_articles")
