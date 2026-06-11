@@ -337,9 +337,8 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
     const controlsOut: any[] = [];
     for (let idx = 0; idx < report.controls.length; idx++) {
       const c = report.controls[idx];
-      const subsection = `11 CCR § 7122(a)(${idx + 1})`;
-      const subFsor = fsorByCitation.get(subsection) ?? [];
-      const exact = [...subFsor, ...sectionFsor];
+      const citation = `11 CCR § 7123(b)`;
+      const exact = (fsorByCitation.get("11 CCR § 7123") ?? []).slice();
       const exactIds = new Set(exact.map((r: any) => r?.id).filter(Boolean));
 
       const gapContext = [c?.finding, c?.remediation, c?.regulatory_basis]
@@ -362,11 +361,18 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
 
       controlsOut.push({
         ...c,
-        fsor_citation: subsection,
-        fsor_commentary: merged.map(shapeFsorItem),
+        fsor_citation: citation,
+        fsor_commentary: merged.slice(0, 2).map(shapeFsorItem),
       });
     }
     report.controls = controlsOut;
+
+    // Section-level FSOR commentary attached once at report level (not per
+    // control) to avoid 18x duplication of the same agency text.
+    (report as any).fsor_section_commentary = {
+      "11 CCR § 7122": (fsorByCitation.get("11 CCR § 7122") ?? []).map(shapeFsorItem),
+      "11 CCR § 7123": (fsorByCitation.get("11 CCR § 7123") ?? []).map(shapeFsorItem),
+    };
 
     const obligation_snapshot = {
       captured_at: new Date().toISOString(),
