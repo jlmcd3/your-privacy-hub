@@ -86,9 +86,11 @@ const GlobalAuthorities = () => {
         );
       })
       .sort((a, b) => {
-        const ra = activityFor(a.monitoring_tier).rank;
-        const rb = activityFor(b.monitoring_tier).rank;
-        if (rb !== ra) return rb - ra;
+        const rgCompare = a.regionGroup.localeCompare(b.regionGroup);
+        if (rgCompare !== 0) return rgCompare;
+        const ta = a.monitoring_tier ?? Infinity;
+        const tb = b.monitoring_tier ?? Infinity;
+        if (ta !== tb) return ta - tb;
         return a.authority_name.localeCompare(b.authority_name);
       });
   }, [searchTerm, filter]);
@@ -174,6 +176,9 @@ const GlobalAuthorities = () => {
       </div>
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <p className="text-xs text-brand-mist mb-2">
+          Tier 1 authorities are under active enforcement monitoring in our intelligence pipeline.
+        </p>
         <div className="flex items-center justify-between mb-4">
           <p className="text-xs text-slate uppercase tracking-wider font-semibold">
             {filtered.length} {filtered.length === 1 ? "authority" : "authorities"} · sorted by enforcement activity
@@ -219,12 +224,18 @@ const GlobalAuthorities = () => {
                         <div className="text-[11px] text-slate mt-0.5">{entry.authority_abbreviation}</div>
                       )}
                     </div>
-                    <span
-                      className={`shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full border ${activity.cls}`}
-                      title="Enforcement activity derived from monitoring tier"
-                    >
-                      {activity.level}
-                    </span>
+                    {entry.monitoring_tier === 1 ? (
+                      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full border border-brand-teal text-brand-teal">
+                        Tier 1 · Active enforcement
+                      </span>
+                    ) : (
+                      <span
+                        className={`shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full border ${activity.cls}`}
+                        title="Enforcement activity derived from monitoring tier"
+                      >
+                        {activity.level}
+                      </span>
+                    )}
                   </div>
 
                   {entry.primary_legislation && (

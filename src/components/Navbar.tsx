@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown, ChevronRight, UserCircle2 } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight, UserCircle2, Landmark, Scale, Globe, Cpu, ScrollText, Building2, BookOpen, ArrowLeftRight, ScanFace, HeartPulse, Cookie, Siren } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
@@ -8,7 +8,7 @@ import ClientContextBar from "@/components/ClientContextBar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 // Helper component for icon images with fallback
-const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: string; alt?: string }) => {
+const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: ReactNode; alt?: string }) => {
   const [hasError, setHasError] = useState(false);
 
   if (!src || hasError) {
@@ -26,7 +26,7 @@ const IconImage = ({ src, fallback, alt = "" }: { src?: string; fallback: string
 };
 
 interface NavSubItem {
-  icon: string;
+  icon: ReactNode;
   iconImage?: string;
   label: string;
   description?: string;
@@ -239,11 +239,11 @@ const navItems: NavItem[] = [
         columnBg: "bg-white",
         column: 1,
         items: [
-          { icon: "\ud83c\uddfa\ud83c\uddf8", iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
-          { icon: "⚖️", label: "GDPR & UK GDPR", href: "/gdpr-enforcement" },
-          { icon: "🌐", label: "Global Privacy Laws", href: "/global-privacy-laws" },
-          { icon: "🤖", label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
-          { icon: "📜", label: "Legislation in Progress", href: "/legislation-tracker" },
+          { icon: <Landmark className="w-4 h-4 text-muted-foreground" />, iconImage: "/us-flag.svg", label: "U.S. Privacy Laws", href: "/us-privacy-laws" },
+          { icon: <Scale className="w-4 h-4 text-muted-foreground" />, label: "GDPR & UK GDPR", href: "/gdpr-enforcement" },
+          { icon: <Globe className="w-4 h-4 text-muted-foreground" />, label: "Global Privacy Laws", href: "/global-privacy-laws" },
+          { icon: <Cpu className="w-4 h-4 text-muted-foreground" />, label: "AI Privacy Regulations", href: "/ai-privacy-regulations" },
+          { icon: <ScrollText className="w-4 h-4 text-muted-foreground" />, label: "Legislation in Progress", href: "/legislation-tracker" },
         ],
       },
       {
@@ -254,8 +254,8 @@ const navItems: NavItem[] = [
         divider: true,
         column: 1,
         items: [
-          { icon: "🌍", label: "Global Privacy Authorities", href: "/global-privacy-authorities" },
-          { icon: "📖", label: "Key Privacy Terms", href: "/glossary" },
+          { icon: <Building2 className="w-4 h-4 text-muted-foreground" />, label: "Global Privacy Authorities", href: "/global-privacy-authorities" },
+          { icon: <BookOpen className="w-4 h-4 text-muted-foreground" />, label: "Key Privacy Terms", href: "/glossary" },
         ],
       },
       {
@@ -265,11 +265,11 @@ const navItems: NavItem[] = [
         columnBg: "bg-white",
         column: 2,
         items: [
-          { icon: "🔄", label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
-          { icon: "👁️", label: "Biometric Privacy Guide", href: "/biometric-privacy" },
-          { icon: "🏥", label: "Health Data Privacy Guide", href: "/health-data-privacy" },
-          { icon: "🍪", label: "Cookie Consent Guide", href: "/cookie-consent" },
-          { icon: "🚨", label: "Breach Response Guide", href: "/breach-notification" },
+          { icon: <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />, label: "Cross-Border Transfers Guide", href: "/cross-border-transfers" },
+          { icon: <ScanFace className="w-4 h-4 text-muted-foreground" />, label: "Biometric Privacy Guide", href: "/biometric-privacy" },
+          { icon: <HeartPulse className="w-4 h-4 text-muted-foreground" />, label: "Health Data Privacy Guide", href: "/health-data-privacy" },
+          { icon: <Cookie className="w-4 h-4 text-muted-foreground" />, label: "Cookie Consent Guide", href: "/cookie-consent" },
+          { icon: <Siren className="w-4 h-4 text-muted-foreground" />, label: "Breach Response Guide", href: "/breach-notification" },
         ],
       },
     ],
@@ -403,12 +403,21 @@ const Navbar = () => {
       <Link
         key={sub.label}
         to={sub.href}
-        className={`flex items-start px-3 py-2 rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy ${mobile ? "" : ""}`}
+        className={`flex items-start gap-2 px-3 py-2 rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy ${mobile ? "" : ""}`}
         onClick={() => {
           if (mobile) setMobileOpen(false);
           setOpenDropdown(null);
         }}
       >
+        {sub.iconImage ? (
+          <span className="shrink-0 mt-0.5">
+            <IconImage src={sub.iconImage} fallback={sub.icon} alt="" />
+          </span>
+        ) : sub.icon ? (
+          <span className="shrink-0 flex items-center justify-center w-4 h-4">
+            {sub.icon}
+          </span>
+        ) : null}
         <span className="flex-1 text-left min-w-0">
           <span className="flex items-center gap-2 flex-wrap">
             <span className="font-medium">{sub.label}</span>
