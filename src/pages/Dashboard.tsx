@@ -36,6 +36,7 @@ import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { useClientStore } from "@/stores/clientStore";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { toast } from "@/hooks/use-toast";
+import ProductCtaChip from "@/components/ProductCtaChip";
 
 
 interface EnforcementRow {
@@ -69,6 +70,7 @@ interface WeeklyBrief {
   published_at: string;
   source_map: Record<string, { title: string; url: string; source: string }> | null;
   top_enforcement_signals?: TopEnforcementSignal[] | null;
+  toolkit_ctas?: { slug: string; triggered_by: string }[] | null;
 }
 
 interface TopEnforcementSignal {
@@ -881,6 +883,30 @@ const Dashboard = () => {
                           <CitedParagraphs content={brief.why_this_matters} sourceMap={brief.source_map ?? {}} />
                         </div>
                         <SourcesList sourceMap={brief.source_map ?? {}} usedIn={brief.why_this_matters ?? ""} />
+                      </div>
+                    </section>
+                  )}
+
+                  {/* From the toolkit (CTA-3) */}
+                  {brief.toolkit_ctas && brief.toolkit_ctas.length > 0 && (
+                    <section className="py-7 border-t border-slate-100">
+                      <h3 className="text-meta uppercase tracking-[0.12em] text-brand-steel mb-2">
+                        🧰 From the toolkit
+                      </h3>
+                      <p className="text-sm text-slate-600 mb-4">
+                        Tools from End User Privacy relevant to this week's developments.
+                      </p>
+                      <div className="space-y-3">
+                        {brief.toolkit_ctas.slice(0, 3).map((c) => (
+                          <div key={c.slug}>
+                            <ProductCtaChip slug={c.slug} placement="weekly_brief" />
+                            {c.triggered_by && (
+                              <p className="text-xs text-muted-foreground mt-1 ml-1">
+                                Related coverage: {c.triggered_by}
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </section>
                   )}

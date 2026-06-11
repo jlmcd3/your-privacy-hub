@@ -1,7 +1,9 @@
 // TRIGGER MIRROR — slugs, triggers, and priority MUST mirror
 // src/lib/productRegistry.ts PRODUCT_REGISTRY exactly. Display fields
-// (name/route/pitch) are intentionally NOT mirrored — they resolve
-// client-side by slug. Update both files in the same commit.
+// (name/route/pitch) are intentionally NOT mirrored for the matcher, but
+// PRODUCT_DISPLAY below DOES mirror name+route for email rendering (no
+// frontend imports allowed in edge functions). Update both files in the
+// same commit.
 
 export interface ProductTrigger {
   slug: string;
@@ -206,3 +208,23 @@ export function matchProductCtas(
     .slice(0, maxResults)
     .map(({ slug, trigger }) => ({ slug, trigger }));
 }
+
+// Display mirror — names/routes copied verbatim from src/lib/productRegistry.ts.
+// Used by edge functions (e.g. email rendering) that cannot import frontend code.
+export const PRODUCT_DISPLAY: Record<string, { name: string; route: string }> = {
+  "cppa-risk-assessment": { name: "CPPA Risk Assessment — Module 1", route: "/cppa-risk-assessment" },
+  "cppa-cybersecurity": { name: "CPPA Cybersecurity Readiness — Module 2", route: "/cppa-cybersecurity" },
+  "cppa-scope-checker": { name: "CPPA Scope Checker", route: "/cppa-scope-checker" },
+  "governance-assessment": { name: "Privacy Program Assessment", route: "/governance-assessment" },
+  "dpia": { name: "Impact Assessment Builder", route: "/dpia-framework" },
+  "lia": { name: "Legitimate Interest Assessment", route: "/li-assessment" },
+  "ir-playbook": { name: "Incident Response Playbook", route: "/ir-playbook" },
+  "biometric-checker": { name: "Biometric Compliance Check", route: "/biometric-checker" },
+  "dpa-generator": { name: "Custom DPA Generator", route: "/dpa-generator" },
+  "ropa": { name: "RoPA Builder", route: "/ropa-builder" },
+  "us-notice": { name: "US Privacy Notice Builder", route: "/us-notice-builder" },
+  "eu-global-notice": { name: "EU & Global Privacy Notice Builder", route: "/eu-global-notice-builder" },
+  "registration-manager": { name: "Registration Manager", route: "/registration-manager" },
+  "intelligence-report": { name: "Privacy Intelligence Report", route: "/pricing" },
+  "intelligence-feed": { name: "Privacy Intelligence Feed", route: "/updates" },
+};

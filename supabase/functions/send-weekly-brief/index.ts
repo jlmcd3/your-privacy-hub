@@ -11,6 +11,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { sendEmail } from "../_shared/resend.ts";
+import { PRODUCT_DISPLAY } from "../_shared/product-triggers.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,10 +54,36 @@ function renderBriefHtml(brief: any): string {
     .map(([h, v]) => `<h2>${h}</h2>\n<div>${v}</div>`)
     .join("\n");
 
+  // CTA-3: "From the toolkit" email block. Omitted entirely when absent/empty.
+  const ctas: Array<{ slug: string; triggered_by?: string }> = Array.isArray(brief.toolkit_ctas)
+    ? brief.toolkit_ctas
+    : [];
+  let toolkitHtml = "";
+  if (ctas.length > 0) {
+    const rows = ctas
+      .map((c) => {
+        const d = PRODUCT_DISPLAY[c.slug];
+        if (!d) return "";
+        const url = `https://enduserprivacy.com${d.route}?utm_source=brief&utm_medium=email&utm_campaign=toolkit_cta`;
+        const attribution = c.triggered_by
+          ? `<div style="font-size:12px;color:#888;margin-top:4px">Related coverage: ${c.triggered_by}</div>`
+          : "";
+        return `<tr><td style="padding:10px 0;border-bottom:1px solid #eee"><a href="${url}" style="color:#1a4b8c;font-weight:600;text-decoration:none">${d.name} →</a>${attribution}</td></tr>`;
+      })
+      .filter(Boolean)
+      .join("\n");
+    if (rows) {
+      toolkitHtml = `<h2>From the toolkit</h2>
+<p style="color:#555;font-size:14px;margin:0 0 8px">Tools from End User Privacy relevant to this week's developments.</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-collapse:collapse">${rows}</table>`;
+    }
+  }
+
   return `<!doctype html><html><body style="font-family:system-ui,-apple-system,sans-serif;max-width:680px;margin:0 auto;padding:24px;color:#111">
 <h1>${brief.headline}</h1>
 <p style="color:#666;font-size:14px">${brief.week_label}</p>
 ${body}
+${toolkitHtml}
 <hr style="margin-top:32px;border:none;border-top:1px solid #eee">
 <p style="font-size:12px;color:#888">EndUserPrivacy Weekly Intelligence Brief</p>
 </body></html>`;

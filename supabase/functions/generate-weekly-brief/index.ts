@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
 
     const { data: rawArticles, error: fetchError } = await supabase
       .from("updates")
-      .select("title, summary, source_name, category, topic_tags, published_at, url, attention_level, legal_weight, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date")
+      .select("title, summary, source_name, category, topic_tags, published_at, url, attention_level, legal_weight, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date, product_ctas")
       .gte("published_at", weekStart.toISOString())
       .order("published_at", { ascending: false })
       .limit(60);
@@ -581,6 +581,20 @@ VERIFICATION STANDARDS:
 
     const sourceMap = Object.fromEntries(articles.map((a, i) => [i + 1, { title: a.title, url: a.url, source: a.source_name }]));
 
+    // CTA-3: deterministic toolkit recommendations from selected source articles.
+    // Dedupe by slug (first occurrence wins), cap at 3, attribute to first article's title.
+    const toolkitMap = new Map<string, { slug: string; triggered_by: string }>();
+    for (const a of articles as any[]) {
+      const ctas = Array.isArray(a.product_ctas) ? a.product_ctas : [];
+      for (const c of ctas) {
+        if (!c?.slug || toolkitMap.has(c.slug)) continue;
+        toolkitMap.set(c.slug, { slug: c.slug, triggered_by: a.title ?? "" });
+        if (toolkitMap.size >= 3) break;
+      }
+      if (toolkitMap.size >= 3) break;
+    }
+    const toolkitCtas = Array.from(toolkitMap.values());
+
     const { data: inserted, error: insertError } = await supabase
       .from("weekly_briefs")
       .insert({
@@ -606,6 +620,7 @@ VERIFICATION STANDARDS:
         published_at: new Date().toISOString(),
         verification_report: verificationReport,
         top_enforcement_signals: topEnforcementSignals,
+        toolkit_ctas: toolkitCtas,
       })
       .select()
       .single();

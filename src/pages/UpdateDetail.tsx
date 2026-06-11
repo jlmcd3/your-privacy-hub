@@ -11,6 +11,7 @@ import EmailSignup from "@/components/EmailSignup";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { ArrowLeft, ExternalLink, Tag, Lock } from "lucide-react";
 import InFeedAd from "@/components/InFeedAd";
+import ProductCtaChip from "@/components/ProductCtaChip";
 import { getSeverityLabel } from "@/lib/severity";
 
 interface AISummary {
@@ -72,6 +73,7 @@ interface Update {
   precedent_novelty: string | null;
   contextual_record: ContextualRecord | null;
   contextual_teaser: string | null;
+  product_ctas: { slug: string; trigger?: string }[] | null;
 }
 
 interface RelatedUpdate {
@@ -141,7 +143,7 @@ const UpdateDetail = () => {
     (supabase as any)
       .from("updates")
       .select(
-        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors, action_items, related_signals, contextual_teaser, contextual_record, source_tier, enrichment_quality",
+        "id, title, summary, url, category, source_name, source_domain, published_at, regulator, topic_tags, ai_summary, regulatory_theory, related_development, attention_level, affected_sectors, action_items, related_signals, contextual_teaser, contextual_record, source_tier, enrichment_quality, product_ctas",
       )
       .eq("id", id)
       .eq("is_hidden", false)
@@ -433,6 +435,16 @@ const UpdateDetail = () => {
                     </div>
                   )}
                 </section>
+
+                {article.product_ctas && article.product_ctas.length > 0 && (
+                  <div className="mt-4">
+                    <ProductCtaChip
+                      slug={article.product_ctas[0].slug}
+                      matchedTrigger={article.product_ctas[0].trigger}
+                      placement="article_detail"
+                    />
+                  </div>
+                )}
 
                 <InFeedAd />
 
