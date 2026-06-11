@@ -34,7 +34,7 @@ const SampleBriefLanguageToggle: React.FC<Props> = ({ englishContent, onLanguage
       }
 
       if (data?.translated_content) {
-        const dir: "ltr" | "rtl" = RTL_LANGS.has(chip.code) ? "rtl" : "ltr";
+        const dir: "ltr" | "rtl" = isRtl(chip.code) ? "rtl" : "ltr";
         onLanguageChange(data.translated_content, dir);
         setActiveLang(chip.code);
       } else {
