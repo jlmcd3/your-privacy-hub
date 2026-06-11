@@ -137,7 +137,7 @@ export default function HealthDataPrivacyPage() {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href="https://enduserprivacy.com/health-data-privacy" />
+        <link rel="canonical" href="/health-data-privacy" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",
