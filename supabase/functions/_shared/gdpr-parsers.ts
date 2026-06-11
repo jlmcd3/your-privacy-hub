@@ -2,13 +2,18 @@
 // and verify-gdpr-ingestion. Parsers MUST stay identical across callers
 // so that sha256(body_text) verification holds.
 
+// EUR-Lex serves datacenter clients a JavaScript bot-challenge page regardless
+// of headers. CELLAR (the EU Publications Office REST endpoint) is the official
+// machine-access interface and serves the full Official Journal text of the
+// original act — including the preamble/recitals, which consolidated versions
+// omit. Both articles and recitals therefore come from the original act.
+// KNOWN TRADE-OFF: the original act predates the 2018 EN corrigendum (minor
+// typographical corrections). Revisit post-launch if a consolidated HTML
+// manifestation becomes available in CELLAR.
 export const EU_SOURCE_URL =
-  "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02016R0679-20160504";
+  "https://publications.europa.eu/resource/celex/32016R0679";
 
-// The consolidated text above omits the preamble; recitals exist only in the
-// original act. Articles stay on the consolidated URL (incorporates corrigenda).
-export const EU_RECITALS_SOURCE_URL =
-  "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679";
+export const EU_RECITALS_SOURCE_URL = EU_SOURCE_URL;
 
 // EUR-Lex serves bot-style User-Agents a challenge page that parses to nothing.
 // All EUR-Lex fetches must use these browser-equivalent headers.
