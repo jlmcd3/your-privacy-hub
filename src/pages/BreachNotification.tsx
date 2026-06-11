@@ -71,12 +71,12 @@ export default function BreachNotificationPage() {
             synthesisKey: "breach__international",
             content: `<ul>
 <li><strong><a href="/jurisdiction/united-kingdom">UK GDPR</a></strong> — mirrors EU GDPR's 72-hour requirement; enforced by the <a href="/regulator/ico">ICO</a>.</li>
-<li><strong><a href="/jurisdiction/canada">Canada PIPEDA</a></strong> — notification required when breach creates a "real risk of significant harm"; oversight by the <a href="/regulator/opc">OPC</a>.</li>
-<li><strong><a href="/jurisdiction/australia">Australia NDB Scheme</a></strong> — notification to <a href="/regulator/oaic">OAIC</a> for "eligible data breaches"; 30-day assessment period.</li>
-<li><strong><a href="/jurisdiction/brazil">Brazil LGPD</a></strong> — notification to <a href="/regulator/anpd">ANPD</a> within a "reasonable time" (ANPD recommends 2 business days).</li>
-<li><strong><a href="/jurisdiction/china">China PIPL</a></strong> — immediate notification to authorities (<a href="/regulator/cac">CAC</a>) and affected individuals.</li>
+<li><strong><a href="/jurisdiction/canada">Canada PIPEDA</a></strong> — notification required when breach creates a "real risk of significant harm"; oversight by the <a href="/regulator/opc">Office of the Privacy Commissioner of Canada (OPC)</a>.</li>
+<li><strong><a href="/jurisdiction/australia">Australia NDB Scheme</a></strong> — notification to <a href="/regulator/oaic">Office of the Australian Information Commissioner (OAIC)</a> for "eligible data breaches"; 30-day assessment period.</li>
+<li><strong><a href="/jurisdiction/brazil">Brazil LGPD</a></strong> — notification to <a href="/regulator/anpd">National Data Protection Authority (ANPD)</a> within a "reasonable time" (ANPD recommends 2 business days).</li>
+<li><strong><a href="/jurisdiction/china">China PIPL</a></strong> — immediate notification to authorities (<a href="/regulator/cac">Cyberspace Administration of China (CAC)</a>) and affected individuals.</li>
 <li><strong><a href="/jurisdiction/india">India DPDP Act</a></strong> — notification to Data Protection Board "without delay".</li>
-<li><strong><a href="/jurisdiction/japan">Japan APPI</a></strong> — notification to <a href="/regulator/ppc">PPC</a> for breaches affecting 1,000+ individuals or sensitive data.</li>
+<li><strong><a href="/jurisdiction/japan">Japan APPI</a></strong> — notification to <a href="/regulator/ppc">Personal Information Protection Commission (PPC)</a> for breaches affecting 1,000+ individuals or sensitive data.</li>
 </ul>`,
           },
         ]}
