@@ -79,27 +79,40 @@ Deno.serve(async (req) => {
     ? body.only_articles.map((s: any) => String(s))
     : null;
 
-  // 1. Fetch EUR-Lex HTML
-  let html: string;
-  try {
-    const r = await fetch(SOURCE_URL, {
-      headers: {
-        "User-Agent": "EndUserPrivacy-GDPRIngest/1.0 (+https://enduserprivacy.com; contact: ops@enduserprivacy.com)",
-        "Accept": "text/html,application/xhtml+xml",
-      },
+  // 1. Fetch EUR-Lex HTML — articles from the consolidated text, recitals from
+  // the original act (the consolidated text omits the preamble).
+  async function fetchEurLex(url: string): Promise<string> {
+    const r = await fetch(url, {
+      headers: SOURCE_FETCH_HEADERS,
       signal: AbortSignal.timeout(60_000),
     });
-    if (!r.ok) return json({ error: `EUR-Lex fetch failed: ${r.status}` }, 502);
-    html = await r.text();
+    if (!r.ok) throw new Error(`EUR-Lex fetch failed: ${r.status} for ${url}`);
+    return await r.text();
+  }
+  let articlesHtml: string, recitalsHtml: string;
+  try {
+    articlesHtml = await fetchEurLex(SOURCE_URL);
+    recitalsHtml = await fetchEurLex(EU_RECITALS_SOURCE_URL);
   } catch (e) {
     return json({ error: `EUR-Lex fetch error: ${String(e).slice(0, 300)}` }, 502);
   }
 
-  const text = htmlToText(html);
+  const articlesText = htmlToText(articlesHtml);
+  const recitalsText = htmlToText(recitalsHtml);
 
   // 2. Parse
-  const recitals = parseRecitals(text);
-  const articles = parseArticles(text);
+  const recitals = parseRecitals(recitalsText);
+  const articles = parseArticles(articlesText);
+
+  // Fetch diagnostics — included in dry_run output to make source problems visible.
+  const fetch_diagnostics = {
+    articles_url: SOURCE_URL,
+    articles_html_chars: articlesHtml.length,
+    articles_text_head: articlesText.slice(0, 200),
+    recitals_url: EU_RECITALS_SOURCE_URL,
+    recitals_html_chars: recitalsHtml.length,
+    recitals_text_head: recitalsText.slice(0, 200),
+  };
 
   if (dry_run) {
     return json({
@@ -111,6 +124,7 @@ Deno.serve(async (req) => {
         sample_article: articles.find((a) => a.number === "6") ?? articles[0],
       },
       expected: { recitals: 173, articles: 99 },
+      fetch_diagnostics,
     });
   }
 
