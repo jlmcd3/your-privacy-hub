@@ -148,19 +148,19 @@ async function runGenerator(
     const activityRows = activities.map((a, i) => ({
       session_id: session.id,
       client_id: clientId,
-      display_name: a.activity_name,
-      category: a.category,
-      status: "complete",
+      display_name: a.activity_name as string,
+      category: a.category as string,
+      status: "complete" as const,
       completion_pct: 100,
       display_order: i,
     }));
-    const { data: insertedActs, error: aErr } = await supabase
+    const { data: insertedActs, error: aErr } = await (supabase as any)
       .from("ropa_processing_activities")
       .insert(activityRows)
       .select("id, display_order");
     if (aErr || !insertedActs) throw new Error(`activities: ${aErr?.message}`);
 
-    const answerRows: Array<Record<string, unknown>> = [];
+    const answerRows: Array<{ activity_id: string; session_id: string; question_key: string; answer_value: unknown }> = [];
     for (const inserted of insertedActs) {
       const src = activities[inserted.display_order as number];
       const map: Record<string, unknown> = {
@@ -181,7 +181,7 @@ async function runGenerator(
         answerRows.push({ activity_id: inserted.id, session_id: session.id, question_key: k, answer_value: v });
       }
     }
-    const { error: ansErr } = await supabase.from("ropa_answers").insert(answerRows);
+    const { error: ansErr } = await (supabase as any).from("ropa_answers").insert(answerRows);
     if (ansErr) throw new Error(`answers: ${ansErr.message}`);
 
     log("▶ Invoking generate-ropa-document...");
