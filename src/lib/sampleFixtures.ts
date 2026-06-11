@@ -37,7 +37,7 @@ const F_LIA_UK: SampleFixture = {
   variant: "uk",
   title: "Wearable safety telemetry on underground shift workers",
   scenario_summary:
-    "North Pole Manual Mining, Inc. (UK rare-earth mine) proposes wearable safety telemetry (location + heart rate) on underground shift workers. CPO Rudy Rangifer is leading the legitimate-interest analysis with works-council consultation, pseudonymised dashboards, and a 90-day retention cap.",
+    "North Pole Manual Mining Ltd (UK rare-earth mine) proposes wearable safety telemetry (location + heart rate) on underground shift workers. CPO Rudy Rangifer is leading the legitimate-interest analysis with works-council consultation, pseudonymised dashboards, and a 90-day retention cap.",
   source_table: "li_assessments",
   result_url_pattern: "/li-assessment/result/{id}",
   fixture: {
@@ -45,7 +45,7 @@ const F_LIA_UK: SampleFixture = {
       stage: "final",
       status: "pending",
       processing_description:
-        "North Pole Manual Mining, Inc. proposes wearable safety telemetry on underground shift workers at its UK rare-earth mining sites. Devices record approximate underground location (via beacon proximity) and continuous heart-rate. Data feeds a real-time control-room dashboard so supervisors can trigger evacuation, dispatch medics, or pause haulage when a worker exhibits signs of physiological stress or has entered a restricted zone.",
+        "North Pole Manual Mining Ltd proposes wearable safety telemetry on underground shift workers at its UK rare-earth mining sites. Devices record approximate underground location (via beacon proximity) and continuous heart-rate. Data feeds a real-time control-room dashboard so supervisors can trigger evacuation, dispatch medics, or pause haulage when a worker exhibits signs of physiological stress or has entered a restricted zone.",
       relationship_type: "Employee (existing employment relationship)",
       data_categories: ["Location data (workplace beacon proximity)", "Health or medical data (heart rate)", "Employee records"],
       jurisdictions: ["United Kingdom (UK GDPR)"],
@@ -152,12 +152,12 @@ const F_DPA_EU: SampleFixture = {
   variant: "eu",
   title: "Payroll/HR processing DPA with sub-processor",
   scenario_summary:
-    "North Pole Manual Mining, Inc. (UK Controller, ~2,400 employees) engages Abominal SM GmbH (German Processor) for payroll and HR processing, with Whiteout Watch Ltd (UK) as a sub-processor for security monitoring. The DPA spans UK GDPR + EU GDPR with SCCs and the UK IDTA addendum.",
+    "North Pole Manual Mining Ltd (UK Controller, ~2,400 employees) engages Abominal SM GmbH (German Processor) for payroll and HR processing, with Whiteout Watch Ltd (UK) as a sub-processor for security monitoring. The DPA spans UK GDPR + EU GDPR with SCCs and the UK IDTA addendum.",
   source_table: "dpa_documents",
   result_url_pattern: "/dpa-generator/result/{id}",
   fixture: {
     invoke_body_extras: {
-      controllerName: "North Pole Manual Mining, Inc.",
+      controllerName: "North Pole Manual Mining Ltd",
       controllerJurisdiction: "United Kingdom",
       processorName: "Abominal SM GmbH",
       processorJurisdiction: "Germany",
@@ -452,11 +452,11 @@ const F_ROPA_EU: SampleFixture = {
   variant: "eu",
   title: "Article 30 RoPA for UK mining controller",
   scenario_summary:
-    "North Pole Manual Mining, Inc. Article 30 record of processing activities covering HR, wearable safety telemetry, visitor management at mine sites, and supplier vetting. DPO Donna Dasher is the named contact.",
+    "North Pole Manual Mining Ltd Article 30 record of processing activities covering HR, wearable safety telemetry, visitor management at mine sites, and supplier vetting. DPO Donna Dasher is the named contact.",
   source_table: "ropa_document_versions",
   result_url_pattern: "/ropa/documents",
   fixture: {
-    org_name: "North Pole Manual Mining, Inc.",
+    org_name: "North Pole Manual Mining Ltd",
     author_name: "Donna Dasher (DPO)",
     profile: {
       legal_entity_type: "Private limited company (UK)",
@@ -468,7 +468,7 @@ const F_ROPA_EU: SampleFixture = {
       dpo_phone: "+44 20 7946 0010",
       eu_rep_name: "North Pole EU Representative GmbH",
       eu_rep_email: "eu-rep@northpolemanualmining.example",
-      uk_rep_name: "North Pole Manual Mining, Inc.",
+      uk_rep_name: "North Pole Manual Mining Ltd",
       uk_rep_email: "uk-rep@northpolemanualmining.example",
     },
     jurisdictions: [
@@ -483,7 +483,7 @@ const F_ROPA_EU: SampleFixture = {
         lawful_basis: "contract",
         special_category_basis: "Article 9(2)(b) employment-law condition for occupational-health data",
         data_categories: ["Employee records", "Financial data", "Contact identifiers", "Occupational-health data"],
-        data_subjects: "Employees and contractors of North Pole Manual Mining, Inc.",
+        data_subjects: "Employees and contractors of North Pole Manual Mining Ltd",
         recipients: "HR team; payroll processor Abominal SM GmbH (DE); HMRC; occupational-health provider",
         transfer_destination: "Germany (Abominal SM GmbH)",
         transfer_mechanism: "EU SCCs + UK IDTA addendum",
