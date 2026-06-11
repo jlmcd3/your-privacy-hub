@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { matchProductCtas } from "../_shared/product-triggers.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
