@@ -101,16 +101,16 @@ function parseBlocks(body: string): Block[] {
 
     // Numbered list — collect contiguous items, supporting wrapped lines
     if (numberedRe.test(line)) {
-      const items: string[] = [];
+      const items: { num: string; text: string }[] = [];
       while (i < lines.length) {
         const cur = lines[i].trim();
         const m = numberedRe.exec(cur);
         if (m) {
-          items.push(m[2]);
+          items.push({ num: m[1], text: m[2] });
           i++;
         } else if (cur && !subheadRe.test(cur) && !bulletRe.test(cur) && items.length > 0 && !numberedRe.test(cur)) {
           // continuation line — append to the last item
-          items[items.length - 1] += " " + cur;
+          items[items.length - 1].text += " " + cur;
           i++;
         } else {
           break;
