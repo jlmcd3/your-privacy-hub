@@ -156,10 +156,16 @@ Deno.serve(async (req) => {
     } catch { /* non-fatal */ }
 
     const enforcementContextStr = enforcementPrecedents.length > 0
-      ? enforcementPrecedents.map((r: any, i: number) =>
-          `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}`
-        ).join("\n")
+      ? enforcementPrecedents.map((r: any, i: number) => {
+          const provs = Array.isArray(r.statutory_provisions) && r.statutory_provisions.length
+            ? ` — citing ${r.statutory_provisions.join(", ")}` : "";
+          return `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}${provs}`;
+        }).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
+
+    // Unpack GDPR authority context from the parallel call
+    const gdprBlock: string = (gdprCtxResult as any)?.block || "";
+    const gdprMeta: any = (gdprCtxResult as any)?.meta || { attempted: false };
 
     // Fetch precedents from li_tracker_entries
     const { data: allPrecedents } = await supabase
