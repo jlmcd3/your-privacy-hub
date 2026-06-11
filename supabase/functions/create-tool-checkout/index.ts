@@ -12,7 +12,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// PRICE MIRROR — these cents MUST mirror src/config/pricing.ts (v10). (v10 deployed 2026-06-11)
+// PRICE MIRROR — these cents MUST mirror src/config/pricing.ts (v11). (v11 deployed 2026-06-11)
 // Any price change updates BOTH files in the same commit. Verify with
 // /admin/pricing-reconciliation.
 const ANNUAL_GATED_TOOLS = new Set([
@@ -39,8 +39,8 @@ const TOOLS: Record<
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     table: "li_assessments",
-    fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 3500,
+    fallback_standalone_cents: 9900,
+    fallback_subscriber_cents: 4900,
   },
   governance_assessment: {
     name: "Privacy Program Assessment Tool",
@@ -55,8 +55,8 @@ const TOOLS: Record<
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
-    fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4500,
+    fallback_standalone_cents: 9900,
+    fallback_subscriber_cents: 4900,
   },
   dpa_generator: {
     name: "Your Custom DPA",
@@ -160,24 +160,24 @@ const TOOLS: Record<
     standalone_lookup: "cppa_risk_standalone",
     subscriber_lookup: "cppa_risk_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 17900,
-    fallback_subscriber_cents: 9900,
+    fallback_standalone_cents: 22900,
+    fallback_subscriber_cents: 12900,
   },
   cppa_cybersecurity: {
     name: "CPPA Cybersecurity Readiness — Module 2",
     standalone_lookup: "cppa_cyber_standalone",
     subscriber_lookup: "cppa_cyber_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 24900,
-    fallback_subscriber_cents: 13900,
+    fallback_standalone_cents: 29900,
+    fallback_subscriber_cents: 16900,
   },
   cppa_suite: {
     name: "CPPA Full Audit Suite",
     standalone_lookup: "cppa_suite_standalone",
     subscriber_lookup: "cppa_suite_subscriber",
     table: "cppa_assessments",
-    fallback_standalone_cents: 34900,
-    fallback_subscriber_cents: 18900,
+    fallback_standalone_cents: 44900,
+    fallback_subscriber_cents: 24900,
   },
 
 };

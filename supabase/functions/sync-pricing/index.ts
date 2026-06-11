@@ -34,7 +34,7 @@ const corsHeaders = {
 };
 
 // ---------------------------------------------------------------------------
-//  PRICE MIRROR — MUST mirror src/config/pricing.ts PRICING_REGISTRY exactly. (v10 deployed 2026-06-11)
+//  PRICE MIRROR — MUST mirror src/config/pricing.ts PRICING_REGISTRY exactly. (v11 deployed 2026-06-11)
 //  Update both in the same commit.
 // ---------------------------------------------------------------------------
 type PriceKind = "subscription" | "one_time" | "tiered" | "addon";
@@ -89,8 +89,8 @@ const REGISTRY_SNAPSHOT: RegistryEntry[] = [
     lookupKey: "professional_monthly",
     productKey: "professional",
     productName: "Professional — Monthly",
-    description: "Monthly Professional subscription. Everything in Intelligence plus 3 seats. Annual subscription required to activate client management.",
-    amountCents: 3500,
+    description: "Monthly Professional subscription. Everything in Intelligence plus Professional tool rates. Annual subscription required to activate client workspaces.",
+    amountCents: 4900,
     currency: "usd",
     kind: "subscription",
     recurringInterval: "month",
@@ -100,8 +100,8 @@ const REGISTRY_SNAPSHOT: RegistryEntry[] = [
     lookupKey: "professional_annual",
     productKey: "professional",
     productName: "Professional — Annual",
-    description: "Annual Professional subscription. Save $60. Unlocks client/matter workspace, branded outputs, and 1 free Convenience Tool run per client per month.",
-    amountCents: 35000,
+    description: "Annual Professional subscription. Save $98. Unlocks client/matter workspace, branded outputs, and 1 free Convenience Tool run per client per month.",
+    amountCents: 49000,
     currency: "usd",
     kind: "subscription",
     recurringInterval: "year",
@@ -132,10 +132,10 @@ const REGISTRY_SNAPSHOT: RegistryEntry[] = [
   // Subscriber aliases mirror the standalone amount.
   { lookupKey: "hc_standalone_v2",        productKey: "governance_v8", productName: "Privacy Program Assessment (Standalone)",                  description: "Standalone per-use price for the Privacy Program Assessment Tool.",                                        amountCents: 8900,  currency: "usd", kind: "one_time", active: true },
   { lookupKey: "hc_subscriber_v2",        productKey: "governance_v8", productName: "Privacy Program Assessment (Subscriber)",                description: "Subscriber per-use price for the Privacy Program Assessment Tool.",                                       amountCents: 4900,  currency: "usd", kind: "addon",    active: true },
-  { lookupKey: "li_standalone_v2",        productKey: "lia_v8",        productName: "Legitimate Interest Assessment (Standalone)",              description: "Standalone per-use price for the LIA Tool.",                                                              amountCents: 6900,  currency: "usd", kind: "one_time", active: true },
-  { lookupKey: "li_subscriber_v2",        productKey: "lia_v8",        productName: "Legitimate Interest Assessment (Subscriber)",            description: "Subscriber per-use price for the LIA Tool.",                                                              amountCents: 3500,  currency: "usd", kind: "addon",    active: true },
-  { lookupKey: "dpia_standalone_v2",      productKey: "dpia_v8",       productName: "Impact Assessment Builder (Standalone)",                   description: "Standalone per-use price for the DPIA Tool.",                                                             amountCents: 7900,  currency: "usd", kind: "one_time", active: true },
-  { lookupKey: "dpia_subscriber_v2",      productKey: "dpia_v8",       productName: "Impact Assessment Builder (Subscriber)",                 description: "Subscriber per-use price for the DPIA Tool.",                                                             amountCents: 4500,  currency: "usd", kind: "addon",    active: true },
+  { lookupKey: "li_standalone_v2",        productKey: "lia_v8",        productName: "Legitimate Interest Assessment (Standalone)",              description: "Standalone per-use price for the LIA Tool.",                                                              amountCents: 9900,  currency: "usd", kind: "one_time", active: true },
+  { lookupKey: "li_subscriber_v2",        productKey: "lia_v8",        productName: "Legitimate Interest Assessment (Subscriber)",            description: "Subscriber per-use price for the LIA Tool.",                                                              amountCents: 4900,  currency: "usd", kind: "addon",    active: true },
+  { lookupKey: "dpia_standalone_v2",      productKey: "dpia_v8",       productName: "Impact Assessment Builder (Standalone)",                   description: "Standalone per-use price for the DPIA Tool.",                                                             amountCents: 9900,  currency: "usd", kind: "one_time", active: true },
+  { lookupKey: "dpia_subscriber_v2",      productKey: "dpia_v8",       productName: "Impact Assessment Builder (Subscriber)",                 description: "Subscriber per-use price for the DPIA Tool.",                                                             amountCents: 4900,  currency: "usd", kind: "addon",    active: true },
   { lookupKey: "dpa_standalone_v2",       productKey: "dpa_v8",        productName: "Custom DPA Generator (Standalone)",                        description: "Standalone per-use price for the DPA Generator.",                                                         amountCents: 4900,  currency: "usd", kind: "one_time", active: true },
   { lookupKey: "dpa_subscriber_v2",       productKey: "dpa_v8",        productName: "Custom DPA Generator (Subscriber)",                      description: "Subscriber per-use price for the DPA Generator.",                                                         amountCents: 4900,  currency: "usd", kind: "addon",    active: true },
   { lookupKey: "ir_standalone_v2",        productKey: "ir_v8",         productName: "Incident Response Playbook (Standalone)",                    description: "Standalone per-use price for the Incident Response Playbook.",                                              amountCents: 5900,  currency: "usd", kind: "one_time", active: true },
@@ -144,7 +144,7 @@ const REGISTRY_SNAPSHOT: RegistryEntry[] = [
   { lookupKey: "biometric_standalone_v2", productKey: "biometric_v8",  productName: "Biometric Compliance Check (Standalone)",                  description: "Standalone per-use price for the Biometric Compliance Check.",                                            amountCents: 4900,  currency: "usd", kind: "one_time", active: true },
   // biometric_subscriber_v2 is FREE for subscribers — Stripe cannot price $0, so checkout is bypassed in create-tool-checkout. Not synced to Stripe.
   { lookupKey: "biometric_subscriber_v2", productKey: "biometric_v8",  productName: "Biometric Compliance Check (Subscriber)",                description: "Free for subscribers — bypasses Stripe checkout.",                                                        amountCents: 0,     currency: "usd", kind: "addon",    active: false },
-  { lookupKey: "ropa_initial_standalone", productKey: "rofa",          productName: "RoPA Builder — Initial Generation (Standalone)",           description: "Standalone per-use price for RoPA initial generation.",                                                   amountCents: 7900,  currency: "usd", kind: "one_time", active: true },
+  { lookupKey: "ropa_initial_standalone", productKey: "rofa",          productName: "RoPA Builder — Initial Generation (Standalone)",           description: "Standalone per-use price for RoPA initial generation.",                                                   amountCents: 9900,  currency: "usd", kind: "one_time", active: true },
   { lookupKey: "ropa_initial_subscriber", productKey: "rofa",          productName: "RoPA Builder — Initial (Subscriber)",                    description: "Subscriber per-use price for RoPA initial generation.",                                                   amountCents: 4900,  currency: "usd", kind: "addon",    active: true },
   { lookupKey: "ropa_refresh_standalone", productKey: "rofa",          productName: "RoPA Builder — Annual Refresh (Standalone)",               description: "Standalone per-use price for RoPA annual refresh.",                                                       amountCents: 7900,  currency: "usd", kind: "one_time", active: true },
   { lookupKey: "ropa_refresh_subscriber", productKey: "rofa",          productName: "RoPA Builder — Annual Refresh (Subscriber)",             description: "Subscriber per-use price for RoPA annual refresh.",                                                       amountCents: 4900,  currency: "usd", kind: "addon",    active: true },
@@ -152,14 +152,14 @@ const REGISTRY_SNAPSHOT: RegistryEntry[] = [
   { lookupKey: "us_notice_v7_subscriber", productKey: "us_notice_v8",  productName: "US Privacy Notice Builder (Subscriber alias)",          description: "Subscriber-rate alias (mirrors standalone) for any US notice variant.",                                   amountCents: 2500,  currency: "usd", kind: "addon",    active: true },
   { lookupKey: "eu_notice_v7_standalone", productKey: "eu_notice_v8",  productName: "EU & Global Privacy Notice Builder (Standalone)",          description: "Uniform per-use price for any EU/global notice variant.",                                                 amountCents: 4000,  currency: "usd", kind: "one_time", active: true },
   { lookupKey: "eu_notice_v7_subscriber", productKey: "eu_notice_v8",  productName: "EU & Global Privacy Notice Builder (Subscriber alias)", description: "Subscriber-rate alias (mirrors standalone) for any EU/global notice variant.",                            amountCents: 4000,  currency: "usd", kind: "addon",    active: true },
-  { lookupKey: "cppa_risk_standalone",    productKey: "cppa_risk",     productName: "CPPA Risk Assessment — Module 1 (Standalone)",             description: "Standalone per-use price for the CPPA Risk Assessment.",                                                  amountCents: 17900, currency: "usd", kind: "one_time", active: true },
-  { lookupKey: "cppa_risk_subscriber",    productKey: "cppa_risk",     productName: "CPPA Risk Assessment — Module 1 (Subscriber)",          description: "Subscriber per-use price for the CPPA Risk Assessment.",                                                  amountCents: 9900,  currency: "usd", kind: "addon",    active: true },
-  { lookupKey: "cppa_cyber_standalone",   productKey: "cppa_cyber",    productName: "CPPA Cybersecurity Readiness — Module 2 (Standalone)",     description: "Standalone per-use price for the CPPA Cybersecurity Readiness assessment.",                               amountCents: 24900, currency: "usd", kind: "one_time", active: true },
-  { lookupKey: "cppa_cyber_subscriber",   productKey: "cppa_cyber",    productName: "CPPA Cybersecurity Readiness — Module 2 (Subscriber)",   description: "Subscriber per-use price for the CPPA Cybersecurity Readiness assessment.",                               amountCents: 13900, currency: "usd", kind: "addon",    active: true },
-  { lookupKey: "cppa_suite_standalone",   productKey: "cppa_suite",    productName: "CPPA Full Audit Suite — Modules 1 & 2 (Standalone)",       description: "Complete CPPA audit readiness bundle.",                                                                   amountCents: 34900, currency: "usd", kind: "one_time", active: true },
-  { lookupKey: "cppa_suite_subscriber",   productKey: "cppa_suite",    productName: "CPPA Full Audit Suite — Modules 1 & 2 (Subscriber)",     description: "Subscriber per-use price for the CPPA Full Audit Suite.",                                                 amountCents: 18900, currency: "usd", kind: "addon",    active: true },
-  { lookupKey: "registration_standalone", productKey: "registration",  productName: "Registration Filings — DIY Toolkit (Standalone)",          description: "Flat per-filing price for the DPO / DPA / AI Act registration document pack. One price regardless of jurisdiction count.", amountCents: 4500, currency: "usd", kind: "one_time", active: true },
-  { lookupKey: "registration_subscriber", productKey: "registration",  productName: "Registration Filings — DIY Toolkit (Subscriber alias)", description: "Subscriber-rate alias (mirrors standalone) for the DPO / DPA / AI Act registration document pack.",                amountCents: 4500, currency: "usd", kind: "addon",    active: true },
+  { lookupKey: "cppa_risk_standalone",    productKey: "cppa_risk",     productName: "CPPA Risk Assessment — Module 1 (Standalone)",             description: "Standalone per-use price for the CPPA Risk Assessment.",                                                  amountCents: 22900, currency: "usd", kind: "one_time", active: true },
+  { lookupKey: "cppa_risk_subscriber",    productKey: "cppa_risk",     productName: "CPPA Risk Assessment — Module 1 (Subscriber)",          description: "Subscriber per-use price for the CPPA Risk Assessment.",                                                  amountCents: 12900, currency: "usd", kind: "addon",    active: true },
+  { lookupKey: "cppa_cyber_standalone",   productKey: "cppa_cyber",    productName: "CPPA Cybersecurity Readiness — Module 2 (Standalone)",     description: "Standalone per-use price for the CPPA Cybersecurity Readiness assessment.",                               amountCents: 29900, currency: "usd", kind: "one_time", active: true },
+  { lookupKey: "cppa_cyber_subscriber",   productKey: "cppa_cyber",    productName: "CPPA Cybersecurity Readiness — Module 2 (Subscriber)",   description: "Subscriber per-use price for the CPPA Cybersecurity Readiness assessment.",                               amountCents: 16900, currency: "usd", kind: "addon",    active: true },
+  { lookupKey: "cppa_suite_standalone",   productKey: "cppa_suite",    productName: "CPPA Full Audit Suite — Modules 1 & 2 (Standalone)",       description: "Complete CPPA audit readiness bundle.",                                                                   amountCents: 44900, currency: "usd", kind: "one_time", active: true },
+  { lookupKey: "cppa_suite_subscriber",   productKey: "cppa_suite",    productName: "CPPA Full Audit Suite — Modules 1 & 2 (Subscriber)",     description: "Subscriber per-use price for the CPPA Full Audit Suite.",                                                 amountCents: 24900, currency: "usd", kind: "addon",    active: true },
+  { lookupKey: "registration_standalone", productKey: "registration",  productName: "Registration Filings — DIY Toolkit (Standalone)",          description: "Flat per-filing price for the DPO / DPA / AI Act registration document pack. One price regardless of jurisdiction count.", amountCents: 5900, currency: "usd", kind: "one_time", active: true },
+  { lookupKey: "registration_subscriber", productKey: "registration",  productName: "Registration Filings — DIY Toolkit (Subscriber alias)", description: "Subscriber-rate alias (mirrors standalone) for the DPO / DPA / AI Act registration document pack.",                amountCents: 5900, currency: "usd", kind: "addon",    active: true },
 
 ];
 
