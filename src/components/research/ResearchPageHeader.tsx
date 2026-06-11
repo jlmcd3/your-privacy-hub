@@ -73,24 +73,43 @@ export function ResearchPageHeader({
           </ol>
         </nav>
 
-        <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-          {eyebrow}
-        </span>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 lg:gap-12 items-start">
+          <div>
+            <h1 className="font-serif text-white mb-2">{title}</h1>
 
-        <h1 className="font-serif text-white mb-3">{title}</h1>
+            <p className="text-slate-300 text-lg max-w-3xl mb-4 leading-relaxed">
+              {description}
+            </p>
 
-        <p className="text-slate-300 text-lg max-w-3xl mb-6 leading-relaxed">
-          {description}
-        </p>
+            {stats && stats.length > 0 && (
+              <div className="flex lg:hidden flex-wrap gap-x-8 gap-y-3 mt-4">
+                {stats.map((s) => (
+                  <div key={s.label}>
+                    <div className="font-serif text-[28px] leading-none text-white">{s.value}</div>
+                    <div className="text-[10px] tracking-[0.12em] uppercase text-slate-400 mt-1">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-        {(lastUpdated || contextUpdatedLabel) && (
-          <div className="text-xs text-slate-400 space-y-0.5">
-            {lastUpdated && <div>Last updated {lastUpdated}</div>}
-            {contextUpdatedLabel && <div>Context updated {contextUpdatedLabel}</div>}
+            {(lastUpdated || contextUpdatedLabel) && (
+              <p className="text-xs text-slate-400">
+                {[lastUpdated && `Last updated ${lastUpdated}`, contextUpdatedLabel && `Context updated ${contextUpdatedLabel}`].filter(Boolean).join(" · ")}
+              </p>
+            )}
           </div>
-        )}
 
-
+          {stats && stats.length > 0 && (
+            <div className="hidden lg:flex flex-col divide-y divide-white/15 border-y border-white/15 min-w-[180px]">
+              {stats.map((s) => (
+                <div key={s.label} className="py-3">
+                  <div className="font-serif text-[28px] leading-none text-white">{s.value}</div>
+                  <div className="text-[10px] tracking-[0.12em] uppercase text-slate-400 mt-1">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
       </div>
     </header>
