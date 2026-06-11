@@ -203,7 +203,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const GDPR_SYSTEM = `You are a senior data protection counsel specialising in GDPR compliance. Draft a complete, legally rigorous controller-processor Data Processing Agreement (DPA) compliant with GDPR Article 28. The agreement must be immediately usable as a professional document without further editing, except where fields are explicitly marked [TO BE COMPLETED].`;
+    const GDPR_SYSTEM = `You are a senior data protection counsel specialising in GDPR compliance. Draft a complete, legally rigorous controller-processor Data Processing Agreement (DPA) compliant with GDPR Article 28. The agreement must be immediately usable as a professional document without further editing, except where fields are explicitly marked [TO BE COMPLETED].
+
+UK-TO-EEA TRANSFER RULE: Where the Controller is established in the UK and the Processor in an EEA member state, the transfer-confirmation clause must state that the transfer is permitted under the UK's adequacy regulations covering the EEA, and that no additional Article 46 UK GDPR safeguards are required while those regulations remain in force. Do not describe such transfers as merely 'covered under the GDPR regime'.`;
 
     const US_SYSTEM = `You are a senior data protection counsel specialising in US state privacy law. Draft a complete, legally rigorous Data Processing Agreement compliant with all applicable US state privacy laws including CCPA/CPRA (California), TDPSA (Texas), CTDPA (Connecticut), VCDPA (Virginia), CPA (Colorado), OCPA (Oregon), and other state laws applicable based on the parties' jurisdictions and where their data subjects reside. The agreement must be immediately usable without further editing except where marked [TO BE COMPLETED].`;
 
