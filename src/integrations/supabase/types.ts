@@ -3734,6 +3734,39 @@ export type Database = {
         }
         Relationships: []
       }
+      research_freshness_flags: {
+        Row: {
+          checked_at: string
+          feed_category: string
+          flagged: boolean
+          id: string
+          new_articles_count: number
+          page_last_updated: string | null
+          page_slug: string
+          top_headlines: Json
+        }
+        Insert: {
+          checked_at?: string
+          feed_category: string
+          flagged?: boolean
+          id?: string
+          new_articles_count?: number
+          page_last_updated?: string | null
+          page_slug: string
+          top_headlines?: Json
+        }
+        Update: {
+          checked_at?: string
+          feed_category?: string
+          flagged?: boolean
+          id?: string
+          new_articles_count?: number
+          page_last_updated?: string | null
+          page_slug?: string
+          top_headlines?: Json
+        }
+        Relationships: []
+      }
       research_syntheses: {
         Row: {
           article_count: number
