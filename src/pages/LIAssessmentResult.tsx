@@ -26,6 +26,7 @@ const verdictColor = (v: string) => {
   if (x.includes("fail")) return "bg-red-100 text-red-800";
   return "bg-amber-100 text-amber-800";
 };
+const verdictLabel = (v: string) => ({ likely_passes: "Likely passes", likely_fails: "Likely fails", passes: "Passes", fails: "Fails", uncertain: "Uncertain" } as Record<string,string>)[v] ?? v.replace(/_/g, " ");
 
 const AnnotationCallout = ({ annotations }: { annotations: any[] }) => {
   if (!Array.isArray(annotations) || annotations.length === 0) return null;
