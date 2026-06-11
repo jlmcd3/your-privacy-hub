@@ -149,6 +149,37 @@ export default function AdminFsorIngestion() {
   const [extractResult, setExtractResult] = useState<ExtractResp | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const [verifyResult, setVerifyResult] = useState<string>("");
+  const [gdprBusy, setGdprBusy] = useState<string | null>(null);
+  const [gdprResult, setGdprResult] = useState<string>("");
+
+  async function runGdprIngest(fn: "ingest-gdpr-eu" | "ingest-gdpr-uk" | "ingest-edpb-guidelines", label: string) {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    setGdprBusy(fn);
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/${fn}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": adminToken,
+        },
+        body: JSON.stringify({}),
+      });
+      const data = await r.json();
+      const header = `${label} (HTTP ${r.status})`;
+      setGdprResult(`${header}\n${JSON.stringify(data, null, 2)}`);
+      if (!r.ok || data.error) {
+        toast.error(`${label} failed: ${data.error ?? r.status}`);
+      } else {
+        toast.success(`${label} done`);
+      }
+    } catch (e: any) {
+      toast.error(`${label} error: ${e?.message ?? e}`);
+      setGdprResult(`${label} threw: ${e?.message ?? e}`);
+    } finally {
+      setGdprBusy(null);
+    }
+  }
+
 
   const config = useMemo<PresetConfig | null>(() => {
     try { return JSON.parse(configJson); } catch { return null; }
