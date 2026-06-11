@@ -1,19 +1,8 @@
-# Private beta — only Google crawlers allowed (for AdSense review + Search indexing).
-# All other bots are blocked until public launch.
-
-User-agent: Googlebot
-Allow: /
-
-User-agent: Googlebot-Image
-Allow: /
-
-User-agent: Mediapartners-Google
-Allow: /
-
-User-agent: AdsBot-Google
-Allow: /
-
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /account
+Disallow: /auth
 
 Sitemap: https://enduserprivacy.com/sitemap.xml
