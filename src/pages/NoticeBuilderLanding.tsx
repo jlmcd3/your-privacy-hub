@@ -81,6 +81,10 @@ export default function NoticeBuilderLanding() {
             <Link to="/notices-ropa">My notice projects</Link>
           </Button>
         </div>
+        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+          <SampleReportLink toolSlug="us_notice" label="View a sample US notice" tone="onDark" variant="link" />
+          <SampleReportLink toolSlug="eu_notice" label="View a sample EU/Global notice" tone="onDark" variant="link" />
+        </div>
       </PageHero>
 
       <main className="flex-1">
