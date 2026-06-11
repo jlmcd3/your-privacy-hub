@@ -586,7 +586,7 @@ const App = () => (
               }
             />
 
-
+            <Route path="/samples/:toolSlug" element={<SampleReport />} />
 
 
             <Route
