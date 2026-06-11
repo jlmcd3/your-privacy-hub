@@ -136,6 +136,7 @@ Deno.serve(async (req) => {
             jurisdictions: [body.controllerJurisdiction, body.processorJurisdiction],
             data_categories: (body.dataCategories || []).map((c) => c.toLowerCase()),
             document_type: documentType,
+            articles: ["gdpr:28", "gdpr:32", "gdpr:33"],
             limit: 8,
           }),
           signal: enforcementController.signal,
