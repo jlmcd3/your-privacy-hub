@@ -5,6 +5,20 @@
 export const EU_SOURCE_URL =
   "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02016R0679-20160504";
 
+// The consolidated text above omits the preamble; recitals exist only in the
+// original act. Articles stay on the consolidated URL (incorporates corrigenda).
+export const EU_RECITALS_SOURCE_URL =
+  "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679";
+
+// EUR-Lex serves bot-style User-Agents a challenge page that parses to nothing.
+// All EUR-Lex fetches must use these browser-equivalent headers.
+export const SOURCE_FETCH_HEADERS: Record<string, string> = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Accept-Language": "en-GB,en;q=0.9",
+};
+
 export const UK_INSERTED_IDS = ["4A", "44A", "45A", "45B", "45C", "47A", "49A"];
 
 export function ukArticleXmlUrl(id: string): string {
@@ -42,7 +56,10 @@ export interface ParsedArticle { number: string; title: string; chapter: string 
 
 export function parseRecitals(text: string): ParsedRecital[] {
   const adoptedIdx = text.search(/HAVE\s+ADOPTED\s+THIS\s+REGULATION/i);
-  const preamble = adoptedIdx > 0 ? text.slice(0, adoptedIdx) : text;
+  // No preamble marker means the document contains no recitals (e.g. consolidated
+  // texts). Never scan the enacting terms — numbered paragraphs there are not recitals.
+  if (adoptedIdx <= 0) return [];
+  const preamble = text.slice(0, adoptedIdx);
   const recitals: ParsedRecital[] = [];
   const re = /(?:^|\n)\((\d{1,3})\)\s+([\s\S]*?)(?=\n\(\d{1,3}\)\s+|$)/g;
   let m: RegExpExecArray | null;

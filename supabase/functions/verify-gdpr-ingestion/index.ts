@@ -4,6 +4,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   EU_SOURCE_URL,
+  SOURCE_FETCH_HEADERS,
   htmlToText,
   parseArticles,
   parseUkArticleXml,
@@ -63,7 +64,7 @@ async function verifyEu(
   let parsedByNum = new Map<string, string>();
   try {
     const r = await fetch(EU_SOURCE_URL, {
-      headers: { "User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml" },
+      headers: SOURCE_FETCH_HEADERS,
       signal: AbortSignal.timeout(60_000),
     });
     if (!r.ok) throw new Error(`EUR-Lex http ${r.status}`);
