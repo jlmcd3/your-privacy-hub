@@ -247,7 +247,7 @@ const GovernanceAssessment = () => {
             <>
               <h2 className="">Data and Processing Profile</h2>
               <div>
-                <Label>Q6: Categories of personal data processed<Req /> <DefPopover termKey="gdpr_ropa" /></Label>
+                <Label>Q6: Categories of personal data processed<Req /></Label>
                 <div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div>
               </div>
               <div>
