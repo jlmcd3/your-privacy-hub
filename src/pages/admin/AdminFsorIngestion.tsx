@@ -183,6 +183,34 @@ export default function AdminFsorIngestion() {
     }
   }
 
+  async function runGdprVerify() {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    setGdprBusy("verify-gdpr-ingestion");
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/verify-gdpr-ingestion`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": adminToken,
+        },
+        body: JSON.stringify({ jurisdiction: "both" }),
+      });
+      const data = await r.json();
+      setGdprResult(`Verify Articles (HTTP ${r.status})\n${JSON.stringify(data, null, 2)}`);
+      if (!r.ok || data.error) {
+        toast.error(`Verify failed: ${data.error ?? r.status}`);
+      } else {
+        toast.success("Verification complete");
+      }
+    } catch (e: any) {
+      toast.error(`Verify error: ${e?.message ?? e}`);
+      setGdprResult(`Verify threw: ${e?.message ?? e}`);
+    } finally {
+      setGdprBusy(null);
+    }
+  }
+
+
 
   const config = useMemo<PresetConfig | null>(() => {
     try { return JSON.parse(configJson); } catch { return null; }
