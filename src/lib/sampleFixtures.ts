@@ -584,7 +584,7 @@ const F_EU_NOTICE: SampleFixture = {
   scenario_summary:
     "Misfit Toys Logistics Ltd customer-facing privacy notice spanning EU GDPR and UK GDPR. The notice covers fulfilment, returns, marketing (opt-in), and the SCC + UK addendum transfer story for US-based marketing tooling.",
   source_table: "eu_notice_sessions",
-  result_url_pattern: "/eu-notices/{id}/documents",
+  result_url_pattern: "/eu-notices/review/{id}",
   fixture: {
     session: { scope: "suite", mode: "standalone" },
     frameworks: [
