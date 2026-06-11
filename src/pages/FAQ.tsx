@@ -56,7 +56,7 @@ const pricingFaqs = [
   },
   {
     q: "What is included in Professional?",
-    a: `Professional (${P_MO} base + ${P_CLIENT}) includes everything in Intelligence for the account holder, plus a dedicated client/matter workspace, branded document outputs, and up to 3 team logins. RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are bundled in. Smart Tools (Governance, LIA, DPIA, CPPA) are per-use for all tiers; annual subscribers receive 1 free Smart Tool run per year. The CPPA Scope Checker is always free.`,
+    a: `Professional (${P_MO} base + ${P_CLIENT}) includes everything in Intelligence for the account holder, plus a dedicated client/matter workspace and branded document outputs. RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are bundled in. Smart Tools (Governance, LIA, DPIA, CPPA) are per-use for all tiers; annual subscribers receive 1 free Smart Tool run per year. The CPPA Scope Checker is always free.`,
   },
   {
     q: "Can I try the tools before subscribing?",

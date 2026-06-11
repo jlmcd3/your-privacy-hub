@@ -156,7 +156,7 @@ export const PRICING_REGISTRY = {
     productKey: "professional",
     productName: "Professional — Monthly",
     description:
-      "Monthly Professional subscription. Everything in Intelligence plus 3 seats. Annual subscription required to activate client management.",
+      "Monthly Professional subscription. Everything in Intelligence plus the client/matter workspace. Annual subscription required to activate client management.",
     amountCents: 3500,
     currency: "usd",
     displayPrice: "$35",
@@ -830,7 +830,6 @@ export const PRICING = {
       stripePriceId: 'professional_monthly',
     },
     // v9: freeToolRunsPerMonth retired — see ANNUAL_CREDIT (Layer 3).
-    teamLoginsIncluded: 3,
     additionalLoginMonthly: 10,
   },
   tools: {
