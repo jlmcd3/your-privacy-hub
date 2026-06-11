@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
         console.error(`uk-gdpr article ${id}: http ${r.status}`);
       } else {
         const xml = await r.text();
-        const art = parseArticleXml(xml, id);
+        const art = parseUkArticleXml(xml, id);
         if (art) parsed.push(art);
         else fetch_errors.push({ id, error: "empty_after_parse" });
       }
