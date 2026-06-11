@@ -549,7 +549,7 @@ export default function CPPARiskAssessmentResult() {
               <Button asChild variant="outline"><Link to="/cppa-risk-assessment">Run New Assessment</Link></Button>
               <Button asChild><Link to="/dashboard/reports">Back to My Reports</Link></Button>
             </div>
-          </>
+          </div>
         )}
       </main>
       <Footer />
