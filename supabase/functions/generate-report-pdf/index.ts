@@ -387,8 +387,8 @@ function blocksToHtml(blocks: TextBlock[]): string {
     }
     if (b.type === "para") return `<p class="body-p">${renderInlineHtml(b.text)}</p>`;
     if (b.type === "ol") {
-      return `<ol class="num-list">${b.items.map((it, j) =>
-        `<li><span class="num">${j + 1}</span><span class="li-body">${renderInlineHtml(it)}</span></li>`).join("")}</ol>`;
+      return `<ol class="num-list">${b.items.map((it) =>
+        `<li><span class="num">${escHtml(it.num)}</span><span class="li-body">${renderInlineHtml(it.text)}</span></li>`).join("")}</ol>`;
     }
     return `<ul class="dot-list">${b.items.map((it) =>
       `<li><span class="dot"></span><span class="li-body">${renderInlineHtml(it)}</span></li>`).join("")}</ul>`;
