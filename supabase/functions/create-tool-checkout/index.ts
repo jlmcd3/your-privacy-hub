@@ -39,8 +39,8 @@ const TOOLS: Record<
     standalone_lookup: "li_standalone_v2",
     subscriber_lookup: "li_subscriber_v2",
     table: "li_assessments",
-    fallback_standalone_cents: 6900,
-    fallback_subscriber_cents: 3500,
+    fallback_standalone_cents: 9900,
+    fallback_subscriber_cents: 4900,
   },
   governance_assessment: {
     name: "Privacy Program Assessment Tool",
@@ -55,8 +55,8 @@ const TOOLS: Record<
     standalone_lookup: "dpia_standalone_v2",
     subscriber_lookup: "dpia_subscriber_v2",
     table: "dpia_frameworks",
-    fallback_standalone_cents: 7900,
-    fallback_subscriber_cents: 4500,
+    fallback_standalone_cents: 9900,
+    fallback_subscriber_cents: 4900,
   },
   dpa_generator: {
     name: "Your Custom DPA",
