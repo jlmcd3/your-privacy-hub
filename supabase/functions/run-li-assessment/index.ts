@@ -496,6 +496,7 @@ Return JSON:
         ? "No enforcement decisions matching this jurisdiction and processing theory were retrieved from the precedent database. The analysis above may reference relevant decisions that are not yet indexed against this scenario — verify any cited cases directly."
         : null,
       three_part_test: analysis,
+      lint_warnings: lintViolations,
       annotations: (() => { try { return Array.isArray(analysis?.annotations) ? analysis.annotations : []; } catch { return []; } })(),
       documentation_recommendations: docRecs,
       disclaimer: "This report is a compliance framework tool produced to assist in identifying areas for legal review. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel before relying on legitimate interest as a processing legal basis under GDPR Article 6(1)(f) or equivalent provisions.",
