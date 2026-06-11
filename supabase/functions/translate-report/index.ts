@@ -1,283 +1,270 @@
 // translate-report
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared translation service used by every report tool (Biometric, DPA, DPIA,
-// LI, Governance, IR Playbook, Registration, Briefs).
+// User-callable, on-demand translation of any generated report into one of 23
+// languages. Mirrors translate-weekly-brief's structure-preservation prompt
+// + cache pattern, with two differences:
+//   - user JWT required (ownership check on the underlying report row)
+//   - a hard 4-language cap per (tool_type, report_id)
 //
-// Auth: requires a valid Supabase user JWT in the Authorization header.
-//       The user must own the source report row.
-//
-// Inputs (POST JSON):
-//   {
-//     report_type: 'biometric'|'dpa'|'dpia'|'li'|'governance'|'ir'|'registration',
-//     report_id:   uuid,
-//     target_lang: 'de'|'fr'|'es'|'it'|'nl'|'pl'|...
-//   }
-//
-// Behaviour:
-//   1. Loads the source report (RLS-scoped to the caller).
-//   2. Computes a sha256 of the source content.
-//   3. Returns cached translation if (report, lang, hash) already exists.
-//   4. Otherwise calls Lovable AI Gateway with a domain-specific prompt that
-//      injects the GDPR glossary terms for the target language as hard constraints.
-//   5. Caches the result and returns it.
+// Cost model: Haiku ~$0.01–0.03/translation, cached forever per (report, language), capped at 4 languages/report.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-2.5-flash"; // good balance of quality + cost for translation
+const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+
+// VERIFIED list: must match SampleBriefLanguageToggle.tsx (23 codes).
+const ALLOWED_LANGUAGES = new Set([
+  "fr","de","es","pt","ja","zh-CN","ar","ko","it","nl","pl","sv",
+  "da","no","fi","cs","ro","el","tr","th","id","hi","he",
+]);
 
 const LANGUAGE_NAMES: Record<string, string> = {
-  en: "English",
-  de: "German",
-  fr: "French",
-  es: "Spanish",
-  it: "Italian",
-  nl: "Dutch",
-  pl: "Polish",
-  pt: "Portuguese",
-  sv: "Swedish",
-  da: "Danish",
-  fi: "Finnish",
-  cs: "Czech",
-  ro: "Romanian",
-  el: "Greek",
+  fr: "French", de: "German", es: "Spanish", pt: "Portuguese",
+  ja: "Japanese", "zh-CN": "Chinese (Simplified)", ar: "Arabic",
+  ko: "Korean", it: "Italian", nl: "Dutch", pl: "Polish",
+  sv: "Swedish", da: "Danish", no: "Norwegian", fi: "Finnish",
+  cs: "Czech", ro: "Romanian", el: "Greek", tr: "Turkish",
+  th: "Thai", id: "Indonesian", hi: "Hindi", he: "Hebrew",
 };
 
-// Maps report_type → table name and the JSONB column that holds the translatable content.
-const REPORT_SOURCES: Record<
-  string,
-  { table: string; contentCol: string; textCol?: string }
-> = {
-  biometric:    { table: "biometric_assessments",   contentCol: "report_data", textCol: "analysis_text" },
-  dpa:          { table: "dpa_documents",           contentCol: "report_data", textCol: "document_text" },
-  dpia:         { table: "dpia_frameworks",         contentCol: "report_data" },
-  li:           { table: "li_assessments",          contentCol: "report_data" },
-  governance:   { table: "governance_assessments",  contentCol: "report_data" },
-  ir:           { table: "ir_playbooks",            contentCol: "report_data", textCol: "playbook_text" },
-  registration: { table: "registration_assessments", contentCol: "result_summary" },
+const TRANSLATION_NOTICE =
+  "Machine translation provided for convenience. The English original is the authoritative version of this document. Statutory citations refer to the official texts; official language versions are available from EUR-Lex or the issuing regulator.";
+
+// Map tool_type -> result table + text columns. Ownership is via user_id
+// directly unless `ownerVia` says otherwise (sessions/documents that route
+// through `clients.owner_id`).
+type ToolSource = {
+  table: string;
+  textColumns: string[];
+  ownerVia?: { joinTable: string; joinColumn: string; ownerColumn: string };
 };
 
-function jsonResponse(body: unknown, status = 200) {
+const TOOL_SOURCES: Record<string, ToolSource> = {
+  li_assessment:         { table: "li_assessments",         textColumns: ["report_data"] },
+  dpia_framework:        { table: "dpia_frameworks",        textColumns: ["report_data"] },
+  governance_assessment: { table: "governance_assessments", textColumns: ["report_data"] },
+  dpa:                   { table: "dpa_documents",          textColumns: ["report_data", "document_text"] },
+  ir_playbook:           { table: "ir_playbooks",           textColumns: ["report_data", "playbook_text"] },
+  biometric:             { table: "biometric_assessments",  textColumns: ["report_data", "analysis_text"] },
+  cppa_risk:             { table: "cppa_assessments",       textColumns: ["report_data", "document_a_text", "document_b_text"] },
+  cppa_cyber:            { table: "cppa_assessments",       textColumns: ["report_data", "document_a_text", "document_b_text"] },
+  // RoPA / notices: generated documents live as files in storage. The row
+  // itself carries no translatable prose, so we accept the request, verify
+  // ownership, and return NOT_TRANSLATABLE for now.
+  ropa:        { table: "ropa_sessions",        textColumns: [], ownerVia: { joinTable: "clients", joinColumn: "client_id", ownerColumn: "owner_id" } },
+  us_notice:   { table: "us_notice_sessions",   textColumns: [], ownerVia: { joinTable: "clients", joinColumn: "client_id", ownerColumn: "owner_id" } },
+  eu_notice:   { table: "eu_notice_sessions",   textColumns: [], ownerVia: { joinTable: "clients", joinColumn: "client_id", ownerColumn: "owner_id" } },
+};
+
+function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
 
-async function sha256(s: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+function stripFences(s: string): string {
+  let t = s.trim();
+  // ```json\n...\n```
+  t = t.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  return t;
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
-  try {
-    if (!LOVABLE_API_KEY) {
-      return jsonResponse({ error: "AI not configured" }, 500);
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+
+  // --- Auth: user JWT required ---
+  const authHeader = req.headers.get("authorization") ?? "";
+  if (!authHeader.toLowerCase().startsWith("bearer ")) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+  const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+    auth: { persistSession: false },
+  });
+  const { data: userRes, error: userErr } = await userClient.auth.getUser();
+  const user = userRes?.user;
+  if (userErr || !user) return json({ error: "Unauthorized" }, 401);
+
+  // --- Body ---
+  let body: any;
+  try { body = await req.json(); } catch { return json({ error: "Invalid JSON body" }, 400); }
+  const tool_type = typeof body?.tool_type === "string" ? body.tool_type : null;
+  const report_id = typeof body?.report_id === "string" ? body.report_id : null;
+  const language_code = typeof body?.language_code === "string" ? body.language_code : null;
+  if (!tool_type || !report_id || !language_code) {
+    return json({ error: "tool_type, report_id, and language_code are required" }, 400);
+  }
+
+  // English shortcut
+  if (language_code === "en") return json({ english: true });
+
+  if (!ALLOWED_LANGUAGES.has(language_code)) {
+    return json({ error: `Unsupported language: ${language_code}` }, 400);
+  }
+
+  const source = TOOL_SOURCES[tool_type];
+  if (!source) return json({ error: `Unknown tool_type: ${tool_type}` }, 400);
+
+  const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
+    auth: { persistSession: false },
+  });
+
+  // --- Fetch row + ownership check ---
+  const { data: row, error: rowErr } = await admin
+    .from(source.table)
+    .select("*")
+    .eq("id", report_id)
+    .maybeSingle();
+  if (rowErr) return json({ error: "Lookup failed", detail: rowErr.message }, 500);
+  if (!row) return json({ error: "Report not found" }, 404);
+
+  let isOwner = false;
+  if (source.ownerVia) {
+    const clientId = (row as any)[source.ownerVia.joinColumn];
+    if (clientId) {
+      const { data: joinRow } = await admin
+        .from(source.ownerVia.joinTable)
+        .select(source.ownerVia.ownerColumn)
+        .eq("id", clientId)
+        .maybeSingle();
+      isOwner = !!joinRow && (joinRow as any)[source.ownerVia.ownerColumn] === user.id;
     }
+  } else {
+    isOwner = (row as any).user_id === user.id;
+  }
+  if (!isOwner) return json({ error: "Forbidden" }, 403);
 
-    // ── Auth ────────────────────────────────────────────────────────────
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const token = authHeader.replace(/^Bearer\s+/i, "");
-    if (!token) return jsonResponse({ error: "Unauthorized" }, 401);
+  // --- Cache check ---
+  const { data: cached } = await admin
+    .from("report_translations")
+    .select("translated_payload")
+    .eq("tool_type", tool_type)
+    .eq("report_id", report_id)
+    .eq("language_code", language_code)
+    .maybeSingle();
+  if (cached?.translated_payload) {
+    return json({ translated_payload: cached.translated_payload, from_cache: true });
+  }
 
-    const userClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    });
-    const { data: userRes, error: userErr } = await userClient.auth.getUser(token);
-    if (userErr || !userRes?.user) return jsonResponse({ error: "Unauthorized" }, 401);
-    const user = userRes.user;
+  // --- 4-language cap (count existing distinct languages for this report) ---
+  const { count: cachedCount } = await admin
+    .from("report_translations")
+    .select("language_code", { count: "exact", head: true })
+    .eq("tool_type", tool_type)
+    .eq("report_id", report_id);
+  if ((cachedCount ?? 0) >= 4) {
+    return json(
+      { error: "TRANSLATION_LIMIT: This report has reached its limit of 4 translated languages." },
+      403,
+    );
+  }
 
-    // ── Validate input ──────────────────────────────────────────────────
-    const body = await req.json().catch(() => ({}));
-    const { report_type, report_id, target_lang } = body ?? {};
-    if (
-      typeof report_type !== "string" ||
-      typeof report_id !== "string" ||
-      typeof target_lang !== "string"
-    ) {
-      return jsonResponse({ error: "Missing report_type, report_id, or target_lang" }, 400);
+  // --- Build translatable payload from text columns ---
+  const payload: Record<string, unknown> = {};
+  for (const col of source.textColumns) {
+    const v = (row as any)[col];
+    if (v !== null && v !== undefined && !(typeof v === "string" && v.trim() === "")) {
+      payload[col] = v;
     }
-    const langName = LANGUAGE_NAMES[target_lang];
-    if (!langName) return jsonResponse({ error: `Unsupported language: ${target_lang}` }, 400);
-    if (target_lang === "en") return jsonResponse({ translated_content: null, note: "Source is already English" });
+  }
+  if (Object.keys(payload).length === 0) {
+    return json(
+      { error: "NOT_TRANSLATABLE: This document type does not yet support translation." },
+      400,
+    );
+  }
 
-    const source = REPORT_SOURCES[report_type];
-    if (!source) return jsonResponse({ error: `Unknown report_type: ${report_type}` }, 400);
+  if (!ANTHROPIC_KEY) {
+    return json({ error: "Translation service unavailable" }, 502);
+  }
 
-    // ── Service-role client for cache + glossary reads/writes ───────────
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+  const targetLanguageName = LANGUAGE_NAMES[language_code] ?? language_code;
 
-    // ── Load source report (scoped to caller via user_id check) ─────────
-    const cols = ["id", "user_id", source.contentCol, ...(source.textCol ? [source.textCol] : [])].join(", ");
-    const { data: row, error: rowErr } = await admin
-      .from(source.table)
-      .select(cols)
-      .eq("id", report_id)
-      .maybeSingle();
+  const systemPrompt =
+`You are a professional legal and regulatory translator specialising in privacy law, data protection, and technology regulation. Translate the JSON payload below from English into ${targetLanguageName}.
 
-    if (rowErr) {
-      console.error("translate-report: source lookup failed", rowErr);
-      return jsonResponse({ error: "Source lookup failed" }, 500);
-    }
-    if (!row) return jsonResponse({ error: "Report not found" }, 404);
-    if ((row as any).user_id !== user.id) return jsonResponse({ error: "Forbidden" }, 403);
+Requirements:
+- Translate ALL human-readable string values into ${targetLanguageName}.
+- Preserve JSON structure exactly: every key, array length, nesting, and non-string value unchanged.
+- NEVER translate: citation markers like [Art. 6(1)(f)], [Recital 47], [E1], [A2], [F3], [EDPB ...]; statutory citation strings (e.g. "GDPR Article 6(1)", "Cal. Civ. Code § 1798.140"); regulator names; URLs; dates; numbers; enum-like status values.
+- Return ONLY the translated JSON, no fences, no commentary.`;
 
-    const sourceContent = (row as any)[source.contentCol];
-    const sourceText = source.textCol ? (row as any)[source.textCol] : null;
-    if (!sourceContent && !sourceText) {
-      return jsonResponse({ error: "Report has no translatable content yet" }, 400);
-    }
-
-    // ── Compute hash for cache key ──────────────────────────────────────
-    const hashInput = JSON.stringify({ c: sourceContent ?? null, t: sourceText ?? null });
-    const contentHash = await sha256(hashInput);
-
-    // ── Cache hit? ──────────────────────────────────────────────────────
-    const { data: cached } = await admin
-      .from("report_translations")
-      .select("translated_content, created_at")
-      .eq("report_type", report_type)
-      .eq("report_id", report_id)
-      .eq("target_lang", target_lang)
-      .eq("content_hash", contentHash)
-      .maybeSingle();
-    if (cached) {
-      return jsonResponse({
-        translated_content: cached.translated_content,
-        cached: true,
-        created_at: cached.created_at,
-      });
-    }
-
-    // ── Load glossary for this language ─────────────────────────────────
-    const { data: glossary } = await admin
-      .from("translation_glossary")
-      .select("source_term, target_term, authority")
-      .eq("target_lang", target_lang)
-      .eq("source_lang", "en")
-      .eq("domain", "gdpr");
-
-    const glossaryBlock = (glossary ?? [])
-      .map((g) => `  • "${g.source_term}" → "${g.target_term}"${g.authority ? `   (${g.authority})` : ""}`)
-      .join("\n");
-
-    // ── Build the translation payload ───────────────────────────────────
-    // We translate one big JSON envelope so the AI returns the same shape.
-    const envelope = {
-      report_data: sourceContent ?? null,
-      ...(source.textCol ? { [source.textCol]: sourceText ?? null } : {}),
-    };
-
-    const systemPrompt = `You are a professional EU privacy-law translator. You translate compliance reports
-between English and ${langName}.
-
-GLOSSARY — these are the official statutory terms from the GDPR / national
-implementing law in ${langName}. You MUST use these exact translations whenever
-the English term appears, regardless of context or stylistic preference. Do not
-substitute synonyms. Preserve case where natural in the target language.
-
-${glossaryBlock || "  (no glossary entries — use standard GDPR terminology)"}
-
-Other rules:
-1. Preserve the EXACT JSON structure of the input. Translate only string values.
-2. Do NOT translate keys, UUIDs, dates, URLs, code identifiers, monetary amounts,
-   regulator acronyms (ICO, CNIL, BfDI, AEPD, Garante, AP, UODO, EDPB), citation
-   markers like [ref:N] or [1], or proper names of companies/people/laws.
-3. Article references stay in their original form: "GDPR Art. 6(1)(f)" → may be
-   localised ("RGPD art. 6, par. 1, point f") only if standard in the target
-   jurisdiction; otherwise keep the English form.
-4. Do not summarise, expand, or reorder content. One source sentence → one target
-   sentence whenever possible.
-5. Maintain the formal, advisory tone appropriate for a legal/compliance audience.
-6. Return ONLY valid JSON matching the input shape. No markdown, no commentary.`;
-
-    const userPrompt = `Translate the following compliance report into ${langName}.
-Return the same JSON shape with translated string values.
-
-INPUT JSON:
-${JSON.stringify(envelope, null, 2)}`;
-
-    // ── Call Lovable AI Gateway ─────────────────────────────────────────
-    const aiResp = await fetch(AI_URL, {
+  async function translateOnce(): Promise<any> {
+    const r = await fetch(ANTHROPIC_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_KEY!,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
+        model: ANTHROPIC_MODEL,
+        max_tokens: 8000,
+        system: systemPrompt,
+        messages: [{ role: "user", content: JSON.stringify(payload) }],
       }),
     });
-
-    if (aiResp.status === 429) {
-      return jsonResponse({ error: "Rate limit reached. Please try again in a moment." }, 429);
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      throw new Error(`Anthropic ${r.status}: ${t.slice(0, 400)}`);
     }
-    if (aiResp.status === 402) {
-      return jsonResponse({ error: "AI translation credits exhausted. Please contact support." }, 402);
-    }
-    if (!aiResp.ok) {
-      const errText = await aiResp.text();
-      console.error("translate-report: AI gateway error", aiResp.status, errText.slice(0, 500));
-      return jsonResponse({ error: "Translation service failed" }, 502);
-    }
-
-    const aiData = await aiResp.json();
-    const raw = aiData?.choices?.[0]?.message?.content;
-    if (typeof raw !== "string") {
-      return jsonResponse({ error: "Translation returned no content" }, 502);
-    }
-
-    let translated: any;
-    try {
-      translated = JSON.parse(raw);
-    } catch {
-      // Strip code fences if present
-      const stripped = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "");
-      translated = JSON.parse(stripped);
-    }
-
-    // ── Cache result ────────────────────────────────────────────────────
-    const { error: cacheErr } = await admin.from("report_translations").insert({
-      report_type,
-      report_id,
-      target_lang,
-      source_lang: "en",
-      content_hash: contentHash,
-      translated_content: translated,
-      model: MODEL,
-      user_id: user.id,
-    });
-    if (cacheErr) {
-      console.warn("translate-report: cache write failed (non-fatal)", cacheErr);
-    }
-
-    return jsonResponse({
-      translated_content: translated,
-      cached: false,
-      glossary_terms_applied: (glossary ?? []).length,
-    });
-  } catch (e) {
-    console.error("translate-report fatal", e);
-    return jsonResponse({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
+    const data = await r.json();
+    const block = Array.isArray(data?.content)
+      ? data.content.find((b: any) => b?.type === "text" && typeof b?.text === "string")
+      : null;
+    const text = block?.text?.trim();
+    if (!text) throw new Error("Empty translation text");
+    return JSON.parse(stripFences(text));
   }
+
+  let translated: any;
+  try {
+    translated = await translateOnce();
+  } catch (e1) {
+    console.error("[translate-report] first attempt failed:", (e1 as Error).message);
+    try {
+      translated = await translateOnce();
+    } catch (e2) {
+      console.error("[translate-report] retry failed:", (e2 as Error).message);
+      return json({ error: "Translation failed" }, 502);
+    }
+  }
+
+  // --- Disclaimer injection ---
+  if (translated && typeof translated === "object" && !Array.isArray(translated)) {
+    (translated as Record<string, unknown>).translation_notice = TRANSLATION_NOTICE;
+  } else {
+    translated = { content: translated, translation_notice: TRANSLATION_NOTICE };
+  }
+
+  // --- Cache insert (best effort) ---
+  const { error: insertErr } = await admin.from("report_translations").insert({
+    user_id: user.id,
+    tool_type,
+    report_id,
+    language_code,
+    translated_payload: translated,
+    model: ANTHROPIC_MODEL,
+  });
+  if (insertErr) {
+    const code = (insertErr as any)?.code ?? "";
+    if (code !== "23505") {
+      console.error("[translate-report] cache write failed:", insertErr.message);
+    }
+  }
+
+  return json({ translated_payload: translated, from_cache: false });
 });
