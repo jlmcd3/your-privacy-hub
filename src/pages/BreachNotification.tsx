@@ -45,7 +45,7 @@ export default function BreachNotificationPage() {
             h2: "GDPR Breach Notification — Articles 33 and 34",
             synthesisKey: "breach__gdpr",
             content: `<p>The <a href="https://gdpr-info.eu/art-33-gdpr/" target="_blank" rel="noopener noreferrer">GDPR</a> established the benchmark for modern breach notification. Controllers must notify the supervisory authority <strong>within 72 hours</strong> of becoming aware of a breach unless it is unlikely to result in risk. Communication to data subjects is required when the breach is likely to result in a "high risk" to individuals' rights and freedoms. Processors must notify controllers without undue delay.</p>
-<p>Enforcement examples: <strong>British Airways</strong> — <a href="/regulator/ico">ICO</a> fined £20M; <strong>Marriott</strong> — £18.4M for the Starwood breach; <strong>Meta/Facebook</strong> — <a href="/regulator/dpc">DPC</a> fined €265M for a scraping incident exposing 533M users' data.</p>`,
+<p>Enforcement examples: <strong>British Airways</strong> — <a href="/regulator/ico">Information Commissioner's Office (ICO)</a> fined £20M; <strong>Marriott</strong> — £18.4M for the Starwood breach; <strong>Meta/Facebook</strong> — <a href="/regulator/dpc">Data Protection Commission (DPC)</a> fined €265M for a scraping incident exposing 533M users' data.</p>`,
           },
           {
             id: "us-states",
