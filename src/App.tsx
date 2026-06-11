@@ -167,6 +167,7 @@ const PrimarySourceFetcher = lazy(() => import("./pages/admin/PrimarySourceFetch
 const CPPACorpusAdmin = lazy(() => import("./pages/admin/CPPACorpusAdmin"));
 const CPPAEvalHarness = lazy(() => import("./pages/admin/CPPAEvalHarness"));
 const AdminFsorIngestion = lazy(() => import("./pages/admin/AdminFsorIngestion"));
+const AdminSampleReports = lazy(() => import("./pages/admin/AdminSampleReports"));
 const TestsGdprDocs = lazy(() => import("./pages/admin/TestsGdprDocs"));
 const queryClient = new QueryClient();
 
@@ -573,6 +574,18 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/sample-reports"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminSampleReports />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
+
 
 
             <Route
