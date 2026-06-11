@@ -23,12 +23,12 @@ export default function BreachNotificationPage() {
           title: "Data Breach Notification Requirements by Jurisdiction",
           description:
             "Breach notification is the most operationally consequential area of privacy law: when something goes wrong, the clock starts immediately and the requirements vary by jurisdiction, sector, and data type. This reference consolidates the obligations you need to know.",
-          lastUpdated: "March 24, 2026",
+          lastUpdated: "June 10, 2026",
           feedCategory: "data-breach",
           stats: [
             { value: "72h", label: "GDPR notification window" },
             { value: "50", label: "US state laws tracked" },
-            { value: "€4.5B+", label: "GDPR fines to date" },
+            { value: "€7B+", label: "GDPR fines to date" },
             { value: "60d", label: "HIPAA breach window" },
           ],
         }}
