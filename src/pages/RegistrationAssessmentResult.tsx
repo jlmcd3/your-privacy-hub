@@ -15,7 +15,7 @@ import { Copy, Loader2, Mail } from "lucide-react";
 import RegistrationCheckoutModal, { type RegistrationTier } from "@/components/RegistrationCheckoutModal";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import DownloadWordButton from "@/components/DownloadWordButton";
-import { PRICING_REGISTRY } from "@/config/pricing";
+import { PRICING_REGISTRY, PRICING } from "@/config/pricing";
 
 interface JurisdictionResult {
   code: string;
@@ -340,7 +340,7 @@ export default function RegistrationAssessmentResult() {
                   title="DIY Toolkit"
                   price={`$${diyPrice}`}
                   priceFootnote={`Flat — any jurisdiction count`}
-                  blurb="One-time. Documents and a step-by-step filing checklist for each jurisdiction you select. Flat $45 regardless of count."
+                  blurb={`One-time. Documents and a step-by-step filing checklist for each jurisdiction you select. Flat ${PRICING.tools.registration.display} regardless of count.`}
                   cta={purchasing === "diy" ? "Loading…" : selectedCount === 0 ? "Select a jurisdiction" : "Get the toolkit"}
                   onClick={() => purchase("diy")}
                   disabled={purchasing !== null || selectedCount === 0}

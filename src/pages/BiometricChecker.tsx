@@ -1,4 +1,5 @@
 
+import { PRICING } from "@/config/pricing";
 import { useEffect, useState } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
@@ -174,7 +175,7 @@ export default function BiometricChecker() {
               ) : access.isPremium ? (
                 <p className="text-meta text-muted-foreground mb-3">You're signed in and ready to run your assessment.</p>
               ) : (
-                <p className="text-meta text-muted-foreground mb-3">Analysis is $49 — standard rate for all tiers.</p>
+                <p className="text-meta text-muted-foreground mb-3">Analysis is {PRICING.tools.biometric.display} — standard rate for all tiers.</p>
               )}
               <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
               <div className="flex gap-3 flex-wrap mt-4">
