@@ -21,6 +21,7 @@ interface Query {
   biometric?: boolean;
   breach?: boolean;
   limit?: number;
+  articles?: string[];       // canonical provision keys e.g. ["gdpr:6"] — primary-query-only filter
 }
 
 async function sha256(s: string): Promise<string> {
