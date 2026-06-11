@@ -147,23 +147,23 @@ Deno.serve(async (req) => {
   }
   if (!isOwner) return json({ error: "Forbidden" }, 403);
 
-  // --- Cache check ---
+  // --- Cache check (schema: report_type, target_lang, translated_content) ---
   const { data: cached } = await admin
     .from("report_translations")
-    .select("translated_payload")
-    .eq("tool_type", tool_type)
+    .select("translated_content")
+    .eq("report_type", tool_type)
     .eq("report_id", report_id)
-    .eq("language_code", language_code)
+    .eq("target_lang", language_code)
     .maybeSingle();
-  if (cached?.translated_payload) {
-    return json({ translated_payload: cached.translated_payload, from_cache: true });
+  if (cached?.translated_content) {
+    return json({ translated_payload: cached.translated_content, from_cache: true });
   }
 
   // --- 4-language cap (count existing distinct languages for this report) ---
   const { count: cachedCount } = await admin
     .from("report_translations")
-    .select("language_code", { count: "exact", head: true })
-    .eq("tool_type", tool_type)
+    .select("target_lang", { count: "exact", head: true })
+    .eq("report_type", tool_type)
     .eq("report_id", report_id);
   if ((cachedCount ?? 0) >= 4) {
     return json(
