@@ -126,9 +126,9 @@ export default function CrossBorderTransfersPage() {
         }}
         pageSynthesisKey="crossborder__page"
         topToolCta={{
-          toolName: "Transfer Impact Assessment Builder",
+          toolName: "Impact Assessment Builder (DPIA)",
           toolDescription:
-            "Walks your team through every required TIA step, jurisdiction by jurisdiction. Structured output ready for DPA review.",
+            "Transfer risk lives inside your impact assessments. Build a structured DPIA covering your cross-border processing — Schrems II factors, supplementary measures, and documentation formatted for counsel review.",
           href: "/dpia-framework",
         }}
         introBlock={<TransferMechanismSelector />}
