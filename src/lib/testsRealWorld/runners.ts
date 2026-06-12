@@ -365,7 +365,7 @@ const runRoPA: Runner = async ({ userId, log }) => {
   await supabase.from("ropa_answers").insert(ansRows);
 
   log("Invoking generate-ropa-document (PDF)…");
-  const { data: gen, error: genErr } = await supabase.functions.invoke("generate-ropa-document", {
+  const { error: genErr } = await supabase.functions.invoke("generate-ropa-document", {
     body: {
       session_id: session.id,
       format: "pdf",
@@ -373,9 +373,19 @@ const runRoPA: Runner = async ({ userId, log }) => {
       author_name: `${persona.org_name} Compliance Team`,
     },
   });
-  if (genErr || !gen?.download_url) {
-    throw new Error(`generator: ${genErr?.message ?? gen?.error ?? "no download_url"}`);
-  }
+  if (genErr) log(`Async generation started (background worker); polling for completion…`);
+
+  await pollStatus("ropa_sessions", session.id, 45, 4000, log);
+
+  // Confirm the document version row was written by the background worker.
+  const { data: ver } = await supabase
+    .from("ropa_document_versions")
+    .select("id, file_path, last_signed_url")
+    .eq("session_id", session.id)
+    .eq("document_format", "pdf")
+    .eq("is_current", true)
+    .maybeSingle();
+  if (!ver?.file_path) throw new Error("generator: no ropa_document_versions row after polling");
 
   return {
     targetTable: "ropa_sessions",
@@ -384,6 +394,7 @@ const runRoPA: Runner = async ({ userId, log }) => {
     resultUrl: "/ropa/documents",
   };
 };
+
 
 // ─── US Notice ───────────────────────────────────────────────────────────────
 
