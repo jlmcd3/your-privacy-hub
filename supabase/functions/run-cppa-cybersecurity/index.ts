@@ -401,11 +401,19 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
         merged = [...exact, ...extras];
       }
 
+      // R2: Strip any model-hallucinated section citation prefix from
+      // regulatory_basis, then prepend the verified CPPA citation deterministically.
+      const cleanedRegBasis = stripMd(c?.regulatory_basis ?? "")
+        .replace(/^\(?(?:11\s*CCR\s+)?§?\s*\d+[^—–\-]*?\)?\s*[—–\-]?\s*/i, "")
+        .trim();
+
       controlsOut.push({
         ...c,
+        regulatory_basis: `11 CCR § 7123(b) — ${cleanedRegBasis}`,
         fsor_citation: citation,
         fsor_commentary: merged.slice(0, 2).map(shapeFsorItem),
       });
+
     }
     report.controls = controlsOut;
 
