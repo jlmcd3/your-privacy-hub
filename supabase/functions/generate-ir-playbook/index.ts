@@ -561,13 +561,14 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
 
         let partA = "";
         let partB = "";
+        let partC = "";
         let incompleteReason: string | null = null;
         try {
-          console.log("[generate-ir-playbook] starting parallel generation halves");
+          console.log("[generate-ir-playbook] starting parallel generation (3 parts)");
           const r = await generateHalves("");
-          partA = r.partA; partB = r.partB;
+          partA = r.partA; partB = r.partB; partC = r.partC;
           if (r.incomplete) incompleteReason = r.incomplete;
-          console.log("[generate-ir-playbook] generation halves complete", { partAChars: partA.length, partBChars: partB.length, incomplete: incompleteReason });
+          console.log("[generate-ir-playbook] generation complete", { partAChars: partA.length, partBChars: partB.length, partCChars: partC.length, incomplete: incompleteReason });
         } catch (e: any) {
           console.error("[generate-ir-playbook] Claude parallel split-call failure:", e?.message || e);
           throw e;
@@ -587,7 +588,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return;
         }
 
-        let assembled = assembleFromHalves(partA, partB);
+        let assembled = assembleFromHalves(partA, partB, partC);
         let lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
         if (hasHardViolations(lint)) {
@@ -596,8 +597,8 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
             const retry = await generateHalves(
               `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the playbook again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
             );
-            partA = retry.partA; partB = retry.partB;
-            assembled = assembleFromHalves(partA, partB);
+            partA = retry.partA; partB = retry.partB; partC = retry.partC;
+            assembled = assembleFromHalves(partA, partB, partC);
             lint = lintReportText(assembled.playbook_text);
           } catch (e) {
             console.warn("[generate-ir-playbook] lint retry failed (non-fatal):", e);
