@@ -56,22 +56,57 @@ export default function TestIRPlaybookUS() {
     const { data, error } = await supabase.functions.invoke("generate-ir-playbook", {
       body: { ...MOCK_INTAKE, user_id: user.id },
     });
+
+    if (error || !data?.id) {
+      clearInterval(tick);
+      addLog(`❌ Edge function error: ${error?.message || data?.error || "no id returned"}`);
+      setStatus("failed");
+      return;
+    }
+
+    const id = data.id as string;
+    setRecordId(id);
+    addLog(`✓ Background generation started, ir_playbooks.id = ${id}`);
+
+    let playbookText = "";
+    let reportData: any = null;
+    for (let i = 0; i < 60; i++) {
+      await new Promise((r) => setTimeout(r, 4000));
+      const { data: row } = await supabase
+        .from("ir_playbooks")
+        .select("status, playbook_text, report_data")
+        .eq("id", id)
+        .maybeSingle();
+      const s = (row as any)?.status ?? "?";
+      if (s === "complete") {
+        playbookText = (row as any)?.playbook_text ?? "";
+        reportData = (row as any)?.report_data ?? null;
+        break;
+      }
+      if (s === "failed" || s === "error") {
+        clearInterval(tick);
+        addLog(`❌ ir_playbooks status=${s}`);
+        setStatus("failed");
+        return;
+      }
+      if (i % 3 === 0) addLog(`… poll ${i + 1}/60 (status: ${s})`);
+    }
     clearInterval(tick);
 
-    if (error || !data?.playbook_text) {
-      addLog(`❌ Edge function error: ${error?.message || data?.error || "no playbook_text returned"}`);
+    if (!playbookText) {
+      addLog(`❌ Timed out waiting for ir_playbooks completion`);
       setStatus("failed");
       return;
     }
 
     addLog(`✅ Complete after ${Math.round((Date.now() - startTime) / 1000)}s`);
-    addLog(`✓ Playbook length: ${data.playbook_text.length} chars`);
-    if (data.id) {
-      setRecordId(data.id);
-      addLog(`✓ Stored as ir_playbooks.id = ${data.id}`);
-    }
-    setPlaybook(data.playbook_text);
-    setMeta({ portals: data.portals, enforcement_precedents: data.enforcement_precedents, generated_at: data.generated_at });
+    addLog(`✓ Playbook length: ${playbookText.length} chars`);
+    setPlaybook(playbookText);
+    setMeta({
+      portals: reportData?.portals ?? null,
+      enforcement_precedents: reportData?.enforcement_precedents ?? null,
+      generated_at: reportData?.generated_at ?? null,
+    });
     setStatus("complete");
   }, [user, addLog, startTime]);
 
