@@ -402,15 +402,24 @@ export default function AdminSampleReports() {
   }
 
   async function onGeneratePdf(fix: SampleFixture) {
+    if (!user) { toast.error("Sign in first"); return; }
     const key = `${fix.tool_slug}::${fix.variant}`;
-    const run = runs[key];
-    if (!run?.sourceRowId || run.status !== "complete") {
-      toast.error("Generate report first");
-      return;
-    }
     setBusy(`pdfgen::${key}`);
-    appendLog(key, "▶ Rendering PDF via PDFShift…");
     try {
+      // Step 1: Run the live generator if we don't already have a complete source row.
+      let run = runs[key];
+      if (!run?.sourceRowId || run.status !== "complete") {
+        setRun(key, { status: "running", log: [], sourceRowId: null, resultUrl: null });
+        appendLog(key, `▶ Generating ${fix.title} report…`);
+        const { sourceRowId, resultUrl } = await runGenerator(fix, user.id, (m) => appendLog(key, m));
+        setRun(key, { status: "complete", sourceRowId, resultUrl });
+        run = { status: "complete", log: [], sourceRowId, resultUrl };
+      } else {
+        appendLog(key, "✓ Using existing completed run");
+      }
+
+      // Step 2: Render the report PDF via PDFShift and save to /samples/report-output.
+      appendLog(key, "▶ Rendering PDF via PDFShift…");
       const res = await callSaveSampleReport(adminToken, "generate_pdf", {
         tool_slug: fix.tool_slug,
         variant: fix.variant,
@@ -418,11 +427,12 @@ export default function AdminSampleReports() {
         scenario_summary: fix.scenario_summary,
         fixture: fix.fixture,
       });
-      appendLog(key, `✅ PDF generated (${res?.bytes ?? "?"} bytes) → /samples/report-output`);
-      toast.success(`PDF generated (${res?.bytes ?? "?"} bytes) — see /samples/report-output`);
+      appendLog(key, `✅ PDF saved (${res?.bytes ?? "?"} bytes) → /samples/report-output`);
+      toast.success(`PDF saved — see /samples/report-output`);
       await reloadSamples();
     } catch (e) {
       appendLog(key, `❌ PDF: ${(e as Error).message}`);
+      setRun(key, { status: "failed" });
       toast.error(`PDF generation failed: ${(e as Error).message}`);
     } finally { setBusy(null); }
   }
@@ -508,10 +518,10 @@ export default function AdminSampleReports() {
                   <Button
                     size="sm"
                     onClick={() => onGeneratePdf(fix)}
-                    disabled={run.status !== "complete" || busy === `pdfgen::${key}`}
-                    title={run.status !== "complete" ? "Generate the report first" : "Render PDF via PDFShift"}
+                    disabled={busy === `pdfgen::${key}` || run.status === "running"}
+                    title="Generate the report and render it as a PDF via PDFShift → saves to /samples/report-output"
                   >
-                    {busy === `pdfgen::${key}` ? "Rendering PDF…" : "Generate PDF (PDFShift)"}
+                    {busy === `pdfgen::${key}` ? "Generating & rendering PDF…" : "Generate PDF (PDFShift)"}
                   </Button>
                   {run.resultUrl && (
                     <Button size="sm" variant="outline" asChild>
