@@ -75,29 +75,65 @@ export default function TestIRPlaybook() {
     addLog("▶ Starting Breach IR Playbook test...");
     addLog("▶ Scenario: NHS ransomware breach · ~5,000 patients · UK + Ireland + EU/EEA");
     addLog(`▶ Logged in as: ${user.email}`);
-    addLog("▶ Invoking generate-ir-playbook (expect 30–80s, Sonnet)...");
+    addLog("▶ Invoking generate-ir-playbook (202 + background; polling ir_playbooks)…");
 
     const tick = setInterval(() => setElapsed(Math.round((Date.now() - startTime) / 1000)), 1000);
 
     const { data, error } = await supabase.functions.invoke("generate-ir-playbook", {
       body: buildBody(user.id),
     });
+
+    if (error || !data?.id) {
+      clearInterval(tick);
+      addLog(`❌ Edge function error: ${error?.message || data?.error || "no id returned"}`);
+      setStatus("failed");
+      return;
+    }
+
+    const id = data.id as string;
+    setRecordId(id);
+    addLog(`✓ Background generation started, ir_playbooks.id = ${id}`);
+
+    // Poll for completion (status: processing → complete | failed). Up to ~4 minutes.
+    let playbookText = "";
+    let reportData: any = null;
+    for (let i = 0; i < 60; i++) {
+      await new Promise((r) => setTimeout(r, 4000));
+      const { data: row } = await supabase
+        .from("ir_playbooks")
+        .select("status, playbook_text, report_data")
+        .eq("id", id)
+        .maybeSingle();
+      const s = (row as any)?.status ?? "?";
+      if (s === "complete") {
+        playbookText = (row as any)?.playbook_text ?? "";
+        reportData = (row as any)?.report_data ?? null;
+        break;
+      }
+      if (s === "failed" || s === "error") {
+        clearInterval(tick);
+        addLog(`❌ ir_playbooks status=${s}`);
+        setStatus("failed");
+        return;
+      }
+      if (i % 3 === 0) addLog(`… poll ${i + 1}/60 (status: ${s})`);
+    }
     clearInterval(tick);
 
-    if (error || !data?.playbook_text) {
-      addLog(`❌ Edge function error: ${error?.message || data?.error || "no playbook_text returned"}`);
+    if (!playbookText) {
+      addLog(`❌ Timed out waiting for ir_playbooks completion`);
       setStatus("failed");
       return;
     }
 
     addLog(`✅ Complete after ${Math.round((Date.now() - startTime) / 1000)}s`);
-    addLog(`✓ Playbook length: ${data.playbook_text.length} chars`);
-    if (data.id) {
-      setRecordId(data.id);
-      addLog(`✓ Stored as ir_playbooks.id = ${data.id}`);
-    }
-    setPlaybook(data.playbook_text);
-    setMeta({ portals: data.portals, enforcement_precedents: data.enforcement_precedents, generated_at: data.generated_at });
+    addLog(`✓ Playbook length: ${playbookText.length} chars`);
+    setPlaybook(playbookText);
+    setMeta({
+      portals: reportData?.portals,
+      enforcement_precedents: reportData?.enforcement_precedents,
+      generated_at: reportData?.generated_at,
+    });
     setStatus("complete");
   }, [user, addLog, startTime]);
 
