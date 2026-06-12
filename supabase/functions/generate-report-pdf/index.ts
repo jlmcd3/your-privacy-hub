@@ -85,66 +85,6 @@ async function generatePDF(
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// EMAIL DELIVERY HELPER
-// ─────────────────────────────────────────────────────────────────────────
-// PLACEHOLDER: Replace the body of this function with your email service call.
-// Environment variable to add to Supabase secrets: EMAIL_SERVICE_API_KEY
-// Also set: EMAIL_FROM_ADDRESS (e.g. reports@enduserprivacy.com)
-// ─────────────────────────────────────────────────────────────────────────
-async function sendEmail(opts: {
-  toEmail: string;
-  toName: string;
-  subject: string;
-  bodyHtml: string;
-  pdfBytes: Uint8Array | null;
-  attachmentName: string;
-}): Promise<boolean> {
-  const emailApiKey = Deno.env.get("EMAIL_SERVICE_API_KEY");
-  const fromAddress = Deno.env.get("EMAIL_FROM_ADDRESS") || "reports@enduserprivacy.com";
-  if (!emailApiKey) {
-    console.error("EMAIL_SERVICE_API_KEY not set in Supabase secrets.");
-    return false;
-  }
-
-  try {
-    // ── EMAIL SERVICE CALL ───────────────────────────────────────────────
-    // Replace everything between these comments with the actual service call.
-    // If pdfBytes is null, send the email without an attachment.
-    //
-    // Generic pattern for a transactional email REST API:
-    // const payload: any = {
-    //   from: fromAddress,
-    //   to: [{ email: opts.toEmail, name: opts.toName }],
-    //   subject: opts.subject,
-    //   html: opts.bodyHtml,
-    // };
-    // if (opts.pdfBytes) {
-    //   payload.attachments = [{
-    //     filename: opts.attachmentName,
-    //     content: btoa(String.fromCharCode(...opts.pdfBytes)),
-    //     type: "application/pdf",
-    //   }];
-    // }
-    // const response = await fetch("https://[EMAIL_SERVICE_ENDPOINT]", {
-    //   method: "POST",
-    //   headers: {
-    //     "Authorization": `Bearer ${emailApiKey}`,
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(payload),
-    //   signal: AbortSignal.timeout(15000),
-    // });
-    // return response.ok;
-    // ── END EMAIL SERVICE CALL ───────────────────────────────────────────
-
-    void fromAddress; void opts;
-    throw new Error("EMAIL_SERVICE_NOT_CONFIGURED");
-  } catch (e) {
-    console.error("sendEmail failed:", e);
-    return false;
-  }
-}
 
 // ─────────────────────────────────────────────────────────────────────────
 // SHARED META-LINE HELPER
@@ -898,33 +838,6 @@ function makeAttachmentName(toolType: string, generatedAt: string): string {
   return `EndUserPrivacy-${TOOL_LABELS[toolType] || "Report"}-${date}.pdf`;
 }
 
-function makeEmailSubject(toolType: string): string {
-  const labels: Record<string, string> = {
-    li_assessment: "Legitimate Interest Assessment",
-    governance_assessment: "Data Governance Readiness Assessment",
-    dpia_framework: "DPIA Framework",
-    biometric_checker: "Biometric Compliance Assessment",
-    ir_playbook: "Incident Response Playbook",
-    dpa_generator: "Custom DPA",
-  };
-  return `Your ${labels[toolType] || "Report"} is ready — EndUserPrivacy.com`;
-}
-
-function makeEmailBody(opts: {
-  toolType: string; recipientName: string;
-  reportTitle: string; resultUrl: string; hasPdf: boolean;
-}): string {
-  return `<div style="font-family:Arial,sans-serif;max-width:560px;color:#1a1916;">
-<h2 style="font-size:18px;border-bottom:1px solid #dddbd3;padding-bottom:8px;">Your ${opts.reportTitle} is ready</h2>
-<p>Hi${opts.recipientName ? " " + opts.recipientName : ""},</p>
-<p>Your report has been generated and is available on EndUserPrivacy.com.</p>
-<p style="margin:24px 0;"><a href="${opts.resultUrl}" style="background:#1a5276;color:white;padding:10px 20px;border-radius:4px;text-decoration:none;font-weight:bold;">View your report →</a></p>
-${opts.hasPdf ? "<p>A PDF copy is attached to this email.</p>" : ""}
-<p style="font-size:11px;color:#9c9a94;border-top:1px solid #dddbd3;padding-top:12px;margin-top:24px;">
-This report is a compliance framework tool and does not constitute legal advice. All findings should be reviewed with qualified legal counsel.<br><br>
-EndUserPrivacy.com &nbsp;|&nbsp; <a href="https://enduserprivacy.com">enduserprivacy.com</a>
-</p></div>`;
-}
 
 // ─────────────────────────────────────────────────────────────────────────
 // MAIN HANDLER
@@ -1072,9 +985,8 @@ Deno.serve(async (req) => {
     // ── CACHE CHECK ─────────────────────────────────────────────────────
     // If a PDF was already generated for this assessment, reuse it instead
     // of calling PDFShift again. Re-sign the stored object and return.
-    // Skip cache when `force=true` or when an email send is requested
-    // (so a fresh attachment can be delivered).
-    if (!force && !user_email) {
+    // Skip cache when `force=true`.
+    if (!force) {
       try {
         const folder = `reports/${table}/${assessment_id}`;
         const { data: existing } = await supabase.storage
@@ -1322,34 +1234,9 @@ Deno.serve(async (req) => {
       await supabase.from(table).update({ pdf_url: pdfUrl }).eq("id", assessment_id);
     }
 
-    let emailSent = false;
-    if (user_email) {
-      const toolLabels: Record<string, string> = {
-        li_assessment: "Legitimate Interest Assessment",
-        governance_assessment: "Data Governance Readiness Assessment",
-        dpia_framework: "DPIA Framework",
-        biometric_checker: "Biometric Compliance Assessment",
-        ir_playbook: "Incident Response Playbook",
-        dpa_generator: "Custom DPA",
-      };
-      emailSent = await sendEmail({
-        toEmail: user_email,
-        toName: user_name || "",
-        subject: makeEmailSubject(tool_type),
-        bodyHtml: makeEmailBody({
-          toolType: tool_type,
-          recipientName: user_name || "",
-          reportTitle: toolLabels[tool_type] || "Report",
-          resultUrl: result_url || `https://enduserprivacy.com/${tool_type.replace(/_/g, "-")}/result/${assessment_id}`,
-          hasPdf: !!pdfBytes,
-        }),
-        pdfBytes,
-        attachmentName,
-      });
-    }
 
     return new Response(
-      JSON.stringify({ success: true, pdf_generated: !!pdfBytes, pdf_url: pdfUrl, email_sent: emailSent }),
+      JSON.stringify({ success: true, pdf_generated: !!pdfBytes, pdf_url: pdfUrl, email_sent: false }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
