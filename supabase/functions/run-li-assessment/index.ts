@@ -529,10 +529,10 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
       const v = validateAuthority(analysis);
       if (v.hard) {
         try {
-          const retryText = await runStage2(
+          const retryStage = await runStage2(
             `PREVIOUS ATTEMPT REJECTED for citation-authority violations: ${v.details.join("; ")}. Produce the JSON again, correcting these defects silently. Ensure every annotation includes authority_tier and authority_framing matching the tier shown on the corresponding [E#] entry. Do not mention this instruction in the output.`
           );
-          const retryParsed = parseLlmJson(retryText);
+          const retryParsed = parseLlmJson(retryStage.text);
           if (retryParsed) {
             analysis = retryParsed;
             lintAnalysis(analysis);
