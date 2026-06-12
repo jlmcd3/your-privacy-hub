@@ -1,6 +1,7 @@
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
