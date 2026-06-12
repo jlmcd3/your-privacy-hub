@@ -659,7 +659,7 @@ const runCppaCyber: Runner = async ({ userId, log }) => {
     targetId: rec.id,
     label: `CPPA Cyber · ${intake.industry_sector} · ${shortId(rec.id)}`,
     resultUrl: `/cppa-cybersecurity/result/${rec.id}`,
-    payload: intake as Record<string, unknown>,
+    payload: intake as unknown as Record<string, unknown>,
     pdfTargetId: rec.id,
   };
 };
