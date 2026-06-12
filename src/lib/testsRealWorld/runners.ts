@@ -613,7 +613,7 @@ const runCppaCyber: Runner = async ({ userId, log }) => {
   return {
     targetTable: "cppa_assessments",
     targetId: rec.id,
-    label: `CPPA Cyber · ${intake.industry_sector}`,
+    label: `CPPA Cyber · ${intake.industry_sector} · ${shortId(rec.id)}`,
     resultUrl: `/cppa-cybersecurity/result/${rec.id}`,
   };
 };
