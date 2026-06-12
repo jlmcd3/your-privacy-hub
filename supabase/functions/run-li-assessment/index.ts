@@ -211,7 +211,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const tierTagFor = (r: any): string => {
       const t = r?.authority_tier;
       if (t === 1) return `TIER 1 — ${regimeLabel}`;
-      if (t === 2) return q.regime === "uk_gdpr" || enforcementRegime === "uk_gdpr"
+      if (t === 2) return enforcementRegime === "uk_gdpr"
         ? "TIER 2 — EU persuasive"
         : "TIER 2 — UK persuasive";
       if (t === 3) return "TIER 3 — non-EU/UK supportive only";
