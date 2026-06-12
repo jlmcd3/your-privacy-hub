@@ -345,6 +345,7 @@ Output ONLY the compliance assessment. No preamble.`,
           if (retryRes.ok) {
             const retryData = await retryRes.json();
             const retryFull = retryData.content?.[0]?.text ?? "";
+            console.log(`[check-biometric-compliance] gen done stop=${retryData.stop_reason ?? null} chars=${retryFull.length}`);
             let retryText = retryFull;
             const sep2 = retryFull.indexOf("===ANNOTATIONS===");
             if (sep2 !== -1) retryText = retryFull.slice(0, sep2).trim();
