@@ -484,7 +484,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
           continue;
         }
         const ctxTier = precedentById[id].authority_tier;
-        const ctxVerified = precedentById[id].verified !== false;
+        const ctxVerified = precedentById[id].verified !== false && precedentById[id].fine_verified !== false;
         if (ctxTier && ann.authority_tier !== ctxTier) {
           details.push(`annotation ${id} authority_tier=${ann.authority_tier} != retrieval tier ${ctxTier}`);
         }
@@ -495,7 +495,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
         if (ann.authority_tier === 3) tier3Count++;
         // Unverified fine-leak scan
         if (!ctxVerified) {
-          const fineDigits = String(precedentById[id].fine_amount || precedentById[id].fine_eur_equivalent || "").replace(/[^0-9]/g, "");
+          const fineDigits = String(precedentById[id].fine_eur_equivalent || "").replace(/[^0-9]/g, "");
           if (fineDigits.length >= 4) {
             const narrative = JSON.stringify(a);
             if (narrative.includes(fineDigits)) {
