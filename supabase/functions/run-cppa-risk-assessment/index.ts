@@ -15,6 +15,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BANNED_PHRASES, checkBannedPhrases } from "../_shared/citation-verifier.ts";
+import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 // Re-export so any downstream importers of this module see no behavioural change.
 export { BANNED_PHRASES, checkBannedPhrases };
