@@ -293,10 +293,39 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  // Authorize via either (a) admin shared token, or (b) authenticated user
+  // who has the `admin` app_role. /admin/sample-reports is already gated by
+  // AdminOnly client-side, so the JWT path lets admins use the page without
+  // pasting the shared secret.
   const headerToken = req.headers.get("x-admin-token") ?? "";
-  if (!ADMIN_TOKEN || headerToken !== ADMIN_TOKEN) {
-    return json({ error: "unauthorized" }, 401);
+  let authorized = ADMIN_TOKEN && headerToken === ADMIN_TOKEN;
+  if (!authorized) {
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (authHeader.startsWith("Bearer ")) {
+      try {
+        const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
+          global: { headers: { Authorization: authHeader } },
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const token = authHeader.replace("Bearer ", "");
+        const { data: claims } = await userClient.auth.getClaims(token);
+        const userId = claims?.claims?.sub;
+        if (userId) {
+          const probe = createClient(SUPABASE_URL, SERVICE_KEY, {
+            auth: { persistSession: false, autoRefreshToken: false },
+          });
+          const { data: role } = await probe
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", userId)
+            .eq("role", "admin")
+            .maybeSingle();
+          if (role) authorized = true;
+        }
+      } catch { /* fall through */ }
+    }
   }
+  if (!authorized) return json({ error: "unauthorized" }, 401);
 
   let body: any = {};
   try { body = await req.json(); } catch { /* may be empty for list */ }

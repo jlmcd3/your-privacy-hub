@@ -318,9 +318,13 @@ async function runGenerator(
 }
 
 async function callSaveSampleReport(adminToken: string, action: string, payload: Record<string, unknown>) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (adminToken) headers["x-admin-token"] = adminToken;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
   const r = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+    headers,
     body: JSON.stringify({ action, ...payload }),
   });
   const data = await r.json();
