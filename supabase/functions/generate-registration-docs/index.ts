@@ -41,9 +41,11 @@ async function callClaude(
   model: string,
   systemPrompt: string,
   userContent: string,
-  maxTokens: number = 4000
+  maxTokens: number = 4000,
+  timeoutMs: number = 240_000
 ): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
+  const startedAt = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -57,7 +59,7 @@ async function callClaude(
       system: systemPrompt,
       messages: [{ role: "user", content: userContent }],
     }),
-    signal: AbortSignal.timeout(120000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) {
     const txt = await res.text();
@@ -66,7 +68,8 @@ async function callClaude(
   const data = await res.json();
   const text = data.content?.[0]?.text || "";
   const stopReason: string | null = data.stop_reason ?? null;
-  console.log(`[generate-registration-docs] gen done stop=${stopReason} chars=${text.length}`);
+  const elapsed = Date.now() - startedAt;
+  console.log(`[generate-registration-docs] stage=callClaude model=${model} elapsed=${elapsed}ms stop=${stopReason} chars=${text.length}`);
   return { text, stopReason };
 }
 
