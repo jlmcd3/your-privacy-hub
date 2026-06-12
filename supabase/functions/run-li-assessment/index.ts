@@ -581,16 +581,13 @@ Return JSON:
       },
     }).catch((e: Error) => console.error("PDF/email delivery failed (non-fatal):", e));
 
-    return new Response(JSON.stringify({ success: true, assessment_id, report: reportData }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return;
 
   } catch (e) {
     console.error("run-li-assessment error:", e);
-    if (assessment_id) {
-      await supabase.from("li_assessments")
-        .update({ status: "failed" }).eq("id", assessment_id);
-    }
-    return new Response(JSON.stringify({ error: "Assessment failed. Please try again." }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    await supabase.from("li_assessments")
+      .update({ status: "failed" }).eq("id", assessment_id);
+    throw e;
   }
-});
+}
+
