@@ -145,7 +145,13 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     // Determine jurisdiction for GDPR authority retrieval (UK if any verified
     // assessment.jurisdictions value matches /united kingdom|uk|gb/i, else EU).
     const liaJurisdictions: string[] = Array.isArray(assessment.jurisdictions) ? assessment.jurisdictions : [];
-    const gdprJurisdiction: "eu" | "uk" = liaJurisdictions.some((j: string) => /united kingdom|uk|gb/i.test(String(j))) ? "uk" : "eu";
+    const isUk = liaJurisdictions.some((j: string) => /united kingdom|uk|gb/i.test(String(j)));
+    const isEu = liaJurisdictions.some((j: string) => /eu|gdpr|european/i.test(String(j))) && !isUk;
+    const gdprJurisdiction: "eu" | "uk" = isUk ? "uk" : "eu";
+    // Regime gates which enforcement precedents the LIA may cite. UK runs only
+    // see UK GDPR / DPA 2018; EU runs only see EU/EEA GDPR enforcement.
+    const enforcementRegime: "gdpr" | "uk_gdpr" = isUk ? "uk_gdpr" : "gdpr";
+    const regimeLabel = isUk ? "UK GDPR" : "EU GDPR";
 
     // Run classification, enforcement context fetch, and GDPR authority retrieval in parallel
     const [classifyText, enforcementCtxResult, gdprCtxResult] = await Promise.all([
@@ -162,6 +168,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
           jurisdictions: liaJurisdictions,
           sector: assessment.sector || undefined,
           articles: ["gdpr:6"],
+          regime: enforcementRegime,
           limit: 5,
         },
       }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; }),
