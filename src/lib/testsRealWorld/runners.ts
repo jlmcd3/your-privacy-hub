@@ -113,7 +113,7 @@ const runDPIA: Runner = async ({ userId, log }) => {
     .insert({
       user_id: userId,
       status: "pending",
-      intake_data: intake,
+      intake_data: intake as never,
       is_subscriber_credit: true,
     })
     .select("id")
@@ -144,7 +144,7 @@ const runGovernance: Runner = async ({ userId, log }) => {
   log("Inserting governance_assessments row…");
   const { data: rec, error: insErr } = await supabase
     .from("governance_assessments")
-    .insert({ user_id: userId, status: "pending", intake_data: intake })
+    .insert({ user_id: userId, status: "pending", intake_data: intake as never })
     .select("id")
     .single();
   if (insErr || !rec) throw new Error(`insert failed: ${insErr?.message}`);
@@ -489,7 +489,7 @@ const runRegistration: Runner = async ({ userId, log }) => {
   log("Invoking run-registration-assessment…");
   const { data: assess, error: assessErr } = await supabase.functions.invoke(
     "run-registration-assessment",
-    { body: { intake_data: intake, user_id: userId } },
+    { body: { intake_data: intake as never, user_id: userId } },
   );
   if (assessErr || !assess?.assessment_id) {
     throw new Error(`assessment: ${assessErr?.message ?? assess?.error}`);
@@ -561,7 +561,7 @@ const runCppaRisk: Runner = async ({ userId, log }) => {
       user_id: userId,
       module: "risk_assessment",
       status: "pending",
-      intake_data: intake,
+      intake_data: intake as never,
     })
     .select("id")
     .single();
@@ -594,7 +594,7 @@ const runCppaCyber: Runner = async ({ userId, log }) => {
       user_id: userId,
       module: "cybersecurity",
       status: "pending",
-      intake_data: intake,
+      intake_data: intake as never,
     })
     .select("id")
     .single();
