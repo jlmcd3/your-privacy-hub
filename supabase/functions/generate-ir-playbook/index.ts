@@ -378,7 +378,7 @@ CANADA BREACH NOTIFICATION — KEY TIMELINES (for Section 3):
 
 Note: US state breach notification laws apply to ALL businesses with data on state residents, regardless of whether the business has a physical presence in that state. A breach affecting California residents triggers California law even if the company is Texas-based.
 
-Your task: generate a complete, immediately usable incident response playbook tailored to the incident facts and jurisdictions provided. The playbook is generated in TWO sequential turns: Sections 1–4 first, then Sections 5–7 + annotations. Stay perfectly consistent between turns — the deadlines, thresholds, and case citations you use in the second turn must match what you established in the first turn.
+Your task: generate a complete, immediately usable incident response playbook tailored to the incident facts and jurisdictions provided. The playbook is generated in THREE PARALLEL parts: Part A = Sections 1–3, Part B = Sections 4–5, Part C = Sections 6–7 + annotations. Stay perfectly consistent across parts — the deadlines, thresholds, regulator names, portal URLs, statutory caution rules, and case citations you use in each part must match the others exactly, since all three parts derive from the same incident facts and these system instructions.
 
 QUALITY STANDARDS:
 1. Every notification deadline must state the specific hour count from discovery, the legal basis, and the regulator or affected-individual recipient.
