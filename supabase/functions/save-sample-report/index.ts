@@ -338,7 +338,7 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
     return json({ error: (e as Error).message }, 502);
   }
 
-  const filename = `${slugifyTitle(title)}.pdf`;
+  const filename = `${variant}--${slugifyTitle(title)}.pdf`;
   const path = `${tool_slug}/${filename}`;
   const { error: upErr } = await admin.storage.from("sample-reports").upload(path, pdfBytes, {
     contentType: "application/pdf",
