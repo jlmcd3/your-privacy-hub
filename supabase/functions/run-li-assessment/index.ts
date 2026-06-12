@@ -612,10 +612,7 @@ CITATION ACCURACY RULE: In the 'basis' field for each recommended document, cite
       ? `\n\nUK ARTICLE 9(2)(b) MECHANISM (regime is UK GDPR): For any 'Article 9(2)(b) Employment Law Condition Assessment' document, the description MUST name the UK implementing mechanism: 'Reliance on Article 9(2)(b) under UK GDPR additionally requires satisfying Data Protection Act 2018 s.10 and Schedule 1, Part 1, paragraph 1 (employment, social security and social protection), including having an APPROPRIATE POLICY DOCUMENT (APD) in place per Schedule 1, Part 4. The APD must describe the lawful basis and Schedule 1 condition relied on, retention and erasure policy for the special-category data, and compliance procedures.'${balancingDetails.special_category_data ? `\nFor this UK assessment involving special-category data, you MUST also include a DISTINCT 'Appropriate Policy Document (APD)' entry in recommended_documentation whose key_elements list contains: (i) the lawful basis and Schedule 1 condition relied on, (ii) retention and erasure policy for the special-category data, and (iii) compliance procedures. Cite 'UK Data Protection Act 2018 Schedule 1, Part 4' as its basis.` : ""}`
       : "";
 
-    const docsText = await callAnthropic(
-      "claude-sonnet-4-6",
-      docsSystem,
-      `Based on this legitimate interest analysis, provide documentation recommendations.
+    const docsUserPrompt = `Based on this legitimate interest analysis, provide documentation recommendations.
 
 Processing activity: ${assessment.processing_description}
 Argument strength: ${analysis.overall_assessment?.argument_strength || "uncertain"}
@@ -649,9 +646,18 @@ Return JSON:
     "circumstances that would require this LIA to be revisited"
   ],
   "disclaimer": "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
-}`,
-      3500
-    );
+}`;
+
+    let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, 3500);
+    if (docsStage.stopReason === "max_tokens") {
+      console.warn("[LIA] Stage 3 truncated_output — retrying at 1.5x token budget");
+      docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, Math.ceil(3500 * 1.5));
+      if (docsStage.stopReason === "max_tokens") {
+        console.error("[LIA] Stage 3 truncated_output after retry — failing run");
+        throw new Error("truncated_output: LIA Stage 3 (docs) exceeded token budget twice");
+      }
+    }
+    const docsText = docsStage.text;
 
     let docRecs: any = parseLlmJson(docsText);
     if (!docRecs) {
