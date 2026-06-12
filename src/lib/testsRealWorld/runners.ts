@@ -425,7 +425,7 @@ const runUSNotice: Runner = async ({ userId, log }) => {
   return {
     targetTable: "us_notice_sessions",
     targetId: session.id,
-    label: `US Notice · ${universal.business_name} (${gen.documents.length} docs)`,
+    label: `US Notice · ${universal.business_name} · ${gen.documents.length} docs · ${shortId(session.id)}`,
     resultUrl: `/us-notices/result/${session.id}`,
   };
 };
