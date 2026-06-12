@@ -286,11 +286,11 @@ ${formatEnforcementContext(enforcement_context)}
 
 CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.`;
 
-        const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate the FIRST HALF (Sections 1–4) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate PART A (Sections 1–3) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
 ${INTAKE_BLOCK}
 
-Generate ONLY the following four sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown (the line "## Section N: TITLE"), so downstream tooling can locate them. Do not omit any section, even if you think it is not applicable — instead, state explicitly within the section why it does not apply. Do NOT output Sections 5, 6, 7, or the ===ANNOTATIONS=== block in this response — those will be generated in a follow-up call.
+Generate ONLY the following three sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown (the line "## Section N: TITLE"), so downstream tooling can locate them. Do not omit any section, even if you think it is not applicable — instead, state explicitly within the section why it does not apply. Do NOT output Sections 4, 5, 6, 7, or the ===ANNOTATIONS=== block in this response — those will be generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts B and C, since all three parts are generated from the same incident facts and system instructions.
 
 ## Section 1: IMMEDIATE ACTIONS (0–2 HOURS)
 Numbered, specific steps. Name the role responsible for each. Be direct.
@@ -301,21 +301,29 @@ For each jurisdiction listed, state: (a) the notification threshold test, (b) wh
 ## Section 3: REGULATORY NOTIFICATION TIMELINE
 For each jurisdiction: the deadline (hours from discovery), the notification portal URL (use the portals provided above), the minimum content required for initial notification, what can be filed as preliminary versus what must follow, and – based on the enforcement context – specific omissions that have been penalised. If a processor is involved, include a dedicated step titled "Processor notification" describing how and when the processor must be notified.
 
-## Section 4: INDIVIDUAL NOTIFICATION DECISION TREE
-Step-by-step logic for determining whether individuals must be notified, with jurisdiction-specific thresholds. If required: content elements, delivery method, and deadline. Include the verbatim phrase "individual notification" in the section body.
+Output ONLY Sections 1–3. No preamble, no commentary, no Sections 4–7, no annotations.`;
 
-Output ONLY Sections 1–4. No preamble, no commentary, no Sections 5–7, no annotations.`;
-
-        const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate the SECOND HALF (Sections 5–7) of the same complete, actionable 7-section incident response playbook for a data breach, followed by the ===ANNOTATIONS=== block. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate PART B (Sections 4–5) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
 ${INTAKE_BLOCK}
 
-Generate ONLY the following three sections plus annotations now. Each section MUST begin with a markdown H2 heading using the EXACT format shown. Maintain the same deadlines, threshold tests, regulator names, portal URLs, and statutory caution rules that Sections 1–4 will use from the same incident facts and system instructions. Do not refer to "the previous section" or "as above" because this half is generated independently and later merged with Sections 1–4.
+Generate ONLY the following two sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown. Do NOT output Sections 1, 2, 3, 6, 7, or the ===ANNOTATIONS=== block in this response — those are generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts A and C, since all three parts are generated from the same incident facts and system instructions. Do not refer to "the previous section" or "as above" because this part is generated independently and later merged.
+
+## Section 4: INDIVIDUAL NOTIFICATION DECISION TREE
+Step-by-step logic for determining whether individuals must be notified, with jurisdiction-specific thresholds. If required: content elements, delivery method, and deadline. Include the verbatim phrase "individual notification" in the section body.
 
 ## Section 5: NOTIFICATION TEMPLATES
 (a) A DPA initial notification letter template for the primary jurisdiction.
 (b) An individual notification template if individual notification is required.
 Mark all placeholder fields [IN SQUARE BRACKETS]. The word "template" MUST appear in this section heading or body at least twice.
+
+Output ONLY Sections 4–5. No preamble, no commentary, do NOT output Sections 1–3 or 6–7, no annotations.`;
+
+        const PROMPT_PART_C = `You are a senior data protection incident response specialist. Generate PART C (Sections 6–7 plus the ===ANNOTATIONS=== block) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+
+${INTAKE_BLOCK}
+
+Generate ONLY the following two sections plus annotations now. Each section MUST begin with a markdown H2 heading using the EXACT format shown. Do NOT output Sections 1, 2, 3, 4, or 5 in this response — those are generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts A and B, since all three parts are generated from the same incident facts and system instructions. Do not refer to "the previous section" or "as above" because this part is generated independently and later merged.
 
 ## Section 6: DOCUMENTATION & ACCOUNTABILITY CHECKLIST
 A documentation checklist of records to create and maintain under GDPR Article 33(5) and equivalent requirements. Format as a list of documents with the information each must contain. This is the organisation's accountability trail. The verbatim phrase "documentation checklist" MUST appear in this section.
@@ -337,7 +345,7 @@ followed by a JSON array of enforcement citations that directly supported a time
 }
 If no cases informed the playbook, output an empty array [].
 
-Output ONLY Sections 5–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT re-output Sections 1–4.`;
+Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT output Sections 1–5.`;
 
         // LEGAL CONSTANTS — verified 2026-06-12 against statute text.
         // R6 (2026-06-12): NY corrected to 30-day hard deadline (S2659B, eff. 21 Dec 2024) +
@@ -370,7 +378,7 @@ CANADA BREACH NOTIFICATION — KEY TIMELINES (for Section 3):
 
 Note: US state breach notification laws apply to ALL businesses with data on state residents, regardless of whether the business has a physical presence in that state. A breach affecting California residents triggers California law even if the company is Texas-based.
 
-Your task: generate a complete, immediately usable incident response playbook tailored to the incident facts and jurisdictions provided. The playbook is generated in TWO sequential turns: Sections 1–4 first, then Sections 5–7 + annotations. Stay perfectly consistent between turns — the deadlines, thresholds, and case citations you use in the second turn must match what you established in the first turn.
+Your task: generate a complete, immediately usable incident response playbook tailored to the incident facts and jurisdictions provided. The playbook is generated in THREE PARALLEL parts: Part A = Sections 1–3, Part B = Sections 4–5, Part C = Sections 6–7 + annotations. Stay perfectly consistent across parts — the deadlines, thresholds, regulator names, portal URLs, statutory caution rules, and case citations you use in each part must match the others exactly, since all three parts derive from the same incident facts and these system instructions.
 
 QUALITY STANDARDS:
 1. Every notification deadline must state the specific hour count from discovery, the legal basis, and the regulator or affected-individual recipient.
@@ -430,21 +438,22 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return out;
         }
 
-        // CF-2: validate each part's completeness; retry that part once at 9000 tokens.
-        const PART_A_HEADINGS = ["## Section 1:", "## Section 2:", "## Section 3:", "## Section 4:"];
-        const PART_B_HEADINGS = ["## Section 5:", "## Section 6:", "## Section 7:"];
+        // CF-2: validate each part's completeness; on failure, run tail-continuation.
+        const PART_A_HEADINGS = ["## Section 1:", "## Section 2:", "## Section 3:"];
+        const PART_B_HEADINGS = ["## Section 4:", "## Section 5:"];
+        const PART_C_HEADINGS = ["## Section 6:", "## Section 7:"];
         const TERMINAL_RE = /[\.\:\?\!\)\]\}"'»”’](\s|$)/;
 
-        function validatePart(text: string, which: "A" | "B"): { ok: boolean; reason?: string } {
+        function validatePart(text: string, which: "A" | "B" | "C"): { ok: boolean; reason?: string } {
           if (!text || !text.trim()) return { ok: false, reason: "empty" };
-          const headings = which === "A" ? PART_A_HEADINGS : PART_B_HEADINGS;
+          const headings = which === "A" ? PART_A_HEADINGS : which === "B" ? PART_B_HEADINGS : PART_C_HEADINGS;
           for (const h of headings) {
             if (!text.includes(h)) return { ok: false, reason: `missing heading ${h}` };
           }
-          if (which === "B" && !text.includes("===ANNOTATIONS===")) {
+          if (which === "C" && !text.includes("===ANNOTATIONS===")) {
             return { ok: false, reason: "missing ===ANNOTATIONS=== block" };
           }
-          const beforeAnnot = which === "B"
+          const beforeAnnot = which === "C"
             ? text.slice(0, text.indexOf("===ANNOTATIONS==="))
             : text;
           const lines = beforeAnnot.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
@@ -455,21 +464,21 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return { ok: true };
         }
 
-        async function generatePart(which: "A" | "B", extra: string, maxTokens: number, timeoutMs: number = 240_000): Promise<string> {
-          const base = which === "A" ? PROMPT_PART_A : PROMPT_PART_B;
+        async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 240_000): Promise<string> {
+          const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           const prompt = extra ? `${base}\n\n${extra}` : base;
           return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
         }
 
-        // Tail-continuation retry: rather than regenerating all of Part B at 9000 tokens
-        // (which has been timing out), feed the model its own truncated Part B as an
-        // assistant prefill and ask it to continue from the last complete section
-        // through ===ANNOTATIONS===, capped at 4000 tokens. The full Part B is then
-        // `prefill + continuation`. Uses Anthropic's assistant-prefill pattern.
-        async function continuePartB(extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<string> {
-          const base = PROMPT_PART_B;
-          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\nYour previous attempt was cut off mid-output. Continue from EXACTLY where the assistant message ends — do not repeat any content already produced, do not re-output earlier sections, and do not add a preamble. Finish any in-progress section, then produce any remaining sections (5, 6, 7) you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop.`;
-          // Anthropic requires assistant prefill to have no trailing whitespace.
+        // Tail-continuation retry: feed the model its own truncated output as an
+        // assistant prefill and ask it to continue. Capped at 4000 tokens / 200s.
+        // Applied per-part to whichever part fails its validator.
+        async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<string> {
+          const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
+          const tail = which === "C"
+            ? "Finish any in-progress section, then produce any remaining required sections you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop."
+            : "Finish any in-progress section, then produce any remaining required sections for this part you have not yet completed, then stop.";
+          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\nYour previous attempt was cut off mid-output. Continue from EXACTLY where the assistant message ends — do not repeat any content already produced, do not re-output earlier sections, and do not add a preamble. ${tail}`;
           const prefill = truncated.replace(/\s+$/, "");
           const continuation = await callClaude(
             [
@@ -482,39 +491,40 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return prefill + continuation;
         }
 
-        async function generateHalves(extra: string): Promise<{ partA: string; partB: string; incomplete?: string }> {
-          const [a, b] = await Promise.all([
-            generatePart("A", extra, 8000, 240_000),
-            generatePart("B", extra, 8000, 240_000),
+        async function generateHalves(extra: string): Promise<{ partA: string; partB: string; partC: string; incomplete?: string }> {
+          const [a, b, c] = await Promise.all([
+            generatePart("A", extra, 6000, 240_000),
+            generatePart("B", extra, 6000, 240_000),
+            generatePart("C", extra, 6000, 240_000),
           ]);
-          let partA = a;
-          let partB = b;
-          const vA = validatePart(partA, "A");
-          if (!vA.ok) {
-            console.warn(`[IR Playbook] Part A failed validation (${vA.reason}); retrying at 9000`);
-            const retryA = await generatePart(
-              "A",
-              `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
-              9000,
-              200_000,
-            );
-            const vA2 = validatePart(retryA, "A");
-            if (!vA2.ok) return { partA: retryA, partB, incomplete: `partA: ${vA2.reason}` };
-            partA = retryA;
+          let partA = a, partB = b, partC = c;
+          const parts: Array<{ which: "A" | "B" | "C"; text: string }> = [
+            { which: "A", text: partA },
+            { which: "B", text: partB },
+            { which: "C", text: partC },
+          ];
+          for (const p of parts) {
+            const v = validatePart(p.text, p.which);
+            if (!v.ok) {
+              console.warn(`[IR Playbook] Part ${p.which} failed validation (${v.reason}); tail-continuing at 4000`);
+              const continued = await continuePart(p.which, extra, p.text, 4000, 200_000);
+              const v2 = validatePart(continued, p.which);
+              if (!v2.ok) {
+                if (p.which === "A") partA = continued;
+                else if (p.which === "B") partB = continued;
+                else partC = continued;
+                return { partA, partB, partC, incomplete: `part${p.which}: ${v2.reason}` };
+              }
+              if (p.which === "A") partA = continued;
+              else if (p.which === "B") partB = continued;
+              else partC = continued;
+            }
           }
-          const vB = validatePart(partB, "B");
-          if (!vB.ok) {
-            console.warn(`[IR Playbook] Part B failed validation (${vB.reason}); tail-continuing at 4000`);
-            const continued = await continuePartB(extra, partB, 4000, 200_000);
-            const vB2 = validatePart(continued, "B");
-            if (!vB2.ok) return { partA, partB: continued, incomplete: `partB: ${vB2.reason}` };
-            partB = continued;
-          }
-          return { partA, partB };
+          return { partA, partB, partC };
         }
 
-        function assembleFromHalves(partA: string, partB: string): { playbook_text: string; parsedAnnotations: any[] } {
-          const fullText = `${partA.trim()}\n\n${partB.trim()}`;
+        function assembleFromHalves(partA: string, partB: string, partC: string): { playbook_text: string; parsedAnnotations: any[] } {
+          const fullText = `${partA.trim()}\n\n${partB.trim()}\n\n${partC.trim()}`;
           let playbook_text = fullText
             .replace(/^#{1,6}\s+/gm, '')
             .replace(/\*\*\*/g, '')
@@ -551,13 +561,14 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
 
         let partA = "";
         let partB = "";
+        let partC = "";
         let incompleteReason: string | null = null;
         try {
-          console.log("[generate-ir-playbook] starting parallel generation halves");
+          console.log("[generate-ir-playbook] starting parallel generation (3 parts)");
           const r = await generateHalves("");
-          partA = r.partA; partB = r.partB;
+          partA = r.partA; partB = r.partB; partC = r.partC;
           if (r.incomplete) incompleteReason = r.incomplete;
-          console.log("[generate-ir-playbook] generation halves complete", { partAChars: partA.length, partBChars: partB.length, incomplete: incompleteReason });
+          console.log("[generate-ir-playbook] generation complete", { partAChars: partA.length, partBChars: partB.length, partCChars: partC.length, incomplete: incompleteReason });
         } catch (e: any) {
           console.error("[generate-ir-playbook] Claude parallel split-call failure:", e?.message || e);
           throw e;
@@ -577,7 +588,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return;
         }
 
-        let assembled = assembleFromHalves(partA, partB);
+        let assembled = assembleFromHalves(partA, partB, partC);
         let lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
         if (hasHardViolations(lint)) {
@@ -586,8 +597,8 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
             const retry = await generateHalves(
               `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the playbook again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
             );
-            partA = retry.partA; partB = retry.partB;
-            assembled = assembleFromHalves(partA, partB);
+            partA = retry.partA; partB = retry.partB; partC = retry.partC;
+            assembled = assembleFromHalves(partA, partB, partC);
             lint = lintReportText(assembled.playbook_text);
           } catch (e) {
             console.warn("[generate-ir-playbook] lint retry failed (non-fatal):", e);
