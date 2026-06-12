@@ -357,7 +357,7 @@ Deno.serve(async (req) => {
       const tocHtml = states
         .map(
           (s) =>
-            `<li><a href="#${escapeHtml(s.state_code)}" style="color:#1d4ed8;">${escapeHtml(s.state_name)}</a> — <span style="color:#666;font-size:0.85rem;">${escapeHtml(FRAMEWORK_LABELS[s.framework_type] ?? s.framework_type)}</span></li>`,
+            `<li><a href="#${escapeHtml(s.state_code)}" style="color:#1d4ed8;">${escapeHtml(s.state_name)}</a> — <span style="color:#666;font-size:0.85rem;">${escapeHtml(resolveLawLabel(s))}</span></li>`,
         )
         .join("");
 
