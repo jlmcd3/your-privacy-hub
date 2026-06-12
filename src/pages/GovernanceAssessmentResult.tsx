@@ -166,6 +166,11 @@ const GovernanceAssessmentResult = () => {
               {(report?.overall_readiness_rating || report?.executive_summary) && (
                 <section className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-6">
                   <h2 className="mb-3">Executive Summary</h2>
+                  {(assessment?.organization_name || assessment?.intake_data?.organization_name) && (
+                    <p className="text-sm text-foreground mb-3">
+                      This assessment evaluates the privacy programme of <span className="font-semibold">{assessment?.organization_name || assessment?.intake_data?.organization_name}</span>.
+                    </p>
+                  )}
                   {report?.overall_readiness_rating && (
                     <div className="mb-3">
                       <span className={`inline-block px-3 py-1.5 rounded font-medium ${ratingColor(report.overall_readiness_rating)}`}>
