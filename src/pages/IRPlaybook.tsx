@@ -160,6 +160,8 @@ export default function IRPlaybook() {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <h2 className="font-display text-brand-navy">Incident details</h2>
             <RequiredLegend />
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Organisation<Req /></span>
+              <input type="text" placeholder="e.g. Acme Retail Ltd" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organizationName} onChange={e => setForm(f => ({ ...f, organizationName: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Date & time of discovery<Req /></span>
               <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Apparent cause <DefPopover termKey="gdpr_personal_data_breach" /></span>
