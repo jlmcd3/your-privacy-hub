@@ -39,7 +39,9 @@ async function callAnthropic(model: string, system: string, user: string, maxTok
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
-  return d.content?.[0]?.text || "";
+  const text = d.content?.[0]?.text || "";
+  console.log(`[run-governance-assessment] gen done stop=${d.stop_reason ?? null} chars=${text.length}`);
+  return text;
 }
 
 const DOMAIN_DEFINITIONS = [
