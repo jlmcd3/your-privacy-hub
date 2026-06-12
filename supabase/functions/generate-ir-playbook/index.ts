@@ -379,7 +379,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
 Output ONLY the playbook content requested in each turn. No preamble or commentary.`;
 
-        async function callClaude(messages: any[], maxTokens: number): Promise<string> {
+        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 240_000): Promise<string> {
           const res = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
@@ -394,7 +394,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
               system: SYSTEM_PROMPT,
               messages,
             }),
-            signal: AbortSignal.timeout(180000),
+            signal: AbortSignal.timeout(timeoutMs),
           });
           if (!res.ok) {
             const errText = await res.text();
@@ -451,16 +451,16 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return { ok: true };
         }
 
-        async function generatePart(which: "A" | "B", extra: string, maxTokens: number): Promise<string> {
+        async function generatePart(which: "A" | "B", extra: string, maxTokens: number, timeoutMs: number = 240_000): Promise<string> {
           const base = which === "A" ? PROMPT_PART_A : PROMPT_PART_B;
           const prompt = extra ? `${base}\n\n${extra}` : base;
-          return await callClaude([{ role: "user", content: prompt }], maxTokens);
+          return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
         }
 
         async function generateHalves(extra: string): Promise<{ partA: string; partB: string; incomplete?: string }> {
           const [a, b] = await Promise.all([
-            generatePart("A", extra, 8000),
-            generatePart("B", extra, 8000),
+            generatePart("A", extra, 8000, 240_000),
+            generatePart("B", extra, 8000, 240_000),
           ]);
           let partA = a;
           let partB = b;
@@ -471,6 +471,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
               "A",
               `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
               9000,
+              200_000,
             );
             const vA2 = validatePart(retryA, "A");
             if (!vA2.ok) return { partA: retryA, partB, incomplete: `partA: ${vA2.reason}` };
@@ -483,6 +484,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
               "B",
               `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
               9000,
+              200_000,
             );
             const vB2 = validatePart(retryB, "B");
             if (!vB2.ok) return { partA, partB: retryB, incomplete: `partB: ${vB2.reason}` };
