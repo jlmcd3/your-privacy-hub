@@ -345,7 +345,7 @@ followed by a JSON array of enforcement citations that directly supported a time
 }
 If no cases informed the playbook, output an empty array [].
 
-Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT output Sections 1–5.`;
+Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT output Sections 1–5. Do not end your output with a horizontal rule or divider line.`;
 
         // LEGAL CONSTANTS — verified 2026-06-12 against statute text.
         // R6 (2026-06-12): NY corrected to 30-day hard deadline (S2659B, eff. 21 Dec 2024) +
