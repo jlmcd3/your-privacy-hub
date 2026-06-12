@@ -578,6 +578,9 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     background:var(--accent); margin-top:8px; }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border);
     font-size:10px; color:var(--slate); text-align:center; }
+  table.md-table { border-collapse:collapse; width:100%; font-size:10.5pt; margin:12px 0; }
+  table.md-table th, table.md-table td { border:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top; }
+  table.md-table th { background:var(--silver); font-weight:600; color:var(--navy); }
 </style></head>
 <body><div class="shell">
   <header class="header">
@@ -587,10 +590,10 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
   </header>
   <div class="body">
-    <div class="disclaimer"><span class="kw">Not legal advice.</span>
+    <div class="disclaimer">${opts.disclaimerHtml ?? `<span class="kw">Not legal advice.</span>
       This document is a compliance framework generated for informational purposes only.
       It does not create an attorney-client relationship. Always consult qualified legal
-      counsel for advice specific to your situation.</div>
+      counsel for advice specific to your situation.`}</div>
     ${calloutHtml}
     ${sectionsHtml}
     <div class="footer">EndUserPrivacy.com · Generated ${new Date().toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}</div>
