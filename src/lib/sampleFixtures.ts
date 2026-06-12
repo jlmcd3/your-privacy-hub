@@ -492,7 +492,7 @@ const F_ROPA_EU: SampleFixture = {
       },
       {
         activity_name: "Underground Wearable Safety Telemetry",
-        category: "health_safety",
+        category: "hr_employment",
         purpose: "Real-time detection of medical events and unauthorised zone entry for shift workers underground.",
         lawful_basis: "legitimate_interests",
         special_category_basis: "Article 9(2)(b) employment-law / occupational-safety",
@@ -506,7 +506,7 @@ const F_ROPA_EU: SampleFixture = {
       },
       {
         activity_name: "Site Visitor Management",
-        category: "physical_security",
+        category: "operations",
         purpose: "Identify and log visitors to mine sites for safety briefing, evacuation accountability, and site-security compliance.",
         lawful_basis: "legitimate_interests",
         special_category_basis: "Not applicable",
@@ -520,7 +520,7 @@ const F_ROPA_EU: SampleFixture = {
       },
       {
         activity_name: "Supplier Vetting and KYS",
-        category: "procurement",
+        category: "third_party",
         purpose: "Know-Your-Supplier checks for sanctions, beneficial ownership, and modern-slavery compliance.",
         lawful_basis: "legal_obligation",
         special_category_basis: "Not applicable",
