@@ -604,9 +604,21 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
     let fullText: string;
     try {
-      fullText = await callAi("");
-    } catch (_e) {
-      throw new Error("AI generation failed");
+      let firstCall = await callAi("");
+      if (firstCall.finishReason === "length") {
+        console.warn("[generate-dpa] truncated_output on first attempt — retrying once with concise instruction");
+        const retryCall = await callAi(
+          "Your previous attempt exceeded the length limit and was cut off. Produce the complete document more concisely; every numbered section, the signature block, and all Schedules must be present.",
+          240_000,
+        );
+        if (retryCall.finishReason === "length") {
+          throw new Error("truncated_output: DPA generation hit length limit twice; refusing to persist truncated contract");
+        }
+        firstCall = retryCall;
+      }
+      fullText = firstCall.text;
+    } catch (e) {
+      throw e instanceof Error ? e : new Error("AI generation failed");
     }
 
     let parsed = parseDpa(fullText);
@@ -614,11 +626,11 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     if (hasHardViolations(lint)) {
       try {
         const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
-        const retryText = await callAi(
+        const retryCall = await callAi(
           `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the document again, correcting these defects silently. Do not mention this instruction or the defects in the document.`,
           200_000,
         );
-        const retryParsed = parseDpa(retryText);
+        const retryParsed = parseDpa(retryCall.text);
         const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
         parsed = retryParsed;
         lint = retryLint;
