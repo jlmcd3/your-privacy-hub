@@ -158,121 +158,30 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-function titleCase(s: string): string {
-  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-// Keys that are bookkeeping / metadata / noise — never rendered into the
-// reader-facing PDF. Tools sometimes emit these alongside the real report.
-const SKIP_KEYS = new Set([
-  "assessment_id", "id", "user_id", "client_id", "session_id",
-  "version", "schema_version", "generated_at", "annotations",
-  "lint_warnings", "enforcement_meta", "raw_text", "raw_response",
-  "raw_intake", "tool_version", "model", "prompt_tokens",
-  "completion_tokens", "trace_id", "run_id",
-]);
-
-function renderArray(arr: unknown[], depth: number): string {
-  if (arr.length === 0) return "";
-  if (arr.every((x) => typeof x === "string" || typeof x === "number")) {
-    return `<ul>${arr.map((x) => `<li>${escapeHtml(String(x))}</li>`).join("")}</ul>`;
-  }
-  return arr.map((x) => {
-    if (x && typeof x === "object" && !Array.isArray(x)) {
-      return `<div class="item">${renderObject(x as Record<string, unknown>, depth + 1)}</div>`;
-    }
-    return renderValue(x, depth + 1);
-  }).join("");
-}
-
-function renderValue(v: unknown, depth: number): string {
-  if (v === null || v === undefined) return "";
-  if (typeof v === "string") {
-    const t = v.trim();
-    if (!t) return "";
-    return `<p>${escapeHtml(t).replace(/\n+/g, "<br>")}</p>`;
-  }
-  if (typeof v === "number" || typeof v === "boolean") {
-    return `<p>${escapeHtml(String(v))}</p>`;
-  }
-  if (Array.isArray(v)) return renderArray(v, depth);
-  if (typeof v === "object") return renderObject(v as Record<string, unknown>, depth);
-  return "";
-}
-
-function renderObject(obj: Record<string, unknown>, depth: number): string {
-  const tag = depth <= 0 ? "h2" : depth === 1 ? "h3" : "h4";
-  const parts: string[] = [];
-  for (const [k, v] of Object.entries(obj)) {
-    if (SKIP_KEYS.has(k)) continue;
-    if (v === null || v === undefined) continue;
-    if (typeof v === "string" && !v.trim()) continue;
-    if (Array.isArray(v) && v.length === 0) continue;
-    if (typeof v === "object" && !Array.isArray(v) && Object.keys(v as object).length === 0) continue;
-    parts.push(`<${tag}>${escapeHtml(titleCase(k))}</${tag}>`);
-    parts.push(renderValue(v, depth + 1));
-  }
-  return parts.join("");
-}
-
-function renderDocumentText(text: string): string {
-  const blocks = text.split(/\n\s*\n/);
-  return blocks.map((b) => {
-    const t = b.trim();
-    if (!t) return "";
-    const mdMatch = t.match(/^(#{1,6})\s+(.*)$/);
-    if (mdMatch) {
-      const level = Math.min(mdMatch[1].length + 1, 6);
-      return `<h${level}>${escapeHtml(mdMatch[2])}</h${level}>`;
-    }
-    if (t.length < 120 && t === t.toUpperCase() && /[A-Z]/.test(t)) {
-      return `<h2>${escapeHtml(t)}</h2>`;
-    }
-    return `<p>${escapeHtml(t).replace(/\n/g, "<br>")}</p>`;
-  }).join("");
-}
-
 function buildSampleHtml(opts: {
   tool_slug: string; variant: string; title: string;
-  scenario_summary: string;
-  reportData: Record<string, unknown> | null;
-  documentText: string | null;
+  scenario_summary: string; fixture: Record<string, unknown>;
 }): string {
-  const { tool_slug, variant, title, scenario_summary, reportData, documentText } = opts;
+  const { tool_slug, variant, title, scenario_summary, fixture } = opts;
+  const fixtureJson = escapeHtml(JSON.stringify(fixture, null, 2));
   const generatedAt = new Date().toISOString().slice(0, 10);
-
-  let body = "";
-  if (documentText && documentText.trim()) {
-    body = renderDocumentText(documentText);
-  } else if (reportData && typeof reportData === "object") {
-    body = renderObject(reportData, 0);
-  }
-  if (!body.trim()) {
-    body = `<p><em>No report content was found for this source row. Generate the report first, then re-run "Generate PDF".</em></p>`;
-  }
-
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
 <style>
   @page { size: Letter; margin: 16mm 14mm 18mm 14mm; }
-  body { font-family: 'DM Sans', Helvetica, Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a; line-height: 1.5; }
+  body { font-family: 'DM Sans', Helvetica, Arial, sans-serif; font-size: 11pt; color: #1a1a1a; line-height: 1.45; }
   .header { border-bottom: 2px solid #2a9d8f; padding-bottom: 10px; margin-bottom: 18px; }
-  .eyebrow { font-family: 'DM Mono', monospace; font-size: 8.5pt; letter-spacing: .08em;
+  .eyebrow { font-family: 'DM Mono', monospace; font-size: 9pt; letter-spacing: .08em;
              text-transform: uppercase; color: #2a9d8f; margin-bottom: 4px; }
   h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 22pt; margin: 0 0 6px 0;
        color: #0d2a45; font-weight: normal; line-height: 1.15; }
   .meta { font-family: 'DM Mono', monospace; font-size: 9pt; color: #5c5a54; }
-  h2 { font-family: 'DM Serif Display', Georgia, serif; font-size: 15pt; color: #0d2a45;
-       margin: 22px 0 8px 0; font-weight: normal; border-bottom: 1px solid #e5e2dc; padding-bottom: 4px; }
-  h3 { font-family: 'DM Serif Display', Georgia, serif; font-size: 12pt; color: #0d2a45;
-       margin: 16px 0 6px 0; font-weight: normal; }
-  h4 { font-family: 'DM Sans', Helvetica, Arial, sans-serif; font-size: 10.5pt;
-       color: #0d2a45; margin: 12px 0 4px 0; font-weight: 600; }
-  p  { margin: 6px 0; }
-  ul { margin: 6px 0 6px 18px; padding: 0; }
-  li { margin: 3px 0; }
-  .item { border-left: 2px solid #e5e2dc; padding: 4px 0 4px 12px; margin: 8px 0; }
+  h2 { font-family: 'DM Serif Display', Georgia, serif; font-size: 14pt; color: #0d2a45;
+       margin: 22px 0 8px 0; font-weight: normal; }
   .scenario { background: #f5f3ee; border-left: 3px solid #2a9d8f; padding: 12px 14px;
-              border-radius: 2px; margin-bottom: 18px; font-size: 10pt; }
+              border-radius: 2px; margin-bottom: 18px; }
+  pre { background: #0d2a45; color: #d6ecea; font-family: 'DM Mono', Menlo, monospace;
+        font-size: 8.5pt; padding: 14px; border-radius: 4px; white-space: pre-wrap;
+        word-break: break-word; line-height: 1.4; }
   .footer-note { margin-top: 26px; padding-top: 12px; border-top: 1px solid #ddd;
                  font-size: 8.5pt; color: #5c5a54; }
 </style></head><body>
@@ -281,10 +190,16 @@ function buildSampleHtml(opts: {
     <h1>${escapeHtml(title)}</h1>
     <div class="meta">EndUserPrivacy.com · Generated ${generatedAt}</div>
   </div>
-  ${scenario_summary ? `<div class="scenario"><strong>Scenario:</strong> ${escapeHtml(scenario_summary)}</div>` : ""}
-  ${body}
+  <h2>Scenario</h2>
+  <div class="scenario">${escapeHtml(scenario_summary)}</div>
+  <h2>Intake data</h2>
+  <p>The structured intake below was used to drive this sample. Published samples
+     are reviewed by EndUserPrivacy editors before release.</p>
+  <pre>${fixtureJson}</pre>
   <div class="footer-note">
-    Sample report generated from a live tool run on a fictional scenario. Not legal advice.
+    This is a sample report intended to demonstrate the tool's output structure
+    and scope. It is not legal advice. Live tool runs produce verified citations
+    and tool-specific analysis sections.
   </div>
 </body></html>`;
 }
@@ -321,145 +236,45 @@ async function renderViaPdfShift(html: string, title: string): Promise<Uint8Arra
   return new Uint8Array(await r.arrayBuffer());
 }
 
-// Map a file-driven source_table to (bucket, document_table, link_col).
-// These tools store their actual report as a file in storage rather than
-// as report_data / document_text — we fetch the file and use it directly.
-const FILE_DRIVEN: Record<string, { bucket: string; docTable: string; linkCol: string }> = {
-  ropa_document_versions: { bucket: "ropa-documents", docTable: "ropa_document_versions", linkCol: "id" },
-  us_notice_sessions:     { bucket: "us-notices",      docTable: "us_notice_documents",   linkCol: "session_id" },
-  eu_notice_sessions:     { bucket: "eu-notices",      docTable: "eu_notice_documents",   linkCol: "session_id" },
-};
-
-async function fetchFileDrivenPdf(
-  admin: ReturnType<typeof createClient>,
-  source_table: string,
-  source_row_id: string,
-): Promise<{ bytes: Uint8Array; contentType: string } | null> {
-  const cfg = FILE_DRIVEN[source_table];
-  if (!cfg) return null;
-  const { data: doc, error } = await admin
-    .from(cfg.docTable)
-    .select("file_path, document_format")
-    .eq(cfg.linkCol, source_row_id)
-    .eq("is_current", true)
-    .order("version_number", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error || !doc?.file_path) return null;
-  const { data: blob, error: dlErr } = await admin.storage.from(cfg.bucket).download(doc.file_path);
-  if (dlErr || !blob) return null;
-  const ab = await blob.arrayBuffer();
-  const fmt = String((doc as any).document_format ?? "").toLowerCase();
-  return {
-    bytes: new Uint8Array(ab),
-    contentType: fmt.includes("pdf") ? "application/pdf"
-                : fmt.includes("html") ? "text/html"
-                : (blob as Blob).type || "application/octet-stream",
-  };
-}
-
 async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
-  const {
-    tool_slug, variant, title, scenario_summary, fixture,
-    source_table, source_row_id,
-  } = body ?? {};
+  const { tool_slug, variant, title, scenario_summary, fixture } = body ?? {};
   if (!tool_slug || !variant || !title) {
     return json({ error: "missing tool_slug/variant/title" }, 400);
   }
-
-  let pdfBytes: Uint8Array | null = null;
-  let contentType = "application/pdf";
-  let renderMethod: string = "pdfshift_from_report_data";
-  let fetchedReportData: unknown = null;
-  let fetchedDocumentText: string | null = null;
-  let resolvedSourceTable: string | null = source_table ?? null;
-  let resolvedSourceRowId: string | null = source_row_id ?? null;
-
-  // Path A: file-driven tool — copy the actual generated document file.
-  if (source_table && source_row_id && FILE_DRIVEN[source_table]) {
-    const fetched = await fetchFileDrivenPdf(admin, source_table, source_row_id);
-    if (!fetched) {
-      return json({
-        error: `No current generated document found for ${source_table}/${source_row_id}. Run the tool to produce a document first.`,
-      }, 400);
-    }
-    if (fetched.contentType === "application/pdf") {
-      pdfBytes = fetched.bytes;
-      renderMethod = "copied_from_" + FILE_DRIVEN[source_table].bucket;
-    } else {
-      // Render HTML (or fall back to treating bytes as utf-8 text) via PDFShift.
-      const html = new TextDecoder().decode(fetched.bytes);
-      try {
-        pdfBytes = await renderViaPdfShift(html, title);
-        renderMethod = "pdfshift_from_" + FILE_DRIVEN[source_table].bucket;
-      } catch (e) {
-        return json({ error: `PDFShift (file-driven): ${(e as Error).message}` }, 502);
-      }
-    }
-  } else {
-    // Path B: structured-report tool — pull report_data / *_text from source row.
-    if (source_table && source_row_id) {
-      const shape = SOURCE_SHAPE[source_table];
-      if (shape) {
-        const cols: string[] = [];
-        if (shape.reportData) cols.push("report_data");
-        if (shape.textCol) cols.push(shape.textCol);
-        if (cols.length > 0) {
-          const { data: src, error: srcErr } = await admin
-            .from(source_table)
-            .select(cols.join(","))
-            .eq("id", source_row_id)
-            .maybeSingle();
-          if (srcErr) return json({ error: `source: ${srcErr.message}` }, 400);
-          fetchedReportData = shape.reportData ? ((src as any)?.report_data ?? null) : null;
-          fetchedDocumentText = shape.textCol ? ((src as any)?.[shape.textCol] ?? null) : null;
-        }
-      }
-    }
-    if (!fetchedReportData && !fetchedDocumentText) {
-      return json({
-        error: "No report content found. Pass source_table + source_row_id from a completed live run, then retry.",
-      }, 400);
-    }
-    const html = buildSampleHtml({
-      tool_slug, variant, title,
-      scenario_summary: scenario_summary ?? "",
-      reportData: (fetchedReportData as Record<string, unknown> | null) ?? null,
-      documentText: fetchedDocumentText,
-    });
-    try {
-      pdfBytes = await renderViaPdfShift(html, title);
-    } catch (e) {
-      return json({ error: (e as Error).message }, 502);
-    }
+  const html = buildSampleHtml({
+    tool_slug, variant, title,
+    scenario_summary: scenario_summary ?? "",
+    fixture: (fixture as Record<string, unknown>) ?? {},
+  });
+  let pdfBytes: Uint8Array;
+  try {
+    pdfBytes = await renderViaPdfShift(html, title);
+  } catch (e) {
+    return json({ error: (e as Error).message }, 502);
   }
-
-  if (!pdfBytes) return json({ error: "PDF render produced no bytes" }, 500);
 
   const path = `${tool_slug}/${variant}.pdf`;
   const { error: upErr } = await admin.storage.from("sample-reports").upload(path, pdfBytes, {
-    contentType,
+    contentType: "application/pdf",
     upsert: true,
   });
   if (upErr) return json({ error: `upload: ${upErr.message}` }, 400);
 
   const verification = {
-    source: renderMethod,
+    source: "manual_pdfshift",
     method: "admin sample PDF generator",
     generated_at: new Date().toISOString(),
     bytes: pdfBytes.byteLength,
-    source_table: resolvedSourceTable,
-    source_row_id: resolvedSourceRowId,
   };
 
   const payload = {
     tool_slug, variant, title,
     scenario_summary: scenario_summary ?? "",
     fixture: fixture ?? {},
-    source_table: resolvedSourceTable ?? "manual_pdfshift",
-    source_row_id: resolvedSourceRowId,
-    report_data: fetchedReportData ?? null,
-    document_text: fetchedDocumentText ?? null,
+    source_table: "manual_pdfshift",
+    source_row_id: null,
+    report_data: null,
+    document_text: null,
     verification,
     pdf_path: path,
     status: "draft",
@@ -472,7 +287,7 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
     .select()
     .single();
   if (error) return json({ error: `upsert: ${error.message}` }, 400);
-  return json({ row, bytes: pdfBytes.byteLength, render_method: renderMethod });
+  return json({ row, bytes: pdfBytes.byteLength });
 }
 
 Deno.serve(async (req) => {
