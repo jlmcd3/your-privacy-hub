@@ -612,7 +612,8 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       try {
         const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
         const retryText = await callAi(
-          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the document again, correcting these defects silently. Do not mention this instruction or the defects in the document.`
+          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the document again, correcting these defects silently. Do not mention this instruction or the defects in the document.`,
+          200_000,
         );
         const retryParsed = parseDpa(retryText);
         const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
