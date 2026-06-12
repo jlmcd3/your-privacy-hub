@@ -42,7 +42,7 @@ async function callClaude(
   systemPrompt: string,
   userContent: string,
   maxTokens: number = 4000
-): Promise<string> {
+): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -64,7 +64,10 @@ async function callClaude(
     throw new Error(`Anthropic error ${res.status}: ${txt}`);
   }
   const data = await res.json();
-  return data.content?.[0]?.text || "";
+  const text = data.content?.[0]?.text || "";
+  const stopReason: string | null = data.stop_reason ?? null;
+  console.log(`[generate-registration-docs] gen done stop=${stopReason} chars=${text.length}`);
+  return { text, stopReason };
 }
 
 function fmtFee(cents: number | null | undefined, currency: string | null | undefined): string {
