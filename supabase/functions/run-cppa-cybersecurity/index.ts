@@ -25,7 +25,7 @@ function stripMd(s: string | undefined | null): string {
     .replace(/^\s*[-_]{3,}\s*$/gm, '');
 }
 
-async function callAnthropic(system: string, user: string, maxTokens: number): Promise<string> {
+async function callAnthropic(system: string, user: string, maxTokens: number): Promise<{ text: string; stopReason: string | null }> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -43,7 +43,10 @@ async function callAnthropic(system: string, user: string, maxTokens: number): P
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
-  return d.content?.[0]?.text || "";
+  const text = d.content?.[0]?.text || "";
+  const stopReason: string | null = d.stop_reason ?? null;
+  console.log(`[run-cppa-cybersecurity] gen done stop=${stopReason} chars=${text.length}`);
+  return { text, stopReason };
 }
 
 const ALL_COMPONENTS: string[] = [
