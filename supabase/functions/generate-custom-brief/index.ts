@@ -612,6 +612,7 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
       }
       const data = await response.json();
       const text = data.content?.[0]?.text || "";
+      console.log(`[generate-custom-brief] gen done stop=${data.stop_reason ?? null} chars=${text.length}`);
       const customSections = safeParseLlmJson(text);
       if (!customSections) {
         console.error(`Custom brief JSON parse failed for user ${user.id}. Length: ${text.length}. Tail: ${text.slice(-200)}`);
