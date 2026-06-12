@@ -349,6 +349,7 @@ followed by a JSON array of enforcement citations that directly supported a time
   "relevance": "one sentence why this case is relevant to this playbook"
 }
 If no cases informed the playbook, output an empty array [].
+The ===ANNOTATIONS=== block must contain ONLY well-formed JSON with real values — never [TO BE COMPLETED] or any bracketed placeholder.
 
 Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT output Sections 1–5. Do not end your output with a horizontal rule or divider line.`;
 
