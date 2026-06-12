@@ -471,17 +471,42 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
 
     let partA = "";
     let partB = "";
+    let incompleteReason: string | null = null;
     try {
       console.log("[IR Playbook] starting parallel generation halves");
       const r = await generateHalves("");
       partA = r.partA; partB = r.partB;
-      console.log("[IR Playbook] generation halves complete", { partAChars: partA.length, partBChars: partB.length });
+      if (r.incomplete) incompleteReason = r.incomplete;
+      console.log("[IR Playbook] generation halves complete", { partAChars: partA.length, partBChars: partB.length, incomplete: incompleteReason });
     } catch (e: any) {
       console.error("Claude parallel split-call failure:", e?.message || e);
       return new Response(JSON.stringify({ error: "AI generation failed" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // CF-2: never merge/persist a truncated playbook.
+    if (incompleteReason) {
+      console.error(`[IR Playbook] incomplete_generation after retry: ${incompleteReason}`);
+      try {
+        if (body.assessment_id) {
+          await supabase
+            .from("ir_playbooks")
+            .update({
+              status: "failed",
+              report_data: { error: "incomplete_generation", detail: incompleteReason, generated_at: new Date().toISOString() },
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", body.assessment_id);
+        }
+      } catch (persistErr) {
+        console.error("ir_playbooks failure-persist error:", persistErr);
+      }
+      return new Response(
+        JSON.stringify({ error: "incomplete_generation", detail: incompleteReason }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     let assembled = assembleFromHalves(partA, partB);
