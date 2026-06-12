@@ -87,11 +87,16 @@ Deno.serve(async (req) => {
     if (!assessment) return new Response(JSON.stringify({ error: "Not found" }),
       { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    await supabase.from("governance_assessments")
-      .update({ status: "processing" }).eq("id", assessment_id);
-
     const intake = assessment.intake_data as any;
+    const orgName = (assessment as any).organization_name || intake?.organization_name || null;
+    await supabase.from("governance_assessments")
+      .update({
+        status: "processing",
+        ...(orgName && !(assessment as any).organization_name ? { organization_name: orgName } : {}),
+      }).eq("id", assessment_id);
+
     const intakeSummary = `
+Organisation (controller) being assessed: ${orgName || "not specified"}
 Organisation sector: ${intake.sector || "not specified"}
 Organisation size: ${intake.org_size || "not specified"}
 Jurisdictions of operation: ${(intake.jurisdictions || []).join(", ")}
