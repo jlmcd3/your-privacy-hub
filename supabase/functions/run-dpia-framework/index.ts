@@ -49,9 +49,13 @@ Deno.serve(async (req) => {
     if (!dpia) return new Response(JSON.stringify({ error: "Not found" }),
       { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    await supabase.from("dpia_frameworks").update({ status: "processing" }).eq("id", dpia_id);
-
     const intake = dpia.intake_data as any;
+    const orgName = (dpia as any).organization_name || intake?.organization_name || null;
+    await supabase.from("dpia_frameworks").update({
+      status: "processing",
+      ...(orgName && !(dpia as any).organization_name ? { organization_name: orgName } : {}),
+    }).eq("id", dpia_id);
+
 
     let orgContext = "";
     if (dpia.source_assessment_id) {
@@ -153,6 +157,7 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
 
     // ── Split DPIA generation into two parallel calls to stay within timeout ──
     const sharedContext = `PROCESSING ACTIVITY DETAILS:
+Organisation (controller) being assessed: ${orgName || "not specified"}
 Description: ${processingDesc}
 Purpose: ${purpose}
 Data categories: ${dataCategories}
