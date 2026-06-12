@@ -297,45 +297,101 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
 
     let reportData: any = { ...partA, ...partB };
 
-    // Lint narrative strings across the framework JSON; one retry on hard violations.
+    // Lint narrative strings across the framework JSON; one retry on hard violations
+    // — surgically regenerating ONLY the half(s) whose top-level keys contain hard
+    // violations, so a clean half is preserved.
     const lintViolations: any[] = [];
-    function walkAndLint(obj: any, path: string): boolean {
+    const hardKeys = new Set<string>(); // top-level keys (e.g. "section_3_risks") with hard violations
+    const hardDetailsByKey = new Map<string, string[]>();
+    function walkAndLint(obj: any, path: string, topKey: string | null): boolean {
       let hardSeen = false;
       if (Array.isArray(obj)) {
         for (let i = 0; i < obj.length; i++) {
           if (typeof obj[i] === "string") {
             const r = lintReportText(obj[i]);
             for (const v of r.violations) lintViolations.push({ field: `${path}[${i}]`, ...v });
-            if (hasHardViolations(r)) hardSeen = true;
+            if (hasHardViolations(r)) {
+              hardSeen = true;
+              if (topKey) {
+                hardKeys.add(topKey);
+                const arr = hardDetailsByKey.get(topKey) ?? [];
+                for (const v of r.violations) arr.push(`${v.code}: ${v.detail}`);
+                hardDetailsByKey.set(topKey, arr);
+              }
+            }
             obj[i] = r.clean;
           } else if (obj[i] && typeof obj[i] === "object") {
-            if (walkAndLint(obj[i], `${path}[${i}]`)) hardSeen = true;
+            if (walkAndLint(obj[i], `${path}[${i}]`, topKey)) hardSeen = true;
           }
         }
       } else if (obj && typeof obj === "object") {
         for (const k of Object.keys(obj)) {
           const v = obj[k];
+          const nextTop = topKey ?? k;
           if (typeof v === "string") {
             const r = lintReportText(v);
             for (const vi of r.violations) lintViolations.push({ field: `${path}.${k}`, ...vi });
-            if (hasHardViolations(r)) hardSeen = true;
+            if (hasHardViolations(r)) {
+              hardSeen = true;
+              hardKeys.add(nextTop);
+              const arr = hardDetailsByKey.get(nextTop) ?? [];
+              for (const vi of r.violations) arr.push(`${vi.code}: ${vi.detail}`);
+              hardDetailsByKey.set(nextTop, arr);
+            }
             obj[k] = r.clean;
           } else if (v && typeof v === "object") {
-            if (walkAndLint(v, `${path}.${k}`)) hardSeen = true;
+            if (walkAndLint(v, `${path}.${k}`, nextTop)) hardSeen = true;
           }
         }
       }
       return hardSeen;
     }
 
-    if (walkAndLint(reportData, "report")) {
+    const HALF_A_KEYS = new Set(["dpia_metadata", "section_1_description", "section_2_necessity", "section_3_risks"]);
+    const HALF_B_KEYS = new Set(["section_4_mitigation", "section_5_consultation", "section_6_conclusion", "framework_disclaimer"]);
+
+    if (walkAndLint(reportData, "report", null)) {
       try {
-        const details = lintViolations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+        const detailsA: string[] = [];
+        const detailsB: string[] = [];
+        let retryA = false;
+        let retryB = false;
+        for (const k of hardKeys) {
+          const inA = HALF_A_KEYS.has(k);
+          const inB = HALF_B_KEYS.has(k);
+          const details = hardDetailsByKey.get(k) ?? [];
+          if (!inA && !inB) {
+            // Unknown top-level key — safety: include in both halves
+            retryA = true; retryB = true;
+            detailsA.push(...details);
+            detailsB.push(...details);
+            continue;
+          }
+          if (inA) { retryA = true; detailsA.push(...details); }
+          if (inB) { retryB = true; detailsB.push(...details); }
+        }
         lintViolations.length = 0;
-        const retryInstr = `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`;
-        const [retryA, retryB] = await Promise.all([genHalf(promptA, retryInstr), genHalf(promptB, retryInstr)]);
-        reportData = { ...retryA, ...retryB };
-        walkAndLint(reportData, "report");
+        hardKeys.clear();
+        hardDetailsByKey.clear();
+
+        const retries: Promise<any>[] = [];
+        let newA: any = null;
+        let newB: any = null;
+        if (retryA) {
+          const retryInstrA = `PREVIOUS ATTEMPT REJECTED by automated lint for: ${detailsA.join("; ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`;
+          retries.push(genHalf(promptA, retryInstrA).then((r) => { newA = r; }));
+        }
+        if (retryB) {
+          const retryInstrB = `PREVIOUS ATTEMPT REJECTED by automated lint for: ${detailsB.join("; ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`;
+          retries.push(genHalf(promptB, retryInstrB).then((r) => { newB = r; }));
+        }
+        await Promise.all(retries);
+
+        // Merge: retained half stays as-is; affected half(s) overwrite their keys.
+        const mergedA = newA ?? partA;
+        const mergedB = newB ?? partB;
+        reportData = { ...mergedA, ...mergedB };
+        walkAndLint(reportData, "report", null);
       } catch (e) {
         console.warn("[DPIA] lint retry failed (non-fatal):", e);
       }
