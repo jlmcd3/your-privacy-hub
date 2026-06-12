@@ -85,66 +85,6 @@ async function generatePDF(
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-// EMAIL DELIVERY HELPER
-// ─────────────────────────────────────────────────────────────────────────
-// PLACEHOLDER: Replace the body of this function with your email service call.
-// Environment variable to add to Supabase secrets: EMAIL_SERVICE_API_KEY
-// Also set: EMAIL_FROM_ADDRESS (e.g. reports@enduserprivacy.com)
-// ─────────────────────────────────────────────────────────────────────────
-async function sendEmail(opts: {
-  toEmail: string;
-  toName: string;
-  subject: string;
-  bodyHtml: string;
-  pdfBytes: Uint8Array | null;
-  attachmentName: string;
-}): Promise<boolean> {
-  const emailApiKey = Deno.env.get("EMAIL_SERVICE_API_KEY");
-  const fromAddress = Deno.env.get("EMAIL_FROM_ADDRESS") || "reports@enduserprivacy.com";
-  if (!emailApiKey) {
-    console.error("EMAIL_SERVICE_API_KEY not set in Supabase secrets.");
-    return false;
-  }
-
-  try {
-    // ── EMAIL SERVICE CALL ───────────────────────────────────────────────
-    // Replace everything between these comments with the actual service call.
-    // If pdfBytes is null, send the email without an attachment.
-    //
-    // Generic pattern for a transactional email REST API:
-    // const payload: any = {
-    //   from: fromAddress,
-    //   to: [{ email: opts.toEmail, name: opts.toName }],
-    //   subject: opts.subject,
-    //   html: opts.bodyHtml,
-    // };
-    // if (opts.pdfBytes) {
-    //   payload.attachments = [{
-    //     filename: opts.attachmentName,
-    //     content: btoa(String.fromCharCode(...opts.pdfBytes)),
-    //     type: "application/pdf",
-    //   }];
-    // }
-    // const response = await fetch("https://[EMAIL_SERVICE_ENDPOINT]", {
-    //   method: "POST",
-    //   headers: {
-    //     "Authorization": `Bearer ${emailApiKey}`,
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(payload),
-    //   signal: AbortSignal.timeout(15000),
-    // });
-    // return response.ok;
-    // ── END EMAIL SERVICE CALL ───────────────────────────────────────────
-
-    void fromAddress; void opts;
-    throw new Error("EMAIL_SERVICE_NOT_CONFIGURED");
-  } catch (e) {
-    console.error("sendEmail failed:", e);
-    return false;
-  }
-}
 
 // ─────────────────────────────────────────────────────────────────────────
 // SHARED META-LINE HELPER
