@@ -530,7 +530,7 @@ const runRegistration: Runner = async ({ userId, log }) => {
   return {
     targetTable: "registration_orders",
     targetId: order.id,
-    label: `Registration · ${intake.organization_name} · ${codes.join("/")}`,
+    label: `Registration · ${intake.organization_name} · ${codes.join("/")} · ${shortId(order.id)}`,
     resultUrl: `/registration/order/${order.id}`,
   };
 };
