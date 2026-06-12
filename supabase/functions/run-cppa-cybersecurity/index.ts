@@ -439,7 +439,49 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
       },
     };
 
-    (report as any).enforcement_precedents = enforcementResults.slice(0, 5);
+    // CF-1 (4): Single-source precedent/annotation parity.
+    // Validate annotations: keep only those whose enforcement_action_id matches
+    // a retrieved enforcement row. Rebuild enforcement_precedents from those
+    // validated ids, preserving the retrieval (relevance) order. Drop orphans.
+    const retrievedById = new Map<string, any>();
+    for (const r of (enforcementResults as any[])) {
+      if (r?.id) retrievedById.set(String(r.id), r);
+    }
+    const rawAnnotations: any[] = Array.isArray((report as any).annotations) ? (report as any).annotations : [];
+    const validatedAnnotations: any[] = [];
+    const orphans: any[] = [];
+    const seenIds = new Set<string>();
+    for (const a of rawAnnotations) {
+      const aid = String(a?.enforcement_action_id ?? "");
+      if (aid && retrievedById.has(aid) && !seenIds.has(aid)) {
+        validatedAnnotations.push(a);
+        seenIds.add(aid);
+      } else {
+        orphans.push({ id: aid || null, reason: aid ? "id_not_in_retrieved" : "missing_id" });
+      }
+    }
+    if (orphans.length > 0) {
+      console.warn("[CPPA Cyber] dropped orphan annotations:", JSON.stringify(orphans));
+    }
+    // Rebuild precedents in retrieval order, restricted to validated ids.
+    const validatedIdSet = new Set(validatedAnnotations.map((a) => String(a.enforcement_action_id)));
+    const rebuiltPrecedents = (enforcementResults as any[]).filter((r: any) => validatedIdSet.has(String(r?.id)));
+
+    (report as any).annotations = validatedAnnotations;
+    (report as any).enforcement_precedents = rebuiltPrecedents;
+
+    // Parity assertion (post-filter): counts MUST match. On mismatch, trim.
+    if (validatedAnnotations.length !== rebuiltPrecedents.length) {
+      console.error(
+        `[CPPA Cyber] precedent/annotation parity mismatch after rebuild: ` +
+        `annotations=${validatedAnnotations.length} precedents=${rebuiltPrecedents.length}`,
+      );
+      const precedentIds = new Set(rebuiltPrecedents.map((r: any) => String(r?.id)));
+      (report as any).annotations = validatedAnnotations.filter((a: any) =>
+        precedentIds.has(String(a.enforcement_action_id))
+      );
+    }
+
     (report as any).enforcement_meta = enforcementMeta;
     (report as any).lint_warnings = [
       ...(Array.isArray((report as any).lint_warnings) ? (report as any).lint_warnings : []),
