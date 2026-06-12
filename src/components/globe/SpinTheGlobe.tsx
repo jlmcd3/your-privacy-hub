@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import * as THREE from "three";
 import GLOBE_JURISDICTIONS, { type GlobeJurisdiction } from "@/data/globe_jurisdictions";
 import { pickStarClass, powerLawBrightness, twinkle } from "./starPalette";
+import earthTextureAsset from "@/assets/earth-blue-marble.jpg.asset.json";
+
 
 
 type Phase = "idle" | "spinning" | "result";
@@ -236,7 +238,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
     // Try self-hosted asset first, then unpkg CDN, then canvas-drawn fallback.
     loader.load(
-      "/globe/earth-blue-marble.jpg",
+      earthTextureAsset.url,
       applyTexture,
       undefined,
       () => {
