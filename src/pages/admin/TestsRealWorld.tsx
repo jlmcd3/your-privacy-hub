@@ -34,7 +34,7 @@ type RunState = {
   error?: string;
 };
 
-const GROUP_ORDER = ["Assessments", "Documents", "Briefing"] as const;
+const GROUP_ORDER = ["Assessments", "Documents", "Notices", "Registration", "CPPA", "Briefing"] as const;
 
 export default function TestsRealWorld() {
   const { user } = useAuth();
