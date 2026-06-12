@@ -175,10 +175,13 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     camera.position.set(0, 0, 3.0);
     camera.lookAt(0, 0, 0);
 
-    // Stars
+    // Stars (three Points groups by brightness band)
     const sf = buildStarField();
     starsRef.current = sf;
-    scene.add(sf.points);
+    scene.add(sf.dim.points);
+    scene.add(sf.mid.points);
+    scene.add(sf.bright.points);
+
 
     // Globe — placeholder material while texture loads
     const globe = new THREE.Mesh(
