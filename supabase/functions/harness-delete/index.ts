@@ -120,6 +120,17 @@ Deno.serve(async (req) => {
       results.push({ ...row, ok: false, error: "table_not_whitelisted" });
       continue;
     }
+    // Clean non-cascading child rows first.
+    const children = CHILD_TABLES[row.target_table] || [];
+    let childErr: string | null = null;
+    for (const c of children) {
+      const { error } = await admin.from(c.table).delete().eq(c.fk, row.target_id);
+      if (error) { childErr = `${c.table}: ${error.message}`; break; }
+    }
+    if (childErr) {
+      results.push({ ...row, ok: false, error: childErr });
+      continue;
+    }
     const { error: delErr } = await admin
       .from(row.target_table)
       .delete()
