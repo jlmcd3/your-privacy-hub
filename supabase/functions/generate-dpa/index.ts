@@ -257,13 +257,9 @@ Deno.serve(async (req) => {
             .join("\n\n")
         : "No specific enforcement precedents retrieved for these parameters.";
 
-    // Step 3 — Draft via Lovable AI Gateway
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "AI generation is not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Step 3 — Draft via Lovable AI Gateway (LOVABLE_API_KEY presence already verified before dispatch)
+
+
 
     const GDPR_SYSTEM = `You are a senior data protection counsel specialising in GDPR compliance. Draft a complete, legally rigorous controller-processor Data Processing Agreement (DPA) compliant with GDPR Article 28. The agreement must be immediately usable as a professional document without further editing, except where fields are explicitly marked [TO BE COMPLETED].
 
