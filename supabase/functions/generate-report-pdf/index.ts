@@ -488,6 +488,8 @@ interface TextReportOpts {
   text: string;
   showJurisdictionChip?: boolean;
   callout?: { kind: "warn" | "muted"; title?: string; html: string };
+  /** Optional override for the standard "Not legal advice" disclaimer block. */
+  disclaimerHtml?: string;
 }
 
 function buildTextReportHTML(opts: TextReportOpts): string {
