@@ -193,7 +193,8 @@ Facts:
 ${facts}`;
   let resp: string;
   try {
-    resp = await callClaude(HAIKU_MODEL, "You are a precise legal citation auditor. Output ONLY a JSON array.", instruction, 1500);
+    const r0 = await callClaude(HAIKU_MODEL, "You are a precise legal citation auditor. Output ONLY a JSON array.", instruction, 1500);
+    resp = r0.text;
   } catch (e) {
     console.warn("[reg-docs] Haiku citation check failed (non-fatal):", (e as Error).message);
     return { replacements: [], updatedText: text };
