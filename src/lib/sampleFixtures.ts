@@ -486,7 +486,7 @@ const F_ROPA_EU: SampleFixture = {
         data_subjects: "Employees and contractors of North Pole Manual Mining Ltd",
         recipients: "HR team; payroll processor Abominal SM GmbH (DE); HMRC; occupational-health provider",
         transfer_destination: "Germany (Abominal SM GmbH)",
-        transfer_mechanism: "EU SCCs + UK IDTA addendum",
+        transfer_mechanism: "UK adequacy regulations — no Art. 46 safeguard required (UK→EEA)",
         retention_period: "Active employment plus 6 years post-termination",
         security_measures: "RBAC, MFA, AES-256 at rest, quarterly access reviews, ISO 27001 vendor.",
       },

@@ -254,6 +254,17 @@ function computeGating(partA: any): { ready_for_signoff: boolean; blockers: stri
   if (!partA?.cover?.certifying_executive?.name || !partA?.cover?.certifying_executive?.title) {
     blockers.push("Certifying executive name and title are required for sign-off.");
   }
+  // 5. Business legal name is required because Part B carries a penalty-of-perjury attestation.
+  const bln = String(partA?.cover?.business_legal_name ?? "").trim();
+  if (!bln || /\[FILL IN/i.test(bln)) {
+    blockers.push("Business legal name missing — Part B contains a penalty-of-perjury attestation; the legal name must be supplied before this document can be signed or submitted.");
+  }
+  // Strip a trailing "(advisory)" or similar parenthetical from the certifying executive title.
+  if (partA?.cover?.certifying_executive?.title) {
+    partA.cover.certifying_executive.title = String(partA.cover.certifying_executive.title)
+      .replace(/\s*\((?:advisory|interim|acting|temporary|proposed)\)\s*$/i, "")
+      .trim();
+  }
   return { ready_for_signoff: blockers.length === 0, blockers };
 }
 
@@ -274,6 +285,9 @@ ABSOLUTE RULES:
 10. § 4 sub-mapping is fixed: A=collection sources, B=retention, C=consumer interaction, D=consumer count, E=disclosures to consumers, F=service providers/contractors/third parties, G=ADMT logic (null unless ADMT trigger fires).
 11. § 10 governance commitments: triennial review (§ 7155(a)); 45-day material-change update (§ 7155(a)); 5-year retention (§ 7155(b)); 30-day on-demand production (§ 7156(c)).
 12. Where commentary from both the 2025 and 2023 rulemaking packages addresses the same regulation section, treat the 2025 package as controlling and the 2023 package as historical background.
+13. SIGNIFICANT-DECISION RULE (critical): Under the final regulations (OAL-approved Sept 2025), "significant decisions" are limited to decisions concerning financial or lending services, housing, education, employment, or healthcare. Advertising — including ad-auction eligibility, audience scoring, and targeting — is NOT a significant decision; behavioral-advertising references were removed from the final regulations. Select § 7150(b)(3) (ADMT for a significant decision) and § 7150(b)(6) (training ADMT) ONLY when the activity's decisions fall in those enumerated categories or the training is for identity/facial/emotion-recognition verification. For advertising activities, the correct triggers are § 7150(b)(1) (selling/sharing for cross-context behavioral advertising) and, where genuinely applicable, § 7150(b)(2) (sensitive PI). When the ADMT triggers do not apply, do not assert § 7220 pre-use-notice or ADMT-opt-out obligations as requirements — describe any such measures as voluntary safeguards.
+14. SPI CLASSIFICATION RULE: Sensitive personal information includes precise geolocation, government IDs, financial account credentials, racial/ethnic origin, religious beliefs, union membership, genetic data, biometric identifiers used for identification, health data, and contents of mail/email/text. Classification must follow Civil Code § 1798.140(ae) — do not invent additional categories.
+15. APPENDIX-CONSISTENCY RULE: Appendix D's § 1798.121 statement must follow from the § 2 purpose. If the purpose includes advertising use of SPI, you cannot state SPI is "used only for service delivery and fraud prevention" — either the SPI classification is wrong or the limitation statement is; resolve before output. Appendices must never contradict the body.
 
 OUTPUT SHAPE (every field required unless marked optional):
 {
@@ -358,7 +372,7 @@ OUTPUT SHAPE (every field required unless marked optional):
       "statute": "Cal. Code Regs. tit. 11 §§ 7152(a)(9), 7155, 7156(c)",
       "triennial_review_date": "ISO date",
       "material_change_commitment": "We will update this assessment within 45 days of a material change to the processing activity, per § 7155(a).",
-      "retention_commitment": "This assessment will be retained for at least 5 years, per § 7155(b).",
+      "retention_commitment": "This assessment will be retained for at least 5 years or for as long as the processing continues, whichever is longer, per § 7155(b).",
       "production_commitment": "We will produce this assessment to the CPPA within 30 days of a written request, per § 7156(c).",
       "approver": {"name": "from i8", "title": "from i8", "date": null}
     },
@@ -378,7 +392,7 @@ OUTPUT SHAPE (every field required unless marked optional):
     "pi_categories_aggregated": ["from § 3"],
     "spi_flagged": ["subset of above flagged as SPI"],
     "perjury_attestation_block": "I, [NAME], [TITLE], certify under penalty of perjury under the laws of the State of California that the foregoing is true and correct. Executed on [DATE].",
-    "submission_banner": "The California Privacy Protection Agency has not yet opened a submission portal for risk-assessment certifications. Check cppa.ca.gov/regulations for current filing instructions before the April 1, 2028 deadline."
+    "submission_banner": "Assessments for processing activities existing when the regulations took effect must be completed by December 31, 2027; first submissions to the CPPA are due April 1, 2028. The California Privacy Protection Agency has not yet opened a submission portal for risk-assessment certifications. Check cppa.ca.gov/regulations for current filing instructions before the April 1, 2028 deadline."
   }
 }`;
 

@@ -117,6 +117,28 @@ const LAW_NAMES: Record<string, string> = {
   KR_PIPA: "South Korea Personal Information Protection Act (PIPA)",
 };
 
+const LAW_NAMES_SHORT: Record<string, string> = {
+  EU_GDPR: "EU GDPR", UK_GDPR: "UK GDPR", CH_FADP: "Swiss FADP",
+  US_CCPA: "CCPA/CPRA", US_VA: "VCDPA", US_CO: "CPA", US_CT: "CTDPA", US_TX: "TDPSA",
+  BR_LGPD: "LGPD", CA_PIPEDA: "PIPEDA", AU_PRIVACY: "AU Privacy Act",
+  SG_PDPA: "SG PDPA", IN_DPDP: "DPDP", JP_APPI: "APPI", KR_PIPA: "PIPA",
+};
+
+function humanize(token: string): string {
+  if (!token) return "—";
+  return token.replace(/_/g, " ");
+}
+
+function lawLabel(j: string): string {
+  return LAW_NAMES[j] ?? humanize(j);
+}
+function lawLabelShort(j: string): string {
+  return LAW_NAMES_SHORT[j] ?? humanize(j);
+}
+function jurisdictionList(arr: string[], short = false): string {
+  return (arr || []).map((j) => short ? lawLabelShort(j) : lawLabel(j)).join(", ");
+}
+
 const LAWFUL_BASIS_LABELS: Record<string, string> = {
   consent: "Consent — Art. 6(1)(a)",
   contract: "Contract — Art. 6(1)(b)",
@@ -261,20 +283,28 @@ function collectTransfers(d: AssembledData): CrossBorderTransfer[] {
       ans["transfer_country"] ??
       ans["cross_border_destination"];
     if (!destination) continue;
+    const destStr = answerToString(destination);
+    if (/no\s+third[- ]country\s+transfer/i.test(destStr) || /^none$/i.test(destStr.trim())) continue;
     const mechanism =
       ans["transfer_mechanism"] ??
       ans["transfer_safeguard"] ??
       "Not specified";
-    const basis =
-      ans["transfer_basis"] ?? ans["transfer_lawful_basis"] ?? "—";
+    const explicitBasis =
+      ans["transfer_basis"] ?? ans["transfer_lawful_basis"];
+    const mechanismStr = answerToString(mechanism);
+    const basisStr = explicitBasis
+      ? answerToString(explicitBasis)
+      : (mechanismStr && mechanismStr !== "—" && mechanismStr !== "Not specified"
+          ? mechanismStr
+          : "Not recorded — complete before relying on this register");
     const data =
       ans["data_categories"] ?? ans["personal_data_types"] ?? "—";
     out.push({
       activity: a.display_name,
       data: answerToString(data),
-      destination: answerToString(destination),
-      mechanism: answerToString(mechanism),
-      basis: answerToString(basis),
+      destination: destStr,
+      mechanism: mechanismStr,
+      basis: basisStr,
     });
   }
   return out;
@@ -319,14 +349,24 @@ function buildHtml(d: AssembledData): string {
   const allAnswerSections = d.activities
     .map((a) => {
       const ans = d.answersByActivity[a.id] ?? {};
+      // Collapse duplicates: if both processor_platform and recipients carry the same content, drop "recipients".
+      const skip = new Set<string>(["info_card"]);
+      const procVal = answerToString(ans.processor_platform);
+      const recVal = answerToString(ans.recipients);
+      if (procVal !== "—" && procVal === recVal) skip.add("recipients");
       const rows = Object.entries(ans)
-        .filter(([key]) => key !== "info_card")
-        .map(([key, value]) => `
+        .filter(([key]) => !skip.has(key))
+        .map(([key, value]) => {
+          const display = key === "lawful_basis"
+            ? lawfulBasisLabel(value)
+            : answerToString(value);
+          return `
           <tr>
             <th>${escapeHtml(questionLabel(key))}</th>
-            <td>${escapeHtml(answerToString(value))}</td>
+            <td>${escapeHtml(display)}</td>
           </tr>
-        `)
+        `;
+        })
         .join("");
       if (!rows) return "";
       return `
@@ -401,7 +441,7 @@ function buildHtml(d: AssembledData): string {
     <div style="font-size: 18px; color: #333; margin-top: 8px; font-weight: 600;">Records of Processing Activities</div>
     <div style="font-size: 13px; color: #555; margin-top: 4px;">Maintained pursuant to Article 30 of the General Data Protection Regulation (GDPR)</div>
     <div class="meta">${escapeHtml(d.settings.documentDate)}</div>
-    <div class="meta">Jurisdictions: ${escapeHtml(d.jurisdictions.join(", ") || "—")}</div>
+    <div class="meta">Jurisdictions: ${escapeHtml(jurisdictionList(d.jurisdictions, true) || "—")}</div>
     <div class="meta">Author: ${escapeHtml(d.settings.authorName)} · Version ${d.session.version_number}</div>
     ${d.settings.internalReference ? `<div class="meta">Internal reference: ${escapeHtml(d.settings.internalReference)}</div>` : ""}
     <div class="confidential">Confidential — internal compliance record</div>
@@ -417,9 +457,21 @@ function buildHtml(d: AssembledData): string {
       <tr><th>Sector</th><td>${escapeHtml(d.client?.sector ?? "—")}</td></tr>
       <tr><th>Employee band</th><td>${escapeHtml(d.profile?.employee_band ?? "—")}</td></tr>
       <tr><th>DPO</th><td>${escapeHtml(d.profile?.dpo_name ?? "Not designated")}${d.profile?.dpo_email ? ` &lt;${escapeHtml(d.profile.dpo_email)}&gt;` : ""}${d.profile?.dpo_phone ? ` · ${escapeHtml(d.profile.dpo_phone)}` : ""}</td></tr>
-      <tr><th>EU representative</th><td>${escapeHtml(d.profile?.eu_rep_name ?? "—")}${d.profile?.eu_rep_email ? ` &lt;${escapeHtml(d.profile.eu_rep_email)}&gt;` : ""}</td></tr>
-      <tr><th>UK representative</th><td>${escapeHtml(d.profile?.uk_rep_name ?? "—")}${d.profile?.uk_rep_email ? ` &lt;${escapeHtml(d.profile.uk_rep_email)}&gt;` : ""}</td></tr>
-      <tr><th>Jurisdictions</th><td>${escapeHtml(d.jurisdictions.join(", ") || "—")}</td></tr>
+      ${(() => {
+        const orgName = (d.client?.name ?? "").trim().toLowerCase();
+        const euRep = (d.profile?.eu_rep_name ?? "").trim();
+        const ukRep = (d.profile?.uk_rep_name ?? "").trim();
+        const euSuppressed = euRep && euRep.toLowerCase() === orgName;
+        const ukSuppressed = ukRep && ukRep.toLowerCase() === orgName;
+        const euRow = euSuppressed
+          ? `<tr><th>EU representative</th><td>Not required — controller is established in the EEA (Art. 27)</td></tr>`
+          : `<tr><th>EU representative</th><td>${escapeHtml(euRep || "—")}${d.profile?.eu_rep_email ? ` &lt;${escapeHtml(d.profile.eu_rep_email)}&gt;` : ""}</td></tr>`;
+        const ukRow = ukSuppressed
+          ? `<tr><th>UK representative</th><td>Not required — controller is established in the UK (Art. 27)</td></tr>`
+          : `<tr><th>UK representative</th><td>${escapeHtml(ukRep || "—")}${d.profile?.uk_rep_email ? ` &lt;${escapeHtml(d.profile.uk_rep_email)}&gt;` : ""}</td></tr>`;
+        return euRow + ukRow;
+      })()}
+      <tr><th>Jurisdictions</th><td>${escapeHtml(jurisdictionList(d.jurisdictions, true) || "—")}</td></tr>
     </tbody>
   </table>
   <p class="footer-note">This record is maintained pursuant to <strong>Article 30</strong> of the General Data Protection Regulation (GDPR) and UK GDPR, which requires controllers and processors to maintain records of processing activities. It satisfies the requirements of:</p>
@@ -428,7 +480,7 @@ function buildHtml(d: AssembledData): string {
   <h2>2. Processing activities</h2>
   ${activitySections || "<p><em>No activities recorded.</em></p>"}
 
-  ${allAnswerSections ? `<h2>3. Complete answer register</h2>${allAnswerSections}` : ""}
+  ${allAnswerSections ? `<h2>3. Intake answer register (verbatim responses, normalised labels)</h2>${allAnswerSections}` : ""}
 
   <h2>${allAnswerSections ? "4" : "3"}. Cross-border transfer register</h2>
   ${transferTable}
@@ -437,7 +489,7 @@ function buildHtml(d: AssembledData): string {
 
   <h2>${allAnswerSections ? "5" : "4"}. Controller / processor statement</h2>
   <p>This record was prepared by <strong>${escapeHtml(d.settings.authorName)}</strong> on <strong>${escapeHtml(d.settings.documentDate)}</strong>.
-  It constitutes our Article 30 record of processing activities (Records of Processing Activities — RoPA) maintained under ${escapeHtml(d.jurisdictions.map((j) => LAW_NAMES[j] ?? j).join(", ") || "applicable law")}.
+  It constitutes our Article 30 record of processing activities (Records of Processing Activities — RoPA) maintained under ${escapeHtml(jurisdictionList(d.jurisdictions) || "applicable law")}.
   We are committed to reviewing and updating this record at least annually.</p>
   <div class="signature">
     Signature: _____________________________ &nbsp;&nbsp; Date: _______________
@@ -480,7 +532,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
     p(d.client?.name ?? "", { heading: HeadingLevel.TITLE, bold: true }),
     p("Records of Processing Activities", { heading: HeadingLevel.HEADING_2 }),
     p(`Date: ${d.settings.documentDate}`),
-    p(`Jurisdictions: ${d.jurisdictions.join(", ") || "—"}`),
+    p(`Jurisdictions: ${jurisdictionList(d.jurisdictions, true) || "—"}`),
     p(`Author: ${d.settings.authorName} · Version ${d.session.version_number}`),
     ...(d.settings.internalReference
       ? [p(`Internal reference: ${d.settings.internalReference}`)]
@@ -504,7 +556,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
       kvRow("DPO", `${d.profile?.dpo_name ?? "Not designated"}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`),
       kvRow("EU representative", `${d.profile?.eu_rep_name ?? "—"}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`),
       kvRow("UK representative", `${d.profile?.uk_rep_name ?? "—"}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`),
-      kvRow("Jurisdictions", d.jurisdictions.join(", ") || "—"),
+      kvRow("Jurisdictions", jurisdictionList(d.jurisdictions, true) || "—"),
     ],
   });
 
@@ -651,7 +703,7 @@ function buildXlsx(d: AssembledData): Uint8Array {
     ["DPO", `${d.profile?.dpo_name ?? "Not designated"}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`],
     ["EU representative", `${d.profile?.eu_rep_name ?? "—"}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`],
     ["UK representative", `${d.profile?.uk_rep_name ?? "—"}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`],
-    ["Jurisdictions", d.jurisdictions.join(", ") || "—"],
+    ["Jurisdictions", jurisdictionList(d.jurisdictions, true) || "—"],
     ["Document date", d.settings.documentDate],
     ["Author", d.settings.authorName],
     ["Version", d.session.version_number],

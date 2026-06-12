@@ -48,6 +48,38 @@ const FRAMEWORK_LABELS: Record<string, string> = {
   pending: "Pending state privacy law",
 };
 
+const STATE_LAW_NAMES: Record<string, { name: string; cite: string }> = {
+  CA: { name: "California Consumer Privacy Act / California Privacy Rights Act (CCPA/CPRA)", cite: "Cal. Civ. Code §1798.100 et seq." },
+  VA: { name: "Virginia Consumer Data Protection Act (VCDPA)", cite: "Va. Code §59.1-575 et seq." },
+  CO: { name: "Colorado Privacy Act (CPA)", cite: "C.R.S. §6-1-1301 et seq." },
+  CT: { name: "Connecticut Data Privacy Act (CTDPA)", cite: "Conn. Pub. Acts 22-15" },
+  UT: { name: "Utah Consumer Privacy Act (UCPA)", cite: "Utah Code §13-61-101 et seq." },
+  TX: { name: "Texas Data Privacy and Security Act (TDPSA)", cite: "Tex. Bus. & Com. Code §541.001 et seq." },
+  OR: { name: "Oregon Consumer Privacy Act (OCPA)", cite: "Or. Rev. Stat. §646A.570 et seq." },
+  MT: { name: "Montana Consumer Data Privacy Act (MCDPA)", cite: "Mont. Code Ann. §30-14-2801 et seq." },
+  IA: { name: "Iowa Consumer Data Protection Act (ICDPA)", cite: "Iowa Code Ch. 715D" },
+  TN: { name: "Tennessee Information Protection Act (TIPA)", cite: "Tenn. Code Ann. §47-18-3201 et seq." },
+  IN: { name: "Indiana Consumer Data Protection Act", cite: "Ind. Code §24-15-1-1 et seq." },
+  DE: { name: "Delaware Personal Data Privacy Act (DPDPA)", cite: "Del. Code Ann. tit. 6, §12D-101 et seq." },
+  NH: { name: "New Hampshire Privacy Act", cite: "N.H. Rev. Stat. Ann. §507-H" },
+  NJ: { name: "New Jersey Data Privacy Act", cite: "N.J. Stat. Ann. §56:8-166.4 et seq." },
+  KY: { name: "Kentucky Consumer Data Protection Act", cite: "Ky. Rev. Stat. §367.3611 et seq." },
+  NE: { name: "Nebraska Data Privacy Act", cite: "Neb. Rev. Stat. §87-1101 et seq." },
+  RI: { name: "Rhode Island Data Transparency and Privacy Protection Act", cite: "R.I. Gen. Laws §6-48.1-1 et seq." },
+  MN: { name: "Minnesota Consumer Data Privacy Act", cite: "Minn. Stat. §325O" },
+  MD: { name: "Maryland Online Data Privacy Act (MODPA)", cite: "Md. Code, Com. Law §14-4601 et seq." },
+  FL: { name: "Florida Digital Bill of Rights (FDBR)", cite: "Fla. Stat. §501.701 et seq." },
+};
+
+function resolveLawLabel(state: StateRow): string {
+  const named = STATE_LAW_NAMES[state.state_code];
+  if (named) return named.name;
+  return FRAMEWORK_LABELS[state.framework_type] ?? state.state_name + " state privacy law";
+}
+function resolveLawCite(state: StateRow): string {
+  return STATE_LAW_NAMES[state.state_code]?.cite ?? "";
+}
+
 function escapeHtml(s: unknown): string {
   if (s == null) return "";
   return String(s)
@@ -101,11 +133,11 @@ function buildNoticeHtml(
 <body>
   <h1>${escapeHtml(state.state_name)} Privacy Notice</h1>
   <div class="meta">
-    <span class="badge">${escapeHtml(FRAMEWORK_LABELS[state.framework_type] ?? state.framework_type)}</span>
+    <span class="badge">${escapeHtml(resolveLawLabel(state))}${resolveLawCite(state) ? ` · ${escapeHtml(resolveLawCite(state))}` : ""}</span>
     &nbsp;·&nbsp; Last updated: ${escapeHtml(generatedAt)}
   </div>
 
-  <p>This notice explains how <strong>${escapeHtml(businessName)}</strong> collects, uses, and shares the personal information of ${escapeHtml(state.state_name)} residents, and the rights they have under the ${escapeHtml(FRAMEWORK_LABELS[state.framework_type] ?? state.framework_type)}.</p>
+  <p>This notice explains how <strong>${escapeHtml(businessName)}</strong> collects, uses, and shares the personal information of ${escapeHtml(state.state_name)} residents, and the rights they have under the ${escapeHtml(resolveLawLabel(state))}.</p>
   ${businessDesc ? `<p>${escapeHtml(businessDesc)}</p>` : ""}
 
   <h2>1. Information we collect</h2>
@@ -117,15 +149,16 @@ function buildNoticeHtml(
   <h2>3. Sharing with third parties</h2>
   ${
     sharing === "yes"
-      ? `<p>We share personal information with the following categories of recipients: ${escapeHtml(thirdParties)}.</p>`
+      ? `<p>We share personal information with the following categories of recipients: ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}.</p>`
       : `<p>We do not share personal information with third parties for their own use, except as required by law.</p>`
   }
+  ${state.framework_type === "ccpa" && !showOptOut ? `<p>We do not sell personal information, and we do not share it for cross-context behavioral advertising.</p>` : ""}
 
   ${
     showOptOut
       ? `<div class="opt-out">
           <strong>Your right to opt out of sale or sharing.</strong>
-          <p>You have the right to opt out of the sale of your personal information and of its use for cross-context behavioural advertising. To exercise this right, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a> or use the "Do Not Sell or Share My Personal Information" link on our website.</p>
+          <p>You have the right to opt out of the sale of your personal information and of its use for cross-context behavioral advertising. To exercise this right, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a> or use the "Do Not Sell or Share My Personal Information" link on our website.</p>
         </div>`
       : ""
   }
@@ -135,8 +168,8 @@ function buildNoticeHtml(
 
   <h2>5. Your rights</h2>
   ${state.framework_type === "ccpa"
-    ? `<p>As a California resident under the CCPA/CPRA, you have the right to: (a) know what personal information we collect, use, disclose, and sell; (b) request access to or a copy of that information; (c) request correction or deletion; (d) opt out of the sale or sharing of your personal information; (e) limit the use of sensitive personal information; and (f) non-discrimination for exercising these rights. You may designate an authorised agent to exercise these rights on your behalf. To exercise any right, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>`
-    : `<p>As a ${escapeHtml(state.state_name)} resident, you have the right to: (a) know what personal information we collect about you; (b) request access to or a copy of that information; (c) request correction or deletion; and (d) opt out of certain processing. You may also designate an authorised agent to exercise these rights on your behalf.</p>`
+    ? `<p>As a California resident under the CCPA/CPRA, you have the right to: (a) know what personal information we collect, use, disclose, and sell; (b) request access to or a copy of that information; (c) request correction or deletion; (d) opt out of the sale or sharing of your personal information; (e) limit the use of sensitive personal information; and (f) non-discrimination for exercising these rights. You may designate an authorized agent to exercise these rights on your behalf. To exercise any right, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>`
+    : `<p>As a ${escapeHtml(state.state_name)} resident under the ${escapeHtml(resolveLawLabel(state))}, you have the right to: (a) know what personal information we collect about you; (b) request access to or a copy of that information; (c) request correction or deletion; (d) opt out of the processing of your personal data for purposes of targeted advertising, the sale of personal data, or profiling in furtherance of decisions that produce legal or similarly significant effects; and (e) appeal our refusal to act on a request — if we decline your request, we will explain how to appeal, and if your appeal is denied you may contact the ${escapeHtml(state.state_name)} Attorney General. You may also designate an authorized agent to exercise these rights on your behalf.</p>${state.state_code === "CO" ? `<p>We honor opt-out preference signals such as Global Privacy Control as a valid request to opt out of targeted advertising and sale.</p>` : ""}`
   }
 
   <h2>6. How to contact us</h2>
@@ -315,7 +348,7 @@ Deno.serve(async (req) => {
           return `<section style="margin-top:2.5rem;padding-top:1.5rem;border-top:2px solid #e5e7eb;">
   <h2 style="font-size:1.35rem;">${escapeHtml(s.state_name)}</h2>
   <p style="color:#666;font-size:0.85rem;margin-top:-0.25rem;">${escapeHtml(label)}</p>
-  <p>This section applies to residents of <strong>${escapeHtml(s.state_name)}</strong>. ${escapeHtml(businessName)} honours the rights granted under ${escapeHtml(label)}, including access, correction, deletion, portability, and (where applicable) the right to opt out of sale, sharing, or targeted advertising.</p>
+  <p>This section applies to residents of <strong>${escapeHtml(s.state_name)}</strong>. ${escapeHtml(businessName)} honors the rights granted under ${escapeHtml(label)}, including access, correction, deletion, portability, and (where applicable) the right to opt out of sale, sharing, or targeted advertising.</p>
   <p>To exercise these rights as a ${escapeHtml(s.state_name)} resident, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>
 </section>`;
         })

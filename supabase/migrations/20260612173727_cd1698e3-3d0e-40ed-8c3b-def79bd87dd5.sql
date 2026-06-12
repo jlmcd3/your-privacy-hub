@@ -1,0 +1,1 @@
+UPDATE public.clients SET sector = 'Mining and resource extraction', name = 'North Pole Manual Mining Ltd' WHERE id = 'cf5f0711-f178-493a-9401-67a9bb2148c7';

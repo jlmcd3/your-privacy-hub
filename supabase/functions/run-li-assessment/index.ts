@@ -296,7 +296,15 @@ MANDATORY FIELD RULES — violations will cause downstream system failures:
 
 3. The "closest_rejected_precedent" field MUST be a non-empty string. If none, write "None identified in current database".
 
-4. PRECEDENT PROSE RULE: The precedent block above tags each entry with a bracketed outcome marker like [REJECTED] for machine readability. NEVER reproduce these bracketed markers in your prose. Refer to precedents in natural language naming the deciding regulator from the entry, e.g. 'a rejected decision by the Hessian DPA concerning keystroke logging'. Never attribute an enforcement decision to the EDPB unless the entry's source field is an EDPB Article 65 binding decision; the EDPB is not a first-instance enforcement body.`
+4. PRECEDENT PROSE RULE: The precedent block above tags each entry with a bracketed outcome marker like [REJECTED] for machine readability. NEVER reproduce these bracketed markers in your prose. Refer to precedents in natural language naming the deciding regulator from the entry, e.g. 'a rejected decision by the Hessian DPA concerning keystroke logging'. Never attribute an enforcement decision to the EDPB unless the entry's source field is an EDPB Article 65 binding decision; the EDPB is not a first-instance enforcement body.
+
+INTAKE-FACT CONSISTENCY RULE: if the intake names the controller/organisation, use that name and NEVER state that the controller has not been named. Risk factors must not contradict facts stated elsewhere in the same assessment.
+
+MINES REGULATIONS CITATION RULE: When citing the Mines Regulations 2014, describe the duty as arrangements to know who is below ground and to respond to emergencies; cite the specific regulation if known from context, otherwise cite the instrument generally. Do not characterise it as requiring continuous location monitoring.
+
+HANDBOOK TRANSPARENCY RULE: If a handbook addendum is cited as a transparency mitigation, note in the same breath that a standalone worker notice is still expected — do not rely on handbook delivery as sufficient in one section while warning against it in another.
+
+BALANCING-RECORD RULE: Do not duplicate the balancing-record content: the "Balancing Record — Must Include" list should reference, not restate, items already specified under the LIA documentation recommendation. Use UK employment terminology (trade union / elected worker representatives) rather than "works council" unless the intake uses that term.`
       + (gdprBlock ? `\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "");
 
     const analysisUserBase = `Conduct a three-part legitimate interest assessment for the following proposed processing.

@@ -199,6 +199,11 @@ ${controlsDigest}
 System-computed overall_score (mean of the 18 control scores, rounded): ${computedScore}
 Your executive_summary and readiness_level MUST be consistent with this overall_score.
 
+NEXT-STEPS CONSISTENCY: every deadline in next_steps must restate a deadline already given in a control's remediation — never introduce a different timeframe for the same action. Refer to controls by NAME, never "component N" (component numbers are not rendered).
+
+EXEC SUMMARY: the audit is performed by a qualified, independent auditor; the business's executive submits the certification — do not conflate them. Audits may document gaps with remediation plans; do not state that all gaps must be fully remediated before certification.
+
+
 ${enforcementBlock}Respond with ONLY this exact JSON structure:
 {
   "executive_summary": "string (150-200 words — overall readiness posture and top 3 priorities)",
@@ -634,7 +639,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
 
       controlsOut.push({
         ...c,
-        regulatory_basis: `11 CCR § 7123(b) — ${cleanedRegBasis}`,
+        regulatory_basis: `Assessed under 11 CCR § 7123(b): the annual cybersecurity audit must assess and document ${cleanedRegBasis}, as applicable to the business.`,
         fsor_citation: citation,
         fsor_commentary: merged.slice(0, 2).map(shapeFsorItem),
       });

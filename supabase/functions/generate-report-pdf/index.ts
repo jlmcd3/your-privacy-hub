@@ -782,6 +782,13 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   const gating = report.gating || {};
   const cover = a.cover || {};
   const text = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
+  const textJoin = (v: any) => Array.isArray(v)
+    ? escHtml(v.filter((x) => x !== null && x !== undefined && String(x).trim() !== "").map((x) => String(x)).join("; "))
+    : text(v);
+  const capLabel = (k: string) => {
+    const s = k.replace(/_/g, " ");
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+  };
   const generatedDate = new Date(record.created_at || report?.generated_at || Date.now()).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
@@ -805,8 +812,8 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     .map((c: any) => `<tr><td style="padding:4px 10px;border:1px solid #e6e3da;">${text(c.category)}</td><td style="padding:4px 10px;border:1px solid #e6e3da;text-align:center;">${c.is_spi ? "SPI — § 7001(ccc)" : "PI"}</td></tr>`)
     .join("");
   const s4 = a.sec_4_operations || {};
-  const opRow = (label: string, v: any) => v
-    ? `<p><span class="label">${label}:</span> ${text(v)}</p>` : "";
+  const opRow = (label: string, v: any) => (v !== undefined && v !== null && (Array.isArray(v) ? v.length : String(v).trim()))
+    ? `<p><span class="label">${label}:</span> ${textJoin(v)}</p>` : "";
   const admt = s4.g_admt && typeof s4.g_admt === "object" ? s4.g_admt : null;
   const s5 = a.sec_5_benefits || {};
   const s6harms = Array.isArray(a.sec_6_harms?.harms) ? a.sec_6_harms.harms : [];
@@ -893,7 +900,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     ${opRow("(D) Approximate CA consumers", s4.d_consumer_count)}
     ${opRow("(E) Disclosure mechanisms", s4.e_disclosures)}
     ${opRow("(F) Service providers / contractors", s4.f_service_providers)}
-    ${admt ? `<p><span class="label">(G) ADMT:</span></p><ul>${Object.entries(admt).map(([k, v]) => `<li><span class="label">${text(k.replace(/_/g, " "))}:</span> ${text(v)}</li>`).join("")}</ul>` : `<p><span class="label">(G) ADMT:</span> Not applicable to this activity.</p>`}
+    ${admt ? `<p><span class="label">(G) ADMT:</span></p><ul>${Object.entries(admt).map(([k, v]) => `<li><span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}</li>`).join("")}</ul>` : `<p><span class="label">(G) ADMT:</span> Not applicable to this activity.</p>`}
     ${sectionHead("5", "Benefits", s5.statute)}
     <p><span class="label">To the business:</span> ${text(s5.to_business)} ${validatorChip(s5.validator)}</p>
     <p><span class="label">To the consumer:</span> ${text(s5.to_consumer)}</p>
@@ -927,12 +934,12 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     ${s10.retention_commitment ? `<p>${text(s10.retention_commitment)}</p>` : ""}
     ${s10.production_commitment ? `<p>${text(s10.production_commitment)}</p>` : ""}
     <p><span class="label">Approver:</span> ${fillIn(s10.approver?.name, "[FILL IN]")}${s10.approver?.title ? `, ${text(s10.approver.title)}` : ""}${s10.approver?.date ? ` — ${text(s10.approver.date)}` : " — date [TO BE COMPLETED]"}</p>
-    ${app.a_data_flow || vendorRows || app.c_admt_note || app.d_spi_note || app.e_dpia_gap_fill ? `<h2>Appendices</h2>` : ""}
-    ${app.a_data_flow ? `<section class="section"><h3>Appendix A — Data Flow</h3><p>${text(app.a_data_flow)}</p></section>` : ""}
-    ${vendorRows ? `<section class="section"><h3>Appendix B — Vendor Register</h3><table><tr><th>Vendor</th><th>Role</th><th>PI categories</th></tr>${vendorRows}</table></section>` : ""}
-    ${app.c_admt_note ? `<section class="section"><h3>Appendix C — ADMT Note</h3><p>${typeof app.c_admt_note === "object" ? Object.entries(app.c_admt_note).map(([k, v]) => `<span class="label">${text(k.replace(/_/g, " "))}:</span> ${text(v)}`).join("<br/>") : text(app.c_admt_note)}</p></section>` : ""}
-    ${app.d_spi_note ? `<section class="section"><h3>Appendix D — Sensitive PI Note</h3><p>${typeof app.d_spi_note === "object" ? Object.entries(app.d_spi_note).map(([k, v]) => `<span class="label">${text(k.replace(/_/g, " "))}:</span> ${text(v)}`).join("<br/>") : text(app.d_spi_note)}</p></section>` : ""}
-    ${app.e_dpia_gap_fill ? `<section class="section"><h3>Appendix E — DPIA Gap-Fill</h3><p>${typeof app.e_dpia_gap_fill === "object" ? Object.entries(app.e_dpia_gap_fill).map(([k, v]) => `<span class="label">${text(k.replace(/_/g, " "))}:</span> ${text(v)}`).join("<br/>") : text(app.e_dpia_gap_fill)}</p></section>` : ""}
+    <h2>Appendices</h2>
+    ${app.a_data_flow ? `<section class="section"><h3>Appendix A — Data Flow</h3><p>${text(app.a_data_flow)}</p></section>` : `<section class="section"><h3>Appendix A — Data Flow</h3><p><em>Not recorded.</em></p></section>`}
+    ${vendorRows ? `<section class="section"><h3>Appendix B — Vendor Register</h3><table><tr><th>Vendor</th><th>Role</th><th>PI categories</th></tr>${vendorRows}</table></section>` : `<section class="section"><h3>Appendix B — Vendor Register</h3><p><em>No vendors recorded.</em></p></section>`}
+    ${app.c_admt_note ? `<section class="section"><h3>Appendix C — ADMT Note</h3><p>${typeof app.c_admt_note === "object" ? Object.entries(app.c_admt_note).map(([k, v]) => `<span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}`).join("<br/>") : text(app.c_admt_note)}</p></section>` : `<section class="section"><h3>Appendix C — ADMT Note</h3><p>Not applicable — no automated decision-making technology in scope for this activity.</p></section>`}
+    ${app.d_spi_note ? `<section class="section"><h3>Appendix D — Sensitive PI Note</h3><p>${typeof app.d_spi_note === "object" ? Object.entries(app.d_spi_note).map(([k, v]) => `<span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}`).join("<br/>") : text(app.d_spi_note)}</p></section>` : `<section class="section"><h3>Appendix D — Sensitive PI Note</h3><p>Not applicable — no sensitive personal information identified.</p></section>`}
+    ${app.e_dpia_gap_fill ? `<section class="section"><h3>Appendix E — DPIA Gap-Fill</h3><p>${typeof app.e_dpia_gap_fill === "object" ? Object.entries(app.e_dpia_gap_fill).map(([k, v]) => `<span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}`).join("<br/>") : text(app.e_dpia_gap_fill)}</p></section>` : `<section class="section"><h3>Appendix E — DPIA Gap-Fill</h3><p>Not applicable — no existing GDPR/UK GDPR DPIA was reported in the intake for this processing activity.</p></section>`}
     <h2>Part B — Submission Summary${b.statute ? ` <span style="font-size:10px;font-weight:400;color:#5c5a54;">(${text(b.statute)})</span>` : ""}</h2>
     <p><span class="label">Business legal name:</span> ${fillIn(b.business_legal_name, "[FILL IN]")}</p>
     ${b.point_of_contact ? `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact)}</p>` : ""}
@@ -957,6 +964,43 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   const nextSteps = Array.isArray(report?.next_steps) ? report.next_steps : [];
   const annotations = Array.isArray(report?.annotations) ? report.annotations : [];
   const text = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
+
+  // Collect FSOR refs across all controls, dedupe by citation+url, cap at 8.
+  const fsorMap = new Map<string, any>();
+  for (const c of controls) {
+    const items = Array.isArray(c?.fsor_commentary) ? c.fsor_commentary : [];
+    for (const it of items) {
+      const cite = String(it?.citation || it?.regulation_citation || "").trim();
+      const url = String(it?.source_url || "").trim();
+      const summary = String(it?.comment_summary || "").trim();
+      const key = `${cite}||${url}||${summary.slice(0, 40)}`;
+      if (!key.replaceAll("|", "").trim()) continue;
+      if (!fsorMap.has(key)) fsorMap.set(key, it);
+    }
+  }
+  const dedupedFsor = Array.from(fsorMap.values()).slice(0, 8);
+  const dedupedFsorBlock = dedupedFsor.length
+    ? `<section class="section"><h2>Rulemaking context</h2><ul class="fsor-refs">${dedupedFsor.map((it: any) => {
+        const cite = escHtml(it?.citation || it?.regulation_citation || "");
+        const summary = escHtml(it?.comment_summary || "");
+        const url = it?.source_url ? String(it.source_url) : "";
+        const urlHtml = url ? ` · <a href="${escHtml(url)}">${escHtml(url)}</a>` : "";
+        return `<li><span class="label">${cite}</span>${summary ? ` — ${summary}` : ""}${urlHtml}</li>`;
+      }).join("")}</ul></section>`
+    : "";
+
+  // Scorecard table (Control · Status · Score · Priority).
+  const scorecardRows = controls.map((c: any) => `<tr>
+    <td>${text(c.control)}</td>
+    <td>${text(c.status || "")}</td>
+    <td>${c.score !== undefined && c.score !== null ? text(c.score) : ""}</td>
+    <td>${text(c.priority || "")}</td>
+  </tr>`).join("");
+  const scorecardBlock = controls.length
+    ? `<section class="section"><h2>Control Scorecard</h2><table class="md-table">
+        <thead><tr><th>Control</th><th>Status</th><th>Score</th><th>Priority</th></tr></thead>
+        <tbody>${scorecardRows}</tbody></table></section>`
+    : "";
 
   const statusClass = (status: string) => {
     const s = (status || "").toLowerCase();
@@ -1019,6 +1063,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   <div class="body">
     <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
+    ${scorecardBlock}
     ${report?.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(report.enforcement_context)}</p></div>` : ""}
     ${controls.length ? `<section class="section"><h2>Control Findings</h2>${controls.map((c: any) => `<article class="control">
       <div class="control-head"><h3>${text(c.control)}${c.status ? `<span class="status status-${statusClass(c.status)}">${text(c.status)}</span>` : ""}</h3>${c.score !== undefined ? `<span class="score">${text(c.score)}/100</span>` : ""}</div>
@@ -1026,11 +1071,10 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
       ${c.regulatory_basis ? `<p><span class="label">Regulatory basis:</span> ${text(c.regulatory_basis)}</p>` : ""}
       ${c.remediation ? `<p><span class="label">Remediation:</span> ${text(c.remediation)}</p>` : ""}
       ${c.priority ? `<p><span class="label">Priority:</span> ${text(c.priority)}</p>` : ""}
-      ${renderCppaFsorCompact(c.fsor_commentary)}
     </article>`).join("")}</section>` : ""}
     ${topRisks.length ? `<section class="section"><h2>Top Risks</h2>${topRisks.slice(0, 3).map((r: any) => `<article class="risk"><h3>${text(r.title)}</h3>${r.description ? `<p>${text(r.description)}</p>` : ""}${r.deadline ? `<p><span class="label">Deadline:</span> ${text(r.deadline)}</p>` : ""}${r.consequence ? `<p><span class="label">Consequence:</span> ${text(r.consequence)}</p>` : ""}</article>`).join("")}</section>` : ""}
     ${nextSteps.length ? `<section class="section"><h2>Next Steps</h2><ol>${nextSteps.map((step: any) => `<li>${text(step)}</li>`).join("")}</ol></section>` : ""}
-    ${renderCppaSectionCommentary(report?.fsor_section_commentary)}
+    ${dedupedFsorBlock || renderCppaSectionCommentary(report?.fsor_section_commentary)}
     ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
     <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
