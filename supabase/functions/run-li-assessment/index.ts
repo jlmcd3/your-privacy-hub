@@ -157,7 +157,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const regimeLabel = isUk ? "UK GDPR" : "EU GDPR";
 
     // Run classification, enforcement context fetch, and GDPR authority retrieval in parallel
-    const [classifyText, enforcementCtxResult, gdprCtxResult] = await Promise.all([
+    const [classifyResult, enforcementCtxResult, gdprCtxResult] = await Promise.all([
       callAnthropic(
         "claude-haiku-4-5-20251001",
         classifySystem,
@@ -184,6 +184,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; })
     ]);
 
+    const classifyText = classifyResult.text;
     let classification: any = {};
     try {
       const m = classifyText.match(/\{[\s\S]*\}/);
