@@ -321,7 +321,6 @@ async function renderViaPdfShift(html: string, title: string): Promise<Uint8Arra
   return new Uint8Array(await r.arrayBuffer());
 }
 
-async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
 // Map a file-driven source_table to (bucket, document_table, link_col).
 // These tools store their actual report as a file in storage rather than
 // as report_data / document_text — we fetch the file and use it directly.
