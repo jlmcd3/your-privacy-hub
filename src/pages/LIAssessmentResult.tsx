@@ -226,6 +226,26 @@ const LIAssessmentResult = () => {
               {/* Summary */}
               <section className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-6">
                 <h2 className="mb-3">Assessment Summary</h2>
+                {/* Context paragraph — what is being assessed */}
+                {assessment?.processing_description && (
+                  <p className="text-sm text-foreground mb-3">
+                    This legitimate interest assessment evaluates{" "}
+                    <span className="font-medium">{assessment.processing_description}</span>
+                    {Array.isArray(assessment.data_categories) && assessment.data_categories.length > 0 && (
+                      <> Data involved includes {assessment.data_categories.join(", ")}.</>
+                    )}
+                    {assessment.relationship_type && (
+                      <> The relationship with data subjects is described as {assessment.relationship_type.toLowerCase()}.</>
+                    )}
+                    {assessment.sector && <> Sector: {assessment.sector}.</>}
+                    {Array.isArray(assessment.jurisdictions) && assessment.jurisdictions.length > 0 && (
+                      <> Jurisdictions in scope: {assessment.jurisdictions.join(", ")}.</>
+                    )}
+                    {assessment.stated_purpose && (
+                      <> Stated purpose to data subjects: "{assessment.stated_purpose}".</>
+                    )}
+                  </p>
+                )}
                 {overall?.argument_strength && (
                   <div className="mb-3">
                     <span className={`inline-block px-3 py-1.5 rounded font-medium ${strengthColor(overall.argument_strength)}`}>
