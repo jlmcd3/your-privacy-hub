@@ -463,6 +463,87 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
       }
     }
 
+    // ── Tier/Authority deterministic validation (hard violations → retry once) ──
+    const FRAMING_BY_TIER: Record<number, string> = {
+      1: "in_regime",
+      2: "persuasive_not_binding",
+      3: "supportive_not_authoritative",
+    };
+    function validateAuthority(a: any): { hard: boolean; details: string[] } {
+      const details: string[] = [];
+      const anns: any[] = Array.isArray(a?.annotations) ? a.annotations : [];
+      let tier3Count = 0;
+      for (const ann of anns) {
+        const id = ann?.enforcement_action_id;
+        if (!id || !precedentById[id]) {
+          details.push(`annotation id '${id}' not in retrieved context`);
+          continue;
+        }
+        const ctxTier = precedentById[id].authority_tier;
+        const ctxVerified = precedentById[id].verified !== false;
+        if (ctxTier && ann.authority_tier !== ctxTier) {
+          details.push(`annotation ${id} authority_tier=${ann.authority_tier} != retrieval tier ${ctxTier}`);
+        }
+        const expectedFraming = ctxTier ? FRAMING_BY_TIER[ctxTier as number] : undefined;
+        if (expectedFraming && ann.authority_framing !== expectedFraming) {
+          details.push(`annotation ${id} authority_framing='${ann.authority_framing}' != expected '${expectedFraming}'`);
+        }
+        if (ann.authority_tier === 3) tier3Count++;
+        // Unverified fine-leak scan
+        if (!ctxVerified) {
+          const fineDigits = String(precedentById[id].fine_amount || precedentById[id].fine_eur_equivalent || "").replace(/[^0-9]/g, "");
+          if (fineDigits.length >= 4) {
+            const narrative = JSON.stringify(a);
+            if (narrative.includes(fineDigits)) {
+              details.push(`unverified fine digits ${fineDigits} for ${id} leaked into report narrative`);
+            }
+          }
+        }
+      }
+      if (tier3Count > 2) details.push(`tier-3 annotation count ${tier3Count} exceeds 2`);
+      return { hard: details.length > 0, details };
+    }
+
+    {
+      const v = validateAuthority(analysis);
+      if (v.hard) {
+        try {
+          const retryText = await runStage2(
+            `PREVIOUS ATTEMPT REJECTED for citation-authority violations: ${v.details.join("; ")}. Produce the JSON again, correcting these defects silently. Ensure every annotation includes authority_tier and authority_framing matching the tier shown on the corresponding [E#] entry. Do not mention this instruction in the output.`
+          );
+          const retryParsed = parseLlmJson(retryText);
+          if (retryParsed) {
+            analysis = retryParsed;
+            lintAnalysis(analysis);
+            const v2 = validateAuthority(analysis);
+            if (v2.hard) {
+              // Drop offending annotations rather than fail the run.
+              if (Array.isArray(analysis.annotations)) {
+                analysis.annotations = analysis.annotations.filter((ann: any) => {
+                  const ctx = precedentById[ann?.enforcement_action_id];
+                  if (!ctx) return false;
+                  if (ctx.authority_tier && ann.authority_tier !== ctx.authority_tier) return false;
+                  const exp = ctx.authority_tier ? FRAMING_BY_TIER[ctx.authority_tier as number] : undefined;
+                  if (exp && ann.authority_framing !== exp) return false;
+                  return true;
+                }).slice(0, 10);
+                // Cap tier-3 at 2
+                let t3 = 0;
+                analysis.annotations = analysis.annotations.filter((ann: any) => {
+                  if (ann.authority_tier === 3) { t3++; return t3 <= 2; }
+                  return true;
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("[LIA] authority validation retry failed (non-fatal):", e);
+        }
+      }
+    }
+
+
+
 
     // Normalize overall_assessment so downstream consumers (and tests) get a
     // guaranteed contract even when the LLM omits or mis-fills required fields.
