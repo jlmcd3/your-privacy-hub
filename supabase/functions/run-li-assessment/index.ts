@@ -301,7 +301,9 @@ Employment-context safeguards: ${balancingDetails.employment_safeguards || "not 
 PRECEDENT DATABASE (tracked regulatory decisions):
 ${precedentContext}
 
-ENFORCEMENT PRECEDENTS (recent regulator fines/decisions, cite by code [E1]–[E5]):
+REGULATORY REGIME (HARD CONSTRAINT): This assessment is governed by ${regimeLabel}. You MUST NOT cite enforcement decisions or guidance from outside this regime (e.g. FTC, California CPPA, Canadian OPC/OIPC, Australian OAIC, Brazilian ANPD) even if you know of them. If the ENFORCEMENT PRECEDENTS list below is empty or does not contain a relevant ${regimeLabel} decision, state explicitly that no directly analogous ${regimeLabel} precedent was retrieved — do not substitute precedent from another regime.
+
+ENFORCEMENT PRECEDENTS (recent ${regimeLabel} regulator fines/decisions, cite by code [E1]–[E5]):
 ${enforcementContextStr}
 
 ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a verdict, risk factor, or recommended action in your assessment, include it in the annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
