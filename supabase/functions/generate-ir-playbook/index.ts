@@ -368,14 +368,69 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
       return out;
     }
 
-    async function generateHalves(extra: string): Promise<{ partA: string; partB: string }> {
-      const pA = extra ? `${PROMPT_PART_A}\n\n${extra}` : PROMPT_PART_A;
-      const pB = extra ? `${PROMPT_PART_B}\n\n${extra}` : PROMPT_PART_B;
+    // CF-2: validate each part's completeness; retry that part once at 9000 tokens.
+    const PART_A_HEADINGS = ["## Section 1:", "## Section 2:", "## Section 3:", "## Section 4:"];
+    const PART_B_HEADINGS = ["## Section 5:", "## Section 6:", "## Section 7:"];
+    const TERMINAL_RE = /[\.\:\?\!\)\]\}"'»”’](\s|$)/;
+
+    function validatePart(text: string, which: "A" | "B"): { ok: boolean; reason?: string } {
+      if (!text || !text.trim()) return { ok: false, reason: "empty" };
+      const headings = which === "A" ? PART_A_HEADINGS : PART_B_HEADINGS;
+      for (const h of headings) {
+        if (!text.includes(h)) return { ok: false, reason: `missing heading ${h}` };
+      }
+      if (which === "B" && !text.includes("===ANNOTATIONS===")) {
+        return { ok: false, reason: "missing ===ANNOTATIONS=== block" };
+      }
+      const beforeAnnot = which === "B"
+        ? text.slice(0, text.indexOf("===ANNOTATIONS==="))
+        : text;
+      const lines = beforeAnnot.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      const last = lines[lines.length - 1] ?? "";
+      if (!TERMINAL_RE.test(last + " ")) {
+        return { ok: false, reason: `last line not terminally punctuated: "${last.slice(-80)}"` };
+      }
+      return { ok: true };
+    }
+
+    async function generatePart(which: "A" | "B", extra: string, maxTokens: number): Promise<string> {
+      const base = which === "A" ? PROMPT_PART_A : PROMPT_PART_B;
+      const prompt = extra ? `${base}\n\n${extra}` : base;
+      return await callClaude([{ role: "user", content: prompt }], maxTokens);
+    }
+
+    async function generateHalves(extra: string): Promise<{ partA: string; partB: string; incomplete?: string }> {
       const [a, b] = await Promise.all([
-        callClaude([{ role: "user", content: pA }], 6000),
-        callClaude([{ role: "user", content: pB }], 6000),
+        generatePart("A", extra, 8000),
+        generatePart("B", extra, 8000),
       ]);
-      return { partA: a, partB: b };
+      let partA = a;
+      let partB = b;
+      const vA = validatePart(partA, "A");
+      if (!vA.ok) {
+        console.warn(`[IR Playbook] Part A failed validation (${vA.reason}); retrying at 9000`);
+        const retryA = await generatePart(
+          "A",
+          `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
+          9000,
+        );
+        const vA2 = validatePart(retryA, "A");
+        if (!vA2.ok) return { partA: retryA, partB, incomplete: `partA: ${vA2.reason}` };
+        partA = retryA;
+      }
+      const vB = validatePart(partB, "B");
+      if (!vB.ok) {
+        console.warn(`[IR Playbook] Part B failed validation (${vB.reason}); retrying at 9000`);
+        const retryB = await generatePart(
+          "B",
+          `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
+          9000,
+        );
+        const vB2 = validatePart(retryB, "B");
+        if (!vB2.ok) return { partA, partB: retryB, incomplete: `partB: ${vB2.reason}` };
+        partB = retryB;
+      }
+      return { partA, partB };
     }
 
     function assembleFromHalves(partA: string, partB: string): { playbook_text: string; parsedAnnotations: any[] } {
