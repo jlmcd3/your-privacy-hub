@@ -438,21 +438,22 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return out;
         }
 
-        // CF-2: validate each part's completeness; retry that part once at 9000 tokens.
-        const PART_A_HEADINGS = ["## Section 1:", "## Section 2:", "## Section 3:", "## Section 4:"];
-        const PART_B_HEADINGS = ["## Section 5:", "## Section 6:", "## Section 7:"];
+        // CF-2: validate each part's completeness; on failure, run tail-continuation.
+        const PART_A_HEADINGS = ["## Section 1:", "## Section 2:", "## Section 3:"];
+        const PART_B_HEADINGS = ["## Section 4:", "## Section 5:"];
+        const PART_C_HEADINGS = ["## Section 6:", "## Section 7:"];
         const TERMINAL_RE = /[\.\:\?\!\)\]\}"'»”’](\s|$)/;
 
-        function validatePart(text: string, which: "A" | "B"): { ok: boolean; reason?: string } {
+        function validatePart(text: string, which: "A" | "B" | "C"): { ok: boolean; reason?: string } {
           if (!text || !text.trim()) return { ok: false, reason: "empty" };
-          const headings = which === "A" ? PART_A_HEADINGS : PART_B_HEADINGS;
+          const headings = which === "A" ? PART_A_HEADINGS : which === "B" ? PART_B_HEADINGS : PART_C_HEADINGS;
           for (const h of headings) {
             if (!text.includes(h)) return { ok: false, reason: `missing heading ${h}` };
           }
-          if (which === "B" && !text.includes("===ANNOTATIONS===")) {
+          if (which === "C" && !text.includes("===ANNOTATIONS===")) {
             return { ok: false, reason: "missing ===ANNOTATIONS=== block" };
           }
-          const beforeAnnot = which === "B"
+          const beforeAnnot = which === "C"
             ? text.slice(0, text.indexOf("===ANNOTATIONS==="))
             : text;
           const lines = beforeAnnot.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
@@ -463,21 +464,21 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return { ok: true };
         }
 
-        async function generatePart(which: "A" | "B", extra: string, maxTokens: number, timeoutMs: number = 240_000): Promise<string> {
-          const base = which === "A" ? PROMPT_PART_A : PROMPT_PART_B;
+        async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 240_000): Promise<string> {
+          const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           const prompt = extra ? `${base}\n\n${extra}` : base;
           return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
         }
 
-        // Tail-continuation retry: rather than regenerating all of Part B at 9000 tokens
-        // (which has been timing out), feed the model its own truncated Part B as an
-        // assistant prefill and ask it to continue from the last complete section
-        // through ===ANNOTATIONS===, capped at 4000 tokens. The full Part B is then
-        // `prefill + continuation`. Uses Anthropic's assistant-prefill pattern.
-        async function continuePartB(extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<string> {
-          const base = PROMPT_PART_B;
-          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\nYour previous attempt was cut off mid-output. Continue from EXACTLY where the assistant message ends — do not repeat any content already produced, do not re-output earlier sections, and do not add a preamble. Finish any in-progress section, then produce any remaining sections (5, 6, 7) you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop.`;
-          // Anthropic requires assistant prefill to have no trailing whitespace.
+        // Tail-continuation retry: feed the model its own truncated output as an
+        // assistant prefill and ask it to continue. Capped at 4000 tokens / 200s.
+        // Applied per-part to whichever part fails its validator.
+        async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<string> {
+          const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
+          const tail = which === "C"
+            ? "Finish any in-progress section, then produce any remaining required sections you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop."
+            : "Finish any in-progress section, then produce any remaining required sections for this part you have not yet completed, then stop.";
+          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\nYour previous attempt was cut off mid-output. Continue from EXACTLY where the assistant message ends — do not repeat any content already produced, do not re-output earlier sections, and do not add a preamble. ${tail}`;
           const prefill = truncated.replace(/\s+$/, "");
           const continuation = await callClaude(
             [
@@ -490,39 +491,40 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return prefill + continuation;
         }
 
-        async function generateHalves(extra: string): Promise<{ partA: string; partB: string; incomplete?: string }> {
-          const [a, b] = await Promise.all([
-            generatePart("A", extra, 8000, 240_000),
-            generatePart("B", extra, 8000, 240_000),
+        async function generateHalves(extra: string): Promise<{ partA: string; partB: string; partC: string; incomplete?: string }> {
+          const [a, b, c] = await Promise.all([
+            generatePart("A", extra, 6000, 240_000),
+            generatePart("B", extra, 6000, 240_000),
+            generatePart("C", extra, 6000, 240_000),
           ]);
-          let partA = a;
-          let partB = b;
-          const vA = validatePart(partA, "A");
-          if (!vA.ok) {
-            console.warn(`[IR Playbook] Part A failed validation (${vA.reason}); retrying at 9000`);
-            const retryA = await generatePart(
-              "A",
-              `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
-              9000,
-              200_000,
-            );
-            const vA2 = validatePart(retryA, "A");
-            if (!vA2.ok) return { partA: retryA, partB, incomplete: `partA: ${vA2.reason}` };
-            partA = retryA;
+          let partA = a, partB = b, partC = c;
+          const parts: Array<{ which: "A" | "B" | "C"; text: string }> = [
+            { which: "A", text: partA },
+            { which: "B", text: partB },
+            { which: "C", text: partC },
+          ];
+          for (const p of parts) {
+            const v = validatePart(p.text, p.which);
+            if (!v.ok) {
+              console.warn(`[IR Playbook] Part ${p.which} failed validation (${v.reason}); tail-continuing at 4000`);
+              const continued = await continuePart(p.which, extra, p.text, 4000, 200_000);
+              const v2 = validatePart(continued, p.which);
+              if (!v2.ok) {
+                if (p.which === "A") partA = continued;
+                else if (p.which === "B") partB = continued;
+                else partC = continued;
+                return { partA, partB, partC, incomplete: `part${p.which}: ${v2.reason}` };
+              }
+              if (p.which === "A") partA = continued;
+              else if (p.which === "B") partB = continued;
+              else partC = continued;
+            }
           }
-          const vB = validatePart(partB, "B");
-          if (!vB.ok) {
-            console.warn(`[IR Playbook] Part B failed validation (${vB.reason}); tail-continuing at 4000`);
-            const continued = await continuePartB(extra, partB, 4000, 200_000);
-            const vB2 = validatePart(continued, "B");
-            if (!vB2.ok) return { partA, partB: continued, incomplete: `partB: ${vB2.reason}` };
-            partB = continued;
-          }
-          return { partA, partB };
+          return { partA, partB, partC };
         }
 
-        function assembleFromHalves(partA: string, partB: string): { playbook_text: string; parsedAnnotations: any[] } {
-          const fullText = `${partA.trim()}\n\n${partB.trim()}`;
+        function assembleFromHalves(partA: string, partB: string, partC: string): { playbook_text: string; parsedAnnotations: any[] } {
+          const fullText = `${partA.trim()}\n\n${partB.trim()}\n\n${partC.trim()}`;
           let playbook_text = fullText
             .replace(/^#{1,6}\s+/gm, '')
             .replace(/\*\*\*/g, '')
