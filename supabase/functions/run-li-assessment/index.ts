@@ -270,7 +270,11 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const necessityDetails = (assessment as any).necessity_details || {};
     const balancingDetails = (assessment as any).balancing_details || {};
 
-    const analysisSystem = `You are a senior privacy regulatory analyst producing a formal legitimate interest assessment. Your analysis is precise, cites specific regulatory standards (Article 6(1)(f) GDPR, EDPB Guidelines 1/2024 on legitimate interests, ICO LIA guidance, applicable national DPA positions), and is grounded strictly in the facts provided and precedent database. Do NOT invent facts the user did not provide. Where a relevant fact is missing, say so and flag it as an open question. This is a compliance framework tool. All outputs must include the statement: "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel." Return ONLY valid JSON, no preamble.
+    const ukGuidanceFraming = isUk
+      ? `\n\nUK GUIDANCE FRAMING (regime is UK GDPR): Where this analysis cites EDPB Guidelines 1/2024, frame EDPB guidance as persuasive post-Brexit — the ICO's legitimate interests guidance is the primary UK reference. Note where the Data (Use and Access) Act 2025 recognised-legitimate-interests changes may be relevant.`
+      : "";
+
+    const analysisSystem = `You are a senior privacy regulatory analyst producing a formal legitimate interest assessment. Your analysis is precise, cites specific regulatory standards (Article 6(1)(f) GDPR, EDPB Guidelines 1/2024 on legitimate interests, ICO LIA guidance, applicable national DPA positions), and is grounded strictly in the facts provided and precedent database. Do NOT invent facts the user did not provide. Where a relevant fact is missing, say so and flag it as an open question. This is a compliance framework tool. All outputs must include the statement: "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel." Return ONLY valid JSON, no preamble.${ukGuidanceFraming}
 
 CITATION ACCURACY RULES — non-negotiable:
 - ICO Royal Free / DeepMind: the enforcement decision was issued in **2017**, NOT 2023. If you reference it, cite as "ICO Royal Free / DeepMind enforcement decision (2017) and subsequent guidance" — never as "2023 Royal Free / DeepMind enforcement."
