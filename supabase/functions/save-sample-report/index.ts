@@ -256,48 +256,72 @@ async function fetchRealPdfBytes(
   const toolType = REPORT_PDF_TOOL_TYPE[tool_slug];
   if (!toolType) throw new Error(`unsupported tool_slug for PDF generation: ${tool_slug}`);
 
-  const r = await fetch(`${SUPABASE_URL}/functions/v1/generate-report-pdf`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${SERVICE_KEY}`,
-      apikey: SERVICE_KEY,
-    },
-    body: JSON.stringify({ tool_type: toolType, assessment_id: source_row_id, force: true }),
-    signal: AbortSignal.timeout(120_000),
-  });
-  const payload = (await r.json().catch(() => ({}))) as { pdf_url?: string; error?: string; missing?: string; detail?: string; status?: string };
-  if (!r.ok || !payload.pdf_url) {
+  // The source row may still be settling (background writers, replication lag),
+  // in which case generate-report-pdf's R0 guards correctly return 409.
+  // Retry 409s with a delay instead of failing the whole pipeline.
+  const MAX_ATTEMPTS = 5;
+  const RETRY_DELAY_MS = 6000;
+  let lastDetail = "";
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/generate-report-pdf`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        apikey: SERVICE_KEY,
+      },
+      body: JSON.stringify({ tool_type: toolType, assessment_id: source_row_id, force: true }),
+      signal: AbortSignal.timeout(120_000),
+    });
+    const payload = (await r.json().catch(() => ({}))) as {
+      pdf_url?: string; error?: string; missing?: string; detail?: string; status?: string;
+    };
+    if (r.ok && payload.pdf_url) {
+      const pdfRes = await fetch(payload.pdf_url, { signal: AbortSignal.timeout(60_000) });
+      if (!pdfRes.ok) throw new Error(`download rendered PDF: HTTP ${pdfRes.status}`);
+      return new Uint8Array(await pdfRes.arrayBuffer());
+    }
     const parts = [payload.error || `HTTP ${r.status}`];
     if (payload.missing) parts.push(`missing=${payload.missing}`);
     if (payload.detail) parts.push(`detail=${payload.detail}`);
     if (payload.status) parts.push(`status=${payload.status}`);
-    throw new Error(`generate-report-pdf ${r.status}: ${parts.join(" · ")} — the live generator did not produce a complete report; re-run "Generate Report" and check the log`);
+    lastDetail = parts.join(" · ");
+    console.warn(`[generate_pdf] attempt ${attempt}/${MAX_ATTEMPTS} failed (${r.status}): ${lastDetail}`);
+    // 409 = guard says row not ready yet → wait and retry. 5xx → also retry.
+    const retryable = r.status === 409 || r.status >= 500;
+    if (!retryable || attempt === MAX_ATTEMPTS) break;
+    await new Promise((res) => setTimeout(res, RETRY_DELAY_MS));
   }
-  const pdfRes = await fetch(payload.pdf_url, { signal: AbortSignal.timeout(60_000) });
-  if (!pdfRes.ok) throw new Error(`download rendered PDF: HTTP ${pdfRes.status}`);
-  return new Uint8Array(await pdfRes.arrayBuffer());
+  throw new Error(`generate-report-pdf failed after retries: ${lastDetail} — the source report may be incomplete; re-run "Generate Report + PDF" and check the card log`);
 }
 
 async function renderHtmlViaPdfShift(html: string): Promise<Uint8Array> {
   const apiKey = Deno.env.get("PDFSHIFT_API_KEY") || Deno.env.get("PDF_SERVICE_API_KEY") || Deno.env.get("PDFShift");
   if (!apiKey) throw new Error("PDFSHIFT_API_KEY not configured");
-  const r = await fetch("https://api.pdfshift.io/v3/convert/pdf", {
-    method: "POST",
-    headers: { "X-API-Key": apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      source: html,
-      format: "Letter",
-      margin: { top: "16mm", right: "14mm", bottom: "18mm", left: "14mm" },
-      sandbox: Deno.env.get("PDFSHIFT_SANDBOX") === "true",
-    }),
-    signal: AbortSignal.timeout(45000),
-  });
-  if (!r.ok) {
-    const err = await r.text().catch(() => "");
-    throw new Error(`PDFShift ${r.status}: ${err.slice(0, 300)}`);
+  let lastErr = "";
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const r = await fetch("https://api.pdfshift.io/v3/convert/pdf", {
+        method: "POST",
+        headers: { "X-API-Key": apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: html,
+          format: "Letter",
+          margin: { top: "16mm", right: "14mm", bottom: "18mm", left: "14mm" },
+          sandbox: Deno.env.get("PDFSHIFT_SANDBOX") === "true",
+        }),
+        signal: AbortSignal.timeout(60_000),
+      });
+      if (r.ok) return new Uint8Array(await r.arrayBuffer());
+      lastErr = `PDFShift ${r.status}: ${(await r.text().catch(() => "")).slice(0, 300)}`;
+      // 4xx other than 429 won't improve on retry
+      if (r.status < 500 && r.status !== 429) break;
+    } catch (e) {
+      lastErr = `PDFShift attempt ${attempt}: ${(e as Error).message}`;
+    }
+    if (attempt === 1) await new Promise((res) => setTimeout(res, 4000));
   }
-  return new Uint8Array(await r.arrayBuffer());
+  throw new Error(lastErr || "PDFShift failed");
 }
 
 
