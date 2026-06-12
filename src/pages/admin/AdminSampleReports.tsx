@@ -489,6 +489,11 @@ export default function AdminSampleReports() {
                   <span>Sample: <strong>{sample ? sample.status : "—"}</strong></span>
                   {sample?.pdf_path && <span>PDF: <strong>attached</strong></span>}
                   {sample?.verification && <span>Verification: <strong>present</strong></span>}
+                  {run.status === "running" && run.log.length > 0 && (
+                    <span className="text-muted-foreground truncate max-w-full">
+                      {run.log[run.log.length - 1]}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -536,7 +541,7 @@ export default function AdminSampleReports() {
                 )}
 
                 {run.log.length > 0 && (
-                  <details className="text-xs">
+                  <details className="text-xs" open={run.status === "running"}>
                     <summary className="cursor-pointer">Log ({run.log.length})</summary>
                     <pre className="bg-black text-green-400 font-mono p-2 mt-1 rounded max-h-40 overflow-auto">
 {run.log.join("\n")}
