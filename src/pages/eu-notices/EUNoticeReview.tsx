@@ -274,6 +274,26 @@ export default function EUNoticeReview() {
     });
   }
 
+  async function pollSessionUntilTerminal(
+    sid: string,
+  ): Promise<{ status: "generated" | "failed" | "timeout"; error?: string }> {
+    const POLL_INTERVAL_MS = 3000;
+    const MAX_POLLS = 60;
+    for (let i = 0; i < MAX_POLLS; i++) {
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+      const { data: row } = await supabase
+        .from("eu_notice_sessions")
+        .select("status, generation_error")
+        .eq("id", sid)
+        .maybeSingle();
+      if (row?.status === "generated") return { status: "generated" };
+      if (row?.status === "failed") {
+        return { status: "failed", error: row.generation_error ?? undefined };
+      }
+    }
+    return { status: "timeout" };
+  }
+
   async function runGeneration() {
     if (!sessionId) return;
     setGenerating(true);
@@ -300,9 +320,18 @@ export default function EUNoticeReview() {
       const { data, error } = await supabase.functions.invoke("generate-eu-notice", {
         body: { session_id: sessionId },
       });
-      clearInterval(tickInt);
       if (error) throw error;
       if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+
+      // 202 dispatch — poll the session row until terminal status.
+      const terminal = await pollSessionUntilTerminal(sessionId);
+      clearInterval(tickInt);
+      if (terminal.status === "failed") {
+        throw new Error(terminal.error || "Generation failed — please try again.");
+      }
+      if (terminal.status === "timeout") {
+        throw new Error("Generation timed out. Please try again.");
+      }
 
       const final: Record<string, GenStatus> = { _session: "done", _config: "done" };
       for (const fw of frameworks) final[fw.framework_code] = "done";

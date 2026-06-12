@@ -275,8 +275,41 @@ async function runGenerator(
 
     log(`▶ Invoking ${genFn}...`);
     const { data: gen, error: gErr } = await supabase.functions.invoke(genFn, { body: { session_id: session.id } });
-    if (gErr || !gen?.documents?.length) throw new Error(`gen: ${gErr?.message || gen?.error}`);
-    log(`✅ ${gen.documents.length} document(s) generated`);
+    if (gErr) throw new Error(`gen: ${gErr.message}`);
+    if (gen?.error) throw new Error(`gen: ${gen.error}`);
+
+    // EU notice is 202/background; US notice is still synchronous.
+    let docCount = 0;
+    if (fix.tool_slug === "eu_notice") {
+      log("▶ Polling eu_notice_sessions for terminal status...");
+      let terminal: string | null = null;
+      let terminalErr: string | null = null;
+      for (let i = 0; i < 60; i++) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const { data: row } = await (supabase as any)
+          .from("eu_notice_sessions")
+          .select("status, generation_error, version_number")
+          .eq("id", session.id)
+          .maybeSingle();
+        if (row?.status === "generated") { terminal = "generated"; break; }
+        if (row?.status === "failed") { terminal = "failed"; terminalErr = row.generation_error ?? null; break; }
+      }
+      if (terminal === "failed") throw new Error(`gen failed: ${terminalErr ?? "unknown error"}`);
+      if (terminal !== "generated") throw new Error("gen: timeout waiting for completion");
+
+      const { data: sessRow } = await (supabase as any)
+        .from("eu_notice_sessions").select("version_number").eq("id", session.id).maybeSingle();
+      const { data: docRows, error: docsErr } = await (supabase as any)
+        .from("eu_notice_documents").select("id")
+        .eq("session_id", session.id)
+        .eq("version_number", sessRow?.version_number ?? 1);
+      if (docsErr) throw new Error(`docs query: ${docsErr.message}`);
+      docCount = docRows?.length ?? 0;
+    } else {
+      if (!gen?.documents?.length) throw new Error("gen: no documents");
+      docCount = gen.documents.length;
+    }
+    log(`✅ ${docCount} document(s) generated`);
 
     return { sourceRowId: session.id, resultUrl: fix.result_url_pattern.replace("{id}", session.id) };
   }

@@ -1,0 +1,1 @@
+ALTER TABLE public.eu_notice_sessions ADD COLUMN IF NOT EXISTS generation_error text;

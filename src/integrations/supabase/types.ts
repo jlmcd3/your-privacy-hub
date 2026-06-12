@@ -1588,6 +1588,7 @@ export type Database = {
           client_id: string
           completed_at: string | null
           created_at: string
+          generation_error: string | null
           id: string
           is_refresh: boolean
           last_activity_at: string
@@ -1606,6 +1607,7 @@ export type Database = {
           client_id: string
           completed_at?: string | null
           created_at?: string
+          generation_error?: string | null
           id?: string
           is_refresh?: boolean
           last_activity_at?: string
@@ -1624,6 +1626,7 @@ export type Database = {
           client_id?: string
           completed_at?: string | null
           created_at?: string
+          generation_error?: string | null
           id?: string
           is_refresh?: boolean
           last_activity_at?: string
