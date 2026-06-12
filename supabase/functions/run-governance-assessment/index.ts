@@ -130,6 +130,7 @@ CITATION INTEGRITY: Cite provisions ONLY in the exact forms below. If you cannot
 - Ireland: NEVER cite specific Irish Data Protection Act 2018 section numbers. Cite the GDPR article directly and refer to "the Data Protection Act 2018 (Ireland)" generally. There is NO general registration or notification requirement with the Irish DPC.
 - GDPR Recital 47 concerns legitimate interests only. Recital 39 concerns transparency and awareness. Do not swap them.
 - DPO awareness-raising and training tasks are Article 39(1)(b), NOT Article 37(5). Article 37 has no SME or sector exemption — do not assert one.
+- DEFINITIONAL-ARTICLE RULE: GDPR Article 4 contains definitions only and must NEVER be cited as the legal basis of an obligation. For duties concerning staff acting under the controller's or processor's authority, cite Article 29 and/or Article 32(4). For consent requirements, cite Article 6(1)(a) and Article 7 (Article 4(11) merely defines consent).
 
 VENDOR NAMING RULE: Name ONLY vendors that are explicitly provided in the intake. Never introduce additional vendor or company names that the organisation did not list.
 
