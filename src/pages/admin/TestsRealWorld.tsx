@@ -286,16 +286,21 @@ export default function TestsRealWorld() {
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">
                                     {(() => {
-                                      const viewBase: Record<ToolType, string | null> = {
+                                      const viewBase: Partial<Record<ToolType, string>> = {
                                         lia: `/li-assessment/result/${a.target_id}`,
                                         dpia: `/dpia-framework/result/${a.target_id}`,
                                         governance: `/governance-assessment/result/${a.target_id}`,
                                         biometric: `/biometric-checker/result/${a.target_id}`,
                                         dpa: `/dpa-generator/result/${a.target_id}`,
                                         "ir-playbook": `/ir-playbook/result/${a.target_id}`,
-                                        brief: null,
+                                        "cppa-risk": `/cppa-risk-assessment/result/${a.target_id}`,
+                                        "cppa-cyber": `/cppa-cybersecurity/result/${a.target_id}`,
+                                        ropa: `/ropa/documents`,
+                                        "us-notice": `/us-notices/result/${a.target_id}`,
+                                        "eu-notice": `/eu-notices/result/${a.target_id}`,
+                                        registration: `/registration/order/${a.target_id}`,
                                       };
-                                      const pdfMap: Record<ToolType, RunnerPdfTool | null> = {
+                                      const pdfMap: Partial<Record<ToolType, RunnerPdfTool>> = {
                                         lia: "li_assessment",
                                         dpia: "dpia_framework",
                                         governance: "governance_assessment",
