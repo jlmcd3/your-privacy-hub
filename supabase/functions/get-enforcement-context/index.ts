@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
   }
 
   const limit = Math.min(q.limit ?? 8, 25);
-  const cacheKey = await sha256(JSON.stringify({ ...q, limit, v: 2 }));
+  const cacheKey = await sha256(JSON.stringify({ ...q, limit, v: 3 }));
 
   const { data: cached } = await supabase
     .from("enforcement_context_cache")
