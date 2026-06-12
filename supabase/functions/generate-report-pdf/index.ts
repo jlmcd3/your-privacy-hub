@@ -147,8 +147,40 @@ async function sendEmail(opts: {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// SHARED META-LINE HELPER
+// Single source of truth for the "Generated: … · EndUserPrivacy.com · …"
+// line rendered atop every report builder. Pass null/undefined to omit
+// optional segments. organizationName + extra are HTML-escaped.
+// ─────────────────────────────────────────────────────────────────────────
+function buildReportMetaLine(opts: {
+  generatedAt: string | Date;
+  organizationName?: string | null;
+  jurisdictionLabel?: string | null;
+  extra?: string | null;
+}): string {
+  const d = opts.generatedAt instanceof Date ? opts.generatedAt : new Date(opts.generatedAt);
+  const dateStr = d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  const parts = [`Generated: ${dateStr}`, "EndUserPrivacy.com"];
+  if (opts.organizationName && String(opts.organizationName).trim()) {
+    parts.push(esc(String(opts.organizationName).trim()));
+  }
+  if (opts.jurisdictionLabel && String(opts.jurisdictionLabel).trim()) {
+    parts.push(String(opts.jurisdictionLabel).trim());
+  }
+  if (opts.extra && String(opts.extra).trim()) {
+    parts.push(esc(String(opts.extra).trim()));
+  }
+  return `<div class="meta">${parts.join(" · ")}</div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // HTML REPORT TEMPLATES
 // ─────────────────────────────────────────────────────────────────────────
+
+
 
 function buildLIReportHTML(report: any, _assessment: any): string {
   const d = report.three_part_test || {};
