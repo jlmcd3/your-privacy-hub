@@ -274,7 +274,28 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "both reports must be complete first" }),
           { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+      // R0 PART 1 — surface generator-side errors / empty bodies as 409.
+      if (r) {
+        const rd: any = r.report_data;
+        if (rd == null || (typeof rd === "object" && rd.error != null)) {
+          console.warn("[suite-pdf-guard] 409 report_data_invalid", { id: r.id, reason: rd?.error || "null" });
+          return new Response(JSON.stringify({ error: "report_data_invalid", id: r.id, detail: rd?.error || "missing" }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        // Structural minimums: risk → domains; cybersecurity → controls.
+        if (r.id === risk_id && !(Array.isArray(rd.domains) && rd.domains.length > 0)) {
+          console.warn("[suite-pdf-guard] 409 report_body_empty (risk.domains)", { id: r.id });
+          return new Response(JSON.stringify({ error: "report_body_empty", missing: "domains", id: r.id }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        if (r.id === cyber_id && !(Array.isArray(rd.controls) && rd.controls.length > 0)) {
+          console.warn("[suite-pdf-guard] 409 report_body_empty (cyber.controls)", { id: r.id });
+          return new Response(JSON.stringify({ error: "report_body_empty", missing: "controls", id: r.id }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
     }
+
 
     const cacheKey = `${riskRow?.id || "none"}_${cyberRow?.id || "none"}`;
     const folder = `cppa-suite/${userId}/${cacheKey}`;
