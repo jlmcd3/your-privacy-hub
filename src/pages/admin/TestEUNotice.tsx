@@ -247,26 +247,71 @@ export default function TestEUNotice() {
       if (ansErr) throw new Error(`answers: ${ansErr.message}`);
       addLog(`✓ ${answerRows.length} answers inserted`);
 
-      // 5. Invoke generator
+      // 5. Invoke generator (202 background dispatch)
       addLog("▶ Invoking generate-eu-notice...");
       const { data: gen, error: genErr } = await supabase.functions.invoke(
         "generate-eu-notice",
         { body: { session_id: session.id } }
       );
-      clearInterval(tick);
 
-      if (genErr || !gen?.documents?.length) {
+      if (genErr || !gen?.session_id) {
+        clearInterval(tick);
         throw new Error(
-          `generator: ${genErr?.message ?? gen?.error ?? "no documents"}`
+          `generator: ${genErr?.message ?? gen?.error ?? "dispatch failed"}`
         );
       }
-      addLog(`✓ Generated ${gen.documents.length} document(s)`);
+      addLog("✓ Dispatched; polling for completion...");
+
+      // Poll the session row to terminal status.
+      const POLL_INTERVAL = 3000;
+      const MAX_POLLS = 60;
+      let terminalStatus: string | null = null;
+      let terminalError: string | null = null;
+      for (let i = 0; i < MAX_POLLS; i++) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+        const { data: row } = await supabase
+          .from("eu_notice_sessions")
+          .select("status, generation_error")
+          .eq("id", session.id)
+          .maybeSingle();
+        if (row?.status === "generated") {
+          terminalStatus = "generated";
+          break;
+        }
+        if (row?.status === "failed") {
+          terminalStatus = "failed";
+          terminalError = row.generation_error ?? null;
+          break;
+        }
+      }
+      clearInterval(tick);
+      if (terminalStatus === "failed") {
+        throw new Error(`generator failed: ${terminalError ?? "unknown error"}`);
+      }
+      if (terminalStatus !== "generated") {
+        throw new Error("generator: timeout waiting for completion");
+      }
+
+      // Read the document rows written by the generator.
+      const { data: sessRow } = await supabase
+        .from("eu_notice_sessions")
+        .select("version_number")
+        .eq("id", session.id)
+        .maybeSingle();
+      const { data: docRows, error: docsErr } = await supabase
+        .from("eu_notice_documents")
+        .select("framework_code, file_path")
+        .eq("session_id", session.id)
+        .eq("version_number", sessRow?.version_number ?? 1);
+      if (docsErr) throw new Error(`docs query: ${docsErr.message}`);
+      if (!docRows?.length) throw new Error("generator: no documents found after polling");
+      addLog(`✓ Generated ${docRows.length} document(s)`);
 
       // 6. Sign + fetch each
       addLog("▶ Fetching documents...");
       const fetched: FwText[] = [];
       const signedList: { code: string; signedUrl: string }[] = [];
-      for (const doc of gen.documents as Array<{
+      for (const doc of docRows as Array<{
         framework_code: string;
         file_path: string;
       }>) {
