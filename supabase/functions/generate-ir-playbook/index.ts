@@ -1,11 +1,11 @@
 // generate-ir-playbook: produces a 7-section breach response playbook.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
-import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { lintReportText } from "../_shared/output-lint.ts";
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.3-usermsg-continuation-2026-06-12";
+const IR_VERSION = "v3.3-stopreason-2026-06-12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -396,7 +396,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
 Output ONLY the playbook content requested in each turn. No preamble or commentary.`;
 
-        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 240_000): Promise<string> {
+        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 240_000): Promise<{ text: string; stopReason: string | null }> {
           const res = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
@@ -419,6 +419,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
             throw new Error("AI generation failed");
           }
           let out = "";
+          let stopReason: string | null = null;
           const reader = res.body!.getReader();
           const decoder = new TextDecoder();
           let buf = "";
@@ -436,26 +437,20 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
                 const evt = JSON.parse(payload);
                 if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
                   out += evt.delta.text ?? "";
+                } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
+                  stopReason = evt.delta.stop_reason;
                 }
               } catch { /* keepalive */ }
             }
           }
-          return out;
+          return { text: out, stopReason };
         }
 
-        // CF-2: validate each part's completeness; on failure, run tail-continuation.
+        // Structural validation only. Truncation is detected via stopReason === "max_tokens"
+        // from the API, not via punctuation heuristics on the output text.
         const PART_A_HEADINGS = ["## Section 1:", "## Section 2:", "## Section 3:"];
         const PART_B_HEADINGS = ["## Section 4:", "## Section 5:"];
         const PART_C_HEADINGS = ["## Section 6:", "## Section 7:"];
-        const TERMINAL_RE = /[\.\:\?\!\)\]\}"'»”’](\s|$)/;
-        // Lines that are visual "furniture" (horizontal rules, bare heading/blockquote
-        // markers with no text) and must be skipped when locating the substantive
-        // last line for terminal-punctuation checking.
-        const FURNITURE_RE = /^[\s\-\*_=—–]+$/;
-        const BARE_MARKER_RE = /^(?:#+|>+)\s*$/;
-        function isFurniture(line: string): boolean {
-          return FURNITURE_RE.test(line) || BARE_MARKER_RE.test(line);
-        }
 
         function validatePart(text: string, which: "A" | "B" | "C"): { ok: boolean; reason?: string } {
           if (!text || !text.trim()) return { ok: false, reason: "empty" };
@@ -466,46 +461,27 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           if (which === "C" && !text.includes("===ANNOTATIONS===")) {
             return { ok: false, reason: "missing ===ANNOTATIONS=== block" };
           }
-          const beforeAnnot = which === "C"
-            ? text.slice(0, text.indexOf("===ANNOTATIONS==="))
-            : text;
-          const lines = beforeAnnot.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-          // Walk backwards past furniture (horizontal rules, bare # / > markers).
-          let idx = lines.length - 1;
-          while (idx >= 0 && isFurniture(lines[idx])) idx--;
-          if (idx < 0) return { ok: false, reason: "no substantive content" };
-          const last = lines[idx];
-          // Accept terminal punctuation OR a markdown table row ending in '|'
-          // (Section 3's notification matrix legitimately ends in a table).
-          const endsWithTablePipe = /\|\s*$/.test(last);
-          if (!endsWithTablePipe && !TERMINAL_RE.test(last + " ")) {
-            return { ok: false, reason: `last line not terminally punctuated: "${last}"` };
-          }
           return { ok: true };
         }
 
-        async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 240_000): Promise<string> {
+        async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 240_000): Promise<{ text: string; stopReason: string | null }> {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           const prompt = extra ? `${base}\n\n${extra}` : base;
           return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
         }
 
-        // Tail-continuation retry: replay the model's truncated output as an
-        // assistant turn and ask for a continuation in a final user turn (claude-sonnet-4-6
-        // does not support assistant prefill — conversation must end with user message).
-        // Capped at 4000 tokens / 200s. Applied per-part to whichever part fails its validator.
-        async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number, terminalOnly = false): Promise<string> {
+        // Tail-continuation retry: replay the model's truncated output as an assistant
+        // turn and ask for a continuation in a final user turn (claude-sonnet-4-6 does
+        // not support assistant prefill — conversation must end with user message).
+        async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<{ text: string; stopReason: string | null }> {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           const tail = which === "C"
             ? "Finish any in-progress section, then produce any remaining required sections you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop."
             : "Finish any in-progress section, then produce any remaining required sections for this part you have not yet completed, then stop.";
-          const lead = terminalOnly
-            ? "Your previous output appears substantively complete but ended with a non-terminal closing line (e.g. a horizontal rule). Add only what is strictly required to make the output well-formed (a closing sentence and, for Part C, the ===ANNOTATIONS=== block if missing), then stop. Do not end with a horizontal rule or divider line."
-            : `Your previous attempt was cut off mid-output. ${tail}`;
           const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\n(Generating part ${which}.)`;
           const truncatedClean = truncated.replace(/\s+$/, "");
-          const continueInstruction = `${lead} Output ONLY the continuation — do not repeat any text that already appears in your previous message, starting mid-sentence if necessary.`;
-          const continuation = await callClaude(
+          const continueInstruction = `Your previous attempt was cut off mid-output. ${tail} Output ONLY the continuation — do not repeat any text that already appears in your previous message, starting mid-sentence if necessary.`;
+          const { text: continuation, stopReason } = await callClaude(
             [
               { role: "user", content: userPrompt },
               { role: "assistant", content: truncatedClean },
@@ -514,8 +490,8 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
             maxTokens,
             timeoutMs,
           );
-          // Overlap guard: strip the longest overlap between the tail of truncated
-          // (up to 300 chars) and the head of the continuation, then join.
+          // Overlap guard: strip the longest overlap between tail of truncated (up to
+          // 300 chars) and head of continuation, then join.
           const tailWindow = truncatedClean.slice(-300);
           let overlap = 0;
           const maxCheck = Math.min(tailWindow.length, continuation.length);
@@ -526,7 +502,8 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           if (!trimmedContinuation) {
             throw new Error("continuation empty after overlap trim");
           }
-          return truncatedClean + (truncatedClean.endsWith("\n") ? "" : "\n") + trimmedContinuation;
+          const joined = truncatedClean + (truncatedClean.endsWith("\n") ? "" : "\n") + trimmedContinuation;
+          return { text: joined, stopReason };
         }
 
         async function generateHalves(extra: string): Promise<{ partA: string; partB: string; partC: string; incomplete?: string }> {
@@ -535,48 +512,50 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
             generatePart("B", extra, 7000, 240_000),
             generatePart("C", extra, 7000, 240_000),
           ]);
-          let partA = a, partB = b, partC = c;
-          const parts: Array<{ which: "A" | "B" | "C"; text: string }> = [
-            { which: "A", text: partA },
-            { which: "B", text: partB },
-            { which: "C", text: partC },
+          const initial: Array<{ which: "A" | "B" | "C"; text: string; stopReason: string | null }> = [
+            { which: "A", text: a.text, stopReason: a.stopReason },
+            { which: "B", text: b.text, stopReason: b.stopReason },
+            { which: "C", text: c.text, stopReason: c.stopReason },
           ];
-          // Phase 1 — validate all parts up-front and collect failures (with logging).
-          const failures = parts
+          let partA = a.text, partB = b.text, partC = c.text;
+
+          // Phase 1 — identify parts that need continuation: stopReason==="max_tokens"
+          // OR structural validation failure.
+          const failures = initial
             .map((p) => {
               const v = validatePart(p.text, p.which);
-              if (v.ok) return null;
-              const onlyTerminal = v.reason?.startsWith("last line not terminally punctuated") ?? false;
-              if (onlyTerminal) {
-                // Post furniture-filter, this path should be vanishingly rare. Log the
-                // full offending line (not truncated) so the filter can be extended.
-                console.warn(`[IR Playbook] Part ${p.which} terminal-punctuation only; full last line: ${v.reason}`);
-              } else {
-                console.warn(`[IR Playbook] Part ${p.which} failed validation (${v.reason}); tail-continuing at 4000`);
-              }
-              return { which: p.which, text: p.text, onlyTerminal };
+              const truncated = p.stopReason === "max_tokens";
+              if (v.ok && !truncated) return null;
+              const reason = truncated
+                ? (v.ok ? "stop_reason=max_tokens" : `stop_reason=max_tokens; ${v.reason}`)
+                : (v.reason ?? "structural failure");
+              console.warn(`[IR Playbook] Part ${p.which} needs continuation (${reason}); tail-continuing at 4000`);
+              return { which: p.which, text: p.text };
             })
-            .filter((x): x is { which: "A" | "B" | "C"; text: string; onlyTerminal: boolean } => x !== null);
+            .filter((x): x is { which: "A" | "B" | "C"; text: string } => x !== null);
 
           if (failures.length === 0) {
             return { partA, partB, partC };
           }
 
-          // Phase 2 — run all needed continuations concurrently. Let throws propagate
-          // to the background catch exactly as a single serialized continuation would.
-          const continuedTexts = await Promise.all(
-            failures.map((f) => continuePart(f.which, extra, f.text, 4000, 200_000, f.onlyTerminal)),
+          // Phase 2 — run all needed continuations concurrently.
+          const continuedResults = await Promise.all(
+            failures.map((f) => continuePart(f.which, extra, f.text, 4000, 200_000)),
           );
 
           const stillFailing: string[] = [];
           for (let i = 0; i < failures.length; i++) {
             const f = failures[i];
-            const continued = continuedTexts[i];
+            const { text: continued, stopReason: contStop } = continuedResults[i];
             if (f.which === "A") partA = continued;
             else if (f.which === "B") partB = continued;
             else partC = continued;
             const v2 = validatePart(continued, f.which);
-            if (!v2.ok) stillFailing.push(`part${f.which}: ${v2.reason}`);
+            if (contStop === "max_tokens") {
+              stillFailing.push(`part${f.which}: continuation also stop_reason=max_tokens`);
+            } else if (!v2.ok) {
+              stillFailing.push(`part${f.which}: ${v2.reason}`);
+            }
           }
 
           if (stillFailing.length > 0) {
@@ -650,22 +629,9 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return;
         }
 
-        let assembled = assembleFromHalves(partA, partB, partC);
-        let lint = lintReportText(assembled.playbook_text);
+        const assembled = assembleFromHalves(partA, partB, partC);
+        const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
-        if (hasHardViolations(lint)) {
-          try {
-            const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
-            const retry = await generateHalves(
-              `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the playbook again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
-            );
-            partA = retry.partA; partB = retry.partB; partC = retry.partC;
-            assembled = assembleFromHalves(partA, partB, partC);
-            lint = lintReportText(assembled.playbook_text);
-          } catch (e) {
-            console.warn("[generate-ir-playbook] lint retry failed (non-fatal):", e);
-          }
-        }
         for (const v of lint.violations) lintWarnings.push(v);
         const playbook_text = lint.clean;
         const parsedAnnotations = assembled.parsedAnnotations;
