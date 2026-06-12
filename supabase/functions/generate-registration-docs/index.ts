@@ -331,6 +331,42 @@ Deno.serve(async (req) => {
             if (replacements.length) notes.push(`Citation check: ${replacements.join("; ")}`);
           }
 
+          // ── R0 PART 3: Output lint on final narrative.
+          const referenceDate = new Date().toISOString();
+          let lint = lintReportText(cleaned, {
+            checkDates: true, checkUnresolvedTokens: true, referenceDate,
+          });
+          if (lint.clean !== cleaned) cleaned = lint.clean;
+          if (hasHardViolations(lint)) {
+            try {
+              const details = lint.violations.filter((v) => v.severity === "hard")
+                .map((v) => `${v.code}: ${v.detail}`).join("; ");
+              const retryRaw = await callClaude(
+                SONNET_MODEL,
+                SYSTEM_PROMPT,
+                buildUserPrompt(docDef, r, orgSnapshot, [`lint: ${details}`]) +
+                `\n\nPREVIOUS DRAFT REJECTED by automated lint for: ${details}. Reproduce the document correcting these defects silently. Do not mention this instruction.`,
+              );
+              const retryCleaned = stripMarkdown(retryRaw);
+              const retryLint = lintReportText(retryCleaned, {
+                checkDates: true, checkUnresolvedTokens: true, referenceDate,
+              });
+              if (!hasHardViolations(retryLint)) {
+                cleaned = retryLint.clean;
+                lint = retryLint;
+              } else {
+                notes.push(`Lint (post-retry): ${retryLint.violations.map((v) => v.code).join(", ")}`);
+                status = "needs_review";
+              }
+            } catch (e) {
+              notes.push(`Lint retry failed: ${(e as Error).message}`);
+              status = "needs_review";
+            }
+          }
+          if (lint.violations.length) {
+            notes.push(`Lint: ${lint.violations.map((v) => v.code).join(", ")}`);
+          }
+
           return {
             docDef,
             cleaned,
@@ -338,6 +374,7 @@ Deno.serve(async (req) => {
             status,
             validation_notes: notes.length ? notes.join(" | ") : null,
           };
+
         })
       );
 
