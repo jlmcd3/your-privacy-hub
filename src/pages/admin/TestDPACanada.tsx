@@ -61,22 +61,56 @@ export default function TestDPACanada() {
     const { data, error } = await supabase.functions.invoke("generate-dpa", {
       body: { ...MOCK_INTAKE, user_id: user.id },
     });
+
+    if (error || !data?.id) {
+      clearInterval(tick);
+      addLog(`❌ Edge function error: ${error?.message || data?.error || "no id returned"}`);
+      setStatus("failed");
+      return;
+    }
+
+    const id = data.id as string;
+    setRecordId(id);
+    addLog(`✓ Background generation started, dpa_documents.id = ${id}`);
+
+    let documentText = "";
+    let reportData: any = null;
+    for (let i = 0; i < 60; i++) {
+      await new Promise((r) => setTimeout(r, 4000));
+      const { data: row } = await supabase
+        .from("dpa_documents")
+        .select("status, document_text, report_data")
+        .eq("id", id)
+        .maybeSingle();
+      const s = (row as any)?.status ?? "?";
+      if (s === "complete") {
+        documentText = (row as any)?.document_text ?? "";
+        reportData = (row as any)?.report_data ?? null;
+        break;
+      }
+      if (s === "failed" || s === "error") {
+        clearInterval(tick);
+        addLog(`❌ dpa_documents status=${s}`);
+        setStatus("failed");
+        return;
+      }
+      if (i % 3 === 0) addLog(`… poll ${i + 1}/60 (status: ${s})`);
+    }
     clearInterval(tick);
 
-    if (error || !data?.dpa_text) {
-      addLog(`❌ Edge function error: ${error?.message || data?.error || "no dpa_text returned"}`);
+    if (!documentText) {
+      addLog(`❌ Timed out waiting for dpa_documents completion`);
       setStatus("failed");
       return;
     }
 
     addLog(`✅ Complete after ${Math.round((Date.now() - startTime) / 1000)}s`);
-    addLog(`✓ Document length: ${data.dpa_text.length} chars`);
-    if (data.id) {
-      setRecordId(data.id);
-      addLog(`✓ Stored as dpa_documents.id = ${data.id}`);
-    }
-    setDpaText(data.dpa_text);
-    setResultMeta({ enforcement_precedents: data.enforcement_precedents, generated_at: data.generated_at });
+    addLog(`✓ Document length: ${documentText.length} chars`);
+    setDpaText(documentText);
+    setResultMeta({
+      enforcement_precedents: reportData?.enforcement_precedents ?? null,
+      generated_at: reportData?.generated_at ?? null,
+    });
     setStatus("complete");
   }, [user, addLog, startTime]);
 
