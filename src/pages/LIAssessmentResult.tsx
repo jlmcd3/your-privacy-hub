@@ -283,11 +283,18 @@ const LIAssessmentResult = () => {
               </section>
 
               {/* Three-Part Test */}
-              <section className="grid md:grid-cols-3 gap-4">
-                <TestCard title="Purpose Test" test={report?.three_part_test?.purpose_test} annotations={report?.annotations} />
-                <TestCard title="Necessity Test" test={report?.three_part_test?.necessity_test} annotations={report?.annotations} />
-                <TestCard title="Balancing Test" test={report?.three_part_test?.balancing_test} annotations={report?.annotations} />
-              </section>
+              {(() => {
+                const js = Array.isArray(assessment?.jurisdictions) ? assessment.jurisdictions : [];
+                const isUk = js.some((j: string) => /united kingdom|uk|gb/i.test(String(j)));
+                const precs = report?.enforcement_precedents;
+                return (
+                  <section className="grid md:grid-cols-3 gap-4">
+                    <TestCard title="Purpose Test" test={report?.three_part_test?.purpose_test} annotations={report?.annotations} precedents={precs} isUk={isUk} />
+                    <TestCard title="Necessity Test" test={report?.three_part_test?.necessity_test} annotations={report?.annotations} precedents={precs} isUk={isUk} />
+                    <TestCard title="Balancing Test" test={report?.three_part_test?.balancing_test} annotations={report?.annotations} precedents={precs} isUk={isUk} />
+                  </section>
+                );
+              })()}
 
               {/* Blocking Issues Alert */}
               {Array.isArray(overall?.blocking_issues) && overall.blocking_issues.length > 0 && (
