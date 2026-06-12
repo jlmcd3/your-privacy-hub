@@ -13,7 +13,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function callAnthropic(model: string, system: string, user: string, maxTokens = 2500): Promise<{ text: string; stopReason: string | null }> {
+async function callAnthropic(model: string, system: string, user: string, maxTokens = 2500, timeoutMs = 240_000): Promise<{ text: string; stopReason: string | null }> {
+  const startedAt = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -22,13 +23,14 @@ async function callAnthropic(model: string, system: string, user: string, maxTok
       "content-type": "application/json",
     },
     body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: AbortSignal.timeout(140_000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
   const text = d.content?.[0]?.text || "";
   const stopReason: string | null = d.stop_reason ?? null;
-  console.log(`[run-dpia-framework] gen done stop=${stopReason} chars=${text.length}`);
+  const elapsed = Date.now() - startedAt;
+  console.log(`[run-dpia-framework] stage=callAnthropic model=${model} elapsed=${elapsed}ms stop=${stopReason} chars=${text.length}`);
   return { text, stopReason };
 }
 
