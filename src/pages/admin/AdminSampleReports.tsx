@@ -399,6 +399,25 @@ export default function AdminSampleReports() {
     } finally { setBusy(null); }
   }
 
+  async function onGeneratePdf(fix: SampleFixture) {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    const key = `${fix.tool_slug}::${fix.variant}`;
+    setBusy(`pdfgen::${key}`);
+    try {
+      const res = await callSaveSampleReport(adminToken, "generate_pdf", {
+        tool_slug: fix.tool_slug,
+        variant: fix.variant,
+        title: fix.title,
+        scenario_summary: fix.scenario_summary,
+        fixture: fix.fixture,
+      });
+      toast.success(`PDF generated (${res?.bytes ?? "?"} bytes)`);
+      await reloadSamples();
+    } catch (e) {
+      toast.error(`PDF generation failed: ${(e as Error).message}`);
+    } finally { setBusy(null); }
+  }
+
   async function onSetStatus(sample: SampleRow, status: string) {
     if (!adminToken) { toast.error("Admin token required"); return; }
     setBusy(`status::${sample.id}`);
@@ -465,8 +484,12 @@ export default function AdminSampleReports() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" onClick={() => onGenerate(fix)} disabled={run.status === "running"}>
-                    {run.status === "running" ? "Generating…" : "Generate"}
+                  <Button size="sm" onClick={() => onGeneratePdf(fix)}
+                    disabled={!adminToken || busy === `pdfgen::${key}`}>
+                    {busy === `pdfgen::${key}` ? "Rendering PDF…" : "Generate PDF (PDFShift)"}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => onGenerate(fix)} disabled={run.status === "running"}>
+                    {run.status === "running" ? "Running tool…" : "Run live tool"}
                   </Button>
                   {run.resultUrl && (
                     <Button size="sm" variant="outline" asChild>
@@ -475,7 +498,7 @@ export default function AdminSampleReports() {
                   )}
                   <Button size="sm" variant="outline" onClick={() => onSaveAsSample(fix)}
                     disabled={!run.sourceRowId || busy === `save::${key}`}>
-                    {busy === `save::${key}` ? "Saving…" : "Save as sample"}
+                    {busy === `save::${key}` ? "Saving…" : "Snapshot from live run"}
                   </Button>
                 </div>
 

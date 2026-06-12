@@ -148,6 +148,148 @@ async function list(admin: ReturnType<typeof createClient>) {
   return json({ rows: data ?? [] });
 }
 
+// --- generate_pdf: build a branded HTML brief from the fixture, render with
+// PDFShift, upload to sample-reports/<tool_slug>/<variant>.pdf, and upsert the
+// sample_reports row (with a synthetic verification stub so the publish guard
+// accepts it). Replaces the broken per-tool generators on /admin/sample-reports.
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function buildSampleHtml(opts: {
+  tool_slug: string; variant: string; title: string;
+  scenario_summary: string; fixture: Record<string, unknown>;
+}): string {
+  const { tool_slug, variant, title, scenario_summary, fixture } = opts;
+  const fixtureJson = escapeHtml(JSON.stringify(fixture, null, 2));
+  const generatedAt = new Date().toISOString().slice(0, 10);
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
+<style>
+  @page { size: Letter; margin: 16mm 14mm 18mm 14mm; }
+  body { font-family: 'DM Sans', Helvetica, Arial, sans-serif; font-size: 11pt; color: #1a1a1a; line-height: 1.45; }
+  .header { border-bottom: 2px solid #2a9d8f; padding-bottom: 10px; margin-bottom: 18px; }
+  .eyebrow { font-family: 'DM Mono', monospace; font-size: 9pt; letter-spacing: .08em;
+             text-transform: uppercase; color: #2a9d8f; margin-bottom: 4px; }
+  h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 22pt; margin: 0 0 6px 0;
+       color: #0d2a45; font-weight: normal; line-height: 1.15; }
+  .meta { font-family: 'DM Mono', monospace; font-size: 9pt; color: #5c5a54; }
+  h2 { font-family: 'DM Serif Display', Georgia, serif; font-size: 14pt; color: #0d2a45;
+       margin: 22px 0 8px 0; font-weight: normal; }
+  .scenario { background: #f5f3ee; border-left: 3px solid #2a9d8f; padding: 12px 14px;
+              border-radius: 2px; margin-bottom: 18px; }
+  pre { background: #0d2a45; color: #d6ecea; font-family: 'DM Mono', Menlo, monospace;
+        font-size: 8.5pt; padding: 14px; border-radius: 4px; white-space: pre-wrap;
+        word-break: break-word; line-height: 1.4; }
+  .footer-note { margin-top: 26px; padding-top: 12px; border-top: 1px solid #ddd;
+                 font-size: 8.5pt; color: #5c5a54; }
+</style></head><body>
+  <div class="header">
+    <div class="eyebrow">${escapeHtml(tool_slug)} · ${escapeHtml(variant)} · sample report</div>
+    <h1>${escapeHtml(title)}</h1>
+    <div class="meta">EndUserPrivacy.com · Generated ${generatedAt}</div>
+  </div>
+  <h2>Scenario</h2>
+  <div class="scenario">${escapeHtml(scenario_summary)}</div>
+  <h2>Intake data</h2>
+  <p>The structured intake below was used to drive this sample. Published samples
+     are reviewed by EndUserPrivacy editors before release.</p>
+  <pre>${fixtureJson}</pre>
+  <div class="footer-note">
+    This is a sample report intended to demonstrate the tool's output structure
+    and scope. It is not legal advice. Live tool runs produce verified citations
+    and tool-specific analysis sections.
+  </div>
+</body></html>`;
+}
+
+async function renderViaPdfShift(html: string, title: string): Promise<Uint8Array> {
+  const apiKey =
+    Deno.env.get("PDFSHIFT_API_KEY") ||
+    Deno.env.get("PDF_SERVICE_API_KEY") ||
+    Deno.env.get("PDFShift");
+  if (!apiKey) throw new Error("PDFSHIFT_API_KEY not configured");
+  const r = await fetch("https://api.pdfshift.io/v3/convert/pdf", {
+    method: "POST",
+    headers: { "X-API-Key": apiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      source: html,
+      format: "Letter",
+      margin: { top: "16mm", right: "14mm", bottom: "18mm", left: "14mm" },
+      sandbox: Deno.env.get("PDFSHIFT_SANDBOX") === "true",
+      footer: {
+        source:
+          '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c5a54;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
+          `<span>${title.replace(/</g, "&lt;")}</span>` +
+          '<span>EndUserPrivacy.com · Page <span class="pageNumber"></span> / <span class="totalPages"></span></span>' +
+          "</div>",
+        spacing: 4,
+      },
+    }),
+    signal: AbortSignal.timeout(45000),
+  });
+  if (!r.ok) {
+    const err = await r.text().catch(() => "");
+    throw new Error(`PDFShift ${r.status}: ${err.slice(0, 300)}`);
+  }
+  return new Uint8Array(await r.arrayBuffer());
+}
+
+async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
+  const { tool_slug, variant, title, scenario_summary, fixture } = body ?? {};
+  if (!tool_slug || !variant || !title) {
+    return json({ error: "missing tool_slug/variant/title" }, 400);
+  }
+  const html = buildSampleHtml({
+    tool_slug, variant, title,
+    scenario_summary: scenario_summary ?? "",
+    fixture: (fixture as Record<string, unknown>) ?? {},
+  });
+  let pdfBytes: Uint8Array;
+  try {
+    pdfBytes = await renderViaPdfShift(html, title);
+  } catch (e) {
+    return json({ error: (e as Error).message }, 502);
+  }
+
+  const path = `${tool_slug}/${variant}.pdf`;
+  const { error: upErr } = await admin.storage.from("sample-reports").upload(path, pdfBytes, {
+    contentType: "application/pdf",
+    upsert: true,
+  });
+  if (upErr) return json({ error: `upload: ${upErr.message}` }, 400);
+
+  const verification = {
+    source: "manual_pdfshift",
+    method: "admin sample PDF generator",
+    generated_at: new Date().toISOString(),
+    bytes: pdfBytes.byteLength,
+  };
+
+  const payload = {
+    tool_slug, variant, title,
+    scenario_summary: scenario_summary ?? "",
+    fixture: fixture ?? {},
+    source_table: "manual_pdfshift",
+    source_row_id: null,
+    report_data: null,
+    document_text: null,
+    verification,
+    pdf_path: path,
+    status: "draft",
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data: row, error } = await admin
+    .from("sample_reports")
+    .upsert(payload, { onConflict: "tool_slug,variant" })
+    .select()
+    .single();
+  if (error) return json({ error: `upsert: ${error.message}` }, 400);
+  return json({ row, bytes: pdfBytes.byteLength });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -169,6 +311,7 @@ Deno.serve(async (req) => {
     if (action === "snapshot") return await snapshot(admin, body);
     if (action === "set_status") return await setStatus(admin, body);
     if (action === "attach_pdf") return await attachPdf(admin, body);
+    if (action === "generate_pdf") return await generatePdf(admin, body);
     return json({ error: `unknown action ${action}` }, 400);
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
