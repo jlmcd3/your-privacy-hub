@@ -66,12 +66,26 @@ async function callAnthropic(
   return data.content?.[0]?.text || "";
 }
 
+// Heavy generation work. Returns when the row has been finalised (status=ready
+// or status=failed). Invoked via EdgeRuntime.waitUntil so we can return 202 to
+// the caller immediately and avoid the 150s HTTP idle-timeout — generation
+// regularly runs 60–120s and an awaited HTTP response can be cut off by the
+// platform even though the row eventually finishes.
+async function generateAssessment(assessment_id: string, assessment: any): Promise<void> {
+  try {
+    await runAssessment(assessment_id, assessment);
+  } catch (e) {
+    console.error("run-li-assessment background error:", e);
+    await supabase.from("li_assessments")
+      .update({ status: "failed" }).eq("id", assessment_id);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  let assessment_id: string | undefined;
   try {
     const caller = await verifyCaller(req);
     if (!caller.internal && !caller.userId) {
@@ -79,7 +93,7 @@ Deno.serve(async (req) => {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    ({ assessment_id } = await req.json());
+    const { assessment_id } = await req.json();
     if (!assessment_id) {
       return new Response(JSON.stringify({ error: "assessment_id required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -98,6 +112,32 @@ Deno.serve(async (req) => {
 
     await supabase.from("li_assessments").update({ status: "processing" })
       .eq("id", assessment_id);
+
+    // Kick off heavy work in the background; respond immediately so the
+    // caller's HTTP request doesn't sit open for 60–120s and trip the 150s
+    // idle-timeout. All client callers (webhook, admin harness, result page)
+    // already poll the li_assessments row for status.
+    // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
+    EdgeRuntime.waitUntil(generateAssessment(assessment_id, assessment));
+
+    return new Response(
+      JSON.stringify({ success: true, assessment_id, status: "processing" }),
+      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  } catch (e) {
+    console.error("run-li-assessment dispatch error:", e);
+    return new Response(JSON.stringify({ error: "Failed to start assessment." }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Heavy generation logic (previously inline in Deno.serve). Moved verbatim so
+// it can run under EdgeRuntime.waitUntil after we respond to the caller.
+// ─────────────────────────────────────────────────────────────────────────────
+async function runAssessment(assessment_id: string, assessment: any): Promise<void> {
+  try {
+
 
     // ── STAGE 1: Classify use case ──
     const classifySystem = `You are a privacy regulatory analyst. Classify processing activities for legitimate interest analysis. Return ONLY valid JSON, no preamble.`;
