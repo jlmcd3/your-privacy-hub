@@ -56,7 +56,7 @@ export type Runner = (ctx: RunnerCtx) => Promise<RunnerResult>;
 // ─── shared poller ───────────────────────────────────────────────────────────
 
 async function pollStatus(
-  table: "li_assessments" | "dpia_frameworks" | "governance_assessments" | "ropa_sessions" | "eu_notice_sessions",
+  table: "li_assessments" | "dpia_frameworks" | "governance_assessments" | "ropa_sessions" | "eu_notice_sessions" | "ir_playbooks",
   id: string,
   maxPolls: number,
   intervalMs: number,
@@ -69,6 +69,7 @@ async function pollStatus(
     governance_assessments: "complete",
     ropa_sessions: "generated",
     eu_notice_sessions: "generated",
+    ir_playbooks: "complete",
   };
   const successStatus = successByTable[table];
   for (let i = 0; i < maxPolls; i++) {
