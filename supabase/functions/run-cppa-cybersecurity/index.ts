@@ -133,7 +133,7 @@ Respond with this exact JSON structure:
       "score": 0,
       "status": "Implemented | Partial | Gap | Critical Gap",
       "finding": "string (1-2 sentences — specific gap or confirmation only)",
-      "regulatory_basis": "string (cite the CPPA cybersecurity audit regulation section)",
+      "regulatory_basis": "string (the specific programme component being assessed, in plain language — do NOT include a section citation; the citation is added by the system)",
       "remediation": "string (2-3 specific steps, plain language)",
       "priority": "Immediate | Within 90 days | Within 6 months | Monitor"
     }
