@@ -347,7 +347,8 @@ Return JSON:
     let synthesis: any = await runSynthesis("");
 
     // Output lint: regenerate synthesis once on hard violations; never block delivery.
-    let lint = lintReportText(assembleSynthesisNarrative(synthesis, domainResults));
+    const lintOpts = { checkUnresolvedTokens: true, checkDates: true, referenceDate: new Date() };
+    let lint = lintReportText(assembleSynthesisNarrative(synthesis, domainResults), lintOpts);
     const lintViolations: any[] = [];
     if (hasHardViolations(lint)) {
       try {
@@ -355,7 +356,7 @@ Return JSON:
         synthesis = await runSynthesis(
           `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
         );
-        lint = lintReportText(assembleSynthesisNarrative(synthesis, domainResults));
+        lint = lintReportText(assembleSynthesisNarrative(synthesis, domainResults), lintOpts);
       } catch (e) {
         console.warn("[Governance] lint retry failed (non-fatal):", e);
       }
