@@ -46,6 +46,15 @@ const Login = () => {
       return;
     }
 
+    // Single-active-session policy: revoke this user's sessions on all other
+    // devices. Two people sharing one login will repeatedly sign each other
+    // out. Non-blocking: a failure here must never prevent a valid login.
+    try {
+      await supabase.auth.signOut({ scope: "others" });
+    } catch (e) {
+      console.warn("session revocation (scope: others) failed — continuing login", e);
+    }
+
     if (safeRedirect) {
       navigate(safeRedirect);
       return;
@@ -188,6 +197,9 @@ const Login = () => {
                 Forgot password?
               </Link>
             </div>
+            <p className="mt-3 text-xs text-slate text-center">
+              Signing in here will sign you out on any other device.
+            </p>
           </div>
         </div>
 
