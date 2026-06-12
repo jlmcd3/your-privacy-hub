@@ -335,6 +335,10 @@ Deno.serve(async (req) => {
 
           let status: "ready" | "needs_review" = "ready";
           const notes: string[] = [];
+          for (const ne of notesEarly) notes.push(ne);
+          if (notesEarly.some((n) => n.startsWith("truncated_output"))) {
+            status = "needs_review";
+          }
           if (failures.length > 0) {
             status = "needs_review";
             notes.push(`Validation: ${failures.join("; ")}`);
