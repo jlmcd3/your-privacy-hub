@@ -544,6 +544,17 @@ Deno.serve(async (req) => {
       );
     }
 
+    const { data: ownsData, error: ownsErr } = await userClient.rpc("owns_client", {
+      _client_id: sessionRow.client_id,
+    });
+    if (ownsErr || ownsData !== true) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+
     // ── Background-dispatch boundary ─────────────────────────────────────
     // Transition the row to 'generating' so the UI/poller sees progress and
     // duplicate POSTs hit the ALLOWED_STATUSES pre-check.
