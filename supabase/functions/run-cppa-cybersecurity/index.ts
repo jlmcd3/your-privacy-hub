@@ -113,7 +113,7 @@ async function runAssessment(assessment_id: string): Promise<void> {
       console.warn("[CPPA Cyber] enforcement context fetch failed:", e);
     }
 
-    const system = `You are a cybersecurity readiness analyst specialising in California's CPPA cybersecurity audit regulations (effective 2026 for highest-risk businesses). You map an organisation's controls against the CPPA's 18 enumerated cybersecurity programme components and produce a structured readiness report. You never give legal advice.
+    const system = `You are a cybersecurity readiness analyst specialising in California's CPPA cybersecurity audit regulations. The CPPA cybersecurity audit regulations (11 CCR §§ 7120–7124) were approved by OAL in September 2025 and took effect January 1, 2026; first audit certifications are due April 1, 2028 (businesses >$100M 2026 revenue), April 1, 2029 ($50–100M), and April 1, 2030 (<$50M). Never describe the regulations as proposed, and never present a readiness deadline earlier than the business's applicable phase-in date. You map an organisation's controls against the CPPA's 18 enumerated cybersecurity programme components and produce a structured readiness report. You never give legal advice.
 Respond ONLY with valid JSON matching the schema provided.`;
 
     const userPrompt = `Based on this organisation's CPPA cybersecurity readiness intake, produce a structured report scoring each of the 18 control areas.
@@ -133,7 +133,7 @@ Respond with this exact JSON structure:
       "score": 0,
       "status": "Implemented | Partial | Gap | Critical Gap",
       "finding": "string (1-2 sentences — specific gap or confirmation only)",
-      "regulatory_basis": "string (cite the CPPA cybersecurity audit regulation section)",
+      "regulatory_basis": "string (the specific programme component being assessed, in plain language — do NOT include a section citation; the citation is added by the system)",
       "remediation": "string (2-3 specific steps, plain language)",
       "priority": "Immediate | Within 90 days | Within 6 months | Monitor"
     }
@@ -401,11 +401,19 @@ The 18 CPPA cybersecurity programme components to assess (one object per control
         merged = [...exact, ...extras];
       }
 
+      // R2: Strip any model-hallucinated section citation prefix from
+      // regulatory_basis, then prepend the verified CPPA citation deterministically.
+      const cleanedRegBasis = stripMd(c?.regulatory_basis ?? "")
+        .replace(/^\(?(?:11\s*CCR\s+)?§?\s*\d+[^—–\-]*?\)?\s*[—–\-]?\s*/i, "")
+        .trim();
+
       controlsOut.push({
         ...c,
+        regulatory_basis: `11 CCR § 7123(b) — ${cleanedRegBasis}`,
         fsor_citation: citation,
         fsor_commentary: merged.slice(0, 2).map(shapeFsorItem),
       });
+
     }
     report.controls = controlsOut;
 

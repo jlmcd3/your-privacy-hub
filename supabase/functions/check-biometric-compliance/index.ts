@@ -1,6 +1,7 @@
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -236,9 +237,11 @@ Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No pre
 
 Your task: produce a structured compliance assessment for a described biometric data processing activity, calibrated to the jurisdictions in scope and recent enforcement precedents.
 
-BIPA — STATUTORY UPDATE (Illinois P.A. 103-0769, effective 8 August 2024):
-  - The 2024 amendment to 740 ILCS 14/20 caps liquidated damages so that a single course of conduct involving the same biometric identifier or information from the same person constitutes a SINGLE violation per person (not one-per-scan as held in Cothron v. White Castle, 2023 IL 128004). Reflect this in the BIPA risk discussion: the per-person figures supplied above remain the ceiling for new conduct on or after 8 Aug 2024; pre-amendment conduct may still face per-scan exposure.
+BIPA — STATUTORY UPDATE (Illinois P.A. 103-0769 (SB 2979), signed and effective 2 August 2024):
+  - The 2024 amendment to 740 ILCS 14/20 caps liquidated damages so that a single course of conduct involving the same biometric identifier or information from the same person constitutes a SINGLE violation per person (not one-per-scan as held in Cothron v. White Castle, 2023 IL 128004). Reflect this in the BIPA risk discussion: the per-person figures supplied above remain the ceiling for new conduct on or after 2 Aug 2024; pre-amendment conduct may still face per-scan exposure.
+  - Note where relevant that courts have split on whether the amendment applies retroactively to pre-amendment conduct (compare Gregg v. Central Transport (N.D. Ill. 2024) with Schwartz v. Viking SupplyNet (N.D. Ill. 2024)); frame pre-amendment per-scan exposure as contested rather than settled.
   - Section 15(b) written-consent and Section 15(a) public retention-and-destruction policy obligations are unchanged. A private right of action remains.
+  - HEADCOUNT CONSISTENCY: Whenever you present an illustrative damages calculation using a single enrollment figure drawn from a range in the intake, state the assumption explicitly (e.g. "assumes the midpoint (2,500) of the stated 500–5,000 range") and present the full-range figure alongside it.
 
 CITATION GUARDRAILS:
   - Cite enforcement actions ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt (each tagged [E#] with an id). Never reference ICO, CNIL, AEPD, Garante, or other regulator fines from training knowledge if they are not in that block.
@@ -306,14 +309,69 @@ Output ONLY the compliance assessment. No preamble.`,
       parsedAnnotations = [];
     }
 
+    // ── R0 PART 3: Output lint on final narrative. Apply auto-fixes;
+    // retry once on hard violations; persist lint summary.
+    const referenceDate = new Date().toISOString();
+    const lintViolations: any[] = [];
+    {
+      let lint = lintReportText(assessment_text, {
+        checkDates: true, checkUnresolvedTokens: true, referenceDate,
+      });
+      if (lint.clean !== assessment_text) assessment_text = lint.clean;
+      if (hasHardViolations(lint)) {
+        try {
+          const details = lint.violations.filter((v) => v.severity === "hard")
+            .map((v) => `${v.code}: ${v.detail}`).join("; ");
+          const retryRes = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "x-api-key": ANTHROPIC_API_KEY,
+              "anthropic-version": "2023-06-01",
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-6",
+              max_tokens: 4000,
+              system: "You are a biometric privacy compliance analyst. Reproduce the prior assessment, correcting these automated-lint defects silently and without meta-commentary: " + details,
+              messages: [
+                { role: "user", content: prompt },
+                { role: "assistant", content: fullText },
+                { role: "user", content: `Regenerate the assessment correcting: ${details}. Same output format, same ===ANNOTATIONS=== block.` },
+              ],
+            }),
+          });
+          if (retryRes.ok) {
+            const retryData = await retryRes.json();
+            const retryFull = retryData.content?.[0]?.text ?? "";
+            let retryText = retryFull;
+            const sep2 = retryFull.indexOf("===ANNOTATIONS===");
+            if (sep2 !== -1) retryText = retryFull.slice(0, sep2).trim();
+            retryText = retryText
+              .replace(/^#{1,6}\s+/gm, '').replace(/\*\*\*/g, '').replace(/\*\*/g, '')
+              .replace(/\*([^*\n]+)\*/g, '$1').replace(/^>\s?/gm, '').replace(/^\*\s+/gm, '• ');
+            assessment_text = retryText;
+            lint = lintReportText(assessment_text, {
+              checkDates: true, checkUnresolvedTokens: true, referenceDate,
+            });
+            assessment_text = lint.clean;
+          }
+        } catch (e) {
+          console.warn("[Biometric] lint retry failed (non-fatal):", e);
+        }
+      }
+      for (const v of lint.violations) lintViolations.push(v);
+    }
+
     const report_data = {
       bipa_risk: bipaRisk,
       jurisdictions_analysed: body.jurisdictions,
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
       annotations: parsedAnnotations,
+      lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
     };
+
 
     let savedId: string | null = null;
     try {

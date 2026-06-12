@@ -138,6 +138,8 @@ QUALITY STANDARDS:
 SOURCE CALIBRATION:
 For patterns supported by official regulatory sources in the corpus (DPA decisions, enforcement notices, regulatory guidance), state findings directly. For patterns supported only by secondary sources (law firm commentary, trade press), note this in the description: "Based on reported accounts of..."
 
+SOURCE INTEGRITY: (1) Never state a specific fine, penalty, or settlement amount unless that exact figure appears in the source material provided in this prompt; otherwise describe the action without a figure. (2) Never cite a case, decision, or guidance document from training knowledge — only from provided sources. (3) Attribute every enforcement claim to its regulator and year. (4) If sources conflict, say so rather than picking silently.
+
 Return ONLY valid JSON matching the schema in the user message. No markdown, no preamble, no explanation.`,
       messages: [{ role: "user", content: prompt }],
     }),
