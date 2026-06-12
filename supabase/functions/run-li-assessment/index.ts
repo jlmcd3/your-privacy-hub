@@ -43,7 +43,8 @@ async function callAnthropic(
   model: string,
   systemPrompt: string,
   userContent: string,
-  maxTokens: number = 2000
+  maxTokens: number = 2000,
+  timeoutMs: number = 240_000
 ): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -59,7 +60,7 @@ async function callAnthropic(
       system: systemPrompt,
       messages: [{ role: "user", content: userContent }],
     }),
-    signal: AbortSignal.timeout(120000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
   const data = await res.json();
@@ -143,6 +144,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
 
 
     // ── STAGE 1: Classify use case ──
+    const t1Start = Date.now();
     const classifySystem = `You are a privacy regulatory analyst. Classify processing activities for legitimate interest analysis. Return ONLY valid JSON, no preamble.`;
 
     // Determine jurisdiction for GDPR authority retrieval (UK if any verified
@@ -183,6 +185,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
         semanticQuery: assessment.processing_description || "",
       }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; })
     ]);
+    console.log(`[LIA] stage=1 classify+context elapsed=${Date.now() - t1Start}ms`);
 
     const classifyText = classifyResult.text;
     let classification: any = {};
@@ -397,6 +400,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
       return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, maxTokens);
     }
 
+    const t2Start = Date.now();
     let stage2 = await runStage2("");
     if (stage2.stopReason === "max_tokens") {
       console.warn("[LIA] Stage 2 truncated_output — retrying at 1.5x token budget");
@@ -406,6 +410,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
         throw new Error("truncated_output: LIA Stage 2 (analysis) exceeded token budget twice");
       }
     }
+    console.log(`[LIA] stage=2 analysis elapsed=${Date.now() - t2Start}ms`);
     const analysisText = stage2.text;
     let analysis: any = parseLlmJson(analysisText);
     if (!analysis) {
@@ -648,6 +653,7 @@ Return JSON:
   "disclaimer": "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
 }`;
 
+    const t3Start = Date.now();
     let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, 3500);
     if (docsStage.stopReason === "max_tokens") {
       console.warn("[LIA] Stage 3 truncated_output — retrying at 1.5x token budget");
@@ -657,6 +663,7 @@ Return JSON:
         throw new Error("truncated_output: LIA Stage 3 (docs) exceeded token budget twice");
       }
     }
+    console.log(`[LIA] stage=3 docs elapsed=${Date.now() - t3Start}ms`);
     const docsText = docsStage.text;
 
     let docRecs: any = parseLlmJson(docsText);
