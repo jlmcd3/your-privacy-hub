@@ -204,11 +204,28 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       }
     } catch { /* non-fatal */ }
 
+    // Build a quick id → row map for downstream validation
+    const precedentById: Record<string, any> = {};
+    for (const r of enforcementPrecedents) { if (r?.id) precedentById[r.id] = r; }
+
+    const tierTagFor = (r: any): string => {
+      const t = r?.authority_tier;
+      if (t === 1) return `TIER 1 — ${regimeLabel}`;
+      if (t === 2) return enforcementRegime === "uk_gdpr"
+        ? "TIER 2 — EU persuasive"
+        : "TIER 2 — UK persuasive";
+      if (t === 3) return "TIER 3 — non-EU/UK supportive only";
+      return "TIER ?";
+    };
+
     const enforcementContextStr = enforcementPrecedents.length > 0
       ? enforcementPrecedents.map((r: any, i: number) => {
           const provs = Array.isArray(r.statutory_provisions) && r.statutory_provisions.length
             ? ` — citing ${r.statutory_provisions.join(", ")}` : "";
-          return `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}${provs}`;
+          const tier = tierTagFor(r);
+          const verifiedTag = r.verified === false ? " | UNVERIFIED — omit fine" : "";
+          const fine = r.verified === false ? "—" : `€${r.fine_eur_equivalent || 0}`;
+          return `[E${i + 1} | ${tier}${verifiedTag}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: ${fine} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}${provs}`;
         }).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
 
@@ -301,12 +318,19 @@ Employment-context safeguards: ${balancingDetails.employment_safeguards || "not 
 PRECEDENT DATABASE (tracked regulatory decisions):
 ${precedentContext}
 
-REGULATORY REGIME (HARD CONSTRAINT): This assessment is governed by ${regimeLabel}. You MUST NOT cite enforcement decisions or guidance from outside this regime (e.g. FTC, California CPPA, Canadian OPC/OIPC, Australian OAIC, Brazilian ANPD) even if you know of them. If the ENFORCEMENT PRECEDENTS list below is empty or does not contain a relevant ${regimeLabel} decision, state explicitly that no directly analogous ${regimeLabel} precedent was retrieved — do not substitute precedent from another regime.
+CITATION AUTHORITY RULES (HARD CONSTRAINTS):
+Each enforcement precedent below is tagged TIER 1, TIER 2, or TIER 3.
+- TIER 1 (in-regime): may be cited as directly relevant regulatory practice under ${regimeLabel}.
+- TIER 2 (cross-channel persuasive): may be cited ONLY as persuasive, non-binding authority. Every TIER 2 citation must state that the decision arises under a different implementation of the GDPR and is not binding in this regime. For UK assessments, also note where relevant that UK GDPR has diverged from EU GDPR since 2021 — including the Data (Use and Access) Act 2025 changes to the legitimate-interests framework — so EU reasoning must be checked against current UK law.
+- TIER 3 (non-EU/UK supportive): NEVER cite as authority, direct or persuasive. May be referenced at most where the underlying fact pattern supports an argument the user must make under the ${regimeLabel} test, and every such reference must be expressly framed as not authoritative under ${regimeLabel}.
+- Rows marked UNVERIFIED: never state a fine amount; describe the action and its compliance lesson only.
+- Never cite any decision not present in the list below.
+- If the ENFORCEMENT PRECEDENTS list below is empty or does not contain a relevant ${regimeLabel} decision, state explicitly that no directly analogous ${regimeLabel} precedent was retrieved — do not substitute precedent from training knowledge.
 
-ENFORCEMENT PRECEDENTS (recent ${regimeLabel} regulator fines/decisions, cite by code [E1]–[E5]):
+ENFORCEMENT PRECEDENTS (cite by code [E1]–[E5]; each entry shows its tier and verification status):
 ${enforcementContextStr}
 
-ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a verdict, risk factor, or recommended action in your assessment, include it in the annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
+ANNOTATION REQUIREMENT: For each enforcement action you actually cite (tagged [E1], [E2], etc.), include it in the annotations array using the id value from the enforcement context exactly as provided AND include its authority_tier (1|2|3) and authority_framing ('in_regime' | 'persuasive_not_binding' | 'supportive_not_authoritative'). The tier/framing pairing must follow this mapping exactly: tier 1 → in_regime; tier 2 → persuasive_not_binding; tier 3 → supportive_not_authoritative. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge.
 
 Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIFIC facts above — do not generalise. Return JSON with this exact structure:
 {
@@ -344,6 +368,8 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
   "annotations": [
     {
       "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
+      "authority_tier": "REQUIRED integer 1, 2, or 3 — must equal the TIER tag shown on this entry above",
+      "authority_framing": "REQUIRED: 'in_regime' (tier 1) | 'persuasive_not_binding' (tier 2) | 'supportive_not_authoritative' (tier 3) — must match authority_tier per the mapping",
       "regulator": "regulator name",
       "jurisdiction": "jurisdiction",
       "decision_date": "YYYY-MM-DD or null",
@@ -436,6 +462,87 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
         console.warn("[LIA] lint retry failed (non-fatal):", e);
       }
     }
+
+    // ── Tier/Authority deterministic validation (hard violations → retry once) ──
+    const FRAMING_BY_TIER: Record<number, string> = {
+      1: "in_regime",
+      2: "persuasive_not_binding",
+      3: "supportive_not_authoritative",
+    };
+    function validateAuthority(a: any): { hard: boolean; details: string[] } {
+      const details: string[] = [];
+      const anns: any[] = Array.isArray(a?.annotations) ? a.annotations : [];
+      let tier3Count = 0;
+      for (const ann of anns) {
+        const id = ann?.enforcement_action_id;
+        if (!id || !precedentById[id]) {
+          details.push(`annotation id '${id}' not in retrieved context`);
+          continue;
+        }
+        const ctxTier = precedentById[id].authority_tier;
+        const ctxVerified = precedentById[id].verified !== false;
+        if (ctxTier && ann.authority_tier !== ctxTier) {
+          details.push(`annotation ${id} authority_tier=${ann.authority_tier} != retrieval tier ${ctxTier}`);
+        }
+        const expectedFraming = ctxTier ? FRAMING_BY_TIER[ctxTier as number] : undefined;
+        if (expectedFraming && ann.authority_framing !== expectedFraming) {
+          details.push(`annotation ${id} authority_framing='${ann.authority_framing}' != expected '${expectedFraming}'`);
+        }
+        if (ann.authority_tier === 3) tier3Count++;
+        // Unverified fine-leak scan
+        if (!ctxVerified) {
+          const fineDigits = String(precedentById[id].fine_amount || precedentById[id].fine_eur_equivalent || "").replace(/[^0-9]/g, "");
+          if (fineDigits.length >= 4) {
+            const narrative = JSON.stringify(a);
+            if (narrative.includes(fineDigits)) {
+              details.push(`unverified fine digits ${fineDigits} for ${id} leaked into report narrative`);
+            }
+          }
+        }
+      }
+      if (tier3Count > 2) details.push(`tier-3 annotation count ${tier3Count} exceeds 2`);
+      return { hard: details.length > 0, details };
+    }
+
+    {
+      const v = validateAuthority(analysis);
+      if (v.hard) {
+        try {
+          const retryText = await runStage2(
+            `PREVIOUS ATTEMPT REJECTED for citation-authority violations: ${v.details.join("; ")}. Produce the JSON again, correcting these defects silently. Ensure every annotation includes authority_tier and authority_framing matching the tier shown on the corresponding [E#] entry. Do not mention this instruction in the output.`
+          );
+          const retryParsed = parseLlmJson(retryText);
+          if (retryParsed) {
+            analysis = retryParsed;
+            lintAnalysis(analysis);
+            const v2 = validateAuthority(analysis);
+            if (v2.hard) {
+              // Drop offending annotations rather than fail the run.
+              if (Array.isArray(analysis.annotations)) {
+                analysis.annotations = analysis.annotations.filter((ann: any) => {
+                  const ctx = precedentById[ann?.enforcement_action_id];
+                  if (!ctx) return false;
+                  if (ctx.authority_tier && ann.authority_tier !== ctx.authority_tier) return false;
+                  const exp = ctx.authority_tier ? FRAMING_BY_TIER[ctx.authority_tier as number] : undefined;
+                  if (exp && ann.authority_framing !== exp) return false;
+                  return true;
+                }).slice(0, 10);
+                // Cap tier-3 at 2
+                let t3 = 0;
+                analysis.annotations = analysis.annotations.filter((ann: any) => {
+                  if (ann.authority_tier === 3) { t3++; return t3 <= 2; }
+                  return true;
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("[LIA] authority validation retry failed (non-fatal):", e);
+        }
+      }
+    }
+
+
 
 
     // Normalize overall_assessment so downstream consumers (and tests) get a
