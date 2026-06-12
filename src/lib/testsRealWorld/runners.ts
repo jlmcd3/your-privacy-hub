@@ -433,8 +433,8 @@ const runUSNotice: Runner = async ({ userId, log }) => {
 // ─── EU Notice ───────────────────────────────────────────────────────────────
 
 const runEUNotice: Runner = async ({ userId, log }) => {
-  const universal = blend(EU_NOTICE_VARIANTS);
-  log(`Blended EU Notice fixture (${universal.controller_name})`);
+  const universal = blend(EU_NOTICE_VARIANTS, ["controller_name"]);
+  log(`Blended EU Notice fixture (controller anchor: ${universal.controller_name})`);
   const clientId = await getOrCreateClientId(userId);
 
   log("Creating eu_notice_session…");
