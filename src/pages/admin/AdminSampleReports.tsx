@@ -520,10 +520,10 @@ export default function AdminSampleReports() {
                   <Button
                     size="sm"
                     onClick={() => onGeneratePdf(fix)}
-                    disabled={run.status !== "complete" || busy === `pdfgen::${key}`}
-                    title={run.status !== "complete" ? "Generate the report first" : "Render PDF via PDFShift"}
+                    disabled={busy === `pdfgen::${key}` || run.status === "running"}
+                    title="Generate the report and render it as a PDF via PDFShift → saves to /samples/report-output"
                   >
-                    {busy === `pdfgen::${key}` ? "Rendering PDF…" : "Generate PDF (PDFShift)"}
+                    {busy === `pdfgen::${key}` ? "Generating & rendering PDF…" : "Generate PDF (PDFShift)"}
                   </Button>
                   {run.resultUrl && (
                     <Button size="sm" variant="outline" asChild>
