@@ -400,6 +400,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
       return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, maxTokens);
     }
 
+    const t2Start = Date.now();
     let stage2 = await runStage2("");
     if (stage2.stopReason === "max_tokens") {
       console.warn("[LIA] Stage 2 truncated_output — retrying at 1.5x token budget");
@@ -409,6 +410,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
         throw new Error("truncated_output: LIA Stage 2 (analysis) exceeded token budget twice");
       }
     }
+    console.log(`[LIA] stage=2 analysis elapsed=${Date.now() - t2Start}ms`);
     const analysisText = stage2.text;
     let analysis: any = parseLlmJson(analysisText);
     if (!analysis) {
