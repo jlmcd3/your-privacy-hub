@@ -833,7 +833,7 @@ Deno.serve(async (req: Request) => {
     admin
       .from("ropa_jurisdiction_selections")
       .select("jurisdiction_code")
-      .eq("session_id", session.id),
+      .eq("client_id", session.client_id),
     admin
       .from("ropa_processing_activities")
       .select("*")
