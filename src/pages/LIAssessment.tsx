@@ -84,6 +84,7 @@ const LIAssessment = () => {
   const { toast } = useToast();
   const pricing = useToolPrice("li_assessment");
 
+  const [organizationName, setOrganizationName] = useState("");
   const [processingDescription, setProcessingDescription] = useState("");
   const [dataCategories, setDataCategories] = useState<string[]>([]);
   const [relationship, setRelationship] = useState("");
@@ -94,6 +95,7 @@ const LIAssessment = () => {
   const [previewId, setPreviewId] = useState<string | null>(null);
 
   const validate = () => {
+    if (!organizationName.trim()) return "Tell us the name of the organisation being assessed.";
     if (!processingDescription.trim()) return "Briefly describe what you're doing.";
     if (!dataCategories.length) return "Select at least one data category.";
     if (!relationship) return "Select your relationship with data subjects.";
@@ -128,6 +130,7 @@ const LIAssessment = () => {
           client_id: clientId ?? null,
           status: "pending",
           stage: "preview",
+          organization_name: organizationName,
           processing_description: processingDescription,
           data_categories: dataCategories,
           relationship_type: relationship,
@@ -262,6 +265,18 @@ const LIAssessment = () => {
             className="bg-card border border-brand-cloud rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6"
           >
             <RequiredLegend />
+            <div>
+              <Label htmlFor="org" className="text-sm font-semibold text-brand-navy">Organisation being assessed<Req /></Label>
+              <input
+                id="org"
+                type="text"
+                value={organizationName}
+                onChange={(e) => setOrganizationName(e.target.value)}
+                placeholder="e.g. Acme Retail Ltd"
+                className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm"
+              />
+              <p className="text-meta text-muted-foreground mt-1">The controller/entity whose processing this LIA documents.</p>
+            </div>
             <div>
               <Label htmlFor="desc" className="text-sm font-semibold text-brand-navy">What processing are you considering?<Req /> <DefPopover termKey="gdpr_legitimate_interests" /></Label>
               <Textarea
