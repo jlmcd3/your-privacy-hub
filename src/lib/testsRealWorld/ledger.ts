@@ -11,7 +11,14 @@ export type ToolType =
   | "biometric"
   | "dpa"
   | "ir-playbook"
-  | "brief";
+  | "brief"
+  | "ropa"
+  | "us-notice"
+  | "eu-notice"
+  | "registration"
+  | "registration-assessment"
+  | "cppa-risk"
+  | "cppa-cyber";
 
 export interface RecordArtifactInput {
   runId: string;
