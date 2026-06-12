@@ -212,6 +212,8 @@ const runDPA: Runner = async ({ userId, log }) => {
   if (error || !data?.id) {
     throw new Error(error?.message || data?.error || "no id returned");
   }
+  log(`Async generation started (202); polling dpa_documents for completion…`);
+  await pollStatus("dpa_documents", data.id, 60, 4000, log);
   return {
     targetTable: "dpa_documents",
     targetId: data.id,
