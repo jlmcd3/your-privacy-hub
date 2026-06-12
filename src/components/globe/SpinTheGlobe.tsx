@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import * as THREE from "three";
 import GLOBE_JURISDICTIONS, { type GlobeJurisdiction } from "@/data/globe_jurisdictions";
+import { pickStarClass, powerLawBrightness, twinkle } from "./starPalette";
+
 
 type Phase = "idle" | "spinning" | "result";
 type Jurisdiction = GlobeJurisdiction;
@@ -27,26 +29,46 @@ function latLonToVec3(lat: number, lon: number, r: number): THREE.Vector3 {
 
 // Twinkling star field built as Three.js Points inside the 3D scene.
 // Stars render around the globe regardless of CSS overflow:hidden clipping.
-function buildStarField() {
-  const N = 2000;
-  const positions  = new Float32Array(N * 3);
-  const colors     = new Float32Array(N * 3);
-  const phases     = new Float32Array(N);
-  const speeds     = new Float32Array(N);
+// Split into THREE brightness bands as separate Points groups since
+// PointsMaterial has a single uniform size per group.
+type StarGroup = {
+  points: THREE.Points;
+  baseColors: Float32Array; // immutable per-star RGB (never mutated)
+  phases: Float32Array;
+  speedsA: Float32Array;
+  speedsB: Float32Array;
+  bases: Float32Array;      // per-star base brightness 0..1
+};
 
-  for (let i = 0; i < N; i++) {
+function buildStarGroup(count: number, size: number): StarGroup {
+  const positions  = new Float32Array(count * 3);
+  const colors     = new Float32Array(count * 3);
+  const baseColors = new Float32Array(count * 3);
+  const phases     = new Float32Array(count);
+  const speedsA    = new Float32Array(count);
+  const speedsB    = new Float32Array(count);
+  const bases      = new Float32Array(count);
+
+  for (let i = 0; i < count; i++) {
     const theta = Math.random() * Math.PI * 2;
     const phi   = Math.acos(2 * Math.random() - 1);
     const r     = 48 + Math.random() * 12;
     positions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
     positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
     positions[i*3+2] = r * Math.cos(phi);
-    const warm = Math.random();
-    colors[i*3]   = 0.80 + warm * 0.20;
-    colors[i*3+1] = 0.82 + warm * 0.12;
-    colors[i*3+2] = 0.95 + (1 - warm) * 0.05;
-    phases[i] = Math.random() * Math.PI * 2;
-    speeds[i] = 0.6 + Math.random() * 2.4;
+
+    const cls = pickStarClass(Math.random());
+    baseColors[i*3]   = cls.rgb[0] / 255;
+    baseColors[i*3+1] = cls.rgb[1] / 255;
+    baseColors[i*3+2] = cls.rgb[2] / 255;
+    colors[i*3]   = baseColors[i*3];
+    colors[i*3+1] = baseColors[i*3+1];
+    colors[i*3+2] = baseColors[i*3+2];
+
+    bases[i]   = powerLawBrightness();
+    phases[i]  = Math.random() * Math.PI * 2;
+    speedsA[i] = 0.4 + Math.random() * 1.6;
+    speedsB[i] = speedsA[i] * 1.618;
   }
 
   const geo = new THREE.BufferGeometry();
@@ -54,30 +76,47 @@ function buildStarField() {
   geo.setAttribute("color",    new THREE.BufferAttribute(colors, 3));
 
   const mat = new THREE.PointsMaterial({
-    size: 0.20, vertexColors: true, transparent: true, opacity: 1.0, sizeAttenuation: true,
+    size, vertexColors: true, transparent: true, opacity: 1.0, sizeAttenuation: true,
   });
 
-  return { points: new THREE.Points(geo, mat), phases, speeds };
+  return { points: new THREE.Points(geo, mat), baseColors, phases, speedsA, speedsB, bases };
 }
 
-function tickStars(
-  pts: THREE.Points,
-  phases: Float32Array,
-  speeds: Float32Array,
-  t: number,
-) {
-  const attr = pts.geometry.getAttribute("color") as THREE.BufferAttribute;
+function buildStarField() {
+  // Power-law makes fewer points read as richer; total ~1200.
+  const dim    = buildStarGroup(Math.round(1200 * 0.70), 0.10);
+  const mid    = buildStarGroup(Math.round(1200 * 0.22), 0.18);
+  const bright = buildStarGroup(Math.round(1200 * 0.08), 0.30);
+  return { dim, mid, bright };
+}
+
+function tickStarGroup(g: StarGroup, t: number) {
+  const attr = g.points.geometry.getAttribute("color") as THREE.BufferAttribute;
   const arr  = attr.array as Float32Array;
-  const N    = phases.length;
+  const N    = g.phases.length;
   for (let i = 0; i < N; i++) {
-    const b = 0.35 + Math.sin(t * speeds[i] + phases[i]) * 0.45;
-    const bright = Math.max(0.02, Math.min(1.0, b));
-    arr[i*3]   = Math.min(1, (0.80 + (arr[i*3]   - arr[i*3])  ) * bright + 0.1);
-    arr[i*3+1] = Math.min(1, 0.85 * bright + 0.05);
-    arr[i*3+2] = Math.min(1, 0.95 * bright + 0.03);
+    const m = twinkle(t, g.phases[i], g.speedsA[i], g.speedsB[i], g.bases[i]);
+    const k = g.bases[i] * m;
+    arr[i*3]   = Math.min(1, g.baseColors[i*3]   * k);
+    arr[i*3+1] = Math.min(1, g.baseColors[i*3+1] * k);
+    arr[i*3+2] = Math.min(1, g.baseColors[i*3+2] * k);
   }
   attr.needsUpdate = true;
 }
+
+function applyStaticColors(g: StarGroup) {
+  const attr = g.points.geometry.getAttribute("color") as THREE.BufferAttribute;
+  const arr  = attr.array as Float32Array;
+  const N    = g.phases.length;
+  for (let i = 0; i < N; i++) {
+    const k = g.bases[i];
+    arr[i*3]   = g.baseColors[i*3]   * k;
+    arr[i*3+1] = g.baseColors[i*3+1] * k;
+    arr[i*3+2] = g.baseColors[i*3+2] * k;
+  }
+  attr.needsUpdate = true;
+}
+
 
 // Returns the destination angle that requires the shortest rotation
 // from currentAngle to reach targetAngle, regardless of accumulated
@@ -136,10 +175,13 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     camera.position.set(0, 0, 3.0);
     camera.lookAt(0, 0, 0);
 
-    // Stars
+    // Stars (three Points groups by brightness band)
     const sf = buildStarField();
     starsRef.current = sf;
-    scene.add(sf.points);
+    scene.add(sf.dim.points);
+    scene.add(sf.mid.points);
+    scene.add(sf.bright.points);
+
 
     // Globe — placeholder material while texture loads
     const globe = new THREE.Mesh(
@@ -192,24 +234,41 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       setReady(true);
     };
 
-    // Try NASA Blue Marble from unpkg (reliable CDN, CORS enabled)
+    // Try self-hosted asset first, then unpkg CDN, then canvas-drawn fallback.
     loader.load(
-      "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg",
+      "/globe/earth-blue-marble.jpg",
       applyTexture,
       undefined,
       () => {
-        // Fallback 1: another reliable CDN
         loader.load(
-          "https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg",
+          "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg",
           applyTexture,
           undefined,
           () => {
-            // Fallback 2: draw stylized canvas texture
-            buildCanvasEarth().then(applyTexture);
+            loader.load(
+              "https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg",
+              applyTexture,
+              undefined,
+              () => { buildCanvasEarth().then(applyTexture); }
+            );
           }
         );
       }
     );
+
+    // ── Reduced-motion + visibility/intersection guards ───────────────
+    const reducedMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduced = reducedMq.matches;
+    let inView = true;
+    let running = false;
+    const idleSpinSpeed = 0.002;
+    if (reduced) {
+      spinRef.current = 0;
+      applyStaticColors(sf.dim);
+      applyStaticColors(sf.mid);
+      applyStaticColors(sf.bright);
+    }
+
 
     // ── Animation loop ────────────────────────────────────────────────
     let frame = 0;
@@ -245,9 +304,12 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         }
       }
 
-      if (frame % 2 === 0 && starsRef.current) {
-        tickStars(starsRef.current.points, starsRef.current.phases, starsRef.current.speeds, clockRef.current);
+      if (!reduced && frame % 2 === 0 && starsRef.current) {
+        tickStarGroup(starsRef.current.dim,    clockRef.current);
+        tickStarGroup(starsRef.current.mid,    clockRef.current);
+        tickStarGroup(starsRef.current.bright, clockRef.current);
       }
+
 
       // Marker pulse
       pulseRef.current += 0.05;
@@ -267,13 +329,56 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
       renderer.render(scene, camera);
     };
-    animate();
+    const start = () => {
+      if (running || !inView || document.hidden) return;
+      running = true;
+      animate();
+    };
+    const stop = () => {
+      running = false;
+      cancelAnimationFrame(animRef.current);
+    };
+    start();
+
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        inView = e.isIntersecting;
+        if (inView) start(); else stop();
+      }
+    }, { threshold: 0 });
+    io.observe(el);
+
+    const onVis = () => { if (document.hidden) stop(); else start(); };
+    document.addEventListener("visibilitychange", onVis);
+
+    const onReduced = (e: MediaQueryListEvent) => {
+      reduced = e.matches;
+      if (reduced) {
+        spinRef.current = 0;
+        applyStaticColors(sf.dim);
+        applyStaticColors(sf.mid);
+        applyStaticColors(sf.bright);
+      } else {
+        spinRef.current = idleSpinSpeed;
+      }
+    };
+    if (reducedMq.addEventListener) reducedMq.addEventListener("change", onReduced);
+    else (reducedMq as any).addListener?.(onReduced);
 
     return () => {
-      cancelAnimationFrame(animRef.current);
+      stop();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVis);
+      if (reducedMq.removeEventListener) reducedMq.removeEventListener("change", onReduced);
+      else (reducedMq as any).removeListener?.(onReduced);
+      for (const g of [sf.dim, sf.mid, sf.bright]) {
+        g.points.geometry.dispose();
+        (g.points.material as THREE.Material).dispose();
+      }
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
+
   }, []);
 
   // ── Highlight selected country on globe ────────────────────────────────
