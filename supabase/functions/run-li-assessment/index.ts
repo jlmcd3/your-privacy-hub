@@ -204,11 +204,28 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       }
     } catch { /* non-fatal */ }
 
+    // Build a quick id → row map for downstream validation
+    const precedentById: Record<string, any> = {};
+    for (const r of enforcementPrecedents) { if (r?.id) precedentById[r.id] = r; }
+
+    const tierTagFor = (r: any): string => {
+      const t = r?.authority_tier;
+      if (t === 1) return `TIER 1 — ${regimeLabel}`;
+      if (t === 2) return q.regime === "uk_gdpr" || enforcementRegime === "uk_gdpr"
+        ? "TIER 2 — EU persuasive"
+        : "TIER 2 — UK persuasive";
+      if (t === 3) return "TIER 3 — non-EU/UK supportive only";
+      return "TIER ?";
+    };
+
     const enforcementContextStr = enforcementPrecedents.length > 0
       ? enforcementPrecedents.map((r: any, i: number) => {
           const provs = Array.isArray(r.statutory_provisions) && r.statutory_provisions.length
             ? ` — citing ${r.statutory_provisions.join(", ")}` : "";
-          return `[E${i + 1}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: €${r.fine_eur_equivalent || 0} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}${provs}`;
+          const tier = tierTagFor(r);
+          const verifiedTag = r.verified === false ? " | UNVERIFIED — omit fine" : "";
+          const fine = r.verified === false ? "—" : `€${r.fine_eur_equivalent || 0}`;
+          return `[E${i + 1} | ${tier}${verifiedTag}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: ${fine} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}${provs}`;
         }).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
 
