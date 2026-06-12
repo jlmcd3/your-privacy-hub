@@ -5,7 +5,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.2-parallel-continuations-2026-06-12";
+const IR_VERSION = "v3.3-usermsg-continuation-2026-06-12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -490,35 +490,50 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
         }
 
-        // Tail-continuation retry: feed the model its own truncated output as an
-        // assistant prefill and ask it to continue. Capped at 4000 tokens / 200s.
-        // Applied per-part to whichever part fails its validator.
+        // Tail-continuation retry: replay the model's truncated output as an
+        // assistant turn and ask for a continuation in a final user turn (claude-sonnet-4-6
+        // does not support assistant prefill — conversation must end with user message).
+        // Capped at 4000 tokens / 200s. Applied per-part to whichever part fails its validator.
         async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number, terminalOnly = false): Promise<string> {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           const tail = which === "C"
             ? "Finish any in-progress section, then produce any remaining required sections you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop."
             : "Finish any in-progress section, then produce any remaining required sections for this part you have not yet completed, then stop.";
           const lead = terminalOnly
-            ? "Your previous output appears substantively complete but ended with a non-terminal closing line (e.g. a horizontal rule). Continue from EXACTLY where the assistant message ends — do not repeat any content, do not re-output earlier sections, and do not add a preamble. Add only what is strictly required to make the output well-formed (a closing sentence and, for Part C, the ===ANNOTATIONS=== block if missing), then stop. Do not end with a horizontal rule or divider line."
-            : `Your previous attempt was cut off mid-output. Continue from EXACTLY where the assistant message ends — do not repeat any content already produced, do not re-output earlier sections, and do not add a preamble. ${tail}`;
-          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\n${lead}`;
-          const prefill = truncated.replace(/\s+$/, "");
+            ? "Your previous output appears substantively complete but ended with a non-terminal closing line (e.g. a horizontal rule). Add only what is strictly required to make the output well-formed (a closing sentence and, for Part C, the ===ANNOTATIONS=== block if missing), then stop. Do not end with a horizontal rule or divider line."
+            : `Your previous attempt was cut off mid-output. ${tail}`;
+          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\n(Generating part ${which}.)`;
+          const truncatedClean = truncated.replace(/\s+$/, "");
+          const continueInstruction = `${lead} Output ONLY the continuation — do not repeat any text that already appears in your previous message, starting mid-sentence if necessary.`;
           const continuation = await callClaude(
             [
               { role: "user", content: userPrompt },
-              { role: "assistant", content: prefill },
+              { role: "assistant", content: truncatedClean },
+              { role: "user", content: continueInstruction },
             ],
             maxTokens,
             timeoutMs,
           );
-          return prefill + continuation;
+          // Overlap guard: strip the longest overlap between the tail of truncated
+          // (up to 300 chars) and the head of the continuation, then join.
+          const tailWindow = truncatedClean.slice(-300);
+          let overlap = 0;
+          const maxCheck = Math.min(tailWindow.length, continuation.length);
+          for (let k = maxCheck; k > 0; k--) {
+            if (continuation.startsWith(tailWindow.slice(-k))) { overlap = k; break; }
+          }
+          const trimmedContinuation = continuation.slice(overlap).replace(/^\s+/, "");
+          if (!trimmedContinuation) {
+            throw new Error("continuation empty after overlap trim");
+          }
+          return truncatedClean + (truncatedClean.endsWith("\n") ? "" : "\n") + trimmedContinuation;
         }
 
         async function generateHalves(extra: string): Promise<{ partA: string; partB: string; partC: string; incomplete?: string }> {
           const [a, b, c] = await Promise.all([
-            generatePart("A", extra, 6000, 240_000),
-            generatePart("B", extra, 6000, 240_000),
-            generatePart("C", extra, 6000, 240_000),
+            generatePart("A", extra, 7000, 240_000),
+            generatePart("B", extra, 7000, 240_000),
+            generatePart("C", extra, 7000, 240_000),
           ]);
           let partA = a, partB = b, partC = c;
           const parts: Array<{ which: "A" | "B" | "C"; text: string }> = [
