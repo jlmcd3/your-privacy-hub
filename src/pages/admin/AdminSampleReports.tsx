@@ -426,6 +426,8 @@ export default function AdminSampleReports() {
         title: fix.title,
         scenario_summary: fix.scenario_summary,
         fixture: fix.fixture,
+        source_table: fix.source_table,
+        source_row_id: run.sourceRowId,
       });
       appendLog(key, `✅ PDF saved (${res?.bytes ?? "?"} bytes) → /samples/report-output`);
       toast.success(`PDF saved — see /samples/report-output`);
