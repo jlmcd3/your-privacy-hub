@@ -125,9 +125,11 @@ function formatEnforcementContext(rows: any[]): string {
     .map((e, i) => {
       const year = e.decision_date ? new Date(e.decision_date).getFullYear() : "—";
       const citation = `${e.regulator ?? "Regulator"} (${year})`;
-      return `[E${i + 1}] id:${e.id ?? "—"} CITATION: ${citation} — ${e.subject ?? ""} — ${e.jurisdiction ?? "—"}\n   Fine: ${
-        e.fine_amount ?? (e.fine_eur_equivalent ? `€${Number(e.fine_eur_equivalent).toLocaleString()}` : "Not disclosed")
-      }\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}\n   Lesson: ${e.preventive_measures ?? "—"}`;
+      const fineVerified = e.fine_verified !== false;
+      const fine = !fineVerified
+        ? "fine amount under verification — omitted"
+        : (e.fine_eur_equivalent ? `€${Number(e.fine_eur_equivalent).toLocaleString()}` : "fine: n/a");
+      return `[E${i + 1}] id:${e.id ?? "—"} CITATION: ${citation} — ${e.subject ?? ""} — ${e.jurisdiction ?? "—"}\n   Fine: ${fine}\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}\n   Lesson: ${e.preventive_measures ?? "—"}`;
     })
     .join("\n\n");
 }
