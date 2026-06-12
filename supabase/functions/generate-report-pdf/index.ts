@@ -254,14 +254,23 @@ ${(report.top_three_risks || []).map((r: any) =>
     `<li><strong>${a.action || ""}</strong> — ${a.owner || ""}, ${a.timeline || ""}</li>`
   ).join("")}</ul>
 <h2>Domain Findings</h2>
-${Object.values(domains).map((dn: any) =>
-    `<div class="domain"><h3>${dn.domain_name || ""} <span class="severity" style="background:${severityColor[dn.severity] || "#5c5a54"}">${dn.severity || ""}</span></h3>
+${(() => {
+    const entries = Object.values(domains) as any[];
+    const withId = entries.filter((d) => d?.domain_id != null);
+    const withoutId = entries.filter((d) => d?.domain_id == null);
+    withId.sort((a, b) => Number(a.domain_id) - Number(b.domain_id));
+    return [...withId, ...withoutId].map((dn: any) => {
+      const heading = dn?.domain_id != null
+        ? `Domain ${dn.domain_id} — ${dn.domain_name || ""}`
+        : (dn.domain_name || "");
+      return `<div class="domain"><h3>${heading} <span class="severity" style="background:${severityColor[dn.severity] || "#5c5a54"}">${dn.severity || ""}</span></h3>
 <p class="label">Current state</p><p>${dn.current_state || ""}</p>
 ${dn.gap_description ? `<p class="label">Gap</p><p>${dn.gap_description}</p>` : ""}
 <p class="label">Regulatory basis</p><p>${dn.regulatory_basis || ""}</p>
 <p class="label">Recommended action</p><p><strong>${dn.recommended_action || ""}</strong></p>
-<p class="meta">${dn.suggested_owner || ""} &nbsp;|&nbsp; ${dn.suggested_timeline || ""}</p></div>`
-  ).join("")}
+<p class="meta">${dn.suggested_owner || ""} &nbsp;|&nbsp; ${dn.suggested_timeline || ""}</p></div>`;
+    }).join("");
+  })()}
 <h2>Cross-Domain Considerations</h2>
 <p>${report.interaction_effects || ""}</p>
 <div class="disclaimer">${report.disclaimer || ""}</div>
