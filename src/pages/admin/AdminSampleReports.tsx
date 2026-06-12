@@ -402,7 +402,13 @@ export default function AdminSampleReports() {
   async function onGeneratePdf(fix: SampleFixture) {
     if (!adminToken) { toast.error("Admin token required"); return; }
     const key = `${fix.tool_slug}::${fix.variant}`;
+    const run = runs[key];
+    if (!run?.sourceRowId || run.status !== "complete") {
+      toast.error("Generate report first");
+      return;
+    }
     setBusy(`pdfgen::${key}`);
+    appendLog(key, "▶ Rendering PDF via PDFShift…");
     try {
       const res = await callSaveSampleReport(adminToken, "generate_pdf", {
         tool_slug: fix.tool_slug,
@@ -411,9 +417,11 @@ export default function AdminSampleReports() {
         scenario_summary: fix.scenario_summary,
         fixture: fix.fixture,
       });
+      appendLog(key, `✅ PDF generated (${res?.bytes ?? "?"} bytes)`);
       toast.success(`PDF generated (${res?.bytes ?? "?"} bytes)`);
       await reloadSamples();
     } catch (e) {
+      appendLog(key, `❌ PDF: ${(e as Error).message}`);
       toast.error(`PDF generation failed: ${(e as Error).message}`);
     } finally { setBusy(null); }
   }
@@ -484,12 +492,16 @@ export default function AdminSampleReports() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" onClick={() => onGeneratePdf(fix)}
-                    disabled={!adminToken || busy === `pdfgen::${key}`}>
-                    {busy === `pdfgen::${key}` ? "Rendering PDF…" : "Generate PDF (PDFShift)"}
+                  <Button size="sm" onClick={() => onGenerate(fix)} disabled={run.status === "running"}>
+                    {run.status === "running" ? "Generating report…" : "Generate Report"}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => onGenerate(fix)} disabled={run.status === "running"}>
-                    {run.status === "running" ? "Running tool…" : "Run live tool"}
+                  <Button
+                    size="sm"
+                    onClick={() => onGeneratePdf(fix)}
+                    disabled={!adminToken || run.status !== "complete" || busy === `pdfgen::${key}`}
+                    title={run.status !== "complete" ? "Generate the report first" : "Render PDF via PDFShift"}
+                  >
+                    {busy === `pdfgen::${key}` ? "Rendering PDF…" : "Generate PDF (PDFShift)"}
                   </Button>
                   {run.resultUrl && (
                     <Button size="sm" variant="outline" asChild>
