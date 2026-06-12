@@ -1144,6 +1144,7 @@ export type Database = {
           fine_currency: string | null
           fine_eur: number | null
           fine_eur_equivalent: number | null
+          fine_verified: boolean
           id: string
           industry_sector: string | null
           ingestion_confidence: string | null
@@ -1215,6 +1216,7 @@ export type Database = {
           fine_currency?: string | null
           fine_eur?: number | null
           fine_eur_equivalent?: number | null
+          fine_verified?: boolean
           id?: string
           industry_sector?: string | null
           ingestion_confidence?: string | null
@@ -1286,6 +1288,7 @@ export type Database = {
           fine_currency?: string | null
           fine_eur?: number | null
           fine_eur_equivalent?: number | null
+          fine_verified?: boolean
           id?: string
           industry_sector?: string | null
           ingestion_confidence?: string | null
