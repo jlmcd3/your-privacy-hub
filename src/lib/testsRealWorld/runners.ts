@@ -106,8 +106,8 @@ const runLIA: Runner = async ({ userId, log }) => {
 // ─── DPIA ────────────────────────────────────────────────────────────────────
 
 const runDPIA: Runner = async ({ userId, log }) => {
-  const intake = blend(DPIA_VARIANTS);
-  log(`Blended DPIA fixture (sector: ${intake.sector})`);
+  const intake = blend(DPIA_VARIANTS, ["sector", "processing_activity_name"]);
+  log(`Blended DPIA fixture (sector anchor: ${intake.sector})`);
   log("Inserting dpia_frameworks row…");
   const { data: rec, error: insErr } = await supabase
     .from("dpia_frameworks")
@@ -131,7 +131,7 @@ const runDPIA: Runner = async ({ userId, log }) => {
   return {
     targetTable: "dpia_frameworks",
     targetId: rec.id,
-    label: `DPIA · ${intake.sector}`,
+    label: `DPIA · ${intake.sector} · ${shortId(rec.id)}`,
     resultUrl: `/dpia-framework/result/${rec.id}`,
     pdfToolType: "dpia_framework",
   };
