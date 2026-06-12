@@ -229,6 +229,7 @@ Deno.serve(async (req) => {
     // poll forever.
     // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
     EdgeRuntime.waitUntil((async () => {
+      console.log(`[generate-ir-playbook] start v=${IR_VERSION} session=${rowId}`);
       try {
         // Step 1 — enforcement context
         let enforcement_context: any[] = [];
