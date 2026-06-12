@@ -503,6 +503,8 @@ Generate the Weekly Intelligence Brief as a JSON object with EXACTLY these field
 
 Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
 
+    const briefTimeoutMs = 240_000;
+    const briefStartedAt = Date.now();
     const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -516,7 +518,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
       }),
-      signal: AbortSignal.timeout(130000),
+      signal: AbortSignal.timeout(briefTimeoutMs),
     });
 
     if (!aiResponse.ok) {
@@ -527,7 +529,8 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
 
     const aiData = await aiResponse.json();
     const rawText = aiData.content?.[0]?.text || "";
-    console.log(`[generate-weekly-brief] gen done stop=${aiData.stop_reason ?? null} chars=${rawText.length}`);
+    const briefElapsed = Date.now() - briefStartedAt;
+    console.log(`[generate-weekly-brief] stage=brief model=claude-opus-4-7 elapsed=${briefElapsed}ms stop=${aiData.stop_reason ?? null} chars=${rawText.length}`);
 
     let brief: any;
     try {
