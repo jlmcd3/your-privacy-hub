@@ -1,20 +1,19 @@
-// Admin page for generating + curating public sample reports.
-// Mirrors the AdminFsorIngestion admin-token pattern. Per-card actions:
-//   Generate · View result · Save as sample · Set status · Attach PDF
-// The "Generate" step uses the EXACT insert+invoke shape from each Test*.tsx,
-// driven by the discriminator inside sampleFixtures.ts (`fixture.insert` /
-// `fixture.invoke_body` etc.). The current admin user runs as themselves so
-// RLS-owned polling works exactly like the existing Test pages.
+// Admin page for generating sample reports with automatic PDF output.
+// Flow per card: Generate Report + PDF → live generator runs (with polling to
+// a true terminal status, including the 202/background DPA + IR generators) →
+// save-sample-report:generate_pdf renders the canonical PDF via PDFShift →
+// PDF is saved to the sample-reports bucket and listed at /samples/report-output,
+// where it can be downloaded and deleted.
+// Auth: the signed-in admin's JWT (user_roles.admin) — no shared token needed.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { SAMPLE_FIXTURES, type SampleFixture } from "@/lib/sampleFixtures";
 
@@ -35,12 +34,14 @@ type SampleRow = {
 
 type RunState = {
   status: "idle" | "running" | "complete" | "failed";
+  phase: "" | "report" | "pdf";
   log: string[];
   sourceRowId: string | null;
   resultUrl: string | null;
+  pdfSaved: boolean;
 };
 
-const EMPTY_RUN: RunState = { status: "idle", log: [], sourceRowId: null, resultUrl: null };
+const EMPTY_RUN: RunState = { status: "idle", phase: "", log: [], sourceRowId: null, resultUrl: null, pdfSaved: false };
 
 async function getOrCreatePersonalClient(userId: string): Promise<string> {
   const { data, error } = await supabase
@@ -52,6 +53,31 @@ async function getOrCreatePersonalClient(userId: string): Promise<string> {
   if (error) throw error;
   if (!data?.length) throw new Error("No personal workspace client found for admin user");
   return data[0].id;
+}
+
+// Poll a table row until it reaches a terminal status. Returns the terminal status.
+async function pollRowStatus(
+  table: string,
+  id: string,
+  opts: { max: number; intervalMs: number; complete: string[]; failed: string[]; errorCol?: string },
+  log: (msg: string) => void,
+): Promise<void> {
+  for (let i = 0; i < opts.max; i++) {
+    await new Promise((r) => setTimeout(r, opts.intervalMs));
+    const cols = opts.errorCol ? `status, ${opts.errorCol}` : "status";
+    const { data } = await (supabase as any).from(table).select(cols).eq("id", id).maybeSingle();
+    const status = data?.status as string | undefined;
+    if (status && opts.complete.includes(status)) {
+      log(`✅ status=${status} after ${i + 1} polls`);
+      return;
+    }
+    if (status && opts.failed.includes(status)) {
+      const detail = opts.errorCol ? data?.[opts.errorCol] : null;
+      throw new Error(`generator status=${status}${detail ? `: ${detail}` : ""}`);
+    }
+    if (i % 5 === 0) log(`… poll ${i + 1}/${opts.max} (status=${status ?? "?"})`);
+  }
+  throw new Error("polling timed out");
 }
 
 async function runGenerator(
@@ -77,28 +103,48 @@ async function runGenerator(
     const { error: fnErr } = await supabase.functions.invoke(invoke.fn, { body: { [invoke.id_key]: rec.id } });
     if (fnErr) log(`⚠ fn error (polling anyway): ${fnErr.message}`);
     log(`▶ Polling ${poll.table} for completion...`);
-    for (let i = 0; i < poll.max; i++) {
-      await new Promise((r) => setTimeout(r, poll.interval_ms));
-      const { data } = await (supabase as any).from(poll.table).select("status").eq("id", rec.id).single();
-      if (data?.status === "complete") {
-        log(`✅ status=complete after ${i + 1} polls`);
-        return { sourceRowId: rec.id, resultUrl: fix.result_url_pattern.replace("{id}", rec.id) };
-      }
-      if (poll.terminal.includes(data?.status) && data?.status !== "complete") {
-        throw new Error(`generator status=${data?.status}`);
-      }
-      if (i % 3 === 0) log(`… poll ${i + 1}/${poll.max} (status=${data?.status})`);
-    }
-    throw new Error("polling timed out");
+    await pollRowStatus(
+      poll.table,
+      rec.id,
+      {
+        max: poll.max,
+        intervalMs: poll.interval_ms,
+        complete: ["complete"],
+        failed: poll.terminal.filter((t) => t !== "complete"),
+      },
+      log,
+    );
+    return { sourceRowId: rec.id, resultUrl: fix.result_url_pattern.replace("{id}", rec.id) };
   }
 
-  // -- DPA / IR / Biometric (single-call generators that return id) -------
-  if (fix.tool_slug === "dpa" || fix.tool_slug === "ir_playbook" || fix.tool_slug === "biometric") {
+  // -- DPA / IR (202 background dispatch) ----------------------------------
+  // These functions return { id, status: "processing" } immediately and write
+  // status complete|failed to the row in the background. We MUST poll to a
+  // terminal status before the PDF step, or generate-report-pdf will 409.
+  if (fix.tool_slug === "dpa" || fix.tool_slug === "ir_playbook") {
     const invoke = f.invoke as { fn: string };
     const body =
       fix.tool_slug === "ir_playbook" && f.invoke_body
         ? { ...(f.invoke_body as Record<string, unknown>), user_id: userId }
         : { ...((f.invoke_body_extras as Record<string, unknown>) ?? {}), user_id: userId };
+    log(`▶ Invoking ${invoke.fn} (background dispatch)...`);
+    const { data, error } = await supabase.functions.invoke(invoke.fn, { body });
+    if (error || !data?.id) throw new Error(`generator: ${error?.message || data?.error || "no id"}`);
+    log(`✓ accepted id=${data.id} — polling for completion`);
+    const table = fix.tool_slug === "dpa" ? "dpa_documents" : "ir_playbooks";
+    await pollRowStatus(
+      table,
+      data.id,
+      { max: 90, intervalMs: 3000, complete: ["complete"], failed: ["failed", "error"] },
+      log,
+    );
+    return { sourceRowId: data.id, resultUrl: fix.result_url_pattern.replace("{id}", data.id) };
+  }
+
+  // -- Biometric (synchronous single call) ---------------------------------
+  if (fix.tool_slug === "biometric") {
+    const invoke = f.invoke as { fn: string };
+    const body = { ...((f.invoke_body_extras as Record<string, unknown>) ?? {}), user_id: userId };
     log(`▶ Invoking ${invoke.fn}...`);
     const { data, error } = await supabase.functions.invoke(invoke.fn, { body });
     if (error || !data?.id) throw new Error(`generator: ${error?.message || data?.error || "no id"}`);
@@ -195,26 +241,15 @@ async function runGenerator(
     });
     if (genErr) throw new Error(`gen: ${genErr.message}`);
 
-    // Background generation — poll session until terminal status (≤3 min).
     log("… polling ropa_sessions for generation to complete");
-    let terminalStatus: string | null = null;
-    for (let i = 0; i < 60; i++) {
-      await new Promise((r) => setTimeout(r, 3000));
-      const { data: srow } = await supabase
-        .from("ropa_sessions")
-        .select("status, generation_error")
-        .eq("id", session.id)
-        .maybeSingle();
-      if (srow?.status === "generated") { terminalStatus = "generated"; break; }
-      if (srow?.status === "failed") {
-        throw new Error(`gen failed: ${srow.generation_error ?? "unknown"}`);
-      }
-    }
-    if (terminalStatus !== "generated") throw new Error("gen: timed out waiting for completion");
-    log(`✅ pdf generated`);
+    await pollRowStatus(
+      "ropa_sessions",
+      session.id,
+      { max: 60, intervalMs: 3000, complete: ["generated"], failed: ["failed"], errorCol: "generation_error" },
+      log,
+    );
+    log("✅ pdf generated");
 
-    // The "result" is the documents list page; the source row is the latest
-    // ropa_document_versions row for this session.
     const { data: ver } = await supabase
       .from("ropa_document_versions")
       .select("id")
@@ -226,7 +261,6 @@ async function runGenerator(
       resultUrl: "/ropa/documents",
     };
   }
-
 
   // -- US / EU Notice (template generators) -------------------------------
   if (fix.tool_slug === "us_notice" || fix.tool_slug === "eu_notice") {
@@ -282,21 +316,12 @@ async function runGenerator(
     let docCount = 0;
     if (fix.tool_slug === "eu_notice") {
       log("▶ Polling eu_notice_sessions for terminal status...");
-      let terminal: string | null = null;
-      let terminalErr: string | null = null;
-      for (let i = 0; i < 60; i++) {
-        await new Promise((r) => setTimeout(r, 3000));
-        const { data: row } = await (supabase as any)
-          .from("eu_notice_sessions")
-          .select("status, generation_error, version_number")
-          .eq("id", session.id)
-          .maybeSingle();
-        if (row?.status === "generated") { terminal = "generated"; break; }
-        if (row?.status === "failed") { terminal = "failed"; terminalErr = row.generation_error ?? null; break; }
-      }
-      if (terminal === "failed") throw new Error(`gen failed: ${terminalErr ?? "unknown error"}`);
-      if (terminal !== "generated") throw new Error("gen: timeout waiting for completion");
-
+      await pollRowStatus(
+        "eu_notice_sessions",
+        session.id,
+        { max: 60, intervalMs: 3000, complete: ["generated"], failed: ["failed"], errorCol: "generation_error" },
+        log,
+      );
       const { data: sessRow } = await (supabase as any)
         .from("eu_notice_sessions").select("version_number").eq("id", session.id).maybeSingle();
       const { data: docRows, error: docsErr } = await (supabase as any)
@@ -317,14 +342,16 @@ async function runGenerator(
   throw new Error(`unknown tool_slug ${fix.tool_slug}`);
 }
 
-async function callSaveSampleReport(adminToken: string, action: string, payload: Record<string, unknown>) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (adminToken) headers["x-admin-token"] = adminToken;
+// Calls save-sample-report with the signed-in admin's JWT only. No shared token.
+async function callSaveSampleReport(action: string, payload: Record<string, unknown>) {
   const { data: { session } } = await supabase.auth.getSession();
-  if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
+  if (!session?.access_token) throw new Error("Not signed in — sign in as an admin first");
   const r = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
     method: "POST",
-    headers,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
     body: JSON.stringify({ action, ...payload }),
   });
   const data = await r.json();
@@ -334,10 +361,11 @@ async function callSaveSampleReport(adminToken: string, action: string, payload:
 
 export default function AdminSampleReports() {
   const { user } = useAuth();
-  const [adminToken, setAdminToken] = useState("");
   const [runs, setRuns] = useState<Record<string, RunState>>({});
   const [samples, setSamples] = useState<SampleRow[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [runningAll, setRunningAll] = useState(false);
+  const cancelAll = useRef(false);
 
   const samplesByKey = useMemo(() => {
     const m: Record<string, SampleRow> = {};
@@ -347,7 +375,7 @@ export default function AdminSampleReports() {
 
   async function reloadSamples() {
     try {
-      const { rows } = await callSaveSampleReport(adminToken, "list", {});
+      const { rows } = await callSaveSampleReport("list", {});
       setSamples(rows as SampleRow[]);
     } catch (e) {
       toast.error(`List failed: ${(e as Error).message}`);
@@ -364,28 +392,96 @@ export default function AdminSampleReports() {
       return { ...r, [key]: { ...cur, log: [...cur.log, msg] } };
     });
 
-  async function onGenerate(fix: SampleFixture) {
-    if (!user) { toast.error("Sign in first"); return; }
+  // Full pipeline for one fixture: live generator → auto PDF → saved sample.
+  async function runPipeline(fix: SampleFixture): Promise<void> {
+    if (!user) throw new Error("Sign in first");
     const key = `${fix.tool_slug}::${fix.variant}`;
-    setRun(key, { status: "running", log: [], sourceRowId: null, resultUrl: null });
-    try {
-      const { sourceRowId, resultUrl } = await runGenerator(fix, user.id, (m) => appendLog(key, m));
-      setRun(key, { status: "complete", sourceRowId, resultUrl });
-      toast.success(`${fix.title} generated`);
-    } catch (e) {
-      appendLog(key, `❌ ${(e as Error).message}`);
-      setRun(key, { status: "failed" });
-      toast.error(`Generate failed: ${(e as Error).message}`);
+
+    // Phase 1 — live generation (reuse an existing completed run for this card).
+    let run = runs[key];
+    let sourceRowId = run?.status === "complete" && run.sourceRowId ? run.sourceRowId : null;
+    let resultUrl = sourceRowId ? run!.resultUrl : null;
+    if (!sourceRowId) {
+      setRun(key, { status: "running", phase: "report", log: [], sourceRowId: null, resultUrl: null, pdfSaved: false });
+      appendLog(key, `▶ Generating ${fix.title} report…`);
+      const out = await runGenerator(fix, user.id, (m) => appendLog(key, m));
+      sourceRowId = out.sourceRowId;
+      resultUrl = out.resultUrl;
+      setRun(key, { sourceRowId, resultUrl });
+    } else {
+      setRun(key, { status: "running", phase: "pdf" });
+      appendLog(key, "✓ Reusing existing completed run");
     }
+
+    // Phase 2 — render + save the PDF (backend retries 409s while the row settles).
+    setRun(key, { phase: "pdf" });
+    appendLog(key, "▶ Rendering PDF via PDFShift…");
+    const res = await callSaveSampleReport("generate_pdf", {
+      tool_slug: fix.tool_slug,
+      variant: fix.variant,
+      title: fix.title,
+      scenario_summary: fix.scenario_summary,
+      fixture: fix.fixture,
+      source_table: fix.source_table,
+      source_row_id: sourceRowId,
+    });
+    appendLog(key, `✅ PDF saved (${res?.bytes ?? "?"} bytes) → /samples/report-output`);
+    setRun(key, { status: "complete", phase: "", pdfSaved: true });
   }
 
-  async function onSaveAsSample(fix: SampleFixture) {
+  async function onGenerate(fix: SampleFixture) {
+    const key = `${fix.tool_slug}::${fix.variant}`;
+    setBusy(key);
+    try {
+      await runPipeline(fix);
+      toast.success(`${fix.title} — PDF saved to /samples/report-output`);
+      await reloadSamples();
+    } catch (e) {
+      appendLog(key, `❌ ${(e as Error).message}`);
+      setRun(key, { status: "failed", phase: "" });
+      toast.error(`${fix.title}: ${(e as Error).message}`);
+    } finally { setBusy(null); }
+  }
+
+  // Force a fresh generation even if a completed run exists on the card.
+  async function onRegenerate(fix: SampleFixture) {
+    const key = `${fix.tool_slug}::${fix.variant}`;
+    setRun(key, { ...EMPTY_RUN });
+    setRuns((r) => ({ ...r, [key]: { ...EMPTY_RUN } }));
+    await onGenerate(fix);
+  }
+
+  async function onGenerateAll() {
+    if (!user) { toast.error("Sign in first"); return; }
+    setRunningAll(true);
+    cancelAll.current = false;
+    let ok = 0, fail = 0;
+    for (const fix of SAMPLE_FIXTURES) {
+      if (cancelAll.current) break;
+      const key = `${fix.tool_slug}::${fix.variant}`;
+      setBusy(key);
+      try {
+        await runPipeline(fix);
+        ok++;
+      } catch (e) {
+        appendLog(key, `❌ ${(e as Error).message}`);
+        setRun(key, { status: "failed", phase: "" });
+        fail++;
+      }
+    }
+    setBusy(null);
+    setRunningAll(false);
+    await reloadSamples();
+    toast[fail ? "warning" : "success"](`Generate All finished — ${ok} succeeded, ${fail} failed`);
+  }
+
+  async function onSaveSnapshot(fix: SampleFixture) {
     const key = `${fix.tool_slug}::${fix.variant}`;
     const run = runs[key];
     if (!run?.sourceRowId) { toast.error("Generate first"); return; }
     setBusy(`save::${key}`);
     try {
-      await callSaveSampleReport(adminToken, "snapshot", {
+      await callSaveSampleReport("snapshot", {
         tool_slug: fix.tool_slug,
         variant: fix.variant,
         title: fix.title,
@@ -394,74 +490,21 @@ export default function AdminSampleReports() {
         source_table: fix.source_table,
         source_row_id: run.sourceRowId,
       });
-      toast.success("Saved as sample");
+      toast.success("Snapshot saved");
       await reloadSamples();
     } catch (e) {
-      toast.error(`Save failed: ${(e as Error).message}`);
-    } finally { setBusy(null); }
-  }
-
-  async function onGeneratePdf(fix: SampleFixture) {
-    if (!user) { toast.error("Sign in first"); return; }
-    const key = `${fix.tool_slug}::${fix.variant}`;
-    setBusy(`pdfgen::${key}`);
-    try {
-      // Step 1: Run the live generator if we don't already have a complete source row.
-      let run = runs[key];
-      if (!run?.sourceRowId || run.status !== "complete") {
-        setRun(key, { status: "running", log: [], sourceRowId: null, resultUrl: null });
-        appendLog(key, `▶ Generating ${fix.title} report…`);
-        const { sourceRowId, resultUrl } = await runGenerator(fix, user.id, (m) => appendLog(key, m));
-        setRun(key, { status: "complete", sourceRowId, resultUrl });
-        run = { status: "complete", log: [], sourceRowId, resultUrl };
-      } else {
-        appendLog(key, "✓ Using existing completed run");
-      }
-
-      // Step 2: Render the report PDF via PDFShift and save to /samples/report-output.
-      appendLog(key, "▶ Rendering PDF via PDFShift…");
-      const res = await callSaveSampleReport(adminToken, "generate_pdf", {
-        tool_slug: fix.tool_slug,
-        variant: fix.variant,
-        title: fix.title,
-        scenario_summary: fix.scenario_summary,
-        fixture: fix.fixture,
-        source_table: fix.source_table,
-        source_row_id: run.sourceRowId,
-      });
-      appendLog(key, `✅ PDF saved (${res?.bytes ?? "?"} bytes) → /samples/report-output`);
-      toast.success(`PDF saved — see /samples/report-output`);
-      await reloadSamples();
-    } catch (e) {
-      appendLog(key, `❌ PDF: ${(e as Error).message}`);
-      setRun(key, { status: "failed" });
-      toast.error(`PDF generation failed: ${(e as Error).message}`);
+      toast.error(`Snapshot failed: ${(e as Error).message}`);
     } finally { setBusy(null); }
   }
 
   async function onSetStatus(sample: SampleRow, status: string) {
     setBusy(`status::${sample.id}`);
     try {
-      await callSaveSampleReport(adminToken, "set_status", { id: sample.id, status });
+      await callSaveSampleReport("set_status", { id: sample.id, status });
       toast.success(`Status → ${status}`);
       await reloadSamples();
     } catch (e) {
       toast.error(`Status change failed: ${(e as Error).message}`);
-    } finally { setBusy(null); }
-  }
-
-  async function onAttachPdf(sample: SampleRow, file: File) {
-    setBusy(`pdf::${sample.id}`);
-    try {
-      const buf = await file.arrayBuffer();
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-      await callSaveSampleReport(adminToken, "attach_pdf", {
-        id: sample.id, filename: file.name, base64: b64,
-      });
-      toast.success("PDF attached");
-      await reloadSamples();
-    } catch (e) {
-      toast.error(`PDF attach failed: ${(e as Error).message}`);
     } finally { setBusy(null); }
   }
 
@@ -470,42 +513,55 @@ export default function AdminSampleReports() {
       <Helmet><title>Admin — Sample Reports</title></Helmet>
       <Navbar />
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8 space-y-6">
-        <header>
-          <h1 className="font-serif text-3xl mb-1">Admin — Sample Reports</h1>
-          <p className="text-sm text-muted-foreground">
-            Generate each fixture through the live tool, save the result as a sample, attach the downloaded PDF, then flip to <code>published</code> after John+Mara review.
-          </p>
+        <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <h1 className="font-serif text-3xl mb-1">Admin — Sample Reports</h1>
+            <p className="text-sm text-muted-foreground max-w-2xl">
+              One click per card: the live tool generates the report, the result is
+              rendered to PDF via PDFShift, and the PDF is saved automatically.
+              View, download, and delete everything at{" "}
+              <Link to="/samples/report-output" className="text-brand-teal underline underline-offset-2">
+                /samples/report-output
+              </Link>.
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            {runningAll ? (
+              <Button variant="destructive" onClick={() => { cancelAll.current = true; }}>
+                Stop after current
+              </Button>
+            ) : (
+              <Button onClick={onGenerateAll} disabled={busy !== null}>
+                Generate All (reports + PDFs)
+              </Button>
+            )}
+            <Button variant="outline" asChild>
+              <Link to="/samples/report-output">Open PDF output</Link>
+            </Button>
+          </div>
         </header>
-
-        <div className="border rounded-lg bg-card p-4 space-y-2">
-          <Label htmlFor="admin-token">Admin token <span className="text-xs text-muted-foreground font-normal">(optional — your admin login already authorizes you)</span></Label>
-          <Input id="admin-token" type="password" value={adminToken} onChange={(e) => setAdminToken(e.target.value)} placeholder="ADMIN_SECRET_TOKEN (optional)" />
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {SAMPLE_FIXTURES.map((fix) => {
             const key = `${fix.tool_slug}::${fix.variant}`;
             const run = runs[key] ?? EMPTY_RUN;
             const sample = samplesByKey[key];
+            const isBusy = busy === key;
             return (
               <div key={key} className="border rounded-lg bg-card p-4 space-y-3">
                 <div>
                   <div className="text-xs font-mono text-muted-foreground">{fix.tool_slug} · {fix.variant}</div>
                   <h2 className="font-serif text-lg leading-tight">{fix.title}</h2>
                   <p className="text-xs text-muted-foreground mt-1">{fix.scenario_summary}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Reports available at{" "}
-                    <a href="/samples/report-output" target="_blank" rel="noreferrer" className="text-brand-teal underline underline-offset-2">
-                      /samples/report-output
-                    </a>
-                  </p>
                 </div>
 
                 <div className="text-xs font-mono flex flex-wrap gap-3">
-                  <span>Run: <strong>{run.status}</strong></span>
-                  <span>Sample: <strong>{sample ? sample.status : "—"}</strong></span>
-                  {sample?.pdf_path && <span>PDF: <strong>attached</strong></span>}
-                  {sample?.verification && <span>Verification: <strong>present</strong></span>}
+                  <span>
+                    Run: <strong>{run.status}</strong>
+                    {run.status === "running" && run.phase ? ` (${run.phase})` : ""}
+                  </span>
+                  <span>PDF: <strong>{run.pdfSaved || sample?.pdf_path ? "saved" : "—"}</strong></span>
+                  {sample && <span>Sample: <strong>{sample.status}</strong></span>}
                   {run.status === "running" && run.log.length > 0 && (
                     <span className="text-muted-foreground truncate max-w-full">
                       {run.log[run.log.length - 1]}
@@ -514,48 +570,47 @@ export default function AdminSampleReports() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" onClick={() => onGenerate(fix)} disabled={run.status === "running"}>
-                    {run.status === "running" ? "Generating report…" : "Generate Report"}
+                  <Button size="sm" onClick={() => onGenerate(fix)} disabled={isBusy || runningAll}>
+                    {isBusy
+                      ? run.phase === "pdf" ? "Rendering PDF…" : "Generating report…"
+                      : run.status === "complete" && !run.pdfSaved
+                        ? "Render PDF"
+                        : "Generate Report + PDF"}
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => onGeneratePdf(fix)}
-                    disabled={busy === `pdfgen::${key}` || run.status === "running"}
-                    title="Generate the report and render it as a PDF via PDFShift → saves to /samples/report-output"
-                  >
-                    {busy === `pdfgen::${key}` ? "Generating & rendering PDF…" : "Generate PDF (PDFShift)"}
-                  </Button>
+                  {run.status === "complete" && (
+                    <Button size="sm" variant="outline" onClick={() => onRegenerate(fix)} disabled={isBusy || runningAll}>
+                      Regenerate
+                    </Button>
+                  )}
                   {run.resultUrl && (
                     <Button size="sm" variant="outline" asChild>
                       <a href={run.resultUrl} target="_blank" rel="noreferrer">View result</a>
                     </Button>
                   )}
-                  <Button size="sm" variant="outline" onClick={() => onSaveAsSample(fix)}
-                    disabled={!run.sourceRowId || busy === `save::${key}`}>
-                    {busy === `save::${key}` ? "Saving…" : "Snapshot from live run"}
-                  </Button>
                 </div>
 
-                {sample && (
-                  <div className="flex flex-wrap items-center gap-2 pt-1 border-t">
-                    <select
-                      className="text-xs border rounded px-2 py-1 bg-background"
-                      value={sample.status}
-                      onChange={(e) => onSetStatus(sample, e.target.value)}
-                      disabled={busy === `status::${sample.id}`}
-                    >
-                      <option value="draft">draft</option>
-                      <option value="approved">approved</option>
-                      <option value="published">published</option>
-                    </select>
-                    <label className="text-xs cursor-pointer underline">
-                      Attach PDF
-                      <input type="file" accept="application/pdf" className="hidden"
-                        onChange={(e) => { const f = e.target.files?.[0]; if (f) onAttachPdf(sample, f); e.target.value = ""; }} />
-                    </label>
-                    {sample.pdf_path && <span className="text-xs font-mono text-muted-foreground">{sample.pdf_path}</span>}
+                <details className="text-xs">
+                  <summary className="cursor-pointer text-muted-foreground">Curation</summary>
+                  <div className="flex flex-wrap items-center gap-2 pt-2">
+                    <Button size="sm" variant="outline" onClick={() => onSaveSnapshot(fix)}
+                      disabled={!run.sourceRowId || busy === `save::${key}`}>
+                      {busy === `save::${key}` ? "Saving…" : "Snapshot data (for publishing)"}
+                    </Button>
+                    {sample && (
+                      <select
+                        className="text-xs border rounded px-2 py-1 bg-background"
+                        value={sample.status}
+                        onChange={(e) => onSetStatus(sample, e.target.value)}
+                        disabled={busy === `status::${sample.id}`}
+                      >
+                        <option value="draft">draft</option>
+                        <option value="approved">approved</option>
+                        <option value="published">published</option>
+                      </select>
+                    )}
+                    {sample?.pdf_path && <span className="font-mono text-muted-foreground">{sample.pdf_path}</span>}
                   </div>
-                )}
+                </details>
 
                 {run.log.length > 0 && (
                   <details className="text-xs" open={run.status === "running"}>
