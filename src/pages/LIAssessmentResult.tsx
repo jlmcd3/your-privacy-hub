@@ -80,7 +80,7 @@ const AnnotationCallout = ({ annotations, precedents, isUk }: { annotations: any
   );
 };
 
-const TestCard = ({ title, test, annotations }: { title: string; test: any; annotations?: any[] }) => (
+const TestCard = ({ title, test, annotations, precedents, isUk }: { title: string; test: any; annotations?: any[]; precedents?: any[]; isUk: boolean }) => (
   <div className="bg-card border rounded-lg p-5">
     <div className="flex items-center justify-between mb-3">
       <h3 className="">{title}</h3>
@@ -108,6 +108,8 @@ const TestCard = ({ title, test, annotations }: { title: string; test: any; anno
       annotations={(annotations || []).filter(
         (a: any) => a.relevance?.toLowerCase().includes(title.toLowerCase().replace(" test",""))
       )}
+      precedents={precedents}
+      isUk={isUk}
     />
   </div>
 );
