@@ -889,6 +889,7 @@ export const TOOLS: ToolDef[] = [
   { id: "registration",label: "Registration Manager (DIY)",     group: "Registration",runner: runRegistration, expectedSeconds: 90 },
   { id: "cppa-risk",   label: "CPPA Risk Assessment (Module 1)",group: "CPPA",        runner: runCppaRisk,   expectedSeconds: 120 },
   { id: "cppa-cyber",  label: "CPPA Cybersecurity Audit (Module 2)", group: "CPPA",   runner: runCppaCyber,  expectedSeconds: 120 },
+  { id: "brief",       label: "Intelligence Brief",             group: "Briefing",    runner: runBrief,      expectedSeconds: 90 },
 ];
 
 export const TOOL_BY_ID: Record<ToolType, ToolDef> = Object.fromEntries(
