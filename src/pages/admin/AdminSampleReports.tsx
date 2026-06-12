@@ -625,6 +625,7 @@ export default function AdminSampleReports() {
             );
           })}
         </div>
+        <StressRunsSection />
       </main>
       <Footer />
     </div>
