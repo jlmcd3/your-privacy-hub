@@ -527,6 +527,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
 
     const aiData = await aiResponse.json();
     const rawText = aiData.content?.[0]?.text || "";
+    console.log(`[generate-weekly-brief] gen done stop=${aiData.stop_reason ?? null} chars=${rawText.length}`);
 
     let brief: any;
     try {
