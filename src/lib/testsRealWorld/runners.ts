@@ -56,16 +56,24 @@ export type Runner = (ctx: RunnerCtx) => Promise<RunnerResult>;
 // ─── shared poller ───────────────────────────────────────────────────────────
 
 async function pollStatus(
-  table: "li_assessments" | "dpia_frameworks" | "governance_assessments",
+  table: "li_assessments" | "dpia_frameworks" | "governance_assessments" | "ropa_sessions",
   id: string,
   maxPolls: number,
   intervalMs: number,
   log: (m: string) => void,
 ): Promise<void> {
+  // Each table uses its own terminal status vocabulary.
+  const successByTable: Record<string, string> = {
+    li_assessments: "complete",
+    dpia_frameworks: "complete",
+    governance_assessments: "complete",
+    ropa_sessions: "generated",
+  };
+  const successStatus = successByTable[table];
   for (let i = 0; i < maxPolls; i++) {
     await new Promise((r) => setTimeout(r, intervalMs));
     const { data } = await supabase.from(table).select("status").eq("id", id).single();
-    if (data?.status === "complete") return;
+    if (data?.status === successStatus) return;
     if (data?.status === "failed" || data?.status === "error") {
       throw new Error(`${table} status=${data.status}`);
     }
@@ -73,6 +81,7 @@ async function pollStatus(
   }
   throw new Error("timeout waiting for completion");
 }
+
 
 // ─── LIA ─────────────────────────────────────────────────────────────────────
 
