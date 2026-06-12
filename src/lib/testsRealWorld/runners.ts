@@ -12,6 +12,7 @@ import type { ToolType } from "./ledger";
 import {
   blend,
   pickOne,
+  shortId,
   LIA_VARIANTS,
   DPIA_VARIANTS,
   GOV_VARIANTS,
@@ -76,8 +77,8 @@ async function pollStatus(
 // ─── LIA ─────────────────────────────────────────────────────────────────────
 
 const runLIA: Runner = async ({ userId, log }) => {
-  const intake = blend(LIA_VARIANTS);
-  log(`Blended LIA fixture (sector: ${intake.sector})`);
+  const intake = blend(LIA_VARIANTS, ["sector"]);
+  log(`Blended LIA fixture (sector anchor: ${intake.sector})`);
   log("Inserting li_assessments row…");
   const { data: rec, error: insErr } = await supabase
     .from("li_assessments")
@@ -96,7 +97,7 @@ const runLIA: Runner = async ({ userId, log }) => {
   return {
     targetTable: "li_assessments",
     targetId: rec.id,
-    label: `LIA · ${intake.sector}`,
+    label: `LIA · ${intake.sector} · ${shortId(rec.id)}`,
     resultUrl: `/li-assessment/result/${rec.id}`,
     pdfToolType: "li_assessment",
   };
@@ -105,8 +106,8 @@ const runLIA: Runner = async ({ userId, log }) => {
 // ─── DPIA ────────────────────────────────────────────────────────────────────
 
 const runDPIA: Runner = async ({ userId, log }) => {
-  const intake = blend(DPIA_VARIANTS);
-  log(`Blended DPIA fixture (sector: ${intake.sector})`);
+  const intake = blend(DPIA_VARIANTS, ["sector", "processing_activity_name"]);
+  log(`Blended DPIA fixture (sector anchor: ${intake.sector})`);
   log("Inserting dpia_frameworks row…");
   const { data: rec, error: insErr } = await supabase
     .from("dpia_frameworks")
@@ -130,7 +131,7 @@ const runDPIA: Runner = async ({ userId, log }) => {
   return {
     targetTable: "dpia_frameworks",
     targetId: rec.id,
-    label: `DPIA · ${intake.sector}`,
+    label: `DPIA · ${intake.sector} · ${shortId(rec.id)}`,
     resultUrl: `/dpia-framework/result/${rec.id}`,
     pdfToolType: "dpia_framework",
   };
@@ -139,8 +140,8 @@ const runDPIA: Runner = async ({ userId, log }) => {
 // ─── Governance ──────────────────────────────────────────────────────────────
 
 const runGovernance: Runner = async ({ userId, log }) => {
-  const intake = blend(GOV_VARIANTS);
-  log(`Blended Governance fixture (sector: ${intake.sector})`);
+  const intake = blend(GOV_VARIANTS, ["sector"]);
+  log(`Blended Governance fixture (sector anchor: ${intake.sector})`);
   log("Inserting governance_assessments row…");
   const { data: rec, error: insErr } = await supabase
     .from("governance_assessments")
@@ -159,7 +160,7 @@ const runGovernance: Runner = async ({ userId, log }) => {
   return {
     targetTable: "governance_assessments",
     targetId: rec.id,
-    label: `Governance · ${intake.sector}`,
+    label: `Governance · ${intake.sector} · ${shortId(rec.id)}`,
     resultUrl: `/governance-assessment/result/${rec.id}`,
     pdfToolType: "governance_assessment",
   };
@@ -168,8 +169,9 @@ const runGovernance: Runner = async ({ userId, log }) => {
 // ─── Biometric ───────────────────────────────────────────────────────────────
 
 const runBiometric: Runner = async ({ userId, log }) => {
-  const body = blend(BIOMETRIC_VARIANTS);
-  log(`Blended Biometric fixture (${(body.biometricTypes as string[])?.[0] ?? "?"})`);
+  const body = blend(BIOMETRIC_VARIANTS, ["biometricTypes"]);
+  const primaryType = (body.biometricTypes as string[])?.[0] ?? "?";
+  log(`Blended Biometric fixture (type anchor: ${primaryType})`);
   log("Invoking check-biometric-compliance…");
   const { data, error } = await supabase.functions.invoke("check-biometric-compliance", {
     body: { ...body, user_id: userId },
@@ -180,7 +182,7 @@ const runBiometric: Runner = async ({ userId, log }) => {
   return {
     targetTable: "biometric_assessments",
     targetId: data.id,
-    label: `Biometric · ${(body.biometricTypes as string[])?.[0] ?? "?"}`,
+    label: `Biometric · ${primaryType} · ${shortId(data.id)}`,
     resultUrl: `/biometric-checker/result/${data.id}`,
     pdfToolType: "biometric_checker",
   };
@@ -189,8 +191,8 @@ const runBiometric: Runner = async ({ userId, log }) => {
 // ─── DPA ─────────────────────────────────────────────────────────────────────
 
 const runDPA: Runner = async ({ userId, log }) => {
-  const body = blend(DPA_VARIANTS);
-  log(`Blended DPA fixture (${body.controllerName} → ${body.processorName})`);
+  const body = blend(DPA_VARIANTS, ["controllerName", "processorName"]);
+  log(`Blended DPA fixture (parties anchor: ${body.controllerName} → ${body.processorName})`);
   log("Invoking generate-dpa…");
   const { data, error } = await supabase.functions.invoke("generate-dpa", {
     body: { ...body, user_id: userId },
@@ -201,7 +203,7 @@ const runDPA: Runner = async ({ userId, log }) => {
   return {
     targetTable: "dpa_documents",
     targetId: data.id,
-    label: `${body.controllerName} → ${body.processorName} · DPA`,
+    label: `DPA · ${body.controllerName} → ${body.processorName} · ${shortId(data.id)}`,
     resultUrl: `/dpa-generator/result/${data.id}`,
     pdfToolType: "dpa_generator",
   };
@@ -210,8 +212,8 @@ const runDPA: Runner = async ({ userId, log }) => {
 // ─── IR Playbook ─────────────────────────────────────────────────────────────
 
 const runIRPlaybook: Runner = async ({ userId, log }) => {
-  const body = blend(IR_VARIANTS);
-  log(`Blended IR fixture (${body.organisationType})`);
+  const body = blend(IR_VARIANTS, ["organisationType"]);
+  log(`Blended IR fixture (org-type anchor: ${body.organisationType})`);
   log("Invoking generate-ir-playbook…");
   const { data, error } = await supabase.functions.invoke("generate-ir-playbook", {
     body: {
@@ -226,7 +228,7 @@ const runIRPlaybook: Runner = async ({ userId, log }) => {
   return {
     targetTable: "ir_playbooks",
     targetId: data.id,
-    label: `IR · ${body.organisationType}`,
+    label: `IR · ${body.organisationType} · ${shortId(data.id)}`,
     resultUrl: `/ir-playbook/result/${data.id}`,
     pdfToolType: "ir_playbook",
   };
@@ -235,8 +237,9 @@ const runIRPlaybook: Runner = async ({ userId, log }) => {
 // ─── Intelligence Brief ──────────────────────────────────────────────────────
 
 const runBrief: Runner = async ({ log }) => {
-  const prefs = blend(BRIEF_VARIANTS);
-  log(`Blended Brief prefs (industries: ${(prefs.industries as string[]).join(",")})`);
+  const prefs = blend(BRIEF_VARIANTS, ["industries"]);
+  const primaryIndustry = (prefs.industries as string[])[0];
+  log(`Blended Brief prefs (industry anchor: ${primaryIndustry})`);
   log("Invoking admin-test-custom-brief…");
   const { data, error } = await supabase.functions.invoke("admin-test-custom-brief", {
     body: { prefs },
@@ -247,7 +250,7 @@ const runBrief: Runner = async ({ log }) => {
   return {
     targetTable: "custom_briefs",
     targetId: data.custom_brief.id,
-    label: `Brief · ${(prefs.industries as string[])[0]}`,
+    label: `Brief · ${primaryIndustry} · ${shortId(data.custom_brief.id)}`,
     pdfToolType: "brief",
   };
 };
@@ -368,7 +371,7 @@ const runRoPA: Runner = async ({ userId, log }) => {
   return {
     targetTable: "ropa_sessions",
     targetId: session.id,
-    label: `${persona.org_name} · RoPA v1`,
+    label: `RoPA · ${persona.org_name} · ${shortId(session.id)}`,
     resultUrl: "/ropa/documents",
   };
 };
@@ -376,8 +379,8 @@ const runRoPA: Runner = async ({ userId, log }) => {
 // ─── US Notice ───────────────────────────────────────────────────────────────
 
 const runUSNotice: Runner = async ({ userId, log }) => {
-  const universal = blend(US_NOTICE_VARIANTS);
-  log(`Blended US Notice fixture (${universal.business_name})`);
+  const universal = blend(US_NOTICE_VARIANTS, ["business_name"]);
+  log(`Blended US Notice fixture (business anchor: ${universal.business_name})`);
   const clientId = await getOrCreateClientId(userId);
 
   log("Creating us_notice_session…");
@@ -422,7 +425,7 @@ const runUSNotice: Runner = async ({ userId, log }) => {
   return {
     targetTable: "us_notice_sessions",
     targetId: session.id,
-    label: `US Notice · ${universal.business_name} (${gen.documents.length} docs)`,
+    label: `US Notice · ${universal.business_name} · ${gen.documents.length} docs · ${shortId(session.id)}`,
     resultUrl: `/us-notices/result/${session.id}`,
   };
 };
@@ -430,8 +433,8 @@ const runUSNotice: Runner = async ({ userId, log }) => {
 // ─── EU Notice ───────────────────────────────────────────────────────────────
 
 const runEUNotice: Runner = async ({ userId, log }) => {
-  const universal = blend(EU_NOTICE_VARIANTS);
-  log(`Blended EU Notice fixture (${universal.controller_name})`);
+  const universal = blend(EU_NOTICE_VARIANTS, ["controller_name"]);
+  log(`Blended EU Notice fixture (controller anchor: ${universal.controller_name})`);
   const clientId = await getOrCreateClientId(userId);
 
   log("Creating eu_notice_session…");
@@ -476,7 +479,7 @@ const runEUNotice: Runner = async ({ userId, log }) => {
   return {
     targetTable: "eu_notice_sessions",
     targetId: session.id,
-    label: `EU/UK/CH Notice · ${universal.controller_name} (${gen.documents.length} docs)`,
+    label: `EU/UK/CH Notice · ${universal.controller_name} · ${gen.documents.length} docs · ${shortId(session.id)}`,
     resultUrl: `/eu-notices/result/${session.id}`,
   };
 };
@@ -484,8 +487,8 @@ const runEUNotice: Runner = async ({ userId, log }) => {
 // ─── Registration ────────────────────────────────────────────────────────────
 
 const runRegistration: Runner = async ({ userId, log }) => {
-  const intake = blend(REG_VARIANTS);
-  log(`Blended Registration fixture (${intake.organization_name})`);
+  const intake = blend(REG_VARIANTS, ["organization_name", "email"]);
+  log(`Blended Registration fixture (org anchor: ${intake.organization_name})`);
   log("Invoking run-registration-assessment…");
   const { data: assess, error: assessErr } = await supabase.functions.invoke(
     "run-registration-assessment",
@@ -527,7 +530,7 @@ const runRegistration: Runner = async ({ userId, log }) => {
   return {
     targetTable: "registration_orders",
     targetId: order.id,
-    label: `Registration · ${intake.organization_name} · ${codes.join("/")}`,
+    label: `Registration · ${intake.organization_name} · ${codes.join("/")} · ${shortId(order.id)}`,
     resultUrl: `/registration/order/${order.id}`,
   };
 };
@@ -552,8 +555,8 @@ async function pollCppa(id: string, log: (m: string) => void): Promise<void> {
 }
 
 const runCppaRisk: Runner = async ({ userId, log }) => {
-  const intake = blend(CPPA_RISK_VARIANTS);
-  log(`Blended CPPA Risk fixture (${intake.q3_sector})`);
+  const intake = blend(CPPA_RISK_VARIANTS, ["q3_sector"]);
+  log(`Blended CPPA Risk fixture (sector anchor: ${intake.q3_sector})`);
   log("Inserting cppa_assessments (risk_assessment)…");
   const { data: rec, error: insErr } = await supabase
     .from("cppa_assessments")
@@ -577,7 +580,7 @@ const runCppaRisk: Runner = async ({ userId, log }) => {
   return {
     targetTable: "cppa_assessments",
     targetId: rec.id,
-    label: `CPPA Risk · ${intake.q3_sector}`,
+    label: `CPPA Risk · ${intake.q3_sector} · ${shortId(rec.id)}`,
     resultUrl: `/cppa-risk-assessment/result/${rec.id}`,
   };
 };
@@ -610,7 +613,7 @@ const runCppaCyber: Runner = async ({ userId, log }) => {
   return {
     targetTable: "cppa_assessments",
     targetId: rec.id,
-    label: `CPPA Cyber · ${intake.industry_sector}`,
+    label: `CPPA Cyber · ${intake.industry_sector} · ${shortId(rec.id)}`,
     resultUrl: `/cppa-cybersecurity/result/${rec.id}`,
   };
 };
