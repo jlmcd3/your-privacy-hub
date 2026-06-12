@@ -187,8 +187,8 @@ function buildLIReportHTML(report: any, assessment: any): string {
   const overall = report.three_part_test?.overall_assessment || {};
   const docRecs = report.documentation_recommendations || {};
 
-  const date = new Date(report.generated_at).toLocaleDateString("en-US",
-    { year: "numeric", month: "long", day: "numeric" });
+
+
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
@@ -278,8 +278,6 @@ ${fineLine}</div>`;
 }
 
 function buildGovernanceReportHTML(report: any, assessment: any): string {
-  const date = new Date(report.generated_at).toLocaleDateString("en-US",
-    { year: "numeric", month: "long", day: "numeric" });
   const domains = report.domain_findings || {};
   const severityColor: Record<string, string> = {
     Critical: "#a32d2d", High: "#c0722a", Medium: "#8b5e0a",
@@ -331,8 +329,6 @@ ${dn.gap_description ? `<p class="label">Gap</p><p>${dn.gap_description}</p>` : 
 }
 
 function buildDPIAReportHTML(report: any, dpia: any): string {
-  const date = new Date(report.generated_at).toLocaleDateString("en-US",
-    { year: "numeric", month: "long", day: "numeric" });
   const meta = report.dpia_metadata || {};
   const sections = [
     ["section_1_description", "1. Description of Processing"],
