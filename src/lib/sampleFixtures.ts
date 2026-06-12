@@ -520,7 +520,7 @@ const F_ROPA_EU: SampleFixture = {
       },
       {
         activity_name: "Supplier Vetting and KYS",
-        category: "procurement",
+        category: "third_party",
         purpose: "Know-Your-Supplier checks for sanctions, beneficial ownership, and modern-slavery compliance.",
         lawful_basis: "legal_obligation",
         special_category_basis: "Not applicable",
