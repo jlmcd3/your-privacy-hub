@@ -51,6 +51,7 @@ const DPIAFramework = () => {
   const sourceId = params.get("source");
   const pricing = useToolPrice("dpia_framework");
 
+  const [organizationName, setOrganizationName] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [purpose, setPurpose] = useState("");
@@ -86,6 +87,7 @@ const DPIAFramework = () => {
   }, [sourceId, user]);
 
   const validate = () => {
+    if (!organizationName.trim()) return "Tell us the name of the organisation being assessed.";
     if (!name.trim()) return "Processing activity name is required.";
     if (description.trim().length < 100) return "Description must be at least 100 characters.";
     if (!purpose.trim()) return "Purpose is required.";
@@ -98,6 +100,7 @@ const DPIAFramework = () => {
   };
 
   const buildIntake = () => ({
+    organization_name: organizationName,
     processing_activity_name: name,
     description, purpose,
     data_categories: dataCategories,
@@ -167,6 +170,11 @@ const DPIAFramework = () => {
 
         <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="bg-card border rounded-lg p-6 space-y-6">
           <RequiredLegend />
+          <div>
+            <Label htmlFor="org">Organisation being assessed<Req /></Label>
+            <Input id="org" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="e.g. Acme Retail Ltd" className="mt-2" />
+            <p className="text-meta text-muted-foreground mt-1">The controller/entity whose processing this DPIA documents.</p>
+          </div>
           <div>
             <Label>Name this processing activity<Req /></Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Employee location monitoring via mobile app" className="mt-2" />
