@@ -318,9 +318,13 @@ async function runGenerator(
 }
 
 async function callSaveSampleReport(adminToken: string, action: string, payload: Record<string, unknown>) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (adminToken) headers["x-admin-token"] = adminToken;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
   const r = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+    headers,
     body: JSON.stringify({ action, ...payload }),
   });
   const data = await r.json();
@@ -342,7 +346,6 @@ export default function AdminSampleReports() {
   }, [samples]);
 
   async function reloadSamples() {
-    if (!adminToken) return;
     try {
       const { rows } = await callSaveSampleReport(adminToken, "list", {});
       setSamples(rows as SampleRow[]);
@@ -351,7 +354,7 @@ export default function AdminSampleReports() {
     }
   }
 
-  useEffect(() => { if (adminToken) reloadSamples(); /* eslint-disable-next-line */ }, [adminToken]);
+  useEffect(() => { reloadSamples(); /* eslint-disable-next-line */ }, []);
 
   const setRun = (key: string, patch: Partial<RunState>) =>
     setRuns((r) => ({ ...r, [key]: { ...(r[key] ?? EMPTY_RUN), ...patch } }));
@@ -377,7 +380,6 @@ export default function AdminSampleReports() {
   }
 
   async function onSaveAsSample(fix: SampleFixture) {
-    if (!adminToken) { toast.error("Admin token required"); return; }
     const key = `${fix.tool_slug}::${fix.variant}`;
     const run = runs[key];
     if (!run?.sourceRowId) { toast.error("Generate first"); return; }
@@ -400,7 +402,6 @@ export default function AdminSampleReports() {
   }
 
   async function onGeneratePdf(fix: SampleFixture) {
-    if (!adminToken) { toast.error("Admin token required"); return; }
     const key = `${fix.tool_slug}::${fix.variant}`;
     const run = runs[key];
     if (!run?.sourceRowId || run.status !== "complete") {
@@ -427,7 +428,6 @@ export default function AdminSampleReports() {
   }
 
   async function onSetStatus(sample: SampleRow, status: string) {
-    if (!adminToken) { toast.error("Admin token required"); return; }
     setBusy(`status::${sample.id}`);
     try {
       await callSaveSampleReport(adminToken, "set_status", { id: sample.id, status });
@@ -439,7 +439,6 @@ export default function AdminSampleReports() {
   }
 
   async function onAttachPdf(sample: SampleRow, file: File) {
-    if (!adminToken) { toast.error("Admin token required"); return; }
     setBusy(`pdf::${sample.id}`);
     try {
       const buf = await file.arrayBuffer();
@@ -467,8 +466,8 @@ export default function AdminSampleReports() {
         </header>
 
         <div className="border rounded-lg bg-card p-4 space-y-2">
-          <Label htmlFor="admin-token">Admin token</Label>
-          <Input id="admin-token" type="password" value={adminToken} onChange={(e) => setAdminToken(e.target.value)} placeholder="ADMIN_SECRET_TOKEN" />
+          <Label htmlFor="admin-token">Admin token <span className="text-xs text-muted-foreground font-normal">(optional — your admin login already authorizes you)</span></Label>
+          <Input id="admin-token" type="password" value={adminToken} onChange={(e) => setAdminToken(e.target.value)} placeholder="ADMIN_SECRET_TOKEN (optional)" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -482,6 +481,12 @@ export default function AdminSampleReports() {
                   <div className="text-xs font-mono text-muted-foreground">{fix.tool_slug} · {fix.variant}</div>
                   <h2 className="font-serif text-lg leading-tight">{fix.title}</h2>
                   <p className="text-xs text-muted-foreground mt-1">{fix.scenario_summary}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Reports available at{" "}
+                    <a href="/samples/report-output" target="_blank" rel="noreferrer" className="text-brand-teal underline underline-offset-2">
+                      /samples/report-output
+                    </a>
+                  </p>
                 </div>
 
                 <div className="text-xs font-mono flex flex-wrap gap-3">
@@ -503,7 +508,7 @@ export default function AdminSampleReports() {
                   <Button
                     size="sm"
                     onClick={() => onGeneratePdf(fix)}
-                    disabled={!adminToken || run.status !== "complete" || busy === `pdfgen::${key}`}
+                    disabled={run.status !== "complete" || busy === `pdfgen::${key}`}
                     title={run.status !== "complete" ? "Generate the report first" : "Render PDF via PDFShift"}
                   >
                     {busy === `pdfgen::${key}` ? "Rendering PDF…" : "Generate PDF (PDFShift)"}
