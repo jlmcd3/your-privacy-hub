@@ -157,7 +157,7 @@ async function fetchEnforcementHistory(prefs: { industries: string[]; jurisdicti
 
   let query = supabase
     .from("enforcement_actions")
-    .select("regulator, jurisdiction, subject, fine_amount, violation, decision_date, sector")
+    .select("regulator, jurisdiction, subject, fine_eur_equivalent, fine_verified, violation, decision_date, sector")
     .order("decision_date", { ascending: false })
     .limit(30);
 
@@ -170,9 +170,12 @@ async function fetchEnforcementHistory(prefs: { industries: string[]; jurisdicti
   const { data } = await query;
   if (!data || data.length === 0) return "No recent enforcement actions found for your jurisdictions.";
 
-  return data.map(e =>
-    `${e.decision_date || "Recent"} | ${e.regulator} (${e.jurisdiction}) | ${e.subject || "Unnamed"} | ${e.fine_amount || "N/A"} | ${e.violation || "N/A"} | Sector: ${e.sector || "General"}`
-  ).join("\n");
+  return data.map(e => {
+    const fine = (e as any).fine_verified === false
+      ? "fine amount under verification — omitted"
+      : ((e as any).fine_eur_equivalent ? `€${Number((e as any).fine_eur_equivalent).toLocaleString()}` : "fine: n/a");
+    return `${e.decision_date || "Recent"} | ${e.regulator} (${e.jurisdiction}) | ${e.subject || "Unnamed"} | ${fine} | ${e.violation || "N/A"} | Sector: ${e.sector || "General"}`;
+  }).join("\n");
 }
 
 /* ── Fetch prior custom briefs for continuity (enhanced with issue_tags) ── */

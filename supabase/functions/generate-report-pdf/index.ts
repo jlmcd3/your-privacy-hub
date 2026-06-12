@@ -661,9 +661,13 @@ function renderCppaEnforcementPrecedents(items: any[]): string {
       ? articlesRaw.map((a: any) => String(a)).join(", ")
       : String(articlesRaw || "");
     const failure = escHtml(p?.key_compliance_failure || "");
-    const fineRaw = p?.fine_amount;
-    const fineLine = (fineRaw !== null && fineRaw !== undefined && String(fineRaw).trim() !== "")
-      ? `<p><span class="label">Fine:</span> ${escHtml(String(fineRaw))}</p>` : "";
+    const fineVerified = p?.fine_verified !== false; // default true when missing
+    const fineEur = p?.fine_eur_equivalent;
+    const fineLine = !fineVerified
+      ? `<p><span class="label">Fine:</span> fine amount under verification — omitted</p>`
+      : (fineEur !== null && fineEur !== undefined && Number(fineEur) > 0
+          ? `<p><span class="label">Fine:</span> €${Number(fineEur).toLocaleString()}</p>`
+          : `<p><span class="label">Fine:</span> n/a</p>`);
     const head = [regulator, subject].filter(Boolean).join(" v ") + (year ? ` (${year})` : "");
     return `<article class="annotation">
       <h3>${head || "Enforcement action"}</h3>

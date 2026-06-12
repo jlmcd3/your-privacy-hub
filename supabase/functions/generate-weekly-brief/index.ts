@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
         jurisdiction: row.jurisdiction,
         subject: row.subject,
         summary: row.key_compliance_failure || row.violation || null,
-        fine: row.fine_amount || (row.fine_eur_equivalent ? `€${Number(row.fine_eur_equivalent).toLocaleString()}` : null),
+        fine: row.fine_eur_equivalent ? `€${Number(row.fine_eur_equivalent).toLocaleString()}` : null,
         fine_eur_equivalent: row.fine_eur_equivalent ?? row.fine_eur ?? null,
         decision_date: row.decision_date,
         precedent_significance: row.precedent_significance,

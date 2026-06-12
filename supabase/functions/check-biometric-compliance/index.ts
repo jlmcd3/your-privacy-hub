@@ -46,14 +46,15 @@ function estimateBIPARisk(enrolledCount: string): { lowEnd: number; highEnd: num
 function formatEnforcementContext(rows: any[]): string {
   if (!rows || rows.length === 0) return "No specific biometric enforcement precedents retrieved.";
   return rows
-    .map(
-      (e, i) =>
-        `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${
-          e.decision_date ? new Date(e.decision_date).getFullYear() : "—"
-        }\n   Fine: ${
-          e.fine_amount ?? (e.fine_eur_equivalent ? `€${Number(e.fine_eur_equivalent).toLocaleString()}` : "Not disclosed")
-        }\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}`
-    )
+    .map((e, i) => {
+      const fineVerified = e.fine_verified !== false;
+      const fine = !fineVerified
+        ? "fine amount under verification — omitted"
+        : (e.fine_eur_equivalent ? `€${Number(e.fine_eur_equivalent).toLocaleString()}` : "fine: n/a");
+      return `[E${i + 1}] id:${e.id ?? "—"} ${e.regulator ?? "Regulator"} (${e.jurisdiction ?? "—"}), ${
+        e.decision_date ? new Date(e.decision_date).getFullYear() : "—"
+      }\n   Fine: ${fine}\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}`;
+    })
     .join("\n\n");
 }
 
