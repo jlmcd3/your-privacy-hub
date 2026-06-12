@@ -471,10 +471,10 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
       try {
         const details = lintViolations.map((v) => `${v.code}: ${v.detail}`).join("; ");
         lintViolations.length = 0;
-        const retryText = await runStage2(
+        const retryStage = await runStage2(
           `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
         );
-        const retryParsed = parseLlmJson(retryText);
+        const retryParsed = parseLlmJson(retryStage.text);
         if (retryParsed) {
           analysis = retryParsed;
           lintAnalysis(analysis);
