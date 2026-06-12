@@ -275,9 +275,9 @@ const LIAssessmentResult = () => {
                   </div>
                 )}
                 {overall?.strength_basis && <p className="text-sm text-foreground">{overall.strength_basis}</p>}
-                {(report?.precedents_reviewed || report?.precedent_database_size) && (
+                {report?.generated_at && (
                   <p className="text-xs text-muted-foreground mt-3">
-                    Precedent database reviewed: {report.precedents_reviewed ?? "—"} decisions | Database size: {report.precedent_database_size ?? "—"} tracked decisions
+                    Precedent database last updated: {new Date(report.generated_at).toLocaleDateString(undefined, { year: "numeric", month: "long" })}
                   </p>
                 )}
               </section>
