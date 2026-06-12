@@ -985,9 +985,8 @@ Deno.serve(async (req) => {
     // ── CACHE CHECK ─────────────────────────────────────────────────────
     // If a PDF was already generated for this assessment, reuse it instead
     // of calling PDFShift again. Re-sign the stored object and return.
-    // Skip cache when `force=true` or when an email send is requested
-    // (so a fresh attachment can be delivered).
-    if (!force && !user_email) {
+    // Skip cache when `force=true`.
+    if (!force) {
       try {
         const folder = `reports/${table}/${assessment_id}`;
         const { data: existing } = await supabase.storage
@@ -1235,34 +1234,9 @@ Deno.serve(async (req) => {
       await supabase.from(table).update({ pdf_url: pdfUrl }).eq("id", assessment_id);
     }
 
-    let emailSent = false;
-    if (user_email) {
-      const toolLabels: Record<string, string> = {
-        li_assessment: "Legitimate Interest Assessment",
-        governance_assessment: "Data Governance Readiness Assessment",
-        dpia_framework: "DPIA Framework",
-        biometric_checker: "Biometric Compliance Assessment",
-        ir_playbook: "Incident Response Playbook",
-        dpa_generator: "Custom DPA",
-      };
-      emailSent = await sendEmail({
-        toEmail: user_email,
-        toName: user_name || "",
-        subject: makeEmailSubject(tool_type),
-        bodyHtml: makeEmailBody({
-          toolType: tool_type,
-          recipientName: user_name || "",
-          reportTitle: toolLabels[tool_type] || "Report",
-          resultUrl: result_url || `https://enduserprivacy.com/${tool_type.replace(/_/g, "-")}/result/${assessment_id}`,
-          hasPdf: !!pdfBytes,
-        }),
-        pdfBytes,
-        attachmentName,
-      });
-    }
 
     return new Response(
-      JSON.stringify({ success: true, pdf_generated: !!pdfBytes, pdf_url: pdfUrl, email_sent: emailSent }),
+      JSON.stringify({ success: true, pdf_generated: !!pdfBytes, pdf_url: pdfUrl, email_sent: false }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
