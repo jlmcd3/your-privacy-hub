@@ -329,13 +329,56 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
       renderer.render(scene, camera);
     };
-    animate();
+    const start = () => {
+      if (running || !inView || document.hidden) return;
+      running = true;
+      animate();
+    };
+    const stop = () => {
+      running = false;
+      cancelAnimationFrame(animRef.current);
+    };
+    start();
+
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        inView = e.isIntersecting;
+        if (inView) start(); else stop();
+      }
+    }, { threshold: 0 });
+    io.observe(el);
+
+    const onVis = () => { if (document.hidden) stop(); else start(); };
+    document.addEventListener("visibilitychange", onVis);
+
+    const onReduced = (e: MediaQueryListEvent) => {
+      reduced = e.matches;
+      if (reduced) {
+        spinRef.current = 0;
+        applyStaticColors(sf.dim);
+        applyStaticColors(sf.mid);
+        applyStaticColors(sf.bright);
+      } else {
+        spinRef.current = idleSpinSpeed;
+      }
+    };
+    if (reducedMq.addEventListener) reducedMq.addEventListener("change", onReduced);
+    else (reducedMq as any).addListener?.(onReduced);
 
     return () => {
-      cancelAnimationFrame(animRef.current);
+      stop();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVis);
+      if (reducedMq.removeEventListener) reducedMq.removeEventListener("change", onReduced);
+      else (reducedMq as any).removeListener?.(onReduced);
+      for (const g of [sf.dim, sf.mid, sf.bright]) {
+        g.points.geometry.dispose();
+        (g.points.material as THREE.Material).dispose();
+      }
       renderer.dispose();
       if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
+
   }, []);
 
   // ── Highlight selected country on globe ────────────────────────────────
