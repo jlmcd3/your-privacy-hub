@@ -737,7 +737,7 @@ function buildCPPARiskReportHTML(report: any, record: any): string {
     <span class="logo">enduserprivacy.com</span>
     <p class="eyebrow">Compliance Tool · Customised Analysis</p>
     <h1>CPPA Privacy Risk Assessment</h1>
-    <div class="meta">Generated ${text(generatedDate)} · California (CPPA)</div>
+    ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
       ${report?.overall_score !== undefined ? `<span class="pill">Overall score: ${text(report.overall_score)} / 100</span>` : ""}
       ${report?.risk_level ? `<span class="pill">${text(report.risk_level)} risk</span>` : ""}
@@ -833,7 +833,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     <span class="logo">enduserprivacy.com</span>
     <p class="eyebrow">Compliance Tool · Customised Analysis</p>
     <h1>CPPA Cybersecurity Audit</h1>
-    <div class="meta">Generated ${text(generatedDate)}${orgName ? ` · ${text(orgName)}` : ""} · California (CPPA)</div>
+    ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), organizationName: orgName || null, jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
       ${report?.overall_score !== undefined ? `<span class="pill">Overall score: ${text(report.overall_score)} / 100</span>` : ""}
       ${report?.readiness_level ? `<span class="pill">${text(report.readiness_level)}</span>` : ""}
