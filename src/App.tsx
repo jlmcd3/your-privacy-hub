@@ -141,9 +141,6 @@ const CPPACybersecurityResult = lazy(() => import("./pages/CPPACybersecurityResu
 const CPPACybersecurityDrift = lazy(() => import("./pages/CPPACybersecurityDrift.tsx"));
 const CPPASuiteResult = lazy(() => import("./pages/CPPASuiteResult.tsx"));
 const CPPAAdmtPlaceholder = lazy(() => import("./pages/CPPAAdmtPlaceholder.tsx"));
-const TestsDashboard = lazy(() => import("./pages/admin/TestsDashboard.tsx"));
-const TestsOutput = lazy(() => import("./pages/admin/TestsOutput.tsx"));
-const TestsRealWorld = lazy(() => import("./pages/admin/TestsRealWorld.tsx"));
 const CorpusExtractionAdmin = lazy(() => import("./pages/admin/CorpusExtractionAdmin"));
 const VerificationScanAdmin = lazy(() => import("./pages/admin/VerificationScanAdmin"));
 const PrimarySourceFetcher = lazy(() => import("./pages/admin/PrimarySourceFetcher"));
