@@ -69,15 +69,16 @@ interface EnforcementCtx {
   sector?: string;
   fine_amount?: string;
   fine_eur_equivalent?: number;
+  fine_verified?: boolean;
   key_compliance_failure?: string;
   preventive_measures?: string;
   violation?: string;
 }
 
 function fmtFine(e: EnforcementCtx): string {
-  if (e.fine_amount) return e.fine_amount;
+  if (e.fine_verified === false) return "fine amount under verification — omitted";
   if (e.fine_eur_equivalent) return `€${Number(e.fine_eur_equivalent).toLocaleString()}`;
-  return "Not disclosed";
+  return "fine: n/a";
 }
 
 function fmtYear(e: EnforcementCtx): string {
