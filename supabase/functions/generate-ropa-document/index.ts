@@ -928,134 +928,152 @@ Deno.serve(async (req: Request) => {
     settings,
   };
 
+  // ── Mark session as processing, then dispatch heavy work in background ──
+  await admin
+    .from("ropa_sessions")
+    .update({ status: "processing", generation_error: null })
+    .eq("id", session.id);
 
+  const runRopaDocument = async () => {
+    try {
+      const results: Array<{
+        format: Format;
+        document_version_id: string;
+        download_url: string;
+        file_path: string;
+      }> = [];
 
-  // ── Generate, upload, record ──
-  const results: Array<{
-    format: Format;
-    document_version_id: string;
-    download_url: string;
-    file_path: string;
-  }> = [];
+      for (const fmt of formats) {
+        const { data: existing } = await admin
+          .from("ropa_document_versions")
+          .select("id, file_path")
+          .eq("session_id", session.id)
+          .eq("document_format", fmt)
+          .eq("is_current", true)
+          .maybeSingle();
 
-  for (const fmt of formats) {
-    const { data: existing } = await admin
-      .from("ropa_document_versions")
-      .select("id, file_path")
-      .eq("session_id", session.id)
-      .eq("document_format", fmt)
-      .eq("is_current", true)
-      .maybeSingle();
+        let payload: Uint8Array;
+        let contentType: string;
+        if (fmt === "pdf") {
+          payload = await renderPdf(
+            buildHtml(data),
+            `RoPA — ${data.client?.name ?? "Client"}`,
+          );
+          contentType = "application/pdf";
+        } else if (fmt === "docx") {
+          payload = await buildDocx(data);
+          contentType =
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        } else {
+          payload = buildXlsx(data);
+          contentType =
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        }
 
-    let filePath: string | null = null;
-    let documentVersionId: string | null = null;
+        const filePath = `${session.client_id}/${session.id}/v${session.version_number}.${fmt}`;
 
-    let payload: Uint8Array;
-    let contentType: string;
-    if (fmt === "pdf") {
-      payload = await renderPdf(
-        buildHtml(data),
-        `RoPA — ${data.client?.name ?? "Client"}`,
-      );
-      contentType = "application/pdf";
-    } else if (fmt === "docx") {
-      payload = await buildDocx(data);
-      contentType =
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-    } else {
-      payload = buildXlsx(data);
-      contentType =
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    }
+        const { error: upErr } = await admin.storage
+          .from("ropa-documents")
+          .upload(filePath, payload, { contentType, upsert: true });
+        if (upErr) {
+          throw new Error(`Storage upload failed (${fmt}): ${upErr.message}`);
+        }
 
-    filePath = `${session.client_id}/${session.id}/v${session.version_number}.${fmt}`;
+        // Issue a fresh signed URL and persist it on the version row so the
+        // UI can fetch the file after polling the session to status='generated'.
+        const expiresInSec = 60 * 60;
+        const { data: signed, error: signErr } = await admin.storage
+          .from("ropa-documents")
+          .createSignedUrl(filePath, expiresInSec);
+        if (signErr || !signed?.signedUrl) {
+          throw new Error(`Signed URL failed (${fmt}): ${signErr?.message}`);
+        }
 
-    const { error: upErr } = await admin.storage
-      .from("ropa-documents")
-      .upload(filePath, payload, { contentType, upsert: true });
-    if (upErr) {
-      return jsonResponse(
-        { error: `Storage upload failed (${fmt}): ${upErr.message}` },
-        500,
-      );
-    }
+        const expiresAt = new Date(
+          Date.now() + expiresInSec * 1000,
+        ).toISOString();
 
-    const { data: upserted, error: verErr } = await admin
-      .from("ropa_document_versions")
-      .upsert(
-        {
-          session_id: session.id,
-          client_id: session.client_id,
-          version_number: session.version_number,
-          document_format: fmt,
+        const { data: upserted, error: verErr } = await admin
+          .from("ropa_document_versions")
+          .upsert(
+            {
+              session_id: session.id,
+              client_id: session.client_id,
+              version_number: session.version_number,
+              document_format: fmt,
+              file_path: filePath,
+              file_size_bytes: payload.byteLength,
+              jurisdictions_covered: data.jurisdictions,
+              activities_count: data.activities.length,
+              change_summary: existing
+                ? "Regenerated"
+                : `Generated v${session.version_number}`,
+              generated_at: new Date().toISOString(),
+              is_current: true,
+              last_signed_url: signed.signedUrl,
+              last_signed_url_expires_at: expiresAt,
+            },
+            { onConflict: "session_id,document_format" },
+          )
+          .select("id")
+          .single();
+        if (verErr || !upserted) {
+          throw new Error(
+            `Failed to record document version: ${verErr?.message}`,
+          );
+        }
+
+        // Update session generated_*_path and mark generated.
+        const pathColumn =
+          fmt === "pdf"
+            ? "generated_pdf_path"
+            : fmt === "docx"
+              ? "generated_docx_path"
+              : "generated_xlsx_path";
+        await admin
+          .from("ropa_sessions")
+          .update({
+            [pathColumn]: filePath,
+            status: "generated",
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", session.id);
+
+        results.push({
+          format: fmt,
+          document_version_id: upserted.id,
+          download_url: signed.signedUrl,
           file_path: filePath,
-          file_size_bytes: payload.byteLength,
-          jurisdictions_covered: data.jurisdictions,
-          activities_count: data.activities.length,
-          change_summary: existing
-            ? "Regenerated"
-            : `Generated v${session.version_number}`,
-          generated_at: new Date().toISOString(),
-          is_current: true,
-        },
-        { onConflict: "session_id,document_format" },
-      )
-      .select("id")
-      .single();
-    if (verErr || !upserted) {
-      return jsonResponse(
-        { error: `Failed to record document version: ${verErr?.message}` },
-        500,
+        });
+      }
+
+      console.log(
+        `[generate-ropa-document] session ${session.id} generated ${results.length} format(s)`,
       );
-    }
-    documentVersionId = upserted.id;
-
-    // Update session generated_*_path
-    const pathColumn =
-      fmt === "pdf"
-        ? "generated_pdf_path"
-        : fmt === "docx"
-          ? "generated_docx_path"
-          : "generated_xlsx_path";
-    await admin
-      .from("ropa_sessions")
-      .update({ [pathColumn]: filePath, status: "generated", completed_at: new Date().toISOString() })
-      .eq("id", session.id);
-
-    // Issue fresh signed URL
-    const { data: signed, error: signErr } = await admin.storage
-      .from("ropa-documents")
-      .createSignedUrl(filePath, 60 * 60);
-    if (signErr || !signed?.signedUrl) {
-      return jsonResponse(
-        { error: `Signed URL failed (${fmt}): ${signErr?.message}` },
-        500,
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(
+        `[generate-ropa-document] session ${session.id} failed:`,
+        msg,
       );
+      await admin
+        .from("ropa_sessions")
+        .update({ status: "failed", generation_error: msg })
+        .eq("id", session.id);
     }
+  };
 
-    results.push({
-      format: fmt,
-      document_version_id: documentVersionId!,
-      download_url: signed.signedUrl,
-      file_path: filePath,
-    });
+  // Dispatch background work; respond 202 immediately.
+  // @ts-ignore — EdgeRuntime is provided by the Supabase Edge Runtime.
+  EdgeRuntime.waitUntil(runRopaDocument());
 
-  }
-
-  // Single-format spec response
-  if (formats.length === 1) {
-    return jsonResponse({
+  return jsonResponse(
+    {
       success: true,
-      document_version_id: results[0].document_version_id,
-      download_url: results[0].download_url,
-      file_path: results[0].file_path,
-      format: results[0].format,
-    });
-  }
-
-  // Multi-format response (used by review screen)
-  return jsonResponse({
-    success: true,
-    documents: results,
-  });
+      session_id: session.id,
+      status: "processing",
+    },
+    202,
+  );
 });
+

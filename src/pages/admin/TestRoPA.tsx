@@ -272,9 +272,10 @@ export default function TestRoPA() {
       addLog(`✓ ${answerRows.length} answers inserted`);
       record("All answers persisted", answerRows.length > 0);
 
-      // 7. Invoke generator (PDF — the format users actually download)
+      // 7. Invoke generator (PDF — the format users actually download).
+      // The function now returns 202 + dispatches generation in the background.
       addLog("▶ Invoking generate-ropa-document (format=pdf)...");
-      const { data: gen, error: genErr } = await supabase.functions.invoke(
+      const { error: genErr } = await supabase.functions.invoke(
         "generate-ropa-document",
         {
           body: {
@@ -286,19 +287,49 @@ export default function TestRoPA() {
         }
       );
       clearInterval(tick);
-
-      if (genErr || !gen?.download_url) {
-        throw new Error(
-          `generator: ${genErr?.message ?? gen?.error ?? "no download_url"}`
-        );
+      if (genErr) {
+        throw new Error(`generator: ${genErr.message}`);
       }
-      addLog(`✓ Generator returned signed URL`);
-      setDownloadUrl(gen.download_url);
-      record("Generator returned signed download URL", true);
+      addLog("▶ Polling ropa_sessions for generation to complete…");
+
+      let terminal: "generated" | "failed" | "timeout" = "timeout";
+      let genError: string | null = null;
+      for (let i = 0; i < 60; i++) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const { data: srow } = await supabase
+          .from("ropa_sessions")
+          .select("status, generation_error")
+          .eq("id", session.id)
+          .maybeSingle();
+        if (srow?.status === "generated") { terminal = "generated"; break; }
+        if (srow?.status === "failed") {
+          terminal = "failed";
+          genError = srow.generation_error ?? null;
+          break;
+        }
+      }
+      if (terminal !== "generated") {
+        throw new Error(`generator: ${terminal === "failed" ? (genError ?? "failed") : "timeout"}`);
+      }
+      record("Background generation reached status=generated", true);
+
+      // Read the signed URL the background worker wrote onto the version row.
+      const { data: verRow } = await supabase
+        .from("ropa_document_versions")
+        .select("last_signed_url")
+        .eq("session_id", session.id)
+        .eq("document_format", "pdf")
+        .eq("is_current", true)
+        .maybeSingle();
+      const signedUrl = (verRow as { last_signed_url?: string } | null)?.last_signed_url;
+      if (!signedUrl) throw new Error("generator: no signed URL on document version row");
+      addLog(`✓ Version row carries signed URL`);
+      setDownloadUrl(signedUrl);
+      record("Version row carries signed download URL", true);
 
       // 8. HEAD-check the file (PDF is binary, can't regex it — verify it exists & has content)
       addLog("▶ Verifying generated PDF is reachable and non-empty...");
-      const head = await fetch(gen.download_url, { method: "GET" });
+      const head = await fetch(signedUrl, { method: "GET" });
       const blob = await head.blob();
       addLog(`✓ PDF fetched (${blob.size} bytes, ${blob.type || "application/pdf"})`);
       record("Generated PDF is non-empty (> 5 KB)", blob.size > 5000);
@@ -315,6 +346,8 @@ export default function TestRoPA() {
       addLog(article30InPdf
         ? `✓ "Article 30" found in PDF text stream`
         : `… "Article 30" not directly readable in PDF stream (likely compressed)`);
+
+
 
 
       // 9. Verify a ropa_document_versions row exists and is current

@@ -185,7 +185,7 @@ async function runGenerator(
     if (ansErr) throw new Error(`answers: ${ansErr.message}`);
 
     log("▶ Invoking generate-ropa-document...");
-    const { data: gen, error: genErr } = await supabase.functions.invoke("generate-ropa-document", {
+    const { error: genErr } = await supabase.functions.invoke("generate-ropa-document", {
       body: {
         session_id: session.id,
         format: "pdf",
@@ -193,7 +193,24 @@ async function runGenerator(
         author_name: f.author_name as string,
       },
     });
-    if (genErr || !gen?.download_url) throw new Error(`gen: ${genErr?.message || gen?.error}`);
+    if (genErr) throw new Error(`gen: ${genErr.message}`);
+
+    // Background generation — poll session until terminal status (≤3 min).
+    log("… polling ropa_sessions for generation to complete");
+    let terminalStatus: string | null = null;
+    for (let i = 0; i < 60; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const { data: srow } = await supabase
+        .from("ropa_sessions")
+        .select("status, generation_error")
+        .eq("id", session.id)
+        .maybeSingle();
+      if (srow?.status === "generated") { terminalStatus = "generated"; break; }
+      if (srow?.status === "failed") {
+        throw new Error(`gen failed: ${srow.generation_error ?? "unknown"}`);
+      }
+    }
+    if (terminalStatus !== "generated") throw new Error("gen: timed out waiting for completion");
     log(`✅ pdf generated`);
 
     // The "result" is the documents list page; the source row is the latest
@@ -209,6 +226,7 @@ async function runGenerator(
       resultUrl: "/ropa/documents",
     };
   }
+
 
   // -- US / EU Notice (template generators) -------------------------------
   if (fix.tool_slug === "us_notice" || fix.tool_slug === "eu_notice") {

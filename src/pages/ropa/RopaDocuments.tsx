@@ -167,15 +167,46 @@ export default function RopaDocuments() {
     }
   };
 
+  // Poll a ROPA session until it leaves processing. 3-minute timeout.
+  const pollSessionUntilTerminal = async (
+    sessionIdToPoll: string,
+  ): Promise<"generated" | "failed" | "timeout"> => {
+    const POLL_INTERVAL_MS = 3000;
+    const MAX_POLLS = 60;
+    for (let i = 0; i < MAX_POLLS; i++) {
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+      const { data: row } = await supabase
+        .from("ropa_sessions")
+        .select("status")
+        .eq("id", sessionIdToPoll)
+        .maybeSingle();
+      if (row?.status === "generated") return "generated";
+      if (row?.status === "failed") return "failed";
+    }
+    return "timeout";
+  };
+
   const handleDownload = async (doc: DocVersion) => {
     setDownloadingId(doc.id);
     try {
-      const { data: generated, error: genError } = await supabase.functions.invoke("generate-ropa-document", {
+      const { error: genError } = await supabase.functions.invoke("generate-ropa-document", {
         body: { session_id: doc.session_id, format: doc.document_format },
       });
       if (genError) throw genError;
 
-      const signedUrl = generated?.download_url as string | undefined;
+      const terminal = await pollSessionUntilTerminal(doc.session_id);
+      if (terminal === "failed") throw new Error("Generation failed — please try again.");
+      if (terminal === "timeout") throw new Error("Generation timed out. Please try again.");
+
+      // Read the freshly written signed URL from the version row.
+      const { data: ver } = await supabase
+        .from("ropa_document_versions")
+        .select("last_signed_url")
+        .eq("session_id", doc.session_id)
+        .eq("document_format", doc.document_format)
+        .eq("is_current", true)
+        .maybeSingle();
+      const signedUrl = (ver as { last_signed_url?: string } | null)?.last_signed_url;
       if (!signedUrl) throw new Error("No signed URL");
 
       const response = await fetch(signedUrl);
@@ -210,6 +241,10 @@ export default function RopaDocuments() {
         body: { session_id: sessionId },
       });
       if (error) throw error;
+      toast({ title: "Regenerating documents…", description: "This usually takes under a minute." });
+      const terminal = await pollSessionUntilTerminal(sessionId);
+      if (terminal === "failed") throw new Error("Generation failed — please try again.");
+      if (terminal === "timeout") throw new Error("Generation timed out. Please try again.");
       toast({ title: "Documents regenerated", description: "Refreshing list…" });
       await loadDocuments();
     } catch (err) {
@@ -223,6 +258,7 @@ export default function RopaDocuments() {
       setDownloadingId(null);
     }
   };
+
 
   const confirmDeleteSession = async () => {
     if (!pendingDeleteSession) return;
