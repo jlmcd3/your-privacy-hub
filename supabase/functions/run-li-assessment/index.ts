@@ -223,8 +223,11 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
           const provs = Array.isArray(r.statutory_provisions) && r.statutory_provisions.length
             ? ` — citing ${r.statutory_provisions.join(", ")}` : "";
           const tier = tierTagFor(r);
-          const verifiedTag = r.verified === false ? " | UNVERIFIED — omit fine" : "";
-          const fine = r.verified === false ? "—" : `€${r.fine_eur_equivalent || 0}`;
+          const fineUnverified = r.fine_verified === false;
+          const verifiedTag = (r.verified === false || fineUnverified) ? " | UNVERIFIED — omit fine" : "";
+          const fine = (r.verified === false || fineUnverified)
+            ? "—"
+            : (r.fine_eur_equivalent ? `€${Number(r.fine_eur_equivalent).toLocaleString()}` : "n/a");
           return `[E${i + 1} | ${tier}${verifiedTag}] id:${r.id} ${r.subject || "Unnamed"} — ${r.regulator} (${r.jurisdiction}, ${r.decision_date || "n.d."}) — Fine: ${fine} — Failure: ${r.key_compliance_failure || r.violation || "n/a"}${provs}`;
         }).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
