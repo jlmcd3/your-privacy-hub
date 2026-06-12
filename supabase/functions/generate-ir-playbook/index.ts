@@ -5,7 +5,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.2-parallel-continuations-2026-06-12";
+const IR_VERSION = "v3.3-usermsg-continuation-2026-06-12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
