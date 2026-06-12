@@ -77,8 +77,8 @@ async function pollStatus(
 // ─── LIA ─────────────────────────────────────────────────────────────────────
 
 const runLIA: Runner = async ({ userId, log }) => {
-  const intake = blend(LIA_VARIANTS);
-  log(`Blended LIA fixture (sector: ${intake.sector})`);
+  const intake = blend(LIA_VARIANTS, ["sector"]);
+  log(`Blended LIA fixture (sector anchor: ${intake.sector})`);
   log("Inserting li_assessments row…");
   const { data: rec, error: insErr } = await supabase
     .from("li_assessments")
@@ -97,7 +97,7 @@ const runLIA: Runner = async ({ userId, log }) => {
   return {
     targetTable: "li_assessments",
     targetId: rec.id,
-    label: `LIA · ${intake.sector}`,
+    label: `LIA · ${intake.sector} · ${shortId(rec.id)}`,
     resultUrl: `/li-assessment/result/${rec.id}`,
     pdfToolType: "li_assessment",
   };
