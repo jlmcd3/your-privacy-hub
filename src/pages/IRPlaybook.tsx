@@ -74,6 +74,7 @@ export default function IRPlaybook() {
   const { clientId } = useActiveClient();
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");
   const [form, setForm] = useState({
+    organizationName: "",
     discoveryDateTime: new Date().toISOString().slice(0, 16),
     cause: CAUSES[0], dataTypes: [] as string[], affectedCount: COUNTS[2],
     jurisdictions: [] as string[], processorInvolved: false, processorName: "",
@@ -93,6 +94,10 @@ export default function IRPlaybook() {
     setForm(f => ({ ...f, [key]: f[key].includes(v) ? f[key].filter(x => x !== v) : [...f[key], v] }));
 
   const handleGenerate = async () => {
+    if (!form.organizationName.trim()) {
+      toast.error("Organisation required", { description: "Tell us the name of the organisation the playbook is for." });
+      return;
+    }
     const discoveryDate = new Date(form.discoveryDateTime);
     if (isNaN(discoveryDate.getTime()) || discoveryDate > new Date()) {
       toast.error("Invalid date", {
