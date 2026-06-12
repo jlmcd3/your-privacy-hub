@@ -254,14 +254,23 @@ ${(report.top_three_risks || []).map((r: any) =>
     `<li><strong>${a.action || ""}</strong> — ${a.owner || ""}, ${a.timeline || ""}</li>`
   ).join("")}</ul>
 <h2>Domain Findings</h2>
-${Object.values(domains).map((dn: any) =>
-    `<div class="domain"><h3>${dn.domain_name || ""} <span class="severity" style="background:${severityColor[dn.severity] || "#5c5a54"}">${dn.severity || ""}</span></h3>
+${(() => {
+    const entries = Object.values(domains) as any[];
+    const withId = entries.filter((d) => d?.domain_id != null);
+    const withoutId = entries.filter((d) => d?.domain_id == null);
+    withId.sort((a, b) => Number(a.domain_id) - Number(b.domain_id));
+    return [...withId, ...withoutId].map((dn: any) => {
+      const heading = dn?.domain_id != null
+        ? `Domain ${dn.domain_id} — ${dn.domain_name || ""}`
+        : (dn.domain_name || "");
+      return `<div class="domain"><h3>${heading} <span class="severity" style="background:${severityColor[dn.severity] || "#5c5a54"}">${dn.severity || ""}</span></h3>
 <p class="label">Current state</p><p>${dn.current_state || ""}</p>
 ${dn.gap_description ? `<p class="label">Gap</p><p>${dn.gap_description}</p>` : ""}
 <p class="label">Regulatory basis</p><p>${dn.regulatory_basis || ""}</p>
 <p class="label">Recommended action</p><p><strong>${dn.recommended_action || ""}</strong></p>
-<p class="meta">${dn.suggested_owner || ""} &nbsp;|&nbsp; ${dn.suggested_timeline || ""}</p></div>`
-  ).join("")}
+<p class="meta">${dn.suggested_owner || ""} &nbsp;|&nbsp; ${dn.suggested_timeline || ""}</p></div>`;
+    }).join("");
+  })()}
 <h2>Cross-Domain Considerations</h2>
 <p>${report.interaction_effects || ""}</p>
 <div class="disclaimer">${report.disclaimer || ""}</div>
@@ -351,12 +360,20 @@ type TextBlock =
   | { type: "subhead"; text: string; trailing?: string }
   | { type: "para"; text: string }
   | { type: "ol"; items: { num: string; text: string }[] }
-  | { type: "ul"; items: string[] };
+  | { type: "ul"; items: string[] }
+  | { type: "table"; header: string[]; rows: string[][] };
+
+const PIPE_SEP_ROW_RE = /^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/;
+function splitPipeRow(s: string): string[] {
+  const t = s.trim().replace(/^\|/, "").replace(/\|$/, "");
+  return t.split("|").map((c) => c.trim());
+}
 
 function parseTextBlocks(body: string): TextBlock[] {
   const lines = body.replace(/\r\n/g, "\n").split("\n");
   const blocks: TextBlock[] = [];
   const subheadRe = /^\*\*([^*]+?):\*\*\s*(.*)$/;
+  const numberedSubheadRe = /^(\d+\.\d+)\s+(.+)$/;
   const numberedRe = /^(\d+)\.\s+(.*)$/;
   const bulletRe = /^[-•]\s+(.*)$/;
   let i = 0;
@@ -364,9 +381,35 @@ function parseTextBlocks(body: string): TextBlock[] {
     const line = lines[i].trim();
     if (!line) { i++; continue; }
     if (/^[-*_]{3,}$/.test(line)) { i++; continue; }
+
+    // Markdown pipe table: current line has '|' and next non-empty line is a separator row
+    if (line.includes("|")) {
+      let j = i + 1;
+      while (j < lines.length && !lines[j].trim()) j++;
+      if (j < lines.length && PIPE_SEP_ROW_RE.test(lines[j].trim())) {
+        const header = splitPipeRow(line);
+        const rows: string[][] = [];
+        i = j + 1;
+        while (i < lines.length) {
+          const cur = lines[i].trim();
+          if (!cur || !cur.includes("|")) break;
+          if (PIPE_SEP_ROW_RE.test(cur)) { i++; continue; }
+          rows.push(splitPipeRow(cur));
+          i++;
+        }
+        blocks.push({ type: "table", header, rows });
+        continue;
+      }
+    }
+
     const sh = subheadRe.exec(line);
     if (sh) {
       blocks.push({ type: "subhead", text: sh[1].trim(), trailing: sh[2] ? sh[2].trim() : undefined });
+      i++; continue;
+    }
+    const nsh = numberedSubheadRe.exec(line);
+    if (nsh) {
+      blocks.push({ type: "subhead", text: `${nsh[1]} ${nsh[2]}`.trim() });
       i++; continue;
     }
     if (numberedRe.test(line)) {
@@ -375,7 +418,7 @@ function parseTextBlocks(body: string): TextBlock[] {
         const cur = lines[i].trim();
         const m = numberedRe.exec(cur);
         if (m) { items.push({ num: m[1], text: m[2] }); i++; }
-        else if (cur && !subheadRe.test(cur) && !bulletRe.test(cur) && items.length > 0) {
+        else if (cur && !subheadRe.test(cur) && !bulletRe.test(cur) && !numberedSubheadRe.test(cur) && items.length > 0) {
           items[items.length - 1].text += " " + cur; i++;
         } else break;
       }
@@ -388,7 +431,7 @@ function parseTextBlocks(body: string): TextBlock[] {
         const cur = lines[i].trim();
         const m = bulletRe.exec(cur);
         if (m) { items.push(m[1]); i++; }
-        else if (cur && !subheadRe.test(cur) && !numberedRe.test(cur) && items.length > 0) {
+        else if (cur && !subheadRe.test(cur) && !numberedRe.test(cur) && !numberedSubheadRe.test(cur) && items.length > 0) {
           items[items.length - 1] += " " + cur; i++;
         } else break;
       }
@@ -409,6 +452,12 @@ function blocksToHtml(blocks: TextBlock[]): string {
       }</div>`;
     }
     if (b.type === "para") return `<p class="body-p">${renderInlineHtml(b.text)}</p>`;
+    if (b.type === "table") {
+      const head = b.header.map((h) => `<th>${renderInlineHtml(h)}</th>`).join("");
+      const body = b.rows.map((r) =>
+        `<tr>${r.map((c) => `<td>${renderInlineHtml(c)}</td>`).join("")}</tr>`).join("");
+      return `<table class="md-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+    }
     if (b.type === "ol") {
       return `<ol class="num-list">${b.items.map((it) =>
         `<li><span class="num">${escHtml(it.num)}</span><span class="li-body">${renderInlineHtml(it.text)}</span></li>`).join("")}</ol>`;
@@ -422,11 +471,14 @@ function splitTextSections(text: string): Array<{ heading: string | null; body: 
   const lines = text.replace(/\r\n/g, "\n").split("\n");
   const out: Array<{ heading: string | null; body: string }> = [];
   let cur: { heading: string | null; body: string } = { heading: null, body: "" };
+  // Recognize H3 (### ), H2 (## ), and bare "Section N:" lines as new sections.
+  const headingRe = /^(?:###\s+(.+)|##\s+(.+)|(Section\s+\d+:.*))$/;
   for (const line of lines) {
-    const m = /^###\s+(.+)$/.exec(line);
+    const m = headingRe.exec(line);
     if (m) {
+      const h = (m[1] ?? m[2] ?? m[3] ?? "").trim();
       if (cur.heading || cur.body.trim()) out.push(cur);
-      cur = { heading: m[1].trim(), body: "" };
+      cur = { heading: h, body: "" };
     } else { cur.body += (cur.body ? "\n" : "") + line; }
   }
   if (cur.heading || cur.body.trim()) out.push(cur);
@@ -445,6 +497,8 @@ interface TextReportOpts {
   text: string;
   showJurisdictionChip?: boolean;
   callout?: { kind: "warn" | "muted"; title?: string; html: string };
+  /** Optional override for the standard "Not legal advice" disclaimer block. */
+  disclaimerHtml?: string;
 }
 
 function buildTextReportHTML(opts: TextReportOpts): string {
@@ -533,6 +587,9 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     background:var(--accent); margin-top:8px; }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border);
     font-size:10px; color:var(--slate); text-align:center; }
+  table.md-table { border-collapse:collapse; width:100%; font-size:10.5pt; margin:12px 0; }
+  table.md-table th, table.md-table td { border:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top; }
+  table.md-table th { background:var(--silver); font-weight:600; color:var(--navy); }
 </style></head>
 <body><div class="shell">
   <header class="header">
@@ -542,10 +599,10 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
   </header>
   <div class="body">
-    <div class="disclaimer"><span class="kw">Not legal advice.</span>
+    <div class="disclaimer">${opts.disclaimerHtml ?? `<span class="kw">Not legal advice.</span>
       This document is a compliance framework generated for informational purposes only.
       It does not create an attorney-client relationship. Always consult qualified legal
-      counsel for advice specific to your situation.</div>
+      counsel for advice specific to your situation.`}</div>
     ${calloutHtml}
     ${sectionsHtml}
     <div class="footer">EndUserPrivacy.com · Generated ${new Date().toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}</div>
@@ -1288,17 +1345,21 @@ Deno.serve(async (req) => {
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "ir_playbook") {
       const intake = record.intake_data || {};
+      const jurArr: any[] = Array.isArray(intake.jurisdictions) ? intake.jurisdictions : [];
+      const isEUish = jurArr.some((j) =>
+        /EU|GDPR|EEA|UK|United Kingdom|Ireland|Germany|France|Denmark|Netherlands|Spain|Italy/i.test(String(j)));
+      const calloutText = isEUish
+        ? "This playbook and its documentation checklist contribute to your Article 33(5) accountability record."
+        : "This playbook and its documentation checklist contribute to your accountability record under the applicable breach-notification frameworks.";
       html = buildTextReportHTML({
         title: "Your Incident Response Playbook",
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
           (record.organization_name ? ` · ${record.organization_name}` : "") +
-          ((intake.jurisdictions || []).length ? ` · ${intake.jurisdictions.join(", ")}` : ""),
+          (jurArr.length ? ` · ${jurArr.join(", ")}` : ""),
         text: record.playbook_text || "",
         showJurisdictionChip: false,
-        callout: {
-          kind: "muted",
-          html: "This playbook and its documentation checklist contribute to your Article 33(5) accountability record.",
-        },
+        callout: { kind: "muted", html: calloutText },
+        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is an operational incident-response playbook generated from your inputs. Deadlines and notification decisions must be confirmed with qualified legal counsel before reliance during a live incident.`,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "dpa_generator") {
@@ -1308,6 +1369,7 @@ Deno.serve(async (req) => {
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })} · ${intake.legalFramework || "GDPR"}`,
         text: record.document_text || "",
         showJurisdictionChip: false,
+        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is a template legal contract generated from your inputs for review by qualified counsel. It is not a negotiated agreement and must not be executed without legal review. It does not create an attorney-client relationship.`,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_risk") {
