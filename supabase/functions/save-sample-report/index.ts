@@ -225,7 +225,7 @@ function renderDocumentText(text: string): string {
       const level = Math.min(mdMatch[1].length + 1, 6);
       return `<h${level}>${escapeHtml(mdMatch[2])}</h${level}>`;
     }
-    if (t.length < 120 && /^[A-Z0-9][A-Z0-9 .,:;()'"\-/&]+$/.test(t)) {
+    if (t.length < 120 && /^[A-Z0-9][A-Z0-9 .,:;()'"\-\/&]+$/.test(t)) {
       return `<h2>${escapeHtml(t)}</h2>`;
     }
     return `<p>${escapeHtml(t).replace(/\n/g, "<br>")}</p>`;
