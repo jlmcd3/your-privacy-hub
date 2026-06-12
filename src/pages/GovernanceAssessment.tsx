@@ -221,6 +221,11 @@ const GovernanceAssessment = () => {
             <>
               <h2 className="">Gateway Questions</h2>
               <div>
+                <Label htmlFor="org">Organisation being assessed<Req /></Label>
+                <input id="org" type="text" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="e.g. Acme Retail Ltd" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                <p className="text-meta text-muted-foreground mt-1">The organisation whose privacy programme this assessment evaluates.</p>
+              </div>
+              <div>
                 <Label>Q1: Primary sector<Req /></Label>
                 <select value={sector} onChange={(e) => setSector(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
