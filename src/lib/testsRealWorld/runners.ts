@@ -12,6 +12,7 @@ import type { ToolType } from "./ledger";
 import {
   blend,
   pickOne,
+  shortId,
   LIA_VARIANTS,
   DPIA_VARIANTS,
   GOV_VARIANTS,
