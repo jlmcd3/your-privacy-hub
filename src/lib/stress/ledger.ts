@@ -1,6 +1,7 @@
-// Ledger helpers for /admin/tests-realworld.
-// Records every artifact the harness produces so we can list & delete them
+// Ledger helpers for the stress-run layer on /admin/sample-reports.
+// Records every artifact stress runs produce so we can list & delete them
 // without ever touching real subscriber data.
+
 
 import { supabase } from "@/integrations/supabase/client";
 
