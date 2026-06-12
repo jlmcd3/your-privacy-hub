@@ -629,22 +629,9 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return;
         }
 
-        let assembled = assembleFromHalves(partA, partB, partC);
-        let lint = lintReportText(assembled.playbook_text);
+        const assembled = assembleFromHalves(partA, partB, partC);
+        const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
-        if (hasHardViolations(lint)) {
-          try {
-            const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
-            const retry = await generateHalves(
-              `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the playbook again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
-            );
-            partA = retry.partA; partB = retry.partB; partC = retry.partC;
-            assembled = assembleFromHalves(partA, partB, partC);
-            lint = lintReportText(assembled.playbook_text);
-          } catch (e) {
-            console.warn("[generate-ir-playbook] lint retry failed (non-fatal):", e);
-          }
-        }
         for (const v of lint.violations) lintWarnings.push(v);
         const playbook_text = lint.clean;
         const parsedAnnotations = assembled.parsedAnnotations;
