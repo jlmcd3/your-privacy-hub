@@ -652,6 +652,7 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         if (verifyResp.ok) {
           const vData = await verifyResp.json();
           const vText = vData.content?.[0]?.text || "";
+          console.log(`[generate-custom-brief] gen done stop=${vData.stop_reason ?? null} chars=${vText.length}`);
           const vParsed = safeParseLlmJson(vText);
           if (vParsed) verificationResult = vParsed;
         }
