@@ -25,7 +25,7 @@ function stripMd(s: string | undefined | null): string {
     .replace(/^\s*[-_]{3,}\s*$/gm, '');
 }
 
-async function callAnthropic(system: string, user: string, maxTokens: number): Promise<string> {
+async function callAnthropic(system: string, user: string, maxTokens: number): Promise<{ text: string; stopReason: string | null }> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -43,7 +43,10 @@ async function callAnthropic(system: string, user: string, maxTokens: number): P
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
-  return d.content?.[0]?.text || "";
+  const text = d.content?.[0]?.text || "";
+  const stopReason: string | null = d.stop_reason ?? null;
+  console.log(`[run-cppa-cybersecurity] gen done stop=${stopReason} chars=${text.length}`);
+  return { text, stopReason };
 }
 
 const ALL_COMPONENTS: string[] = [
@@ -239,12 +242,22 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     async function callControlsHalf(startIdx: number, endIdx: number, extra: string): Promise<{ controls: any[]; annotations: any[] } | null> {
       const base = buildControlsPrompt(startIdx, endIdx);
       const user = extra ? `${base}\n\n${extra}` : base;
-      const text = await callAnthropic(system, user, 4500);
-      let parsed = tryParseJson(text, `controls_${startIdx}_${endIdx}`);
+      const first = await callAnthropic(system, user, 4500);
+      let parsed: any = null;
+      if (first.stopReason === "max_tokens") {
+        console.warn(`[CPPA Cyber] controls_${startIdx}_${endIdx} truncated_output — skipping parse, retrying at 1.5x`);
+      } else {
+        parsed = tryParseJson(first.text, `controls_${startIdx}_${endIdx}`);
+      }
       if (!parsed || !Array.isArray(parsed.controls)) {
-        // One retry on parse failure
-        const retryText = await callAnthropic(system, `${base}\n\nPREVIOUS ATTEMPT did not return valid JSON. Produce the JSON again, ensuring it is well-formed.`, 4500);
-        parsed = tryParseJson(retryText, `controls_${startIdx}_${endIdx}_retry`);
+        // One retry — at 1.5x tokens when previous attempt truncated.
+        const retryBudget = first.stopReason === "max_tokens" ? Math.ceil(4500 * 1.5) : 4500;
+        const retry = await callAnthropic(system, `${base}\n\nPREVIOUS ATTEMPT did not return valid JSON. Produce the JSON again, ensuring it is well-formed.`, retryBudget);
+        if (retry.stopReason === "max_tokens") {
+          console.error(`[CPPA Cyber] controls_${startIdx}_${endIdx} truncated_output after retry`);
+          return null;
+        }
+        parsed = tryParseJson(retry.text, `controls_${startIdx}_${endIdx}_retry`);
       }
       if (!parsed || !Array.isArray(parsed.controls) || parsed.controls.length === 0) return null;
       return {
@@ -256,11 +269,21 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     async function callSynthesis(controlsDigest: string, computedScore: number, extra: string): Promise<any | null> {
       const base = buildSynthesisPrompt(controlsDigest, computedScore);
       const user = extra ? `${base}\n\n${extra}` : base;
-      const text = await callAnthropic(system, user, 1800);
-      let parsed = tryParseJson(text, "synthesis");
+      const first = await callAnthropic(system, user, 1800);
+      let parsed: any = null;
+      if (first.stopReason === "max_tokens") {
+        console.warn("[CPPA Cyber] synthesis truncated_output — skipping parse, retrying at 1.5x");
+      } else {
+        parsed = tryParseJson(first.text, "synthesis");
+      }
       if (!parsed) {
-        const retryText = await callAnthropic(system, `${base}\n\nPREVIOUS ATTEMPT did not return valid JSON. Produce the JSON again, ensuring it is well-formed.`, 1800);
-        parsed = tryParseJson(retryText, "synthesis_retry");
+        const retryBudget = first.stopReason === "max_tokens" ? Math.ceil(1800 * 1.5) : 1800;
+        const retry = await callAnthropic(system, `${base}\n\nPREVIOUS ATTEMPT did not return valid JSON. Produce the JSON again, ensuring it is well-formed.`, retryBudget);
+        if (retry.stopReason === "max_tokens") {
+          console.error("[CPPA Cyber] synthesis truncated_output after retry");
+          return null;
+        }
+        parsed = tryParseJson(retry.text, "synthesis_retry");
       }
       return parsed;
     }

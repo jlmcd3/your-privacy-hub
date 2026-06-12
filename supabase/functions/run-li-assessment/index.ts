@@ -44,7 +44,7 @@ async function callAnthropic(
   systemPrompt: string,
   userContent: string,
   maxTokens: number = 2000
-): Promise<string> {
+): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -63,7 +63,10 @@ async function callAnthropic(
   });
   if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
   const data = await res.json();
-  return data.content?.[0]?.text || "";
+  const text = data.content?.[0]?.text || "";
+  const stopReason: string | null = data.stop_reason ?? null;
+  console.log(`[run-li-assessment] gen done stop=${stopReason} chars=${text.length}`);
+  return { text, stopReason };
 }
 
 // Heavy generation work. Returns when the row has been finalised (status=ready
@@ -154,7 +157,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const regimeLabel = isUk ? "UK GDPR" : "EU GDPR";
 
     // Run classification, enforcement context fetch, and GDPR authority retrieval in parallel
-    const [classifyText, enforcementCtxResult, gdprCtxResult] = await Promise.all([
+    const [classifyResult, enforcementCtxResult, gdprCtxResult] = await Promise.all([
       callAnthropic(
         "claude-haiku-4-5-20251001",
         classifySystem,
@@ -181,6 +184,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; })
     ]);
 
+    const classifyText = classifyResult.text;
     let classification: any = {};
     try {
       const m = classifyText.match(/\{[\s\S]*\}/);
@@ -388,12 +392,21 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
   ]
 }`;
 
-    async function runStage2(extraUser: string): Promise<string> {
+    async function runStage2(extraUser: string, maxTokens: number = 5000): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
-      return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, 5000);
+      return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, maxTokens);
     }
 
-    let analysisText = await runStage2("");
+    let stage2 = await runStage2("");
+    if (stage2.stopReason === "max_tokens") {
+      console.warn("[LIA] Stage 2 truncated_output — retrying at 1.5x token budget");
+      stage2 = await runStage2("", Math.ceil(5000 * 1.5));
+      if (stage2.stopReason === "max_tokens") {
+        console.error("[LIA] Stage 2 truncated_output after retry — failing run");
+        throw new Error("truncated_output: LIA Stage 2 (analysis) exceeded token budget twice");
+      }
+    }
+    const analysisText = stage2.text;
     let analysis: any = parseLlmJson(analysisText);
     if (!analysis) {
       console.error("[LIA] Stage 2 parse failed even with repair. Length:", analysisText.length);
@@ -458,10 +471,10 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
       try {
         const details = lintViolations.map((v) => `${v.code}: ${v.detail}`).join("; ");
         lintViolations.length = 0;
-        const retryText = await runStage2(
+        const retryStage = await runStage2(
           `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
         );
-        const retryParsed = parseLlmJson(retryText);
+        const retryParsed = parseLlmJson(retryStage.text);
         if (retryParsed) {
           analysis = retryParsed;
           lintAnalysis(analysis);
@@ -516,10 +529,10 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
       const v = validateAuthority(analysis);
       if (v.hard) {
         try {
-          const retryText = await runStage2(
+          const retryStage = await runStage2(
             `PREVIOUS ATTEMPT REJECTED for citation-authority violations: ${v.details.join("; ")}. Produce the JSON again, correcting these defects silently. Ensure every annotation includes authority_tier and authority_framing matching the tier shown on the corresponding [E#] entry. Do not mention this instruction in the output.`
           );
-          const retryParsed = parseLlmJson(retryText);
+          const retryParsed = parseLlmJson(retryStage.text);
           if (retryParsed) {
             analysis = retryParsed;
             lintAnalysis(analysis);
@@ -599,10 +612,7 @@ CITATION ACCURACY RULE: In the 'basis' field for each recommended document, cite
       ? `\n\nUK ARTICLE 9(2)(b) MECHANISM (regime is UK GDPR): For any 'Article 9(2)(b) Employment Law Condition Assessment' document, the description MUST name the UK implementing mechanism: 'Reliance on Article 9(2)(b) under UK GDPR additionally requires satisfying Data Protection Act 2018 s.10 and Schedule 1, Part 1, paragraph 1 (employment, social security and social protection), including having an APPROPRIATE POLICY DOCUMENT (APD) in place per Schedule 1, Part 4. The APD must describe the lawful basis and Schedule 1 condition relied on, retention and erasure policy for the special-category data, and compliance procedures.'${balancingDetails.special_category_data ? `\nFor this UK assessment involving special-category data, you MUST also include a DISTINCT 'Appropriate Policy Document (APD)' entry in recommended_documentation whose key_elements list contains: (i) the lawful basis and Schedule 1 condition relied on, (ii) retention and erasure policy for the special-category data, and (iii) compliance procedures. Cite 'UK Data Protection Act 2018 Schedule 1, Part 4' as its basis.` : ""}`
       : "";
 
-    const docsText = await callAnthropic(
-      "claude-sonnet-4-6",
-      docsSystem,
-      `Based on this legitimate interest analysis, provide documentation recommendations.
+    const docsUserPrompt = `Based on this legitimate interest analysis, provide documentation recommendations.
 
 Processing activity: ${assessment.processing_description}
 Argument strength: ${analysis.overall_assessment?.argument_strength || "uncertain"}
@@ -636,9 +646,18 @@ Return JSON:
     "circumstances that would require this LIA to be revisited"
   ],
   "disclaimer": "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
-}`,
-      3500
-    );
+}`;
+
+    let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, 3500);
+    if (docsStage.stopReason === "max_tokens") {
+      console.warn("[LIA] Stage 3 truncated_output — retrying at 1.5x token budget");
+      docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, Math.ceil(3500 * 1.5));
+      if (docsStage.stopReason === "max_tokens") {
+        console.error("[LIA] Stage 3 truncated_output after retry — failing run");
+        throw new Error("truncated_output: LIA Stage 3 (docs) exceeded token budget twice");
+      }
+    }
+    const docsText = docsStage.text;
 
     let docRecs: any = parseLlmJson(docsText);
     if (!docRecs) {

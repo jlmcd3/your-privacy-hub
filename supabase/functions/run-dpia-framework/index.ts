@@ -13,7 +13,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function callAnthropic(model: string, system: string, user: string, maxTokens = 2500): Promise<string> {
+async function callAnthropic(model: string, system: string, user: string, maxTokens = 2500): Promise<{ text: string; stopReason: string | null }> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -26,7 +26,10 @@ async function callAnthropic(model: string, system: string, user: string, maxTok
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
-  return d.content?.[0]?.text || "";
+  const text = d.content?.[0]?.text || "";
+  const stopReason: string | null = d.stop_reason ?? null;
+  console.log(`[run-dpia-framework] gen done stop=${stopReason} chars=${text.length}`);
+  return { text, stopReason };
 }
 
 Deno.serve(async (req) => {
@@ -289,8 +292,16 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
 
     async function genHalf(prompt: string, extraUser: string): Promise<any> {
       const finalUser = extraUser ? `${prompt}\n\n${extraUser}` : prompt;
-      const t = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, 6000);
-      return parseJsonish(t);
+      let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, 6000);
+      if (r.stopReason === "max_tokens") {
+        console.warn("[DPIA] genHalf truncated_output — retrying once at 1.5x");
+        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, Math.ceil(6000 * 1.5));
+        if (r.stopReason === "max_tokens") {
+          console.error("[DPIA] genHalf truncated_output after retry — returning empty half");
+          return {};
+        }
+      }
+      return parseJsonish(r.text);
     }
 
     let [partA, partB] = await Promise.all([genHalf(promptA, ""), genHalf(promptB, "")]);

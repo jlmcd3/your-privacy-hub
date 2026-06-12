@@ -42,7 +42,7 @@ async function callClaude(
   systemPrompt: string,
   userContent: string,
   maxTokens: number = 4000
-): Promise<string> {
+): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -64,7 +64,10 @@ async function callClaude(
     throw new Error(`Anthropic error ${res.status}: ${txt}`);
   }
   const data = await res.json();
-  return data.content?.[0]?.text || "";
+  const text = data.content?.[0]?.text || "";
+  const stopReason: string | null = data.stop_reason ?? null;
+  console.log(`[generate-registration-docs] gen done stop=${stopReason} chars=${text.length}`);
+  return { text, stopReason };
 }
 
 function fmtFee(cents: number | null | undefined, currency: string | null | undefined): string {
@@ -190,7 +193,8 @@ Facts:
 ${facts}`;
   let resp: string;
   try {
-    resp = await callClaude(HAIKU_MODEL, "You are a precise legal citation auditor. Output ONLY a JSON array.", instruction, 1500);
+    const r0 = await callClaude(HAIKU_MODEL, "You are a precise legal citation auditor. Output ONLY a JSON array.", instruction, 1500);
+    resp = r0.text;
   } catch (e) {
     console.warn("[reg-docs] Haiku citation check failed (non-fatal):", (e as Error).message);
     return { replacements: [], updatedText: text };
@@ -304,14 +308,24 @@ Deno.serve(async (req) => {
           }
 
           // First attempt
-          let raw = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot));
+          const notesEarly: string[] = [];
+          let initial = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot));
+          if (initial.stopReason === "max_tokens") {
+            console.warn(`[reg-docs] ${r.jurisdiction_code}/${docDef.type} truncated_output — retrying once at 5000`);
+            initial = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot), 5000);
+            if (initial.stopReason === "max_tokens") {
+              notesEarly.push("truncated_output: document hit token ceiling twice");
+            }
+          }
+          let raw = initial.text;
           let cleaned = stripMarkdown(raw);
           let failures = validateDocument(cleaned, r, otherAuthorityNames);
 
           // Regenerate once on failure
           if (failures.length > 0) {
             try {
-              raw = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot, failures));
+              const r2 = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot, failures));
+              raw = r2.text;
               cleaned = stripMarkdown(raw);
               failures = validateDocument(cleaned, r, otherAuthorityNames);
             } catch (e) {
@@ -321,6 +335,10 @@ Deno.serve(async (req) => {
 
           let status: "ready" | "needs_review" = "ready";
           const notes: string[] = [];
+          for (const ne of notesEarly) notes.push(ne);
+          if (notesEarly.some((n) => n.startsWith("truncated_output"))) {
+            status = "needs_review";
+          }
           if (failures.length > 0) {
             status = "needs_review";
             notes.push(`Validation: ${failures.join("; ")}`);
@@ -347,7 +365,7 @@ Deno.serve(async (req) => {
                 buildUserPrompt(docDef, r, orgSnapshot, [`lint: ${details}`]) +
                 `\n\nPREVIOUS DRAFT REJECTED by automated lint for: ${details}. Reproduce the document correcting these defects silently. Do not mention this instruction.`,
               );
-              const retryCleaned = stripMarkdown(retryRaw);
+              const retryCleaned = stripMarkdown(retryRaw.text);
               const retryLint = lintReportText(retryCleaned, {
                 checkDates: true, checkUnresolvedTokens: true, referenceDate,
               });

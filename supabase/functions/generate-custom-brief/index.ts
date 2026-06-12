@@ -132,6 +132,7 @@ SCORING PRINCIPLES:
     if (!resp.ok) return articles;
     const data = await resp.json();
     const text = data.content?.[0]?.text || "";
+    console.log(`[generate-custom-brief] gen done stop=${data.stop_reason ?? null} chars=${text.length}`);
     const match = text.match(/\[[\s\S]*\]/);
     if (!match) return articles;
     const scores: { index: number; score: number }[] = JSON.parse(match[0]);
@@ -611,6 +612,7 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
       }
       const data = await response.json();
       const text = data.content?.[0]?.text || "";
+      console.log(`[generate-custom-brief] gen done stop=${data.stop_reason ?? null} chars=${text.length}`);
       const customSections = safeParseLlmJson(text);
       if (!customSections) {
         console.error(`Custom brief JSON parse failed for user ${user.id}. Length: ${text.length}. Tail: ${text.slice(-200)}`);
@@ -650,6 +652,7 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
         if (verifyResp.ok) {
           const vData = await verifyResp.json();
           const vText = vData.content?.[0]?.text || "";
+          console.log(`[generate-custom-brief] gen done stop=${vData.stop_reason ?? null} chars=${vText.length}`);
           const vParsed = safeParseLlmJson(vText);
           if (vParsed) verificationResult = vParsed;
         }
