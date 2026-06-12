@@ -161,6 +161,7 @@ const CPPASuiteResult = lazy(() => import("./pages/CPPASuiteResult.tsx"));
 const CPPAAdmtPlaceholder = lazy(() => import("./pages/CPPAAdmtPlaceholder.tsx"));
 const TestsDashboard = lazy(() => import("./pages/admin/TestsDashboard.tsx"));
 const TestsOutput = lazy(() => import("./pages/admin/TestsOutput.tsx"));
+const TestsRealWorld = lazy(() => import("./pages/admin/TestsRealWorld.tsx"));
 const CorpusExtractionAdmin = lazy(() => import("./pages/admin/CorpusExtractionAdmin"));
 const VerificationScanAdmin = lazy(() => import("./pages/admin/VerificationScanAdmin"));
 const PrimarySourceFetcher = lazy(() => import("./pages/admin/PrimarySourceFetcher"));
@@ -775,6 +776,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <TestsOutput />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/tests-realworld"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <TestsRealWorld />
                   </AdminOnly>
                 </ProtectedRoute>
               }

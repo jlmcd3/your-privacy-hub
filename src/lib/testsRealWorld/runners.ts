@@ -9,6 +9,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { ToolType } from "./ledger";
+export type { ToolType };
 
 export interface RunnerResult {
   targetTable: string;
