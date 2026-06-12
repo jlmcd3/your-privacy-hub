@@ -346,7 +346,6 @@ export default function AdminSampleReports() {
   }, [samples]);
 
   async function reloadSamples() {
-    if (!adminToken) return;
     try {
       const { rows } = await callSaveSampleReport(adminToken, "list", {});
       setSamples(rows as SampleRow[]);
@@ -355,7 +354,7 @@ export default function AdminSampleReports() {
     }
   }
 
-  useEffect(() => { if (adminToken) reloadSamples(); /* eslint-disable-next-line */ }, [adminToken]);
+  useEffect(() => { reloadSamples(); /* eslint-disable-next-line */ }, []);
 
   const setRun = (key: string, patch: Partial<RunState>) =>
     setRuns((r) => ({ ...r, [key]: { ...(r[key] ?? EMPTY_RUN), ...patch } }));
@@ -381,7 +380,6 @@ export default function AdminSampleReports() {
   }
 
   async function onSaveAsSample(fix: SampleFixture) {
-    if (!adminToken) { toast.error("Admin token required"); return; }
     const key = `${fix.tool_slug}::${fix.variant}`;
     const run = runs[key];
     if (!run?.sourceRowId) { toast.error("Generate first"); return; }
@@ -404,7 +402,6 @@ export default function AdminSampleReports() {
   }
 
   async function onGeneratePdf(fix: SampleFixture) {
-    if (!adminToken) { toast.error("Admin token required"); return; }
     const key = `${fix.tool_slug}::${fix.variant}`;
     const run = runs[key];
     if (!run?.sourceRowId || run.status !== "complete") {
@@ -431,7 +428,6 @@ export default function AdminSampleReports() {
   }
 
   async function onSetStatus(sample: SampleRow, status: string) {
-    if (!adminToken) { toast.error("Admin token required"); return; }
     setBusy(`status::${sample.id}`);
     try {
       await callSaveSampleReport(adminToken, "set_status", { id: sample.id, status });
@@ -443,7 +439,6 @@ export default function AdminSampleReports() {
   }
 
   async function onAttachPdf(sample: SampleRow, file: File) {
-    if (!adminToken) { toast.error("Admin token required"); return; }
     setBusy(`pdf::${sample.id}`);
     try {
       const buf = await file.arrayBuffer();
@@ -471,8 +466,8 @@ export default function AdminSampleReports() {
         </header>
 
         <div className="border rounded-lg bg-card p-4 space-y-2">
-          <Label htmlFor="admin-token">Admin token</Label>
-          <Input id="admin-token" type="password" value={adminToken} onChange={(e) => setAdminToken(e.target.value)} placeholder="ADMIN_SECRET_TOKEN" />
+          <Label htmlFor="admin-token">Admin token <span className="text-xs text-muted-foreground font-normal">(optional — your admin login already authorizes you)</span></Label>
+          <Input id="admin-token" type="password" value={adminToken} onChange={(e) => setAdminToken(e.target.value)} placeholder="ADMIN_SECRET_TOKEN (optional)" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -507,7 +502,7 @@ export default function AdminSampleReports() {
                   <Button
                     size="sm"
                     onClick={() => onGeneratePdf(fix)}
-                    disabled={!adminToken || run.status !== "complete" || busy === `pdfgen::${key}`}
+                    disabled={run.status !== "complete" || busy === `pdfgen::${key}`}
                     title={run.status !== "complete" ? "Generate the report first" : "Render PDF via PDFShift"}
                   >
                     {busy === `pdfgen::${key}` ? "Rendering PDF…" : "Generate PDF (PDFShift)"}
