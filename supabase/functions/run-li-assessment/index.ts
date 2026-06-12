@@ -44,7 +44,7 @@ async function callAnthropic(
   systemPrompt: string,
   userContent: string,
   maxTokens: number = 2000
-): Promise<string> {
+): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -63,7 +63,10 @@ async function callAnthropic(
   });
   if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
   const data = await res.json();
-  return data.content?.[0]?.text || "";
+  const text = data.content?.[0]?.text || "";
+  const stopReason: string | null = data.stop_reason ?? null;
+  console.log(`[run-li-assessment] gen done stop=${stopReason} chars=${text.length}`);
+  return { text, stopReason };
 }
 
 // Heavy generation work. Returns when the row has been finalised (status=ready
