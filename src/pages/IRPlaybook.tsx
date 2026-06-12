@@ -108,10 +108,13 @@ export default function IRPlaybook() {
     logToolAcknowledgment("ir_playbook", access.user?.id ?? null);
     setPhase("generating");
     const { data, error } = await supabase.functions.invoke("generate-ir-playbook", { body: { ...form, user_id: access.user?.id, client_id: clientId ?? null } });
-    if (error || !data?.playbook_text) { setResult("Generation failed. Please try again."); setPhase("result"); return; }
-    setResult(data.playbook_text);
-    if (data?.id) { navigate(`/ir-playbook/result/${data.id}`); return; }
-    setPhase("result");
+    if (error || !data?.id) {
+      setResult("Generation failed. Please try again.");
+      setPhase("result");
+      return;
+    }
+    // Backend returns 202 + { id }; result page polls ir_playbooks.status.
+    navigate(`/ir-playbook/result/${data.id}`);
   };
 
   const handlePurchase = async () => {
