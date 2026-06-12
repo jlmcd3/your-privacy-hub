@@ -20,7 +20,34 @@ const ALLOWED_TABLES = new Set<string>([
   "dpa_documents",
   "ir_playbooks",
   "custom_briefs",
+  "ropa_sessions",
+  "us_notice_sessions",
+  "eu_notice_sessions",
+  "registration_orders",
+  "registration_assessments",
+  "cppa_assessments",
 ]);
+
+// Child rows that don't cascade — delete them before the parent.
+const CHILD_TABLES: Record<string, { table: string; fk: string }[]> = {
+  ropa_sessions: [
+    { table: "ropa_document_versions", fk: "session_id" },
+    { table: "ropa_answers", fk: "session_id" },
+    { table: "ropa_processing_activities", fk: "session_id" },
+    { table: "ropa_flags", fk: "session_id" },
+    { table: "ropa_noted_regulatory_updates", fk: "session_id" },
+  ],
+  us_notice_sessions: [
+    { table: "us_notice_documents", fk: "session_id" },
+    { table: "us_notice_answers", fk: "session_id" },
+    { table: "us_notice_state_selections", fk: "session_id" },
+  ],
+  eu_notice_sessions: [
+    { table: "eu_notice_documents", fk: "session_id" },
+    { table: "eu_notice_answers", fk: "session_id" },
+    { table: "eu_notice_framework_selections", fk: "session_id" },
+  ],
+};
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -91,6 +118,17 @@ Deno.serve(async (req) => {
   for (const row of ledgerRows) {
     if (!ALLOWED_TABLES.has(row.target_table)) {
       results.push({ ...row, ok: false, error: "table_not_whitelisted" });
+      continue;
+    }
+    // Clean non-cascading child rows first.
+    const children = CHILD_TABLES[row.target_table] || [];
+    let childErr: string | null = null;
+    for (const c of children) {
+      const { error } = await admin.from(c.table).delete().eq(c.fk, row.target_id);
+      if (error) { childErr = `${c.table}: ${error.message}`; break; }
+    }
+    if (childErr) {
+      results.push({ ...row, ok: false, error: childErr });
       continue;
     }
     const { error: delErr } = await admin

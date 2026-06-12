@@ -34,7 +34,7 @@ type RunState = {
   error?: string;
 };
 
-const GROUP_ORDER = ["Assessments", "Documents", "Briefing"] as const;
+const GROUP_ORDER = ["Assessments", "Documents", "Notices", "Registration", "CPPA", "Briefing"] as const;
 
 export default function TestsRealWorld() {
   const { user } = useAuth();
@@ -196,13 +196,13 @@ export default function TestsRealWorld() {
             </div>
           </header>
 
-          <Card className="p-3 border border-amber-300 bg-amber-50">
-            <p className="text-xs text-amber-900 flex items-start gap-2">
+          <Card className="p-3 border border-emerald-300 bg-emerald-50">
+            <p className="text-xs text-emerald-900 flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>
-                <strong>Phase 1:</strong> 7 of the 18 subscriber tools are wired (assessments, DPA, IR Playbook, Brief).
-                RoPA, US/EU Notice Builders, Registration and the three CPPA modules use multi-step intake flows
-                and will be added next — they currently still run from <Link to="/admin/tests-output" className="underline">/admin/tests-output</Link>.
+                All {TOOLS.length} subscriber tools wired. Each run calls the same edge functions and
+                writes to the same tables a paying subscriber would. Generated rows are tagged in the
+                harness ledger so <strong>Delete all</strong> never touches real subscriber data.
               </span>
             </p>
           </Card>
@@ -286,16 +286,21 @@ export default function TestsRealWorld() {
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">
                                     {(() => {
-                                      const viewBase: Record<ToolType, string | null> = {
+                                      const viewBase: Partial<Record<ToolType, string>> = {
                                         lia: `/li-assessment/result/${a.target_id}`,
                                         dpia: `/dpia-framework/result/${a.target_id}`,
                                         governance: `/governance-assessment/result/${a.target_id}`,
                                         biometric: `/biometric-checker/result/${a.target_id}`,
                                         dpa: `/dpa-generator/result/${a.target_id}`,
                                         "ir-playbook": `/ir-playbook/result/${a.target_id}`,
-                                        brief: null,
+                                        "cppa-risk": `/cppa-risk-assessment/result/${a.target_id}`,
+                                        "cppa-cyber": `/cppa-cybersecurity/result/${a.target_id}`,
+                                        ropa: `/ropa/documents`,
+                                        "us-notice": `/us-notices/result/${a.target_id}`,
+                                        "eu-notice": `/eu-notices/result/${a.target_id}`,
+                                        registration: `/registration/order/${a.target_id}`,
                                       };
-                                      const pdfMap: Record<ToolType, RunnerPdfTool | null> = {
+                                      const pdfMap: Partial<Record<ToolType, RunnerPdfTool>> = {
                                         lia: "li_assessment",
                                         dpia: "dpia_framework",
                                         governance: "governance_assessment",
