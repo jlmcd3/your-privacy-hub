@@ -521,8 +521,15 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           for (const p of parts) {
             const v = validatePart(p.text, p.which);
             if (!v.ok) {
-              console.warn(`[IR Playbook] Part ${p.which} failed validation (${v.reason}); tail-continuing at 4000`);
-              const continued = await continuePart(p.which, extra, p.text, 4000, 200_000);
+              const onlyTerminal = v.reason?.startsWith("last line not terminally punctuated") ?? false;
+              if (onlyTerminal) {
+                // Post furniture-filter, this path should be vanishingly rare. Log the
+                // full offending line (not truncated) so the filter can be extended.
+                console.warn(`[IR Playbook] Part ${p.which} terminal-punctuation only; full last line: ${v.reason}`);
+              } else {
+                console.warn(`[IR Playbook] Part ${p.which} failed validation (${v.reason}); tail-continuing at 4000`);
+              }
+              const continued = await continuePart(p.which, extra, p.text, 4000, 200_000, onlyTerminal);
               const v2 = validatePart(continued, p.which);
               if (!v2.ok) {
                 if (p.which === "A") partA = continued;
