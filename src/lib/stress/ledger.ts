@@ -12,7 +12,7 @@ export type ToolType =
   | "biometric"
   | "dpa"
   | "ir-playbook"
-  | "brief"
+  
   | "ropa"
   | "us-notice"
   | "eu-notice"
