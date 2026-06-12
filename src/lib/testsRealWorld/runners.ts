@@ -56,7 +56,7 @@ export type Runner = (ctx: RunnerCtx) => Promise<RunnerResult>;
 // ─── shared poller ───────────────────────────────────────────────────────────
 
 async function pollStatus(
-  table: "li_assessments" | "dpia_frameworks" | "governance_assessments" | "ropa_sessions" | "eu_notice_sessions" | "ir_playbooks",
+  table: "li_assessments" | "dpia_frameworks" | "governance_assessments" | "ropa_sessions" | "eu_notice_sessions" | "ir_playbooks" | "dpa_documents",
   id: string,
   maxPolls: number,
   intervalMs: number,
@@ -70,6 +70,7 @@ async function pollStatus(
     ropa_sessions: "generated",
     eu_notice_sessions: "generated",
     ir_playbooks: "complete",
+    dpa_documents: "complete",
   };
   const successStatus = successByTable[table];
   for (let i = 0; i < maxPolls; i++) {
@@ -211,6 +212,8 @@ const runDPA: Runner = async ({ userId, log }) => {
   if (error || !data?.id) {
     throw new Error(error?.message || data?.error || "no id returned");
   }
+  log(`Async generation started (202); polling dpa_documents for completion…`);
+  await pollStatus("dpa_documents", data.id, 60, 4000, log);
   return {
     targetTable: "dpa_documents",
     targetId: data.id,

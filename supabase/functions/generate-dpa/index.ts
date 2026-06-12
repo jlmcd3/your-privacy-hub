@@ -96,11 +96,30 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const body = (await req.json()) as Body;
+    let body = (await req.json()) as Body;
     // Trust user identity only from the verified JWT; internal webhook
     // callers may pass user_id in the body (service-role bearer).
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
 
+    // Row-first dispatch — on the webhook path (payments-webhook invokes with
+    // only { assessment_id }), hydrate body from the stored intake_data BEFORE
+    // validating. Then create/update the row with status='processing' and
+    // dispatch the heavy work via EdgeRuntime.waitUntil, returning 202.
+    let rowId: string;
+    if (body.assessment_id) {
+      const { data: row, error: rowErr } = await supabase
+        .from("dpa_documents")
+        .select("id, intake_data, client_id")
+        .eq("id", body.assessment_id)
+        .maybeSingle();
+      if (rowErr || !row) {
+        return new Response(JSON.stringify({ error: "DPA document not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      body = { ...((row.intake_data as any) ?? {}), ...body };
+    }
 
     // Minimal validation
     const required = ["controllerName", "controllerJurisdiction", "processorName", "processorJurisdiction", "services"];
@@ -112,6 +131,47 @@ Deno.serve(async (req) => {
         });
       }
     }
+
+    if (body.assessment_id) {
+      await supabase
+        .from("dpa_documents")
+        .update({ status: "processing", intake_data: body, updated_at: new Date().toISOString() })
+        .eq("id", body.assessment_id);
+      rowId = body.assessment_id;
+    } else {
+      const { data: inserted, error: insErr } = await supabase
+        .from("dpa_documents")
+        .insert({
+          user_id: resolvedUserId,
+          client_id: (body as any).client_id ?? null,
+          status: "processing",
+          intake_data: body,
+        })
+        .select("id")
+        .single();
+      if (insErr || !inserted) {
+        console.error("[generate-dpa] insert failed:", insErr);
+        return new Response(JSON.stringify({ error: "Failed to create DPA row" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      rowId = inserted.id;
+    }
+
+    if (!LOVABLE_API_KEY) {
+      await supabase.from("dpa_documents").update({
+        status: "failed",
+        updated_at: new Date().toISOString(),
+      }).eq("id", rowId);
+      return new Response(JSON.stringify({ error: "AI generation is not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const runBackground = async () => {
+      try {
     // Resolve document type (from request or jurisdictional inference)
     const documentType = detectDocType(
       body.controllerJurisdiction,
@@ -197,13 +257,9 @@ Deno.serve(async (req) => {
             .join("\n\n")
         : "No specific enforcement precedents retrieved for these parameters.";
 
-    // Step 3 — Draft via Lovable AI Gateway
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "AI generation is not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Step 3 — Draft via Lovable AI Gateway (LOVABLE_API_KEY presence already verified before dispatch)
+
+
 
     const GDPR_SYSTEM = `You are a senior data protection counsel specialising in GDPR compliance. Draft a complete, legally rigorous controller-processor Data Processing Agreement (DPA) compliant with GDPR Article 28. The agreement must be immediately usable as a professional document without further editing, except where fields are explicitly marked [TO BE COMPLETED].
 
@@ -478,9 +534,9 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     }
 
 
-    async function callAi(extraUser: string): Promise<string> {
+    async function callAi(extraUser: string, timeoutMs: number = 240_000): Promise<string> {
       const aiController = new AbortController();
-      const aiTimeout = setTimeout(() => aiController.abort(), 180_000);
+      const aiTimeout = setTimeout(() => aiController.abort(), timeoutMs);
       const finalUser = extraUser ? `${userPrompt}\n\n${extraUser}` : userPrompt;
       const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -547,10 +603,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     try {
       fullText = await callAi("");
     } catch (_e) {
-      return new Response(JSON.stringify({ error: "AI generation failed" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new Error("AI generation failed");
     }
 
     let parsed = parseDpa(fullText);
@@ -559,7 +612,8 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       try {
         const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
         const retryText = await callAi(
-          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the document again, correcting these defects silently. Do not mention this instruction or the defects in the document.`
+          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the document again, correcting these defects silently. Do not mention this instruction or the defects in the document.`,
+          200_000,
         );
         const retryParsed = parseDpa(retryText);
         const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
@@ -569,14 +623,11 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         console.warn("[DPA] lint retry failed (non-fatal):", e);
       }
     }
-    let dpa_text = lint.clean;
-    let parsedAnnotations = parsed.annotations;
+    const dpa_text = lint.clean;
+    const parsedAnnotations = parsed.annotations;
 
     if (!dpa_text.trim()) {
-      return new Response(JSON.stringify({ error: "AI generation returned an empty document" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new Error("AI generation returned an empty document");
     }
 
     const report_data = {
@@ -587,55 +638,32 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       generated_at: new Date().toISOString(),
     };
 
-    let savedId: string | null = null;
-    try {
-      if (body.assessment_id) {
-        const { data, error } = await supabase
-          .from("dpa_documents")
-          .update({
-            status: "complete",
-            intake_data: body,
-            document_text: dpa_text,
-            report_data,
-            lint_warnings: lint.violations,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", body.assessment_id)
-          .select("id")
-          .maybeSingle();
-        if (error) throw error;
-        savedId = data?.id ?? body.assessment_id;
-      } else {
-        const { data, error } = await supabase
-          .from("dpa_documents")
-          .insert({
-            user_id: resolvedUserId,
-            client_id: (body as any).client_id ?? null,
-            status: "complete",
-            intake_data: body,
-            document_text: dpa_text,
-            report_data,
-            lint_warnings: lint.violations,
-          })
-          .select("id")
-          .single();
-        if (error) throw error;
-        savedId = data.id;
-      }
-    } catch (persistErr) {
-      console.error("dpa_documents persist failed:", persistErr);
+    const { error: updateErr } = await supabase
+      .from("dpa_documents")
+      .update({
+        status: "complete",
+        intake_data: body,
+        document_text: dpa_text,
+        report_data,
+        lint_warnings: lint.violations,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", rowId);
+    if (updateErr) {
+      console.error("dpa_documents persist failed:", updateErr);
+      throw updateErr;
     }
 
     // C4 RoPA accumulator: third-party processor onboarding is a RoPA event
     const dpaClientId = (body as any).client_id as string | null | undefined;
-    if (savedId && dpaClientId) {
+    if (dpaClientId) {
       const processorName = (body as any).processor_name || (body as any).vendor_name || "third-party processor";
       const purpose = (body as any).processing_purpose || (body as any).description || "Data sharing with processor";
       supabase.functions.invoke("accumulate-ropa-activity", {
         body: {
           client_id: dpaClientId,
           source_tool: "dpa_generator",
-          source_assessment_id: savedId,
+          source_assessment_id: rowId,
           display_name: `Processor: ${String(processorName).slice(0, 80)}`,
           source_summary: String(purpose),
           is_high_risk: false,
@@ -643,16 +671,21 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         },
       }).catch((e: Error) => console.error("[dpa] accumulate-ropa failed (non-fatal):", e.message));
     }
+      } catch (bgErr) {
+        console.error("[generate-dpa] background error:", bgErr);
+        await supabase.from("dpa_documents").update({
+          status: "failed",
+          updated_at: new Date().toISOString(),
+        }).eq("id", rowId);
+      }
+    };
 
+    // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
+    EdgeRuntime.waitUntil(runBackground());
 
     return new Response(
-      JSON.stringify({
-        id: savedId,
-        dpa_text,
-        enforcement_precedents: report_data.enforcement_precedents,
-        generated_at: report_data.generated_at,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: true, id: rowId, status: "processing" }),
+      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
     console.error("generate-dpa error:", e);

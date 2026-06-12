@@ -84,15 +84,13 @@ export default function DPAGenerator() {
       timeout,
     ]).catch((error) => ({ data: null, error }));
     const { data, error } = response;
-    if (error || !data?.dpa_text) {
+    if (error || !data?.id) {
       const msg = (data as any)?.error || error?.message || "Generation failed. Please try again.";
       setResult(`Generation failed: ${msg}`);
       setPhase("result");
       return;
     }
-    setResult(data.dpa_text);
-    if (data?.id) { navigate(`/dpa-generator/result/${data.id}`); return; }
-    setPhase("result");
+    navigate(`/dpa-generator/result/${data.id}`);
   };
 
   const handlePurchase = async () => {
