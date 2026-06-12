@@ -301,7 +301,7 @@ For each jurisdiction listed, state: (a) the notification threshold test, (b) wh
 ## Section 3: REGULATORY NOTIFICATION TIMELINE
 For each jurisdiction: the deadline (hours from discovery), the notification portal URL (use the portals provided above), the minimum content required for initial notification, what can be filed as preliminary versus what must follow, and – based on the enforcement context – specific omissions that have been penalised. If a processor is involved, include a dedicated step titled "Processor notification" describing how and when the processor must be notified.
 
-Output ONLY Sections 1–3. No preamble, no commentary, no Sections 4–7, no annotations.`;
+Output ONLY Sections 1–3. No preamble, no commentary, no Sections 4–7, no annotations. Do not end your output with a horizontal rule or divider line.`;
 
         const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate PART B (Sections 4–5) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
