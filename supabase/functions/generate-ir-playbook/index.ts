@@ -301,7 +301,7 @@ For each jurisdiction listed, state: (a) the notification threshold test, (b) wh
 ## Section 3: REGULATORY NOTIFICATION TIMELINE
 For each jurisdiction: the deadline (hours from discovery), the notification portal URL (use the portals provided above), the minimum content required for initial notification, what can be filed as preliminary versus what must follow, and – based on the enforcement context – specific omissions that have been penalised. If a processor is involved, include a dedicated step titled "Processor notification" describing how and when the processor must be notified.
 
-Output ONLY Sections 1–3. No preamble, no commentary, no Sections 4–7, no annotations.`;
+Output ONLY Sections 1–3. No preamble, no commentary, no Sections 4–7, no annotations. Do not end your output with a horizontal rule or divider line.`;
 
         const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate PART B (Sections 4–5) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
@@ -317,7 +317,7 @@ Step-by-step logic for determining whether individuals must be notified, with ju
 (b) An individual notification template if individual notification is required.
 Mark all placeholder fields [IN SQUARE BRACKETS]. The word "template" MUST appear in this section heading or body at least twice.
 
-Output ONLY Sections 4–5. No preamble, no commentary, do NOT output Sections 1–3 or 6–7, no annotations.`;
+Output ONLY Sections 4–5. No preamble, no commentary, do NOT output Sections 1–3 or 6–7, no annotations. Do not end your output with a horizontal rule or divider line.`;
 
         const PROMPT_PART_C = `You are a senior data protection incident response specialist. Generate PART C (Sections 6–7 plus the ===ANNOTATIONS=== block) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
@@ -345,7 +345,7 @@ followed by a JSON array of enforcement citations that directly supported a time
 }
 If no cases informed the playbook, output an empty array [].
 
-Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT output Sections 1–5.`;
+Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT output Sections 1–5. Do not end your output with a horizontal rule or divider line.`;
 
         // LEGAL CONSTANTS — verified 2026-06-12 against statute text.
         // R6 (2026-06-12): NY corrected to 30-day hard deadline (S2659B, eff. 21 Dec 2024) +
@@ -443,6 +443,14 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
         const PART_B_HEADINGS = ["## Section 4:", "## Section 5:"];
         const PART_C_HEADINGS = ["## Section 6:", "## Section 7:"];
         const TERMINAL_RE = /[\.\:\?\!\)\]\}"'»”’](\s|$)/;
+        // Lines that are visual "furniture" (horizontal rules, bare heading/blockquote
+        // markers with no text) and must be skipped when locating the substantive
+        // last line for terminal-punctuation checking.
+        const FURNITURE_RE = /^[\s\-\*_=—–]+$/;
+        const BARE_MARKER_RE = /^(?:#+|>+)\s*$/;
+        function isFurniture(line: string): boolean {
+          return FURNITURE_RE.test(line) || BARE_MARKER_RE.test(line);
+        }
 
         function validatePart(text: string, which: "A" | "B" | "C"): { ok: boolean; reason?: string } {
           if (!text || !text.trim()) return { ok: false, reason: "empty" };
@@ -457,9 +465,16 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
             ? text.slice(0, text.indexOf("===ANNOTATIONS==="))
             : text;
           const lines = beforeAnnot.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-          const last = lines[lines.length - 1] ?? "";
-          if (!TERMINAL_RE.test(last + " ")) {
-            return { ok: false, reason: `last line not terminally punctuated: "${last.slice(-80)}"` };
+          // Walk backwards past furniture (horizontal rules, bare # / > markers).
+          let idx = lines.length - 1;
+          while (idx >= 0 && isFurniture(lines[idx])) idx--;
+          if (idx < 0) return { ok: false, reason: "no substantive content" };
+          const last = lines[idx];
+          // Accept terminal punctuation OR a markdown table row ending in '|'
+          // (Section 3's notification matrix legitimately ends in a table).
+          const endsWithTablePipe = /\|\s*$/.test(last);
+          if (!endsWithTablePipe && !TERMINAL_RE.test(last + " ")) {
+            return { ok: false, reason: `last line not terminally punctuated: "${last}"` };
           }
           return { ok: true };
         }
@@ -473,12 +488,15 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
         // Tail-continuation retry: feed the model its own truncated output as an
         // assistant prefill and ask it to continue. Capped at 4000 tokens / 200s.
         // Applied per-part to whichever part fails its validator.
-        async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<string> {
+        async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number, terminalOnly = false): Promise<string> {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           const tail = which === "C"
             ? "Finish any in-progress section, then produce any remaining required sections you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop."
             : "Finish any in-progress section, then produce any remaining required sections for this part you have not yet completed, then stop.";
-          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\nYour previous attempt was cut off mid-output. Continue from EXACTLY where the assistant message ends — do not repeat any content already produced, do not re-output earlier sections, and do not add a preamble. ${tail}`;
+          const lead = terminalOnly
+            ? "Your previous output appears substantively complete but ended with a non-terminal closing line (e.g. a horizontal rule). Continue from EXACTLY where the assistant message ends — do not repeat any content, do not re-output earlier sections, and do not add a preamble. Add only what is strictly required to make the output well-formed (a closing sentence and, for Part C, the ===ANNOTATIONS=== block if missing), then stop. Do not end with a horizontal rule or divider line."
+            : `Your previous attempt was cut off mid-output. Continue from EXACTLY where the assistant message ends — do not repeat any content already produced, do not re-output earlier sections, and do not add a preamble. ${tail}`;
+          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\n${lead}`;
           const prefill = truncated.replace(/\s+$/, "");
           const continuation = await callClaude(
             [
@@ -506,8 +524,15 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           for (const p of parts) {
             const v = validatePart(p.text, p.which);
             if (!v.ok) {
-              console.warn(`[IR Playbook] Part ${p.which} failed validation (${v.reason}); tail-continuing at 4000`);
-              const continued = await continuePart(p.which, extra, p.text, 4000, 200_000);
+              const onlyTerminal = v.reason?.startsWith("last line not terminally punctuated") ?? false;
+              if (onlyTerminal) {
+                // Post furniture-filter, this path should be vanishingly rare. Log the
+                // full offending line (not truncated) so the filter can be extended.
+                console.warn(`[IR Playbook] Part ${p.which} terminal-punctuation only; full last line: ${v.reason}`);
+              } else {
+                console.warn(`[IR Playbook] Part ${p.which} failed validation (${v.reason}); tail-continuing at 4000`);
+              }
+              const continued = await continuePart(p.which, extra, p.text, 4000, 200_000, onlyTerminal);
               const v2 = validatePart(continued, p.which);
               if (!v2.ok) {
                 if (p.which === "A") partA = continued;
