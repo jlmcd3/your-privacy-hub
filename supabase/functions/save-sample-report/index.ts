@@ -148,6 +148,22 @@ async function list(admin: ReturnType<typeof createClient>) {
   return json({ rows: data ?? [] });
 }
 
+async function deleteSample(admin: ReturnType<typeof createClient>, body: any) {
+  const { id } = body ?? {};
+  if (!id) return json({ error: "missing id" }, 400);
+  const { data: row } = await admin
+    .from("sample_reports")
+    .select("pdf_path")
+    .eq("id", id)
+    .maybeSingle();
+  if (row?.pdf_path) {
+    await admin.storage.from("sample-reports").remove([row.pdf_path]);
+  }
+  const { error } = await admin.from("sample_reports").delete().eq("id", id);
+  if (error) return json({ error: error.message }, 400);
+  return json({ ok: true });
+}
+
 // --- generate_pdf: build a branded HTML brief from the fixture, render with
 // PDFShift, upload to sample-reports/<tool_slug>/<variant>.pdf, and upsert the
 // sample_reports row (with a synthetic verification stub so the publish guard
