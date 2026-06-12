@@ -28,38 +28,51 @@ const verdictColor = (v: string) => {
 };
 const verdictLabel = (v: string) => ({ likely_passes: "Likely passes", likely_fails: "Likely fails", passes: "Passes", fails: "Fails", uncertain: "Uncertain" } as Record<string,string>)[v] ?? v.replace(/_/g, " ");
 
-const AnnotationCallout = ({ annotations }: { annotations: any[] }) => {
+const tierLabelFor = (tier: number | null | undefined, isUk: boolean): { label: string; tone: string } | null => {
+  if (tier === 1) return { label: isUk ? "UK GDPR enforcement" : "EU GDPR enforcement", tone: "bg-emerald-100 text-emerald-800 border-emerald-200" };
+  if (tier === 2) return {
+    label: isUk ? "Persuasive — EU decision (not binding under UK GDPR)" : "Persuasive — UK decision (not binding under EU GDPR)",
+    tone: "bg-amber-100 text-amber-800 border-amber-200",
+  };
+  if (tier === 3) return { label: "Non-EU/UK — supportive only, not authoritative", tone: "bg-slate-100 text-slate-700 border-slate-200" };
+  return null;
+};
+
+const AnnotationCallout = ({ annotations, precedents, isUk }: { annotations: any[]; precedents?: any[]; isUk: boolean }) => {
   if (!Array.isArray(annotations) || annotations.length === 0) return null;
+  const byId: Record<string, any> = {};
+  for (const p of precedents || []) if (p?.id) byId[p.id] = p;
   return (
     <div className="mt-3 space-y-2">
-      {annotations.map((a: any, i: number) => (
-        <div key={i} className="bg-slate-50 dark:bg-slate-900/40 border-l-2 border-slate-300 dark:border-slate-600 rounded-r px-3 py-2">
-          <div className="flex items-start justify-between gap-2 flex-wrap">
-            <div>
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
-                📋 Corpus citation
-              </span>
-              <p className="text-xs text-foreground mt-0.5">
-                <span className="font-medium">{a.regulator}</span>
-                {a.jurisdiction ? ` · ${a.jurisdiction}` : ""}
-                {a.decision_date ? ` · ${a.decision_date?.slice(0,7)}` : ""}
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">{a.summary}</p>
-              {a.relevance && (
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 italic">{a.relevance}</p>
+      {annotations.map((a: any, i: number) => {
+        const ctx = byId[a.enforcement_action_id] || {};
+        const tier = a.authority_tier ?? ctx.authority_tier ?? null;
+        const tl = tierLabelFor(tier, isUk);
+        const unverified = ctx.verified === false;
+        return (
+          <div key={i} className="bg-slate-50 dark:bg-slate-900/40 border-l-2 border-slate-300 dark:border-slate-600 rounded-r px-3 py-2">
+            <div className="flex items-start justify-between gap-2 flex-wrap">
+              <div>
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">📋 Corpus citation</span>
+                {tl && (
+                  <span className={`ml-2 text-[10px] font-semibold px-1.5 py-0.5 border rounded ${tl.tone}`}>{tl.label}</span>
+                )}
+                <p className="text-xs text-foreground mt-0.5">
+                  <span className="font-medium">{a.regulator}</span>
+                  {a.jurisdiction ? ` · ${a.jurisdiction}` : ""}
+                  {a.decision_date ? ` · ${a.decision_date?.slice(0,7)}` : ""}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{a.summary}</p>
+                {a.relevance && (<p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 italic">{a.relevance}</p>)}
+                {unverified && (<p className="text-[11px] text-amber-700 mt-1 italic">(fine amount unverified — omitted)</p>)}
+              </div>
+              {a.enforcement_action_id && (
+                <Link to={`/enforcement-intelligence/${a.enforcement_action_id}`} className="text-[11px] text-blue-700 hover:underline shrink-0 whitespace-nowrap">View case →</Link>
               )}
             </div>
-            {a.enforcement_action_id && (
-              <Link
-                to={`/enforcement-intelligence/${a.enforcement_action_id}`}
-                className="text-[11px] text-blue-700 hover:underline shrink-0 whitespace-nowrap"
-              >
-                View case →
-              </Link>
-            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
       <p className="text-[10px] text-muted-foreground italic mt-1 leading-relaxed">
         Enforcement citations are drawn from enforcement actions tracked by EUP on a regular basis. Actual enforcement actions can lag publication, so please review primary sources and consult qualified legal counsel before relying on any regulatory position.
       </p>
