@@ -198,35 +198,64 @@ export default function RopaReview() {
           include_excel: includeExcel,
         },
       });
-      clearInterval(tickInt);
       if (error) {
+        clearInterval(tickInt);
         setGenerating(false);
-        // Don't block on missing edge function — surface a soft error.
         console.error("generate-ropa-document failed:", error);
-      } else {
-        // Mark all steps complete
-        setGenSteps({
-          client: "done",
-          activities: "done",
-          transfers: "done",
-          pdf: "done",
-          docx: includeWord ? "done" : "pending",
-          xlsx: includeExcel ? "done" : "pending",
-        });
-        setTimeout(
-          () =>
-            navigate(
-              withSession("/ropa/documents", sessionId ?? currentSession?.id)
-            ),
-          600
-        );
+        return;
       }
+
+      // Background worker now generates; poll the session row until it
+      // reaches a terminal status. 3-minute timeout (≈60 polls × 3s).
+      const POLL_INTERVAL_MS = 3000;
+      const MAX_POLLS = 60;
+      let terminal: "generated" | "failed" | null = null;
+      let lastError: string | null = null;
+      for (let i = 0; i < MAX_POLLS; i++) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        const { data: row } = await supabase
+          .from("ropa_sessions")
+          .select("status, generation_error")
+          .eq("id", sessionId)
+          .maybeSingle();
+        if (row?.status === "generated") { terminal = "generated"; break; }
+        if (row?.status === "failed") {
+          terminal = "failed";
+          lastError = row.generation_error ?? "Generation failed";
+          break;
+        }
+      }
+      clearInterval(tickInt);
+
+      if (terminal !== "generated") {
+        setGenerating(false);
+        console.error("generate-ropa-document did not complete:", lastError ?? "timeout");
+        return;
+      }
+
+      // Mark all steps complete
+      setGenSteps({
+        client: "done",
+        activities: "done",
+        transfers: "done",
+        pdf: "done",
+        docx: includeWord ? "done" : "pending",
+        xlsx: includeExcel ? "done" : "pending",
+      });
+      setTimeout(
+        () =>
+          navigate(
+            withSession("/ropa/documents", sessionId ?? currentSession?.id)
+          ),
+        600
+      );
     } catch (e) {
       clearInterval(tickInt);
       setGenerating(false);
       console.error(e);
     }
   };
+
 
   const handleGenerateClick = async () => {
     if (!currentSession) return;
