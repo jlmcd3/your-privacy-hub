@@ -350,12 +350,526 @@ const runBrief: Runner = async ({ log }) => {
   };
 };
 
+// ─── RoPA ────────────────────────────────────────────────────────────────────
+
+const ROPA_ORG = "Meridian Health Analytics Ltd";
+const ROPA_ACTIVITIES = [
+  {
+    activity_name: "Patient Risk Stratification Analytics",
+    category: "technology",
+    purpose: "AI-powered predictive analytics identifying patients at elevated risk of readmission",
+    lawful_basis: "legitimate_interests",
+    special_category_basis: "Article 9(2)(a) — explicit consent for health data",
+    data_categories: ["Health or medical data", "Contact identifiers"],
+    data_subjects: "NHS and private clinic patients",
+    recipients: "Clinic clinical teams; CloudMed Processing GmbH (processor, Germany)",
+    transfer_destination: "Germany (Azure EU)",
+    transfer_mechanism: "EEA — no third-country transfer",
+    retention_period: "Risk scores: 24 months. Raw patient data: not retained.",
+    security_measures: "AES-256 at rest, TLS 1.3 in transit. SOC 2 certified.",
+  },
+  {
+    activity_name: "Employee HR Processing",
+    category: "hr_employment",
+    purpose: "Recruitment, payroll, benefits administration, statutory employment compliance",
+    lawful_basis: "contract",
+    special_category_basis: "Not applicable",
+    data_categories: ["Employee records", "Financial data", "Contact identifiers"],
+    data_subjects: "Employees and contractors",
+    recipients: "HR team; ADP payroll (US); HMRC",
+    transfer_destination: "United States (ADP)",
+    transfer_mechanism: "EU Standard Contractual Clauses",
+    retention_period: "Active employment + 6 years post-termination",
+    security_measures: "RBAC, MFA, encryption at rest",
+  },
+];
+
+async function getOrCreateClientId(userId: string): Promise<string> {
+  const { data } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("owner_id", userId)
+    .eq("is_active", true)
+    .limit(1);
+  if (data?.[0]) return data[0].id;
+  throw new Error("No personal workspace client found for admin");
+}
+
+const runRoPA: Runner = async ({ userId, log }) => {
+  const clientId = await getOrCreateClientId(userId);
+
+  log("Upserting ropa_client_profiles…");
+  await supabase.from("ropa_client_profiles").upsert(
+    {
+      client_id: clientId,
+      legal_entity_type: "Private limited company (UK)",
+      employee_band: "50-249",
+      is_controller: true,
+      is_processor: false,
+      dpo_name: "Dr. Eleanor Hartley",
+      dpo_email: "dpo@meridianhealth.example",
+    },
+    { onConflict: "client_id" },
+  );
+
+  log("Adding jurisdiction selections…");
+  await supabase.from("ropa_jurisdiction_selections").upsert(
+    [
+      { client_id: clientId, jurisdiction_code: "EU_GDPR", jurisdiction_name: "European Union", jurisdiction_region: "EU & UK" },
+      { client_id: clientId, jurisdiction_code: "UK_GDPR", jurisdiction_name: "United Kingdom", jurisdiction_region: "EU & UK" },
+    ],
+    { onConflict: "client_id,jurisdiction_code" },
+  );
+
+  log("Creating ropa_sessions row…");
+  const { data: session, error: sessErr } = await supabase
+    .from("ropa_sessions")
+    .insert({
+      client_id: clientId,
+      status: "review",
+      version_number: 1,
+      total_activities: ROPA_ACTIVITIES.length,
+      completed_activities: ROPA_ACTIVITIES.length,
+      payment_confirmed: true,
+      paid_at: new Date().toISOString(),
+      org_name: ROPA_ORG,
+    })
+    .select("id")
+    .single();
+  if (sessErr || !session) throw new Error(`session: ${sessErr?.message}`);
+
+  log(`Inserting ${ROPA_ACTIVITIES.length} processing activities…`);
+  const { data: acts, error: actErr } = await supabase
+    .from("ropa_processing_activities")
+    .insert(
+      ROPA_ACTIVITIES.map((a, i) => ({
+        session_id: session.id,
+        client_id: clientId,
+        display_name: a.activity_name,
+        category: a.category,
+        status: "complete" as const,
+        completion_pct: 100,
+        display_order: i,
+      })),
+    )
+    .select("id, display_order");
+  if (actErr || !acts) throw new Error(`activities: ${actErr?.message}`);
+
+  log("Inserting answers…");
+  const ansRows: Array<{ activity_id: string; session_id: string; question_key: string; answer_value: unknown }> = [];
+  for (const a of acts) {
+    const src = ROPA_ACTIVITIES[a.display_order];
+    const map: Record<string, unknown> = {
+      purpose: src.purpose,
+      lawful_basis: src.lawful_basis,
+      special_category_basis: src.special_category_basis,
+      data_subjects: src.data_subjects,
+      data_categories: src.data_categories,
+      recipients: src.recipients,
+      transfer_destination: src.transfer_destination,
+      transfer_mechanism: src.transfer_mechanism,
+      retention_period: src.retention_period,
+      security_measures: src.security_measures,
+    };
+    for (const [k, v] of Object.entries(map)) {
+      ansRows.push({ activity_id: a.id, session_id: session.id, question_key: k, answer_value: v });
+    }
+  }
+  await supabase.from("ropa_answers").insert(ansRows);
+
+  log("Invoking generate-ropa-document (PDF)…");
+  const { data: gen, error: genErr } = await supabase.functions.invoke("generate-ropa-document", {
+    body: {
+      session_id: session.id,
+      format: "pdf",
+      document_date: new Date().toISOString().slice(0, 10),
+      author_name: "Meridian Compliance Team",
+    },
+  });
+  if (genErr || !gen?.download_url) {
+    throw new Error(`generator: ${genErr?.message ?? gen?.error ?? "no download_url"}`);
+  }
+
+  return {
+    targetTable: "ropa_sessions",
+    targetId: session.id,
+    label: `${ROPA_ORG} · RoPA v1`,
+    resultUrl: "/ropa/documents",
+  };
+};
+
+// ─── US Notice ───────────────────────────────────────────────────────────────
+
+const runUSNotice: Runner = async ({ userId, log }) => {
+  const clientId = await getOrCreateClientId(userId);
+
+  log("Creating us_notice_session…");
+  const { data: session, error: sessErr } = await supabase
+    .from("us_notice_sessions")
+    .insert({
+      client_id: clientId,
+      status: "review",
+      scope: "all_states",
+      mode: "standalone",
+      payment_confirmed: true,
+      paid_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+  if (sessErr || !session) throw new Error(`session: ${sessErr?.message}`);
+
+  log("Inserting state selections (CA, VA, TX)…");
+  await supabase.from("us_notice_state_selections").insert([
+    { session_id: session.id, state_code: "CA", state_name: "California", framework_type: "ccpa" },
+    { session_id: session.id, state_code: "VA", state_name: "Virginia", framework_type: "virginia_model" },
+    { session_id: session.id, state_code: "TX", state_name: "Texas", framework_type: "virginia_model" },
+  ]);
+
+  log("Inserting universal answers…");
+  const universal: Record<string, unknown> = {
+    business_name: "Meridian Health Analytics Ltd",
+    business_description: "AI-powered patient risk-stratification analytics for clinics in the UK and US.",
+    contact_email: "privacy@meridianhealth.io",
+    data_categories: "Identifiers; Health information; Employment data; Internet activity",
+    collection_purposes: "Service delivery; R&D; Marketing; Fraud prevention; Legal compliance",
+    third_party_sharing: "yes",
+    third_party_categories: "Cloud infrastructure; payroll (US); email marketing (US); regulators",
+    sale_or_sharing: "neither",
+    retention_general: "Risk scores 24 months; marketing 2 years post-engagement.",
+    sensitive_data_types: "Health information; precise geolocation",
+    data_sources: "Directly from individuals; Clinic EHR systems; analytics vendors",
+  };
+  await supabase.from("us_notice_answers").insert(
+    Object.entries(universal).map(([k, v]) => ({
+      session_id: session.id,
+      question_key: k,
+      answer_value: v as never,
+    })),
+  );
+
+  log("Invoking generate-us-notice…");
+  const { data: gen, error: genErr } = await supabase.functions.invoke("generate-us-notice", {
+    body: { session_id: session.id },
+  });
+  if (genErr || !gen?.documents?.length) {
+    throw new Error(`generator: ${genErr?.message ?? gen?.error ?? "no documents"}`);
+  }
+
+  return {
+    targetTable: "us_notice_sessions",
+    targetId: session.id,
+    label: `US Notice · CA + VA + TX (${gen.documents.length} docs)`,
+    resultUrl: `/us-notices/result/${session.id}`,
+  };
+};
+
+// ─── EU Notice ───────────────────────────────────────────────────────────────
+
+const runEUNotice: Runner = async ({ userId, log }) => {
+  const clientId = await getOrCreateClientId(userId);
+
+  log("Creating eu_notice_session…");
+  const { data: session, error: sessErr } = await supabase
+    .from("eu_notice_sessions")
+    .insert({
+      client_id: clientId,
+      status: "review",
+      scope: "suite",
+      mode: "standalone",
+      payment_confirmed: true,
+      paid_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+  if (sessErr || !session) throw new Error(`session: ${sessErr?.message}`);
+
+  log("Inserting framework selections (EU + UK + CH)…");
+  await supabase.from("eu_notice_framework_selections").insert([
+    { session_id: session.id, framework_code: "EU_GDPR", framework_name: "EU GDPR", region: "EU" },
+    { session_id: session.id, framework_code: "UK_GDPR", framework_name: "UK GDPR", region: "UK" },
+    { session_id: session.id, framework_code: "CH_FADP", framework_name: "Swiss FADP", region: "CH" },
+  ]);
+
+  log("Inserting universal answers…");
+  const universal: Record<string, unknown> = {
+    controller_name: "Meridian Health Analytics Ltd",
+    controller_address: "1 Innovation Square, London EC2A 4BX, UK",
+    contact_email: "privacy@meridianhealth.io",
+    dpo_details: "yes",
+    dpo_name: "Dr. Sarah Chen, Privacy Officer",
+    dpo_email: "privacy@meridianhealth.io",
+    processing_purposes: ["service_delivery", "analytics", "marketing", "security", "legal_compliance"],
+    data_categories: ["identifiers", "health_medical", "professional", "internet_activity"],
+    lawful_basis: ["legitimate_interests", "contract", "legal_obligation", "consent"],
+    third_party_recipients: ["service_providers", "analytics", "regulators"],
+    transfer_outside_eea: "yes",
+    transfer_safeguards: ["sccs", "uk_addendum"],
+    retention_period: "Risk scores 24 months; HR records active+6yr; marketing 2yr.",
+    automated_decisions: "yes",
+    special_category_basis: "Article 9(2)(a) explicit consent for health data",
+    supervisory_authority_eu: "Irish Data Protection Commission (DPC)",
+    supervisory_authority_uk: "Information Commissioner's Office (ICO)",
+  };
+  await supabase.from("eu_notice_answers").insert(
+    Object.entries(universal).map(([k, v]) => ({
+      session_id: session.id,
+      question_key: k,
+      answer_value: v as never,
+    })),
+  );
+
+  log("Invoking generate-eu-notice…");
+  const { data: gen, error: genErr } = await supabase.functions.invoke("generate-eu-notice", {
+    body: { session_id: session.id },
+  });
+  if (genErr || !gen?.documents?.length) {
+    throw new Error(`generator: ${genErr?.message ?? gen?.error ?? "no documents"}`);
+  }
+
+  return {
+    targetTable: "eu_notice_sessions",
+    targetId: session.id,
+    label: `EU/UK/CH Notice (${gen.documents.length} docs)`,
+    resultUrl: `/eu-notices/result/${session.id}`,
+  };
+};
+
+// ─── Registration ────────────────────────────────────────────────────────────
+
+const REG_INTAKE = {
+  organization_name: "Meridian Health Analytics Ltd",
+  organization_country: "GB",
+  organization_size: "medium",
+  industry: "Healthcare / Life Sciences",
+  email: "privacy@meridianhealth.io",
+  employee_count: 180,
+  annual_revenue_usd: 60_000_000,
+  data_subjects_count: 250_000,
+  role: "controller",
+  processes_personal_data: true,
+  processes_special_categories: true,
+  processes_children_data: false,
+  large_scale_monitoring: true,
+  uses_ai_systems: true,
+  ai_high_risk: true,
+  ai_general_purpose_provider: false,
+  cross_border_transfers: true,
+  markets_served: ["GB", "DE", "FR", "IE", "NL"],
+  has_eu_establishment: false,
+  has_uk_establishment: true,
+  acts_as_data_broker: false,
+  sells_or_shares_personal_info: false,
+  processes_biometrics_for_id: false,
+};
+
+const runRegistration: Runner = async ({ userId, log }) => {
+  log("Invoking run-registration-assessment…");
+  const { data: assess, error: assessErr } = await supabase.functions.invoke(
+    "run-registration-assessment",
+    { body: { intake_data: REG_INTAKE, user_id: userId } },
+  );
+  if (assessErr || !assess?.assessment_id) {
+    throw new Error(`assessment: ${assessErr?.message ?? assess?.error}`);
+  }
+  const codes: string[] = (assess.recommended_jurisdictions || []).slice(0, 3);
+  if (!codes.length) throw new Error("engine returned no jurisdictions");
+  log(`Recommended (capped @3): ${codes.join(", ")}`);
+
+  log("Creating registration_orders (tier=diy, paid)…");
+  const { data: order, error: orderErr } = await supabase
+    .from("registration_orders")
+    .insert({
+      user_id: userId,
+      assessment_id: assess.assessment_id,
+      tier: "diy",
+      jurisdictions: codes,
+      organization_snapshot: REG_INTAKE,
+      amount_cents: 0,
+      currency: "usd",
+      payment_status: "paid",
+      fulfillment_status: "generating",
+      delivery_email: REG_INTAKE.email,
+      renewal_reminders_enabled: false,
+    })
+    .select("id")
+    .single();
+  if (orderErr || !order) throw new Error(`order: ${orderErr?.message}`);
+
+  log("Invoking generate-registration-docs (30–90s)…");
+  const { error: genErr } = await supabase.functions.invoke("generate-registration-docs", {
+    body: { order_id: order.id },
+  });
+  if (genErr) throw new Error(`generator: ${genErr.message}`);
+
+  return {
+    targetTable: "registration_orders",
+    targetId: order.id,
+    label: `Registration · ${codes.join("/")}`,
+    resultUrl: `/registration/order/${order.id}`,
+  };
+};
+
+// ─── CPPA Risk Assessment ────────────────────────────────────────────────────
+
+const CPPA_RISK_INTAKE = {
+  q1_revenue: "Over $500M",
+  q2_consumers: "1–10 million",
+  q3_sector: "Healthcare/Life Sciences",
+  q4_pi_categories: [
+    "Health or medical information",
+    "Contact identifiers (name, email, phone)",
+    "Device identifiers (IP, cookies, device IDs)",
+    "Internet or network activity",
+    "Employment information",
+  ],
+  q5_sell_share: "Both",
+  q6_right_know: "Online form with identity verification",
+  q7_right_delete: "Manual process, documented",
+  q8_right_correct: "Handled via support",
+  q9_opt_out: "Yes, but in footer only",
+  q10_id_verification: "Informal verification",
+  q11_policy_review: "12–24 months ago",
+  q12_notice_at_collection: "Yes, partial coverage",
+  q13_notice_content: "Some elements",
+  q14_employee_notice: "No — we use our general privacy policy",
+  q15_sensitive_pi: "Yes",
+  q16_sensitive_limit: "No",
+  q17_sensitive_basis: "Treatment, payment, and healthcare operations",
+  q18_admt_use: "Yes",
+  q19_admt_description: "ML model generates per-patient risk scores used by clinicians.",
+  q20_admt_opt_out: "No",
+  i1_processing_purpose: "Per-patient clinical-risk scores at point of care.",
+  i2_retention_period: "60 months from encounter close",
+  i2_retention_criteria: "Statutory retention requirement",
+  i2_retention_detail: "California medical-record retention rules apply.",
+  i3_ca_consumer_band: "More than 1,000,000",
+  i4_disclosure_mechanisms: ["Notice at Collection", "Privacy policy", "Just-in-time notice"],
+  i5_admt_logic: "Gradient-boosted ensemble; risk score 0–100 plus Low/Med/High bucket.",
+  i5_admt_training_source: "De-identified historical encounters 2018–2024.",
+  i5_admt_fairness_testing: "Quarterly subgroup AUC + calibration audit.",
+  i5_admt_human_review: "Score advisory; attending physician decides.",
+  i6_vendors: "Azure; Snowflake; Epic; Acme Analytics",
+  i7_internal_contributors: "CISO; CPO; VP Clinical Informatics; GC; Product Owner",
+  i7_external_consultees: "External healthcare-privacy counsel; bias auditor (annual)",
+  i8_certifying_exec_name: "Dr. Alex Morgan",
+  i8_certifying_exec_title: "Chief Privacy Officer",
+  i9_has_existing_dpia: "No",
+  i9_existing_dpia_summary: "",
+};
+
+async function pollCppa(id: string, log: (m: string) => void): Promise<void> {
+  for (let i = 0; i < 120; i++) {
+    await new Promise((r) => setTimeout(r, 4000));
+    const { data } = await supabase
+      .from("cppa_assessments")
+      .select("status")
+      .eq("id", id)
+      .single();
+    if (data?.status === "complete") return;
+    if (data?.status === "error" || data?.status === "failed") {
+      throw new Error(`cppa_assessments status=${data.status}`);
+    }
+    log(`… poll ${i + 1}/120 (status: ${data?.status ?? "?"})`);
+  }
+  throw new Error("timeout waiting for CPPA completion");
+}
+
+const runCppaRisk: Runner = async ({ userId, log }) => {
+  log("Inserting cppa_assessments (risk_assessment)…");
+  const { data: rec, error: insErr } = await supabase
+    .from("cppa_assessments")
+    .insert({
+      user_id: userId,
+      module: "risk_assessment",
+      status: "pending",
+      intake_data: CPPA_RISK_INTAKE,
+    })
+    .select("id")
+    .single();
+  if (insErr || !rec) throw new Error(`insert: ${insErr?.message}`);
+
+  log(`Invoking run-cppa-risk-assessment (id ${rec.id})…`);
+  const { error: fnErr } = await supabase.functions.invoke("run-cppa-risk-assessment", {
+    body: { assessment_id: rec.id },
+  });
+  if (fnErr) log(`edge function: ${fnErr.message} — polling anyway`);
+
+  await pollCppa(rec.id, log);
+  return {
+    targetTable: "cppa_assessments",
+    targetId: rec.id,
+    label: "Meridian · CPPA Risk Assessment",
+    resultUrl: `/cppa-risk-assessment/result/${rec.id}`,
+  };
+};
+
+// ─── CPPA Cybersecurity ──────────────────────────────────────────────────────
+
+const CPPA_CYBER_INTAKE = {
+  profile: {
+    industry: "Healthcare/Life Sciences",
+    incidents_12mo: "1",
+    framework: "SOC 2",
+    last_audit: "Within 12 months",
+  },
+  controls: [
+    { key: "c1_auth", label: "Authentication and access controls", maturity: "Implemented across organisation", notes: "MFA enforced; RBAC configured." },
+    { key: "c2_encryption", label: "Encryption of personal information", maturity: "Implemented with continuous monitoring", notes: "AES-256 at rest; TLS 1.3." },
+    { key: "c3_zero_trust", label: "Zero-trust architecture", maturity: "Documented, partially implemented", notes: "Roadmap approved." },
+    { key: "c4_account_mgmt", label: "Account management and access control", maturity: "Implemented across organisation", notes: "Automated provisioning via Entra ID." },
+    { key: "c5_inventory", label: "Inventory of personal information and systems", maturity: "Ad hoc / informal", notes: "No formal data map." },
+    { key: "c6_secure_config", label: "Secure configuration of hardware and software", maturity: "Documented, partially implemented", notes: "CIS benchmarks adopted." },
+    { key: "c7_vuln_mgmt", label: "Vulnerability management and patching", maturity: "Implemented across organisation", notes: "Qualys weekly; critical patches in 48h." },
+    { key: "c8_audit_logs", label: "Audit-log management", maturity: "Implemented across organisation", notes: "Sentinel SIEM; 12-month retention." },
+    { key: "c9_network_mon", label: "Network monitoring and defence", maturity: "Implemented with continuous monitoring", notes: "24/7 SOC; IDS/IPS active." },
+    { key: "c10_anti_malware", label: "Anti-malware protections", maturity: "Implemented across organisation", notes: "Defender for Endpoint." },
+    { key: "c11_segmentation", label: "Network segmentation", maturity: "Documented, partially implemented", notes: "Prod health env segmented." },
+    { key: "c12_physical", label: "Limitation of physical access", maturity: "Implemented across organisation", notes: "Azure only." },
+    { key: "c13_secure_dev", label: "Secure development of software", maturity: "Ad hoc / informal", notes: "No formal SDLC security gates." },
+    { key: "c14_third_party", label: "Oversight of service providers and third parties", maturity: "Documented, partially implemented", notes: "MSA + DPA in place." },
+    { key: "c15_retention", label: "Retention schedules and secure disposal", maturity: "Ad hoc / informal", notes: "No formal retention schedule." },
+    { key: "c16_training", label: "Cybersecurity awareness, education and training", maturity: "Implemented across organisation", notes: "Annual + quarterly phishing sims." },
+    { key: "c17_incident", label: "Incident response and post-incident analysis", maturity: "Documented, partially implemented", notes: "Plan documented; one tabletop." },
+    { key: "c18_continuity", label: "Business continuity and disaster recovery", maturity: "Documented, partially implemented", notes: "BCP not tested in 18mo." },
+  ],
+  industry_sector: "Healthcare/Life Sciences",
+};
+
+const runCppaCyber: Runner = async ({ userId, log }) => {
+  log("Inserting cppa_assessments (cybersecurity)…");
+  const { data: rec, error: insErr } = await supabase
+    .from("cppa_assessments")
+    .insert({
+      user_id: userId,
+      module: "cybersecurity",
+      status: "pending",
+      intake_data: CPPA_CYBER_INTAKE,
+    })
+    .select("id")
+    .single();
+  if (insErr || !rec) throw new Error(`insert: ${insErr?.message}`);
+
+  log(`Invoking run-cppa-cybersecurity (id ${rec.id})…`);
+  const { error: fnErr } = await supabase.functions.invoke("run-cppa-cybersecurity", {
+    body: { assessment_id: rec.id },
+  });
+  if (fnErr) log(`edge function: ${fnErr.message} — polling anyway`);
+
+  await pollCppa(rec.id, log);
+  return {
+    targetTable: "cppa_assessments",
+    targetId: rec.id,
+    label: "Meridian · CPPA Cybersecurity Audit",
+    resultUrl: `/cppa-cybersecurity/result/${rec.id}`,
+  };
+};
+
 // ─── Registry ────────────────────────────────────────────────────────────────
 
 export interface ToolDef {
   id: ToolType;
   label: string;
-  group: "Assessments" | "Documents" | "Briefing";
+  group: "Assessments" | "Documents" | "Briefing" | "CPPA" | "Notices" | "Registration";
   runner: Runner;
   /** Approximate generation time for user expectations. */
   expectedSeconds: number;
@@ -368,7 +882,12 @@ export const TOOLS: ToolDef[] = [
   { id: "biometric",   label: "Biometric Compliance",           group: "Assessments", runner: runBiometric,  expectedSeconds: 60 },
   { id: "dpa",         label: "DPA Generator",                  group: "Documents",   runner: runDPA,        expectedSeconds: 60 },
   { id: "ir-playbook", label: "IR Playbook",                    group: "Documents",   runner: runIRPlaybook, expectedSeconds: 60 },
-  { id: "brief",       label: "Intelligence Brief",             group: "Briefing",    runner: runBrief,      expectedSeconds: 90 },
+  { id: "ropa",        label: "RoPA (Article 30) Builder",      group: "Documents",   runner: runRoPA,       expectedSeconds: 45 },
+  { id: "us-notice",   label: "US Privacy Notice Builder",      group: "Notices",     runner: runUSNotice,   expectedSeconds: 30 },
+  { id: "eu-notice",   label: "EU / Global Privacy Notice Builder", group: "Notices", runner: runEUNotice,   expectedSeconds: 30 },
+  { id: "registration",label: "Registration Manager (DIY)",     group: "Registration",runner: runRegistration, expectedSeconds: 90 },
+  { id: "cppa-risk",   label: "CPPA Risk Assessment (Module 1)",group: "CPPA",        runner: runCppaRisk,   expectedSeconds: 120 },
+  { id: "cppa-cyber",  label: "CPPA Cybersecurity Audit (Module 2)", group: "CPPA",   runner: runCppaCyber,  expectedSeconds: 120 },
 ];
 
 export const TOOL_BY_ID: Record<ToolType, ToolDef> = Object.fromEntries(
