@@ -492,12 +492,16 @@ export default function AdminSampleReports() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" onClick={() => onGeneratePdf(fix)}
-                    disabled={!adminToken || busy === `pdfgen::${key}`}>
-                    {busy === `pdfgen::${key}` ? "Rendering PDF…" : "Generate PDF (PDFShift)"}
+                  <Button size="sm" onClick={() => onGenerate(fix)} disabled={run.status === "running"}>
+                    {run.status === "running" ? "Generating report…" : "Generate Report"}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => onGenerate(fix)} disabled={run.status === "running"}>
-                    {run.status === "running" ? "Running tool…" : "Run live tool"}
+                  <Button
+                    size="sm"
+                    onClick={() => onGeneratePdf(fix)}
+                    disabled={!adminToken || run.status !== "complete" || busy === `pdfgen::${key}`}
+                    title={run.status !== "complete" ? "Generate the report first" : "Render PDF via PDFShift"}
+                  >
+                    {busy === `pdfgen::${key}` ? "Rendering PDF…" : "Generate PDF (PDFShift)"}
                   </Button>
                   {run.resultUrl && (
                     <Button size="sm" variant="outline" asChild>
