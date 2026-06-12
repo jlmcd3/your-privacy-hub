@@ -130,9 +130,9 @@ Deno.serve(async (req) => {
   if (q.data_categories?.length) query = query.overlaps("data_categories", q.data_categories);
   if (q.articles?.length) query = query.overlaps("provisions_normalized", q.articles);
   if (jurisdictionWhitelist) query = query.in("jurisdiction", jurisdictionWhitelist);
-  // Regime law filter as defence-in-depth (OR across patterns)
+  // Regime law filter as defence-in-depth (OR across patterns OR law IS NULL — jurisdiction remains hard gate)
   if (regimeCfg?.lawPatterns?.length) {
-    const orExpr = regimeCfg.lawPatterns.map((p) => `law.ilike.${p}`).join(",");
+    const orExpr = [...regimeCfg.lawPatterns.map((p) => `law.ilike.${p}`), "law.is.null"].join(",");
     query = query.or(orExpr);
   }
   if (q.sector) query = query.eq("industry_sector", q.sector);
@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  let finalRows = rows ?? [];
+  let finalRows = (rows ?? []).map((r: any) => ({ ...r, verified: true }));
   let fallbackUsed: string | null = null;
 
   // Controlled fallback: if primary returned nothing AND we had narrow content
@@ -161,16 +161,46 @@ Deno.serve(async (req) => {
       .limit(limit * 4);
     if (jurisdictionWhitelist) fb = fb.in("jurisdiction", jurisdictionWhitelist);
     if (regimeCfg?.lawPatterns?.length) {
-      fb = fb.or(regimeCfg.lawPatterns.map((p) => `law.ilike.${p}`).join(","));
+      fb = fb.or([...regimeCfg.lawPatterns.map((p) => `law.ilike.${p}`), "law.is.null"].join(","));
     }
     if (q.biometric) fb = fb.eq("biometric_related", true);
     if (q.breach) fb = fb.eq("breach_related", true);
     const { data: fbRows } = await fb;
-    finalRows = fbRows ?? [];
+    finalRows = (fbRows ?? []).map((r: any) => ({ ...r, verified: true }));
     if (finalRows.length > 0) fallbackUsed = "dropped_content_filters_kept_jurisdiction";
   }
 
-  const scored = finalRows.map((r) => {
+  // Secondary pool: if we still have fewer than `limit` rows, pull rows that
+  // fail the enrichment gate but match the jurisdiction/regime gate. These are
+  // flagged verified:false and penalised in scoring so they never outrank a
+  // verified row at equal relevance.
+  if (finalRows.length < limit) {
+    const need = (limit - finalRows.length) * 2;
+    let sec = supabase
+      .from("enforcement_actions")
+      .select("id, regulator, jurisdiction, subject, sector, industry_sector, law, violation, key_compliance_failure, preventive_measures, decision_date, fine_eur_equivalent, fine_amount, source_url, precedent_significance, data_categories, violation_types, tool_relevance, breach_related, biometric_related, statutory_provisions, provisions_normalized")
+      .or("enrichment_version.is.null,enrichment_version.lt.1,source_database.is.null")
+      .order("decision_date", { ascending: false, nullsFirst: false })
+      .limit(need);
+    if (jurisdictionWhitelist) sec = sec.in("jurisdiction", jurisdictionWhitelist);
+    if (regimeCfg?.lawPatterns?.length) {
+      sec = sec.or([...regimeCfg.lawPatterns.map((p) => `law.ilike.${p}`), "law.is.null"].join(","));
+    }
+    if (q.biometric) sec = sec.eq("biometric_related", true);
+    if (q.breach) sec = sec.eq("breach_related", true);
+    const { data: secRows } = await sec;
+    const existingIds = new Set(finalRows.map((r: any) => r.id));
+    const unverified = (secRows ?? [])
+      .filter((r: any) => !existingIds.has(r.id))
+      .map((r: any) => ({ ...r, verified: false }));
+    if (unverified.length) {
+      finalRows = [...finalRows, ...unverified];
+      if (!fallbackUsed) fallbackUsed = "secondary_unverified_pool";
+      else fallbackUsed = `${fallbackUsed}+secondary_unverified_pool`;
+    }
+  }
+
+  const scored = finalRows.map((r: any) => {
     let score = (r.precedent_significance ?? 1) * 2;
     if (q.data_categories?.length && r.data_categories) {
       const overlap = r.data_categories.filter((c: string) => q.data_categories!.includes(c)).length;
@@ -183,6 +213,7 @@ Deno.serve(async (req) => {
     if (q.tool && r.tool_relevance?.includes(q.tool)) score += 4;
     if (q.sector && r.industry_sector === q.sector) score += 2;
     if (r.fine_eur_equivalent) score += Math.min(3, Math.log10(r.fine_eur_equivalent) - 4);
+    if (r.verified === false) score -= 100;
     return { row: r, score };
   }).sort((a, b) => b.score - a.score).slice(0, limit).map((x) => x.row);
 
