@@ -1,11 +1,13 @@
 // Runners — each invokes the SAME production edge function the subscriber
 // flow uses (no Stripe, no checkout — the admin already has access). On
-// success, returns { targetTable, targetId, label } so the ledger can record it.
+// success, returns { targetTable, targetId, label, payload, pdfTargetId }
+// so the ledger can record it and save-sample-report:generate_pdf can render
+// the resulting source row to PDF.
 //
 // Fixtures live in ./fixtures.ts as 4 persona variants per tool. The runner
-// calls `blend([...variants])` which picks each field's value from a random
-// variant — producing varied, sector-mixed payloads that better stress the
-// edge functions across runs.
+// calls `blend([...variants], anchorKeys)` which picks each field's value
+// from a random variant while pinning org + sector + jurisdiction to one
+// persona — producing coherent yet sector-mixed stress payloads.
 
 import { supabase } from "@/integrations/supabase/client";
 import type { ToolType } from "./ledger";
@@ -19,7 +21,6 @@ import {
   BIOMETRIC_VARIANTS,
   DPA_VARIANTS,
   IR_VARIANTS,
-  BRIEF_VARIANTS,
   ROPA_VARIANTS,
   US_NOTICE_VARIANTS,
   EU_NOTICE_VARIANTS,
@@ -42,8 +43,11 @@ export interface RunnerResult {
     | "dpa_generator"
     | "li_assessment"
     | "governance_assessment"
-    | "dpia_framework"
-    | "brief";
+    | "dpia_framework";
+  /** The exact blended payload sent to the edge function — stored for traceability. */
+  payload: Record<string, unknown>;
+  /** Row id to hand to save-sample-report:generate_pdf (defaults to targetId where unset). */
+  pdfTargetId?: string;
 }
 
 export interface RunnerCtx {
@@ -62,7 +66,6 @@ async function pollStatus(
   intervalMs: number,
   log: (m: string) => void,
 ): Promise<void> {
-  // Each table uses its own terminal status vocabulary.
   const successByTable: Record<string, string> = {
     li_assessments: "complete",
     dpia_frameworks: "complete",
@@ -89,7 +92,7 @@ async function pollStatus(
 // ─── LIA ─────────────────────────────────────────────────────────────────────
 
 const runLIA: Runner = async ({ userId, log }) => {
-  const intake = blend(LIA_VARIANTS, ["sector", "organization_name"]);
+  const intake = blend(LIA_VARIANTS, ["sector", "organization_name", "jurisdictions"]);
   log(`Blended LIA fixture (org: ${intake.organization_name}, sector: ${intake.sector})`);
   log("Inserting li_assessments row…");
   const { data: rec, error: insErr } = await supabase
@@ -112,13 +115,15 @@ const runLIA: Runner = async ({ userId, log }) => {
     label: `LIA · ${intake.organization_name} · ${intake.sector} · ${shortId(rec.id)}`,
     resultUrl: `/li-assessment/result/${rec.id}`,
     pdfToolType: "li_assessment",
+    payload: intake as Record<string, unknown>,
+    pdfTargetId: rec.id,
   };
 };
 
 // ─── DPIA ────────────────────────────────────────────────────────────────────
 
 const runDPIA: Runner = async ({ userId, log }) => {
-  const intake = blend(DPIA_VARIANTS, ["sector", "processing_activity_name"]);
+  const intake = blend(DPIA_VARIANTS, ["sector", "processing_activity_name", "jurisdictions"]);
   log(`Blended DPIA fixture (sector anchor: ${intake.sector})`);
   log("Inserting dpia_frameworks row…");
   const { data: rec, error: insErr } = await supabase
@@ -146,13 +151,15 @@ const runDPIA: Runner = async ({ userId, log }) => {
     label: `DPIA · ${intake.sector} · ${shortId(rec.id)}`,
     resultUrl: `/dpia-framework/result/${rec.id}`,
     pdfToolType: "dpia_framework",
+    payload: intake as Record<string, unknown>,
+    pdfTargetId: rec.id,
   };
 };
 
 // ─── Governance ──────────────────────────────────────────────────────────────
 
 const runGovernance: Runner = async ({ userId, log }) => {
-  const intake = blend(GOV_VARIANTS, ["sector"]);
+  const intake = blend(GOV_VARIANTS, ["sector", "jurisdictions"]);
   log(`Blended Governance fixture (sector anchor: ${intake.sector})`);
   log("Inserting governance_assessments row…");
   const { data: rec, error: insErr } = await supabase
@@ -175,13 +182,15 @@ const runGovernance: Runner = async ({ userId, log }) => {
     label: `Governance · ${intake.sector} · ${shortId(rec.id)}`,
     resultUrl: `/governance-assessment/result/${rec.id}`,
     pdfToolType: "governance_assessment",
+    payload: intake as Record<string, unknown>,
+    pdfTargetId: rec.id,
   };
 };
 
 // ─── Biometric ───────────────────────────────────────────────────────────────
 
 const runBiometric: Runner = async ({ userId, log }) => {
-  const body = blend(BIOMETRIC_VARIANTS, ["biometricTypes"]);
+  const body = blend(BIOMETRIC_VARIANTS, ["biometricTypes", "jurisdictions"]);
   const primaryType = (body.biometricTypes as string[])?.[0] ?? "?";
   log(`Blended Biometric fixture (type anchor: ${primaryType})`);
   log("Invoking check-biometric-compliance…");
@@ -197,13 +206,15 @@ const runBiometric: Runner = async ({ userId, log }) => {
     label: `Biometric · ${primaryType} · ${shortId(data.id)}`,
     resultUrl: `/biometric-checker/result/${data.id}`,
     pdfToolType: "biometric_checker",
+    payload: body as Record<string, unknown>,
+    pdfTargetId: data.id,
   };
 };
 
 // ─── DPA ─────────────────────────────────────────────────────────────────────
 
 const runDPA: Runner = async ({ userId, log }) => {
-  const body = blend(DPA_VARIANTS, ["controllerName", "processorName"]);
+  const body = blend(DPA_VARIANTS, ["controllerName", "processorName", "controllerJurisdiction", "processorJurisdiction"]);
   log(`Blended DPA fixture (parties anchor: ${body.controllerName} → ${body.processorName})`);
   log("Invoking generate-dpa…");
   const { data, error } = await supabase.functions.invoke("generate-dpa", {
@@ -220,21 +231,20 @@ const runDPA: Runner = async ({ userId, log }) => {
     label: `DPA · ${body.controllerName} → ${body.processorName} · ${shortId(data.id)}`,
     resultUrl: `/dpa-generator/result/${data.id}`,
     pdfToolType: "dpa_generator",
+    payload: body as Record<string, unknown>,
+    pdfTargetId: data.id,
   };
 };
 
 // ─── IR Playbook ─────────────────────────────────────────────────────────────
 
 const runIRPlaybook: Runner = async ({ userId, log }) => {
-  const body = blend(IR_VARIANTS, ["organisationType"]);
+  const body = blend(IR_VARIANTS, ["organisationType", "jurisdictions"]);
   log(`Blended IR fixture (org-type anchor: ${body.organisationType})`);
   log("Invoking generate-ir-playbook…");
+  const fullBody = { ...body, discoveryDateTime: new Date().toISOString(), user_id: userId };
   const { data, error } = await supabase.functions.invoke("generate-ir-playbook", {
-    body: {
-      ...body,
-      discoveryDateTime: new Date().toISOString(),
-      user_id: userId,
-    },
+    body: fullBody,
   });
   if (error || !data?.id) {
     throw new Error(error?.message || data?.error || "no id returned");
@@ -247,27 +257,8 @@ const runIRPlaybook: Runner = async ({ userId, log }) => {
     label: `IR · ${body.organisationType} · ${shortId(data.id)}`,
     resultUrl: `/ir-playbook/result/${data.id}`,
     pdfToolType: "ir_playbook",
-  };
-};
-
-// ─── Intelligence Brief ──────────────────────────────────────────────────────
-
-const runBrief: Runner = async ({ log }) => {
-  const prefs = blend(BRIEF_VARIANTS, ["industries"]);
-  const primaryIndustry = (prefs.industries as string[])[0];
-  log(`Blended Brief prefs (industry anchor: ${primaryIndustry})`);
-  log("Invoking admin-test-custom-brief…");
-  const { data, error } = await supabase.functions.invoke("admin-test-custom-brief", {
-    body: { prefs },
-  });
-  if (error || !data?.custom_brief?.id) {
-    throw new Error(error?.message || data?.error || "no brief id returned");
-  }
-  return {
-    targetTable: "custom_briefs",
-    targetId: data.custom_brief.id,
-    label: `Brief · ${primaryIndustry} · ${shortId(data.custom_brief.id)}`,
-    pdfToolType: "brief",
+    payload: fullBody as Record<string, unknown>,
+    pdfTargetId: data.id,
   };
 };
 
@@ -384,7 +375,6 @@ const runRoPA: Runner = async ({ userId, log }) => {
 
   await pollStatus("ropa_sessions", session.id, 45, 4000, log);
 
-  // Confirm the document version row was written by the background worker.
   const { data: ver } = await supabase
     .from("ropa_document_versions")
     .select("id, file_path, last_signed_url")
@@ -392,13 +382,15 @@ const runRoPA: Runner = async ({ userId, log }) => {
     .eq("document_format", "pdf")
     .eq("is_current", true)
     .maybeSingle();
-  if (!ver?.file_path) throw new Error("generator: no ropa_document_versions row after polling");
+  if (!ver?.id) throw new Error("generator: no ropa_document_versions row after polling");
 
   return {
-    targetTable: "ropa_sessions",
+    targetTable: "ropa_document_versions",
     targetId: session.id,
     label: `RoPA · ${persona.org_name} · ${shortId(session.id)}`,
     resultUrl: "/ropa/documents",
+    payload: persona as unknown as Record<string, unknown>,
+    pdfTargetId: ver.id,
   };
 };
 
@@ -454,6 +446,8 @@ const runUSNotice: Runner = async ({ userId, log }) => {
     targetId: session.id,
     label: `US Notice · ${universal.business_name} · ${gen.documents.length} docs · ${shortId(session.id)}`,
     resultUrl: `/us-notices/result/${session.id}`,
+    payload: universal as Record<string, unknown>,
+    pdfTargetId: session.id,
   };
 };
 
@@ -506,7 +500,6 @@ const runEUNotice: Runner = async ({ userId, log }) => {
   log("Polling eu_notice_sessions for terminal status…");
   await pollStatus("eu_notice_sessions", session.id, 60, 4000, log);
 
-  // Read the generated document rows for this session+version.
   const { data: sessRow } = await supabase
     .from("eu_notice_sessions")
     .select("version_number")
@@ -525,13 +518,15 @@ const runEUNotice: Runner = async ({ userId, log }) => {
     targetId: session.id,
     label: `EU/UK/CH Notice · ${universal.controller_name} · ${docs.length} docs · ${shortId(session.id)}`,
     resultUrl: `/eu-notices/result/${session.id}`,
+    payload: universal as Record<string, unknown>,
+    pdfTargetId: session.id,
   };
 };
 
 // ─── Registration ────────────────────────────────────────────────────────────
 
 const runRegistration: Runner = async ({ userId, log }) => {
-  const intake = blend(REG_VARIANTS, ["organization_name", "email"]);
+  const intake = blend(REG_VARIANTS, ["organization_name", "email", "sector"]);
   log(`Blended Registration fixture (org anchor: ${intake.organization_name})`);
   log("Invoking run-registration-assessment…");
   const { data: assess, error: assessErr } = await supabase.functions.invoke(
@@ -541,6 +536,7 @@ const runRegistration: Runner = async ({ userId, log }) => {
   if (assessErr || !assess?.assessment_id) {
     throw new Error(`assessment: ${assessErr?.message ?? assess?.error}`);
   }
+  const assessmentId: string = assess.assessment_id;
   const codes: string[] = (assess.recommended_jurisdictions || []).slice(0, 3);
   if (!codes.length) throw new Error("engine returned no jurisdictions");
   log(`Recommended (capped @3): ${codes.join(", ")}`);
@@ -550,7 +546,7 @@ const runRegistration: Runner = async ({ userId, log }) => {
     .from("registration_orders")
     .insert({
       user_id: userId,
-      assessment_id: assess.assessment_id,
+      assessment_id: assessmentId,
       tier: "diy",
       jurisdictions: codes,
       organization_snapshot: intake,
@@ -572,10 +568,12 @@ const runRegistration: Runner = async ({ userId, log }) => {
   if (genErr) throw new Error(`generator: ${genErr.message}`);
 
   return {
-    targetTable: "registration_orders",
+    targetTable: "registration_assessments",
     targetId: order.id,
     label: `Registration · ${intake.organization_name} · ${codes.join("/")} · ${shortId(order.id)}`,
     resultUrl: `/registration/order/${order.id}`,
+    payload: intake as Record<string, unknown>,
+    pdfTargetId: assessmentId,
   };
 };
 
@@ -626,6 +624,8 @@ const runCppaRisk: Runner = async ({ userId, log }) => {
     targetId: rec.id,
     label: `CPPA Risk · ${intake.q3_sector} · ${shortId(rec.id)}`,
     resultUrl: `/cppa-risk-assessment/result/${rec.id}`,
+    payload: intake as Record<string, unknown>,
+    pdfTargetId: rec.id,
   };
 };
 
@@ -659,6 +659,8 @@ const runCppaCyber: Runner = async ({ userId, log }) => {
     targetId: rec.id,
     label: `CPPA Cyber · ${intake.industry_sector} · ${shortId(rec.id)}`,
     resultUrl: `/cppa-cybersecurity/result/${rec.id}`,
+    payload: intake as Record<string, unknown>,
+    pdfTargetId: rec.id,
   };
 };
 
@@ -667,7 +669,7 @@ const runCppaCyber: Runner = async ({ userId, log }) => {
 export interface ToolDef {
   id: ToolType;
   label: string;
-  group: "Assessments" | "Documents" | "Briefing" | "CPPA" | "Notices" | "Registration";
+  group: "Assessments" | "Documents" | "CPPA" | "Notices" | "Registration";
   runner: Runner;
   /** Approximate generation time for user expectations. */
   expectedSeconds: number;
@@ -686,9 +688,12 @@ export const TOOLS: ToolDef[] = [
   { id: "registration",label: "Registration Manager (DIY)",     group: "Registration",runner: runRegistration, expectedSeconds: 90 },
   { id: "cppa-risk",   label: "CPPA Risk Assessment (Module 1)",group: "CPPA",        runner: runCppaRisk,   expectedSeconds: 120 },
   { id: "cppa-cyber",  label: "CPPA Cybersecurity Audit (Module 2)", group: "CPPA",   runner: runCppaCyber,  expectedSeconds: 120 },
-  { id: "brief",       label: "Intelligence Brief",             group: "Briefing",    runner: runBrief,      expectedSeconds: 90 },
 ];
 
 export const TOOL_BY_ID: Record<ToolType, ToolDef> = Object.fromEntries(
   TOOLS.map((t) => [t.id, t]),
 ) as Record<ToolType, ToolDef>;
+
+export const RUNNERS: Record<ToolType, Runner> = Object.fromEntries(
+  TOOLS.map((t) => [t.id, t.runner]),
+) as Record<ToolType, Runner>;
