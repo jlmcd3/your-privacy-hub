@@ -286,11 +286,11 @@ ${formatEnforcementContext(enforcement_context)}
 
 CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.`;
 
-        const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate the FIRST HALF (Sections 1–4) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate PART A (Sections 1–3) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
 ${INTAKE_BLOCK}
 
-Generate ONLY the following four sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown (the line "## Section N: TITLE"), so downstream tooling can locate them. Do not omit any section, even if you think it is not applicable — instead, state explicitly within the section why it does not apply. Do NOT output Sections 5, 6, 7, or the ===ANNOTATIONS=== block in this response — those will be generated in a follow-up call.
+Generate ONLY the following three sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown (the line "## Section N: TITLE"), so downstream tooling can locate them. Do not omit any section, even if you think it is not applicable — instead, state explicitly within the section why it does not apply. Do NOT output Sections 4, 5, 6, 7, or the ===ANNOTATIONS=== block in this response — those will be generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts B and C, since all three parts are generated from the same incident facts and system instructions.
 
 ## Section 1: IMMEDIATE ACTIONS (0–2 HOURS)
 Numbered, specific steps. Name the role responsible for each. Be direct.
@@ -301,21 +301,29 @@ For each jurisdiction listed, state: (a) the notification threshold test, (b) wh
 ## Section 3: REGULATORY NOTIFICATION TIMELINE
 For each jurisdiction: the deadline (hours from discovery), the notification portal URL (use the portals provided above), the minimum content required for initial notification, what can be filed as preliminary versus what must follow, and – based on the enforcement context – specific omissions that have been penalised. If a processor is involved, include a dedicated step titled "Processor notification" describing how and when the processor must be notified.
 
-## Section 4: INDIVIDUAL NOTIFICATION DECISION TREE
-Step-by-step logic for determining whether individuals must be notified, with jurisdiction-specific thresholds. If required: content elements, delivery method, and deadline. Include the verbatim phrase "individual notification" in the section body.
+Output ONLY Sections 1–3. No preamble, no commentary, no Sections 4–7, no annotations.`;
 
-Output ONLY Sections 1–4. No preamble, no commentary, no Sections 5–7, no annotations.`;
-
-        const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate the SECOND HALF (Sections 5–7) of the same complete, actionable 7-section incident response playbook for a data breach, followed by the ===ANNOTATIONS=== block. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate PART B (Sections 4–5) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
 ${INTAKE_BLOCK}
 
-Generate ONLY the following three sections plus annotations now. Each section MUST begin with a markdown H2 heading using the EXACT format shown. Maintain the same deadlines, threshold tests, regulator names, portal URLs, and statutory caution rules that Sections 1–4 will use from the same incident facts and system instructions. Do not refer to "the previous section" or "as above" because this half is generated independently and later merged with Sections 1–4.
+Generate ONLY the following two sections now. Each section MUST begin with a markdown H2 heading using the EXACT format shown. Do NOT output Sections 1, 2, 3, 6, 7, or the ===ANNOTATIONS=== block in this response — those are generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts A and C, since all three parts are generated from the same incident facts and system instructions. Do not refer to "the previous section" or "as above" because this part is generated independently and later merged.
+
+## Section 4: INDIVIDUAL NOTIFICATION DECISION TREE
+Step-by-step logic for determining whether individuals must be notified, with jurisdiction-specific thresholds. If required: content elements, delivery method, and deadline. Include the verbatim phrase "individual notification" in the section body.
 
 ## Section 5: NOTIFICATION TEMPLATES
 (a) A DPA initial notification letter template for the primary jurisdiction.
 (b) An individual notification template if individual notification is required.
 Mark all placeholder fields [IN SQUARE BRACKETS]. The word "template" MUST appear in this section heading or body at least twice.
+
+Output ONLY Sections 4–5. No preamble, no commentary, do NOT output Sections 1–3 or 6–7, no annotations.`;
+
+        const PROMPT_PART_C = `You are a senior data protection incident response specialist. Generate PART C (Sections 6–7 plus the ===ANNOTATIONS=== block) of the same complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+
+${INTAKE_BLOCK}
+
+Generate ONLY the following two sections plus annotations now. Each section MUST begin with a markdown H2 heading using the EXACT format shown. Do NOT output Sections 1, 2, 3, 4, or 5 in this response — those are generated in parallel calls. CROSS-PART CONSISTENCY: the deadlines, threshold tests, regulator names, portal URLs, statutory caution rules, and case citations you use here must match exactly those used in Parts A and B, since all three parts are generated from the same incident facts and system instructions. Do not refer to "the previous section" or "as above" because this part is generated independently and later merged.
 
 ## Section 6: DOCUMENTATION & ACCOUNTABILITY CHECKLIST
 A documentation checklist of records to create and maintain under GDPR Article 33(5) and equivalent requirements. Format as a list of documents with the information each must contain. This is the organisation's accountability trail. The verbatim phrase "documentation checklist" MUST appear in this section.
@@ -337,7 +345,7 @@ followed by a JSON array of enforcement citations that directly supported a time
 }
 If no cases informed the playbook, output an empty array [].
 
-Output ONLY Sections 5–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT re-output Sections 1–4.`;
+Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT output Sections 1–5.`;
 
         // LEGAL CONSTANTS — verified 2026-06-12 against statute text.
         // R6 (2026-06-12): NY corrected to 30-day hard deadline (S2659B, eff. 21 Dec 2024) +
