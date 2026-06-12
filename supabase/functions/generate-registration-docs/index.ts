@@ -365,7 +365,7 @@ Deno.serve(async (req) => {
                 buildUserPrompt(docDef, r, orgSnapshot, [`lint: ${details}`]) +
                 `\n\nPREVIOUS DRAFT REJECTED by automated lint for: ${details}. Reproduce the document correcting these defects silently. Do not mention this instruction.`,
               );
-              const retryCleaned = stripMarkdown(retryRaw);
+              const retryCleaned = stripMarkdown(retryRaw.text);
               const retryLint = lintReportText(retryCleaned, {
                 checkDates: true, checkUnresolvedTokens: true, referenceDate,
               });
