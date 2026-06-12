@@ -97,7 +97,7 @@ const runLIA: Runner = async ({ userId, log }) => {
   return {
     targetTable: "li_assessments",
     targetId: rec.id,
-    label: `LIA · ${intake.sector} · ${shortId(rec.id)}`,
+    label: `LIA · ${intake.organization_name} · ${intake.sector} · ${shortId(rec.id)}`,
     resultUrl: `/li-assessment/result/${rec.id}`,
     pdfToolType: "li_assessment",
   };
