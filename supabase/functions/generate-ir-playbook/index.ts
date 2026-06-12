@@ -5,7 +5,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.1-3part-furniture-filter-2026-06-12";
+const IR_VERSION = "v3.2-parallel-continuations-2026-06-12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -526,9 +526,11 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
             { which: "B", text: partB },
             { which: "C", text: partC },
           ];
-          for (const p of parts) {
-            const v = validatePart(p.text, p.which);
-            if (!v.ok) {
+          // Phase 1 — validate all parts up-front and collect failures (with logging).
+          const failures = parts
+            .map((p) => {
+              const v = validatePart(p.text, p.which);
+              if (v.ok) return null;
               const onlyTerminal = v.reason?.startsWith("last line not terminally punctuated") ?? false;
               if (onlyTerminal) {
                 // Post furniture-filter, this path should be vanishingly rare. Log the
@@ -537,18 +539,33 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
               } else {
                 console.warn(`[IR Playbook] Part ${p.which} failed validation (${v.reason}); tail-continuing at 4000`);
               }
-              const continued = await continuePart(p.which, extra, p.text, 4000, 200_000, onlyTerminal);
-              const v2 = validatePart(continued, p.which);
-              if (!v2.ok) {
-                if (p.which === "A") partA = continued;
-                else if (p.which === "B") partB = continued;
-                else partC = continued;
-                return { partA, partB, partC, incomplete: `part${p.which}: ${v2.reason}` };
-              }
-              if (p.which === "A") partA = continued;
-              else if (p.which === "B") partB = continued;
-              else partC = continued;
-            }
+              return { which: p.which, text: p.text, onlyTerminal };
+            })
+            .filter((x): x is { which: "A" | "B" | "C"; text: string; onlyTerminal: boolean } => x !== null);
+
+          if (failures.length === 0) {
+            return { partA, partB, partC };
+          }
+
+          // Phase 2 — run all needed continuations concurrently. Let throws propagate
+          // to the background catch exactly as a single serialized continuation would.
+          const continuedTexts = await Promise.all(
+            failures.map((f) => continuePart(f.which, extra, f.text, 4000, 200_000, f.onlyTerminal)),
+          );
+
+          const stillFailing: string[] = [];
+          for (let i = 0; i < failures.length; i++) {
+            const f = failures[i];
+            const continued = continuedTexts[i];
+            if (f.which === "A") partA = continued;
+            else if (f.which === "B") partB = continued;
+            else partC = continued;
+            const v2 = validatePart(continued, f.which);
+            if (!v2.ok) stillFailing.push(`part${f.which}: ${v2.reason}`);
+          }
+
+          if (stillFailing.length > 0) {
+            return { partA, partB, partC, incomplete: stillFailing.join("; ") };
           }
           return { partA, partB, partC };
         }
