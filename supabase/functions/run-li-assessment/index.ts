@@ -43,7 +43,8 @@ async function callAnthropic(
   model: string,
   systemPrompt: string,
   userContent: string,
-  maxTokens: number = 2000
+  maxTokens: number = 2000,
+  timeoutMs: number = 240_000
 ): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -59,7 +60,7 @@ async function callAnthropic(
       system: systemPrompt,
       messages: [{ role: "user", content: userContent }],
     }),
-    signal: AbortSignal.timeout(120000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw new Error(`Anthropic error: ${res.status}`);
   const data = await res.json();
