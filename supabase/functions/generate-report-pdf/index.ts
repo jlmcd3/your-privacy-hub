@@ -619,7 +619,7 @@ function renderCppaEnforcementPrecedents(items: any[]): string {
   return `<section class="section"><h2>Enforcement Precedents</h2>${cards}</section>`;
 }
 
-function buildCPPARiskReportHTML(report: any, record: any): string {
+function buildCPPARiskLegacyHTML(report: any, record: any): string {
   const generatedDate = new Date(record.created_at || report?.generated_at || Date.now()).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
