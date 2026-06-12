@@ -196,13 +196,13 @@ export default function TestsRealWorld() {
             </div>
           </header>
 
-          <Card className="p-3 border border-amber-300 bg-amber-50">
-            <p className="text-xs text-amber-900 flex items-start gap-2">
+          <Card className="p-3 border border-emerald-300 bg-emerald-50">
+            <p className="text-xs text-emerald-900 flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>
-                <strong>Phase 1:</strong> 7 of the 18 subscriber tools are wired (assessments, DPA, IR Playbook, Brief).
-                RoPA, US/EU Notice Builders, Registration and the three CPPA modules use multi-step intake flows
-                and will be added next — they currently still run from <Link to="/admin/tests-output" className="underline">/admin/tests-output</Link>.
+                All {TOOLS.length} subscriber tools wired. Each run calls the same edge functions and
+                writes to the same tables a paying subscriber would. Generated rows are tagged in the
+                harness ledger so <strong>Delete all</strong> never touches real subscriber data.
               </span>
             </p>
           </Card>
