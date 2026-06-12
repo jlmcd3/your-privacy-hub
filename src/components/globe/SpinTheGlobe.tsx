@@ -238,7 +238,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
     // Try self-hosted asset first, then unpkg CDN, then canvas-drawn fallback.
     loader.load(
-      "/globe/earth-blue-marble.jpg",
+      earthTextureAsset.url,
       applyTexture,
       undefined,
       () => {
