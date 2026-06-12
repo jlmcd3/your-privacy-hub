@@ -13,7 +13,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function callAnthropic(model: string, system: string, user: string, maxTokens = 2500): Promise<string> {
+async function callAnthropic(model: string, system: string, user: string, maxTokens = 2500): Promise<{ text: string; stopReason: string | null }> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -26,7 +26,10 @@ async function callAnthropic(model: string, system: string, user: string, maxTok
   });
   if (!res.ok) throw new Error(`Anthropic ${res.status}`);
   const d = await res.json();
-  return d.content?.[0]?.text || "";
+  const text = d.content?.[0]?.text || "";
+  const stopReason: string | null = d.stop_reason ?? null;
+  console.log(`[run-dpia-framework] gen done stop=${stopReason} chars=${text.length}`);
+  return { text, stopReason };
 }
 
 Deno.serve(async (req) => {
