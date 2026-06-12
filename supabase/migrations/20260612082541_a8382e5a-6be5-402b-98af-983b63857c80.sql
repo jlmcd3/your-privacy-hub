@@ -1,0 +1,2 @@
+ALTER TABLE public.eu_notice_sessions DROP CONSTRAINT IF EXISTS eu_notice_sessions_status_check;
+ALTER TABLE public.eu_notice_sessions ADD CONSTRAINT eu_notice_sessions_status_check CHECK (status IN ('in_progress','questions_complete','review','generated','archived','generating','failed'));
