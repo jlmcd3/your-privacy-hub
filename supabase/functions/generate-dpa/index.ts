@@ -534,9 +534,9 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     }
 
 
-    async function callAi(extraUser: string): Promise<string> {
+    async function callAi(extraUser: string, timeoutMs: number = 240_000): Promise<string> {
       const aiController = new AbortController();
-      const aiTimeout = setTimeout(() => aiController.abort(), 180_000);
+      const aiTimeout = setTimeout(() => aiController.abort(), timeoutMs);
       const finalUser = extraUser ? `${userPrompt}\n\n${extraUser}` : userPrompt;
       const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
