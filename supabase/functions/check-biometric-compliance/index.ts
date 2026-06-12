@@ -237,9 +237,11 @@ Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No pre
 
 Your task: produce a structured compliance assessment for a described biometric data processing activity, calibrated to the jurisdictions in scope and recent enforcement precedents.
 
-BIPA — STATUTORY UPDATE (Illinois P.A. 103-0769, effective 8 August 2024):
-  - The 2024 amendment to 740 ILCS 14/20 caps liquidated damages so that a single course of conduct involving the same biometric identifier or information from the same person constitutes a SINGLE violation per person (not one-per-scan as held in Cothron v. White Castle, 2023 IL 128004). Reflect this in the BIPA risk discussion: the per-person figures supplied above remain the ceiling for new conduct on or after 8 Aug 2024; pre-amendment conduct may still face per-scan exposure.
+BIPA — STATUTORY UPDATE (Illinois P.A. 103-0769 (SB 2979), signed and effective 2 August 2024):
+  - The 2024 amendment to 740 ILCS 14/20 caps liquidated damages so that a single course of conduct involving the same biometric identifier or information from the same person constitutes a SINGLE violation per person (not one-per-scan as held in Cothron v. White Castle, 2023 IL 128004). Reflect this in the BIPA risk discussion: the per-person figures supplied above remain the ceiling for new conduct on or after 2 Aug 2024; pre-amendment conduct may still face per-scan exposure.
+  - Note where relevant that courts have split on whether the amendment applies retroactively to pre-amendment conduct (compare Gregg v. Central Transport (N.D. Ill. 2024) with Schwartz v. Viking SupplyNet (N.D. Ill. 2024)); frame pre-amendment per-scan exposure as contested rather than settled.
   - Section 15(b) written-consent and Section 15(a) public retention-and-destruction policy obligations are unchanged. A private right of action remains.
+  - HEADCOUNT CONSISTENCY: Whenever you present an illustrative damages calculation using a single enrollment figure drawn from a range in the intake, state the assumption explicitly (e.g. "assumes the midpoint (2,500) of the stated 500–5,000 range") and present the full-range figure alongside it.
 
 CITATION GUARDRAILS:
   - Cite enforcement actions ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt (each tagged [E#] with an id). Never reference ICO, CNIL, AEPD, Garante, or other regulator fines from training knowledge if they are not in that block.
