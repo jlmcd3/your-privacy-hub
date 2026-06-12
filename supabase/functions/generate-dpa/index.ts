@@ -534,7 +534,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     }
 
 
-    async function callAi(extraUser: string, timeoutMs: number = 240_000): Promise<string> {
+    async function callAi(extraUser: string, timeoutMs: number = 240_000): Promise<{ text: string; finishReason: string | null }> {
       const aiController = new AbortController();
       const aiTimeout = setTimeout(() => aiController.abort(), timeoutMs);
       const finalUser = extraUser ? `${userPrompt}\n\n${extraUser}` : userPrompt;
@@ -561,7 +561,10 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         throw new Error("AI generation failed");
       }
       const aiData = await aiRes.json();
-      return aiData.choices?.[0]?.message?.content ?? "";
+      const text = aiData.choices?.[0]?.message?.content ?? "";
+      const finishReason: string | null = aiData.choices?.[0]?.finish_reason ?? null;
+      console.log(`[generate-dpa] gen done stop=${finishReason} chars=${text.length}`);
+      return { text, finishReason };
     }
 
     function parseDpa(fullText: string): { dpa_text: string; annotations: any[] } {
