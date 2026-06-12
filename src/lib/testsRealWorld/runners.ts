@@ -212,8 +212,8 @@ const runDPA: Runner = async ({ userId, log }) => {
 // ─── IR Playbook ─────────────────────────────────────────────────────────────
 
 const runIRPlaybook: Runner = async ({ userId, log }) => {
-  const body = blend(IR_VARIANTS);
-  log(`Blended IR fixture (${body.organisationType})`);
+  const body = blend(IR_VARIANTS, ["organisationType"]);
+  log(`Blended IR fixture (org-type anchor: ${body.organisationType})`);
   log("Invoking generate-ir-playbook…");
   const { data, error } = await supabase.functions.invoke("generate-ir-playbook", {
     body: {
@@ -228,7 +228,7 @@ const runIRPlaybook: Runner = async ({ userId, log }) => {
   return {
     targetTable: "ir_playbooks",
     targetId: data.id,
-    label: `IR · ${body.organisationType}`,
+    label: `IR · ${body.organisationType} · ${shortId(data.id)}`,
     resultUrl: `/ir-playbook/result/${data.id}`,
     pdfToolType: "ir_playbook",
   };
@@ -237,8 +237,9 @@ const runIRPlaybook: Runner = async ({ userId, log }) => {
 // ─── Intelligence Brief ──────────────────────────────────────────────────────
 
 const runBrief: Runner = async ({ log }) => {
-  const prefs = blend(BRIEF_VARIANTS);
-  log(`Blended Brief prefs (industries: ${(prefs.industries as string[]).join(",")})`);
+  const prefs = blend(BRIEF_VARIANTS, ["industries"]);
+  const primaryIndustry = (prefs.industries as string[])[0];
+  log(`Blended Brief prefs (industry anchor: ${primaryIndustry})`);
   log("Invoking admin-test-custom-brief…");
   const { data, error } = await supabase.functions.invoke("admin-test-custom-brief", {
     body: { prefs },
@@ -249,7 +250,7 @@ const runBrief: Runner = async ({ log }) => {
   return {
     targetTable: "custom_briefs",
     targetId: data.custom_brief.id,
-    label: `Brief · ${(prefs.industries as string[])[0]}`,
+    label: `Brief · ${primaryIndustry} · ${shortId(data.custom_brief.id)}`,
     pdfToolType: "brief",
   };
 };
