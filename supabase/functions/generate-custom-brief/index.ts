@@ -132,6 +132,7 @@ SCORING PRINCIPLES:
     if (!resp.ok) return articles;
     const data = await resp.json();
     const text = data.content?.[0]?.text || "";
+    console.log(`[generate-custom-brief] gen done stop=${data.stop_reason ?? null} chars=${text.length}`);
     const match = text.match(/\[[\s\S]*\]/);
     if (!match) return articles;
     const scores: { index: number; score: number }[] = JSON.parse(match[0]);
