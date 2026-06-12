@@ -96,7 +96,7 @@ const F_LIA_UK: SampleFixture = {
       preview_signal: { sample_run: true },
     },
     invoke: { fn: "run-li-assessment", id_key: "assessment_id" },
-    poll: { table: "li_assessments", terminal: ["complete", "failed"], max: 30, interval_ms: 4000 },
+    poll: { table: "li_assessments", terminal: ["complete", "failed"], max: 75, interval_ms: 4000 },
   },
 };
 
