@@ -653,6 +653,7 @@ Return JSON:
   "disclaimer": "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
 }`;
 
+    const t3Start = Date.now();
     let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, 3500);
     if (docsStage.stopReason === "max_tokens") {
       console.warn("[LIA] Stage 3 truncated_output — retrying at 1.5x token budget");
@@ -662,6 +663,7 @@ Return JSON:
         throw new Error("truncated_output: LIA Stage 3 (docs) exceeded token budget twice");
       }
     }
+    console.log(`[LIA] stage=3 docs elapsed=${Date.now() - t3Start}ms`);
     const docsText = docsStage.text;
 
     let docRecs: any = parseLlmJson(docsText);
