@@ -182,10 +182,11 @@ function buildReportMetaLine(opts: {
 
 
 
-function buildLIReportHTML(report: any, _assessment: any): string {
+function buildLIReportHTML(report: any, assessment: any): string {
   const d = report.three_part_test || {};
   const overall = report.three_part_test?.overall_assessment || {};
   const docRecs = report.documentation_recommendations || {};
+
   const date = new Date(report.generated_at).toLocaleDateString("en-US",
     { year: "numeric", month: "long", day: "numeric" });
 
