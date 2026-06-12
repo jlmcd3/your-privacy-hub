@@ -56,7 +56,13 @@ Deno.serve(async (req) => {
       ...(orgName && !(dpia as any).organization_name ? { organization_name: orgName } : {}),
     }).eq("id", dpia_id);
 
-
+    // Dispatch heavy work in background — return 202 immediately so the caller
+    // is not held open past the platform's 150s HTTP idle ceiling. The result
+    // page polls dpia_frameworks.status. On unhandled error we mark the row
+    // failed so callers don't poll forever.
+    // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
+    EdgeRuntime.waitUntil((async () => {
+      try {
     let orgContext = "";
     if (dpia.source_assessment_id) {
       const { data: sourceAssessment } = await supabase
@@ -389,8 +395,14 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
       },
     }).catch((e: Error) => console.error("PDF/email delivery failed (non-fatal):", e));
 
-    return new Response(JSON.stringify({ success: true, dpia_id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (bgErr) {
+        console.error("run-dpia-framework background error:", bgErr);
+        await supabase.from("dpia_frameworks").update({ status: "failed" }).eq("id", dpia_id);
+      }
+    })());
+
+    return new Response(JSON.stringify({ success: true, dpia_id, status: "processing" }),
+      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (e) {
     console.error("run-dpia-framework error:", e);
