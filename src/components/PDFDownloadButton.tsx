@@ -52,7 +52,31 @@ export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGe
           result_url: window.location.href,
         },
       });
-      if (error) throw error;
+      if (error) {
+        // R0 guards return 409 with a machine-readable reason. FunctionsHttpError
+        // exposes the original Response on `context` — read it to distinguish
+        // "report not ready" from a genuine failure.
+        let reason: string | undefined;
+        let status: number | undefined;
+        try {
+          const ctx: any = (error as any).context;
+          status = ctx?.status;
+          if (ctx && typeof ctx.json === "function") {
+            const body = await ctx.json();
+            reason = body?.error;
+          }
+        } catch { /* fall through to generic handling */ }
+        if (status === 409) {
+          if (reason === "report_not_ready") {
+            throw new Error("Your report is still being generated. Please wait a moment and try again.");
+          }
+          if (reason === "report_body_empty" || reason === "report_data_invalid") {
+            throw new Error("Report generation did not complete successfully. Please regenerate the report, then download the PDF. If this persists, contact support.");
+          }
+          throw new Error("The report isn't ready for PDF export yet. Please try again shortly.");
+        }
+        throw error;
+      }
       if (!data?.pdf_url) {
         throw new Error(data?.error || "PDF generation is not yet configured. Please try again later.");
       }
