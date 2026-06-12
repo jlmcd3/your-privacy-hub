@@ -158,30 +158,121 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
+function titleCase(s: string): string {
+  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// Keys that are bookkeeping / metadata / noise — never rendered into the
+// reader-facing PDF. Tools sometimes emit these alongside the real report.
+const SKIP_KEYS = new Set([
+  "assessment_id", "id", "user_id", "client_id", "session_id",
+  "version", "schema_version", "generated_at", "annotations",
+  "lint_warnings", "enforcement_meta", "raw_text", "raw_response",
+  "raw_intake", "tool_version", "model", "prompt_tokens",
+  "completion_tokens", "trace_id", "run_id",
+]);
+
+function renderArray(arr: unknown[], depth: number): string {
+  if (arr.length === 0) return "";
+  if (arr.every((x) => typeof x === "string" || typeof x === "number")) {
+    return `<ul>${arr.map((x) => `<li>${escapeHtml(String(x))}</li>`).join("")}</ul>`;
+  }
+  return arr.map((x) => {
+    if (x && typeof x === "object" && !Array.isArray(x)) {
+      return `<div class="item">${renderObject(x as Record<string, unknown>, depth + 1)}</div>`;
+    }
+    return renderValue(x, depth + 1);
+  }).join("");
+}
+
+function renderValue(v: unknown, depth: number): string {
+  if (v === null || v === undefined) return "";
+  if (typeof v === "string") {
+    const t = v.trim();
+    if (!t) return "";
+    return `<p>${escapeHtml(t).replace(/\n+/g, "<br>")}</p>`;
+  }
+  if (typeof v === "number" || typeof v === "boolean") {
+    return `<p>${escapeHtml(String(v))}</p>`;
+  }
+  if (Array.isArray(v)) return renderArray(v, depth);
+  if (typeof v === "object") return renderObject(v as Record<string, unknown>, depth);
+  return "";
+}
+
+function renderObject(obj: Record<string, unknown>, depth: number): string {
+  const tag = depth <= 0 ? "h2" : depth === 1 ? "h3" : "h4";
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(obj)) {
+    if (SKIP_KEYS.has(k)) continue;
+    if (v === null || v === undefined) continue;
+    if (typeof v === "string" && !v.trim()) continue;
+    if (Array.isArray(v) && v.length === 0) continue;
+    if (typeof v === "object" && !Array.isArray(v) && Object.keys(v as object).length === 0) continue;
+    parts.push(`<${tag}>${escapeHtml(titleCase(k))}</${tag}>`);
+    parts.push(renderValue(v, depth + 1));
+  }
+  return parts.join("");
+}
+
+function renderDocumentText(text: string): string {
+  const blocks = text.split(/\n\s*\n/);
+  return blocks.map((b) => {
+    const t = b.trim();
+    if (!t) return "";
+    const mdMatch = t.match(/^(#{1,6})\s+(.*)$/);
+    if (mdMatch) {
+      const level = Math.min(mdMatch[1].length + 1, 6);
+      return `<h${level}>${escapeHtml(mdMatch[2])}</h${level}>`;
+    }
+    if (t.length < 120 && /^[A-Z0-9][A-Z0-9 .,:;()'"\-/&]+$/.test(t)) {
+      return `<h2>${escapeHtml(t)}</h2>`;
+    }
+    return `<p>${escapeHtml(t).replace(/\n/g, "<br>")}</p>`;
+  }).join("");
+}
+
 function buildSampleHtml(opts: {
   tool_slug: string; variant: string; title: string;
-  scenario_summary: string; fixture: Record<string, unknown>;
+  scenario_summary: string;
+  reportData: Record<string, unknown> | null;
+  documentText: string | null;
 }): string {
-  const { tool_slug, variant, title, scenario_summary, fixture } = opts;
-  const fixtureJson = escapeHtml(JSON.stringify(fixture, null, 2));
+  const { tool_slug, variant, title, scenario_summary, reportData, documentText } = opts;
   const generatedAt = new Date().toISOString().slice(0, 10);
+
+  let body = "";
+  if (documentText && documentText.trim()) {
+    body = renderDocumentText(documentText);
+  } else if (reportData && typeof reportData === "object") {
+    body = renderObject(reportData, 0);
+  }
+  if (!body.trim()) {
+    body = `<p><em>No report content was found for this source row. Generate the report first, then re-run "Generate PDF".</em></p>`;
+  }
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
 <style>
   @page { size: Letter; margin: 16mm 14mm 18mm 14mm; }
-  body { font-family: 'DM Sans', Helvetica, Arial, sans-serif; font-size: 11pt; color: #1a1a1a; line-height: 1.45; }
+  body { font-family: 'DM Sans', Helvetica, Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a; line-height: 1.5; }
   .header { border-bottom: 2px solid #2a9d8f; padding-bottom: 10px; margin-bottom: 18px; }
-  .eyebrow { font-family: 'DM Mono', monospace; font-size: 9pt; letter-spacing: .08em;
+  .eyebrow { font-family: 'DM Mono', monospace; font-size: 8.5pt; letter-spacing: .08em;
              text-transform: uppercase; color: #2a9d8f; margin-bottom: 4px; }
   h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 22pt; margin: 0 0 6px 0;
        color: #0d2a45; font-weight: normal; line-height: 1.15; }
   .meta { font-family: 'DM Mono', monospace; font-size: 9pt; color: #5c5a54; }
-  h2 { font-family: 'DM Serif Display', Georgia, serif; font-size: 14pt; color: #0d2a45;
-       margin: 22px 0 8px 0; font-weight: normal; }
+  h2 { font-family: 'DM Serif Display', Georgia, serif; font-size: 15pt; color: #0d2a45;
+       margin: 22px 0 8px 0; font-weight: normal; border-bottom: 1px solid #e5e2dc; padding-bottom: 4px; }
+  h3 { font-family: 'DM Serif Display', Georgia, serif; font-size: 12pt; color: #0d2a45;
+       margin: 16px 0 6px 0; font-weight: normal; }
+  h4 { font-family: 'DM Sans', Helvetica, Arial, sans-serif; font-size: 10.5pt;
+       color: #0d2a45; margin: 12px 0 4px 0; font-weight: 600; }
+  p  { margin: 6px 0; }
+  ul { margin: 6px 0 6px 18px; padding: 0; }
+  li { margin: 3px 0; }
+  .item { border-left: 2px solid #e5e2dc; padding: 4px 0 4px 12px; margin: 8px 0; }
   .scenario { background: #f5f3ee; border-left: 3px solid #2a9d8f; padding: 12px 14px;
-              border-radius: 2px; margin-bottom: 18px; }
-  pre { background: #0d2a45; color: #d6ecea; font-family: 'DM Mono', Menlo, monospace;
-        font-size: 8.5pt; padding: 14px; border-radius: 4px; white-space: pre-wrap;
-        word-break: break-word; line-height: 1.4; }
+              border-radius: 2px; margin-bottom: 18px; font-size: 10pt; }
   .footer-note { margin-top: 26px; padding-top: 12px; border-top: 1px solid #ddd;
                  font-size: 8.5pt; color: #5c5a54; }
 </style></head><body>
@@ -190,16 +281,10 @@ function buildSampleHtml(opts: {
     <h1>${escapeHtml(title)}</h1>
     <div class="meta">EndUserPrivacy.com · Generated ${generatedAt}</div>
   </div>
-  <h2>Scenario</h2>
-  <div class="scenario">${escapeHtml(scenario_summary)}</div>
-  <h2>Intake data</h2>
-  <p>The structured intake below was used to drive this sample. Published samples
-     are reviewed by EndUserPrivacy editors before release.</p>
-  <pre>${fixtureJson}</pre>
+  ${scenario_summary ? `<div class="scenario"><strong>Scenario:</strong> ${escapeHtml(scenario_summary)}</div>` : ""}
+  ${body}
   <div class="footer-note">
-    This is a sample report intended to demonstrate the tool's output structure
-    and scope. It is not legal advice. Live tool runs produce verified citations
-    and tool-specific analysis sections.
+    Sample report generated from a live tool run on a fictional scenario. Not legal advice.
   </div>
 </body></html>`;
 }
