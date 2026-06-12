@@ -18,6 +18,8 @@ export interface LintOptions {
   checkDates?: boolean;
   /** Reference "now" for past_deadline. ISO string or Date. Defaults to today. */
   referenceDate?: string | Date;
+  /** Allowlist for upper_enum_in_prose (e.g. ["ISO_27001","SOC_2","NIST_CSF"]). */
+  upperEnumAllowlist?: string[];
 }
 
 const WEEKDAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -150,6 +152,53 @@ export function lintReportText(text: string, opts?: LintOptions): LintResult {
   if (gdprTypoRe.test(clean)) {
     violations.push({ code: "gdpr_typo", severity: "auto_fixed", detail: "corrected GDPR spelling" });
     clean = clean.replace(gdprTypoRe, "GDPR");
+  }
+
+  // 9. corpus_id_leak (HARD) — internal enforcement-corpus UUIDs in customer text.
+  const corpusIdRe = /\bid:\s*[0-9a-fA-F]{2,}[0-9a-fA-F-]*\b/g;
+  let cm: RegExpExecArray | null;
+  while ((cm = corpusIdRe.exec(clean)) !== null) {
+    violations.push({ code: "corpus_id_leak", severity: "hard", detail: cm[0].slice(0, 80) });
+  }
+
+  // 10. empty_citation_year — strip "Regulator (—)" / "Regulator (-)" / "Regulator (–)".
+  const emptyYearRe = /\s*\((?:—|–|-)\)/g;
+  if (emptyYearRe.test(clean)) {
+    violations.push({ code: "empty_citation_year", severity: "auto_fixed", detail: "removed empty year parentheticals" });
+    clean = clean.replace(emptyYearRe, "");
+  }
+
+  // 11. upper_enum_in_prose — humanize tokens like EU_GDPR; respect allowlist.
+  const allowlist = new Set<string>([
+    "ISO_27001", "ISO_27701", "ISO_27018", "SOC_2", "NIST_CSF", "NIST_800_53", "PCI_DSS",
+    ...(opts?.upperEnumAllowlist ?? []),
+  ]);
+  const upperEnumRe = /\b[A-Z]{2,}_[A-Z0-9_]+\b/g;
+  let humanized = false;
+  clean = clean.replace(upperEnumRe, (tok) => {
+    if (allowlist.has(tok)) return tok;
+    humanized = true;
+    return tok.replace(/_/g, " ");
+  });
+  if (humanized) {
+    violations.push({ code: "upper_enum_in_prose", severity: "auto_fixed", detail: "humanized UPPER_SNAKE tokens" });
+  }
+
+  // 12. concatenated_heading — known-bad squashed strings the model has produced.
+  const concatMap: Array<[RegExp, string]> = [
+    [/\bDPIAASSISTANCE\b/g, "DPIA ASSISTANCE"],
+    [/\bDPIASUPPORT\b/g, "DPIA SUPPORT"],
+    [/\bROPAREGISTER\b/g, "ROPA REGISTER"],
+  ];
+  let concatFixed = false;
+  for (const [re, repl] of concatMap) {
+    if (re.test(clean)) {
+      clean = clean.replace(re, repl);
+      concatFixed = true;
+    }
+  }
+  if (concatFixed) {
+    violations.push({ code: "concatenated_heading", severity: "auto_fixed", detail: "split concatenated headings" });
   }
 
   return { clean, violations };

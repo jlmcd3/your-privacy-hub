@@ -39,7 +39,7 @@ function estimateBIPARisk(enrolledCount: string): { lowEnd: number; highEnd: num
   return {
     lowEnd: count * 1000,
     highEnd: count * 5000,
-    note: `Based on ${count.toLocaleString()} enrolled individuals × $1,000 (negligent) to $5,000 (intentional) per violation. This is a mathematical illustration only — not a legal opinion.`,
+    note: `Based on ${count.toLocaleString()} enrolled individuals (midpoint of the stated ${enrolledCount} range) × $1,000 (negligent) to $5,000 (intentional) per person. This is a mathematical illustration only — not a legal opinion.`,
   };
 }
 
@@ -240,7 +240,10 @@ Your task: produce a structured compliance assessment for a described biometric 
 
 BIPA — STATUTORY UPDATE (Illinois P.A. 103-0769 (SB 2979), signed and effective 2 August 2024):
   - The 2024 amendment to 740 ILCS 14/20 caps liquidated damages so that a single course of conduct involving the same biometric identifier or information from the same person constitutes a SINGLE violation per person (not one-per-scan as held in Cothron v. White Castle, 2023 IL 128004). Reflect this in the BIPA risk discussion: the per-person figures supplied above remain the ceiling for new conduct on or after 2 Aug 2024; pre-amendment conduct may still face per-scan exposure.
-  - Note where relevant that courts have split on whether the amendment applies retroactively to pre-amendment conduct (compare Gregg v. Central Transport (N.D. Ill. 2024) with Schwartz v. Viking SupplyNet (N.D. Ill. 2024)); frame pre-amendment per-scan exposure as contested rather than settled.
+  - Retroactivity of P.A. 103-0769: on April 1, 2026, the U.S. Court of Appeals for the Seventh Circuit, resolving a district-court split (consolidated appeals including Gregg v. Central Transport LLC), held that the amendment applies retroactively to cases pending at enactment — limiting pre-amendment conduct to one recovery per person in federal court. Note that Illinois state courts are not bound by the Seventh Circuit on this question of Illinois law and the Illinois Supreme Court has not ruled, so a residual state-court risk of per-scan exposure remains. Describe pre-amendment exposure accordingly: substantially reduced by the Seventh Circuit's ruling, with residual state-court uncertainty — NOT as an open federal split, and do not cite Gregg and Schwartz as the current state of the law.
+  - HEDGING RULE: Do not state that Illinois courts have "consistently held" boilerplate-embedded consent insufficient. Say plaintiffs routinely challenge consent embedded in onboarding paperwork and a standalone release is the defensible practice — frame as risk guidance, not settled holding, unless citing a specific case from the enforcement context.
+  - PROOFREADING: proofread headings and prose for duplicated adjacent words (e.g. "vendor-disclosure disclosure") before output.
+  - CURRENCY FOOTER: Append to the END of the assessment output: "Precedent and enforcement positions current to the database's last update (June 2026). Verify before reliance."
   - Section 15(b) written-consent and Section 15(a) public retention-and-destruction policy obligations are unchanged. A private right of action remains.
   - HEADCOUNT CONSISTENCY: Whenever you present an illustrative damages calculation using a single enrollment figure drawn from a range in the intake, state the assumption explicitly (e.g. "assumes the midpoint (2,500) of the stated 500–5,000 range") and present the full-range figure alongside it.
 

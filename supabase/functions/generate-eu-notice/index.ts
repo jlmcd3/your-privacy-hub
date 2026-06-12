@@ -143,15 +143,21 @@ export function formatAnswer(questionKey: string, value: unknown): string {
   if (value == null) return "";
   const labelMap = OPTION_LABELS[questionKey];
 
+  const humanizeToken = (k: string): string => {
+    if (!k) return k;
+    const spaced = k.replace(/_/g, " ").trim();
+    return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+  };
+
   if (Array.isArray(value)) {
     const labels = value.map((v) => {
       const k = String(v);
-      return labelMap?.[k] ?? k;
+      return labelMap?.[k] ?? humanizeToken(k);
     });
     return labels.join(", ");
   }
   if (typeof value === "string") {
-    return labelMap?.[value] ?? value;
+    return labelMap?.[value] ?? humanizeToken(value);
   }
   if (typeof value === "number" || typeof value === "boolean") {
     return String(value);
@@ -289,10 +295,47 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
     html: `<p>We share personal data with the following categories of recipients: ${escapeHtml(recipients)}.</p>`,
   });
 
+  // Representative (Art. 27): render only when establishment differs from the
+  // framework's jurisdiction. We infer establishment from intake fields when
+  // available; otherwise we render a placeholder so the controller addresses it.
+  const establishment = formatAnswer("establishment_jurisdiction", answers["establishment_jurisdiction"]);
+  const estLower = establishment.toLowerCase();
+  const isEstEEA = /\b(eea|eu|austria|belgium|bulgaria|croatia|cyprus|czech|denmark|estonia|finland|france|germany|greece|hungary|ireland|italy|latvia|lithuania|luxembourg|malta|netherlands|poland|portugal|romania|slovakia|slovenia|spain|sweden|iceland|liechtenstein|norway)\b/.test(estLower);
+  const isEstUK = /\b(uk|united kingdom|england|scotland|wales|northern ireland)\b/.test(estLower);
+  if (fw.framework_code === "UK_GDPR" && !isEstUK) {
+    const ukRepName = formatAnswer("uk_rep_name", answers["uk_rep_name"]);
+    const ukRepContact = formatAnswer("uk_rep_contact", answers["uk_rep_contact"]);
+    sections.push({
+      title: "UK representative",
+      html: ukRepName
+        ? `<p>Our UK representative under UK GDPR Art. 27 is <strong>${escapeHtml(ukRepName)}</strong>${ukRepContact ? ` — ${escapeHtml(ukRepContact)}` : ""}.</p>`
+        : `<p>[UK representative to be appointed — required under UK GDPR Art. 27 unless an exemption applies.]</p>`,
+    });
+  }
+  if (fw.framework_code === "EU_GDPR" && !isEstEEA) {
+    const euRepName = formatAnswer("eu_rep_name", answers["eu_rep_name"]);
+    const euRepContact = formatAnswer("eu_rep_contact", answers["eu_rep_contact"]);
+    sections.push({
+      title: "EU representative",
+      html: euRepName
+        ? `<p>Our EU representative under GDPR Art. 27 is <strong>${escapeHtml(euRepName)}</strong>${euRepContact ? ` — ${escapeHtml(euRepContact)}` : ""}.</p>`
+        : `<p>[EU representative to be appointed — required under GDPR Art. 27 unless an exemption applies.]</p>`,
+    });
+  }
+
   if (transfersYes) {
+    const destCountries = formatAnswer("transfer_destinations", answers["transfer_destinations"]) ||
+      formatAnswer("transfer_countries", answers["transfer_countries"]) ||
+      "[destination countries to be specified]";
+    const adequacyNote = formatAnswer("adequacy_status", answers["adequacy_status"]);
+    const dpiaRef = formatAnswer("transfer_impact_assessment", answers["transfer_impact_assessment"]);
     sections.push({
       title: "International transfers",
-      html: `<p>We transfer personal data outside the relevant jurisdiction. Our safeguards: ${escapeHtml(safeguards || "Standard Contractual Clauses (SCCs) or equivalent")}.</p>`,
+      html: `<p>We transfer personal data outside the relevant jurisdiction to recipients in: ${escapeHtml(destCountries)}.</p>
+<p>Our safeguards under Art. 46 GDPR: ${escapeHtml(safeguards || "Standard Contractual Clauses (SCCs) or equivalent")}.</p>
+${adequacyNote ? `<p>Adequacy status: ${escapeHtml(adequacyNote)}.</p>` : ""}
+${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : `<p>Where adequacy is not relied upon, a Transfer Impact Assessment is maintained and available on request.</p>`}
+<p>You may request a copy of the safeguards by contacting us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>`,
     });
   }
 
@@ -306,9 +349,23 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
     ? `<p>You also have the right to lodge a complaint with the Swiss <strong>Federal Data Protection and Information Commissioner (FDPIC / EDÖB)</strong> — <a href="https://www.edoeb.admin.ch">edoeb.admin.ch</a>. Note that the revised FADP (in force 1 September 2023) does not provide for administrative fines on companies but does authorise criminal sanctions against responsible individuals for specific breaches (Art. 60–63 FADP) and requires controllers to maintain a register of processing activities, conduct DPIAs for high-risk processing, and report breaches to the FDPIC as soon as possible.</p>`
     : `<p>You also have the right to lodge a complaint with the relevant supervisory authority in your jurisdiction.</p>`;
 
+  const rightsList = isGdprFamily
+    ? `<ul>
+        <li><strong>Access</strong> (Art. 15) — obtain confirmation and a copy of your personal data.</li>
+        <li><strong>Rectification</strong> (Art. 16) — have inaccurate data corrected.</li>
+        <li><strong>Erasure</strong> (Art. 17) — request deletion where the conditions apply.</li>
+        <li><strong>Restriction</strong> (Art. 18) — limit how we process your data in specified circumstances.</li>
+        <li><strong>Portability</strong> (Art. 20) — receive your data in a structured, commonly used, machine-readable format.</li>
+        <li><strong>Object</strong> (Art. 21) — including absolute right to object to direct marketing.</li>
+        <li><strong>Withdraw consent</strong> (Art. 7(3)) — at any time where processing is based on consent.</li>
+        <li><strong>Not be subject to solely automated decisions</strong> with legal or similarly significant effects (Art. 22).</li>
+      </ul>
+      <p>We will respond to verified requests without undue delay and within one month (Art. 12(3)), extendable by a further two months for complex requests.</p>`
+    : `<p>Under the ${escapeHtml(lawName)}, you have rights including access, rectification, erasure, restriction, portability, and objection.</p>`;
+
   sections.push({
     title: "Your rights",
-    html: `<p>Under the ${escapeHtml(lawName)}, you have rights including access, rectification, erasure, restriction, portability, and objection.</p>\n${complaintHtml}`,
+    html: `${rightsList}\n${complaintHtml}`,
   });
 
   if (automatedYes) {

@@ -127,8 +127,8 @@ function formatEnforcementContext(rows: any[]): string {
   if (!rows || rows.length === 0) return "No specific enforcement precedents retrieved for these parameters.";
   return rows
     .map((e, i) => {
-      const year = e.decision_date ? new Date(e.decision_date).getFullYear() : "—";
-      const citation = `${e.regulator ?? "Regulator"} (${year})`;
+      const year = e.decision_date ? new Date(e.decision_date).getFullYear() : null;
+      const citation = year ? `${e.regulator ?? "Regulator"} (${year})` : `${e.regulator ?? "Regulator"}`;
       const fineVerified = e.fine_verified !== false;
       const fine = !fineVerified
         ? "fine amount under verification — omitted"
@@ -394,6 +394,22 @@ QUALITY STANDARDS:
 5. DPA portal URLs: use only URLs provided in the prompt. Do not fabricate or recall URLs from training.
 
 CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name, section number, subsection letter) must be verifiable against the actual statute. Known hallucination risks to guard against: (1) PIPEDA does not use decimal sub-principle numbering — cite as "Schedule 1, Principle N (Name)" only. (2) The Breach of Security Safeguards Regulations under PIPEDA are SOR/2018-64 — no other SOR number is correct. (3) US state privacy laws do not have a universal 72-hour breach notification deadline — that is a GDPR Article 33 concept only. Apply it only where GDPR explicitly applies. (4) Quebec Law 25 uses "without delay" not "72 hours" — present 72 hours as a planning benchmark only. (5) California breach notification (Cal. Civ. Code §1798.82, as amended by SB 446 effective 1 Jan 2026): individuals within 30 calendar days of discovery; AG sample copy within 15 calendar days of consumer notice when 500+ CA residents affected. Do NOT describe California as having no fixed deadline — that was the pre-2026 standard. 72 hours remains a GDPR Article 33 concept only. (6) The EU Artificial Intelligence Act must always be cited as "Regulation (EU) 2024/1689" — never 2024/900 or any other number. (7) MONETARY PENALTY RULE: Never state a specific fine, penalty, or settlement amount unless that exact figure appears in the ENFORCEMENT PRECEDENTS block in this prompt. If a case is relevant but its amount is not in the block, write "[fine — verify at ico.org.uk/action-weve-taken/enforcement]" or the relevant regulator's enforcement register URL. Known wrong figures to never use from training: ICO Interserve (2022) is £4,400,000 NOT £5.03M; ICO Capita Pension Solutions (2024) is £6,090,000 NOT £6.88M; ICO Clearview AI (2022) is £7,552,800 NOT £9M; ICO British Airways (2020) is £20,000,000. If any of these cases is not in your enforcement block, do not state any figure for it. (8) EU-UK ADEQUACY: When citing the EU-UK adequacy decision under GDPR Article 45 as a transfer mechanism, add the note "[Verify current status — adequacy decisions are subject to periodic Commission review]". If you are uncertain of a specific section number, write the section in descriptive terms and flag it: "[statutory reference to be confirmed with counsel]" rather than inventing a section number. (9) When stating a computed notification deadline, give the date and time only — NEVER state the day of the week, as computing weekday names is error-prone; if the input data explicitly provides a weekday you may repeat it verbatim. (10) Danish Data Protection Act (Databeskyttelsesloven, Act No. 502 of 23 May 2018): cite the employment-context processing provision as §12. NEVER cite this Act by chapter number — refer to numbered sections (§) only, and if uncertain of the section, describe the obligation and flag [statutory reference to be confirmed with counsel].
+
+VERIFIED JURISDICTION FACTS (use these anchors verbatim where relevant):
+- California (Cal. Civ. Code §1798.82, as amended by SB 446, eff. Jan 1, 2026): 30-day individual notice from discovery; AG sample copy within 15 days of consumer notice when 500+ CA residents affected. SB 446 RETAINED both delay allowances — legitimate law-enforcement needs AND time necessary to determine the scope of the breach and restore system integrity. Never state that the scope/integrity exception was removed.
+- The 30-day fixed deadline applies to California (from discovery) and Colorado (from DETERMINATION, §6-1-716(2)(a)) ONLY. Illinois (815 ILCS 530) and Virginia (§18.2-186.6) have NO fixed day-count — "most expedient time" / "without unreasonable delay". Early-section deadline summaries must match the per-state sections exactly; never list Illinois under a 30-day deadline.
+- Denmark: breach notifications to Datatilsynet are filed via Virk.dk (the Danish business portal) — never cite datatilsynet.dk as the submission channel. Denmark's national CSIRT is CFCS — never "NCSC-DK". Datatilsynet generally PROPOSES fines (reported to police, decided by courts) — describe Danish fines as "proposed fine reported to police" unless the corpus marks them court-imposed. There is no statutory minimum retention period for breach records in Denmark — recommended practice only.
+
+ATTRIBUTION AND HEDGING RULES:
+- Describe multistate AG settlements as multistate coalitions (e.g., "a 50-state coalition co-led by Connecticut"); NEVER attribute a coalition settlement to a single state regulator.
+- Never reproduce "(—)" or any empty-year placeholder from the enforcement context — cite the regulator alone if the year is unknown.
+- CONSISTENT EXPOSURE STATEMENTS: what Section 2 concludes was acquired (e.g., account credentials) must be reflected identically in every template — AG letter templates must carry the same qualifier as the consumer template ("credentials were sourced from outside our systems"), never a flat "no credentials were exposed".
+- Statutory hedges must not harden between sections: if §2 says an element "may constitute" PI subject to counsel review, later sections must keep that framing and anchor REQUIRED conclusions on the element that independently satisfies the statute (the credential category).
+- Use the consumer-notice content list from the per-state statute consistently — do not give two different content lists for the same state.
+
+LOCALE AND PORTAL RULES:
+- Use US English spelling throughout when all selected jurisdictions are US states; UK English only when UK/EU jurisdictions are selected.
+- For regulator portals, give the breach-reporting page if it is in the provided context; otherwise give the regulator's main consumer-protection page and say "locate the breach reporting form". Do not present a generic landing page as "the breach notification form".
 
 Output ONLY the playbook content requested in each turn. No preamble or commentary.`;
 
