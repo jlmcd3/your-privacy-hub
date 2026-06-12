@@ -368,6 +368,8 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
   "annotations": [
     {
       "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
+      "authority_tier": "REQUIRED integer 1, 2, or 3 — must equal the TIER tag shown on this entry above",
+      "authority_framing": "REQUIRED: 'in_regime' (tier 1) | 'persuasive_not_binding' (tier 2) | 'supportive_not_authoritative' (tier 3) — must match authority_tier per the mapping",
       "regulator": "regulator name",
       "jurisdiction": "jurisdiction",
       "decision_date": "YYYY-MM-DD or null",
