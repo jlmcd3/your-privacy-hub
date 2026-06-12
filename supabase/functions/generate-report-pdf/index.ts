@@ -1095,6 +1095,7 @@ Deno.serve(async (req) => {
       html = buildTextReportHTML({
         title: "Your Incident Response Playbook",
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
+          (record.organization_name ? ` · ${record.organization_name}` : "") +
           ((intake.jurisdictions || []).length ? ` · ${intake.jurisdictions.join(", ")}` : ""),
         text: record.playbook_text || "",
         showJurisdictionChip: false,
