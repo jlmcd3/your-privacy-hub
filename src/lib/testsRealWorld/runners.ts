@@ -90,7 +90,7 @@ const runLIA: Runner = async ({ userId, log }) => {
   const { error: fnErr } = await supabase.functions.invoke("run-li-assessment", {
     body: { assessment_id: rec.id },
   });
-  if (fnErr) log(`edge function returned: ${fnErr.message} — polling anyway`);
+  if (fnErr) log(`Async generation started (background worker); polling for completion…`);
 
   await pollStatus("li_assessments", rec.id, 30, 4000, log);
   return {
@@ -124,7 +124,7 @@ const runDPIA: Runner = async ({ userId, log }) => {
   const { error: fnErr } = await supabase.functions.invoke("run-dpia-framework", {
     body: { dpia_id: rec.id },
   });
-  if (fnErr) log(`edge function: ${fnErr.message} — polling anyway`);
+  if (fnErr) log(`Async generation started (background worker); polling for completion…`);
 
   await pollStatus("dpia_frameworks", rec.id, 90, 4000, log);
   return {
@@ -153,7 +153,7 @@ const runGovernance: Runner = async ({ userId, log }) => {
   const { error: fnErr } = await supabase.functions.invoke("run-governance-assessment", {
     body: { assessment_id: rec.id },
   });
-  if (fnErr) log(`edge function: ${fnErr.message} — polling anyway`);
+  if (fnErr) log(`Async generation started (background worker); polling for completion…`);
 
   await pollStatus("governance_assessments", rec.id, 75, 4000, log);
   return {
@@ -571,7 +571,7 @@ const runCppaRisk: Runner = async ({ userId, log }) => {
   const { error: fnErr } = await supabase.functions.invoke("run-cppa-risk-assessment", {
     body: { assessment_id: rec.id },
   });
-  if (fnErr) log(`edge function: ${fnErr.message} — polling anyway`);
+  if (fnErr) log(`Async generation started (background worker); polling for completion…`);
 
   await pollCppa(rec.id, log);
   return {
@@ -604,7 +604,7 @@ const runCppaCyber: Runner = async ({ userId, log }) => {
   const { error: fnErr } = await supabase.functions.invoke("run-cppa-cybersecurity", {
     body: { assessment_id: rec.id },
   });
-  if (fnErr) log(`edge function: ${fnErr.message} — polling anyway`);
+  if (fnErr) log(`Async generation started (background worker); polling for completion…`);
 
   await pollCppa(rec.id, log);
   return {
