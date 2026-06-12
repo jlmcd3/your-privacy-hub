@@ -417,6 +417,7 @@ const ALLOWED_STATUSES = [
   "questions_complete",
   "review",
   "generated",
+  "failed",
 ];
 
 // Simple in-memory idempotency cache (per warm instance). Keyed by
