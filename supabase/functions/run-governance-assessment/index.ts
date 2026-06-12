@@ -130,6 +130,7 @@ CITATION INTEGRITY: Cite provisions ONLY in the exact forms below. If you cannot
 - Ireland: NEVER cite specific Irish Data Protection Act 2018 section numbers. Cite the GDPR article directly and refer to "the Data Protection Act 2018 (Ireland)" generally. There is NO general registration or notification requirement with the Irish DPC.
 - GDPR Recital 47 concerns legitimate interests only. Recital 39 concerns transparency and awareness. Do not swap them.
 - DPO awareness-raising and training tasks are Article 39(1)(b), NOT Article 37(5). Article 37 has no SME or sector exemption — do not assert one.
+- DEFINITIONAL-ARTICLE RULE: GDPR Article 4 contains definitions only and must NEVER be cited as the legal basis of an obligation. For duties concerning staff acting under the controller's or processor's authority, cite Article 29 and/or Article 32(4). For consent requirements, cite Article 6(1)(a) and Article 7 (Article 4(11) merely defines consent).
 
 VENDOR NAMING RULE: Name ONLY vendors that are explicitly provided in the intake. Never introduce additional vendor or company names that the organisation did not list.
 
@@ -274,6 +275,8 @@ ${intakeSummary}
 ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
 ${enforcementContextStr}
 
+BRACKETED-CODE RENDERING RULE: When you reference any of these in narrative text (including domain findings and the cross-domain synthesis), use the human-readable form — regulator and year, e.g. "the Hamburg DPA's 2020 decision" — NEVER the bracketed [E#] code. The [E#] tags are for the annotations array only. If an enforcement example is not in the list above, do not reference it at all — no placeholder codes.
+
 ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a top risk, immediate action, or readiness rating in your synthesis, include it in the annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
 
 Return JSON:
@@ -344,7 +347,8 @@ Return JSON:
     let synthesis: any = await runSynthesis("");
 
     // Output lint: regenerate synthesis once on hard violations; never block delivery.
-    let lint = lintReportText(assembleSynthesisNarrative(synthesis, domainResults));
+    const lintOpts = { checkUnresolvedTokens: true, checkDates: true, referenceDate: new Date() };
+    let lint = lintReportText(assembleSynthesisNarrative(synthesis, domainResults), lintOpts);
     const lintViolations: any[] = [];
     if (hasHardViolations(lint)) {
       try {
@@ -352,7 +356,7 @@ Return JSON:
         synthesis = await runSynthesis(
           `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
         );
-        lint = lintReportText(assembleSynthesisNarrative(synthesis, domainResults));
+        lint = lintReportText(assembleSynthesisNarrative(synthesis, domainResults), lintOpts);
       } catch (e) {
         console.warn("[Governance] lint retry failed (non-fatal):", e);
       }

@@ -270,7 +270,11 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const necessityDetails = (assessment as any).necessity_details || {};
     const balancingDetails = (assessment as any).balancing_details || {};
 
-    const analysisSystem = `You are a senior privacy regulatory analyst producing a formal legitimate interest assessment. Your analysis is precise, cites specific regulatory standards (Article 6(1)(f) GDPR, EDPB Guidelines 1/2024 on legitimate interests, ICO LIA guidance, applicable national DPA positions), and is grounded strictly in the facts provided and precedent database. Do NOT invent facts the user did not provide. Where a relevant fact is missing, say so and flag it as an open question. This is a compliance framework tool. All outputs must include the statement: "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel." Return ONLY valid JSON, no preamble.
+    const ukGuidanceFraming = isUk
+      ? `\n\nUK GUIDANCE FRAMING (regime is UK GDPR): Where this analysis cites EDPB Guidelines 1/2024, frame EDPB guidance as persuasive post-Brexit — the ICO's legitimate interests guidance is the primary UK reference. Note where the Data (Use and Access) Act 2025 recognised-legitimate-interests changes may be relevant.`
+      : "";
+
+    const analysisSystem = `You are a senior privacy regulatory analyst producing a formal legitimate interest assessment. Your analysis is precise, cites specific regulatory standards (Article 6(1)(f) GDPR, EDPB Guidelines 1/2024 on legitimate interests, ICO LIA guidance, applicable national DPA positions), and is grounded strictly in the facts provided and precedent database. Do NOT invent facts the user did not provide. Where a relevant fact is missing, say so and flag it as an open question. This is a compliance framework tool. All outputs must include the statement: "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel." Return ONLY valid JSON, no preamble.${ukGuidanceFraming}
 
 CITATION ACCURACY RULES — non-negotiable:
 - ICO Royal Free / DeepMind: the enforcement decision was issued in **2017**, NOT 2023. If you reference it, cite as "ICO Royal Free / DeepMind enforcement decision (2017) and subsequent guidance" — never as "2023 Royal Free / DeepMind enforcement."
@@ -591,6 +595,10 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
 
 CITATION ACCURACY RULE: In the 'basis' field for each recommended document, cite regulatory instruments by name and provision in general terms only (e.g. 'GDPR Article 35 and EDPB Guidelines on DPIA'). Do NOT cite specific enforcement case names, fine amounts, or decision dates — those are only available in Stage 2 where the enforcement corpus is injected. If you are uncertain of a specific provision number, describe the obligation in plain language rather than citing a potentially incorrect section number.`;
 
+    const ukDocsAddendum = isUk
+      ? `\n\nUK ARTICLE 9(2)(b) MECHANISM (regime is UK GDPR): For any 'Article 9(2)(b) Employment Law Condition Assessment' document, the description MUST name the UK implementing mechanism: 'Reliance on Article 9(2)(b) under UK GDPR additionally requires satisfying Data Protection Act 2018 s.10 and Schedule 1, Part 1, paragraph 1 (employment, social security and social protection), including having an APPROPRIATE POLICY DOCUMENT (APD) in place per Schedule 1, Part 4. The APD must describe the lawful basis and Schedule 1 condition relied on, retention and erasure policy for the special-category data, and compliance procedures.'${balancingDetails.special_category_data ? `\nFor this UK assessment involving special-category data, you MUST also include a DISTINCT 'Appropriate Policy Document (APD)' entry in recommended_documentation whose key_elements list contains: (i) the lawful basis and Schedule 1 condition relied on, (ii) retention and erasure policy for the special-category data, and (iii) compliance procedures. Cite 'UK Data Protection Act 2018 Schedule 1, Part 4' as its basis.` : ""}`
+      : "";
+
     const docsText = await callAnthropic(
       "claude-sonnet-4-6",
       docsSystem,
@@ -602,7 +610,7 @@ Balancing test status: ${analysis.balancing_test?.verdict || "uncertain"}
 Key risk factors: ${JSON.stringify(analysis.balancing_test?.risk_factors || [])}
 
 PRECEDENT DATABASE:
-${precedentContext}
+${precedentContext}${ukDocsAddendum}
 
 IMPORTANT: You must return at least 2–4 items in recommended_documentation regardless of argument strength. Even a weak or insufficient LIA requires documentation to be defensible or to support a re-assessment. Every LIA requires at minimum: (1) a balancing record document, and (2) a legitimate interests notice or transparency document.
 
