@@ -317,7 +317,7 @@ QUALITY STANDARDS:
 4. Where enforcement context shows regulators have penalised specific omissions (late notification, vague disclosure, missing categories), incorporate concrete steps that close those gaps.
 5. DPA portal URLs: use only URLs provided in the prompt. Do not fabricate or recall URLs from training.
 
-CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name, section number, subsection letter) must be verifiable against the actual statute. Known hallucination risks to guard against: (1) PIPEDA does not use decimal sub-principle numbering — cite as "Schedule 1, Principle N (Name)" only. (2) The Breach of Security Safeguards Regulations under PIPEDA are SOR/2018-64 — no other SOR number is correct. (3) US state privacy laws do not have a universal 72-hour breach notification deadline — that is a GDPR Article 33 concept only. Apply it only where GDPR explicitly applies. (4) Quebec Law 25 uses "without delay" not "72 hours" — present 72 hours as a planning benchmark only. (5) California breach notification (Cal. Civ. Code §1798.82, as amended by SB 446 effective 1 Jan 2026): individuals within 30 calendar days of discovery; AG sample copy within 15 calendar days of consumer notice when 500+ CA residents affected. Do NOT describe California as having no fixed deadline — that was the pre-2026 standard. 72 hours remains a GDPR Article 33 concept only. (6) The EU Artificial Intelligence Act must always be cited as "Regulation (EU) 2024/1689" — never 2024/900 or any other number. (7) MONETARY PENALTY RULE: Never state a specific fine, penalty, or settlement amount unless that exact figure appears in the ENFORCEMENT PRECEDENTS block in this prompt. If a case is relevant but its amount is not in the block, write "[fine — verify at ico.org.uk/action-weve-taken/enforcement]" or the relevant regulator's enforcement register URL. Known wrong figures to never use from training: ICO Interserve (2022) is £4,400,000 NOT £5.03M; ICO Capita Pension Solutions (2024) is £6,090,000 NOT £6.88M; ICO Clearview AI (2022) is £7,552,800 NOT £9M; ICO British Airways (2020) is £20,000,000. If any of these cases is not in your enforcement block, do not state any figure for it. (8) EU-UK ADEQUACY: When citing the EU-UK adequacy decision under GDPR Article 45 as a transfer mechanism, add the note "[Verify current status — adequacy decisions are subject to periodic Commission review]". If you are uncertain of a specific section number, write the section in descriptive terms and flag it: "[statutory reference to be confirmed with counsel]" rather than inventing a section number. (9) When stating a computed notification deadline, give the date and time only — NEVER state the day of the week, as computing weekday names is error-prone; if the input data explicitly provides a weekday you may repeat it verbatim.
+CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name, section number, subsection letter) must be verifiable against the actual statute. Known hallucination risks to guard against: (1) PIPEDA does not use decimal sub-principle numbering — cite as "Schedule 1, Principle N (Name)" only. (2) The Breach of Security Safeguards Regulations under PIPEDA are SOR/2018-64 — no other SOR number is correct. (3) US state privacy laws do not have a universal 72-hour breach notification deadline — that is a GDPR Article 33 concept only. Apply it only where GDPR explicitly applies. (4) Quebec Law 25 uses "without delay" not "72 hours" — present 72 hours as a planning benchmark only. (5) California breach notification (Cal. Civ. Code §1798.82, as amended by SB 446 effective 1 Jan 2026): individuals within 30 calendar days of discovery; AG sample copy within 15 calendar days of consumer notice when 500+ CA residents affected. Do NOT describe California as having no fixed deadline — that was the pre-2026 standard. 72 hours remains a GDPR Article 33 concept only. (6) The EU Artificial Intelligence Act must always be cited as "Regulation (EU) 2024/1689" — never 2024/900 or any other number. (7) MONETARY PENALTY RULE: Never state a specific fine, penalty, or settlement amount unless that exact figure appears in the ENFORCEMENT PRECEDENTS block in this prompt. If a case is relevant but its amount is not in the block, write "[fine — verify at ico.org.uk/action-weve-taken/enforcement]" or the relevant regulator's enforcement register URL. Known wrong figures to never use from training: ICO Interserve (2022) is £4,400,000 NOT £5.03M; ICO Capita Pension Solutions (2024) is £6,090,000 NOT £6.88M; ICO Clearview AI (2022) is £7,552,800 NOT £9M; ICO British Airways (2020) is £20,000,000. If any of these cases is not in your enforcement block, do not state any figure for it. (8) EU-UK ADEQUACY: When citing the EU-UK adequacy decision under GDPR Article 45 as a transfer mechanism, add the note "[Verify current status — adequacy decisions are subject to periodic Commission review]". If you are uncertain of a specific section number, write the section in descriptive terms and flag it: "[statutory reference to be confirmed with counsel]" rather than inventing a section number. (9) When stating a computed notification deadline, give the date and time only — NEVER state the day of the week, as computing weekday names is error-prone; if the input data explicitly provides a weekday you may repeat it verbatim. (10) Danish Data Protection Act (Databeskyttelsesloven, Act No. 502 of 23 May 2018): cite the employment-context processing provision as §12. NEVER cite this Act by chapter number — refer to numbered sections (§) only, and if uncertain of the section, describe the obligation and flag [statutory reference to be confirmed with counsel].
 
 Output ONLY the playbook content requested in each turn. No preamble or commentary.`;
 
@@ -368,14 +368,69 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
       return out;
     }
 
-    async function generateHalves(extra: string): Promise<{ partA: string; partB: string }> {
-      const pA = extra ? `${PROMPT_PART_A}\n\n${extra}` : PROMPT_PART_A;
-      const pB = extra ? `${PROMPT_PART_B}\n\n${extra}` : PROMPT_PART_B;
+    // CF-2: validate each part's completeness; retry that part once at 9000 tokens.
+    const PART_A_HEADINGS = ["## Section 1:", "## Section 2:", "## Section 3:", "## Section 4:"];
+    const PART_B_HEADINGS = ["## Section 5:", "## Section 6:", "## Section 7:"];
+    const TERMINAL_RE = /[\.\:\?\!\)\]\}"'»”’](\s|$)/;
+
+    function validatePart(text: string, which: "A" | "B"): { ok: boolean; reason?: string } {
+      if (!text || !text.trim()) return { ok: false, reason: "empty" };
+      const headings = which === "A" ? PART_A_HEADINGS : PART_B_HEADINGS;
+      for (const h of headings) {
+        if (!text.includes(h)) return { ok: false, reason: `missing heading ${h}` };
+      }
+      if (which === "B" && !text.includes("===ANNOTATIONS===")) {
+        return { ok: false, reason: "missing ===ANNOTATIONS=== block" };
+      }
+      const beforeAnnot = which === "B"
+        ? text.slice(0, text.indexOf("===ANNOTATIONS==="))
+        : text;
+      const lines = beforeAnnot.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      const last = lines[lines.length - 1] ?? "";
+      if (!TERMINAL_RE.test(last + " ")) {
+        return { ok: false, reason: `last line not terminally punctuated: "${last.slice(-80)}"` };
+      }
+      return { ok: true };
+    }
+
+    async function generatePart(which: "A" | "B", extra: string, maxTokens: number): Promise<string> {
+      const base = which === "A" ? PROMPT_PART_A : PROMPT_PART_B;
+      const prompt = extra ? `${base}\n\n${extra}` : base;
+      return await callClaude([{ role: "user", content: prompt }], maxTokens);
+    }
+
+    async function generateHalves(extra: string): Promise<{ partA: string; partB: string; incomplete?: string }> {
       const [a, b] = await Promise.all([
-        callClaude([{ role: "user", content: pA }], 6000),
-        callClaude([{ role: "user", content: pB }], 6000),
+        generatePart("A", extra, 8000),
+        generatePart("B", extra, 8000),
       ]);
-      return { partA: a, partB: b };
+      let partA = a;
+      let partB = b;
+      const vA = validatePart(partA, "A");
+      if (!vA.ok) {
+        console.warn(`[IR Playbook] Part A failed validation (${vA.reason}); retrying at 9000`);
+        const retryA = await generatePart(
+          "A",
+          `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
+          9000,
+        );
+        const vA2 = validatePart(retryA, "A");
+        if (!vA2.ok) return { partA: retryA, partB, incomplete: `partA: ${vA2.reason}` };
+        partA = retryA;
+      }
+      const vB = validatePart(partB, "B");
+      if (!vB.ok) {
+        console.warn(`[IR Playbook] Part B failed validation (${vB.reason}); retrying at 9000`);
+        const retryB = await generatePart(
+          "B",
+          `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
+          9000,
+        );
+        const vB2 = validatePart(retryB, "B");
+        if (!vB2.ok) return { partA, partB: retryB, incomplete: `partB: ${vB2.reason}` };
+        partB = retryB;
+      }
+      return { partA, partB };
     }
 
     function assembleFromHalves(partA: string, partB: string): { playbook_text: string; parsedAnnotations: any[] } {
@@ -416,17 +471,42 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
 
     let partA = "";
     let partB = "";
+    let incompleteReason: string | null = null;
     try {
       console.log("[IR Playbook] starting parallel generation halves");
       const r = await generateHalves("");
       partA = r.partA; partB = r.partB;
-      console.log("[IR Playbook] generation halves complete", { partAChars: partA.length, partBChars: partB.length });
+      if (r.incomplete) incompleteReason = r.incomplete;
+      console.log("[IR Playbook] generation halves complete", { partAChars: partA.length, partBChars: partB.length, incomplete: incompleteReason });
     } catch (e: any) {
       console.error("Claude parallel split-call failure:", e?.message || e);
       return new Response(JSON.stringify({ error: "AI generation failed" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // CF-2: never merge/persist a truncated playbook.
+    if (incompleteReason) {
+      console.error(`[IR Playbook] incomplete_generation after retry: ${incompleteReason}`);
+      try {
+        if (body.assessment_id) {
+          await supabase
+            .from("ir_playbooks")
+            .update({
+              status: "failed",
+              report_data: { error: "incomplete_generation", detail: incompleteReason, generated_at: new Date().toISOString() },
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", body.assessment_id);
+        }
+      } catch (persistErr) {
+        console.error("ir_playbooks failure-persist error:", persistErr);
+      }
+      return new Response(
+        JSON.stringify({ error: "incomplete_generation", detail: incompleteReason }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     let assembled = assembleFromHalves(partA, partB);
