@@ -292,8 +292,16 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
 
     async function genHalf(prompt: string, extraUser: string): Promise<any> {
       const finalUser = extraUser ? `${prompt}\n\n${extraUser}` : prompt;
-      const t = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, 6000);
-      return parseJsonish(t);
+      let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, 6000);
+      if (r.stopReason === "max_tokens") {
+        console.warn("[DPIA] genHalf truncated_output — retrying once at 1.5x");
+        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, Math.ceil(6000 * 1.5));
+        if (r.stopReason === "max_tokens") {
+          console.error("[DPIA] genHalf truncated_output after retry — returning empty half");
+          return {};
+        }
+      }
+      return parseJsonish(r.text);
     }
 
     let [partA, partB] = await Promise.all([genHalf(promptA, ""), genHalf(promptB, "")]);
