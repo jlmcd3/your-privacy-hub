@@ -392,12 +392,21 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
   ]
 }`;
 
-    async function runStage2(extraUser: string): Promise<string> {
+    async function runStage2(extraUser: string, maxTokens: number = 5000): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
-      return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, 5000);
+      return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, maxTokens);
     }
 
-    let analysisText = await runStage2("");
+    let stage2 = await runStage2("");
+    if (stage2.stopReason === "max_tokens") {
+      console.warn("[LIA] Stage 2 truncated_output — retrying at 1.5x token budget");
+      stage2 = await runStage2("", Math.ceil(5000 * 1.5));
+      if (stage2.stopReason === "max_tokens") {
+        console.error("[LIA] Stage 2 truncated_output after retry — failing run");
+        throw new Error("truncated_output: LIA Stage 2 (analysis) exceeded token budget twice");
+      }
+    }
+    const analysisText = stage2.text;
     let analysis: any = parseLlmJson(analysisText);
     if (!analysis) {
       console.error("[LIA] Stage 2 parse failed even with repair. Length:", analysisText.length);
