@@ -488,12 +488,15 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
         // Tail-continuation retry: feed the model its own truncated output as an
         // assistant prefill and ask it to continue. Capped at 4000 tokens / 200s.
         // Applied per-part to whichever part fails its validator.
-        async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<string> {
+        async function continuePart(which: "A" | "B" | "C", extra: string, truncated: string, maxTokens: number, timeoutMs: number, terminalOnly = false): Promise<string> {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           const tail = which === "C"
             ? "Finish any in-progress section, then produce any remaining required sections you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop."
             : "Finish any in-progress section, then produce any remaining required sections for this part you have not yet completed, then stop.";
-          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\nYour previous attempt was cut off mid-output. Continue from EXACTLY where the assistant message ends — do not repeat any content already produced, do not re-output earlier sections, and do not add a preamble. ${tail}`;
+          const lead = terminalOnly
+            ? "Your previous output appears substantively complete but ended with a non-terminal closing line (e.g. a horizontal rule). Continue from EXACTLY where the assistant message ends — do not repeat any content, do not re-output earlier sections, and do not add a preamble. Add only what is strictly required to make the output well-formed (a closing sentence and, for Part C, the ===ANNOTATIONS=== block if missing), then stop. Do not end with a horizontal rule or divider line."
+            : `Your previous attempt was cut off mid-output. Continue from EXACTLY where the assistant message ends — do not repeat any content already produced, do not re-output earlier sections, and do not add a preamble. ${tail}`;
+          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\n${lead}`;
           const prefill = truncated.replace(/\s+$/, "");
           const continuation = await callClaude(
             [
