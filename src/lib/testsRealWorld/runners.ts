@@ -169,8 +169,9 @@ const runGovernance: Runner = async ({ userId, log }) => {
 // ─── Biometric ───────────────────────────────────────────────────────────────
 
 const runBiometric: Runner = async ({ userId, log }) => {
-  const body = blend(BIOMETRIC_VARIANTS);
-  log(`Blended Biometric fixture (${(body.biometricTypes as string[])?.[0] ?? "?"})`);
+  const body = blend(BIOMETRIC_VARIANTS, ["biometricTypes"]);
+  const primaryType = (body.biometricTypes as string[])?.[0] ?? "?";
+  log(`Blended Biometric fixture (type anchor: ${primaryType})`);
   log("Invoking check-biometric-compliance…");
   const { data, error } = await supabase.functions.invoke("check-biometric-compliance", {
     body: { ...body, user_id: userId },
@@ -181,7 +182,7 @@ const runBiometric: Runner = async ({ userId, log }) => {
   return {
     targetTable: "biometric_assessments",
     targetId: data.id,
-    label: `Biometric · ${(body.biometricTypes as string[])?.[0] ?? "?"}`,
+    label: `Biometric · ${primaryType} · ${shortId(data.id)}`,
     resultUrl: `/biometric-checker/result/${data.id}`,
     pdfToolType: "biometric_checker",
   };
