@@ -215,36 +215,41 @@ async function fetchRealPdfBytes(
     return new Uint8Array(await data.arrayBuffer());
   }
 
-  // --- US / EU Notices: look up the combined PDF document for the session --
+  // --- US / EU Notices: combined document is stored as HTML; render to PDF.
   if (tool_slug === "us_notice" || tool_slug === "eu_notice") {
     const docsTable = tool_slug === "us_notice" ? "us_notice_documents" : "eu_notice_documents";
     const bucket = tool_slug === "us_notice" ? "us-notices" : "eu-notices";
+    // Prefer combined+current in any format (generators currently emit HTML).
     const { data: combined } = await admin
       .from(docsTable)
-      .select("file_path")
+      .select("file_path, document_format")
       .eq("session_id", source_row_id)
-      .eq("document_format", "pdf")
       .eq("is_combined", true)
+      .eq("is_current", true)
       .order("generated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    let filePath = (combined as { file_path?: string } | null)?.file_path ?? null;
-    if (!filePath) {
-      const { data: anyCurrent } = await admin
+    let row = combined as { file_path?: string; document_format?: string } | null;
+    if (!row?.file_path) {
+      const { data: any1 } = await admin
         .from(docsTable)
-        .select("file_path")
+        .select("file_path, document_format")
         .eq("session_id", source_row_id)
-        .eq("document_format", "pdf")
         .eq("is_current", true)
         .order("generated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      filePath = (anyCurrent as { file_path?: string } | null)?.file_path ?? null;
+      row = any1 as { file_path?: string; document_format?: string } | null;
     }
-    if (!filePath) throw new Error(`${docsTable}: no PDF document found for session ${source_row_id}`);
-    const { data, error: dlErr } = await admin.storage.from(bucket).download(filePath);
+    if (!row?.file_path) throw new Error(`${docsTable}: no document found for session ${source_row_id}`);
+    const { data, error: dlErr } = await admin.storage.from(bucket).download(row.file_path);
     if (dlErr || !data) throw new Error(`${bucket} download: ${dlErr?.message || "no data"}`);
-    return new Uint8Array(await data.arrayBuffer());
+    if ((row.document_format ?? "").toLowerCase() === "pdf") {
+      return new Uint8Array(await data.arrayBuffer());
+    }
+    // Render HTML → PDF via PDFShift
+    const html = await data.text();
+    return await renderHtmlViaPdfShift(html);
   }
 
   // --- Assessment-style tools: drive the canonical generate-report-pdf -----
@@ -261,15 +266,40 @@ async function fetchRealPdfBytes(
     body: JSON.stringify({ tool_type: toolType, assessment_id: source_row_id, force: true }),
     signal: AbortSignal.timeout(120_000),
   });
-  const payload = await r.json().catch(() => ({} as Record<string, unknown>));
-  const pdfUrl = (payload as { pdf_url?: string }).pdf_url;
-  if (!r.ok || !pdfUrl) {
-    throw new Error(`generate-report-pdf ${r.status}: ${(payload as { error?: string }).error || "no pdf_url"}`);
+  const payload = (await r.json().catch(() => ({}))) as { pdf_url?: string; error?: string; missing?: string; detail?: string; status?: string };
+  if (!r.ok || !payload.pdf_url) {
+    const parts = [payload.error || `HTTP ${r.status}`];
+    if (payload.missing) parts.push(`missing=${payload.missing}`);
+    if (payload.detail) parts.push(`detail=${payload.detail}`);
+    if (payload.status) parts.push(`status=${payload.status}`);
+    throw new Error(`generate-report-pdf ${r.status}: ${parts.join(" · ")} — the live generator did not produce a complete report; re-run "Generate Report" and check the log`);
   }
-  const pdfRes = await fetch(pdfUrl, { signal: AbortSignal.timeout(60_000) });
+  const pdfRes = await fetch(payload.pdf_url, { signal: AbortSignal.timeout(60_000) });
   if (!pdfRes.ok) throw new Error(`download rendered PDF: HTTP ${pdfRes.status}`);
   return new Uint8Array(await pdfRes.arrayBuffer());
 }
+
+async function renderHtmlViaPdfShift(html: string): Promise<Uint8Array> {
+  const apiKey = Deno.env.get("PDFSHIFT_API_KEY") || Deno.env.get("PDF_SERVICE_API_KEY") || Deno.env.get("PDFShift");
+  if (!apiKey) throw new Error("PDFSHIFT_API_KEY not configured");
+  const r = await fetch("https://api.pdfshift.io/v3/convert/pdf", {
+    method: "POST",
+    headers: { "X-API-Key": apiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      source: html,
+      format: "Letter",
+      margin: { top: "16mm", right: "14mm", bottom: "18mm", left: "14mm" },
+      sandbox: Deno.env.get("PDFSHIFT_SANDBOX") === "true",
+    }),
+    signal: AbortSignal.timeout(45000),
+  });
+  if (!r.ok) {
+    const err = await r.text().catch(() => "");
+    throw new Error(`PDFShift ${r.status}: ${err.slice(0, 300)}`);
+  }
+  return new Uint8Array(await r.arrayBuffer());
+}
+
 
 async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
   const { tool_slug, variant, title, scenario_summary, fixture, source_table, source_row_id } = body ?? {};
