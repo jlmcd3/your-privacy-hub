@@ -487,8 +487,8 @@ const runEUNotice: Runner = async ({ userId, log }) => {
 // ─── Registration ────────────────────────────────────────────────────────────
 
 const runRegistration: Runner = async ({ userId, log }) => {
-  const intake = blend(REG_VARIANTS);
-  log(`Blended Registration fixture (${intake.organization_name})`);
+  const intake = blend(REG_VARIANTS, ["organization_name", "email"]);
+  log(`Blended Registration fixture (org anchor: ${intake.organization_name})`);
   log("Invoking run-registration-assessment…");
   const { data: assess, error: assessErr } = await supabase.functions.invoke(
     "run-registration-assessment",
