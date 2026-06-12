@@ -544,162 +544,165 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { data: ownsData, error: ownsErr } = await userClient.rpc("owns_client", {
-      _client_id: sessionRow.client_id,
-    });
-    if (ownsErr || ownsData !== true) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const [fwRes, ansRes] = await Promise.all([
-      admin
-        .from("eu_notice_framework_selections")
-        .select("framework_code, framework_name, region")
-        .eq("session_id", sessionId),
-      admin
-        .from("eu_notice_answers")
-        .select("question_key, answer_value")
-        .eq("session_id", sessionId)
-        .is("ropa_activity_id", null),
-    ]);
-    if (fwRes.error) throw fwRes.error;
-    if (ansRes.error) throw ansRes.error;
-
-    const fws = (fwRes.data ?? []) as FwSel[];
-    if (fws.length === 0) {
-      return new Response(JSON.stringify({ error: "No frameworks selected" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const answers: Record<string, unknown> = {};
-    for (const r of (ansRes.data ?? []) as AnswerRow[]) {
-      answers[r.question_key] = r.answer_value;
-    }
-
-    const nextVersion = (sessionRow.version_number ?? 0) + 1;
-    const generatedAtIso = new Date().toISOString();
-    const generatedAtHuman = new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-
-    // (b) Stage uploads first (under a temp prefix would be ideal, but
-    // versioned paths already segregate). If any upload fails we abort
-    // BEFORE the atomic DB commit, so the DB never reflects a partial set.
-    const docsManifest: {
-      framework_code: string;
-      is_combined: boolean;
-      file_path: string;
-      file_size_bytes: number;
-      document_format: string;
-    }[] = [];
-
-    if (fws.length > 1) {
-      const controllerName = formatAnswer("controller_name", answers["controller_name"]) || "[Controller name]";
-      const contactEmail = formatAnswer("contact_email", answers["contact_email"]) || "[contact email]";
-      const combinedHtml = buildCombinedHtml(
-        controllerName,
-        contactEmail,
-        fws,
-        answers,
-        generatedAtHuman,
-      );
-      const combinedBytes = new TextEncoder().encode(combinedHtml);
-      const combinedPath = `${sessionRow.client_id}/${sessionId}/v${nextVersion}/_international.html`;
-      const { error: upErr } = await admin.storage
-        .from("eu-notices")
-        .upload(combinedPath, combinedBytes, {
-          contentType: "text/html; charset=utf-8",
-          upsert: true,
-        });
-      if (upErr) throw upErr;
-      docsManifest.push({
-        framework_code: "_INTERNATIONAL",
-        is_combined: true,
-        file_path: combinedPath,
-        file_size_bytes: combinedBytes.byteLength,
-        document_format: "html",
-      });
-    }
-
-    for (const fw of fws) {
-      const html = buildNoticeHtml({ fw, answers, generatedAtHuman });
-      const bytes = new TextEncoder().encode(html);
-      const path = `${sessionRow.client_id}/${sessionId}/v${nextVersion}/${fw.framework_code}.html`;
-      const { error: upErr } = await admin.storage
-        .from("eu-notices")
-        .upload(path, bytes, {
-          contentType: "text/html; charset=utf-8",
-          upsert: true,
-        });
-      if (upErr) throw upErr;
-      docsManifest.push({
-        framework_code: fw.framework_code,
-        is_combined: false,
-        file_path: path,
-        file_size_bytes: bytes.byteLength,
-        document_format: "html",
-      });
-    }
-
-    // (b) Atomic commit — RPC locks the session row, re-checks status,
-    // refuses if version_number is already taken (concurrent commit), then
-    // flips is_current and inserts the new docs in one transaction.
-    const { data: commitData, error: commitErr } = await admin.rpc(
-      "commit_eu_notice_generation",
-      {
-        _session_id: sessionId,
-        _expected_status: ALLOWED_STATUSES,
-        _new_version: nextVersion,
-        _docs: docsManifest,
-        _generated_at: generatedAtIso,
-      },
-    );
-
-    if (commitErr) {
-      const msg = commitErr.message ?? "";
-      if (msg.includes("invalid_status")) {
-        return new Response(
-          JSON.stringify({ error: "Session status changed; please retry." }),
-          {
-            status: 409,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-      if (msg.includes("version_collision")) {
-        return new Response(
-          JSON.stringify({
-            error: "Another generation finished first; please reload.",
-          }),
-          {
-            status: 409,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-      throw commitErr;
-    }
+    // ── Background-dispatch boundary ─────────────────────────────────────
+    // Transition the row to 'generating' so the UI/poller sees progress and
+    // duplicate POSTs hit the ALLOWED_STATUSES pre-check.
+    const { error: markErr } = await admin
+      .from("eu_notice_sessions")
+      .update({ status: "generating", generation_error: null })
+      .eq("id", sessionId);
+    if (markErr) throw markErr;
 
     const responseBody = JSON.stringify({
       ok: true,
-      version: nextVersion,
-      documents: docsManifest,
-      commit: commitData,
+      session_id: sessionId,
+      status: "generating",
     });
 
     if (body.idempotency_key) {
       rememberIdempotency(`${sessionId}:${body.idempotency_key}`, responseBody);
     }
 
+    const failSession = async (message: string) => {
+      try {
+        await admin
+          .from("eu_notice_sessions")
+          .update({
+            status: "failed",
+            generation_error: message.slice(0, 300),
+          })
+          .eq("id", sessionId);
+      } catch (e) {
+        console.error("[generate-eu-notice] failed to mark session failed", e);
+      }
+    };
+
+    EdgeRuntime.waitUntil((async () => {
+      console.log(`[generate-eu-notice] background start session=${sessionId}`);
+      try {
+        const [fwRes, ansRes] = await Promise.all([
+          admin
+            .from("eu_notice_framework_selections")
+            .select("framework_code, framework_name, region")
+            .eq("session_id", sessionId),
+          admin
+            .from("eu_notice_answers")
+            .select("question_key, answer_value")
+            .eq("session_id", sessionId)
+            .is("ropa_activity_id", null),
+        ]);
+        if (fwRes.error) throw fwRes.error;
+        if (ansRes.error) throw ansRes.error;
+
+        const fws = (fwRes.data ?? []) as FwSel[];
+        if (fws.length === 0) {
+          await failSession("No frameworks selected");
+          return;
+        }
+
+        const answers: Record<string, unknown> = {};
+        for (const r of (ansRes.data ?? []) as AnswerRow[]) {
+          answers[r.question_key] = r.answer_value;
+        }
+
+        const nextVersion = (sessionRow.version_number ?? 0) + 1;
+        const generatedAtIso = new Date().toISOString();
+        const generatedAtHuman = new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
+        const docsManifest: {
+          framework_code: string;
+          is_combined: boolean;
+          file_path: string;
+          file_size_bytes: number;
+          document_format: string;
+        }[] = [];
+
+        if (fws.length > 1) {
+          const controllerName = formatAnswer("controller_name", answers["controller_name"]) || "[Controller name]";
+          const contactEmail = formatAnswer("contact_email", answers["contact_email"]) || "[contact email]";
+          const combinedHtml = buildCombinedHtml(
+            controllerName,
+            contactEmail,
+            fws,
+            answers,
+            generatedAtHuman,
+          );
+          const combinedBytes = new TextEncoder().encode(combinedHtml);
+          const combinedPath = `${sessionRow.client_id}/${sessionId}/v${nextVersion}/_international.html`;
+          const { error: upErr } = await admin.storage
+            .from("eu-notices")
+            .upload(combinedPath, combinedBytes, {
+              contentType: "text/html; charset=utf-8",
+              upsert: true,
+            });
+          if (upErr) throw upErr;
+          docsManifest.push({
+            framework_code: "_INTERNATIONAL",
+            is_combined: true,
+            file_path: combinedPath,
+            file_size_bytes: combinedBytes.byteLength,
+            document_format: "html",
+          });
+        }
+
+        for (const fw of fws) {
+          const html = buildNoticeHtml({ fw, answers, generatedAtHuman });
+          const bytes = new TextEncoder().encode(html);
+          const path = `${sessionRow.client_id}/${sessionId}/v${nextVersion}/${fw.framework_code}.html`;
+          const { error: upErr } = await admin.storage
+            .from("eu-notices")
+            .upload(path, bytes, {
+              contentType: "text/html; charset=utf-8",
+              upsert: true,
+            });
+          if (upErr) throw upErr;
+          docsManifest.push({
+            framework_code: fw.framework_code,
+            is_combined: false,
+            file_path: path,
+            file_size_bytes: bytes.byteLength,
+            document_format: "html",
+          });
+        }
+
+        const { error: commitErr } = await admin.rpc(
+          "commit_eu_notice_generation",
+          {
+            _session_id: sessionId,
+            _expected_status: [...ALLOWED_STATUSES, "generating"],
+            _new_version: nextVersion,
+            _docs: docsManifest,
+            _generated_at: generatedAtIso,
+          },
+        );
+
+        if (commitErr) {
+          const msg = commitErr.message ?? "";
+          if (msg.includes("invalid_status")) {
+            await failSession("Session status changed; please retry.");
+            return;
+          }
+          if (msg.includes("version_collision")) {
+            await failSession("Another generation finished first; please reload.");
+            return;
+          }
+          throw commitErr;
+        }
+
+        console.log(`[generate-eu-notice] background finish session=${sessionId} v=${nextVersion}`);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Internal error";
+        console.error(`[generate-eu-notice] background failure session=${sessionId}`, e);
+        await failSession(message);
+      }
+    })());
+
     return new Response(responseBody, {
-      status: 200,
+      status: 202,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
