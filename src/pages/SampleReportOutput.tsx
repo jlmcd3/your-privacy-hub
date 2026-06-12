@@ -3,9 +3,12 @@
 // generated from /admin/sample-reports without having to publish first.
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet-async";
+import { toast } from "sonner";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
 type Row = {
   id: string;
@@ -36,40 +39,66 @@ export default function SampleReportOutput() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  async function load() {
+    const { data, error } = await supabase
+      .from("sample_reports")
+      .select("id, tool_slug, variant, title, scenario_summary, status, pdf_path, updated_at")
+      .not("pdf_path", "is", null)
+      .order("tool_slug")
+      .order("variant");
+    if (error) {
+      setError(error.message);
+      setRows([]);
+      return;
+    }
+    const list = (data ?? []) as Row[];
+    setRows(list);
+    const map: Record<string, string> = {};
+    await Promise.all(
+      list.map(async (r) => {
+        if (!r.pdf_path) return;
+        const { data: signed } = await supabase.storage
+          .from("sample-reports")
+          .createSignedUrl(r.pdf_path, 60 * 60);
+        if (signed?.signedUrl) map[r.id] = signed.signedUrl;
+      }),
+    );
+    setUrls(map);
+  }
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from("sample_reports")
-        .select("id, tool_slug, variant, title, scenario_summary, status, pdf_path, updated_at")
-        .not("pdf_path", "is", null)
-        .order("tool_slug")
-        .order("variant");
-      if (cancelled) return;
-      if (error) {
-        setError(error.message);
-        setRows([]);
+    load();
+  }, []);
+
+  async function onDelete(r: Row) {
+    if (!confirm(`Delete sample report "${r.title}"? This removes the PDF and the record permanently.`)) return;
+    setDeleting(r.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("Sign in as admin to delete");
         return;
       }
-      const list = (data ?? []) as Row[];
-      setRows(list);
-      const map: Record<string, string> = {};
-      await Promise.all(
-        list.map(async (r) => {
-          if (!r.pdf_path) return;
-          const { data: signed } = await supabase.storage
-            .from("sample-reports")
-            .createSignedUrl(r.pdf_path, 60 * 60);
-          if (signed?.signedUrl) map[r.id] = signed.signedUrl;
-        }),
-      );
-      if (!cancelled) setUrls(map);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action: "delete", id: r.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+      toast.success("Deleted");
+      setRows((cur) => (cur ?? []).filter((x) => x.id !== r.id));
+    } catch (e) {
+      toast.error(`Delete failed: ${(e as Error).message}`);
+    } finally {
+      setDeleting(null);
+    }
+  }
 
   const grouped = useMemo(() => {
     const out: Record<string, Row[]> = {};
@@ -176,20 +205,32 @@ export default function SampleReportOutput() {
                             </p>
                           )}
                         </div>
-                        {url ? (
-                          <a
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 rounded-md bg-brand-navy text-white px-4 py-2 text-sm font-medium hover:bg-brand-navy/90 shrink-0"
+                        <div className="flex items-center gap-2 shrink-0">
+                          {url ? (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 rounded-md bg-brand-navy text-white px-4 py-2 text-sm font-medium hover:bg-brand-navy/90"
+                            >
+                              <FileText className="h-4 w-4" aria-hidden /> Download PDF
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              generating link…
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => onDelete(r)}
+                            disabled={deleting === r.id}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive/10 disabled:opacity-50"
+                            title="Delete this sample report (admin only)"
                           >
-                            <FileText className="h-4 w-4" aria-hidden /> Download PDF
-                          </a>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            generating link…
-                          </span>
-                        )}
+                            <Trash2 className="h-4 w-4" aria-hidden />
+                            {deleting === r.id ? "Deleting…" : "Delete"}
+                          </button>
+                        </div>
                       </article>
                     );
                   })}
