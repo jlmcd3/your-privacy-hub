@@ -481,6 +481,12 @@ export default function AdminSampleReports() {
                   <div className="text-xs font-mono text-muted-foreground">{fix.tool_slug} · {fix.variant}</div>
                   <h2 className="font-serif text-lg leading-tight">{fix.title}</h2>
                   <p className="text-xs text-muted-foreground mt-1">{fix.scenario_summary}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Reports available at{" "}
+                    <a href="/samples/report-output" target="_blank" rel="noreferrer" className="text-brand-teal underline underline-offset-2">
+                      /samples/report-output
+                    </a>
+                  </p>
                 </div>
 
                 <div className="text-xs font-mono flex flex-wrap gap-3">
