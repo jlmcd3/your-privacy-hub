@@ -309,14 +309,69 @@ Output ONLY the compliance assessment. No preamble.`,
       parsedAnnotations = [];
     }
 
+    // ── R0 PART 3: Output lint on final narrative. Apply auto-fixes;
+    // retry once on hard violations; persist lint summary.
+    const referenceDate = new Date().toISOString();
+    const lintViolations: any[] = [];
+    {
+      let lint = lintReportText(assessment_text, {
+        checkDates: true, checkUnresolvedTokens: true, referenceDate,
+      });
+      if (lint.clean !== assessment_text) assessment_text = lint.clean;
+      if (hasHardViolations(lint)) {
+        try {
+          const details = lint.violations.filter((v) => v.severity === "hard")
+            .map((v) => `${v.code}: ${v.detail}`).join("; ");
+          const retryRes = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "x-api-key": ANTHROPIC_API_KEY,
+              "anthropic-version": "2023-06-01",
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-6",
+              max_tokens: 4000,
+              system: "You are a biometric privacy compliance analyst. Reproduce the prior assessment, correcting these automated-lint defects silently and without meta-commentary: " + details,
+              messages: [
+                { role: "user", content: prompt },
+                { role: "assistant", content: fullText },
+                { role: "user", content: `Regenerate the assessment correcting: ${details}. Same output format, same ===ANNOTATIONS=== block.` },
+              ],
+            }),
+          });
+          if (retryRes.ok) {
+            const retryData = await retryRes.json();
+            const retryFull = retryData.content?.[0]?.text ?? "";
+            let retryText = retryFull;
+            const sep2 = retryFull.indexOf("===ANNOTATIONS===");
+            if (sep2 !== -1) retryText = retryFull.slice(0, sep2).trim();
+            retryText = retryText
+              .replace(/^#{1,6}\s+/gm, '').replace(/\*\*\*/g, '').replace(/\*\*/g, '')
+              .replace(/\*([^*\n]+)\*/g, '$1').replace(/^>\s?/gm, '').replace(/^\*\s+/gm, '• ');
+            assessment_text = retryText;
+            lint = lintReportText(assessment_text, {
+              checkDates: true, checkUnresolvedTokens: true, referenceDate,
+            });
+            assessment_text = lint.clean;
+          }
+        } catch (e) {
+          console.warn("[Biometric] lint retry failed (non-fatal):", e);
+        }
+      }
+      for (const v of lint.violations) lintViolations.push(v);
+    }
+
     const report_data = {
       bipa_risk: bipaRisk,
       jurisdictions_analysed: body.jurisdictions,
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
       annotations: parsedAnnotations,
+      lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
     };
+
 
     let savedId: string | null = null;
     try {
