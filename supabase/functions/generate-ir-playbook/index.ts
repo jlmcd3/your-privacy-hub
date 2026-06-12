@@ -3,6 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
+// Bump this string whenever generate-ir-playbook changes — it is logged at
+// background-start so deploy staleness is instantly detectable in edge logs.
+const IR_VERSION = "v3.1-3part-furniture-filter-2026-06-12";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
