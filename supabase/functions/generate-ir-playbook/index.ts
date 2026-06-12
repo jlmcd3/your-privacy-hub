@@ -457,6 +457,27 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
         }
 
+        // Tail-continuation retry: rather than regenerating all of Part B at 9000 tokens
+        // (which has been timing out), feed the model its own truncated Part B as an
+        // assistant prefill and ask it to continue from the last complete section
+        // through ===ANNOTATIONS===, capped at 4000 tokens. The full Part B is then
+        // `prefill + continuation`. Uses Anthropic's assistant-prefill pattern.
+        async function continuePartB(extra: string, truncated: string, maxTokens: number, timeoutMs: number): Promise<string> {
+          const base = PROMPT_PART_B;
+          const userPrompt = `${extra ? `${base}\n\n${extra}` : base}\n\nYour previous attempt was cut off mid-output. Continue from EXACTLY where the assistant message ends — do not repeat any content already produced, do not re-output earlier sections, and do not add a preamble. Finish any in-progress section, then produce any remaining sections (5, 6, 7) you have not yet completed, then output the ===ANNOTATIONS=== block followed by the JSON array, then stop.`;
+          // Anthropic requires assistant prefill to have no trailing whitespace.
+          const prefill = truncated.replace(/\s+$/, "");
+          const continuation = await callClaude(
+            [
+              { role: "user", content: userPrompt },
+              { role: "assistant", content: prefill },
+            ],
+            maxTokens,
+            timeoutMs,
+          );
+          return prefill + continuation;
+        }
+
         async function generateHalves(extra: string): Promise<{ partA: string; partB: string; incomplete?: string }> {
           const [a, b] = await Promise.all([
             generatePart("A", extra, 8000, 240_000),
@@ -479,16 +500,11 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           }
           const vB = validatePart(partB, "B");
           if (!vB.ok) {
-            console.warn(`[IR Playbook] Part B failed validation (${vB.reason}); retrying at 9000`);
-            const retryB = await generatePart(
-              "B",
-              `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
-              9000,
-              200_000,
-            );
-            const vB2 = validatePart(retryB, "B");
-            if (!vB2.ok) return { partA, partB: retryB, incomplete: `partB: ${vB2.reason}` };
-            partB = retryB;
+            console.warn(`[IR Playbook] Part B failed validation (${vB.reason}); tail-continuing at 4000`);
+            const continued = await continuePartB(extra, partB, 4000, 200_000);
+            const vB2 = validatePart(continued, "B");
+            if (!vB2.ok) return { partA, partB: continued, incomplete: `partB: ${vB2.reason}` };
+            partB = continued;
           }
           return { partA, partB };
         }

@@ -97,7 +97,7 @@ export default function TestIRPlaybook() {
     // Poll for completion (status: processing → complete | failed). Up to ~4 minutes.
     let playbookText = "";
     let reportData: any = null;
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 90; i++) {
       await new Promise((r) => setTimeout(r, 4000));
       const { data: row } = await supabase
         .from("ir_playbooks")
@@ -116,7 +116,7 @@ export default function TestIRPlaybook() {
         setStatus("failed");
         return;
       }
-      if (i % 3 === 0) addLog(`… poll ${i + 1}/60 (status: ${s})`);
+      if (i % 3 === 0) addLog(`… poll ${i + 1}/90 (status: ${s})`);
     }
     clearInterval(tick);
 
