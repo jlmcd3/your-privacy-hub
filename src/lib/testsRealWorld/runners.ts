@@ -236,6 +236,8 @@ const runIRPlaybook: Runner = async ({ userId, log }) => {
   if (error || !data?.id) {
     throw new Error(error?.message || data?.error || "no id returned");
   }
+  log(`Async generation started (202); polling ir_playbooks for completion…`);
+  await pollStatus("ir_playbooks", data.id, 60, 4000, log);
   return {
     targetTable: "ir_playbooks",
     targetId: data.id,
