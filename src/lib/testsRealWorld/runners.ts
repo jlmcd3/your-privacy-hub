@@ -493,14 +493,31 @@ const runEUNotice: Runner = async ({ userId, log }) => {
   const { data: gen, error: genErr } = await supabase.functions.invoke("generate-eu-notice", {
     body: { session_id: session.id },
   });
-  if (genErr || !gen?.documents?.length) {
-    throw new Error(`generator: ${genErr?.message ?? gen?.error ?? "no documents"}`);
+  if (genErr || !gen?.session_id) {
+    throw new Error(`generator: ${genErr?.message ?? gen?.error ?? "dispatch failed"}`);
   }
+
+  log("Polling eu_notice_sessions for terminal status…");
+  await pollStatus("eu_notice_sessions", session.id, 60, 4000, log);
+
+  // Read the generated document rows for this session+version.
+  const { data: sessRow } = await supabase
+    .from("eu_notice_sessions")
+    .select("version_number")
+    .eq("id", session.id)
+    .maybeSingle();
+  const { data: docs, error: docsErr } = await supabase
+    .from("eu_notice_documents")
+    .select("id")
+    .eq("session_id", session.id)
+    .eq("version_number", sessRow?.version_number ?? 1);
+  if (docsErr) throw new Error(`docs query: ${docsErr.message}`);
+  if (!docs?.length) throw new Error("generator: no documents found after polling");
 
   return {
     targetTable: "eu_notice_sessions",
     targetId: session.id,
-    label: `EU/UK/CH Notice · ${universal.controller_name} · ${gen.documents.length} docs · ${shortId(session.id)}`,
+    label: `EU/UK/CH Notice · ${universal.controller_name} · ${docs.length} docs · ${shortId(session.id)}`,
     resultUrl: `/eu-notices/result/${session.id}`,
   };
 };
