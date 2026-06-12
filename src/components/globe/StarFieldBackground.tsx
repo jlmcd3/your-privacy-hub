@@ -65,8 +65,8 @@ export default function StarFieldBackground() {
         cls,
         base,
         phase: Math.random() * Math.PI * 2,
-        speedA: 0.4 + Math.random() * 1.4,
-        speedB: (0.4 + Math.random() * 1.4) * 1.618,
+        speedA: 0.3 + Math.random() * 0.8,
+        speedB: (0.3 + Math.random() * 0.8) * 1.618,
         layer,
         drift,
       });
