@@ -479,7 +479,7 @@ const runEUNotice: Runner = async ({ userId, log }) => {
   return {
     targetTable: "eu_notice_sessions",
     targetId: session.id,
-    label: `EU/UK/CH Notice · ${universal.controller_name} (${gen.documents.length} docs)`,
+    label: `EU/UK/CH Notice · ${universal.controller_name} · ${gen.documents.length} docs · ${shortId(session.id)}`,
     resultUrl: `/eu-notices/result/${session.id}`,
   };
 };
