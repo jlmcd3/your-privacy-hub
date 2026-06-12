@@ -269,12 +269,30 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
     return json({ error: (e as Error).message }, 502);
   }
 
-  const path = `${tool_slug}/${variant}.pdf`;
+  const slugify = (s: string) =>
+    s.toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80) || "report";
+  const filename = `${slugify(title)}.pdf`;
+  const path = `${tool_slug}/${filename}`;
   const { error: upErr } = await admin.storage.from("sample-reports").upload(path, pdfBytes, {
     contentType: "application/pdf",
     upsert: true,
   });
   if (upErr) return json({ error: `upload: ${upErr.message}` }, 400);
+
+  // Clean up any previously-stored file at the old variant-based path or a different title-based path
+  const { data: prior } = await admin
+    .from("sample_reports")
+    .select("pdf_path")
+    .eq("tool_slug", tool_slug)
+    .eq("variant", variant)
+    .maybeSingle();
+  const oldPath = (prior as { pdf_path?: string } | null)?.pdf_path;
+  if (oldPath && oldPath !== path) {
+    await admin.storage.from("sample-reports").remove([oldPath]);
+  }
 
   const verification = {
     source: "manual_pdfshift",
