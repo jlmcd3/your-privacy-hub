@@ -96,11 +96,30 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const body = (await req.json()) as Body;
+    let body = (await req.json()) as Body;
     // Trust user identity only from the verified JWT; internal webhook
     // callers may pass user_id in the body (service-role bearer).
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
 
+    // Row-first dispatch — on the webhook path (payments-webhook invokes with
+    // only { assessment_id }), hydrate body from the stored intake_data BEFORE
+    // validating. Then create/update the row with status='processing' and
+    // dispatch the heavy work via EdgeRuntime.waitUntil, returning 202.
+    let rowId: string;
+    if (body.assessment_id) {
+      const { data: row, error: rowErr } = await supabase
+        .from("dpa_documents")
+        .select("id, intake_data, client_id")
+        .eq("id", body.assessment_id)
+        .maybeSingle();
+      if (rowErr || !row) {
+        return new Response(JSON.stringify({ error: "DPA document not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      body = { ...((row.intake_data as any) ?? {}), ...body };
+    }
 
     // Minimal validation
     const required = ["controllerName", "controllerJurisdiction", "processorName", "processorJurisdiction", "services"];
@@ -112,6 +131,47 @@ Deno.serve(async (req) => {
         });
       }
     }
+
+    if (body.assessment_id) {
+      await supabase
+        .from("dpa_documents")
+        .update({ status: "processing", intake_data: body, updated_at: new Date().toISOString() })
+        .eq("id", body.assessment_id);
+      rowId = body.assessment_id;
+    } else {
+      const { data: inserted, error: insErr } = await supabase
+        .from("dpa_documents")
+        .insert({
+          user_id: resolvedUserId,
+          client_id: (body as any).client_id ?? null,
+          status: "processing",
+          intake_data: body,
+        })
+        .select("id")
+        .single();
+      if (insErr || !inserted) {
+        console.error("[generate-dpa] insert failed:", insErr);
+        return new Response(JSON.stringify({ error: "Failed to create DPA row" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      rowId = inserted.id;
+    }
+
+    if (!LOVABLE_API_KEY) {
+      await supabase.from("dpa_documents").update({
+        status: "failed",
+        updated_at: new Date().toISOString(),
+      }).eq("id", rowId);
+      return new Response(JSON.stringify({ error: "AI generation is not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const runBackground = async () => {
+      try {
     // Resolve document type (from request or jurisdictional inference)
     const documentType = detectDocType(
       body.controllerJurisdiction,
