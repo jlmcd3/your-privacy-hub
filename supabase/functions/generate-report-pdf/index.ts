@@ -1336,17 +1336,21 @@ Deno.serve(async (req) => {
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "ir_playbook") {
       const intake = record.intake_data || {};
+      const jurArr: any[] = Array.isArray(intake.jurisdictions) ? intake.jurisdictions : [];
+      const isEUish = jurArr.some((j) =>
+        /EU|GDPR|EEA|UK|United Kingdom|Ireland|Germany|France|Denmark|Netherlands|Spain|Italy/i.test(String(j)));
+      const calloutText = isEUish
+        ? "This playbook and its documentation checklist contribute to your Article 33(5) accountability record."
+        : "This playbook and its documentation checklist contribute to your accountability record under the applicable breach-notification frameworks.";
       html = buildTextReportHTML({
         title: "Your Incident Response Playbook",
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
           (record.organization_name ? ` · ${record.organization_name}` : "") +
-          ((intake.jurisdictions || []).length ? ` · ${intake.jurisdictions.join(", ")}` : ""),
+          (jurArr.length ? ` · ${jurArr.join(", ")}` : ""),
         text: record.playbook_text || "",
         showJurisdictionChip: false,
-        callout: {
-          kind: "muted",
-          html: "This playbook and its documentation checklist contribute to your Article 33(5) accountability record.",
-        },
+        callout: { kind: "muted", html: calloutText },
+        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is an operational incident-response playbook generated from your inputs. Deadlines and notification decisions must be confirmed with qualified legal counsel before reliance during a live incident.`,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "dpa_generator") {
@@ -1356,6 +1360,7 @@ Deno.serve(async (req) => {
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })} · ${intake.legalFramework || "GDPR"}`,
         text: record.document_text || "",
         showJurisdictionChip: false,
+        disclaimerHtml: `<span class="kw">Not legal advice.</span> This is a template legal contract generated from your inputs for review by qualified counsel. It is not a negotiated agreement and must not be executed without legal review. It does not create an attorney-client relationship.`,
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_risk") {
