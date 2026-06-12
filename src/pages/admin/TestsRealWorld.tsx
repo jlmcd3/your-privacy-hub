@@ -201,8 +201,11 @@ export default function TestsRealWorld() {
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>
                 All {TOOLS.length} subscriber tools wired. Each run calls the same edge functions and
-                writes to the same tables a paying subscriber would. Generated rows are tagged in the
-                harness ledger so <strong>Delete all</strong> never touches real subscriber data.
+                writes to the same tables a paying subscriber would. <strong>Each field</strong> in
+                each intake is randomly drawn from one of 4 persona fixtures (Meridian Health,
+                Nimbus Fintech, Atlas Retail, Verde Logistics) so successive runs stress the edge
+                functions with varied sector / size / risk combinations. Generated rows are tagged
+                in the harness ledger so <strong>Delete all</strong> never touches real subscriber data.
               </span>
             </p>
           </Card>
