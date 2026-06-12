@@ -349,6 +349,7 @@ ${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : `<p>W
     ? `<p>You also have the right to lodge a complaint with the Swiss <strong>Federal Data Protection and Information Commissioner (FDPIC / EDÖB)</strong> — <a href="https://www.edoeb.admin.ch">edoeb.admin.ch</a>. Note that the revised FADP (in force 1 September 2023) does not provide for administrative fines on companies but does authorise criminal sanctions against responsible individuals for specific breaches (Art. 60–63 FADP) and requires controllers to maintain a register of processing activities, conduct DPIAs for high-risk processing, and report breaches to the FDPIC as soon as possible.</p>`
     : `<p>You also have the right to lodge a complaint with the relevant supervisory authority in your jurisdiction.</p>`;
 
+  const consentSelected = basisArr.includes("consent");
   const rightsList = isGdprFamily
     ? `<ul>
         <li><strong>Access</strong> (Art. 15) — obtain confirmation and a copy of your personal data.</li>
@@ -357,7 +358,7 @@ ${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : `<p>W
         <li><strong>Restriction</strong> (Art. 18) — limit how we process your data in specified circumstances.</li>
         <li><strong>Portability</strong> (Art. 20) — receive your data in a structured, commonly used, machine-readable format.</li>
         <li><strong>Object</strong> (Art. 21) — including absolute right to object to direct marketing.</li>
-        <li><strong>Withdraw consent</strong> (Art. 7(3)) — at any time where processing is based on consent.</li>
+        ${consentSelected ? `<li><strong>Withdraw consent</strong> at any time, without affecting the lawfulness of processing before withdrawal (Art. 13(2)(c)).</li>` : ""}
         <li><strong>Not be subject to solely automated decisions</strong> with legal or similarly significant effects (Art. 22).</li>
       </ul>
       <p>We will respond to verified requests without undue delay and within one month (Art. 12(3)), extendable by a further two months for complex requests.</p>`
