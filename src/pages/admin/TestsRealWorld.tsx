@@ -286,11 +286,6 @@ export default function TestsRealWorld() {
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">
                                     {(() => {
-                                      const tool = TOOL_BY_ID[a.tool_type];
-                                      // Look up the runner result fields via a fresh run — we
-                                      // stored only label, so we reconstruct view + pdf info
-                                      // from the tool definition.
-                                      const def = TOOLS.find((t) => t.id === a.tool_type);
                                       const viewBase: Record<ToolType, string | null> = {
                                         lia: `/li-assessment/result/${a.target_id}`,
                                         dpia: `/dpia-framework/result/${a.target_id}`,
