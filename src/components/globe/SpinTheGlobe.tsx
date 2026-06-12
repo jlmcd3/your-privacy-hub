@@ -234,24 +234,41 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       setReady(true);
     };
 
-    // Try NASA Blue Marble from unpkg (reliable CDN, CORS enabled)
+    // Try self-hosted asset first, then unpkg CDN, then canvas-drawn fallback.
     loader.load(
-      "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg",
+      "/globe/earth-blue-marble.jpg",
       applyTexture,
       undefined,
       () => {
-        // Fallback 1: another reliable CDN
         loader.load(
-          "https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg",
+          "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg",
           applyTexture,
           undefined,
           () => {
-            // Fallback 2: draw stylized canvas texture
-            buildCanvasEarth().then(applyTexture);
+            loader.load(
+              "https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg",
+              applyTexture,
+              undefined,
+              () => { buildCanvasEarth().then(applyTexture); }
+            );
           }
         );
       }
     );
+
+    // ── Reduced-motion + visibility/intersection guards ───────────────
+    const reducedMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduced = reducedMq.matches;
+    let inView = true;
+    let running = false;
+    const idleSpinSpeed = 0.002;
+    if (reduced) {
+      spinRef.current = 0;
+      applyStaticColors(sf.dim);
+      applyStaticColors(sf.mid);
+      applyStaticColors(sf.bright);
+    }
+
 
     // ── Animation loop ────────────────────────────────────────────────
     let frame = 0;
