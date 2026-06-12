@@ -430,8 +430,55 @@ Return the full JSON in the exact shape specified by the system message. All eig
       return;
     }
 
-    const partA = gen.parsed.part_a;
-    const partB = gen.parsed.part_b ?? null;
+    let partA = gen.parsed.part_a;
+    let partB = gen.parsed.part_b ?? null;
+
+    // ── R0 PART 3: Output lint (gated date + unresolved-token checks). ──
+    // Assemble a narrative string from the prose-bearing fields and lint.
+    // Retry generation once on hard violations; persist a lint summary
+    // alongside the report. Never block delivery.
+    const lintViolations: any[] = [];
+    {
+      const assembleNarrative = (a: any, b: any): string => {
+        const out: string[] = [];
+        const walk = (o: any) => {
+          if (!o) return;
+          if (typeof o === "string") { out.push(o); return; }
+          if (Array.isArray(o)) { o.forEach(walk); return; }
+          if (typeof o === "object") {
+            for (const [k, v] of Object.entries(o)) {
+              if (["validator", "embedding", "id", "ids"].includes(k)) continue;
+              walk(v);
+            }
+          }
+        };
+        walk(a); walk(b);
+        return out.join("\n\n");
+      };
+      const referenceDate = new Date().toISOString();
+      let lint = lintReportText(assembleNarrative(partA, partB), {
+        checkDates: true, checkUnresolvedTokens: true, referenceDate,
+      });
+      if (hasHardViolations(lint)) {
+        try {
+          const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+          const retry = await generateOrRetry(
+            "google/gemini-3-flash-preview", GENERATION_SYSTEM,
+            genUser + `\n\nPREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`,
+            16000, "generate-v3-lint-retry");
+          if (retry.parsed && retry.parsed.part_a) {
+            partA = retry.parsed.part_a;
+            partB = retry.parsed.part_b ?? partB;
+            lint = lintReportText(assembleNarrative(partA, partB), {
+              checkDates: true, checkUnresolvedTokens: true, referenceDate,
+            });
+          }
+        } catch (e) {
+          console.warn("[cppa-risk] lint retry failed (non-fatal):", e);
+        }
+      }
+      for (const v of lint.violations) lintViolations.push(v);
+    }
 
     // Banned-phrase validators (§§ 2 and 5).
     const v2 = validateSection(partA?.sec_2_purpose?.purpose_statement);
@@ -453,6 +500,7 @@ Return the full JSON in the exact shape specified by the system message. All eig
       part_a: partA,
       part_b: partB,
       gating,
+      lint_warnings: lintViolations,
       // Admin-only metadata (preserved for the admin sections of the result page):
       retrieval: {
         topics,
@@ -464,6 +512,7 @@ Return the full JSON in the exact shape specified by the system message. All eig
       },
       fsor_commentary: fsorCommentary,
     };
+
 
     const obligation_snapshot = {
       captured_at: new Date().toISOString(),
