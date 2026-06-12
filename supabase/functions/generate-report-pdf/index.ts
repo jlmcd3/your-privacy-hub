@@ -351,12 +351,20 @@ type TextBlock =
   | { type: "subhead"; text: string; trailing?: string }
   | { type: "para"; text: string }
   | { type: "ol"; items: { num: string; text: string }[] }
-  | { type: "ul"; items: string[] };
+  | { type: "ul"; items: string[] }
+  | { type: "table"; header: string[]; rows: string[][] };
+
+const PIPE_SEP_ROW_RE = /^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/;
+function splitPipeRow(s: string): string[] {
+  const t = s.trim().replace(/^\|/, "").replace(/\|$/, "");
+  return t.split("|").map((c) => c.trim());
+}
 
 function parseTextBlocks(body: string): TextBlock[] {
   const lines = body.replace(/\r\n/g, "\n").split("\n");
   const blocks: TextBlock[] = [];
   const subheadRe = /^\*\*([^*]+?):\*\*\s*(.*)$/;
+  const numberedSubheadRe = /^(\d+\.\d+)\s+(.+)$/;
   const numberedRe = /^(\d+)\.\s+(.*)$/;
   const bulletRe = /^[-•]\s+(.*)$/;
   let i = 0;
@@ -364,9 +372,35 @@ function parseTextBlocks(body: string): TextBlock[] {
     const line = lines[i].trim();
     if (!line) { i++; continue; }
     if (/^[-*_]{3,}$/.test(line)) { i++; continue; }
+
+    // Markdown pipe table: current line has '|' and next non-empty line is a separator row
+    if (line.includes("|")) {
+      let j = i + 1;
+      while (j < lines.length && !lines[j].trim()) j++;
+      if (j < lines.length && PIPE_SEP_ROW_RE.test(lines[j].trim())) {
+        const header = splitPipeRow(line);
+        const rows: string[][] = [];
+        i = j + 1;
+        while (i < lines.length) {
+          const cur = lines[i].trim();
+          if (!cur || !cur.includes("|")) break;
+          if (PIPE_SEP_ROW_RE.test(cur)) { i++; continue; }
+          rows.push(splitPipeRow(cur));
+          i++;
+        }
+        blocks.push({ type: "table", header, rows });
+        continue;
+      }
+    }
+
     const sh = subheadRe.exec(line);
     if (sh) {
       blocks.push({ type: "subhead", text: sh[1].trim(), trailing: sh[2] ? sh[2].trim() : undefined });
+      i++; continue;
+    }
+    const nsh = numberedSubheadRe.exec(line);
+    if (nsh) {
+      blocks.push({ type: "subhead", text: `${nsh[1]} ${nsh[2]}`.trim() });
       i++; continue;
     }
     if (numberedRe.test(line)) {
@@ -375,7 +409,7 @@ function parseTextBlocks(body: string): TextBlock[] {
         const cur = lines[i].trim();
         const m = numberedRe.exec(cur);
         if (m) { items.push({ num: m[1], text: m[2] }); i++; }
-        else if (cur && !subheadRe.test(cur) && !bulletRe.test(cur) && items.length > 0) {
+        else if (cur && !subheadRe.test(cur) && !bulletRe.test(cur) && !numberedSubheadRe.test(cur) && items.length > 0) {
           items[items.length - 1].text += " " + cur; i++;
         } else break;
       }
@@ -388,7 +422,7 @@ function parseTextBlocks(body: string): TextBlock[] {
         const cur = lines[i].trim();
         const m = bulletRe.exec(cur);
         if (m) { items.push(m[1]); i++; }
-        else if (cur && !subheadRe.test(cur) && !numberedRe.test(cur) && items.length > 0) {
+        else if (cur && !subheadRe.test(cur) && !numberedRe.test(cur) && !numberedSubheadRe.test(cur) && items.length > 0) {
           items[items.length - 1] += " " + cur; i++;
         } else break;
       }
@@ -409,6 +443,12 @@ function blocksToHtml(blocks: TextBlock[]): string {
       }</div>`;
     }
     if (b.type === "para") return `<p class="body-p">${renderInlineHtml(b.text)}</p>`;
+    if (b.type === "table") {
+      const head = b.header.map((h) => `<th>${renderInlineHtml(h)}</th>`).join("");
+      const body = b.rows.map((r) =>
+        `<tr>${r.map((c) => `<td>${renderInlineHtml(c)}</td>`).join("")}</tr>`).join("");
+      return `<table class="md-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+    }
     if (b.type === "ol") {
       return `<ol class="num-list">${b.items.map((it) =>
         `<li><span class="num">${escHtml(it.num)}</span><span class="li-body">${renderInlineHtml(it.text)}</span></li>`).join("")}</ol>`;
@@ -422,11 +462,14 @@ function splitTextSections(text: string): Array<{ heading: string | null; body: 
   const lines = text.replace(/\r\n/g, "\n").split("\n");
   const out: Array<{ heading: string | null; body: string }> = [];
   let cur: { heading: string | null; body: string } = { heading: null, body: "" };
+  // Recognize H3 (### ), H2 (## ), and bare "Section N:" lines as new sections.
+  const headingRe = /^(?:###\s+(.+)|##\s+(.+)|(Section\s+\d+:.*))$/;
   for (const line of lines) {
-    const m = /^###\s+(.+)$/.exec(line);
+    const m = headingRe.exec(line);
     if (m) {
+      const h = (m[1] ?? m[2] ?? m[3] ?? "").trim();
       if (cur.heading || cur.body.trim()) out.push(cur);
-      cur = { heading: m[1].trim(), body: "" };
+      cur = { heading: h, body: "" };
     } else { cur.body += (cur.body ? "\n" : "") + line; }
   }
   if (cur.heading || cur.body.trim()) out.push(cur);
