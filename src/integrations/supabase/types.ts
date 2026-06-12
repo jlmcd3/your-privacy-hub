@@ -4169,6 +4169,8 @@ export type Database = {
           id: string
           is_current: boolean
           jurisdictions_covered: string[]
+          last_signed_url: string | null
+          last_signed_url_expires_at: string | null
           session_id: string
           version_number: number
         }
@@ -4183,6 +4185,8 @@ export type Database = {
           id?: string
           is_current?: boolean
           jurisdictions_covered?: string[]
+          last_signed_url?: string | null
+          last_signed_url_expires_at?: string | null
           session_id: string
           version_number: number
         }
@@ -4197,6 +4201,8 @@ export type Database = {
           id?: string
           is_current?: boolean
           jurisdictions_covered?: string[]
+          last_signed_url?: string | null
+          last_signed_url_expires_at?: string | null
           session_id?: string
           version_number?: number
         }
@@ -4576,6 +4582,7 @@ export type Database = {
           generated_docx_path: string | null
           generated_pdf_path: string | null
           generated_xlsx_path: string | null
+          generation_error: string | null
           id: string
           is_refresh: boolean
           last_activity_at: string
@@ -4599,6 +4606,7 @@ export type Database = {
           generated_docx_path?: string | null
           generated_pdf_path?: string | null
           generated_xlsx_path?: string | null
+          generation_error?: string | null
           id?: string
           is_refresh?: boolean
           last_activity_at?: string
@@ -4622,6 +4630,7 @@ export type Database = {
           generated_docx_path?: string | null
           generated_pdf_path?: string | null
           generated_xlsx_path?: string | null
+          generation_error?: string | null
           id?: string
           is_refresh?: boolean
           last_activity_at?: string
