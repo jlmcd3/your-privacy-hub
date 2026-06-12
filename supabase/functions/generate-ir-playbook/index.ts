@@ -87,6 +87,7 @@ const DPA_PORTALS: Record<string, string> = {
 };
 
 interface Body {
+  organizationName?: string;
   discoveryDateTime: string;
   cause: string;
   dataTypes: string[];
@@ -205,6 +206,7 @@ Deno.serve(async (req) => {
     // now share the same system prompt and intake block, plus explicit consistency
     // rules, so quality is preserved without making Call B wait for Call A.
     const INTAKE_BLOCK = `INCIDENT DETAILS
+Organisation (controller) being assessed: ${body.organizationName || "not specified"}
 Discovery: ${body.discoveryDateTime}
 Cause: ${body.cause}
 Data types: ${body.dataTypes.join(", ")}
@@ -463,6 +465,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           .from("ir_playbooks")
           .update({
             client_id: body.client_id ?? null,
+            organization_name: body.organizationName || null,
             status: "complete",
             intake_data: body,
             playbook_text,
@@ -480,6 +483,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           .insert({
             user_id: resolvedUserId,
             client_id: body.client_id ?? null,
+            organization_name: body.organizationName || null,
             status: "complete",
             intake_data: body,
             playbook_text,
