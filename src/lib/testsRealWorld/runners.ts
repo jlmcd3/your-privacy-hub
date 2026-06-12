@@ -140,8 +140,8 @@ const runDPIA: Runner = async ({ userId, log }) => {
 // ─── Governance ──────────────────────────────────────────────────────────────
 
 const runGovernance: Runner = async ({ userId, log }) => {
-  const intake = blend(GOV_VARIANTS);
-  log(`Blended Governance fixture (sector: ${intake.sector})`);
+  const intake = blend(GOV_VARIANTS, ["sector"]);
+  log(`Blended Governance fixture (sector anchor: ${intake.sector})`);
   log("Inserting governance_assessments row…");
   const { data: rec, error: insErr } = await supabase
     .from("governance_assessments")
@@ -160,7 +160,7 @@ const runGovernance: Runner = async ({ userId, log }) => {
   return {
     targetTable: "governance_assessments",
     targetId: rec.id,
-    label: `Governance · ${intake.sector}`,
+    label: `Governance · ${intake.sector} · ${shortId(rec.id)}`,
     resultUrl: `/governance-assessment/result/${rec.id}`,
     pdfToolType: "governance_assessment",
   };
