@@ -35,6 +35,7 @@ const SOURCE_SHAPE: Record<string, { reportData: boolean; textCol: string | null
   ropa_document_versions: { reportData: false, textCol: null },
   us_notice_sessions: { reportData: false, textCol: null },
   eu_notice_sessions: { reportData: false, textCol: null },
+  registration_assessments: { reportData: false, textCol: null },
 };
 
 async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
@@ -186,6 +187,7 @@ const REPORT_PDF_TOOL_TYPE: Record<string, string> = {
   dpa: "dpa_generator",
   ir_playbook: "ir_playbook",
   biometric: "biometric_checker",
+  registration: "registration_assessment",
 };
 
 function slugifyTitle(s: string): string {

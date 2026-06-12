@@ -16,6 +16,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { SAMPLE_FIXTURES, type SampleFixture } from "@/lib/sampleFixtures";
+import StressRunsSection from "@/components/admin/StressRunsSection";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 
@@ -624,6 +625,7 @@ export default function AdminSampleReports() {
             );
           })}
         </div>
+        <StressRunsSection />
       </main>
       <Footer />
     </div>

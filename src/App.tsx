@@ -60,24 +60,6 @@ const SubscribeSuccess = lazy(() => import("./pages/SubscribeSuccess.tsx"));
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import SubscriberRoute from "./components/SubscriberRoute.tsx";
 import CanonicalTag from "./components/CanonicalTag.tsx";
-const TestGovernanceAssessment = lazy(() => import("./pages/admin/TestGovernanceAssessment"));
-const TestLIA = lazy(() => import("./pages/admin/TestLIA"));
-const TestDPIA = lazy(() => import("./pages/admin/TestDPIA"));
-const TestDPA = lazy(() => import("./pages/admin/TestDPA"));
-const TestDPAUSState = lazy(() => import("./pages/admin/TestDPAUSState"));
-const TestDPADualCompliance = lazy(() => import("./pages/admin/TestDPADualCompliance"));
-const TestDPACanada = lazy(() => import("./pages/admin/TestDPACanada"));
-const TestIRPlaybook = lazy(() => import("./pages/admin/TestIRPlaybook"));
-const TestIRPlaybookUS = lazy(() => import("./pages/admin/TestIRPlaybookUS"));
-const TestBiometric = lazy(() => import("./pages/admin/TestBiometric"));
-const TestCPPAScope = lazy(() => import("./pages/admin/TestCPPAScope"));
-const TestCPPARisk = lazy(() => import("./pages/admin/TestCPPARisk"));
-const TestCPPACyber = lazy(() => import("./pages/admin/TestCPPACyber"));
-const TestRoPA = lazy(() => import("./pages/admin/TestRoPA"));
-const TestUSNotice = lazy(() => import("./pages/admin/TestUSNotice"));
-const TestEUNotice = lazy(() => import("./pages/admin/TestEUNotice"));
-const TestRegistration = lazy(() => import("./pages/admin/TestRegistration"));
-const TestBrief = lazy(() => import("./pages/admin/TestBrief"));
 const CronStatus = lazy(() => import("./pages/admin/CronStatus"));
 const AdminSubscribers = lazy(() => import("./pages/admin/AdminSubscribers"));
 const ResponsivePreview = lazy(() => import("./pages/admin/ResponsivePreview"));
@@ -159,9 +141,6 @@ const CPPACybersecurityResult = lazy(() => import("./pages/CPPACybersecurityResu
 const CPPACybersecurityDrift = lazy(() => import("./pages/CPPACybersecurityDrift.tsx"));
 const CPPASuiteResult = lazy(() => import("./pages/CPPASuiteResult.tsx"));
 const CPPAAdmtPlaceholder = lazy(() => import("./pages/CPPAAdmtPlaceholder.tsx"));
-const TestsDashboard = lazy(() => import("./pages/admin/TestsDashboard.tsx"));
-const TestsOutput = lazy(() => import("./pages/admin/TestsOutput.tsx"));
-const TestsRealWorld = lazy(() => import("./pages/admin/TestsRealWorld.tsx"));
 const CorpusExtractionAdmin = lazy(() => import("./pages/admin/CorpusExtractionAdmin"));
 const VerificationScanAdmin = lazy(() => import("./pages/admin/VerificationScanAdmin"));
 const PrimarySourceFetcher = lazy(() => import("./pages/admin/PrimarySourceFetcher"));
@@ -508,16 +487,6 @@ const App = () => (
               }
             />
             <Route
-              path="/admin/tests"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestsDashboard />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/admin/corpus-extraction"
               element={
                 <ProtectedRoute>
@@ -592,206 +561,6 @@ const App = () => (
             <Route path="/samples/:toolSlug" element={<SampleReport />} />
 
 
-            <Route
-              path="/admin/test-governance"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestGovernanceAssessment />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-lia"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestLIA />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-dpia"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestDPIA />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-dpa"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestDPA />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-dpa-us"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestDPAUSState />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-dpa-dual"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestDPADualCompliance />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-dpa-canada"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestDPACanada />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-ir-playbook-us"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestIRPlaybookUS />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-ir-playbook"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestIRPlaybook />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-biometric"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestBiometric />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-cppa-scope"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestCPPAScope />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-cppa-risk"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestCPPARisk />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-cppa-cyber"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestCPPACyber />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-ropa"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestRoPA />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-us-notice"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestUSNotice />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-eu-notice"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestEUNotice />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-registration"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestRegistration />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-brief"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestBrief />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/tests-output"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestsOutput />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/tests-realworld"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <TestsRealWorld />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="/admin/tests-gdprdocs"
               element={

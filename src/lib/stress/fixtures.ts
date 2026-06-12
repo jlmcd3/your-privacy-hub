@@ -2,7 +2,7 @@
 // shape so `blend()` can pick each field from a random variant — producing
 // varied, sector-mixed payloads that better stress the edge functions.
 
-export type Persona = "meridian-health" | "nimbus-fintech" | "atlas-retail" | "verde-logistics";
+export type Persona = "hermey-dental" | "moonracer-capital" | "misfit-toys" | "silver-gold-logistics";
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return (
@@ -60,10 +60,10 @@ export function shortId(id: string): string {
 export const LIA_VARIANTS = [
   {
     stage: "final",
-    organization_name: "Meridian Health Analytics Ltd",
+    organization_name: "Hermey Dental & Health Group Ltd",
     status: "pending",
     processing_description:
-      "Meridian Health Analytics processes patient health records to provide predictive analytics to NHS and private clinic clients.",
+      "Hermey Dental & Health Group processes patient health records to provide predictive analytics to NHS and private clinic clients.",
     relationship_type: "Existing patient (indirect — collected from clinic, not directly from patient)",
     data_categories: ["Health or medical data", "Contact details", "Device/technical data"],
     jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)"],
@@ -97,10 +97,10 @@ export const LIA_VARIANTS = [
   },
   {
     stage: "final",
-    organization_name: "Nimbus Fintech plc",
+    organization_name: "Moonracer Capital Inc.",
     status: "pending",
     processing_description:
-      "Nimbus Fintech monitors customer card-not-present transactions in real time to detect and block fraudulent activity across its EU and UK retail-banking customer base.",
+      "Moonracer Capital monitors customer card-not-present transactions in real time to detect and block fraudulent activity across its EU and UK retail-banking customer base.",
     relationship_type: "Existing customer (direct)",
     data_categories: ["Financial / transaction data", "Contact details", "Device/technical data", "Behavioural data"],
     jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)"],
@@ -134,10 +134,10 @@ export const LIA_VARIANTS = [
   },
   {
     stage: "final",
-    organization_name: "Atlas Retail Group",
+    organization_name: "Misfit Toys Trading Co.",
     status: "pending",
     processing_description:
-      "Atlas Retail uses on-site behavioural signals to personalise product recommendations and outbound marketing for registered shoppers in the US, UK and EU.",
+      "Misfit Toys Trading Co. uses on-site behavioural signals to personalise product recommendations and outbound marketing for registered shoppers in the US, UK and EU.",
     relationship_type: "Existing customer and prospect (direct)",
     data_categories: ["Contact details", "Behavioural data", "Device/technical data", "Purchase history"],
     jurisdictions: ["EU (GDPR)", "United Kingdom (UK GDPR)", "California (CCPA/CPRA)"],
@@ -170,10 +170,10 @@ export const LIA_VARIANTS = [
   },
   {
     stage: "final",
-    organization_name: "Verde Logistics SAS",
+    organization_name: "Silver & Gold Logistics Ltd",
     status: "pending",
     processing_description:
-      "Verde Logistics tracks driver telemetry (location, speed, harsh-braking events) across its EU fleet to improve route safety, reduce insurance premiums and meet tachograph obligations.",
+      "Silver & Gold Logistics tracks driver telemetry (location, speed, harsh-braking events) across its EU fleet to improve route safety, reduce insurance premiums and meet tachograph obligations.",
     relationship_type: "Employee",
     data_categories: ["Location data", "Device/technical data", "Employee records", "Behavioural data"],
     jurisdictions: ["EU (GDPR)"],
@@ -411,7 +411,7 @@ export const BIOMETRIC_VARIANTS = [
 
 export const DPA_VARIANTS = [
   {
-    controllerName: "Meridian Health Analytics Ltd",
+    controllerName: "Hermey Dental & Health Group Ltd",
     controllerJurisdiction: "United Kingdom",
     processorName: "CloudMed Processing GmbH",
     processorJurisdiction: "Germany",
@@ -428,7 +428,7 @@ export const DPA_VARIANTS = [
     transferMechanism: "EU Standard Contractual Clauses (2021/914)",
   },
   {
-    controllerName: "Nimbus Fintech Bank plc",
+    controllerName: "Moonracer Capital Bank plc",
     controllerJurisdiction: "United Kingdom",
     processorName: "Featurespace Limited",
     processorJurisdiction: "United Kingdom",
@@ -445,7 +445,7 @@ export const DPA_VARIANTS = [
     transferMechanism: "UK IDTA + EU SCCs",
   },
   {
-    controllerName: "Atlas Retail International Ltd",
+    controllerName: "Misfit Toys Trading Co. International Ltd",
     controllerJurisdiction: "Ireland",
     processorName: "SendGrid Inc.",
     processorJurisdiction: "United States",
@@ -462,7 +462,7 @@ export const DPA_VARIANTS = [
     transferMechanism: "EU SCCs + EU-US Data Privacy Framework",
   },
   {
-    controllerName: "Verde Logistics SAS",
+    controllerName: "Silver & Gold Logistics Ltd",
     controllerJurisdiction: "France",
     processorName: "Geotab Inc.",
     processorJurisdiction: "Canada",
@@ -525,59 +525,6 @@ export const IR_VARIANTS = [
   },
 ];
 
-// ─── Intelligence Brief prefs ────────────────────────────────────────────────
-
-export const BRIEF_VARIANTS = [
-  {
-    industries: ["healthcare"],
-    jurisdictions: ["eu-uk"],
-    topics: [
-      "GDPR Enforcement & DPA Activity",
-      "Health & Medical Data Privacy",
-      "AI & Privacy",
-      "Biometric Data Privacy",
-      "Data Breach & Incident Response",
-    ],
-    role: "cpo_dpo",
-    format: "full",
-  },
-  {
-    industries: ["financial-services"],
-    jurisdictions: ["eu-uk"],
-    topics: [
-      "GDPR Enforcement & DPA Activity",
-      "AI & Privacy",
-      "Data Breach & Incident Response",
-      "Cross-Border Data Transfers",
-    ],
-    role: "cpo_dpo",
-    format: "full",
-  },
-  {
-    industries: ["retail"],
-    jurisdictions: ["us-state"],
-    topics: [
-      "US State Privacy Law Enforcement",
-      "AdTech, Cookies & Tracking",
-      "Children's Privacy",
-      "Data Broker Regulation",
-    ],
-    role: "marketing",
-    format: "full",
-  },
-  {
-    industries: ["logistics"],
-    jurisdictions: ["eu-uk"],
-    topics: [
-      "Employee Monitoring & Workplace Privacy",
-      "GDPR Enforcement & DPA Activity",
-      "Cross-Border Data Transfers",
-    ],
-    role: "legal_counsel",
-    format: "full",
-  },
-];
-
 // ─── RoPA (whole-payload variants — activities kept consistent) ──────────────
 
 export interface RopaPayload {
@@ -605,11 +552,11 @@ export interface RopaPayload {
 
 export const ROPA_VARIANTS: RopaPayload[] = [
   {
-    org_name: "Meridian Health Analytics Ltd",
+    org_name: "Hermey Dental & Health Group Ltd",
     legal_entity_type: "Private limited company (UK)",
     employee_band: "50-249",
-    dpo_name: "Dr. Eleanor Hartley",
-    dpo_email: "dpo@meridianhealth.example",
+    dpo_name: "Donna Dasher",
+    dpo_email: "dpo@hermeydentalhealth.example",
     jurisdictions: [
       { code: "EU_GDPR", name: "European Union", region: "EU & UK" },
       { code: "UK_GDPR", name: "United Kingdom", region: "EU & UK" },
@@ -646,11 +593,11 @@ export const ROPA_VARIANTS: RopaPayload[] = [
     ],
   },
   {
-    org_name: "Nimbus Fintech Bank plc",
+    org_name: "Moonracer Capital Bank plc",
     legal_entity_type: "Public limited company (UK)",
     employee_band: "250-999",
-    dpo_name: "Marcus Bellamy",
-    dpo_email: "dpo@nimbus-fintech.example",
+    dpo_name: "Yukon Cornelius",
+    dpo_email: "dpo@moonracer-capital.example",
     jurisdictions: [
       { code: "UK_GDPR", name: "United Kingdom", region: "EU & UK" },
       { code: "EU_GDPR", name: "European Union", region: "EU & UK" },
@@ -687,11 +634,11 @@ export const ROPA_VARIANTS: RopaPayload[] = [
     ],
   },
   {
-    org_name: "Atlas Retail International Ltd",
+    org_name: "Misfit Toys Trading Co. International Ltd",
     legal_entity_type: "Private limited company (Ireland)",
     employee_band: "1000+",
-    dpo_name: "Sinead O'Donnell",
-    dpo_email: "dpo@atlas-retail.example",
+    dpo_name: "Rudy Rangifer",
+    dpo_email: "dpo@misfit-toys.example",
     jurisdictions: [
       { code: "EU_GDPR", name: "European Union", region: "EU & UK" },
       { code: "UK_GDPR", name: "United Kingdom", region: "EU & UK" },
@@ -728,11 +675,11 @@ export const ROPA_VARIANTS: RopaPayload[] = [
     ],
   },
   {
-    org_name: "Verde Logistics SAS",
+    org_name: "Silver & Gold Logistics Ltd",
     legal_entity_type: "Société par actions simplifiée (France)",
     employee_band: "50-249",
-    dpo_name: "Camille Rousseau",
-    dpo_email: "dpo@verde-logistics.example",
+    dpo_name: "Clarice Caribou",
+    dpo_email: "dpo@silver-gold-logistics.example",
     jurisdictions: [
       { code: "EU_GDPR", name: "European Union", region: "EU & UK" },
     ],
@@ -773,9 +720,9 @@ export const ROPA_VARIANTS: RopaPayload[] = [
 
 export const US_NOTICE_VARIANTS = [
   {
-    business_name: "Meridian Health Analytics Ltd",
+    business_name: "Hermey Dental & Health Group Ltd",
     business_description: "AI-powered patient risk-stratification analytics for clinics in the UK and US.",
-    contact_email: "privacy@meridianhealth.io",
+    contact_email: "privacy@hermeydentalhealth.io",
     data_categories: "Identifiers; Health information; Employment data; Internet activity",
     collection_purposes: "Service delivery; R&D; Marketing; Fraud prevention; Legal compliance",
     third_party_sharing: "yes",
@@ -786,9 +733,9 @@ export const US_NOTICE_VARIANTS = [
     data_sources: "Directly from individuals; Clinic EHR systems; analytics vendors",
   },
   {
-    business_name: "Nimbus Fintech Bank plc",
+    business_name: "Moonracer Capital Bank plc",
     business_description: "Retail banking and payments for consumers across the US, UK and EU.",
-    contact_email: "privacy@nimbus-fintech.io",
+    contact_email: "privacy@moonracer-capital.io",
     data_categories: "Identifiers; Financial information; Internet activity; Geolocation; Commercial information",
     collection_purposes: "Service delivery; Fraud prevention; Legal compliance; Marketing of own products",
     third_party_sharing: "yes",
@@ -799,9 +746,9 @@ export const US_NOTICE_VARIANTS = [
     data_sources: "Directly from individuals; credit bureaus; identity-verification vendors",
   },
   {
-    business_name: "Atlas Retail International Ltd",
+    business_name: "Misfit Toys Trading Co. International Ltd",
     business_description: "Direct-to-consumer e-commerce across US, UK and EU.",
-    contact_email: "privacy@atlas-retail.io",
+    contact_email: "privacy@misfit-toys.io",
     data_categories: "Identifiers; Commercial information; Internet activity; Geolocation; Inferences",
     collection_purposes: "Service delivery; Marketing; Personalisation; Fraud prevention",
     third_party_sharing: "yes",
@@ -812,9 +759,9 @@ export const US_NOTICE_VARIANTS = [
     data_sources: "Directly from individuals; advertising partners; analytics vendors",
   },
   {
-    business_name: "Verde Logistics US Inc.",
+    business_name: "Silver & Gold Logistics US Inc.",
     business_description: "US arm of an EU-headquartered freight and logistics group.",
-    contact_email: "privacy@verde-logistics.io",
+    contact_email: "privacy@silver-gold-logistics.io",
     data_categories: "Identifiers; Professional information; Geolocation; Internet activity",
     collection_purposes: "Service delivery; Employment; Safety monitoring; Legal compliance",
     third_party_sharing: "yes",
@@ -830,12 +777,12 @@ export const US_NOTICE_VARIANTS = [
 
 export const EU_NOTICE_VARIANTS = [
   {
-    controller_name: "Meridian Health Analytics Ltd",
+    controller_name: "Hermey Dental & Health Group Ltd",
     controller_address: "1 Innovation Square, London EC2A 4BX, UK",
-    contact_email: "privacy@meridianhealth.io",
+    contact_email: "privacy@hermeydentalhealth.io",
     dpo_details: "yes",
-    dpo_name: "Dr. Sarah Chen, Privacy Officer",
-    dpo_email: "privacy@meridianhealth.io",
+    dpo_name: "Donna Dasher, Privacy Officer",
+    dpo_email: "privacy@hermeydentalhealth.io",
     processing_purposes: ["service_delivery", "analytics", "marketing", "security", "legal_compliance"],
     data_categories: ["identifiers", "health_medical", "professional", "internet_activity"],
     lawful_basis: ["legitimate_interests", "contract", "legal_obligation", "consent"],
@@ -849,12 +796,12 @@ export const EU_NOTICE_VARIANTS = [
     supervisory_authority_uk: "Information Commissioner's Office (ICO)",
   },
   {
-    controller_name: "Nimbus Fintech Bank plc",
+    controller_name: "Moonracer Capital Bank plc",
     controller_address: "30 Gresham Street, London EC2V 7QP, UK",
-    contact_email: "privacy@nimbus-fintech.io",
+    contact_email: "privacy@moonracer-capital.io",
     dpo_details: "yes",
-    dpo_name: "Marcus Bellamy, Data Protection Officer",
-    dpo_email: "dpo@nimbus-fintech.io",
+    dpo_name: "Yukon Cornelius, Data Protection Officer",
+    dpo_email: "dpo@moonracer-capital.io",
     processing_purposes: ["service_delivery", "fraud_prevention", "legal_compliance", "marketing"],
     data_categories: ["identifiers", "financial", "behavioural", "device_technical"],
     lawful_basis: ["contract", "legal_obligation", "legitimate_interests"],
@@ -868,12 +815,12 @@ export const EU_NOTICE_VARIANTS = [
     supervisory_authority_uk: "Information Commissioner's Office (ICO)",
   },
   {
-    controller_name: "Atlas Retail International Ltd",
+    controller_name: "Misfit Toys Trading Co. International Ltd",
     controller_address: "Spencer Dock, North Wall Quay, Dublin 1, Ireland",
-    contact_email: "privacy@atlas-retail.io",
+    contact_email: "privacy@misfit-toys.io",
     dpo_details: "yes",
-    dpo_name: "Sinead O'Donnell, Group DPO",
-    dpo_email: "dpo@atlas-retail.io",
+    dpo_name: "Rudy Rangifer, Group DPO",
+    dpo_email: "dpo@misfit-toys.io",
     processing_purposes: ["service_delivery", "marketing", "analytics", "personalisation"],
     data_categories: ["identifiers", "commercial", "internet_activity", "geolocation"],
     lawful_basis: ["contract", "legitimate_interests", "consent"],
@@ -887,12 +834,12 @@ export const EU_NOTICE_VARIANTS = [
     supervisory_authority_uk: "Information Commissioner's Office (ICO)",
   },
   {
-    controller_name: "Verde Logistics SAS",
+    controller_name: "Silver & Gold Logistics Ltd",
     controller_address: "12 Quai de la Loire, 75019 Paris, France",
-    contact_email: "privacy@verde-logistics.io",
+    contact_email: "privacy@silver-gold-logistics.io",
     dpo_details: "yes",
-    dpo_name: "Camille Rousseau, DPO",
-    dpo_email: "dpo@verde-logistics.io",
+    dpo_name: "Clarice Caribou, DPO",
+    dpo_email: "dpo@silver-gold-logistics.io",
     processing_purposes: ["service_delivery", "legal_compliance", "security"],
     data_categories: ["identifiers", "professional", "geolocation", "device_technical"],
     lawful_basis: ["contract", "legal_obligation", "legitimate_interests"],
@@ -911,11 +858,11 @@ export const EU_NOTICE_VARIANTS = [
 
 export const REG_VARIANTS = [
   {
-    organization_name: "Meridian Health Analytics Ltd",
+    organization_name: "Hermey Dental & Health Group Ltd",
     organization_country: "GB",
     organization_size: "medium",
     industry: "Healthcare / Life Sciences",
-    email: "privacy@meridianhealth.io",
+    email: "privacy@hermeydentalhealth.io",
     employee_count: 180,
     annual_revenue_usd: 60_000_000,
     data_subjects_count: 250_000,
@@ -936,11 +883,11 @@ export const REG_VARIANTS = [
     processes_biometrics_for_id: false,
   },
   {
-    organization_name: "Nimbus Fintech Bank plc",
+    organization_name: "Moonracer Capital Bank plc",
     organization_country: "GB",
     organization_size: "large",
     industry: "Financial Services / Banking",
-    email: "privacy@nimbus-fintech.io",
+    email: "privacy@moonracer-capital.io",
     employee_count: 850,
     annual_revenue_usd: 320_000_000,
     data_subjects_count: 3_000_000,
@@ -961,11 +908,11 @@ export const REG_VARIANTS = [
     processes_biometrics_for_id: true,
   },
   {
-    organization_name: "Atlas Retail International Ltd",
+    organization_name: "Misfit Toys Trading Co. International Ltd",
     organization_country: "IE",
     organization_size: "large",
     industry: "Retail / E-commerce",
-    email: "privacy@atlas-retail.io",
+    email: "privacy@misfit-toys.io",
     employee_count: 2100,
     annual_revenue_usd: 950_000_000,
     data_subjects_count: 8_000_000,
@@ -986,11 +933,11 @@ export const REG_VARIANTS = [
     processes_biometrics_for_id: false,
   },
   {
-    organization_name: "Verde Logistics SAS",
+    organization_name: "Silver & Gold Logistics Ltd",
     organization_country: "FR",
     organization_size: "medium",
     industry: "Logistics / Transportation",
-    email: "privacy@verde-logistics.io",
+    email: "privacy@silver-gold-logistics.io",
     employee_count: 220,
     annual_revenue_usd: 85_000_000,
     data_subjects_count: 5_000,
@@ -1055,7 +1002,7 @@ export const CPPA_RISK_VARIANTS = [
     i6_vendors: "Azure; Snowflake; Epic; Acme Analytics",
     i7_internal_contributors: "CISO; CPO; VP Clinical Informatics; GC; Product Owner",
     i7_external_consultees: "External healthcare-privacy counsel; bias auditor (annual)",
-    i8_certifying_exec_name: "Dr. Alex Morgan",
+    i8_certifying_exec_name: "Sam Snowman",
     i8_certifying_exec_title: "Chief Privacy Officer",
     i9_has_existing_dpia: "No",
     i9_existing_dpia_summary: "",
@@ -1100,7 +1047,7 @@ export const CPPA_RISK_VARIANTS = [
     i6_vendors: "AWS; Featurespace; Onfido; ComplyAdvantage",
     i7_internal_contributors: "CISO; CPO; Head of Fraud; GC; Model Risk Lead",
     i7_external_consultees: "External privacy counsel; model-risk audit firm",
-    i8_certifying_exec_name: "Marcus Bellamy",
+    i8_certifying_exec_name: "Yukon Cornelius",
     i8_certifying_exec_title: "Chief Privacy Officer",
     i9_has_existing_dpia: "Yes",
     i9_existing_dpia_summary: "UK DPIA completed 2024 covering fraud-scoring model.",
@@ -1146,7 +1093,7 @@ export const CPPA_RISK_VARIANTS = [
     i6_vendors: "GCP; SendGrid; Klaviyo; Stripe",
     i7_internal_contributors: "CPO; Head of Marketing; CISO; GC; Product Lead",
     i7_external_consultees: "External adtech counsel",
-    i8_certifying_exec_name: "Sinead O'Donnell",
+    i8_certifying_exec_name: "Rudy Rangifer",
     i8_certifying_exec_title: "Group Data Protection Officer",
     i9_has_existing_dpia: "Yes",
     i9_existing_dpia_summary: "EU DPIA covers personalisation; updated annually.",
@@ -1190,7 +1137,7 @@ export const CPPA_RISK_VARIANTS = [
     i6_vendors: "Geotab; Azure; ADP",
     i7_internal_contributors: "CISO; CPO; HR Director; GC; Fleet Operations Lead",
     i7_external_consultees: "Works council; employment counsel",
-    i8_certifying_exec_name: "Camille Rousseau",
+    i8_certifying_exec_name: "Clarice Caribou",
     i8_certifying_exec_title: "Group DPO",
     i9_has_existing_dpia: "Yes",
     i9_existing_dpia_summary: "EU DPIA for driver telematics, reviewed annually.",

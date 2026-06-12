@@ -65,7 +65,7 @@ export default function AdminCPPARuns() {
       <Helmet><title>Admin · CPPA Runs | End User Privacy</title></Helmet>
       <Navbar />
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-        <BackLink to="/admin/tests" label="Back to admin" />
+        <BackLink to="/admin/sample-reports" label="Back to admin" />
         <h1 className="font-serif text-3xl">CPPA Runs</h1>
 
         {loading ? <p>Loading…</p> : (
