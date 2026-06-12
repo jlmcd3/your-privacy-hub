@@ -144,6 +144,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
 
 
     // ── STAGE 1: Classify use case ──
+    const t1Start = Date.now();
     const classifySystem = `You are a privacy regulatory analyst. Classify processing activities for legitimate interest analysis. Return ONLY valid JSON, no preamble.`;
 
     // Determine jurisdiction for GDPR authority retrieval (UK if any verified
@@ -184,6 +185,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
         semanticQuery: assessment.processing_description || "",
       }).catch((e: Error) => { console.error("getGdprContext failed (non-fatal):", e); return { block: "", meta: { attempted: false, error: String(e).slice(0, 200) } as any }; })
     ]);
+    console.log(`[LIA] stage=1 classify+context elapsed=${Date.now() - t1Start}ms`);
 
     const classifyText = classifyResult.text;
     let classification: any = {};
