@@ -322,44 +322,145 @@ async function renderViaPdfShift(html: string, title: string): Promise<Uint8Arra
 }
 
 async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
-  const { tool_slug, variant, title, scenario_summary, fixture } = body ?? {};
+// Map a file-driven source_table to (bucket, document_table, link_col).
+// These tools store their actual report as a file in storage rather than
+// as report_data / document_text — we fetch the file and use it directly.
+const FILE_DRIVEN: Record<string, { bucket: string; docTable: string; linkCol: string }> = {
+  ropa_document_versions: { bucket: "ropa-documents", docTable: "ropa_document_versions", linkCol: "id" },
+  us_notice_sessions:     { bucket: "us-notices",      docTable: "us_notice_documents",   linkCol: "session_id" },
+  eu_notice_sessions:     { bucket: "eu-notices",      docTable: "eu_notice_documents",   linkCol: "session_id" },
+};
+
+async function fetchFileDrivenPdf(
+  admin: ReturnType<typeof createClient>,
+  source_table: string,
+  source_row_id: string,
+): Promise<{ bytes: Uint8Array; contentType: string } | null> {
+  const cfg = FILE_DRIVEN[source_table];
+  if (!cfg) return null;
+  const { data: doc, error } = await admin
+    .from(cfg.docTable)
+    .select("file_path, document_format")
+    .eq(cfg.linkCol, source_row_id)
+    .eq("is_current", true)
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !doc?.file_path) return null;
+  const { data: blob, error: dlErr } = await admin.storage.from(cfg.bucket).download(doc.file_path);
+  if (dlErr || !blob) return null;
+  const ab = await blob.arrayBuffer();
+  const fmt = String((doc as any).document_format ?? "").toLowerCase();
+  return {
+    bytes: new Uint8Array(ab),
+    contentType: fmt.includes("pdf") ? "application/pdf"
+                : fmt.includes("html") ? "text/html"
+                : (blob as Blob).type || "application/octet-stream",
+  };
+}
+
+async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
+  const {
+    tool_slug, variant, title, scenario_summary, fixture,
+    source_table, source_row_id,
+  } = body ?? {};
   if (!tool_slug || !variant || !title) {
     return json({ error: "missing tool_slug/variant/title" }, 400);
   }
-  const html = buildSampleHtml({
-    tool_slug, variant, title,
-    scenario_summary: scenario_summary ?? "",
-    fixture: (fixture as Record<string, unknown>) ?? {},
-  });
-  let pdfBytes: Uint8Array;
-  try {
-    pdfBytes = await renderViaPdfShift(html, title);
-  } catch (e) {
-    return json({ error: (e as Error).message }, 502);
+
+  let pdfBytes: Uint8Array | null = null;
+  let contentType = "application/pdf";
+  let renderMethod: string = "pdfshift_from_report_data";
+  let fetchedReportData: unknown = null;
+  let fetchedDocumentText: string | null = null;
+  let resolvedSourceTable: string | null = source_table ?? null;
+  let resolvedSourceRowId: string | null = source_row_id ?? null;
+
+  // Path A: file-driven tool — copy the actual generated document file.
+  if (source_table && source_row_id && FILE_DRIVEN[source_table]) {
+    const fetched = await fetchFileDrivenPdf(admin, source_table, source_row_id);
+    if (!fetched) {
+      return json({
+        error: `No current generated document found for ${source_table}/${source_row_id}. Run the tool to produce a document first.`,
+      }, 400);
+    }
+    if (fetched.contentType === "application/pdf") {
+      pdfBytes = fetched.bytes;
+      renderMethod = "copied_from_" + FILE_DRIVEN[source_table].bucket;
+    } else {
+      // Render HTML (or fall back to treating bytes as utf-8 text) via PDFShift.
+      const html = new TextDecoder().decode(fetched.bytes);
+      try {
+        pdfBytes = await renderViaPdfShift(html, title);
+        renderMethod = "pdfshift_from_" + FILE_DRIVEN[source_table].bucket;
+      } catch (e) {
+        return json({ error: `PDFShift (file-driven): ${(e as Error).message}` }, 502);
+      }
+    }
+  } else {
+    // Path B: structured-report tool — pull report_data / *_text from source row.
+    if (source_table && source_row_id) {
+      const shape = SOURCE_SHAPE[source_table];
+      if (shape) {
+        const cols: string[] = [];
+        if (shape.reportData) cols.push("report_data");
+        if (shape.textCol) cols.push(shape.textCol);
+        if (cols.length > 0) {
+          const { data: src, error: srcErr } = await admin
+            .from(source_table)
+            .select(cols.join(","))
+            .eq("id", source_row_id)
+            .maybeSingle();
+          if (srcErr) return json({ error: `source: ${srcErr.message}` }, 400);
+          fetchedReportData = shape.reportData ? ((src as any)?.report_data ?? null) : null;
+          fetchedDocumentText = shape.textCol ? ((src as any)?.[shape.textCol] ?? null) : null;
+        }
+      }
+    }
+    if (!fetchedReportData && !fetchedDocumentText) {
+      return json({
+        error: "No report content found. Pass source_table + source_row_id from a completed live run, then retry.",
+      }, 400);
+    }
+    const html = buildSampleHtml({
+      tool_slug, variant, title,
+      scenario_summary: scenario_summary ?? "",
+      reportData: (fetchedReportData as Record<string, unknown> | null) ?? null,
+      documentText: fetchedDocumentText,
+    });
+    try {
+      pdfBytes = await renderViaPdfShift(html, title);
+    } catch (e) {
+      return json({ error: (e as Error).message }, 502);
+    }
   }
+
+  if (!pdfBytes) return json({ error: "PDF render produced no bytes" }, 500);
 
   const path = `${tool_slug}/${variant}.pdf`;
   const { error: upErr } = await admin.storage.from("sample-reports").upload(path, pdfBytes, {
-    contentType: "application/pdf",
+    contentType,
     upsert: true,
   });
   if (upErr) return json({ error: `upload: ${upErr.message}` }, 400);
 
   const verification = {
-    source: "manual_pdfshift",
+    source: renderMethod,
     method: "admin sample PDF generator",
     generated_at: new Date().toISOString(),
     bytes: pdfBytes.byteLength,
+    source_table: resolvedSourceTable,
+    source_row_id: resolvedSourceRowId,
   };
 
   const payload = {
     tool_slug, variant, title,
     scenario_summary: scenario_summary ?? "",
     fixture: fixture ?? {},
-    source_table: "manual_pdfshift",
-    source_row_id: null,
-    report_data: null,
-    document_text: null,
+    source_table: resolvedSourceTable ?? "manual_pdfshift",
+    source_row_id: resolvedSourceRowId,
+    report_data: fetchedReportData ?? null,
+    document_text: fetchedDocumentText ?? null,
     verification,
     pdf_path: path,
     status: "draft",
@@ -372,7 +473,7 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
     .select()
     .single();
   if (error) return json({ error: `upsert: ${error.message}` }, 400);
-  return json({ row, bytes: pdfBytes.byteLength });
+  return json({ row, bytes: pdfBytes.byteLength, render_method: renderMethod });
 }
 
 Deno.serve(async (req) => {
