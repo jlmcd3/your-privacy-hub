@@ -138,7 +138,7 @@ async function runGenerator(
     log(`✓ session ${session.id}`);
 
     log("▶ Upsert ropa_jurisdiction_selections...");
-    const jurs = (f.jurisdictions as Array<Record<string, unknown>>).map((j) => ({ client_id: clientId, session_id: session.id, ...j }));
+    const jurs = (f.jurisdictions as Array<Record<string, unknown>>).map((j) => ({ client_id: clientId, ...j }));
     const { error: jErr } = await (supabase as any)
       .from("ropa_jurisdiction_selections")
       .upsert(jurs, { onConflict: "client_id,jurisdiction_code" });
