@@ -155,6 +155,7 @@ Return ONLY valid JSON matching the schema in the user message. No markdown, no 
 
   const aiData = await aiRes.json();
   const rawText = aiData.content?.[0]?.text ?? "";
+  console.log(`[generate-trend-report] gen done stop=${aiData.stop_reason ?? null} chars=${rawText.length}`);
 
   let synthesis: any;
   try {
