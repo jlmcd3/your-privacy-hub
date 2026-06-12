@@ -84,6 +84,7 @@ const LIAssessment = () => {
   const { toast } = useToast();
   const pricing = useToolPrice("li_assessment");
 
+  const [organizationName, setOrganizationName] = useState("");
   const [processingDescription, setProcessingDescription] = useState("");
   const [dataCategories, setDataCategories] = useState<string[]>([]);
   const [relationship, setRelationship] = useState("");
@@ -94,6 +95,7 @@ const LIAssessment = () => {
   const [previewId, setPreviewId] = useState<string | null>(null);
 
   const validate = () => {
+    if (!organizationName.trim()) return "Tell us the name of the organisation being assessed.";
     if (!processingDescription.trim()) return "Briefly describe what you're doing.";
     if (!dataCategories.length) return "Select at least one data category.";
     if (!relationship) return "Select your relationship with data subjects.";
