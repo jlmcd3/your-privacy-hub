@@ -1913,6 +1913,39 @@ export type Database = {
           },
         ]
       }
+      harness_artifacts: {
+        Row: {
+          admin_user_id: string
+          created_at: string
+          id: string
+          label: string | null
+          run_id: string
+          target_id: string
+          target_table: string
+          tool_type: string
+        }
+        Insert: {
+          admin_user_id: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          run_id: string
+          target_id: string
+          target_table: string
+          tool_type: string
+        }
+        Update: {
+          admin_user_id?: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          run_id?: string
+          target_id?: string
+          target_table?: string
+          tool_type?: string
+        }
+        Relationships: []
+      }
       homepage_spotlight: {
         Row: {
           created_at: string
