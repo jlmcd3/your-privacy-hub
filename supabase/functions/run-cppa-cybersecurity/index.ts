@@ -104,9 +104,13 @@ async function runAssessment(assessment_id: string): Promise<void> {
           query_descriptor: `cybersecurity breach context${enforcementSector ? ` in ${enforcementSector}` : ""}`,
         };
         if (enforcementResults.length) {
-          enforcementContext = enforcementResults.map((r: any, i: number) =>
-            `[E${i + 1}] id:${r.id} ${r.regulator} v ${r.subject} (${r.decision_date ?? "n.d."}): ${r.violation ?? r.key_compliance_failure ?? ""} | Fine: ${r.fine_amount ?? "n/a"} | ${r.source_url ?? ""}`
-          ).join("\n");
+          enforcementContext = enforcementResults.map((r: any, i: number) => {
+            const fineVerified = r.fine_verified !== false;
+            const fine = !fineVerified
+              ? "fine amount under verification — omitted"
+              : (r.fine_eur_equivalent ? `€${Number(r.fine_eur_equivalent).toLocaleString()}` : "fine: n/a");
+            return `[E${i + 1}] id:${r.id} ${r.regulator} v ${r.subject} (${r.decision_date ?? "n.d."}): ${r.violation ?? r.key_compliance_failure ?? ""} | Fine: ${fine} | ${r.source_url ?? ""}`;
+          }).join("\n");
         }
       }
     } catch (e) {
