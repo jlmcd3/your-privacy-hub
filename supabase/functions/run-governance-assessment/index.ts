@@ -200,7 +200,7 @@ Return JSON:
           // copy into customer-facing report; failed domains are excluded
           // from the report entirely and recorded as a lint warning.
           console.warn(`[Governance] domain ${domain.id} (${domain.name}) parse failed; retrying once.`);
-          const retryText = await callAnthropic(model, domainSystem, userPrompt, 1200);
+          const retryText = await callAnthropic(model, domainSystem, userPrompt, 1600);
           parsed = tryParseJson(retryText);
         }
         if (!parsed) {
