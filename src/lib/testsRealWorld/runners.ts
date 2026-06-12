@@ -555,8 +555,8 @@ async function pollCppa(id: string, log: (m: string) => void): Promise<void> {
 }
 
 const runCppaRisk: Runner = async ({ userId, log }) => {
-  const intake = blend(CPPA_RISK_VARIANTS);
-  log(`Blended CPPA Risk fixture (${intake.q3_sector})`);
+  const intake = blend(CPPA_RISK_VARIANTS, ["q3_sector"]);
+  log(`Blended CPPA Risk fixture (sector anchor: ${intake.q3_sector})`);
   log("Inserting cppa_assessments (risk_assessment)…");
   const { data: rec, error: insErr } = await supabase
     .from("cppa_assessments")
