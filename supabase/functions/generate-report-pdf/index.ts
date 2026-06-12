@@ -1031,6 +1031,31 @@ Deno.serve(async (req) => {
             missingKey = "analysis_text|assessment_text";
             break;
           }
+          case "ir_playbook": {
+            const text = (record as any).playbook_text || "";
+            bodyOk = typeof text === "string" && text.trim().length > 0;
+            missingKey = "playbook_text";
+            break;
+          }
+          case "dpa_generator": {
+            const text = (record as any).document_text || "";
+            bodyOk = typeof text === "string" && text.trim().length > 0;
+            missingKey = "document_text";
+            break;
+          }
+          case "registration_assessment": {
+            const recs = (record as any).recommended_jurisdictions;
+            const summary = (record as any).result_summary;
+            bodyOk = isNonEmptyArr(recs) || isNonEmptyObj(summary);
+            missingKey = "recommended_jurisdictions|result_summary";
+            break;
+          }
+          case "registration_document": {
+            const text = (record as any).content_text || "";
+            bodyOk = typeof text === "string" && text.trim().length > 0;
+            missingKey = "content_text";
+            break;
+          }
         }
         if (!bodyOk) {
           console.warn("[pdf-guard] 409 report_body_empty", { tool_type, assessment_id, missingKey });

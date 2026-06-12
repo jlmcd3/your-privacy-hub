@@ -340,20 +340,24 @@ If no cases informed the playbook, output an empty array [].
 Output ONLY Sections 5–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT re-output Sections 1–4.`;
 
         // LEGAL CONSTANTS — verified 2026-06-12 against statute text.
-        // Any edit requires re-verification; see lint class past_deadline.
+        // R6 (2026-06-12): NY corrected to 30-day hard deadline (S2659B, eff. 21 Dec 2024) +
+        // regulator-notice trigger fixed (any NY resident, not 500+) + DFS/Part 500 72h note;
+        // OR corrected to 45 days (ORS 646A.604(3)(a)); TX corrected to individuals ≤60d /
+        // AG ≤30d (SB 768, eff. 1 Sep 2023). Any edit requires re-verification; see lint
+        // class past_deadline.
         const SYSTEM_PROMPT = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
 
 US STATE BREACH NOTIFICATION — KEY TIMELINES (for Section 3) — Last verified: June 2026:
 - California: notify individuals within 30 CALENDAR DAYS of discovery or notification of the breach (Cal. Civ. Code §1798.82, as amended by SB 446, effective 1 Jan 2026); delay only for law enforcement needs or to determine scope/restore system integrity. If 500+ CA residents: electronically submit a sample copy to the CA AG within 15 calendar days of notifying consumers (§1798.82(f)).
-- Texas: notify individuals "as soon as possible" under Tex. Bus. & Com. Code §521.053 (Texas Identity Theft Enforcement and Protection Act — NOT the TDPSA, which does not create breach notification obligations); notify TX AG if 250+ Texans affected. Note: the TDPSA (Texas Data Privacy and Security Act, Tex. Bus. & Com. Code Ch. 541) governs data processing rights and obligations but does NOT independently create breach notification duties.
-- New York: notify individuals in most expedient time (no fixed window); notify NY AG, DFS, or other regulators if 500+ NY residents; SHIELD Act triggers
+- Texas: notify individuals without unreasonable delay and no later than 60 DAYS after determining the breach occurred (Tex. Bus. & Com. Code §521.053(b), Texas Identity Theft Enforcement and Protection Act — NOT the TDPSA, which does not create breach notification obligations); notify the TX Attorney General as soon as practicable and no later than 30 DAYS after determination — NOT 60 days (§521.053(i), as amended by SB 768 effective 1 Sep 2023) — if the breach involves at least 250 TX residents, submitted via the mandatory electronic form on the AG's website. The AG deadline (30 days) is SHORTER than the individual-notice deadline (60 days). Note: the TDPSA (Texas Data Privacy and Security Act, Tex. Bus. & Com. Code Ch. 541) governs data processing rights and obligations but does NOT independently create breach notification duties.
+- New York: notify individuals in the most expedient time possible and no later than 30 CALENDAR DAYS after discovery of the breach (N.Y. Gen. Bus. Law §899-aa, as amended by S2659B effective 21 Dec 2024); delay only for legitimate law enforcement needs — the former allowance to delay while determining breach scope or restoring system integrity was REMOVED by the 2024 amendment. Do NOT describe New York as having no fixed deadline — that was the pre-amendment standard. Regulator notice: WHENEVER any NY residents are notified, also notify the NY Attorney General, the Department of State, and the State Police (§899-aa(8)(a)) — this is NOT limited to 500+ residents. DFS-regulated entities (banks, insurers, other NYDFS-licensed entities) must additionally notify the NY Department of Financial Services; under 23 NYCRR Part 500 the DFS clock is 72 HOURS, which is stricter and controls for those entities. If 5,000+ NY residents: also notify nationwide consumer reporting agencies. SHIELD Act reasonable-safeguards duties apply independently.
 - Connecticut: notify individuals ≤60 days; notify CT AG simultaneously
 - Colorado: notify individuals in the most expedient time possible and no later than 30 DAYS after determination that a breach occurred (C.R.S. §6-1-716(2)(a)); notify CO AG within the SAME 30-day window if 500+ CO residents. There is no 60-day allowance in Colorado.
 - Virginia: notify the Office of the Attorney General AND affected residents without unreasonable delay WHENEVER resident notice is triggered (Va. Code §18.2-186.6(B)) — the AG notice is NOT limited to 1,000+ breaches. There is NO fixed day-count deadline in §18.2-186.6. The 1,000+ threshold additionally triggers notice to nationwide consumer reporting agencies (§E). Notification turns on a harm trigger: the breach causes, or the entity reasonably believes has caused or will cause, identity theft or other fraud.
 - Florida: notify individuals ≤30 days; notify FL AG ≤30 days if 500+ FL residents
 - Washington: notify individuals ≤30 days; notify WA AG ≤30 days if 500+ WA residents
 - Massachusetts: notify individuals + MA AG + OCABR ≤30 days; must include specific content
-- Oregon: notify individuals ≤30 days; notify OR AG if 250+ OR residents
+- Oregon: notify individuals in the most expeditious manner possible and no later than 45 DAYS after discovering or receiving notification of the breach (ORS 646A.604(3)(a)) — NOT 30 days; notify the OR Attorney General (written or electronic, same 45-day outer limit applies to the consumer notice it accompanies) if the number of affected OR consumers exceeds 250 or cannot be determined. Vendors must notify the covered entity within 10 days of discovery.
 - Illinois: notify individuals "in most expedient time"; notify IL AG if 500+ IL residents
 
 
