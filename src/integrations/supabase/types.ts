@@ -2676,6 +2676,7 @@ export type Database = {
           is_subscriber_credit: boolean | null
           jurisdictions: string[] | null
           necessity_details: Json | null
+          organization_name: string | null
           pdf_url: string | null
           preview_signal: Json | null
           processing_description: string
@@ -2703,6 +2704,7 @@ export type Database = {
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
           necessity_details?: Json | null
+          organization_name?: string | null
           pdf_url?: string | null
           preview_signal?: Json | null
           processing_description: string
@@ -2730,6 +2732,7 @@ export type Database = {
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
           necessity_details?: Json | null
+          organization_name?: string | null
           pdf_url?: string | null
           preview_signal?: Json | null
           processing_description?: string
