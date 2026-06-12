@@ -402,15 +402,24 @@ export default function AdminSampleReports() {
   }
 
   async function onGeneratePdf(fix: SampleFixture) {
+    if (!user) { toast.error("Sign in first"); return; }
     const key = `${fix.tool_slug}::${fix.variant}`;
-    const run = runs[key];
-    if (!run?.sourceRowId || run.status !== "complete") {
-      toast.error("Generate report first");
-      return;
-    }
     setBusy(`pdfgen::${key}`);
-    appendLog(key, "▶ Rendering PDF via PDFShift…");
     try {
+      // Step 1: Run the live generator if we don't already have a complete source row.
+      let run = runs[key];
+      if (!run?.sourceRowId || run.status !== "complete") {
+        setRun(key, { status: "running", log: [], sourceRowId: null, resultUrl: null });
+        appendLog(key, `▶ Generating ${fix.title} report…`);
+        const { sourceRowId, resultUrl } = await runGenerator(fix, user.id, (m) => appendLog(key, m));
+        setRun(key, { status: "complete", sourceRowId, resultUrl });
+        run = { status: "complete", log: [], sourceRowId, resultUrl };
+      } else {
+        appendLog(key, "✓ Using existing completed run");
+      }
+
+      // Step 2: Render the report PDF via PDFShift and save to /samples/report-output.
+      appendLog(key, "▶ Rendering PDF via PDFShift…");
       const res = await callSaveSampleReport(adminToken, "generate_pdf", {
         tool_slug: fix.tool_slug,
         variant: fix.variant,
@@ -420,11 +429,12 @@ export default function AdminSampleReports() {
         source_table: fix.source_table,
         source_row_id: run.sourceRowId,
       });
-      appendLog(key, `✅ PDF generated (${res?.bytes ?? "?"} bytes) → /samples/report-output`);
-      toast.success(`PDF generated (${res?.bytes ?? "?"} bytes) — see /samples/report-output`);
+      appendLog(key, `✅ PDF saved (${res?.bytes ?? "?"} bytes) → /samples/report-output`);
+      toast.success(`PDF saved — see /samples/report-output`);
       await reloadSamples();
     } catch (e) {
       appendLog(key, `❌ PDF: ${(e as Error).message}`);
+      setRun(key, { status: "failed" });
       toast.error(`PDF generation failed: ${(e as Error).message}`);
     } finally { setBusy(null); }
   }
