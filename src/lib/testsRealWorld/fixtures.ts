@@ -60,6 +60,7 @@ export function shortId(id: string): string {
 export const LIA_VARIANTS = [
   {
     stage: "final",
+    organization_name: "Meridian Health Analytics Ltd",
     status: "pending",
     processing_description:
       "Meridian Health Analytics processes patient health records to provide predictive analytics to NHS and private clinic clients.",
@@ -96,6 +97,7 @@ export const LIA_VARIANTS = [
   },
   {
     stage: "final",
+    organization_name: "Nimbus Fintech plc",
     status: "pending",
     processing_description:
       "Nimbus Fintech monitors customer card-not-present transactions in real time to detect and block fraudulent activity across its EU and UK retail-banking customer base.",
@@ -132,6 +134,7 @@ export const LIA_VARIANTS = [
   },
   {
     stage: "final",
+    organization_name: "Atlas Retail Group",
     status: "pending",
     processing_description:
       "Atlas Retail uses on-site behavioural signals to personalise product recommendations and outbound marketing for registered shoppers in the US, UK and EU.",
@@ -167,6 +170,7 @@ export const LIA_VARIANTS = [
   },
   {
     stage: "final",
+    organization_name: "Verde Logistics SAS",
     status: "pending",
     processing_description:
       "Verde Logistics tracks driver telemetry (location, speed, harsh-braking events) across its EU fleet to improve route safety, reduce insurance premiums and meet tachograph obligations.",
