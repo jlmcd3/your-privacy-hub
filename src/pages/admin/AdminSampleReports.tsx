@@ -417,8 +417,8 @@ export default function AdminSampleReports() {
         scenario_summary: fix.scenario_summary,
         fixture: fix.fixture,
       });
-      appendLog(key, `✅ PDF generated (${res?.bytes ?? "?"} bytes)`);
-      toast.success(`PDF generated (${res?.bytes ?? "?"} bytes)`);
+      appendLog(key, `✅ PDF generated (${res?.bytes ?? "?"} bytes) → /samples/report-output`);
+      toast.success(`PDF generated (${res?.bytes ?? "?"} bytes) — see /samples/report-output`);
       await reloadSamples();
     } catch (e) {
       appendLog(key, `❌ PDF: ${(e as Error).message}`);

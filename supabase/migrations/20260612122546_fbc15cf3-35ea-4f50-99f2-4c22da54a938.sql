@@ -1,0 +1,1 @@
+CREATE POLICY "public read samples with pdf" ON public.sample_reports FOR SELECT USING (pdf_path IS NOT NULL); GRANT SELECT ON public.sample_reports TO anon;

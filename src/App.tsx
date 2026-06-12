@@ -170,6 +170,7 @@ const CPPAEvalHarness = lazy(() => import("./pages/admin/CPPAEvalHarness"));
 const AdminFsorIngestion = lazy(() => import("./pages/admin/AdminFsorIngestion"));
 const AdminSampleReports = lazy(() => import("./pages/admin/AdminSampleReports"));
 const SampleReport = lazy(() => import("./pages/SampleReport.tsx"));
+const SampleReportOutput = lazy(() => import("./pages/SampleReportOutput.tsx"));
 const TestsGdprDocs = lazy(() => import("./pages/admin/TestsGdprDocs"));
 const queryClient = new QueryClient();
 
@@ -587,6 +588,7 @@ const App = () => (
               }
             />
 
+            <Route path="/samples/report-output" element={<SampleReportOutput />} />
             <Route path="/samples/:toolSlug" element={<SampleReport />} />
 
 
