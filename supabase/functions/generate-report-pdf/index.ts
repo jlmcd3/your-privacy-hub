@@ -205,6 +205,40 @@ ${(doc.key_elements || []).length ? `<ul>${(doc.key_elements || []).map((e: stri
   ).join("")}
 ${((docRecs.balancing_record_elements) || []).length ? `<h2>Balancing Record — Must Include</h2>
 <ul>${(docRecs.balancing_record_elements).map((e: string) => `<li>${sanitizeNarrative(e)}</li>`).join("")}</ul>` : ""}
+${(() => {
+    const anns = Array.isArray(report?.annotations) ? report.annotations : [];
+    const precs = Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [];
+    if (!anns.length && !precs.length) return "";
+    const byId: Record<string, any> = {};
+    for (const p of precs) if (p?.id) byId[p.id] = p;
+    const isUk = (() => {
+      const js = Array.isArray(_assessment?.jurisdictions) ? _assessment.jurisdictions : [];
+      return js.some((j: string) => /united kingdom|uk|gb/i.test(String(j)));
+    })();
+    const tierLabel = (t: number | null | undefined): string => {
+      if (t === 1) return isUk ? "UK GDPR enforcement" : "EU GDPR enforcement";
+      if (t === 2) return isUk
+        ? "Persuasive — EU decision (not binding under UK GDPR)"
+        : "Persuasive — UK decision (not binding under EU GDPR)";
+      if (t === 3) return "Non-EU/UK — supportive only, not authoritative";
+      return "";
+    };
+    const items = (anns.length ? anns : precs.map((p: any) => ({ enforcement_action_id: p.id, regulator: p.regulator, jurisdiction: p.jurisdiction, summary: p.subject || p.violation, authority_tier: p.authority_tier })))
+      .map((a: any) => {
+        const ctx = byId[a.enforcement_action_id] || {};
+        const tier = a.authority_tier ?? ctx.authority_tier ?? null;
+        const verified = ctx.verified !== false;
+        const fineLine = !verified
+          ? `<p class="meta">(fine amount unverified — omitted)</p>`
+          : (ctx.fine_eur_equivalent ? `<p class="meta">Fine: €${Number(ctx.fine_eur_equivalent).toLocaleString()}</p>` : "");
+        const tl = tierLabel(tier);
+        return `<div class="section"><h3>${sanitizeNarrative(a.regulator || ctx.regulator || "Enforcement source")}${tl ? ` <span class="label">— ${tl}</span>` : ""}</h3>
+${a.summary ? `<p>${sanitizeNarrative(a.summary)}</p>` : (ctx.subject ? `<p>${sanitizeNarrative(ctx.subject)}</p>` : "")}
+${a.relevance ? `<p><span class="label">Relevance:</span> ${sanitizeNarrative(a.relevance)}</p>` : ""}
+${fineLine}</div>`;
+      }).join("");
+    return `<h2>Enforcement Precedents Cited</h2>${items}`;
+  })()}
 <p class="meta">${report.data_currency_note || ""}</p>
 <div class="disclaimer">${report.disclaimer || ""}</div>
 </body></html>`;
