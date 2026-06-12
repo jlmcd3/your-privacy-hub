@@ -20,19 +20,21 @@ function json(body: unknown, status = 200) {
   });
 }
 
-// Map source_table → primary text column (if any) on that table.
-const TEXT_COL_BY_TABLE: Record<string, string | null> = {
-  li_assessments: null,
-  dpia_frameworks: null,
-  governance_assessments: null,
-  cppa_assessments: null,
-  dpa_documents: "document_text",
-  ir_playbooks: "playbook_text",
-  biometric_assessments: "analysis_text",
-  // RoPA + notices are file-driven; no canonical text column to copy.
-  ropa_document_versions: null,
-  us_notice_sessions: null,
-  eu_notice_sessions: null,
+// Map source_table → { has report_data column?, primary text column (if any) }.
+// Not every source table has a JSON `report_data` column — RoPA versions and
+// the notice sessions are file-driven and would error if we selected it.
+const SOURCE_SHAPE: Record<string, { reportData: boolean; textCol: string | null }> = {
+  li_assessments: { reportData: true, textCol: null },
+  dpia_frameworks: { reportData: true, textCol: null },
+  governance_assessments: { reportData: true, textCol: null },
+  cppa_assessments: { reportData: true, textCol: null },
+  dpa_documents: { reportData: true, textCol: "document_text" },
+  ir_playbooks: { reportData: true, textCol: "playbook_text" },
+  biometric_assessments: { reportData: true, textCol: "analysis_text" },
+  // RoPA + notices are file-driven; no report_data, no canonical text column.
+  ropa_document_versions: { reportData: false, textCol: null },
+  us_notice_sessions: { reportData: false, textCol: null },
+  eu_notice_sessions: { reportData: false, textCol: null },
 };
 
 async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
@@ -44,19 +46,24 @@ async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
     return json({ error: "missing required fields" }, 400);
   }
 
-  const textCol = TEXT_COL_BY_TABLE[source_table] ?? null;
-  const cols = ["report_data"];
-  if (textCol) cols.push(textCol);
-  const { data: src, error: srcErr } = await admin
-    .from(source_table)
-    .select(cols.join(","))
-    .eq("id", source_row_id)
-    .maybeSingle();
-  if (srcErr) return json({ error: `source: ${srcErr.message}` }, 400);
+  const shape = SOURCE_SHAPE[source_table] ?? { reportData: true, textCol: null };
+  const cols: string[] = [];
+  if (shape.reportData) cols.push("report_data");
+  if (shape.textCol) cols.push(shape.textCol);
+  let src: Record<string, unknown> | null = null;
+  if (cols.length > 0) {
+    const { data, error: srcErr } = await admin
+      .from(source_table)
+      .select(cols.join(","))
+      .eq("id", source_row_id)
+      .maybeSingle();
+    if (srcErr) return json({ error: `source: ${srcErr.message}` }, 400);
+    src = (data as Record<string, unknown>) ?? null;
+  }
 
-  const reportData = (src as any)?.report_data ?? null;
-  const documentText = textCol ? ((src as any)?.[textCol] ?? null) : null;
-  const verification = reportData?.verification ?? null;
+  const reportData = shape.reportData ? ((src as any)?.report_data ?? null) : null;
+  const documentText = shape.textCol ? ((src as any)?.[shape.textCol] ?? null) : null;
+  const verification = (reportData as any)?.verification ?? null;
 
   const payload = {
     tool_slug, variant, title, scenario_summary,
