@@ -506,7 +506,7 @@ const F_ROPA_EU: SampleFixture = {
       },
       {
         activity_name: "Site Visitor Management",
-        category: "physical_security",
+        category: "operations",
         purpose: "Identify and log visitors to mine sites for safety briefing, evacuation accountability, and site-security compliance.",
         lawful_basis: "legitimate_interests",
         special_category_basis: "Not applicable",
