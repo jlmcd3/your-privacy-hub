@@ -201,5 +201,8 @@ verify_jwt = false
 [functions.send-cppa-drift-reminders]
 verify_jwt = false
 
+[functions.reap-stuck-generations]
+verify_jwt = false
+
 
 
