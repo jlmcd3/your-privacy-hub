@@ -456,7 +456,8 @@ const runRoPA: Runner = async ({ userId, log }) => {
   if (actErr || !acts) throw new Error(`activities: ${actErr?.message}`);
 
   log("Inserting answers…");
-  const ansRows: Array<{ activity_id: string; session_id: string; question_key: string; answer_value: unknown }> = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ansRows: Array<{ activity_id: string; session_id: string; question_key: string; answer_value: any }> = [];
   for (const a of acts) {
     const src = ROPA_ACTIVITIES[a.display_order];
     const map: Record<string, unknown> = {
