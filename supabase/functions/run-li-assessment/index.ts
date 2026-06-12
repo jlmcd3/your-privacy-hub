@@ -595,6 +595,10 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
 
 CITATION ACCURACY RULE: In the 'basis' field for each recommended document, cite regulatory instruments by name and provision in general terms only (e.g. 'GDPR Article 35 and EDPB Guidelines on DPIA'). Do NOT cite specific enforcement case names, fine amounts, or decision dates — those are only available in Stage 2 where the enforcement corpus is injected. If you are uncertain of a specific provision number, describe the obligation in plain language rather than citing a potentially incorrect section number.`;
 
+    const ukDocsAddendum = isUk
+      ? `\n\nUK ARTICLE 9(2)(b) MECHANISM (regime is UK GDPR): For any 'Article 9(2)(b) Employment Law Condition Assessment' document, the description MUST name the UK implementing mechanism: 'Reliance on Article 9(2)(b) under UK GDPR additionally requires satisfying Data Protection Act 2018 s.10 and Schedule 1, Part 1, paragraph 1 (employment, social security and social protection), including having an APPROPRIATE POLICY DOCUMENT (APD) in place per Schedule 1, Part 4. The APD must describe the lawful basis and Schedule 1 condition relied on, retention and erasure policy for the special-category data, and compliance procedures.'${balancingDetails.special_category_data ? `\nFor this UK assessment involving special-category data, you MUST also include a DISTINCT 'Appropriate Policy Document (APD)' entry in recommended_documentation whose key_elements list contains: (i) the lawful basis and Schedule 1 condition relied on, (ii) retention and erasure policy for the special-category data, and (iii) compliance procedures. Cite 'UK Data Protection Act 2018 Schedule 1, Part 4' as its basis.` : ""}`
+      : "";
+
     const docsText = await callAnthropic(
       "claude-sonnet-4-6",
       docsSystem,
@@ -606,7 +610,7 @@ Balancing test status: ${analysis.balancing_test?.verdict || "uncertain"}
 Key risk factors: ${JSON.stringify(analysis.balancing_test?.risk_factors || [])}
 
 PRECEDENT DATABASE:
-${precedentContext}
+${precedentContext}${ukDocsAddendum}
 
 IMPORTANT: You must return at least 2–4 items in recommended_documentation regardless of argument strength. Even a weak or insufficient LIA requires documentation to be defensible or to support a re-assessment. Every LIA requires at minimum: (1) a balancing record document, and (2) a legitimate interests notice or transparency document.
 
