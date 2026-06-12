@@ -191,8 +191,8 @@ const runBiometric: Runner = async ({ userId, log }) => {
 // ─── DPA ─────────────────────────────────────────────────────────────────────
 
 const runDPA: Runner = async ({ userId, log }) => {
-  const body = blend(DPA_VARIANTS);
-  log(`Blended DPA fixture (${body.controllerName} → ${body.processorName})`);
+  const body = blend(DPA_VARIANTS, ["controllerName", "processorName"]);
+  log(`Blended DPA fixture (parties anchor: ${body.controllerName} → ${body.processorName})`);
   log("Invoking generate-dpa…");
   const { data, error } = await supabase.functions.invoke("generate-dpa", {
     body: { ...body, user_id: userId },
@@ -203,7 +203,7 @@ const runDPA: Runner = async ({ userId, log }) => {
   return {
     targetTable: "dpa_documents",
     targetId: data.id,
-    label: `${body.controllerName} → ${body.processorName} · DPA`,
+    label: `DPA · ${body.controllerName} → ${body.processorName} · ${shortId(data.id)}`,
     resultUrl: `/dpa-generator/result/${data.id}`,
     pdfToolType: "dpa_generator",
   };
