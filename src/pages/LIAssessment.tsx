@@ -266,6 +266,18 @@ const LIAssessment = () => {
           >
             <RequiredLegend />
             <div>
+              <Label htmlFor="org" className="text-sm font-semibold text-brand-navy">Organisation being assessed<Req /></Label>
+              <input
+                id="org"
+                type="text"
+                value={organizationName}
+                onChange={(e) => setOrganizationName(e.target.value)}
+                placeholder="e.g. Acme Retail Ltd"
+                className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm"
+              />
+              <p className="text-meta text-muted-foreground mt-1">The controller/entity whose processing this LIA documents.</p>
+            </div>
+            <div>
               <Label htmlFor="desc" className="text-sm font-semibold text-brand-navy">What processing are you considering?<Req /> <DefPopover termKey="gdpr_legitimate_interests" /></Label>
               <Textarea
                 id="desc"
