@@ -492,7 +492,7 @@ const F_ROPA_EU: SampleFixture = {
       },
       {
         activity_name: "Underground Wearable Safety Telemetry",
-        category: "health_safety",
+        category: "hr_employment",
         purpose: "Real-time detection of medical events and unauthorised zone entry for shift workers underground.",
         lawful_basis: "legitimate_interests",
         special_category_basis: "Article 9(2)(b) employment-law / occupational-safety",
