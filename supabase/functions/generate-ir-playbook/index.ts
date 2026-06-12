@@ -443,6 +443,14 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
         const PART_B_HEADINGS = ["## Section 4:", "## Section 5:"];
         const PART_C_HEADINGS = ["## Section 6:", "## Section 7:"];
         const TERMINAL_RE = /[\.\:\?\!\)\]\}"'»”’](\s|$)/;
+        // Lines that are visual "furniture" (horizontal rules, bare heading/blockquote
+        // markers with no text) and must be skipped when locating the substantive
+        // last line for terminal-punctuation checking.
+        const FURNITURE_RE = /^[\s\-\*_=—–]+$/;
+        const BARE_MARKER_RE = /^(?:#+|>+)\s*$/;
+        function isFurniture(line: string): boolean {
+          return FURNITURE_RE.test(line) || BARE_MARKER_RE.test(line);
+        }
 
         function validatePart(text: string, which: "A" | "B" | "C"): { ok: boolean; reason?: string } {
           if (!text || !text.trim()) return { ok: false, reason: "empty" };
@@ -457,9 +465,16 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
             ? text.slice(0, text.indexOf("===ANNOTATIONS==="))
             : text;
           const lines = beforeAnnot.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-          const last = lines[lines.length - 1] ?? "";
-          if (!TERMINAL_RE.test(last + " ")) {
-            return { ok: false, reason: `last line not terminally punctuated: "${last.slice(-80)}"` };
+          // Walk backwards past furniture (horizontal rules, bare # / > markers).
+          let idx = lines.length - 1;
+          while (idx >= 0 && isFurniture(lines[idx])) idx--;
+          if (idx < 0) return { ok: false, reason: "no substantive content" };
+          const last = lines[idx];
+          // Accept terminal punctuation OR a markdown table row ending in '|'
+          // (Section 3's notification matrix legitimately ends in a table).
+          const endsWithTablePipe = /\|\s*$/.test(last);
+          if (!endsWithTablePipe && !TERMINAL_RE.test(last + " ")) {
+            return { ok: false, reason: `last line not terminally punctuated: "${last}"` };
           }
           return { ok: true };
         }
