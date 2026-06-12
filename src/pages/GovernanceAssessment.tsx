@@ -177,7 +177,7 @@ const GovernanceAssessment = () => {
   };
 
   const intakeForCheckout = useMemo(() => buildIntake(), [
-    sector, orgSize, jurisdictions, euUkData, tools, otherTool, dataCategories,
+    organizationName, sector, orgSize, jurisdictions, euUkData, tools, otherTool, dataCategories,
     specialCategory, specialCategoriesList, privacyPolicy, acceptableUse,
     dpoStatus, dpiaStatus, incidentResponse, trainingStatus, toolInstruction,
     dpaStatus, transferStatus, showDpoQ, showStep5,
