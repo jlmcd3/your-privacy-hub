@@ -18,12 +18,20 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
  * variant. Recurses into plain-object children so nested fields are also
  * randomly mixed. Arrays are treated atomically (pick the whole array).
  */
-export function blend<T extends Record<string, unknown>>(variants: T[]): T {
+export function blend<T extends Record<string, unknown>>(variants: T[], anchorKeys: string[] = []): T {
   if (!variants.length) throw new Error("blend: no variants");
+  const anchor = variants[Math.floor(Math.random() * variants.length)];
+  const anchorSet = new Set(anchorKeys);
   const keys = new Set<string>();
   variants.forEach((v) => Object.keys(v).forEach((k) => keys.add(k)));
   const out: Record<string, unknown> = {};
   for (const k of keys) {
+    if (anchorSet.has(k) && k in anchor) {
+      // Identity-defining field: always take from the anchor so the label
+      // (which reads these fields) accurately reflects the report content.
+      out[k] = (anchor as Record<string, unknown>)[k];
+      continue;
+    }
     const candidates = variants.filter((v) => k in v).map((v) => (v as Record<string, unknown>)[k]);
     const pick = candidates[Math.floor(Math.random() * candidates.length)];
     if (isPlainObject(pick) && candidates.every(isPlainObject)) {
@@ -40,6 +48,11 @@ export function blend<T extends Record<string, unknown>>(variants: T[]): T {
  *  activities, CPPA cyber controls). */
 export function pickOne<T>(variants: T[]): T {
   return variants[Math.floor(Math.random() * variants.length)];
+}
+
+/** Short, deterministic suffix derived from a UUID for human-readable labels. */
+export function shortId(id: string): string {
+  return id.replace(/-/g, "").slice(0, 6);
 }
 
 // ─── LIA ─────────────────────────────────────────────────────────────────────
