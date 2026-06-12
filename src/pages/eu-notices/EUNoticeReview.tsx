@@ -274,6 +274,26 @@ export default function EUNoticeReview() {
     });
   }
 
+  async function pollSessionUntilTerminal(
+    sid: string,
+  ): Promise<{ status: "generated" | "failed" | "timeout"; error?: string }> {
+    const POLL_INTERVAL_MS = 3000;
+    const MAX_POLLS = 60;
+    for (let i = 0; i < MAX_POLLS; i++) {
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+      const { data: row } = await supabase
+        .from("eu_notice_sessions")
+        .select("status, generation_error")
+        .eq("id", sid)
+        .maybeSingle();
+      if (row?.status === "generated") return { status: "generated" };
+      if (row?.status === "failed") {
+        return { status: "failed", error: row.generation_error ?? undefined };
+      }
+    }
+    return { status: "timeout" };
+  }
+
   async function runGeneration() {
     if (!sessionId) return;
     setGenerating(true);
