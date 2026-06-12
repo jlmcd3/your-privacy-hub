@@ -344,7 +344,7 @@ Deno.serve(async (req) => {
       const contactEmail = answerString(answers["contact_email"]) || "[contact email]";
       const sectionsHtml = states
         .map((s) => {
-          const label = FRAMEWORK_LABELS[s.framework_type] ?? s.framework_type;
+          const label = resolveLawLabel(s);
           return `<section style="margin-top:2.5rem;padding-top:1.5rem;border-top:2px solid #e5e7eb;">
   <h2 style="font-size:1.35rem;">${escapeHtml(s.state_name)}</h2>
   <p style="color:#666;font-size:0.85rem;margin-top:-0.25rem;">${escapeHtml(label)}</p>
@@ -357,7 +357,7 @@ Deno.serve(async (req) => {
       const tocHtml = states
         .map(
           (s) =>
-            `<li><a href="#${escapeHtml(s.state_code)}" style="color:#1d4ed8;">${escapeHtml(s.state_name)}</a> — <span style="color:#666;font-size:0.85rem;">${escapeHtml(FRAMEWORK_LABELS[s.framework_type] ?? s.framework_type)}</span></li>`,
+            `<li><a href="#${escapeHtml(s.state_code)}" style="color:#1d4ed8;">${escapeHtml(s.state_name)}</a> — <span style="color:#666;font-size:0.85rem;">${escapeHtml(resolveLawLabel(s))}</span></li>`,
         )
         .join("");
 
