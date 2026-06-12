@@ -158,7 +158,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       callAnthropic(
         "claude-haiku-4-5-20251001",
         classifySystem,
-        `Classify this processing activity for legitimate interest analysis:\nDescription: ${assessment.processing_description}\nData categories: ${(assessment.data_categories || []).join(", ")}\nRelationship type: ${assessment.relationship_type || "not specified"}\nSector: ${assessment.sector || "not specified"}\n\nReturn JSON:\n{\n  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",\n  "primary_data_categories": ["list of data categories involved"],\n  "special_category_data": true or false,\n  "relationship_exists": true or false,\n  "jurisdictions_scope": ["list of relevant jurisdictions"]\n}`,
+        `Classify this processing activity for legitimate interest analysis:\nOrganisation (controller) being assessed: ${assessment.organization_name || "not specified"}\nDescription: ${assessment.processing_description}\nData categories: ${(assessment.data_categories || []).join(", ")}\nRelationship type: ${assessment.relationship_type || "not specified"}\nSector: ${assessment.sector || "not specified"}\n\nReturn JSON:\n{\n  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",\n  "primary_data_categories": ["list of data categories involved"],\n  "special_category_data": true or false,\n  "relationship_exists": true or false,\n  "jurisdictions_scope": ["list of relevant jurisdictions"]\n}`,
         500
       ),
       supabase.functions.invoke("get-enforcement-context", {
@@ -288,6 +288,7 @@ MANDATORY FIELD RULES — violations will cause downstream system failures:
     const analysisUserBase = `Conduct a three-part legitimate interest assessment for the following proposed processing.
 
 PROPOSED PROCESSING (Stage A):
+Organisation (controller) being assessed: ${assessment.organization_name || "not specified"}
 Description: ${assessment.processing_description}
 Data categories: ${(assessment.data_categories || []).join(", ")}
 Relationship with data subjects: ${assessment.relationship_type || "not specified"}
