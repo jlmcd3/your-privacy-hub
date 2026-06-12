@@ -838,33 +838,6 @@ function makeAttachmentName(toolType: string, generatedAt: string): string {
   return `EndUserPrivacy-${TOOL_LABELS[toolType] || "Report"}-${date}.pdf`;
 }
 
-function makeEmailSubject(toolType: string): string {
-  const labels: Record<string, string> = {
-    li_assessment: "Legitimate Interest Assessment",
-    governance_assessment: "Data Governance Readiness Assessment",
-    dpia_framework: "DPIA Framework",
-    biometric_checker: "Biometric Compliance Assessment",
-    ir_playbook: "Incident Response Playbook",
-    dpa_generator: "Custom DPA",
-  };
-  return `Your ${labels[toolType] || "Report"} is ready — EndUserPrivacy.com`;
-}
-
-function makeEmailBody(opts: {
-  toolType: string; recipientName: string;
-  reportTitle: string; resultUrl: string; hasPdf: boolean;
-}): string {
-  return `<div style="font-family:Arial,sans-serif;max-width:560px;color:#1a1916;">
-<h2 style="font-size:18px;border-bottom:1px solid #dddbd3;padding-bottom:8px;">Your ${opts.reportTitle} is ready</h2>
-<p>Hi${opts.recipientName ? " " + opts.recipientName : ""},</p>
-<p>Your report has been generated and is available on EndUserPrivacy.com.</p>
-<p style="margin:24px 0;"><a href="${opts.resultUrl}" style="background:#1a5276;color:white;padding:10px 20px;border-radius:4px;text-decoration:none;font-weight:bold;">View your report →</a></p>
-${opts.hasPdf ? "<p>A PDF copy is attached to this email.</p>" : ""}
-<p style="font-size:11px;color:#9c9a94;border-top:1px solid #dddbd3;padding-top:12px;margin-top:24px;">
-This report is a compliance framework tool and does not constitute legal advice. All findings should be reviewed with qualified legal counsel.<br><br>
-EndUserPrivacy.com &nbsp;|&nbsp; <a href="https://enduserprivacy.com">enduserprivacy.com</a>
-</p></div>`;
-}
 
 // ─────────────────────────────────────────────────────────────────────────
 // MAIN HANDLER
