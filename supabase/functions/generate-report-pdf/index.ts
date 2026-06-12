@@ -210,7 +210,7 @@ ul { padding-left: 20px; } li { margin-bottom: 4px; }
 .label { font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: #5c5a54; }
 </style></head><body>
 <h1>Legitimate Interest Assessment</h1>
-<div class="meta">Generated: ${date} &nbsp;|&nbsp; EndUserPrivacy.com &nbsp;|&nbsp; Precedents reviewed: ${report.precedents_reviewed || 0} of ${report.precedent_database_size || 0} tracked decisions</div>
+${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name })}
 <div class="disclaimer">${report.disclaimer || ""}</div>
 <h2>Assessment Summary</h2>
 <div class="section">
@@ -245,7 +245,7 @@ ${(() => {
     const byId: Record<string, any> = {};
     for (const p of precs) if (p?.id) byId[p.id] = p;
     const isUk = (() => {
-      const js = Array.isArray(_assessment?.jurisdictions) ? _assessment.jurisdictions : [];
+      const js = Array.isArray(assessment?.jurisdictions) ? assessment.jurisdictions : [];
       return js.some((j: string) => /united kingdom|uk|gb/i.test(String(j)));
     })();
     const tierLabel = (t: number | null | undefined): string => {
@@ -277,7 +277,7 @@ ${fineLine}</div>`;
 </body></html>`;
 }
 
-function buildGovernanceReportHTML(report: any, _assessment: any): string {
+function buildGovernanceReportHTML(report: any, assessment: any): string {
   const date = new Date(report.generated_at).toLocaleDateString("en-US",
     { year: "numeric", month: "long", day: "numeric" });
   const domains = report.domain_findings || {};
@@ -301,7 +301,7 @@ h3 { font-size: 14px; color: #2c3e50; margin-top: 20px; }
 ul { padding-left: 20px; } li { margin-bottom: 4px; }
 </style></head><body>
 <h1>Data Governance Readiness Assessment</h1>
-<div class="meta">Generated: ${date} &nbsp;|&nbsp; EndUserPrivacy.com</div>
+${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name })}
 <div class="disclaimer">${report.disclaimer || ""}</div>
 <h2>Executive Summary</h2>
 <div class="rating">Readiness: ${report.overall_readiness_rating || "Unknown"}</div>
@@ -330,7 +330,7 @@ ${dn.gap_description ? `<p class="label">Gap</p><p>${dn.gap_description}</p>` : 
 </body></html>`;
 }
 
-function buildDPIAReportHTML(report: any, _dpia: any): string {
+function buildDPIAReportHTML(report: any, dpia: any): string {
   const date = new Date(report.generated_at).toLocaleDateString("en-US",
     { year: "numeric", month: "long", day: "numeric" });
   const meta = report.dpia_metadata || {};
@@ -357,7 +357,7 @@ h2 { font-size: 16px; color: #1a5276; margin-top: 28px; }
 ul { padding-left: 20px; } li { margin-bottom: 4px; }
 </style></head><body>
 <h1>DPIA Framework</h1>
-<div class="meta">Processing activity: <strong>${meta.processing_activity_name || ""}</strong> &nbsp;|&nbsp; Version: ${meta.framework_version || "1.0"} &nbsp;|&nbsp; Generated: ${date} &nbsp;|&nbsp; EndUserPrivacy.com</div>
+${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") })}
 <div class="disclaimer"><strong>IMPORTANT: </strong>${report.framework_disclaimer || ""}</div>
 ${(meta.applicable_frameworks || []).length ? `<p><span class="label">Applicable frameworks: </span>${(meta.applicable_frameworks || []).join(" &nbsp;|&nbsp; ")}</p>` : ""}
 ${meta.supervisory_authority_consultation_trigger ? `<div class="completion"><strong>Supervisory authority consultation trigger: </strong>${meta.supervisory_authority_consultation_trigger}</div>` : ""}
