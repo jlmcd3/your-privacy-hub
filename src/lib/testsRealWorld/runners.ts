@@ -580,7 +580,7 @@ const runCppaRisk: Runner = async ({ userId, log }) => {
   return {
     targetTable: "cppa_assessments",
     targetId: rec.id,
-    label: `CPPA Risk · ${intake.q3_sector}`,
+    label: `CPPA Risk · ${intake.q3_sector} · ${shortId(rec.id)}`,
     resultUrl: `/cppa-risk-assessment/result/${rec.id}`,
   };
 };
