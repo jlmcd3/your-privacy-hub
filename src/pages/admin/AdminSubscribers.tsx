@@ -146,7 +146,7 @@ export default function AdminSubscribers() {
                 : `Showing ${filtered.length} of ${rows.length} paid subscribers`}
             </p>
           </div>
-          <Link to="/admin/tests" className="text-sm text-brand-teal hover:underline">
+          <Link to="/admin/sample-reports" className="text-sm text-brand-teal hover:underline">
             ← Admin home
           </Link>
         </div>
