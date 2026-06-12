@@ -304,9 +304,12 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         }
       }
 
-      if (frame % 2 === 0 && starsRef.current) {
-        tickStars(starsRef.current.points, starsRef.current.phases, starsRef.current.speeds, clockRef.current);
+      if (!reduced && frame % 2 === 0 && starsRef.current) {
+        tickStarGroup(starsRef.current.dim,    clockRef.current);
+        tickStarGroup(starsRef.current.mid,    clockRef.current);
+        tickStarGroup(starsRef.current.bright, clockRef.current);
       }
+
 
       // Marker pulse
       pulseRef.current += 0.05;
