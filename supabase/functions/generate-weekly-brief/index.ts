@@ -577,6 +577,7 @@ VERIFICATION STANDARDS:
     if (verifyResponse.ok) {
       const verifyData = await verifyResponse.json();
       const verifyText = verifyData.content?.[0]?.text || "";
+      console.log(`[generate-weekly-brief] gen done stop=${verifyData.stop_reason ?? null} chars=${verifyText.length}`);
       try { const m = verifyText.match(/\{[\s\S]*\}/); if (m) verificationReport = JSON.parse(m[0]); } catch {}
     }
 
