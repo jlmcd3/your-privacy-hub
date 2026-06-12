@@ -371,7 +371,7 @@ const runRoPA: Runner = async ({ userId, log }) => {
   return {
     targetTable: "ropa_sessions",
     targetId: session.id,
-    label: `${persona.org_name} · RoPA v1`,
+    label: `RoPA · ${persona.org_name} · ${shortId(session.id)}`,
     resultUrl: "/ropa/documents",
   };
 };
