@@ -130,6 +130,7 @@ const LIAssessment = () => {
           client_id: clientId ?? null,
           status: "pending",
           stage: "preview",
+          organization_name: organizationName,
           processing_description: processingDescription,
           data_categories: dataCategories,
           relationship_type: relationship,
