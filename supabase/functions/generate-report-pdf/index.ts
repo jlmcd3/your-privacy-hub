@@ -966,6 +966,80 @@ Deno.serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // ── R0 PART 1: Cross-cutting error / empty-body / structural guard ──
+    // Protects all tool types from rendering blank PDFs when the generator
+    // wrote an error row, empty report_data, or a body that is missing the
+    // required top-level keys the corresponding build*ReportHTML reads.
+    {
+      const status = (record as any).status;
+      if (status === "error" || status === "failed") {
+        console.warn("[pdf-guard] 409 report_not_ready", { tool_type, assessment_id, status });
+        return new Response(
+          JSON.stringify({ error: "report_not_ready", status }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const readsReportData = new Set([
+        "li_assessment", "governance_assessment", "dpia_framework",
+        "cppa_risk", "cppa_cybersecurity", "biometric_checker",
+      ]);
+      if (readsReportData.has(tool_type)) {
+        const rd: any = (record as any).report_data;
+        if (rd == null || (typeof rd === "object" && rd.error != null)) {
+          console.warn("[pdf-guard] 409 report_data_invalid", { tool_type, assessment_id, reason: rd?.error || "null" });
+          return new Response(
+            JSON.stringify({ error: "report_data_invalid", detail: rd?.error || "missing" }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        // STRUCTURAL MINIMUM — derived from the keys each builder actually reads.
+        const isNonEmptyArr = (v: any) => Array.isArray(v) && v.length > 0;
+        const isNonEmptyObj = (v: any) => v && typeof v === "object" && !Array.isArray(v) && Object.keys(v).length > 0;
+        let bodyOk = true;
+        let missingKey = "";
+        switch (tool_type) {
+          case "li_assessment":
+            bodyOk = isNonEmptyObj(rd.three_part_test);
+            missingKey = "three_part_test";
+            break;
+          case "governance_assessment":
+            bodyOk = isNonEmptyObj(rd.domain_findings);
+            missingKey = "domain_findings";
+            break;
+          case "dpia_framework":
+            bodyOk = isNonEmptyObj(rd.dpia_metadata) || isNonEmptyObj(rd.section_1_description);
+            missingKey = "dpia_metadata|section_1_description";
+            break;
+          case "cppa_risk":
+            bodyOk = isNonEmptyArr(rd.domains);
+            missingKey = "domains";
+            break;
+          case "cppa_cybersecurity":
+            // Only enforce when the structured path would be selected.
+            if (Array.isArray(rd.controls) || rd.controls != null) {
+              bodyOk = isNonEmptyArr(rd.controls);
+              missingKey = "controls";
+            }
+            break;
+          case "biometric_checker": {
+            const text = (record as any).analysis_text || rd?.assessment_text || "";
+            bodyOk = typeof text === "string" && text.trim().length > 0;
+            missingKey = "analysis_text|assessment_text";
+            break;
+          }
+        }
+        if (!bodyOk) {
+          console.warn("[pdf-guard] 409 report_body_empty", { tool_type, assessment_id, missingKey });
+          return new Response(
+            JSON.stringify({ error: "report_body_empty", missing: missingKey }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    }
+
+
+
     // ── CACHE CHECK ─────────────────────────────────────────────────────
     // If a PDF was already generated for this assessment, reuse it instead
     // of calling PDFShift again. Re-sign the stored object and return.
