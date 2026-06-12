@@ -399,6 +399,25 @@ export default function AdminSampleReports() {
     } finally { setBusy(null); }
   }
 
+  async function onGeneratePdf(fix: SampleFixture) {
+    if (!adminToken) { toast.error("Admin token required"); return; }
+    const key = `${fix.tool_slug}::${fix.variant}`;
+    setBusy(`pdfgen::${key}`);
+    try {
+      const res = await callSaveSampleReport(adminToken, "generate_pdf", {
+        tool_slug: fix.tool_slug,
+        variant: fix.variant,
+        title: fix.title,
+        scenario_summary: fix.scenario_summary,
+        fixture: fix.fixture,
+      });
+      toast.success(`PDF generated (${res?.bytes ?? "?"} bytes)`);
+      await reloadSamples();
+    } catch (e) {
+      toast.error(`PDF generation failed: ${(e as Error).message}`);
+    } finally { setBusy(null); }
+  }
+
   async function onSetStatus(sample: SampleRow, status: string) {
     if (!adminToken) { toast.error("Admin token required"); return; }
     setBusy(`status::${sample.id}`);
