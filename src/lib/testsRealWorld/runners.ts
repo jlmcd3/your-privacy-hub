@@ -379,8 +379,8 @@ const runRoPA: Runner = async ({ userId, log }) => {
 // ─── US Notice ───────────────────────────────────────────────────────────────
 
 const runUSNotice: Runner = async ({ userId, log }) => {
-  const universal = blend(US_NOTICE_VARIANTS);
-  log(`Blended US Notice fixture (${universal.business_name})`);
+  const universal = blend(US_NOTICE_VARIANTS, ["business_name"]);
+  log(`Blended US Notice fixture (business anchor: ${universal.business_name})`);
   const clientId = await getOrCreateClientId(userId);
 
   log("Creating us_notice_session…");
