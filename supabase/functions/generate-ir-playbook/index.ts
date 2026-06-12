@@ -379,7 +379,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
 Output ONLY the playbook content requested in each turn. No preamble or commentary.`;
 
-        async function callClaude(messages: any[], maxTokens: number): Promise<string> {
+        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 240_000): Promise<string> {
           const res = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
@@ -394,7 +394,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
               system: SYSTEM_PROMPT,
               messages,
             }),
-            signal: AbortSignal.timeout(180000),
+            signal: AbortSignal.timeout(timeoutMs),
           });
           if (!res.ok) {
             const errText = await res.text();
