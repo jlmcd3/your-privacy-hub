@@ -145,69 +145,127 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const body = (await req.json()) as Body;
+    let body = (await req.json()) as Body;
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
 
-
-    if (!Array.isArray(body.jurisdictions) || body.jurisdictions.length === 0) {
-      return new Response(JSON.stringify({ error: "At least one jurisdiction required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Step 1 — enforcement context
-    let enforcement_context: any[] = [];
-    let enforcementMeta: any = { attempted: false };
-    try {
-      const er = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/get-enforcement-context`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-        },
-        body: JSON.stringify({
-          tool: "ir-playbook",
-          jurisdictions: body.jurisdictions,
-          data_categories: mapDataTypesToCategories(body.dataTypes || []),
-          breach: true,
-          limit: 10,
-        }),
-      });
-      if (er.ok) {
-        const j = await er.json();
-        enforcement_context = j.results || j.enforcement_context || [];
-        enforcementMeta = {
-          attempted: true,
-          total_matched: typeof j?.total_matched === "number" ? j.total_matched : null,
-          query_descriptor: `breach response in ${(body.jurisdictions || []).join(", ") || "—"}`,
-        };
+    // Row-first: ensure an ir_playbooks row exists and capture its id before dispatching
+    // the heavy work in the background. This lets us return 202 immediately and lets
+    // the result page poll the row's status (existing behavior in IRPlaybookResult.tsx).
+    let rowId: string;
+    if (body.assessment_id) {
+      // Webhook path — payments-webhook invokes with ONLY { assessment_id }.
+      const { data: row, error: rowErr } = await supabase
+        .from("ir_playbooks")
+        .select("id, intake_data, client_id, organization_name")
+        .eq("id", body.assessment_id)
+        .maybeSingle();
+      if (rowErr || !row) {
+        return new Response(JSON.stringify({ error: "Playbook row not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
-    } catch (e) {
-      console.error("enforcement fetch failed:", e);
+      // Hydrate intake fields from the stored row BEFORE validating, so bare
+      // { assessment_id } invocations don't fail the jurisdictions check.
+      body = { ...((row.intake_data as any) ?? {}), ...body };
+      if (!Array.isArray(body.jurisdictions) || body.jurisdictions.length === 0) {
+        return new Response(JSON.stringify({ error: "At least one jurisdiction required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      rowId = row.id;
+      await supabase
+        .from("ir_playbooks")
+        .update({ status: "processing", updated_at: new Date().toISOString() })
+        .eq("id", rowId);
+    } else {
+      if (!Array.isArray(body.jurisdictions) || body.jurisdictions.length === 0) {
+        return new Response(JSON.stringify({ error: "At least one jurisdiction required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: inserted, error: insErr } = await supabase
+        .from("ir_playbooks")
+        .insert({
+          user_id: resolvedUserId,
+          client_id: body.client_id ?? null,
+          organization_name: body.organizationName || null,
+          intake_data: body,
+          status: "processing",
+        })
+        .select("id")
+        .single();
+      if (insErr || !inserted) {
+        console.error("[generate-ir-playbook] insert failed:", insErr);
+        return new Response(JSON.stringify({ error: "Failed to create playbook row" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      rowId = inserted.id;
     }
 
-    // Step 2 — relevant DPA portals
-    const relevantPortals = body.jurisdictions
-      .filter((j) => DPA_PORTALS[j])
-      .map((j) => `${j}: ${DPA_PORTALS[j]}`)
-      .join("\n");
-
-    // Step 3 — Sonnet
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) {
+      await supabase.from("ir_playbooks").update({
+        status: "failed",
+        updated_at: new Date().toISOString(),
+      }).eq("id", rowId);
       return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // ── Split into TWO PARALLEL Sonnet calls to stay inside the edge runtime
-    // wall-clock budget. The prior sequential split still exceeded the platform's
-    // ~150s request ceiling because the two generations were additive. Both calls
-    // now share the same system prompt and intake block, plus explicit consistency
-    // rules, so quality is preserved without making Call B wait for Call A.
-    const INTAKE_BLOCK = `INCIDENT DETAILS
+    // Dispatch heavy work in background — return 202 immediately so the caller is not
+    // held open past the platform's ~150s HTTP idle ceiling. The result page polls
+    // ir_playbooks.status. On unhandled error we mark the row failed so callers don't
+    // poll forever.
+    // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
+    EdgeRuntime.waitUntil((async () => {
+      try {
+        // Step 1 — enforcement context
+        let enforcement_context: any[] = [];
+        let enforcementMeta: any = { attempted: false };
+        try {
+          const er = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/get-enforcement-context`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            },
+            body: JSON.stringify({
+              tool: "ir-playbook",
+              jurisdictions: body.jurisdictions,
+              data_categories: mapDataTypesToCategories(body.dataTypes || []),
+              breach: true,
+              limit: 10,
+            }),
+          });
+          if (er.ok) {
+            const j = await er.json();
+            enforcement_context = j.results || j.enforcement_context || [];
+            enforcementMeta = {
+              attempted: true,
+              total_matched: typeof j?.total_matched === "number" ? j.total_matched : null,
+              query_descriptor: `breach response in ${(body.jurisdictions || []).join(", ") || "—"}`,
+            };
+          }
+        } catch (e) {
+          console.error("[generate-ir-playbook] enforcement fetch failed:", e);
+        }
+
+        // Step 2 — relevant DPA portals
+        const relevantPortals = body.jurisdictions
+          .filter((j) => DPA_PORTALS[j])
+          .map((j) => `${j}: ${DPA_PORTALS[j]}`)
+          .join("\n");
+
+        // ── Split into TWO PARALLEL Sonnet calls to stay inside the edge runtime
+        // wall-clock budget.
+        const INTAKE_BLOCK = `INCIDENT DETAILS
 Organisation (controller) being assessed: ${body.organizationName || "not specified"}
 Discovery: ${body.discoveryDateTime}
 Cause: ${body.cause}
@@ -228,7 +286,7 @@ ${formatEnforcementContext(enforcement_context)}
 
 CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.`;
 
-    const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate the FIRST HALF (Sections 1–4) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate the FIRST HALF (Sections 1–4) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
 ${INTAKE_BLOCK}
 
@@ -248,7 +306,7 @@ Step-by-step logic for determining whether individuals must be notified, with ju
 
 Output ONLY Sections 1–4. No preamble, no commentary, no Sections 5–7, no annotations.`;
 
-    const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate the SECOND HALF (Sections 5–7) of the same complete, actionable 7-section incident response playbook for a data breach, followed by the ===ANNOTATIONS=== block. The playbook must be immediately usable by a privacy or legal team during a live incident.
+        const PROMPT_PART_B = `You are a senior data protection incident response specialist. Generate the SECOND HALF (Sections 5–7) of the same complete, actionable 7-section incident response playbook for a data breach, followed by the ===ANNOTATIONS=== block. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
 ${INTAKE_BLOCK}
 
@@ -281,9 +339,9 @@ If no cases informed the playbook, output an empty array [].
 
 Output ONLY Sections 5–7 followed by the ===ANNOTATIONS=== block. No preamble, no commentary, do NOT re-output Sections 1–4.`;
 
-    // LEGAL CONSTANTS — verified 2026-06-12 against statute text.
-    // Any edit requires re-verification; see lint class past_deadline.
-    const SYSTEM_PROMPT = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
+        // LEGAL CONSTANTS — verified 2026-06-12 against statute text.
+        // Any edit requires re-verification; see lint class past_deadline.
+        const SYSTEM_PROMPT = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.
 
 US STATE BREACH NOTIFICATION — KEY TIMELINES (for Section 3) — Last verified: June 2026:
 - California: notify individuals within 30 CALENDAR DAYS of discovery or notification of the breach (Cal. Civ. Code §1798.82, as amended by SB 446, effective 1 Jan 2026); delay only for law enforcement needs or to determine scope/restore system integrity. If 500+ CA residents: electronically submit a sample copy to the CA AG within 15 calendar days of notifying consumers (§1798.82(f)).
@@ -321,176 +379,171 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
 Output ONLY the playbook content requested in each turn. No preamble or commentary.`;
 
-    async function callClaude(messages: any[], maxTokens: number): Promise<string> {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "x-api-key": ANTHROPIC_API_KEY!,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: maxTokens,
-          stream: true,
-          system: SYSTEM_PROMPT,
-          messages,
-        }),
-        signal: AbortSignal.timeout(180000),
-      });
-      if (!res.ok) {
-        const errText = await res.text();
-        console.error("Claude error:", errText);
-        throw new Error("AI generation failed");
-      }
-      let out = "";
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, { stream: true });
-        const lines = buf.split("\n");
-        buf = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data:")) continue;
-          const payload = line.slice(5).trim();
-          if (!payload || payload === "[DONE]") continue;
-          try {
-            const evt = JSON.parse(payload);
-            if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
-              out += evt.delta.text ?? "";
+        async function callClaude(messages: any[], maxTokens: number): Promise<string> {
+          const res = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "x-api-key": ANTHROPIC_API_KEY!,
+              "anthropic-version": "2023-06-01",
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-6",
+              max_tokens: maxTokens,
+              stream: true,
+              system: SYSTEM_PROMPT,
+              messages,
+            }),
+            signal: AbortSignal.timeout(180000),
+          });
+          if (!res.ok) {
+            const errText = await res.text();
+            console.error("Claude error:", errText);
+            throw new Error("AI generation failed");
+          }
+          let out = "";
+          const reader = res.body!.getReader();
+          const decoder = new TextDecoder();
+          let buf = "";
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+            const lines = buf.split("\n");
+            buf = lines.pop() ?? "";
+            for (const line of lines) {
+              if (!line.startsWith("data:")) continue;
+              const payload = line.slice(5).trim();
+              if (!payload || payload === "[DONE]") continue;
+              try {
+                const evt = JSON.parse(payload);
+                if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+                  out += evt.delta.text ?? "";
+                }
+              } catch { /* keepalive */ }
             }
-          } catch { /* keepalive */ }
+          }
+          return out;
         }
-      }
-      return out;
-    }
 
-    // CF-2: validate each part's completeness; retry that part once at 9000 tokens.
-    const PART_A_HEADINGS = ["## Section 1:", "## Section 2:", "## Section 3:", "## Section 4:"];
-    const PART_B_HEADINGS = ["## Section 5:", "## Section 6:", "## Section 7:"];
-    const TERMINAL_RE = /[\.\:\?\!\)\]\}"'»”’](\s|$)/;
+        // CF-2: validate each part's completeness; retry that part once at 9000 tokens.
+        const PART_A_HEADINGS = ["## Section 1:", "## Section 2:", "## Section 3:", "## Section 4:"];
+        const PART_B_HEADINGS = ["## Section 5:", "## Section 6:", "## Section 7:"];
+        const TERMINAL_RE = /[\.\:\?\!\)\]\}"'»”’](\s|$)/;
 
-    function validatePart(text: string, which: "A" | "B"): { ok: boolean; reason?: string } {
-      if (!text || !text.trim()) return { ok: false, reason: "empty" };
-      const headings = which === "A" ? PART_A_HEADINGS : PART_B_HEADINGS;
-      for (const h of headings) {
-        if (!text.includes(h)) return { ok: false, reason: `missing heading ${h}` };
-      }
-      if (which === "B" && !text.includes("===ANNOTATIONS===")) {
-        return { ok: false, reason: "missing ===ANNOTATIONS=== block" };
-      }
-      const beforeAnnot = which === "B"
-        ? text.slice(0, text.indexOf("===ANNOTATIONS==="))
-        : text;
-      const lines = beforeAnnot.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-      const last = lines[lines.length - 1] ?? "";
-      if (!TERMINAL_RE.test(last + " ")) {
-        return { ok: false, reason: `last line not terminally punctuated: "${last.slice(-80)}"` };
-      }
-      return { ok: true };
-    }
+        function validatePart(text: string, which: "A" | "B"): { ok: boolean; reason?: string } {
+          if (!text || !text.trim()) return { ok: false, reason: "empty" };
+          const headings = which === "A" ? PART_A_HEADINGS : PART_B_HEADINGS;
+          for (const h of headings) {
+            if (!text.includes(h)) return { ok: false, reason: `missing heading ${h}` };
+          }
+          if (which === "B" && !text.includes("===ANNOTATIONS===")) {
+            return { ok: false, reason: "missing ===ANNOTATIONS=== block" };
+          }
+          const beforeAnnot = which === "B"
+            ? text.slice(0, text.indexOf("===ANNOTATIONS==="))
+            : text;
+          const lines = beforeAnnot.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+          const last = lines[lines.length - 1] ?? "";
+          if (!TERMINAL_RE.test(last + " ")) {
+            return { ok: false, reason: `last line not terminally punctuated: "${last.slice(-80)}"` };
+          }
+          return { ok: true };
+        }
 
-    async function generatePart(which: "A" | "B", extra: string, maxTokens: number): Promise<string> {
-      const base = which === "A" ? PROMPT_PART_A : PROMPT_PART_B;
-      const prompt = extra ? `${base}\n\n${extra}` : base;
-      return await callClaude([{ role: "user", content: prompt }], maxTokens);
-    }
+        async function generatePart(which: "A" | "B", extra: string, maxTokens: number): Promise<string> {
+          const base = which === "A" ? PROMPT_PART_A : PROMPT_PART_B;
+          const prompt = extra ? `${base}\n\n${extra}` : base;
+          return await callClaude([{ role: "user", content: prompt }], maxTokens);
+        }
 
-    async function generateHalves(extra: string): Promise<{ partA: string; partB: string; incomplete?: string }> {
-      const [a, b] = await Promise.all([
-        generatePart("A", extra, 8000),
-        generatePart("B", extra, 8000),
-      ]);
-      let partA = a;
-      let partB = b;
-      const vA = validatePart(partA, "A");
-      if (!vA.ok) {
-        console.warn(`[IR Playbook] Part A failed validation (${vA.reason}); retrying at 9000`);
-        const retryA = await generatePart(
-          "A",
-          `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
-          9000,
-        );
-        const vA2 = validatePart(retryA, "A");
-        if (!vA2.ok) return { partA: retryA, partB, incomplete: `partA: ${vA2.reason}` };
-        partA = retryA;
-      }
-      const vB = validatePart(partB, "B");
-      if (!vB.ok) {
-        console.warn(`[IR Playbook] Part B failed validation (${vB.reason}); retrying at 9000`);
-        const retryB = await generatePart(
-          "B",
-          `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
-          9000,
-        );
-        const vB2 = validatePart(retryB, "B");
-        if (!vB2.ok) return { partA, partB: retryB, incomplete: `partB: ${vB2.reason}` };
-        partB = retryB;
-      }
-      return { partA, partB };
-    }
+        async function generateHalves(extra: string): Promise<{ partA: string; partB: string; incomplete?: string }> {
+          const [a, b] = await Promise.all([
+            generatePart("A", extra, 8000),
+            generatePart("B", extra, 8000),
+          ]);
+          let partA = a;
+          let partB = b;
+          const vA = validatePart(partA, "A");
+          if (!vA.ok) {
+            console.warn(`[IR Playbook] Part A failed validation (${vA.reason}); retrying at 9000`);
+            const retryA = await generatePart(
+              "A",
+              `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
+              9000,
+            );
+            const vA2 = validatePart(retryA, "A");
+            if (!vA2.ok) return { partA: retryA, partB, incomplete: `partA: ${vA2.reason}` };
+            partA = retryA;
+          }
+          const vB = validatePart(partB, "B");
+          if (!vB.ok) {
+            console.warn(`[IR Playbook] Part B failed validation (${vB.reason}); retrying at 9000`);
+            const retryB = await generatePart(
+              "B",
+              `${extra}\n\nYour previous attempt was cut off before completing all required sections — produce the complete sections within the response.`.trim(),
+              9000,
+            );
+            const vB2 = validatePart(retryB, "B");
+            if (!vB2.ok) return { partA, partB: retryB, incomplete: `partB: ${vB2.reason}` };
+            partB = retryB;
+          }
+          return { partA, partB };
+        }
 
-    function assembleFromHalves(partA: string, partB: string): { playbook_text: string; parsedAnnotations: any[] } {
-      const fullText = `${partA.trim()}\n\n${partB.trim()}`;
-      let playbook_text = fullText
-        .replace(/^#{1,6}\s+/gm, '')
-        .replace(/\*\*\*/g, '')
-        .replace(/\*\*/g, '')
-        .replace(/\*([^*\n]+)\*/g, '$1')
-        .replace(/^>\s?/gm, '')
-        .replace(/^\*\s+/gm, '• ');
-      let parsedAnnotations: any[] = [];
-      try {
-        const sepIdx = fullText.indexOf("===ANNOTATIONS===");
-        if (sepIdx !== -1) {
-          playbook_text = fullText.slice(0, sepIdx).trim()
+        function assembleFromHalves(partA: string, partB: string): { playbook_text: string; parsedAnnotations: any[] } {
+          const fullText = `${partA.trim()}\n\n${partB.trim()}`;
+          let playbook_text = fullText
             .replace(/^#{1,6}\s+/gm, '')
             .replace(/\*\*\*/g, '')
             .replace(/\*\*/g, '')
             .replace(/\*([^*\n]+)\*/g, '$1')
             .replace(/^>\s?/gm, '')
             .replace(/^\*\s+/gm, '• ');
-          const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
-          const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-          const start = cleaned.indexOf("[");
-          const end = cleaned.lastIndexOf("]");
-          if (start !== -1 && end !== -1) {
-            const arr = JSON.parse(cleaned.slice(start, end + 1));
-            if (Array.isArray(arr)) parsedAnnotations = arr;
+          let parsedAnnotations: any[] = [];
+          try {
+            const sepIdx = fullText.indexOf("===ANNOTATIONS===");
+            if (sepIdx !== -1) {
+              playbook_text = fullText.slice(0, sepIdx).trim()
+                .replace(/^#{1,6}\s+/gm, '')
+                .replace(/\*\*\*/g, '')
+                .replace(/\*\*/g, '')
+                .replace(/\*([^*\n]+)\*/g, '$1')
+                .replace(/^>\s?/gm, '')
+                .replace(/^\*\s+/gm, '• ');
+              const annotationsRaw = fullText.slice(sepIdx + "===ANNOTATIONS===".length).trim();
+              const cleaned = annotationsRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+              const start = cleaned.indexOf("[");
+              const end = cleaned.lastIndexOf("]");
+              if (start !== -1 && end !== -1) {
+                const arr = JSON.parse(cleaned.slice(start, end + 1));
+                if (Array.isArray(arr)) parsedAnnotations = arr;
+              }
+            }
+          } catch (e) {
+            console.warn("[IR Playbook] annotation parse failed (non-fatal):", e);
+            parsedAnnotations = [];
           }
+          return { playbook_text, parsedAnnotations };
         }
-      } catch (e) {
-        console.warn("[IR Playbook] annotation parse failed (non-fatal):", e);
-        parsedAnnotations = [];
-      }
-      return { playbook_text, parsedAnnotations };
-    }
 
-    let partA = "";
-    let partB = "";
-    let incompleteReason: string | null = null;
-    try {
-      console.log("[IR Playbook] starting parallel generation halves");
-      const r = await generateHalves("");
-      partA = r.partA; partB = r.partB;
-      if (r.incomplete) incompleteReason = r.incomplete;
-      console.log("[IR Playbook] generation halves complete", { partAChars: partA.length, partBChars: partB.length, incomplete: incompleteReason });
-    } catch (e: any) {
-      console.error("Claude parallel split-call failure:", e?.message || e);
-      return new Response(JSON.stringify({ error: "AI generation failed" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+        let partA = "";
+        let partB = "";
+        let incompleteReason: string | null = null;
+        try {
+          console.log("[generate-ir-playbook] starting parallel generation halves");
+          const r = await generateHalves("");
+          partA = r.partA; partB = r.partB;
+          if (r.incomplete) incompleteReason = r.incomplete;
+          console.log("[generate-ir-playbook] generation halves complete", { partAChars: partA.length, partBChars: partB.length, incomplete: incompleteReason });
+        } catch (e: any) {
+          console.error("[generate-ir-playbook] Claude parallel split-call failure:", e?.message || e);
+          throw e;
+        }
 
-    // CF-2: never merge/persist a truncated playbook.
-    if (incompleteReason) {
-      console.error(`[IR Playbook] incomplete_generation after retry: ${incompleteReason}`);
-      try {
-        if (body.assessment_id) {
+        // CF-2: never merge/persist a truncated playbook.
+        if (incompleteReason) {
+          console.error(`[generate-ir-playbook] incomplete_generation after retry: ${incompleteReason}`);
           await supabase
             .from("ir_playbooks")
             .update({
@@ -498,55 +551,44 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
               report_data: { error: "incomplete_generation", detail: incompleteReason, generated_at: new Date().toISOString() },
               updated_at: new Date().toISOString(),
             })
-            .eq("id", body.assessment_id);
+            .eq("id", rowId);
+          return;
         }
-      } catch (persistErr) {
-        console.error("ir_playbooks failure-persist error:", persistErr);
-      }
-      return new Response(
-        JSON.stringify({ error: "incomplete_generation", detail: incompleteReason }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
 
-    let assembled = assembleFromHalves(partA, partB);
-    let lint = lintReportText(assembled.playbook_text);
-    const lintWarnings: any[] = [];
-    if (hasHardViolations(lint)) {
-      try {
-        const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
-        const retry = await generateHalves(
-          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the playbook again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
-        );
-        partA = retry.partA; partB = retry.partB;
-        assembled = assembleFromHalves(partA, partB);
-        lint = lintReportText(assembled.playbook_text);
-      } catch (e) {
-        console.warn("[IR Playbook] lint retry failed (non-fatal):", e);
-      }
-    }
-    for (const v of lint.violations) lintWarnings.push(v);
-    const playbook_text = lint.clean;
-    const parsedAnnotations = assembled.parsedAnnotations;
+        let assembled = assembleFromHalves(partA, partB);
+        let lint = lintReportText(assembled.playbook_text);
+        const lintWarnings: any[] = [];
+        if (hasHardViolations(lint)) {
+          try {
+            const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+            const retry = await generateHalves(
+              `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the playbook again, correcting these defects silently. Do not mention this instruction or the defects in the output.`
+            );
+            partA = retry.partA; partB = retry.partB;
+            assembled = assembleFromHalves(partA, partB);
+            lint = lintReportText(assembled.playbook_text);
+          } catch (e) {
+            console.warn("[generate-ir-playbook] lint retry failed (non-fatal):", e);
+          }
+        }
+        for (const v of lint.violations) lintWarnings.push(v);
+        const playbook_text = lint.clean;
+        const parsedAnnotations = assembled.parsedAnnotations;
 
-    const portals = body.jurisdictions
-      .filter((j) => DPA_PORTALS[j])
-      .map((j) => ({ jurisdiction: j, portal: DPA_PORTALS[j] }));
+        const portals = body.jurisdictions
+          .filter((j) => DPA_PORTALS[j])
+          .map((j) => ({ jurisdiction: j, portal: DPA_PORTALS[j] }));
 
-    const report_data = {
-      portals,
-      enforcement_precedents: enforcement_context.slice(0, 5),
-      enforcement_meta: enforcementMeta,
-      annotations: parsedAnnotations,
-      lint_warnings: lintWarnings,
-      generated_at: new Date().toISOString(),
-    };
+        const report_data = {
+          portals,
+          enforcement_precedents: enforcement_context.slice(0, 5),
+          enforcement_meta: enforcementMeta,
+          annotations: parsedAnnotations,
+          lint_warnings: lintWarnings,
+          generated_at: new Date().toISOString(),
+        };
 
-
-    let savedId: string | null = null;
-    try {
-      if (body.assessment_id) {
-        const { data, error } = await supabase
+        await supabase
           .from("ir_playbooks")
           .update({
             client_id: body.client_id ?? null,
@@ -557,41 +599,23 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
             report_data,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", body.assessment_id)
-          .select("id")
-          .maybeSingle();
-        if (error) throw error;
-        savedId = data?.id ?? body.assessment_id;
-      } else {
-        const { data, error } = await supabase
-          .from("ir_playbooks")
-          .insert({
-            user_id: resolvedUserId,
-            client_id: body.client_id ?? null,
-            organization_name: body.organizationName || null,
-            status: "complete",
-            intake_data: body,
-            playbook_text,
-            report_data,
-          })
-          .select("id")
-          .single();
-        if (error) throw error;
-        savedId = data.id;
+          .eq("id", rowId);
+      } catch (bgErr) {
+        console.error("[generate-ir-playbook] background error:", bgErr);
+        try {
+          await supabase
+            .from("ir_playbooks")
+            .update({ status: "failed", updated_at: new Date().toISOString() })
+            .eq("id", rowId);
+        } catch (persistErr) {
+          console.error("[generate-ir-playbook] failure-persist error:", persistErr);
+        }
       }
-    } catch (persistErr) {
-      console.error("ir_playbooks persist failed:", persistErr);
-    }
+    })());
 
     return new Response(
-      JSON.stringify({
-        id: savedId,
-        playbook_text,
-        portals,
-        enforcement_precedents: report_data.enforcement_precedents,
-        generated_at: report_data.generated_at,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: true, id: rowId, status: "processing" }),
+      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
     console.error("generate-ir-playbook error:", e);
