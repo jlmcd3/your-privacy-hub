@@ -278,6 +278,7 @@ Output ONLY the compliance assessment. No preamble.`,
 
     const aiData = await aiRes.json();
     const fullText = aiData.content?.[0]?.text ?? "";
+    console.log(`[check-biometric-compliance] gen done stop=${aiData.stop_reason ?? null} chars=${fullText.length}`);
     let assessment_text = fullText
       .replace(/^#{1,6}\s+/gm, '')
       .replace(/\*\*\*/g, '')
