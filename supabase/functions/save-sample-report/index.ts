@@ -187,6 +187,7 @@ const REPORT_PDF_TOOL_TYPE: Record<string, string> = {
   dpa: "dpa_generator",
   ir_playbook: "ir_playbook",
   biometric: "biometric_checker",
+  registration: "registration_assessment",
 };
 
 function slugifyTitle(s: string): string {
