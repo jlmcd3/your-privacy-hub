@@ -53,9 +53,10 @@ export function twinkle(
   const s1 = Math.sin(t * speedA + phase);
   const s2 = Math.sin(t * speedB + phase * 1.7);
   const raw = (s1 + s2) * 0.5; // -1..1
-  // Amplitude scales with brightness: dim stars ~0.05 swing, bright ~0.45
-  const amp = 0.05 + 0.4 * baseBrightness;
-  const m = 1 + raw * amp - amp * 0.3;
+  // Amplitude scales with brightness: dim stars ~0.10 swing, bright ~0.55
+  const amp = 0.10 + 0.45 * baseBrightness;
+  // Slightly negative bias so the dimming half of the cycle is deeper
+  const m = 1 + raw * amp - amp * 0.35;
   return Math.max(0.05, Math.min(1, m));
 }
 
