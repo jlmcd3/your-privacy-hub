@@ -318,12 +318,19 @@ Employment-context safeguards: ${balancingDetails.employment_safeguards || "not 
 PRECEDENT DATABASE (tracked regulatory decisions):
 ${precedentContext}
 
-REGULATORY REGIME (HARD CONSTRAINT): This assessment is governed by ${regimeLabel}. You MUST NOT cite enforcement decisions or guidance from outside this regime (e.g. FTC, California CPPA, Canadian OPC/OIPC, Australian OAIC, Brazilian ANPD) even if you know of them. If the ENFORCEMENT PRECEDENTS list below is empty or does not contain a relevant ${regimeLabel} decision, state explicitly that no directly analogous ${regimeLabel} precedent was retrieved — do not substitute precedent from another regime.
+CITATION AUTHORITY RULES (HARD CONSTRAINTS):
+Each enforcement precedent below is tagged TIER 1, TIER 2, or TIER 3.
+- TIER 1 (in-regime): may be cited as directly relevant regulatory practice under ${regimeLabel}.
+- TIER 2 (cross-channel persuasive): may be cited ONLY as persuasive, non-binding authority. Every TIER 2 citation must state that the decision arises under a different implementation of the GDPR and is not binding in this regime. For UK assessments, also note where relevant that UK GDPR has diverged from EU GDPR since 2021 — including the Data (Use and Access) Act 2025 changes to the legitimate-interests framework — so EU reasoning must be checked against current UK law.
+- TIER 3 (non-EU/UK supportive): NEVER cite as authority, direct or persuasive. May be referenced at most where the underlying fact pattern supports an argument the user must make under the ${regimeLabel} test, and every such reference must be expressly framed as not authoritative under ${regimeLabel}.
+- Rows marked UNVERIFIED: never state a fine amount; describe the action and its compliance lesson only.
+- Never cite any decision not present in the list below.
+- If the ENFORCEMENT PRECEDENTS list below is empty or does not contain a relevant ${regimeLabel} decision, state explicitly that no directly analogous ${regimeLabel} precedent was retrieved — do not substitute precedent from training knowledge.
 
-ENFORCEMENT PRECEDENTS (recent ${regimeLabel} regulator fines/decisions, cite by code [E1]–[E5]):
+ENFORCEMENT PRECEDENTS (cite by code [E1]–[E5]; each entry shows its tier and verification status):
 ${enforcementContextStr}
 
-ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a verdict, risk factor, or recommended action in your assessment, include it in the annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
+ANNOTATION REQUIREMENT: For each enforcement action you actually cite (tagged [E1], [E2], etc.), include it in the annotations array using the id value from the enforcement context exactly as provided AND include its authority_tier (1|2|3) and authority_framing ('in_regime' | 'persuasive_not_binding' | 'supportive_not_authoritative'). The tier/framing pairing must follow this mapping exactly: tier 1 → in_regime; tier 2 → persuasive_not_binding; tier 3 → supportive_not_authoritative. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge.
 
 Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIFIC facts above — do not generalise. Return JSON with this exact structure:
 {
