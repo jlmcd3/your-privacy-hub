@@ -87,11 +87,22 @@ Deno.serve(async (req) => {
     if (!assessment) return new Response(JSON.stringify({ error: "Not found" }),
       { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    await supabase.from("governance_assessments")
-      .update({ status: "processing" }).eq("id", assessment_id);
-
     const intake = assessment.intake_data as any;
+    const orgName = (assessment as any).organization_name || intake?.organization_name || null;
+    await supabase.from("governance_assessments")
+      .update({
+        status: "processing",
+        ...(orgName && !(assessment as any).organization_name ? { organization_name: orgName } : {}),
+      }).eq("id", assessment_id);
+
+    // Dispatch heavy work in background — return 202 immediately so the caller
+    // is not held open past the platform's 150s HTTP idle ceiling. Result page
+    // polls governance_assessments.status. On unhandled error we mark failed.
+    // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
+    EdgeRuntime.waitUntil((async () => {
+      try {
     const intakeSummary = `
+Organisation (controller) being assessed: ${orgName || "not specified"}
 Organisation sector: ${intake.sector || "not specified"}
 Organisation size: ${intake.org_size || "not specified"}
 Jurisdictions of operation: ${(intake.jurisdictions || []).join(", ")}
@@ -429,8 +440,17 @@ Return JSON:
       },
     }).catch((e: Error) => console.error("PDF/email delivery failed (non-fatal):", e));
 
-    return new Response(JSON.stringify({ success: true, assessment_id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (bgErr) {
+        console.error("run-governance-assessment background error:", bgErr);
+        if (assessment_id) {
+          await supabase.from("governance_assessments")
+            .update({ status: "failed" }).eq("id", assessment_id);
+        }
+      }
+    })());
+
+    return new Response(JSON.stringify({ success: true, assessment_id, status: "processing" }),
+      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (e) {
     console.error("run-governance-assessment error:", e);

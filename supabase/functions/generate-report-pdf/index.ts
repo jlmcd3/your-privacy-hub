@@ -147,15 +147,48 @@ async function sendEmail(opts: {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// SHARED META-LINE HELPER
+// Single source of truth for the "Generated: … · EndUserPrivacy.com · …"
+// line rendered atop every report builder. Pass null/undefined to omit
+// optional segments. organizationName + extra are HTML-escaped.
+// ─────────────────────────────────────────────────────────────────────────
+function buildReportMetaLine(opts: {
+  generatedAt: string | Date;
+  organizationName?: string | null;
+  jurisdictionLabel?: string | null;
+  extra?: string | null;
+}): string {
+  const d = opts.generatedAt instanceof Date ? opts.generatedAt : new Date(opts.generatedAt);
+  const dateStr = d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  const parts = [`Generated: ${dateStr}`, "EndUserPrivacy.com"];
+  if (opts.organizationName && String(opts.organizationName).trim()) {
+    parts.push(esc(String(opts.organizationName).trim()));
+  }
+  if (opts.jurisdictionLabel && String(opts.jurisdictionLabel).trim()) {
+    parts.push(String(opts.jurisdictionLabel).trim());
+  }
+  if (opts.extra && String(opts.extra).trim()) {
+    parts.push(esc(String(opts.extra).trim()));
+  }
+  return `<div class="meta">${parts.join(" · ")}</div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // HTML REPORT TEMPLATES
 // ─────────────────────────────────────────────────────────────────────────
 
-function buildLIReportHTML(report: any, _assessment: any): string {
+
+
+function buildLIReportHTML(report: any, assessment: any): string {
   const d = report.three_part_test || {};
   const overall = report.three_part_test?.overall_assessment || {};
   const docRecs = report.documentation_recommendations || {};
-  const date = new Date(report.generated_at).toLocaleDateString("en-US",
-    { year: "numeric", month: "long", day: "numeric" });
+
+
+
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
@@ -177,7 +210,7 @@ ul { padding-left: 20px; } li { margin-bottom: 4px; }
 .label { font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: #5c5a54; }
 </style></head><body>
 <h1>Legitimate Interest Assessment</h1>
-<div class="meta">Generated: ${date} &nbsp;|&nbsp; EndUserPrivacy.com &nbsp;|&nbsp; Precedents reviewed: ${report.precedents_reviewed || 0} of ${report.precedent_database_size || 0} tracked decisions</div>
+${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name })}
 <div class="disclaimer">${report.disclaimer || ""}</div>
 <h2>Assessment Summary</h2>
 <div class="section">
@@ -212,7 +245,7 @@ ${(() => {
     const byId: Record<string, any> = {};
     for (const p of precs) if (p?.id) byId[p.id] = p;
     const isUk = (() => {
-      const js = Array.isArray(_assessment?.jurisdictions) ? _assessment.jurisdictions : [];
+      const js = Array.isArray(assessment?.jurisdictions) ? assessment.jurisdictions : [];
       return js.some((j: string) => /united kingdom|uk|gb/i.test(String(j)));
     })();
     const tierLabel = (t: number | null | undefined): string => {
@@ -244,9 +277,7 @@ ${fineLine}</div>`;
 </body></html>`;
 }
 
-function buildGovernanceReportHTML(report: any, _assessment: any): string {
-  const date = new Date(report.generated_at).toLocaleDateString("en-US",
-    { year: "numeric", month: "long", day: "numeric" });
+function buildGovernanceReportHTML(report: any, assessment: any): string {
   const domains = report.domain_findings || {};
   const severityColor: Record<string, string> = {
     Critical: "#a32d2d", High: "#c0722a", Medium: "#8b5e0a",
@@ -268,7 +299,7 @@ h3 { font-size: 14px; color: #2c3e50; margin-top: 20px; }
 ul { padding-left: 20px; } li { margin-bottom: 4px; }
 </style></head><body>
 <h1>Data Governance Readiness Assessment</h1>
-<div class="meta">Generated: ${date} &nbsp;|&nbsp; EndUserPrivacy.com</div>
+${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name })}
 <div class="disclaimer">${report.disclaimer || ""}</div>
 <h2>Executive Summary</h2>
 <div class="rating">Readiness: ${report.overall_readiness_rating || "Unknown"}</div>
@@ -297,9 +328,7 @@ ${dn.gap_description ? `<p class="label">Gap</p><p>${dn.gap_description}</p>` : 
 </body></html>`;
 }
 
-function buildDPIAReportHTML(report: any, _dpia: any): string {
-  const date = new Date(report.generated_at).toLocaleDateString("en-US",
-    { year: "numeric", month: "long", day: "numeric" });
+function buildDPIAReportHTML(report: any, dpia: any): string {
   const meta = report.dpia_metadata || {};
   const sections = [
     ["section_1_description", "1. Description of Processing"],
@@ -324,7 +353,7 @@ h2 { font-size: 16px; color: #1a5276; margin-top: 28px; }
 ul { padding-left: 20px; } li { margin-bottom: 4px; }
 </style></head><body>
 <h1>DPIA Framework</h1>
-<div class="meta">Processing activity: <strong>${meta.processing_activity_name || ""}</strong> &nbsp;|&nbsp; Version: ${meta.framework_version || "1.0"} &nbsp;|&nbsp; Generated: ${date} &nbsp;|&nbsp; EndUserPrivacy.com</div>
+${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") })}
 <div class="disclaimer"><strong>IMPORTANT: </strong>${report.framework_disclaimer || ""}</div>
 ${(meta.applicable_frameworks || []).length ? `<p><span class="label">Applicable frameworks: </span>${(meta.applicable_frameworks || []).join(" &nbsp;|&nbsp; ")}</p>` : ""}
 ${meta.supervisory_authority_consultation_trigger ? `<div class="completion"><strong>Supervisory authority consultation trigger: </strong>${meta.supervisory_authority_consultation_trigger}</div>` : ""}
@@ -704,7 +733,7 @@ function buildCPPARiskReportHTML(report: any, record: any): string {
     <span class="logo">enduserprivacy.com</span>
     <p class="eyebrow">Compliance Tool · Customised Analysis</p>
     <h1>CPPA Privacy Risk Assessment</h1>
-    <div class="meta">Generated ${text(generatedDate)} · California (CPPA)</div>
+    ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
       ${report?.overall_score !== undefined ? `<span class="pill">Overall score: ${text(report.overall_score)} / 100</span>` : ""}
       ${report?.risk_level ? `<span class="pill">${text(report.risk_level)} risk</span>` : ""}
@@ -800,7 +829,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     <span class="logo">enduserprivacy.com</span>
     <p class="eyebrow">Compliance Tool · Customised Analysis</p>
     <h1>CPPA Cybersecurity Audit</h1>
-    <div class="meta">Generated ${text(generatedDate)}${orgName ? ` · ${text(orgName)}` : ""} · California (CPPA)</div>
+    ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), organizationName: orgName || null, jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
       ${report?.overall_score !== undefined ? `<span class="pill">Overall score: ${text(report.overall_score)} / 100</span>` : ""}
       ${report?.readiness_level ? `<span class="pill">${text(report.readiness_level)}</span>` : ""}
@@ -1066,6 +1095,7 @@ Deno.serve(async (req) => {
       html = buildTextReportHTML({
         title: "Your Incident Response Playbook",
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
+          (record.organization_name ? ` · ${record.organization_name}` : "") +
           ((intake.jurisdictions || []).length ? ` · ${intake.jurisdictions.join(", ")}` : ""),
         text: record.playbook_text || "",
         showJurisdictionChip: false,

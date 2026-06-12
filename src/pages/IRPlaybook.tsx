@@ -74,6 +74,7 @@ export default function IRPlaybook() {
   const { clientId } = useActiveClient();
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");
   const [form, setForm] = useState({
+    organizationName: "",
     discoveryDateTime: new Date().toISOString().slice(0, 16),
     cause: CAUSES[0], dataTypes: [] as string[], affectedCount: COUNTS[2],
     jurisdictions: [] as string[], processorInvolved: false, processorName: "",
@@ -93,6 +94,10 @@ export default function IRPlaybook() {
     setForm(f => ({ ...f, [key]: f[key].includes(v) ? f[key].filter(x => x !== v) : [...f[key], v] }));
 
   const handleGenerate = async () => {
+    if (!form.organizationName.trim()) {
+      toast.error("Organisation required", { description: "Tell us the name of the organisation the playbook is for." });
+      return;
+    }
     const discoveryDate = new Date(form.discoveryDateTime);
     if (isNaN(discoveryDate.getTime()) || discoveryDate > new Date()) {
       toast.error("Invalid date", {
@@ -155,6 +160,8 @@ export default function IRPlaybook() {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <h2 className="font-display text-brand-navy">Incident details</h2>
             <RequiredLegend />
+            <label className="block text-sm"><span className="font-semibold text-brand-navy">Organisation<Req /></span>
+              <input type="text" placeholder="e.g. Acme Retail Ltd" className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.organizationName} onChange={e => setForm(f => ({ ...f, organizationName: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Date & time of discovery<Req /></span>
               <input type="datetime-local" max={new Date().toISOString().slice(0, 16)} className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.discoveryDateTime} onChange={e => setForm(f => ({ ...f, discoveryDateTime: e.target.value }))} /></label>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Apparent cause <DefPopover termKey="gdpr_personal_data_breach" /></span>

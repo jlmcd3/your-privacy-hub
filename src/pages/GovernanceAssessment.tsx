@@ -69,6 +69,7 @@ const GovernanceAssessment = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // Step 1
+  const [organizationName, setOrganizationName] = useState("");
   const [sector, setSector] = useState("");
   const [orgSize, setOrgSize] = useState("");
   const [jurisdictions, setJurisdictions] = useState<string[]>([]);
@@ -107,6 +108,7 @@ const GovernanceAssessment = () => {
 
   const stepValid = (): string | null => {
     if (step === 1) {
+      if (!organizationName.trim()) return "Tell us the name of the organisation being assessed.";
       if (!sector || !orgSize || !jurisdictions.length || !euUkData || (!tools.length && !otherTool.trim()))
         return "Please answer all gateway questions.";
     }
@@ -135,6 +137,7 @@ const GovernanceAssessment = () => {
   const back = () => setStep((s) => Math.max(1, s - 1));
 
   const buildIntake = () => ({
+    organization_name: organizationName,
     sector, org_size: orgSize, jurisdictions, eu_uk_data: euUkData,
     tools: otherTool.trim() ? [...tools, `Other: ${otherTool.trim()}`] : tools,
     data_categories: dataCategories,
@@ -174,7 +177,7 @@ const GovernanceAssessment = () => {
   };
 
   const intakeForCheckout = useMemo(() => buildIntake(), [
-    sector, orgSize, jurisdictions, euUkData, tools, otherTool, dataCategories,
+    organizationName, sector, orgSize, jurisdictions, euUkData, tools, otherTool, dataCategories,
     specialCategory, specialCategoriesList, privacyPolicy, acceptableUse,
     dpoStatus, dpiaStatus, incidentResponse, trainingStatus, toolInstruction,
     dpaStatus, transferStatus, showDpoQ, showStep5,
@@ -217,6 +220,11 @@ const GovernanceAssessment = () => {
           {step === 1 && (
             <>
               <h2 className="">Gateway Questions</h2>
+              <div>
+                <Label htmlFor="org">Organisation being assessed<Req /></Label>
+                <input id="org" type="text" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="e.g. Acme Retail Ltd" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" />
+                <p className="text-meta text-muted-foreground mt-1">The organisation whose privacy programme this assessment evaluates.</p>
+              </div>
               <div>
                 <Label>Q1: Primary sector<Req /></Label>
                 <select value={sector} onChange={(e) => setSector(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
