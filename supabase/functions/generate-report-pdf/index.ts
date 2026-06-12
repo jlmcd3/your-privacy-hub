@@ -928,8 +928,9 @@ Deno.serve(async (req) => {
             missingKey = "dpia_metadata|section_1_description";
             break;
           case "cppa_risk":
-            bodyOk = isNonEmptyArr(rd.domains);
-            missingKey = "domains";
+            // v3 schema persists part_a/part_b; legacy rows have a domains array.
+            bodyOk = isNonEmptyObj(rd.part_a) || isNonEmptyArr(rd.domains);
+            missingKey = "part_a|domains";
             break;
           case "cppa_cybersecurity":
             // Only enforce when the structured path would be selected.
