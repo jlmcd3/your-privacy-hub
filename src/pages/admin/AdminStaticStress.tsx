@@ -162,6 +162,50 @@ export default function AdminStaticStress() {
     return () => clearInterval(interval);
   }, [activeBatch?.id, activeBatch?.status]);
 
+  // Keep the admin signed in while a batch is running. Supabase auto-refreshes
+  // tokens, but long-running tabs (especially when backgrounded) can miss a
+  // refresh window and silently drop the session. We proactively refresh every
+  // 4 minutes while a batch is active, and again whenever the tab regains
+  // visibility, so completed reports stay accessible.
+  useEffect(() => {
+    const isRunning =
+      activeBatch?.id &&
+      activeBatch.status !== "complete" &&
+      activeBatch.status !== "cancelled";
+    if (!isRunning) return;
+
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
+        // Refresh if the access token expires within the next 5 minutes.
+        const expiresAt = data.session?.expires_at ?? 0;
+        const secondsLeft = expiresAt - Math.floor(Date.now() / 1000);
+        if (secondsLeft < 300) {
+          await supabase.auth.refreshSession();
+        }
+      } catch {
+        // Swallow — next tick will retry.
+      }
+    };
+
+    refresh();
+    const interval = setInterval(refresh, 4 * 60 * 1000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", refresh);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [activeBatch?.id, activeBatch?.status]);
+
   function toggleIndustry(id: string) {
     setSelectedIndustries((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
   }
