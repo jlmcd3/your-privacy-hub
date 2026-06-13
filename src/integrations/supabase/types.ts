@@ -4934,6 +4934,7 @@ export type Database = {
       }
       static_stress_batches: {
         Row: {
+          companies: Json
           completed_at: string | null
           completed_jobs: number
           created_at: string
@@ -4943,11 +4944,15 @@ export type Database = {
           id: string
           industries: string[]
           run_by: string | null
+          selected_tools: string[] | null
+          setup_done: number
+          setup_total: number
           started_at: string | null
           status: string
           total_jobs: number
         }
         Insert: {
+          companies?: Json
           completed_at?: string | null
           completed_jobs?: number
           created_at?: string
@@ -4957,11 +4962,15 @@ export type Database = {
           id?: string
           industries?: string[]
           run_by?: string | null
+          selected_tools?: string[] | null
+          setup_done?: number
+          setup_total?: number
           started_at?: string | null
           status?: string
           total_jobs?: number
         }
         Update: {
+          companies?: Json
           completed_at?: string | null
           completed_jobs?: number
           created_at?: string
@@ -4971,6 +4980,9 @@ export type Database = {
           id?: string
           industries?: string[]
           run_by?: string | null
+          selected_tools?: string[] | null
+          setup_done?: number
+          setup_total?: number
           started_at?: string | null
           status?: string
           total_jobs?: number
