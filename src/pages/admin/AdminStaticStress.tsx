@@ -125,7 +125,7 @@ export default function AdminStaticStress() {
     if (activeBatch.status === "complete") return;
     const interval = setInterval(async () => {
       const { data: b } = await supabase.from("static_stress_batches")
-        .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at")
+        .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log")
         .eq("id", activeBatch.id).single();
       if (b) setActiveBatch(b as Batch);
       const { data: jobs } = await supabase.from("static_stress_jobs")
