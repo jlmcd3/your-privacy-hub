@@ -67,6 +67,8 @@ export default function StressRunsSection() {
   const [states, setStates] = useState<Record<string, StressState>>({});
   const [artifacts, setArtifacts] = useState<HarnessArtifact[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [runningAll, setRunningAll] = useState(false);
+  const cancelAll = useRef(false);
 
   const toolKeys = Object.keys(RUNNERS) as ToolType[];
 
