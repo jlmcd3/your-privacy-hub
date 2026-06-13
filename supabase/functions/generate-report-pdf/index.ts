@@ -330,19 +330,37 @@ function buildDPIAReportHTML(report: any, dpia: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
-body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #1a1916; line-height: 1.5; margin: 40px; max-width: 800px; }
-h1 { font-size: 22px; border-bottom: 2px solid #1a1916; padding-bottom: 8px; }
-h2 { font-size: 16px; color: #1a5276; margin-top: 28px; }
-.guidance { background: #f4f0fd; border-left: 4px solid #5b3a8a; padding: 10px 14px; margin: 12px 0; font-size: 12px; }
-.completion { background: #fef9ec; border-left: 4px solid #8b5e0a; padding: 10px 14px; margin: 12px 0; font-size: 12px; }
-.signoff { border: 1px solid #dddbd3; padding: 16px; margin-top: 16px; font-family: "Courier New", monospace; font-size: 12px; line-height: 2.2; }
-.disclaimer { background: #fef9ec; border-left: 4px solid #8b5e0a; padding: 12px 16px; margin: 24px 0; font-size: 12px; }
-.meta { color: #5c5a54; font-size: 12px; margin-bottom: 24px; }
-.label { font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: #5c5a54; }
-ul { padding-left: 20px; } li { margin-bottom: 4px; }
+body { font-family:'Georgia','Times New Roman',serif; font-size:11pt; color:#1a1916;
+  line-height:1.5; margin:0; background:#f5f8fa; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.shell { background:#fff; border:1px solid #dde5ea; border-radius:14px; overflow:hidden; }
+.header { background:#0c2a44; color:#fff; padding:22px 26px 24px; }
+.header .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+.header .eyebrow { font-size:9px; font-weight:600; text-transform:uppercase;
+  letter-spacing:0.14em; color:#93b5c6; margin:0 0 4px; }
+.header h1 { font-family:'Georgia','Times New Roman',serif; font-size:22px; margin:0; font-weight:700; }
+.header .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+.body { padding:22px 26px 26px; }
+h2 { font-size:16px; color:#0c2a44; margin-top:28px; border-bottom:1px solid #dde5ea; padding-bottom:6px; }
+.guidance { background:#edf2f5; border-left:4px solid #8a9eb1; padding:10px 14px;
+  margin:12px 0; font-size:12px; border-radius:0 6px 6px 0; }
+.completion { background:#e5f4f2; border-left:4px solid #2d9b90; padding:10px 14px;
+  margin:12px 0; font-size:12px; border-radius:0 6px 6px 0; }
+.signoff { border:1px solid #dde5ea; padding:16px; margin-top:16px;
+  font-family:'Courier New',monospace; font-size:12px; line-height:2.2; }
+.disclaimer { background:#e5f4f2; border-left:4px solid #2d9b90; padding:12px 16px;
+  margin:24px 0; font-size:12px; border-radius:0 6px 6px 0; }
+.meta { color:#5c6d7a; font-size:12px; margin-bottom:24px; }
+.label { font-weight:bold; text-transform:uppercase; font-size:11px; letter-spacing:0.05em; color:#5c6d7a; }
+ul { padding-left:20px; } li { margin-bottom:4px; }
 </style></head><body>
-<h1>DPIA Framework</h1>
-${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") })}
+<div class="shell">
+<header class="header">
+  <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
+  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <h1>DPIA Framework</h1>
+  <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") }).replace(/<[^>]+>/g,'')}</div>
+</header>
+<div class="body">
 <div class="disclaimer"><strong>IMPORTANT: </strong>${escHtml(report.framework_disclaimer || "")}</div>
 ${(meta.applicable_frameworks || []).length ? `<p><span class="label">Applicable frameworks: </span>${(meta.applicable_frameworks || []).join(" &nbsp;|&nbsp; ")}</p>` : ""}
 ${meta.supervisory_authority_consultation_trigger ? `<div class="completion"><strong>Supervisory authority consultation trigger: </strong>${meta.supervisory_authority_consultation_trigger}</div>` : ""}
