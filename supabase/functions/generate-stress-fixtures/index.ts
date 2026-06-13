@@ -118,12 +118,12 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 16000,
+        max_tokens: 32000,
         stream: true,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: buildUserPrompt(industry, geo, company_slot, company_id) }],
       }),
-      signal: AbortSignal.timeout(180_000),
+      signal: AbortSignal.timeout(360_000),
     });
     if (!r.ok || !r.body) {
       const errText = r.body ? await r.text() : "no body";

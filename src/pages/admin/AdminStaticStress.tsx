@@ -93,8 +93,32 @@ export default function AdminStaticStress() {
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [zipping, setZipping] = useState(false);
   const [resuming, setResuming] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [fixtureFailures, setFixtureFailures] = useState<string[]>([]);
   const cancelRef = useRef(false);
+
+  async function handleStop() {
+    if (!activeBatch) return;
+    if (!confirm("Stop the batch? Any reports already generated will be preserved. Pending jobs will be cancelled.")) return;
+    setStopping(true);
+    cancelRef.current = true;
+    try {
+      await supabase.from("static_stress_batches")
+        .update({ status: "cancelled" })
+        .eq("id", activeBatch.id);
+      await supabase.from("static_stress_jobs")
+        .update({ status: "cancelled", completed_at: new Date().toISOString() })
+        .eq("batch_id", activeBatch.id)
+        .eq("status", "pending");
+      setActiveBatch((b) => b ? { ...b, status: "cancelled" } : b);
+      toast.success("Batch stopped — completed reports preserved");
+    } catch (e) {
+      toast.error(`Stop failed: ${(e as Error).message}`);
+    } finally {
+      setStopping(false);
+    }
+  }
+
 
   const applicableTools = useMemo(
     () => ALL_TOOLS.filter((t) => geoFilter === "both" || t.geo === "both" || t.geo === geoFilter),
@@ -122,7 +146,7 @@ export default function AdminStaticStress() {
 
   useEffect(() => {
     if (!activeBatch?.id) return;
-    if (activeBatch.status === "complete") return;
+    if (activeBatch.status === "complete" || activeBatch.status === "cancelled") return;
     const interval = setInterval(async () => {
       const { data: b } = await supabase.from("static_stress_batches")
         .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log")
@@ -412,10 +436,18 @@ export default function AdminStaticStress() {
       {/* Active batch panel */}
       {activeBatch && (
         <section className="border rounded p-4 space-y-3">
-          <header className="flex items-center justify-between">
+          <header className="flex items-center justify-between gap-2">
             <h2 className="font-serif text-xl">Active batch</h2>
-            <span className="text-xs font-mono">{activeBatch.id}</span>
+            <div className="flex items-center gap-2">
+              {(activeBatch.status === "running" || activeBatch.status === "pending") && (
+                <Button size="sm" variant="destructive" onClick={handleStop} disabled={stopping}>
+                  {stopping ? "Stopping…" : "Stop"}
+                </Button>
+              )}
+              <span className="text-xs font-mono">{activeBatch.id}</span>
+            </div>
           </header>
+
           {activeBatch.status === "running" && activeBatch.error_log && (
             <div className="border border-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-3 text-sm space-y-2">
               <div>⚠ Chain interrupted — {activeBatch.error_log}</div>
@@ -456,7 +488,7 @@ export default function AdminStaticStress() {
             </table>
           </details>
 
-          {activeBatch.status === "complete" && (
+          {(activeBatch.status === "complete" || activeBatch.status === "cancelled") && (
             <div className="flex gap-2 pt-2 border-t">
               <Button onClick={onDownloadAll} disabled={zipping}>
                 {zipping ? "Zipping…" : "Download all PDFs"}
