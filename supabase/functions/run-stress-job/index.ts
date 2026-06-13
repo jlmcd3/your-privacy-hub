@@ -379,7 +379,20 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
         .select("*").eq("batch_id", batchId).eq("status", "pending")
         .order("created_at", { ascending: true }).limit(1).maybeSingle();
       if (!next) {
-        await finaliseBatch(admin, batchId);
+        // No pending jobs right now — but check setup is actually complete
+        // before finalising. During the interleaved phase this may just be
+        // a lull between company fixture insertions.
+        const { data: batchCheck } = await admin.from("static_stress_batches")
+          .select("setup_done, setup_total")
+          .eq("id", batchId).single();
+        const setupComplete =
+          (batchCheck?.setup_done ?? 0) >= (batchCheck?.setup_total ?? 1) &&
+          (batchCheck?.setup_total ?? 0) > 0;
+        if (setupComplete) {
+          await finaliseBatch(admin, batchId);
+        }
+        // else: setup still in progress, exit gracefully — selfInvokeNext
+        // in finally will recheck and keep the chain alive.
         return;
       }
       const { data: claimed } = await admin.from("static_stress_jobs")
@@ -449,21 +462,27 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
 
       if (currentRetries < 1) {
         console.warn(`[run-stress-job] job ${job.id} (${job.tool_slug}) failed (attempt ${currentRetries + 1}), scheduling retry:`, errMsg);
-        await admin.from("static_stress_jobs").update({
-          status: "pending",
-          retry_count: currentRetries + 1,
-          error_message: `Attempt ${currentRetries + 1} failed: ${errMsg} — retrying`,
-          started_at: null,
-        }).eq("id", job.id)
-          .catch((e: unknown) => console.warn("[run-stress-job] retry reset failed:", e));
+        try {
+          await admin.from("static_stress_jobs").update({
+            status: "pending",
+            retry_count: currentRetries + 1,
+            error_message: `Attempt ${currentRetries + 1} failed: ${errMsg} — retrying`,
+            started_at: null,
+          }).eq("id", job.id);
+        } catch (e: unknown) {
+          console.warn("[run-stress-job] retry reset failed:", e);
+        }
       } else {
         console.error(`[run-stress-job] job ${job.id} (${job.tool_slug}) failed permanently after ${currentRetries + 1} attempts:`, errMsg);
-        await admin.from("static_stress_jobs").update({
-          status: "failed",
-          error_message: `Failed after ${currentRetries + 1} attempts. Last error: ${errMsg}`,
-          completed_at: new Date().toISOString(),
-        }).eq("id", job.id)
-          .catch((e: unknown) => console.warn("[run-stress-job] failed status update failed:", e));
+        try {
+          await admin.from("static_stress_jobs").update({
+            status: "failed",
+            error_message: `Failed after ${currentRetries + 1} attempts. Last error: ${errMsg}`,
+            completed_at: new Date().toISOString(),
+          }).eq("id", job.id);
+        } catch (e: unknown) {
+          console.warn("[run-stress-job] failed status update failed:", e);
+        }
         await admin.rpc("increment_batch_failed", { batch_id: batchId })
           .catch((e: unknown) => console.warn("[run-stress-job] increment_batch_failed failed:", e));
       }
