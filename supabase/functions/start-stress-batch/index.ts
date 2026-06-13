@@ -98,7 +98,17 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
       }).eq("id", batchId);
 
       if (totalJobs > 0) {
-        await invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch(console.error);
+        // Launch WORKER_COUNT parallel job workers. Each independently claims
+        // and processes jobs via the same optimistic DB lock, exactly simulating
+        // multiple simultaneous platform users. Stagger by 800ms to avoid
+        // thundering-herd on the first pending-job query.
+        const WORKER_COUNT = 8;
+        for (let w = 0; w < WORKER_COUNT; w++) {
+          await new Promise((r) => setTimeout(r, w * 800));
+          invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
+            console.warn(`[start-stress-batch] worker ${w} initial launch failed:`, e)
+          );
+        }
       }
       return;
     }
