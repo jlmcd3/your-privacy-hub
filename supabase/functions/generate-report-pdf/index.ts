@@ -11,6 +11,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
+
 // ─────────────────────────────────────────────────────────────────────────
 // NARRATIVE SANITIZER
 // Strips internal status tags and bracketed citation markers from prose
