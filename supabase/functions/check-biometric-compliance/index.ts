@@ -153,13 +153,7 @@ Organisation type: ${body.orgType}
 Primary purpose: ${body.purpose}
 Individuals enrolled: ${body.enrolledCount}
 Jurisdictions: ${body.jurisdictions.join(", ")}
-${bipaRisk ? `
-BIPA LITIGATION RISK ESTIMATE (Illinois)
-Based on ${body.enrolledCount} enrolled individuals:
-Low end (negligent violations): $${bipaRisk.lowEnd.toLocaleString()}
-High end (intentional violations): $${bipaRisk.highEnd.toLocaleString()}
-${bipaRisk.note}
-` : ""}${wamhmdApplies ? `
+${wamhmdApplies ? `
 WASHINGTON MY HEALTH MY DATA ACT (MHMD) — APPLICABILITY FLAG
 Washington is in scope. If the biometric data is used to identify health status,
 diagnosis, treatment, or to infer any consumer health condition, MHMD applies in
@@ -179,7 +173,14 @@ OTHER US STATE — APPLICABILITY FLAG
 Do NOT skip this section even though no specific state was named.
 ` : ""}ENFORCEMENT PRECEDENTS
 ${formatEnforcementContext(enforcement_context)}
-
+${bipaRisk ? `
+BIPA LITIGATION RISK ESTIMATE (Illinois) — USE ONLY IF BIPA APPLIES
+Use these figures only inside the Illinois section, and only after you have determined that BIPA applies (Applies = Yes or Conditional). Do not surface these numbers before the applicability determination.
+Based on ${body.enrolledCount} enrolled individuals:
+Low end (negligent violations): $${bipaRisk.lowEnd.toLocaleString()}
+High end (intentional violations): $${bipaRisk.highEnd.toLocaleString()}
+${bipaRisk.note}
+` : ""}
 For each jurisdiction, structure your output EXACTLY as follows:
 
 [JURISDICTION] — [LAW NAME]
