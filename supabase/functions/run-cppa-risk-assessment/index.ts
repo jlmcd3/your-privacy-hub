@@ -361,12 +361,10 @@ OUTPUT SHAPE (every field required unless marked optional):
     },
     "sec_8_decision": {
       "statute": "Cal. Code Regs. tit. 11 §§ 7152(a)(7), 7154",
-      "analysis": "structured reasoned-analysis paragraph weighing benefits against residual risks after § 7 safeguards",
-      "ai_recommended_outcome": "Proceed | Proceed with conditions | Do not proceed",
-      "recommendation_rationale": "1-2 sentence rationale",
+      "analysis": "neutral, balanced paragraph weighing benefits against residual risks after § 7 safeguards. Do not endorse or recommend any outcome.",
       "user_decision": null,
       "user_conditions": null,
-      "user_guidance": "The certifying executive must actively record the decision. This tool's recommendation is not the decision."
+      "user_guidance": "The certifying executive must record the decision in this section. The analysis above is provided for their consideration only and contains no tool-generated recommendation."
     },
     "sec_9_stakeholders": {
       "statute": "Cal. Code Regs. tit. 11 §§ 7151, 7152(a)(8)",
