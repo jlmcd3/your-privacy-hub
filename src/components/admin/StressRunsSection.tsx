@@ -115,17 +115,28 @@ export default function StressRunsSection() {
     }
   }
 
+  const [running, setRunning] = useState<Set<string>>(new Set());
+  const markRunning = (k: string, on: boolean) =>
+    setRunning((s) => {
+      const next = new Set(s);
+      if (on) next.add(k); else next.delete(k);
+      return next;
+    });
+
   async function onRun(tool: ToolType) {
     const n = Math.max(1, Math.min(5, counts[tool] ?? 1));
-    setBusy(tool);
+    markRunning(tool, true);
     setState(tool, { status: "running", log: [] });
-    let ok = 0, fail = 0;
-    for (let i = 0; i < n; i++) {
-      try { await runOne(tool); ok++; }
-      catch (e) { log(tool)(`❌ ${(e as Error).message}`); fail++; }
-    }
+    const results = await Promise.all(
+      Array.from({ length: n }, async () => {
+        try { await runOne(tool); return true; }
+        catch (e) { log(tool)(`❌ ${(e as Error).message}`); return false; }
+      }),
+    );
+    const ok = results.filter(Boolean).length;
+    const fail = results.length - ok;
     setState(tool, { status: fail ? "failed" : "complete" });
-    setBusy(null);
+    markRunning(tool, false);
     await refresh();
     toast[fail ? "warning" : "success"](`${TOOL_LABEL[tool]} stress: ${ok} ok, ${fail} failed`);
   }
@@ -178,7 +189,7 @@ export default function StressRunsSection() {
             <Checkbox checked={withPdf} onCheckedChange={(v) => setWithPdf(v === true)} />
             Generate PDF
           </label>
-          <Button variant="destructive" size="sm" onClick={onDeleteAll} disabled={busy !== null}>
+          <Button variant="destructive" size="sm" onClick={onDeleteAll} disabled={busy !== null || running.size > 0}>
             {busy === "delall" ? "Deleting…" : "Delete all stress data"}
           </Button>
         </div>
@@ -196,12 +207,12 @@ export default function StressRunsSection() {
                     className="text-xs border rounded px-1.5 py-1 bg-background"
                     value={counts[tool] ?? 1}
                     onChange={(e) => setCounts((c) => ({ ...c, [tool]: Number(e.target.value) }))}
-                    disabled={busy !== null}
+                    disabled={running.has(tool)}
                   >
                     {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}×</option>)}
                   </select>
-                  <Button size="sm" onClick={() => onRun(tool)} disabled={busy !== null}>
-                    {busy === tool ? "Running…" : "Run stress"}
+                  <Button size="sm" onClick={() => onRun(tool)} disabled={running.has(tool)}>
+                    {running.has(tool) ? "Running…" : "Run stress"}
                   </Button>
                 </div>
               </div>
