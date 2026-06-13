@@ -309,7 +309,7 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
       title: "UK representative",
       html: ukRepName
         ? `<p>Our UK representative under UK GDPR Art. 27 is <strong>${escapeHtml(ukRepName)}</strong>${ukRepContact ? ` — ${escapeHtml(ukRepContact)}` : ""}.</p>`
-        : `<p>[UK representative to be appointed — required under UK GDPR Art. 27 unless an exemption applies.]</p>`,
+        : `<p>If your organisation is not established in the UK, a UK representative under UK GDPR Art. 27 may be required — confirm this requirement with your legal counsel. If established in the UK, no UK representative is needed.</p>`,
     });
   }
   if (fw.framework_code === "EU_GDPR" && !isEstEEA) {
