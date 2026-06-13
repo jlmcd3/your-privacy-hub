@@ -515,6 +515,7 @@ function buildHtml(d: AssembledData): string {
 
   <p class="footer-note" style="margin-top: 32px;">This record was last reviewed on ${escapeHtml(d.settings.documentDate)}. Maintained in compliance with Article 30 GDPR obligations. Review recommended at least annually or upon any material change to processing activities.</p>
 
+  </div></div>
 </body>
 </html>`;
 }
