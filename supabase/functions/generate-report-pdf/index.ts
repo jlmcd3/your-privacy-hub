@@ -242,25 +242,41 @@ function buildGovernanceReportHTML(report: any, assessment: any): string {
   const domains = report.domain_findings || {};
   const severityColor: Record<string, string> = {
     Critical: "#a32d2d", High: "#c0722a", Medium: "#8b5e0a",
-    Low: "#1a5276", Compliant: "#1e6b3c", Unknown: "#5c5a54"
+    Low: "#2d9b90", Compliant: "#1e6b3c", Unknown: "#5c5a54"
   };
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
-body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #1a1916; line-height: 1.5; margin: 40px; max-width: 800px; }
-h1 { font-size: 22px; border-bottom: 2px solid #1a1916; padding-bottom: 8px; }
-h2 { font-size: 16px; color: #1a5276; margin-top: 28px; }
-h3 { font-size: 14px; color: #2c3e50; margin-top: 20px; }
-.rating { font-size: 18px; font-weight: bold; padding: 8px 16px; border-radius: 4px; background: #eaf2fb; color: #1a5276; display: inline-block; margin-bottom: 12px; }
-.severity { font-weight: bold; font-size: 12px; padding: 2px 8px; border-radius: 3px; color: white; display: inline-block; }
-.domain { border: 1px solid #dddbd3; border-radius: 6px; padding: 14px 16px; margin-bottom: 16px; }
-.disclaimer { background: #fef9ec; border-left: 4px solid #8b5e0a; padding: 12px 16px; margin: 24px 0; font-size: 12px; }
-.meta { color: #5c5a54; font-size: 12px; margin-bottom: 24px; }
-.label { font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: #5c5a54; }
-ul { padding-left: 20px; } li { margin-bottom: 4px; }
+body { font-family:'Georgia','Times New Roman',serif; font-size:11pt; color:#1a1916;
+  line-height:1.5; margin:0; background:#f5f8fa; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.shell { background:#fff; border:1px solid #dde5ea; border-radius:14px; overflow:hidden; }
+.header { background:#0c2a44; color:#fff; padding:22px 26px 24px; }
+.header .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+.header .eyebrow { font-size:9px; font-weight:600; text-transform:uppercase;
+  letter-spacing:0.14em; color:#93b5c6; margin:0 0 4px; }
+.header h1 { font-family:'Georgia','Times New Roman',serif; font-size:22px; margin:0; font-weight:700; }
+.header .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+.body { padding:22px 26px 26px; }
+h2 { font-size:16px; color:#0c2a44; margin-top:28px; border-bottom:1px solid #dde5ea; padding-bottom:6px; }
+h3 { font-size:14px; color:#0c2a44; margin-top:20px; }
+.rating { font-size:18px; font-weight:bold; padding:8px 16px; border-radius:4px;
+  background:#e5f4f2; color:#0c2a44; display:inline-block; margin-bottom:12px; }
+.severity { font-weight:bold; font-size:12px; padding:2px 8px; border-radius:3px; color:white; display:inline-block; }
+.domain { border:1px solid #dde5ea; border-radius:6px; padding:14px 16px; margin-bottom:16px; }
+.disclaimer { background:#e5f4f2; border-left:4px solid #2d9b90; padding:12px 16px;
+  margin:24px 0; font-size:12px; border-radius:0 6px 6px 0; }
+.meta { color:#5c6d7a; font-size:12px; margin-bottom:24px; }
+.label { font-weight:bold; text-transform:uppercase; font-size:11px; letter-spacing:0.05em; color:#5c6d7a; }
+ul { padding-left:20px; } li { margin-bottom:4px; }
 </style></head><body>
-<h1>Data Governance Readiness Assessment</h1>
-${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name })}
+<div class="shell">
+<header class="header">
+  <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
+  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <h1>Data Governance Readiness Assessment</h1>
+  <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
+</header>
+<div class="body">
 <div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <h2>Executive Summary</h2>
 <div class="rating">Readiness: ${escHtml(report.overall_readiness_rating || "Unknown")}</div>
