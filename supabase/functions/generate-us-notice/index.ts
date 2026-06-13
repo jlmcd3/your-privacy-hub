@@ -268,28 +268,28 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check ownership: try RPC first, fall back to direct admin check
-    let ownsClient = false;
-    try {
-      const { data: ownsData, error: ownsErr } = await userClient.rpc(
-        "owns_client",
-        { _client_id: (session as SessionRow).client_id },
-      );
-      if (!ownsErr) ownsClient = ownsData === true;
-    } catch { /* fall through to admin check */ }
-
-    if (!ownsClient) {
-      const userId = claimsData?.user?.id;
-      if (userId) {
-        const { data: clientCheck } = await admin
-          .from("clients")
-          .select("id")
-          .eq("id", (session as SessionRow).client_id)
-          .eq("owner_id", userId)
-          .maybeSingle();
-        ownsClient = !!clientCheck;
-      }
+    // Check ownership: internal callers (service-role) bypass; otherwise try RPC, then fall back to admin check.
+    let ownsClient = caller.internal;
+    if (!ownsClient && userClient) {
+      try {
+        const { data: ownsData, error: ownsErr } = await userClient.rpc(
+          "owns_client",
+          { _client_id: (session as SessionRow).client_id },
+        );
+        if (!ownsErr) ownsClient = ownsData === true;
+      } catch { /* fall through to admin check */ }
     }
+
+    if (!ownsClient && caller.userId) {
+      const { data: clientCheck } = await admin
+        .from("clients")
+        .select("id")
+        .eq("id", (session as SessionRow).client_id)
+        .eq("owner_id", caller.userId)
+        .maybeSingle();
+      ownsClient = !!clientCheck;
+    }
+
 
     if (!ownsClient) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
