@@ -2,9 +2,8 @@
 // generates a complete, internally-consistent test company profile with payloads
 // for every applicable compliance tool.
 //
-// Uses TWO sequential non-streaming Claude calls (~14K tokens each) to stay
-// well under Supabase's 150s idle HTTP timeout. Streaming is intentionally
-// avoided — non-streaming sends the full response in one shot with no idle gaps.
+// Supports split fixture generation so orchestrators can run the profile call
+// and geo-specific call as separate requests under the platform timeout.
 
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -334,12 +333,28 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "invalid json" }, 400); }
-  const { industry, geo, company_slot, company_id } = body ?? {};
+  const { industry, geo, company_slot, company_id, part, company_name } = body ?? {};
   if (!industry || !geo || !company_slot || !company_id) {
     return json({ error: "missing required fields: industry, geo, company_slot, company_id" }, 400);
   }
 
   return streamJsonWork(async () => {
+    if (part === "profile") {
+      const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id));
+      return extractJson(callAText);
+    }
+
+    if (part === "geo") {
+      const name = company_name || company_id;
+      const callBText = await callClaude(
+        SYSTEM_PROMPT,
+        geo === "eu"
+          ? buildCallBEUPrompt(industry, company_slot, name)
+          : buildCallBUSPrompt(industry, company_slot, name),
+      );
+      return extractJson(callBText);
+    }
+
     // Call A: company profile + shared tools (governance, dpa, irPlaybook, biometric, registration)
     const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id));
     const profileData = extractJson(callAText);
