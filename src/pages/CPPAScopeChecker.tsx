@@ -320,63 +320,28 @@ function SavedNote({ isAuthed }: { isAuthed: boolean }) {
   );
 }
 
-function EmailResultsCapture() {
-  const [email, setEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
-  const [hidden, setHidden] = useState(false);
-  if (hidden || done) {
-    return done ? (
-      <p className="text-xs text-brand-teal pt-2">✓ Sent. Check your inbox.</p>
-    ) : null;
-  }
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || submitting) return;
-    setSubmitting(true);
-    try {
-      const { error } = await supabase.functions.invoke("subscribe-email", {
-        body: { email, source: "cppa-scope-results" },
-      });
-      if (error) throw error;
-      setDone(true);
-      toast({ title: "Sent", description: "Your obligation map is on its way." });
-    } catch (err) {
-      toast({
-        title: "Couldn't send",
-        description: err instanceof Error ? err.message : "Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+function CreateAccountPrompt() {
+  const redirect = encodeURIComponent("/cppa/scope-checker");
   return (
     <section className="bg-card border rounded-lg p-4">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium">Email me this obligation map</p>
-        <button
-          type="button"
-          onClick={() => setHidden(true)}
-          className="text-xs text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer"
-          aria-label="Dismiss email capture"
+      <p className="text-sm font-medium">Save this obligation map to your account</p>
+      <p className="text-xs text-muted-foreground mt-1">
+        Create a free End User Privacy account to keep this result, access it from My Reports, and run additional CPPA tools.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-2 mt-3">
+        <Link
+          to={`/signup?redirect=${redirect}`}
+          className="inline-flex items-center justify-center bg-brand-navy text-white font-semibold text-sm px-4 py-2 rounded-md no-underline hover:opacity-90"
         >
-          Dismiss
-        </button>
+          Create free account
+        </Link>
+        <Link
+          to={`/login?redirect=${redirect}`}
+          className="inline-flex items-center justify-center border border-border text-sm font-semibold px-4 py-2 rounded-md no-underline hover:bg-muted"
+        >
+          Sign in
+        </Link>
       </div>
-      <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2 mt-2">
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@company.com"
-          className="flex-1 px-3 py-2 rounded border border-brand-cloud bg-background text-sm focus:outline-none focus:border-brand-teal"
-        />
-        <Button type="submit" size="sm" disabled={submitting}>
-          {submitting ? "Sending…" : "Email me"}
-        </Button>
-      </form>
     </section>
   );
 }
