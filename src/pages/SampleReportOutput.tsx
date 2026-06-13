@@ -103,6 +103,52 @@ export default function SampleReportOutput() {
     }
   }
 
+  async function onDeleteAll() {
+    const list = rows ?? [];
+    if (list.length === 0) {
+      toast.error("No documents to delete");
+      return;
+    }
+    if (!confirm(`Delete all ${list.length} sample reports? This removes every PDF and record permanently.`)) return;
+    setDeletingAll(true);
+    const t = toast.loading(`Deleting ${list.length} reports…`);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("Sign in as admin to delete", { id: t });
+        return;
+      }
+      let ok = 0;
+      let fail = 0;
+      for (const r of list) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ action: "delete", id: r.id }),
+          });
+          if (res.ok) {
+            ok++;
+            setRows((cur) => (cur ?? []).filter((x) => x.id !== r.id));
+          } else {
+            fail++;
+          }
+        } catch {
+          fail++;
+        }
+      }
+      if (ok > 0) toast.success(`Deleted ${ok} report${ok === 1 ? "" : "s"}${fail ? ` (${fail} failed)` : ""}`, { id: t });
+      else toast.error(`Delete failed for all ${list.length} reports`, { id: t });
+    } catch (e) {
+      toast.error(`Delete all failed: ${(e as Error).message}`, { id: t });
+    } finally {
+      setDeletingAll(false);
+    }
+  }
+
   async function onDownloadAll() {
     const list = (rows ?? []).filter((r) => urls[r.id]);
     if (list.length === 0) {
