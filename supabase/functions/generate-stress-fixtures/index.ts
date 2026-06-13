@@ -40,7 +40,7 @@ async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
-    signal: AbortSignal.timeout(120_000),
+    signal: AbortSignal.timeout(240_000),
   });
   if (!r.ok) {
     const errText = await r.text().catch(() => "no body");
