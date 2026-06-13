@@ -325,10 +325,15 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
 // ─── Orchestrator ─────────────────────────────────────────────────────────────
 
 async function finaliseBatch(admin: Admin, batchId: string) {
+  // Check first — multiple workers may reach here simultaneously when the
+  // last few jobs complete. The update is idempotent but we log it cleanly.
+  const { data: batch } = await admin.from("static_stress_batches")
+    .select("status").eq("id", batchId).single();
+  if (batch?.status === "complete") return; // already finalised by another worker
   await admin.from("static_stress_batches").update({
     status: "complete",
     completed_at: new Date().toISOString(),
-  }).eq("id", batchId);
+  }).eq("id", batchId).neq("status", "complete"); // safe: neq prevents double-write
 }
 
 async function processNextJob(batchId: string, specificJobId: string | null): Promise<void> {
