@@ -244,6 +244,9 @@ ${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: asse
 <div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <h2>Executive Summary</h2>
 <div class="rating">Readiness: ${escHtml(report.overall_readiness_rating || "Unknown")}</div>
+<p class="meta" style="font-size:10.5px;color:#5c5a54;margin-top:4px;">
+  Domain severity guide: <strong>Critical</strong> = no controls in place; <strong>High</strong> = controls exist but are materially incomplete; <strong>Medium</strong> = controls mostly in place with identified gaps; <strong>Low</strong> = minor gaps only; <strong>Compliant</strong> = requirements met.
+</p>
 <p>${escHtml(report.executive_summary || "")}</p>
 <p>${escHtml(report.readiness_rationale || "")}</p>
 <h2>Top Three Risks</h2>
