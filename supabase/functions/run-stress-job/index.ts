@@ -342,7 +342,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         delivery_email: intake.email, renewal_reminders_enabled: false,
       }).select("id").single();
       if (oErr || !order) throw new Error(`registration order: ${oErr?.message}`);
-      await invokeFn("generate-registration-docs", { order_id: order.id }).catch(() => {});
+      await invokeFn("generate-registration-docs", { order_id: order.id })
+        .catch((e) => console.warn("[run-stress-job] generate-registration-docs trigger failed:", e));
       return { sourceTable: "registration_assessments", sourceRowId: assessmentId };
     }
     default:
