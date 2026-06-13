@@ -541,6 +541,23 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
     p(""),
   ];
 
+  // Apply the same EU/UK representative suppression heuristic used in the
+  // HTML output, so the DOCX is consistent: if the intake records the
+  // controller's own organisation name as the EU/UK representative, treat the
+  // controller as established in that jurisdiction and surface the
+  // "Not required" line rather than echoing the org name as the representative.
+  const orgNameForRepCheck = (d.client?.name ?? "").trim().toLowerCase();
+  const euRepName = (d.profile?.eu_rep_name ?? "").trim();
+  const ukRepName = (d.profile?.uk_rep_name ?? "").trim();
+  const euSuppressed = euRepName && euRepName.toLowerCase() === orgNameForRepCheck;
+  const ukSuppressed = ukRepName && ukRepName.toLowerCase() === orgNameForRepCheck;
+  const euRepValue = euSuppressed
+    ? "Not required — controller established in the EU/EEA (GDPR Art. 27 does not apply)"
+    : `${euRepName || "—"}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`;
+  const ukRepValue = ukSuppressed
+    ? "Not required — controller established in the UK (UK GDPR Art. 27 does not apply)"
+    : `${ukRepName || "—"}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`;
+
   const clientTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
@@ -554,8 +571,8 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
       kvRow("Sector", d.client?.sector ?? "—"),
       kvRow("Employee band", d.profile?.employee_band ?? "—"),
       kvRow("DPO", `${d.profile?.dpo_name ?? "Not designated"}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`),
-      kvRow("EU representative", `${d.profile?.eu_rep_name ?? "—"}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`),
-      kvRow("UK representative", `${d.profile?.uk_rep_name ?? "—"}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`),
+      kvRow("EU representative", euRepValue),
+      kvRow("UK representative", ukRepValue),
       kvRow("Jurisdictions", jurisdictionList(d.jurisdictions, true) || "—"),
     ],
   });
