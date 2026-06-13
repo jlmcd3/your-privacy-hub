@@ -5,7 +5,7 @@
 // and — by default — renders the result to PDF via save-sample-report:
 // generate_pdf so it lands at /samples/report-output for review.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
