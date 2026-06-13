@@ -557,6 +557,17 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/static-stress"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminStaticStress />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
 
             <Route path="/samples/report-output" element={<SampleReportOutput />} />
             <Route path="/samples/:toolSlug" element={<SampleReport />} />
