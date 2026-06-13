@@ -49,6 +49,8 @@ export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
   const [lastPolled, setLastPolled] = useState<string | null>(initial.lastPolled);
   const [filterBatch, setFilterBatch] = useState<string>("all");
   const prevJobsRef = useRef<Map<string, JobLite>>(new Map(initial.prevJobs));
+  const entriesRef = useRef<Snapshot[]>(initial.entries);
+
 
 
   const idsKey = useMemo(() => batchIds.slice().sort().join(","), [batchIds]);
