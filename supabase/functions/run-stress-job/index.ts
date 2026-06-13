@@ -519,7 +519,12 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   const caller = await verifyCaller(req);
-  if (!caller.internal) return json({ error: "forbidden" }, 403);
+  if (!caller.internal) {
+    if (!caller.userId) return json({ error: "forbidden" }, 403);
+    const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+    const { data: isAdmin } = await admin.rpc("has_role", { _user_id: caller.userId, _role: "admin" });
+    if (!isAdmin) return json({ error: "forbidden" }, 403);
+  }
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "invalid json" }, 400); }
