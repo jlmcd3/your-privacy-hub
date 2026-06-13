@@ -1014,7 +1014,15 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   const scorecardBlock = controls.length
     ? `<section class="section"><h2>Control Scorecard</h2><table class="md-table">
         <thead><tr><th>Control</th><th>Status</th><th>Score</th><th>Priority</th></tr></thead>
-        <tbody>${scorecardRows}</tbody></table></section>`
+        <tbody>${scorecardRows}</tbody></table>
+        <p class="meta" style="margin-top:6px;font-size:10.5px;color:#5c5a54;">
+          <strong>Score guide:</strong> 0–20 = Critical Gap (foundational control absent);
+          21–59 = Partial (control exists but material gaps remain);
+          60–89 = Implemented (control substantially in place, monitor and maintain);
+          90–100 = Mature.
+          <strong>Status labels:</strong> Critical Gap / Partial / Implemented reflect qualitative maturity, not a binary pass/fail.
+          Scores are based on the information provided in the intake; an independent auditor will conduct their own assessment.
+        </p></section>`
     : "";
 
   const statusClass = (status: string) => {
