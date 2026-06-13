@@ -462,21 +462,27 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
 
       if (currentRetries < 1) {
         console.warn(`[run-stress-job] job ${job.id} (${job.tool_slug}) failed (attempt ${currentRetries + 1}), scheduling retry:`, errMsg);
-        await admin.from("static_stress_jobs").update({
-          status: "pending",
-          retry_count: currentRetries + 1,
-          error_message: `Attempt ${currentRetries + 1} failed: ${errMsg} — retrying`,
-          started_at: null,
-        }).eq("id", job.id)
-          .catch((e: unknown) => console.warn("[run-stress-job] retry reset failed:", e));
+        try {
+          await admin.from("static_stress_jobs").update({
+            status: "pending",
+            retry_count: currentRetries + 1,
+            error_message: `Attempt ${currentRetries + 1} failed: ${errMsg} — retrying`,
+            started_at: null,
+          }).eq("id", job.id);
+        } catch (e: unknown) {
+          console.warn("[run-stress-job] retry reset failed:", e);
+        }
       } else {
         console.error(`[run-stress-job] job ${job.id} (${job.tool_slug}) failed permanently after ${currentRetries + 1} attempts:`, errMsg);
-        await admin.from("static_stress_jobs").update({
-          status: "failed",
-          error_message: `Failed after ${currentRetries + 1} attempts. Last error: ${errMsg}`,
-          completed_at: new Date().toISOString(),
-        }).eq("id", job.id)
-          .catch((e: unknown) => console.warn("[run-stress-job] failed status update failed:", e));
+        try {
+          await admin.from("static_stress_jobs").update({
+            status: "failed",
+            error_message: `Failed after ${currentRetries + 1} attempts. Last error: ${errMsg}`,
+            completed_at: new Date().toISOString(),
+          }).eq("id", job.id);
+        } catch (e: unknown) {
+          console.warn("[run-stress-job] failed status update failed:", e);
+        }
         await admin.rpc("increment_batch_failed", { batch_id: batchId })
           .catch((e: unknown) => console.warn("[run-stress-job] increment_batch_failed failed:", e));
       }
