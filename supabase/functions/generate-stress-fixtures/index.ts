@@ -24,8 +24,9 @@ function json(body: unknown, status = 200) {
   });
 }
 
-// Streaming Claude call. SSE bytes arrive continuously so Supabase's 150s
-// idle timer keeps resetting. We accumulate text_delta events into the final string.
+// Streaming Claude call. SSE bytes arrive continuously from Anthropic, and the
+// handler below also streams harmless JSON whitespace back to our caller so the
+// platform does not close the generate-stress-fixtures request while work runs.
 async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 14000): Promise<string> {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -93,6 +94,41 @@ function extractJson(text: string): any {
   } catch (e) {
     throw new Error(`JSON parse failed: ${(e as Error).message}`);
   }
+}
+
+function streamJsonWork(work: () => Promise<unknown>): Response {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let keepalive: number | undefined;
+      try {
+        controller.enqueue(encoder.encode("\n"));
+        keepalive = setInterval(() => {
+          try {
+            controller.enqueue(encoder.encode("\n"));
+          } catch {
+            if (keepalive) clearInterval(keepalive);
+          }
+        }, 10_000);
+
+        const result = await work();
+        controller.enqueue(encoder.encode(JSON.stringify(result)));
+      } catch (e) {
+        controller.enqueue(encoder.encode(JSON.stringify({
+          error: "fixture generation failed",
+          detail: (e as Error).message,
+        })));
+      } finally {
+        if (keepalive) clearInterval(keepalive);
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 }
 
 const SYSTEM_PROMPT = `You are generating realistic, internally consistent test data for a privacy compliance software platform.
@@ -303,7 +339,7 @@ Deno.serve(async (req) => {
     return json({ error: "missing required fields: industry, geo, company_slot, company_id" }, 400);
   }
 
-  try {
+  return streamJsonWork(async () => {
     // Call A: company profile + shared tools (governance, dpa, irPlaybook, biometric, registration)
     const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id));
     const profileData = extractJson(callAText);
@@ -319,9 +355,6 @@ Deno.serve(async (req) => {
     const geoData = extractJson(callBText);
 
     // Merge: geoData fields overwrite profileData where both exist (shouldn't overlap)
-    return json({ ...profileData, ...geoData }, 200);
-
-  } catch (e) {
-    return json({ error: "fixture generation failed", detail: (e as Error).message }, 502);
-  }
+    return { ...profileData, ...geoData };
+  });
 });
