@@ -236,11 +236,11 @@ export default function StressRunsSection() {
                     className="text-xs border rounded px-1.5 py-1 bg-background"
                     value={counts[tool] ?? 1}
                     onChange={(e) => setCounts((c) => ({ ...c, [tool]: Number(e.target.value) }))}
-                    disabled={running.has(tool)}
+                    disabled={running.has(tool) || runningAll}
                   >
                     {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}×</option>)}
                   </select>
-                  <Button size="sm" onClick={() => onRun(tool)} disabled={running.has(tool)}>
+                  <Button size="sm" onClick={() => onRun(tool)} disabled={running.has(tool) || runningAll}>
                     {running.has(tool) ? "Running…" : "Run stress"}
                   </Button>
                 </div>
