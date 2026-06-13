@@ -95,6 +95,25 @@ export default function AdminStaticStress() {
   const [resuming, setResuming] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [fixtureFailures, setFixtureFailures] = useState<string[]>([]);
+  const [resumingSetup, setResumingSetup] = useState(false);
+
+  // On mount: restore any in-progress batch so refresh and cross-tab work.
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("static_stress_batches")
+        .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log, setup_total, setup_done")
+        .eq("run_by", user.id)
+        .in("status", ["pending", "running"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled && data) setActiveBatch(data as Batch);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   async function handleStop() {
     if (!activeBatch) return;
