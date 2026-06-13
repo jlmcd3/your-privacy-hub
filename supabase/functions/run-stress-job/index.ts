@@ -333,99 +333,185 @@ async function finaliseBatch(admin: Admin, batchId: string) {
 
 async function processNextJob(batchId: string, specificJobId: string | null): Promise<void> {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-
-  // Claim a job
   let job: any = null;
-  if (specificJobId) {
-    const { data } = await admin.from("static_stress_jobs")
-      .update({ status: "running", started_at: new Date().toISOString() })
-      .eq("id", specificJobId).eq("status", "pending")
-      .select().single();
-    job = data;
-  } else {
-    const { data: next } = await admin.from("static_stress_jobs")
-      .select("*").eq("batch_id", batchId).eq("status", "pending")
-      .order("created_at", { ascending: true }).limit(1).maybeSingle();
-    if (!next) {
-      await finaliseBatch(admin, batchId);
-      return;
-    }
-    const { data: claimed } = await admin.from("static_stress_jobs")
-      .update({ status: "running", started_at: new Date().toISOString() })
-      .eq("id", next.id).eq("status", "pending")
-      .select().single();
-    job = claimed;
-  }
-  if (!job) {
-    // race-lost — try to chain to next
-    chainNext(batchId);
-    return;
-  }
-
-  // Resolve user_id from batch
-  const { data: batchRow } = await admin.from("static_stress_batches")
-    .select("run_by").eq("id", batchId).single();
-  const userId = batchRow?.run_by;
-  if (!userId) {
-    await admin.from("static_stress_jobs").update({
-      status: "failed",
-      error_message: "batch has no run_by user_id",
-      completed_at: new Date().toISOString(),
-    }).eq("id", job.id);
-    await admin.rpc("increment_batch_failed", { batch_id: batchId });
-    chainNext(batchId);
-    return;
-  }
 
   try {
-    const { sourceTable, sourceRowId } = await runTool(admin, job, userId);
-
-    let pdfPath: string | null = null;
+    // Rescue jobs stuck in 'running' for more than 10 minutes (prior killed execution)
     try {
-      const pdfResult = await callSaveSampleReport({
-        tool_slug: TOOL_SLUG_MAP[job.tool_slug],
-        variant: `static-${job.company_id}`,
-        title: `[${job.industry}] ${job.company_name} — ${TOOL_LABEL_MAP[job.tool_slug]}`,
-        scenario_summary: `Static accuracy test: ${job.company_name} (${job.geo.toUpperCase()}, ${job.industry})`,
-        fixture: job.fixture_data,
-        source_table: sourceTable,
-        source_row_id: sourceRowId,
-      });
-      pdfPath = pdfResult?.row?.pdf_path ?? null;
-    } catch (pdfErr) {
-      console.warn(`[run-stress-job] PDF failed for ${job.id}:`, pdfErr);
+      const stuckCutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      await admin.from("static_stress_jobs")
+        .update({ status: "pending", started_at: null })
+        .eq("batch_id", batchId)
+        .eq("status", "running")
+        .lt("started_at", stuckCutoff);
+    } catch (e) {
+      console.warn("[run-stress-job] stuck-job rescue failed:", e);
     }
 
-    await admin.from("static_stress_jobs").update({
-      status: "complete",
-      source_table: sourceTable,
-      source_row_id: sourceRowId,
-      pdf_path: pdfPath,
-      completed_at: new Date().toISOString(),
-    }).eq("id", job.id);
-    await admin.rpc("increment_batch_completed", { batch_id: batchId });
-  } catch (err) {
-    await admin.from("static_stress_jobs").update({
-      status: "failed",
-      error_message: (err as Error).message.slice(0, 500),
-      completed_at: new Date().toISOString(),
-    }).eq("id", job.id);
-    await admin.rpc("increment_batch_failed", { batch_id: batchId });
-  }
+    // Claim a job
+    if (specificJobId) {
+      const { data } = await admin.from("static_stress_jobs")
+        .update({ status: "running", started_at: new Date().toISOString() })
+        .eq("id", specificJobId).eq("status", "pending")
+        .select().single();
+      job = data;
+    } else {
+      const { data: next } = await admin.from("static_stress_jobs")
+        .select("*").eq("batch_id", batchId).eq("status", "pending")
+        .order("created_at", { ascending: true }).limit(1).maybeSingle();
+      if (!next) {
+        await finaliseBatch(admin, batchId);
+        return;
+      }
+      const { data: claimed } = await admin.from("static_stress_jobs")
+        .update({ status: "running", started_at: new Date().toISOString() })
+        .eq("id", next.id).eq("status", "pending")
+        .select().single();
+      job = claimed;
+    }
+    if (!job) {
+      // race-lost — chain in finally
+      return;
+    }
 
-  chainNext(batchId);
+    // Resolve user_id from batch
+    const { data: batchRow } = await admin.from("static_stress_batches")
+      .select("run_by").eq("id", batchId).single();
+    const userId = batchRow?.run_by;
+    if (!userId) {
+      await admin.from("static_stress_jobs").update({
+        status: "failed",
+        error_message: "batch has no run_by user_id",
+        completed_at: new Date().toISOString(),
+      }).eq("id", job.id);
+      await admin.rpc("increment_batch_failed", { batch_id: batchId })
+        .catch((e: unknown) => console.warn("[run-stress-job] increment_batch_failed failed:", e));
+      return;
+    }
+
+    try {
+      // 9-minute hard timeout — must be < 10-minute stuck-rescue window
+      const TOOL_TIMEOUT_MS = 9 * 60 * 1000;
+      const { sourceTable, sourceRowId } = await Promise.race([
+        runTool(admin, job, userId),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error(`Tool timeout after 9 minutes: ${job.tool_slug}`)), TOOL_TIMEOUT_MS)
+        ),
+      ]) as RunResult;
+
+      let pdfPath: string | null = null;
+      try {
+        const pdfResult = await callSaveSampleReport({
+          tool_slug: TOOL_SLUG_MAP[job.tool_slug],
+          variant: `static-${job.company_id}`,
+          title: `[${job.industry}] ${job.company_name} — ${TOOL_LABEL_MAP[job.tool_slug]}`,
+          scenario_summary: `Static accuracy test: ${job.company_name} (${job.geo.toUpperCase()}, ${job.industry})`,
+          fixture: job.fixture_data,
+          source_table: sourceTable,
+          source_row_id: sourceRowId,
+        });
+        pdfPath = pdfResult?.row?.pdf_path ?? null;
+      } catch (pdfErr) {
+        console.warn(`[run-stress-job] PDF failed for ${job.id}:`, pdfErr);
+      }
+
+      await admin.from("static_stress_jobs").update({
+        status: "complete",
+        source_table: sourceTable,
+        source_row_id: sourceRowId,
+        pdf_path: pdfPath,
+        completed_at: new Date().toISOString(),
+      }).eq("id", job.id);
+      await admin.rpc("increment_batch_completed", { batch_id: batchId })
+        .catch((e: unknown) => console.warn("[run-stress-job] increment_batch_completed failed:", e));
+    } catch (err) {
+      const errMsg = (err as Error).message?.slice(0, 480) ?? "unknown error";
+      const currentRetries = job.retry_count ?? 0;
+
+      if (currentRetries < 1) {
+        console.warn(`[run-stress-job] job ${job.id} (${job.tool_slug}) failed (attempt ${currentRetries + 1}), scheduling retry:`, errMsg);
+        await admin.from("static_stress_jobs").update({
+          status: "pending",
+          retry_count: currentRetries + 1,
+          error_message: `Attempt ${currentRetries + 1} failed: ${errMsg} — retrying`,
+          started_at: null,
+        }).eq("id", job.id)
+          .catch((e: unknown) => console.warn("[run-stress-job] retry reset failed:", e));
+      } else {
+        console.error(`[run-stress-job] job ${job.id} (${job.tool_slug}) failed permanently after ${currentRetries + 1} attempts:`, errMsg);
+        await admin.from("static_stress_jobs").update({
+          status: "failed",
+          error_message: `Failed after ${currentRetries + 1} attempts. Last error: ${errMsg}`,
+          completed_at: new Date().toISOString(),
+        }).eq("id", job.id)
+          .catch((e: unknown) => console.warn("[run-stress-job] failed status update failed:", e));
+        await admin.rpc("increment_batch_failed", { batch_id: batchId })
+          .catch((e: unknown) => console.warn("[run-stress-job] increment_batch_failed failed:", e));
+      }
+    }
+  } catch (fatalErr) {
+    console.error("[run-stress-job] fatal error in processNextJob:", fatalErr);
+    if (job?.id) {
+      try {
+        await admin.from("static_stress_jobs").update({
+          status: "failed",
+          error_message: `Fatal: ${(fatalErr as Error).message?.slice(0, 480) ?? "unknown"}`,
+          completed_at: new Date().toISOString(),
+        }).eq("id", job.id);
+        await admin.rpc("increment_batch_failed", { batch_id: batchId }).catch(() => {});
+      } catch { /* best-effort */ }
+    }
+  } finally {
+    selfInvokeNext(batchId);
+  }
 }
 
-function chainNext(batchId: string) {
-  fetch(`${SUPABASE_URL}/functions/v1/run-stress-job`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${SERVICE_KEY}`,
-    },
-    body: JSON.stringify({ batch_id: batchId, job_id: null }),
-    signal: AbortSignal.timeout(10_000),
-  }).catch((e) => console.warn("[run-stress-job] self-invoke failed:", e));
+function selfInvokeNext(batchId: string): void {
+  const attempt = (remaining: number) => {
+    (async () => {
+      try {
+        const r = await fetch(`${SUPABASE_URL}/functions/v1/run-stress-job`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SERVICE_KEY}`,
+          },
+          body: JSON.stringify({ batch_id: batchId, job_id: null }),
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (!r.ok && remaining > 1) {
+          console.warn(`[run-stress-job] self-invoke returned ${r.status}, retrying (${remaining - 1} left)`);
+          setTimeout(() => attempt(remaining - 1), 2000);
+        }
+      } catch (e) {
+        console.warn(`[run-stress-job] self-invoke failed: ${(e as Error).message}`);
+        if (remaining > 1) {
+          setTimeout(() => attempt(remaining - 1), 2000);
+        } else {
+          console.error("[run-stress-job] self-invoke exhausted all retries — batch chain broken for batch", batchId);
+          try {
+            const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+            await admin.from("static_stress_batches").update({
+              error_log: `Chain interrupted at ${new Date().toISOString()} — self-invoke failed after 3 attempts. Click "Resume" to restart.`,
+            }).eq("id", batchId).eq("status", "running");
+          } catch { /* best-effort */ }
+        }
+      }
+    })();
+  };
+
+  const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+  admin.from("static_stress_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("batch_id", batchId)
+    .eq("status", "pending")
+    .then(({ count }) => {
+      if ((count ?? 0) > 0) {
+        attempt(3);
+      } else {
+        finaliseBatch(admin, batchId).catch(console.error);
+      }
+    });
 }
 
 Deno.serve(async (req) => {

@@ -74,6 +74,7 @@ type Batch = {
   id: string; status: string; total_jobs: number;
   completed_jobs: number; failed_jobs: number;
   started_at: string | null; completed_at: string | null;
+  error_log: string | null;
 };
 type Job = {
   id: string; company_name: string; industry: string; tool_slug: string;
@@ -91,6 +92,8 @@ export default function AdminStaticStress() {
   const [activeBatch, setActiveBatch] = useState<Batch | null>(null);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [zipping, setZipping] = useState(false);
+  const [resuming, setResuming] = useState(false);
+  const [fixtureFailures, setFixtureFailures] = useState<string[]>([]);
   const cancelRef = useRef(false);
 
   const applicableTools = useMemo(
@@ -122,7 +125,7 @@ export default function AdminStaticStress() {
     if (activeBatch.status === "complete") return;
     const interval = setInterval(async () => {
       const { data: b } = await supabase.from("static_stress_batches")
-        .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at")
+        .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log")
         .eq("id", activeBatch.id).single();
       if (b) setActiveBatch(b as Batch);
       const { data: jobs } = await supabase.from("static_stress_jobs")
@@ -151,11 +154,13 @@ export default function AdminStaticStress() {
     const industriesLabels = selectedIndustries
       .map((id) => INDUSTRIES.find((i) => i.id === id)?.label).filter(Boolean) as string[];
 
+    const failures: string[] = [];
+    setFixtureFailures([]);
     try {
       const { data: batch, error: bErr } = await supabase.from("static_stress_batches").insert({
         run_by: user.id, status: "pending",
         industries: industriesLabels, geo_filter: geoFilter, total_jobs: 0,
-      }).select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at").single();
+      }).select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log").single();
       if (bErr || !batch) throw new Error(`batch insert: ${bErr?.message}`);
 
       const geos = geoFilter === "both" ? ["us", "eu"] : [geoFilter];
@@ -180,7 +185,21 @@ export default function AdminStaticStress() {
           { body: { industry: c.industryLabel, geo: c.geo, company_slot: c.slot, company_id: companyId } },
         );
         if (fErr || !fixtures) {
-          console.warn(`Fixture failed for ${companyId}:`, fErr);
+          const errMsg = fErr?.message ?? "no data returned";
+          console.warn(`Fixture failed for ${companyId}:`, errMsg);
+          failures.push(`${companyId}: ${errMsg}`);
+          // Visible placeholder row so the failure is auditable in the UI
+          await supabase.from("static_stress_jobs").insert({
+            batch_id: batch.id,
+            company_id: companyId,
+            company_name: `[Fixture failed] ${companyId}`,
+            industry: c.industryLabel,
+            geo: c.geo,
+            tool_slug: "fixture-generation",
+            status: "failed",
+            error_message: errMsg,
+            completed_at: new Date().toISOString(),
+          });
           setSetupProgress({ done: idx + 1, total: companies.length });
           continue;
         }
@@ -220,13 +239,36 @@ export default function AdminStaticStress() {
         body: { batch_id: batch.id, job_id: null },
       });
 
-      setActiveBatch({ ...batch, total_jobs: totalJobs, status: "running", started_at: new Date().toISOString() });
+      setActiveBatch({ ...(batch as Batch), total_jobs: totalJobs, status: "running", started_at: new Date().toISOString() });
       setSetupProgress(null);
-      toast.success(`Started batch with ${totalJobs} jobs`);
+      setFixtureFailures(failures);
+      if (failures.length > 0) {
+        toast.warning(`Started batch with ${totalJobs} jobs (${failures.length} fixture failures)`);
+      } else {
+        toast.success(`Started batch with ${totalJobs} jobs`);
+      }
     } catch (e) {
       toast.error(`Start failed: ${(e as Error).message}`);
     } finally {
       setStarting(false);
+    }
+  }
+
+  async function handleResume(batchId: string) {
+    setResuming(true);
+    try {
+      await supabase.functions.invoke("run-stress-job", {
+        body: { batch_id: batchId, job_id: null },
+      });
+      await supabase.from("static_stress_batches")
+        .update({ error_log: null })
+        .eq("id", batchId);
+      setActiveBatch((b) => b ? { ...b, error_log: null } : b);
+      toast.success("Batch resumed — chain restarted");
+    } catch (e) {
+      toast.error(`Resume failed: ${(e as Error).message}`);
+    } finally {
+      setResuming(false);
     }
   }
 
@@ -374,6 +416,23 @@ export default function AdminStaticStress() {
             <h2 className="font-serif text-xl">Active batch</h2>
             <span className="text-xs font-mono">{activeBatch.id}</span>
           </header>
+          {activeBatch.status === "running" && activeBatch.error_log && (
+            <div className="border border-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-3 text-sm space-y-2">
+              <div>⚠ Chain interrupted — {activeBatch.error_log}</div>
+              <Button size="sm" onClick={() => handleResume(activeBatch.id)} disabled={resuming}>
+                {resuming ? "Resuming…" : "Resume Batch"}
+              </Button>
+            </div>
+          )}
+          {fixtureFailures.length > 0 && (
+            <div className="border border-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-3 text-xs">
+              ⚠ Fixture generation failed for {fixtureFailures.length} compan{fixtureFailures.length === 1 ? "y" : "ies"} — skipped.
+              The batch continues for all companies that generated successfully.
+              <details className="mt-1"><summary className="cursor-pointer">Show failures</summary>
+                <ul className="mt-1 list-disc pl-5">{fixtureFailures.map((f, i) => <li key={i}>{f}</li>)}</ul>
+              </details>
+            </div>
+          )}
           <Progress value={pct} />
           <div className="text-sm">
             <strong>{activeBatch.status}</strong> — {activeBatch.completed_jobs} of {activeBatch.total_jobs} complete
