@@ -222,7 +222,7 @@ async function renderPdf(html: string, title: string): Promise<Uint8Array> {
         spacing: 4,
       },
     }),
-    signal: AbortSignal.timeout(45000),
+    signal: AbortSignal.timeout(135000),
   });
 
   if (!response.ok) {

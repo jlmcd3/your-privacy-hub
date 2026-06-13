@@ -43,8 +43,8 @@ async function callAnthropic(
   model: string,
   systemPrompt: string,
   userContent: string,
-  maxTokens: number = 2000,
-  timeoutMs: number = 240_000
+  maxTokens: number = 6000,
+  timeoutMs: number = 720_000
 ): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -403,7 +403,7 @@ Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIF
   ]
 }`;
 
-    async function runStage2(extraUser: string, maxTokens: number = 5000): Promise<{ text: string; stopReason: string | null }> {
+    async function runStage2(extraUser: string, maxTokens: number = 15000): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
       return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, maxTokens);
     }

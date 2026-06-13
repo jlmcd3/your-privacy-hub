@@ -417,7 +417,7 @@ LOCALE AND PORTAL RULES:
 
 Output ONLY the playbook content requested in each turn. No preamble or commentary.`;
 
-        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 240_000): Promise<{ text: string; stopReason: string | null }> {
+        async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
           const res = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
@@ -485,7 +485,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
           return { ok: true };
         }
 
-        async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 240_000): Promise<{ text: string; stopReason: string | null }> {
+        async function generatePart(which: "A" | "B" | "C", extra: string, maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
           const base = which === "A" ? PROMPT_PART_A : which === "B" ? PROMPT_PART_B : PROMPT_PART_C;
           const prompt = extra ? `${base}\n\n${extra}` : base;
           return await callClaude([{ role: "user", content: prompt }], maxTokens, timeoutMs);
@@ -529,9 +529,9 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
 
         async function generateHalves(extra: string): Promise<{ partA: string; partB: string; partC: string; incomplete?: string }> {
           const [a, b, c] = await Promise.all([
-            generatePart("A", extra, 7000, 240_000),
-            generatePart("B", extra, 7000, 240_000),
-            generatePart("C", extra, 7000, 240_000),
+            generatePart("A", extra, 21000, 720_000),
+            generatePart("B", extra, 21000, 720_000),
+            generatePart("C", extra, 21000, 720_000),
           ]);
           const initial: Array<{ which: "A" | "B" | "C"; text: string; stopReason: string | null }> = [
             { which: "A", text: a.text, stopReason: a.stopReason },
@@ -561,7 +561,7 @@ Output ONLY the playbook content requested in each turn. No preamble or commenta
 
           // Phase 2 — run all needed continuations concurrently.
           const continuedResults = await Promise.all(
-            failures.map((f) => continuePart(f.which, extra, f.text, 4000, 200_000)),
+            failures.map((f) => continuePart(f.which, extra, f.text, 12000, 600_000)),
           );
 
           const stillFailing: string[] = [];

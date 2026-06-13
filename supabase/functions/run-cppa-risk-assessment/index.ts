@@ -82,7 +82,7 @@ async function callModel(model: string, system: string, user: string, maxTokens:
         { role: "user", content: user },
       ],
     }),
-    signal: AbortSignal.timeout(240_000),
+    signal: AbortSignal.timeout(720_000),
   });
   const elapsed = Date.now() - t0;
   if (!res.ok) {
