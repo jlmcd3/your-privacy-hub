@@ -2,9 +2,8 @@
 // generates a complete, internally-consistent test company profile with payloads
 // for every applicable compliance tool.
 //
-// Uses TWO sequential non-streaming Claude calls (~14K tokens each) to stay
-// well under Supabase's 150s idle HTTP timeout. Streaming is intentionally
-// avoided — non-streaming sends the full response in one shot with no idle gaps.
+// Supports split fixture generation so orchestrators can run the profile call
+// and geo-specific call as separate requests under the platform timeout.
 
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -24,9 +23,10 @@ function json(body: unknown, status = 200) {
   });
 }
 
-// Streaming Claude call. SSE bytes arrive continuously so Supabase's 150s
-// idle timer keeps resetting. We accumulate text_delta events into the final string.
-async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 14000): Promise<string> {
+// Streaming Claude call. SSE bytes arrive continuously from Anthropic, and the
+// handler below also streams harmless JSON whitespace back to our caller so the
+// platform does not close the generate-stress-fixtures request while work runs.
+async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 5000): Promise<string> {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -95,6 +95,41 @@ function extractJson(text: string): any {
   }
 }
 
+function streamJsonWork(work: () => Promise<unknown>): Response {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let keepalive: number | undefined;
+      try {
+        controller.enqueue(encoder.encode("\n"));
+        keepalive = setInterval(() => {
+          try {
+            controller.enqueue(encoder.encode("\n"));
+          } catch {
+            if (keepalive) clearInterval(keepalive);
+          }
+        }, 10_000);
+
+        const result = await work();
+        controller.enqueue(encoder.encode(JSON.stringify(result)));
+      } catch (e) {
+        controller.enqueue(encoder.encode(JSON.stringify({
+          error: "fixture generation failed",
+          detail: (e as Error).message,
+        })));
+      } finally {
+        if (keepalive) clearInterval(keepalive);
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 const SYSTEM_PROMPT = `You are generating realistic, internally consistent test data for a privacy compliance software platform.
 Rules:
 - All fields for the same company must use the same company name, domain, sector, contact email, DPO, and country
@@ -102,6 +137,8 @@ Rules:
 - Company names must be plausible fictional names (not real companies)
 - Slot 1: large enterprises (500+ employees, $100M+ revenue equivalent)
 - Slot 2: mid-market (100-500 employees, $20-100M revenue equivalent)
+- Keep strings concise: one short phrase or sentence unless the field is an array
+- Use compact arrays: 2-4 items unless explicitly instructed otherwise
 - Respond ONLY with valid JSON. No preamble, no markdown fences.`;
 
 // ── CALL A: Company profile + tools that apply to both US and EU ──────────────
@@ -279,6 +316,217 @@ Return a JSON object with EXACTLY these fields:
 }`;
 }
 
+function fixtureSeed(companyId: string): number {
+  return Array.from(companyId).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+}
+
+function buildCompany(industry: string, geo: string, slot: number, companyId: string) {
+  const seed = fixtureSeed(companyId);
+  const roots = ["Aster", "Nexa", "Velor", "Syntara", "Vortex", "Luma", "Civix", "Helio", "Orion", "Maris"];
+  const suffix = geo === "eu" ? ["SE", "GmbH", "B.V.", "Ltd"][seed % 4] : ["Inc.", "Corp.", "LLC", "Technologies"][seed % 4];
+  const sectorWord = industry.split(/\s|&/).find((w) => w.length > 3)?.replace(/[^a-z]/gi, "") || "Privacy";
+  const companyName = `${roots[seed % roots.length]} ${sectorWord} ${suffix}`;
+  const domain = `${companyName.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 22)}.${geo === "eu" ? "eu" : "com"}`;
+  const countryCode = geo === "eu" ? ["GB", "DE", "FR", "IE", "NL", "ES"][seed % 6] : "US";
+  return {
+    companyName,
+    domain,
+    privacyEmail: `privacy@${domain}`,
+    dpoEmail: geo === "eu" ? `dpo@${domain}` : null,
+    dpoName: geo === "eu" ? ["Mara Klein, DPO", "Elliot Byrne, Data Protection Officer", "Sofia Laurent, Privacy Counsel"][seed % 3] : null,
+    countryCode,
+    employeeCount: slot === 1 ? 1200 + (seed % 800) : 140 + (seed % 260),
+    annualRevenue: geo === "eu" ? (slot === 1 ? "€240M" : "€58M") : (slot === 1 ? "$310M" : "$72M"),
+  };
+}
+
+function buildDeterministicProfile(industry: string, geo: string, slot: number, companyId: string) {
+  const c = buildCompany(industry, geo, slot, companyId);
+  const jurisdictions = geo === "eu" ? ["EU", "GB", c.countryCode] : ["US", "CA", "VA"];
+  const dataCategories = ["account identifiers", "contact details", "usage logs", "device identifiers", "support records"];
+  const usesBiometric = /health|financial|security|workforce|hr/i.test(industry);
+  return {
+    ...c,
+    governance: {
+      sector: industry,
+      org_size: slot === 1 ? "Large Enterprise" : "Mid-Market",
+      jurisdictions,
+      eu_uk_data: geo === "eu" ? "Yes" : "No",
+      tools: ["OneTrust", "Jira", "AWS", "Salesforce"],
+      data_categories: dataCategories,
+      special_category: usesBiometric || /health|hr|children|education/i.test(industry) ? "Yes" : "No",
+      special_categories_list: usesBiometric ? ["biometric identifiers"] : [],
+      privacy_policy: "Published and reviewed annually",
+      acceptable_use: "Documented for employees and platform users",
+      dpo_status: geo === "eu" ? "DPO appointed" : "Privacy lead appointed",
+      dpia_status: "Completed for high-risk workflows",
+      incident_response: "Documented playbook tested twice per year",
+      training_status: "Annual mandatory privacy training",
+      tool_instruction: "Centralised privacy workflow and vendor tracking",
+      dpa_status: "DPAs in place for material processors",
+      transfer_status: geo === "eu" ? "SCCs and UK addendum used for restricted transfers" : "Vendor transfer review completed",
+    },
+    dpa: {
+      controllerName: c.companyName,
+      controllerJurisdiction: geo === "eu" ? c.countryCode : "United States",
+      processorName: geo === "eu" ? "Nimbus Processing GmbH" : "Northstar Data Services LLC",
+      processorJurisdiction: geo === "eu" ? "Germany" : "United States",
+      services: `${industry} analytics, hosting, and support services`,
+      dataCategories,
+      dataSubjectCount: slot === 1 ? "1,000,000+" : "85,000",
+      retention: "24 months after last active relationship",
+      hasSubProcessors: true,
+      subProcessorList: "AWS, Snowflake, Zendesk",
+      legalFramework: geo === "eu" ? "GDPR" : "US",
+      auditRights: "Annual audit rights with reasonable notice",
+      includeTransferClause: geo === "eu",
+      transferMechanism: geo === "eu" ? "EU SCCs and UK IDTA" : null,
+    },
+    irPlaybook: {
+      cause: "Compromised vendor credential exposed a limited support dataset",
+      dataTypes: ["names", "emails", "account IDs", "support notes"],
+      affectedCount: slot === 1 ? "186,000" : "24,500",
+      jurisdictions,
+      processorInvolved: true,
+      contained: "Credentials revoked, sessions invalidated, logs preserved, vendor access restricted",
+      organisationType: `${industry} operator`,
+    },
+    biometric: usesBiometric ? {
+      biometricTypes: ["facial template", "voiceprint"],
+      orgType: `${industry} organisation`,
+      purpose: "Identity verification and fraud prevention",
+      jurisdictions,
+      enrolledCount: slot === 1 ? "120,000" : "18,000",
+    } : null,
+    registration: {
+      organization_name: c.companyName,
+      organization_country: c.countryCode,
+      organization_size: slot === 1 ? "large" : "medium",
+      industry,
+      email: c.privacyEmail,
+      employee_count: c.employeeCount,
+      annual_revenue_usd: slot === 1 ? 310000000 : 72000000,
+      data_subjects_count: slot === 1 ? 1200000 : 95000,
+      role: "controller",
+      processes_personal_data: true,
+      processes_special_categories: usesBiometric,
+      processes_children_data: /gaming|education|media/i.test(industry),
+      large_scale_monitoring: slot === 1,
+      uses_ai_systems: /ai|adtech|financial|health|gaming/i.test(industry),
+      ai_high_risk: /hr|health|financial/i.test(industry),
+      ai_general_purpose_provider: /ai/i.test(industry),
+      cross_border_transfers: true,
+      markets_served: jurisdictions,
+      has_eu_establishment: geo === "eu",
+      has_uk_establishment: geo === "eu",
+      acts_as_data_broker: /adtech|marketing/i.test(industry),
+      sells_or_shares_personal_info: /adtech|marketing|media/i.test(industry),
+      processes_biometrics_for_id: usesBiometric,
+    },
+  };
+}
+
+function buildDeterministicGeo(industry: string, geo: string, slot: number, companyId: string, companyName?: string) {
+  const c = { ...buildCompany(industry, geo, slot, companyId), companyName: companyName || buildCompany(industry, geo, slot, companyId).companyName };
+  if (geo === "eu") {
+    const activities = ["Customer account management", "Security monitoring", "Marketing preferences"].map((name, i) => ({
+      activity_name: name,
+      category: ["customer_service", "technology", "marketing"][i],
+      purpose: `${name} for ${industry.toLowerCase()} services`,
+      lawful_basis: i === 2 ? "Consent" : "Legitimate interests",
+      special_category_basis: null,
+      data_categories: ["contact details", "account identifiers", "usage logs"],
+      data_subjects: "Customers and platform users",
+      recipients: "Hosting, analytics, and support providers",
+      transfer_destination: "United States",
+      transfer_mechanism: "EU SCCs and UK IDTA",
+      retention_period: "24 months after account closure",
+      security_measures: "MFA, encryption, access logging, vendor review",
+    }));
+    return {
+      lia: {
+        organization_name: c.companyName,
+        processing_description: `${industry} service analytics and fraud prevention`,
+        sector: industry,
+        stated_purpose: "Improve reliability, prevent fraud, and support users",
+        relationship_type: "Direct customer relationship",
+        data_categories: ["account data", "usage logs", "device identifiers"],
+        jurisdictions: ["EU", "UK"],
+        alternatives_considered: "Consent and aggregate-only analytics were considered but would not support security monitoring",
+        purpose_details: { interest_holder: c.companyName, interest_type: "Operational security", purpose_text: "Maintain secure and reliable services" },
+        necessity_details: { alternatives: "Aggregate reporting and shorter retention", why_consent_not_used: "Security controls must operate consistently", data_minimised: "Only event metadata is processed", pseudonymisation_options: "User IDs are pseudonymised in analytics" },
+        balancing_details: { reasonable_expectation: "Users expect security and service telemetry", vulnerable_subjects: [], potential_harm: "Unexpected profiling if safeguards fail", safeguards: ["opt-out where applicable", "role-based access", "short retention"], opt_out_mechanism: "Privacy centre preference controls", special_category_data: false, balancing_text: "Benefits outweigh limited privacy impact with safeguards" },
+      },
+      dpia: {
+        processing_activity_name: `${industry} platform monitoring`,
+        description: "Monitoring service events to detect abuse and reliability issues",
+        purpose: "Security, fraud prevention, and service resilience",
+        data_categories: ["account IDs", "IP addresses", "event logs"],
+        data_subjects: "Customers and end users",
+        volume_frequency: slot === 1 ? "Millions of events daily" : "Thousands of events daily",
+        retention: "24 months",
+        third_party_processors: ["AWS", "Snowflake", "Zendesk"],
+        automated_decisions: "No solely automated legal or similarly significant decisions",
+        existing_safeguards: ["encryption", "MFA", "DPIA review", "vendor DPAs"],
+        jurisdictions: ["EU", "UK"],
+        legal_basis_proposed: "Legitimate interests",
+        sector: industry,
+      },
+      ropa: { org_name: c.companyName, legal_entity_type: "Private company", employee_band: slot === 1 ? "1000+" : "100-499", dpo_name: c.dpoName, dpo_email: c.dpoEmail, jurisdictions: [{ code: c.countryCode, name: c.countryCode === "GB" ? "United Kingdom" : "European Union", region: "Europe" }], activities },
+      euNotice: {
+        controller_name: c.companyName,
+        controller_address: "1 Privacy Square, Dublin, Ireland",
+        contact_email: c.privacyEmail,
+        dpo_details: `${c.dpoName}, ${c.dpoEmail}`,
+        dpo_name: c.dpoName,
+        dpo_email: c.dpoEmail,
+        processing_purposes: ["Provide services", "Secure accounts", "Customer support", "Marketing preferences"],
+        data_categories: ["identity data", "contact data", "usage data", "device data"],
+        lawful_basis: ["Contract", "Legitimate interests", "Consent"],
+        third_party_recipients: ["hosting providers", "analytics providers", "support providers"],
+        transfer_outside_eea: "Yes, with SCCs and UK IDTA where required",
+        transfer_safeguards: ["SCCs", "transfer impact assessments", "encryption"],
+        retention_period: "24 months after account closure unless law requires longer",
+        automated_decisions: "No solely automated legal or similarly significant decisions",
+        special_category_basis: null,
+        supervisory_authority_eu: "Irish Data Protection Commission",
+        supervisory_authority_uk: "UK Information Commissioner's Office",
+      },
+      usNotice: null,
+      cppaRisk: null,
+      cppaCyber: null,
+    };
+  }
+  return {
+    usNotice: {
+      business_name: c.companyName,
+      business_description: `${industry} provider operating digital services in the United States`,
+      contact_email: c.privacyEmail,
+      data_categories: "Identifiers, contact details, device data, usage data, transaction records, and support communications",
+      collection_purposes: "Provide services, secure accounts, process transactions, support users, and improve products",
+      third_party_sharing: "Shared with service providers for hosting, analytics, payments, and support",
+      third_party_categories: "Cloud hosting, analytics, payment, customer support, and security vendors",
+      sale_or_sharing: /adtech|marketing|media/i.test(industry) ? "Limited sharing for cross-context advertising" : "No sale; limited service-provider disclosure",
+      retention_general: "Retained for the account life plus 24 months unless law requires longer",
+      sensitive_data_types: /health|financial|hr/i.test(industry) ? "Account credentials and sector-specific sensitive data" : "Account credentials only",
+      data_sources: "Provided by users, generated during service use, and received from service providers",
+    },
+    cppaRisk: {
+      q1_revenue: slot === 1 ? "Over $25 million" : "$20M-$100M", q2_consumers: slot === 1 ? "Over 100,000" : "50,000-100,000", q3_sector: industry,
+      q4_pi_categories: ["identifiers", "internet activity", "commercial information"], q5_sell_share: /adtech|marketing|media/i.test(industry) ? "Yes" : "No", q6_right_know: "Yes", q7_right_delete: "Yes", q8_right_correct: "Yes", q9_opt_out: "Yes", q10_id_verification: "Documented", q11_policy_review: "Annual", q12_notice_at_collection: "Provided", q13_notice_content: "Complete", q14_employee_notice: "Provided", q15_sensitive_pi: /health|financial|hr/i.test(industry) ? "Yes" : "No", q16_sensitive_limit: "Available where required", q17_sensitive_basis: "Service delivery and security", q18_admt_use: /ai|financial|hr/i.test(industry) ? "Yes" : "No", q19_admt_description: "Risk scoring and service personalization", q20_admt_opt_out: "Available where required", i1_processing_purpose: "Service delivery, security, analytics, and support", i2_retention_period: "24 months", i2_retention_criteria: "Account lifecycle and legal requirements", i2_retention_detail: "Deleted or de-identified after retention window", i3_ca_consumer_band: slot === 1 ? "100k+" : "50k-100k", i4_disclosure_mechanisms: ["privacy notice", "preference centre", "DSAR portal"], i5_admt_logic: "Rules-based scoring with human review", i5_admt_training_source: "Internal operational data", i5_admt_fairness_testing: "Quarterly bias review", i5_admt_human_review: "Available on request", i6_vendors: "AWS, Snowflake, Zendesk", i7_internal_contributors: "Privacy, security, legal, product", i7_external_consultees: "Outside privacy counsel", i8_certifying_exec_name: "Jordan Lee", i8_certifying_exec_title: "Chief Privacy Officer", i9_has_existing_dpia: "Yes", i9_existing_dpia_summary: "Existing DPIA covers analytics and security monitoring",
+    },
+    cppaCyber: {
+      profile: { industry, incidents_12mo: "1", framework: "NIST CSF", last_audit: "Within 12 months" },
+      industry_sector: industry,
+      controls: Object.fromEntries(["c1_auth", "c2_encryption", "c3_zero_trust", "c4_account_mgmt", "c5_inventory", "c7_vuln_mgmt", "c8_audit_logs", "c9_network_mon", "c10_anti_malware", "c14_third_party", "c15_retention", "c16_training", "c17_incident", "c18_continuity"].map((k) => [k, ["implemented", "Documented and reviewed"]])),
+    },
+    lia: null,
+    dpia: null,
+    ropa: null,
+    euNotice: null,
+  };
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
@@ -298,14 +546,45 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "invalid json" }, 400); }
-  const { industry, geo, company_slot, company_id } = body ?? {};
+  const { industry, geo, company_slot, company_id, part, company_name, use_claude } = body ?? {};
   if (!industry || !geo || !company_slot || !company_id) {
     return json({ error: "missing required fields: industry, geo, company_slot, company_id" }, 400);
   }
 
   try {
+    if (part === "profile") {
+      if (!use_claude) return json(buildDeterministicProfile(industry, geo, company_slot, company_id), 200);
+      const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 6000);
+      return json(extractJson(callAText), 200);
+    }
+
+    if (part === "geo") {
+      const name = company_name || company_id;
+      if (!use_claude) return json(buildDeterministicGeo(industry, geo, company_slot, company_id, name), 200);
+      const callBText = await callClaude(
+        SYSTEM_PROMPT,
+        geo === "eu"
+          ? buildCallBEUPrompt(industry, company_slot, name)
+          : buildCallBUSPrompt(industry, company_slot, name),
+        4500,
+      );
+      return json(extractJson(callBText), 200);
+    }
+  } catch (e) {
+    return json({ error: "fixture generation failed", detail: (e as Error).message }, 502);
+  }
+
+  if (!use_claude) {
+    return json({
+      ...buildDeterministicProfile(industry, geo, company_slot, company_id),
+      ...buildDeterministicGeo(industry, geo, company_slot, company_id),
+    }, 200);
+  }
+
+  return streamJsonWork(async () => {
+
     // Call A: company profile + shared tools (governance, dpa, irPlaybook, biometric, registration)
-    const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id));
+    const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 6000);
     const profileData = extractJson(callAText);
     const companyName: string = profileData.companyName ?? company_id;
 
@@ -315,13 +594,11 @@ Deno.serve(async (req) => {
       geo === "eu"
         ? buildCallBEUPrompt(industry, company_slot, companyName)
         : buildCallBUSPrompt(industry, company_slot, companyName),
+      4500,
     );
     const geoData = extractJson(callBText);
 
     // Merge: geoData fields overwrite profileData where both exist (shouldn't overlap)
-    return json({ ...profileData, ...geoData }, 200);
-
-  } catch (e) {
-    return json({ error: "fixture generation failed", detail: (e as Error).message }, 502);
-  }
+    return { ...profileData, ...geoData };
+  });
 });
