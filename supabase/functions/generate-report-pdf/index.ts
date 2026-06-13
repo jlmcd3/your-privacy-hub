@@ -649,7 +649,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
 </style></head>
 <body><div class="shell">
   <header class="header">
-    <span class="logo-tile">enduserprivacy.com</span>
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
     <p class="eyebrow">Compliance Tool · Customised Analysis</p>
     <h1>${escHtml(opts.title)}</h1>
     ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
