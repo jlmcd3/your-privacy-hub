@@ -143,6 +143,24 @@ export default function StressRunsSection() {
     toast[fail ? "warning" : "success"](`${TOOL_LABEL[tool]} stress: ${ok} ok, ${fail} failed`);
   }
 
+  async function onRunAll() {
+    if (!user) { toast.error("Sign in first"); return; }
+    setRunningAll(true);
+    cancelAll.current = false;
+    let ok = 0, fail = 0;
+    for (const tool of toolKeys) {
+      if (cancelAll.current) break;
+      try {
+        await onRun(tool);
+        ok++;
+      } catch {
+        fail++;
+      }
+    }
+    setRunningAll(false);
+    toast[fail ? "warning" : "success"](`Run All finished — ${ok} tools ok, ${fail} failed`);
+  }
+
   async function onDeleteArtifact(a: HarnessArtifact) {
     setBusy(`del::${a.id}`);
     try {
