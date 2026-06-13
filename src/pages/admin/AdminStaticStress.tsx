@@ -75,6 +75,7 @@ type Batch = {
   completed_jobs: number; failed_jobs: number;
   started_at: string | null; completed_at: string | null;
   error_log: string | null;
+  setup_total: number; setup_done: number;
 };
 type Job = {
   id: string; company_name: string; industry: string; tool_slug: string;
