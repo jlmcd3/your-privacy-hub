@@ -166,6 +166,11 @@ export default function AdminStaticStress() {
         } as BatchRow;
       });
       setAllBatches(merged);
+      setActiveBatch((current) => {
+        const currentFresh = current ? merged.find((b) => b.id === current.id) : null;
+        if (currentFresh && currentFresh.status !== "cancelled") return currentFresh;
+        return merged.find((b) => b.status === "running" || b.status === "pending") ?? current;
+      });
     };
     load();
     const iv = setInterval(load, 10_000);
@@ -325,19 +330,23 @@ export default function AdminStaticStress() {
 
   useEffect(() => {
     if (!activeBatch?.id) return;
-    if (activeBatch.status === "complete" || activeBatch.status === "cancelled") return;
-    const interval = setInterval(async () => {
+    if (activeBatch.status === "cancelled") return;
+    const loadJobs = async () => {
       const { data: b } = await supabase.from("static_stress_batches")
         .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log, setup_total, setup_done")
         .eq("id", activeBatch.id).single();
-      if (b) setActiveBatch(b as Batch);
       const { data: jobs } = await supabase.from("static_stress_jobs")
         .select("id, company_name, industry, tool_slug, status, started_at, completed_at, error_message")
         .eq("batch_id", activeBatch.id)
         .order("started_at", { ascending: false, nullsFirst: false })
         .limit(1100);
-      setRecentJobs((jobs ?? []) as Job[]);
-    }, 5000);
+      const jobRows = (jobs ?? []) as Job[];
+      const liveCount = jobRows.filter((j) => j.status === "pending" || j.status === "running").length;
+      if (b) setActiveBatch({ ...(b as Batch), status: liveCount > 0 ? "running" : b.status });
+      setRecentJobs(jobRows);
+    };
+    loadJobs();
+    const interval = setInterval(loadJobs, 5000);
     return () => clearInterval(interval);
   }, [activeBatch?.id, activeBatch?.status]);
 
@@ -672,7 +681,7 @@ export default function AdminStaticStress() {
               </p>
             );
           })()}
-          <details className="text-xs">
+          <details className="text-xs" open>
             <summary className="cursor-pointer">Recent jobs ({recentJobs.length})</summary>
             <table className="w-full mt-2 text-left">
               <thead><tr className="text-muted-foreground"><th>Status</th><th>Company</th><th>Tool</th><th>Industry</th><th>Note</th></tr></thead>
