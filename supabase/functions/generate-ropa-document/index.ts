@@ -28,6 +28,8 @@ import {
 } from "https://esm.sh/docx@9.6.1";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
+const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CORS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -213,7 +215,7 @@ async function renderPdf(html: string, title: string): Promise<Uint8Array> {
       sandbox: Deno.env.get("PDFSHIFT_SANDBOX") === "true",
       footer: {
         source:
-          '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c5a54;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
+          '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c6d7a;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
           `<span>${safeTitle}</span>` +
           '<span>EndUserPrivacy.com · Page <span class="pageNumber"></span> / <span class="totalPages"></span></span>' +
           "</div>",
@@ -417,35 +419,51 @@ function buildHtml(d: AssembledData): string {
   <title>Records of Processing Activities — ${escapeHtml(d.client?.name ?? "")}</title>
   <style>
     body { font-family: Georgia, "Times New Roman", serif; color: #1a1a1a; max-width: 880px; margin: 32px auto; padding: 0 32px; line-height: 1.5; }
-    h1 { font-size: 28px; margin-bottom: 4px; }
-    h2 { font-size: 18px; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 32px; }
-    h3 { font-size: 15px; margin-top: 18px; }
-    .cover { text-align: center; padding: 48px 0; border-bottom: 2px solid #1a1a1a; }
-    .cover .meta { color: #555; font-size: 13px; margin-top: 8px; }
-    .confidential { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 16px; }
-    table.kv { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
-    table.kv th { text-align: left; padding: 4px 12px 4px 0; color: #666; font-weight: 600; vertical-align: top; width: 200px; font-size: 12px; }
-    table.kv td { padding: 4px 0; font-size: 13px; }
-    table.grid { width: 100%; border-collapse: collapse; font-size: 12px; }
-    table.grid th, table.grid td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; }
-    table.grid th { background: #f5f5f5; }
-    .activity { page-break-inside: avoid; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px dashed #e0e0e0; }
-    .signature { margin-top: 32px; border-top: 1px solid #ccc; padding-top: 16px; }
-    .footer-note { font-size: 11px; color: #777; margin-top: 24px; }
+    body { font-family:Georgia,'Times New Roman',serif; color:#1a1916;
+      max-width:880px; margin:0 auto; padding:0; line-height:1.5;
+      background:#f5f8fa; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .shell { background:#fff; border:1px solid #dde5ea; border-radius:14px;
+      overflow:hidden; margin:32px; }
+    .header { background:#0c2a44; color:#fff; padding:22px 26px 24px; }
+    .header .logo-img { display:block; height:32px; width:auto; margin-bottom:12px; object-fit:contain; }
+    .header .eyebrow { font-size:9px; font-weight:600; text-transform:uppercase;
+      letter-spacing:0.14em; color:#93b5c6; margin:0 0 4px; }
+    .header h1 { font-family:Georgia,serif; font-size:20px; margin:0; font-weight:700; line-height:1.3; }
+    .header .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+    .confidential { font-size:10px; color:#8a9eb1; text-transform:uppercase;
+      letter-spacing:0.1em; margin-top:8px; }
+    .body { padding:24px 26px 32px; }
+    h2 { font-size:16px; color:#0c2a44; border-bottom:1px solid #dde5ea;
+      padding-bottom:4px; margin-top:28px; }
+    table.kv { width:100%; border-collapse:collapse; margin:8px 0 16px; }
+    table.kv th { text-align:left; padding:4px 12px 4px 0; color:#5c6d7a;
+      font-weight:600; vertical-align:top; width:200px; font-size:12px; }
+    table.kv td { padding:4px 0; font-size:13px; }
+    table.grid { width:100%; border-collapse:collapse; font-size:12px; }
+    table.grid th, table.grid td { border:1px solid #dde5ea; padding:6px 8px;
+      text-align:left; vertical-align:top; }
+    table.grid th { background:#edf2f5; color:#0c2a44; }
+    .activity { page-break-inside:avoid; margin-bottom:16px; padding-bottom:8px;
+      border-bottom:1px dashed #dde5ea; }
+    .signature { margin-top:32px; border-top:2px solid #2d9b90; padding-top:16px; }
+    .footer-note { font-size:11px; color:#5c6d7a; margin-top:24px; }
   </style>
 </head>
 <body>
 
-  <section class="cover">
-    <h1>${escapeHtml(d.client?.name ?? "")}</h1>
-    <div style="font-size: 18px; color: #333; margin-top: 8px; font-weight: 600;">Records of Processing Activities</div>
-    <div style="font-size: 13px; color: #555; margin-top: 4px;">Maintained pursuant to Article 30 of the General Data Protection Regulation (GDPR)</div>
-    <div class="meta">${escapeHtml(d.settings.documentDate)}</div>
-    <div class="meta">Jurisdictions: ${escapeHtml(jurisdictionList(d.jurisdictions, true) || "—")}</div>
-    <div class="meta">Author: ${escapeHtml(d.settings.authorName)} · Version ${d.session.version_number}</div>
-    ${d.settings.internalReference ? `<div class="meta">Internal reference: ${escapeHtml(d.settings.internalReference)}</div>` : ""}
-    <div class="confidential">Confidential — internal compliance record</div>
-  </section>
+  <div class="shell">
+  <header class="header">
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
+    <p class="eyebrow">Compliance Document · Article 30 Record</p>
+    <h1>${escapeHtml(d.client?.name ?? "")} — Records of Processing Activities</h1>
+    <div class="meta">
+      ${escapeHtml(d.settings.documentDate)} · Jurisdictions: ${escapeHtml(jurisdictionList(d.jurisdictions, true) || "—")} · Version ${d.session.version_number}
+      ${d.settings.authorName ? ` · Author: ${escapeHtml(d.settings.authorName)}` : ""}
+      ${d.settings.internalReference ? ` · Ref: ${escapeHtml(d.settings.internalReference)}` : ""}
+    </div>
+    <div class="confidential">Confidential — Internal Compliance Record</div>
+  </header>
+  <div class="body">
 
   <p style="font-size: 13px; margin-top: 24px;">This record is maintained in accordance with Article 30 of the General Data Protection Regulation (EU) 2016/679 (GDPR) and, where applicable, Article 30 of the UK GDPR as retained by the Data Protection Act 2018. It documents all processing activities carried out by the controller and, where relevant, the processor.</p>
 
@@ -497,6 +515,7 @@ function buildHtml(d: AssembledData): string {
 
   <p class="footer-note" style="margin-top: 32px;">This record was last reviewed on ${escapeHtml(d.settings.documentDate)}. Maintained in compliance with Article 30 GDPR obligations. Review recommended at least annually or upon any material change to processing activities.</p>
 
+  </div></div>
 </body>
 </html>`;
 }

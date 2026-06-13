@@ -11,6 +11,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
+
 // ─────────────────────────────────────────────────────────────────────────
 // NARRATIVE SANITIZER
 // Strips internal status tags and bracketed citation markers from prose
@@ -65,7 +67,7 @@ async function generatePDF(
         // Embed a small footer with the EndUserPrivacy mark + page numbers.
         footer: {
           source:
-            '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c5a54;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
+            '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c6d7a;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
             `<span>${title.replace(/</g, "&lt;")}</span>` +
             '<span>EndUserPrivacy.com · Page <span class="pageNumber"></span> / <span class="totalPages"></span></span>' +
             "</div>",
@@ -133,25 +135,43 @@ function buildLIReportHTML(report: any, assessment: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
-body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #1a1916; line-height: 1.5; margin: 40px; max-width: 800px; }
-h1 { font-size: 22px; border-bottom: 2px solid #1a1916; padding-bottom: 8px; }
-h2 { font-size: 16px; color: #1a5276; margin-top: 28px; }
-h3 { font-size: 14px; color: #2c3e50; margin-top: 20px; }
-.verdict-pass { color: #1e6b3c; font-weight: bold; }
-.verdict-fail { color: #a32d2d; font-weight: bold; }
-.verdict-uncertain { color: #8b5e0a; font-weight: bold; }
-.strength { font-size: 18px; font-weight: bold; padding: 8px 16px; border-radius: 4px; display: inline-block; margin-bottom: 12px; }
-.strength-strong { background: #eafaf1; color: #1e6b3c; }
-.strength-moderate { background: #fef9ec; color: #8b5e0a; }
-.strength-weak { background: #fcebeb; color: #a32d2d; }
-.disclaimer { background: #fef9ec; border-left: 4px solid #8b5e0a; padding: 12px 16px; margin: 24px 0; font-size: 12px; }
-.section { margin-bottom: 24px; }
-ul { padding-left: 20px; } li { margin-bottom: 4px; }
-.meta { color: #5c5a54; font-size: 12px; margin-bottom: 24px; }
-.label { font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: #5c5a54; }
+body { font-family:'Georgia','Times New Roman',serif; font-size:11pt; color:#1a1916;
+  line-height:1.5; margin:0; background:#f5f8fa; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.shell { background:#fff; border:1px solid #dde5ea; border-radius:14px; overflow:hidden; }
+.header { background:#0c2a44; color:#fff; padding:22px 26px 24px; }
+.header .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+.header .eyebrow { font-size:9px; font-weight:600; text-transform:uppercase;
+  letter-spacing:0.14em; color:#93b5c6; margin:0 0 4px; }
+.header h1 { font-family:'Georgia','Times New Roman',serif; font-size:22px; margin:0;
+  line-height:1.25; font-weight:700; }
+.header .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+.body { padding:22px 26px 26px; }
+h2 { font-size:16px; color:#0c2a44; margin-top:28px; border-bottom:1px solid #dde5ea; padding-bottom:6px; }
+h3 { font-size:14px; color:#2d9b90; margin-top:20px; }
+.verdict-pass { color:#1e6b3c; font-weight:bold; }
+.verdict-fail { color:#a32d2d; font-weight:bold; }
+.verdict-uncertain { color:#8b5e0a; font-weight:bold; }
+.strength { font-size:18px; font-weight:bold; padding:8px 16px; border-radius:4px;
+  display:inline-block; margin-bottom:12px; }
+.strength-strong { background:#eafaf1; color:#1e6b3c; }
+.strength-moderate { background:#fef9ec; color:#8b5e0a; }
+.strength-weak { background:#fcebeb; color:#a32d2d; }
+.disclaimer { background:#e5f4f2; border-left:4px solid #2d9b90; padding:12px 16px;
+  margin:24px 0; font-size:12px; border-radius:0 6px 6px 0; }
+.section { margin-bottom:24px; }
+ul { padding-left:20px; } li { margin-bottom:4px; }
+.meta { color:#5c6d7a; font-size:12px; margin-bottom:24px; }
+.label { font-weight:bold; text-transform:uppercase; font-size:11px;
+  letter-spacing:0.05em; color:#5c6d7a; }
 </style></head><body>
-<h1>Legitimate Interest Assessment</h1>
-${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name })}
+<div class="shell">
+<header class="header">
+  <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
+  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <h1>Legitimate Interest Assessment</h1>
+  <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
+</header>
+<div class="body">
 <div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <h2>Assessment Summary</h2>
 <div class="section">
@@ -215,32 +235,48 @@ ${fineLine}</div>`;
   })()}
 <p class="meta">${escHtml(report.data_currency_note || "")}</p>
 <div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
-</body></html>`;
+</div></div></body></html>`;
 }
 
 function buildGovernanceReportHTML(report: any, assessment: any): string {
   const domains = report.domain_findings || {};
   const severityColor: Record<string, string> = {
     Critical: "#a32d2d", High: "#c0722a", Medium: "#8b5e0a",
-    Low: "#1a5276", Compliant: "#1e6b3c", Unknown: "#5c5a54"
+    Low: "#2d9b90", Compliant: "#1e6b3c", Unknown: "#5c5a54"
   };
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
-body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #1a1916; line-height: 1.5; margin: 40px; max-width: 800px; }
-h1 { font-size: 22px; border-bottom: 2px solid #1a1916; padding-bottom: 8px; }
-h2 { font-size: 16px; color: #1a5276; margin-top: 28px; }
-h3 { font-size: 14px; color: #2c3e50; margin-top: 20px; }
-.rating { font-size: 18px; font-weight: bold; padding: 8px 16px; border-radius: 4px; background: #eaf2fb; color: #1a5276; display: inline-block; margin-bottom: 12px; }
-.severity { font-weight: bold; font-size: 12px; padding: 2px 8px; border-radius: 3px; color: white; display: inline-block; }
-.domain { border: 1px solid #dddbd3; border-radius: 6px; padding: 14px 16px; margin-bottom: 16px; }
-.disclaimer { background: #fef9ec; border-left: 4px solid #8b5e0a; padding: 12px 16px; margin: 24px 0; font-size: 12px; }
-.meta { color: #5c5a54; font-size: 12px; margin-bottom: 24px; }
-.label { font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: #5c5a54; }
-ul { padding-left: 20px; } li { margin-bottom: 4px; }
+body { font-family:'Georgia','Times New Roman',serif; font-size:11pt; color:#1a1916;
+  line-height:1.5; margin:0; background:#f5f8fa; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.shell { background:#fff; border:1px solid #dde5ea; border-radius:14px; overflow:hidden; }
+.header { background:#0c2a44; color:#fff; padding:22px 26px 24px; }
+.header .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+.header .eyebrow { font-size:9px; font-weight:600; text-transform:uppercase;
+  letter-spacing:0.14em; color:#93b5c6; margin:0 0 4px; }
+.header h1 { font-family:'Georgia','Times New Roman',serif; font-size:22px; margin:0; font-weight:700; }
+.header .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+.body { padding:22px 26px 26px; }
+h2 { font-size:16px; color:#0c2a44; margin-top:28px; border-bottom:1px solid #dde5ea; padding-bottom:6px; }
+h3 { font-size:14px; color:#0c2a44; margin-top:20px; }
+.rating { font-size:18px; font-weight:bold; padding:8px 16px; border-radius:4px;
+  background:#e5f4f2; color:#0c2a44; display:inline-block; margin-bottom:12px; }
+.severity { font-weight:bold; font-size:12px; padding:2px 8px; border-radius:3px; color:white; display:inline-block; }
+.domain { border:1px solid #dde5ea; border-radius:6px; padding:14px 16px; margin-bottom:16px; }
+.disclaimer { background:#e5f4f2; border-left:4px solid #2d9b90; padding:12px 16px;
+  margin:24px 0; font-size:12px; border-radius:0 6px 6px 0; }
+.meta { color:#5c6d7a; font-size:12px; margin-bottom:24px; }
+.label { font-weight:bold; text-transform:uppercase; font-size:11px; letter-spacing:0.05em; color:#5c6d7a; }
+ul { padding-left:20px; } li { margin-bottom:4px; }
 </style></head><body>
-<h1>Data Governance Readiness Assessment</h1>
-${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name })}
+<div class="shell">
+<header class="header">
+  <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
+  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <h1>Data Governance Readiness Assessment</h1>
+  <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
+</header>
+<div class="body">
 <div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <h2>Executive Summary</h2>
 <div class="rating">Readiness: ${escHtml(report.overall_readiness_rating || "Unknown")}</div>
@@ -278,7 +314,7 @@ ${dn.gap_description ? `<p class="label">Gap</p><p>${escHtml(dn.gap_description)
 <h2>Cross-Domain Considerations</h2>
 <p>${escHtml(report.interaction_effects || "")}</p>
 <div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
-</body></html>`;
+</div></div></body></html>`;
 }
 
 function buildDPIAReportHTML(report: any, dpia: any): string {
@@ -294,19 +330,37 @@ function buildDPIAReportHTML(report: any, dpia: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
-body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #1a1916; line-height: 1.5; margin: 40px; max-width: 800px; }
-h1 { font-size: 22px; border-bottom: 2px solid #1a1916; padding-bottom: 8px; }
-h2 { font-size: 16px; color: #1a5276; margin-top: 28px; }
-.guidance { background: #f4f0fd; border-left: 4px solid #5b3a8a; padding: 10px 14px; margin: 12px 0; font-size: 12px; }
-.completion { background: #fef9ec; border-left: 4px solid #8b5e0a; padding: 10px 14px; margin: 12px 0; font-size: 12px; }
-.signoff { border: 1px solid #dddbd3; padding: 16px; margin-top: 16px; font-family: "Courier New", monospace; font-size: 12px; line-height: 2.2; }
-.disclaimer { background: #fef9ec; border-left: 4px solid #8b5e0a; padding: 12px 16px; margin: 24px 0; font-size: 12px; }
-.meta { color: #5c5a54; font-size: 12px; margin-bottom: 24px; }
-.label { font-weight: bold; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: #5c5a54; }
-ul { padding-left: 20px; } li { margin-bottom: 4px; }
+body { font-family:'Georgia','Times New Roman',serif; font-size:11pt; color:#1a1916;
+  line-height:1.5; margin:0; background:#f5f8fa; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.shell { background:#fff; border:1px solid #dde5ea; border-radius:14px; overflow:hidden; }
+.header { background:#0c2a44; color:#fff; padding:22px 26px 24px; }
+.header .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+.header .eyebrow { font-size:9px; font-weight:600; text-transform:uppercase;
+  letter-spacing:0.14em; color:#93b5c6; margin:0 0 4px; }
+.header h1 { font-family:'Georgia','Times New Roman',serif; font-size:22px; margin:0; font-weight:700; }
+.header .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+.body { padding:22px 26px 26px; }
+h2 { font-size:16px; color:#0c2a44; margin-top:28px; border-bottom:1px solid #dde5ea; padding-bottom:6px; }
+.guidance { background:#edf2f5; border-left:4px solid #8a9eb1; padding:10px 14px;
+  margin:12px 0; font-size:12px; border-radius:0 6px 6px 0; }
+.completion { background:#e5f4f2; border-left:4px solid #2d9b90; padding:10px 14px;
+  margin:12px 0; font-size:12px; border-radius:0 6px 6px 0; }
+.signoff { border:1px solid #dde5ea; padding:16px; margin-top:16px;
+  font-family:'Courier New',monospace; font-size:12px; line-height:2.2; }
+.disclaimer { background:#e5f4f2; border-left:4px solid #2d9b90; padding:12px 16px;
+  margin:24px 0; font-size:12px; border-radius:0 6px 6px 0; }
+.meta { color:#5c6d7a; font-size:12px; margin-bottom:24px; }
+.label { font-weight:bold; text-transform:uppercase; font-size:11px; letter-spacing:0.05em; color:#5c6d7a; }
+ul { padding-left:20px; } li { margin-bottom:4px; }
 </style></head><body>
-<h1>DPIA Framework</h1>
-${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") })}
+<div class="shell">
+<header class="header">
+  <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
+  <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+  <h1>DPIA Framework</h1>
+  <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") }).replace(/<[^>]+>/g,'')}</div>
+</header>
+<div class="body">
 <div class="disclaimer"><strong>IMPORTANT: </strong>${escHtml(report.framework_disclaimer || "")}</div>
 ${(meta.applicable_frameworks || []).length ? `<p><span class="label">Applicable frameworks: </span>${(meta.applicable_frameworks || []).join(" &nbsp;|&nbsp; ")}</p>` : ""}
 ${meta.supervisory_authority_consultation_trigger ? `<div class="completion"><strong>Supervisory authority consultation trigger: </strong>${meta.supervisory_authority_consultation_trigger}</div>` : ""}
@@ -339,7 +393,7 @@ Decision: [ ] Processing may proceed &nbsp;&nbsp; [ ] Further mitigation require
 Signature: ______________________
 </div>` : ""}
 <div class="disclaimer"><strong>IMPORTANT: </strong>${escHtml(report.framework_disclaimer || "")}</div>
-</body></html>`;
+</div></div></body></html>`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -534,9 +588,9 @@ function buildTextReportHTML(opts: TextReportOpts): string {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escHtml(opts.title)}</title>
 <style>
   :root {
-    --navy:#0f172a; --navy-ink:#1a1916; --paper:#faf8f3; --card:#ffffff;
-    --border:#e6e3da; --steel:#94a3b8; --silver:#eef0f2; --slate:#5c5a54;
-    --gold:#c0911f; --gold-soft:#fbf3df; --warn:#b45309; --warn-soft:#fdf3e1; --accent:#1a5276;
+    --navy:#0c2a44; --navy-ink:#1a1916; --paper:#f5f8fa; --card:#ffffff;
+    --border:#dde5ea; --steel:#8a9eb1; --silver:#edf2f5; --slate:#5c6d7a;
+    --teal:#2d9b90; --teal-soft:#e5f4f2; --warn:#b45309; --warn-soft:#fdf3e1; --accent:#2d9b90;
   }
   * { box-sizing: border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--navy-ink);
@@ -544,16 +598,14 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:22px 26px 24px; }
-  .header .logo-tile { display:inline-block; background:#fff; border-radius:6px; padding:5px 10px;
-    margin-bottom:12px; font-family:'Georgia','Times New Roman',serif; font-size:13px;
-    font-weight:700; color:var(--navy); letter-spacing:0.02em; }
+  .header .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
   .header .eyebrow { font-size:9px; font-weight:600; text-transform:uppercase;
-    letter-spacing:0.14em; color:#93c5fd; margin:0 0 4px; }
+    letter-spacing:0.14em; color:#93b5c6; margin:0 0 4px; }
   .header h1 { font-family:'Georgia','Times New Roman',serif; font-size:22px; margin:0;
     line-height:1.25; font-weight:700; }
   .header .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
   .body { padding:22px 26px 26px; }
-  .disclaimer { border-left:4px solid var(--gold); background:var(--gold-soft);
+  .disclaimer { border-left:4px solid var(--teal); background:var(--teal-soft);
     border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
   .disclaimer .kw { font-weight:600; color:var(--navy); }
   .callout { border-left:4px solid var(--warn); background:var(--warn-soft);
@@ -588,7 +640,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     background:var(--navy); color:#fff; font-size:10px; font-weight:600;
     display:inline-flex; align-items:center; justify-content:center; margin-top:1px; }
   ul.dot-list .dot { flex:0 0 auto; width:6px; height:6px; border-radius:999px;
-    background:var(--accent); margin-top:8px; }
+    background:var(--teal); margin-top:8px; }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border);
     font-size:10px; color:var(--slate); text-align:center; }
   table.md-table { border-collapse:collapse; width:100%; font-size:10.5pt; margin:12px 0; }
@@ -597,7 +649,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
 </style></head>
 <body><div class="shell">
   <header class="header">
-    <span class="logo-tile">enduserprivacy.com</span>
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
     <p class="eyebrow">Compliance Tool · Customised Analysis</p>
     <h1>${escHtml(opts.title)}</h1>
     ${opts.metaLine ? `<div class="meta">${escHtml(opts.metaLine)}</div>` : ""}
@@ -703,13 +755,13 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
 <style>
-  :root { --navy:#0f172a; --ink:#1a1916; --paper:#faf8f3; --card:#ffffff; --border:#e6e3da; --muted:#5c5a54; --gold:#c0911f; --gold-soft:#fbf3df; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
-  .logo { display:inline-block; background:#fff; color:var(--navy); border-radius:6px; padding:5px 10px; font-size:13px; font-weight:700; margin-bottom:12px; }
-  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93c5fd; margin:0 0 4px; }
+  .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93b5c6; margin:0 0 4px; }
   h1 { font-size:24px; margin:0; line-height:1.2; }
   .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
   .summary-bar { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
@@ -719,7 +771,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
   h3 { color:var(--navy); font-size:14px; margin:0 0 8px; }
   p { margin:0 0 9px; }
   ul, ol { margin:8px 0 0; padding-left:20px; } li { margin-bottom:5px; }
-  .notice { border-left:4px solid var(--gold); background:var(--gold-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .notice { border-left:4px solid var(--teal); background:var(--teal-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
   .callout { border-left:4px solid var(--orange); background:var(--orange-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin:16px 0; }
   .section { margin-bottom:16px; }
   .domain, .risk, .annotation { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
@@ -735,7 +787,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
   <header class="header">
-    <span class="logo">enduserprivacy.com</span>
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
     <p class="eyebrow">Compliance Tool · Customised Analysis</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
@@ -852,13 +904,13 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     : `<div class="callout"><p class="label">Not yet ready for sign-off</p>${list(Array.isArray(gating.blockers) ? gating.blockers : [])}</div>`;
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
 <style>
-  :root { --navy:#0f172a; --ink:#1a1916; --paper:#faf8f3; --card:#ffffff; --border:#e6e3da; --muted:#5c5a54; --gold:#c0911f; --gold-soft:#fbf3df; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
-  .logo { display:inline-block; background:#fff; color:var(--navy); border-radius:6px; padding:5px 10px; font-size:13px; font-weight:700; margin-bottom:12px; }
-  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93c5fd; margin:0 0 4px; }
+  .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93b5c6; margin:0 0 4px; }
   h1 { font-size:24px; margin:0; line-height:1.2; }
   .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
   .summary-bar { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
@@ -870,7 +922,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   ul, ol { margin:8px 0 0; padding-left:20px; } li { margin-bottom:5px; }
   table { border-collapse:collapse; width:100%; font-size:10.5pt; margin:8px 0; }
   th { background:#f3f4f6; text-align:left; padding:4px 10px; border:1px solid var(--border); }
-  .notice { border-left:4px solid var(--gold); background:var(--gold-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .notice { border-left:4px solid var(--teal); background:var(--teal-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
   .callout { border-left:4px solid var(--orange); background:var(--orange-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin:16px 0; }
   .section { margin-bottom:16px; }
   .domain, .risk { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
@@ -881,7 +933,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
   <header class="header">
-    <span class="logo">enduserprivacy.com</span>
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
     <p class="eyebrow">Compliance Tool · Cal. Code Regs. tit. 11 §§ 7150–7157</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
@@ -1041,13 +1093,13 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Cybersecurity Audit</title>
 <style>
-  :root { --navy:#0f172a; --ink:#1a1916; --paper:#faf8f3; --card:#ffffff; --border:#e6e3da; --muted:#5c5a54; --gold:#c0911f; --gold-soft:#fbf3df; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
-  .logo { display:inline-block; background:#fff; color:var(--navy); border-radius:6px; padding:5px 10px; font-size:13px; font-weight:700; margin-bottom:12px; }
-  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93c5fd; margin:0 0 4px; }
+  .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93b5c6; margin:0 0 4px; }
   h1 { font-size:24px; margin:0; line-height:1.2; }
   .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
   .summary-bar { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
@@ -1060,7 +1112,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   ul.fsor-refs { font-size:10.5px; color:var(--muted); }
   ul.fsor-refs li { margin-bottom:4px; }
   ul.fsor-refs a { color:var(--muted); word-break:break-all; }
-  .notice { border-left:4px solid var(--gold); background:var(--gold-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .notice { border-left:4px solid var(--teal); background:var(--teal-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
   .callout { border-left:4px solid var(--orange); background:var(--orange-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin:16px 0; }
   .section { margin-bottom:16px; }
   .control, .risk, .annotation { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
@@ -1076,7 +1128,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
   <header class="header">
-    <span class="logo">enduserprivacy.com</span>
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
     <p class="eyebrow">Compliance Tool · Customised Analysis</p>
     <h1>CPPA Cybersecurity Audit</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), organizationName: orgName || null, jurisdictionLabel: "California (CPPA)" })}
