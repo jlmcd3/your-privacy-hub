@@ -535,17 +535,58 @@ function selfInvokeNext(batchId: string): void {
           });
         return;
       }
-      admin.from("static_stress_jobs")
-        .select("id", { count: "exact", head: true })
-        .eq("batch_id", batchId)
-        .eq("status", "pending")
-        .then(({ count }) => {
-          if ((count ?? 0) > 0) {
-            attempt(3);
-          } else {
-            finaliseBatch(admin, batchId).catch(console.error);
-          }
-        });
+      // Check both pending jobs AND setup completion before finalising.
+      // During the interleaved phase, 0 pending jobs might just mean setup
+      // hasn't inserted the next company's jobs yet — not a true end.
+      Promise.all([
+        admin.from("static_stress_jobs")
+          .select("id", { count: "exact", head: true })
+          .eq("batch_id", batchId)
+          .eq("status", "pending"),
+        admin.from("static_stress_batches")
+          .select("setup_done, setup_total, status")
+          .eq("id", batchId)
+          .single(),
+      ]).then(([{ count: pendingCount }, { data: batchRow }]) => {
+        const pending = pendingCount ?? 0;
+        const setupDone = batchRow?.setup_done ?? 0;
+        const setupTotal = batchRow?.setup_total ?? 0;
+        const setupComplete = setupDone >= setupTotal && setupTotal > 0;
+
+        if (pending > 0) {
+          attempt(3);
+        } else if (!setupComplete) {
+          // Setup still in progress — wait 10s and check again rather than
+          // dying. This handles the lull between company fixture insertions.
+          setTimeout(() => {
+            admin.from("static_stress_jobs")
+              .select("id", { count: "exact", head: true })
+              .eq("batch_id", batchId)
+              .eq("status", "pending")
+              .then(({ count: recheck }) => {
+                if ((recheck ?? 0) > 0) {
+                  attempt(3);
+                } else {
+                  admin.from("static_stress_batches")
+                    .select("setup_done, setup_total")
+                    .eq("id", batchId)
+                    .single()
+                    .then(({ data: recheckBatch }) => {
+                      const recheckSetupComplete =
+                        (recheckBatch?.setup_done ?? 0) >= (recheckBatch?.setup_total ?? 1) &&
+                        (recheckBatch?.setup_total ?? 0) > 0;
+                      if (recheckSetupComplete) {
+                        finaliseBatch(admin, batchId).catch(console.error);
+                      }
+                      // else: setup still going, this worker exits gracefully.
+                    });
+                }
+              });
+          }, 10_000);
+        } else {
+          finaliseBatch(admin, batchId).catch(console.error);
+        }
+      });
     });
 }
 
