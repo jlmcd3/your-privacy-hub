@@ -144,6 +144,24 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
         .update({ setup_done: companyIndex + 1 })
         .eq("id", batchId);
 
+      // After the first company's jobs are inserted, launch 8 parallel workers.
+      // They will continuously claim and process jobs as more companies are
+      // added by the ongoing setup chain. Workers self-sustain via selfInvokeNext.
+      if (companyIndex === 0 && jobRows.length > 0) {
+        await admin.from("static_stress_batches").update({
+          status: "running",
+          started_at: new Date().toISOString(),
+        }).eq("id", batchId);
+
+        const WORKER_COUNT = 8;
+        for (let w = 0; w < WORKER_COUNT; w++) {
+          await new Promise((r) => setTimeout(r, w * 800));
+          invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
+            console.warn(`[start-stress-batch] worker ${w} early-start launch failed:`, e)
+          );
+        }
+      }
+
     } catch (err) {
       const errMsg = (err as Error).message?.slice(0, 480) ?? "unknown";
       console.warn(`[start-stress-batch] fixture failed for ${companyId}:`, errMsg);
