@@ -233,7 +233,7 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       const { data: actRows, error: aErr } = await admin.from("ropa_processing_activities").insert(
         acts.map((a: any, i: number) => ({
           session_id: session.id, client_id: clientId,
-          display_name: a.activity_name, category: a.category,
+          display_name: a.activity_name, category: normalizeRopaCategory(a.category),
           status: "complete", completion_pct: 100, display_order: i,
         })),
       ).select("id, display_order");
