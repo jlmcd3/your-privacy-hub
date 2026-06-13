@@ -496,6 +496,20 @@ export default function AdminStaticStress() {
             <strong>{activeBatch.status}</strong> — {activeBatch.completed_jobs} of {activeBatch.total_jobs} complete
             {activeBatch.failed_jobs > 0 && ` (${activeBatch.failed_jobs} failed)`}
           </div>
+          {activeBatch.status === "running" && (() => {
+            const pending = (activeBatch.total_jobs ?? 0)
+              - (activeBatch.completed_jobs ?? 0)
+              - (activeBatch.failed_jobs ?? 0);
+            const WORKERS = 8;
+            const avgMinPerJob = 4;
+            const estMins = Math.ceil((pending / WORKERS) * avgMinPerJob);
+            const estHrs = (estMins / 60).toFixed(1);
+            return (
+              <p className="text-xs text-muted-foreground mt-1">
+                {WORKERS} parallel workers · ~{estHrs}h remaining at current pace
+              </p>
+            );
+          })()}
           <details className="text-xs">
             <summary className="cursor-pointer">Recent jobs ({recentJobs.length})</summary>
             <table className="w-full mt-2 text-left">
