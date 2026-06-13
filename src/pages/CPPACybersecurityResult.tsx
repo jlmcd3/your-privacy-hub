@@ -175,6 +175,23 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
           </Accordion>
         </section>
       )}
+
+      {/* Scoring legend — static UI, not AI-generated */}
+      {Array.isArray(report?.controls) && report.controls.length > 0 && (
+        <section className="bg-card border rounded-lg p-4 text-sm">
+          <p className="font-semibold mb-2">How to read these scores</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+            <div className="flex items-center gap-2"><span className="px-2 py-0.5 text-xs rounded bg-red-100 text-red-900">Critical Gap</span><span className="text-xs text-muted-foreground">0–24</span></div>
+            <div className="flex items-center gap-2"><span className="px-2 py-0.5 text-xs rounded bg-orange-100 text-orange-900">Gap</span><span className="text-xs text-muted-foreground">25–49</span></div>
+            <div className="flex items-center gap-2"><span className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-900">Partial Gap</span><span className="text-xs text-muted-foreground">50–74</span></div>
+            <div className="flex items-center gap-2"><span className="px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-900">Implemented</span><span className="text-xs text-muted-foreground">75–100</span></div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Scores reflect this tool's assessment of programme maturity based on the inputs you provided. They are not a substitute for an independent auditor's determination and should be reviewed with a qualified CPPA-registered or equivalent cybersecurity auditor before certification.
+          </p>
+        </section>
+      )}
+
       {/* Sprint 2 #1 — Auditor Independence Advisor (§ 7122(b)) */}
       <AuditorIndependenceAdvisor />
 

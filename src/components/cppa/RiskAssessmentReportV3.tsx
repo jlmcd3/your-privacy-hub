@@ -276,12 +276,10 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
       {/* § 8 Decision */}
       <SectionShell num="§ 8" title="Risk-Benefit Balancing & Decision" statute={a.sec_8_decision?.statute} fill>
         <p>{a.sec_8_decision?.analysis ?? "—"}</p>
-        <div className="rounded border bg-card p-3">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">AI recommendation (not the decision)</p>
-          <p className="font-medium">{a.sec_8_decision?.ai_recommended_outcome ?? "—"}</p>
-          {a.sec_8_decision?.recommendation_rationale && (
-            <p className="text-sm text-muted-foreground mt-1">{a.sec_8_decision.recommendation_rationale}</p>
-          )}
+        <div className="rounded border bg-muted/40 p-3 text-sm">
+          <p>
+            Record your decision in the section below. The analysis above is provided for your consideration only — this tool does not produce a recommendation on whether processing should proceed.
+          </p>
         </div>
         <div className="rounded border-2 border-dashed border-amber-400 p-3 bg-amber-50/60 dark:bg-amber-950/20">
           <p className="font-semibold text-amber-900 dark:text-amber-200">

@@ -348,6 +348,9 @@ export default function RopaSetup() {
     try {
       // Store sector on the workspace, but NEVER rename the workspace itself —
       // the org being documented in this RoPA is recorded on the session.
+      // This write is the canonical source for the sector value used by the
+      // RoPA document generator; log the values for traceability.
+      console.log("[RopaSetup] writing sector to clients", { clientId, sector: sector || null });
       await SUPA.from("clients")
         .update({ sector: sector || null })
         .eq("id", clientId);
