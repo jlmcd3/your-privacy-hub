@@ -447,6 +447,14 @@ export default function AdminStaticStress() {
               </Button>
             </div>
           )}
+          {activeBatch.status === "pending" && activeBatch.error_log && (
+            <div className="border border-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-3 text-sm space-y-2">
+              <div>⚠ Setup interrupted — {activeBatch.error_log}</div>
+              <Button size="sm" onClick={() => handleResumeSetup(activeBatch.id, activeBatch.setup_done)}>
+                Resume Setup
+              </Button>
+            </div>
+          )}
           {fixtureFailures.length > 0 && (
             <div className="border border-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-3 text-xs">
               ⚠ Fixture generation failed for {fixtureFailures.length} compan{fixtureFailures.length === 1 ? "y" : "ies"} — skipped.
