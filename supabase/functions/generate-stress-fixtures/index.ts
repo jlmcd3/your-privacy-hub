@@ -4,6 +4,7 @@
 // company (~10s). Caller is the static stress orchestrator.
 
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -89,7 +90,16 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   const caller = await verifyCaller(req);
-  if (!caller.internal) return json({ error: "forbidden" }, 403);
+  if (!caller.internal) {
+    if (!caller.userId) return json({ error: "forbidden" }, 403);
+    // Allow admin users to call directly from the admin UI.
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: isAdmin } = await admin.rpc("has_role", { _user_id: caller.userId, _role: "admin" });
+    if (!isAdmin) return json({ error: "forbidden" }, 403);
+  }
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "invalid json" }, 400); }
