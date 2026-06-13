@@ -784,7 +784,21 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   const cover = a.cover || {};
   const text = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
   const textJoin = (v: any) => Array.isArray(v)
-    ? escHtml(v.filter((x) => x !== null && x !== undefined && String(x).trim() !== "").map((x) => String(x)).join("; "))
+    ? escHtml(
+        v
+          .filter((x) => x !== null && x !== undefined)
+          .map((x) => {
+            if (x !== null && typeof x === "object") {
+              return String(
+                (x as any).name ?? (x as any).vendor_name ?? (x as any).label ??
+                (x as any).title ?? (x as any).company ?? JSON.stringify(x)
+              );
+            }
+            return String(x);
+          })
+          .filter((s) => s.trim() !== "" && s !== "{}" && s !== "null")
+          .join("; ")
+      )
     : text(v);
   const capLabel = (k: string) => {
     const s = k.replace(/_/g, " ");
