@@ -383,7 +383,7 @@ ${states
     (s) =>
       `<a id="${escapeHtml(s.state_code)}"></a>${
         // Reuse the per-state body sections so the suite stays consistent.
-        buildNoticeHtml(s, answers, generatedAtHuman)
+        buildNoticeHtml(s, answers, generatedAtHuman, false)
           .replace(/^[\s\S]*?<body>/, "")
           .replace(/<\/body>[\s\S]*$/, "")
           .replace(/<h1>[^<]*<\/h1>/, `<h2>${escapeHtml(s.state_name)} Privacy Notice</h2>`)
