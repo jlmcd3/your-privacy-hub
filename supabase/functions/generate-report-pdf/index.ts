@@ -755,13 +755,13 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
 <style>
-  :root { --navy:#0f172a; --ink:#1a1916; --paper:#faf8f3; --card:#ffffff; --border:#e6e3da; --muted:#5c5a54; --gold:#c0911f; --gold-soft:#fbf3df; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
-  .logo { display:inline-block; background:#fff; color:var(--navy); border-radius:6px; padding:5px 10px; font-size:13px; font-weight:700; margin-bottom:12px; }
-  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93c5fd; margin:0 0 4px; }
+  .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93b5c6; margin:0 0 4px; }
   h1 { font-size:24px; margin:0; line-height:1.2; }
   .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
   .summary-bar { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
@@ -771,7 +771,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
   h3 { color:var(--navy); font-size:14px; margin:0 0 8px; }
   p { margin:0 0 9px; }
   ul, ol { margin:8px 0 0; padding-left:20px; } li { margin-bottom:5px; }
-  .notice { border-left:4px solid var(--gold); background:var(--gold-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .notice { border-left:4px solid var(--teal); background:var(--teal-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
   .callout { border-left:4px solid var(--orange); background:var(--orange-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin:16px 0; }
   .section { margin-bottom:16px; }
   .domain, .risk, .annotation { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
@@ -787,7 +787,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
   <header class="header">
-    <span class="logo">enduserprivacy.com</span>
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
     <p class="eyebrow">Compliance Tool · Customised Analysis</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
@@ -904,13 +904,13 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     : `<div class="callout"><p class="label">Not yet ready for sign-off</p>${list(Array.isArray(gating.blockers) ? gating.blockers : [])}</div>`;
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
 <style>
-  :root { --navy:#0f172a; --ink:#1a1916; --paper:#faf8f3; --card:#ffffff; --border:#e6e3da; --muted:#5c5a54; --gold:#c0911f; --gold-soft:#fbf3df; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
-  .logo { display:inline-block; background:#fff; color:var(--navy); border-radius:6px; padding:5px 10px; font-size:13px; font-weight:700; margin-bottom:12px; }
-  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93c5fd; margin:0 0 4px; }
+  .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93b5c6; margin:0 0 4px; }
   h1 { font-size:24px; margin:0; line-height:1.2; }
   .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
   .summary-bar { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
@@ -922,7 +922,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   ul, ol { margin:8px 0 0; padding-left:20px; } li { margin-bottom:5px; }
   table { border-collapse:collapse; width:100%; font-size:10.5pt; margin:8px 0; }
   th { background:#f3f4f6; text-align:left; padding:4px 10px; border:1px solid var(--border); }
-  .notice { border-left:4px solid var(--gold); background:var(--gold-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .notice { border-left:4px solid var(--teal); background:var(--teal-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
   .callout { border-left:4px solid var(--orange); background:var(--orange-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin:16px 0; }
   .section { margin-bottom:16px; }
   .domain, .risk { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
@@ -933,7 +933,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
   <header class="header">
-    <span class="logo">enduserprivacy.com</span>
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
     <p class="eyebrow">Compliance Tool · Cal. Code Regs. tit. 11 §§ 7150–7157</p>
     <h1>CPPA Privacy Risk Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
@@ -1093,13 +1093,13 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Cybersecurity Audit</title>
 <style>
-  :root { --navy:#0f172a; --ink:#1a1916; --paper:#faf8f3; --card:#ffffff; --border:#e6e3da; --muted:#5c5a54; --gold:#c0911f; --gold-soft:#fbf3df; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
   * { box-sizing:border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:24px 28px; }
-  .logo { display:inline-block; background:#fff; color:var(--navy); border-radius:6px; padding:5px 10px; font-size:13px; font-weight:700; margin-bottom:12px; }
-  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93c5fd; margin:0 0 4px; }
+  .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93b5c6; margin:0 0 4px; }
   h1 { font-size:24px; margin:0; line-height:1.2; }
   .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
   .summary-bar { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
@@ -1112,7 +1112,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   ul.fsor-refs { font-size:10.5px; color:var(--muted); }
   ul.fsor-refs li { margin-bottom:4px; }
   ul.fsor-refs a { color:var(--muted); word-break:break-all; }
-  .notice { border-left:4px solid var(--gold); background:var(--gold-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .notice { border-left:4px solid var(--teal); background:var(--teal-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
   .callout { border-left:4px solid var(--orange); background:var(--orange-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin:16px 0; }
   .section { margin-bottom:16px; }
   .control, .risk, .annotation { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
@@ -1128,7 +1128,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
   <header class="header">
-    <span class="logo">enduserprivacy.com</span>
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
     <p class="eyebrow">Compliance Tool · Customised Analysis</p>
     <h1>CPPA Cybersecurity Audit</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), organizationName: orgName || null, jurisdictionLabel: "California (CPPA)" })}
