@@ -4932,6 +4932,116 @@ export type Database = {
         }
         Relationships: []
       }
+      static_stress_batches: {
+        Row: {
+          completed_at: string | null
+          completed_jobs: number
+          created_at: string
+          error_log: string | null
+          failed_jobs: number
+          geo_filter: string
+          id: string
+          industries: string[]
+          run_by: string | null
+          started_at: string | null
+          status: string
+          total_jobs: number
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_jobs?: number
+          created_at?: string
+          error_log?: string | null
+          failed_jobs?: number
+          geo_filter?: string
+          id?: string
+          industries?: string[]
+          run_by?: string | null
+          started_at?: string | null
+          status?: string
+          total_jobs?: number
+        }
+        Update: {
+          completed_at?: string | null
+          completed_jobs?: number
+          created_at?: string
+          error_log?: string | null
+          failed_jobs?: number
+          geo_filter?: string
+          id?: string
+          industries?: string[]
+          run_by?: string | null
+          started_at?: string | null
+          status?: string
+          total_jobs?: number
+        }
+        Relationships: []
+      }
+      static_stress_jobs: {
+        Row: {
+          batch_id: string
+          company_id: string
+          company_name: string
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          fixture_data: Json | null
+          geo: string
+          id: string
+          industry: string
+          pdf_path: string | null
+          source_row_id: string | null
+          source_table: string | null
+          started_at: string | null
+          status: string
+          tool_slug: string
+        }
+        Insert: {
+          batch_id: string
+          company_id: string
+          company_name: string
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          fixture_data?: Json | null
+          geo: string
+          id?: string
+          industry: string
+          pdf_path?: string | null
+          source_row_id?: string | null
+          source_table?: string | null
+          started_at?: string | null
+          status?: string
+          tool_slug: string
+        }
+        Update: {
+          batch_id?: string
+          company_id?: string
+          company_name?: string
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          fixture_data?: Json | null
+          geo?: string
+          id?: string
+          industry?: string
+          pdf_path?: string | null
+          source_row_id?: string | null
+          source_table?: string | null
+          started_at?: string | null
+          status?: string
+          tool_slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "static_stress_jobs_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "static_stress_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tool_acknowledgments: {
         Row: {
           acknowledged_at: string
@@ -6101,6 +6211,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_batch_completed: {
+        Args: { batch_id: string }
+        Returns: undefined
+      }
+      increment_batch_failed: { Args: { batch_id: string }; Returns: undefined }
       is_current_user_premium: { Args: never; Returns: boolean }
       is_founding_rate_available: { Args: never; Returns: boolean }
       match_cppa_fsor_commentary: {
