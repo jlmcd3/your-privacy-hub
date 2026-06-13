@@ -154,11 +154,13 @@ export default function AdminStaticStress() {
     const industriesLabels = selectedIndustries
       .map((id) => INDUSTRIES.find((i) => i.id === id)?.label).filter(Boolean) as string[];
 
+    const failures: string[] = [];
+    setFixtureFailures([]);
     try {
       const { data: batch, error: bErr } = await supabase.from("static_stress_batches").insert({
         run_by: user.id, status: "pending",
         industries: industriesLabels, geo_filter: geoFilter, total_jobs: 0,
-      }).select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at").single();
+      }).select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log").single();
       if (bErr || !batch) throw new Error(`batch insert: ${bErr?.message}`);
 
       const geos = geoFilter === "both" ? ["us", "eu"] : [geoFilter];
@@ -183,7 +185,21 @@ export default function AdminStaticStress() {
           { body: { industry: c.industryLabel, geo: c.geo, company_slot: c.slot, company_id: companyId } },
         );
         if (fErr || !fixtures) {
-          console.warn(`Fixture failed for ${companyId}:`, fErr);
+          const errMsg = fErr?.message ?? "no data returned";
+          console.warn(`Fixture failed for ${companyId}:`, errMsg);
+          failures.push(`${companyId}: ${errMsg}`);
+          // Visible placeholder row so the failure is auditable in the UI
+          await supabase.from("static_stress_jobs").insert({
+            batch_id: batch.id,
+            company_id: companyId,
+            company_name: `[Fixture failed] ${companyId}`,
+            industry: c.industryLabel,
+            geo: c.geo,
+            tool_slug: "fixture-generation",
+            status: "failed",
+            error_message: errMsg,
+            completed_at: new Date().toISOString(),
+          });
           setSetupProgress({ done: idx + 1, total: companies.length });
           continue;
         }
@@ -223,9 +239,14 @@ export default function AdminStaticStress() {
         body: { batch_id: batch.id, job_id: null },
       });
 
-      setActiveBatch({ ...batch, total_jobs: totalJobs, status: "running", started_at: new Date().toISOString() });
+      setActiveBatch({ ...(batch as Batch), total_jobs: totalJobs, status: "running", started_at: new Date().toISOString() });
       setSetupProgress(null);
-      toast.success(`Started batch with ${totalJobs} jobs`);
+      setFixtureFailures(failures);
+      if (failures.length > 0) {
+        toast.warning(`Started batch with ${totalJobs} jobs (${failures.length} fixture failures)`);
+      } else {
+        toast.success(`Started batch with ${totalJobs} jobs`);
+      }
     } catch (e) {
       toast.error(`Start failed: ${(e as Error).message}`);
     } finally {
