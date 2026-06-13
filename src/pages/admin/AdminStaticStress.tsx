@@ -377,6 +377,11 @@ export default function AdminStaticStress() {
           then queued and run sequentially through the production edge functions. PDFs land in
           {" "}<Link to="/samples/report-output" className="text-brand-teal underline underline-offset-2">/samples/report-output</Link>{" "}
           with variant prefix <code>static-</code>.
+          {" "}Use the{" "}
+          <Link to="/admin/qa-export" className="text-brand-teal underline underline-offset-2">
+            QA Export page
+          </Link>{" "}
+          to download filtered batches for review.
         </p>
       </header>
 
