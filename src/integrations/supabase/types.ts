@@ -4990,6 +4990,7 @@ export type Database = {
           id: string
           industry: string
           pdf_path: string | null
+          retry_count: number
           source_row_id: string | null
           source_table: string | null
           started_at: string | null
@@ -5008,6 +5009,7 @@ export type Database = {
           id?: string
           industry: string
           pdf_path?: string | null
+          retry_count?: number
           source_row_id?: string | null
           source_table?: string | null
           started_at?: string | null
@@ -5026,6 +5028,7 @@ export type Database = {
           id?: string
           industry?: string
           pdf_path?: string | null
+          retry_count?: number
           source_row_id?: string | null
           source_table?: string | null
           started_at?: string | null
