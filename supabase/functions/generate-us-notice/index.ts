@@ -9,6 +9,8 @@
 // public.owns_client() called as the requesting user.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { verifyCaller } from "../_shared/verify-caller.ts";
+
 
 const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
 
