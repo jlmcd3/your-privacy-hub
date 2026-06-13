@@ -189,7 +189,7 @@ export default function StressRunsSection() {
             <Checkbox checked={withPdf} onCheckedChange={(v) => setWithPdf(v === true)} />
             Generate PDF
           </label>
-          <Button variant="destructive" size="sm" onClick={onDeleteAll} disabled={busy !== null}>
+          <Button variant="destructive" size="sm" onClick={onDeleteAll} disabled={busy !== null || running.size > 0}>
             {busy === "delall" ? "Deleting…" : "Delete all stress data"}
           </Button>
         </div>
