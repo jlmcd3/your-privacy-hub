@@ -453,7 +453,7 @@ export function buildCombinedHtml(
   const tocHtml = fws
     .map(
       (f) =>
-        `<li><a href="#${escapeHtml(f.framework_code)}" style="color:#1d4ed8;">${escapeHtml(f.framework_name)}</a> — <span style="color:#666;font-size:0.85rem;">${escapeHtml(FRAMEWORK_FULL_NAMES[f.framework_code] ?? f.framework_name)}</span></li>`,
+        `<li><a href="#${escapeHtml(f.framework_code)}" style="color:#2d9b90;">${escapeHtml(f.framework_name)}</a> — <span style="color:#5c6d7a;font-size:0.85rem;">${escapeHtml(FRAMEWORK_FULL_NAMES[f.framework_code] ?? f.framework_name)}</span></li>`,
     )
     .join("");
 
