@@ -24,7 +24,8 @@ function json(body: unknown, status = 200) {
   });
 }
 
-// Non-streaming Claude call. No stream:true — avoids the 150s idle timeout.
+// Streaming Claude call. SSE bytes arrive continuously so Supabase's 150s
+// idle timer keeps resetting. We accumulate text_delta events into the final string.
 async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 14000): Promise<string> {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -36,18 +37,49 @@ async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
       max_tokens: maxTokens,
-      // NO stream: true — non-streaming avoids Supabase's 150s idle timeout
+      stream: true,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
-    signal: AbortSignal.timeout(240_000),
+    signal: AbortSignal.timeout(300_000),
   });
-  if (!r.ok) {
+  if (!r.ok || !r.body) {
     const errText = await r.text().catch(() => "no body");
     throw new Error(`Anthropic ${r.status}: ${errText.slice(0, 300)}`);
   }
-  const data = await r.json();
-  const text = data?.content?.[0]?.text ?? "";
+
+  const reader = r.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let text = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let idx: number;
+    while ((idx = buffer.indexOf("\n\n")) !== -1) {
+      const frame = buffer.slice(0, idx);
+      buffer = buffer.slice(idx + 2);
+      for (const line of frame.split("\n")) {
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(payload);
+          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+            text += evt.delta.text ?? "";
+          } else if (evt.type === "error") {
+            throw new Error(`Anthropic stream error: ${JSON.stringify(evt.error).slice(0, 300)}`);
+          }
+        } catch (e) {
+          if ((e as Error).message?.startsWith("Anthropic stream error")) throw e;
+        }
+      }
+    }
+  }
+
   if (!text) throw new Error("Empty response from Anthropic");
   return text;
 }
