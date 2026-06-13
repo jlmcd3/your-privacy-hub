@@ -63,104 +63,122 @@ async function invokeFn(name: string, body: unknown): Promise<any> {
 
 async function processNextCompany(batchId: string, companyIndex: number): Promise<void> {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-
-  const { data: batch } = await admin
-    .from("static_stress_batches")
-    .select("id, status, industries, geo_filter, selected_tools, companies, run_by")
-    .eq("id", batchId)
-    .single();
-
-  if (!batch || batch.status === "cancelled") return;
-
-  const companies: Array<{
-    industryId: string; industryLabel: string; geo: string; slot: number;
-  }> = batch.companies ?? [];
-
-  if (companyIndex >= companies.length) {
-    const { count } = await admin
-      .from("static_stress_jobs")
-      .select("id", { count: "exact", head: true })
-      .eq("batch_id", batchId)
-      .eq("status", "pending");
-
-    const totalJobs = count ?? 0;
-
-    await admin.from("static_stress_batches").update({
-      total_jobs: totalJobs,
-      status: totalJobs > 0 ? "running" : "complete",
-      started_at: new Date().toISOString(),
-    }).eq("id", batchId);
-
-    if (totalJobs > 0) {
-      await invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch(console.error);
-    }
-    return;
-  }
-
-  const c = companies[companyIndex];
-  const companyId = `${c.geo}-${c.industryId}-slot${c.slot}`;
-  const selectedTools: string[] = batch.selected_tools ?? ALL_TOOLS.map((t) => t.id);
+  let reachedEnd = false;
 
   try {
-    const fixtures = await invokeFn("generate-stress-fixtures", {
-      industry: c.industryLabel,
-      geo: c.geo,
-      company_slot: c.slot,
-      company_id: companyId,
-    });
+    const { data: batch } = await admin
+      .from("static_stress_batches")
+      .select("id, status, industries, geo_filter, selected_tools, companies, run_by")
+      .eq("id", batchId)
+      .single();
 
-    const applicable = selectedTools.filter((toolId) => {
-      const td = ALL_TOOLS.find((a) => a.id === toolId);
-      return td && (td.geo === "both" || td.geo === c.geo);
-    });
-
-    const jobRows = applicable
-      .map((toolId) => ({
-        toolId,
-        payload: fixtures[TOOL_FIXTURE_KEY[toolId]],
-      }))
-      .filter((j) => j.payload)
-      .map((j) => ({
-        batch_id: batchId,
-        company_id: companyId,
-        company_name: fixtures.companyName ?? companyId,
-        industry: c.industryLabel,
-        geo: c.geo,
-        tool_slug: j.toolId,
-        fixture_data: j.payload,
-        status: "pending",
-      }));
-
-    if (jobRows.length) {
-      await admin.from("static_stress_jobs").insert(jobRows);
+    if (!batch || batch.status === "cancelled") {
+      reachedEnd = true;
+      return;
     }
 
-    await admin.from("static_stress_batches")
-      .update({ setup_done: companyIndex + 1 })
-      .eq("id", batchId);
+    const companies: Array<{
+      industryId: string; industryLabel: string; geo: string; slot: number;
+    }> = batch.companies ?? [];
 
-  } catch (err) {
-    const errMsg = (err as Error).message?.slice(0, 480) ?? "unknown";
-    console.warn(`[start-stress-batch] fixture failed for ${companyId}:`, errMsg);
+    if (companyIndex >= companies.length) {
+      reachedEnd = true;
+      const { count } = await admin
+        .from("static_stress_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("batch_id", batchId)
+        .eq("status", "pending");
 
-    await admin.from("static_stress_jobs").insert({
-      batch_id: batchId,
-      company_id: companyId,
-      company_name: `[Fixture failed] ${companyId}`,
-      industry: c.industryLabel,
-      geo: c.geo,
-      tool_slug: "fixture-generation",
-      status: "failed",
-      error_message: errMsg,
-      completed_at: new Date().toISOString(),
-    }).catch(() => {});
+      const totalJobs = count ?? 0;
 
-    await admin.from("static_stress_batches")
-      .update({ setup_done: companyIndex + 1 })
-      .eq("id", batchId);
+      await admin.from("static_stress_batches").update({
+        total_jobs: totalJobs,
+        status: totalJobs > 0 ? "running" : "complete",
+        started_at: new Date().toISOString(),
+      }).eq("id", batchId);
+
+      if (totalJobs > 0) {
+        await invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch(console.error);
+      }
+      return;
+    }
+
+    const c = companies[companyIndex];
+    const companyId = `${c.geo}-${c.industryId}-slot${c.slot}`;
+    const selectedTools: string[] = batch.selected_tools ?? ALL_TOOLS.map((t) => t.id);
+
+    try {
+      const fixtures = await invokeFn("generate-stress-fixtures", {
+        industry: c.industryLabel,
+        geo: c.geo,
+        company_slot: c.slot,
+        company_id: companyId,
+      });
+
+      const applicable = selectedTools.filter((toolId) => {
+        const td = ALL_TOOLS.find((a) => a.id === toolId);
+        return td && (td.geo === "both" || td.geo === c.geo);
+      });
+
+      const jobRows = applicable
+        .map((toolId) => ({
+          toolId,
+          payload: fixtures[TOOL_FIXTURE_KEY[toolId]],
+        }))
+        .filter((j) => j.payload)
+        .map((j) => ({
+          batch_id: batchId,
+          company_id: companyId,
+          company_name: fixtures.companyName ?? companyId,
+          industry: c.industryLabel,
+          geo: c.geo,
+          tool_slug: j.toolId,
+          fixture_data: j.payload,
+          status: "pending",
+        }));
+
+      if (jobRows.length) {
+        await admin.from("static_stress_jobs").insert(jobRows);
+      }
+
+      await admin.from("static_stress_batches")
+        .update({ setup_done: companyIndex + 1 })
+        .eq("id", batchId);
+
+    } catch (err) {
+      const errMsg = (err as Error).message?.slice(0, 480) ?? "unknown";
+      console.warn(`[start-stress-batch] fixture failed for ${companyId}:`, errMsg);
+
+      await admin.from("static_stress_jobs").insert({
+        batch_id: batchId,
+        company_id: companyId,
+        company_name: `[Fixture failed] ${companyId}`,
+        industry: c.industryLabel,
+        geo: c.geo,
+        tool_slug: "fixture-generation",
+        status: "failed",
+        error_message: errMsg,
+        completed_at: new Date().toISOString(),
+      }).catch(() => {});
+
+      await admin.from("static_stress_batches")
+        .update({ setup_done: companyIndex + 1 })
+        .eq("id", batchId);
+    }
+
+  } catch (fatalErr) {
+    console.error("[start-stress-batch] fatal error in processNextCompany:", fatalErr);
+    reachedEnd = true;
+    try {
+      await admin.from("static_stress_batches").update({
+        error_log: `Setup interrupted at company ${companyIndex} — fatal error: ${(fatalErr as Error).message?.slice(0, 300) ?? "unknown"}. Click Resume Setup to continue.`,
+      }).eq("id", batchId).eq("status", "pending");
+    } catch { /* best-effort */ }
+  } finally {
+    if (!reachedEnd) {
+      selfInvokeNext(batchId, companyIndex + 1);
+    }
   }
-
-  selfInvokeNext(batchId, companyIndex + 1);
 }
 
 function selfInvokeNext(batchId: string, nextIndex: number): void {
