@@ -176,15 +176,26 @@ export default function SampleReportOutput() {
           <ArrowLeft className="h-4 w-4" aria-hidden /> Home
         </Link>
 
-        <header className="mb-8">
-          <h1 className="font-display text-3xl md:text-4xl text-brand-navy mb-2">
-            Sample report output
-          </h1>
-          <p className="text-muted-foreground">
-            Every sample PDF generated from <code>/admin/sample-reports</code>,
-            grouped by tool. Drafts and published samples both appear here as
-            soon as a PDF has been attached.
-          </p>
+        <header className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl md:text-4xl text-brand-navy mb-2">
+              Sample report output
+            </h1>
+            <p className="text-muted-foreground">
+              Every sample PDF generated from <code>/admin/sample-reports</code>,
+              grouped by tool. Drafts and published samples both appear here as
+              soon as a PDF has been attached.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onDownloadAll}
+            disabled={zipping || !rows || rows.length === 0}
+            className="inline-flex items-center gap-2 rounded-md bg-brand-navy text-white px-4 py-2 text-sm font-medium hover:bg-brand-navy/90 disabled:opacity-50 shrink-0"
+          >
+            <Download className="h-4 w-4" aria-hidden />
+            {zipping ? "Zipping…" : "Download All"}
+          </button>
         </header>
 
         {error && (
