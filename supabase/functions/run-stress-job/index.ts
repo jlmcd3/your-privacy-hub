@@ -336,6 +336,19 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
   let job: any = null;
 
   try {
+    // Check for cancellation — preserve any completed jobs and stop the chain
+    const { data: batchStatus } = await admin.from("static_stress_batches")
+      .select("status").eq("id", batchId).single();
+    if (batchStatus?.status === "cancelled") {
+      await admin.from("static_stress_jobs")
+        .update({ status: "cancelled", completed_at: new Date().toISOString() })
+        .eq("batch_id", batchId).eq("status", "pending");
+      await admin.from("static_stress_batches").update({
+        completed_at: new Date().toISOString(),
+      }).eq("id", batchId);
+      return;
+    }
+
     // Rescue jobs stuck in 'running' for more than 10 minutes (prior killed execution)
     try {
       const stuckCutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -347,6 +360,7 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
     } catch (e) {
       console.warn("[run-stress-job] stuck-job rescue failed:", e);
     }
+
 
     // Claim a job
     if (specificJobId) {
