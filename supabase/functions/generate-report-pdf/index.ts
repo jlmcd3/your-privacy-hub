@@ -393,7 +393,7 @@ Decision: [ ] Processing may proceed &nbsp;&nbsp; [ ] Further mitigation require
 Signature: ______________________
 </div>` : ""}
 <div class="disclaimer"><strong>IMPORTANT: </strong>${escHtml(report.framework_disclaimer || "")}</div>
-</body></html>`;
+</div></div></body></html>`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
