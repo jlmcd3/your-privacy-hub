@@ -640,15 +640,30 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { data: ownsData, error: ownsErr } = await userClient.rpc("owns_client", {
-      _client_id: sessionRow.client_id,
-    });
-    if (ownsErr || ownsData !== true) {
+    // Internal (service-role) callers bypass ownership; user callers go through owns_client.
+    let ownsClient = caller.internal;
+    if (!ownsClient && userClient) {
+      const { data: ownsData, error: ownsErr } = await userClient.rpc("owns_client", {
+        _client_id: sessionRow.client_id,
+      });
+      ownsClient = !ownsErr && ownsData === true;
+    }
+    if (!ownsClient && caller.userId) {
+      const { data: clientCheck } = await admin
+        .from("clients")
+        .select("id")
+        .eq("id", sessionRow.client_id)
+        .eq("owner_id", caller.userId)
+        .maybeSingle();
+      ownsClient = !!clientCheck;
+    }
+    if (!ownsClient) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
 
     // ── Background-dispatch boundary ─────────────────────────────────────
