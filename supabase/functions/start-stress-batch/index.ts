@@ -58,7 +58,29 @@ async function invokeFn(name: string, body: unknown, timeoutMs = 360_000): Promi
   let data: any = null;
   try { data = await r.json(); } catch { /* ignore */ }
   if (!r.ok) throw new Error(`${name} ${r.status}: ${JSON.stringify(data ?? {}).slice(0, 300)}`);
+  if (data?.error) throw new Error(`${name}: ${data.detail ?? data.error}`.slice(0, 300));
   return data;
+}
+
+async function generateFixtures(c: { industryLabel: string; geo: string; slot: number }, companyId: string): Promise<any> {
+  const profile = await invokeFn("generate-stress-fixtures", {
+    industry: c.industryLabel,
+    geo: c.geo,
+    company_slot: c.slot,
+    company_id: companyId,
+    part: "profile",
+  }, 300_000);
+
+  const geoData = await invokeFn("generate-stress-fixtures", {
+    industry: c.industryLabel,
+    geo: c.geo,
+    company_slot: c.slot,
+    company_id: companyId,
+    company_name: profile.companyName ?? companyId,
+    part: "geo",
+  }, 300_000);
+
+  return { ...profile, ...geoData };
 }
 
 async function processNextCompany(batchId: string, companyIndex: number): Promise<void> {
@@ -107,12 +129,7 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
     const selectedTools: string[] = batch.selected_tools ?? ALL_TOOLS.map((t) => t.id);
 
     try {
-      const fixtures = await invokeFn("generate-stress-fixtures", {
-        industry: c.industryLabel,
-        geo: c.geo,
-        company_slot: c.slot,
-        company_id: companyId,
-      }, 540_000); // 540s = two 240s Claude calls + 60s overhead
+      const fixtures = await generateFixtures(c, companyId);
 
       const applicable = selectedTools.filter((toolId) => {
         const td = ALL_TOOLS.find((a) => a.id === toolId);
