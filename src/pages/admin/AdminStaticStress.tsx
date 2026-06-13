@@ -83,6 +83,22 @@ type Job = {
   error_message: string | null;
 };
 
+const TOOL_SLUG_MAP: Record<string, string> = {
+  "lia": "li_assessment", "dpia": "dpia", "governance": "governance",
+  "biometric": "biometric", "dpa": "dpa", "ir-playbook": "ir_playbook",
+  "ropa": "ropa", "us-notice": "us_notice", "eu-notice": "eu_notice",
+  "cppa-risk": "cppa_risk", "cppa-cyber": "cppa_cyber", "registration": "registration",
+};
+const TOOL_LABEL_MAP: Record<string, string> = {
+  "lia": "LIA", "dpia": "DPIA", "governance": "Governance", "biometric": "Biometric",
+  "dpa": "DPA", "ir-playbook": "IR Playbook", "ropa": "RoPA",
+  "us-notice": "US Notice", "eu-notice": "EU Notice",
+  "cppa-risk": "CPPA Risk", "cppa-cyber": "CPPA Cyber", "registration": "Registration",
+};
+
+type BatchRow = Batch & { created_at: string };
+type PdfProg = { running: boolean; done: number; total: number; failed: number; lastError?: string };
+
 export default function AdminStaticStress() {
   const { user } = useAuth();
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
@@ -96,6 +112,113 @@ export default function AdminStaticStress() {
   const [stopping, setStopping] = useState(false);
   const [fixtureFailures, setFixtureFailures] = useState<string[]>([]);
   const [resumingSetup, setResumingSetup] = useState(false);
+  const [allBatches, setAllBatches] = useState<BatchRow[]>([]);
+  const [pdfProg, setPdfProg] = useState<Record<string, PdfProg>>({});
+  const [stoppingMap, setStoppingMap] = useState<Record<string, boolean>>({});
+  const [deletingMap, setDeletingMap] = useState<Record<string, boolean>>({});
+
+  // Load + poll all batches for this user
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    const load = async () => {
+      const { data } = await supabase
+        .from("static_stress_batches")
+        .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log, setup_total, setup_done, created_at")
+        .eq("run_by", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (!cancelled && data) setAllBatches(data as BatchRow[]);
+    };
+    load();
+    const iv = setInterval(load, 10_000);
+    return () => { cancelled = true; clearInterval(iv); };
+  }, [user?.id]);
+
+  async function handleStopBatch(batchId: string) {
+    if (!confirm("Stop this batch? Completed reports are preserved; pending jobs are cancelled.")) return;
+    setStoppingMap((m) => ({ ...m, [batchId]: true }));
+    try {
+      await supabase.from("static_stress_batches").update({ status: "cancelled" }).eq("id", batchId);
+      await supabase.from("static_stress_jobs")
+        .update({ status: "cancelled", completed_at: new Date().toISOString() })
+        .eq("batch_id", batchId).eq("status", "pending");
+      setAllBatches((b) => b.map((x) => x.id === batchId ? { ...x, status: "cancelled" } : x));
+      if (activeBatch?.id === batchId) setActiveBatch((b) => b ? { ...b, status: "cancelled" } : b);
+      toast.success("Batch stopped");
+    } catch (e) {
+      toast.error(`Stop failed: ${(e as Error).message}`);
+    } finally {
+      setStoppingMap((m) => ({ ...m, [batchId]: false }));
+    }
+  }
+
+  async function handleDeleteBatch(batchId: string) {
+    if (!confirm("Delete this batch entirely? This will stop it if running and remove all batch data (jobs cascade). Generated sample_report rows and PDFs at /samples/report-output are NOT removed.")) return;
+    setDeletingMap((m) => ({ ...m, [batchId]: true }));
+    try {
+      // Stop first so any in-flight workers exit on next tick
+      await supabase.from("static_stress_batches").update({ status: "cancelled" }).eq("id", batchId);
+      await supabase.from("static_stress_jobs")
+        .update({ status: "cancelled", completed_at: new Date().toISOString() })
+        .eq("batch_id", batchId).eq("status", "pending");
+      // Brief drain
+      await new Promise((r) => setTimeout(r, 1500));
+      // Delete batch (jobs cascade via FK)
+      const { error } = await supabase.from("static_stress_batches").delete().eq("id", batchId);
+      if (error) throw error;
+      setAllBatches((b) => b.filter((x) => x.id !== batchId));
+      if (activeBatch?.id === batchId) { setActiveBatch(null); setRecentJobs([]); }
+      toast.success("Batch deleted");
+    } catch (e) {
+      toast.error(`Delete failed: ${(e as Error).message}`);
+    } finally {
+      setDeletingMap((m) => ({ ...m, [batchId]: false }));
+    }
+  }
+
+  async function handleCreatePdfs(batchId: string) {
+    // Sequentially render PDFs for completed jobs that are missing one
+    const { data: jobs, error } = await supabase.from("static_stress_jobs")
+      .select("id, company_id, company_name, industry, geo, tool_slug, fixture_data, source_table, source_row_id, pdf_path")
+      .eq("batch_id", batchId).eq("status", "complete").is("pdf_path", null);
+    if (error) { toast.error(`Query failed: ${error.message}`); return; }
+    const todo = (jobs ?? []).filter((j) => j.source_table && j.source_row_id);
+    if (!todo.length) { toast.info("No completed jobs missing a PDF"); return; }
+    setPdfProg((p) => ({ ...p, [batchId]: { running: true, done: 0, total: todo.length, failed: 0 } }));
+    const t = toast.loading(`Rendering 0/${todo.length} PDFs…`);
+    let done = 0, failed = 0;
+    for (const j of todo) {
+      try {
+        const { data, error: invErr } = await supabase.functions.invoke("save-sample-report", {
+          body: {
+            action: "generate_pdf",
+            tool_slug: TOOL_SLUG_MAP[j.tool_slug] ?? j.tool_slug,
+            variant: `static-${j.company_id}`,
+            title: `[${j.industry}] ${j.company_name} — ${TOOL_LABEL_MAP[j.tool_slug] ?? j.tool_slug}`,
+            scenario_summary: `Static accuracy test: ${j.company_name} (${(j.geo || "").toUpperCase()}, ${j.industry})`,
+            fixture: j.fixture_data,
+            source_table: j.source_table,
+            source_row_id: j.source_row_id,
+          },
+        });
+        if (invErr) throw invErr;
+        const newPath = (data as any)?.row?.pdf_path ?? null;
+        if (newPath) {
+          await supabase.from("static_stress_jobs").update({ pdf_path: newPath }).eq("id", j.id);
+        }
+        done++;
+      } catch (e) {
+        failed++;
+        console.warn("PDF render failed for job", j.id, e);
+        setPdfProg((p) => ({ ...p, [batchId]: { ...(p[batchId] ?? { running: true, done, total: todo.length, failed }), failed, lastError: (e as Error).message } }));
+      }
+      setPdfProg((p) => ({ ...p, [batchId]: { ...(p[batchId] ?? { running: true, total: todo.length, done: 0, failed: 0 }), running: true, done: done + failed, failed } }));
+      toast.loading(`Rendering ${done + failed}/${todo.length} PDFs… (${failed} failed)`, { id: t });
+    }
+    setPdfProg((p) => ({ ...p, [batchId]: { running: false, done, total: todo.length, failed } }));
+    toast.success(`Rendered ${done}/${todo.length} PDFs${failed ? ` (${failed} failed)` : ""}`, { id: t });
+  }
 
   // On mount: restore any in-progress batch so refresh and cross-tab work.
   useEffect(() => {
@@ -543,6 +666,84 @@ export default function AdminStaticStress() {
           )}
         </section>
       )}
+
+      {/* All batches manager */}
+      <section className="space-y-3">
+        <h2 className="font-serif text-xl">All batches ({allBatches.length})</h2>
+        <p className="text-xs text-muted-foreground">
+          Per-batch controls. <strong>Stop</strong> halts workers but preserves completed reports.{" "}
+          <strong>Create PDFs</strong> sequentially renders PDFs for completed jobs that don't already have one.{" "}
+          <strong>Delete</strong> stops the batch and removes the batch + job rows (generated sample reports at /samples/report-output are not removed).
+        </p>
+        {allBatches.length === 0 && (
+          <p className="text-sm text-muted-foreground">No batches yet.</p>
+        )}
+        <div className="space-y-2">
+          {allBatches.map((b) => {
+            const done = b.completed_jobs + b.failed_jobs;
+            const pctB = b.total_jobs > 0 ? Math.round((done / b.total_jobs) * 100) : 0;
+            const isLive = b.status === "running" || b.status === "pending";
+            const pp = pdfProg[b.id];
+            return (
+              <div key={b.id} className="border rounded p-3 space-y-2 bg-card">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-xs">{b.id.slice(0, 8)}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        b.status === "complete" ? "bg-green-100 text-green-800" :
+                        b.status === "cancelled" ? "bg-zinc-200 text-zinc-700" :
+                        b.status === "running" ? "bg-blue-100 text-blue-800" :
+                        "bg-amber-100 text-amber-800"
+                      }`}>{b.status}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(b.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {done}/{b.total_jobs} jobs ({b.completed_jobs} ✓ · {b.failed_jobs} ✗)
+                      {b.status === "pending" && b.setup_total > 0 && ` · setup ${b.setup_done}/${b.setup_total}`}
+                    </div>
+                    {b.total_jobs > 0 && <Progress value={pctB} className="h-1.5 mt-1 w-64" />}
+                    {pp && (
+                      <div className="text-xs mt-1">
+                        PDFs: {pp.done}/{pp.total}{pp.failed ? ` (${pp.failed} failed)` : ""}{pp.running ? " — rendering…" : ""}
+                        {pp.lastError && <span className="text-destructive"> · last error: {pp.lastError.slice(0, 80)}</span>}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleStopBatch(b.id)}
+                      disabled={!isLive || !!stoppingMap[b.id] || !!deletingMap[b.id]}
+                    >
+                      {stoppingMap[b.id] ? "Stopping…" : "Stop"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleCreatePdfs(b.id)}
+                      disabled={!!pp?.running || !!deletingMap[b.id] || b.completed_jobs === 0}
+                    >
+                      {pp?.running ? "Rendering…" : "Create PDFs"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteBatch(b.id)}
+                      disabled={!!deletingMap[b.id] || !!pp?.running}
+                    >
+                      {deletingMap[b.id] ? "Deleting…" : "Delete Batch"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
