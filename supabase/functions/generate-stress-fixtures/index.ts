@@ -119,17 +119,39 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         max_tokens: 16000,
+        stream: true,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: buildUserPrompt(industry, geo, company_slot, company_id) }],
       }),
-      signal: AbortSignal.timeout(120_000),
+      signal: AbortSignal.timeout(180_000),
     });
-    if (!r.ok) {
-      const text = await r.text();
-      return json({ error: "fixture generation failed", detail: `anthropic ${r.status}: ${text.slice(0, 400)}` }, 502);
+    if (!r.ok || !r.body) {
+      const errText = r.body ? await r.text() : "no body";
+      return json({ error: "fixture generation failed", detail: `anthropic ${r.status}: ${errText.slice(0, 400)}` }, 502);
     }
-    const data = await r.json();
-    const text: string = data?.content?.[0]?.text ?? "";
+    // Consume SSE stream and accumulate text deltas
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let text = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(payload);
+          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+            text += evt.delta.text ?? "";
+          }
+        } catch { /* ignore parse errors on keep-alives */ }
+      }
+    }
     // Extract JSON object
     const start = text.indexOf("{");
     const end = text.lastIndexOf("}");
