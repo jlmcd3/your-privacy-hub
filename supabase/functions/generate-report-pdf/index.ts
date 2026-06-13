@@ -67,7 +67,7 @@ async function generatePDF(
         // Embed a small footer with the EndUserPrivacy mark + page numbers.
         footer: {
           source:
-            '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c5a54;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
+            '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c6d7a;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
             `<span>${title.replace(/</g, "&lt;")}</span>` +
             '<span>EndUserPrivacy.com · Page <span class="pageNumber"></span> / <span class="totalPages"></span></span>' +
             "</div>",
