@@ -255,16 +255,24 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         payment_confirmed: true, paid_at: new Date().toISOString(),
       }).select("id").single();
       if (sErr || !session) throw new Error(`us-notice session: ${sErr?.message}`);
-      await admin.from("us_notice_state_selections").insert([
-        { session_id: session.id, state_code: "CA", state_name: "California", framework_type: "ccpa" },
-        { session_id: session.id, state_code: "VA", state_name: "Virginia", framework_type: "virginia_model" },
-        { session_id: session.id, state_code: "TX", state_name: "Texas", framework_type: "virginia_model" },
-      ]);
-      await admin.from("us_notice_answers").insert(
-        Object.entries(intake).map(([k, v]) => ({
-          session_id: session.id, question_key: k, answer_value: v as any,
-        })),
-      );
+      try {
+        await admin.from("us_notice_state_selections").insert([
+          { session_id: session.id, state_code: "CA", state_name: "California", framework_type: "ccpa" },
+          { session_id: session.id, state_code: "VA", state_name: "Virginia", framework_type: "virginia_model" },
+          { session_id: session.id, state_code: "TX", state_name: "Texas", framework_type: "virginia_model" },
+        ]);
+      } catch (e) {
+        console.warn("[run-stress-job] us_notice_state_selections insert failed:", e);
+      }
+      try {
+        await admin.from("us_notice_answers").insert(
+          Object.entries(intake).map(([k, v]) => ({
+            session_id: session.id, question_key: k, answer_value: v as any,
+          })),
+        );
+      } catch (e) {
+        console.warn("[run-stress-job] us_notice_answers insert failed:", e);
+      }
       const gen = await invokeFn("generate-us-notice", { session_id: session.id });
       if (!gen?.documents?.length) throw new Error("us-notice: no documents");
       return { sourceTable: "us_notice_sessions", sourceRowId: session.id };
