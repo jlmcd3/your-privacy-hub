@@ -681,7 +681,7 @@ export default function AdminStaticStress() {
               </p>
             );
           })()}
-          <details className="text-xs">
+          <details className="text-xs" open>
             <summary className="cursor-pointer">Recent jobs ({recentJobs.length})</summary>
             <table className="w-full mt-2 text-left">
               <thead><tr className="text-muted-foreground"><th>Status</th><th>Company</th><th>Tool</th><th>Industry</th><th>Note</th></tr></thead>
