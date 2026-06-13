@@ -45,7 +45,7 @@ const TOOL_FIXTURE_KEY: Record<string, string> = {
   "cppa-risk": "cppaRisk", "cppa-cyber": "cppaCyber", "registration": "registration",
 };
 
-async function invokeFn(name: string, body: unknown): Promise<any> {
+async function invokeFn(name: string, body: unknown, timeoutMs = 360_000): Promise<any> {
   const r = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
     method: "POST",
     headers: {
@@ -53,7 +53,7 @@ async function invokeFn(name: string, body: unknown): Promise<any> {
       "Authorization": `Bearer ${SERVICE_KEY}`,
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(360_000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   let data: any = null;
   try { data = await r.json(); } catch { /* ignore */ }
@@ -112,7 +112,7 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
         geo: c.geo,
         company_slot: c.slot,
         company_id: companyId,
-      });
+      }, 540_000); // 540s = two 240s Claude calls + 60s overhead
 
       const applicable = selectedTools.filter((toolId) => {
         const td = ALL_TOOLS.find((a) => a.id === toolId);
