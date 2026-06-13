@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { StressLiveLog } from "@/components/admin/StressLiveLog";
 
 const INDUSTRIES = [
   { id: "web", label: "Online & Web Services", emoji: "🌐" },
