@@ -135,7 +135,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       const { data: rec, error } = await admin.from("li_assessments")
         .insert({ ...intake, user_id: userId }).select("id").single();
       if (error || !rec) throw new Error(`lia insert: ${error?.message}`);
-      await invokeFn("run-li-assessment", { assessment_id: rec.id }).catch(() => {});
+      await invokeFn("run-li-assessment", { assessment_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-li-assessment trigger failed (will poll):", e));
       await pollStatus(admin, "li_assessments", rec.id, "complete");
       return { sourceTable: "li_assessments", sourceRowId: rec.id };
     }
