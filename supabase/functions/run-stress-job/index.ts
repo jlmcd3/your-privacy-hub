@@ -445,8 +445,11 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
         error_message: "batch has no run_by user_id",
         completed_at: new Date().toISOString(),
       }).eq("id", job.id);
-      await admin.rpc("increment_batch_failed", { batch_id: batchId })
-        .catch((e: unknown) => console.warn("[run-stress-job] increment_batch_failed failed:", e));
+      try {
+        await admin.rpc("increment_batch_failed", { batch_id: batchId });
+      } catch (e: unknown) {
+        console.warn("[run-stress-job] increment_batch_failed failed:", e);
+      }
       return;
     }
 
@@ -483,8 +486,11 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
         pdf_path: pdfPath,
         completed_at: new Date().toISOString(),
       }).eq("id", job.id);
-      await admin.rpc("increment_batch_completed", { batch_id: batchId })
-        .catch((e: unknown) => console.warn("[run-stress-job] increment_batch_completed failed:", e));
+      try {
+        await admin.rpc("increment_batch_completed", { batch_id: batchId });
+      } catch (e: unknown) {
+        console.warn("[run-stress-job] increment_batch_completed failed:", e);
+      }
     } catch (err) {
       const errMsg = (err as Error).message?.slice(0, 480) ?? "unknown error";
       const currentRetries = job.retry_count ?? 0;
@@ -512,8 +518,11 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
         } catch (e: unknown) {
           console.warn("[run-stress-job] failed status update failed:", e);
         }
-        await admin.rpc("increment_batch_failed", { batch_id: batchId })
-          .catch((e: unknown) => console.warn("[run-stress-job] increment_batch_failed failed:", e));
+        try {
+          await admin.rpc("increment_batch_failed", { batch_id: batchId });
+        } catch (e: unknown) {
+          console.warn("[run-stress-job] increment_batch_failed failed:", e);
+        }
       }
     }
   } catch (fatalErr) {
@@ -525,7 +534,7 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
           error_message: `Fatal: ${(fatalErr as Error).message?.slice(0, 480) ?? "unknown"}`,
           completed_at: new Date().toISOString(),
         }).eq("id", job.id);
-        await admin.rpc("increment_batch_failed", { batch_id: batchId }).catch(() => {});
+        try { await admin.rpc("increment_batch_failed", { batch_id: batchId }); } catch { /* best-effort */ }
       } catch { /* best-effort */ }
     }
   } finally {
