@@ -235,7 +235,7 @@ ${fineLine}</div>`;
   })()}
 <p class="meta">${escHtml(report.data_currency_note || "")}</p>
 <div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
-</body></html>`;
+</div></div></body></html>`;
 }
 
 function buildGovernanceReportHTML(report: any, assessment: any): string {
