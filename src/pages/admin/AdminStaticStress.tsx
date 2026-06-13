@@ -4,7 +4,7 @@
 // static_stress_jobs, kicks off the self-chaining run-stress-job orchestrator,
 // then polls the batch row for progress and surfaces a Download-All ZIP.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import JSZip from "jszip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
