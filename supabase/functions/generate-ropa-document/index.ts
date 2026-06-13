@@ -938,16 +938,16 @@ Deno.serve(async (req: Request) => {
   // Prefer the org name captured on the session (the company this RoPA
   // documents) over the workspace name. Falls back to the workspace name for
   // legacy sessions where org_name was never set.
-  // Sector override: prefer ropa_client_profiles.sector_override over clients.sector
-  // so that the sector captured during RoPA intake wins over the workspace-creation value.
+  // Sector resolution: read directly from the clients table. The sector
+  // captured during RoPA intake (RopaSetup.tsx) is written to clients.sector,
+  // which is the canonical source. The historical fallbacks to
+  // ropa_client_profiles.sector_override and ropa_sessions.org_sector referenced
+  // columns that do not exist on those tables and always resolved to undefined.
   const effectiveClient = {
     ...(client ?? {}),
     name: (session as { org_name?: string | null }).org_name?.trim()
       || (client?.name ?? ""),
-    sector: ((profile as any)?.sector_override
-      ?? (session as any)?.org_sector
-      ?? (client as any)?.sector
-      ?? null),
+    sector: (client as any)?.sector ?? null,
   };
 
   const jurisdictionCodes = (jurisdictionRows ?? []).map((j: any) => j.jurisdiction_code);
