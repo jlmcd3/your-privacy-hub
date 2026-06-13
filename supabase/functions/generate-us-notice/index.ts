@@ -101,6 +101,7 @@ function buildNoticeHtml(
   state: StateRow,
   answers: Record<string, unknown>,
   generatedAt: string,
+  showFooter = true,
 ): string {
   const businessName = answerString(answers["business_name"]) || "[Business name]";
   const businessDesc = answerString(answers["business_description"]) || "";
