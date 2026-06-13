@@ -49,6 +49,8 @@ export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
   const [lastPolled, setLastPolled] = useState<string | null>(initial.lastPolled);
   const [filterBatch, setFilterBatch] = useState<string>("all");
   const prevJobsRef = useRef<Map<string, JobLite>>(new Map(initial.prevJobs));
+  const entriesRef = useRef<Snapshot[]>(initial.entries);
+
 
 
   const idsKey = useMemo(() => batchIds.slice().sort().join(","), [batchIds]);
@@ -122,22 +124,23 @@ export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
       for (const j of data as JobLite[]) next.set(j.id, j);
       prevJobsRef.current = next;
 
-      let nextEntries = entries;
+      const merged = newSnapshots.length > 0
+        ? [...newSnapshots, ...entriesRef.current].slice(0, MAX_ENTRIES)
+        : entriesRef.current;
       if (newSnapshots.length > 0) {
-        setEntries((e) => {
-          nextEntries = [...newSnapshots, ...e].slice(0, MAX_ENTRIES);
-          return nextEntries;
-        });
+        entriesRef.current = merged;
+        setEntries(merged);
       }
       setLastPolled(now);
       try {
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-          entries: nextEntries,
+          entries: merged,
           prevJobs: Array.from(next.entries()),
           lastPolled: now,
         }));
       } catch { /* quota — ignore */ }
     };
+
 
 
     poll();
@@ -167,7 +170,7 @@ export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
             <option value="all">All tracked batches</option>
             {batchIds.map((id) => <option key={id} value={id}>{id.slice(0, 8)}</option>)}
           </select>
-          <Button size="sm" variant="outline" onClick={() => { setEntries([]); prevJobsRef.current = new Map(); try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } }}>Clear</Button>
+          <Button size="sm" variant="outline" onClick={() => { setEntries([]); entriesRef.current = []; prevJobsRef.current = new Map(); try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } }}>Clear</Button>
           <Button size="sm" variant={enabled ? "default" : "outline"} onClick={() => setEnabled((v) => !v)}>
             {enabled ? "Pause" : "Resume"}
           </Button>
