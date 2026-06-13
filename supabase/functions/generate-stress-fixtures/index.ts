@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: buildUserPrompt(industry, geo, company_slot, company_id) }],
       }),
-      signal: AbortSignal.timeout(60_000),
+      signal: AbortSignal.timeout(180_000),
     });
     if (!r.ok) {
       const text = await r.text();
