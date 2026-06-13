@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { StressLiveLog } from "@/components/admin/StressLiveLog";
 
 const INDUSTRIES = [
   { id: "web", label: "Online & Web Services", emoji: "🌐" },
@@ -780,6 +781,13 @@ export default function AdminStaticStress() {
           })}
         </div>
       </section>
+
+      {/* Live activity log — read-only, polls every 30s */}
+      <StressLiveLog
+        batchIds={allBatches
+          .filter((b) => b.status === "running" || b.status === "pending")
+          .map((b) => b.id)}
+      />
     </div>
   );
 }
