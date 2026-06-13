@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const authHeader = req.headers.get("Authorization");
+    
     const caller = await verifyCaller(req);
     if (!caller.userId && !caller.internal) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
