@@ -488,7 +488,7 @@ export default function AdminStaticStress() {
             </table>
           </details>
 
-          {activeBatch.status === "complete" && (
+          {(activeBatch.status === "complete" || activeBatch.status === "cancelled") && (
             <div className="flex gap-2 pt-2 border-t">
               <Button onClick={onDownloadAll} disabled={zipping}>
                 {zipping ? "Zipping…" : "Download all PDFs"}
