@@ -314,7 +314,7 @@ ${dn.gap_description ? `<p class="label">Gap</p><p>${escHtml(dn.gap_description)
 <h2>Cross-Domain Considerations</h2>
 <p>${escHtml(report.interaction_effects || "")}</p>
 <div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
-</body></html>`;
+</div></div></body></html>`;
 }
 
 function buildDPIAReportHTML(report: any, dpia: any): string {
