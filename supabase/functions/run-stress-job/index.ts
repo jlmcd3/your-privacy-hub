@@ -229,12 +229,18 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
           ansRows.push({ activity_id: a.id, session_id: session.id, question_key: k, answer_value: v });
         }
       }
-      if (ansRows.length) await admin.from("ropa_answers").insert(ansRows);
+      if (ansRows.length) {
+        try {
+          await admin.from("ropa_answers").insert(ansRows);
+        } catch (e) {
+          console.warn("[run-stress-job] ropa_answers insert failed:", e);
+        }
+      }
       await invokeFn("generate-ropa-document", {
         session_id: session.id, format: "pdf",
         document_date: new Date().toISOString().slice(0, 10),
         author_name: `${persona.org_name} Compliance Team`,
-      }).catch(() => {});
+      }).catch((e) => console.warn("[run-stress-job] generate-ropa-document trigger failed (will poll):", e));
       await pollStatus(admin, "ropa_sessions", session.id, "generated");
       const { data: ver } = await admin.from("ropa_document_versions")
         .select("id").eq("session_id", session.id).eq("document_format", "pdf")
