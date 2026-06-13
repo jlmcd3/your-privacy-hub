@@ -108,7 +108,7 @@ const runLIA: Runner = async ({ userId, log }) => {
   });
   if (fnErr) log(`Async generation started (background worker); polling for completion…`);
 
-  await pollStatus("li_assessments", rec.id, 30, 4000, log);
+  await pollStatus("li_assessments", rec.id, 75, 4000, log);
   return {
     targetTable: "li_assessments",
     targetId: rec.id,
