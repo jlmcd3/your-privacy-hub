@@ -546,19 +546,21 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "invalid json" }, 400); }
-  const { industry, geo, company_slot, company_id, part, company_name } = body ?? {};
+  const { industry, geo, company_slot, company_id, part, company_name, use_claude } = body ?? {};
   if (!industry || !geo || !company_slot || !company_id) {
     return json({ error: "missing required fields: industry, geo, company_slot, company_id" }, 400);
   }
 
   try {
     if (part === "profile") {
+      if (!use_claude) return json(buildDeterministicProfile(industry, geo, company_slot, company_id), 200);
       const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 6000);
       return json(extractJson(callAText), 200);
     }
 
     if (part === "geo") {
       const name = company_name || company_id;
+      if (!use_claude) return json(buildDeterministicGeo(industry, geo, company_slot, company_id, name), 200);
       const callBText = await callClaude(
         SYSTEM_PROMPT,
         geo === "eu"
@@ -570,6 +572,13 @@ Deno.serve(async (req) => {
     }
   } catch (e) {
     return json({ error: "fixture generation failed", detail: (e as Error).message }, 502);
+  }
+
+  if (!use_claude) {
+    return json({
+      ...buildDeterministicProfile(industry, geo, company_slot, company_id),
+      ...buildDeterministicGeo(industry, geo, company_slot, company_id),
+    }, 200);
   }
 
   return streamJsonWork(async () => {
