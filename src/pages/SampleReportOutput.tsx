@@ -41,6 +41,7 @@ export default function SampleReportOutput() {
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
   const [zipping, setZipping] = useState(false);
 
   async function load() {
@@ -99,6 +100,52 @@ export default function SampleReportOutput() {
       toast.error(`Delete failed: ${(e as Error).message}`);
     } finally {
       setDeleting(null);
+    }
+  }
+
+  async function onDeleteAll() {
+    const list = rows ?? [];
+    if (list.length === 0) {
+      toast.error("No documents to delete");
+      return;
+    }
+    if (!confirm(`Delete all ${list.length} sample reports? This removes every PDF and record permanently.`)) return;
+    setDeletingAll(true);
+    const t = toast.loading(`Deleting ${list.length} reports…`);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("Sign in as admin to delete", { id: t });
+        return;
+      }
+      let ok = 0;
+      let fail = 0;
+      for (const r of list) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ action: "delete", id: r.id }),
+          });
+          if (res.ok) {
+            ok++;
+            setRows((cur) => (cur ?? []).filter((x) => x.id !== r.id));
+          } else {
+            fail++;
+          }
+        } catch {
+          fail++;
+        }
+      }
+      if (ok > 0) toast.success(`Deleted ${ok} report${ok === 1 ? "" : "s"}${fail ? ` (${fail} failed)` : ""}`, { id: t });
+      else toast.error(`Delete failed for all ${list.length} reports`, { id: t });
+    } catch (e) {
+      toast.error(`Delete all failed: ${(e as Error).message}`, { id: t });
+    } finally {
+      setDeletingAll(false);
     }
   }
 
@@ -195,6 +242,16 @@ export default function SampleReportOutput() {
           >
             <Download className="h-4 w-4" aria-hidden />
             {zipping ? "Zipping…" : "Download All"}
+          </button>
+          <button
+            type="button"
+            onClick={onDeleteAll}
+            disabled={deletingAll || !rows || rows.length === 0}
+            className="inline-flex items-center gap-2 rounded-md border border-destructive/40 text-destructive px-4 py-2 text-sm font-medium hover:bg-destructive/10 disabled:opacity-50 shrink-0"
+            title="Delete all sample reports (admin only)"
+          >
+            <Trash2 className="h-4 w-4" aria-hidden />
+            {deletingAll ? "Deleting…" : "Delete All"}
           </button>
         </header>
 
