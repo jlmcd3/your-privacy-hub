@@ -5,7 +5,7 @@
 // and — by default — renders the result to PDF via save-sample-report:
 // generate_pdf so it lands at /samples/report-output for review.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -67,6 +67,8 @@ export default function StressRunsSection() {
   const [states, setStates] = useState<Record<string, StressState>>({});
   const [artifacts, setArtifacts] = useState<HarnessArtifact[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [runningAll, setRunningAll] = useState(false);
+  const cancelAll = useRef(false);
 
   const toolKeys = Object.keys(RUNNERS) as ToolType[];
 
@@ -141,6 +143,24 @@ export default function StressRunsSection() {
     toast[fail ? "warning" : "success"](`${TOOL_LABEL[tool]} stress: ${ok} ok, ${fail} failed`);
   }
 
+  async function onRunAll() {
+    if (!user) { toast.error("Sign in first"); return; }
+    setRunningAll(true);
+    cancelAll.current = false;
+    let ok = 0, fail = 0;
+    for (const tool of toolKeys) {
+      if (cancelAll.current) break;
+      try {
+        await onRun(tool);
+        ok++;
+      } catch {
+        fail++;
+      }
+    }
+    setRunningAll(false);
+    toast[fail ? "warning" : "success"](`Run All finished — ${ok} tools ok, ${fail} failed`);
+  }
+
   async function onDeleteArtifact(a: HarnessArtifact) {
     setBusy(`del::${a.id}`);
     try {
@@ -189,9 +209,18 @@ export default function StressRunsSection() {
             <Checkbox checked={withPdf} onCheckedChange={(v) => setWithPdf(v === true)} />
             Generate PDF
           </label>
-          <Button variant="destructive" size="sm" onClick={onDeleteAll} disabled={busy !== null || running.size > 0}>
+          <Button variant="destructive" size="sm" onClick={onDeleteAll} disabled={busy !== null || running.size > 0 || runningAll}>
             {busy === "delall" ? "Deleting…" : "Delete all stress data"}
           </Button>
+          {runningAll ? (
+            <Button variant="destructive" size="sm" onClick={() => { cancelAll.current = true; }}>
+              Stop after current
+            </Button>
+          ) : (
+            <Button size="sm" onClick={onRunAll} disabled={busy !== null || running.size > 0}>
+              Run all
+            </Button>
+          )}
         </div>
       </header>
 
@@ -207,11 +236,11 @@ export default function StressRunsSection() {
                     className="text-xs border rounded px-1.5 py-1 bg-background"
                     value={counts[tool] ?? 1}
                     onChange={(e) => setCounts((c) => ({ ...c, [tool]: Number(e.target.value) }))}
-                    disabled={running.has(tool)}
+                    disabled={running.has(tool) || runningAll}
                   >
                     {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}×</option>)}
                   </select>
-                  <Button size="sm" onClick={() => onRun(tool)} disabled={running.has(tool)}>
+                  <Button size="sm" onClick={() => onRun(tool)} disabled={running.has(tool) || runningAll}>
                     {running.has(tool) ? "Running…" : "Run stress"}
                   </Button>
                 </div>
