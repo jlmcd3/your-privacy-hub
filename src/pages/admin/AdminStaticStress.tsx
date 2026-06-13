@@ -117,23 +117,58 @@ export default function AdminStaticStress() {
   const [stoppingMap, setStoppingMap] = useState<Record<string, boolean>>({});
   const [deletingMap, setDeletingMap] = useState<Record<string, boolean>>({});
 
-  // Load + poll all batches for this user
+  // Load + poll all batches for this user. The counters on static_stress_batches
+  // are often stale (setup never ran finaliseBatch, or the chain died before
+  // increment_batch_* RPCs landed). Compute real counts from static_stress_jobs.
   useEffect(() => {
     if (!user?.id) return;
     let cancelled = false;
     const load = async () => {
-      const { data } = await supabase
+      const { data: batches } = await supabase
         .from("static_stress_batches")
         .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log, setup_total, setup_done, created_at")
         .eq("run_by", user.id)
         .order("created_at", { ascending: false })
         .limit(50);
-      if (!cancelled && data) setAllBatches(data as BatchRow[]);
+      if (cancelled || !batches) return;
+
+      const ids = batches.map((b) => b.id);
+      const tallies: Record<string, { total: number; complete: number; failed: number; pending: number; running: number; cancelled: number }> = {};
+      if (ids.length > 0) {
+        const { data: jobRows } = await supabase
+          .from("static_stress_jobs")
+          .select("batch_id, status")
+          .in("batch_id", ids);
+        for (const j of jobRows ?? []) {
+          const t = tallies[j.batch_id] ??= { total: 0, complete: 0, failed: 0, pending: 0, running: 0, cancelled: 0 };
+          t.total++;
+          if (j.status === "complete") t.complete++;
+          else if (j.status === "failed") t.failed++;
+          else if (j.status === "pending") t.pending++;
+          else if (j.status === "running") t.running++;
+          else if (j.status === "cancelled") t.cancelled++;
+        }
+      }
+
+      const merged = batches.map((b) => {
+        const t = tallies[b.id];
+        if (!t) return b as BatchRow;
+        // Prefer live tallies whenever they exceed the stored counters
+        // (the stored counters are reliable when bigger only if jobs were deleted, which we don't do).
+        return {
+          ...b,
+          total_jobs: Math.max(b.total_jobs ?? 0, t.total),
+          completed_jobs: Math.max(b.completed_jobs ?? 0, t.complete),
+          failed_jobs: Math.max(b.failed_jobs ?? 0, t.failed),
+        } as BatchRow;
+      });
+      setAllBatches(merged);
     };
     load();
     const iv = setInterval(load, 10_000);
     return () => { cancelled = true; clearInterval(iv); };
   }, [user?.id]);
+
 
   async function handleStopBatch(batchId: string) {
     if (!confirm("Stop this batch? Completed reports are preserved; pending jobs are cancelled.")) return;
