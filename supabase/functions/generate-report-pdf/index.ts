@@ -598,11 +598,9 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
   .header { background:var(--navy); color:#fff; padding:22px 26px 24px; }
-  .header .logo-tile { display:inline-block; background:#fff; border-radius:6px; padding:5px 10px;
-    margin-bottom:12px; font-family:'Georgia','Times New Roman',serif; font-size:13px;
-    font-weight:700; color:var(--navy); letter-spacing:0.02em; }
+  .header .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
   .header .eyebrow { font-size:9px; font-weight:600; text-transform:uppercase;
-    letter-spacing:0.14em; color:#93c5fd; margin:0 0 4px; }
+    letter-spacing:0.14em; color:#93b5c6; margin:0 0 4px; }
   .header h1 { font-family:'Georgia','Times New Roman',serif; font-size:22px; margin:0;
     line-height:1.25; font-weight:700; }
   .header .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
