@@ -1,7 +1,10 @@
 // generate-stress-fixtures — given { industry, geo, company_slot, company_id }
-// asks Claude to generate a complete, internally-consistent test company
-// profile with payloads for every applicable compliance tool. One call per
-// company (~10s). Caller is the static stress orchestrator.
+// generates a complete, internally-consistent test company profile with payloads
+// for every applicable compliance tool.
+//
+// Uses TWO sequential non-streaming Claude calls (~14K tokens each) to stay
+// well under Supabase's 150s idle HTTP timeout. Streaming is intentionally
+// avoided — non-streaming sends the full response in one shot with no idle gaps.
 
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -21,69 +24,230 @@ function json(body: unknown, status = 200) {
   });
 }
 
+// Non-streaming Claude call. No stream:true — avoids the 150s idle timeout.
+async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 14000): Promise<string> {
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: maxTokens,
+      // NO stream: true — non-streaming avoids Supabase's 150s idle timeout
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+    }),
+    signal: AbortSignal.timeout(120_000),
+  });
+  if (!r.ok) {
+    const errText = await r.text().catch(() => "no body");
+    throw new Error(`Anthropic ${r.status}: ${errText.slice(0, 300)}`);
+  }
+  const data = await r.json();
+  const text = data?.content?.[0]?.text ?? "";
+  if (!text) throw new Error("Empty response from Anthropic");
+  return text;
+}
+
+function extractJson(text: string): any {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) throw new Error("No JSON object found in response");
+  try {
+    return JSON.parse(text.slice(start, end + 1));
+  } catch (e) {
+    throw new Error(`JSON parse failed: ${(e as Error).message}`);
+  }
+}
+
 const SYSTEM_PROMPT = `You are generating realistic, internally consistent test data for a privacy compliance software platform.
-Given an industry, geography (US or EU/UK), and a slot number (1 or 2, for two different companies per
-industry), create a complete company profile with all the data fields needed to test every applicable
-compliance tool.
-
 Rules:
-- All fields for the same company must be internally consistent: same company name, domain, sector,
-  contact email, DPO, and country throughout
-- Data must be realistic and sector-appropriate (data categories, vendors, retention periods,
-  processing activities must actually make sense for the industry)
+- All fields for the same company must use the same company name, domain, sector, contact email, DPO, and country
+- Data must be realistic and sector-appropriate (data categories, vendors, retention periods, processing activities)
 - Company names must be plausible fictional names (not real companies)
-- For US companies: include usNotice, cppaRisk, cppaCyber, governance, dpa, irPlaybook, biometric
-  (if sector uses biometrics), registration. Set lia/dpia/ropa/euNotice to null.
-- For EU/UK companies: include lia, dpia, governance, dpa, irPlaybook, ropa, euNotice, registration,
-  biometric (if sector uses biometrics). Set usNotice/cppaRisk/cppaCyber to null.
-- Slot 1 companies should be larger enterprises (500+ employees, $100M+ revenue equivalent)
-- Slot 2 companies should be mid-market (100-500 employees, $20-100M revenue equivalent)
+- Slot 1: large enterprises (500+ employees, $100M+ revenue equivalent)
+- Slot 2: mid-market (100-500 employees, $20-100M revenue equivalent)
+- Respond ONLY with valid JSON. No preamble, no markdown fences.`;
 
-Respond ONLY with valid JSON matching the schema provided. No preamble.`;
+// ── CALL A: Company profile + tools that apply to both US and EU ──────────────
 
-function buildUserPrompt(industry: string, geo: string, company_slot: number, company_id: string) {
+function buildCallAPrompt(industry: string, geo: string, slot: number, companyId: string): string {
+  const isEU = geo === "eu";
   return `Generate test data for:
 Industry: ${industry}
-Geography: ${geo} (${geo === "us" ? "United States" : "EU / United Kingdom"})
-Company slot: ${company_slot} (${company_slot === 1 ? "large enterprise" : "mid-market"})
-Company ID: ${company_id}
+Geography: ${geo} (${isEU ? "EU / United Kingdom" : "United States"})
+Company slot: ${slot} (${slot === 1 ? "large enterprise" : "mid-market"})
+Company ID: ${companyId}
 
-Return a JSON object with this exact structure:
+Return a JSON object with EXACTLY these top-level fields:
 {
   "companyName": "string — full legal name",
   "domain": "string — e.g. nexagenhealth.com",
   "privacyEmail": "string — privacy@domain",
-  "dpoEmail": "string or null — dpo@domain (null for US companies unless they have a DPO)",
-  "dpoName": "string or null — Full Name, Title",
-  "countryCode": "string — ISO-2 (US, GB, DE, FR, IE, NL, etc.)",
+  "dpoEmail": ${isEU ? '"string — dpo@domain"' : '"string or null"'},
+  "dpoName": ${isEU ? '"string — Full Name, Title"' : '"string or null"'},
+  "countryCode": "string — ISO-2 (${isEU ? "GB, DE, FR, IE, NL, etc." : "US"})",
   "employeeCount": number,
-  "annualRevenue": "string — e.g. $145M or €92M",
+  "annualRevenue": "string — e.g. ${isEU ? "€92M" : "$145M"}",
+  "governance": {
+    "sector": "string", "org_size": "string", "jurisdictions": ["array"],
+    "eu_uk_data": "${isEU ? "Yes" : "No"}", "tools": ["array"], "data_categories": ["array"],
+    "special_category": "Yes or No", "special_categories_list": [],
+    "privacy_policy": "string", "acceptable_use": "string", "dpo_status": "string",
+    "dpia_status": "string", "incident_response": "string", "training_status": "string",
+    "tool_instruction": "string", "dpa_status": "string", "transfer_status": "string"
+  },
+  "dpa": {
+    "controllerName": "string", "controllerJurisdiction": "string",
+    "processorName": "string — a realistic vendor name", "processorJurisdiction": "string",
+    "services": "string", "dataCategories": ["array"], "dataSubjectCount": "string",
+    "retention": "string", "hasSubProcessors": boolean, "subProcessorList": "string or empty string",
+    "legalFramework": "${isEU ? "GDPR" : "US"}", "auditRights": "string",
+    "includeTransferClause": boolean, "transferMechanism": "string or null"
+  },
+  "irPlaybook": {
+    "cause": "string", "dataTypes": ["array"], "affectedCount": "string",
+    "jurisdictions": ["array"], "processorInvolved": boolean,
+    "contained": "string", "organisationType": "string"
+  },
+  "biometric": null,
+  "registration": {
+    "organization_name": "string", "organization_country": "string",
+    "organization_size": "string", "industry": "string", "email": "string",
+    "employee_count": number, "annual_revenue_usd": number, "data_subjects_count": number,
+    "role": "controller or processor", "processes_personal_data": boolean,
+    "processes_special_categories": boolean, "processes_children_data": boolean,
+    "large_scale_monitoring": boolean, "uses_ai_systems": boolean, "ai_high_risk": boolean,
+    "ai_general_purpose_provider": boolean, "cross_border_transfers": boolean,
+    "markets_served": ["array"], "has_eu_establishment": boolean, "has_uk_establishment": boolean,
+    "acts_as_data_broker": boolean, "sells_or_shares_personal_info": boolean,
+    "processes_biometrics_for_id": boolean
+  }
+}
 
-  "lia": null or { "organization_name", "processing_description", "sector", "stated_purpose", "relationship_type", "data_categories": [], "jurisdictions": [], "alternatives_considered", "purpose_details": { "interest_holder", "interest_type", "purpose_text" }, "necessity_details": { "alternatives", "why_consent_not_used", "data_minimised", "pseudonymisation_options" }, "balancing_details": { "reasonable_expectation", "vulnerable_subjects": [], "potential_harm", "safeguards": [], "opt_out_mechanism", "special_category_data": bool, "balancing_text" } },
+Only set biometric to a non-null object if the ${industry} sector routinely uses biometric identification (e.g. healthcare, physical security, financial services). For all other sectors set biometric to null.
+The biometric object structure if used: { "biometricTypes": ["array"], "orgType": "string", "purpose": "string", "jurisdictions": ["array"], "enrolledCount": "string" }`;
+}
 
-  "dpia": null or { "processing_activity_name", "description", "purpose", "data_categories": [], "data_subjects", "volume_frequency", "retention", "third_party_processors": [], "automated_decisions", "existing_safeguards": [], "jurisdictions": [], "legal_basis_proposed", "sector" },
+// ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
 
-  "governance": null or { "sector", "org_size", "jurisdictions": [], "eu_uk_data": "Yes or No", "tools": [], "data_categories": [], "special_category": "Yes or No", "special_categories_list": [], "privacy_policy", "acceptable_use", "dpo_status", "dpia_status", "incident_response", "training_status", "tool_instruction", "dpa_status", "transfer_status" },
+function buildCallBEUPrompt(industry: string, slot: number, companyName: string): string {
+  return `You are generating EU-specific compliance tool payloads for "${companyName}", a ${slot === 1 ? "large enterprise" : "mid-market"} ${industry} company based in the EU/UK.
+Use the same company name, domain, DPO details, and country as already established for this company.
 
-  "biometric": null or { "biometricTypes": [], "orgType", "purpose", "jurisdictions": [], "enrolledCount" },
+Return a JSON object with EXACTLY these fields:
+{
+  "lia": {
+    "organization_name": "string", "processing_description": "string", "sector": "string",
+    "stated_purpose": "string", "relationship_type": "string", "data_categories": ["array"],
+    "jurisdictions": ["array"], "alternatives_considered": "string",
+    "purpose_details": { "interest_holder": "string", "interest_type": "string", "purpose_text": "string" },
+    "necessity_details": { "alternatives": "string", "why_consent_not_used": "string", "data_minimised": "string", "pseudonymisation_options": "string" },
+    "balancing_details": { "reasonable_expectation": "string", "vulnerable_subjects": [], "potential_harm": "string", "safeguards": ["array"], "opt_out_mechanism": "string", "special_category_data": boolean, "balancing_text": "string" }
+  },
+  "dpia": {
+    "processing_activity_name": "string", "description": "string", "purpose": "string",
+    "data_categories": ["array"], "data_subjects": "string", "volume_frequency": "string",
+    "retention": "string", "third_party_processors": ["array"], "automated_decisions": "string",
+    "existing_safeguards": ["array"], "jurisdictions": ["array"],
+    "legal_basis_proposed": "string", "sector": "string"
+  },
+  "ropa": {
+    "org_name": "string", "legal_entity_type": "string", "employee_band": "string",
+    "dpo_name": "string", "dpo_email": "string",
+    "jurisdictions": [{ "code": "string", "name": "string", "region": "string" }],
+    "activities": [
+      {
+        "activity_name": "string", "category": "string", "purpose": "string",
+        "lawful_basis": "string", "special_category_basis": "string or null",
+        "data_categories": ["array"], "data_subjects": "string", "recipients": "string",
+        "transfer_destination": "string or null", "transfer_mechanism": "string or null",
+        "retention_period": "string", "security_measures": "string"
+      }
+    ]
+  },
+  "euNotice": {
+    "controller_name": "string", "controller_address": "string", "contact_email": "string",
+    "dpo_details": "string", "dpo_name": "string", "dpo_email": "string",
+    "processing_purposes": ["array"], "data_categories": ["array"], "lawful_basis": ["array"],
+    "third_party_recipients": ["array"], "transfer_outside_eea": "string",
+    "transfer_safeguards": ["array"], "retention_period": "string",
+    "automated_decisions": "string", "special_category_basis": "string or null",
+    "supervisory_authority_eu": "string", "supervisory_authority_uk": "string or null"
+  },
+  "usNotice": null,
+  "cppaRisk": null,
+  "cppaCyber": null
+}
 
-  "dpa": null or { "controllerName", "controllerJurisdiction", "processorName", "processorJurisdiction", "services", "dataCategories": [], "dataSubjectCount", "retention", "hasSubProcessors": bool, "subProcessorList", "legalFramework", "auditRights", "includeTransferClause": bool, "transferMechanism" },
+Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.`;
+}
 
-  "irPlaybook": null or { "cause", "dataTypes": [], "affectedCount", "jurisdictions": [], "processorInvolved": bool, "contained", "organisationType" },
+// ── CALL B (US): usNotice, cppaRisk, cppaCyber ───────────────────────────────
 
-  "ropa": null or { "org_name", "legal_entity_type", "employee_band", "dpo_name", "dpo_email", "jurisdictions": [{"code", "name", "region"}], "activities": [{ "activity_name", "category", "purpose", "lawful_basis", "special_category_basis", "data_categories": [], "data_subjects", "recipients", "transfer_destination", "transfer_mechanism", "retention_period", "security_measures" }] },
+function buildCallBUSPrompt(industry: string, slot: number, companyName: string): string {
+  return `You are generating US-specific compliance tool payloads for "${companyName}", a ${slot === 1 ? "large enterprise" : "mid-market"} ${industry} company based in the United States.
+Use the same company name, domain, and contact info as already established for this company.
 
-  "usNotice": null or { "business_name", "business_description", "contact_email", "data_categories", "collection_purposes", "third_party_sharing", "third_party_categories", "sale_or_sharing", "retention_general", "sensitive_data_types", "data_sources" },
-
-  "euNotice": null or { "controller_name", "controller_address", "contact_email", "dpo_details", "dpo_name", "dpo_email", "processing_purposes": [], "data_categories": [], "lawful_basis": [], "third_party_recipients": [], "transfer_outside_eea", "transfer_safeguards": [], "retention_period", "automated_decisions", "special_category_basis", "supervisory_authority_eu", "supervisory_authority_uk" },
-
-  "cppaRisk": null or { "q1_revenue", "q2_consumers", "q3_sector", "q4_pi_categories": [], "q5_sell_share", "q6_right_know", "q7_right_delete", "q8_right_correct", "q9_opt_out", "q10_id_verification", "q11_policy_review", "q12_notice_at_collection", "q13_notice_content", "q14_employee_notice", "q15_sensitive_pi", "q16_sensitive_limit", "q17_sensitive_basis", "q18_admt_use", "q19_admt_description", "q20_admt_opt_out", "i1_processing_purpose", "i2_retention_period", "i2_retention_criteria", "i2_retention_detail", "i3_ca_consumer_band", "i4_disclosure_mechanisms": [], "i5_admt_logic", "i5_admt_training_source", "i5_admt_fairness_testing", "i5_admt_human_review", "i6_vendors", "i7_internal_contributors", "i7_external_consultees", "i8_certifying_exec_name", "i8_certifying_exec_title", "i9_has_existing_dpia", "i9_existing_dpia_summary" },
-
-  "cppaCyber": null or { "profile": { "industry", "incidents_12mo", "framework", "last_audit" }, "industry_sector", "controls": { "c1_auth": ["status", "notes"], "c2_encryption": ["status", "notes"], "c3_zero_trust": ["status", "notes"], "c4_account_mgmt": ["status", "notes"], "c5_inventory": ["status", "notes"], "c7_vuln_mgmt": ["status", "notes"], "c8_audit_logs": ["status", "notes"], "c9_network_mon": ["status", "notes"], "c10_anti_malware": ["status", "notes"], "c14_third_party": ["status", "notes"], "c15_retention": ["status", "notes"], "c16_training": ["status", "notes"], "c17_incident": ["status", "notes"], "c18_continuity": ["status", "notes"] } },
-
-  "registration": null or { "organization_name", "organization_country", "organization_size", "industry", "email", "employee_count": number, "annual_revenue_usd": number, "data_subjects_count": number, "role", "processes_personal_data": bool, "processes_special_categories": bool, "processes_children_data": bool, "large_scale_monitoring": bool, "uses_ai_systems": bool, "ai_high_risk": bool, "ai_general_purpose_provider": bool, "cross_border_transfers": bool, "markets_served": [], "has_eu_establishment": bool, "has_uk_establishment": bool, "acts_as_data_broker": bool, "sells_or_shares_personal_info": bool, "processes_biometrics_for_id": bool }
+Return a JSON object with EXACTLY these fields:
+{
+  "usNotice": {
+    "business_name": "string", "business_description": "string", "contact_email": "string",
+    "data_categories": "string — prose description", "collection_purposes": "string",
+    "third_party_sharing": "string", "third_party_categories": "string",
+    "sale_or_sharing": "string", "retention_general": "string",
+    "sensitive_data_types": "string", "data_sources": "string"
+  },
+  "cppaRisk": {
+    "q1_revenue": "string", "q2_consumers": "string", "q3_sector": "string",
+    "q4_pi_categories": ["array"], "q5_sell_share": "string", "q6_right_know": "string",
+    "q7_right_delete": "string", "q8_right_correct": "string", "q9_opt_out": "string",
+    "q10_id_verification": "string", "q11_policy_review": "string",
+    "q12_notice_at_collection": "string", "q13_notice_content": "string",
+    "q14_employee_notice": "string", "q15_sensitive_pi": "string",
+    "q16_sensitive_limit": "string", "q17_sensitive_basis": "string",
+    "q18_admt_use": "string", "q19_admt_description": "string", "q20_admt_opt_out": "string",
+    "i1_processing_purpose": "string", "i2_retention_period": "string",
+    "i2_retention_criteria": "string", "i2_retention_detail": "string",
+    "i3_ca_consumer_band": "string", "i4_disclosure_mechanisms": ["array"],
+    "i5_admt_logic": "string", "i5_admt_training_source": "string",
+    "i5_admt_fairness_testing": "string", "i5_admt_human_review": "string",
+    "i6_vendors": "string", "i7_internal_contributors": "string",
+    "i7_external_consultees": "string", "i8_certifying_exec_name": "string",
+    "i8_certifying_exec_title": "string", "i9_has_existing_dpia": "string",
+    "i9_existing_dpia_summary": "string"
+  },
+  "cppaCyber": {
+    "profile": { "industry": "string", "incidents_12mo": "string", "framework": "string", "last_audit": "string" },
+    "industry_sector": "string",
+    "controls": {
+      "c1_auth": ["status string", "notes string"],
+      "c2_encryption": ["status string", "notes string"],
+      "c3_zero_trust": ["status string", "notes string"],
+      "c4_account_mgmt": ["status string", "notes string"],
+      "c5_inventory": ["status string", "notes string"],
+      "c7_vuln_mgmt": ["status string", "notes string"],
+      "c8_audit_logs": ["status string", "notes string"],
+      "c9_network_mon": ["status string", "notes string"],
+      "c10_anti_malware": ["status string", "notes string"],
+      "c14_third_party": ["status string", "notes string"],
+      "c15_retention": ["status string", "notes string"],
+      "c16_training": ["status string", "notes string"],
+      "c17_incident": ["status string", "notes string"],
+      "c18_continuity": ["status string", "notes string"]
+    }
+  },
+  "lia": null,
+  "dpia": null,
+  "ropa": null,
+  "euNotice": null
 }`;
 }
+
+// ── Main handler ──────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -92,7 +256,6 @@ Deno.serve(async (req) => {
   const caller = await verifyCaller(req);
   if (!caller.internal) {
     if (!caller.userId) return json({ error: "forbidden" }, 403);
-    // Allow admin users to call directly from the admin UI.
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -109,62 +272,23 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 32000,
-        stream: true,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: buildUserPrompt(industry, geo, company_slot, company_id) }],
-      }),
-      signal: AbortSignal.timeout(360_000),
-    });
-    if (!r.ok || !r.body) {
-      const errText = r.body ? await r.text() : "no body";
-      return json({ error: "fixture generation failed", detail: `anthropic ${r.status}: ${errText.slice(0, 400)}` }, 502);
-    }
-    // Consume SSE stream and accumulate text deltas
-    const reader = r.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let text = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-      for (const line of lines) {
-        if (!line.startsWith("data:")) continue;
-        const payload = line.slice(5).trim();
-        if (!payload || payload === "[DONE]") continue;
-        try {
-          const evt = JSON.parse(payload);
-          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
-            text += evt.delta.text ?? "";
-          }
-        } catch { /* ignore parse errors on keep-alives */ }
-      }
-    }
-    // Extract JSON object
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if (start < 0 || end <= start) {
-      return json({ error: "fixture generation failed", detail: "no JSON object in response" }, 502);
-    }
-    let parsed: any;
-    try {
-      parsed = JSON.parse(text.slice(start, end + 1));
-    } catch (e) {
-      return json({ error: "fixture generation failed", detail: `invalid JSON: ${(e as Error).message}` }, 502);
-    }
-    return json(parsed, 200);
+    // Call A: company profile + shared tools (governance, dpa, irPlaybook, biometric, registration)
+    const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id));
+    const profileData = extractJson(callAText);
+    const companyName: string = profileData.companyName ?? company_id;
+
+    // Call B: geo-specific tools
+    const callBText = await callClaude(
+      SYSTEM_PROMPT,
+      geo === "eu"
+        ? buildCallBEUPrompt(industry, company_slot, companyName)
+        : buildCallBUSPrompt(industry, company_slot, companyName),
+    );
+    const geoData = extractJson(callBText);
+
+    // Merge: geoData fields overwrite profileData where both exist (shouldn't overlap)
+    return json({ ...profileData, ...geoData }, 200);
+
   } catch (e) {
     return json({ error: "fixture generation failed", detail: (e as Error).message }, 502);
   }
