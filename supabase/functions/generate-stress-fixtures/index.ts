@@ -26,7 +26,7 @@ function json(body: unknown, status = 200) {
 // Streaming Claude call. SSE bytes arrive continuously from Anthropic, and the
 // handler below also streams harmless JSON whitespace back to our caller so the
 // platform does not close the generate-stress-fixtures request while work runs.
-async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 14000): Promise<string> {
+async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 7000): Promise<string> {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -137,6 +137,7 @@ Rules:
 - Company names must be plausible fictional names (not real companies)
 - Slot 1: large enterprises (500+ employees, $100M+ revenue equivalent)
 - Slot 2: mid-market (100-500 employees, $20-100M revenue equivalent)
+- Keep strings concise: one short phrase or sentence unless the field is an array
 - Respond ONLY with valid JSON. No preamble, no markdown fences.`;
 
 // ── CALL A: Company profile + tools that apply to both US and EU ──────────────
@@ -340,7 +341,7 @@ Deno.serve(async (req) => {
 
   try {
     if (part === "profile") {
-      const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id));
+      const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 6000);
       return json(extractJson(callAText), 200);
     }
 
@@ -351,6 +352,7 @@ Deno.serve(async (req) => {
         geo === "eu"
           ? buildCallBEUPrompt(industry, company_slot, name)
           : buildCallBUSPrompt(industry, company_slot, name),
+        7000,
       );
       return json(extractJson(callBText), 200);
     }
@@ -361,7 +363,7 @@ Deno.serve(async (req) => {
   return streamJsonWork(async () => {
 
     // Call A: company profile + shared tools (governance, dpa, irPlaybook, biometric, registration)
-    const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id));
+    const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 6000);
     const profileData = extractJson(callAText);
     const companyName: string = profileData.companyName ?? company_id;
 
@@ -371,6 +373,7 @@ Deno.serve(async (req) => {
       geo === "eu"
         ? buildCallBEUPrompt(industry, company_slot, companyName)
         : buildCallBUSPrompt(industry, company_slot, companyName),
+      7000,
     );
     const geoData = extractJson(callBText);
 
