@@ -254,6 +254,24 @@ export default function AdminStaticStress() {
     }
   }
 
+  async function handleResume(batchId: string) {
+    setResuming(true);
+    try {
+      await supabase.functions.invoke("run-stress-job", {
+        body: { batch_id: batchId, job_id: null },
+      });
+      await supabase.from("static_stress_batches")
+        .update({ error_log: null })
+        .eq("id", batchId);
+      setActiveBatch((b) => b ? { ...b, error_log: null } : b);
+      toast.success("Batch resumed — chain restarted");
+    } catch (e) {
+      toast.error(`Resume failed: ${(e as Error).message}`);
+    } finally {
+      setResuming(false);
+    }
+  }
+
   async function onDownloadAll() {
     if (!activeBatch) return;
     setZipping(true);
