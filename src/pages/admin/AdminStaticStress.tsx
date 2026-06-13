@@ -92,6 +92,8 @@ export default function AdminStaticStress() {
   const [activeBatch, setActiveBatch] = useState<Batch | null>(null);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [zipping, setZipping] = useState(false);
+  const [resuming, setResuming] = useState(false);
+  const [fixtureFailures, setFixtureFailures] = useState<string[]>([]);
   const cancelRef = useRef(false);
 
   const applicableTools = useMemo(
