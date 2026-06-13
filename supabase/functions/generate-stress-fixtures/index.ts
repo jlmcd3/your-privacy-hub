@@ -26,7 +26,7 @@ function json(body: unknown, status = 200) {
 // Streaming Claude call. SSE bytes arrive continuously from Anthropic, and the
 // handler below also streams harmless JSON whitespace back to our caller so the
 // platform does not close the generate-stress-fixtures request while work runs.
-async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 7000): Promise<string> {
+async function callClaude(systemPrompt: string, userPrompt: string, maxTokens = 5000): Promise<string> {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -138,6 +138,7 @@ Rules:
 - Slot 1: large enterprises (500+ employees, $100M+ revenue equivalent)
 - Slot 2: mid-market (100-500 employees, $20-100M revenue equivalent)
 - Keep strings concise: one short phrase or sentence unless the field is an array
+- Use compact arrays: 2-4 items unless explicitly instructed otherwise
 - Respond ONLY with valid JSON. No preamble, no markdown fences.`;
 
 // ── CALL A: Company profile + tools that apply to both US and EU ──────────────
@@ -352,7 +353,7 @@ Deno.serve(async (req) => {
         geo === "eu"
           ? buildCallBEUPrompt(industry, company_slot, name)
           : buildCallBUSPrompt(industry, company_slot, name),
-        7000,
+        4500,
       );
       return json(extractJson(callBText), 200);
     }
@@ -373,7 +374,7 @@ Deno.serve(async (req) => {
       geo === "eu"
         ? buildCallBEUPrompt(industry, company_slot, companyName)
         : buildCallBUSPrompt(industry, company_slot, companyName),
-      7000,
+      4500,
     );
     const geoData = extractJson(callBText);
 
