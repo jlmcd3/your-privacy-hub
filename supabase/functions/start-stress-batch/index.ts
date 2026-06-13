@@ -82,12 +82,15 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
     }> = batch.companies ?? [];
 
     if (companyIndex >= companies.length) {
+      // Setup complete — update total_jobs count and mark batch running.
+      // Workers were already launched after the first company, so no need
+      // to launch them here. Just update the total so the finalise guard
+      // in run-stress-job knows setup is done.
       reachedEnd = true;
       const { count } = await admin
         .from("static_stress_jobs")
         .select("id", { count: "exact", head: true })
-        .eq("batch_id", batchId)
-        .eq("status", "pending");
+        .eq("batch_id", batchId);  // all statuses — count everything inserted
 
       const totalJobs = count ?? 0;
 
@@ -96,20 +99,6 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
         status: totalJobs > 0 ? "running" : "complete",
         started_at: new Date().toISOString(),
       }).eq("id", batchId);
-
-      if (totalJobs > 0) {
-        // Launch WORKER_COUNT parallel job workers. Each independently claims
-        // and processes jobs via the same optimistic DB lock, exactly simulating
-        // multiple simultaneous platform users. Stagger by 800ms to avoid
-        // thundering-herd on the first pending-job query.
-        const WORKER_COUNT = 8;
-        for (let w = 0; w < WORKER_COUNT; w++) {
-          await new Promise((r) => setTimeout(r, w * 800));
-          invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
-            console.warn(`[start-stress-batch] worker ${w} initial launch failed:`, e)
-          );
-        }
-      }
       return;
     }
 
@@ -154,6 +143,24 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
       await admin.from("static_stress_batches")
         .update({ setup_done: companyIndex + 1 })
         .eq("id", batchId);
+
+      // After the first company's jobs are inserted, launch 8 parallel workers.
+      // They will continuously claim and process jobs as more companies are
+      // added by the ongoing setup chain. Workers self-sustain via selfInvokeNext.
+      if (companyIndex === 0 && jobRows.length > 0) {
+        await admin.from("static_stress_batches").update({
+          status: "running",
+          started_at: new Date().toISOString(),
+        }).eq("id", batchId);
+
+        const WORKER_COUNT = 8;
+        for (let w = 0; w < WORKER_COUNT; w++) {
+          await new Promise((r) => setTimeout(r, w * 800));
+          invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
+            console.warn(`[start-stress-batch] worker ${w} early-start launch failed:`, e)
+          );
+        }
+      }
 
     } catch (err) {
       const errMsg = (err as Error).message?.slice(0, 480) ?? "unknown";

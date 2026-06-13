@@ -602,7 +602,8 @@ export default function AdminStaticStress() {
         <Button size="lg" onClick={handleStart} disabled={starting || estimate === 0 || !!activeBatch}>
           {starting ? "Starting…" : "Start Static Stress Test"}
         </Button>
-        {activeBatch && activeBatch.status === "pending" && activeBatch.setup_total > 0 && (
+        {activeBatch && (activeBatch.status === "pending" || activeBatch.status === "running") &&
+          activeBatch.setup_total > 0 && activeBatch.setup_done < activeBatch.setup_total && (
           <span className="text-sm text-muted-foreground">
             Generating fixtures: {activeBatch.setup_done}/{activeBatch.setup_total} companies — safe to navigate away
           </span>
