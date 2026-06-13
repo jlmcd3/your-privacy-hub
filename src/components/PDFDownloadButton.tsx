@@ -31,9 +31,11 @@ interface Props {
   onGenerated?: (pdfUrl: string) => void;
   /** Override default white-on-navy styling (e.g. for light backgrounds). */
   className?: string;
+  /** Force regeneration, bypassing any cached PDF. */
+  force?: boolean;
 }
 
-export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGenerated, className }: Props) {
+export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGenerated, className, force }: Props) {
   const [busy, setBusy] = useState(false);
 
   const baseClass = className ??
@@ -50,6 +52,7 @@ export default function PDFDownloadButton({ toolType, assessmentId, pdfUrl, onGe
           tool_type: toolType,
           assessment_id: assessmentId,
           result_url: window.location.href,
+          ...(force ? { force: true } : {}),
         },
       });
       if (error) {
