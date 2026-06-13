@@ -89,20 +89,17 @@ export default function AdminStaticStress() {
   const [geoFilter, setGeoFilter] = useState<"both" | "us" | "eu">("both");
   const [selectedTools, setSelectedTools] = useState<string[]>(ALL_TOOLS.map((t) => t.id));
   const [starting, setStarting] = useState(false);
-  const [setupProgress, setSetupProgress] = useState<{ done: number; total: number } | null>(null);
   const [activeBatch, setActiveBatch] = useState<Batch | null>(null);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [zipping, setZipping] = useState(false);
   const [resuming, setResuming] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [fixtureFailures, setFixtureFailures] = useState<string[]>([]);
-  const cancelRef = useRef(false);
 
   async function handleStop() {
     if (!activeBatch) return;
     if (!confirm("Stop the batch? Any reports already generated will be preserved. Pending jobs will be cancelled.")) return;
     setStopping(true);
-    cancelRef.current = true;
     try {
       await supabase.from("static_stress_batches")
         .update({ status: "cancelled" })
@@ -119,6 +116,7 @@ export default function AdminStaticStress() {
       setStopping(false);
     }
   }
+
 
 
   const applicableTools = useMemo(
