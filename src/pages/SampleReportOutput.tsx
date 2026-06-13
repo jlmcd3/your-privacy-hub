@@ -41,6 +41,7 @@ export default function SampleReportOutput() {
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
   const [zipping, setZipping] = useState(false);
 
   async function load() {
