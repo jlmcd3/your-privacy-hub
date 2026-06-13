@@ -938,9 +938,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     ${sgGroup("Contractual", s7.contractual)}
     ${sectionHead("8", "Decision", s8.statute)}
     ${s8.analysis ? `<p>${text(s8.analysis)}</p>` : ""}
-    <p><span class="label">AI-recommended outcome:</span> ${text(s8.ai_recommended_outcome)}</p>
-    ${s8.recommendation_rationale ? `<p><span class="label">Rationale:</span> ${text(s8.recommendation_rationale)}</p>` : ""}
-    <p><span class="label">Recorded decision of certifying executive:</span> ${fillIn(s8.user_decision, "[TO BE RECORDED — the tool's recommendation is not the decision]")}</p>
+    <p><span class="label">Recorded decision of certifying executive:</span> ${fillIn(s8.user_decision, "[TO BE RECORDED — record the decision; the analysis above is provided for consideration only and contains no tool-generated recommendation]")}</p>
     ${s8.user_conditions ? `<p><span class="label">Conditions:</span> ${text(s8.user_conditions)}</p>` : ""}
     ${guidance(s8.user_guidance)}
     ${sectionHead("9", "Contributors and Consultees", s9.statute)}
