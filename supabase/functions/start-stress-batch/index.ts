@@ -149,22 +149,31 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
       const errMsg = (err as Error).message?.slice(0, 480) ?? "unknown";
       console.warn(`[start-stress-batch] fixture failed for ${companyId}:`, errMsg);
 
-      await admin.from("static_stress_jobs").insert({
-        batch_id: batchId,
-        company_id: companyId,
-        company_name: `[Fixture failed] ${companyId}`,
-        industry: c.industryLabel,
-        geo: c.geo,
-        tool_slug: "fixture-generation",
-        status: "failed",
-        error_message: errMsg,
-        completed_at: new Date().toISOString(),
-      }).catch(() => {});
+      try {
+        await admin.from("static_stress_jobs").insert({
+          batch_id: batchId,
+          company_id: companyId,
+          company_name: `[Fixture failed] ${companyId}`,
+          industry: c.industryLabel,
+          geo: c.geo,
+          tool_slug: "fixture-generation",
+          status: "failed",
+          error_message: errMsg,
+          completed_at: new Date().toISOString(),
+        });
+      } catch (insertErr) {
+        console.warn(`[start-stress-batch] failed to insert failure placeholder for ${companyId}:`, insertErr);
+      }
 
-      await admin.from("static_stress_batches")
-        .update({ setup_done: companyIndex + 1 })
-        .eq("id", batchId);
+      try {
+        await admin.from("static_stress_batches")
+          .update({ setup_done: companyIndex + 1 })
+          .eq("id", batchId);
+      } catch (updateErr) {
+        console.warn(`[start-stress-batch] failed to update setup_done for ${companyId}:`, updateErr);
+      }
     }
+
 
   } catch (fatalErr) {
     console.error("[start-stress-batch] fatal error in processNextCompany:", fatalErr);

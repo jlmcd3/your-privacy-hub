@@ -95,6 +95,25 @@ export default function AdminStaticStress() {
   const [resuming, setResuming] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [fixtureFailures, setFixtureFailures] = useState<string[]>([]);
+  const [resumingSetup, setResumingSetup] = useState(false);
+
+  // On mount: restore any in-progress batch so refresh and cross-tab work.
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("static_stress_batches")
+        .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log, setup_total, setup_done")
+        .eq("run_by", user.id)
+        .in("status", ["pending", "running"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled && data) setActiveBatch(data as Batch);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   async function handleStop() {
     if (!activeBatch) return;
@@ -254,6 +273,7 @@ export default function AdminStaticStress() {
   }
 
   async function handleResumeSetup(batchId: string, fromIndex: number) {
+    setResumingSetup(true);
     try {
       await supabase.functions.invoke("start-stress-batch", {
         body: { batch_id: batchId, company_index: fromIndex },
@@ -265,6 +285,8 @@ export default function AdminStaticStress() {
       toast.success("Setup resumed — continuing from where it left off");
     } catch (e) {
       toast.error(`Resume failed: ${(e as Error).message}`);
+    } finally {
+      setResumingSetup(false);
     }
   }
 
@@ -450,8 +472,8 @@ export default function AdminStaticStress() {
           {activeBatch.status === "pending" && activeBatch.error_log && (
             <div className="border border-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-3 text-sm space-y-2">
               <div>⚠ Setup interrupted — {activeBatch.error_log}</div>
-              <Button size="sm" onClick={() => handleResumeSetup(activeBatch.id, activeBatch.setup_done)}>
-                Resume Setup
+              <Button size="sm" onClick={() => handleResumeSetup(activeBatch.id, activeBatch.setup_done)} disabled={resumingSetup}>
+                {resumingSetup ? "Resuming…" : "Resume Setup"}
               </Button>
             </div>
           )}
