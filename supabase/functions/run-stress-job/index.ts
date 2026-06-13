@@ -379,7 +379,20 @@ async function processNextJob(batchId: string, specificJobId: string | null): Pr
         .select("*").eq("batch_id", batchId).eq("status", "pending")
         .order("created_at", { ascending: true }).limit(1).maybeSingle();
       if (!next) {
-        await finaliseBatch(admin, batchId);
+        // No pending jobs right now — but check setup is actually complete
+        // before finalising. During the interleaved phase this may just be
+        // a lull between company fixture insertions.
+        const { data: batchCheck } = await admin.from("static_stress_batches")
+          .select("setup_done, setup_total")
+          .eq("id", batchId).single();
+        const setupComplete =
+          (batchCheck?.setup_done ?? 0) >= (batchCheck?.setup_total ?? 1) &&
+          (batchCheck?.setup_total ?? 0) > 0;
+        if (setupComplete) {
+          await finaliseBatch(admin, batchId);
+        }
+        // else: setup still in progress, exit gracefully — selfInvokeNext
+        // in finally will recheck and keep the chain alive.
         return;
       }
       const { data: claimed } = await admin.from("static_stress_jobs")
