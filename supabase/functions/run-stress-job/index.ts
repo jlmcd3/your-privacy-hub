@@ -321,7 +321,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         user_id: userId, module: "cybersecurity", status: "pending", intake_data: intake,
       }).select("id").single();
       if (error || !rec) throw new Error(`cppa-cyber insert: ${error?.message}`);
-      await invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id }).catch(() => {});
+      await invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-cppa-cybersecurity trigger failed (will poll):", e));
       await pollCppa(admin, rec.id);
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
     }
