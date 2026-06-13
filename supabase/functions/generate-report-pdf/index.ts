@@ -640,7 +640,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     background:var(--navy); color:#fff; font-size:10px; font-weight:600;
     display:inline-flex; align-items:center; justify-content:center; margin-top:1px; }
   ul.dot-list .dot { flex:0 0 auto; width:6px; height:6px; border-radius:999px;
-    background:var(--accent); margin-top:8px; }
+    background:var(--teal); margin-top:8px; }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border);
     font-size:10px; color:var(--slate); text-align:center; }
   table.md-table { border-collapse:collapse; width:100%; font-size:10.5pt; margin:12px 0; }
