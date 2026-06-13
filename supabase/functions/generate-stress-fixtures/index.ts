@@ -338,10 +338,10 @@ Deno.serve(async (req) => {
     return json({ error: "missing required fields: industry, geo, company_slot, company_id" }, 400);
   }
 
-  return streamJsonWork(async () => {
+  try {
     if (part === "profile") {
       const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id));
-      return extractJson(callAText);
+      return json(extractJson(callAText), 200);
     }
 
     if (part === "geo") {
@@ -352,8 +352,13 @@ Deno.serve(async (req) => {
           ? buildCallBEUPrompt(industry, company_slot, name)
           : buildCallBUSPrompt(industry, company_slot, name),
       );
-      return extractJson(callBText);
+      return json(extractJson(callBText), 200);
     }
+  } catch (e) {
+    return json({ error: "fixture generation failed", detail: (e as Error).message }, 502);
+  }
+
+  return streamJsonWork(async () => {
 
     // Call A: company profile + shared tools (governance, dpa, irPlaybook, biometric, registration)
     const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id));
