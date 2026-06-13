@@ -3,7 +3,8 @@
 // generated from /admin/sample-reports without having to publish first.
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Trash2, Download } from "lucide-react";
+import JSZip from "jszip";
 import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet-async";
 import { toast } from "sonner";
@@ -40,6 +41,7 @@ export default function SampleReportOutput() {
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [zipping, setZipping] = useState(false);
 
   async function load() {
     const { data, error } = await supabase
@@ -100,6 +102,57 @@ export default function SampleReportOutput() {
     }
   }
 
+  async function onDownloadAll() {
+    const list = (rows ?? []).filter((r) => urls[r.id]);
+    if (list.length === 0) {
+      toast.error("No PDFs available to download");
+      return;
+    }
+    setZipping(true);
+    const t = toast.loading(`Zipping ${list.length} PDFs…`);
+    try {
+      const zip = new JSZip();
+      const used = new Set<string>();
+      const results = await Promise.all(
+        list.map(async (r) => {
+          try {
+            const res = await fetch(urls[r.id]);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+            const safe = `${r.tool_slug}__${r.variant}__${r.title}`
+              .replace(/[^a-z0-9_\-]+/gi, "_")
+              .replace(/^_+|_+$/g, "")
+              .slice(0, 120) || r.id;
+            let name = `${safe}.pdf`;
+            let i = 2;
+            while (used.has(name)) name = `${safe}_${i++}.pdf`;
+            used.add(name);
+            zip.file(`${r.tool_slug}/${name}`, blob);
+            return true;
+          } catch (e) {
+            console.error("Failed to fetch", r.id, e);
+            return false;
+          }
+        }),
+      );
+      const ok = results.filter(Boolean).length;
+      const fail = results.length - ok;
+      const content = await zip.generateAsync({ type: "blob" });
+      const stamp = new Date().toISOString().slice(0, 10);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(content);
+      a.download = `sample-reports-${stamp}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+      toast.success(`Downloaded ${ok} PDF${ok === 1 ? "" : "s"}${fail ? ` (${fail} failed)` : ""}`, { id: t });
+    } catch (e) {
+      toast.error(`Zip failed: ${(e as Error).message}`, { id: t });
+    } finally {
+      setZipping(false);
+    }
+  }
+
   const grouped = useMemo(() => {
     const out: Record<string, Row[]> = {};
     (rows ?? []).forEach((r) => {
@@ -123,15 +176,26 @@ export default function SampleReportOutput() {
           <ArrowLeft className="h-4 w-4" aria-hidden /> Home
         </Link>
 
-        <header className="mb-8">
-          <h1 className="font-display text-3xl md:text-4xl text-brand-navy mb-2">
-            Sample report output
-          </h1>
-          <p className="text-muted-foreground">
-            Every sample PDF generated from <code>/admin/sample-reports</code>,
-            grouped by tool. Drafts and published samples both appear here as
-            soon as a PDF has been attached.
-          </p>
+        <header className="mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl md:text-4xl text-brand-navy mb-2">
+              Sample report output
+            </h1>
+            <p className="text-muted-foreground">
+              Every sample PDF generated from <code>/admin/sample-reports</code>,
+              grouped by tool. Drafts and published samples both appear here as
+              soon as a PDF has been attached.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onDownloadAll}
+            disabled={zipping || !rows || rows.length === 0}
+            className="inline-flex items-center gap-2 rounded-md bg-brand-navy text-white px-4 py-2 text-sm font-medium hover:bg-brand-navy/90 disabled:opacity-50 shrink-0"
+          >
+            <Download className="h-4 w-4" aria-hidden />
+            {zipping ? "Zipping…" : "Download All"}
+          </button>
         </header>
 
         {error && (
