@@ -781,6 +781,13 @@ export default function AdminStaticStress() {
           })}
         </div>
       </section>
+
+      {/* Live activity log — read-only, polls every 30s */}
+      <StressLiveLog
+        batchIds={allBatches
+          .filter((b) => b.status === "running" || b.status === "pending")
+          .map((b) => b.id)}
+      />
     </div>
   );
 }
