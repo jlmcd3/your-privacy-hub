@@ -243,6 +243,16 @@ export default function SampleReportOutput() {
             <Download className="h-4 w-4" aria-hidden />
             {zipping ? "Zipping…" : "Download All"}
           </button>
+          <button
+            type="button"
+            onClick={onDeleteAll}
+            disabled={deletingAll || !rows || rows.length === 0}
+            className="inline-flex items-center gap-2 rounded-md border border-destructive/40 text-destructive px-4 py-2 text-sm font-medium hover:bg-destructive/10 disabled:opacity-50 shrink-0"
+            title="Delete all sample reports (admin only)"
+          >
+            <Trash2 className="h-4 w-4" aria-hidden />
+            {deletingAll ? "Deleting…" : "Delete All"}
+          </button>
         </header>
 
         {error && (
