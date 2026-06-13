@@ -135,7 +135,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       const { data: rec, error } = await admin.from("li_assessments")
         .insert({ ...intake, user_id: userId }).select("id").single();
       if (error || !rec) throw new Error(`lia insert: ${error?.message}`);
-      await invokeFn("run-li-assessment", { assessment_id: rec.id }).catch(() => {});
+      await invokeFn("run-li-assessment", { assessment_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-li-assessment trigger failed (will poll):", e));
       await pollStatus(admin, "li_assessments", rec.id, "complete");
       return { sourceTable: "li_assessments", sourceRowId: rec.id };
     }
@@ -144,7 +145,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         user_id: userId, status: "pending", intake_data: intake, is_subscriber_credit: true,
       }).select("id").single();
       if (error || !rec) throw new Error(`dpia insert: ${error?.message}`);
-      await invokeFn("run-dpia-framework", { dpia_id: rec.id }).catch(() => {});
+      await invokeFn("run-dpia-framework", { dpia_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-dpia-framework trigger failed (will poll):", e));
       await pollStatus(admin, "dpia_frameworks", rec.id, "complete");
       return { sourceTable: "dpia_frameworks", sourceRowId: rec.id };
     }
@@ -153,7 +155,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         .insert({ user_id: userId, status: "pending", intake_data: intake })
         .select("id").single();
       if (error || !rec) throw new Error(`governance insert: ${error?.message}`);
-      await invokeFn("run-governance-assessment", { assessment_id: rec.id }).catch(() => {});
+      await invokeFn("run-governance-assessment", { assessment_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-governance-assessment trigger failed (will poll):", e));
       await pollStatus(admin, "governance_assessments", rec.id, "complete");
       return { sourceTable: "governance_assessments", sourceRowId: rec.id };
     }
@@ -226,12 +229,18 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
           ansRows.push({ activity_id: a.id, session_id: session.id, question_key: k, answer_value: v });
         }
       }
-      if (ansRows.length) await admin.from("ropa_answers").insert(ansRows);
+      if (ansRows.length) {
+        try {
+          await admin.from("ropa_answers").insert(ansRows);
+        } catch (e) {
+          console.warn("[run-stress-job] ropa_answers insert failed:", e);
+        }
+      }
       await invokeFn("generate-ropa-document", {
         session_id: session.id, format: "pdf",
         document_date: new Date().toISOString().slice(0, 10),
         author_name: `${persona.org_name} Compliance Team`,
-      }).catch(() => {});
+      }).catch((e) => console.warn("[run-stress-job] generate-ropa-document trigger failed (will poll):", e));
       await pollStatus(admin, "ropa_sessions", session.id, "generated");
       const { data: ver } = await admin.from("ropa_document_versions")
         .select("id").eq("session_id", session.id).eq("document_format", "pdf")
@@ -246,16 +255,24 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         payment_confirmed: true, paid_at: new Date().toISOString(),
       }).select("id").single();
       if (sErr || !session) throw new Error(`us-notice session: ${sErr?.message}`);
-      await admin.from("us_notice_state_selections").insert([
-        { session_id: session.id, state_code: "CA", state_name: "California", framework_type: "ccpa" },
-        { session_id: session.id, state_code: "VA", state_name: "Virginia", framework_type: "virginia_model" },
-        { session_id: session.id, state_code: "TX", state_name: "Texas", framework_type: "virginia_model" },
-      ]);
-      await admin.from("us_notice_answers").insert(
-        Object.entries(intake).map(([k, v]) => ({
-          session_id: session.id, question_key: k, answer_value: v as any,
-        })),
-      );
+      try {
+        await admin.from("us_notice_state_selections").insert([
+          { session_id: session.id, state_code: "CA", state_name: "California", framework_type: "ccpa" },
+          { session_id: session.id, state_code: "VA", state_name: "Virginia", framework_type: "virginia_model" },
+          { session_id: session.id, state_code: "TX", state_name: "Texas", framework_type: "virginia_model" },
+        ]);
+      } catch (e) {
+        console.warn("[run-stress-job] us_notice_state_selections insert failed:", e);
+      }
+      try {
+        await admin.from("us_notice_answers").insert(
+          Object.entries(intake).map(([k, v]) => ({
+            session_id: session.id, question_key: k, answer_value: v as any,
+          })),
+        );
+      } catch (e) {
+        console.warn("[run-stress-job] us_notice_answers insert failed:", e);
+      }
       const gen = await invokeFn("generate-us-notice", { session_id: session.id });
       if (!gen?.documents?.length) throw new Error("us-notice: no documents");
       return { sourceTable: "us_notice_sessions", sourceRowId: session.id };
@@ -267,16 +284,25 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         payment_confirmed: true, paid_at: new Date().toISOString(),
       }).select("id").single();
       if (sErr || !session) throw new Error(`eu-notice session: ${sErr?.message}`);
-      await admin.from("eu_notice_framework_selections").insert([
-        { session_id: session.id, framework_code: "EU_GDPR", framework_name: "EU GDPR", region: "EU" },
-        { session_id: session.id, framework_code: "UK_GDPR", framework_name: "UK GDPR", region: "UK" },
-      ]);
-      await admin.from("eu_notice_answers").insert(
-        Object.entries(intake).map(([k, v]) => ({
-          session_id: session.id, question_key: k, answer_value: v as any,
-        })),
-      );
-      await invokeFn("generate-eu-notice", { session_id: session.id }).catch(() => {});
+      try {
+        await admin.from("eu_notice_framework_selections").insert([
+          { session_id: session.id, framework_code: "EU_GDPR", framework_name: "EU GDPR", region: "EU" },
+          { session_id: session.id, framework_code: "UK_GDPR", framework_name: "UK GDPR", region: "UK" },
+        ]);
+      } catch (e) {
+        console.warn("[run-stress-job] eu_notice_framework_selections insert failed:", e);
+      }
+      try {
+        await admin.from("eu_notice_answers").insert(
+          Object.entries(intake).map(([k, v]) => ({
+            session_id: session.id, question_key: k, answer_value: v as any,
+          })),
+        );
+      } catch (e) {
+        console.warn("[run-stress-job] eu_notice_answers insert failed:", e);
+      }
+      await invokeFn("generate-eu-notice", { session_id: session.id })
+        .catch((e) => console.warn("[run-stress-job] generate-eu-notice trigger failed (will poll):", e));
       await pollStatus(admin, "eu_notice_sessions", session.id, "generated");
       return { sourceTable: "eu_notice_sessions", sourceRowId: session.id };
     }
@@ -285,7 +311,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         user_id: userId, module: "risk_assessment", status: "pending", intake_data: intake,
       }).select("id").single();
       if (error || !rec) throw new Error(`cppa-risk insert: ${error?.message}`);
-      await invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id }).catch(() => {});
+      await invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-cppa-risk-assessment trigger failed (will poll):", e));
       await pollCppa(admin, rec.id);
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
     }
@@ -294,7 +321,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         user_id: userId, module: "cybersecurity", status: "pending", intake_data: intake,
       }).select("id").single();
       if (error || !rec) throw new Error(`cppa-cyber insert: ${error?.message}`);
-      await invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id }).catch(() => {});
+      await invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-cppa-cybersecurity trigger failed (will poll):", e));
       await pollCppa(admin, rec.id);
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
     }
@@ -314,7 +342,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         delivery_email: intake.email, renewal_reminders_enabled: false,
       }).select("id").single();
       if (oErr || !order) throw new Error(`registration order: ${oErr?.message}`);
-      await invokeFn("generate-registration-docs", { order_id: order.id }).catch(() => {});
+      await invokeFn("generate-registration-docs", { order_id: order.id })
+        .catch((e) => console.warn("[run-stress-job] generate-registration-docs trigger failed:", e));
       return { sourceTable: "registration_assessments", sourceRowId: assessmentId };
     }
     default:
