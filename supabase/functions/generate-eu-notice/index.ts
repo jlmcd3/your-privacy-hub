@@ -319,7 +319,7 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
       title: "EU representative",
       html: euRepName
         ? `<p>Our EU representative under GDPR Art. 27 is <strong>${escapeHtml(euRepName)}</strong>${euRepContact ? ` — ${escapeHtml(euRepContact)}` : ""}.</p>`
-        : `<p>[EU representative to be appointed — required under GDPR Art. 27 unless an exemption applies.]</p>`,
+        : `<p>If your organisation is not established in the EU/EEA, an EU representative under GDPR Art. 27 may be required — confirm this requirement with your legal counsel. If established in the EU/EEA, no EU representative is needed.</p>`,
     });
   }
 
