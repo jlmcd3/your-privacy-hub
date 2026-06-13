@@ -48,25 +48,55 @@ export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
   const [entries, setEntries] = useState<Snapshot[]>(initial.entries);
   const [lastPolled, setLastPolled] = useState<string | null>(initial.lastPolled);
   const [filterBatch, setFilterBatch] = useState<string>("all");
+  const [discoveredBatchIds, setDiscoveredBatchIds] = useState<string[]>([]);
   const prevJobsRef = useRef<Map<string, JobLite>>(new Map(initial.prevJobs));
   const entriesRef = useRef<Snapshot[]>(initial.entries);
 
 
 
+  const trackedBatchIds = useMemo(
+    () => Array.from(new Set([...batchIds, ...discoveredBatchIds])).sort(),
+    [batchIds, discoveredBatchIds],
+  );
   const idsKey = useMemo(() => batchIds.slice().sort().join(","), [batchIds]);
 
   useEffect(() => {
-    if (!enabled || batchIds.length === 0) return;
+    if (!enabled) return;
     let cancelled = false;
 
     const poll = async () => {
+      const discovered = new Set(batchIds);
+      const [{ data: liveBatches }, { data: liveJobs }] = await Promise.all([
+        supabase
+          .from("static_stress_batches")
+          .select("id")
+          .in("status", ["pending", "running"])
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase
+          .from("static_stress_jobs")
+          .select("batch_id")
+          .in("status", ["pending", "running"])
+          .limit(5000),
+      ]);
+      for (const b of liveBatches ?? []) discovered.add(b.id);
+      for (const j of liveJobs ?? []) discovered.add(j.batch_id);
+      const ids = Array.from(discovered).sort();
+      const nextDiscovered = ids.filter((id) => !batchIds.includes(id));
+      setDiscoveredBatchIds((current) => current.join(",") === nextDiscovered.join(",") ? current : nextDiscovered);
+
+      const now = new Date().toISOString();
+      if (ids.length === 0) {
+        setLastPolled(now);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("static_stress_jobs")
         .select("id, batch_id, status, tool_slug, company_name, completed_at, error_message")
-        .in("batch_id", batchIds);
+        .in("batch_id", ids);
       if (cancelled || error || !data) return;
 
-      const now = new Date().toISOString();
       const prev = prevJobsRef.current;
       const byBatch: Record<string, JobLite[]> = {};
       const transitionsByBatch: Record<string, Snapshot["transitions"]> = {};
@@ -97,7 +127,7 @@ export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
       }
 
       const newSnapshots: Snapshot[] = [];
-      for (const bid of batchIds) {
+      for (const bid of ids) {
         const jobs = byBatch[bid] ?? [];
         if (jobs.length === 0) continue;
         const counts = { total: jobs.length, complete: 0, failed: 0, running: 0, pending: 0, cancelled: 0 };
@@ -168,7 +198,7 @@ export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
             onChange={(e) => setFilterBatch(e.target.value)}
           >
             <option value="all">All tracked batches</option>
-            {batchIds.map((id) => <option key={id} value={id}>{id.slice(0, 8)}</option>)}
+            {trackedBatchIds.map((id) => <option key={id} value={id}>{id.slice(0, 8)}</option>)}
           </select>
           <Button size="sm" variant="outline" onClick={() => { setEntries([]); entriesRef.current = []; prevJobsRef.current = new Map(); try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } }}>Clear</Button>
           <Button size="sm" variant={enabled ? "default" : "outline"} onClick={() => setEnabled((v) => !v)}>
@@ -177,11 +207,11 @@ export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
         </div>
       </header>
 
-      {batchIds.length === 0 && (
+      {trackedBatchIds.length === 0 && (
         <p className="text-sm text-muted-foreground">No batches to track.</p>
       )}
 
-      {batchIds.length > 0 && filtered.length === 0 && (
+      {trackedBatchIds.length > 0 && filtered.length === 0 && (
         <p className="text-sm text-muted-foreground">
           Waiting for first poll{enabled ? "…" : " (paused)"}
         </p>
