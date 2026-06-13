@@ -244,6 +244,9 @@ ${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: asse
 <div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <h2>Executive Summary</h2>
 <div class="rating">Readiness: ${escHtml(report.overall_readiness_rating || "Unknown")}</div>
+<p class="meta" style="font-size:10.5px;color:#5c5a54;margin-top:4px;">
+  Domain severity guide: <strong>Critical</strong> = no controls in place; <strong>High</strong> = controls exist but are materially incomplete; <strong>Medium</strong> = controls mostly in place with identified gaps; <strong>Low</strong> = minor gaps only; <strong>Compliant</strong> = requirements met.
+</p>
 <p>${escHtml(report.executive_summary || "")}</p>
 <p>${escHtml(report.readiness_rationale || "")}</p>
 <h2>Top Three Risks</h2>
@@ -784,7 +787,21 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   const cover = a.cover || {};
   const text = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
   const textJoin = (v: any) => Array.isArray(v)
-    ? escHtml(v.filter((x) => x !== null && x !== undefined && String(x).trim() !== "").map((x) => String(x)).join("; "))
+    ? escHtml(
+        v
+          .filter((x) => x !== null && x !== undefined)
+          .map((x) => {
+            if (x !== null && typeof x === "object") {
+              return String(
+                (x as any).name ?? (x as any).vendor_name ?? (x as any).label ??
+                (x as any).title ?? (x as any).company ?? JSON.stringify(x)
+              );
+            }
+            return String(x);
+          })
+          .filter((s) => s.trim() !== "" && s !== "{}" && s !== "null")
+          .join("; ")
+      )
     : text(v);
   const capLabel = (k: string) => {
     const s = k.replace(/_/g, " ");
@@ -947,7 +964,8 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     ${b.assessment_count_in_period !== undefined ? `<p><span class="label">Assessments in period:</span> ${text(b.assessment_count_in_period)}</p>` : ""}
     ${Array.isArray(b.pi_categories_aggregated) && b.pi_categories_aggregated.length ? `<p><span class="label">PI categories (aggregated):</span> ${b.pi_categories_aggregated.map((c: any) => text(c)).join(", ")}</p>` : ""}
     ${Array.isArray(b.spi_flagged) && b.spi_flagged.length ? `<p><span class="label">SPI flagged:</span> ${b.spi_flagged.map((c: any) => text(c)).join(", ")}</p>` : ""}
-    ${b.perjury_attestation_block ? `<div class="attest">${text(b.perjury_attestation_block)}</div>` : ""}
+    ${b.perjury_attestation_block ? `<div class="attest">${text(b.perjury_attestation_block)}</div>
+    <p class="meta" style="margin-top:8px;font-size:10px;color:#b55a00;border-top:1px solid #e6e3da;padding-top:6px;">⚠ Sample document — the certifying executive name, title, and execution date above are placeholder values from the sample intake. Replace with the actual certifying executive's legal name, title, and execution date before this document is signed or submitted to the CPPA.</p>` : ""}
     ${b.submission_banner ? `<div class="callout"><p>${text(b.submission_banner)}</p></div>` : ""}
     <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
@@ -1000,7 +1018,15 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   const scorecardBlock = controls.length
     ? `<section class="section"><h2>Control Scorecard</h2><table class="md-table">
         <thead><tr><th>Control</th><th>Status</th><th>Score</th><th>Priority</th></tr></thead>
-        <tbody>${scorecardRows}</tbody></table></section>`
+        <tbody>${scorecardRows}</tbody></table>
+        <p class="meta" style="margin-top:6px;font-size:10.5px;color:#5c5a54;">
+          <strong>Score guide:</strong> 0–20 = Critical Gap (foundational control absent);
+          21–59 = Partial (control exists but material gaps remain);
+          60–89 = Implemented (control substantially in place, monitor and maintain);
+          90–100 = Mature.
+          <strong>Status labels:</strong> Critical Gap / Partial / Implemented reflect qualitative maturity, not a binary pass/fail.
+          Scores are based on the information provided in the intake; an independent auditor will conduct their own assessment.
+        </p></section>`
     : "";
 
   const statusClass = (status: string) => {

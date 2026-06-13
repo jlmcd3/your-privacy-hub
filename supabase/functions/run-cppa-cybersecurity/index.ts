@@ -634,7 +634,11 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       // R2: Strip any model-hallucinated section citation prefix from
       // regulatory_basis, then prepend the verified CPPA citation deterministically.
       const cleanedRegBasis = stripMd(c?.regulatory_basis ?? "")
-        .replace(/^\(?(?:11\s*CCR\s+)?§?\s*\d+[^—–\-]*?\)?\s*[—–\-]?\s*/i, "")
+        .replace(/^\(?\s*(?:11\s*CCR\s+)?§?\s*\d+[^—–\-]*?\)?\s*[—–\-]?\s*/i, "")
+        // Remove mandate-opener phrases so the prepended frame reads grammatically
+        .replace(/^(?:Businesses?\s+must\s+(?:implement|maintain|establish|ensure|provide|limit|document|collect|develop|oversee|conduct)\s+)/i, "")
+        .replace(/^(?:The\s+(?:programme|program|business)\s+must\s+include\s+)/i, "")
+        .replace(/^(?:Maintaining\s+and\s+)/i, "Maintaining ")
         .trim();
 
       controlsOut.push({
