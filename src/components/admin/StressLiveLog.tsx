@@ -170,7 +170,7 @@ export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
             <option value="all">All tracked batches</option>
             {batchIds.map((id) => <option key={id} value={id}>{id.slice(0, 8)}</option>)}
           </select>
-          <Button size="sm" variant="outline" onClick={() => { setEntries([]); prevJobsRef.current = new Map(); try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } }}>Clear</Button>
+          <Button size="sm" variant="outline" onClick={() => { setEntries([]); entriesRef.current = []; prevJobsRef.current = new Map(); try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } }}>Clear</Button>
           <Button size="sm" variant={enabled ? "default" : "outline"} onClick={() => setEnabled((v) => !v)}>
             {enabled ? "Pause" : "Resume"}
           </Button>
