@@ -125,15 +125,26 @@ function buildNoticeHtml(
 <title>${escapeHtml(state.state_name)} Privacy Notice — ${escapeHtml(businessName)}</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1.5rem; color: #1a1a1a; line-height: 1.55; }
+  .eup-bar { background:#0c2a44; padding:9px 1.5rem; display:flex; align-items:center;
+    gap:12px; margin:-2rem -1.5rem 2rem -1.5rem; }
+  .eup-bar img { height:22px; width:auto; display:block; }
+  .eup-bar span { font-size:9px; font-weight:600; text-transform:uppercase;
+    letter-spacing:0.12em; color:#93b5c6; }
+  h1, h2 { color:#0c2a44; }
   h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
-  h2 { font-size: 1.15rem; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
-  .meta { color: #666; font-size: 0.85rem; margin-bottom: 2rem; }
-  .badge { display: inline-block; background: #f0f0f0; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; }
-  .opt-out { background: #fff7ed; border: 1px solid #fdba74; padding: 1rem; border-radius: 0.375rem; margin: 1rem 0; }
-  footer { color: #888; font-size: 0.75rem; margin-top: 3rem; border-top: 1px solid #eee; padding-top: 1rem; }
+  h2 { font-size: 1.15rem; margin-top: 2rem; border-bottom: 2px solid #2d9b90; padding-bottom: 0.25rem; }
+  a { color:#2d9b90; }
+  .meta { color: #5c6d7a; font-size: 0.85rem; margin-bottom: 2rem; }
+  .badge { display: inline-block; background: #edf2f5; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; }
+  .opt-out { background:#e5f4f2; border:1px solid #2d9b90; padding:1rem; border-radius:0.375rem; margin:1rem 0; }
+  footer { color:#5c6d7a; font-size: 0.75rem; margin-top: 3rem; border-top: 2px solid #2d9b90; padding-top: 1rem; }
 </style>
 </head>
 <body>
+  <div class="eup-bar">
+    <img src="${LOGO_URL}" alt="End User Privacy" />
+    <span>Privacy Intelligence</span>
+  </div>
   <h1>${escapeHtml(state.state_name)} Privacy Notice</h1>
   <div class="meta">
     <span class="badge">${escapeHtml(resolveLawLabel(state))}${resolveLawCite(state) ? ` · ${escapeHtml(resolveLawCite(state))}` : ""}</span>
