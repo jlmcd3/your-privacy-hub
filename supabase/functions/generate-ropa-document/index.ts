@@ -215,7 +215,7 @@ async function renderPdf(html: string, title: string): Promise<Uint8Array> {
       sandbox: Deno.env.get("PDFSHIFT_SANDBOX") === "true",
       footer: {
         source:
-          '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c5a54;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
+          '<div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;color:#5c6d7a;width:100%;padding:0 14mm;display:flex;justify-content:space-between;">' +
           `<span>${safeTitle}</span>` +
           '<span>EndUserPrivacy.com · Page <span class="pageNumber"></span> / <span class="totalPages"></span></span>' +
           "</div>",
