@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyCaller } from "../_shared/verify-caller.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -1127,6 +1128,14 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const caller = await verifyCaller(req);
+    if (!caller.internal && !caller.userId) {
+      return new Response(
+        JSON.stringify({ error: "unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { tool_type, assessment_id, user_email, user_name, result_url, force } = await req.json();
 
     if (!tool_type || !assessment_id) {
@@ -1162,6 +1171,15 @@ Deno.serve(async (req) => {
     if (!record) {
       return new Response(JSON.stringify({ error: "Record not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Ownership check — internal callers (service-role / admin sample generation)
+    // are trusted; end-user callers must own the record.
+    if (!caller.internal && (record as any).user_id && caller.userId !== (record as any).user_id) {
+      return new Response(
+        JSON.stringify({ error: "forbidden" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // ── R0 PART 1: Cross-cutting error / empty-body / structural guard ──
