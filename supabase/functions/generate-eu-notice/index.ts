@@ -329,10 +329,23 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
       "[destination countries to be specified]";
     const adequacyNote = formatAnswer("adequacy_status", answers["adequacy_status"]);
     const dpiaRef = formatAnswer("transfer_impact_assessment", answers["transfer_impact_assessment"]);
+    // Framework-specific transfer safeguards label. Art. 46 GDPR is an EU
+    // regulation and has no legal status in Switzerland; the revised FADP has
+    // its own transfer mechanism provisions (Art. 16 nFADP). The UK IDTA /
+    // SCCs-with-UK-Addendum is a UK-specific instrument and has no Swiss status.
+    let safeguardsLine: string;
+    if (fw.framework_code === "CH_FADP") {
+      safeguardsLine = `<p>Our safeguards under Art. 16 of the revised Swiss Federal Act on Data Protection (nFADP) and the FDPIC's transfer guidance: ${escapeHtml(safeguards || "Swiss Transfer Clauses, Standard Contractual Clauses recognised by the FDPIC, or other safeguards approved under Art. 16 nFADP")}.</p>`;
+    } else if (fw.framework_code === "UK_GDPR") {
+      safeguardsLine = `<p>Our safeguards under Art. 46 UK GDPR: ${escapeHtml(safeguards || "the UK International Data Transfer Agreement (IDTA), the EU Standard Contractual Clauses with the UK Addendum, or other appropriate safeguards approved by the ICO")}.</p>`;
+    } else {
+      // EU_GDPR (and any GDPR-family default)
+      safeguardsLine = `<p>Our safeguards under Art. 46 GDPR: ${escapeHtml(safeguards || "Standard Contractual Clauses (SCCs) or equivalent")}.</p>`;
+    }
     sections.push({
       title: "International transfers",
       html: `<p>We transfer personal data outside the relevant jurisdiction to recipients in: ${escapeHtml(destCountries)}.</p>
-<p>Our safeguards under Art. 46 GDPR: ${escapeHtml(safeguards || "Standard Contractual Clauses (SCCs) or equivalent")}.</p>
+${safeguardsLine}
 ${adequacyNote ? `<p>Adequacy status: ${escapeHtml(adequacyNote)}.</p>` : ""}
 ${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : `<p>Where adequacy is not relied upon, a Transfer Impact Assessment is maintained and available on request.</p>`}
 <p>You may request a copy of the safeguards by contacting us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>`,
