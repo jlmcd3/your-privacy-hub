@@ -273,6 +273,7 @@ export default function AdminStaticStress() {
   }
 
   async function handleResumeSetup(batchId: string, fromIndex: number) {
+    setResumingSetup(true);
     try {
       await supabase.functions.invoke("start-stress-batch", {
         body: { batch_id: batchId, company_index: fromIndex },
@@ -284,6 +285,8 @@ export default function AdminStaticStress() {
       toast.success("Setup resumed — continuing from where it left off");
     } catch (e) {
       toast.error(`Resume failed: ${(e as Error).message}`);
+    } finally {
+      setResumingSetup(false);
     }
   }
 
