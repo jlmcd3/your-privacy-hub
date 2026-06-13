@@ -28,6 +28,8 @@ import {
 } from "https://esm.sh/docx@9.6.1";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
+const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CORS
 // ─────────────────────────────────────────────────────────────────────────────
