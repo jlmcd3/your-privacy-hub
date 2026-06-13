@@ -316,7 +316,7 @@ Return JSON:
     { "processing_activity": "name the activity", "regulatory_basis": "why a DPIA is required", "priority": "Immediate | This quarter" }
   ],
   "overall_readiness_rating": "one of: Initial | Developing | Defined | Managed | Optimised",
-  "readiness_rationale": "one sentence explaining the rating",
+  "readiness_rationale": "one sentence explaining the rating, including a brief methodology note (e.g., 'Domain severities reflect: Critical = no controls in place; High = controls materially incomplete; Medium = mostly in place with identified gaps; Low = minor gaps only; Compliant = requirements met.')",
   "annotations": [
     {
       "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
