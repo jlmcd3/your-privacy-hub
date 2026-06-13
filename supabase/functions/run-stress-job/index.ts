@@ -128,7 +128,31 @@ async function callSaveSampleReport(payload: Record<string, unknown>): Promise<a
 
 interface RunResult { sourceTable: string; sourceRowId: string; }
 
+// Normalize free-text RoPA activity categories from fixture generation
+// to the 9 valid enum values in ropa_processing_activities_category_check.
+// Claude generates descriptive names; this maps them to the nearest enum.
+const VALID_ROPA_CATEGORIES = new Set([
+  "hr_employment", "marketing", "customer_service", "patient_records",
+  "technology", "finance_legal", "third_party", "operations", "other",
+]);
+
+function normalizeRopaCategory(raw: string | null | undefined): string {
+  if (!raw) return "other";
+  const lower = raw.toLowerCase();
+  if (VALID_ROPA_CATEGORIES.has(lower)) return lower;
+  if (lower.includes("hr") || lower.includes("human resource") || lower.includes("employ") || lower.includes("payroll") || lower.includes("recruit")) return "hr_employment";
+  if (lower.includes("market") || lower.includes("advertis") || lower.includes("campaign") || lower.includes("email blast") || lower.includes("analytic")) return "marketing";
+  if (lower.includes("customer") || lower.includes("client") || lower.includes("support") || lower.includes("crm") || lower.includes("service")) return "customer_service";
+  if (lower.includes("patient") || lower.includes("health") || lower.includes("medical") || lower.includes("clinical") || lower.includes("care")) return "patient_records";
+  if (lower.includes("tech") || lower.includes("it ") || lower.includes("system") || lower.includes("software") || lower.includes("cloud") || lower.includes("security") || lower.includes("infra")) return "technology";
+  if (lower.includes("financ") || lower.includes("legal") || lower.includes("compliance") || lower.includes("audit") || lower.includes("tax") || lower.includes("invoic") || lower.includes("account")) return "finance_legal";
+  if (lower.includes("third") || lower.includes("vendor") || lower.includes("partner") || lower.includes("supplier") || lower.includes("processor")) return "third_party";
+  if (lower.includes("operat") || lower.includes("logistic") || lower.includes("supply") || lower.includes("facilit") || lower.includes("procur")) return "operations";
+  return "other";
+}
+
 async function runTool(admin: Admin, job: any, userId: string): Promise<RunResult> {
+
   const intake = job.fixture_data ?? {};
   switch (job.tool_slug) {
     case "lia": {
@@ -209,7 +233,7 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       const { data: actRows, error: aErr } = await admin.from("ropa_processing_activities").insert(
         acts.map((a: any, i: number) => ({
           session_id: session.id, client_id: clientId,
-          display_name: a.activity_name, category: a.category,
+          display_name: a.activity_name, category: normalizeRopaCategory(a.category),
           status: "complete", completion_pct: 100, display_order: i,
         })),
       ).select("id, display_order");

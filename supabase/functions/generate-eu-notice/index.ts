@@ -9,6 +9,8 @@
 // public.owns_client() called as the requesting user.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { verifyCaller } from "../_shared/verify-caller.ts";
+
 
 const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
 
@@ -556,8 +558,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    const caller = await verifyCaller(req);
+    if (!caller.userId && !caller.internal) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -568,16 +570,13 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const authHeader = req.headers.get("Authorization") || "";
+    const userClient = caller.internal
+      ? null
+      : createClient(supabaseUrl, anonKey, {
+          global: { headers: { Authorization: authHeader } },
+        });
+
 
     let body: RequestBody;
     try {
@@ -641,15 +640,30 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { data: ownsData, error: ownsErr } = await userClient.rpc("owns_client", {
-      _client_id: sessionRow.client_id,
-    });
-    if (ownsErr || ownsData !== true) {
+    // Internal (service-role) callers bypass ownership; user callers go through owns_client.
+    let ownsClient = caller.internal;
+    if (!ownsClient && userClient) {
+      const { data: ownsData, error: ownsErr } = await userClient.rpc("owns_client", {
+        _client_id: sessionRow.client_id,
+      });
+      ownsClient = !ownsErr && ownsData === true;
+    }
+    if (!ownsClient && caller.userId) {
+      const { data: clientCheck } = await admin
+        .from("clients")
+        .select("id")
+        .eq("id", sessionRow.client_id)
+        .eq("owner_id", caller.userId)
+        .maybeSingle();
+      ownsClient = !!clientCheck;
+    }
+    if (!ownsClient) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
 
     // ── Background-dispatch boundary ─────────────────────────────────────

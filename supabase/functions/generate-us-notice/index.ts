@@ -9,6 +9,8 @@
 // public.owns_client() called as the requesting user.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { verifyCaller } from "../_shared/verify-caller.ts";
+
 
 const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
 
@@ -209,8 +211,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    
+    const caller = await verifyCaller(req);
+    if (!caller.userId && !caller.internal) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -221,18 +224,14 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Validate JWT.
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await userClient.auth.getUser(token);
-    if (claimsErr || !claimsData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const authHeader = req.headers.get("Authorization") || "";
+    // For non-internal callers, we use a user-scoped client for owns_client RPC.
+    const userClient = caller.internal
+      ? null
+      : createClient(supabaseUrl, anonKey, {
+          global: { headers: { Authorization: authHeader } },
+        });
+
 
     // Parse + validate body.
     let body: RequestBody;
@@ -269,28 +268,28 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check ownership: try RPC first, fall back to direct admin check
-    let ownsClient = false;
-    try {
-      const { data: ownsData, error: ownsErr } = await userClient.rpc(
-        "owns_client",
-        { _client_id: (session as SessionRow).client_id },
-      );
-      if (!ownsErr) ownsClient = ownsData === true;
-    } catch { /* fall through to admin check */ }
-
-    if (!ownsClient) {
-      const userId = claimsData?.user?.id;
-      if (userId) {
-        const { data: clientCheck } = await admin
-          .from("clients")
-          .select("id")
-          .eq("id", (session as SessionRow).client_id)
-          .eq("owner_id", userId)
-          .maybeSingle();
-        ownsClient = !!clientCheck;
-      }
+    // Check ownership: internal callers (service-role) bypass; otherwise try RPC, then fall back to admin check.
+    let ownsClient = caller.internal;
+    if (!ownsClient && userClient) {
+      try {
+        const { data: ownsData, error: ownsErr } = await userClient.rpc(
+          "owns_client",
+          { _client_id: (session as SessionRow).client_id },
+        );
+        if (!ownsErr) ownsClient = ownsData === true;
+      } catch { /* fall through to admin check */ }
     }
+
+    if (!ownsClient && caller.userId) {
+      const { data: clientCheck } = await admin
+        .from("clients")
+        .select("id")
+        .eq("id", (session as SessionRow).client_id)
+        .eq("owner_id", caller.userId)
+        .maybeSingle();
+      ownsClient = !!clientCheck;
+    }
+
 
     if (!ownsClient) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
