@@ -93,8 +93,32 @@ export default function AdminStaticStress() {
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [zipping, setZipping] = useState(false);
   const [resuming, setResuming] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [fixtureFailures, setFixtureFailures] = useState<string[]>([]);
   const cancelRef = useRef(false);
+
+  async function handleStop() {
+    if (!activeBatch) return;
+    if (!confirm("Stop the batch? Any reports already generated will be preserved. Pending jobs will be cancelled.")) return;
+    setStopping(true);
+    cancelRef.current = true;
+    try {
+      await supabase.from("static_stress_batches")
+        .update({ status: "cancelled" })
+        .eq("id", activeBatch.id);
+      await supabase.from("static_stress_jobs")
+        .update({ status: "cancelled", completed_at: new Date().toISOString() })
+        .eq("batch_id", activeBatch.id)
+        .eq("status", "pending");
+      setActiveBatch((b) => b ? { ...b, status: "cancelled" } : b);
+      toast.success("Batch stopped — completed reports preserved");
+    } catch (e) {
+      toast.error(`Stop failed: ${(e as Error).message}`);
+    } finally {
+      setStopping(false);
+    }
+  }
+
 
   const applicableTools = useMemo(
     () => ALL_TOOLS.filter((t) => geoFilter === "both" || t.geo === "both" || t.geo === geoFilter),
