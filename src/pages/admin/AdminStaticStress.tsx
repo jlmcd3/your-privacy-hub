@@ -416,6 +416,23 @@ export default function AdminStaticStress() {
             <h2 className="font-serif text-xl">Active batch</h2>
             <span className="text-xs font-mono">{activeBatch.id}</span>
           </header>
+          {activeBatch.status === "running" && activeBatch.error_log && (
+            <div className="border border-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-3 text-sm space-y-2">
+              <div>⚠ Chain interrupted — {activeBatch.error_log}</div>
+              <Button size="sm" onClick={() => handleResume(activeBatch.id)} disabled={resuming}>
+                {resuming ? "Resuming…" : "Resume Batch"}
+              </Button>
+            </div>
+          )}
+          {fixtureFailures.length > 0 && (
+            <div className="border border-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-3 text-xs">
+              ⚠ Fixture generation failed for {fixtureFailures.length} compan{fixtureFailures.length === 1 ? "y" : "ies"} — skipped.
+              The batch continues for all companies that generated successfully.
+              <details className="mt-1"><summary className="cursor-pointer">Show failures</summary>
+                <ul className="mt-1 list-disc pl-5">{fixtureFailures.map((f, i) => <li key={i}>{f}</li>)}</ul>
+              </details>
+            </div>
+          )}
           <Progress value={pct} />
           <div className="text-sm">
             <strong>{activeBatch.status}</strong> — {activeBatch.completed_jobs} of {activeBatch.total_jobs} complete
