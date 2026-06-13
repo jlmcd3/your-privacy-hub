@@ -4,7 +4,7 @@
 // static_stress_jobs, kicks off the self-chaining run-stress-job orchestrator,
 // then polls the batch row for progress and surfaces a Download-All ZIP.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import JSZip from "jszip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -75,6 +75,7 @@ type Batch = {
   completed_jobs: number; failed_jobs: number;
   started_at: string | null; completed_at: string | null;
   error_log: string | null;
+  setup_total: number; setup_done: number;
 };
 type Job = {
   id: string; company_name: string; industry: string; tool_slug: string;
@@ -88,20 +89,17 @@ export default function AdminStaticStress() {
   const [geoFilter, setGeoFilter] = useState<"both" | "us" | "eu">("both");
   const [selectedTools, setSelectedTools] = useState<string[]>(ALL_TOOLS.map((t) => t.id));
   const [starting, setStarting] = useState(false);
-  const [setupProgress, setSetupProgress] = useState<{ done: number; total: number } | null>(null);
   const [activeBatch, setActiveBatch] = useState<Batch | null>(null);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [zipping, setZipping] = useState(false);
   const [resuming, setResuming] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [fixtureFailures, setFixtureFailures] = useState<string[]>([]);
-  const cancelRef = useRef(false);
 
   async function handleStop() {
     if (!activeBatch) return;
     if (!confirm("Stop the batch? Any reports already generated will be preserved. Pending jobs will be cancelled.")) return;
     setStopping(true);
-    cancelRef.current = true;
     try {
       await supabase.from("static_stress_batches")
         .update({ status: "cancelled" })
@@ -118,6 +116,7 @@ export default function AdminStaticStress() {
       setStopping(false);
     }
   }
+
 
 
   const applicableTools = useMemo(
@@ -149,7 +148,7 @@ export default function AdminStaticStress() {
     if (activeBatch.status === "complete" || activeBatch.status === "cancelled") return;
     const interval = setInterval(async () => {
       const { data: b } = await supabase.from("static_stress_batches")
-        .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log")
+        .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log, setup_total, setup_done")
         .eq("id", activeBatch.id).single();
       if (b) setActiveBatch(b as Batch);
       const { data: jobs } = await supabase.from("static_stress_jobs")
@@ -218,109 +217,57 @@ export default function AdminStaticStress() {
     if (selectedIndustries.length === 0) { toast.error("Select at least one industry"); return; }
     if (selectedTools.length === 0) { toast.error("Select at least one tool"); return; }
     setStarting(true);
-    cancelRef.current = false;
-    const industriesLabels = selectedIndustries
-      .map((id) => INDUSTRIES.find((i) => i.id === id)?.label).filter(Boolean) as string[];
-
-    const failures: string[] = [];
     setFixtureFailures([]);
+
     try {
-      const { data: batch, error: bErr } = await supabase.from("static_stress_batches").insert({
-        run_by: user.id, status: "pending",
-        industries: industriesLabels, geo_filter: geoFilter, total_jobs: 0,
-      }).select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log").single();
-      if (bErr || !batch) throw new Error(`batch insert: ${bErr?.message}`);
+      const industriesList = selectedIndustries
+        .map((id) => INDUSTRIES.find((i) => i.id === id))
+        .filter(Boolean)
+        .map((i) => ({ id: i!.id, label: i!.label }));
 
-      const geos = geoFilter === "both" ? ["us", "eu"] : [geoFilter];
-      const companies: Array<{ industryId: string; industryLabel: string; geo: string; slot: number }> = [];
-      for (const indId of selectedIndustries) {
-        const ind = INDUSTRIES.find((i) => i.id === indId)!;
-        for (const g of geos) {
-          for (const slot of [1, 2]) {
-            companies.push({ industryId: ind.id, industryLabel: ind.label, geo: g, slot });
-          }
-        }
-      }
-      setSetupProgress({ done: 0, total: companies.length });
-
-      let totalJobs = 0;
-      for (let idx = 0; idx < companies.length; idx++) {
-        if (cancelRef.current) break;
-        const c = companies[idx];
-        const companyId = `${c.geo}-${c.industryId}-slot${c.slot}`;
-        const { data: fixtures, error: fErr } = await supabase.functions.invoke(
-          "generate-stress-fixtures",
-          { body: { industry: c.industryLabel, geo: c.geo, company_slot: c.slot, company_id: companyId } },
-        );
-        if (fErr || !fixtures) {
-          const errMsg = fErr?.message ?? "no data returned";
-          console.warn(`Fixture failed for ${companyId}:`, errMsg);
-          failures.push(`${companyId}: ${errMsg}`);
-          // Visible placeholder row so the failure is auditable in the UI
-          await supabase.from("static_stress_jobs").insert({
-            batch_id: batch.id,
-            company_id: companyId,
-            company_name: `[Fixture failed] ${companyId}`,
-            industry: c.industryLabel,
-            geo: c.geo,
-            tool_slug: "fixture-generation",
-            status: "failed",
-            error_message: errMsg,
-            completed_at: new Date().toISOString(),
-          });
-          setSetupProgress({ done: idx + 1, total: companies.length });
-          continue;
-        }
-        const applicable = selectedTools.filter((t) => {
-          const td = ALL_TOOLS.find((a) => a.id === t);
-          return td && (td.geo === "both" || td.geo === c.geo);
-        });
-        const jobRows = applicable
-          .map((toolId) => ({
-            toolId,
-            payload: (fixtures as any)[TOOL_FIXTURE_KEY[toolId]],
-          }))
-          .filter((j) => j.payload)
-          .map((j) => ({
-            batch_id: batch.id,
-            company_id: companyId,
-            company_name: (fixtures as any).companyName ?? companyId,
-            industry: c.industryLabel,
-            geo: c.geo,
-            tool_slug: j.toolId,
-            fixture_data: j.payload,
-            status: "pending",
-          }));
-        if (jobRows.length) {
-          await supabase.from("static_stress_jobs").insert(jobRows);
-          totalJobs += jobRows.length;
-        }
-        setSetupProgress({ done: idx + 1, total: companies.length });
-      }
-
-      await supabase.from("static_stress_batches").update({
-        total_jobs: totalJobs, status: "running",
-        started_at: new Date().toISOString(),
-      }).eq("id", batch.id);
-
-      await supabase.functions.invoke("run-stress-job", {
-        body: { batch_id: batch.id, job_id: null },
+      const { data, error } = await supabase.functions.invoke("start-stress-batch", {
+        body: {
+          run_by: user.id,
+          industries: industriesList,
+          geo_filter: geoFilter,
+          selected_tools: selectedTools,
+        },
       });
 
-      setActiveBatch({ ...(batch as Batch), total_jobs: totalJobs, status: "running", started_at: new Date().toISOString() });
-      setSetupProgress(null);
-      setFixtureFailures(failures);
-      if (failures.length > 0) {
-        toast.warning(`Started batch with ${totalJobs} jobs (${failures.length} fixture failures)`);
-      } else {
-        toast.success(`Started batch with ${totalJobs} jobs`);
+      if (error || !data?.batch_id) {
+        throw new Error(error?.message ?? "no batch_id returned");
       }
+
+      const { data: batch } = await supabase
+        .from("static_stress_batches")
+        .select("id, status, total_jobs, completed_jobs, failed_jobs, started_at, completed_at, error_log, setup_total, setup_done")
+        .eq("id", data.batch_id)
+        .single();
+
+      setActiveBatch(batch as Batch);
+      toast.success("Batch started — fixture generation running on the server. You can safely navigate away.");
     } catch (e) {
       toast.error(`Start failed: ${(e as Error).message}`);
     } finally {
       setStarting(false);
     }
   }
+
+  async function handleResumeSetup(batchId: string, fromIndex: number) {
+    try {
+      await supabase.functions.invoke("start-stress-batch", {
+        body: { batch_id: batchId, company_index: fromIndex },
+      });
+      await supabase.from("static_stress_batches")
+        .update({ error_log: null })
+        .eq("id", batchId);
+      setActiveBatch((b) => b ? { ...b, error_log: null } : b);
+      toast.success("Setup resumed — continuing from where it left off");
+    } catch (e) {
+      toast.error(`Resume failed: ${(e as Error).message}`);
+    }
+  }
+
 
   async function handleResume(batchId: string) {
     setResuming(true);
@@ -470,9 +417,9 @@ export default function AdminStaticStress() {
         <Button size="lg" onClick={handleStart} disabled={starting || estimate === 0 || !!activeBatch}>
           {starting ? "Starting…" : "Start Static Stress Test"}
         </Button>
-        {setupProgress && (
+        {activeBatch && activeBatch.status === "pending" && activeBatch.setup_total > 0 && (
           <span className="text-sm text-muted-foreground">
-            Generating fixtures: {setupProgress.done}/{setupProgress.total} companies
+            Generating fixtures: {activeBatch.setup_done}/{activeBatch.setup_total} companies — safe to navigate away
           </span>
         )}
       </section>
@@ -497,6 +444,14 @@ export default function AdminStaticStress() {
               <div>⚠ Chain interrupted — {activeBatch.error_log}</div>
               <Button size="sm" onClick={() => handleResume(activeBatch.id)} disabled={resuming}>
                 {resuming ? "Resuming…" : "Resume Batch"}
+              </Button>
+            </div>
+          )}
+          {activeBatch.status === "pending" && activeBatch.error_log && (
+            <div className="border border-amber-400 bg-amber-50 dark:bg-amber-950/30 rounded p-3 text-sm space-y-2">
+              <div>⚠ Setup interrupted — {activeBatch.error_log}</div>
+              <Button size="sm" onClick={() => handleResumeSetup(activeBatch.id, activeBatch.setup_done)}>
+                Resume Setup
               </Button>
             </div>
           )}
