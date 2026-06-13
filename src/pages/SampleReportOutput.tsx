@@ -102,6 +102,57 @@ export default function SampleReportOutput() {
     }
   }
 
+  async function onDownloadAll() {
+    const list = (rows ?? []).filter((r) => urls[r.id]);
+    if (list.length === 0) {
+      toast.error("No PDFs available to download");
+      return;
+    }
+    setZipping(true);
+    const t = toast.loading(`Zipping ${list.length} PDFs…`);
+    try {
+      const zip = new JSZip();
+      const used = new Set<string>();
+      const results = await Promise.all(
+        list.map(async (r) => {
+          try {
+            const res = await fetch(urls[r.id]);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+            const safe = `${r.tool_slug}__${r.variant}__${r.title}`
+              .replace(/[^a-z0-9_\-]+/gi, "_")
+              .replace(/^_+|_+$/g, "")
+              .slice(0, 120) || r.id;
+            let name = `${safe}.pdf`;
+            let i = 2;
+            while (used.has(name)) name = `${safe}_${i++}.pdf`;
+            used.add(name);
+            zip.file(`${r.tool_slug}/${name}`, blob);
+            return true;
+          } catch (e) {
+            console.error("Failed to fetch", r.id, e);
+            return false;
+          }
+        }),
+      );
+      const ok = results.filter(Boolean).length;
+      const fail = results.length - ok;
+      const content = await zip.generateAsync({ type: "blob" });
+      const stamp = new Date().toISOString().slice(0, 10);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(content);
+      a.download = `sample-reports-${stamp}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+      toast.success(`Downloaded ${ok} PDF${ok === 1 ? "" : "s"}${fail ? ` (${fail} failed)` : ""}`, { id: t });
+    } catch (e) {
+      toast.error(`Zip failed: ${(e as Error).message}`, { id: t });
+    } finally {
+      setZipping(false);
+    }
+  }
+
   const grouped = useMemo(() => {
     const out: Record<string, Row[]> = {};
     (rows ?? []).forEach((r) => {
