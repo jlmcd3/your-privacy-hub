@@ -27,13 +27,29 @@ type Snapshot = {
 
 const POLL_MS = 30_000;
 const MAX_ENTRIES = 200;
+const STORAGE_KEY = "stress-live-log:v1";
+
+type Persisted = { entries: Snapshot[]; prevJobs: Array<[string, JobLite]>; lastPolled: string | null };
+
+function loadPersisted(): Persisted {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return { entries: [], prevJobs: [], lastPolled: null };
+    const p = JSON.parse(raw) as Persisted;
+    return { entries: p.entries ?? [], prevJobs: p.prevJobs ?? [], lastPolled: p.lastPolled ?? null };
+  } catch {
+    return { entries: [], prevJobs: [], lastPolled: null };
+  }
+}
 
 export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
+  const initial = useMemo(() => loadPersisted(), []);
   const [enabled, setEnabled] = useState(true);
-  const [entries, setEntries] = useState<Snapshot[]>([]);
-  const [lastPolled, setLastPolled] = useState<string | null>(null);
+  const [entries, setEntries] = useState<Snapshot[]>(initial.entries);
+  const [lastPolled, setLastPolled] = useState<string | null>(initial.lastPolled);
   const [filterBatch, setFilterBatch] = useState<string>("all");
-  const prevJobsRef = useRef<Map<string, JobLite>>(new Map());
+  const prevJobsRef = useRef<Map<string, JobLite>>(new Map(initial.prevJobs));
+
 
   const idsKey = useMemo(() => batchIds.slice().sort().join(","), [batchIds]);
 
