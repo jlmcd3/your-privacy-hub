@@ -666,6 +666,84 @@ export default function AdminStaticStress() {
           )}
         </section>
       )}
+
+      {/* All batches manager */}
+      <section className="space-y-3">
+        <h2 className="font-serif text-xl">All batches ({allBatches.length})</h2>
+        <p className="text-xs text-muted-foreground">
+          Per-batch controls. <strong>Stop</strong> halts workers but preserves completed reports.{" "}
+          <strong>Create PDFs</strong> sequentially renders PDFs for completed jobs that don't already have one.{" "}
+          <strong>Delete</strong> stops the batch and removes the batch + job rows (generated sample reports at /samples/report-output are not removed).
+        </p>
+        {allBatches.length === 0 && (
+          <p className="text-sm text-muted-foreground">No batches yet.</p>
+        )}
+        <div className="space-y-2">
+          {allBatches.map((b) => {
+            const done = b.completed_jobs + b.failed_jobs;
+            const pctB = b.total_jobs > 0 ? Math.round((done / b.total_jobs) * 100) : 0;
+            const isLive = b.status === "running" || b.status === "pending";
+            const pp = pdfProg[b.id];
+            return (
+              <div key={b.id} className="border rounded p-3 space-y-2 bg-card">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-xs">{b.id.slice(0, 8)}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        b.status === "complete" ? "bg-green-100 text-green-800" :
+                        b.status === "cancelled" ? "bg-zinc-200 text-zinc-700" :
+                        b.status === "running" ? "bg-blue-100 text-blue-800" :
+                        "bg-amber-100 text-amber-800"
+                      }`}>{b.status}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(b.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {done}/{b.total_jobs} jobs ({b.completed_jobs} ✓ · {b.failed_jobs} ✗)
+                      {b.status === "pending" && b.setup_total > 0 && ` · setup ${b.setup_done}/${b.setup_total}`}
+                    </div>
+                    {b.total_jobs > 0 && <Progress value={pctB} className="h-1.5 mt-1 w-64" />}
+                    {pp && (
+                      <div className="text-xs mt-1">
+                        PDFs: {pp.done}/{pp.total}{pp.failed ? ` (${pp.failed} failed)` : ""}{pp.running ? " — rendering…" : ""}
+                        {pp.lastError && <span className="text-destructive"> · last error: {pp.lastError.slice(0, 80)}</span>}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleStopBatch(b.id)}
+                      disabled={!isLive || !!stoppingMap[b.id] || !!deletingMap[b.id]}
+                    >
+                      {stoppingMap[b.id] ? "Stopping…" : "Stop"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleCreatePdfs(b.id)}
+                      disabled={!!pp?.running || !!deletingMap[b.id] || b.completed_jobs === 0}
+                    >
+                      {pp?.running ? "Rendering…" : "Create PDFs"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteBatch(b.id)}
+                      disabled={!!deletingMap[b.id] || !!pp?.running}
+                    >
+                      {deletingMap[b.id] ? "Deleting…" : "Delete Batch"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
