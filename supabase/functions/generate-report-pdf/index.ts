@@ -588,9 +588,9 @@ function buildTextReportHTML(opts: TextReportOpts): string {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escHtml(opts.title)}</title>
 <style>
   :root {
-    --navy:#0f172a; --navy-ink:#1a1916; --paper:#faf8f3; --card:#ffffff;
-    --border:#e6e3da; --steel:#94a3b8; --silver:#eef0f2; --slate:#5c5a54;
-    --gold:#c0911f; --gold-soft:#fbf3df; --warn:#b45309; --warn-soft:#fdf3e1; --accent:#1a5276;
+    --navy:#0c2a44; --navy-ink:#1a1916; --paper:#f5f8fa; --card:#ffffff;
+    --border:#dde5ea; --steel:#8a9eb1; --silver:#edf2f5; --slate:#5c6d7a;
+    --teal:#2d9b90; --teal-soft:#e5f4f2; --warn:#b45309; --warn-soft:#fdf3e1; --accent:#2d9b90;
   }
   * { box-sizing: border-box; }
   body { font-family:'Times New Roman', Times, serif; color:var(--navy-ink);
