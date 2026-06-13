@@ -174,7 +174,7 @@ export default function AdminStaticStress() {
         .select("id, company_name, industry, tool_slug, status, started_at, completed_at, error_message")
         .eq("batch_id", activeBatch.id)
         .order("started_at", { ascending: false, nullsFirst: false })
-        .limit(20);
+        .limit(1100);
       setRecentJobs((jobs ?? []) as Job[]);
     }, 5000);
     return () => clearInterval(interval);
