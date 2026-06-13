@@ -123,10 +123,10 @@ export default function BiometricCheckerResult() {
             title="Biometric Compliance Assessment"
             meta={meta}
             actions={actions}
-            callout={callout}
           >
             <div dir={dir} style={{ display: "contents" }}>
             <AssessmentReport text={text || ""} sectionChipLabel={null} />
+            {bipaCallout}
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
               variant="standard"
