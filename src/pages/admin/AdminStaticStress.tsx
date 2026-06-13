@@ -154,10 +154,12 @@ export default function AdminStaticStress() {
       const merged = batches.map((b) => {
         const t = tallies[b.id];
         if (!t) return b as BatchRow;
+        const hasLiveJobs = t.pending + t.running > 0;
         // Prefer live tallies whenever they exceed the stored counters
         // (the stored counters are reliable when bigger only if jobs were deleted, which we don't do).
         return {
           ...b,
+          status: hasLiveJobs ? "running" : b.status,
           total_jobs: Math.max(b.total_jobs ?? 0, t.total),
           completed_jobs: Math.max(b.completed_jobs ?? 0, t.complete),
           failed_jobs: Math.max(b.failed_jobs ?? 0, t.failed),
