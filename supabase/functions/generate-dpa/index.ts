@@ -538,38 +538,66 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     }
 
 
+    // Fallback ladder: if the gateway/upstream rejects the request because
+    // max_tokens exceeds the model's allowed output, dial the ceiling down and
+    // retry. Anthropic returns 400 with "max_tokens" in the body for this case;
+    // we also retry on 413 (request entity too large) defensively.
+    const MAX_TOKENS_LADDER = [48000, 32000, 16000, 8000];
+
     async function callAi(extraUser: string, timeoutMs: number = 720_000): Promise<{ text: string; finishReason: string | null }> {
-      const aiController = new AbortController();
-      const aiTimeout = setTimeout(() => aiController.abort(), timeoutMs);
       const finalUser = extraUser ? `${userPrompt}\n\n${extraUser}` : userPrompt;
-      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          model: AI_MODEL,
-          max_tokens: 48000,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: finalUser },
-          ],
-        }),
-        signal: aiController.signal,
-      });
-      clearTimeout(aiTimeout);
-      if (!aiRes.ok) {
-        const errText = await aiRes.text();
-        console.error("DPA AI generation failed:", aiRes.status, errText);
-        throw new Error("AI generation failed");
+      let lastErr: Error | null = null;
+      for (let i = 0; i < MAX_TOKENS_LADDER.length; i++) {
+        const maxTokens = MAX_TOKENS_LADDER[i];
+        const aiController = new AbortController();
+        const aiTimeout = setTimeout(() => aiController.abort(), timeoutMs);
+        try {
+          const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              model: AI_MODEL,
+              max_tokens: maxTokens,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: finalUser },
+              ],
+            }),
+            signal: aiController.signal,
+          });
+          clearTimeout(aiTimeout);
+          if (!aiRes.ok) {
+            const errText = await aiRes.text();
+            const isTokenCapError =
+              (aiRes.status === 400 || aiRes.status === 413) &&
+              /max_tokens|too\s*large|exceed|maximum/i.test(errText);
+            console.error(`[generate-dpa] AI call failed (max_tokens=${maxTokens}) status=${aiRes.status}: ${errText.slice(0, 300)}`);
+            if (isTokenCapError && i < MAX_TOKENS_LADDER.length - 1) {
+              console.warn(`[generate-dpa] dialing max_tokens down to ${MAX_TOKENS_LADDER[i + 1]} and retrying`);
+              lastErr = new Error(`token-cap rejection at ${maxTokens}`);
+              continue;
+            }
+            throw new Error(`AI generation failed (status ${aiRes.status})`);
+          }
+          const aiData = await aiRes.json();
+          const text = aiData.choices?.[0]?.message?.content ?? "";
+          const finishReason: string | null = aiData.choices?.[0]?.finish_reason ?? null;
+          console.log(`[generate-dpa] gen done stop=${finishReason} chars=${text.length} max_tokens=${maxTokens}`);
+          return { text, finishReason };
+        } catch (e) {
+          clearTimeout(aiTimeout);
+          lastErr = e as Error;
+          // Abort/timeout/network — don't loop, surface immediately
+          if ((e as Error).name === "AbortError") throw e;
+          if (!String((e as Error).message).startsWith("token-cap")) throw e;
+        }
       }
-      const aiData = await aiRes.json();
-      const text = aiData.choices?.[0]?.message?.content ?? "";
-      const finishReason: string | null = aiData.choices?.[0]?.finish_reason ?? null;
-      console.log(`[generate-dpa] gen done stop=${finishReason} chars=${text.length}`);
-      return { text, finishReason };
+      throw lastErr ?? new Error("AI generation failed (ladder exhausted)");
     }
+
 
     function parseDpa(fullText: string): { dpa_text: string; annotations: any[] } {
       let dpa_text = fullText
