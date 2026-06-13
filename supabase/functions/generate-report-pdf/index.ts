@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyCaller } from "../_shared/verify-caller.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -151,7 +152,7 @@ ul { padding-left: 20px; } li { margin-bottom: 4px; }
 </style></head><body>
 <h1>Legitimate Interest Assessment</h1>
 ${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name })}
-<div class="disclaimer">${report.disclaimer || ""}</div>
+<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <h2>Assessment Summary</h2>
 <div class="section">
 <span class="strength strength-${(overall.argument_strength || "uncertain").toLowerCase()}">Argument strength: ${overall.argument_strength || "Uncertain"}</span>
@@ -212,8 +213,8 @@ ${fineLine}</div>`;
       }).join("");
     return `<h2>Enforcement Precedents Cited</h2>${items}`;
   })()}
-<p class="meta">${report.data_currency_note || ""}</p>
-<div class="disclaimer">${report.disclaimer || ""}</div>
+<p class="meta">${escHtml(report.data_currency_note || "")}</p>
+<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 </body></html>`;
 }
 
@@ -240,18 +241,18 @@ ul { padding-left: 20px; } li { margin-bottom: 4px; }
 </style></head><body>
 <h1>Data Governance Readiness Assessment</h1>
 ${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name })}
-<div class="disclaimer">${report.disclaimer || ""}</div>
+<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 <h2>Executive Summary</h2>
-<div class="rating">Readiness: ${report.overall_readiness_rating || "Unknown"}</div>
-<p>${report.executive_summary || ""}</p>
-<p>${report.readiness_rationale || ""}</p>
+<div class="rating">Readiness: ${escHtml(report.overall_readiness_rating || "Unknown")}</div>
+<p>${escHtml(report.executive_summary || "")}</p>
+<p>${escHtml(report.readiness_rationale || "")}</p>
 <h2>Top Three Risks</h2>
 ${(report.top_three_risks || []).map((r: any) =>
-    `<div class="domain"><strong>${r.risk || ""}</strong> <span class="severity" style="background:${severityColor[r.severity] || "#5c5a54"}">${r.severity || ""}</span><p>${r.why_urgent || ""}</p></div>`
+    `<div class="domain"><strong>${escHtml(r.risk || "")}</strong> <span class="severity" style="background:${severityColor[r.severity] || "#5c5a54"}">${escHtml(r.severity || "")}</span><p>${escHtml(r.why_urgent || "")}</p></div>`
   ).join("")}
 <h2>Immediate Actions Required</h2>
 <ul>${(report.immediate_actions || []).map((a: any) =>
-    `<li><strong>${a.action || ""}</strong> — ${a.owner || ""}, ${a.timeline || ""}</li>`
+    `<li><strong>${escHtml(a.action || "")}</strong> — ${escHtml(a.owner || "")}, ${escHtml(a.timeline || "")}</li>`
   ).join("")}</ul>
 <h2>Domain Findings</h2>
 ${(() => {
@@ -261,19 +262,19 @@ ${(() => {
     withId.sort((a, b) => Number(a.domain_id) - Number(b.domain_id));
     return [...withId, ...withoutId].map((dn: any) => {
       const heading = dn?.domain_id != null
-        ? `Domain ${dn.domain_id} — ${dn.domain_name || ""}`
-        : (dn.domain_name || "");
-      return `<div class="domain"><h3>${heading} <span class="severity" style="background:${severityColor[dn.severity] || "#5c5a54"}">${dn.severity || ""}</span></h3>
-<p class="label">Current state</p><p>${dn.current_state || ""}</p>
-${dn.gap_description ? `<p class="label">Gap</p><p>${dn.gap_description}</p>` : ""}
-<p class="label">Regulatory basis</p><p>${dn.regulatory_basis || ""}</p>
-<p class="label">Recommended action</p><p><strong>${dn.recommended_action || ""}</strong></p>
-<p class="meta">${dn.suggested_owner || ""} &nbsp;|&nbsp; ${dn.suggested_timeline || ""}</p></div>`;
+        ? `Domain ${dn.domain_id} — ${escHtml(dn.domain_name || "")}`
+        : escHtml(dn.domain_name || "");
+      return `<div class="domain"><h3>${heading} <span class="severity" style="background:${severityColor[dn.severity] || "#5c5a54"}">${escHtml(dn.severity || "")}</span></h3>
+<p class="label">Current state</p><p>${escHtml(dn.current_state || "")}</p>
+${dn.gap_description ? `<p class="label">Gap</p><p>${escHtml(dn.gap_description)}</p>` : ""}
+<p class="label">Regulatory basis</p><p>${escHtml(dn.regulatory_basis || "")}</p>
+<p class="label">Recommended action</p><p><strong>${escHtml(dn.recommended_action || "")}</strong></p>
+<p class="meta">${escHtml(dn.suggested_owner || "")} &nbsp;|&nbsp; ${escHtml(dn.suggested_timeline || "")}</p></div>`;
     }).join("");
   })()}
 <h2>Cross-Domain Considerations</h2>
-<p>${report.interaction_effects || ""}</p>
-<div class="disclaimer">${report.disclaimer || ""}</div>
+<p>${escHtml(report.interaction_effects || "")}</p>
+<div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
 </body></html>`;
 }
 
@@ -303,7 +304,7 @@ ul { padding-left: 20px; } li { margin-bottom: 4px; }
 </style></head><body>
 <h1>DPIA Framework</h1>
 ${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") })}
-<div class="disclaimer"><strong>IMPORTANT: </strong>${report.framework_disclaimer || ""}</div>
+<div class="disclaimer"><strong>IMPORTANT: </strong>${escHtml(report.framework_disclaimer || "")}</div>
 ${(meta.applicable_frameworks || []).length ? `<p><span class="label">Applicable frameworks: </span>${(meta.applicable_frameworks || []).join(" &nbsp;|&nbsp; ")}</p>` : ""}
 ${meta.supervisory_authority_consultation_trigger ? `<div class="completion"><strong>Supervisory authority consultation trigger: </strong>${meta.supervisory_authority_consultation_trigger}</div>` : ""}
 ${sections.map(([key, heading]) => {
@@ -334,7 +335,7 @@ Date of review: _________________<br>
 Decision: [ ] Processing may proceed &nbsp;&nbsp; [ ] Further mitigation required<br>
 Signature: ______________________
 </div>` : ""}
-<div class="disclaimer"><strong>IMPORTANT: </strong>${report.framework_disclaimer || ""}</div>
+<div class="disclaimer"><strong>IMPORTANT: </strong>${escHtml(report.framework_disclaimer || "")}</div>
 </body></html>`;
 }
 
@@ -1127,6 +1128,14 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const caller = await verifyCaller(req);
+    if (!caller.internal && !caller.userId) {
+      return new Response(
+        JSON.stringify({ error: "unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { tool_type, assessment_id, user_email, user_name, result_url, force } = await req.json();
 
     if (!tool_type || !assessment_id) {
@@ -1162,6 +1171,15 @@ Deno.serve(async (req) => {
     if (!record) {
       return new Response(JSON.stringify({ error: "Record not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Ownership check — internal callers (service-role / admin sample generation)
+    // are trusted; end-user callers must own the record.
+    if (!caller.internal && (record as any).user_id && caller.userId !== (record as any).user_id) {
+      return new Response(
+        JSON.stringify({ error: "forbidden" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // ── R0 PART 1: Cross-cutting error / empty-body / structural guard ──
