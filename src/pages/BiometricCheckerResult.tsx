@@ -74,15 +74,30 @@ export default function BiometricCheckerResult() {
     </>
   );
 
-  const callout = bipaRisk && (
-    <div className="border-l-4 border-[hsl(var(--warn))] bg-[hsl(var(--warn)/0.06)] rounded-r-md px-4 py-3">
+  // Render the BIPA risk callout only when the assessment text confirms BIPA
+  // applies in Illinois (Applies = Yes or Conditional). Never render it before
+  // the applicability determination.
+  const bipaApplies = (() => {
+    if (!bipaRisk) return false;
+    const t = String(text || "");
+    if (!/Illinois/i.test(t)) return false;
+    // Look for an Illinois section header followed (within ~600 chars) by
+    // "Applies to this organisation: Yes" or "... Conditional".
+    const idx = t.search(/Illinois[^\n]*\n/i);
+    if (idx < 0) return false;
+    const window = t.slice(idx, idx + 800);
+    return /Applies to this organisation:\s*(Yes|Conditional)/i.test(window);
+  })();
+
+  const bipaCallout = bipaApplies && bipaRisk ? (
+    <div className="border-l-4 border-[hsl(var(--warn))] bg-[hsl(var(--warn)/0.06)] rounded-r-md px-4 py-3 mt-6">
       <h3 className="text-[hsl(var(--warn))] mb-1">⚠️ BIPA Litigation Risk Estimate</h3>
       <p className="text-sm text-foreground">
         Low end: <span className="font-medium text-brand-navy">${bipaRisk.lowEnd?.toLocaleString()}</span> · High end: <span className="font-medium text-brand-navy">${bipaRisk.highEnd?.toLocaleString()}</span>
       </p>
       {bipaRisk.note && <p className="text-meta text-muted-foreground mt-1">{bipaRisk.note}</p>}
     </div>
-  );
+  ) : null;
 
   return (
     <div className="min-h-screen bg-brand-cloud">
