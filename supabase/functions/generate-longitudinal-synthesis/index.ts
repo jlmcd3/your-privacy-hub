@@ -184,7 +184,7 @@ NEVER USE blanket hedging phrases ("this may indicate", "it would appear", "it r
 SOURCE FIDELITY (non-negotiable):
 - Every regulator name, fine amount, case identifier, statute reference, and date in your output MUST appear in the provided articles. Do not draw on training knowledge for specific factual claims.
 - If you cannot point to an article that supports a claim, do not make the claim.
-- If the corpus is thin (fewer than 5 substantive articles), say so explicitly in `summary` and keep `direction` to "Mixed" unless the article set clearly justifies otherwise.
+- If the corpus is thin (fewer than 5 substantive articles), say so explicitly in 'summary' and keep 'direction' to "Mixed" unless the article set clearly justifies otherwise.
 
 INTELLIGENCE STANDARDS:
 1. Lead with pattern significance, not event description.
