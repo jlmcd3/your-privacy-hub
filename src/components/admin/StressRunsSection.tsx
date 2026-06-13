@@ -115,17 +115,28 @@ export default function StressRunsSection() {
     }
   }
 
+  const [running, setRunning] = useState<Set<string>>(new Set());
+  const markRunning = (k: string, on: boolean) =>
+    setRunning((s) => {
+      const next = new Set(s);
+      if (on) next.add(k); else next.delete(k);
+      return next;
+    });
+
   async function onRun(tool: ToolType) {
     const n = Math.max(1, Math.min(5, counts[tool] ?? 1));
-    setBusy(tool);
+    markRunning(tool, true);
     setState(tool, { status: "running", log: [] });
-    let ok = 0, fail = 0;
-    for (let i = 0; i < n; i++) {
-      try { await runOne(tool); ok++; }
-      catch (e) { log(tool)(`❌ ${(e as Error).message}`); fail++; }
-    }
+    const results = await Promise.all(
+      Array.from({ length: n }, async () => {
+        try { await runOne(tool); return true; }
+        catch (e) { log(tool)(`❌ ${(e as Error).message}`); return false; }
+      }),
+    );
+    const ok = results.filter(Boolean).length;
+    const fail = results.length - ok;
     setState(tool, { status: fail ? "failed" : "complete" });
-    setBusy(null);
+    markRunning(tool, false);
     await refresh();
     toast[fail ? "warning" : "success"](`${TOOL_LABEL[tool]} stress: ${ok} ok, ${fail} failed`);
   }
