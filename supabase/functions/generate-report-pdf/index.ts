@@ -605,7 +605,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
     line-height:1.25; font-weight:700; }
   .header .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
   .body { padding:22px 26px 26px; }
-  .disclaimer { border-left:4px solid var(--gold); background:var(--gold-soft);
+  .disclaimer { border-left:4px solid var(--teal); background:var(--teal-soft);
     border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
   .disclaimer .kw { font-weight:600; color:var(--navy); }
   .callout { border-left:4px solid var(--warn); background:var(--warn-soft);
