@@ -122,22 +122,23 @@ export function StressLiveLog({ batchIds }: { batchIds: string[] }) {
       for (const j of data as JobLite[]) next.set(j.id, j);
       prevJobsRef.current = next;
 
-      let nextEntries = entries;
+      const merged = newSnapshots.length > 0
+        ? [...newSnapshots, ...entriesRef.current].slice(0, MAX_ENTRIES)
+        : entriesRef.current;
       if (newSnapshots.length > 0) {
-        setEntries((e) => {
-          nextEntries = [...newSnapshots, ...e].slice(0, MAX_ENTRIES);
-          return nextEntries;
-        });
+        entriesRef.current = merged;
+        setEntries(merged);
       }
       setLastPolled(now);
       try {
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-          entries: nextEntries,
+          entries: merged,
           prevJobs: Array.from(next.entries()),
           lastPolled: now,
         }));
       } catch { /* quota — ignore */ }
     };
+
 
 
     poll();
