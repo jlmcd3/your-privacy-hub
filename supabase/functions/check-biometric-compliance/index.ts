@@ -234,7 +234,7 @@ Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No pre
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 4000,
+        max_tokens: 12000,
         system: `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 
 Your task: produce a structured compliance assessment for a described biometric data processing activity, calibrated to the jurisdictions in scope and recent enforcement precedents.
@@ -349,7 +349,7 @@ Output ONLY the compliance assessment. No preamble.`,
             },
             body: JSON.stringify({
               model: "claude-sonnet-4-6",
-              max_tokens: 4000,
+              max_tokens: 12000,
               system: "You are a biometric privacy compliance analyst. Reproduce the prior assessment, correcting these automated-lint defects silently and without meta-commentary: " + details,
               messages: [
                 { role: "user", content: prompt },

@@ -41,8 +41,8 @@ async function callClaude(
   model: string,
   systemPrompt: string,
   userContent: string,
-  maxTokens: number = 4000,
-  timeoutMs: number = 240_000
+  maxTokens: number = 12000,
+  timeoutMs: number = 720_000
 ): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
   const startedAt = Date.now();

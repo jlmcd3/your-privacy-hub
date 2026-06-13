@@ -538,7 +538,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     }
 
 
-    async function callAi(extraUser: string, timeoutMs: number = 240_000): Promise<{ text: string; finishReason: string | null }> {
+    async function callAi(extraUser: string, timeoutMs: number = 720_000): Promise<{ text: string; finishReason: string | null }> {
       const aiController = new AbortController();
       const aiTimeout = setTimeout(() => aiController.abort(), timeoutMs);
       const finalUser = extraUser ? `${userPrompt}\n\n${extraUser}` : userPrompt;
@@ -550,7 +550,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         },
         body: JSON.stringify({
           model: AI_MODEL,
-          max_tokens: 16000,
+          max_tokens: 48000,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: finalUser },

@@ -57,7 +57,7 @@ async function pollStatus(
   table: string,
   id: string,
   successStatus: string,
-  maxPolls = 150,
+  maxPolls = 450,
   intervalMs = 3000,
 ): Promise<void> {
   for (let i = 0; i < maxPolls; i++) {
@@ -71,7 +71,7 @@ async function pollStatus(
   throw new Error(`timeout polling ${table}`);
 }
 
-async function pollCppa(admin: Admin, id: string, maxPolls = 150): Promise<void> {
+async function pollCppa(admin: Admin, id: string, maxPolls = 450): Promise<void> {
   for (let i = 0; i < maxPolls; i++) {
     await new Promise((r) => setTimeout(r, 3000));
     const { data } = await admin.from("cppa_assessments").select("status").eq("id", id).single();
@@ -93,7 +93,7 @@ async function invokeFn(name: string, body: unknown): Promise<any> {
       "Authorization": `Bearer ${SERVICE_KEY}`,
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(180_000),
+    signal: AbortSignal.timeout(540_000),
   });
   let data: any = null;
   try { data = await r.json(); } catch { /* ignore */ }
@@ -118,7 +118,7 @@ async function callSaveSampleReport(payload: Record<string, unknown>): Promise<a
       "Authorization": `Bearer ${SERVICE_KEY}`,
     },
     body: JSON.stringify({ action: "generate_pdf", ...payload }),
-    signal: AbortSignal.timeout(120_000),
+    signal: AbortSignal.timeout(360_000),
   });
   if (!r.ok) throw new Error(`save-sample-report ${r.status}: ${(await r.text()).slice(0, 200)}`);
   return await r.json();

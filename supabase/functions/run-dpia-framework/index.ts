@@ -13,7 +13,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function callAnthropic(model: string, system: string, user: string, maxTokens = 2500, timeoutMs = 240_000): Promise<{ text: string; stopReason: string | null }> {
+async function callAnthropic(model: string, system: string, user: string, maxTokens = 7500, timeoutMs = 720_000): Promise<{ text: string; stopReason: string | null }> {
   const startedAt = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
