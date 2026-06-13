@@ -515,18 +515,35 @@ function selfInvokeNext(batchId: string): void {
   };
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-  admin.from("static_stress_jobs")
-    .select("id", { count: "exact", head: true })
-    .eq("batch_id", batchId)
-    .eq("status", "pending")
-    .then(({ count }) => {
-      if ((count ?? 0) > 0) {
-        attempt(3);
-      } else {
-        finaliseBatch(admin, batchId).catch(console.error);
+  admin.from("static_stress_batches")
+    .select("status").eq("id", batchId).single()
+    .then(({ data: b }) => {
+      if (b?.status === "cancelled") {
+        // Mark remaining pending jobs cancelled; do not chain.
+        admin.from("static_stress_jobs")
+          .update({ status: "cancelled", completed_at: new Date().toISOString() })
+          .eq("batch_id", batchId).eq("status", "pending")
+          .then(() => {
+            admin.from("static_stress_batches").update({
+              completed_at: new Date().toISOString(),
+            }).eq("id", batchId).then(() => {});
+          });
+        return;
       }
+      admin.from("static_stress_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("batch_id", batchId)
+        .eq("status", "pending")
+        .then(({ count }) => {
+          if ((count ?? 0) > 0) {
+            attempt(3);
+          } else {
+            finaliseBatch(admin, batchId).catch(console.error);
+          }
+        });
     });
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
