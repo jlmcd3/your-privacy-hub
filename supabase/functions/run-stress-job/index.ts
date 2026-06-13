@@ -145,7 +145,8 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         user_id: userId, status: "pending", intake_data: intake, is_subscriber_credit: true,
       }).select("id").single();
       if (error || !rec) throw new Error(`dpia insert: ${error?.message}`);
-      await invokeFn("run-dpia-framework", { dpia_id: rec.id }).catch(() => {});
+      await invokeFn("run-dpia-framework", { dpia_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-dpia-framework trigger failed (will poll):", e));
       await pollStatus(admin, "dpia_frameworks", rec.id, "complete");
       return { sourceTable: "dpia_frameworks", sourceRowId: rec.id };
     }
