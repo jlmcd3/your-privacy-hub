@@ -284,16 +284,25 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         payment_confirmed: true, paid_at: new Date().toISOString(),
       }).select("id").single();
       if (sErr || !session) throw new Error(`eu-notice session: ${sErr?.message}`);
-      await admin.from("eu_notice_framework_selections").insert([
-        { session_id: session.id, framework_code: "EU_GDPR", framework_name: "EU GDPR", region: "EU" },
-        { session_id: session.id, framework_code: "UK_GDPR", framework_name: "UK GDPR", region: "UK" },
-      ]);
-      await admin.from("eu_notice_answers").insert(
-        Object.entries(intake).map(([k, v]) => ({
-          session_id: session.id, question_key: k, answer_value: v as any,
-        })),
-      );
-      await invokeFn("generate-eu-notice", { session_id: session.id }).catch(() => {});
+      try {
+        await admin.from("eu_notice_framework_selections").insert([
+          { session_id: session.id, framework_code: "EU_GDPR", framework_name: "EU GDPR", region: "EU" },
+          { session_id: session.id, framework_code: "UK_GDPR", framework_name: "UK GDPR", region: "UK" },
+        ]);
+      } catch (e) {
+        console.warn("[run-stress-job] eu_notice_framework_selections insert failed:", e);
+      }
+      try {
+        await admin.from("eu_notice_answers").insert(
+          Object.entries(intake).map(([k, v]) => ({
+            session_id: session.id, question_key: k, answer_value: v as any,
+          })),
+        );
+      } catch (e) {
+        console.warn("[run-stress-job] eu_notice_answers insert failed:", e);
+      }
+      await invokeFn("generate-eu-notice", { session_id: session.id })
+        .catch((e) => console.warn("[run-stress-job] generate-eu-notice trigger failed (will poll):", e));
       await pollStatus(admin, "eu_notice_sessions", session.id, "generated");
       return { sourceTable: "eu_notice_sessions", sourceRowId: session.id };
     }
