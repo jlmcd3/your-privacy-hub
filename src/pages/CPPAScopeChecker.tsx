@@ -603,7 +603,7 @@ function ResultsPanel({
         )}
       </section>
 
-      {!isAuthed && <EmailResultsCapture />}
+      {!isAuthed && <CreateAccountPrompt />}
 
       <section className="p-4 border-l-4 border-brand-teal bg-slate-50 dark:bg-slate-900/40 text-sm rounded">
         This is a preliminary scope indicator based on your self-reported answers. It is
