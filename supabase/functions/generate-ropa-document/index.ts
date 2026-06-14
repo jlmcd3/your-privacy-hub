@@ -360,7 +360,7 @@ function buildHtml(d: AssembledData): string {
           <table class="kv">
             <tbody>
               <tr><th>Role</th><td>${escapeHtml(answerToString(ans.role ?? (d.profile?.is_controller ? "Controller" : d.profile?.is_processor ? "Processor" : "—")))}</td></tr>
-              <tr><th>Category</th><td>${escapeHtml(a.category)}</td></tr>
+              <tr><th>Category</th><td>${escapeHtml(categoryLabel(a.category))}</td></tr>
               <tr><th>Purpose</th><td>${escapeHtml(answerToString(ans.purpose))}</td></tr>
               <tr><th>Lawful basis</th><td>${escapeHtml(lawfulBasisLabel(ans.lawful_basis))}</td></tr>
               <tr><th>Special category basis</th><td>${escapeHtml(answerToString(ans.special_category_basis))}</td></tr>
