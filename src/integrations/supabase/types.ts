@@ -5397,6 +5397,51 @@ export type Database = {
           },
         ]
       }
+      upsell_events: {
+        Row: {
+          created_at: string
+          dismissed_at: string | null
+          email_sent_at: string | null
+          id: string
+          in_app_shown_at: string | null
+          last_triggered_at: string
+          product: string
+          reason: string
+          triggered_by_assessment_id: string | null
+          triggered_by_tool: string
+          urgency: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dismissed_at?: string | null
+          email_sent_at?: string | null
+          id?: string
+          in_app_shown_at?: string | null
+          last_triggered_at?: string
+          product: string
+          reason: string
+          triggered_by_assessment_id?: string | null
+          triggered_by_tool: string
+          urgency?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dismissed_at?: string | null
+          email_sent_at?: string | null
+          id?: string
+          in_app_shown_at?: string | null
+          last_triggered_at?: string
+          product?: string
+          reason?: string
+          triggered_by_assessment_id?: string | null
+          triggered_by_tool?: string
+          urgency?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       us_notice_answers: {
         Row: {
           answer_value: Json
