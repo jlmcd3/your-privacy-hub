@@ -633,7 +633,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     const controlsOut: any[] = [];
     for (let idx = 0; idx < report.controls.length; idx++) {
       const c = report.controls[idx];
-      const citation = `11 CCR § 7123(b)`;
+      const citation = COMPONENT_CITATIONS[c?.control ?? ""] ?? "11 CCR § 7123(c)";
       const exact = (fsorByCitation.get("11 CCR § 7123") ?? []).slice();
       const exactIds = new Set(exact.map((r: any) => r?.id).filter(Boolean));
 
