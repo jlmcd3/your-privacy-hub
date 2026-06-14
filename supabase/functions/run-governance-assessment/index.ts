@@ -539,6 +539,11 @@ Return JSON:
       assessment.user_id
     ).catch(() => ({ data: null as any }));
 
+    // Fire-and-forget upsell signals (non-fatal).
+    supabase.functions.invoke('trigger-upsell', {
+      body: { tool_type: 'governance_assessment', assessment_id, user_id: assessment.user_id },
+    }).catch((e: Error) => console.error('[gov] trigger-upsell failed (non-fatal):', e.message));
+
     await supabase.functions.invoke("generate-report-pdf", {
       body: {
         tool_type: "governance_assessment",
