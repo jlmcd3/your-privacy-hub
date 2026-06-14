@@ -170,6 +170,9 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (body.stress_run === true) {
+      return await runStressBiometric(body, resolvedUserId);
+    }
 
     // Wrap heavy work in a streaming response so the edge runtime's 150s
     // request-idle timeout never trips — we write a single whitespace byte
