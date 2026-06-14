@@ -203,14 +203,30 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
     fired.push("R4_UK_ICO");
   }
 
+  // Deduplicate: if UK is in the map (from R4), remove any bare GB market entry
+  // added by R3 — the UK entry covers GB residents under UK GDPR/DPA 2018.
+  if (map.has("UK") && map.has("GB")) {
+    map.delete("GB");
+  }
+
   // ------- Rule R5: DPO appointment triggers -------
   // GDPR Art. 37 + national thresholds (DE 20-employee rule).
+  // GDPR Art. 37 only applies when EU/UK scope is present.
+  const hasEuOrUkScope =
+    intake.has_eu_establishment ||
+    intake.has_uk_establishment ||
+    euMarkets.length > 0 ||
+    markets.has("UK") ||
+    markets.has("GB");
   let dpoRequired = false;
   const dpoReasons: string[] = [];
   if (
-    intake.processes_special_categories ||
-    intake.large_scale_monitoring ||
-    (intake.processes_personal_data && (intake.data_subjects_count ?? 0) > 100_000)
+    hasEuOrUkScope &&
+    (
+      intake.processes_special_categories ||
+      intake.large_scale_monitoring ||
+      (intake.processes_personal_data && (intake.data_subjects_count ?? 0) > 100_000)
+    )
   ) {
     dpoRequired = true;
     dpoReasons.push("GDPR Art. 37(1)(b)/(c): large-scale or special-category processing");
