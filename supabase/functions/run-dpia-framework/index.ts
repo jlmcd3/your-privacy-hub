@@ -429,6 +429,17 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
     reportData.enforcement_meta = enforcementMeta;
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
+
+    // Detect unresolved placeholders across the entire report JSON.
+    // Any [TO COMPLETE] or [TO BE ASSESSED] string anywhere in the output
+    // means the document is not ready for sign-off. Set this flag
+    // deterministically so the PDF renderer can show a draft notice without
+    // relying on model compliance with a prompt instruction.
+    const reportStr = JSON.stringify(reportData);
+    reportData.has_unresolved_placeholders =
+      reportStr.includes("[TO COMPLETE") ||
+      reportStr.includes("[TO BE ASSESSED") ||
+      reportStr.includes("[TO BE COMPLETED");
     try {
       reportData.annotations = Array.isArray(reportData?.section_3_risks?.annotations)
         ? reportData.section_3_risks.annotations
