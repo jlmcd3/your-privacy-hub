@@ -415,7 +415,7 @@ function buildHtml(d: AssembledData): string {
 
   const transfers = collectTransfers(d);
   const transferTable = transfers.length === 0
-    ? `<p><em>No cross-border transfers recorded.</em></p>`
+    ? `<p><em>No cross-border transfers have been recorded in this draft. This statement cannot be confirmed as accurate until processor, recipient, and data destination fields have been completed for all processing activities.</em></p>`
     : `
       <table class="grid">
         <thead><tr>
