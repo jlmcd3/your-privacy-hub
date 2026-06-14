@@ -81,13 +81,10 @@ export default function RegistrationAssessmentResult() {
     }
     setSavingEmail(true);
     try {
-      // Best-effort capture into the marketing list (subscribe-email is idempotent)
-      await supabase.functions.invoke("subscribe-email", { body: { email: pendingEmail.trim() } });
       localStorage.setItem(`reg-email-unlocked-${token}`, "1");
       setEmailUnlocked(true);
       toast.success("Your registration map is ready");
     } catch (e) {
-      // Even if capture fails, unlock — we already have the email locally.
       localStorage.setItem(`reg-email-unlocked-${token}`, "1");
       setEmailUnlocked(true);
     } finally {

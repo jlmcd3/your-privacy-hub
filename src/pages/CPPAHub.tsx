@@ -1,12 +1,9 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Shield, ClipboardCheck, Lock, Loader2 } from "lucide-react";
+import { ArrowRight, Shield, ClipboardCheck, Lock } from "lucide-react";
 import { PRICING_REGISTRY } from "@/config/pricing";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
 
 const riskStandalone = PRICING_REGISTRY.cppa_risk_standalone.displayPrice;
 const cyberStandalone = PRICING_REGISTRY.cppa_cyber_standalone.displayPrice;
@@ -73,69 +70,6 @@ const FAQ = [
   },
 ];
 
-function AdmtWaitlist() {
-  const [email, setEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || submitting) return;
-    setSubmitting(true);
-    try {
-      const { error } = await supabase.functions.invoke("subscribe-email", {
-        body: { email, source: "admt-waitlist" },
-      });
-      if (error) throw error;
-      setDone(true);
-      toast({
-        title: "You're on the list",
-        description: "We'll email you when the ADMT Compliance Checker ships.",
-      });
-    } catch (err) {
-      toast({
-        title: "Something went wrong",
-        description: err instanceof Error ? err.message : "Please try again in a moment.",
-        variant: "destructive",
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <section className="bg-card border rounded-lg p-8">
-      <h2 className="font-serif text-2xl mb-2">ADMT Compliance Checker — coming Q3 2026</h2>
-      <p className="text-sm text-muted-foreground mb-5 max-w-2xl">
-        Automated decision-making technology disclosures are required from January 1, 2027.
-        Our ADMT checker ships ahead of the deadline — leave your email and we'll notify you at launch.
-      </p>
-      {done ? (
-        <p className="text-sm text-brand-teal font-medium">
-          ✓ You're on the waitlist. We'll be in touch.
-        </p>
-      ) : (
-        <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md">
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@company.com"
-            className="flex-1 px-3 py-2 rounded border border-brand-cloud bg-background text-sm focus:outline-none focus:border-brand-teal"
-          />
-          <button
-            type="submit"
-            disabled={submitting}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal/90 disabled:opacity-60"
-          >
-            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Notify me"}
-          </button>
-        </form>
-      )}
-    </section>
-  );
-}
 
 export default function CPPAHub() {
   const itemListLd = {
@@ -254,7 +188,20 @@ export default function CPPAHub() {
           </dl>
         </section>
 
-        <AdmtWaitlist />
+        <section className="bg-card border rounded-lg p-8">
+          <h2 className="font-serif text-2xl mb-2">ADMT Compliance Checker — Coming Q3 2026</h2>
+          <p className="text-sm text-muted-foreground mb-5 max-w-2xl">
+            Automated decision-making technology disclosures are required from January 1, 2027.
+            Our ADMT Compliance Checker ships ahead of that deadline.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Registered users will be notified at launch.{" "}
+            <Link to="/signup" className="text-brand-teal hover:underline font-medium">
+              Create a free account
+            </Link>{" "}
+            to be first in line.
+          </p>
+        </section>
       </main>
       <Footer />
     </div>
