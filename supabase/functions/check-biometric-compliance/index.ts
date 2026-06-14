@@ -91,15 +91,18 @@ Deno.serve(async (req) => {
     // request-idle timeout never trips — we write a single whitespace byte
     // every 10s as a keep-alive, then the final JSON. JSON.parse() ignores
     // leading whitespace so the caller's `await r.json()` still works.
-    const stream = new TransformStream();
-    const writer = stream.writable.getWriter();
     const encoder = new TextEncoder();
-    const keepAlive = setInterval(() => {
-      writer.write(encoder.encode(" ")).catch(() => {});
-    }, 10000);
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const writer = {
+          write: async (chunk: Uint8Array) => { controller.enqueue(chunk); },
+          close: async () => { controller.close(); },
+        };
+        const keepAlive = setInterval(() => {
+          writer.write(encoder.encode(" ")).catch(() => {});
+        }, 10000);
 
-    (async () => {
-      try {
+        try {
 
 
     // Step 1 — enforcement context
