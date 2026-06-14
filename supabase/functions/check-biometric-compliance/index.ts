@@ -466,6 +466,20 @@ Deno.serve(async (req) => {
     const otherUsStateApplies = body.jurisdictions.some(
       (j) => j.toLowerCase().includes("other us"));
 
+    // Explicit Texas CUBI selection — triggers CUBI-specific context injection
+    // (distinct from "Other US state" which has its own broader catch-all block).
+    const texasApplies = body.jurisdictions.some(
+      (j) => j.toLowerCase().includes("texas"));
+
+    // EU/EEA GDPR — triggers Article 9 and DPIA context injection.
+    const euGdprApplies = body.jurisdictions.some(
+      (j) => j.toLowerCase().includes("eu") || j.toLowerCase().includes("eea") ||
+             (j.toLowerCase().includes("gdpr") && !j.toLowerCase().includes("uk")));
+
+    // UK GDPR — triggers UK DPA 2018 and ICO context injection.
+    const ukGdprApplies = body.jurisdictions.some(
+      (j) => j.toLowerCase().includes("united kingdom") || j.toLowerCase().includes("uk gdpr"));
+
     // Step 3 — Haiku
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) {
