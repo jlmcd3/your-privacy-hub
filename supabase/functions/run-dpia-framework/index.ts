@@ -96,6 +96,8 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
     const thirdParties = (intake.third_party_processors || []).join(", ") || "None identified";
     const safeguards = (intake.existing_safeguards || []).join(", ") || "None identified";
     const jurisdictions = (intake.jurisdictions || []).join(", ") || "Not specified";
+    const legalBasisProposed = intake.legal_basis_proposed || "Not specified";
+    const sector = intake.sector || intake.organization_sector || "Not specified";
 
     // Determine GDPR jurisdiction from verified jurisdictions (srcIntake preferred).
     let srcIntakeJurisdictions: string[] | null = null;
