@@ -86,6 +86,21 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Wrap heavy work in a streaming response so the edge runtime's 150s
+    // request-idle timeout never trips — we write a single whitespace byte
+    // every 10s as a keep-alive, then the final JSON. JSON.parse() ignores
+    // leading whitespace so the caller's `await r.json()` still works.
+    const stream = new TransformStream();
+    const writer = stream.writable.getWriter();
+    const encoder = new TextEncoder();
+    const keepAlive = setInterval(() => {
+      writer.write(encoder.encode(" ")).catch(() => {});
+    }, 10000);
+
+    (async () => {
+      try {
+
+
     // Step 1 — enforcement context
     let enforcement_context: any[] = [];
     let enforcementMeta: any = { attempted: false };
@@ -139,11 +154,10 @@ Deno.serve(async (req) => {
     // Step 3 — Haiku
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) {
-      return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      await writer.write(encoder.encode(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" })));
+      return;
     }
+
 
     const prompt = `You are a biometric privacy compliance analyst. Analyse the biometric data processing described below and produce a structured compliance assessment for each jurisdiction.
 
@@ -287,11 +301,10 @@ Output ONLY the compliance assessment. No preamble.`,
     if (!aiRes.ok || !aiRes.body) {
       const errText = aiRes.body ? await aiRes.text() : "no body";
       console.error("Claude error:", errText);
-      return new Response(JSON.stringify({ error: "AI generation failed" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      await writer.write(encoder.encode(JSON.stringify({ error: "AI generation failed" })));
+      return;
     }
+
 
     // Stream Anthropic SSE so the edge runtime's 150s idle timeout never
     // trips on long Sonnet generations.
@@ -479,17 +492,28 @@ Output ONLY the compliance assessment. No preamble.`,
     }
 
 
-    return new Response(
-      JSON.stringify({
-        id: savedId,
-        assessment_text,
-        bipa_risk: bipaRisk,
-        jurisdictions_analysed: body.jurisdictions,
-        enforcement_precedents: report_data.enforcement_precedents,
-        generated_at: report_data.generated_at,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+        await writer.write(encoder.encode(JSON.stringify({
+          id: savedId,
+          assessment_text,
+          bipa_risk: bipaRisk,
+          jurisdictions_analysed: body.jurisdictions,
+          enforcement_precedents: report_data.enforcement_precedents,
+          generated_at: report_data.generated_at,
+        })));
+      } catch (e) {
+        console.error("check-biometric-compliance error:", e);
+        try {
+          await writer.write(encoder.encode(JSON.stringify({ error: "An internal error occurred" })));
+        } catch { /* ignore */ }
+      } finally {
+        clearInterval(keepAlive);
+        try { await writer.close(); } catch { /* ignore */ }
+      }
+    })();
+
+    return new Response(stream.readable, {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (e) {
     console.error("check-biometric-compliance error:", e);
     return new Response(JSON.stringify({ error: "An internal error occurred" }), {
@@ -498,3 +522,4 @@ Output ONLY the compliance assessment. No preamble.`,
     });
   }
 });
+
