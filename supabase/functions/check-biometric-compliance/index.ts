@@ -65,36 +65,259 @@ async function runStressBiometric(body: Body, resolvedUserId: string | null) {
     (j) => j.toLowerCase().includes("illinois") || j.toLowerCase().includes("bipa")
   );
   const bipaRisk = bipaApplies ? estimateBIPARisk(body.enrolledCount) : null;
-  const assessment_text = body.jurisdictions.map((jurisdiction) => `${jurisdiction} — biometric privacy assessment
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}, so biometric/sensitive-data rules should be treated as in scope where local law recognises biometric identifiers.
+  function stressSection(jurisdiction: string): string {
+    const j = jurisdiction.toLowerCase();
+    const isEU = j.includes("eu") || j.includes("eea") || (j.includes("gdpr") && !j.includes("uk"));
+    const isUK = j.includes("united kingdom") || j.includes("uk gdpr") || j === "gb";
+    const isIL = j.includes("illinois") || j.includes("bipa");
+    const isTX = j.includes("texas") || j.includes("cubi");
+    const isCA = j.includes("california") || j.includes("ca,") || j === "ca";
+    const isVA = j.includes("virginia") || j === "va";
+    const isWA = j.includes("washington");
+
+    if (isEU) {
+      return `${jurisdiction} — General Data Protection Regulation (GDPR)
+
+Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for the purpose of uniquely identifying a natural person is special-category data under GDPR Article 9(1), subject to strict prohibition unless an Article 9(2) condition applies.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
-1. Maintain a documented lawful basis and purpose limitation for biometric enrolment and matching.
-2. Provide clear pre-collection notice describing biometric types, purpose, retention, disclosure, and withdrawal channels.
-3. Use explicit consent or another jurisdiction-specific high-risk/sensitive-data basis before enrolling individuals.
-4. Keep vendor processing under written security, confidentiality, retention, and deletion controls.
+1. Lawful basis under Article 6 AND a separate Article 9(2) condition — these must both be identified and documented. Do not conflate them into a single "lawful basis" entry.
+2. Most likely Article 9(2) condition: Article 9(2)(a) explicit consent, or Article 9(2)(b) if required by employment law, or Article 9(2)(h) for health/care providers.
+3. Conduct a Data Protection Impact Assessment (GDPR Article 35) before deployment — biometric processing for identification is on supervisory authority high-risk lists.
+4. Provide pre-collection notice under Articles 13/14 covering biometric modalities, Article 9(2) condition relied upon, retention periods, and data subject rights.
+5. Any processor receiving biometric data must have a written DPA under Article 28. Any transfer outside the EEA requires an Article 46 safeguard (adequacy decision, SCCs, or BCRs).
 
 Consent and notice:
-Use a standalone notice and consent workflow before collection; do not rely on general terms or bundled onboarding text.
+Explicit consent (Article 9(2)(a)) must be freely given, specific, informed, and unambiguous — and genuinely free. In employment contexts, employee consent is unlikely to be "freely given" due to power imbalance (EDPB Guidelines 05/2020); use Article 9(2)(b) employment law basis instead where national law permits.
 
 Retention and destruction:
-Define the event that ends the collection purpose and delete biometric templates promptly after that event or the stated retention ceiling, whichever occurs first.
+Apply storage limitation (Article 5(1)(e)): retain biometric templates only as long as necessary for the stated purpose. Define retention periods per purpose and per data category. Delete promptly when the purpose expires.
 
 Sale and sharing restrictions:
-Do not sell biometric identifiers. Limit sharing to processors needed for verification, fraud prevention, security, or legal compliance.
+Purpose limitation (Article 5(1)(b)) prohibits using biometric data for purposes incompatible with original collection. Processor agreements (Article 28) must restrict vendor use. Chapter V transfer safeguards required for any third-country transfers.
 
 Current enforcement posture:
-Regulators and private claimants focus on missing standalone consent, unclear retention schedules, excessive secondary use, and weak vendor controls.
+EU supervisory authorities actively enforce Article 9 biometric obligations. The ICO (UK), CNIL (France), and Garante (Italy) have all issued enforcement actions for unlawful biometric processing. Refer to each national DPA's enforcement register for current figures.
 
 Priority actions:
-1. Approve a jurisdiction-mapped biometric notice and consent record.
-2. Publish or attach a retention/destruction schedule for templates and derived identifiers.
-3. Confirm vendor DPAs cover biometric security, sub-processors, deletion, and audit evidence.
+1. Document both the Article 6 lawful basis and the Article 9(2) condition separately in a processing record before any biometric data is collected.
+2. Complete a DPIA under Article 35 — engage the DPO where designated; consult the lead supervisory authority if residual risk remains high after mitigation.
+3. Audit all processor agreements to confirm Article 28 DPAs are executed for biometric data processors and any sub-processors are approved in writing.
 
 Compliance risk rating: HIGH
-Biometric identity verification creates elevated regulatory and litigation exposure unless consent, retention, and vendor controls are provable.
----`).join("\n\n");
+Active supervisory authority enforcement of Article 9 biometric obligations across multiple EU member states creates material regulatory exposure for any organisation without documented lawful basis, DPIA, and processor controls.
+---`;
+    }
+
+    if (isUK) {
+      return `${jurisdiction} — UK GDPR and Data Protection Act 2018
+
+Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under UK GDPR Article 9(1). The operative law is UK GDPR (retained EU GDPR as amended) together with DPA 2018 — not EU GDPR.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. UK GDPR Article 9(2) condition must be identified in addition to an Article 6 lawful basis. Common conditions: Article 9(2)(a) explicit consent; Article 9(2)(b) employment law; Article 9(2)(h) health/care.
+2. DPA 2018 Schedule 1 condition must also be satisfied — the applicable Schedule 1 paragraph must be documented.
+3. Conduct a DPIA under UK GDPR Article 35 — biometric processing for identification is on the ICO's mandatory DPIA list.
+4. Article 13/14 transparency notices must cover the Article 9(2) condition and DPA 2018 Schedule 1 condition relied upon.
+5. UK-to-third-country transfers require a UK IDTA or UK-approved SCCs (not EU SCCs).
+
+Consent and notice:
+Explicit consent in employment context is unlikely to satisfy "freely given" under UK GDPR — use DPA 2018 Schedule 1 para 1 (employment, social security, social protection law) where national employment law authorises biometric use.
+
+Retention and destruction:
+Apply UK GDPR storage limitation principle: define retention period per purpose; delete biometric templates promptly when purpose expires; document the retention schedule.
+
+Sale and sharing restrictions:
+UK GDPR purpose limitation (Article 5(1)(b)) and processor contract requirements (Article 28) govern sharing. Use UK IDTA for any transfers to third countries outside the UK adequacy framework.
+
+Current enforcement posture:
+The ICO actively enforces UK GDPR biometric obligations. The ICO has issued enforcement notices and monetary penalties for unlawful biometric data processing — refer to ico.org.uk/action-weve-taken/ for current enforcement figures.
+
+Priority actions:
+1. Identify and document the Article 9(2) condition AND the applicable DPA 2018 Schedule 1 condition before any biometric processing begins.
+2. Complete a DPIA and, where residual risk remains high, consult the ICO under Article 36.
+3. Review all processor agreements: confirm Article 28 DPAs cover biometric data; replace any EU SCCs in UK-to-third-country arrangements with UK IDTA or UK-approved transfer mechanism.
+
+Compliance risk rating: HIGH
+ICO enforcement posture on biometric data is active; failure to satisfy both the Article 9(2) condition and the DPA 2018 Schedule 1 condition simultaneously creates material regulatory exposure.
+---`;
+    }
+
+    if (isIL) {
+      const risk = estimateBIPARisk(body.enrolledCount);
+      return `${jurisdiction} — Biometric Information Privacy Act (BIPA), 740 ILCS 14
+
+Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. BIPA applies to private entities in Illinois that collect, capture, purchase, receive through trade, or otherwise obtain biometric identifiers or biometric information.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Section 15(a): written, publicly available retention and destruction policy before or at the time of collection.
+2. Section 15(b): inform the subject in writing of the specific purpose and duration of collection; obtain a written release before collection.
+3. Section 15(c): prohibition on sale, lease, trade, or profit from biometric data.
+4. Section 15(d): prohibition on disclosure except with consent, to complete financial transaction, or as required by law.
+5. Section 15(e): reasonable standard of care for storage; protection at least as protective as other confidential/sensitive data.
+6. P.A. 103-0769 (effective Aug 2, 2024): one violation per person per biometric identifier for a single course of conduct (not per scan). Pre-August 2024 conduct may face per-scan exposure in Illinois state court (federal courts apply the Seventh Circuit's retroactivity ruling in Clay v. Union Pacific, No. 25-2185 (7th Cir. Apr. 1, 2026)).
+
+Consent and notice:
+Written release (signed by individual or legally authorised representative) required before collection. Standalone biometric-specific release is the defensible practice — embedding in onboarding paperwork is routinely challenged by plaintiffs.
+
+Retention and destruction:
+Written retention policy must be publicly available before collection. Destroy biometric data when purpose expires or within 3 years of collection, whichever is first.
+
+Sale and sharing restrictions:
+Absolute prohibition on sale, lease, trade, or profit. Disclosure limited to consent, financial transaction completion, or legal compulsion.
+
+Current enforcement posture:
+Active private litigation. Illustrative exposure for ${body.enrolledCount} enrolled (using midpoint): $${risk.lowEnd.toLocaleString()} – $${risk.highEnd.toLocaleString()} (negligent to intentional per-person damages). Post-Aug 2024 conduct limited to one violation per person in federal court.
+
+Priority actions:
+1. Execute written releases before any biometric collection — use standalone documents not embedded in general onboarding.
+2. Publish a written retention and destruction policy on the organisation's website or internal policy portal before collection begins.
+3. Audit vendor contracts to confirm no biometric data is shared with entities that would profit from or retain it beyond stated purposes.
+
+Compliance risk rating: CRITICAL
+BIPA private right of action with per-person statutory damages creates the highest litigation exposure of any US biometric law; the Illinois plaintiff's bar is highly active.
+---`;
+    }
+
+    if (isTX) {
+      return `${jurisdiction} — Capture or Use of Biometric Identifier Act (CUBI), Tex. Bus. & Com. Code § 503.001
+
+Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. CUBI applies to persons capturing biometric identifiers (retina/iris scan, fingerprint, voiceprint, or record of hand or face geometry) for a commercial purpose in Texas.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. § 503.001(b): inform each individual before or at the time of capture that a biometric identifier is being collected; obtain consent. Notice and consent are required — CUBI does not prescribe a signed written release (unlike Illinois BIPA); documented written or electronic consent is recommended as best practice.
+2. § 503.001(c)(1): prohibition on sale, lease, or disclosure to third parties except with consent, to complete a requested financial transaction, or as required by law.
+3. § 503.001(c)(2): store, transmit, and protect biometric identifiers using security measures that meet or exceed those applied to other sensitive and confidential information.
+4. § 503.001(c)(3): destroy biometric identifiers within a reasonable time, no later than one year after the PURPOSE FOR COLLECTION EXPIRES — not one year from last interaction. Define the specific event that triggers purpose expiry for each use case.
+5. § 503.001(d): civil penalty up to $25,000 per violation; Texas AG has exclusive enforcement authority — no private right of action.
+6. § 503.001(e) [effective Jan 1, 2026, added by HB 149/TRAIGA]: exemption for AI development — CUBI does not apply to biometric data used solely to develop, train, evaluate, or offer AI models, unless the AI is used to uniquely identify a specific individual.
+
+Consent and notice:
+Notice and consent before capture. Documented consent (written or electronic) is defensible best practice. Do not rely on general terms of service or bundled onboarding consent.
+
+Retention and destruction:
+Destruction trigger: purpose expiry — not a fixed anniversary. Define the event that ends each biometric collection purpose (employment termination, account closure, contract end). The one-year ceiling runs from purpose expiry, not from the initial collection date.
+
+Sale and sharing restrictions:
+No sale, lease, or disclosure except with consent, financial transaction completion, or legal requirement. Vendor processing agreements must restrict vendor use to stated purposes.
+
+Current enforcement posture:
+Texas AG is the sole enforcer. Texas has secured over $2.7 billion in CUBI settlements (Meta $1.4B, 2024; Google $1.375B, 2025). The AG interprets each person's biometric capture as a separate violation. No private right of action, but the per-violation penalty at scale creates material exposure.
+
+Priority actions:
+1. Implement notice-and-consent workflow before any biometric capture — use documented written or electronic consent records per individual.
+2. Define the specific event that triggers purpose expiry for each enrolled population (e.g. employment termination, account closure) and document this in a retention and destruction policy.
+3. Audit all vendor agreements for biometric data processors — ensure destruction obligations and security requirements are contractually binding.
+
+Compliance risk rating: HIGH
+Texas AG enforcement of CUBI is active and has produced multi-billion dollar settlements; the per-violation calculation at scale creates material exposure even without a private right of action.
+---`;
+    }
+
+    if (isCA) {
+      return `${jurisdiction} — California Consumer Privacy Act / California Privacy Rights Act (CCPA/CPRA)
+
+Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. California has no standalone biometric privacy statute equivalent to Illinois BIPA. The primary framework is CPRA (amending CCPA), which classifies biometric information as Sensitive Personal Information (SPI). A financial institution GLBA analysis should be conducted before applying CCPA where applicable.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Cal. Civ. Code § 1798.140(ae)(1)(B): biometric information used to identify a consumer is Sensitive Personal Information (SPI).
+2. § 1798.121: consumers have the right to direct the business to limit use of SPI to what is necessary to perform services or provide goods reasonably expected. Implement a "Limit the Use of My Sensitive Personal Information" opt-out link.
+3. § 1798.100 et seq.: provide notice at or before collection (Privacy Policy and at-collection notice must identify biometric information and SPI status).
+4. § 1798.145(e): GLBA exemption — if the organisation is a financial institution under GLBA and the biometric data relates to GLBA-covered activities, CCPA may not apply to that data; complete GLBA boundary analysis first.
+5. CPPA enforcement: the California Privacy Protection Agency (CPPA) enforces CCPA/CPRA; private right of action only for data breaches (§ 1798.150).
+
+Consent and notice:
+No opt-in consent required for biometric collection under CCPA/CPRA (unlike BIPA). Provide clear at-collection notice and update Privacy Policy to reflect SPI categories and processing purposes. Honor Limit SPI Use requests.
+
+Retention and destruction:
+Retain biometric data only as long as necessary for the disclosed purpose (§ 1798.100(a)(3)). Honor deletion requests under § 1798.105 subject to exceptions.
+
+Sale and sharing restrictions:
+Prohibition on "sale" and "sharing" of SPI for cross-context behavioral advertising (§ 1798.121). Provide opt-out if SPI is sold or shared. Service providers receiving biometric data must be under written contract restricting further use.
+
+Current enforcement posture:
+CPPA enforcement is active; limited private litigation (breach-only). Enforcement focus includes missing SPI notices, inadequate at-collection disclosures, and failure to honor consumer rights.
+
+Priority actions:
+1. Update Privacy Policy and at-collection notices to identify biometric information as SPI under § 1798.140(ae)(1)(B).
+2. Implement "Limit the Use of My Sensitive Personal Information" mechanism under § 1798.121.
+3. Execute CCPA-compliant service provider contracts for all vendors receiving biometric data, restricting further use.
+
+Compliance risk rating: MEDIUM
+California has no BIPA-equivalent private litigation; CPPA enforcement is active but concentrated on notice and consumer rights — creating moderate exposure absent a data breach.
+---`;
+    }
+
+    if (isVA) {
+      return `${jurisdiction} — Virginia Consumer Data Protection Act (VCDPA), Va. Code § 59.1-571 et seq.
+
+Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Virginia has no standalone biometric statute. The VCDPA classifies biometric data as sensitive data requiring opt-in consent. HIPAA exemptions may apply where the data relates to protected health information.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. § 59.1-572: biometric data (data generated by automatic measurements of a consumer's biological characteristics used to identify a specific individual) is sensitive data.
+2. § 59.1-577(B): processing sensitive data requires obtaining consumer opt-in consent before processing. This is an affirmative consent requirement — not merely an opt-out.
+3. § 59.1-575: data minimization — collect only what is adequate, relevant, and reasonably necessary for the disclosed purpose.
+4. § 59.1-579: conduct a data protection assessment for processing presenting heightened risk, including processing sensitive data.
+5. Virginia AG has exclusive enforcement authority — there is NO private right of action under the VCDPA.
+
+Consent and notice:
+Opt-in consent required before processing biometric data. Consent must be a clear affirmative act; pre-checked boxes and inactivity do not constitute consent. Maintain records of consent.
+
+Retention and destruction:
+Retain biometric data only as long as necessary and proportionate to the stated purpose. Honor consumer deletion requests under § 59.1-576.
+
+Sale and sharing restrictions:
+Selling biometric data or processing it for targeted advertising requires separate consent or disclosure as required by §§ 59.1-577 and 59.1-578. Processors must be under written contract under § 59.1-574.
+
+Current enforcement posture:
+Virginia AG enforcement is nascent. No private right of action. Exposure is primarily regulatory — meaningful where the AG targets large-scale sensitive-data processors.
+
+Priority actions:
+1. Implement opt-in consent mechanism for biometric data collection — affirmative, specific, and documented.
+2. Conduct a VCDPA data protection assessment for biometric processing under § 59.1-579 before deployment.
+3. Execute controller-processor contracts under § 59.1-574 with all vendors processing biometric data on the organisation's behalf.
+
+Compliance risk rating: MEDIUM
+Virginia AG-only enforcement and nascent enforcement history reduce immediate exposure, but the opt-in consent requirement creates a clear compliance gap for any organisation without a documented consent mechanism.
+---`;
+    }
+
+    // Generic fallback for other jurisdictions
+    return `${jurisdiction} — biometric privacy assessment
+
+Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Applicable biometric and sensitive-data obligations depend on the specific laws in force in this jurisdiction.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Identify the applicable biometric or sensitive-data law in this jurisdiction and confirm whether biometric identifiers fall within its scope.
+2. Obtain required consent or satisfy the applicable lawful basis before any biometric collection.
+3. Provide pre-collection notice describing biometric types, purpose, retention, and data subject rights.
+4. Store and transmit biometric templates with security measures commensurate with their sensitivity.
+5. Bind all processors of biometric data under written agreements restricting use and requiring deletion.
+
+Consent and notice:
+Obtain consent or satisfy the applicable lawful basis before collection. Use a standalone notice that is specific to biometric collection — do not bury it in general terms.
+
+Retention and destruction:
+Destroy biometric templates when the collection purpose expires. Define the specific event that triggers purpose expiry and document it in a retention policy.
+
+Sale and sharing restrictions:
+Limit disclosure to processors with a legitimate need. Apply the sharing restrictions mandated by the applicable law for this jurisdiction.
+
+Current enforcement posture:
+Consult the applicable supervisory authority or attorney general's enforcement register for this jurisdiction — enforcement posture varies and is not captured in this assessment.
+
+Priority actions:
+1. Confirm which biometric privacy or data protection law applies in this jurisdiction and review its specific requirements.
+2. Implement jurisdiction-appropriate consent and notice procedures before any biometric collection.
+3. Execute processor agreements covering biometric security, sub-processors, and deletion.
+
+Compliance risk rating: HIGH
+Biometric data carries elevated regulatory risk in most jurisdictions; this assessment should be supplemented with jurisdiction-specific legal advice.
+---`;
+  }
+
+  const assessment_text = body.jurisdictions.map(stressSection).join("\n\n");
 
   const report_data = {
     bipa_risk: bipaRisk,
