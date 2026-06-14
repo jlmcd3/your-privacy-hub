@@ -579,7 +579,13 @@ function buildV3Text(report: any): string {
   lines.push(`  D Consumer count: ${op.d_consumer_count ?? ""}`);
   lines.push(`  E Disclosures: ${op.e_disclosures ?? ""}`);
   lines.push(`  F Service providers: ${op.f_service_providers ?? ""}`);
-  if (op.g_admt) lines.push(`  G ADMT: ${JSON.stringify(op.g_admt)}`);
+  if (op.g_admt) {
+    const admtLabels: Record<string, string> = { logic: "Logic", training: "Training", fairness: "Fairness", humanReview: "Human review", human_review: "Human review" };
+    lines.push(`  G ADMT:`);
+    for (const [k, v] of Object.entries(op.g_admt)) {
+      lines.push(`    ${admtLabels[k] ?? k}: ${typeof v === "string" ? v : JSON.stringify(v)}`);
+    }
+  }
   lines.push("");
   lines.push(`§ 5 Benefits (§ 7152(a)(4)):`);
   lines.push(`  Business: ${a.sec_5_benefits?.to_business ?? ""}`);
