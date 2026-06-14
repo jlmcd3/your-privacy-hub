@@ -714,7 +714,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
           new TableRow({
             children: [
               new TableCell({
-                children: [p("No cross-border transfers recorded.", { size: 18 })],
+                children: [p("No cross-border transfers recorded in this draft — transfer status cannot be confirmed until processor and recipient fields are completed.", { size: 18 })],
                 columnSpan: 5,
               }),
             ],
