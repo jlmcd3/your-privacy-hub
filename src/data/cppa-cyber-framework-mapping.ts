@@ -1,13 +1,17 @@
 // Sprint 1 #7 — NIST CSF / ISO 27001 / SOC 2 → CPPA Cybersecurity control mapping.
-// Source: 11 CCR § 7122(a)(1)–(18) enumerated cybersecurity components, cross-walked
+// Source: 11 CCR § 7123(c)(1)–(17) enumerated cybersecurity programme components
+// (OAL approved September 22, 2025; effective January 1, 2026), cross-walked
 // to the most directly equivalent control identifier in each framework.
+// Note: "Zero-trust architecture" appeared in earlier drafts but was deleted from
+// the final regulations by CalPrivacy before OAL approval. The 17 remaining
+// components retain their final § 7123(c) numbered positions.
 // `cppa_specific_evidence` captures what an existing-framework auditor must add to
 // satisfy the CPPA audit beyond their normal control evidence — the FSOR makes clear
 // that holding NIST/ISO/SOC 2 certifications does NOT, on its own, satisfy the CPPA
 // regulations.
 
 export type FrameworkMappingRow = {
-  index: number; // 1-18 matching § 7122(a)(N)
+  index: number; // 1–17 matching § 7123(c)(N) of the final regulations
   cppa_component: string;
   nist_csf: string;
   iso_27001: string;
@@ -31,14 +35,6 @@ export const CPPA_CYBER_FRAMEWORK_MAPPING: FrameworkMappingRow[] = [
     iso_27001: "A.8.24",
     soc2: "CC6.7",
     cppa_specific_evidence: "Encryption scope must be tied to the PI inventory used for CCPA disclosures; key management evidence must cover California consumer datasets, not just production-tier classification.",
-  },
-  {
-    index: 3,
-    cppa_component: "Zero-trust / least-privilege access controls",
-    nist_csf: "PR.AA-05, PR.PS-04",
-    iso_27001: "A.5.15, A.5.18, A.8.2",
-    soc2: "CC6.1, CC6.3",
-    cppa_specific_evidence: "Access reviews must be evidenced at the PI dataset level (not just system level) and tied to the business purposes disclosed in the privacy notice.",
   },
   {
     index: 4,
