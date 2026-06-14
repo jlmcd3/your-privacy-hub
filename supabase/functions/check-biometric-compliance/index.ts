@@ -386,7 +386,7 @@ Output ONLY the compliance assessment. No preamble.`,
         checkDates: true, checkUnresolvedTokens: true, referenceDate,
       });
       if (lint.clean !== assessment_text) assessment_text = lint.clean;
-      if (hasHardViolations(lint)) {
+      if (!isStressRun && hasHardViolations(lint)) {
         try {
           const details = lint.violations.filter((v) => v.severity === "hard")
             .map((v) => `${v.code}: ${v.detail}`).join("; ");
@@ -402,7 +402,7 @@ Output ONLY the compliance assessment. No preamble.`,
               max_tokens: 12000,
               system: "You are a biometric privacy compliance analyst. Reproduce the prior assessment, correcting these automated-lint defects silently and without meta-commentary: " + details,
               messages: [
-                { role: "user", content: prompt },
+                { role: "user", content: prompt + stressBudget },
                 { role: "assistant", content: fullText },
                 { role: "user", content: `Regenerate the assessment correcting: ${details}. Same output format, same ===ANNOTATIONS=== block.` },
               ],
