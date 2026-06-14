@@ -341,7 +341,13 @@ Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "invalid json" }, 400); }
 
-  const { batch_id, company_index, industries, geo_filter, selected_tools, run_by } = body ?? {};
+  const { batch_id, company_index, industries, geo_filter, selected_tools, run_by, action } = body ?? {};
+
+  if (action === "repair_fixture_failures" && batch_id) {
+    // @ts-ignore
+    EdgeRuntime.waitUntil(repairFixtureFailures(batch_id));
+    return json({ accepted: true }, 202);
+  }
 
   if (batch_id && company_index !== undefined) {
     // @ts-ignore
