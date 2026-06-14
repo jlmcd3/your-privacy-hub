@@ -511,14 +511,16 @@ function buildHtml(d: AssembledData): string {
         const orgName = (d.client?.name ?? "").trim().toLowerCase();
         const euRep = (d.profile?.eu_rep_name ?? "").trim();
         const ukRep = (d.profile?.uk_rep_name ?? "").trim();
-        const euSuppressed = euRep && euRep.toLowerCase() === orgName;
-        const ukSuppressed = ukRep && ukRep.toLowerCase() === orgName;
-        const euRow = euSuppressed
-          ? `<tr><th>EU representative</th><td>Not required — controller is established in the EEA (Art. 27)</td></tr>`
-          : `<tr><th>EU representative</th><td>${escapeHtml(euRep || "—")}${d.profile?.eu_rep_email ? ` &lt;${escapeHtml(d.profile.eu_rep_email)}&gt;` : ""}</td></tr>`;
-        const ukRow = ukSuppressed
-          ? `<tr><th>UK representative</th><td>Not required — controller is established in the UK (Art. 27)</td></tr>`
-          : `<tr><th>UK representative</th><td>${escapeHtml(ukRep || "—")}${d.profile?.uk_rep_email ? ` &lt;${escapeHtml(d.profile.uk_rep_email)}&gt;` : ""}</td></tr>`;
+        // EU representative: only required for non-EU-established controllers (GDPR Art. 27).
+        // If the field is blank/null, the controller has not designated a rep —
+        // either because they are EU-established (no obligation) or because they
+        // have not yet supplied one. Show a neutral "not designated" label either way.
+        const euRow = !euRep
+          ? `<tr><th>EU representative</th><td>Not designated — not required for EU/EEA-established controllers (GDPR Art. 27)</td></tr>`
+          : `<tr><th>EU representative</th><td>${escapeHtml(euRep)}${d.profile?.eu_rep_email ? ` &lt;${escapeHtml(d.profile.eu_rep_email)}&gt;` : ""}</td></tr>`;
+        const ukRow = !ukRep
+          ? `<tr><th>UK representative</th><td>Not designated — not required for UK-established controllers (UK GDPR Art. 27)</td></tr>`
+          : `<tr><th>UK representative</th><td>${escapeHtml(ukRep)}${d.profile?.uk_rep_email ? ` &lt;${escapeHtml(d.profile.uk_rep_email)}&gt;` : ""}</td></tr>`;
         return euRow + ukRow;
       })()}
       <tr><th>Jurisdictions</th><td>${escapeHtml(jurisdictionList(d.jurisdictions, true) || "—")}</td></tr>
