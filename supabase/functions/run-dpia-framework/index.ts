@@ -458,6 +458,11 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
       dpia.user_id
     ).catch(() => ({ data: null as any }));
 
+    // Fire-and-forget upsell signals (non-fatal).
+    supabase.functions.invoke('trigger-upsell', {
+      body: { tool_type: 'dpia_framework', assessment_id: dpia_id, user_id: dpia.user_id },
+    }).catch((e: Error) => console.error('[dpia] trigger-upsell failed (non-fatal):', e.message));
+
     await supabase.functions.invoke("generate-report-pdf", {
       body: {
         tool_type: "dpia_framework",
