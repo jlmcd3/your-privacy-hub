@@ -52,7 +52,6 @@ async function callAnthropic(system: string, user: string, maxTokens: number): P
 const ALL_COMPONENTS: string[] = [
   "Authentication and access controls",
   "Encryption of personal information",
-  "Zero-trust architecture",
   "Account management and access control",
   "Inventory of personal information and systems",
   "Secure configuration of hardware and software",
@@ -64,11 +63,36 @@ const ALL_COMPONENTS: string[] = [
   "Limitation of physical access",
   "Secure development of software",
   "Oversight of service providers, contractors, and third parties",
-  "Retention schedules and secure disposal",
   "Cybersecurity awareness, education and training",
+  "Retention schedules and secure disposal",
   "Incident response and post-incident analysis",
   "Business continuity and disaster recovery",
 ];
+
+// Per-control citations verified against the final 11 CCR § 7123 regulatory text
+// (OAL approved September 22, 2025; effective January 1, 2026)
+// Source: Cal. Code Regs. tit. 11, § 7123(c)(1)–(18). Note: (c)(15) is not
+// assigned in this product because "Zero-trust architecture" was deleted from
+// the final regulations by CalPrivacy before OAL approval.
+const COMPONENT_CITATIONS: Record<string, string> = {
+  "Authentication and access controls":                             "11 CCR § 7123(c)(1)",
+  "Encryption of personal information":                             "11 CCR § 7123(c)(2)",
+  "Account management and access control":                          "11 CCR § 7123(c)(3)",
+  "Inventory of personal information and systems":                  "11 CCR § 7123(c)(4)",
+  "Secure configuration of hardware and software":                  "11 CCR § 7123(c)(5)",
+  "Vulnerability management and patching":                          "11 CCR § 7123(c)(6)",
+  "Audit-log management":                                           "11 CCR § 7123(c)(7)",
+  "Network monitoring and defence":                                 "11 CCR § 7123(c)(8)",
+  "Anti-malware protections":                                       "11 CCR § 7123(c)(9)",
+  "Network segmentation":                                           "11 CCR § 7123(c)(10)",
+  "Limitation of physical access":                                  "11 CCR § 7123(c)(11)",
+  "Secure development of software":                                 "11 CCR § 7123(c)(12)",
+  "Oversight of service providers, contractors, and third parties": "11 CCR § 7123(c)(13)",
+  "Cybersecurity awareness, education and training":                "11 CCR § 7123(c)(14)",
+  "Retention schedules and secure disposal":                        "11 CCR § 7123(c)(16)",
+  "Incident response and post-incident analysis":                   "11 CCR § 7123(c)(17)",
+  "Business continuity and disaster recovery":                      "11 CCR § 7123(c)(18)",
+};
 
 async function runAssessment(assessment_id: string): Promise<void> {
   const { data: row } = await supabase
