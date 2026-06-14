@@ -302,11 +302,10 @@ Output ONLY the compliance assessment. No preamble.`,
     if (!aiRes.ok || !aiRes.body) {
       const errText = aiRes.body ? await aiRes.text() : "no body";
       console.error("Claude error:", errText);
-      return new Response(JSON.stringify({ error: "AI generation failed" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      await writer.write(encoder.encode(JSON.stringify({ error: "AI generation failed" })));
+      return;
     }
+
 
     // Stream Anthropic SSE so the edge runtime's 150s idle timeout never
     // trips on long Sonnet generations.
