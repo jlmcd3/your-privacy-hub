@@ -119,7 +119,7 @@ function renderCyber(row: any) {
     ${r.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${esc(r.enforcement_context)}</p></div>` : ""}
 
     ${controls.length ? `<div class="block">
-      <h3>§ 7122(a) Component Findings</h3>
+      <h3>§ 7123(c) Cybersecurity Component Findings</h3>
       ${controls.map((c) => `<div class="row">
         <p class="row-head"><strong>${esc(c.control || c.component)}</strong>${c.status ? chip(c.status) : ""}</p>
         ${c.finding ? `<p><span class="label">Finding:</span> ${esc(c.finding)}</p>` : ""}
