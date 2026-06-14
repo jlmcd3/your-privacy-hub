@@ -394,17 +394,30 @@ export default function SampleReportOutput() {
                       ({grouped[tool].length})
                     </span>
                   </h2>
-                  <button
-                    type="button"
-                    onClick={() => onDownloadTool(tool)}
-                    disabled={zippingTool === tool || zipping || grouped[tool].every((r) => !urls[r.id])}
-                    className="inline-flex items-center gap-2 rounded-md border border-brand-navy/30 text-brand-navy px-3 py-1.5 text-xs font-medium hover:bg-brand-navy/5 disabled:opacity-40 shrink-0"
-                  >
-                    <Download className="h-3.5 w-3.5" aria-hidden />
-                    {zippingTool === tool
-                      ? "Zipping…"
-                      : `Download ${TOOL_DISPLAY[tool] ?? tool} PDFs`}
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => onDownloadTool(tool)}
+                      disabled={zippingTool === tool || zipping || grouped[tool].every((r) => !urls[r.id])}
+                      className="inline-flex items-center gap-2 rounded-md border border-brand-navy/30 text-brand-navy px-3 py-1.5 text-xs font-medium hover:bg-brand-navy/5 disabled:opacity-40 shrink-0"
+                    >
+                      <Download className="h-3.5 w-3.5" aria-hidden />
+                      {zippingTool === tool
+                        ? "Zipping…"
+                        : `Download ${TOOL_DISPLAY[tool] ?? tool} PDFs`}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteTool(tool)}
+                      disabled={deletingTool === tool || deletingAll}
+                      className="inline-flex items-center gap-2 rounded-md border border-destructive/40 text-destructive px-3 py-1.5 text-xs font-medium hover:bg-destructive/10 disabled:opacity-40 shrink-0"
+                      title={`Delete all ${TOOL_DISPLAY[tool] ?? tool} sample reports (admin only)`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                      {deletingTool === tool ? "Deleting…" : "Delete"}
+                    </button>
+                  </div>
+
                 </div>
                 <div className="space-y-3">
                   {grouped[tool].map((r) => {
