@@ -613,7 +613,7 @@ function buildV3Text(report: any): string {
   for (const c of a.sec_9_stakeholders?.internal_contributors ?? []) lines.push(`  Internal — ${c.role}: ${c.name ?? "[FILL IN]"}`);
   for (const c of a.sec_9_stakeholders?.external_consultees ?? []) lines.push(`  External — ${c.role}: ${c.name ?? "[FILL IN]"}`);
   lines.push("");
-  lines.push(`§ 10 Governance (§§ 7152(a)(9), 7155, 7156(c)):`);
+  lines.push(`§ 10 Governance (§§ 7152(a)(9), 7155, 7157(e)):`);
   lines.push(`  Triennial review: ${a.sec_10_governance?.triennial_review_date ?? ""}`);
   lines.push(`  ${a.sec_10_governance?.material_change_commitment ?? ""}`);
   lines.push(`  ${a.sec_10_governance?.retention_commitment ?? ""}`);
