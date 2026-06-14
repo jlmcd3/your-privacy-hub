@@ -321,7 +321,13 @@ Deno.serve(async (req) => {
     if (statesRes.error) throw statesRes.error;
     if (answersRes.error) throw answersRes.error;
 
-    const states = (statesRes.data ?? []) as StateRow[];
+    const states = ((statesRes.data ?? []) as StateRow[]).sort((a, b) => {
+      // California first (most comprehensive law, consumers read it first).
+      // All other states follow alphabetically by state name.
+      if (a.state_code === "CA") return -1;
+      if (b.state_code === "CA") return 1;
+      return a.state_name.localeCompare(b.state_name);
+    });
     if (states.length === 0) {
       return new Response(
         JSON.stringify({ error: "No states selected for this session" }),
