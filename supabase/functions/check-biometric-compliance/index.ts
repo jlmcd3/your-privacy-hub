@@ -59,6 +59,90 @@ function formatEnforcementContext(rows: any[]): string {
     .join("\n\n");
 }
 
+async function runStressBiometric(body: Body, resolvedUserId: string | null) {
+  const bipaApplies = body.jurisdictions.some(
+    (j) => j.toLowerCase().includes("illinois") || j.toLowerCase().includes("bipa")
+  );
+  const bipaRisk = bipaApplies ? estimateBIPARisk(body.enrolledCount) : null;
+  const assessment_text = body.jurisdictions.map((jurisdiction) => `${jurisdiction} — biometric privacy assessment
+
+Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}, so biometric/sensitive-data rules should be treated as in scope where local law recognises biometric identifiers.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Maintain a documented lawful basis and purpose limitation for biometric enrolment and matching.
+2. Provide clear pre-collection notice describing biometric types, purpose, retention, disclosure, and withdrawal channels.
+3. Use explicit consent or another jurisdiction-specific high-risk/sensitive-data basis before enrolling individuals.
+4. Keep vendor processing under written security, confidentiality, retention, and deletion controls.
+
+Consent and notice:
+Use a standalone notice and consent workflow before collection; do not rely on general terms or bundled onboarding text.
+
+Retention and destruction:
+Define the event that ends the collection purpose and delete biometric templates promptly after that event or the stated retention ceiling, whichever occurs first.
+
+Sale and sharing restrictions:
+Do not sell biometric identifiers. Limit sharing to processors needed for verification, fraud prevention, security, or legal compliance.
+
+Current enforcement posture:
+Regulators and private claimants focus on missing standalone consent, unclear retention schedules, excessive secondary use, and weak vendor controls.
+
+Priority actions:
+1. Approve a jurisdiction-mapped biometric notice and consent record.
+2. Publish or attach a retention/destruction schedule for templates and derived identifiers.
+3. Confirm vendor DPAs cover biometric security, sub-processors, deletion, and audit evidence.
+
+Compliance risk rating: HIGH
+Biometric identity verification creates elevated regulatory and litigation exposure unless consent, retention, and vendor controls are provable.
+---`).join("\n\n");
+
+  const report_data = {
+    bipa_risk: bipaRisk,
+    jurisdictions_analysed: body.jurisdictions,
+    enforcement_precedents: [],
+    enforcement_meta: { attempted: false, stress_run: true },
+    annotations: [],
+    lint_warnings: [],
+    generated_at: new Date().toISOString(),
+  };
+
+  let savedId: string | null = null;
+  if (body.assessment_id) {
+    const { data, error } = await supabase.from("biometric_assessments").update({
+      client_id: body.client_id ?? null,
+      status: "complete",
+      intake_data: body,
+      jurisdictions: body.jurisdictions,
+      analysis_text: assessment_text,
+      report_data,
+      updated_at: new Date().toISOString(),
+    }).eq("id", body.assessment_id).select("id").maybeSingle();
+    if (error) throw error;
+    savedId = data?.id ?? body.assessment_id;
+  } else {
+    const { data, error } = await supabase.from("biometric_assessments").insert({
+      user_id: resolvedUserId,
+      client_id: body.client_id ?? null,
+      status: "complete",
+      intake_data: body,
+      jurisdictions: body.jurisdictions,
+      analysis_text: assessment_text,
+      report_data,
+      is_free_tier: !!body.is_free_tier,
+    }).select("id").single();
+    if (error) throw error;
+    savedId = data.id;
+  }
+
+  return new Response(JSON.stringify({
+    id: savedId,
+    assessment_text,
+    bipa_risk: bipaRisk,
+    jurisdictions_analysed: body.jurisdictions,
+    enforcement_precedents: [],
+    generated_at: report_data.generated_at,
+  }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
