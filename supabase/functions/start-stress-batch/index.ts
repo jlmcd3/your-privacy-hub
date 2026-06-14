@@ -224,6 +224,74 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
   }
 }
 
+async function repairFixtureFailures(batchId: string): Promise<{ repaired: number; failed: number }> {
+  const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+  const { data: batch } = await admin
+    .from("static_stress_batches")
+    .select("id, selected_tools, companies")
+    .eq("id", batchId)
+    .single();
+  if (!batch) throw new Error("batch not found");
+
+  const { data: placeholders } = await admin
+    .from("static_stress_jobs")
+    .select("id, company_id, error_message")
+    .eq("batch_id", batchId)
+    .eq("tool_slug", "fixture-generation")
+    .eq("status", "failed");
+
+  const companies: Array<{ industryId: string; industryLabel: string; geo: string; slot: number }> = batch.companies ?? [];
+  const selectedTools: string[] = batch.selected_tools ?? ALL_TOOLS.map((t) => t.id);
+  let repaired = 0;
+  let failed = 0;
+
+  for (const p of placeholders ?? []) {
+    const c = companies.find((candidate) => `${candidate.geo}-${candidate.industryId}-slot${candidate.slot}` === p.company_id);
+    if (!c) { failed++; continue; }
+    try {
+      const fixtures = await generateFixtures(c, p.company_id);
+      const applicable = selectedTools.filter((toolId) => {
+        const td = ALL_TOOLS.find((a) => a.id === toolId);
+        return td && (td.geo === "both" || td.geo === c.geo);
+      });
+      const rows = applicable
+        .map((toolId) => ({ toolId, payload: fixtures[TOOL_FIXTURE_KEY[toolId]] }))
+        .filter((j) => j.payload)
+        .map((j) => ({
+          batch_id: batchId,
+          company_id: p.company_id,
+          company_name: fixtures.companyName ?? p.company_id,
+          industry: c.industryLabel,
+          geo: c.geo,
+          tool_slug: j.toolId,
+          fixture_data: j.payload,
+          status: "pending",
+        }));
+      if (rows.length) await admin.from("static_stress_jobs").insert(rows);
+      await admin.from("static_stress_jobs").delete().eq("id", p.id);
+      repaired++;
+    } catch (e) {
+      failed++;
+      await admin.from("static_stress_jobs").update({
+        error_message: `repair failed: ${(e as Error).message?.slice(0, 420) ?? "unknown"}`,
+      }).eq("id", p.id);
+    }
+  }
+
+  const { count } = await admin.from("static_stress_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("batch_id", batchId);
+  await admin.from("static_stress_batches").update({
+    total_jobs: count ?? 0,
+    status: "running",
+    error_log: failed ? `Fixture repair completed with ${failed} remaining failure(s).` : null,
+  }).eq("id", batchId);
+  invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
+    console.warn("[start-stress-batch] repair worker launch failed:", e)
+  );
+  return { repaired, failed };
+}
+
 function selfInvokeNext(batchId: string, nextIndex: number): void {
   const attempt = (remaining: number) => {
     (async () => {
