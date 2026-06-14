@@ -294,6 +294,9 @@ ABSOLUTE RULES:
 - Medium = material residual exposure remains that the safeguards reduce but do not eliminate;
 - High = safeguards are insufficient and the risk is likely to materialise without additional mitigations.
 Include a one-sentence rationale for each residual-risk level within the harm's guidance field.
+17. LABEL FORMATTING: All JSON field keys in g_admt and appendix d_spi_note must render with human-readable labels in the output document. Specifically: the key "humanReview" or "human_review" must render as "Human review:"; "spi_categories" or "Spi categories" must render as "SPI categories:"; "spi_statement" or "Spi statement" must render as "SPI statement:". Never let raw camelCase or snake_case property names appear as visible labels in the report.
+
+
 
 OUTPUT SHAPE (every field required unless marked optional):
 {
