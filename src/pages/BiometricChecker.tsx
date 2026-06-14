@@ -36,7 +36,7 @@ export default function BiometricChecker() {
   const pricing = useToolPrice("biometric_checker");
   const { clientId } = useActiveClient();
   const [form, setForm] = useState({
-    biometricTypes: [] as string[], orgType: ORG[0], purpose: PURPOSE[0],
+    biometricTypes: [] as string[], orgType: ORG[0], orgName: "", purpose: PURPOSE[0],
     jurisdictions: [] as string[], enrolledCount: COUNTS[1],
   });
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
@@ -140,9 +140,20 @@ export default function BiometricChecker() {
             <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Biometric data types<Req /> <DefPopover termKey="gdpr_biometric_data" /></legend>
               <div className="grid grid-cols-2 gap-1 mt-1">{TYPES.map(t => <label key={t} className="flex items-center gap-2 text-meta">
                 <input type="checkbox" checked={form.biometricTypes.includes(t)} onChange={() => toggle("biometricTypes", t)} />{t}</label>)}</div></fieldset>
+            <div>
+              <label className="text-sm font-medium">Organisation name (optional)</label>
+              <input
+                type="text"
+                className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                placeholder="e.g. Acme Retail Ltd"
+                value={form.orgName}
+                onChange={(e) => setForm(f => ({ ...f, orgName: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Used to identify the organisation in the report header.</p>
+            </div>
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Organisation type</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.orgType} onChange={e => setForm(f => ({ ...f, orgType: e.target.value }))}>
-                {ORG.map(o => <option key={o}>{o}</option>)}</select></label>
+                {ORG.map(o => <option key={o}>{o}</option>)}</select></label>           
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Primary purpose</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}>
                 {PURPOSE.map(p => <option key={p}>{p}</option>)}</select></label>
