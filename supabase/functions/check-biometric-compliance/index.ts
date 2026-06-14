@@ -493,17 +493,28 @@ Output ONLY the compliance assessment. No preamble.`,
     }
 
 
-    return new Response(
-      JSON.stringify({
-        id: savedId,
-        assessment_text,
-        bipa_risk: bipaRisk,
-        jurisdictions_analysed: body.jurisdictions,
-        enforcement_precedents: report_data.enforcement_precedents,
-        generated_at: report_data.generated_at,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+        await writer.write(encoder.encode(JSON.stringify({
+          id: savedId,
+          assessment_text,
+          bipa_risk: bipaRisk,
+          jurisdictions_analysed: body.jurisdictions,
+          enforcement_precedents: report_data.enforcement_precedents,
+          generated_at: report_data.generated_at,
+        })));
+      } catch (e) {
+        console.error("check-biometric-compliance error:", e);
+        try {
+          await writer.write(encoder.encode(JSON.stringify({ error: "An internal error occurred" })));
+        } catch { /* ignore */ }
+      } finally {
+        clearInterval(keepAlive);
+        try { await writer.close(); } catch { /* ignore */ }
+      }
+    })();
+
+    return new Response(stream.readable, {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (e) {
     console.error("check-biometric-compliance error:", e);
     return new Response(JSON.stringify({ error: "An internal error occurred" }), {
@@ -512,3 +523,4 @@ Output ONLY the compliance assessment. No preamble.`,
     });
   }
 });
+
