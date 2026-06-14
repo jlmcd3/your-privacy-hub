@@ -348,7 +348,7 @@ function collectTransfers(d: AssembledData): CrossBorderTransfer[] {
 
 function buildHtml(d: AssembledData): string {
   const lawList = d.jurisdictions
-    .map((j) => `<li>${escapeHtml(LAW_NAMES[j] ?? j)}</li>`)
+    .map((j) => `<li>${escapeHtml(lawLabel(j))}</li>`)
     .join("");
 
   const activitySections = d.activities
