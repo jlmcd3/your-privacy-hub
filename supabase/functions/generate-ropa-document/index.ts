@@ -543,6 +543,23 @@ function buildHtml(d: AssembledData): string {
   <p>This record was prepared by <strong>${escapeHtml(d.settings.authorName)}</strong> on <strong>${escapeHtml(d.settings.documentDate)}</strong>.
   It constitutes our Article 30 record of processing activities (Records of Processing Activities — RoPA) maintained under ${escapeHtml(jurisdictionList(d.jurisdictions) || "applicable law")}.
   We are committed to reviewing and updating this record at least annually.</p>
+  ${(() => {
+    const hasIncomplete = d.activities.some((a) => {
+      const ans = d.answersByActivity[a.id] ?? {};
+      const purpose = answerToString(ans["purpose"]);
+      const lawfulBasis = answerToString(ans["lawful_basis"]);
+      return purpose === "—" || lawfulBasis === "—";
+    });
+    if (hasIncomplete) {
+      return `
+        <div style="margin: 24px 0; padding: 14px 18px; background: #fff8e1; border: 2px solid #f59e0b; border-radius: 8px; font-size: 13px; color: #92400e;">
+          <strong>⚠ DRAFT — Required fields incomplete</strong><br/>
+          One or more processing activities are missing a purpose or lawful basis. This record does not yet satisfy the requirements of Article 30(1)(b) GDPR. Complete all required fields before signing or relying on this document.
+        </div>
+      `;
+    }
+    return "";
+  })()}
   <div class="signature">
     Signature: _____________________________ &nbsp;&nbsp; Date: _______________
   </div>
