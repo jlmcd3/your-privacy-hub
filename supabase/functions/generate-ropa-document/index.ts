@@ -150,6 +150,21 @@ const LAWFUL_BASIS_LABELS: Record<string, string> = {
   legitimate_interests: "Legitimate interests — Art. 6(1)(f)",
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  customer_service:  "Customer Service",
+  marketing:         "Marketing & Communications",
+  hr_employment:     "HR & Employment",
+  finance_legal:     "Finance & Legal",
+  technology:        "Technology & Security",
+  operations:        "Operations",
+  third_party:       "Third-Party & Vendor Management",
+  other:             "Other",
+};
+
+function categoryLabel(code: string): string {
+  return CATEGORY_LABELS[code] ?? humanize(code);
+}
+
 function lawfulBasisLabel(value: unknown): string {
   const v = answerToString(value);
   return LAWFUL_BASIS_LABELS[v] ?? v;
