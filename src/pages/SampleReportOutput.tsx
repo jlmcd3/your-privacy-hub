@@ -43,6 +43,7 @@ export default function SampleReportOutput() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
   const [zipping, setZipping] = useState(false);
+  const [zippingTool, setZippingTool] = useState<string | null>(null);
 
   async function load() {
     const { data, error } = await supabase
@@ -200,6 +201,62 @@ export default function SampleReportOutput() {
     }
   }
 
+  async function onDownloadTool(toolSlug: string) {
+    const list = (grouped[toolSlug] ?? []).filter((r) => urls[r.id]);
+    if (list.length === 0) {
+      toast.error("No PDFs available for this tool yet — try refreshing.");
+      return;
+    }
+    setZippingTool(toolSlug);
+    const label = TOOL_DISPLAY[toolSlug] ?? toolSlug;
+    const t = toast.loading(`Zipping ${list.length} ${label} PDF${list.length === 1 ? "" : "s"}…`);
+    try {
+      const zip = new JSZip();
+      const used = new Set<string>();
+      const results = await Promise.all(
+        list.map(async (r) => {
+          try {
+            const res = await fetch(urls[r.id]);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+            const safe = `${r.variant}__${r.title}`
+              .replace(/[^a-z0-9_\-]+/gi, "_")
+              .replace(/^_+|_+$/g, "")
+              .slice(0, 120) || r.id;
+            let name = `${safe}.pdf`;
+            let i = 2;
+            while (used.has(name)) name = `${safe}_${i++}.pdf`;
+            used.add(name);
+            zip.file(name, blob);
+            return true;
+          } catch (e) {
+            console.error("Failed to fetch", r.id, e);
+            return false;
+          }
+        }),
+      );
+      const ok = results.filter(Boolean).length;
+      const fail = results.length - ok;
+      const content = await zip.generateAsync({ type: "blob" });
+      const stamp = new Date().toISOString().slice(0, 10);
+      const slugSafe = toolSlug.replace(/[^a-z0-9_-]/gi, "-");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(content);
+      a.download = `${slugSafe}-reports-${stamp}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+      toast.success(
+        `Downloaded ${ok} ${label} PDF${ok === 1 ? "" : "s"}${fail ? ` (${fail} failed)` : ""}`,
+        { id: t },
+      );
+    } catch (e) {
+      toast.error(`Zip failed: ${(e as Error).message}`, { id: t });
+    } finally {
+      setZippingTool(null);
+    }
+  }
+
   const grouped = useMemo(() => {
     const out: Record<string, Row[]> = {};
     (rows ?? []).forEach((r) => {
@@ -281,12 +338,25 @@ export default function SampleReportOutput() {
             .sort()
             .map((tool) => (
               <section key={tool}>
-                <h2 className="font-display text-xl text-brand-navy mb-3">
-                  {TOOL_DISPLAY[tool] ?? tool}
-                  <span className="ml-2 text-xs font-mono text-muted-foreground">
-                    {tool}
-                  </span>
-                </h2>
+                <div className="flex items-center justify-between gap-4 mb-3">
+                  <h2 className="font-display text-xl text-brand-navy">
+                    {TOOL_DISPLAY[tool] ?? tool}
+                    <span className="ml-2 text-xs font-mono text-muted-foreground">
+                      ({grouped[tool].length})
+                    </span>
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => onDownloadTool(tool)}
+                    disabled={zippingTool === tool || zipping || grouped[tool].every((r) => !urls[r.id])}
+                    className="inline-flex items-center gap-2 rounded-md border border-brand-navy/30 text-brand-navy px-3 py-1.5 text-xs font-medium hover:bg-brand-navy/5 disabled:opacity-40 shrink-0"
+                  >
+                    <Download className="h-3.5 w-3.5" aria-hidden />
+                    {zippingTool === tool
+                      ? "Zipping…"
+                      : `Download ${TOOL_DISPLAY[tool] ?? tool} PDFs`}
+                  </button>
+                </div>
                 <div className="space-y-3">
                   {grouped[tool].map((r) => {
                     const url = urls[r.id];
