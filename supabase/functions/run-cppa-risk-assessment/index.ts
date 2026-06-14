@@ -394,7 +394,12 @@ OUTPUT SHAPE (every field required unless marked optional):
   "part_b": {
     "statute": "Cal. Code Regs. tit. 11 § 7157",
     "business_legal_name": "[FILL IN]",
-    "point_of_contact": "from i8 fields",
+    "point_of_contact": {
+      "name": "from i8_certifying_exec_name or [FILL IN]",
+      "title": "from i8_certifying_exec_title or [FILL IN]",
+      "phone": "from i8_contact_phone or [FILL IN — required by § 7157(b)(1)]",
+      "email": "from i8_contact_email or [FILL IN — required by § 7157(b)(1)]"
+    },
     "assessment_count_in_period": 1,
     "pi_categories_aggregated": ["from § 3"],
     "spi_flagged": ["subset of above flagged as SPI"],
