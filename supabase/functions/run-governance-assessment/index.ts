@@ -91,7 +91,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     return [domain.key, {
       domain_id: domain.id,
       domain_name: domain.name,
-      current_state: `${profile} uses ${tools}; fixture controls indicate ${intake?.privacy_policy || "a privacy notice status not specified"}, ${intake?.dpa_status || "vendor contract status not specified"}, and ${intake?.training_status || "training status not specified"}.`,
+      current_state: `${profile} uses ${tools}; the intake responses indicate ${intake?.privacy_policy || "a privacy notice status not specified"}, ${intake?.dpa_status || "vendor contract status not specified"}, and ${intake?.training_status || "training status not specified"}.`,
       gap_description: `Stress-run review should confirm evidence quality, ownership, and audit trail completeness for ${domain.name.toLowerCase()}.`,
       severity,
       regulatory_basis: framework,
