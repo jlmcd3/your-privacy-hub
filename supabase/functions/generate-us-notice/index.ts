@@ -162,11 +162,19 @@ function buildNoticeHtml(
   <h2>2. How we use this information</h2>
   <p>${escapeHtml(purposes)}</p>
 
+  ${state.framework_type === "ccpa" ? `<h2>2a. Where we get this information</h2>
+  <p>We collect personal information from the following categories of sources:</p>
+  <ul>
+    <li><strong>Directly from you</strong> — when you create an account, make a purchase, contact us, or otherwise provide information to us.</li>
+    <li><strong>Automatically</strong> — when you use our website, app, or services, through cookies, log files, and similar technologies.</li>
+    <li><strong>From third parties</strong> — such as service providers, business partners, data analytics providers, and publicly available sources, to the extent applicable to our operations.</li>
+  </ul>` : ""}
+
   <h2>3. Sharing with third parties</h2>
   ${
     sharing === "yes"
       ? `<p>We share personal information with the following categories of recipients: ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}.</p>`
-      : `<p>We do not share personal information with third parties for their own use, except as required by law.</p>`
+      : `<p>We do not share personal information with third parties for their own use, except as required by law. We may disclose personal information to: service providers that assist with our business operations (such as hosting, payment processing, and customer support); professional advisers including lawyers and accountants; and government or regulatory authorities when required by applicable law.</p>`
   }
   ${state.framework_type === "ccpa" && !showOptOut ? `<p>We do not sell personal information, and we do not share it for cross-context behavioral advertising.</p>` : ""}
 
@@ -184,8 +192,8 @@ function buildNoticeHtml(
 
   <h2>5. Your rights</h2>
   ${state.framework_type === "ccpa"
-    ? `<p>As a California resident under the CCPA/CPRA, you have the right to: (a) know what personal information we collect, use, disclose, and sell; (b) request access to or a copy of that information; (c) request correction or deletion; (d) opt out of the sale or sharing of your personal information; (e) limit the use of sensitive personal information; and (f) non-discrimination for exercising these rights. You may designate an authorized agent to exercise these rights on your behalf. To exercise any right, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>`
-    : `<p>As a ${escapeHtml(state.state_name)} resident under the ${escapeHtml(resolveLawLabel(state))}, you have the right to: (a) know what personal information we collect about you; (b) request access to or a copy of that information; (c) request correction or deletion; (d) opt out of the processing of your personal data for purposes of targeted advertising, the sale of personal data, or profiling in furtherance of decisions that produce legal or similarly significant effects; and (e) appeal our refusal to act on a request — if we decline your request, we will explain how to appeal, and if your appeal is denied you may contact the ${escapeHtml(state.state_name)} Attorney General. You may also designate an authorized agent to exercise these rights on your behalf.</p>${state.state_code === "CO" ? `<p>We honor opt-out preference signals such as Global Privacy Control as a valid request to opt out of targeted advertising and sale.</p>` : ""}`
+    ? `<p>As a California resident under the CCPA/CPRA, you have the right to: (a) know what personal information we collect, use, disclose, and sell; (b) request access to or a copy of that information; (c) request correction or deletion; (d) opt out of the sale or sharing of your personal information${!showOptOut ? " (we do not currently sell or share your personal information for cross-context behavioral advertising, but this right remains available to you)" : ""}; (e) limit the use of sensitive personal information; and (f) non-discrimination for exercising these rights. You may designate an authorized agent to exercise these rights on your behalf. To exercise any right, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>`
+    : `<p>As a ${escapeHtml(state.state_name)} resident under the ${escapeHtml(resolveLawLabel(state))}, you have the right to: (a) know what personal information we collect about you; (b) request access to or a copy of that information; (c) request correction or deletion; (d) obtain a copy of your personal data in a portable and, to the extent technically feasible, readily usable format that allows you to transmit it to another controller without hindrance; (e) opt out of the processing of your personal data for purposes of targeted advertising, the sale of personal data, or profiling in furtherance of decisions that produce legal or similarly significant effects; and (f) appeal our refusal to act on a request — if we decline your request, we will explain how to appeal, and if your appeal is denied you may contact the ${escapeHtml(state.state_name)} Attorney General. You may also designate an authorized agent to exercise these rights on your behalf.</p>${state.state_code === "CO" ? `<p>We honor opt-out preference signals such as Global Privacy Control as a valid request to opt out of targeted advertising and sale.</p>` : ""}`
   }
 
   <h2>6. How to contact us</h2>
@@ -313,7 +321,13 @@ Deno.serve(async (req) => {
     if (statesRes.error) throw statesRes.error;
     if (answersRes.error) throw answersRes.error;
 
-    const states = (statesRes.data ?? []) as StateRow[];
+    const states = ((statesRes.data ?? []) as StateRow[]).sort((a, b) => {
+      // California first (most comprehensive law, consumers read it first).
+      // All other states follow alphabetically by state name.
+      if (a.state_code === "CA") return -1;
+      if (b.state_code === "CA") return 1;
+      return a.state_name.localeCompare(b.state_name);
+    });
     if (states.length === 0) {
       return new Response(
         JSON.stringify({ error: "No states selected for this session" }),
