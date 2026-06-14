@@ -856,6 +856,15 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
       )
     : text(v);
   const capLabel = (k: string) => {
+    const overrides: Record<string, string> = {
+      humanReview: "Human review",
+      human_review: "Human review",
+      spi_categories: "SPI categories",
+      "Spi categories": "SPI categories",
+      spi_statement: "SPI statement",
+      "Spi statement": "SPI statement",
+    };
+    if (overrides[k]) return overrides[k];
     const s = k.replace(/_/g, " ");
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   };
