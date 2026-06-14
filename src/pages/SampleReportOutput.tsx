@@ -148,6 +148,7 @@ export default function SampleReportOutput() {
       toast.error(`Delete all failed: ${(e as Error).message}`, { id: t });
     } finally {
       setDeletingAll(false);
+    }
   }
 
   async function onDeleteTool(toolSlug: string) {
