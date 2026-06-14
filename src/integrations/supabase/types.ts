@@ -6291,6 +6291,7 @@ export type Database = {
       normalize_provisions: { Args: { provs: string[] }; Returns: string[] }
       owns_client: { Args: { _client_id: string }; Returns: boolean }
       recompute_memo_eligible_interim: { Args: never; Returns: number }
+      stress_batch_watchdog: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
