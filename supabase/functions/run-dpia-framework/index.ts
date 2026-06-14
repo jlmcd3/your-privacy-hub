@@ -175,6 +175,8 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
     // ── Split DPIA generation into two parallel calls to stay within timeout ──
     const sharedContext = `PROCESSING ACTIVITY DETAILS:
 Organisation (controller) being assessed: ${orgName || "not specified"}
+Sector: ${sector}
+Legal basis selected by user: ${legalBasisProposed}
 Description: ${processingDesc}
 Purpose: ${purpose}
 Data categories: ${dataCategories}
