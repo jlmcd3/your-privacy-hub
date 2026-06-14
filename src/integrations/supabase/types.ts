@@ -6292,6 +6292,7 @@ export type Database = {
       owns_client: { Args: { _client_id: string }; Returns: boolean }
       recompute_memo_eligible_interim: { Args: never; Returns: number }
       stress_batch_watchdog: { Args: never; Returns: Json }
+      verify_admin_secret_token: { Args: { _token: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
