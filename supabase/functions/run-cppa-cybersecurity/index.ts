@@ -340,7 +340,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     }
 
     function validateControls(controls: any[]): { ok: boolean; missing: number[] } {
-      if (!Array.isArray(controls) || controls.length !== 18) {
+      if (!Array.isArray(controls) || controls.length !== 17) {
         // Determine which half is deficient
         const namesSeen = new Set(controls.map((c: any) => String(c?.control ?? "").trim().toLowerCase()));
         const missing: number[] = [];
@@ -411,7 +411,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     // ── Run two parallel controls halves ─────────────────────────────────
     let [half1, half2] = await Promise.all([
       callControlsHalf(1, 9, ""),
-      callControlsHalf(10, 18, ""),
+      callControlsHalf(10, 17, ""),
     ]);
 
     if (!half1 || !half2) {
@@ -428,10 +428,10 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       const v = validateControls(assembled);
       if (!v.ok) {
         const missing1 = v.missing.filter((n) => n >= 1 && n <= 9);
-        const missing2 = v.missing.filter((n) => n >= 10 && n <= 18);
+        const missing2 = v.missing.filter((n) => n >= 10 && n <= 17);
         const retries: Promise<any>[] = [];
         if (missing1.length) retries.push(callControlsHalf(1, 9, "PREVIOUS ATTEMPT was incomplete or out of order — emit exactly the 9 listed components, in order.").then((r) => { if (r) half1 = r; }));
-        if (missing2.length) retries.push(callControlsHalf(10, 18, "PREVIOUS ATTEMPT was incomplete or out of order — emit exactly the 9 listed components, in order.").then((r) => { if (r) half2 = r; }));
+        if (missing2.length) retries.push(callControlsHalf(10, 17, "PREVIOUS ATTEMPT was incomplete or out of order — emit exactly the 9 listed components, in order.").then((r) => { if (r) half2 = r; }));
         await Promise.all(retries);
         const reAssembled = assembleControls(half1!.controls, half2!.controls);
         const v2 = validateControls(reAssembled);
@@ -492,7 +492,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           }
           if (half2Bad) {
             const details = lintHalf2.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
-            retries.push(callControlsHalf(10, 18, `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`).then((r) => { if (r) half2 = r; }));
+            retries.push(callControlsHalf(10, 17, `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`).then((r) => { if (r) half2 = r; }));
           }
           if (synthBad) {
             const details = lintSynth.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
