@@ -220,7 +220,7 @@ ${intakeJson}
 Per-control digest (already assessed; do not re-score):
 ${controlsDigest}
 
-System-computed overall_score (mean of the 18 control scores, rounded): ${computedScore}
+System-computed overall_score (mean of the 17 control scores, rounded): ${computedScore}
 Your executive_summary and readiness_level MUST be consistent with this overall_score.
 
 NEXT-STEPS CONSISTENCY: every deadline in next_steps must restate a deadline already given in a control's remediation — never introduce a different timeframe for the same action. Refer to controls by NAME, never "component N" (component numbers are not rendered).
@@ -235,7 +235,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
   "top_risks": [
     { "title": "string", "description": "string", "deadline": "string", "consequence": "string" }
   ],
-  "enforcement_context": "string (2-3 sentences on CPPA cybersecurity audit timing and enforcement priorities)",
+  "enforcement_context": "string (2-3 sentences on CPPA cybersecurity audit timing and enforcement priorities — cite the phase-in deadlines as established under § 7121(a): April 1, 2028 for businesses whose 2026 annual gross revenue exceeded $100 million; April 1, 2029 for $50–100 million; April 1, 2030 for under $50 million)",
   "next_steps": ["string"]
 }`;
     }
