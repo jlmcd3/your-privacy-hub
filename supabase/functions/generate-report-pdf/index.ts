@@ -888,7 +888,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   const s2 = a.sec_2_purpose || {};
   const s3 = a.sec_3_pi_inventory || {};
   const piRows = (Array.isArray(s3.pi_categories) ? s3.pi_categories : [])
-    .map((c: any) => `<tr><td style="padding:4px 10px;border:1px solid #e6e3da;">${text(c.category)}</td><td style="padding:4px 10px;border:1px solid #e6e3da;text-align:center;">${c.is_spi ? "SPI — § 7001(ccc)" : "PI"}</td></tr>`)
+    .map((c: any) => `<tr><td style="padding:4px 10px;border:1px solid #e6e3da;">${text(c.category)}</td><td style="padding:4px 10px;border:1px solid #e6e3da;text-align:center;">${c.is_spi ? "SPI — § 7001(bbb)" : "PI"}</td></tr>`)
     .join("");
   const s4 = a.sec_4_operations || {};
   const opRow = (label: string, v: any) => (v !== undefined && v !== null && (Array.isArray(v) ? v.length : String(v).trim()))
