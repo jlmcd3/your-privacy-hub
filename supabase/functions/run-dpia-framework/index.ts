@@ -201,8 +201,9 @@ Generate the first half of a DPIA framework document. Return ONLY this JSON stru
     "processing_activity_name": "brief name for this processing activity",
     "framework_version": "1.0",
     "applicable_frameworks": ["list of applicable frameworks — GDPR Art. 35, UK GDPR, etc."],
-    "consultation_requirement": "whether DPO consultation is required and basis",
-    "supervisory_authority_consultation_trigger": "describe when supervisory authority consultation is required"
+    "article_35_3_trigger": "Identify which Article 35(3) subparagraph mandates this DPIA, or state that this DPIA is precautionary. Options: Art. 35(3)(a) — systematic evaluation of personal aspects including profiling with significant effects; Art. 35(3)(b) — large-scale processing of special category or criminal offence data; Art. 35(3)(c) — systematic monitoring of publicly accessible area at large scale; Precautionary — processing does not meet Art. 35(3) thresholds but DPIA is conducted as best practice or because supervisory authority list applies.",
+    "consultation_requirement": "State whether DPO consultation is required under GDPR Article 35(2) (applies only if a DPO is designated per Article 37). If no DPO is designated, state this and document whether an Article 37 appointment obligation is triggered. DPO CONSULTATION REQUIRED: [Required under Art. 35(2) — DPO designated / Not required — no DPO designated, Article 37 assessment: [TO COMPLETE] / Not confirmed — confirm DPO designation status]",
+    "supervisory_authority_consultation_trigger": "For cross-border EU processing, identify the lead supervisory authority under the one-stop-shop mechanism (GDPR Article 56). Prior consultation under Article 36 is required if residual risk remains High after all measures are applied."
   },
   "section_1_description": {
     "title": "Description of the Processing",
