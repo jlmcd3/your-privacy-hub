@@ -52,7 +52,6 @@ async function callAnthropic(system: string, user: string, maxTokens: number): P
 const ALL_COMPONENTS: string[] = [
   "Authentication and access controls",
   "Encryption of personal information",
-  "Zero-trust architecture",
   "Account management and access control",
   "Inventory of personal information and systems",
   "Secure configuration of hardware and software",
@@ -64,11 +63,36 @@ const ALL_COMPONENTS: string[] = [
   "Limitation of physical access",
   "Secure development of software",
   "Oversight of service providers, contractors, and third parties",
-  "Retention schedules and secure disposal",
   "Cybersecurity awareness, education and training",
+  "Retention schedules and secure disposal",
   "Incident response and post-incident analysis",
   "Business continuity and disaster recovery",
 ];
+
+// Per-control citations verified against the final 11 CCR § 7123 regulatory text
+// (OAL approved September 22, 2025; effective January 1, 2026)
+// Source: Cal. Code Regs. tit. 11, § 7123(c)(1)–(18). Note: (c)(15) is not
+// assigned in this product because "Zero-trust architecture" was deleted from
+// the final regulations by CalPrivacy before OAL approval.
+const COMPONENT_CITATIONS: Record<string, string> = {
+  "Authentication and access controls":                             "11 CCR § 7123(c)(1)",
+  "Encryption of personal information":                             "11 CCR § 7123(c)(2)",
+  "Account management and access control":                          "11 CCR § 7123(c)(3)",
+  "Inventory of personal information and systems":                  "11 CCR § 7123(c)(4)",
+  "Secure configuration of hardware and software":                  "11 CCR § 7123(c)(5)",
+  "Vulnerability management and patching":                          "11 CCR § 7123(c)(6)",
+  "Audit-log management":                                           "11 CCR § 7123(c)(7)",
+  "Network monitoring and defence":                                 "11 CCR § 7123(c)(8)",
+  "Anti-malware protections":                                       "11 CCR § 7123(c)(9)",
+  "Network segmentation":                                           "11 CCR § 7123(c)(10)",
+  "Limitation of physical access":                                  "11 CCR § 7123(c)(11)",
+  "Secure development of software":                                 "11 CCR § 7123(c)(12)",
+  "Oversight of service providers, contractors, and third parties": "11 CCR § 7123(c)(13)",
+  "Cybersecurity awareness, education and training":                "11 CCR § 7123(c)(14)",
+  "Retention schedules and secure disposal":                        "11 CCR § 7123(c)(16)",
+  "Incident response and post-incident analysis":                   "11 CCR § 7123(c)(17)",
+  "Business continuity and disaster recovery":                      "11 CCR § 7123(c)(18)",
+};
 
 async function runAssessment(assessment_id: string): Promise<void> {
   const { data: row } = await supabase
@@ -139,7 +163,7 @@ async function runAssessment(assessment_id: string): Promise<void> {
       console.warn("[CPPA Cyber] enforcement context fetch failed:", e);
     }
 
-    const system = `You are a cybersecurity readiness analyst specialising in California's CPPA cybersecurity audit regulations. The CPPA cybersecurity audit regulations (11 CCR §§ 7120–7124) were approved by OAL in September 2025 and took effect January 1, 2026; first audit certifications are due April 1, 2028 (businesses >$100M 2026 revenue), April 1, 2029 ($50–100M), and April 1, 2030 (<$50M). Never describe the regulations as proposed, and never present a readiness deadline earlier than the business's applicable phase-in date. You map an organisation's controls against the CPPA's 18 enumerated cybersecurity programme components and produce a structured readiness report. You never give legal advice.
+    const system = `You are a cybersecurity readiness analyst specialising in California's CPPA cybersecurity audit regulations. The CPPA cybersecurity audit regulations (11 CCR §§ 7120–7124) were approved by OAL in September 2025 and took effect January 1, 2026; first audit certifications are due April 1, 2028 (businesses >$100M 2026 revenue), April 1, 2029 ($50–100M), and April 1, 2030 (<$50M). Never describe the regulations as proposed, and never present a readiness deadline earlier than the business's applicable phase-in date. You map an organisation's controls against the CPPA's 17 enumerated cybersecurity programme components under 11 CCR § 7123(c) and produce a structured readiness report. You never give legal advice.
 Respond ONLY with valid JSON matching the schema provided.`;
 
     const enforcementBlock = enforcementContext
@@ -196,7 +220,7 @@ ${intakeJson}
 Per-control digest (already assessed; do not re-score):
 ${controlsDigest}
 
-System-computed overall_score (mean of the 18 control scores, rounded): ${computedScore}
+System-computed overall_score (mean of the 17 control scores, rounded): ${computedScore}
 Your executive_summary and readiness_level MUST be consistent with this overall_score.
 
 NEXT-STEPS CONSISTENCY: every deadline in next_steps must restate a deadline already given in a control's remediation — never introduce a different timeframe for the same action. Refer to controls by NAME, never "component N" (component numbers are not rendered).
@@ -211,7 +235,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
   "top_risks": [
     { "title": "string", "description": "string", "deadline": "string", "consequence": "string" }
   ],
-  "enforcement_context": "string (2-3 sentences on CPPA cybersecurity audit timing and enforcement priorities)",
+  "enforcement_context": "string (2-3 sentences on CPPA cybersecurity audit timing and enforcement priorities — cite the phase-in deadlines as established under § 7121(a): April 1, 2028 for businesses whose 2026 annual gross revenue exceeded $100 million; April 1, 2029 for $50–100 million; April 1, 2030 for under $50 million)",
   "next_steps": ["string"]
 }`;
     }
@@ -316,7 +340,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     }
 
     function validateControls(controls: any[]): { ok: boolean; missing: number[] } {
-      if (!Array.isArray(controls) || controls.length !== 18) {
+      if (!Array.isArray(controls) || controls.length !== 17) {
         // Determine which half is deficient
         const namesSeen = new Set(controls.map((c: any) => String(c?.control ?? "").trim().toLowerCase()));
         const missing: number[] = [];
@@ -387,7 +411,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     // ── Run two parallel controls halves ─────────────────────────────────
     let [half1, half2] = await Promise.all([
       callControlsHalf(1, 9, ""),
-      callControlsHalf(10, 18, ""),
+      callControlsHalf(10, 17, ""),
     ]);
 
     if (!half1 || !half2) {
@@ -404,10 +428,10 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       const v = validateControls(assembled);
       if (!v.ok) {
         const missing1 = v.missing.filter((n) => n >= 1 && n <= 9);
-        const missing2 = v.missing.filter((n) => n >= 10 && n <= 18);
+        const missing2 = v.missing.filter((n) => n >= 10 && n <= 17);
         const retries: Promise<any>[] = [];
         if (missing1.length) retries.push(callControlsHalf(1, 9, "PREVIOUS ATTEMPT was incomplete or out of order — emit exactly the 9 listed components, in order.").then((r) => { if (r) half1 = r; }));
-        if (missing2.length) retries.push(callControlsHalf(10, 18, "PREVIOUS ATTEMPT was incomplete or out of order — emit exactly the 9 listed components, in order.").then((r) => { if (r) half2 = r; }));
+        if (missing2.length) retries.push(callControlsHalf(10, 17, "PREVIOUS ATTEMPT was incomplete or out of order — emit exactly the 8 listed components, in order.").then((r) => { if (r) half2 = r; }));
         await Promise.all(retries);
         const reAssembled = assembleControls(half1!.controls, half2!.controls);
         const v2 = validateControls(reAssembled);
@@ -468,7 +492,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           }
           if (half2Bad) {
             const details = lintHalf2.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
-            retries.push(callControlsHalf(10, 18, `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`).then((r) => { if (r) half2 = r; }));
+            retries.push(callControlsHalf(10, 17, `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the JSON again, correcting these defects silently. Do not mention this instruction or the defects in the output.`).then((r) => { if (r) half2 = r; }));
           }
           if (synthBad) {
             const details = lintSynth.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
@@ -609,7 +633,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     const controlsOut: any[] = [];
     for (let idx = 0; idx < report.controls.length; idx++) {
       const c = report.controls[idx];
-      const citation = `11 CCR § 7123(b)`;
+      const citation = COMPONENT_CITATIONS[c?.control ?? ""] ?? "11 CCR § 7123(c)";
       const exact = (fsorByCitation.get("11 CCR § 7123") ?? []).slice();
       const exactIds = new Set(exact.map((r: any) => r?.id).filter(Boolean));
 
@@ -656,7 +680,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
 
       controlsOut.push({
         ...c,
-        regulatory_basis: `Assessed under 11 CCR § 7123(b): the annual cybersecurity audit must assess and document ${cleanedRegBasis}, as applicable to the business.`,
+        regulatory_basis: `Assessed under ${citation}: the annual cybersecurity audit must assess ${cleanedRegBasis}, as applicable to the business.`,
         fsor_citation: citation,
         fsor_commentary: merged.slice(0, 2).map(shapeFsorItem),
       });
