@@ -238,7 +238,8 @@ async function repairFixtureFailures(batchId: string): Promise<{ repaired: numbe
     .select("id, company_id, error_message")
     .eq("batch_id", batchId)
     .eq("tool_slug", "fixture-generation")
-    .eq("status", "failed");
+    .eq("status", "failed")
+    .limit(2);
 
   const companies: Array<{ industryId: string; industryLabel: string; geo: string; slot: number }> = batch.companies ?? [];
   const selectedTools: string[] = batch.selected_tools ?? ALL_TOOLS.map((t) => t.id);
@@ -281,11 +282,22 @@ async function repairFixtureFailures(batchId: string): Promise<{ repaired: numbe
   const { count } = await admin.from("static_stress_jobs")
     .select("id", { count: "exact", head: true })
     .eq("batch_id", batchId);
+  const { count: remainingFixtures } = await admin.from("static_stress_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("batch_id", batchId)
+    .eq("tool_slug", "fixture-generation")
+    .eq("status", "failed");
   await admin.from("static_stress_batches").update({
     total_jobs: count ?? 0,
     status: "running",
-    error_log: failed ? `Fixture repair completed with ${failed} remaining failure(s).` : null,
+    error_log: remainingFixtures ? `Fixture repair throttled; ${remainingFixtures} fixture placeholder(s) remain queued for repair.` : null,
   }).eq("id", batchId);
+  if ((remainingFixtures ?? 0) > 0) {
+    setTimeout(() => {
+      invokeFn("start-stress-batch", { batch_id: batchId, action: "repair_fixture_failures" }, 30_000)
+        .catch((e) => console.warn("[start-stress-batch] chained fixture repair failed:", e));
+    }, 65_000);
+  }
   invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
     console.warn("[start-stress-batch] repair worker launch failed:", e)
   );
