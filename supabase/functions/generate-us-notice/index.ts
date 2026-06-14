@@ -166,7 +166,7 @@ function buildNoticeHtml(
   ${
     sharing === "yes"
       ? `<p>We share personal information with the following categories of recipients: ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}.</p>`
-      : `<p>We do not share personal information with third parties for their own use, except as required by law.</p>`
+      : `<p>We do not share personal information with third parties for their own use, except as required by law. We may disclose personal information to: service providers that assist with our business operations (such as hosting, payment processing, and customer support); professional advisers including lawyers and accountants; and government or regulatory authorities when required by applicable law.</p>`
   }
   ${state.framework_type === "ccpa" && !showOptOut ? `<p>We do not sell personal information, and we do not share it for cross-context behavioral advertising.</p>` : ""}
 
