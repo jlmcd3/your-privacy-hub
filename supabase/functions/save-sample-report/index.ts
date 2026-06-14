@@ -165,6 +165,47 @@ async function deleteSample(admin: ReturnType<typeof createClient>, body: any) {
   return json({ ok: true });
 }
 
+async function deleteSamples(admin: ReturnType<typeof createClient>, body: any) {
+  const ids = Array.isArray(body?.ids) ? body.ids.filter((id: unknown) => typeof id === "string" && id) : [];
+  const toolSlug = typeof body?.tool_slug === "string" && body.tool_slug ? body.tool_slug : null;
+  const deleteAll = body?.all === true;
+  if (!deleteAll && !toolSlug && ids.length === 0) {
+    return json({ error: "missing ids, tool_slug, or all=true" }, 400);
+  }
+
+  let query = admin.from("sample_reports").select("id,pdf_path");
+  if (!deleteAll) {
+    query = toolSlug ? query.eq("tool_slug", toolSlug) : query.in("id", ids);
+  }
+  const { data: rows, error: readErr } = await query;
+  if (readErr) return json({ error: readErr.message }, 400);
+
+  const targets = (rows ?? []) as Array<{ id: string; pdf_path: string | null }>;
+  if (targets.length === 0) return json({ ok: true, deleted: 0, deleted_ids: [] });
+
+  const BATCH_SIZE = 500;
+  const storageErrors: string[] = [];
+  for (let i = 0; i < targets.length; i += BATCH_SIZE) {
+    const paths = targets.slice(i, i + BATCH_SIZE).map((r) => r.pdf_path).filter(Boolean) as string[];
+    if (paths.length === 0) continue;
+    const { error } = await admin.storage.from("sample-reports").remove(paths);
+    if (error) storageErrors.push(error.message);
+  }
+
+  let deleted = 0;
+  const deletedIds: string[] = [];
+  for (let i = 0; i < targets.length; i += BATCH_SIZE) {
+    const batchIds = targets.slice(i, i + BATCH_SIZE).map((r) => r.id);
+    const { data, error } = await admin.from("sample_reports").delete().in("id", batchIds).select("id");
+    if (error) return json({ error: error.message, deleted, storage_errors: storageErrors }, 400);
+    const batchDeleted = ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
+    deleted += batchDeleted.length;
+    deletedIds.push(...batchDeleted);
+  }
+
+  return json({ ok: true, deleted, deleted_ids: deletedIds, storage_errors: storageErrors });
+}
+
 // --- generate_pdf: fetch the REAL generated report PDF for the freshly-run
 // source row, and copy it into sample-reports/<tool_slug>/<title>.pdf so the
 // /samples/report-output page shows the actual tool output (not a JSON dump).
@@ -443,6 +484,7 @@ Deno.serve(async (req) => {
     if (action === "attach_pdf") return await attachPdf(admin, body);
     if (action === "generate_pdf") return await generatePdf(admin, body);
     if (action === "delete") return await deleteSample(admin, body);
+    if (action === "delete_many") return await deleteSamples(admin, body);
     return json({ error: `unknown action ${action}` }, 400);
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
