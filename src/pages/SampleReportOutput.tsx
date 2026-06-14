@@ -44,6 +44,7 @@ export default function SampleReportOutput() {
   const [deletingAll, setDeletingAll] = useState(false);
   const [zipping, setZipping] = useState(false);
   const [zippingTool, setZippingTool] = useState<string | null>(null);
+  const [deletingTool, setDeletingTool] = useState<string | null>(null);
 
   async function load() {
     const { data, error } = await supabase
@@ -149,6 +150,54 @@ export default function SampleReportOutput() {
       setDeletingAll(false);
     }
   }
+
+  async function onDeleteTool(toolSlug: string) {
+    const list = grouped[toolSlug] ?? [];
+    if (list.length === 0) {
+      toast.error("No documents to delete in this section");
+      return;
+    }
+    const label = TOOL_DISPLAY[toolSlug] ?? toolSlug;
+    if (!confirm(`Delete all ${list.length} "${label}" sample report${list.length === 1 ? "" : "s"}? This removes every PDF and record permanently.`)) return;
+    setDeletingTool(toolSlug);
+    const t = toast.loading(`Deleting ${list.length} ${label} report${list.length === 1 ? "" : "s"}…`);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("Sign in as admin to delete", { id: t });
+        return;
+      }
+      let ok = 0;
+      let fail = 0;
+      for (const r of list) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ action: "delete", id: r.id }),
+          });
+          if (res.ok) {
+            ok++;
+            setRows((cur) => (cur ?? []).filter((x) => x.id !== r.id));
+          } else {
+            fail++;
+          }
+        } catch {
+          fail++;
+        }
+      }
+      if (ok > 0) toast.success(`Deleted ${ok} ${label} report${ok === 1 ? "" : "s"}${fail ? ` (${fail} failed)` : ""}`, { id: t });
+      else toast.error(`Delete failed for all ${list.length} ${label} reports`, { id: t });
+    } catch (e) {
+      toast.error(`Delete failed: ${(e as Error).message}`, { id: t });
+    } finally {
+      setDeletingTool(null);
+    }
+  }
+
 
   async function onDownloadAll() {
     const list = (rows ?? []).filter((r) => urls[r.id]);
@@ -345,17 +394,30 @@ export default function SampleReportOutput() {
                       ({grouped[tool].length})
                     </span>
                   </h2>
-                  <button
-                    type="button"
-                    onClick={() => onDownloadTool(tool)}
-                    disabled={zippingTool === tool || zipping || grouped[tool].every((r) => !urls[r.id])}
-                    className="inline-flex items-center gap-2 rounded-md border border-brand-navy/30 text-brand-navy px-3 py-1.5 text-xs font-medium hover:bg-brand-navy/5 disabled:opacity-40 shrink-0"
-                  >
-                    <Download className="h-3.5 w-3.5" aria-hidden />
-                    {zippingTool === tool
-                      ? "Zipping…"
-                      : `Download ${TOOL_DISPLAY[tool] ?? tool} PDFs`}
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => onDownloadTool(tool)}
+                      disabled={zippingTool === tool || zipping || grouped[tool].every((r) => !urls[r.id])}
+                      className="inline-flex items-center gap-2 rounded-md border border-brand-navy/30 text-brand-navy px-3 py-1.5 text-xs font-medium hover:bg-brand-navy/5 disabled:opacity-40 shrink-0"
+                    >
+                      <Download className="h-3.5 w-3.5" aria-hidden />
+                      {zippingTool === tool
+                        ? "Zipping…"
+                        : `Download ${TOOL_DISPLAY[tool] ?? tool} PDFs`}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteTool(tool)}
+                      disabled={deletingTool === tool || deletingAll}
+                      className="inline-flex items-center gap-2 rounded-md border border-destructive/40 text-destructive px-3 py-1.5 text-xs font-medium hover:bg-destructive/10 disabled:opacity-40 shrink-0"
+                      title={`Delete all ${TOOL_DISPLAY[tool] ?? tool} sample reports (admin only)`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                      {deletingTool === tool ? "Deleting…" : "Delete"}
+                    </button>
+                  </div>
+
                 </div>
                 <div className="space-y-3">
                   {grouped[tool].map((r) => {
