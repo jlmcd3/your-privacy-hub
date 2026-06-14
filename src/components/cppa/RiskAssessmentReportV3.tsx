@@ -206,7 +206,19 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
             <AccordionItem value="op-g">
               <AccordionTrigger>G — ADMT logic & outputs</AccordionTrigger>
               <AccordionContent>
-                <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(a.sec_4_operations.g_admt, null, 2)}</pre>
+                {(() => {
+                  const admtLabels: Record<string, string> = { logic: "Logic", training: "Training", fairness: "Fairness", humanReview: "Human review", human_review: "Human review" };
+                  return (
+                    <dl className="text-sm space-y-2">
+                      {Object.entries(a.sec_4_operations.g_admt).map(([k, v]) => (
+                        <div key={k}>
+                          <dt className="font-semibold">{admtLabels[k] ?? k}:</dt>
+                          <dd className="ml-2 whitespace-pre-wrap">{typeof v === "string" ? v : JSON.stringify(v, null, 2)}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  );
+                })()}
               </AccordionContent>
             </AccordionItem>
           )}
