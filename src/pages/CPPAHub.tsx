@@ -1,12 +1,9 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Shield, ClipboardCheck, Lock, Loader2 } from "lucide-react";
+import { ArrowRight, Shield, ClipboardCheck, Lock } from "lucide-react";
 import { PRICING_REGISTRY } from "@/config/pricing";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
 
 const riskStandalone = PRICING_REGISTRY.cppa_risk_standalone.displayPrice;
 const cyberStandalone = PRICING_REGISTRY.cppa_cyber_standalone.displayPrice;
