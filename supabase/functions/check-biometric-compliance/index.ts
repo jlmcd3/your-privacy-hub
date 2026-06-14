@@ -12,6 +12,7 @@ const corsHeaders = {
 interface Body {
   biometricTypes: string[];
   orgType: string;
+  orgName?: string;
   purpose: string;
   jurisdictions: string[];
   enrolledCount: string;
