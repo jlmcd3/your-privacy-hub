@@ -10,7 +10,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -676,9 +676,21 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
-  // Accept admin-token header from pg_cron watchdog as internal auth
+  // Accept admin-token header from pg_cron watchdog as internal auth.
+  // The token is stored in DB Vault for cron; it may not also be present in
+  // this Edge Function's runtime env, so validate against the backend helper.
   const adminTokenHeader = req.headers.get("x-admin-token") ?? "";
-  const isWatchdog = ADMIN_TOKEN && adminTokenHeader === ADMIN_TOKEN;
+  let isWatchdog = Boolean(ADMIN_TOKEN && adminTokenHeader === ADMIN_TOKEN);
+
+  if (!isWatchdog && adminTokenHeader) {
+    try {
+      const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+      const { data, error } = await admin.rpc("verify_admin_secret_token", { _token: adminTokenHeader });
+      isWatchdog = !error && data === true;
+    } catch (e) {
+      console.warn("[run-stress-job] watchdog token verification failed:", e);
+    }
+  }
 
   if (!isWatchdog) {
     const caller = await verifyCaller(req);
