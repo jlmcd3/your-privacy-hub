@@ -120,30 +120,19 @@ export default function SampleReportOutput() {
         toast.error("Sign in as admin to delete", { id: t });
         return;
       }
-      let ok = 0;
-      let fail = 0;
-      for (const r of list) {
-        try {
-          const res = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({ action: "delete", id: r.id }),
-          });
-          if (res.ok) {
-            ok++;
-            setRows((cur) => (cur ?? []).filter((x) => x.id !== r.id));
-          } else {
-            fail++;
-          }
-        } catch {
-          fail++;
-        }
-      }
-      if (ok > 0) toast.success(`Deleted ${ok} report${ok === 1 ? "" : "s"}${fail ? ` (${fail} failed)` : ""}`, { id: t });
-      else toast.error(`Delete failed for all ${list.length} reports`, { id: t });
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action: "delete_many", ids: list.map((r) => r.id) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+      const deletedIds = new Set<string>(Array.isArray(data?.deleted_ids) ? data.deleted_ids : list.map((r) => r.id));
+      setRows((cur) => (cur ?? []).filter((x) => !deletedIds.has(x.id)));
+      toast.success(`Deleted ${data?.deleted ?? deletedIds.size} report${(data?.deleted ?? deletedIds.size) === 1 ? "" : "s"}`, { id: t });
     } catch (e) {
       toast.error(`Delete all failed: ${(e as Error).message}`, { id: t });
     } finally {
@@ -167,30 +156,19 @@ export default function SampleReportOutput() {
         toast.error("Sign in as admin to delete", { id: t });
         return;
       }
-      let ok = 0;
-      let fail = 0;
-      for (const r of list) {
-        try {
-          const res = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({ action: "delete", id: r.id }),
-          });
-          if (res.ok) {
-            ok++;
-            setRows((cur) => (cur ?? []).filter((x) => x.id !== r.id));
-          } else {
-            fail++;
-          }
-        } catch {
-          fail++;
-        }
-      }
-      if (ok > 0) toast.success(`Deleted ${ok} ${label} report${ok === 1 ? "" : "s"}${fail ? ` (${fail} failed)` : ""}`, { id: t });
-      else toast.error(`Delete failed for all ${list.length} ${label} reports`, { id: t });
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action: "delete_many", tool_slug: toolSlug }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+      const deletedIds = new Set<string>(Array.isArray(data?.deleted_ids) ? data.deleted_ids : list.map((r) => r.id));
+      setRows((cur) => (cur ?? []).filter((x) => !deletedIds.has(x.id)));
+      toast.success(`Deleted ${data?.deleted ?? deletedIds.size} ${label} report${(data?.deleted ?? deletedIds.size) === 1 ? "" : "s"}`, { id: t });
     } catch (e) {
       toast.error(`Delete failed: ${(e as Error).message}`, { id: t });
     } finally {
