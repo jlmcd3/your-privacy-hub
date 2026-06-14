@@ -623,7 +623,14 @@ function buildV3Text(report: any): string {
     const b = report.part_b;
     lines.push("", "", "PART B — § 7157 ANNUAL SUBMISSION WORKSHEET", "");
     lines.push(`Business: ${b.business_legal_name || "[FILL IN]"}`);
-    lines.push(`Point of contact: ${b.point_of_contact ?? ""}`);
+    const poc = b.point_of_contact;
+    if (poc && typeof poc === "object") {
+      lines.push(`Point of contact: ${poc.name ?? "[FILL IN]"}, ${poc.title ?? "[FILL IN]"}`);
+      lines.push(`Phone: ${poc.phone ?? "[FILL IN]"}`);
+      lines.push(`Email: ${poc.email ?? "[FILL IN]"}`);
+    } else {
+      lines.push(`Point of contact: ${poc ?? ""}`);
+    }
     lines.push(`Assessments in period: ${b.assessment_count_in_period ?? 1}`);
     lines.push(`PI categories: ${(b.pi_categories_aggregated ?? []).join(", ")}`);
     lines.push(`Sensitive PI: ${(b.spi_flagged ?? []).join(", ") || "None"}`, "");
