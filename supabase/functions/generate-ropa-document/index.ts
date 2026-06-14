@@ -834,6 +834,8 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const bearer = authHeader.slice("Bearer ".length).trim();
+  const isInternal = !!serviceKey && bearer === serviceKey;
 
   // Service-role client for storage + writes (bypasses RLS).
   const admin = createClient(supabaseUrl, serviceKey, {
@@ -845,9 +847,13 @@ Deno.serve(async (req: Request) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const { data: userData, error: userErr } = await userClient.auth.getUser();
-  if (userErr || !userData?.user) {
-    return jsonResponse({ error: "Invalid token" }, 401);
+  let callerUserId: string | null = null;
+  if (!isInternal) {
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return jsonResponse({ error: "Invalid token" }, 401);
+    }
+    callerUserId = userData.user.id;
   }
 
   // ── Body ──
@@ -875,23 +881,26 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: "Session not found" }, 404);
   }
 
-  // Ownership check via owns_client() — runs as the user.
-  const { data: ownerCheck, error: ownErr } = await userClient.rpc(
-    "owns_client",
-    { _client_id: session.client_id },
-  );
-  if (ownErr || ownerCheck !== true) {
-    return jsonResponse({ error: "Not authorized for this client" }, 403);
+  // Ownership check via owns_client() — runs as the user. Skipped for
+  // service-role internal callers (stress harness, scheduled jobs).
+  if (!isInternal) {
+    const { data: ownerCheck, error: ownErr } = await userClient.rpc(
+      "owns_client",
+      { _client_id: session.client_id },
+    );
+    if (ownErr || ownerCheck !== true) {
+      return jsonResponse({ error: "Not authorized for this client" }, 403);
+    }
   }
 
   // Require payment confirmation before generating — unless the user has
   // an active subscription (monthly or annual). RoPA Builder is included
-  // free with any active subscription.
-  if (!session.payment_confirmed) {
+  // free with any active subscription. Skipped for internal callers.
+  if (!isInternal && !session.payment_confirmed) {
     const { data: profile } = await admin
       .from("profiles")
       .select("is_premium, is_pro, subscription_type")
-      .eq("id", userData.user.id)
+      .eq("id", callerUserId)
       .maybeSingle();
     const subType = (profile as any)?.subscription_type as string | null;
     const isSubscriber =
