@@ -52,6 +52,30 @@ function detectDocType(ctrl: string, proc: string, explicit?: string): string {
 }
 
 
+// Sector-specific data category detection for US DPA module injection
+function detectDataSectorFlags(dataCategories: string[], services = ""): {
+  hasChildrensData: boolean;
+  hasHealthData: boolean;
+  hasFinancialData: boolean;
+  isComplexRoleSector: boolean;
+  complexRoleSectorName: string;
+} {
+  const cats = dataCategories.map((c) => c.toLowerCase());
+  const svc = services.toLowerCase();
+  const isAdTech = svc.includes("adtech") || svc.includes("programmatic") || svc.includes("rtb") || svc.includes("audience") || svc.includes("targeting") || svc.includes("identity resolution");
+  const isDataBroker = svc.includes("data broker") || svc.includes("enrichment") || svc.includes("data intelligence") || svc.includes("audience data") || svc.includes("data onboarding");
+  const isAI = svc.includes("model training") || svc.includes("machine learning") || svc.includes("ai training") || svc.includes("inference platform") || svc.includes("llm");
+  const isSocial = svc.includes("social media") || svc.includes("social platform") || svc.includes("user-generated content");
+  const complexRoleSectorName = isAdTech ? "AdTech/programmatic advertising" : isDataBroker ? "data brokerage/enrichment" : isAI ? "AI/ML model training" : isSocial ? "social media platform" : "";
+  return {
+    hasChildrensData: cats.some((c) => c.includes("children") || c.includes("minor") || c.includes("under 18")),
+    hasHealthData: cats.some((c) => c.includes("health") || c.includes("medical") || c.includes("clinical") || c.includes("patient")),
+    hasFinancialData: cats.some((c) => c.includes("financial") || c.includes("payment") || c.includes("banking") || c.includes("credit") || c.includes("insurance")),
+    isComplexRoleSector: isAdTech || isDataBroker || isAI || isSocial,
+    complexRoleSectorName,
+  };
+}
+
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -179,6 +203,9 @@ Deno.serve(async (req) => {
       body.documentType
     );
 
+    // Sector-specific data category flags (used for US-mode module injection)
+    const sectorFlags = detectDataSectorFlags(body.dataCategories || [], body.services || "");
+
     // Step 1 — fetch enforcement context
     let enforcement_context: EnforcementCtx[] = [];
     let enforcementMeta: any = { attempted: false };
@@ -263,9 +290,19 @@ Deno.serve(async (req) => {
 
     const GDPR_SYSTEM = `You are a senior data protection counsel specialising in GDPR compliance. Draft a complete, legally rigorous controller-processor Data Processing Agreement (DPA) compliant with GDPR Article 28. The agreement must be immediately usable as a professional document without further editing, except where fields are explicitly marked [TO BE COMPLETED].
 
-UK-TO-EEA TRANSFER RULE: Where the Controller is established in the UK and the Processor in an EEA member state, the transfer-confirmation clause must state that the transfer is permitted under the UK's adequacy regulations covering the EEA, and that no additional Article 46 UK GDPR safeguards are required while those regulations remain in force. Do not describe such transfers as merely 'covered under the GDPR regime'.`;
+EU-CONTROLLER PRIMARY RULE: Identify the controller's jurisdiction from the PARTIES block. If the controller is established in an EU/EEA member state (Germany, France, Ireland, Spain, Italy, Netherlands, Belgium, Sweden, Denmark, Poland, Norway, Portugal, Austria, Finland, Luxembourg, Greece, Switzerland, or any other EU/EEA state), the PRIMARY legal framework is EU GDPR (Regulation (EU) 2016/679). UK GDPR applies IN ADDITION only where the processing also involves UK data subjects or a UK-established party. Do NOT produce a DPA that references only UK GDPR for an EU-established controller. The recitals must cite Regulation (EU) 2016/679 as the operative instrument. If there is also a UK nexus, add: "and, where applicable, the UK General Data Protection Regulation ('UK GDPR') as defined in section 3(10) of the Data Protection Act 2018."
 
-    const US_SYSTEM = `You are a senior data protection counsel specialising in US state privacy law. Draft a complete, legally rigorous Data Processing Agreement compliant with all applicable US state privacy laws including CCPA/CPRA (California), TDPSA (Texas), CTDPA (Connecticut), VCDPA (Virginia), CPA (Colorado), OCPA (Oregon), and other state laws applicable based on the parties' jurisdictions and where their data subjects reside. The agreement must be immediately usable without further editing except where marked [TO BE COMPLETED].`;
+UK-TO-EEA TRANSFER RULE: Where the Controller is established in the UK and the Processor in an EEA member state, the transfer-confirmation clause must state that the transfer is permitted under the UK's adequacy regulations covering the EEA, and that no additional Article 46 UK GDPR safeguards are required while those regulations remain in force. Do not describe such transfers as merely 'covered under the GDPR regime'.
+
+INTRA-EEA TRANSFER RULE: Where both Controller and Processor are established within the EU/EEA, the international transfer section must open with an explicit statement that the direct Controller-to-Processor transfer does not require an Article 46 safeguard (it is an intra-EEA transfer governed by GDPR without further mechanism). Any SCC or IDTA provisions that follow apply only to onward transfers by the Processor to sub-processors or recipients outside the EEA/UK.
+
+CHILDREN'S DATA ARTICLE 9 RULE: Children's data (data relating to individuals under 18) is NOT Article 9 special-category data merely because the data subjects are children. Do not state or imply that children's data "falls under heightened protection similar to special categories" or triggers Article 35(3)(b). Children's data may require a DPIA for other reasons (Article 35(1) high-risk processing, or supervisory authority lists), but this must not be framed as an Article 9 or Article 35(3)(b) obligation. If children's data is listed in the data categories, note the heightened data protection obligations for children under GDPR Recital 38 and Article 8, and recommend a DPIA assessment under Article 35(1) — but do NOT cite Article 35(3)(b) as the trigger.
+
+BREACH NOTIFICATION PARTY RULE: Section 6 governs the Processor's notification obligation to the Controller. Sub-clause 6.2.4 (measures to address the breach) must state: "Describe the measures taken or proposed to be taken by the Processor to address the Personal Data Breach" — NOT "by the Controller." The Controller's own measures are described in its separate Article 33(1) notification to the supervisory authority, which is a distinct instrument. Never write "measures taken or proposed to be taken by the Controller" in the Processor's DPA notification clause.`;
+
+    const US_SYSTEM = `You are a senior data protection counsel specialising in US state privacy law. Draft a complete, legally rigorous Data Processing Agreement compliant with all applicable US state privacy laws including CCPA/CPRA (California), TDPSA (Texas), CTDPA (Connecticut), VCDPA (Virginia), CPA (Colorado), OCPA (Oregon), and other state laws applicable based on the parties' jurisdictions and where their data subjects reside. The agreement must be immediately usable without further editing except where marked [TO BE COMPLETED].
+
+BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Processor's notification obligation to the Controller. Any sub-clause requiring description of remedial measures must state those are the measures "taken or proposed to be taken by the Processor" — NOT "by the Controller." The Controller's own measures belong in the Controller's separate notification to regulators and individuals, not in the Processor's DPA notification clause.`;
 
     const CA_SYSTEM = `You are a senior privacy counsel specialising in Canadian privacy law. Draft a complete, legally rigorous Data Processing Agreement compliant with Canada's Personal Information Protection and Electronic Documents Act (PIPEDA), Quebec's Act Respecting the Protection of Personal Information in the Private Sector (Law 25 / Bill 64), and applicable provincial privacy laws (PIPA Alberta, PIPA BC, PHIPA Ontario) based on the parties' jurisdictions. The agreement must be immediately usable without further editing except where marked [TO BE COMPLETED]. PHIPA (Ontario's Personal Health Information Protection Act) applies ONLY where a party qualifies as a health information custodian or agent under PHIPA s.3. If the intake data does not establish health information custodian status for either party, do NOT assert that PHIPA applies. Instead, note in the recitals that PHIPA "may apply to the extent either party qualifies as a health information custodian under PHIPA s.3 — this should be confirmed with legal counsel."
 
@@ -299,22 +336,39 @@ Audit rights: ${body.auditRights}`;
 
     const ANNOTATIONS_INSTRUCTIONS = `Requirements:
 - Use professional legal drafting conventions throughout
+- CONTROLLER/PROCESSOR ROLE VERIFICATION: Before drafting, assess whether the stated Controller-Processor relationship is accurate for the described services. For the following sectors and service types, the model may not be a simple processor — include a recital noting the role determination and recommending legal review: (a) AdTech/programmatic advertising — the ad tech vendor may be an independent controller or joint controller for audience data, bidding decisions, or cross-client profiling; (b) Data brokers/data enrichment — the data broker typically acts as an independent controller, not a processor; a DPA may be insufficient and a controller-to-controller data sharing agreement may be more appropriate; (c) AI/ML model training — if the Processor uses the Controller's data to train models benefiting other clients, it may be acting as an independent controller for that purpose; (d) Social media platforms — platform-level data use for targeting, analytics, or product improvement may constitute independent controllership. For each of these sectors, add a recital in Section 1 stating: "The Parties acknowledge that the role characterisation of [Processor name] as a processor under GDPR Article 28 has been assumed for the purposes of this DPA and should be confirmed with qualified legal counsel, particularly if [Processor name] uses Personal Data for purposes beyond the immediate Services described herein."
 - Be specific – avoid vague obligations
 - Where enforcement context shows regulators have penalised absent or vague provisions, make those provisions explicit and detailed
 - Mark any fields requiring controller/processor input as [TO BE COMPLETED: description]
+- DRAFT STATUS NOTICE: At the very top of the document, immediately after the title line "Your Custom DPA — [Controller] / [Processor]" and before the first recital, insert the following notice on its own line: "DRAFT — REQUIRED FIELDS INCOMPLETE — DO NOT SIGN OR RELY ON THIS DOCUMENT UNTIL ALL [TO BE COMPLETED] FIELDS HAVE BEEN REVIEWED AND COMPLETED BY QUALIFIED LEGAL COUNSEL." This notice must appear in every generated DPA regardless of how many placeholders remain.
 - Include an annotations array listing every enforcement case from the ENFORCEMENT CONTEXT above that informed a clause choice. Use the exact id value from each case (the value after 'id:'). Only cite cases from the ENFORCEMENT CONTEXT above — never from training knowledge.
 
 CRITICAL DRAFTING RULES — NON-NEGOTIABLE:
 0. PRE-OUTPUT SELF-CHECK (do this before writing any content): Count the number of top-level sections you intend to output. Assign them numbers 1, 2, 3... in order. Write the first heading as "1. [TITLE]", the second as "2. [TITLE]", the third as "3. [TITLE]" and so on. After completing the document, verify: does every top-level heading begin with a unique sequential number? If any two headings share the same number, you have a numbering error — correct it before output.
 1. SEQUENTIAL SECTION NUMBERING. Top-level section headings MUST be numbered sequentially: "1.", "2.", "3.", "4." and so on through to the final section. Do NOT restart numbering, do NOT output "1." for every section, and do NOT use markdown heading syntax (# / ## / ###). Output section headings as plain text in the form: "1. PARTIES AND RECITALS", "2. DEFINITIONS", "3. ACCOUNTABILITY", etc. Sub-clauses MUST be hierarchical (1.1, 1.2, 1.2.1, 2.1, 2.2, …). Within any numbered list, each item MUST have a unique sequential number. The sequence 1.1, 1.2, 1.3 is correct. The sequence 1.1, 1.1, 1.1 is a fatal error. Never repeat a sub-clause number within the same parent section. Verify before output that every internal cross-reference (e.g. "see Section 7.2") points to the correct sequential number. NEVER output a sub-clause such as "100.3.7" — that indicates a numbering collision; the correct form is "10.3.7". If your self-check detects a numbering or drafting error, correct it SILENTLY by fixing the text. NEVER include meta-commentary, parenthetical self-corrections, editorial notes, or remarks about the document's own text — e.g. '(This sub-clause number is incorrect and should be 10.3.8)' is a fatal output error. The document must contain only contract text and [TO BE COMPLETED: ...] placeholders.
-2. COMPLETE OUTPUT. The document MUST run continuously through every required section, ending with a fully formed General Provisions section, a complete Term & Termination clause, and a SIGNATURE BLOCK with name / title / date lines for both Controller and Processor, followed by any required Schedules. Never stop mid-sentence. If the document is long, prioritise covering every numbered section to completion over verbosity in earlier sections.
-3. CONSISTENT BLANK FORMAT. Use the form "[TO BE COMPLETED: description]" for every user-fillable blank — do not mix "[TO BE COMPLETED: …]" with bare "[City, Province]" or other bracketed placeholders.
-4. NO STRAY MARKDOWN. Do not emit "**bold**", "*italics*", or markdown headings; the document must read as plain legal text.
-5. SUB-PROCESSOR SCHEDULE INTEGRITY. CRITICAL: Populate Schedule A / Schedule 1 ONLY from the "subProcessorList" field in the intake data. If that field is empty or not provided, output a blank Schedule with headers only and the instruction line "[TO BE COMPLETED: list approved Sub-processors here]". NEVER add Microsoft Azure, Snowflake, AWS, Google Cloud, Salesforce, or any other company name from training knowledge. Adding companies from training knowledge to a legal contract schedule is a critical accuracy error that could create false legal commitments. If any sub-processor IS named in subProcessorList, do NOT also emit a "[TO BE COMPLETED: list approved Sub-processors]" placeholder in the same schedule — emit the placeholder only when the list is empty.
-6. ENFORCEMENT ID HYGIENE. The "id:" values in the ENFORCEMENT CONTEXT exist ONLY for the annotations array. They must NEVER appear in document_text. In the contract body, do not cite enforcement cases at all in operative clauses — enforcement context informs your drafting choices silently.
-7. SUB-PROCESSOR AUTHORISATION MODEL. Use exactly one coherent regime: general authorisation limited to the sub-processors listed in Schedule 1, with new sub-processors permitted only via 30-day advance written notice and a 15-day objection right. Do NOT use the phrase "specific authorisation" anywhere; specific authorisation and notice-with-objection are alternatives under Art. 28(2) and must not be mixed.
-8. CITATION FORM. The UK Data Protection Act 2018 is an Act with sections and schedules — never cite "Regulation N of the Data Protection Act 2018". For UK→EEA transfers, cite the UK adequacy regulations / Schedule 21 DPA 2018 and state that no Art. 46 safeguard is required. Use "pseudonymisation" (Art. 32(1)(a)) — never "pseudo-anonymisation".
-9. GOVERNING LAW & JURISDICTION. The governing law clause MUST resolve to a SINGLE jurisdiction — never offer two alternatives joined by "or". Derive the single governing law from the intake: (a) if the controller's country of establishment is provided, use the law of that jurisdiction (e.g. "the laws of England and Wales" for a UK-incorporated controller, "French law" for a French company, "German law" for a German company, "the laws of [Province]" for a Canadian entity in that province); (b) if the country is not provided, output a single placeholder "[TO BE COMPLETED: governing law — state the jurisdiction whose law will govern this agreement]" — never two alternatives. The dispute resolution / jurisdiction clause that follows MUST identify courts consistent with the single governing law chosen (e.g. courts of England and Wales for English law; courts of Paris for French law). Never write "UK law"; use "the laws of England and Wales", "the laws of Scotland", or "the law of Northern Ireland" as appropriate. Apply the same rule to the jurisdiction/forum clause: a single forum, not a choice.
+2. COMPLETE OUTPUT. The document MUST run continuously through every required section, ending with a fully formed General Provisions section, a complete Term & Termination clause, and a SIGNATURE BLOCK with name / title / date lines for both Controller and Processor, followed by any required Schedules. SIGNATURE BLOCK FORMAT: The signature block must appear as properly formatted execution lines — NOT as the literal text "[SIGNATURE BLOCK]". The correct format is:
+FOR AND ON BEHALF OF [CONTROLLER NAME] ("Controller"):
+Signature: ___________________________
+Name: [TO BE COMPLETED: Name]
+Title: [TO BE COMPLETED: Title]
+Date: [TO BE COMPLETED: Date]
+
+FOR AND ON BEHALF OF [PROCESSOR NAME] ("Processor"):
+Signature: ___________________________
+Name: [TO BE COMPLETED: Name]
+Title: [TO BE COMPLETED: Title]
+Date: [TO BE COMPLETED: Date]
+
+Never output the literal string "[SIGNATURE BLOCK]" as a standalone line — this is a template instruction, not document content. Always output the formatted execution block instead.
+3. NO ALL-CAPS CLAUSE TEXT. Do not write operative clause text in all-capital letters. Section headings may be in title case or upper case, but clause body text (sub-clauses 1.1, 1.2, 2.1 etc.) must be in normal sentence case. The following is PROHIBITED: "2.1 THE SUBJECT MATTER OF THE PROCESSING IS THE PERSONAL DATA TRANSFERRED FROM THE CONTROLLER..." The correct form is: "2.1 The subject matter of the processing is the Personal Data transferred from the Controller..." Apply this rule to every sub-clause throughout the document.
+4. CONSISTENT BLANK FORMAT. Use the form "[TO BE COMPLETED: description]" for every user-fillable blank — do not mix "[TO BE COMPLETED: …]" with bare "[City, Province]" or other bracketed placeholders.
+5. NO STRAY MARKDOWN. Do not emit "**bold**", "*italics*", or markdown headings; the document must read as plain legal text.
+6. SUB-PROCESSOR SCHEDULE INTEGRITY. CRITICAL: Populate Schedule A / Schedule 1 ONLY from the "subProcessorList" field in the intake data. If that field is empty or not provided, output a blank Schedule with headers only and the instruction line "[TO BE COMPLETED: list approved Sub-processors here]". NEVER add Microsoft Azure, Snowflake, AWS, Google Cloud, Salesforce, or any other company name from training knowledge. Adding companies from training knowledge to a legal contract schedule is a critical accuracy error that could create false legal commitments. If any sub-processor IS named in subProcessorList, do NOT also emit a "[TO BE COMPLETED: list approved Sub-processors]" placeholder in the same schedule — emit the placeholder only when the list is empty. LOCATION SPECIFICITY: In the sub-processor schedule, the Location column must identify the specific country or countries where the sub-processor processes data — not "Global." "Global" is not a valid location for international transfer analysis. If the intake data does not specify the location, use the placeholder "[TO BE COMPLETED: country/region where processing occurs]" rather than "Global." Where a sub-processor is located outside the EEA/UK, note in the schedule what transfer mechanism applies (e.g. "EU SCCs in place" or "[TO BE COMPLETED: transfer mechanism]").
+7. SCC ANNEX POPULATION: Where EU SCCs (Commission Implementing Decision (EU) 2021/914) are incorporated by reference, the DPA must also include or reference populated SCC Annexes. At minimum, include as Schedule 2 (or an equivalent named schedule) the following SCC Annex I content: (a) Annex I.A — Parties: list the data exporter (Controller) and data importer (Processor) with their roles and contact details; (b) Annex I.B — Description of the Transfer: state the categories of data subjects, personal data categories, transfer frequency, nature and purpose of processing, and retention period, drawing from the PARTIES block above; (c) Annex I.C — Competent Supervisory Authority: identify the lead supervisory authority for the data exporter. For Annex II (TOMs), cross-reference Section 5 of the DPA (Security Measures). For Annex III (sub-processors), cross-reference Schedule 1. Where the SCC Annexes cannot be fully populated from intake data, include them as named placeholders: "SCHEDULE 2 — ANNEX I TO THE EU STANDARD CONTRACTUAL CLAUSES (to be completed by the parties)." Do not merely state "the SCC Annexes are hereby incorporated" without producing the schedule structure.
+8. ENFORCEMENT ID HYGIENE. The "id:" values in the ENFORCEMENT CONTEXT exist ONLY for the annotations array. They must NEVER appear in document_text. In the contract body, do not cite enforcement cases at all in operative clauses — enforcement context informs your drafting choices silently.
+9. SUB-PROCESSOR AUTHORISATION MODEL. Use exactly one coherent regime: general authorisation limited to the sub-processors listed in Schedule 1, with new sub-processors permitted only via 30-day advance written notice and a 15-day objection right. Do NOT use the phrase "specific authorisation" anywhere; specific authorisation and notice-with-objection are alternatives under Art. 28(2) and must not be mixed.
+10. CITATION FORM. The UK Data Protection Act 2018 is an Act with sections and schedules — never cite "Regulation N of the Data Protection Act 2018". For UK→EEA transfers, cite the UK adequacy regulations / Schedule 21 DPA 2018 and state that no Art. 46 safeguard is required. Use "pseudonymisation" (Art. 32(1)(a)) — never "pseudo-anonymisation".
+11. GOVERNING LAW & JURISDICTION. The governing law clause MUST resolve to a SINGLE jurisdiction — never offer two alternatives joined by "or". Derive the single governing law from the intake: (a) if the controller's country of establishment is provided, use the law of that jurisdiction (e.g. "the laws of England and Wales" for a UK-incorporated controller, "French law" for a French company, "German law" for a German company, "the laws of [Province]" for a Canadian entity in that province); (b) if the country is not provided, output a single placeholder "[TO BE COMPLETED: governing law — state the jurisdiction whose law will govern this agreement]" — never two alternatives. The dispute resolution / jurisdiction clause that follows MUST identify courts consistent with the single governing law chosen (e.g. courts of England and Wales for English law; courts of Paris for French law). Never write "UK law"; use "the laws of England and Wales", "the laws of Scotland", or "the law of Northern Ireland" as appropriate. Apply the same rule to the jurisdiction/forum clause: a single forum, not a choice.
 
 Output format:
 - First, output ONLY the DPA document. No preamble, commentary, or explanation.
@@ -336,6 +390,11 @@ Output format:
 
     const GDPR_USER = `${PARTIES_BLOCK}
 Legal framework: ${body.legalFramework}
+${sectorFlags.isComplexRoleSector ? `
+CONTROLLER/PROCESSOR ROLE ALERT — ${sectorFlags.complexRoleSectorName.toUpperCase()}
+The services described suggest a ${sectorFlags.complexRoleSectorName} context where the Processor's role as a pure processor under GDPR Article 28 may be uncertain. Include in Section 1 (Parties and Recitals) the following recital:
+"(D) The Parties acknowledge that the characterisation of ${body.processorName} as a data processor under GDPR Article 28 is based on the scope of the Services as described herein. Where ${body.processorName} processes Personal Data for purposes beyond the immediate Services — including but not limited to model training on aggregated data, cross-client audience profiling, or independent commercial use of Personal Data — such processing may constitute independent controllership and would not be governed by this DPA. The Parties should seek qualified legal counsel to confirm the appropriate role characterisation before reliance on this agreement."
+` : ""}
 Transfer clause: ${body.includeTransferClause ? body.transferMechanism : "Not required"}
 
 ENFORCEMENT CONTEXT
@@ -351,10 +410,10 @@ Draft the complete DPA with ALL of the following sections. Number clauses hierar
 4. SUB-PROCESSOR PROVISIONS (Articles 28(2) and 28(4)) – include specific approval mechanism and notification timeline. The clause MUST state explicitly: "General authorisation under this clause applies ONLY to the Sub-processors listed in Schedule 1 at the Effective Date. All subsequent additions or replacements require prior specific written authorisation under the [30]-day notice procedure set out in this clause." Use a 30-day notice window.
 5. SECURITY MEASURES (Article 32) – specify technical and organisational measures calibrated to the data categories listed above
 6. DATA BREACH NOTIFICATION (Article 33) – the Processor MUST notify the Controller without undue delay and in any event within forty-eight (48) hours of becoming aware of a Personal Data Breach. Include this clarifying sentence verbatim in the clause: "This 48-hour window is the Processor's obligation to the Controller, designed to enable the Controller to comply with its own obligation under Article 33(1) GDPR to notify the supervisory authority within 72 hours of becoming aware of the breach." Include minimum content requirements.
-7. DATA SUBJECT RIGHTS ASSISTANCE (ARTICLES 12-23) AND DPIA ASSISTANCE — output this section heading verbatim, with a space between DPIA and ASSISTANCE. Never concatenate words in headings. Where the processing involves special categories of data under Article 9, the DPIA-assistance clause MUST cite Article 35(3)(b) as the mandatory DPIA trigger for large-scale processing of special category data.
+7. DATA SUBJECT RIGHTS ASSISTANCE (ARTICLES 12-23) AND DPIA ASSISTANCE — output this section heading verbatim, with a space between DPIA and ASSISTANCE. Never concatenate words in headings. The DPIA-assistance clause must reflect the actual processing: cite Article 35(3)(b) as the mandatory DPIA trigger ONLY if the data categories listed above include special category data under Article 9 (health/medical data, genetic data, biometric data used for unique identification, data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, data concerning sex life or sexual orientation, or criminal records/offences). For processing that does NOT involve Article 9 special category data, use a general DPIA-assistance clause without citing Article 35(3)(b): "To the extent any processing activities covered by this DPA are likely to result in a high risk to the rights and freedoms of natural persons (as assessed under GDPR Article 35), the Processor shall assist the Controller in conducting a Data Protection Impact Assessment."
 8. POST-TERMINATION OBLIGATIONS — MUST include an explicit clause stating that, at the Controller's choice, the Processor shall delete or return all Personal Data to the Controller after the end of the provision of services, and delete existing copies unless retention is required by law (Article 28(3)(g)). Use the exact phrase "delete or return" and reference "Personal Data" within the same sentence.
 9. AUDIT AND INSPECTION RIGHTS – use ${body.auditRights} standard
-${transferSection}
+${transferSection ? transferSection : "10. INTERNATIONAL TRANSFER PROVISIONS — Open this section with the following sub-clause: '10.1 The Controller and Processor acknowledge that any direct transfer of Personal Data between the Controller and the Processor within the European Economic Area does not constitute an international transfer under GDPR and requires no additional Article 46 safeguard. The transfer provisions in clauses 10.2 onwards apply only to any onward transfers of Personal Data by the Processor to sub-processors or other recipients located outside the EEA or the United Kingdom.' Then address third-country transfers from clause 10.2 onwards using the EU SCCs (Commission Implementing Decision (EU) 2021/914) or UK Addendum as applicable."}
 10. LIABILITY
 11. TERM AND TERMINATION
 12. GOVERNING LAW
@@ -370,7 +429,56 @@ ${ANNOTATIONS_INSTRUCTIONS}`;
 
 ENFORCEMENT CONTEXT
 ${enforcementBlock}
+${sectorFlags.hasChildrensData ? `
+CHILDREN'S DATA MODULE — COPPA AND FERPA REQUIRED
+The data categories include children's data (individuals under 18). The following additional provisions are MANDATORY in this DPA:
 
+COPPA (Children's Online Privacy Protection Act, 15 U.S.C. §§ 6501-6506 and 16 C.F.R. Part 312):
+- If the Processor operates a website or online service directed to children under 13, or has actual knowledge it collects personal information from children under 13, COPPA applies to it as an operator.
+- The Processor must obtain verifiable parental consent before collecting, using, or disclosing personal information from children under 13, unless a COPPA exception applies.
+- The Processor must not condition a child's participation in an activity on disclosing more personal information than is reasonably necessary.
+- The DPA must contain a COPPA compliance clause requiring the Processor to: (a) maintain a COPPA-compliant privacy policy; (b) obtain and document verifiable parental consent; (c) permit parents to review and delete their child's personal information; (d) not retain children's personal information longer than necessary.
+- Include a dedicated section titled "Children's Data and COPPA Compliance" citing 15 U.S.C. § 6502 and 16 C.F.R. Part 312.
+
+FERPA (Family Educational Rights and Privacy Act, 20 U.S.C. § 1232g; 34 C.F.R. Part 99):
+- If the Controller is an educational agency or institution and the data includes education records, FERPA governs access and disclosure.
+- The Processor may receive education records only as a "school official" under FERPA (34 C.F.R. § 99.31(a)(1)) or under another FERPA exception. The DPA must establish the Processor's school-official status: under the direct control of the institution; subject to FERPA requirements; prohibited from re-disclosing education records without further FERPA authorization.
+- The Processor must: (a) use education records only for authorized purposes; (b) not re-disclose to third parties without written consent or applicable FERPA exception; (c) destroy or return education records when no longer needed; (d) permit the institution to conduct compliance reviews.
+- Include a dedicated "FERPA Compliance" section citing 20 U.S.C. § 1232g and 34 C.F.R. § 99.31(a)(1).
+- Note: Children's data is NOT Article 9 special-category data under GDPR. Do not conflate COPPA/FERPA obligations with GDPR Article 9 or cite Article 35(3)(b) for children's data.
+` : ""}${sectorFlags.hasHealthData ? `
+HEALTH DATA MODULE — HIPAA BAA REQUIRED
+The data categories include health/medical data. If either party is a HIPAA Covered Entity or Business Associate (as defined in 45 C.F.R. § 160.103), this DPA must function as or incorporate a HIPAA Business Associate Agreement (BAA) under 45 C.F.R. § 164.308(b)(1). The following provisions are MANDATORY:
+
+HIPAA BAA REQUIREMENTS (45 C.F.R. §§ 164.308(b), 164.314(a)):
+The Processor (as Business Associate) must:
+(a) Not use or disclose Protected Health Information (PHI) other than as permitted by this DPA or required by law (45 C.F.R. § 164.504(e)(2)(i));
+(b) Use appropriate safeguards to prevent unauthorized use or disclosure of PHI (45 C.F.R. § 164.504(e)(2)(ii)(A));
+(c) Comply with the HIPAA Security Rule (45 C.F.R. §§ 164.302-318) for any Electronic PHI (ePHI);
+(d) Report to the Controller any use or disclosure of PHI not provided for by this DPA, including breaches under 45 C.F.R. §§ 164.400-414, within 60 days of discovery (or such shorter period as the Controller requires to meet its own notification obligations);
+(e) Ensure any subcontractors that receive PHI agree to the same restrictions and conditions as apply to the Processor under this DPA (45 C.F.R. § 164.504(e)(2)(ii)(D));
+(f) Make PHI available to the Controller to enable the Controller to respond to individual rights requests under 45 C.F.R. §§ 164.524 (access) and 164.526 (amendment);
+(g) Return or destroy all PHI upon termination of the agreement (45 C.F.R. § 164.504(e)(2)(ii)(J));
+(h) Make its internal practices available to the Secretary of HHS for compliance reviews (45 C.F.R. § 164.504(e)(2)(ii)(H)).
+
+Include a dedicated section titled "HIPAA Business Associate Terms" with these provisions. Identify which party is the Covered Entity and which is the Business Associate, or note that the parties must confirm these roles with counsel. Do NOT apply HIPAA if the services clearly do not involve PHI (e.g. purely administrative SaaS with no patient data access).
+` : ""}${sectorFlags.hasFinancialData ? `
+FINANCIAL DATA MODULE — GLBA AND FCRA
+The data categories include financial/payment data. The following federal financial privacy frameworks may apply:
+
+GLBA GRAMM-LEACH-BLILEY ACT (15 U.S.C. §§ 6801-6809; 16 C.F.R. Part 313):
+- GLBA applies to "financial institutions" — entities significantly engaged in financial activities (banks, insurance companies, mortgage lenders, investment advisers, etc.) and their service providers.
+- The GLBA Safeguards Rule (16 C.F.R. Part 314, as amended effective June 9, 2023) requires financial institutions to implement a comprehensive information security program and imposes specific requirements on service provider arrangements: contracts must require service providers to implement appropriate safeguards and permit monitoring of their compliance (16 C.F.R. § 314.4(f)).
+- If the Controller is a financial institution under GLBA, include a dedicated "GLBA Service Provider Provisions" section requiring: (a) Processor to implement and maintain the safeguards required under the Safeguards Rule; (b) Processor to permit the Controller to monitor compliance; (c) Processor not to use customer nonpublic personal information (NPI) for any purpose other than providing the contracted services.
+- NPI must be defined consistently with GLBA: "personally identifiable financial information" provided by consumers in connection with financial products or services.
+
+FCRA FAIR CREDIT REPORTING ACT (15 U.S.C. § 1681 et seq.):
+- If the Processor provides consumer reports, accesses credit information, or functions as a consumer reporting agency, FCRA applies.
+- The DPA must include permissible purpose restrictions, accuracy obligations, adverse action notice requirements, and data security provisions consistent with FCRA.
+- If FCRA applies, include a dedicated "FCRA Compliance" section citing the applicable permissible purpose under 15 U.S.C. § 1681b.
+
+Assess applicability based on the Controller's business type and the services described. If applicability is uncertain, include the provisions with a note that "parties should confirm applicability with counsel."
+` : ""}
 Draft a complete US State Data Processing Agreement with ALL of the following sections. Number clauses hierarchically (1.1, 1.2, 1.2.1 etc.):
 
 1. PARTIES AND RECITALS — identify applicable state laws based on the parties' jurisdictions and the residency of data subjects likely affected.
@@ -485,7 +593,7 @@ Sections (numbered hierarchically):
 8. SENSITIVE DATA / SPECIAL CATEGORIES (GDPR Art. 9 + US sensitive PI heightened protections)
 9. SECURITY MEASURES (GDPR Art. 32 standards apply)
 10. DATA BREACH NOTIFICATION — Processor notifies Controller without undue delay and in any event within forty-eight (48) hours of awareness, to enable the Controller to comply with Article 33(1) GDPR (72-hour supervisory authority window). PLUS US state notification timelines: California — "without unreasonable delay" (Cal. Civ. Code § 1798.82 governs notification to individuals); Texas (Tex. Bus. & Com. Code § 521.053); Connecticut; Colorado — C.R.S. § 6-1-716 (NOT "CPA § 6-1-1309"); Virginia. Apply only those state regimes triggered by the parties' jurisdictions or affected data subjects' residency.
-11. INTERNATIONAL TRANSFER PROVISIONS — ${body.includeTransferClause ? body.transferMechanism : "EU SCCs (Commission Implementing Decision (EU) 2021/914) for EU-origin transfers; UK International Data Transfer Addendum for UK-origin transfers"}. Where the UK IDTA is referenced, the protection standard MUST be expressed as "not less than equivalent to the protections afforded by UK data protection law" — do NOT use the EU adequacy phrase "essentially equivalent" for the UK IDTA standard. NOTE: The UK International Data Transfer Agreement (IDTA) and the UK Addendum to the EU SCCs are ALTERNATIVE transfer mechanisms — only one is needed. Draft the clause so parties choose one, not both: "The Parties shall implement either the UK IDTA or the UK Addendum to the EU SCCs (as agreed in writing between the Parties) — not both simultaneously."
+11. INTERNATIONAL TRANSFER PROVISIONS — ${body.includeTransferClause ? body.transferMechanism : "EU SCCs (Commission Implementing Decision (EU) 2021/914) for EU-origin transfers; UK Addendum to the EU SCCs (ICO-approved) for UK-origin transfers"}. UK TRANSFER INSTRUMENT TERMINOLOGY: The ICO provides two alternative UK GDPR Article 46 transfer tools: (a) the International Data Transfer Agreement (IDTA) — a standalone UK transfer contract; and (b) the UK Addendum to the EU Commission Standard Contractual Clauses — an addendum that modifies EU SCCs for UK use. These are DISTINCT instruments. When incorporating the addendum to the EU SCCs, call it the "UK Addendum" or "International Data Transfer Addendum to the EU Commission Standard Contractual Clauses" — do NOT call it the "UK IDTA." Reserve "UK IDTA" for references to the standalone International Data Transfer Agreement. Use only ONE UK transfer mechanism — either the UK IDTA or the UK Addendum, not both. The protection standard for UK transfers must be expressed as "not less than equivalent to the protections afforded by UK data protection law" — do NOT use the EU adequacy phrase "essentially equivalent" for UK transfers.
 12. POST-TERMINATION OBLIGATIONS — at Controller's choice, Processor shall delete or return all Personal Data (Art. 28(3)(g) + US state equivalents). Use the exact phrase "delete or return" and reference "Personal Data".
 13. AUDIT AND INSPECTION RIGHTS — ${body.auditRights}
 14. RECORDKEEPING (Art. 30 + US state)
