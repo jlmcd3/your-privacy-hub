@@ -293,10 +293,9 @@ async function repairFixtureFailures(batchId: string): Promise<{ repaired: numbe
     error_log: remainingFixtures ? `Fixture repair throttled; ${remainingFixtures} fixture placeholder(s) remain queued for repair.` : null,
   }).eq("id", batchId);
   if ((remainingFixtures ?? 0) > 0) {
-    setTimeout(() => {
-      invokeFn("start-stress-batch", { batch_id: batchId, action: "repair_fixture_failures" }, 30_000)
-        .catch((e) => console.warn("[start-stress-batch] chained fixture repair failed:", e));
-    }, 65_000);
+    await new Promise((r) => setTimeout(r, 65_000));
+    invokeFn("start-stress-batch", { batch_id: batchId, action: "repair_fixture_failures" }, 30_000)
+      .catch((e) => console.warn("[start-stress-batch] chained fixture repair failed:", e));
   }
   invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
     console.warn("[start-stress-batch] repair worker launch failed:", e)
