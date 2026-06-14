@@ -520,9 +520,10 @@ Output ONLY the compliance assessment. No preamble.`,
         clearInterval(keepAlive);
         try { await writer.close(); } catch { /* ignore */ }
       }
-    })();
+      },
+    });
 
-    return new Response(stream.readable, {
+    return new Response(stream, {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
