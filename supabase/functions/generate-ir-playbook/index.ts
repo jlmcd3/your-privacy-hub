@@ -5,7 +5,7 @@ import { lintReportText } from "../_shared/output-lint.ts";
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.3-stopreason-2026-06-12";
+const IR_VERSION = "v3.4-ico-currency-fix-2026-06-14";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -130,9 +130,15 @@ function formatEnforcementContext(rows: any[]): string {
       const year = e.decision_date ? new Date(e.decision_date).getFullYear() : null;
       const citation = year ? `${e.regulator ?? "Regulator"} (${year})` : `${e.regulator ?? "Regulator"}`;
       const fineVerified = e.fine_verified !== false;
+      // ICO fines are denominated in GBP, not EUR. Use £ for ICO cases regardless of the
+      // column name. For all other regulators, use € as the stored value represents EUR.
+      const isIco = (e.regulator ?? "").toLowerCase().includes("ico") ||
+                    (e.jurisdiction ?? "").toLowerCase().includes("united kingdom") ||
+                    (e.jurisdiction ?? "").toLowerCase().includes("uk");
+      const currencySymbol = isIco ? "£" : "€";
       const fine = !fineVerified
         ? "fine amount under verification — omitted"
-        : (e.fine_eur_equivalent ? `€${Number(e.fine_eur_equivalent).toLocaleString()}` : "fine: n/a");
+        : (e.fine_eur_equivalent ? `${currencySymbol}${Number(e.fine_eur_equivalent).toLocaleString()}` : "fine: n/a");
       return `[E${i + 1}] id:${e.id ?? "—"} CITATION: ${citation} — ${e.subject ?? ""} — ${e.jurisdiction ?? "—"}\n   Fine: ${fine}\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}\n   Lesson: ${e.preventive_measures ?? "—"}`;
     })
     .join("\n\n");
