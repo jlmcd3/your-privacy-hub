@@ -334,7 +334,7 @@ OUTPUT SHAPE (every field required unless marked optional):
       "d_consumer_count": "value from i3_ca_consumer_band",
       "e_disclosures": "list disclosure mechanisms from i4_disclosure_mechanisms, mapped against § 7003 conspicuousness",
       "f_service_providers": "list from i6_vendors",
-      "g_admt": null_or_object_with_logic_training_fairness_humanReview_from_i5_fields
+      "g_admt": null_or_object_with_fields: logic, training, fairness, human_review (note: render as "Human review" — do not use camelCase key names as display labels)
     },
     "sec_5_benefits": {
       "statute": "Cal. Code Regs. tit. 11 § 7152(a)(4)",
