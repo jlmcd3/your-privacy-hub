@@ -179,7 +179,7 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         .insert({ user_id: userId, status: "pending", intake_data: intake })
         .select("id").single();
       if (error || !rec) throw new Error(`governance insert: ${error?.message}`);
-      await invokeFn("run-governance-assessment", { assessment_id: rec.id })
+      await invokeFn("run-governance-assessment", { assessment_id: rec.id, stress_run: true })
         .catch((e) => console.warn("[run-stress-job] run-governance-assessment trigger failed (will poll):", e));
       await pollStatus(admin, "governance_assessments", rec.id, "complete");
       return { sourceTable: "governance_assessments", sourceRowId: rec.id };
