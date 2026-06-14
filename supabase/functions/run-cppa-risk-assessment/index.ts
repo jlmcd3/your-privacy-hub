@@ -322,7 +322,7 @@ OUTPUT SHAPE (every field required unless marked optional):
     },
     "sec_3_pi_inventory": {
       "statute": "Cal. Code Regs. tit. 11 § 7152(a)(2)",
-      "pi_categories": [{"category": "from intake q4", "is_spi": true_or_false_per_7001(ccc)}],
+      "pi_categories": [{"category": "from intake q4", "is_spi": true_or_false_per_Civil_Code_1798_140_ae_and_7001_bbb}],
       "minimum_necessary_justification": "draft justification for why each PI category is the minimum necessary to achieve the § 2 purpose",
       "user_guidance": "string"
     },
