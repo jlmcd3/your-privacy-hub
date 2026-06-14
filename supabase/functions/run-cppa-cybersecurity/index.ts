@@ -680,7 +680,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
 
       controlsOut.push({
         ...c,
-        regulatory_basis: `Assessed under 11 CCR § 7123(b): the annual cybersecurity audit must assess and document ${cleanedRegBasis}, as applicable to the business.`,
+        regulatory_basis: `Assessed under ${citation}: the annual cybersecurity audit must assess ${cleanedRegBasis}, as applicable to the business.`,
         fsor_citation: citation,
         fsor_commentary: merged.slice(0, 2).map(shapeFsorItem),
       });
