@@ -497,7 +497,7 @@ function buildHtml(d: AssembledData): string {
   </header>
   <div class="body">
 
-  <p style="font-size: 13px; margin-top: 24px;">This record is maintained in accordance with Article 30 of the General Data Protection Regulation (EU) 2016/679 (GDPR) and, where applicable, Article 30 of the UK GDPR as retained by the Data Protection Act 2018. It documents all processing activities carried out by the controller and, where relevant, the processor.</p>
+  <p style="font-size: 13px; margin-top: 24px;">This record is maintained in accordance with Article 30 of the General Data Protection Regulation (EU) 2016/679 (GDPR) and, where applicable, Article 30 of the UK GDPR as retained by the Data Protection Act 2018. It is intended to document the processing activities carried out by the controller and, where relevant, the processor. <strong>This record must be reviewed and completed before it can be relied upon as a compliant Article 30 record.</strong></p>
 
   <h2>1. Client record</h2>
   <table class="kv">
