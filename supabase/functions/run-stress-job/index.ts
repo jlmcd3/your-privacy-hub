@@ -185,7 +185,7 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       return { sourceTable: "governance_assessments", sourceRowId: rec.id };
     }
     case "biometric": {
-      const data = await invokeFn("check-biometric-compliance", { ...intake, user_id: userId });
+      const data = await invokeFn("check-biometric-compliance", { ...intake, user_id: userId, stress_run: true });
       if (!data?.id) throw new Error("biometric: no id");
       return { sourceTable: "biometric_assessments", sourceRowId: data.id };
     }

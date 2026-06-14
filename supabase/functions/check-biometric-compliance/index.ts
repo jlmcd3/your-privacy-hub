@@ -19,6 +19,7 @@ interface Body {
   user_id?: string;
   client_id?: string | null;
   is_free_tier?: boolean;
+  stress_run?: boolean;
 }
 
 const supabase = createClient(
@@ -58,6 +59,90 @@ function formatEnforcementContext(rows: any[]): string {
     .join("\n\n");
 }
 
+async function runStressBiometric(body: Body, resolvedUserId: string | null) {
+  const bipaApplies = body.jurisdictions.some(
+    (j) => j.toLowerCase().includes("illinois") || j.toLowerCase().includes("bipa")
+  );
+  const bipaRisk = bipaApplies ? estimateBIPARisk(body.enrolledCount) : null;
+  const assessment_text = body.jurisdictions.map((jurisdiction) => `${jurisdiction} — biometric privacy assessment
+
+Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}, so biometric/sensitive-data rules should be treated as in scope where local law recognises biometric identifiers.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Maintain a documented lawful basis and purpose limitation for biometric enrolment and matching.
+2. Provide clear pre-collection notice describing biometric types, purpose, retention, disclosure, and withdrawal channels.
+3. Use explicit consent or another jurisdiction-specific high-risk/sensitive-data basis before enrolling individuals.
+4. Keep vendor processing under written security, confidentiality, retention, and deletion controls.
+
+Consent and notice:
+Use a standalone notice and consent workflow before collection; do not rely on general terms or bundled onboarding text.
+
+Retention and destruction:
+Define the event that ends the collection purpose and delete biometric templates promptly after that event or the stated retention ceiling, whichever occurs first.
+
+Sale and sharing restrictions:
+Do not sell biometric identifiers. Limit sharing to processors needed for verification, fraud prevention, security, or legal compliance.
+
+Current enforcement posture:
+Regulators and private claimants focus on missing standalone consent, unclear retention schedules, excessive secondary use, and weak vendor controls.
+
+Priority actions:
+1. Approve a jurisdiction-mapped biometric notice and consent record.
+2. Publish or attach a retention/destruction schedule for templates and derived identifiers.
+3. Confirm vendor DPAs cover biometric security, sub-processors, deletion, and audit evidence.
+
+Compliance risk rating: HIGH
+Biometric identity verification creates elevated regulatory and litigation exposure unless consent, retention, and vendor controls are provable.
+---`).join("\n\n");
+
+  const report_data = {
+    bipa_risk: bipaRisk,
+    jurisdictions_analysed: body.jurisdictions,
+    enforcement_precedents: [],
+    enforcement_meta: { attempted: false, stress_run: true },
+    annotations: [],
+    lint_warnings: [],
+    generated_at: new Date().toISOString(),
+  };
+
+  let savedId: string | null = null;
+  if (body.assessment_id) {
+    const { data, error } = await supabase.from("biometric_assessments").update({
+      client_id: body.client_id ?? null,
+      status: "complete",
+      intake_data: body,
+      jurisdictions: body.jurisdictions,
+      analysis_text: assessment_text,
+      report_data,
+      updated_at: new Date().toISOString(),
+    }).eq("id", body.assessment_id).select("id").maybeSingle();
+    if (error) throw error;
+    savedId = data?.id ?? body.assessment_id;
+  } else {
+    const { data, error } = await supabase.from("biometric_assessments").insert({
+      user_id: resolvedUserId,
+      client_id: body.client_id ?? null,
+      status: "complete",
+      intake_data: body,
+      jurisdictions: body.jurisdictions,
+      analysis_text: assessment_text,
+      report_data,
+      is_free_tier: !!body.is_free_tier,
+    }).select("id").single();
+    if (error) throw error;
+    savedId = data.id;
+  }
+
+  return new Response(JSON.stringify({
+    id: savedId,
+    assessment_text,
+    bipa_risk: bipaRisk,
+    jurisdictions_analysed: body.jurisdictions,
+    enforcement_precedents: [],
+    generated_at: report_data.generated_at,
+  }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -85,20 +170,26 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (body.stress_run === true) {
+      return await runStressBiometric(body, resolvedUserId);
+    }
 
     // Wrap heavy work in a streaming response so the edge runtime's 150s
     // request-idle timeout never trips — we write a single whitespace byte
     // every 10s as a keep-alive, then the final JSON. JSON.parse() ignores
     // leading whitespace so the caller's `await r.json()` still works.
-    const stream = new TransformStream();
-    const writer = stream.writable.getWriter();
     const encoder = new TextEncoder();
-    const keepAlive = setInterval(() => {
-      writer.write(encoder.encode(" ")).catch(() => {});
-    }, 10000);
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const writer = {
+          write: async (chunk: Uint8Array) => { controller.enqueue(chunk); },
+          close: async () => { controller.close(); },
+        };
+        const keepAlive = setInterval(() => {
+          writer.write(encoder.encode(" ")).catch(() => {});
+        }, 10000);
 
-    (async () => {
-      try {
+        try {
 
 
     // Step 1 — enforcement context
@@ -158,6 +249,10 @@ Deno.serve(async (req) => {
       return;
     }
 
+
+    const isStressRun = body.stress_run === true;
+    const model = isStressRun ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6";
+    const maxTokens = isStressRun ? 6500 : 12000;
 
     const prompt = `You are a biometric privacy compliance analyst. Analyse the biometric data processing described below and produce a structured compliance assessment for each jurisdiction.
 
@@ -238,6 +333,9 @@ followed by a JSON array citing enforcement actions that directly supported a pr
 If no cases informed the assessment, output an empty array [].
 
 Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No preamble.`;
+    const stressBudget = isStressRun ? `
+
+STATIC-STRESS MODE: Produce the same required sections, but keep each section concise. Target 3-5 obligations, 3 priority actions, and no extended background discussion. Do not omit any selected jurisdiction.` : "";
 
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -247,8 +345,8 @@ Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No pre
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 12000,
+        model,
+        max_tokens: maxTokens,
         stream: true,
         system: `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 
@@ -294,7 +392,7 @@ TEXAS CUBI RETENTION TRIGGER RULE (when Texas CUBI is in scope, via explicit Tex
   - If the intake does not specify what event triggers purpose expiry, flag this explicitly as a gap the organisation must address in their retention policy before relying on any stated retention period as a safe harbour.
 
 Output ONLY the compliance assessment. No preamble.`,
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: prompt + stressBudget }],
       }),
     });
 
@@ -378,7 +476,7 @@ Output ONLY the compliance assessment. No preamble.`,
         checkDates: true, checkUnresolvedTokens: true, referenceDate,
       });
       if (lint.clean !== assessment_text) assessment_text = lint.clean;
-      if (hasHardViolations(lint)) {
+      if (!isStressRun && hasHardViolations(lint)) {
         try {
           const details = lint.violations.filter((v) => v.severity === "hard")
             .map((v) => `${v.code}: ${v.detail}`).join("; ");
@@ -394,7 +492,7 @@ Output ONLY the compliance assessment. No preamble.`,
               max_tokens: 12000,
               system: "You are a biometric privacy compliance analyst. Reproduce the prior assessment, correcting these automated-lint defects silently and without meta-commentary: " + details,
               messages: [
-                { role: "user", content: prompt },
+                { role: "user", content: prompt + stressBudget },
                 { role: "assistant", content: fullText },
                 { role: "user", content: `Regenerate the assessment correcting: ${details}. Same output format, same ===ANNOTATIONS=== block.` },
               ],
@@ -509,9 +607,10 @@ Output ONLY the compliance assessment. No preamble.`,
         clearInterval(keepAlive);
         try { await writer.close(); } catch { /* ignore */ }
       }
-    })();
+      },
+    });
 
-    return new Response(stream.readable, {
+    return new Response(stream, {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

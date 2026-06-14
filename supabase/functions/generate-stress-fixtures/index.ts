@@ -554,21 +554,25 @@ Deno.serve(async (req) => {
   try {
     if (part === "profile") {
       if (!use_claude) return json(buildDeterministicProfile(industry, geo, company_slot, company_id), 200);
-      const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 6000);
-      return json(extractJson(callAText), 200);
+      return streamJsonWork(async () => {
+        const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 6000);
+        return extractJson(callAText);
+      });
     }
 
     if (part === "geo") {
       const name = company_name || company_id;
       if (!use_claude) return json(buildDeterministicGeo(industry, geo, company_slot, company_id, name), 200);
-      const callBText = await callClaude(
-        SYSTEM_PROMPT,
-        geo === "eu"
-          ? buildCallBEUPrompt(industry, company_slot, name)
-          : buildCallBUSPrompt(industry, company_slot, name),
-        4500,
-      );
-      return json(extractJson(callBText), 200);
+      return streamJsonWork(async () => {
+        const callBText = await callClaude(
+          SYSTEM_PROMPT,
+          geo === "eu"
+            ? buildCallBEUPrompt(industry, company_slot, name)
+            : buildCallBUSPrompt(industry, company_slot, name),
+          4500,
+        );
+        return extractJson(callBText);
+      });
     }
   } catch (e) {
     return json({ error: "fixture generation failed", detail: (e as Error).message }, 502);
