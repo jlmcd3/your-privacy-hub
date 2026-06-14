@@ -36,7 +36,7 @@ export default function BiometricChecker() {
   const pricing = useToolPrice("biometric_checker");
   const { clientId } = useActiveClient();
   const [form, setForm] = useState({
-    biometricTypes: [] as string[], orgType: ORG[0], purpose: PURPOSE[0],
+    biometricTypes: [] as string[], orgType: ORG[0], orgName: "", purpose: PURPOSE[0],
     jurisdictions: [] as string[], enrolledCount: COUNTS[1],
   });
   const [phase, setPhase] = useState<"form" | "generating" | "result">("form");
