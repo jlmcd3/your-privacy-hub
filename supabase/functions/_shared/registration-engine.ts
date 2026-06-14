@@ -278,27 +278,42 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
   }
 
   // ------- Rule R8: CCPA-family — sells or shares -------
+  // Each state has its own statute; use a jurisdiction-neutral obligation label.
+  // Only record R8 as fired when it actually adds a jurisdiction.
   if (intake.sells_or_shares_personal_info) {
+    let r8Fired = false;
     for (const c of CCPA_STATES) {
       if (markets.has(c)) {
         ensure(map, c, "R8_CCPA_SELL",
-          `Sells/shares personal info — opt-out and disclosures required (${c})`,
-          "ccpa_disclosures");
+          `Sells/shares personal info — sale/share opt-out and consumer disclosures required (${c})`,
+          "sale_share_opt_out");
+        r8Fired = true;
       }
     }
-    fired.push("R8_CCPA_SELL");
+    if (r8Fired) fired.push("R8_CCPA_SELL");
   }
 
   // ------- Rule R9: BIPA-style biometric ID -------
+  // US biometric statutes (BIPA, CUBI, WA) apply only when there is US nexus:
+  // US establishment, US residents explicitly in scope, or the broad "US" market
+  // served by a US-based entity.
   if (intake.processes_biometrics_for_id) {
-    for (const c of ["US-IL", "US-TX", "US-WA"]) {
-      if (markets.has(c) || markets.has("US")) {
-        ensure(map, c, "R9_BIPA",
-          "Processes biometric identifiers — written-consent and retention rules apply",
-          "biometric_consent_policy");
+    const hasUsNexus =
+      (home != null && (home === "US" || home.startsWith("US-"))) ||
+      markets.has("US") ||
+      markets.has("US-IL") ||
+      markets.has("US-TX") ||
+      markets.has("US-WA");
+    if (hasUsNexus) {
+      for (const c of ["US-IL", "US-TX", "US-WA"]) {
+        if (markets.has(c) || markets.has("US")) {
+          ensure(map, c, "R9_BIPA",
+            "Processes biometric identifiers — written-consent and retention rules apply",
+            "biometric_consent_policy");
+        }
       }
+      fired.push("R9_BIPA");
     }
-    fired.push("R9_BIPA");
   }
 
   // ------- Rule R10: Children's data — adds notes to existing jurisdictions -------
