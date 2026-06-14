@@ -1019,7 +1019,9 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     ${app.e_dpia_gap_fill ? `<section class="section"><h3>Appendix E — DPIA Gap-Fill</h3><p>${typeof app.e_dpia_gap_fill === "object" ? Object.entries(app.e_dpia_gap_fill).map(([k, v]) => `<span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}`).join("<br/>") : text(app.e_dpia_gap_fill)}</p></section>` : `<section class="section"><h3>Appendix E — DPIA Gap-Fill</h3><p>Not applicable — no existing GDPR/UK GDPR DPIA was reported in the intake for this processing activity.</p></section>`}
     <h2>Part B — Submission Summary${b.statute ? ` <span style="font-size:10px;font-weight:400;color:#5c5a54;">(${text(b.statute)})</span>` : ""}</h2>
     <p><span class="label">Business legal name:</span> ${fillIn(b.business_legal_name, "[FILL IN]")}</p>
-    ${b.point_of_contact ? `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact)}</p>` : ""}
+    ${b.point_of_contact ? (typeof b.point_of_contact === "object"
+      ? `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact.name ?? "[FILL IN]")}, ${text(b.point_of_contact.title ?? "[FILL IN]")}</p><p><span class="label">Phone:</span> ${text(b.point_of_contact.phone ?? "[FILL IN]")}</p><p><span class="label">Email:</span> ${text(b.point_of_contact.email ?? "[FILL IN]")}</p>`
+      : `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact)}</p>`) : ""}
     ${b.assessment_count_in_period !== undefined ? `<p><span class="label">Assessments in period:</span> ${text(b.assessment_count_in_period)}</p>` : ""}
     ${Array.isArray(b.pi_categories_aggregated) && b.pi_categories_aggregated.length ? `<p><span class="label">PI categories (aggregated):</span> ${b.pi_categories_aggregated.map((c: any) => text(c)).join(", ")}</p>` : ""}
     ${Array.isArray(b.spi_flagged) && b.spi_flagged.length ? `<p><span class="label">SPI flagged:</span> ${b.spi_flagged.map((c: any) => text(c)).join(", ")}</p>` : ""}
