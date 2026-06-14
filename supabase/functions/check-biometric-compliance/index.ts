@@ -284,8 +284,8 @@ Output ONLY the compliance assessment. No preamble.`,
       }),
     });
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
+    if (!aiRes.ok || !aiRes.body) {
+      const errText = aiRes.body ? await aiRes.text() : "no body";
       console.error("Claude error:", errText);
       return new Response(JSON.stringify({ error: "AI generation failed" }), {
         status: 502,
@@ -293,8 +293,36 @@ Output ONLY the compliance assessment. No preamble.`,
       });
     }
 
-    const aiData = await aiRes.json();
-    const fullText = aiData.content?.[0]?.text ?? "";
+    // Stream Anthropic SSE so the edge runtime's 150s idle timeout never
+    // trips on long Sonnet generations.
+    let fullText = "";
+    let stopReason: string | null = null;
+    {
+      const reader = aiRes.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          try {
+            const evt = JSON.parse(payload);
+            if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+              fullText += evt.delta.text ?? "";
+            } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
+              stopReason = evt.delta.stop_reason;
+            }
+          } catch { /* ignore malformed line */ }
+        }
+      }
+    }
+    const aiData: any = { stop_reason: stopReason };
     console.log(`[check-biometric-compliance] gen done stop=${aiData.stop_reason ?? null} chars=${fullText.length}`);
     let assessment_text = fullText
       .replace(/^#{1,6}\s+/gm, '')
