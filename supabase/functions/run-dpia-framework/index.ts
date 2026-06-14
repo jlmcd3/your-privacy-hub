@@ -271,9 +271,9 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
   },
   "section_5_consultation": {
     "title": "DPO and Stakeholder Consultation",
-    "guidance_note": "Where a DPO is designated, their advice must be sought and documented.",
-    "dpo_consultation_required": true,
-    "dpo_consultation_record": "template for recording DPO consultation outcome",
+    "guidance_note": "Where a DPO is designated (GDPR Article 35(2)), their advice must be sought and documented. The DPO's role is advisory — the controller is responsible for the DPIA decision and sign-off. Do not give the DPO an approval or sign-off gating role; record their advice and whether it was accepted.",
+    "dpo_consultation_required": "Required if a DPO is designated (GDPR Article 35(2)). If no DPO is designated, assess whether Article 37 appointment is triggered (public authority, large-scale systematic monitoring, or large-scale special category processing) and document that assessment here.",
+    "dpo_consultation_record": "Template for recording DPO consultation — DPO name and contact: [TO COMPLETE] | Date consulted: [TO COMPLETE DD/MM/YYYY] | Summary of advice given: [TO COMPLETE] | DPO recommendations accepted / partially accepted / not accepted (with reasons): [TO COMPLETE]",
     "stakeholder_consultation": "list any other stakeholders who should be consulted",
     "completion_guidance": "What the organisation must complete in this section"
   },
