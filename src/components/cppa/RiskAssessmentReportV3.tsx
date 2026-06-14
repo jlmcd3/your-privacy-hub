@@ -206,7 +206,19 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
             <AccordionItem value="op-g">
               <AccordionTrigger>G — ADMT logic & outputs</AccordionTrigger>
               <AccordionContent>
-                <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(a.sec_4_operations.g_admt, null, 2)}</pre>
+                {(() => {
+                  const admtLabels: Record<string, string> = { logic: "Logic", training: "Training", fairness: "Fairness", humanReview: "Human review", human_review: "Human review" };
+                  return (
+                    <dl className="text-sm space-y-2">
+                      {Object.entries(a.sec_4_operations.g_admt).map(([k, v]) => (
+                        <div key={k}>
+                          <dt className="font-semibold">{admtLabels[k] ?? k}:</dt>
+                          <dd className="ml-2 whitespace-pre-wrap">{typeof v === "string" ? v : JSON.stringify(v, null, 2)}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  );
+                })()}
               </AccordionContent>
             </AccordionItem>
           )}
@@ -380,7 +392,19 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
           </header>
           <ul className="text-sm space-y-1">
             <li><strong>Business legal name:</strong> {report.part_b.business_legal_name || "[FILL IN]"}</li>
-            <li><strong>Point of contact:</strong> {report.part_b.point_of_contact || "[FILL IN]"}</li>
+            {(() => {
+              const poc = report.part_b.point_of_contact;
+              if (poc && typeof poc === "object") {
+                return (
+                  <>
+                    <li><strong>Point of contact:</strong> {poc.name || "[FILL IN]"}, {poc.title || "[FILL IN]"}</li>
+                    <li><strong>Phone:</strong> {poc.phone || "[FILL IN]"}</li>
+                    <li><strong>Email:</strong> {poc.email || "[FILL IN]"}</li>
+                  </>
+                );
+              }
+              return <li><strong>Point of contact:</strong> {poc || "[FILL IN]"}</li>;
+            })()}
             <li><strong>Assessments conducted in period:</strong> {report.part_b.assessment_count_in_period ?? 1}</li>
             <li><strong>PI categories (aggregated):</strong> {(report.part_b.pi_categories_aggregated ?? []).join(", ")}</li>
             <li><strong>Sensitive PI flagged:</strong> {(report.part_b.spi_flagged ?? []).join(", ") || "None"}</li>

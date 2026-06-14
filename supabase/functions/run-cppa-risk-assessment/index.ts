@@ -283,17 +283,20 @@ ABSOLUTE RULES:
 8. § 6 (Harms) MUST cover all eight statutory harm categories from § 7152(a)(5): (A) Security, (B) Discrimination on protected characteristics, (C) Loss of control or autonomy over PI, (D) Coercion or compelled disclosure, (E) Economic, (F) Physical, (G) Reputational, (H) Psychological. For each: source/cause, likelihood (Low/Medium/High), magnitude (Low/Medium/High), residual_after_safeguards (Low/Medium/High).
 9. § 7 (Safeguards) MUST be organised into four groupings: technical, organizational, consumer_facing, contractual. Every safeguard MUST include linked_harms = an array of § 6 category names it mitigates.
 10. § 4 sub-mapping is fixed: A=collection sources, B=retention, C=consumer interaction, D=consumer count, E=disclosures to consumers, F=service providers/contractors/third parties, G=ADMT logic (null unless ADMT trigger fires).
-11. § 10 governance commitments: triennial review (§ 7155(a)); 45-day material-change update (§ 7155(a)); 5-year retention (§ 7155(b)); 30-day on-demand production (§ 7156(c)).
+11. § 10 governance commitments: triennial review (§ 7155(a)); 45-day material-change update (§ 7155(a)); 5-year retention (§ 7155(b)); 30-calendar-day on-demand production (§ 7157(e)).
 12. Where commentary from both the 2025 and 2023 rulemaking packages addresses the same regulation section, treat the 2025 package as controlling and the 2023 package as historical background.
 13. SIGNIFICANT-DECISION RULE (critical): Under the final regulations (OAL-approved Sept 2025), "significant decisions" are limited to decisions concerning financial or lending services, housing, education, employment, or healthcare. Advertising — including ad-auction eligibility, audience scoring, and targeting — is NOT a significant decision; behavioral-advertising references were removed from the final regulations. Select § 7150(b)(3) (ADMT for a significant decision) and § 7150(b)(6) (training ADMT) ONLY when the activity's decisions fall in those enumerated categories or the training is for identity/facial/emotion-recognition verification. For advertising activities, the correct triggers are § 7150(b)(1) (selling/sharing for cross-context behavioral advertising) and, where genuinely applicable, § 7150(b)(2) (sensitive PI). When the ADMT triggers do not apply, do not assert § 7220 pre-use-notice or ADMT-opt-out obligations as requirements — describe any such measures as voluntary safeguards.
 13a. SELL/SHARE TRIGGER RULE (§ 7150(b)(1)): § 7150(b)(1) applies only when personal information is sold or shared for cross-context behavioural advertising as defined in Civil Code § 1798.140(s). Disclosing personal information to a service provider or contractor under a compliant CCPA service-provider contract that prohibits any use beyond the contracted service is NOT a sale or share and does NOT trigger § 7150(b)(1). When the processing activity is fraud prevention, payment processing, authentication, security, or any back-office operational purpose using contracted processors, § 7150(b)(1) must NOT be selected unless the intake explicitly states the data is sold or shared for advertising. Where the intake value for q5_sell_share does not indicate actual sale or sharing for advertising, do not include § 7150(b)(1) in triggers_selected.
-14. SPI CLASSIFICATION RULE: Sensitive personal information includes precise geolocation, government IDs, financial account credentials, racial/ethnic origin, religious beliefs, union membership, genetic data, biometric identifiers used for identification, health data, and contents of mail/email/text. Classification must follow Civil Code § 1798.140(ae) — do not invent additional categories.
+14. SPI CLASSIFICATION RULE: Sensitive personal information includes precise geolocation, government IDs, financial account credentials, racial/ethnic origin, religious beliefs, union membership, genetic data, biometric identifiers used for identification, health data, and contents of mail/email/text. Classification must follow Civil Code § 1798.140(ae) and 11 CCR § 7001(bbb) — do not invent additional categories. When citing the SPI definition in the report body, use § 7001(bbb) (the regulatory definition) and/or Civil Code § 1798.140(ae) (the statutory definition). NEVER cite § 7001(ccc) for SPI — that subsection defines "Signed," not sensitive personal information.
 15. APPENDIX-CONSISTENCY RULE: Appendix D's § 1798.121 statement must follow from the § 2 purpose. If the purpose includes advertising use of SPI, you cannot state SPI is "used only for service delivery and fraud prevention" — either the SPI classification is wrong or the limitation statement is; resolve before output. Appendices must never contradict the body.
 16. RESIDUAL-RISK RUBRIC: When assigning residual_after_safeguards values (Low/Medium/High) in §6 harms, apply this consistent rubric:
 - Low = the identified safeguards address the primary risk pathways and residual exposure is unlikely to materialise without a safeguard failure;
 - Medium = material residual exposure remains that the safeguards reduce but do not eliminate;
 - High = safeguards are insufficient and the risk is likely to materialise without additional mitigations.
 Include a one-sentence rationale for each residual-risk level within the harm's guidance field.
+17. LABEL FORMATTING: All JSON field keys in g_admt and appendix d_spi_note must render with human-readable labels in the output document. Specifically: the key "humanReview" or "human_review" must render as "Human review:"; "spi_categories" or "Spi categories" must render as "SPI categories:"; "spi_statement" or "Spi statement" must render as "SPI statement:". Never let raw camelCase or snake_case property names appear as visible labels in the report.
+
+
 
 OUTPUT SHAPE (every field required unless marked optional):
 {
@@ -319,7 +322,7 @@ OUTPUT SHAPE (every field required unless marked optional):
     },
     "sec_3_pi_inventory": {
       "statute": "Cal. Code Regs. tit. 11 § 7152(a)(2)",
-      "pi_categories": [{"category": "from intake q4", "is_spi": true_or_false_per_7001(ccc)}],
+      "pi_categories": [{"category": "from intake q4", "is_spi": true_or_false_per_Civil_Code_1798_140_ae_and_7001_bbb}],
       "minimum_necessary_justification": "draft justification for why each PI category is the minimum necessary to achieve the § 2 purpose",
       "user_guidance": "string"
     },
@@ -331,7 +334,7 @@ OUTPUT SHAPE (every field required unless marked optional):
       "d_consumer_count": "value from i3_ca_consumer_band",
       "e_disclosures": "list disclosure mechanisms from i4_disclosure_mechanisms, mapped against § 7003 conspicuousness",
       "f_service_providers": "list from i6_vendors",
-      "g_admt": null_or_object_with_logic_training_fairness_humanReview_from_i5_fields
+      "g_admt": null_or_object_with_fields: logic, training, fairness, human_review (note: render as "Human review" — do not use camelCase key names as display labels)
     },
     "sec_5_benefits": {
       "statute": "Cal. Code Regs. tit. 11 § 7152(a)(4)",
@@ -373,11 +376,11 @@ OUTPUT SHAPE (every field required unless marked optional):
       "external_consultees": [{"role": "...", "name": "[FILL IN]"}]
     },
     "sec_10_governance": {
-      "statute": "Cal. Code Regs. tit. 11 §§ 7152(a)(9), 7155, 7156(c)",
+      "statute": "Cal. Code Regs. tit. 11 §§ 7152(a)(9), 7155, 7157(e)",
       "triennial_review_date": "ISO date",
       "material_change_commitment": "We will update this assessment within 45 days of a material change to the processing activity, per § 7155(a).",
       "retention_commitment": "This assessment will be retained for at least 5 years or for as long as the processing continues, whichever is longer, per § 7155(b).",
-      "production_commitment": "We will produce this assessment to the CPPA within 30 days of a written request, per § 7156(c).",
+      "production_commitment": "We will produce this assessment to the CPPA within 30 calendar days of a written request, per § 7157(e).",
       "approver": {"name": "from i8", "title": "from i8", "date": null}
     },
     "appendices": {
@@ -391,11 +394,16 @@ OUTPUT SHAPE (every field required unless marked optional):
   "part_b": {
     "statute": "Cal. Code Regs. tit. 11 § 7157",
     "business_legal_name": "[FILL IN]",
-    "point_of_contact": "from i8 fields",
+    "point_of_contact": {
+      "name": "from i8_certifying_exec_name or [FILL IN]",
+      "title": "from i8_certifying_exec_title or [FILL IN]",
+      "phone": "from i8_contact_phone or [FILL IN — required by § 7157(b)(1)]",
+      "email": "from i8_contact_email or [FILL IN — required by § 7157(b)(1)]"
+    },
     "assessment_count_in_period": 1,
     "pi_categories_aggregated": ["from § 3"],
     "spi_flagged": ["subset of above flagged as SPI"],
-    "perjury_attestation_block": "I, [NAME], [TITLE], certify under penalty of perjury under the laws of the State of California that the foregoing is true and correct. Executed on [DATE].",
+    "perjury_attestation_block": "I, [NAME], [TITLE], attest under penalty of perjury under the laws of the State of California that the business has conducted a risk assessment for the processing activities set forth in Cal. Code Regs. tit. 11, § 7150(b), during the time period covered by this submission, and that I meet the requirements of § 7157(c). Executed on [DATE].",
     "submission_banner": "Assessments for processing activities existing when the regulations took effect must be completed by December 31, 2027; first submissions to the CPPA are due April 1, 2028. The California Privacy Protection Agency has not yet opened a submission portal for risk-assessment certifications. Check cppa.ca.gov/regulations for current filing instructions before the April 1, 2028 deadline."
   }
 }`;

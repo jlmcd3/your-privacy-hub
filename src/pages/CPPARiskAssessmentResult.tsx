@@ -579,7 +579,13 @@ function buildV3Text(report: any): string {
   lines.push(`  D Consumer count: ${op.d_consumer_count ?? ""}`);
   lines.push(`  E Disclosures: ${op.e_disclosures ?? ""}`);
   lines.push(`  F Service providers: ${op.f_service_providers ?? ""}`);
-  if (op.g_admt) lines.push(`  G ADMT: ${JSON.stringify(op.g_admt)}`);
+  if (op.g_admt) {
+    const admtLabels: Record<string, string> = { logic: "Logic", training: "Training", fairness: "Fairness", humanReview: "Human review", human_review: "Human review" };
+    lines.push(`  G ADMT:`);
+    for (const [k, v] of Object.entries(op.g_admt)) {
+      lines.push(`    ${admtLabels[k] ?? k}: ${typeof v === "string" ? v : JSON.stringify(v)}`);
+    }
+  }
   lines.push("");
   lines.push(`§ 5 Benefits (§ 7152(a)(4)):`);
   lines.push(`  Business: ${a.sec_5_benefits?.to_business ?? ""}`);
@@ -607,7 +613,7 @@ function buildV3Text(report: any): string {
   for (const c of a.sec_9_stakeholders?.internal_contributors ?? []) lines.push(`  Internal — ${c.role}: ${c.name ?? "[FILL IN]"}`);
   for (const c of a.sec_9_stakeholders?.external_consultees ?? []) lines.push(`  External — ${c.role}: ${c.name ?? "[FILL IN]"}`);
   lines.push("");
-  lines.push(`§ 10 Governance (§§ 7152(a)(9), 7155, 7156(c)):`);
+  lines.push(`§ 10 Governance (§§ 7152(a)(9), 7155, 7157(e)):`);
   lines.push(`  Triennial review: ${a.sec_10_governance?.triennial_review_date ?? ""}`);
   lines.push(`  ${a.sec_10_governance?.material_change_commitment ?? ""}`);
   lines.push(`  ${a.sec_10_governance?.retention_commitment ?? ""}`);
@@ -617,7 +623,14 @@ function buildV3Text(report: any): string {
     const b = report.part_b;
     lines.push("", "", "PART B — § 7157 ANNUAL SUBMISSION WORKSHEET", "");
     lines.push(`Business: ${b.business_legal_name || "[FILL IN]"}`);
-    lines.push(`Point of contact: ${b.point_of_contact ?? ""}`);
+    const poc = b.point_of_contact;
+    if (poc && typeof poc === "object") {
+      lines.push(`Point of contact: ${poc.name ?? "[FILL IN]"}, ${poc.title ?? "[FILL IN]"}`);
+      lines.push(`Phone: ${poc.phone ?? "[FILL IN]"}`);
+      lines.push(`Email: ${poc.email ?? "[FILL IN]"}`);
+    } else {
+      lines.push(`Point of contact: ${poc ?? ""}`);
+    }
     lines.push(`Assessments in period: ${b.assessment_count_in_period ?? 1}`);
     lines.push(`PI categories: ${(b.pi_categories_aggregated ?? []).join(", ")}`);
     lines.push(`Sensitive PI: ${(b.spi_flagged ?? []).join(", ") || "None"}`, "");
