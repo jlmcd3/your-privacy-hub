@@ -162,6 +162,14 @@ function buildNoticeHtml(
   <h2>2. How we use this information</h2>
   <p>${escapeHtml(purposes)}</p>
 
+  ${state.framework_type === "ccpa" ? `<h2>2a. Where we get this information</h2>
+  <p>We collect personal information from the following categories of sources:</p>
+  <ul>
+    <li><strong>Directly from you</strong> — when you create an account, make a purchase, contact us, or otherwise provide information to us.</li>
+    <li><strong>Automatically</strong> — when you use our website, app, or services, through cookies, log files, and similar technologies.</li>
+    <li><strong>From third parties</strong> — such as service providers, business partners, data analytics providers, and publicly available sources, to the extent applicable to our operations.</li>
+  </ul>` : ""}
+
   <h2>3. Sharing with third parties</h2>
   ${
     sharing === "yes"
