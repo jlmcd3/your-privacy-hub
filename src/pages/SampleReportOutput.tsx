@@ -44,6 +44,7 @@ export default function SampleReportOutput() {
   const [deletingAll, setDeletingAll] = useState(false);
   const [zipping, setZipping] = useState(false);
   const [zippingTool, setZippingTool] = useState<string | null>(null);
+  const [deletingTool, setDeletingTool] = useState<string | null>(null);
 
   async function load() {
     const { data, error } = await supabase
