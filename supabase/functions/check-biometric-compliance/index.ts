@@ -495,6 +495,7 @@ Deno.serve(async (req) => {
     const prompt = `You are a biometric privacy compliance analyst. Analyse the biometric data processing described below and produce a structured compliance assessment for each jurisdiction.
 
 PROCESSING DETAILS
+Organisation name: ${(body as any).orgName || (body as any).organizationName || "Not specified"}
 Biometric data types: ${body.biometricTypes.join(", ")}
 Organisation type: ${body.orgType}
 Primary purpose: ${body.purpose}
@@ -510,10 +511,21 @@ addition to general WA consumer protection law. MHMD requires:
   - heightened restrictions on sale and on geofencing around health facilities.
 MHMD has a private right of action via the WA Consumer Protection Act.
 Address MHMD obligations explicitly in the Washington section.
+` : ""}${texasApplies && !otherUsStateApplies ? `
+TEXAS CUBI — EXPLICIT SELECTION
+Texas, USA (CUBI) is in scope. The Texas section MUST cite subsections using the correct map:
+§ 503.001(b) = consent and notice; § 503.001(c)(1) = disclosure prohibition; § 503.001(c)(2) = security; § 503.001(c)(3) = destruction (purpose expiry, NOT "last interaction"); § 503.001(d) = penalty ($25,000/violation, AG-only, no private right of action); § 503.001(e) [from Jan 1, 2026] = AI development exemption.
+CUBI does NOT require a signed written release — do not import BIPA's written release requirement. State consent as: notice and consent before capture; recommend documented written/electronic consent as best practice.
+` : ""}${euGdprApplies ? `
+EU/EEA GDPR — BIOMETRIC REQUIREMENTS
+For each EU/EEA section: (1) cite GDPR Article 9(1) as the source of the special-category prohibition; (2) identify the applicable Article 9(2) condition separately from the Article 6 basis; (3) include a DPIA screening recommendation under Article 35; (4) replace "do not sell" with purpose limitation (Article 5(1)(b)) and processor contract (Article 28) language; (5) identify the lead supervisory authority under Article 56 for cross-border processing.
+` : ""}${ukGdprApplies ? `
+UK GDPR AND DPA 2018 — BIOMETRIC REQUIREMENTS
+For the UK section: (1) label as "UK GDPR and Data Protection Act 2018" — not "EU GDPR"; (2) identify the Article 9(2) condition AND the DPA 2018 Schedule 1 condition separately; (3) include Article 35 DPIA recommendation with ICO as supervisory authority; (4) use "United Kingdom" in the heading — not "GB"; (5) for UK-to-third-country transfers, reference UK IDTA or UK-approved SCCs, not EU SCCs; (6) replace "do not sell" with UK GDPR purpose limitation and Article 28 processor controls.
 ` : ""}${otherUsStateApplies ? `
 OTHER US STATE — APPLICABILITY FLAG
 "Other US state" is in scope. Produce a dedicated "Other US State — General US Biometric Privacy Posture" section that:
-  - notes Texas Capture or Use of Biometric Identifier Act (CUBI) requirements (notice, consent, retention <=1 year past purpose, no sale absent consent — Texas AG enforcement only, no private right of action),
+  - notes Texas Capture or Use of Biometric Identifier Act (CUBI) requirements: § 503.001(b) notice and consent before capture (no signed written release required — that is Illinois BIPA); § 503.001(c)(2) reasonable security; § 503.001(c)(3) destruction within reasonable time no later than one year after PURPOSE expiry (not "last interaction"); § 503.001(d) civil penalty up to $25,000/violation, Texas AG enforcement only — no private right of action; § 503.001(e) [effective Jan 2026] AI development exemption,
   - notes Washington My Health My Data Act exposure where biometrics infer health status,
   - covers the broader pattern across CA/CO/CT/VA/UT/OR comprehensive privacy laws treating biometrics as sensitive data requiring opt-in consent and DPIAs,
   - identifies the most likely applicable state regime based on the organisation type and purpose described.
