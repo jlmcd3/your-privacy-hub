@@ -403,7 +403,7 @@ OUTPUT SHAPE (every field required unless marked optional):
     "assessment_count_in_period": 1,
     "pi_categories_aggregated": ["from § 3"],
     "spi_flagged": ["subset of above flagged as SPI"],
-    "perjury_attestation_block": "I, [NAME], [TITLE], certify under penalty of perjury under the laws of the State of California that the foregoing is true and correct. Executed on [DATE].",
+    "perjury_attestation_block": "I, [NAME], [TITLE], attest under penalty of perjury under the laws of the State of California that the business has conducted a risk assessment for the processing activities set forth in Cal. Code Regs. tit. 11, § 7150(b), during the time period covered by this submission, and that I meet the requirements of § 7157(c). Executed on [DATE].",
     "submission_banner": "Assessments for processing activities existing when the regulations took effect must be completed by December 31, 2027; first submissions to the CPPA are due April 1, 2028. The California Privacy Protection Agency has not yet opened a submission portal for risk-assessment certifications. Check cppa.ca.gov/regulations for current filing instructions before the April 1, 2028 deadline."
   }
 }`;
