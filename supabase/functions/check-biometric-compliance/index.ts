@@ -19,6 +19,7 @@ interface Body {
   user_id?: string;
   client_id?: string | null;
   is_free_tier?: boolean;
+  stress_run?: boolean;
 }
 
 const supabase = createClient(
@@ -159,6 +160,10 @@ Deno.serve(async (req) => {
     }
 
 
+    const isStressRun = body.stress_run === true;
+    const model = isStressRun ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6";
+    const maxTokens = isStressRun ? 6500 : 12000;
+
     const prompt = `You are a biometric privacy compliance analyst. Analyse the biometric data processing described below and produce a structured compliance assessment for each jurisdiction.
 
 PROCESSING DETAILS
@@ -238,6 +243,9 @@ followed by a JSON array citing enforcement actions that directly supported a pr
 If no cases informed the assessment, output an empty array [].
 
 Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No preamble.`;
+    const stressBudget = isStressRun ? `
+
+STATIC-STRESS MODE: Produce the same required sections, but keep each section concise. Target 3-5 obligations, 3 priority actions, and no extended background discussion. Do not omit any selected jurisdiction.` : "";
 
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -247,8 +255,8 @@ Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No pre
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 12000,
+        model,
+        max_tokens: maxTokens,
         stream: true,
         system: `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 
@@ -294,7 +302,7 @@ TEXAS CUBI RETENTION TRIGGER RULE (when Texas CUBI is in scope, via explicit Tex
   - If the intake does not specify what event triggers purpose expiry, flag this explicitly as a gap the organisation must address in their retention policy before relying on any stated retention period as a safe harbour.
 
 Output ONLY the compliance assessment. No preamble.`,
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: prompt + stressBudget }],
       }),
     });
 
