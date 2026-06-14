@@ -131,8 +131,25 @@ function humanize(token: string): string {
   return token.replace(/_/g, " ");
 }
 
+const EU_EEA_MEMBER_STATE_NAMES: Record<string, string> = {
+  AT: "Austria",  BE: "Belgium",  BG: "Bulgaria",  HR: "Croatia",
+  CY: "Cyprus",   CZ: "Czech Republic", DK: "Denmark", EE: "Estonia",
+  FI: "Finland",  FR: "France",   DE: "Germany",  GR: "Greece",
+  HU: "Hungary",  IE: "Ireland",  IT: "Italy",    LV: "Latvia",
+  LT: "Lithuania", LU: "Luxembourg", MT: "Malta", NL: "Netherlands",
+  PL: "Poland",   PT: "Portugal", RO: "Romania",  SK: "Slovakia",
+  SI: "Slovenia", ES: "Spain",    SE: "Sweden",
+  NO: "Norway",   IS: "Iceland",  LI: "Liechtenstein",
+  GB: "Great Britain",
+  EU: "the European Union",
+};
+
 function lawLabel(j: string): string {
-  return LAW_NAMES[j] ?? humanize(j);
+  if (LAW_NAMES[j]) return LAW_NAMES[j];
+  if (EU_EEA_MEMBER_STATE_NAMES[j]) {
+    return `GDPR (Regulation (EU) 2016/679) as applicable in ${EU_EEA_MEMBER_STATE_NAMES[j]}`;
+  }
+  return humanize(j);
 }
 function lawLabelShort(j: string): string {
   return LAW_NAMES_SHORT[j] ?? humanize(j);
@@ -149,6 +166,21 @@ const LAWFUL_BASIS_LABELS: Record<string, string> = {
   public_task: "Public task — Art. 6(1)(e)",
   legitimate_interests: "Legitimate interests — Art. 6(1)(f)",
 };
+
+const CATEGORY_LABELS: Record<string, string> = {
+  customer_service:  "Customer Service",
+  marketing:         "Marketing & Communications",
+  hr_employment:     "HR & Employment",
+  finance_legal:     "Finance & Legal",
+  technology:        "Technology & Security",
+  operations:        "Operations",
+  third_party:       "Third-Party & Vendor Management",
+  other:             "Other",
+};
+
+function categoryLabel(code: string): string {
+  return CATEGORY_LABELS[code] ?? humanize(code);
+}
 
 function lawfulBasisLabel(value: unknown): string {
   const v = answerToString(value);
@@ -316,7 +348,7 @@ function collectTransfers(d: AssembledData): CrossBorderTransfer[] {
 
 function buildHtml(d: AssembledData): string {
   const lawList = d.jurisdictions
-    .map((j) => `<li>${escapeHtml(LAW_NAMES[j] ?? j)}</li>`)
+    .map((j) => `<li>${escapeHtml(lawLabel(j))}</li>`)
     .join("");
 
   const activitySections = d.activities
@@ -328,7 +360,7 @@ function buildHtml(d: AssembledData): string {
           <table class="kv">
             <tbody>
               <tr><th>Role</th><td>${escapeHtml(answerToString(ans.role ?? (d.profile?.is_controller ? "Controller" : d.profile?.is_processor ? "Processor" : "—")))}</td></tr>
-              <tr><th>Category</th><td>${escapeHtml(a.category)}</td></tr>
+              <tr><th>Category</th><td>${escapeHtml(categoryLabel(a.category))}</td></tr>
               <tr><th>Purpose</th><td>${escapeHtml(answerToString(ans.purpose))}</td></tr>
               <tr><th>Lawful basis</th><td>${escapeHtml(lawfulBasisLabel(ans.lawful_basis))}</td></tr>
               <tr><th>Special category basis</th><td>${escapeHtml(answerToString(ans.special_category_basis))}</td></tr>
@@ -383,7 +415,7 @@ function buildHtml(d: AssembledData): string {
 
   const transfers = collectTransfers(d);
   const transferTable = transfers.length === 0
-    ? `<p><em>No cross-border transfers recorded.</em></p>`
+    ? `<p><em>No cross-border transfers have been recorded in this draft. This statement cannot be confirmed as accurate until processor, recipient, and data destination fields have been completed for all processing activities.</em></p>`
     : `
       <table class="grid">
         <thead><tr>
@@ -465,7 +497,7 @@ function buildHtml(d: AssembledData): string {
   </header>
   <div class="body">
 
-  <p style="font-size: 13px; margin-top: 24px;">This record is maintained in accordance with Article 30 of the General Data Protection Regulation (EU) 2016/679 (GDPR) and, where applicable, Article 30 of the UK GDPR as retained by the Data Protection Act 2018. It documents all processing activities carried out by the controller and, where relevant, the processor.</p>
+  <p style="font-size: 13px; margin-top: 24px;">This record is maintained in accordance with Article 30 of the General Data Protection Regulation (EU) 2016/679 (GDPR) and, where applicable, Article 30 of the UK GDPR as retained by the Data Protection Act 2018. It is intended to document the processing activities carried out by the controller and, where relevant, the processor. <strong>This record must be reviewed and completed before it can be relied upon as a compliant Article 30 record.</strong></p>
 
   <h2>1. Client record</h2>
   <table class="kv">
@@ -479,14 +511,16 @@ function buildHtml(d: AssembledData): string {
         const orgName = (d.client?.name ?? "").trim().toLowerCase();
         const euRep = (d.profile?.eu_rep_name ?? "").trim();
         const ukRep = (d.profile?.uk_rep_name ?? "").trim();
-        const euSuppressed = euRep && euRep.toLowerCase() === orgName;
-        const ukSuppressed = ukRep && ukRep.toLowerCase() === orgName;
-        const euRow = euSuppressed
-          ? `<tr><th>EU representative</th><td>Not required — controller is established in the EEA (Art. 27)</td></tr>`
-          : `<tr><th>EU representative</th><td>${escapeHtml(euRep || "—")}${d.profile?.eu_rep_email ? ` &lt;${escapeHtml(d.profile.eu_rep_email)}&gt;` : ""}</td></tr>`;
-        const ukRow = ukSuppressed
-          ? `<tr><th>UK representative</th><td>Not required — controller is established in the UK (Art. 27)</td></tr>`
-          : `<tr><th>UK representative</th><td>${escapeHtml(ukRep || "—")}${d.profile?.uk_rep_email ? ` &lt;${escapeHtml(d.profile.uk_rep_email)}&gt;` : ""}</td></tr>`;
+        // EU representative: only required for non-EU-established controllers (GDPR Art. 27).
+        // If the field is blank/null, the controller has not designated a rep —
+        // either because they are EU-established (no obligation) or because they
+        // have not yet supplied one. Show a neutral "not designated" label either way.
+        const euRow = !euRep
+          ? `<tr><th>EU representative</th><td>Not designated — not required for EU/EEA-established controllers (GDPR Art. 27)</td></tr>`
+          : `<tr><th>EU representative</th><td>${escapeHtml(euRep)}${d.profile?.eu_rep_email ? ` &lt;${escapeHtml(d.profile.eu_rep_email)}&gt;` : ""}</td></tr>`;
+        const ukRow = !ukRep
+          ? `<tr><th>UK representative</th><td>Not designated — not required for UK-established controllers (UK GDPR Art. 27)</td></tr>`
+          : `<tr><th>UK representative</th><td>${escapeHtml(ukRep)}${d.profile?.uk_rep_email ? ` &lt;${escapeHtml(d.profile.uk_rep_email)}&gt;` : ""}</td></tr>`;
         return euRow + ukRow;
       })()}
       <tr><th>Jurisdictions</th><td>${escapeHtml(jurisdictionList(d.jurisdictions, true) || "—")}</td></tr>
@@ -509,6 +543,23 @@ function buildHtml(d: AssembledData): string {
   <p>This record was prepared by <strong>${escapeHtml(d.settings.authorName)}</strong> on <strong>${escapeHtml(d.settings.documentDate)}</strong>.
   It constitutes our Article 30 record of processing activities (Records of Processing Activities — RoPA) maintained under ${escapeHtml(jurisdictionList(d.jurisdictions) || "applicable law")}.
   We are committed to reviewing and updating this record at least annually.</p>
+  ${(() => {
+    const hasIncomplete = d.activities.some((a) => {
+      const ans = d.answersByActivity[a.id] ?? {};
+      const purpose = answerToString(ans["purpose"]);
+      const lawfulBasis = answerToString(ans["lawful_basis"]);
+      return purpose === "—" || lawfulBasis === "—";
+    });
+    if (hasIncomplete) {
+      return `
+        <div style="margin: 24px 0; padding: 14px 18px; background: #fff8e1; border: 2px solid #f59e0b; border-radius: 8px; font-size: 13px; color: #92400e;">
+          <strong>⚠ DRAFT — Required fields incomplete</strong><br/>
+          One or more processing activities are missing a purpose or lawful basis. This record does not yet satisfy the requirements of Article 30(1)(b) GDPR. Complete all required fields before signing or relying on this document.
+        </div>
+      `;
+    }
+    return "";
+  })()}
   <div class="signature">
     Signature: _____________________________ &nbsp;&nbsp; Date: _______________
   </div>
@@ -568,14 +619,15 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
   const orgNameForRepCheck = (d.client?.name ?? "").trim().toLowerCase();
   const euRepName = (d.profile?.eu_rep_name ?? "").trim();
   const ukRepName = (d.profile?.uk_rep_name ?? "").trim();
-  const euSuppressed = euRepName && euRepName.toLowerCase() === orgNameForRepCheck;
-  const ukSuppressed = ukRepName && ukRepName.toLowerCase() === orgNameForRepCheck;
-  const euRepValue = euSuppressed
-    ? "Not required — controller established in the EU/EEA (GDPR Art. 27 does not apply)"
-    : `${euRepName || "—"}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`;
-  const ukRepValue = ukSuppressed
-    ? "Not required — controller established in the UK (UK GDPR Art. 27 does not apply)"
-    : `${ukRepName || "—"}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`;
+  // EU/UK representative: blank field means not designated (Art. 27 only applies
+  // to non-EU/non-UK-established controllers, so blank is the correct state
+  // for most customers and should not show a dangling dash or placeholder).
+  const euRepValue = !euRepName
+    ? "Not designated — not required for EU/EEA-established controllers (GDPR Art. 27)"
+    : `${euRepName}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`;
+  const ukRepValue = !ukRepName
+    ? "Not designated — not required for UK-established controllers (UK GDPR Art. 27)"
+    : `${ukRepName}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`;
 
   const clientTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -609,7 +661,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [
           kvRow("Role", activityRole(ans, d.profile)),
-          kvRow("Category", a.category),
+          kvRow("Category", categoryLabel(a.category)),
           kvRow("Purpose", answerToString(ans.purpose)),
           kvRow("Lawful basis", lawfulBasisLabel(ans.lawful_basis)),
           kvRow("Special category basis", answerToString(ans.special_category_basis)),
@@ -662,7 +714,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
           new TableRow({
             children: [
               new TableCell({
-                children: [p("No cross-border transfers recorded.", { size: 18 })],
+                children: [p("No cross-border transfers recorded in this draft — transfer status cannot be confirmed until processor and recipient fields are completed.", { size: 18 })],
                 columnSpan: 5,
               }),
             ],
