@@ -661,7 +661,7 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [
           kvRow("Role", activityRole(ans, d.profile)),
-          kvRow("Category", a.category),
+          kvRow("Category", categoryLabel(a.category)),
           kvRow("Purpose", answerToString(ans.purpose)),
           kvRow("Lawful basis", lawfulBasisLabel(ans.lawful_basis)),
           kvRow("Special category basis", answerToString(ans.special_category_basis)),
