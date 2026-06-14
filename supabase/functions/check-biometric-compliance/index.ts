@@ -86,6 +86,21 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Wrap heavy work in a streaming response so the edge runtime's 150s
+    // request-idle timeout never trips — we write a single whitespace byte
+    // every 10s as a keep-alive, then the final JSON. JSON.parse() ignores
+    // leading whitespace so the caller's `await r.json()` still works.
+    const stream = new TransformStream();
+    const writer = stream.writable.getWriter();
+    const encoder = new TextEncoder();
+    const keepAlive = setInterval(() => {
+      writer.write(encoder.encode(" ")).catch(() => {});
+    }, 10000);
+
+    (async () => {
+      try {
+
+
     // Step 1 — enforcement context
     let enforcement_context: any[] = [];
     let enforcementMeta: any = { attempted: false };
