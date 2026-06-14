@@ -170,7 +170,7 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
           started_at: new Date().toISOString(),
         }).eq("id", batchId);
 
-        const WORKER_COUNT = 8;
+        const WORKER_COUNT = 12;
         for (let w = 0; w < WORKER_COUNT; w++) {
           await new Promise((r) => setTimeout(r, w * 800));
           invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
