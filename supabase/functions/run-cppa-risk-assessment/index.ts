@@ -376,11 +376,11 @@ OUTPUT SHAPE (every field required unless marked optional):
       "external_consultees": [{"role": "...", "name": "[FILL IN]"}]
     },
     "sec_10_governance": {
-      "statute": "Cal. Code Regs. tit. 11 §§ 7152(a)(9), 7155, 7156(c)",
+      "statute": "Cal. Code Regs. tit. 11 §§ 7152(a)(9), 7155, 7157(e)",
       "triennial_review_date": "ISO date",
       "material_change_commitment": "We will update this assessment within 45 days of a material change to the processing activity, per § 7155(a).",
       "retention_commitment": "This assessment will be retained for at least 5 years or for as long as the processing continues, whichever is longer, per § 7155(b).",
-      "production_commitment": "We will produce this assessment to the CPPA within 30 days of a written request, per § 7156(c).",
+      "production_commitment": "We will produce this assessment to the CPPA within 30 calendar days of a written request, per § 7157(e).",
       "approver": {"name": "from i8", "title": "from i8", "date": null}
     },
     "appendices": {
