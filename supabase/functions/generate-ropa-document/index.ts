@@ -131,8 +131,25 @@ function humanize(token: string): string {
   return token.replace(/_/g, " ");
 }
 
+const EU_EEA_MEMBER_STATE_NAMES: Record<string, string> = {
+  AT: "Austria",  BE: "Belgium",  BG: "Bulgaria",  HR: "Croatia",
+  CY: "Cyprus",   CZ: "Czech Republic", DK: "Denmark", EE: "Estonia",
+  FI: "Finland",  FR: "France",   DE: "Germany",  GR: "Greece",
+  HU: "Hungary",  IE: "Ireland",  IT: "Italy",    LV: "Latvia",
+  LT: "Lithuania", LU: "Luxembourg", MT: "Malta", NL: "Netherlands",
+  PL: "Poland",   PT: "Portugal", RO: "Romania",  SK: "Slovakia",
+  SI: "Slovenia", ES: "Spain",    SE: "Sweden",
+  NO: "Norway",   IS: "Iceland",  LI: "Liechtenstein",
+  GB: "Great Britain",
+  EU: "the European Union",
+};
+
 function lawLabel(j: string): string {
-  return LAW_NAMES[j] ?? humanize(j);
+  if (LAW_NAMES[j]) return LAW_NAMES[j];
+  if (EU_EEA_MEMBER_STATE_NAMES[j]) {
+    return `GDPR (Regulation (EU) 2016/679) as applicable in ${EU_EEA_MEMBER_STATE_NAMES[j]}`;
+  }
+  return humanize(j);
 }
 function lawLabelShort(j: string): string {
   return LAW_NAMES_SHORT[j] ?? humanize(j);
