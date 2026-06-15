@@ -21,6 +21,7 @@ type PresetConfig = {
   page_from?: number;
   page_to?: number;
   force_shape?: boolean;
+  force_rotation?: number | null;
 };
 
 const PDF = "https://cppa.ca.gov/regulations/pdf/";
