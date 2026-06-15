@@ -170,6 +170,9 @@ export default function ADMTChecker() {
   const [optOutConfirmationMechanism, setOptOutConfirmationMechanism] = useState("");
   const [optOutAppealProcess, setOptOutAppealProcess] = useState("");
   const [optOutFairnessDoc, setOptOutFairnessDoc] = useState("");
+  // Step 3 additions
+  const [optOut15DayProcess, setOptOut15DayProcess] = useState("");
+  const [optOutServiceProviderNotice, setOptOutServiceProviderNotice] = useState("");
 
   // Step 4
   const [accessSubmissionMethods, setAccessSubmissionMethods] = useState("");
