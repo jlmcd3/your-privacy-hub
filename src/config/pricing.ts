@@ -942,6 +942,7 @@ export const SMART_TOOL_KEYS = [
   'dpia',         // DPIA — necessity/proportionality vs enforcement corpus
   'cppa_risk',    // CPPA Risk Assessment — 5-stage CPPA analysis
   'cppa_cyber',   // CPPA Cybersecurity — 18-control gap analysis
+  'cppa_admt',    // ADMT Compliance Checker — Module 3 gap analysis
 ] as const;
 
 export type SmartToolKey = typeof SMART_TOOL_KEYS[number];
