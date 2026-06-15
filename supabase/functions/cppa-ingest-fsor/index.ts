@@ -111,6 +111,7 @@ interface UnitInput {
 
 async function tagUnit(u: UnitInput): Promise<{
   comment_summary: string;
+  agency_position_summary: string;
   regulation_citation: string;
   related_citations: string[];
   topic_tags: string[];
@@ -129,12 +130,13 @@ ${u.regulation_citation ? `KNOWN REGULATION CITATION: ${u.regulation_citation}` 
 
 Return JSON:
 {
-  "comment_summary": "ONE sentence (max 240 chars) summarising what the public comment asked for or argued. If no comment text provided, summarise what issue the Agency is addressing.",
+  "comment_summary": "ONE sentence (max 240 chars) summarising what the public comment asked for or argued. If no comment text, summarise what issue the Agency is addressing.",
+  "agency_position_summary": "2-3 sentences of plain English stating the Agency's own position on this issue. Focus ONLY on what the Agency decided, not what the commenter argued. Structure: (1) One sentence naming the regulatory issue (e.g. 'This addresses whether businesses must conduct risk assessments for behavioral advertising.'). (2) One or two sentences stating what the Agency ruled, retained, modified, or rejected — citing the final regulation where possible (e.g. 'The Agency retained the requirement under § 7150(b)(1), finding that selling or sharing personal information for advertising creates significant risk regardless of whether the data is sensitive.'). If the Agency partially accepted the comment, say so. Write for a compliance professional reading a summary card — not a legal brief.",
   "regulation_citation": "the PRIMARY regulation section this discusses, in form like '11 CCR § 7152' or '11 CCR § 7152(a)(3)'. If KNOWN REGULATION CITATION provided and accurate, use it. If multiple, pick the most central.",
   "related_citations": ["any OTHER regulation sections mentioned, in same format; else []"],
   "topic_tags": ["from this controlled list ONLY: consumer-rights, right-to-know, right-to-delete, right-to-correct, right-to-opt-out, opt-out-sale-sharing, opt-out-preference-signals, gpc, opt-out-link, sensitive-pi, limit-sensitive-pi, notice-at-collection, privacy-policy, notice-content, admt, significant-decision, profiling, pre-use-notice, risk-assessment, attestation, cybersecurity-audit, service-provider, contractor, third-party, contract-requirements, data-retention, data-minimisation, purpose-limitation, breach, private-right-of-action, enforcement, penalty, cure-period, thresholds, employee-data, verifiable-request, authorized-agent, financial-incentive, non-discrimination, definitions"]
 }`;
-  const txt = await callClaude(system, user, 500);
+  const txt = await callClaude(system, user, 700);
   let parsed: any = {};
   try { parsed = JSON.parse(stripFences(txt)); }
   catch {
@@ -149,6 +151,9 @@ Return JSON:
     : [];
   return {
     comment_summary: typeof parsed.comment_summary === "string" ? parsed.comment_summary.trim().slice(0, 280) : "",
+    agency_position_summary: typeof parsed.agency_position_summary === "string"
+      ? parsed.agency_position_summary.trim().slice(0, 800)
+      : "",
     regulation_citation: typeof parsed.regulation_citation === "string" && parsed.regulation_citation.trim()
       ? parsed.regulation_citation.trim()
       : (u.regulation_citation ?? ""),
