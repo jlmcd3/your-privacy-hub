@@ -71,6 +71,7 @@ type ReportRow = {
 const DRAFT_TOOL_MAP: Record<string, { route: string; labelKey: string }> = {
   cppa_risk: { route: "/cppa-risk-assessment", labelKey: "cppa_risk" },
   cppa_cybersecurity: { route: "/cppa-cybersecurity", labelKey: "cppa_cyber" },
+  cppa_admt: { route: "/cppa-admt-checker", labelKey: "cppa_admt" },
   dpia: { route: "/dpia-framework", labelKey: "dpia" },
   governance: { route: "/governance-assessment", labelKey: "governance" },
   lia: { route: "/li-assessment", labelKey: "li" },
