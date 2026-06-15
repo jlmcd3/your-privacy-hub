@@ -4,16 +4,18 @@
 // render-html-to-pdf so result pages can offer a high-fidelity Word download
 // built from the same HTML used for the PDF.
 //
-// Conversion uses `html-to-docx` (LGPL, open source, runs in Deno via
-// `npm:`). Word's OOXML can't perfectly reproduce HTML/CSS, but this is a
-// dramatic step up from the prior client-side marked→docx walker because
-// the conversion sees the actual rendered HTML (colors, headings, tables,
+// Conversion uses `@turbodocx/html-to-docx` — an actively-maintained fork
+// of the original `html-to-docx` that fixes Microsoft-Word-compatibility
+// issues (the upstream 1.8.0 package produces files Word refuses to open).
+// Word's OOXML can't perfectly reproduce HTML/CSS, but this is a dramatic
+// step up from the prior client-side marked→docx walker because the
+// conversion sees the actual rendered HTML (colors, headings, tables,
 // lists, links) instead of re-interpreting Markdown.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { marked } from "npm:marked@12";
-// html-to-docx is published as CommonJS — import default and call it.
-import HTMLtoDOCX from "npm:html-to-docx@1.8.0";
+import HTMLtoDOCX from "npm:@turbodocx/html-to-docx@1.13.0";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
