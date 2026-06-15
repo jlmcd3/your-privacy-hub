@@ -22,6 +22,7 @@ const SLUG_TO_TOOL_KEY: Record<string, string> = {
   "cppa-scope-checker": "cppa_scope",
   "cppa-risk-assessment": "cppa_risk",
   "cppa-cybersecurity": "cppa_cyber",
+  "cppa-admt-checker": "cppa_admt",
 };
 
 // ── Section types ─────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ const CPPA_TOOL_SLUGS = new Set([
   "cppa-scope-checker",
   "cppa-risk-assessment",
   "cppa-cybersecurity",
+  "cppa-admt-checker",
 ]);
 
 // Tools that are subscriber-only — never sold standalone, never per-use.
@@ -441,6 +443,25 @@ const TOOLS: ToolDef[] = [
       { label: "Encryption coverage", content: "Personal information is encrypted at rest in primary databases. Backups stored in third-party cloud storage are not encrypted at the application layer. Recommended: implement application-layer encryption for backups before next renewal cycle." },
     ],
   },
+  {
+    slug: "cppa-admt-checker",
+    section: "cppa",
+    icon: "🤖",
+    name: "ADMT Compliance Checker",
+    tagline: "Module 3 — pre-use notice, opt-out, and access right gap analysis for automated decisionmaking systems. January 1, 2027 deadline.",
+    href: "/cppa-admt-checker",
+    subscriberPrice: (PRICING.tools as any).cppa_admt?.display ?? "$49",
+    standalonePrice: (PRICING.tools as any).cppa_admt?.display ?? "$99",
+    body: [
+      "The CPPA's automated decisionmaking technology regulations take effect January 1, 2027. Businesses that use ADMT for significant decisions — credit, housing, education, employment, healthcare — must provide a pre-use notice, offer two opt-out methods (or qualify for a narrow exception), and respond to consumer access requests with plain-language information about the logic and outcome of the decision.",
+      "The ADMT Compliance Checker walks through one ADMT system at a time. Each answer updates a persistent Statute Rail showing the exact regulation text, the agency's reasoning in the Final Statement of Reasons, and enforcement notes. The output is a gap analysis — every finding cites the specific paragraph of 11 CCR §§ 7220–7222 it relates to, with a concrete remediation step.",
+      "Gap analysis for ADMT pre-use notices, opt-out obligations, and access rights. Cited to 11 CCR §§ 7200–7222. January 1, 2027 deadline.",
+    ],
+    sampleSections: [
+      { label: "Pre-use notice — sample gap", content: "§ 7220(c)(1): notice describes the purpose as 'to make a credit decision' — generic. Remediation: revise to name the specific decision, e.g. 'to score and approve or decline this loan application.'" },
+      { label: "Opt-out — sample gap", content: "§ 7221(c): only one opt-out method provided (email). Remediation: add a second method (interactive online form linked from the Pre-use Notice with the title 'Opt-out of Automated Decisionmaking Technology')." },
+    ],
+  },
 ];
 
 const PRICING_GRID: [string, string][] = [
@@ -457,6 +478,7 @@ const PRICING_GRID: [string, string][] = [
   ["CPPA Scope Checker", PRICING.tools.cppa_scope.display],
   ["CPPA Risk Assessment", `${PRICING.tools.cppa_risk.display} (Smart)`],
   ["CPPA Cybersecurity Audit", `${PRICING.tools.cppa_cyber.display} (Smart)`],
+  ["ADMT Compliance Checker", `${(PRICING.tools as any).cppa_admt?.display ?? '$99'} (Smart)`],
   ["Annual subscription bonus", "1 free Smart Tool run/year (Governance, LIA, or DPIA)"],
 ];
 
