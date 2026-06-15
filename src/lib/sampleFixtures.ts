@@ -682,6 +682,7 @@ export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_BIO_US,
   F_CPPA_RISK_US,
   F_CPPA_CYBER_US,
+  F_CPPA_ADMT_US,
   F_ROPA_EU,
   F_US_NOTICE,
   F_EU_NOTICE,
