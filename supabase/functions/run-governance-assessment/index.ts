@@ -163,17 +163,6 @@ Deno.serve(async (req) => {
         ...(orgName && !(assessment as any).organization_name ? { organization_name: orgName } : {}),
       }).eq("id", assessment_id);
 
-    if (stressRun) {
-      const reportData = buildStressGovernanceReport(assessment_id, intake);
-      await supabase.from("governance_assessments").update({
-        status: "complete",
-        report_data: reportData,
-        dpia_scope: reportData.dpia_scope,
-        updated_at: new Date().toISOString(),
-      }).eq("id", assessment_id);
-      return new Response(JSON.stringify({ success: true, assessment_id, status: "complete", stress_run: true }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
 
     // Dispatch heavy work in background — return 202 immediately so the caller
     // is not held open past the platform's 150s HTTP idle ceiling. Result page
