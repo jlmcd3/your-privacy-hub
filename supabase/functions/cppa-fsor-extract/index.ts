@@ -41,6 +41,19 @@ interface ExtractInput {
   force_shape?: boolean;
 }
 
+function fixOcrSpaces(text: string): string {
+  if (!text) return text;
+  let t = text.replace(/\s+/g, " ").trim();
+  t = t.replace(/\b([A-Za-z]) ([a-z]{2,})/g, "$1$2");
+  t = t.replace(/([a-z]{2,}) ([a-z])\b/g, "$1$2");
+  t = t.replace(/\b([A-Za-z]{2}) ([a-z])\b/g, (match, p1, p2) => {
+    const joined = p1 + p2;
+    const commonWords = new Set(["the","and","for","not","but","are","was","has","had","its","that","this","with","from","they","have","been","will","when","also","into","more","each","such","than","then","some","only","must","does","were","what","who","how","any","all","may","can"]);
+    return commonWords.has(joined.toLowerCase()) ? joined : match;
+  });
+  return t;
+}
+
 interface Unit {
   agency_response: string;
   comment_text?: string;
@@ -218,7 +231,7 @@ function extractFsor(
       const segStart = cuts[c].start;
       const segEnd = c + 1 < cuts.length ? cuts[c + 1].start : block.length;
       const rawSeg = block.slice(segStart, segEnd);
-      const seg = rawSeg.replace(/\u0001PG\d+\u0002/g, " ").replace(/\s+/g, " ").trim();
+      const seg = fixOcrSpaces(rawSeg.replace(/\u0001PG\d+\u0002/g, " "));
       if (!seg) continue;
       if (/^Non-substantial change/i.test(seg)) continue;
       if (seg.length < 40) continue;
@@ -301,8 +314,8 @@ function extractAppendix(
 
   function flush(continuation = false) {
     if (!cur) return;
-    const summary = cur.summary.replace(/\s+/g, " ").trim();
-    const response = cur.response.replace(/\s+/g, " ").trim();
+    const summary = fixOcrSpaces(cur.summary);
+    const response = fixOcrSpaces(cur.response);
     if (response.length < 40) {
       cur = null;
       return;
@@ -397,8 +410,8 @@ function extractAppendix2023(
 
   function flush(continuation = false) {
     if (!cur) return;
-    const summary = cur.summary.replace(/\s+/g, " ").trim();
-    const response = cur.response.replace(/\s+/g, " ").trim();
+    const summary = fixOcrSpaces(cur.summary);
+    const response = fixOcrSpaces(cur.response);
     const startPage = cur.startPage;
     cur = null;
     if (response.length < 40) return;
