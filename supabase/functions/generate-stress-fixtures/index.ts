@@ -521,6 +521,43 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       industry_sector: industry,
       controls: Object.fromEntries(["c1_auth", "c2_encryption", "c3_zero_trust", "c4_account_mgmt", "c5_inventory", "c7_vuln_mgmt", "c8_audit_logs", "c9_network_mon", "c10_anti_malware", "c14_third_party", "c15_retention", "c16_training", "c17_incident", "c18_continuity"].map((k) => [k, ["implemented", "Documented and reviewed"]])),
     },
+    cppaAdmt: /ai|fintech|hr|adtech/i.test(industry) ? {
+      system_name: /ai/i.test(industry) ? "AI Decisioning Engine" : /fintech/i.test(industry) ? "Credit Risk Scoring Model" : /hr/i.test(industry) ? "Candidate Screening System" : "Audience Segmentation Engine",
+      system_type: "ML model",
+      system_description: /ai/i.test(industry)
+        ? "Gradient-boosted ensemble that produces a risk score used to determine service eligibility and pricing tiers for California consumers."
+        : /fintech/i.test(industry)
+        ? "Logistic regression model trained on payment history, utilisation, and income proxies to produce a 0–850 creditworthiness score used for loan approval."
+        : /hr/i.test(industry)
+        ? "NLP-based resume parser and ranking model that scores applicants 0–100 for initial screening shortlists; human recruiter reviews all shortlisted candidates."
+        : "Collaborative-filtering model that assigns consumers to behavioural segments used for targeted advertising on third-party platforms.",
+      decision_domains: /ai/i.test(industry) ? ["service_eligibility"] : /fintech/i.test(industry) ? ["financial_services"] : /hr/i.test(industry) ? ["employment"] : ["advertising"],
+      human_review: /hr/i.test(industry) ? "Yes — recruiter reviews all shortlisted candidates before any employment decision" : "No — fully automated; opt-out suppresses scoring immediately",
+      training_data_use: "Yes",
+      profiling_use: "Yes",
+      notice_delivery: ["privacy_policy", "just_in_time"],
+      notice_has_specific_purpose: "Yes",
+      notice_purpose_text: "To assess eligibility and personalise your experience using automated analysis of your data.",
+      notice_has_opt_out_desc: "Yes",
+      notice_has_access_desc: "Yes",
+      notice_has_anti_retaliation: "Yes",
+      notice_has_how_it_works: "Yes",
+      notice_has_alternative_process: /hr/i.test(industry) ? "Yes" : "No",
+      opt_out_exception: "none",
+      opt_out_methods: ["webform", "email"],
+      opt_out_link_title: "Opt Out of Automated Decisions",
+      opt_out_no_cookie_banner: "Yes",
+      opt_out_no_account_required: "Yes",
+      opt_out_confirmation_mechanism: "Email confirmation within 24 hours",
+      opt_out_appeal_process: "Consumer may request human review within 30 days",
+      opt_out_fairness_doc: "",
+      access_submission_methods: "Webform at privacy.example.com/access-request",
+      access_verification_process: "Email verification plus last-4 of account identifier",
+      access_logic_disclosure: "Yes — plain-language description of inputs and weightings provided",
+      access_outcome_disclosure: "Yes — score and tier communicated at point of decision",
+      access_response_timeline: "45 days",
+      access_trade_secret_policy: "Proprietary model weights withheld; all other factors disclosed",
+    } : null,
     lia: null,
     dpia: null,
     ropa: null,
