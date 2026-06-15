@@ -231,6 +231,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       dpa_generator: "dpa_documents",
       ir_playbook: "ir_playbooks",
       biometric_checker: "biometric_assessments",
+      cppa_admt: "cppa_assessments",
     };
     const table = tableMap[tool_type];
     if (table) {
@@ -249,6 +250,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
         dpa_generator: "generate-dpa",
         ir_playbook: "generate-ir-playbook",
         biometric_checker: "check-biometric-compliance",
+        cppa_admt: "run-admt-checker",
       };
       const fn = fnMap[tool_type];
       if (fn) {
