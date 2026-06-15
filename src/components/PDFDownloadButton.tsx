@@ -18,6 +18,7 @@ type ToolType =
   | "dpia_framework"
   | "cppa_cybersecurity"
   | "cppa_risk"
+  | "cppa_admt"
   | "cppa_scope"
   | "registration_assessment"
   | "registration_document"
