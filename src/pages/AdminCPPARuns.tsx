@@ -47,6 +47,7 @@ export default function AdminCPPARuns() {
 
   const tierOf = (r: Row): string => {
     const rd = r.report_data || {};
+    if (r.module === "admt") return rd.overall_status || "—";
     if (r.module === "cybersecurity") return rd.readiness_level || "—";
     if (r.module === "risk_assessment") return rd.risk_level || rd.overall_risk || rd.risk_tier || "—";
     return "—";
