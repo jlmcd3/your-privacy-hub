@@ -391,7 +391,7 @@ OUTPUT SHAPE (every field required unless marked optional):
     },
     "appendices": {
       "a_data_flow": "textual data flow diagram",
-      "b_vendor_register": [{"vendor": "...", "role": "...", "pi_categories": [...]}],
+      "b_vendor_register": [{"vendor": "...", "role": "Service Provider / Contractor / Third Party", "pi_categories": [...], "purpose": "Brief description of why this vendor receives these PI categories (e.g., 'Cloud hosting and storage of user account data', 'Customer support ticket management')"}],
       "c_admt_note": null_or_object_when_ADMT,
       "d_spi_note": null_or_object_when_SPI,
       "e_dpia_gap_fill": null_or_object_when_i9_yes
