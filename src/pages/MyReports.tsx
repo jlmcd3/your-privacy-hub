@@ -90,6 +90,7 @@ const TOOL_LABEL: Record<string, string> = {
   eu_notice: "EU Privacy Notice",
   cppa_risk: "CPPA Risk Assessment",
   cppa_cyber: "CPPA Cybersecurity Audit",
+  cppa_admt: "ADMT Compliance Checker",
   cppa_scope: "CPPA Scope Check",
 };
 
