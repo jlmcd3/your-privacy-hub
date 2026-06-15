@@ -245,6 +245,8 @@ export default function CPPARiskAssessment() {
     i7_external_consultees: i7ExternalConsultees,
     i8_certifying_exec_name: i8ExecName,
     i8_certifying_exec_title: i8ExecTitle,
+    i8_contact_phone: i8ContactPhone,
+    i8_contact_email: i8ContactEmail,
     i9_has_existing_dpia: i9HasDpia,
     i9_existing_dpia_summary: i9DpiaSummary,
   }), [
