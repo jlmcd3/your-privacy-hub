@@ -61,7 +61,41 @@ const PRIVACY_TERMS: RegExp[] = [
 
 function isTitleRelevant(title: string): boolean {
   if (!title || title.length < 8) return false;
+  if (isAnnouncementNoise(title)) return false;
   return PRIVACY_TERMS.some((re) => re.test(title));
+}
+
+// Titles that describe regulator *announcements* rather than enforcement actions.
+// These pass isTitleRelevant() because they mention privacy topics, but they are
+// not enforcement actions and should not enter the enforcement_actions corpus.
+const ANNOUNCEMENT_EXCLUSION: RegExp[] = [
+  /\bboard\s+(meeting|session|agenda|minutes|vote)\b/i,
+  /\bpublic\s+(meeting|hearing|workshop|comment|forum|session)\b/i,
+  /\bcomment\s+period\b/i,
+  /\bopen\s+for\s+(public\s+)?comment\b/i,
+  /\bstakeholder\s+(meeting|session|workshop|forum|outreach)\b/i,
+  /\bnotice\s+of\s+(proposed\s+)?(rulemaking|regulation|rule)\b/i,
+  /\b(annual|quarterly)\s+(report|budget|plan)\b/i,
+  /\bstrategic\s+plan\b/i,
+  /\bappointment\s+of\b/i,
+  /\bwelcomes?\s+new\b/i,
+  /\b(executive\s+director|commissioner|chair(person)?|staff\s+director)\s+(appointed|named|joins|resigns|steps\s+down)\b/i,
+  /\brequest\s+for\s+(proposals?|information|qualifications)\b/i,
+  /\brfp\b/i,
+  /\bsave\s+the\s+date\b/i,
+  /\bwebinar\b/i,
+  /\bconference\s+(agenda|program|registration|proceedings)\b/i,
+  /\bnewsletter\b/i,
+  /\bopportunity\s+to\s+comment\b/i,
+  /\binvites?\s+(public\s+)?(comment|input|feedback)\b/i,
+  /\bseeks?\s+(public\s+)?(comment|input|feedback)\b/i,
+  /\bgrant\s+(award|program|funding|opportunity)\b/i,
+  /\bjob\s+(posting|opening|vacancy)\b/i,
+  /\bnow\s+hiring\b/i,
+];
+
+function isAnnouncementNoise(title: string): boolean {
+  return ANNOUNCEMENT_EXCLUSION.some((re) => re.test(title));
 }
 
 const SOURCES: SourceEntry[] = [
@@ -94,13 +128,13 @@ const SOURCES: SourceEntry[] = [
   { regulator: "Colorado AG", jurisdiction: "Colorado", law: "CPA", url: "https://coag.gov/press-releases/", source: "Colorado AG", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
 
   // ── Additional EU DPA news feeds (no RSS — Jina HTML scrape) ──
-  { regulator: "AEPD", jurisdiction: "Spain", law: "GDPR (Spain)", url: "https://www.aepd.es/en/notices", source: "AEPD News", sourceGroup: "core", monitorPages: 1, requireRelevance: false },
-  { regulator: "APD/GBA", jurisdiction: "Belgium", law: "GDPR (Belgium)", url: "https://www.dataprotectionauthority.be/citizen/news", source: "APD Belgium", sourceGroup: "core", monitorPages: 1, requireRelevance: false },
-  { regulator: "NAIH", jurisdiction: "Hungary", law: "GDPR (Hungary)", url: "https://www.naih.hu/en/news", source: "NAIH", sourceGroup: "core", monitorPages: 1, requireRelevance: false },
-  { regulator: "ANSPDCP", jurisdiction: "Romania", law: "GDPR (Romania)", url: "https://www.dataprotection.ro/?page=Noutati_en", source: "ANSPDCP", sourceGroup: "core", monitorPages: 1, requireRelevance: false },
+  { regulator: "AEPD", jurisdiction: "Spain", law: "GDPR (Spain)", url: "https://www.aepd.es/en/notices", source: "AEPD News", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
+  { regulator: "APD/GBA", jurisdiction: "Belgium", law: "GDPR (Belgium)", url: "https://www.dataprotectionauthority.be/citizen/news", source: "APD Belgium", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
+  { regulator: "NAIH", jurisdiction: "Hungary", law: "GDPR (Hungary)", url: "https://www.naih.hu/en/news", source: "NAIH", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
+  { regulator: "ANSPDCP", jurisdiction: "Romania", law: "GDPR (Romania)", url: "https://www.dataprotection.ro/?page=Noutati_en", source: "ANSPDCP", sourceGroup: "core", monitorPages: 1, requireRelevance: true },
 
   // ── US state regulators (Phase 1 — sourceGroup: "us_state") ──────
-  { regulator: "California Privacy Protection Agency (CPPA)", jurisdiction: "California", law: "CCPA / CPRA", url: "https://cppa.ca.gov/announcements/", source: "CPPA", sourceGroup: "us_state", monitorPages: 1 },
+  { regulator: "California Privacy Protection Agency (CPPA)", jurisdiction: "California", law: "CCPA / CPRA", url: "https://cppa.ca.gov/announcements/", source: "CPPA", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
   { regulator: "California Attorney General (CA AG)", jurisdiction: "California", law: "CCPA / CPRA", url: "https://oag.ca.gov/news/press-releases", source: "CA AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
   { regulator: "New York Attorney General (NY AG)", jurisdiction: "New York", law: "NY SHIELD / GBL 349", url: "https://ag.ny.gov/press-releases", source: "NY AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
   { regulator: "Connecticut Attorney General (CT AG)", jurisdiction: "Connecticut", law: "CTDPA", url: "https://portal.ct.gov/AG/Press-Releases", source: "CT AG", sourceGroup: "us_state", monitorPages: 1, requireRelevance: true },
