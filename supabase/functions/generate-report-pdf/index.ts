@@ -1083,10 +1083,10 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
         <tbody>${scorecardRows}</tbody></table>
         <p class="meta" style="margin-top:6px;font-size:10.5px;color:#5c5a54;">
           <strong>Score guide:</strong> 0–20 = Critical Gap (foundational control absent);
-          21–59 = Partial (control exists but material gaps remain);
+          21–59 = Gap or Partial (control absent or material gaps remain);
           60–89 = Implemented (control substantially in place, monitor and maintain);
-          90–100 = Mature.
-          <strong>Status labels:</strong> Critical Gap / Partial / Implemented reflect qualitative maturity, not a binary pass/fail.
+          90–100 = Mature (full implementation with documented evidence).
+          <strong>Status labels:</strong> Critical Gap / Gap / Partial / Implemented / Mature reflect qualitative maturity, not a binary pass/fail.
           Scores are based on the information provided in the intake; an independent auditor will conduct their own assessment.
         </p></section>`
     : "";
@@ -1096,14 +1096,20 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     if (s === "critical gap") return "critical";
     if (s === "gap") return "gap";
     if (s === "partial") return "partial";
+    if (s === "mature") return "mature";
     if (s === "implemented") return "compliant";
     return "neutral";
   };
 
   const intake = record?.intake_data || {};
-  const orgName = intake?.organizationName || intake?.profile?.organizationName || "";
+  const orgName: string =
+    intake?.organizationName ||
+    intake?.profile?.organizationName ||
+    intake?.company_name ||
+    intake?.org_name ||
+    "";
 
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Cybersecurity Audit</title>
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Cybersecurity Audit — Readiness Assessment</title>
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
   * { box-sizing:border-box; }
