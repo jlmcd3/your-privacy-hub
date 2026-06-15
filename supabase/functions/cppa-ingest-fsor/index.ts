@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
   for (let i = 0; i < units.length; i++) {
     const u = units[i];
     try {
-      const resp = (u.agency_response ?? "").trim();
+      const resp = fixOcrSpaces((u.agency_response ?? "").trim());
       if (resp.length < 40) {
         results.push({ index: i, status: "skipped", reason: "response_too_short" });
         skipped++;
