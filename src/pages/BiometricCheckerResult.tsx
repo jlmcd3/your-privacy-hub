@@ -18,6 +18,7 @@ import DownloadWordButton from "@/components/DownloadWordButton";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import ToolDisclaimer from "@/components/ToolDisclaimer";
 
 export default function BiometricCheckerResult() {
   const { id } = useParams();
@@ -43,8 +44,18 @@ export default function BiometricCheckerResult() {
 
   const report = (translated?.report_data ?? row?.report_data) || {};
   const sourceText = (translated?.analysis_text ?? row?.analysis_text) || report?.assessment_text;
-  const text = sourceText;
+  // Remove the repeated transitional sentence that appears between sections in
+  // older stress-generated outputs.
+  const text = sourceText
+    ? sourceText.replace(
+        /Biometric identity verification creates elevated regulatory and litigation exposure unless consent, retention, and vendor controls are provable\.\s*/gi,
+        ""
+      )
+    : sourceText;
   const bipaRisk = report?.bipa_risk;
+
+  const orgName = (row?.intake_data as any)?.orgName || (row?.intake_data as any)?.organizationName || null;
+  const orgType = (row?.intake_data as any)?.orgType || null;
 
   const meta = row && (
     <>
@@ -125,8 +136,19 @@ export default function BiometricCheckerResult() {
             actions={actions}
           >
             <div dir={dir} style={{ display: "contents" }}>
+            {(orgName || orgType) && (
+              <div className="mb-6 px-4 py-3 bg-slate-50 border border-border rounded-lg text-sm text-foreground">
+                {orgName && (
+                  <div><span className="font-medium text-brand-navy">Prepared for:</span> {orgName}</div>
+                )}
+                {orgType && (
+                  <div className="text-muted-foreground mt-0.5">{orgType}</div>
+                )}
+              </div>
+            )}
             <AssessmentReport text={text || ""} sectionChipLabel={null} />
             {bipaCallout}
+            <ToolDisclaimer addition="Biometric data obligations vary by jurisdiction, sector, and specific processing context. Applicability determinations — including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing — require qualified legal counsel in each named jurisdiction." />
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
               variant="standard"
