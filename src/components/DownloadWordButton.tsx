@@ -427,9 +427,40 @@ export default function DownloadWordButton({ text, label, subtitle, className, b
       return;
     }
     setBusy(true);
+
+    // 1) Preferred path: server-rendered HTML → DOCX. The backend converter
+    //    sees real HTML (headings, tables, lists, links, colors), which Word
+    //    can reproduce far more faithfully than the prior markdown→docx
+    //    walker. If the edge function fails for any reason, fall back to the
+    //    local generator below so downloads never break.
+    try {
+      const html = marked.parse(text, { gfm: true, breaks: false, async: false }) as string;
+      const { data, error } = await supabase.functions.invoke("render-html-to-docx", {
+        body: { html, title: label, subtitle },
+      });
+      if (error) throw error;
+      if (data?.docx_url) {
+        const a = document.createElement("a");
+        a.href = data.docx_url;
+        a.download = `${label.replace(/\s+/g, "-")}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        toast.success("Word document downloaded.");
+        setBusy(false);
+        return;
+      }
+      throw new Error(data?.error || "No DOCX returned");
+    } catch (serverErr) {
+      console.warn("[DownloadWord] server render failed, falling back to client:", serverErr);
+    }
+
+    // 2) Fallback: original client-side marked → docx generator.
     try {
       // Lex Markdown into an AST. gfm:true gives us tables + strikethrough.
       const tokens = marked.lexer(text, { gfm: true, breaks: false }) as Tokens.Generic[];
+
+
 
       const refOrdered = "eup-ordered";
       const refBullet = "eup-bullet";
