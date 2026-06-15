@@ -291,6 +291,14 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     }
   ],
 
+  "aggregate_access_response": {
+    "applicable": "true | false | 'cannot_determine'",
+    "threshold": "More than four access requests from the same consumer within a 12-month period (§ 7222(j))",
+    "explanation": "If prior_access_requests_12mo was provided and exceeds 4, explain that the business may respond with aggregate-level logic and output summaries rather than individualized responses. If not provided or below threshold, state that § 7222(j) does not yet apply and explain the threshold. If cannot_determine, note that the business should track access request frequency to evaluate this option.",
+    "what_aggregate_response_may_include": "If applicable, note that the aggregate response may include aggregate-level summaries of the ADMT's logic and outputs, but must still include the specific purpose (§ 7222(b)(1)), and the business must still respond to the other required elements of § 7222. The aggregate option is specifically for the logic and output disclosures under § 7222(b)(2)-(3), not a complete exemption from responding.",
+    "operational_note": "If applicable, recommend that the business document which consumers have triggered the four-request threshold and maintain a log to support the aggregate response decision."
+  },
+
   "priority_actions": [
     "Numbered action item with specific deadline where known. Based only on gaps identified above."
   ],
