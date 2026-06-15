@@ -1056,6 +1056,9 @@ export default function ADMTChecker() {
                         ["Access — outcome disclosure", accessOutcomeDisclosure],
                         ["Access response timeline", accessResponseTimeline],
                         ...(accessTradeSecretPolicy ? [["Trade secret policy", accessTradeSecretPolicy]] : []),
+                        ...(caConsumerCount ? [["CA consumers (approx.)", caConsumerCount]] : []),
+                        ...(thirdPartyAdmt ? [["Third-party ADMT tools", thirdPartyAdmt]] : []),
+                        ...(optOut15DayProcess ? [["15-day opt-out process", optOut15DayProcess]] : []),
                       ] as [string, string][]
                     )
                       .filter(([, v]) => v)
