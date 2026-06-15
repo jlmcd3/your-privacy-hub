@@ -907,7 +907,12 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   const s10 = a.sec_10_governance || {};
   const app = a.appendices || {};
   const vendorRows = (Array.isArray(app.b_vendor_register) ? app.b_vendor_register : [])
-    .map((v: any) => `<tr><td style="padding:4px 10px;border:1px solid #e6e3da;">${text(v.vendor)}</td><td style="padding:4px 10px;border:1px solid #e6e3da;">${text(v.role)}</td><td style="padding:4px 10px;border:1px solid #e6e3da;">${Array.isArray(v.pi_categories) ? v.pi_categories.map((c: any) => text(c)).join(", ") : text(v.pi_categories)}</td></tr>`)
+    .map((v: any) => `<tr>
+      <td style="padding:4px 10px;border:1px solid #e6e3da;">${text(v.vendor)}</td>
+      <td style="padding:4px 10px;border:1px solid #e6e3da;">${text(v.role)}</td>
+      <td style="padding:4px 10px;border:1px solid #e6e3da;">${Array.isArray(v.pi_categories) ? v.pi_categories.map((c: any) => text(c)).join(", ") : text(v.pi_categories)}</td>
+      <td style="padding:4px 10px;border:1px solid #e6e3da;">${text(v.purpose ?? "")}</td>
+    </tr>`)
     .join("");
   const gatingBlock = gating.ready_for_signoff
     ? `<div class="callout" style="border-left-color:#1e6b3c;background:#eafaf1;"><p class="label">Ready for sign-off</p><p>All automated completeness checks passed. The certifying executive must still review and record the decision in § 8.</p></div>`
