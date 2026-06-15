@@ -350,6 +350,16 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       await pollCppa(admin, rec.id);
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
     }
+    case "cppa-admt": {
+      const { data: rec, error } = await admin.from("cppa_assessments").insert({
+        user_id: userId, module: "admt", status: "pending", intake_data: intake,
+      }).select("id").single();
+      if (error || !rec) throw new Error(`cppa-admt insert: ${error?.message}`);
+      await invokeFn("run-admt-checker", { assessment_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-admt-checker trigger failed (will poll):", e));
+      await pollCppa(admin, rec.id);
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+    }
     case "registration": {
       const assess = await invokeFn("run-registration-assessment", {
         intake_data: intake, user_id: userId,
