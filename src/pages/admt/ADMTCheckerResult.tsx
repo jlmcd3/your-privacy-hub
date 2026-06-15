@@ -412,6 +412,64 @@ export default function ADMTCheckerResult() {
           </section>
         )}
 
+        {report.consolidated_notice_analysis && (
+          <section className="space-y-3">
+            <h3 className="font-serif text-lg">Consolidated Notice Eligibility</h3>
+            <div className={`rounded-lg border p-4 space-y-3 ${
+              report.consolidated_notice_analysis.applicable
+                ? "border-[hsl(var(--cobalt)/0.3)] bg-[hsl(var(--cobalt)/0.04)]"
+                : "bg-card"
+            }`}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                  report.consolidated_notice_analysis.applicable
+                    ? "bg-[hsl(var(--cobalt)/0.15)] text-[hsl(var(--cobalt))]"
+                    : "bg-muted text-muted-foreground"
+                }`}>
+                  {report.consolidated_notice_analysis.applicable
+                    ? "Consolidation eligible — § 7220(e)"
+                    : "Not applicable to this deployment"}
+                </span>
+              </div>
+
+              {report.consolidated_notice_analysis.basis && (
+                <p className="text-[12px] leading-relaxed">
+                  <strong>Basis:</strong> {report.consolidated_notice_analysis.basis}
+                </p>
+              )}
+
+              {report.consolidated_notice_analysis.applicable && (
+                <>
+                  {report.consolidated_notice_analysis.consolidation_benefit && (
+                    <div className="rounded-md bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-200 px-3 py-2">
+                      <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wide mb-0.5">Benefit</p>
+                      <p className="text-[12px] leading-relaxed">{report.consolidated_notice_analysis.consolidation_benefit}</p>
+                    </div>
+                  )}
+                  {report.consolidated_notice_analysis.conditions_to_consolidate && (
+                    <div className="rounded-md bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200 px-3 py-2">
+                      <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide mb-0.5">Required conditions</p>
+                      <p className="text-[12px] leading-relaxed">{report.consolidated_notice_analysis.conditions_to_consolidate}</p>
+                    </div>
+                  )}
+                  {report.consolidated_notice_analysis.consolidation_risk && (
+                    <div className="rounded-md bg-red-50/30 dark:bg-red-950/10 border border-red-100 px-3 py-2">
+                      <p className="text-[11px] font-semibold text-red-700 uppercase tracking-wide mb-0.5">Compliance trap</p>
+                      <p className="text-[12px] leading-relaxed">{report.consolidated_notice_analysis.consolidation_risk}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {report.consolidated_notice_analysis.recommendation && (
+                <p className="text-[12px] text-muted-foreground italic border-l-2 border-muted-foreground/30 pl-3">
+                  {report.consolidated_notice_analysis.recommendation}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
+
         {report.enforcement_context && (
           <section className="space-y-3">
             <h3 className="font-serif text-lg">Enforcement Exposure</h3>
@@ -531,6 +589,59 @@ export default function ADMTCheckerResult() {
             </div>
           </section>
         )}
+
+        {report.aggregate_access_response && (
+          <section className="space-y-3">
+            <h3 className="font-serif text-lg">Aggregate Access Response Option</h3>
+            <div className={`rounded-lg border p-4 space-y-3 ${
+              report.aggregate_access_response.applicable === true
+                ? "border-[hsl(var(--cobalt)/0.3)] bg-[hsl(var(--cobalt)/0.04)]"
+                : "bg-card"
+            }`}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                  report.aggregate_access_response.applicable === true
+                    ? "bg-[hsl(var(--cobalt)/0.15)] text-[hsl(var(--cobalt))]"
+                    : report.aggregate_access_response.applicable === "cannot_determine"
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-muted text-muted-foreground"
+                }`}>
+                  {report.aggregate_access_response.applicable === true
+                    ? "Threshold met — aggregate response available"
+                    : report.aggregate_access_response.applicable === "cannot_determine"
+                    ? "Threshold unknown — monitor request frequency"
+                    : "Below threshold — individualized response required"}
+                </span>
+                <span className="font-mono text-[11px] text-muted-foreground">11 CCR § 7222(j)</span>
+              </div>
+
+              {report.aggregate_access_response.threshold && (
+                <p className="text-[12px] text-muted-foreground">
+                  <strong>Threshold:</strong> {report.aggregate_access_response.threshold}
+                </p>
+              )}
+
+              {report.aggregate_access_response.explanation && (
+                <p className="text-[12px] leading-relaxed">{report.aggregate_access_response.explanation}</p>
+              )}
+
+              {report.aggregate_access_response.applicable === true && report.aggregate_access_response.what_aggregate_response_may_include && (
+                <div className="rounded-md bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200 px-3 py-2">
+                  <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide mb-0.5">Scope of aggregate option</p>
+                  <p className="text-[12px] leading-relaxed">{report.aggregate_access_response.what_aggregate_response_may_include}</p>
+                </div>
+              )}
+
+              {report.aggregate_access_response.applicable === true && report.aggregate_access_response.operational_note && (
+                <p className="text-[12px] text-muted-foreground italic border-l-2 border-muted-foreground/30 pl-3">
+                  {report.aggregate_access_response.operational_note}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
+
+
 
         <p className="text-xs text-muted-foreground italic">
           All citations refer to the California Privacy Protection Agency's final regulations (11 CCR Article 11). Official text:{" "}

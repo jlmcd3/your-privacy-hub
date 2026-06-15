@@ -146,6 +146,10 @@ ANALYTICAL STANDARDS:
 
 6. RISK ASSESSMENT OBLIGATION: Produce a detailed risk_assessment_obligation object (not a one-sentence note) covering the specific statutory triggers, the applicable compliance deadline, and the submission requirement. Base all claims solely on what appears in the REGULATION AUTHORITIES block.
 
+7. CONSOLIDATED NOTICE (§ 7220(e)): Analyze whether the business could benefit from providing a consolidated Pre-Use Notice. Four scenarios permit consolidation: (1) one ADMT for multiple purposes; (2) multiple ADMTs for one purpose; (3) multiple ADMTs for multiple purposes; (4) systematic use of a single ADMT. This is a benefit, not an obligation. Always note the mandatory condition: the consolidated notice must include all required § 7220(c) elements for each system or use covered. Produce the consolidated_notice_analysis field in all cases — mark applicable:false with a brief explanation if a single-system/single-purpose deployment makes it irrelevant.
+
+8. AGGREGATE ACCESS RESPONSE (§ 7222(j)): Note this option if prior_access_requests_12mo exceeds 4 in the intake, or flag it as a threshold to monitor if the count is not provided. This is an option, not a requirement — the business may still provide individualized responses even above the threshold. Clarify that aggregate responses under § 7222(j) apply specifically to the logic and output disclosures; other § 7222 elements (specific purpose, verification, anti-retaliation notice) still apply.
+
 Return ONLY valid JSON — no markdown, no preamble.`;
 
     const userPrompt = `Analyze this business's ADMT compliance and produce a gap report.
@@ -159,6 +163,8 @@ HUMAN REVIEW: ${intake.human_review}
 TRAINS ADMT ON PI: ${intake.training_data_use}
 PROFILING USE: ${intake.profiling_use}
 THIRD-PARTY ADMT TOOLS IN USE: ${intake.third_party_admt || "(none disclosed)"}
+NUMBER OF DISTINCT ADMT SYSTEMS THIS BUSINESS OPERATES: ${intake.admt_system_count || "(not specified — assume single system)"}
+PRIOR ACCESS REQUESTS FROM THIS CONSUMER (ESTIMATED, 12-MONTH PERIOD): ${intake.prior_access_requests_12mo || "(not tracked)"}
 
 PRE-USE NOTICE:
 - Delivery method(s): ${(intake.notice_delivery ?? []).join("; ")}
@@ -218,6 +224,15 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "summary": "3-4 sentence plain-language scope conclusion that incorporates the reasoning above."
   },
 
+  "consolidated_notice_analysis": {
+    "applicable": true | false,
+    "basis": "State which of the four § 7220(e) consolidation scenarios applies, if any: (1) one ADMT for multiple purposes; (2) multiple ADMTs for one purpose; (3) multiple ADMTs for multiple purposes; (4) systematic use of a single ADMT. Only mark applicable:true if the intake describes multiple ADMT systems OR multiple uses of a single ADMT that could be consolidated. If the business operates a single ADMT for a single purpose, mark applicable:false and explain why consolidation is irrelevant here.",
+    "conditions_to_consolidate": "If applicable:true, list the mandatory conditions the consolidated notice must satisfy: it must include ALL required § 7220(c) elements for EACH ADMT system or use covered. Generic or combined descriptions that obscure individual system requirements do not satisfy this.",
+    "consolidation_benefit": "If applicable:true, briefly describe the operational benefit (e.g., 'A single notice can cover both the credit scoring model and the fraud detection system, reducing notice delivery touchpoints from two to one').",
+    "consolidation_risk": "If applicable:true, describe the compliance trap: a consolidated notice that omits required elements for any one system is non-compliant for that system. The business cannot use consolidation to simplify away disclosure obligations.",
+    "recommendation": "One plain-language sentence: either 'Consolidation not applicable — single ADMT/single purpose detected' or 'Consolidation eligible — recommend reviewing § 7220(e) conditions with counsel before consolidating.'"
+  },
+
   "enforcement_context": {
     "penalty_per_violation_unintentional": 2663,
     "penalty_per_violation_intentional": 7988,
@@ -275,6 +290,14 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
       "citation": "Regulatory basis — only cite sections from the AUTHORITIES block"
     }
   ],
+
+  "aggregate_access_response": {
+    "applicable": "true | false | 'cannot_determine'",
+    "threshold": "More than four access requests from the same consumer within a 12-month period (§ 7222(j))",
+    "explanation": "If prior_access_requests_12mo was provided and exceeds 4, explain that the business may respond with aggregate-level logic and output summaries rather than individualized responses. If not provided or below threshold, state that § 7222(j) does not yet apply and explain the threshold. If cannot_determine, note that the business should track access request frequency to evaluate this option.",
+    "what_aggregate_response_may_include": "If applicable, note that the aggregate response may include aggregate-level summaries of the ADMT's logic and outputs, but must still include the specific purpose (§ 7222(b)(1)), and the business must still respond to the other required elements of § 7222. The aggregate option is specifically for the logic and output disclosures under § 7222(b)(2)-(3), not a complete exemption from responding.",
+    "operational_note": "If applicable, recommend that the business document which consumers have triggered the four-request threshold and maintain a log to support the aggregate response decision."
+  },
 
   "priority_actions": [
     "Numbered action item with specific deadline where known. Based only on gaps identified above."
