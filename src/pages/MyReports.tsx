@@ -397,11 +397,35 @@ export default function MyReports() {
         });
       });
 
+      // Build a map of completed CPPA assessments per draft tool_type so we
+      // can hide stale autosave drafts whose run has already been generated.
+      const cppaModuleLatest: Record<string, number> = {};
+      (cppa.data || []).forEach((r: any) => {
+        if (r.status !== "complete" && !r.report_data) return;
+        const key =
+          r.module === "cybersecurity" ? "cppa_cybersecurity" :
+          r.module === "admt" ? "cppa_admt" :
+          r.module === "risk_assessment" ? "cppa_risk" : null;
+        if (!key) return;
+        const ts = new Date(r.created_at).getTime();
+        if (!cppaModuleLatest[key] || ts > cppaModuleLatest[key]) {
+          cppaModuleLatest[key] = ts;
+        }
+      });
+
       // Drafts from tool_sessions (autosave). Skip drafts whose tool_type
       // doesn't have a known intake route — they'd be unresumable.
+      const staleDraftIds: string[] = [];
       (drafts.data || []).forEach((r: any) => {
         const map = DRAFT_TOOL_MAP[r.tool_type as string];
         if (!map) return;
+        // Hide CPPA drafts that already have a completed run created at or
+        // after the draft — the autosave is just orphaned intake state.
+        const completedTs = cppaModuleLatest[r.tool_type as string];
+        if (completedTs && completedTs >= new Date(r.created_at).getTime()) {
+          staleDraftIds.push(r.id);
+          return;
+        }
         const baseLabel = TOOL_LABEL[map.labelKey] || r.tool_type;
         const orgGuess =
           r.session_data?.organisation_name ||
@@ -425,6 +449,16 @@ export default function MyReports() {
           is_draft: true,
         });
       });
+
+      // Fire-and-forget cleanup: mark orphaned drafts completed so they don't
+      // reappear on next load and the unique active-draft index frees up.
+      if (staleDraftIds.length > 0) {
+        supabase
+          .from("tool_sessions" as any)
+          .update({ completed: true })
+          .in("id", staleDraftIds)
+          .then(() => {}, () => {});
+      }
 
 
 
