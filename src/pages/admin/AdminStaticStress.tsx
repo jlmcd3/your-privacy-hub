@@ -69,7 +69,7 @@ const TOOL_FIXTURE_KEY: Record<string, string> = {
   "lia": "lia", "dpia": "dpia", "governance": "governance",
   "biometric": "biometric", "dpa": "dpa", "ir-playbook": "irPlaybook",
   "ropa": "ropa", "us-notice": "usNotice", "eu-notice": "euNotice",
-  "cppa-risk": "cppaRisk", "cppa-cyber": "cppaCyber", "registration": "registration",
+  "cppa-risk": "cppaRisk", "cppa-cyber": "cppaCyber", "cppa-admt": "cppaAdmt", "registration": "registration",
 };
 
 type Batch = {
