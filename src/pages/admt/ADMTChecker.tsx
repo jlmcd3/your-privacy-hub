@@ -841,6 +841,26 @@ export default function ADMTChecker() {
                         />
                       </div>
 
+                      {provideOptOut && (
+                        <div>
+                          <Label>
+                            Operational opt-out process: how do you action an opt-out request within 15 business days?
+                          </Label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            § 7221(e)–(g) requires you to cease ADMT processing for that consumer within 15 business days of receiving an opt-out request, AND notify all service providers and contractors to do the same. Describe your process.
+                          </p>
+                          <Textarea
+                            className="mt-2"
+                            rows={3}
+                            value={optOut15DayProcess}
+                            onChange={(e) => setOptOut15DayProcess(e.target.value)}
+                            placeholder="e.g. Opt-out requests are logged in [system] by [team]. A suppression flag is set in [system] within [X] days. Service providers [list] are notified via [method] within [Y] days. Process documented in [document name]."
+                          />
+                        </div>
+                      )}
+
+
+
                       <div className="rounded-md border p-4 space-y-3 bg-muted/20">
                         <p className="text-[12px] font-semibold">Confirm opt-out process compliance</p>
                         <div>
