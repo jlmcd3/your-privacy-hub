@@ -123,32 +123,42 @@ Deno.serve(async (req) => {
           .join("\n")
       : "(none)";
 
-    const system = `You are a senior California privacy compliance attorney producing a formal ADMT compliance assessment under CPPA final regulations (11 CCR Article 11, §§ 7200–7222, effective January 1, 2027).
+    const system = `You are a senior California privacy compliance attorney producing a formal ADMT compliance assessment under CPPA final regulations (11 CCR Article 11, §§ 7200–7222). The compliance deadline for businesses already using ADMT is January 1, 2027 (11 CCR § 7200(b)).
 
-This assessment will be reviewed by in-house counsel and may be shared with outside legal advisors. It must meet a law-firm standard: every conclusion must show its reasoning; every gap must identify the specific regulatory text violated; every exception claim must be tested against statutory requirements, not just accepted.
+CITATION RULES — CRITICAL:
+- Only use citations drawn from the REGULATION AUTHORITIES block provided in the user message.
+- If no authority in that block supports a finding, omit the citation rather than fabricating one.
+- All citations must be in the format "11 CCR § XXXX(x)" using the exact section numbers provided.
+- Do not cite any statute, code section, or regulation that does not appear in the REGULATION AUTHORITIES block.
 
 ANALYTICAL STANDARDS:
-1. Scope analysis must show REASONING, not just conclusions. For each trigger, explain specifically why the system description does or does not meet the statutory definition. Quote relevant elements of the system description in your reasoning.
-2. Exception qualification: if the user claims a § 7221(b) exception, analyze whether the facts they described actually satisfy the statutory requirements. A user who claims the human appeal exception but describes a reviewer who cannot override the output does NOT qualify — say so explicitly. A fairness exception that lacks documented disparity testing does NOT qualify — say so explicitly. Be direct: this is legal analysis, not customer service.
-3. Enforcement exposure: for each Missing or Gap item, include an enforcement_exposure field estimating per-violation exposure ($2,663 unintentional / $7,988 intentional per Cal. Civ. Code § 1798.155(a)) and note that the CPPA's technology team actively scans for ADMT non-compliance without requiring a consumer complaint.
-4. Operational gaps: test not just notice content but operational process. A business with an opt-out link but no documented 15-business-day compliance process has a gap under § 7221(e)–(g).
-5. Third-party ADMT: if third-party tools are listed, note that the business remains the responsible party under CCPA regardless of whether the ADMT is proprietary or licensed.
-6. Risk assessment obligation: produce a detailed risk_assessment_obligation section (not just a one-line note) that states the specific triggers, deadlines, attestation requirement, and executive certification requirement.
-7. Documentation requirements: produce a documentation_checklist array listing what the business must be able to produce to the CPPA on demand.
+1. SCOPE REASONING: For each scope trigger, show the specific reasoning drawn from the system description provided. Do not just output true/false — explain which facts satisfy or fail to satisfy the statutory definition. Quote relevant parts of the system description.
+
+2. EXCEPTION QUALIFICATION: If the business claims a § 7221(b) exception, analyze whether the specific facts they described actually satisfy the statutory requirements:
+   - Human appeal exception (§ 7221(b)(1)): The designated reviewer must (A) know how to interpret the output, (B) review the output plus any information the consumer provides, AND (C) have the authority to change the decision. All three elements must be present. A reviewer who "cannot override the output" fails element (C). A reviewer who "sees the output but cannot change it" fails element (C). Be direct: if the facts described do not satisfy all three elements, state that the exception is NOT established.
+   - Employment/education exception (§ 7221(b)(2)-(3)): The ADMT must be used SOLELY to assess ability to perform at work or in an educational program, AND must not unlawfully discriminate based on protected characteristics. The non-discrimination condition requires documented evidence — a claim without described testing does not satisfy it.
+
+3. OPERATIONAL GAP — 15-BUSINESS-DAY PROCESS: Test whether the business has a documented operational process to comply with § 7221(n)(1): ceasing ADMT processing within 15 business days of an opt-out request AND notifying all service providers and contractors under § 7221(n)(2). If the "15-business-day opt-out process" field is blank or says "(not described)", flag this as an operational gap in opt_out_gaps.
+
+4. THIRD-PARTY ADMT: If third-party tools are listed, note in the scope analysis that the business remains the CCPA-responsible "business" for ADMT compliance purposes even when using vendor-supplied tools. The obligation to provide the Pre-use Notice, the opt-out mechanism, and the access right applies to the business, not to the vendor.
+
+5. ENFORCEMENT CONTEXT: For gap and missing items, note the per-violation penalty exposure under Cal. Civ. Code § 1798.155(a): $2,663 per violation (unintentional) or $7,988 per intentional violation (2025-2026 CPI-adjusted figures). Where ca_consumer_count is provided, note that each affected consumer may constitute a separate violation.
+
+6. RISK ASSESSMENT OBLIGATION: Produce a detailed risk_assessment_obligation object (not a one-sentence note) covering the specific statutory triggers, the applicable compliance deadline, and the submission requirement. Base all claims solely on what appears in the REGULATION AUTHORITIES block.
 
 Return ONLY valid JSON — no markdown, no preamble.`;
 
-    const userPrompt = `Produce a formal ADMT compliance assessment for this business.
+    const userPrompt = `Analyze this business's ADMT compliance and produce a gap report.
 
 ADMT SYSTEM: ${intake.system_name}
-SYSTEM TYPE: ${intake.system_type || "(not provided)"}
+SYSTEM TYPE: ${intake.system_type || "(not specified)"}
 DESCRIPTION: ${intake.system_description}
-CALIFORNIA CONSUMERS PROCESSED ANNUALLY: ${intake.ca_consumer_count || "(not provided)"}
+CALIFORNIA CONSUMERS PROCESSED ANNUALLY (APPROX.): ${intake.ca_consumer_count || "(not provided)"}
 DECISION DOMAINS: ${(intake.decision_domains ?? []).join("; ")}
 HUMAN REVIEW: ${intake.human_review}
 TRAINS ADMT ON PI: ${intake.training_data_use}
 PROFILING USE: ${intake.profiling_use}
-THIRD-PARTY ADMT TOOLS: ${intake.third_party_admt || "(none disclosed)"}
+THIRD-PARTY ADMT TOOLS IN USE: ${intake.third_party_admt || "(none disclosed)"}
 
 PRE-USE NOTICE:
 - Delivery method(s): ${(intake.notice_delivery ?? []).join("; ")}
@@ -167,9 +177,9 @@ OPT-OUT:
 - Not relying on cookie banner only: ${intake.opt_out_no_cookie_banner}
 - No account creation required to opt out: ${intake.opt_out_no_account_required}
 - Confirmation mechanism: ${intake.opt_out_confirmation_mechanism}
-- Appeal/human review process (if claiming human appeal exception): ${intake.opt_out_appeal_process || "(not described)"}
-- Fairness/non-discrimination testing (if claiming employment/education exception): ${intake.opt_out_fairness_doc || "(not described)"}
-- 15-business-day opt-out compliance process: ${intake.opt_out_15_day_process || "(not described — operational gap)"}
+- Appeal process: ${intake.opt_out_appeal_process || "(not applicable)"}
+- Fairness documentation: ${intake.opt_out_fairness_doc || "(not applicable)"}
+- 15-business-day opt-out process documented: ${intake.opt_out_15_day_process || "(not described — operational gap)"}
 
 ACCESS RIGHT:
 - Submission methods: ${intake.access_submission_methods}
@@ -185,7 +195,7 @@ ${authBlock}
 COMPLIANCE DEADLINES:
 ${deadlineBlock}
 
-Return this JSON structure:
+Return this JSON structure exactly. Do not add fields not listed here. Do not omit required fields.
 {
   "system_name": "${intake.system_name}",
   "compliance_deadline": "January 1, 2027",
@@ -193,92 +203,84 @@ Return this JSON structure:
 
   "scope_analysis": {
     "is_admt": true | false,
-    "is_admt_reasoning": "Specific reasoning citing elements of the system description that do or do not satisfy § 7001(e)",
+    "is_admt_reasoning": "Cite the specific element(s) of the system description that do or do not satisfy 11 CCR § 7001(e). Quote relevant facts.",
     "triggers_significant_decision": true | false,
-    "significant_decision_reasoning": "Specific reasoning citing which § 7001(ddd) category applies and why",
-    "triggers_risk_assessment": true | false,
-    "risk_assessment_reasoning": "Which § 7150 trigger(s) apply and why",
-    "triggers_profiling": true | false,
+    "significant_decision_reasoning": "Cite which § 7001(ddd) subcategory applies (or does not) and why, based on the system description.",
     "human_review_qualifies": true | false,
-    "human_review_reasoning": "Does the described human review satisfy § 7001(e)(1)(A)-(C)? Show reasoning.",
-    "exception_qualification": {
-      "exception_claimed": "name of exception or 'none'",
-      "qualifies": true | false | "uncertain",
-      "qualification_reasoning": "Detailed analysis of whether the facts described satisfy the statutory requirements for this exception. Be direct — if they don't qualify, say so."
-    },
-    "third_party_note": "If third-party ADMT tools were listed, note that the business remains the CCPA-responsible party",
-    "summary": "3-4 sentence plain-language scope conclusion incorporating the reasoning above"
+    "human_review_reasoning": "Analyze whether the described human review satisfies all three elements of § 7001(e)(1)(A)-(C). State clearly whether it does or does not constitute 'human involvement' as defined.",
+    "triggers_risk_assessment": true | false,
+    "risk_assessment_reasoning": "State which regulatory trigger(s) apply based on the system description. Only reference triggers supported by the REGULATION AUTHORITIES provided.",
+    "triggers_profiling": true | false,
+    "exception_claimed": "name of exception claimed, or 'none' if opt-out is provided",
+    "exception_qualifies": true | false | "cannot_determine",
+    "exception_reasoning": "If an exception was claimed, analyze whether the specific facts described satisfy the statutory requirements. Be direct: state whether the exception is or is not established based on the facts provided. If the business did not claim an exception, state 'No exception claimed — opt-out right required.'",
+    "third_party_responsibility_note": "If third-party ADMT tools were listed, note here that the business remains the CCPA-responsible party. Otherwise leave as empty string.",
+    "summary": "3-4 sentence plain-language scope conclusion that incorporates the reasoning above."
   },
 
   "enforcement_context": {
-    "per_violation_unintentional": 2663,
-    "per_violation_intentional": 7988,
-    "ca_consumer_count": "${intake.ca_consumer_count || 'not provided'}",
-    "aggregate_exposure_note": "Based on the consumer volume provided and the gaps identified, a single uncorrected pattern violation affecting all in-scope consumers could generate exposure of [calculate or note 'consumer count not provided']. The CPPA actively scans for ADMT non-compliance without requiring a consumer complaint (see PlayOn Sports settlement, March 2026: $1.1M for a company that self-identified and remediated months before agency contact).",
-    "proactive_enforcement_note": "The CPPA's technology team autonomously scans public-facing websites for non-compliance, including broken opt-out mechanisms and missing ADMT notices, without any consumer complaint."
+    "penalty_per_violation_unintentional": 2663,
+    "penalty_per_violation_intentional": 7988,
+    "penalty_statutory_basis": "Cal. Civ. Code § 1798.155(a) (2025-2026 CPI-adjusted figures)",
+    "ca_consumer_count_provided": "${intake.ca_consumer_count || 'not provided'}",
+    "aggregate_exposure_note": "Based on the gaps identified and the consumer volume provided (or noted as not provided), briefly describe the scale of potential exposure. Note that the CPPA may count each affected consumer as a separate violation. Do not cite specific enforcement actions or settlements unless they appear in the REGULATION AUTHORITIES block provided — if none do, omit that reference."
   },
 
   "notice_gaps": [
     {
-      "element": "specific notice element name",
-      "status": "compliant|gap|missing",
-      "finding": "Specific finding citing what was provided and what is required",
-      "citation": "11 CCR § 7220(c)(X)",
-      "remediation": "Specific remediation steps",
-      "enforcement_exposure": "Per-violation exposure for this element and why",
-      "sample_language": null
+      "element": "Name of the specific § 7220 notice element being assessed",
+      "status": "compliant" | "gap" | "missing",
+      "finding": "Specific finding explaining what was provided and what the regulation requires. Quote the relevant regulation language from the AUTHORITIES block.",
+      "citation": "11 CCR § 7220(c)(X) — only use subsection numbers that appear in the AUTHORITIES block",
+      "remediation": "Specific action the business must take to achieve compliance.",
+      "enforcement_exposure": "Per-violation exposure for this element if it is a gap or missing item."
     }
   ],
 
   "opt_out_gaps": [
     {
-      "element": "specific opt-out element name",
-      "status": "compliant|gap|missing",
-      "finding": "Specific finding",
-      "citation": "11 CCR § 7221(X)",
-      "remediation": "Specific remediation steps",
-      "enforcement_exposure": "Per-violation exposure",
-      "sample_language": null
+      "element": "Name of the specific § 7221 opt-out element being assessed",
+      "status": "compliant" | "gap" | "missing",
+      "finding": "Specific finding. For the 15-business-day operational process: if intake.opt_out_15_day_process was blank or '(not described)', flag this as a gap under § 7221(n)(1)-(2).",
+      "citation": "11 CCR § 7221(X) — only use subsection numbers supported by the AUTHORITIES block",
+      "remediation": "Specific action required.",
+      "enforcement_exposure": "Per-violation exposure if gap or missing."
     }
   ],
 
   "access_gaps": [
     {
-      "element": "specific access element name",
-      "status": "compliant|gap|missing",
-      "finding": "Specific finding",
-      "citation": "11 CCR § 7222(X)",
-      "remediation": "Specific remediation steps",
-      "enforcement_exposure": "Per-violation exposure",
-      "sample_language": null
+      "element": "Name of the specific § 7222 access right element being assessed",
+      "status": "compliant" | "gap" | "missing",
+      "finding": "Specific finding.",
+      "citation": "11 CCR § 7222(X) — only use subsection numbers supported by the AUTHORITIES block",
+      "remediation": "Specific action required.",
+      "enforcement_exposure": "Per-violation exposure if gap or missing."
     }
   ],
 
   "risk_assessment_obligation": {
     "required": true | false,
-    "triggers": ["list of specific § 7150 triggers that apply"],
-    "existing_activity_deadline": "December 31, 2027",
-    "new_activity_deadline": "Before initiating new or modified processing",
-    "attestation_deadline": "April 1, 2028 (for assessments conducted in 2026–2027)",
-    "attestation_requirement": "Executive-certified attestation that risk assessments were completed, signed under penalty of perjury by a senior executive with direct compliance responsibility",
-    "ag_demand_risk": "The California Attorney General may demand a copy of risk assessments at any time, independent of the 2028 deadline",
-    "summary": "2-3 sentence plain-language description of what this business must do and by when"
+    "triggers_identified": ["List each specific trigger that applies, based only on the REGULATION AUTHORITIES provided. Do not invent triggers not supported by the authorities block."],
+    "compliance_deadline_existing_activities": "December 31, 2027 (for processing activities initiated before January 1, 2026)",
+    "compliance_deadline_new_activities": "Before initiating new or materially changed processing activities",
+    "submission_requirement": "Describe the submission requirement as stated in the REGULATION AUTHORITIES block. If the authorities block does not contain submission details, state 'See 11 CCR §§ 7150-7157 for submission requirements' and do not fabricate specifics.",
+    "summary": "2-3 sentence plain-language description of what this business must do and by when, based only on the authorities provided."
   },
 
-  "documentation_checklist": [
+  "documentation_to_maintain": [
     {
-      "item": "Document name/type",
-      "description": "What it must contain",
-      "retention": "How long to keep it",
-      "regulatory_basis": "11 CCR § X"
+      "document": "Name of document or record",
+      "purpose": "What it demonstrates to the CPPA",
+      "citation": "Regulatory basis — only cite sections from the AUTHORITIES block"
     }
   ],
 
   "priority_actions": [
-    "Numbered action with owner suggestion and specific deadline"
+    "Numbered action item with specific deadline where known. Based only on gaps identified above."
   ],
 
-  "compliant_elements": ["list of compliant items"]
+  "compliant_elements": ["List of elements assessed as compliant, with brief explanation."]
 }`;
 
     const rawText = await callGateway(system, userPrompt, 8000);
