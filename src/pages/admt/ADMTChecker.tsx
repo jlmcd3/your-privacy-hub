@@ -1,5 +1,5 @@
 // src/pages/admt/ADMTChecker.tsx
-// ADMT Compliance Checker — Module 3
+// ADMT Compliance Assessment — Module 3
 // Four-step intake: (1) ADMT Inventory, (2) Pre-Use Notice, (3) Opt-Out, (4) Access Rights
 // Signature feature: StatuteRail — persistent right column showing verbatim
 // regulation text, plain summary, and FSOR context for every field.
@@ -385,7 +385,7 @@ export default function ADMTChecker() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>ADMT Compliance Checker — Module 3 | End User Privacy</title>
+        <title>ADMT Compliance Assessment — Module 3 | End User Privacy</title>
         <meta name="description" content="California ADMT compliance assessment covering pre-use notice, opt-out, and access rights under 11 CCR §§ 7200–7222. January 1, 2027 deadline." />
         <link rel="canonical" href="https://enduserprivacy.com/cppa-admt-checker" />
       </Helmet>
@@ -395,7 +395,7 @@ export default function ADMTChecker() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             CPPA AUDIT READINESS · MODULE 3 · ${pricing.price}
           </span>
-          <h1 className="font-serif mb-3">ADMT Compliance Checker</h1>
+          <h1 className="font-serif mb-3">ADMT Compliance Assessment</h1>
           <p className="text-slate-300 text-lg max-w-3xl">
             Assess your automated decisionmaking technology against the CPPA's final regulations. Covers pre-use notice requirements (§ 7220), opt-out obligations (§ 7221), and access rights (§ 7222). Generates a gap report with specific remediation steps for each deficit, cited to the regulation.
           </p>
@@ -1020,7 +1020,7 @@ export default function ADMTChecker() {
                     <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
                       {!pricing.stripeConfigured
                         ? `Payments Coming Soon — $${pricing.price}`
-                        : `Run ADMT Gap Analysis — $${pricing.price}`}
+                        : `Run ADMT Compliance Assessment — $${pricing.price}`}
                     </Button>
                   )}
                 </div>

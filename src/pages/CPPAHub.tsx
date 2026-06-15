@@ -189,17 +189,17 @@ export default function CPPAHub() {
         </section>
 
         <section className="bg-card border rounded-lg p-8">
-          <h2 className="font-serif text-2xl mb-2">ADMT Compliance Checker — Module 3</h2>
+          <h2 className="font-serif text-2xl mb-2">ADMT Compliance Assessment — Module 3</h2>
           <p className="text-sm text-muted-foreground mb-5 max-w-2xl">
             Automated decision-making technology disclosures are required from January 1, 2027.
-            The ADMT Compliance Checker produces a gap analysis covering pre-use notice (§ 7220),
+            The ADMT Compliance Assessment produces a gap analysis covering pre-use notice (§ 7220),
             opt-out (§ 7221), and access right (§ 7222) obligations — cited to the regulation.
           </p>
           <Link
             to="/cppa-admt-checker"
             className="inline-block text-sm font-semibold text-white bg-brand-teal px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline"
           >
-            Open the ADMT Compliance Checker →
+            Open the ADMT Compliance Assessment →
           </Link>
         </section>
       </main>

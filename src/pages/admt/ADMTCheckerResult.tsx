@@ -1,5 +1,5 @@
 // src/pages/admt/ADMTCheckerResult.tsx
-// ADMT Compliance Checker result page — shows gap analysis with per-element
+// ADMT Compliance Assessment result page — shows gap analysis with per-element
 // status badges, citation links, and remediation steps.
 
 import { useEffect, useRef, useState } from "react";

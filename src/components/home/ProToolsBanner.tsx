@@ -134,10 +134,10 @@ const TOOLS: Tool[] = [
   },
   {
     icon: ShieldAlert,
-    title: "ADMT Compliance Checker",
+    title: "ADMT Compliance Assessment",
     blurb: "Gap analysis for ADMT pre-use notices, opt-out, and access rights. January 2027 deadline.",
     price: `${T.cppaAdmt.display} per run`,
-    cta: "Run ADMT checker",
+    cta: "Run ADMT Compliance Assessment",
     href: "/cppa-admt-checker",
   },
 ];

@@ -54,7 +54,7 @@ const moduleLabel: Record<string, string> = {
   risk: "Privacy Risk Assessment",
   cybersecurity: "Cybersecurity Audit Readiness",
   "cybersecurity-drift": "Cybersecurity Drift Comparison",
-  admt: "ADMT Compliance Checker",
+  admt: "ADMT Compliance Assessment",
 };
 
 const moduleResultRoute = (mod: string, id: string) => {
@@ -114,7 +114,7 @@ export default function AccountCPPARuns() {
           <h1 className="font-serif text-brand-navy">My CPPA Runs</h1>
           <p className="text-sm text-muted-foreground mt-2">
             Every CPPA assessment you've run, including Suite runs (Risk + Cybersecurity together),
-            standalone module runs, and ADMT Compliance Checker results. Re-open the result page or download a PDF.
+            standalone module runs, and ADMT Compliance Assessment results. Re-open the result page or download a PDF.
           </p>
         </header>
 

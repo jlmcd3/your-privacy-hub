@@ -573,8 +573,8 @@ export const PRICING_REGISTRY = {
     kind: "one_time",
     lookupKey: "cppa_admt_standalone",
     productKey: "cppa_admt",
-    productName: "ADMT Compliance Checker — Module 3 (Standalone)",
-    description: "Standalone per-use price for the ADMT Compliance Checker (pre-use notice, opt-out, access rights gap analysis).",
+    productName: "ADMT Compliance Assessment — Module 3 (Standalone)",
+    description: "Standalone per-use price for the ADMT Compliance Assessment (pre-use notice, opt-out, access rights gap analysis).",
     amountCents: 9900,
     currency: "usd",
     displayPrice: "$99",
@@ -585,8 +585,8 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "cppa_admt_subscriber",
     productKey: "cppa_admt",
-    productName: "ADMT Compliance Checker — Module 3 (Subscriber)",
-    description: "Subscriber per-use price for the ADMT Compliance Checker.",
+    productName: "ADMT Compliance Assessment — Module 3 (Subscriber)",
+    description: "Subscriber per-use price for the ADMT Compliance Assessment.",
     amountCents: 4900,
     currency: "usd",
     displayPrice: "$49",
@@ -873,7 +873,7 @@ export const PRICING = {
     cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 229, display: '$229', stripePriceId: 'cppa_risk_standalone' },
     cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 299, display: '$299', stripePriceId: 'cppa_cyber_standalone' },
     cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 449, display: '$449', stripePriceId: 'cppa_suite_standalone' },
-    cppa_admt:    { name: 'ADMT Compliance Checker',            dollars: 99,  display: '$99',  stripePriceId: 'cppa_admt_standalone' },
+    cppa_admt:    { name: 'ADMT Compliance Assessment',            dollars: 99,  display: '$99',  stripePriceId: 'cppa_admt_standalone' },
 
     // ── Legacy camelCase aliases (kept so existing imports keep compiling) ──
     cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,   display: 'Free', stripePriceId: null },
@@ -883,7 +883,7 @@ export const PRICING = {
     cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 229, display: '$229', stripePriceId: 'cppa_risk_standalone' },
     cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 299, display: '$299', stripePriceId: 'cppa_cyber_standalone' },
     cppaSuite:    { name: 'CPPA Full Audit Suite',              dollars: 449, display: '$449', stripePriceId: 'cppa_suite_standalone' },
-    cppaAdmt:     { name: 'ADMT Compliance Checker',            dollars: 99,  display: '$99',  stripePriceId: 'cppa_admt_standalone' },
+    cppaAdmt:     { name: 'ADMT Compliance Assessment',            dollars: 99,  display: '$99',  stripePriceId: 'cppa_admt_standalone' },
   },
 } as const;
 
@@ -942,7 +942,7 @@ export const SMART_TOOL_KEYS = [
   'dpia',         // DPIA — necessity/proportionality vs enforcement corpus
   'cppa_risk',    // CPPA Risk Assessment — 5-stage CPPA analysis
   'cppa_cyber',   // CPPA Cybersecurity — 18-control gap analysis
-  'cppa_admt',    // ADMT Compliance Checker — Module 3 gap analysis
+  'cppa_admt',    // ADMT Compliance Assessment — Module 3 gap analysis
 ] as const;
 
 export type SmartToolKey = typeof SMART_TOOL_KEYS[number];

@@ -90,7 +90,7 @@ const TOOL_LABEL: Record<string, string> = {
   eu_notice: "EU Privacy Notice",
   cppa_risk: "CPPA Risk Assessment",
   cppa_cyber: "CPPA Cybersecurity Audit",
-  cppa_admt: "ADMT Compliance Checker",
+  cppa_admt: "ADMT Compliance Assessment",
   cppa_scope: "CPPA Scope Check",
 };
 
@@ -357,7 +357,7 @@ export default function MyReports() {
           ? [systemName].filter(Boolean)
           : [sector, revenue].filter(Boolean);
         const fallback = isAdmt
-          ? "ADMT Compliance Checker"
+          ? "ADMT Compliance Assessment"
           : isCyber
           ? "CPPA Cybersecurity Audit"
           : "CPPA Risk Assessment";

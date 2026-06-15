@@ -47,7 +47,7 @@ const ASSESSMENTS: Product[] = [
     href: "/cppa-cybersecurity",
   },
   {
-    title: "ADMT Compliance Checker",
+    title: "ADMT Compliance Assessment",
     blurb: "Gap analysis for ADMT pre-use notices, opt-out, and access rights under 11 CCR §§ 7200–7222. January 2027 deadline.",
     href: "/cppa-admt-checker",
   },
