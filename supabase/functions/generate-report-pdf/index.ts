@@ -949,8 +949,8 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Cal. Code Regs. tit. 11 §§ 7150–7157</p>
-    <h1>CPPA Privacy Risk Assessment</h1>
+    <p class="eyebrow">${a?.sec_1_trigger?.voluntary ? "Voluntary Privacy Review · Governance Documentation" : "Compliance Tool · Cal. Code Regs. tit. 11 §§ 7150–7157"}</p>
+    <h1>${a?.sec_1_trigger?.voluntary ? "Voluntary Privacy Impact Review" : "CPPA Privacy Risk Assessment"}</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
       ${cover.business_legal_name ? `<span class="pill">${text(cover.business_legal_name)}</span>` : ""}
