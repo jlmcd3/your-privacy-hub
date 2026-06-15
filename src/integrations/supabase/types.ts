@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      admt_systems: {
+        Row: {
+          assessment_id: string | null
+          created_at: string
+          decision_domain: string[] | null
+          description: string | null
+          id: string
+          system_name: string
+          system_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          assessment_id?: string | null
+          created_at?: string
+          decision_domain?: string[] | null
+          description?: string | null
+          id?: string
+          system_name: string
+          system_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          assessment_id?: string | null
+          created_at?: string
+          decision_domain?: string[] | null
+          description?: string | null
+          id?: string
+          system_name?: string
+          system_type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admt_systems_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "cppa_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       annual_tool_credits: {
         Row: {
           client_id: string | null

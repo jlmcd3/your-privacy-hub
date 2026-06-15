@@ -1,10 +1,10 @@
-// Cross-link footer for CPPA tool intake pages. Surfaces the other two tools
-// plus the drift comparison and breach precedent map entry points so users
-// (and search engines) can traverse the CPPA cluster from any node.
+// Cross-link footer for CPPA tool intake pages. Surfaces the other tools
+// in the suite so users (and search engines) can traverse the CPPA cluster
+// from any node.
 
 import { Link } from "react-router-dom";
 
-type ToolKey = "scope" | "risk" | "cyber";
+type ToolKey = "scope" | "risk" | "cyber" | "admt";
 
 const LINKS: Record<ToolKey, { to: string; title: string; blurb: string }> = {
   scope: {
@@ -21,6 +21,11 @@ const LINKS: Record<ToolKey, { to: string; title: string; blurb: string }> = {
     to: "/cppa-cybersecurity",
     title: "CPPA Cybersecurity Audit Readiness",
     blurb: "Module 2 — 18-control gap report with Breach Precedent Map and Auditor Handoff.",
+  },
+  admt: {
+    to: "/cppa-admt-checker",
+    title: "ADMT Compliance Checker",
+    blurb: "Module 3 — pre-use notice, opt-out, and access right gap analysis for automated decisionmaking systems. January 1, 2027 deadline.",
   },
 };
 

@@ -22,6 +22,7 @@ const ANNUAL_GATED_TOOLS = new Set([
   "cppa_risk_assessment",
   "cppa_cybersecurity",
   "cppa_suite",
+  "cppa_admt",
 ]);
 const TOOLS: Record<
   string,
@@ -179,6 +180,14 @@ const TOOLS: Record<
     fallback_standalone_cents: 44900,
     fallback_subscriber_cents: 24900,
   },
+  cppa_admt: {
+    name: "ADMT Compliance Checker — Module 3",
+    standalone_lookup: "cppa_admt_standalone",
+    subscriber_lookup: "cppa_admt_subscriber",
+    table: "cppa_assessments",
+    fallback_standalone_cents: 9900,
+    fallback_subscriber_cents: 4900,
+  },
 
 };
 
@@ -204,6 +213,7 @@ const MODULE_FOR_TOOL: Record<string, string> = {
   cppa_risk_assessment: "risk_assessment",
   cppa_cybersecurity: "cybersecurity",
   cppa_suite: "suite",
+  cppa_admt: "admt",
 };
 
 const SESSION_TABLES = new Set([
@@ -250,6 +260,7 @@ Deno.serve(async (req) => {
       "cppa_risk_standalone", "cppa_risk_subscriber",
       "cppa_cyber_standalone", "cppa_cyber_subscriber",
       "cppa_suite_standalone", "cppa_suite_subscriber",
+      "cppa_admt_standalone", "cppa_admt_subscriber",
     ]);
     const isCppa = !!(tool.standalone_lookup && CPPA_TOOL_LOOKUPS.has(tool.standalone_lookup));
 

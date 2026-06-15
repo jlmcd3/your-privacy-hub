@@ -28,6 +28,7 @@ const SLUG_TO_TOOL_KEY: Record<string, ToolKey | "cppa_suite_combo"> = {
   cppa_risk_assessment:         "cppaRisk",
   cppa_cybersecurity:           "cppaCyber",
   cppa_suite:                   "cppa_suite_combo",
+  cppa_admt:                    "cppaAdmt" as ToolKey,
   dpa_generator:                "dpa",
   ir_playbook:                  "irPlaybook",
   biometric_checker:            "biometric",
@@ -49,6 +50,7 @@ const DISPLAY_NAMES: Record<string, string> = {
   cppa_risk_assessment:         "CPPA Risk Assessment — Module 1",
   cppa_cybersecurity:           "CPPA Cybersecurity Readiness — Module 2",
   cppa_suite:                   "CPPA Full Audit Suite (Modules 1 + 2)",
+  cppa_admt:                    "ADMT Compliance Checker — Module 3",
   dpa_generator:                "Your Custom DPA",
   ir_playbook:                  "Incident Response Playbook",
   biometric_checker:            "Biometric Privacy Compliance Assessment",
@@ -72,6 +74,7 @@ const SLUG_TO_SUBSCRIBER_KEY: Partial<Record<ToolSlug, string>> = {
   cppa_risk_assessment:         "cppa_risk_subscriber",
   cppa_cybersecurity:           "cppa_cyber_subscriber",
   cppa_suite:                   "cppa_suite_subscriber",
+  cppa_admt:                    "cppa_admt_subscriber",
   dpa_generator:                "dpa_subscriber_v2",
   ir_playbook:                  "ir_subscriber_v2",
   biometric_checker:            "biometric_subscriber_v2",
@@ -124,7 +127,7 @@ export interface ToolPricing {
   loading: boolean;
 }
 
-const CPPA_TOOLS = new Set(["cppa_risk_assessment", "cppa_cybersecurity", "cppa_suite"]);
+const CPPA_TOOLS = new Set(["cppa_risk_assessment", "cppa_cybersecurity", "cppa_suite", "cppa_admt"]);
 
 export function useToolPrice(toolSlug: ToolSlug): ToolPricing {
   const { tier, isPremium, isInTrial, isLoading } = useSubscriptionTier();

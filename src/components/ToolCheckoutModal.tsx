@@ -18,7 +18,8 @@ export type ToolType =
   | "biometric_checker"
   | "cppa_risk_assessment"
   | "cppa_cybersecurity"
-  | "cppa_suite";
+  | "cppa_suite"
+  | "cppa_admt";
 
 interface Props {
   open: boolean;
