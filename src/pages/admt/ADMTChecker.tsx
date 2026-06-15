@@ -150,6 +150,8 @@ export default function ADMTChecker() {
   // Step 1 additions
   const [caConsumerCount, setCaConsumerCount] = useState("");
   const [thirdPartyAdmt, setThirdPartyAdmt] = useState("");
+  const [admtSystemCount, setAdmtSystemCount] = useState("");
+  const [priorAccessRequests12mo, setPriorAccessRequests12mo] = useState("");
 
   // Step 2
   const [noticeDelivery, setNoticeDelivery] = useState<string[]>([]);
