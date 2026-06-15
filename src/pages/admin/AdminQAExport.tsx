@@ -26,6 +26,7 @@ const JOB_TO_SAMPLE_SLUG: Record<string, string> = {
   "eu-notice":    "eu_notice",
   "cppa-risk":    "cppa_risk",
   "cppa-cyber":   "cppa_cyber",
+  "cppa-admt":    "cppa_admt",
   "registration": "registration",
 };
 
