@@ -1148,16 +1148,17 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
-    <h1>CPPA Cybersecurity Audit</h1>
+    <p class="eyebrow">CPPA Audit Readiness · Module 2 · Assessment</p>
+    <h1>CPPA Cybersecurity Audit — Readiness Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), organizationName: orgName || null, jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
       ${report?.overall_score !== undefined ? `<span class="pill">Overall score: ${text(report.overall_score)} / 100</span>` : ""}
       ${report?.readiness_level ? `<span class="pill">${text(report.readiness_level)}</span>` : ""}
     </div>
+    ${orgName ? `<p style="margin-top:6px;font-size:11px;color:#93b5c6;">Prepared for: <strong>${escHtml(orgName)}</strong></p>` : ""}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice. This is a readiness assessment, not the Article 9 cybersecurity audit.</span> This report is generated from self-reported intake data and does not constitute the annual cybersecurity audit required under 11 CCR § 7122, which must be conducted by a qualified, objective, independent professional. Findings should be reviewed with qualified legal counsel before reliance.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
     ${scorecardBlock}
     ${report?.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(report.enforcement_context)}</p></div>` : ""}
