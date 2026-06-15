@@ -197,18 +197,30 @@ export default function ADMTCheckerResult() {
       <Navbar />
       <DashboardSubnav />
       <Helmet>
-        <title>ADMT Gap Analysis — {report.system_name} | End User Privacy</title>
+        <title>ADMT Compliance Assessment — {report.system_name} | End User Privacy</title>
       </Helmet>
       <ReportShell
-        title={`ADMT Compliance Gap Analysis — ${report.system_name}`}
-        meta={`Compliance deadline: ${report.compliance_deadline} · ${totalGaps} gap${totalGaps !== 1 ? "s" : ""} identified`}
+        title={`ADMT Compliance Assessment — ${report.system_name}`}
+        meta={`Generated ${new Date(assessment.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} · Compliance deadline: ${report.compliance_deadline}`}
+        toolCategory="assessment"
+        disclaimerAddition="This gap analysis is an analytical aid, not legal advice. Review with qualified California privacy counsel before relying on it for regulatory compliance decisions."
+        actions={
+          assessment.status === "complete" ? (
+            <PDFDownloadButton
+              toolType="cppa_admt"
+              assessmentId={id!}
+              pdfUrl={assessment.pdf_url}
+              onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
+            />
+          ) : undefined
+        }
       >
         {purchased && (
           <div className="p-3 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm mb-2">
             ✅ Purchase confirmed.
           </div>
         )}
-        <ToolDisclaimer addition="This gap analysis is an analytical aid, not legal advice. Review with qualified California privacy counsel before relying on it for regulatory compliance decisions." />
+
 
         <div className="rounded-lg border p-5 bg-card">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
