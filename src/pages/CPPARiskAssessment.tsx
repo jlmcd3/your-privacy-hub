@@ -175,6 +175,8 @@ export default function CPPARiskAssessment() {
   // I-8: certifying executive (§ 0 + § 10 + Part B)
   const [i8ExecName, setI8ExecName] = useState("");
   const [i8ExecTitle, setI8ExecTitle] = useState("");
+  const [i8ContactPhone, setI8ContactPhone] = useState("");
+  const [i8ContactEmail, setI8ContactEmail] = useState("");
   // I-9: existing DPIA?
   const [i9HasDpia, setI9HasDpia] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
@@ -243,13 +245,15 @@ export default function CPPARiskAssessment() {
     i7_external_consultees: i7ExternalConsultees,
     i8_certifying_exec_name: i8ExecName,
     i8_certifying_exec_title: i8ExecTitle,
+    i8_contact_phone: i8ContactPhone,
+    i8_contact_email: i8ContactEmail,
     i9_has_existing_dpia: i9HasDpia,
     i9_existing_dpia_summary: i9DpiaSummary,
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
-    i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle,
+    i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
   ]);
 
@@ -258,13 +262,13 @@ export default function CPPARiskAssessment() {
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
-    i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle,
+    i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
-    i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle,
+    i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
@@ -273,7 +277,7 @@ export default function CPPARiskAssessment() {
     i1Purpose: "", i2RetentionPeriod: "", i2RetentionCriteria: "", i2RetentionDetail: "",
     i3CaConsumerBand: "", i4Disclosures: [] as string[], i5AdmtLogic: "", i5AdmtTrainingSource: "",
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
-    i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i9HasDpia: "", i9DpiaSummary: "",
+    i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "",
   }), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== INITIAL_DRAFT_JSON, [draftData, INITIAL_DRAFT_JSON]);
   const {
@@ -325,6 +329,8 @@ export default function CPPARiskAssessment() {
     if (typeof d.i7ExternalConsultees === "string") setI7ExternalConsultees(d.i7ExternalConsultees);
     if (typeof d.i8ExecName === "string") setI8ExecName(d.i8ExecName);
     if (typeof d.i8ExecTitle === "string") setI8ExecTitle(d.i8ExecTitle);
+    if (typeof d.i8ContactPhone === "string") setI8ContactPhone(d.i8ContactPhone);
+    if (typeof d.i8ContactEmail === "string") setI8ContactEmail(d.i8ContactEmail);
     if (typeof d.i9HasDpia === "string") setI9HasDpia(d.i9HasDpia);
     if (typeof d.i9DpiaSummary === "string") setI9DpiaSummary(d.i9DpiaSummary);
     if (typeof restoreStage === "number") setStep(restoreStage);
@@ -630,6 +636,34 @@ export default function CPPARiskAssessment() {
                   <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={i8ExecTitle} onChange={(e) => setI8ExecTitle(e.target.value)} placeholder="E.g. Chief Privacy Officer" />
                 </div>
               </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap">
+                    <Label>Contact phone <span className="text-xs text-muted-foreground">(§ 7157(b)(1))</span></Label>
+                  </div>
+                  <input
+                    className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                    value={i8ContactPhone}
+                    onChange={(e) => setI8ContactPhone(e.target.value)}
+                    placeholder="E.g. +1 415 555 0100"
+                    type="tel"
+                  />
+                </div>
+                <div>
+                  <Label>Contact email <span className="text-xs text-muted-foreground">(§ 7157(b)(1))</span></Label>
+                  <input
+                    className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                    value={i8ContactEmail}
+                    onChange={(e) => setI8ContactEmail(e.target.value)}
+                    placeholder="E.g. privacy@company.com"
+                    type="email"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-1">
+                Required by § 7157(b)(1) for the annual submission to the CPPA. The CPPA may contact this person about the filing.
+              </p>
 
               <div>
                 <Label>I-9: Is there an existing GDPR DPIA (or other PIA) for this activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>

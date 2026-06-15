@@ -907,12 +907,17 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   const s10 = a.sec_10_governance || {};
   const app = a.appendices || {};
   const vendorRows = (Array.isArray(app.b_vendor_register) ? app.b_vendor_register : [])
-    .map((v: any) => `<tr><td style="padding:4px 10px;border:1px solid #e6e3da;">${text(v.vendor)}</td><td style="padding:4px 10px;border:1px solid #e6e3da;">${text(v.role)}</td><td style="padding:4px 10px;border:1px solid #e6e3da;">${Array.isArray(v.pi_categories) ? v.pi_categories.map((c: any) => text(c)).join(", ") : text(v.pi_categories)}</td></tr>`)
+    .map((v: any) => `<tr>
+      <td style="padding:4px 10px;border:1px solid #e6e3da;">${text(v.vendor)}</td>
+      <td style="padding:4px 10px;border:1px solid #e6e3da;">${text(v.role)}</td>
+      <td style="padding:4px 10px;border:1px solid #e6e3da;">${Array.isArray(v.pi_categories) ? v.pi_categories.map((c: any) => text(c)).join(", ") : text(v.pi_categories)}</td>
+      <td style="padding:4px 10px;border:1px solid #e6e3da;">${text(v.purpose ?? "")}</td>
+    </tr>`)
     .join("");
   const gatingBlock = gating.ready_for_signoff
     ? `<div class="callout" style="border-left-color:#1e6b3c;background:#eafaf1;"><p class="label">Ready for sign-off</p><p>All automated completeness checks passed. The certifying executive must still review and record the decision in § 8.</p></div>`
     : `<div class="callout"><p class="label">Not yet ready for sign-off</p>${list(Array.isArray(gating.blockers) ? gating.blockers : [])}</div>`;
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${a?.sec_1_trigger?.voluntary ? "Voluntary Privacy Impact Review" : "CPPA Privacy Risk Assessment"}</title>
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
   * { box-sizing:border-box; }
@@ -944,8 +949,8 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Cal. Code Regs. tit. 11 §§ 7150–7157</p>
-    <h1>CPPA Privacy Risk Assessment</h1>
+    <p class="eyebrow">${a?.sec_1_trigger?.voluntary ? "Voluntary Privacy Review · Governance Documentation" : "Compliance Tool · Cal. Code Regs. tit. 11 §§ 7150–7157"}</p>
+    <h1>${a?.sec_1_trigger?.voluntary ? "Voluntary Privacy Impact Review" : "CPPA Privacy Risk Assessment"}</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
       ${cover.business_legal_name ? `<span class="pill">${text(cover.business_legal_name)}</span>` : ""}
@@ -1014,21 +1019,26 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     <p><span class="label">Approver:</span> ${fillIn(s10.approver?.name, "[FILL IN]")}${s10.approver?.title ? `, ${text(s10.approver.title)}` : ""}${s10.approver?.date ? ` — ${text(s10.approver.date)}` : " — date [TO BE COMPLETED]"}</p>
     <h2>Appendices</h2>
     ${app.a_data_flow ? `<section class="section"><h3>Appendix A — Data Flow</h3><p>${text(app.a_data_flow)}</p></section>` : `<section class="section"><h3>Appendix A — Data Flow</h3><p><em>Not recorded.</em></p></section>`}
-    ${vendorRows ? `<section class="section"><h3>Appendix B — Vendor Register</h3><table><tr><th>Vendor</th><th>Role</th><th>PI categories</th></tr>${vendorRows}</table></section>` : `<section class="section"><h3>Appendix B — Vendor Register</h3><p><em>No vendors recorded.</em></p></section>`}
+    ${vendorRows ? `<section class="section"><h3>Appendix B — Vendor Register</h3><table><tr><th>Vendor</th><th>Role</th><th>PI categories</th><th>Purpose</th></tr>${vendorRows}</table></section>` : `<section class="section"><h3>Appendix B — Vendor Register</h3><p><em>No vendors recorded.</em></p></section>`}
     ${app.c_admt_note ? `<section class="section"><h3>Appendix C — ADMT Note</h3><p>${typeof app.c_admt_note === "object" ? Object.entries(app.c_admt_note).map(([k, v]) => `<span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}`).join("<br/>") : text(app.c_admt_note)}</p></section>` : `<section class="section"><h3>Appendix C — ADMT Note</h3><p>Not applicable — no automated decision-making technology in scope for this activity.</p></section>`}
     ${app.d_spi_note ? `<section class="section"><h3>Appendix D — Sensitive PI Note</h3><p>${typeof app.d_spi_note === "object" ? Object.entries(app.d_spi_note).map(([k, v]) => `<span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}`).join("<br/>") : text(app.d_spi_note)}</p></section>` : `<section class="section"><h3>Appendix D — Sensitive PI Note</h3><p>Not applicable — no sensitive personal information identified.</p></section>`}
     ${app.e_dpia_gap_fill ? `<section class="section"><h3>Appendix E — DPIA Gap-Fill</h3><p>${typeof app.e_dpia_gap_fill === "object" ? Object.entries(app.e_dpia_gap_fill).map(([k, v]) => `<span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}`).join("<br/>") : text(app.e_dpia_gap_fill)}</p></section>` : `<section class="section"><h3>Appendix E — DPIA Gap-Fill</h3><p>Not applicable — no existing GDPR/UK GDPR DPIA was reported in the intake for this processing activity.</p></section>`}
-    <h2>Part B — Submission Summary${b.statute ? ` <span style="font-size:10px;font-weight:400;color:#5c5a54;">(${text(b.statute)})</span>` : ""}</h2>
-    <p><span class="label">Business legal name:</span> ${fillIn(b.business_legal_name, "[FILL IN]")}</p>
-    ${b.point_of_contact ? (typeof b.point_of_contact === "object"
-      ? `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact.name ?? "[FILL IN]")}, ${text(b.point_of_contact.title ?? "[FILL IN]")}</p><p><span class="label">Phone:</span> ${text(b.point_of_contact.phone ?? "[FILL IN]")}</p><p><span class="label">Email:</span> ${text(b.point_of_contact.email ?? "[FILL IN]")}</p>`
-      : `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact)}</p>`) : ""}
-    ${b.assessment_count_in_period !== undefined ? `<p><span class="label">Assessments in period:</span> ${text(b.assessment_count_in_period)}</p>` : ""}
-    ${Array.isArray(b.pi_categories_aggregated) && b.pi_categories_aggregated.length ? `<p><span class="label">PI categories (aggregated):</span> ${b.pi_categories_aggregated.map((c: any) => text(c)).join(", ")}</p>` : ""}
-    ${Array.isArray(b.spi_flagged) && b.spi_flagged.length ? `<p><span class="label">SPI flagged:</span> ${b.spi_flagged.map((c: any) => text(c)).join(", ")}</p>` : ""}
-    ${b.perjury_attestation_block ? `<div class="attest">${text(b.perjury_attestation_block)}</div>
-    <p class="meta" style="margin-top:8px;font-size:10px;color:#b55a00;border-top:1px solid #e6e3da;padding-top:6px;">⚠ Sample document — the certifying executive name, title, and execution date above are placeholder values from the sample intake. Replace with the actual certifying executive's legal name, title, and execution date before this document is signed or submitted to the CPPA.</p>` : ""}
-    ${b.submission_banner ? `<div class="callout"><p>${text(b.submission_banner)}</p></div>` : ""}
+    ${a?.sec_1_trigger?.voluntary
+      ? `<section class="section"><h2>Part B — Submission Summary</h2>
+           <div class="callout"><p class="label">Not applicable — Voluntary Review</p>
+           <p>${typeof b === "string" ? text(b) : "No § 7150(b) processing trigger was identified. The § 7157 annual submission obligation does not apply to voluntary privacy impact reviews. If processing activities change such that a § 7150(b) trigger applies, a mandatory risk assessment and § 7157 submission will be required."}</p></div>
+         </section>`
+      : `<h2>Part B — Submission Summary${b.statute ? ` <span style="font-size:10px;font-weight:400;color:#5c5a54;">(${text(b.statute)})</span>` : ""}</h2>
+         <p><span class="label">Business legal name:</span> ${fillIn(b.business_legal_name, "[FILL IN]")}</p>
+         ${b.point_of_contact ? (typeof b.point_of_contact === "object"
+           ? `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact.name ?? "[FILL IN]")}, ${text(b.point_of_contact.title ?? "[FILL IN]")}</p><p><span class="label">Phone:</span> ${text(b.point_of_contact.phone ?? "[FILL IN — required by § 7157(b)(1)]")}</p><p><span class="label">Email:</span> ${text(b.point_of_contact.email ?? "[FILL IN — required by § 7157(b)(1)]")}</p>`
+           : `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact)}</p>`) : ""}
+         ${b.assessment_count_in_period !== undefined ? `<p><span class="label">Assessments in period:</span> ${text(b.assessment_count_in_period)}</p>` : ""}
+         ${Array.isArray(b.pi_categories_aggregated) && b.pi_categories_aggregated.length ? `<p><span class="label">PI categories (aggregated):</span> ${b.pi_categories_aggregated.map((c: any) => text(c)).join(", ")}</p>` : ""}
+         ${Array.isArray(b.spi_flagged) && b.spi_flagged.length ? `<p><span class="label">SPI flagged:</span> ${b.spi_flagged.map((c: any) => text(c)).join(", ")}</p>` : ""}
+         ${b.perjury_attestation_block ? `<div class="attest">${text(b.perjury_attestation_block)}</div>
+         <p class="meta" style="margin-top:8px;font-size:10px;color:#b55a00;border-top:1px solid #e6e3da;padding-top:6px;">⚠ Sample document — the certifying executive name, title, and execution date above are placeholder values from the sample intake. Replace with the actual certifying executive's legal name, title, and execution date before this document is signed or submitted to the CPPA.</p>` : ""}
+         ${b.submission_banner ? `<div class="callout"><p>${text(b.submission_banner)}</p></div>` : ""}`}
     <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
