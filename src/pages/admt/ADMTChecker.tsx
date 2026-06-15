@@ -1092,6 +1092,8 @@ export default function ADMTChecker() {
                         ...(caConsumerCount ? [["CA consumers (approx.)", caConsumerCount]] : []),
                         ...(thirdPartyAdmt ? [["Third-party ADMT tools", thirdPartyAdmt]] : []),
                         ...(optOut15DayProcess ? [["15-day opt-out process", optOut15DayProcess]] : []),
+                        ...(admtSystemCount ? [["ADMT systems operated", admtSystemCount]] : []),
+                        ...(priorAccessRequests12mo ? [["Prior access requests (12 mo.)", priorAccessRequests12mo]] : []),
                       ] as [string, string][]
                     )
                       .filter(([, v]) => v)
