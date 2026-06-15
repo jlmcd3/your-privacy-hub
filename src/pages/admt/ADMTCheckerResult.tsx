@@ -191,9 +191,7 @@ export default function ADMTCheckerResult() {
       </Helmet>
       <ReportShell
         title={`ADMT Compliance Gap Analysis — ${report.system_name}`}
-        subtitle={`Compliance deadline: ${report.compliance_deadline} · ${totalGaps} gap${totalGaps !== 1 ? "s" : ""} identified`}
-        toolSlug="cppa_admt"
-        assessmentId={id}
+        meta={`Compliance deadline: ${report.compliance_deadline} · ${totalGaps} gap${totalGaps !== 1 ? "s" : ""} identified`}
       >
         {purchased && (
           <div className="p-3 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm mb-2">
