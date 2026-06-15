@@ -210,7 +210,26 @@ ${enforcementBlock}Respond with this exact JSON structure (controls array MUST c
 }
 
 Components ${startIdx}–${endIdx} to assess (in this order):
-${numbered}`;
+${numbered}
+
+SCORING RULES:
+- Score 0–20 → status must be "Critical Gap"
+- Score 21–59 → status must be "Partial" or "Gap" (use "Gap" when the control is completely absent; "Partial" when it partially exists)
+- Score 60–89 → status must be "Implemented"
+- Score 90–100 → status must be "Mature"
+The status MUST be consistent with the score. Never assign "Implemented" to a control scoring 90 or above.
+
+SECTOR RULES — include the following additional context in findings and remediation where applicable to the detected industry sector (from intake industry_sector field):
+- Financial Services / Fintech: note overlap with GLBA Safeguards Rule (FTC, 16 CFR Part 314) where relevant to the control. Controls for encryption, access control, vendor oversight, and incident response all have GLBA Safeguards Rule counterparts. Mention "GLBA Safeguards Rule alignment" where applicable.
+- Insurance: note overlap with GLBA for insurance holding companies and NAIC Cybersecurity Model Law (MDL-668) equivalents where relevant.
+- Energy / Utilities: note NERC CIP standards (CIP-002 through CIP-014) for any bulk-power system operator context; these directly overlap with network segmentation, access controls, configuration management, and incident response controls.
+- Telecommunications: note CPNI rules (47 CFR Part 64) where access control and data-breach notification controls are assessed.
+- Smart Home / IoT: note California IoT Security Law (Cal. Civ. Code §§ 1798.91.04–1798.91.06) requiring reasonable security features for connected devices; relevant to secure configuration, vulnerability management, and authentication controls.
+- Healthcare / Life Sciences: note HIPAA Security Rule alignment where relevant (45 CFR Part 164). Mention "HIPAA Security Rule" in findings where applicable.
+- Pharma / Clinical Research: note FDA 21 CFR Part 11 requirements for audit logging and access controls on systems handling electronic records.
+- Children / EdTech: note COPPA security obligations where personal information of minors is involved.
+
+GOVERNMENT/NONPROFIT APPLICABILITY — add a sentence to the finding for each control if the intake indicates the entity is a government agency or public-sector body: "Note: CPPA cybersecurity audit obligations under 11 CCR §§ 7120–7124 apply only to 'businesses' as defined in Cal. Civ. Code § 1798.140(ag). State and local government agencies are expressly excluded from the CCPA definition of 'business.' This readiness assessment assumes CPPA applicability; the entity should confirm its status as a covered business before relying on this report for CPPA compliance purposes." If the entity appears to be a nonprofit, add: "CPPA cybersecurity obligations apply only to entities meeting at least one of the three CCPA business thresholds (annual gross revenues >$25M; processing PI of 100,000+ consumers/households; or deriving 50%+ of revenue from selling/sharing PI). This readiness assessment assumes threshold applicability; the entity should verify its status."`;
     }
 
     function buildSynthesisPrompt(controlsDigest: string, computedScore: number): string {
