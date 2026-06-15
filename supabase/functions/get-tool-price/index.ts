@@ -21,6 +21,7 @@ const ANNUAL_GATED_TOOLS = new Set([
   "cppa_risk_assessment",
   "cppa_cybersecurity",
   "cppa_suite",
+  "cppa_admt",
 ]);
 const TOOLS: Record<
   string,
@@ -175,6 +176,14 @@ const TOOLS: Record<
     subscriber_lookup: "cppa_suite_subscriber",
     fallback_standalone_cents: 44900,
     fallback_subscriber_cents: 24900,
+    classification: "smart",
+  },
+  cppa_admt: {
+    name: "ADMT Compliance Checker — Module 3",
+    standalone_lookup: "cppa_admt_standalone",
+    subscriber_lookup: "cppa_admt_subscriber",
+    fallback_standalone_cents: 9900,
+    fallback_subscriber_cents: 4900,
     classification: "smart",
   },
   dpa_generator: {
