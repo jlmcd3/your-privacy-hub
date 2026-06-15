@@ -40,6 +40,18 @@ function json(b: unknown, s = 200) {
 function stripFences(s: string): string {
   return s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
 }
+function fixOcrSpaces(text: string): string {
+  if (!text) return text;
+  let t = text.replace(/\s+/g, " ").trim();
+  t = t.replace(/\b([A-Za-z]) ([a-z]{2,})/g, "$1$2");
+  t = t.replace(/([a-z]{2,}) ([a-z])\b/g, "$1$2");
+  t = t.replace(/\b([A-Za-z]{2}) ([a-z])\b/g, (match, p1, p2) => {
+    const joined = p1 + p2;
+    const commonWords = new Set(["the","and","for","not","but","are","was","has","had","its","that","this","with","from","they","have","been","will","when","also","into","more","each","such","than","then","some","only","must","does","were","what","who","how","any","all","may","can"]);
+    return commonWords.has(joined.toLowerCase()) ? joined : match;
+  });
+  return t;
+}
 async function sha256(s: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
