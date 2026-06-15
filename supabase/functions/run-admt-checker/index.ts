@@ -224,6 +224,15 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "summary": "3-4 sentence plain-language scope conclusion that incorporates the reasoning above."
   },
 
+  "consolidated_notice_analysis": {
+    "applicable": true | false,
+    "basis": "State which of the four § 7220(e) consolidation scenarios applies, if any: (1) one ADMT for multiple purposes; (2) multiple ADMTs for one purpose; (3) multiple ADMTs for multiple purposes; (4) systematic use of a single ADMT. Only mark applicable:true if the intake describes multiple ADMT systems OR multiple uses of a single ADMT that could be consolidated. If the business operates a single ADMT for a single purpose, mark applicable:false and explain why consolidation is irrelevant here.",
+    "conditions_to_consolidate": "If applicable:true, list the mandatory conditions the consolidated notice must satisfy: it must include ALL required § 7220(c) elements for EACH ADMT system or use covered. Generic or combined descriptions that obscure individual system requirements do not satisfy this.",
+    "consolidation_benefit": "If applicable:true, briefly describe the operational benefit (e.g., 'A single notice can cover both the credit scoring model and the fraud detection system, reducing notice delivery touchpoints from two to one').",
+    "consolidation_risk": "If applicable:true, describe the compliance trap: a consolidated notice that omits required elements for any one system is non-compliant for that system. The business cannot use consolidation to simplify away disclosure obligations.",
+    "recommendation": "One plain-language sentence: either 'Consolidation not applicable — single ADMT/single purpose detected' or 'Consolidation eligible — recommend reviewing § 7220(e) conditions with counsel before consolidating.'"
+  },
+
   "enforcement_context": {
     "penalty_per_violation_unintentional": 2663,
     "penalty_per_violation_intentional": 7988,
