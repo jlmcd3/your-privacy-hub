@@ -543,6 +543,7 @@ ${renderSections(built.sections, 1)}`;
 <h1>International Privacy Notice</h1>
 <div class="meta">${escapeHtml(controllerName)} · Last updated: ${escapeHtml(generatedAtHuman)} · ${fws.length} framework${fws.length === 1 ? "" : "s"}</div>
 <p>This notice consolidates the privacy disclosures ${escapeHtml(controllerName)} maintains across each privacy framework listed below. Use the table of contents to jump to the section that applies to you. To exercise your rights, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>
+${hasRequiredFieldsBlank(controllerName, contactEmail) ? DRAFT_BANNER_HTML : ""}
 <h2>Table of contents</h2>
 <ul class="toc">${tocHtml}</ul>
 ${sectionsHtml}
