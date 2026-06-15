@@ -298,7 +298,7 @@ export default function ADMTChecker() {
       optOutFairnessDoc, accessSubmissionMethods, accessVerificationProcess,
       accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
       accessTradeSecretPolicy,
-      caConsumerCount, thirdPartyAdmt, optOut15DayProcess, optOutServiceProviderNotice,
+      caConsumerCount, thirdPartyAdmt, admtSystemCount, priorAccessRequests12mo, optOut15DayProcess, optOutServiceProviderNotice,
     ],
   );
 
