@@ -361,7 +361,37 @@ ${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : `<p>W
   const complaintHtml = fw.framework_code === "UK_GDPR"
     ? `<p>You also have the right to lodge a complaint with the supervisory authority. In the United Kingdom, this is the <strong>Information Commissioner's Office (ICO)</strong> — <a href="https://ico.org.uk">ico.org.uk</a>.</p>`
     : fw.framework_code === "EU_GDPR"
-    ? `<p>You also have the right to lodge a complaint with your national data protection authority (your supervisory authority under the GDPR). For organisations established in Ireland, this is the <strong>Data Protection Commission (DPC)</strong> — <a href="https://www.dataprotection.ie">dataprotection.ie</a>. For other EU/EEA Member States, contact the supervisory authority where you live, work, or where the alleged infringement took place.</p>`
+    ? (() => {
+        // Name the specific lead SA based on the controller's establishment.
+        // Falls back to the generic instruction for establishments not in this map.
+        const SA_MAP: Record<string, { name: string; url: string }> = {
+          ireland:      { name: "Data Protection Commission (DPC)", url: "https://www.dataprotection.ie" },
+          germany:      { name: "Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI)", url: "https://www.bfdi.bund.de" },
+          france:       { name: "Commission Nationale de l'Informatique et des Libertés (CNIL)", url: "https://www.cnil.fr" },
+          netherlands:  { name: "Autoriteit Persoonsgegevens (AP)", url: "https://autoriteitpersoonsgegevens.nl" },
+          spain:        { name: "Agencia Española de Protección de Datos (AEPD)", url: "https://www.aepd.es" },
+          belgium:      { name: "Autorité de protection des données (APD)", url: "https://www.autoriteprotectiondonnees.be" },
+          sweden:       { name: "Integritetsskyddsmyndigheten (IMY)", url: "https://www.imy.se" },
+          denmark:      { name: "Datatilsynet", url: "https://www.datatilsynet.dk" },
+          finland:      { name: "Tietosuojavaltuutetun toimisto (TSV)", url: "https://tietosuoja.fi" },
+          austria:      { name: "Österreichische Datenschutzbehörde (DSB)", url: "https://www.dsb.gv.at" },
+          poland:       { name: "Urząd Ochrony Danych Osobowych (UODO)", url: "https://uodo.gov.pl" },
+          italy:        { name: "Garante per la protezione dei dati personali", url: "https://www.garanteprivacy.it" },
+          luxembourg:   { name: "Commission Nationale pour la protection des données (CNPD)", url: "https://cnpd.public.lu" },
+          portugal:     { name: "Comissão Nacional de Proteção de Dados (CNPD)", url: "https://www.cnpd.pt" },
+          greece:       { name: "Hellenic Data Protection Authority (HDPA)", url: "https://www.dpa.gr" },
+          norway:       { name: "Datatilsynet (Norway)", url: "https://www.datatilsynet.no" },
+          switzerland:  { name: "Federal Data Protection and Information Commissioner (FDPIC)", url: "https://www.edoeb.admin.ch" },
+        };
+        const matchedSA = Object.entries(SA_MAP).find(([country]) =>
+          estLower.includes(country)
+        );
+        if (matchedSA) {
+          const [, sa] = matchedSA;
+          return `<p>You also have the right to lodge a complaint with your national data protection authority. As the controller is established in ${escapeHtml(establishment)}, the lead supervisory authority is the <strong>${escapeHtml(sa.name)}</strong> — <a href="${escapeHtml(sa.url)}">${escapeHtml(sa.url)}</a>. You may also complain to the supervisory authority where you live, work, or where the alleged infringement took place.</p>`;
+        }
+        return `<p>You also have the right to lodge a complaint with your national data protection authority (your supervisory authority under the GDPR). Contact the supervisory authority where you live, work, or where the alleged infringement took place. A list of EU/EEA supervisory authorities is available at <a href="https://edpb.europa.eu/about-edpb/about-edpb/members_en">edpb.europa.eu</a>.</p>`;
+      })()
     : fw.framework_code === "CH_FADP"
     ? `<p>You also have the right to lodge a complaint with the Swiss <strong>Federal Data Protection and Information Commissioner (FDPIC / EDÖB)</strong> — <a href="https://www.edoeb.admin.ch">edoeb.admin.ch</a>. Note that the revised FADP (in force 1 September 2023) does not provide for administrative fines on companies but does authorise criminal sanctions against responsible individuals for specific breaches (Art. 60–63 FADP) and requires controllers to maintain a register of processing activities, conduct DPIAs for high-risk processing, and report breaches to the FDPIC as soon as possible.</p>`
     : `<p>You also have the right to lodge a complaint with the relevant supervisory authority in your jurisdiction.</p>`;
@@ -397,6 +427,24 @@ ${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : `<p>W
 }
 
 
+/** Returns true when the notice has unpopulated required fields. */
+function hasRequiredFieldsBlank(controllerName: string, contactEmail: string): boolean {
+  return (
+    controllerName === "[Controller name]" ||
+    controllerName === "" ||
+    contactEmail === "[contact email]" ||
+    contactEmail === ""
+  );
+}
+
+const DRAFT_BANNER_HTML = `<div style="background:#7c1a1a;color:#fff;padding:12px 20px;font-size:13px;
+  font-weight:600;border-radius:6px;margin-bottom:24px;letter-spacing:0.02em;
+  border-left:6px solid #f87171;">
+  ⚠ DRAFT — REQUIRED FIELDS MISSING — DO NOT PUBLISH this notice until controller
+  name, contact email, data categories, purposes, lawful basis, and retention are
+  completed by qualified legal counsel.
+</div>`;
+
 function renderSections(sections: NoticeSection[], startNumber = 1): string {
   return sections
     .map(
@@ -408,7 +456,7 @@ function renderSections(sections: NoticeSection[], startNumber = 1): string {
 
 export function buildNoticeHtml(opts: BuildNoticeOptions): string {
   const { fw, generatedAtHuman } = opts;
-  const { lawName, controllerName, intro, sections } = buildNoticeSections(opts);
+  const { lawName, controllerName, contactEmail, intro, sections } = buildNoticeSections(opts);
 
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" />
@@ -437,6 +485,7 @@ export function buildNoticeHtml(opts: BuildNoticeOptions): string {
   <span class="badge">${escapeHtml(lawName)}</span>
   &nbsp;·&nbsp; Last updated: ${escapeHtml(generatedAtHuman)}
 </div>
+${hasRequiredFieldsBlank(controllerName, contactEmail) ? DRAFT_BANNER_HTML : ""}
 ${intro}
 ${renderSections(sections, 1)}
 <footer>Generated by <strong>EndUserPrivacy</strong> · enduserprivacy.com · 
@@ -494,6 +543,7 @@ ${renderSections(built.sections, 1)}`;
 <h1>International Privacy Notice</h1>
 <div class="meta">${escapeHtml(controllerName)} · Last updated: ${escapeHtml(generatedAtHuman)} · ${fws.length} framework${fws.length === 1 ? "" : "s"}</div>
 <p>This notice consolidates the privacy disclosures ${escapeHtml(controllerName)} maintains across each privacy framework listed below. Use the table of contents to jump to the section that applies to you. To exercise your rights, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>
+${hasRequiredFieldsBlank(controllerName, contactEmail) ? DRAFT_BANNER_HTML : ""}
 <h2>Table of contents</h2>
 <ul class="toc">${tocHtml}</ul>
 ${sectionsHtml}

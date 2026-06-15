@@ -309,11 +309,18 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         payment_confirmed: true, paid_at: new Date().toISOString(),
       }).select("id").single();
       if (sErr || !session) throw new Error(`eu-notice session: ${sErr?.message}`);
+      // Derive whether UK GDPR applies from the controller's country code.
+      // Only UK-established controllers are subject to UK GDPR.
+      const noticeCountry = (intake as any).establishment_jurisdiction ?? "";
+      const isUKEstablished = /united kingdom|england|scotland|wales/i.test(String(noticeCountry));
+      const frameworks = [
+        { session_id: session.id, framework_code: "EU_GDPR", framework_name: "EU GDPR", region: "EU" },
+        ...(isUKEstablished
+          ? [{ session_id: session.id, framework_code: "UK_GDPR", framework_name: "UK GDPR", region: "UK" }]
+          : []),
+      ];
       try {
-        await admin.from("eu_notice_framework_selections").insert([
-          { session_id: session.id, framework_code: "EU_GDPR", framework_name: "EU GDPR", region: "EU" },
-          { session_id: session.id, framework_code: "UK_GDPR", framework_name: "UK GDPR", region: "UK" },
-        ]);
+        await admin.from("eu_notice_framework_selections").insert(frameworks);
       } catch (e) {
         console.warn("[run-stress-job] eu_notice_framework_selections insert failed:", e);
       }
