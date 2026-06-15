@@ -120,7 +120,11 @@ EPRIVACY AND DEVICE-ACCESS GATE RULE: For processing activities involving IP add
       } catch { /* non-fatal */ }
     }
     const effectiveJurisdictions: string[] = srcIntakeJurisdictions ?? (intake.jurisdictions || []);
-    const gdprJurisdiction: "eu" | "uk" = effectiveJurisdictions.some((j: string) => /united kingdom|uk|gb/i.test(String(j))) ? "uk" : "eu";
+    // EU GDPR is primary whenever any EU/EEA jurisdiction is present, even if UK is also listed.
+    // Only use UK as primary when UK/GB is the sole jurisdiction and no EU/EEA mention exists.
+    const hasEU = effectiveJurisdictions.some((j: string) => /\beu\b|european.*union|eea|\bgdpr\b|germany|france|ireland|netherlands|spain|italy|sweden|denmark|poland|belgium|austria|finland|luxembourg|greece|portugal|norway|switzerland/i.test(String(j)));
+    const hasUK = effectiveJurisdictions.some((j: string) => /united kingdom|\buk\b|\bgb\b|uk gdpr|england|wales|scotland/i.test(String(j)));
+    const gdprJurisdiction: "eu" | "uk" = hasEU ? "eu" : (hasUK ? "uk" : "eu");
 
     // Fetch enforcement precedents (3-5) and GDPR authority context in parallel
     let enforcementPrecedents: any[] = [];
