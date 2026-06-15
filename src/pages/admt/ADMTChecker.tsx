@@ -1017,6 +1017,19 @@ export default function ADMTChecker() {
                   </div>
 
                   <div>
+                    <Label>Has this consumer previously submitted access requests to your business in the last 12 months? (optional)</Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Under § 7222(j), if a consumer has submitted more than four access requests within a 12-month period, you may provide aggregate-level logic and output summaries instead of individualized responses. Enter the approximate number of prior requests from this consumer, or leave blank.
+                    </p>
+                    <input
+                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                      value={priorAccessRequests12mo}
+                      onChange={(e) => setPriorAccessRequests12mo(e.target.value)}
+                      placeholder="e.g. 0, 2, 5"
+                    />
+                  </div>
+
+                  <div>
                     <Label onFocus={() => focus("access_logic_disclosure")}>
                       Trade secret and security information policy (optional but recommended)
                     </Label>
