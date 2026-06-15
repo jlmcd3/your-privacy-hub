@@ -361,7 +361,37 @@ ${dpiaRef ? `<p>Transfer impact assessment: ${escapeHtml(dpiaRef)}.</p>` : `<p>W
   const complaintHtml = fw.framework_code === "UK_GDPR"
     ? `<p>You also have the right to lodge a complaint with the supervisory authority. In the United Kingdom, this is the <strong>Information Commissioner's Office (ICO)</strong> — <a href="https://ico.org.uk">ico.org.uk</a>.</p>`
     : fw.framework_code === "EU_GDPR"
-    ? `<p>You also have the right to lodge a complaint with your national data protection authority (your supervisory authority under the GDPR). For organisations established in Ireland, this is the <strong>Data Protection Commission (DPC)</strong> — <a href="https://www.dataprotection.ie">dataprotection.ie</a>. For other EU/EEA Member States, contact the supervisory authority where you live, work, or where the alleged infringement took place.</p>`
+    ? (() => {
+        // Name the specific lead SA based on the controller's establishment.
+        // Falls back to the generic instruction for establishments not in this map.
+        const SA_MAP: Record<string, { name: string; url: string }> = {
+          ireland:      { name: "Data Protection Commission (DPC)", url: "https://www.dataprotection.ie" },
+          germany:      { name: "Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI)", url: "https://www.bfdi.bund.de" },
+          france:       { name: "Commission Nationale de l'Informatique et des Libertés (CNIL)", url: "https://www.cnil.fr" },
+          netherlands:  { name: "Autoriteit Persoonsgegevens (AP)", url: "https://autoriteitpersoonsgegevens.nl" },
+          spain:        { name: "Agencia Española de Protección de Datos (AEPD)", url: "https://www.aepd.es" },
+          belgium:      { name: "Autorité de protection des données (APD)", url: "https://www.autoriteprotectiondonnees.be" },
+          sweden:       { name: "Integritetsskyddsmyndigheten (IMY)", url: "https://www.imy.se" },
+          denmark:      { name: "Datatilsynet", url: "https://www.datatilsynet.dk" },
+          finland:      { name: "Tietosuojavaltuutetun toimisto (TSV)", url: "https://tietosuoja.fi" },
+          austria:      { name: "Österreichische Datenschutzbehörde (DSB)", url: "https://www.dsb.gv.at" },
+          poland:       { name: "Urząd Ochrony Danych Osobowych (UODO)", url: "https://uodo.gov.pl" },
+          italy:        { name: "Garante per la protezione dei dati personali", url: "https://www.garanteprivacy.it" },
+          luxembourg:   { name: "Commission Nationale pour la protection des données (CNPD)", url: "https://cnpd.public.lu" },
+          portugal:     { name: "Comissão Nacional de Proteção de Dados (CNPD)", url: "https://www.cnpd.pt" },
+          greece:       { name: "Hellenic Data Protection Authority (HDPA)", url: "https://www.dpa.gr" },
+          norway:       { name: "Datatilsynet (Norway)", url: "https://www.datatilsynet.no" },
+          switzerland:  { name: "Federal Data Protection and Information Commissioner (FDPIC)", url: "https://www.edoeb.admin.ch" },
+        };
+        const matchedSA = Object.entries(SA_MAP).find(([country]) =>
+          estLower.includes(country)
+        );
+        if (matchedSA) {
+          const [, sa] = matchedSA;
+          return `<p>You also have the right to lodge a complaint with your national data protection authority. As the controller is established in ${escapeHtml(establishment)}, the lead supervisory authority is the <strong>${escapeHtml(sa.name)}</strong> — <a href="${escapeHtml(sa.url)}">${escapeHtml(sa.url)}</a>. You may also complain to the supervisory authority where you live, work, or where the alleged infringement took place.</p>`;
+        }
+        return `<p>You also have the right to lodge a complaint with your national data protection authority (your supervisory authority under the GDPR). Contact the supervisory authority where you live, work, or where the alleged infringement took place. A list of EU/EEA supervisory authorities is available at <a href="https://edpb.europa.eu/about-edpb/about-edpb/members_en">edpb.europa.eu</a>.</p>`;
+      })()
     : fw.framework_code === "CH_FADP"
     ? `<p>You also have the right to lodge a complaint with the Swiss <strong>Federal Data Protection and Information Commissioner (FDPIC / EDÖB)</strong> — <a href="https://www.edoeb.admin.ch">edoeb.admin.ch</a>. Note that the revised FADP (in force 1 September 2023) does not provide for administrative fines on companies but does authorise criminal sanctions against responsible individuals for specific breaches (Art. 60–63 FADP) and requires controllers to maintain a register of processing activities, conduct DPIAs for high-risk processing, and report breaches to the FDPIC as soon as possible.</p>`
     : `<p>You also have the right to lodge a complaint with the relevant supervisory authority in your jurisdiction.</p>`;
