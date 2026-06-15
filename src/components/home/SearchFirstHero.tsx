@@ -83,7 +83,7 @@ export default function SearchFirstHero() {
                   Your CPPA Readiness — to assess and act
                 </p>
                 <p className="text-meta text-white/85 leading-snug">
-                  Scope checker, risk assessment, and cybersecurity audit. Calibrated to California's CPPA regulations.
+                  CPPA scope checker, risk assessment, cybersecurity audit, and ADMT assessment. Calibrated to California's CPPA regulations.
                 </p>
               </a>
               </div>
