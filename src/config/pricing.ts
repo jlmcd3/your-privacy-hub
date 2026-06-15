@@ -594,6 +594,7 @@ export const PRICING_REGISTRY = {
     parentLookupKey: "intelligence_annual",
     addonReason: "subscriber_discount",
     active: true,
+  },
   registration_standalone: {
     kind: "one_time",
     lookupKey: "registration_standalone",
