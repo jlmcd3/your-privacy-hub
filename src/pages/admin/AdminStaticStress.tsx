@@ -89,13 +89,13 @@ const TOOL_SLUG_MAP: Record<string, string> = {
   "lia": "li_assessment", "dpia": "dpia", "governance": "governance",
   "biometric": "biometric", "dpa": "dpa", "ir-playbook": "ir_playbook",
   "ropa": "ropa", "us-notice": "us_notice", "eu-notice": "eu_notice",
-  "cppa-risk": "cppa_risk", "cppa-cyber": "cppa_cyber", "registration": "registration",
+  "cppa-risk": "cppa_risk", "cppa-cyber": "cppa_cyber", "cppa-admt": "cppa_admt", "registration": "registration",
 };
 const TOOL_LABEL_MAP: Record<string, string> = {
   "lia": "LIA", "dpia": "DPIA", "governance": "Governance", "biometric": "Biometric",
   "dpa": "DPA", "ir-playbook": "IR Playbook", "ropa": "RoPA",
   "us-notice": "US Notice", "eu-notice": "EU Notice",
-  "cppa-risk": "CPPA Risk", "cppa-cyber": "CPPA Cyber", "registration": "Registration",
+  "cppa-risk": "CPPA Risk", "cppa-cyber": "CPPA Cyber", "cppa-admt": "CPPA ADMT Assessment", "registration": "Registration",
 };
 
 type BatchRow = Batch & { created_at: string };
