@@ -664,6 +664,72 @@ const runCppaCyber: Runner = async ({ userId, log }) => {
   };
 };
 
+// ─── CPPA ADMT ───────────────────────────────────────────────────────────────
+
+const runCppaAdmt: Runner = async ({ userId, log }) => {
+  const intake = {
+    system_name: "Stress Test ADMT System",
+    system_type: "ML model",
+    system_description:
+      "Automated loan scoring model that declines applications below threshold 40 without human review.",
+    decision_domains: ["Financial or lending services (credit decisions, loans, accounts)"],
+    human_review: "No — fully automated, no human review",
+    training_data_use: "Yes",
+    profiling_use: "No",
+    notice_delivery: ["We have not yet provided a Pre-use Notice"],
+    notice_has_specific_purpose: "No — uses generic language",
+    notice_purpose_text: "",
+    notice_has_opt_out_desc: "No",
+    notice_has_access_desc: "No",
+    notice_has_anti_retaliation: "No",
+    notice_has_how_it_works: "No",
+    notice_how_it_works_method: "",
+    notice_has_alternative_process: "No",
+    opt_out_exception: "No exception — we provide a full opt-out right",
+    opt_out_methods: [] as string[],
+    opt_out_link_title: "",
+    opt_out_no_cookie_banner: "",
+    opt_out_no_account_required: "",
+    opt_out_confirmation_mechanism: "",
+    opt_out_appeal_process: "",
+    opt_out_fairness_doc: "",
+    access_submission_methods: "Not yet defined",
+    access_verification_process: "Not yet defined",
+    access_logic_disclosure: "Not yet defined",
+    access_outcome_disclosure: "Not yet defined",
+    access_response_timeline: "Our process is not yet defined",
+    access_trade_secret_policy: "",
+  };
+  log("Inserting cppa_assessments (admt)…");
+  const { data: rec, error: insErr } = await supabase
+    .from("cppa_assessments")
+    .insert({
+      user_id: userId,
+      module: "admt",
+      status: "pending",
+      intake_data: intake as never,
+    })
+    .select("id")
+    .single();
+  if (insErr || !rec) throw new Error(`insert: ${insErr?.message}`);
+
+  log(`Invoking run-admt-checker (id ${rec.id})…`);
+  const { error: fnErr } = await supabase.functions.invoke("run-admt-checker", {
+    body: { assessment_id: rec.id },
+  });
+  if (fnErr) log(`Async generation started (background worker); polling for completion…`);
+
+  await pollCppa(rec.id, log);
+  return {
+    targetTable: "cppa_assessments",
+    targetId: rec.id,
+    label: `CPPA ADMT · ${shortId(rec.id)}`,
+    resultUrl: `/cppa-admt-checker/result/${rec.id}`,
+    payload: intake as unknown as Record<string, unknown>,
+    pdfTargetId: rec.id,
+  };
+};
+
 // ─── Registry ────────────────────────────────────────────────────────────────
 
 export interface ToolDef {
