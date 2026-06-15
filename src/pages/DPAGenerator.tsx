@@ -1,6 +1,8 @@
 
 import { useEffect, useState } from "react";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
@@ -105,7 +107,9 @@ export default function DPAGenerator() {
 
 
   return (
-    <WorkspaceLayout>
+    <div className="min-h-screen flex flex-col bg-brand-cloud">
+      <Navbar />
+      <DashboardSubnav />
       <Helmet><title>Custom DPA Generator | End User Privacy</title>
         <meta name="description" content="Draft a controller-processor DPA tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions." /></Helmet>      <header className="bg-slate-900 text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -245,6 +249,7 @@ export default function DPAGenerator() {
           if (id) navigate(`/dpa-generator/result/${id}?purchased=true`);
         }}
       />
-    </WorkspaceLayout>
+    <Footer />
+    </div>
   );
 }

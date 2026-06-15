@@ -1,6 +1,8 @@
 
 import { useState } from "react";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
@@ -160,7 +162,9 @@ const LIAssessment = () => {
   };
 
   return (
-    <WorkspaceLayout>
+    <div className="min-h-screen flex flex-col bg-brand-cloud">
+      <Navbar />
+      <DashboardSubnav />
       <Helmet>
         <title>Legitimate Interest Assessment | End User Privacy</title>
         <meta name="description" content="Free preliminary signal on whether your processing can rely on legitimate interest. Full assessment includes cited enforcement precedents alongside every test verdict." />
@@ -401,7 +405,8 @@ const LIAssessment = () => {
           </section>
         )}
       </main>
-    </WorkspaceLayout>
+    <Footer />
+    </div>
   );
 };
 

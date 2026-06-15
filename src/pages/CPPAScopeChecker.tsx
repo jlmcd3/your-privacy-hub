@@ -3,7 +3,9 @@
 
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
@@ -153,7 +155,9 @@ export default function CPPAScopeChecker() {
   };
 
   return (
-    <WorkspaceLayout className="bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <DashboardSubnav />
       <Helmet>
         <title>CPPA Scope Checker — CCPA/CPRA | End User Privacy</title>
         <meta
@@ -299,7 +303,8 @@ export default function CPPAScopeChecker() {
         )}
       </main>
       <CPPAToolsCrossLinks current="scope" />
-    </WorkspaceLayout>
+    <Footer />
+    </div>
   );
 }
 

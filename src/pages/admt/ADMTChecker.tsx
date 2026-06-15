@@ -5,7 +5,9 @@
 // regulation text, plain summary, and FSOR context for every field.
 
 import { useMemo, useState } from "react";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
@@ -379,7 +381,9 @@ export default function ADMTChecker() {
   const isReview = step === totalSteps;
 
   return (
-    <WorkspaceLayout className="bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <DashboardSubnav />
       <Helmet>
         <title>ADMT Compliance Checker — Module 3 | End User Privacy</title>
         <meta name="description" content="California ADMT compliance assessment covering pre-use notice, opt-out, and access rights under 11 CCR §§ 7200–7222. January 1, 2027 deadline." />
@@ -1043,6 +1047,7 @@ export default function ADMTChecker() {
           navigate(`/cppa-admt-checker/result/${id}?purchased=true`);
         }}
       />
-    </WorkspaceLayout>
+    <Footer />
+    </div>
   );
 }
