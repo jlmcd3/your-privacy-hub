@@ -8,6 +8,8 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { marked, type Tokens } from "marked";
+import { supabase } from "@/integrations/supabase/client";
+
 import {
   Document,
   Packer,
