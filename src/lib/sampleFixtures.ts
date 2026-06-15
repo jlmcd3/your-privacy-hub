@@ -12,6 +12,7 @@ export type ToolSlug =
   | "biometric"
   | "cppa_risk"
   | "cppa_cyber"
+  | "cppa_admt"
   | "ropa"
   | "us_notice"
   | "eu_notice";
