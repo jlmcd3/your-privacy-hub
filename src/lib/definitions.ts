@@ -43,8 +43,15 @@ export const DEFINITIONS: Record<string, TermDefinition> = {
   },
   admt: {
     term: "Automated Decision-Making Technology (ADMT)",
-    definition: "Technology that processes personal information and uses computation to replace, or substantially replace, human decisionmaking, as defined in the CPPA's 2025 regulations. (summary)",
-    cite: "11 CCR § 7001",
+    definition:
+      "Technology that processes personal information and uses computation to replace or substantially replace human decisionmaking (11 CCR § 7001(e)). Includes profiling. Excludes infrastructure (firewalls, databases, spreadsheets) that does not replace human decisions.",
+    cite: "11 CCR § 7001(e)",
+  },
+  significant_decision: {
+    term: "Significant Decision",
+    definition:
+      "A decision that results in the provision or denial of: financial or lending services; housing; education enrollment or opportunities; employment, independent contracting, or compensation; or healthcare services. Does NOT include advertising (11 CCR § 7001(ddd)).",
+    cite: "11 CCR § 7001(ddd)",
   },
 
   // === GDPR Article 4 core terms (P1-1b) ===
