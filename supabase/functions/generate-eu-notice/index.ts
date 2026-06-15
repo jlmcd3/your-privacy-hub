@@ -456,7 +456,7 @@ function renderSections(sections: NoticeSection[], startNumber = 1): string {
 
 export function buildNoticeHtml(opts: BuildNoticeOptions): string {
   const { fw, generatedAtHuman } = opts;
-  const { lawName, controllerName, intro, sections } = buildNoticeSections(opts);
+  const { lawName, controllerName, contactEmail, intro, sections } = buildNoticeSections(opts);
 
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" />
