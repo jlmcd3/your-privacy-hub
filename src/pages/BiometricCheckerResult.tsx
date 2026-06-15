@@ -136,8 +136,19 @@ export default function BiometricCheckerResult() {
             actions={actions}
           >
             <div dir={dir} style={{ display: "contents" }}>
+            {(orgName || orgType) && (
+              <div className="mb-6 px-4 py-3 bg-slate-50 border border-border rounded-lg text-sm text-foreground">
+                {orgName && (
+                  <div><span className="font-medium text-brand-navy">Prepared for:</span> {orgName}</div>
+                )}
+                {orgType && (
+                  <div className="text-muted-foreground mt-0.5">{orgType}</div>
+                )}
+              </div>
+            )}
             <AssessmentReport text={text || ""} sectionChipLabel={null} />
             {bipaCallout}
+            <ToolDisclaimer addition="Biometric data obligations vary by jurisdiction, sector, and specific processing context. Applicability determinations — including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing — require qualified legal counsel in each named jurisdiction." />
             <EnforcementPrecedents
               precedents={(row?.report_data as any)?.enforcement_precedents}
               variant="standard"
