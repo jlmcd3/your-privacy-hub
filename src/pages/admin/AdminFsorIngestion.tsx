@@ -88,8 +88,9 @@ const PRESETS: Record<string, PresetConfig> = {
     fsor_package: P2023,
     source_url: PDF+"20230329_final_sor_app_a_comments.pdf",
     mode: "appendix2023",
-    col_bounds: [90, 280, 610, 670],
+    col_bounds: [110, 400, 610, 670],
     force_shape: true,
+    force_rotation: 0,
     include_sections: ["7002","7004","7011","7012","7013","7014","7015","7016","7051"]
   },
   T5b: {
