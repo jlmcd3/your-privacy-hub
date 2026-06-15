@@ -363,7 +363,26 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 <div class="body">
 ${report.has_unresolved_placeholders ? `<div style="background:#7c1a1a;color:#fff;padding:10px 16px;font-size:12px;font-weight:600;border-radius:6px;margin-bottom:16px;letter-spacing:0.03em;">⚠ DRAFT — REQUIRED INPUTS INCOMPLETE — DO NOT SIGN OR RELY ON THIS DOCUMENT until all fields marked [TO COMPLETE] and [TO BE ASSESSED] have been reviewed and completed by qualified legal counsel.</div>` : ""}
 <div class="disclaimer"><strong>IMPORTANT: </strong>${escHtml(report.framework_disclaimer || "")}</div>
-${(meta.applicable_frameworks || []).length ? `<p><span class="label">Applicable frameworks: </span>${(meta.applicable_frameworks || []).join(" &nbsp;|&nbsp; ")}</p>` : ""}
+<div style="border:1px solid #dde5ea;border-radius:8px;padding:14px 18px;margin-bottom:20px;background:#f8fafc;">
+  <table style="width:100%;border-collapse:collapse;font-size:11px;">
+    <tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Controller</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml(dpia?.organization_name || meta.controller_name || "[TO COMPLETE — controller legal name]")}</td>
+      <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:120px;">Version</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml(meta.framework_version || "1.0")}</td>
+    </tr>
+    <tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Processing activity</td>
+      <td style="padding:3px 0;color:#1a1916;" colspan="3">${escHtml(meta.processing_activity_name || "[TO COMPLETE]")}</td>
+    </tr>
+    <tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Jurisdiction scope</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml((meta.applicable_frameworks || []).join(" | ") || "[TO COMPLETE]")}</td>
+      <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Status</td>
+      <td style="padding:3px 0;color:#b45309;font-weight:600;">FRAMEWORK — NOT A COMPLETED DPIA</td>
+    </tr>
+  </table>
+</div>
 ${meta.supervisory_authority_consultation_trigger ? `<div class="completion"><strong>Supervisory authority consultation trigger: </strong>${meta.supervisory_authority_consultation_trigger}</div>` : ""}
 ${sections.map(([key, heading]) => {
     const s = report[key] || {};
