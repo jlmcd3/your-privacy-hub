@@ -171,12 +171,6 @@ const navItems: NavItem[] = [
             href: "/cppa#deadlines",
             tooltip: "Dec 31 2027 risk assessment · Apr 1 2028 cybersecurity certification · Jan 1 2027 ADMT",
           },
-          {
-            icon: "📖",
-            label: "CPPA Enforcement Record",
-            href: "/enforcement?regulator=CPPA",
-            tooltip: "CPPA enforcement actions and audit findings from the enforcement database",
-          },
         ],
       },
     ],
