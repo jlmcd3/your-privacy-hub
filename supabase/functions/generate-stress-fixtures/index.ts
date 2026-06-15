@@ -552,21 +552,19 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         necessity_details: { alternatives: "Aggregate reporting and shorter retention", why_consent_not_used: "Security controls must operate consistently", data_minimised: "Only event metadata is processed", pseudonymisation_options: "User IDs are pseudonymised in analytics" },
         balancing_details: { reasonable_expectation: "Users expect security and service telemetry", vulnerable_subjects: [], potential_harm: "Unexpected profiling if safeguards fail", safeguards: ["opt-out where applicable", "role-based access", "short retention"], opt_out_mechanism: "Privacy centre preference controls", special_category_data: false, balancing_text: "Benefits outweigh limited privacy impact with safeguards" },
       },
-      dpia: {
-        processing_activity_name: `${industry} platform monitoring`,
-        description: "Monitoring service events to detect abuse and reliability issues",
-        purpose: "Security, fraud prevention, and service resilience",
-        data_categories: ["account IDs", "IP addresses", "event logs"],
-        data_subjects: "Customers and end users",
-        volume_frequency: slot === 1 ? "Millions of events daily" : "Thousands of events daily",
-        retention: "24 months",
-        third_party_processors: ["AWS", "Snowflake", "Zendesk"],
-        automated_decisions: "No solely automated legal or similarly significant decisions",
-        existing_safeguards: ["encryption", "MFA", "DPIA review", "vendor DPAs"],
-        jurisdictions: ["EU", "UK"],
-        legal_basis_proposed: "Legitimate interests",
-        sector: industry,
-      },
+      dpia: (() => {
+        const dpiaIntake = getDpiaIntakeForSector(industry, slot);
+        return {
+          ...dpiaIntake,
+          volume_frequency: slot === 1 ? "Large-scale — confirm exact volume from operational data" : "Mid-scale — confirm exact volume from operational data",
+          retention: "To be confirmed per data category",
+          third_party_processors: ["AWS", "Snowflake", "Zendesk"],
+          existing_safeguards: ["encryption", "MFA", "DPIA review", "vendor DPAs"],
+          jurisdictions: ["EU (GDPR)"],
+          sector: industry,
+        };
+      })(),
+
       ropa: { org_name: c.companyName, legal_entity_type: "Private company", employee_band: slot === 1 ? "1000+" : "100-499", dpo_name: c.dpoName, dpo_email: c.dpoEmail, jurisdictions: [{ code: c.countryCode, name: c.countryCode === "GB" ? "United Kingdom" : "European Union", region: "Europe" }], activities },
       euNotice: {
         controller_name: c.companyName,
