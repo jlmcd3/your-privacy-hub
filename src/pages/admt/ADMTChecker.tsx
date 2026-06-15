@@ -279,6 +279,10 @@ export default function ADMTChecker() {
       access_outcome_disclosure: accessOutcomeDisclosure,
       access_response_timeline: accessResponseTimeline,
       access_trade_secret_policy: accessTradeSecretPolicy,
+      ca_consumer_count: caConsumerCount,
+      third_party_admt: thirdPartyAdmt,
+      opt_out_15_day_process: optOut15DayProcess,
+      opt_out_service_provider_notice: optOutServiceProviderNotice,
     }),
     [
       systemName, systemType, systemDescription, decisionDomains, humanReview,
