@@ -1182,6 +1182,8 @@ function buildADMTReportHTML(report: any, record: any): string {
     year: "numeric", month: "long", day: "numeric",
   });
   const systemName = report?.system_name || "ADMT system";
+  const intake = record?.intake_data || {};
+  const orgName: string = intake?.company_name || intake?.org_name || intake?.organizationName || "";
   const overallLabel =
     report?.overall_status === "compliant" ? "No gaps identified"
     : report?.overall_status === "gaps_identified" ? "Gaps identified — action required"
@@ -1223,7 +1225,7 @@ function buildADMTReportHTML(report: any, record: any): string {
       ["Qualifies as ADMT (§ 7001(e))", sa.is_admt],
       ["Triggers significant decision obligations (§ 7200)", sa.triggers_significant_decision],
       ["Triggers risk assessment requirement (§§ 7150–7157)", sa.triggers_risk_assessment],
-      ["Triggers profiling assessment (§ 7150(b))", sa.triggers_profiling],
+      ["Triggers risk assessment under § 7150(b)", sa.triggers_profiling],
     ];
     const items = rows.map(([label, val]) =>
       `<li><span class="label">${escHtml(label)}:</span> ${val ? "Yes — obligations apply" : "No — not triggered"}</li>`
@@ -1232,7 +1234,7 @@ function buildADMTReportHTML(report: any, record: any): string {
   })() : "";
 
   const priorityBlock = Array.isArray(report?.priority_actions) && report.priority_actions.length
-    ? `<section class="section"><h2>Priority Actions</h2><ol>${report.priority_actions.map((a: string) => `<li>${text(a)}</li>`).join("")}</ol></section>`
+    ? `<section class="section"><h2>Priority Actions</h2><ol>${report.priority_actions.map((a: string) => `<li>${text(a.replace(/^\s*\d+[.)]\s*/, ""))}</li>`).join("")}</ol></section>`
     : "";
 
   const riskNote = report?.risk_assessment_note
@@ -1250,6 +1252,7 @@ function buildADMTReportHTML(report: any, record: any): string {
   .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93b5c6; margin:0 0 4px; }
   h1 { font-size:24px; margin:0; line-height:1.2; }
   .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+  .prepared-for { margin-top:4px; font-size:11px; color:#93b5c6; }
   .summary-bar { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
   .pill { display:inline-block; border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700; background:rgba(255,255,255,.12); color:#fff; }
   .body { padding:22px 28px 28px; }
@@ -1279,9 +1282,10 @@ function buildADMTReportHTML(report: any, record: any): string {
     <div class="summary-bar">
       <span class="pill">Overall: ${text(overallLabel)}</span>
     </div>
+    ${orgName ? `<p class="prepared-for">Prepared for: ${escHtml(orgName)}</p>` : ""}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance gap analysis is generated for informational purposes only. Review all findings with qualified California privacy counsel before relying on them for regulatory submissions. All citations refer to 11 CCR Article 11 (§§ 7200–7222).</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This compliance gap analysis is generated for informational purposes only. Review all findings with qualified California privacy counsel before relying on them for regulatory submissions. Primary authorities: 11 CCR §§ 7001, 7150–7157, 7200, 7220–7222, and Cal. Civ. Code § 1798.185. Verify all citations against the current official text before reliance.</div>
     ${scopeBlock}
     ${priorityBlock}
     ${gapSection("Pre-Use Notice (§ 7220)", report?.notice_gaps ?? [])}

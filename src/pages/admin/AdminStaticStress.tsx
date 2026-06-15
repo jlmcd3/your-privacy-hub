@@ -494,7 +494,11 @@ export default function AdminStaticStress() {
       const { data: reports } = await supabase.from("sample_reports")
         .select("id, tool_slug, variant, title, pdf_path")
         .in("variant", variants).not("pdf_path", "is", null);
-      const list = (reports ?? []).filter((r) => r.pdf_path);
+      const list = (reports ?? []).filter((r) =>
+        r.pdf_path &&
+        !r.title?.toLowerCase().includes("smoke") &&
+        !(r.variant ?? "").toLowerCase().includes("smoke")
+      );
       if (!list.length) { toast.error("No PDFs available", { id: t }); return; }
 
       const zip = new JSZip();
