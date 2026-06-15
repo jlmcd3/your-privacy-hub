@@ -106,7 +106,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
       domain_id: domain.id,
       domain_name: domain.name,
       current_state: `${profile} uses ${tools}; the intake responses indicate ${intake?.privacy_policy || "a privacy notice status not specified"}, ${intake?.dpa_status || "vendor contract status not specified"}, and ${intake?.training_status || "training status not specified"}.`,
-      gap_description: `Stress-run review should confirm evidence quality, ownership, and audit trail completeness for ${domain.name.toLowerCase()}.`,
+      gap_description: `Confirm evidence quality, ownership, and audit trail completeness for ${domain.name.toLowerCase()}. Document the specific artifacts (policies, DPAs, training records, DPIA approvals) that support each control claim.`,
       severity,
       regulatory_basis: framework,
       recommended_action: `Validate documented evidence for ${domain.name.toLowerCase()} against ${framework} and record accountable remediation owners.`,
