@@ -139,8 +139,8 @@ function walkInline(tokens: Tokens.Generic[] | undefined, style: InlineStyle = {
         out.push(makeRun((tok as Tokens.Escape).text, style));
         break;
       default:
-        if ((tok as { text?: string }).text) {
-          out.push(makeRun((tok as { text: string }).text, style));
+        if ((tok as unknown as { text?: string }).text) {
+          out.push(makeRun((tok as unknown as { text: string }).text, style));
         }
     }
   }
@@ -230,7 +230,7 @@ function listItemParagraph(
     if (t.type === "list") nested.push(t as Tokens.List);
     else if (t.type === "text") {
       const tt = t as Tokens.Text;
-      inlineTokens.push(...((tt.tokens as Tokens.Generic[]) ?? [{ type: "text", text: tt.text } as Tokens.Generic]));
+      inlineTokens.push(...((tt.tokens as Tokens.Generic[]) ?? [{ type: "text", raw: tt.text, text: tt.text } as unknown as Tokens.Generic]));
     } else if (t.type === "paragraph") {
       inlineTokens.push(...((t as Tokens.Paragraph).tokens as Tokens.Generic[]));
     }
@@ -408,8 +408,8 @@ function walkBlocks(
         break;
       }
       default:
-        if ((tok as { text?: string }).text) {
-          out.push(paragraphFromInline([makeRun((tok as { text: string }).text, {})]));
+        if ((tok as unknown as { text?: string }).text) {
+          out.push(paragraphFromInline([makeRun((tok as unknown as { text: string }).text, {})]));
         }
     }
   }
