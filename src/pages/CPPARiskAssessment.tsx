@@ -175,6 +175,8 @@ export default function CPPARiskAssessment() {
   // I-8: certifying executive (§ 0 + § 10 + Part B)
   const [i8ExecName, setI8ExecName] = useState("");
   const [i8ExecTitle, setI8ExecTitle] = useState("");
+  const [i8ContactPhone, setI8ContactPhone] = useState("");
+  const [i8ContactEmail, setI8ContactEmail] = useState("");
   // I-9: existing DPIA?
   const [i9HasDpia, setI9HasDpia] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
