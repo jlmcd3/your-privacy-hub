@@ -174,6 +174,18 @@ const TOOLS: ToolDef[] = [
     filterVal: "cybersecurity",
   },
   {
+    key: "cppa_admt",
+    label: "ADMT Compliance Checker",
+    blurb: "Gap analysis for pre-use notices, opt-out obligations, and access rights. January 1, 2027 deadline.",
+    startPath: "/cppa-admt-checker",
+    viewPath: "/dashboard/reports",
+    table: "cppa_assessments",
+    statusCol: "status",
+    completedStatuses: ["complete"],
+    filterCol: "module",
+    filterVal: "admt",
+  },
+  {
     key: "cppa_scope",
     label: "CPPA Scope Checker",
     blurb: "Quickly check whether your business is in scope of CPPA rules.",
