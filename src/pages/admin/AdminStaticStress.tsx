@@ -62,6 +62,7 @@ const ALL_TOOLS = [
   { id: "us-notice", label: "US Notice", geo: "us" },
   { id: "cppa-risk", label: "CPPA Risk", geo: "us" },
   { id: "cppa-cyber", label: "CPPA Cyber", geo: "us" },
+  { id: "cppa-admt", label: "CPPA ADMT", geo: "us" },
 ];
 
 const TOOL_FIXTURE_KEY: Record<string, string> = {
