@@ -329,8 +329,9 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const toolPath = tool_type.replace(/_/g, "-");
-      const successPath = `/${toolPath}/result/${row.id}?purchased=true&subscriber_free=true`;
+      const RESULT_PATH_OVERRIDES: Record<string, string> = { cppa_admt: "/cppa-admt-checker" };
+      const toolPath = RESULT_PATH_OVERRIDES[tool_type] ?? `/${tool_type.replace(/_/g, "-")}`;
+      const successPath = `${toolPath}/result/${row.id}?purchased=true&subscriber_free=true`;
       return new Response(
         JSON.stringify({
           bypassed: true,
@@ -398,8 +399,9 @@ Deno.serve(async (req) => {
           redeemed_assessment_id: row.id,
         })
         .eq("id", creditRow.id);
-      const toolPath = tool_type.replace(/_/g, "-");
-      const successPath = `/${toolPath}/result/${row.id}?purchased=true&annual_credit=true`;
+      const RESULT_PATH_OVERRIDES: Record<string, string> = { cppa_admt: "/cppa-admt-checker" };
+      const toolPath = RESULT_PATH_OVERRIDES[tool_type] ?? `/${tool_type.replace(/_/g, "-")}`;
+      const successPath = `${toolPath}/result/${row.id}?purchased=true&annual_credit=true`;
       return new Response(
         JSON.stringify({
           bypassed: true,
@@ -623,14 +625,22 @@ Deno.serve(async (req) => {
 
     const record = assessmentRecord!;
 
-    // CPPA suite uses a combined result page; other tools use /<slug>/result/:id.
-    const toolPath = tool_type.replace(/_/g, "-");
+    // Some tool_types have URL slugs that differ from tool_type.replace(/_/g, "-").
+    // Override map handles those cases explicitly.
+    const RESULT_PATH_OVERRIDES: Record<string, string> = {
+      cppa_admt: "/cppa-admt-checker",
+    };
+    const CANCEL_PATH_OVERRIDES: Record<string, string> = {
+      cppa_admt: "/cppa-admt-checker",
+    };
+    const toolPath = RESULT_PATH_OVERRIDES[tool_type] ?? `/${tool_type.replace(/_/g, "-")}`;
+    const cancelToolPath = CANCEL_PATH_OVERRIDES[tool_type] ?? `/${tool_type.replace(/_/g, "-")}`;
     const successPath =
       tool_type === "cppa_suite"
         ? `/cppa-suite/result?risk_id=${record.id}&cyber_id=${suiteCyberId}&purchased=true`
-        : `/${toolPath}/result/${record.id}?purchased=true`;
+        : `${toolPath}/result/${record.id}?purchased=true`;
     const cancelPath =
-      tool_type === "cppa_suite" ? `/cppa-risk-assessment` : `/${toolPath}`;
+      tool_type === "cppa_suite" ? `/cppa-risk-assessment` : cancelToolPath;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
