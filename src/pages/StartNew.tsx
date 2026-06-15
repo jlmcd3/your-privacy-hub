@@ -29,6 +29,7 @@ type ToolKey =
   | "registration"
   | "cppa_risk"
   | "cppa_cyber"
+  | "cppa_admt"
   | "cppa_scope";
 
 
