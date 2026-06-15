@@ -314,6 +314,7 @@ const Subscribe = () => {
                 ['Biometric Privacy Checker (Smart)', '—', T.biometric.display, T.biometric.display],
                 ['CPPA Risk Assessment (Smart)', '—', T.cppa_risk.display, T.cppa_risk.display],
                 ['CPPA Cybersecurity Audit (Smart)', '—', T.cppa_cyber.display, T.cppa_cyber.display],
+                ['ADMT Compliance Checker (Smart)', '—', T.cppa_admt.display, T.cppa_admt.display],
                 ['CPPA Scope Checker', 'Free', 'Free', 'Free'],
                 ['IR Playbook (Convenience)', '—', T.ir_playbook.display, T.ir_playbook.display],
                 ['RoPA Builder (Convenience)', '—', 'Included', 'Included'],
