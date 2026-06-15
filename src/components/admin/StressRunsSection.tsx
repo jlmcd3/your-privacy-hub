@@ -36,13 +36,14 @@ const TOOL_SLUG: Record<ToolType, string> = {
   "registration-assessment": "registration",
   "cppa-risk": "cppa_risk",
   "cppa-cyber": "cppa_cyber",
+  "cppa-admt": "cppa_admt",
 };
 
 const TOOL_LABEL: Record<string, string> = {
   "lia": "LIA", "dpia": "DPIA", "governance": "Governance", "biometric": "Biometric",
   "dpa": "DPA", "ir-playbook": "IR Playbook", "ropa": "RoPA",
   "us-notice": "US Notice", "eu-notice": "EU Notice",
-  "registration": "Registration", "cppa-risk": "CPPA Risk", "cppa-cyber": "CPPA Cyber",
+  "registration": "Registration", "cppa-risk": "CPPA Risk", "cppa-cyber": "CPPA Cyber", "cppa-admt": "ADMT Checker",
 };
 
 type StressState = { status: "idle" | "running" | "complete" | "failed"; log: string[] };
