@@ -19,6 +19,53 @@ import { CheckCircle, AlertTriangle, XCircle, Clock, Copy, Check } from "lucide-
 const OFFICIAL_REG_URL =
   "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
 
+function SampleLanguageBlock({ text, usageNote }: { text: string; usageNote?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="rounded-md border border-[hsl(var(--cobalt)/0.25)] bg-[hsl(var(--cobalt)/0.04)] px-3 py-3 space-y-2 mt-1">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[hsl(var(--cobalt))]">
+          Sample Language
+        </p>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="inline-flex items-center gap-1 text-[11px] font-medium text-[hsl(var(--cobalt))] hover:opacity-70 transition-opacity"
+        >
+          {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <p className="text-[12px] leading-relaxed whitespace-pre-wrap font-mono text-foreground/85 border-l-2 border-[hsl(var(--cobalt)/0.3)] pl-3">
+        {text}
+      </p>
+      {usageNote && (
+        <p className="text-[11px] text-muted-foreground italic">
+          ↳ {usageNote}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function StatusBadge({ status }: { status: string }) {
   if (status === "compliant")
     return (
