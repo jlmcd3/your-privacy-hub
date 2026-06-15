@@ -847,6 +847,7 @@ export const PRICING = {
     cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 229, display: '$229', stripePriceId: 'cppa_risk_standalone' },
     cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 299, display: '$299', stripePriceId: 'cppa_cyber_standalone' },
     cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 449, display: '$449', stripePriceId: 'cppa_suite_standalone' },
+    cppa_admt:    { name: 'ADMT Compliance Checker',            dollars: 99,  display: '$99',  stripePriceId: 'cppa_admt_standalone' },
 
     // ── Legacy camelCase aliases (kept so existing imports keep compiling) ──
     cppaScope:    { name: 'CPPA Scope Checker',                 dollars: 0,   display: 'Free', stripePriceId: null },
@@ -856,6 +857,7 @@ export const PRICING = {
     cppaRisk:     { name: 'CPPA Risk Assessment',               dollars: 229, display: '$229', stripePriceId: 'cppa_risk_standalone' },
     cppaCyber:    { name: 'CPPA Cybersecurity Readiness',       dollars: 299, display: '$299', stripePriceId: 'cppa_cyber_standalone' },
     cppaSuite:    { name: 'CPPA Full Audit Suite',              dollars: 449, display: '$449', stripePriceId: 'cppa_suite_standalone' },
+    cppaAdmt:     { name: 'ADMT Compliance Checker',            dollars: 99,  display: '$99',  stripePriceId: 'cppa_admt_standalone' },
   },
 } as const;
 
