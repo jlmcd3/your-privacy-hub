@@ -295,6 +295,12 @@ ABSOLUTE RULES:
 - High = safeguards are insufficient and the risk is likely to materialise without additional mitigations.
 Include a one-sentence rationale for each residual-risk level within the harm's guidance field.
 17. LABEL FORMATTING: All JSON field keys in g_admt and appendix d_spi_note must render with human-readable labels in the output document. Specifically: the key "humanReview" or "human_review" must render as "Human review:"; "spi_categories" or "Spi categories" must render as "SPI categories:"; "spi_statement" or "Spi statement" must render as "SPI statement:". Never let raw camelCase or snake_case property names appear as visible labels in the report.
+18. CCPA BUSINESS THRESHOLD RULE: The CCPA revenue threshold (annual gross revenues exceeding $25 million), consumer-volume threshold (processing PI of 100,000+ consumers/households), and revenue-from-sale threshold (50%+ of annual revenue derived from selling/sharing PI) are qualification criteria that determine whether CCPA applies to a company at all. They are not § 7150(b) risk assessment triggers. NEVER cite a company's revenue level, consumer count, or general "data broker" status as a § 7150(b) trigger. The only valid triggers are the six specific processing activities enumerated in § 7150(b)(1)–(6). When none of the six apply, triggers_selected must be an empty array.
+19. VOLUNTARY ASSESSMENT RULE: When triggers_selected is an empty array (no § 7150(b) trigger is matched), the assessment is voluntary — not a mandatory CPPA risk assessment. In this case:
+   a) Add "voluntary": true to the sec_1_trigger object.
+   b) Set the narrative to explain that the business is conducting this review voluntarily for governance purposes and that no mandatory § 7150(b) trigger was identified from the intake. Be specific about which triggers were considered and why each does not apply.
+   c) Do NOT generate Part B (§ 7157 Annual Submission Worksheet). Instead, set part_b to the string: "Not applicable — no § 7150(b) processing trigger identified. The § 7157 annual submission obligation does not attach to voluntary privacy impact reviews. If processing activities change such that a § 7150(b) trigger applies, a mandatory risk assessment and § 7157 submission will be required."
+   d) The document will be titled "Voluntary Privacy Impact Review" (the PDF renderer handles this automatically based on the voluntary flag).
 
 
 
