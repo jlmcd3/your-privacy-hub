@@ -232,6 +232,9 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       ir_playbook: "ir_playbooks",
       biometric_checker: "biometric_assessments",
       cppa_admt: "cppa_assessments",
+      cppa_risk_assessment: "cppa_assessments",
+      cppa_cybersecurity: "cppa_assessments",
+      cppa_suite: "cppa_assessments",
     };
     const table = tableMap[tool_type];
     if (table) {
@@ -251,6 +254,9 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
         ir_playbook: "generate-ir-playbook",
         biometric_checker: "check-biometric-compliance",
         cppa_admt: "run-admt-checker",
+        cppa_risk_assessment: "run-cppa-risk-assessment",
+        cppa_cybersecurity: "run-cppa-cybersecurity",
+        cppa_suite: "run-cppa-risk-assessment",
       };
       const fn = fnMap[tool_type];
       if (fn) {
@@ -261,6 +267,22 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
         EdgeRuntime.waitUntil(
           supabase.functions.invoke(fn, { body: { [bodyKey]: assessment_id } })
         );
+
+        // CPPA Suite: also dispatch the cybersecurity module for the second row.
+        if (tool_type === "cppa_suite" && session.metadata?.suite_cyber_id) {
+          const suiteCyberId = session.metadata.suite_cyber_id as string;
+          await supabase
+            .from("cppa_assessments")
+            .update({
+              stripe_payment_intent_id: (session.payment_intent as string) || session.id,
+            })
+            .eq("id", suiteCyberId);
+          EdgeRuntime.waitUntil(
+            supabase.functions.invoke("run-cppa-cybersecurity", {
+              body: { assessment_id: suiteCyberId },
+            })
+          );
+        }
       }
     }
     return;
