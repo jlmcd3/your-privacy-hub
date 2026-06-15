@@ -1174,6 +1174,127 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
 
 
 // ─────────────────────────────────────────────────────────────────────────
+// CPPA ADMT Compliance Assessment — Module 3 HTML builder
+// ─────────────────────────────────────────────────────────────────────────
+function buildADMTReportHTML(report: any, record: any): string {
+  const text = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
+  const createdAt = new Date(record.created_at || Date.now()).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+  const systemName = report?.system_name || "ADMT system";
+  const overallLabel =
+    report?.overall_status === "compliant" ? "No gaps identified"
+    : report?.overall_status === "gaps_identified" ? "Gaps identified — action required"
+    : report?.overall_status === "significant_gaps" ? "Significant gaps — urgent action required"
+    : (report?.overall_status || "—");
+  const deadline = report?.compliance_deadline || "January 1, 2027";
+
+  const statusClass = (s: string) => {
+    const v = (s || "").toLowerCase();
+    if (v === "compliant") return "compliant";
+    if (v === "gap") return "gap";
+    if (v === "missing") return "critical";
+    return "neutral";
+  };
+  const statusLabel = (s: string) => {
+    const v = (s || "").toLowerCase();
+    if (v === "compliant") return "Compliant";
+    if (v === "gap") return "Gap";
+    if (v === "missing") return "Missing";
+    return text(s || "—");
+  };
+
+  const gapSection = (title: string, items: any[]) => {
+    if (!Array.isArray(items) || items.length === 0) return "";
+    const rows = items.map((it: any) => `<article class="control">
+      <div class="control-head">
+        <h3>${text(it.element || "")}${it.status ? `<span class="status status-${statusClass(it.status)}">${statusLabel(it.status)}</span>` : ""}</h3>
+        ${it.citation ? `<span class="score">${text(it.citation)}</span>` : ""}
+      </div>
+      ${it.finding ? `<p>${text(it.finding)}</p>` : ""}
+      ${it.remediation ? `<p><span class="label">Remediation:</span> ${text(it.remediation)}</p>` : ""}
+    </article>`).join("");
+    return `<section class="section"><h2>${escHtml(title)}</h2>${rows}</section>`;
+  };
+
+  const scopeBlock = report?.scope_analysis ? (() => {
+    const sa = report.scope_analysis;
+    const rows: Array<[string, any]> = [
+      ["Qualifies as ADMT (§ 7001(e))", sa.is_admt],
+      ["Triggers significant decision obligations (§ 7200)", sa.triggers_significant_decision],
+      ["Triggers risk assessment requirement (§§ 7150–7157)", sa.triggers_risk_assessment],
+      ["Triggers profiling assessment (§ 7150(b))", sa.triggers_profiling],
+    ];
+    const items = rows.map(([label, val]) =>
+      `<li><span class="label">${escHtml(label)}:</span> ${val ? "Yes — obligations apply" : "No — not triggered"}</li>`
+    ).join("");
+    return `<section class="section"><h2>Scope Analysis</h2><ul>${items}</ul>${sa.summary ? `<p>${text(sa.summary)}</p>` : ""}</section>`;
+  })() : "";
+
+  const priorityBlock = Array.isArray(report?.priority_actions) && report.priority_actions.length
+    ? `<section class="section"><h2>Priority Actions</h2><ol>${report.priority_actions.map((a: string) => `<li>${text(a)}</li>`).join("")}</ol></section>`
+    : "";
+
+  const riskNote = report?.risk_assessment_note
+    ? `<div class="callout"><p class="label">Risk Assessment Note</p><p>${text(report.risk_assessment_note)}</p></div>`
+    : "";
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ADMT Compliance Assessment</title>
+<style>
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
+  * { box-sizing:border-box; }
+  body { font-family:'Times New Roman', Times, serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .header { background:var(--navy); color:#fff; padding:24px 28px; }
+  .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93b5c6; margin:0 0 4px; }
+  h1 { font-size:24px; margin:0; line-height:1.2; }
+  .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+  .summary-bar { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
+  .pill { display:inline-block; border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700; background:rgba(255,255,255,.12); color:#fff; }
+  .body { padding:22px 28px 28px; }
+  h2 { color:var(--navy); font-size:17px; margin:24px 0 10px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+  h3 { color:var(--navy); font-size:14px; margin:0 0 8px; }
+  p { margin:0 0 9px; }
+  ul, ol { margin:8px 0 0; padding-left:20px; } li { margin-bottom:5px; }
+  .notice { border-left:4px solid var(--teal); background:var(--teal-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .callout { border-left:4px solid var(--orange); background:var(--orange-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin:16px 0; }
+  .section { margin-bottom:16px; }
+  .control { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
+  .control-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px; }
+  .score { color:var(--muted); font-size:11px; font-weight:700; white-space:nowrap; font-family:'Courier New', monospace; }
+  .status { display:inline-block; border-radius:999px; padding:2px 8px; font-size:10px; font-weight:700; margin-left:6px; }
+  .status-critical { background:var(--red-soft); color:var(--red); }
+  .status-gap { background:var(--amber-soft); color:var(--amber); }
+  .status-compliant { background:var(--green-soft); color:var(--green); }
+  .status-neutral { background:#f3f4f6; color:var(--muted); }
+  .label { font-weight:700; color:var(--navy); }
+  .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
+</style></head><body><div class="shell">
+  <header class="header">
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
+    <p class="eyebrow">CPPA Audit Readiness · Module 3 · Compliance Assessment</p>
+    <h1>ADMT Compliance Assessment</h1>
+    <p class="meta">${text(systemName)} · Generated ${text(createdAt)} · Compliance deadline ${text(deadline)}</p>
+    <div class="summary-bar">
+      <span class="pill">Overall: ${text(overallLabel)}</span>
+    </div>
+  </header>
+  <div class="body">
+    <div class="notice"><span class="label">Not legal advice.</span> This compliance gap analysis is generated for informational purposes only. Review all findings with qualified California privacy counsel before relying on them for regulatory submissions. All citations refer to 11 CCR Article 11 (§§ 7200–7222).</div>
+    ${scopeBlock}
+    ${priorityBlock}
+    ${gapSection("Pre-Use Notice (§ 7220)", report?.notice_gaps ?? [])}
+    ${gapSection("Opt-Out Rights (§ 7221)", report?.opt_out_gaps ?? [])}
+    ${gapSection("Access Rights (§ 7222)", report?.access_gaps ?? [])}
+    ${riskNote}
+    <div class="footer">EndUserPrivacy.com · CPPA ADMT Compliance Assessment (Module 3) · 11 CCR Article 11 · <a href="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf">Official text</a></div>
+  </div>
+</div></body></html>`;
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────
 // FILENAME HELPERS
 // ─────────────────────────────────────────────────────────────────────────
 const TOOL_LABELS: Record<string, string> = {
