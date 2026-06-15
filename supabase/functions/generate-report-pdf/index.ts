@@ -1083,10 +1083,10 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
         <tbody>${scorecardRows}</tbody></table>
         <p class="meta" style="margin-top:6px;font-size:10.5px;color:#5c5a54;">
           <strong>Score guide:</strong> 0–20 = Critical Gap (foundational control absent);
-          21–59 = Partial (control exists but material gaps remain);
+          21–59 = Gap or Partial (control absent or material gaps remain);
           60–89 = Implemented (control substantially in place, monitor and maintain);
-          90–100 = Mature.
-          <strong>Status labels:</strong> Critical Gap / Partial / Implemented reflect qualitative maturity, not a binary pass/fail.
+          90–100 = Mature (full implementation with documented evidence).
+          <strong>Status labels:</strong> Critical Gap / Gap / Partial / Implemented / Mature reflect qualitative maturity, not a binary pass/fail.
           Scores are based on the information provided in the intake; an independent auditor will conduct their own assessment.
         </p></section>`
     : "";
@@ -1096,14 +1096,20 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     if (s === "critical gap") return "critical";
     if (s === "gap") return "gap";
     if (s === "partial") return "partial";
+    if (s === "mature") return "mature";
     if (s === "implemented") return "compliant";
     return "neutral";
   };
 
   const intake = record?.intake_data || {};
-  const orgName = intake?.organizationName || intake?.profile?.organizationName || "";
+  const orgName: string =
+    intake?.organizationName ||
+    intake?.profile?.organizationName ||
+    intake?.company_name ||
+    intake?.org_name ||
+    "";
 
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Cybersecurity Audit</title>
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Cybersecurity Audit — Readiness Assessment</title>
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
   * { box-sizing:border-box; }
@@ -1135,22 +1141,24 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   .status-gap { background:var(--orange-soft); color:var(--orange); }
   .status-partial { background:var(--amber-soft); color:var(--amber); }
   .status-compliant { background:var(--green-soft); color:var(--green); }
+  .status-mature { background:#dbeafe; color:#1d4ed8; }
   .status-neutral { background:#f3f4f6; color:var(--muted); }
   .label { font-weight:700; color:var(--navy); }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
 </style></head><body><div class="shell">
   <header class="header">
     <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
-    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
-    <h1>CPPA Cybersecurity Audit</h1>
+    <p class="eyebrow">CPPA Audit Readiness · Module 2 · Assessment</p>
+    <h1>CPPA Cybersecurity Audit — Readiness Assessment</h1>
     ${buildReportMetaLine({ generatedAt: record.created_at || report?.generated_at || Date.now(), organizationName: orgName || null, jurisdictionLabel: "California (CPPA)" })}
     <div class="summary-bar">
       ${report?.overall_score !== undefined ? `<span class="pill">Overall score: ${text(report.overall_score)} / 100</span>` : ""}
       ${report?.readiness_level ? `<span class="pill">${text(report.readiness_level)}</span>` : ""}
     </div>
+    ${orgName ? `<p style="margin-top:6px;font-size:11px;color:#93b5c6;">Prepared for: <strong>${escHtml(orgName)}</strong></p>` : ""}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice. This is a readiness assessment, not the Article 9 cybersecurity audit.</span> This report is generated from self-reported intake data and does not constitute the annual cybersecurity audit required under 11 CCR § 7122, which must be conducted by a qualified, objective, independent professional. Findings should be reviewed with qualified legal counsel before reliance.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
     ${scorecardBlock}
     ${report?.enforcement_context ? `<div class="callout"><p class="label">Enforcement Context</p><p>${text(report.enforcement_context)}</p></div>` : ""}
