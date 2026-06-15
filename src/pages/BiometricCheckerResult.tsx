@@ -44,8 +44,18 @@ export default function BiometricCheckerResult() {
 
   const report = (translated?.report_data ?? row?.report_data) || {};
   const sourceText = (translated?.analysis_text ?? row?.analysis_text) || report?.assessment_text;
-  const text = sourceText;
+  // Remove the repeated transitional sentence that appears between sections in
+  // older stress-generated outputs.
+  const text = sourceText
+    ? sourceText.replace(
+        /Biometric identity verification creates elevated regulatory and litigation exposure unless consent, retention, and vendor controls are provable\.\s*/gi,
+        ""
+      )
+    : sourceText;
   const bipaRisk = report?.bipa_risk;
+
+  const orgName = (row?.intake_data as any)?.orgName || (row?.intake_data as any)?.organizationName || null;
+  const orgType = (row?.intake_data as any)?.orgType || null;
 
   const meta = row && (
     <>
