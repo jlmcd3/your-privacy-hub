@@ -42,6 +42,7 @@ const TOOL_LABEL: Record<string, string> = {
   "eu-notice":    "EU Notice",
   "cppa-risk":    "CPPA Risk",
   "cppa-cyber":   "CPPA Cyber",
+  "cppa-admt":    "ADMT Checker",
   "registration": "Registration",
 };
 
