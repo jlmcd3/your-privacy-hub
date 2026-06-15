@@ -33,6 +33,7 @@ const TOOL_SLUG_MAP: Record<string, string> = {
   "eu-notice": "eu_notice",
   "cppa-risk": "cppa_risk",
   "cppa-cyber": "cppa_cyber",
+  "cppa-admt": "cppa_admt",
   "registration": "registration",
 };
 
@@ -40,7 +41,7 @@ const TOOL_LABEL_MAP: Record<string, string> = {
   "lia": "LIA", "dpia": "DPIA", "governance": "Governance", "biometric": "Biometric",
   "dpa": "DPA", "ir-playbook": "IR Playbook", "ropa": "RoPA",
   "us-notice": "US Notice", "eu-notice": "EU Notice",
-  "cppa-risk": "CPPA Risk", "cppa-cyber": "CPPA Cyber", "registration": "Registration",
+  "cppa-risk": "CPPA Risk", "cppa-cyber": "CPPA Cyber", "cppa-admt": "CPPA ADMT Assessment", "registration": "Registration",
 };
 
 function json(body: unknown, status = 200) {
@@ -347,6 +348,16 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       if (error || !rec) throw new Error(`cppa-cyber insert: ${error?.message}`);
       await invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id })
         .catch((e) => console.warn("[run-stress-job] run-cppa-cybersecurity trigger failed (will poll):", e));
+      await pollCppa(admin, rec.id);
+      return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
+    }
+    case "cppa-admt": {
+      const { data: rec, error } = await admin.from("cppa_assessments").insert({
+        user_id: userId, module: "admt", status: "pending", intake_data: intake,
+      }).select("id").single();
+      if (error || !rec) throw new Error(`cppa-admt insert: ${error?.message}`);
+      await invokeFn("run-admt-checker", { assessment_id: rec.id })
+        .catch((e) => console.warn("[run-stress-job] run-admt-checker trigger failed (will poll):", e));
       await pollCppa(admin, rec.id);
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id };
     }

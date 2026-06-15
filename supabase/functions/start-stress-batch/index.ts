@@ -36,13 +36,14 @@ const ALL_TOOLS = [
   { id: "us-notice",  geo: "us"   },
   { id: "cppa-risk",  geo: "us"   },
   { id: "cppa-cyber", geo: "us"   },
+  { id: "cppa-admt",  geo: "us"   },
 ];
 
 const TOOL_FIXTURE_KEY: Record<string, string> = {
   "lia": "lia", "dpia": "dpia", "governance": "governance",
   "biometric": "biometric", "dpa": "dpa", "ir-playbook": "irPlaybook",
   "ropa": "ropa", "us-notice": "usNotice", "eu-notice": "euNotice",
-  "cppa-risk": "cppaRisk", "cppa-cyber": "cppaCyber", "registration": "registration",
+  "cppa-risk": "cppaRisk", "cppa-cyber": "cppaCyber", "cppa-admt": "cppaAdmt", "registration": "registration",
 };
 
 async function invokeFn(name: string, body: unknown, timeoutMs = 360_000): Promise<any> {
