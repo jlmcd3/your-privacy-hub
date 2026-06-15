@@ -281,7 +281,7 @@ Return this JSON structure:
   "compliant_elements": ["list of compliant items"]
 }`;
 
-    const rawText = await callGateway(system, userPrompt, 6000);
+    const rawText = await callGateway(system, userPrompt, 8000);
     const report = tryParseJson(rawText);
 
     if (!report) {
