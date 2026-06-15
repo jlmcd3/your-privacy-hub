@@ -75,6 +75,12 @@ async function runStressBiometric(body: Body, resolvedUserId: string | null) {
     const isCA = j.includes("california") || j.includes("ca,") || j === "ca";
     const isVA = j.includes("virginia") || j === "va";
     const isWA = j.includes("washington");
+    const isFR = j === "fr" || j.includes("france") || j.includes("cnil");
+    const isIE = j === "ie" || j.includes("ireland") || j.includes("dpc");
+    const isDE = j === "de" || j.includes("germany") || j.includes("deutschland") || j.includes("bfdi");
+    const isES = j === "es" || j.includes("spain") || j.includes("españa") || j.includes("aepd");
+    const isUS = !isEU && !isUK && !isIL && !isTX && !isCA && !isVA && !isWA &&
+      (j === "us" || j === "usa" || j.includes("united states") || j.includes("federal (ftc)") || j.includes("federal"));
 
     if (isEU) {
       return `${jurisdiction} — General Data Protection Regulation (GDPR)
