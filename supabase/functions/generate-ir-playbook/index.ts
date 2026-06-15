@@ -426,7 +426,112 @@ LOCALE AND PORTAL RULES:
 - Use US English spelling throughout when all selected jurisdictions are US states; UK English only when UK/EU jurisdictions are selected.
 - For regulator portals, give the breach-reporting page if it is in the provided context; otherwise give the regulator's main consumer-protection page and say "locate the breach reporting form". Do not present a generic landing page as "the breach notification form".
 
-Output ONLY the playbook content requested in each turn. No preamble or commentary.`;
+Output ONLY the playbook content requested in each turn. No preamble or commentary.
+
+VIRGINIA DATA ELEMENT GATE: Va. Code §18.2-186.6 defines "personal information" as a
+first name or first initial and last name combined with at least one of the following
+UNENCRYPTED elements: (a) Social Security number; (b) driver's licence or state
+identification number; (c) financial account number or credit/debit card number with any
+required access code, security code, or password; (d) passport number; (e) military
+identification number; (f) biometric data. An email address alone — even if combined with
+a name — does NOT satisfy the Virginia statutory definition. Unlike California §1798.82(h),
+Virginia does NOT include username/email + password as a qualifying element under §18.2-186.6.
+Virginia notification ALSO requires a harm trigger: the breach must have caused, or the
+controller must reasonably believe it has caused or will cause, identity theft or other fraud.
+Apply this gate explicitly before concluding Virginia notification is triggered: identify
+which specific statutory element is satisfied, AND state why the harm trigger is met or
+reasonably anticipated. Do not conclude Virginia notification is triggered based on name
+and email exposure alone.
+
+AFFECTED-RESIDENT COUNT RULE: The "affected count" in the intake represents the total
+number of individuals affected globally. It is NOT a per-state or per-country resident
+count. State-specific notification thresholds are keyed to residents of that specific state:
+— California 500+ threshold (AG sample copy): 500+ CALIFORNIA RESIDENTS, not total
+— Texas 250+ threshold (AG notice): 250+ TEXAS RESIDENTS, not total
+— Virginia 1,000+ threshold (CRA notice): 1,000+ VIRGINIA RESIDENTS receiving individual
+  notice, not total affected — and this obligation is only triggered AFTER Virginia
+  individual notification is itself triggered and confirmed
+— Any other state threshold: residents of that state specifically
+Where the per-state resident count is not confirmed in the intake, state explicitly:
+"[TO BE COMPLETED: confirm number of [State] residents affected before assessing this
+threshold — do not apply this threshold to the total affected count]." Never substitute
+the total affected count for an unconfirmed state resident count in threshold analysis.
+
+GDPR ARTICLE 33 — AWARENESS VERSUS DETECTION: GDPR Article 33(1) requires notification
+within 72 hours of the controller "having become aware of" the breach. This is NOT the
+same as the moment of initial detection or the discovery timestamp. Pursuant to EDPB
+Guidelines 9/2022 on personal data breach notification: the controller is considered to
+have "become aware" when it has "a reasonable degree of certainty that a security incident
+has occurred that has led to the compromise of personal data." In Section 1 and Section 3,
+distinguish these three moments and apply them consistently:
+(1) DETECTION TIMESTAMP — when a system, person, or processor first identified an anomaly
+(2) CONTROLLER AWARENESS TIMESTAMP — the moment the controller achieved reasonable
+    certainty that a personal data breach occurred (this is when the Article 33 clock
+    starts under GDPR)
+(3) PROCESSOR NOTIFICATION TIMESTAMP — when the processor notified the controller (relevant
+    because controller awareness often coincides with processor notification under Art. 33(2))
+When the detection and awareness timestamps differ materially, flag both and anchor the
+72-hour clock to the awareness timestamp with an explanation. When they appear simultaneous
+(as is typical for credential access breaches where the breach is discovered and confirmed
+in one step), you may treat them as concurrent but must acknowledge the distinction.
+Never present "discovery" and "became aware" as legally identical without this qualification.
+
+DPO ESCALATION — CONDITIONAL ON DESIGNATION: In Section 1, when listing escalation roles,
+always frame DPO involvement conditionally: "DPO (if designated — required under GDPR
+Article 37 for public authorities, large-scale systematic monitoring, and large-scale
+special-category processing; otherwise notify the most senior privacy or legal lead in that
+role)." GDPR Article 33(3)(b) requires the DPA notification to include contact details of
+the DPO "or other contact point" — the statute acknowledges that not all controllers have
+a DPO. Never instruct immediate DPO escalation as if every controller has one. Where
+jurisdiction flags do not include EU/UK GDPR, do not reference DPO obligations at all —
+substitute "Chief Privacy Officer or senior legal/compliance lead."
+
+ARTICLE 34 EXCEPTIONS — STRUCTURED DECISION TREE: In Section 4 (Individual Notification
+Decision Tree), after establishing whether high risk exists, ALWAYS provide a structured
+analysis of the three Article 34(3) exceptions that can avoid the individual notification
+obligation even where high risk is found:
+(a) ENCRYPTION/UNINTELLIGIBILITY EXCEPTION (Art. 34(3)(a)): Has the controller
+    implemented appropriate technical protection measures, such that the personal data is
+    unintelligible to any person not authorised to access it? Apply specifically — if the
+    exposed data was encrypted at rest and in transit with the attacker unable to decrypt
+    it, this exception may apply. If data was accessible in plaintext, state this exception
+    does not apply and why.
+(b) SUBSEQUENT MEASURES EXCEPTION (Art. 34(3)(b)): Has the controller taken subsequent
+    measures that ensure the high risk to the rights and freedoms of data subjects is no
+    longer likely to materialise? For example, where compromised credentials have been
+    fully rotated and access confirmed blocked, this may apply. State whether containment
+    actions taken satisfy this exception or whether residual risk remains.
+(c) DISPROPORTIONATE EFFORT EXCEPTION (Art. 34(3)(c)): Would contacting individuals
+    individually involve disproportionate effort? If yes, a public communication via
+    equivalent prominence may be used instead. This exception applies rarely and must be
+    justified — for breaches affecting 186,000 known users with email addresses on file,
+    this exception is unlikely to apply. State this explicitly.
+Only after analysing all three exceptions should the section state the final conclusion
+on Article 34 individual notification. The UK GDPR Article 34(3) exceptions are materially
+identical — apply the same analysis.
+
+REMEDIATION SERVICES — CONDITIONAL ON EXPOSURE: When recommending or referencing identity
+protection, credit monitoring, fraud alerts, or other remediation services in notification
+templates (Section 5) or post-incident actions (Section 7):
+— Credit monitoring and identity theft protection services are appropriate ONLY where
+  SSN, financial account numbers with access codes, driver's licence/state ID numbers,
+  passport numbers, or medical/health insurance information was confirmed exposed.
+— For breaches limited to names, email addresses, account IDs, and support notes (with
+  no confirmed SSN, financial, or medical content), the appropriate remediation guidance
+  is: phishing awareness notice, password change recommendation for any accounts where
+  the email is reused, and account monitoring alerts. Do not include credit monitoring
+  offers unless the exposure includes data that enables financial fraud.
+— If support note content is unconfirmed and MAY contain financial or health data,
+  reference remediation services conditionally: "If it is determined that [financial/health]
+  data was contained in support notes, consider offering [credit monitoring / identity
+  protection]. Until then, the appropriate remediation is [phishing and password guidance]."
+— Legal privilege labelling: When advising to establish a secure, restricted communication
+  channel in Section 1, instruct the team to involve legal counsel immediately and to
+  seek counsel's specific guidance on which communications may qualify for privilege
+  protection and how to maintain it. Do NOT instruct the team to label all incident
+  communications as "LEGALLY PRIVILEGED AND CONFIDENTIAL" without counsel involvement —
+  privilege is determined by purpose, audience, and counsel direction, not by labels alone.
+  Blanket privilege labels applied without counsel guidance can be counterproductive.`;
 
         async function callClaude(messages: any[], maxTokens: number, timeoutMs: number = 720_000): Promise<{ text: string; stopReason: string | null }> {
           const res = await fetch("https://api.anthropic.com/v1/messages", {
