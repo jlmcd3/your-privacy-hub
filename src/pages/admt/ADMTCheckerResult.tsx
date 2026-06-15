@@ -297,31 +297,134 @@ export default function ADMTCheckerResult() {
         </div>
 
         {report.scope_analysis && (
-          <section className="space-y-3">
+          <section className="space-y-4">
             <h3 className="font-serif text-lg">Scope Analysis</h3>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {[
-                ["Qualifies as ADMT (§ 7001(e))", report.scope_analysis.is_admt],
-                ["Triggers significant decision obligations (§ 7200)", report.scope_analysis.triggers_significant_decision],
-                ["Triggers risk assessment requirement (§§ 7150–7157)", report.scope_analysis.triggers_risk_assessment],
-                ["Triggers profiling assessment (§ 7150(b))", report.scope_analysis.triggers_profiling],
-              ].map(([label, val]) => (
-                <div key={String(label)} className="flex items-center gap-2 rounded-md border p-3 bg-card">
-                  {val ? (
-                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                  ) : (
-                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-                  )}
-                  <div>
-                    <p className="text-[12px] font-medium">{String(label)}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {val ? "Yes — obligations apply" : "No — not triggered"}
-                    </p>
-                  </div>
+
+            {/* Human review and exception qualification — highest stakes */}
+            {report.scope_analysis.exception_qualification && (
+              <div className={`rounded-lg border p-4 space-y-2 ${
+                report.scope_analysis.exception_qualification.qualifies === true
+                  ? "border-emerald-200 bg-emerald-50/30"
+                  : report.scope_analysis.exception_qualification.qualifies === false
+                  ? "border-red-200 bg-red-50/30"
+                  : "border-amber-200 bg-amber-50/30"
+              }`}>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="text-[12px] font-semibold">
+                    Exception claimed: {report.scope_analysis.exception_qualification.exception_claimed}
+                  </p>
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${
+                    report.scope_analysis.exception_qualification.qualifies === true
+                      ? "bg-emerald-100 text-emerald-800"
+                      : report.scope_analysis.exception_qualification.qualifies === false
+                      ? "bg-red-100 text-red-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}>
+                    {report.scope_analysis.exception_qualification.qualifies === true ? "Qualifies" :
+                     report.scope_analysis.exception_qualification.qualifies === false ? "Does not qualify" :
+                     "Uncertain — review required"}
+                  </span>
                 </div>
+                <p className="text-[13px] leading-relaxed">
+                  {report.scope_analysis.exception_qualification.qualification_reasoning}
+                </p>
+              </div>
+            )}
+
+            {/* Four triggers with reasoning */}
+            <div className="space-y-2">
+              {[
+                {
+                  label: "Qualifies as ADMT (§ 7001(e))",
+                  val: report.scope_analysis.is_admt,
+                  reasoning: report.scope_analysis.is_admt_reasoning,
+                },
+                {
+                  label: "Triggers significant decision obligations (§ 7200)",
+                  val: report.scope_analysis.triggers_significant_decision,
+                  reasoning: report.scope_analysis.significant_decision_reasoning,
+                },
+                {
+                  label: "Human review satisfies § 7001(e)(1) — system may not be ADMT",
+                  val: report.scope_analysis.human_review_qualifies,
+                  reasoning: report.scope_analysis.human_review_reasoning,
+                  invert: true,
+                },
+                {
+                  label: "Triggers risk assessment requirement (§§ 7150–7157)",
+                  val: report.scope_analysis.triggers_risk_assessment,
+                  reasoning: report.scope_analysis.risk_assessment_reasoning,
+                },
+                {
+                  label: "Triggers profiling assessment (§ 7150(b))",
+                  val: report.scope_analysis.triggers_profiling,
+                  reasoning: null,
+                },
+              ].map(({ label, val, reasoning, invert }) => (
+                <details key={String(label)} className="rounded-md border bg-card">
+                  <summary className="flex items-center gap-2 p-3 cursor-pointer list-none">
+                    {(invert ? !val : val) ? (
+                      <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                    ) : (
+                      <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    )}
+                    <span className="text-[12px] font-medium flex-1">{String(label)}</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {val ? "Yes" : "No"} — click for reasoning
+                    </span>
+                  </summary>
+                  {reasoning && (
+                    <p className="text-[12px] leading-relaxed text-foreground/80 px-3 pb-3 border-t pt-2">
+                      {reasoning}
+                    </p>
+                  )}
+                </details>
               ))}
             </div>
+
+            {report.scope_analysis.third_party_note && (
+              <div className="rounded-md border-l-4 border-amber-400 bg-amber-50/30 px-4 py-3">
+                <p className="text-[12px] font-semibold mb-1">Third-Party ADMT Responsibility</p>
+                <p className="text-[12px] leading-relaxed">{report.scope_analysis.third_party_note}</p>
+              </div>
+            )}
+
             <p className="text-[13px] text-muted-foreground leading-relaxed">{report.scope_analysis.summary}</p>
+          </section>
+        )}
+
+        {report.enforcement_context && (
+          <section className="space-y-3">
+            <h3 className="font-serif text-lg">Enforcement Exposure</h3>
+            <div className="rounded-lg border bg-card p-4 space-y-3">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="rounded-md bg-muted/40 p-3">
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Per-violation (unintentional)</p>
+                  <p className="text-[20px] font-serif font-semibold text-foreground">
+                    ${(report.enforcement_context.per_violation_unintentional ?? 2663).toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">Cal. Civ. Code § 1798.155(a)(1)</p>
+                </div>
+                <div className="rounded-md bg-red-50/50 border border-red-100 p-3">
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Per-violation (intentional)</p>
+                  <p className="text-[20px] font-serif font-semibold text-red-700">
+                    ${(report.enforcement_context.per_violation_intentional ?? 7988).toLocaleString()}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">Cal. Civ. Code § 1798.155(a)(2)</p>
+                </div>
+              </div>
+              {report.enforcement_context.aggregate_exposure_note && (
+                <p className="text-[12px] leading-relaxed text-foreground/80">
+                  {report.enforcement_context.aggregate_exposure_note}
+                </p>
+              )}
+              {report.enforcement_context.proactive_enforcement_note && (
+                <div className="rounded-md bg-amber-50/50 border border-amber-200 px-3 py-2">
+                  <p className="text-[11px] font-semibold text-amber-800 mb-0.5 uppercase tracking-wide">Active Scanning</p>
+                  <p className="text-[12px] text-foreground/80">{report.enforcement_context.proactive_enforcement_note}</p>
+                </div>
+              )}
+            </div>
           </section>
         )}
 
@@ -343,19 +446,68 @@ export default function ADMTCheckerResult() {
         <GapTable items={report.opt_out_gaps ?? []} title="Opt-Out Rights (§ 7221)" />
         <GapTable items={report.access_gaps ?? []} title="Access Rights (§ 7222)" />
 
-        {report.risk_assessment_note && (
-          <div className="rounded-lg border bg-card p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-              Risk Assessment Note
+        {report.risk_assessment_obligation?.required && (
+          <section className="space-y-3">
+            <h3 className="font-serif text-lg">Risk Assessment Obligation (§§ 7150–7157)</h3>
+            <div className="rounded-lg border border-amber-200 bg-amber-50/20 p-5 space-y-4">
+              <p className="text-[13px] leading-relaxed font-medium">
+                {report.risk_assessment_obligation.summary}
+              </p>
+              <div className="grid sm:grid-cols-2 gap-3 text-[12px]">
+                {[
+                  ["Existing activity deadline", report.risk_assessment_obligation.existing_activity_deadline],
+                  ["New/modified activity", report.risk_assessment_obligation.new_activity_deadline],
+                  ["Attestation deadline", report.risk_assessment_obligation.attestation_deadline],
+                ].map(([label, value]) => value ? (
+                  <div key={String(label)} className="rounded-md bg-white/60 border p-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">{String(label)}</p>
+                    <p className="font-medium">{String(value)}</p>
+                  </div>
+                ) : null)}
+              </div>
+              {report.risk_assessment_obligation.attestation_requirement && (
+                <p className="text-[12px] leading-relaxed text-foreground/80 border-l-2 border-amber-400 pl-3">
+                  <strong>Attestation:</strong> {report.risk_assessment_obligation.attestation_requirement}
+                </p>
+              )}
+              {report.risk_assessment_obligation.ag_demand_risk && (
+                <p className="text-[12px] leading-relaxed text-foreground/80 border-l-2 border-red-400 pl-3">
+                  <strong>AG demand risk:</strong> {report.risk_assessment_obligation.ag_demand_risk}
+                </p>
+              )}
+              <Link
+                to="/cppa-risk-assessment"
+                className="inline-flex items-center gap-1 text-[12px] text-[hsl(var(--cobalt))] hover:underline font-medium"
+              >
+                Open CPPA Privacy Risk Assessment →
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {Array.isArray(report.documentation_checklist) && report.documentation_checklist.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="font-serif text-lg">Documentation Checklist</h3>
+            <p className="text-[12px] text-muted-foreground">
+              The CPPA may demand any of the following on an ad hoc basis, independent of annual submission deadlines. Maintain these records continuously.
             </p>
-            <p className="text-[13px] leading-relaxed">{report.risk_assessment_note}</p>
-            <Link
-              to="/cppa-risk-assessment"
-              className="text-[12px] text-[hsl(var(--cobalt))] hover:underline mt-2 inline-block"
-            >
-              Open CPPA Risk Assessment →
-            </Link>
-          </div>
+            <div className="rounded-lg border bg-card divide-y">
+              {report.documentation_checklist.map((item: any, i: number) => (
+                <div key={i} className="px-4 py-3 space-y-1">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <p className="text-[13px] font-medium">{item.item}</p>
+                    {item.regulatory_basis && (
+                      <span className="font-mono text-[11px] text-[hsl(var(--cobalt))] shrink-0">{item.regulatory_basis}</span>
+                    )}
+                  </div>
+                  {item.description && <p className="text-[12px] text-foreground/80">{item.description}</p>}
+                  {item.retention && (
+                    <p className="text-[11px] text-muted-foreground">Retention: {item.retention}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
         <p className="text-xs text-muted-foreground italic">
