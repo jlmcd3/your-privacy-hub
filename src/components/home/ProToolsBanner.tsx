@@ -132,6 +132,14 @@ const TOOLS: Tool[] = [
     cta: "Run cybersecurity audit",
     href: "/cppa-cybersecurity",
   },
+  {
+    icon: ShieldAlert,
+    title: "ADMT Compliance Checker",
+    blurb: "Gap analysis for ADMT pre-use notices, opt-out, and access rights. January 2027 deadline.",
+    price: `${T.cppaAdmt.display} per run`,
+    cta: "Run ADMT checker",
+    href: "/cppa-admt-checker",
+  },
 ];
 
 export default function ProToolsBanner() {

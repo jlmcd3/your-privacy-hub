@@ -19,7 +19,8 @@ export type ToolType =
   | "registration"
   | "registration-assessment"
   | "cppa-risk"
-  | "cppa-cyber";
+  | "cppa-cyber"
+  | "cppa-admt";
 
 export interface RecordArtifactInput {
   runId: string;

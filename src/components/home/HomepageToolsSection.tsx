@@ -47,6 +47,11 @@ const ASSESSMENTS: Product[] = [
     href: "/cppa-cybersecurity",
   },
   {
+    title: "ADMT Compliance Checker",
+    blurb: "Gap analysis for ADMT pre-use notices, opt-out, and access rights under 11 CCR §§ 7200–7222. January 2027 deadline.",
+    href: "/cppa-admt-checker",
+  },
+  {
     title: "Registration Manager",
     blurb: "Identify DPO, RoPA, EU AI Act, and Article 27 registration obligations across your jurisdictions.",
     href: "/registration-manager",

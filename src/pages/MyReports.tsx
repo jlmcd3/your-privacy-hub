@@ -47,6 +47,7 @@ const TOOL_TABLE: Partial<Record<string, string>> = {
   eu_notice: "eu_notice_sessions",
   cppa_risk: "cppa_assessments",
   cppa_cyber: "cppa_assessments",
+  cppa_admt: "cppa_assessments",
   cppa_scope: "cppa_scope_checks",
 };
 
@@ -70,6 +71,7 @@ type ReportRow = {
 const DRAFT_TOOL_MAP: Record<string, { route: string; labelKey: string }> = {
   cppa_risk: { route: "/cppa-risk-assessment", labelKey: "cppa_risk" },
   cppa_cybersecurity: { route: "/cppa-cybersecurity", labelKey: "cppa_cyber" },
+  cppa_admt: { route: "/cppa-admt-checker", labelKey: "cppa_admt" },
   dpia: { route: "/dpia-framework", labelKey: "dpia" },
   governance: { route: "/governance-assessment", labelKey: "governance" },
   lia: { route: "/li-assessment", labelKey: "li" },
@@ -88,6 +90,7 @@ const TOOL_LABEL: Record<string, string> = {
   eu_notice: "EU Privacy Notice",
   cppa_risk: "CPPA Risk Assessment",
   cppa_cyber: "CPPA Cybersecurity Audit",
+  cppa_admt: "ADMT Compliance Checker",
   cppa_scope: "CPPA Scope Check",
 };
 
@@ -340,16 +343,29 @@ export default function MyReports() {
 
       (cppa.data || []).forEach((r: any) => {
         const isCyber = r.module === "cybersecurity";
-        const tool = isCyber ? "cppa_cyber" : "cppa_risk";
-        const basePath = isCyber ? "/cppa-cybersecurity/result" : "/cppa-risk-assessment/result";
+        const isAdmt = r.module === "admt";
+        const tool = isAdmt ? "cppa_admt" : isCyber ? "cppa_cyber" : "cppa_risk";
+        const basePath = isAdmt
+          ? "/cppa-admt-checker/result"
+          : isCyber
+          ? "/cppa-cybersecurity/result"
+          : "/cppa-risk-assessment/result";
         const sector = r.intake_data?.q3_sector || r.intake_data?.industry_sector || r.intake_data?.profile?.sector;
         const revenue = r.intake_data?.q1_revenue || r.intake_data?.profile?.revenue;
-        const summaryParts = [sector, revenue].filter(Boolean);
+        const systemName = r.intake_data?.system_name;
+        const summaryParts = isAdmt
+          ? [systemName].filter(Boolean)
+          : [sector, revenue].filter(Boolean);
+        const fallback = isAdmt
+          ? "ADMT Compliance Checker"
+          : isCyber
+          ? "CPPA Cybersecurity Audit"
+          : "CPPA Risk Assessment";
         all.push({
           id: r.id, tool, tool_label: TOOL_LABEL[tool],
           created_at: r.created_at,
           status: r.report_data ? (r.status || "complete") : (r.status || "pending"),
-          summary: summaryParts.join(" · ") || (isCyber ? "CPPA Cybersecurity Audit" : "CPPA Risk Assessment"),
+          summary: summaryParts.join(" · ") || fallback,
           view_path: `${basePath}/${r.id}`,
           pdf_url: r.pdf_url,
           ...clientMeta(r.client_id),
@@ -459,7 +475,7 @@ export default function MyReports() {
                 { key: "drafts", label: "Drafts (autosaved)", tools: draftToolKeys },
                 { key: "assessments", label: "Compliance Assessments", tools: ["li", "dpia", "governance", "biometric"] },
                 { key: "documents", label: "Privacy & Legal Documents", tools: ["dpa", "ir", "ropa", "us_notice", "eu_notice"] },
-                { key: "cppa", label: "CPPA Audit Suite", tools: ["cppa_risk", "cppa_cyber", "cppa_scope"] },
+                { key: "cppa", label: "CPPA Audit Suite", tools: ["cppa_risk", "cppa_cyber", "cppa_admt", "cppa_scope"] },
                 { key: "registration", label: "Registration", tools: ["registration"] },
               ];
               const grouped = GROUPS.map((g) => ({

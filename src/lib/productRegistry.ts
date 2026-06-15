@@ -76,13 +76,32 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     ],
   },
   {
+    slug: "cppa-admt-checker",
+    name: nameFrom("cppa_admt_standalone"),
+    route: "/cppa-admt-checker",
+    shortPitch:
+      "Module 3 of the CPPA audit suite — gap analysis for pre-use notices, opt-out obligations, and access rights under 11 CCR §§ 7200–7222 (January 1, 2027 deadline).",
+    tierIncluded: false,
+    priority: 3,
+    triggers: [
+      "admt",
+      "automated decisionmaking technology",
+      "pre-use notice",
+      "cppa admt",
+      "automated decision rights",
+      "7220",
+      "7221",
+      "7222",
+    ],
+  },
+  {
     slug: "cppa-scope-checker",
     name: "CPPA Scope Checker",
     route: "/cppa-scope-checker",
     shortPitch:
       "Five-minute scope check — confirm whether the CPPA's audit and risk-assessment thresholds apply to your business.",
     tierIncluded: true,
-    priority: 3,
+    priority: 4,
     triggers: [
       "cppa scope",
       "ccpa threshold",

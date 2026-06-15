@@ -29,6 +29,7 @@ type ToolKey =
   | "registration"
   | "cppa_risk"
   | "cppa_cyber"
+  | "cppa_admt"
   | "cppa_scope";
 
 
@@ -173,6 +174,18 @@ const TOOLS: ToolDef[] = [
     filterVal: "cybersecurity",
   },
   {
+    key: "cppa_admt",
+    label: "ADMT Compliance Checker",
+    blurb: "Gap analysis for pre-use notices, opt-out obligations, and access rights. January 1, 2027 deadline.",
+    startPath: "/cppa-admt-checker",
+    viewPath: "/dashboard/reports",
+    table: "cppa_assessments",
+    statusCol: "status",
+    completedStatuses: ["complete"],
+    filterCol: "module",
+    filterVal: "admt",
+  },
+  {
     key: "cppa_scope",
     label: "CPPA Scope Checker",
     blurb: "Quickly check whether your business is in scope of CPPA rules.",
@@ -244,7 +257,7 @@ export default function StartNew() {
   const workspaceLabel = isPersonalActive ? "your personal workspace" : clientName;
 
   const orderedTools = useMemo(() => {
-    const cppaKeys = new Set<ToolKey>(["cppa_risk", "cppa_cyber", "cppa_scope"]);
+    const cppaKeys = new Set<ToolKey>(["cppa_risk", "cppa_cyber", "cppa_admt", "cppa_scope"]);
     return [...TOOLS].sort((a, b) => {
       const aCppa = cppaKeys.has(a.key) ? 1 : 0;
       const bCppa = cppaKeys.has(b.key) ? 1 : 0;

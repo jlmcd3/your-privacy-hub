@@ -12,6 +12,7 @@ export type ToolSlug =
   | "biometric"
   | "cppa_risk"
   | "cppa_cyber"
+  | "cppa_admt"
   | "ropa"
   | "us_notice"
   | "eu_notice";
@@ -446,6 +447,60 @@ const F_CPPA_CYBER_US: SampleFixture = {
   },
 };
 
+// --- 10b. CPPA ADMT / US -------------------------------------------------
+const F_CPPA_ADMT_US: SampleFixture = {
+  tool_slug: "cppa_admt",
+  variant: "us",
+  title: "ADMT gap analysis for an automated loan-approval engine",
+  scenario_summary:
+    "Tomorrow4Cariboo Lending uses a gradient-boosted ML model to score California loan applicants. The ADMT Compliance Checker reviews pre-use notice, opt-out mechanisms, and access-right disclosures against 11 CCR §§ 7220–7222 ahead of the January 1, 2027 deadline.",
+  source_table: "cppa_assessments",
+  result_url_pattern: "/cppa-admt-checker/result/{id}",
+  fixture: {
+    insert: {
+      module: "admt",
+      status: "pending",
+      intake_data: {
+        system_name: "Loan Approval Engine",
+        system_type: "Gradient-boosted ML model",
+        system_description:
+          "A gradient-boosted ensemble scoring loan applications 0–100. Scores below 40 are automatically declined; 40–65 go to underwriter review; above 65 are auto-approved.",
+        decision_domains: ["Financial or lending services (credit decisions, loans, accounts)"],
+        human_review: "Partial — reviewer sees the output but cannot override it",
+        training_data_use: "Yes",
+        profiling_use: "No",
+        notice_delivery: ["In-app just-in-time notice before data collection"],
+        notice_has_specific_purpose: "No — uses generic language",
+        notice_purpose_text: "",
+        notice_has_opt_out_desc: "No",
+        notice_has_access_desc: "No",
+        notice_has_anti_retaliation: "No",
+        notice_has_how_it_works: "No",
+        notice_how_it_works_method: "",
+        notice_has_alternative_process: "No",
+        opt_out_exception: "No exception — we provide a full opt-out right",
+        opt_out_methods: ["Interactive online form linked from the Pre-use Notice"],
+        opt_out_link_title: "Your Privacy Choices",
+        opt_out_no_cookie_banner: "Confirmed — we provide at least one ADMT-specific opt-out method in addition",
+        opt_out_no_account_required: "Confirmed — no account required",
+        opt_out_confirmation_mechanism: "Confirmation email within 24 hours",
+        opt_out_appeal_process: "",
+        opt_out_fairness_doc: "",
+        access_submission_methods: "Same webform as right-to-know requests at privacy.company.com/requests",
+        access_verification_process: "Email verification plus account login for existing customers",
+        access_logic_disclosure:
+          "We describe how the model generally works but do not provide the consumer's individual score or the specific input features that generated it",
+        access_outcome_disclosure:
+          "We confirm the decision outcome (approved/declined) but do not explain which factors were primary",
+        access_response_timeline: "Within 45 calendar days (standard)",
+        access_trade_secret_policy: "",
+      },
+    },
+    invoke: { fn: "run-admt-checker", id_key: "assessment_id" },
+    poll: { table: "cppa_assessments", terminal: ["complete", "failed", "error"], max: 60, interval_ms: 4000 },
+  },
+};
+
 // --- 11. RoPA / EU -------------------------------------------------------
 const F_ROPA_EU: SampleFixture = {
   tool_slug: "ropa",
@@ -627,6 +682,7 @@ export const SAMPLE_FIXTURES: SampleFixture[] = [
   F_BIO_US,
   F_CPPA_RISK_US,
   F_CPPA_CYBER_US,
+  F_CPPA_ADMT_US,
   F_ROPA_EU,
   F_US_NOTICE,
   F_EU_NOTICE,
