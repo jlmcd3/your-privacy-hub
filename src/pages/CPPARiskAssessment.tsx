@@ -637,6 +637,34 @@ export default function CPPARiskAssessment() {
                 </div>
               </div>
 
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 flex-wrap">
+                    <Label>Contact phone <span className="text-xs text-muted-foreground">(§ 7157(b)(1))</span></Label>
+                  </div>
+                  <input
+                    className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                    value={i8ContactPhone}
+                    onChange={(e) => setI8ContactPhone(e.target.value)}
+                    placeholder="E.g. +1 415 555 0100"
+                    type="tel"
+                  />
+                </div>
+                <div>
+                  <Label>Contact email <span className="text-xs text-muted-foreground">(§ 7157(b)(1))</span></Label>
+                  <input
+                    className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                    value={i8ContactEmail}
+                    onChange={(e) => setI8ContactEmail(e.target.value)}
+                    placeholder="E.g. privacy@company.com"
+                    type="email"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-1">
+                Required by § 7157(b)(1) for the annual submission to the CPPA. The CPPA may contact this person about the filing.
+              </p>
+
               <div>
                 <Label>I-9: Is there an existing GDPR DPIA (or other PIA) for this activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
                 <div className="mt-2"><Radio name="i9" options={["Yes", "No"]} value={i9HasDpia} onChange={setI9HasDpia} /></div>
