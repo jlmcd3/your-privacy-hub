@@ -1023,17 +1023,22 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     ${app.c_admt_note ? `<section class="section"><h3>Appendix C — ADMT Note</h3><p>${typeof app.c_admt_note === "object" ? Object.entries(app.c_admt_note).map(([k, v]) => `<span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}`).join("<br/>") : text(app.c_admt_note)}</p></section>` : `<section class="section"><h3>Appendix C — ADMT Note</h3><p>Not applicable — no automated decision-making technology in scope for this activity.</p></section>`}
     ${app.d_spi_note ? `<section class="section"><h3>Appendix D — Sensitive PI Note</h3><p>${typeof app.d_spi_note === "object" ? Object.entries(app.d_spi_note).map(([k, v]) => `<span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}`).join("<br/>") : text(app.d_spi_note)}</p></section>` : `<section class="section"><h3>Appendix D — Sensitive PI Note</h3><p>Not applicable — no sensitive personal information identified.</p></section>`}
     ${app.e_dpia_gap_fill ? `<section class="section"><h3>Appendix E — DPIA Gap-Fill</h3><p>${typeof app.e_dpia_gap_fill === "object" ? Object.entries(app.e_dpia_gap_fill).map(([k, v]) => `<span class="label">${escHtml(capLabel(k))}:</span> ${textJoin(v)}`).join("<br/>") : text(app.e_dpia_gap_fill)}</p></section>` : `<section class="section"><h3>Appendix E — DPIA Gap-Fill</h3><p>Not applicable — no existing GDPR/UK GDPR DPIA was reported in the intake for this processing activity.</p></section>`}
-    <h2>Part B — Submission Summary${b.statute ? ` <span style="font-size:10px;font-weight:400;color:#5c5a54;">(${text(b.statute)})</span>` : ""}</h2>
-    <p><span class="label">Business legal name:</span> ${fillIn(b.business_legal_name, "[FILL IN]")}</p>
-    ${b.point_of_contact ? (typeof b.point_of_contact === "object"
-      ? `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact.name ?? "[FILL IN]")}, ${text(b.point_of_contact.title ?? "[FILL IN]")}</p><p><span class="label">Phone:</span> ${text(b.point_of_contact.phone ?? "[FILL IN]")}</p><p><span class="label">Email:</span> ${text(b.point_of_contact.email ?? "[FILL IN]")}</p>`
-      : `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact)}</p>`) : ""}
-    ${b.assessment_count_in_period !== undefined ? `<p><span class="label">Assessments in period:</span> ${text(b.assessment_count_in_period)}</p>` : ""}
-    ${Array.isArray(b.pi_categories_aggregated) && b.pi_categories_aggregated.length ? `<p><span class="label">PI categories (aggregated):</span> ${b.pi_categories_aggregated.map((c: any) => text(c)).join(", ")}</p>` : ""}
-    ${Array.isArray(b.spi_flagged) && b.spi_flagged.length ? `<p><span class="label">SPI flagged:</span> ${b.spi_flagged.map((c: any) => text(c)).join(", ")}</p>` : ""}
-    ${b.perjury_attestation_block ? `<div class="attest">${text(b.perjury_attestation_block)}</div>
-    <p class="meta" style="margin-top:8px;font-size:10px;color:#b55a00;border-top:1px solid #e6e3da;padding-top:6px;">⚠ Sample document — the certifying executive name, title, and execution date above are placeholder values from the sample intake. Replace with the actual certifying executive's legal name, title, and execution date before this document is signed or submitted to the CPPA.</p>` : ""}
-    ${b.submission_banner ? `<div class="callout"><p>${text(b.submission_banner)}</p></div>` : ""}
+    ${a?.sec_1_trigger?.voluntary
+      ? `<section class="section"><h2>Part B — Submission Summary</h2>
+           <div class="callout"><p class="label">Not applicable — Voluntary Review</p>
+           <p>${typeof b === "string" ? text(b) : "No § 7150(b) processing trigger was identified. The § 7157 annual submission obligation does not apply to voluntary privacy impact reviews. If processing activities change such that a § 7150(b) trigger applies, a mandatory risk assessment and § 7157 submission will be required."}</p></div>
+         </section>`
+      : `<h2>Part B — Submission Summary${b.statute ? ` <span style="font-size:10px;font-weight:400;color:#5c5a54;">(${text(b.statute)})</span>` : ""}</h2>
+         <p><span class="label">Business legal name:</span> ${fillIn(b.business_legal_name, "[FILL IN]")}</p>
+         ${b.point_of_contact ? (typeof b.point_of_contact === "object"
+           ? `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact.name ?? "[FILL IN]")}, ${text(b.point_of_contact.title ?? "[FILL IN]")}</p><p><span class="label">Phone:</span> ${text(b.point_of_contact.phone ?? "[FILL IN — required by § 7157(b)(1)]")}</p><p><span class="label">Email:</span> ${text(b.point_of_contact.email ?? "[FILL IN — required by § 7157(b)(1)]")}</p>`
+           : `<p><span class="label">Point of contact:</span> ${text(b.point_of_contact)}</p>`) : ""}
+         ${b.assessment_count_in_period !== undefined ? `<p><span class="label">Assessments in period:</span> ${text(b.assessment_count_in_period)}</p>` : ""}
+         ${Array.isArray(b.pi_categories_aggregated) && b.pi_categories_aggregated.length ? `<p><span class="label">PI categories (aggregated):</span> ${b.pi_categories_aggregated.map((c: any) => text(c)).join(", ")}</p>` : ""}
+         ${Array.isArray(b.spi_flagged) && b.spi_flagged.length ? `<p><span class="label">SPI flagged:</span> ${b.spi_flagged.map((c: any) => text(c)).join(", ")}</p>` : ""}
+         ${b.perjury_attestation_block ? `<div class="attest">${text(b.perjury_attestation_block)}</div>
+         <p class="meta" style="margin-top:8px;font-size:10px;color:#b55a00;border-top:1px solid #e6e3da;padding-top:6px;">⚠ Sample document — the certifying executive name, title, and execution date above are placeholder values from the sample intake. Replace with the actual certifying executive's legal name, title, and execution date before this document is signed or submitted to the CPPA.</p>` : ""}
+         ${b.submission_banner ? `<div class="callout"><p>${text(b.submission_banner)}</p></div>` : ""}`}
     <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
