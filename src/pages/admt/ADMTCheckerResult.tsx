@@ -216,7 +216,7 @@ export default function ADMTCheckerResult() {
         <div className="flex flex-col items-center justify-center py-24 gap-4">
           <Clock className="w-8 h-8 text-muted-foreground animate-spin" />
           <p className="text-muted-foreground text-sm">Generating your ADMT Compliance Assessment…</p>
-          <p className="text-muted-foreground text-xs">This typically takes 60–90 seconds. Two analysis passes run sequentially.</p>
+          <p className="text-muted-foreground text-xs">This typically takes 60–90 seconds. Two analysis passes run in sequence.</p>
         </div>
       <Footer />
     </div>
