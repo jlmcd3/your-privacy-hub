@@ -951,6 +951,24 @@ const NON_EDITORIAL_PATTERNS = [
   /\b(save\s+the\s+date|register\s+(now|today)\s+for|webinar\s+invitation|event\s+registration|tickets?\s+on\s+sale)\b/i,
   /\b(annual\s+report|membership\s+(renewal|drive)|board\s+(election|elections|nomination))\b/i,
   /\b(newsletter\s+sign[\s-]?up|subscribe\s+to\s+our)\b/i,
+  // Regulator administrative announcements — not enforcement content
+  /\bboard\s+(meeting|session|agenda|minutes|vote)\b/i,
+  /\bpublic\s+(meeting|hearing|workshop|comment|forum|session)\b/i,
+  /\bcomment\s+period\b/i,
+  /\bopen\s+for\s+(public\s+)?comment\b/i,
+  /\bstakeholder\s+(meeting|session|workshop|forum|outreach)\b/i,
+  /\bnotice\s+of\s+(proposed\s+)?(rulemaking|regulation|rule)\b/i,
+  /\b(annual|quarterly)\s+(report|budget|plan)\b/i,
+  /\bstrategic\s+plan\b/i,
+  /\bappointment\s+of\b/i,
+  /\bwelcomes?\s+new\b/i,
+  /\b(executive\s+director|commissioner|chair(person)?|staff\s+director)\s+(appointed|named|joins|resigns|steps\s+down)\b/i,
+  /\brequest\s+for\s+(proposals?|information|qualifications)\b/i,
+  /\bsave\s+the\s+date\b/i,
+  /\bopportunity\s+to\s+comment\b/i,
+  /\binvites?\s+(public\s+)?(comment|input|feedback)\b/i,
+  /\bseeks?\s+(public\s+)?(comment|input|feedback)\b/i,
+  /\bgrant\s+(award|program|funding|opportunity)\b/i,
 ];
 
 // First-person "we updated our privacy policy" company announcements — pure noise.
