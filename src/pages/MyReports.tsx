@@ -343,16 +343,29 @@ export default function MyReports() {
 
       (cppa.data || []).forEach((r: any) => {
         const isCyber = r.module === "cybersecurity";
-        const tool = isCyber ? "cppa_cyber" : "cppa_risk";
-        const basePath = isCyber ? "/cppa-cybersecurity/result" : "/cppa-risk-assessment/result";
+        const isAdmt = r.module === "admt";
+        const tool = isAdmt ? "cppa_admt" : isCyber ? "cppa_cyber" : "cppa_risk";
+        const basePath = isAdmt
+          ? "/cppa-admt-checker/result"
+          : isCyber
+          ? "/cppa-cybersecurity/result"
+          : "/cppa-risk-assessment/result";
         const sector = r.intake_data?.q3_sector || r.intake_data?.industry_sector || r.intake_data?.profile?.sector;
         const revenue = r.intake_data?.q1_revenue || r.intake_data?.profile?.revenue;
-        const summaryParts = [sector, revenue].filter(Boolean);
+        const systemName = r.intake_data?.system_name;
+        const summaryParts = isAdmt
+          ? [systemName].filter(Boolean)
+          : [sector, revenue].filter(Boolean);
+        const fallback = isAdmt
+          ? "ADMT Compliance Checker"
+          : isCyber
+          ? "CPPA Cybersecurity Audit"
+          : "CPPA Risk Assessment";
         all.push({
           id: r.id, tool, tool_label: TOOL_LABEL[tool],
           created_at: r.created_at,
           status: r.report_data ? (r.status || "complete") : (r.status || "pending"),
-          summary: summaryParts.join(" · ") || (isCyber ? "CPPA Cybersecurity Audit" : "CPPA Risk Assessment"),
+          summary: summaryParts.join(" · ") || fallback,
           view_path: `${basePath}/${r.id}`,
           pdf_url: r.pdf_url,
           ...clientMeta(r.client_id),
