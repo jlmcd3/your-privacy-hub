@@ -475,7 +475,7 @@ export default function MyReports() {
                 { key: "drafts", label: "Drafts (autosaved)", tools: draftToolKeys },
                 { key: "assessments", label: "Compliance Assessments", tools: ["li", "dpia", "governance", "biometric"] },
                 { key: "documents", label: "Privacy & Legal Documents", tools: ["dpa", "ir", "ropa", "us_notice", "eu_notice"] },
-                { key: "cppa", label: "CPPA Audit Suite", tools: ["cppa_risk", "cppa_cyber", "cppa_scope"] },
+                { key: "cppa", label: "CPPA Audit Suite", tools: ["cppa_risk", "cppa_cyber", "cppa_admt", "cppa_scope"] },
                 { key: "registration", label: "Registration", tools: ["registration"] },
               ];
               const grouped = GROUPS.map((g) => ({
