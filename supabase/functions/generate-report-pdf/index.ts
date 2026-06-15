@@ -1185,6 +1185,7 @@ const TOOL_LABELS: Record<string, string> = {
   dpa_generator: "Custom-DPA",
   cppa_cybersecurity: "CPPA-Cybersecurity-Audit",
   cppa_risk: "CPPA-Risk-Assessment",
+  cppa_admt: "CPPA-ADMT-Compliance-Assessment",
   cppa_scope: "CPPA-Scope-Check",
   registration_assessment: "Registration-Assessment",
   registration_document: "Registration-Filing",
@@ -1242,6 +1243,7 @@ Deno.serve(async (req) => {
       // Newly supported tools (text/document-based or summary-based output):
       cppa_cybersecurity: "cppa_assessments",
       cppa_risk: "cppa_assessments",
+      cppa_admt: "cppa_assessments",
       cppa_scope: "cppa_scope_checks",
       registration_assessment: "registration_assessments",
       registration_document: "registration_documents",
@@ -1285,7 +1287,7 @@ Deno.serve(async (req) => {
       }
       const readsReportData = new Set([
         "li_assessment", "governance_assessment", "dpia_framework",
-        "cppa_risk", "cppa_cybersecurity", "biometric_checker",
+        "cppa_risk", "cppa_cybersecurity", "cppa_admt", "biometric_checker",
       ]);
       if (readsReportData.has(tool_type)) {
         const rd: any = (record as any).report_data;
@@ -1325,6 +1327,10 @@ Deno.serve(async (req) => {
               bodyOk = isNonEmptyArr(rd.controls);
               missingKey = "controls";
             }
+            break;
+          case "cppa_admt":
+            bodyOk = typeof rd.system_name === "string" && rd.system_name.length > 0;
+            missingKey = "system_name";
             break;
           case "biometric_checker": {
             const text = (record as any).analysis_text || rd?.assessment_text || "";
