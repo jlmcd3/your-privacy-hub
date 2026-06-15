@@ -1608,11 +1608,13 @@ Deno.serve(async (req) => {
       const metaLine = `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
         ((record.jurisdictions || intake.jurisdictions || []).length
           ? ` · ${(record.jurisdictions || intake.jurisdictions).join(", ")}` : "");
+      const orgNameForPdf = (intake as any).orgName || (intake as any).organizationName || "";
       html = buildTextReportHTML({
         title: "Biometric Compliance Assessment",
-        metaLine,
+        metaLine: `${metaLine}${orgNameForPdf ? ` · Prepared for: ${orgNameForPdf}` : ""}`,
         text,
         showJurisdictionChip: true,
+        disclaimerHtml: `<span class="kw">Not legal advice.</span> This biometric compliance assessment is generated for informational purposes only. Biometric data obligations vary by jurisdiction, sector, and specific processing context. Applicability determinations — including whether BIPA, VCDPA, GDPR Article 9, or other statutes apply to your specific processing — require qualified legal counsel in each named jurisdiction. This document does not create an attorney-client relationship and does not constitute legal advice.`,
         callout: bipa ? {
           kind: "warn",
           title: "BIPA Litigation Risk Estimate",
