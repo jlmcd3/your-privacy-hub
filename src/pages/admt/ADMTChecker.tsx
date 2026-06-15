@@ -528,6 +528,20 @@ export default function ADMTChecker() {
                     />
                   </div>
 
+                  <div>
+                    <Label>How many distinct ADMT systems does your business operate for significant decisions? (optional)</Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      If you operate more than one ADMT system — for example, a credit scoring model and a separate fraud detection system — you may be eligible to provide a single consolidated Pre-Use Notice under § 7220(e) rather than separate notices for each system. Enter a number or leave blank if you operate a single system.
+                    </p>
+                    <input
+                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                      value={admtSystemCount}
+                      onChange={(e) => setAdmtSystemCount(e.target.value)}
+                      placeholder="e.g. 1, 2, 3"
+                    />
+                  </div>
+
+
 
                   <div>
                     <Label onFocus={() => focus("scope_significant_decision_domain")}>
