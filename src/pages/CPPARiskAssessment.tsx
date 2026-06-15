@@ -4,7 +4,9 @@
 // when ADMT trigger fires; I-9 only when user has a prior DPIA.
 
 import { useMemo, useState } from "react";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
@@ -342,7 +344,9 @@ export default function CPPARiskAssessment() {
   };
 
   return (
-    <WorkspaceLayout className="bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <DashboardSubnav />
       <Helmet>
         <title>CPPA Privacy Risk Assessment — Module 1 | End User Privacy</title>
         <meta name="description" content="California CPPA risk assessment mapped 1:1 to § 7152(a)(1)–(9). Generates a regulation-mapped framework pre-populated from your intake, ready for executive sign-off." />
@@ -701,7 +705,8 @@ export default function CPPARiskAssessment() {
         />
       </main>
       <CPPAToolsCrossLinks current="risk" />
-    </WorkspaceLayout>
+    <Footer />
+    </div>
   );
 }
 

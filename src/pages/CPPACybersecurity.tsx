@@ -1,6 +1,8 @@
 // CPPA Cybersecurity Audit Readiness — Module 2 intake. Covers 18 programme components.
 import { useMemo, useState } from "react";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
@@ -103,7 +105,9 @@ export default function CPPACybersecurity() {
   };
 
   return (
-    <WorkspaceLayout className="bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <DashboardSubnav />
       <Helmet>
         <title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title>
         <meta name="description" content="CPPA cybersecurity audit readiness mapped to the 18 programme components in the agency's regulations. Includes Breach Precedent Map, Auditor Independence Advisor, and Auditor Handoff Package." />
@@ -240,6 +244,7 @@ export default function CPPACybersecurity() {
         />
       </main>
       <CPPAToolsCrossLinks current="cyber" />
-    </WorkspaceLayout>
+    <Footer />
+    </div>
   );
 }

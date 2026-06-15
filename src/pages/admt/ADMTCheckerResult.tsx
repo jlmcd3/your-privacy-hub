@@ -4,7 +4,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
-import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Helmet } from "react-helmet-async";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -147,13 +149,16 @@ export default function ADMTCheckerResult() {
 
   if (polling || !assessment) {
     return (
-      <WorkspaceLayout>
+      <div className="min-h-screen flex flex-col bg-brand-cloud">
+      <Navbar />
+      <DashboardSubnav />
         <div className="flex flex-col items-center justify-center py-24 gap-4">
           <Clock className="w-8 h-8 text-muted-foreground animate-spin" />
           <p className="text-muted-foreground text-sm">Generating your ADMT gap analysis…</p>
           <p className="text-muted-foreground text-xs">This takes about 30 seconds.</p>
         </div>
-      </WorkspaceLayout>
+      <Footer />
+    </div>
     );
   }
 
@@ -161,14 +166,17 @@ export default function ADMTCheckerResult() {
 
   if (assessment.status === "error" || !report) {
     return (
-      <WorkspaceLayout>
+      <div className="min-h-screen flex flex-col bg-brand-cloud">
+      <Navbar />
+      <DashboardSubnav />
         <div className="max-w-2xl mx-auto px-4 py-16 text-center">
           <p className="text-destructive mb-4">Generation failed. Please contact support.</p>
           <Link to="/cppa-admt-checker">
             <Button variant="outline">Try again</Button>
           </Link>
         </div>
-      </WorkspaceLayout>
+      <Footer />
+    </div>
     );
   }
 
@@ -185,7 +193,9 @@ export default function ADMTCheckerResult() {
     (report.access_gaps ?? []).filter((i: any) => i.status !== "compliant").length;
 
   return (
-    <WorkspaceLayout>
+    <div className="min-h-screen flex flex-col bg-brand-cloud">
+      <Navbar />
+      <DashboardSubnav />
       <Helmet>
         <title>ADMT Gap Analysis — {report.system_name} | End User Privacy</title>
       </Helmet>
@@ -283,6 +293,7 @@ export default function ADMTCheckerResult() {
           .
         </p>
       </ReportShell>
-    </WorkspaceLayout>
+    <Footer />
+    </div>
   );
 }
