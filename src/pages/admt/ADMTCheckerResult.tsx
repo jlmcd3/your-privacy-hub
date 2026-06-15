@@ -123,6 +123,12 @@ function GapTable({ items, title }: { items: any[]; title: string }) {
                   <p className="text-[12px] leading-relaxed">{item.remediation}</p>
                 </div>
               )}
+              {item.sample_language && (
+                <SampleLanguageBlock
+                  text={item.sample_language}
+                  usageNote={item.usage_note}
+                />
+              )}
             </div>
           ))}
         </div>
