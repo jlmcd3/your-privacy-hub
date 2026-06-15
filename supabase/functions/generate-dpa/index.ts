@@ -370,7 +370,12 @@ Never output the literal string "[SIGNATURE BLOCK]" as a standalone line — thi
 8. ENFORCEMENT ID HYGIENE. The "id:" values in the ENFORCEMENT CONTEXT exist ONLY for the annotations array. They must NEVER appear in document_text. In the contract body, do not cite enforcement cases at all in operative clauses — enforcement context informs your drafting choices silently.
 9. SUB-PROCESSOR AUTHORISATION MODEL. Use exactly one coherent regime: general authorisation limited to the sub-processors listed in Schedule 1, with new sub-processors permitted only via 30-day advance written notice and a 15-day objection right. Do NOT use the phrase "specific authorisation" anywhere; specific authorisation and notice-with-objection are alternatives under Art. 28(2) and must not be mixed.
 10. CITATION FORM. The UK Data Protection Act 2018 is an Act with sections and schedules — never cite "Regulation N of the Data Protection Act 2018". For UK→EEA transfers, cite the UK adequacy regulations / Schedule 21 DPA 2018 and state that no Art. 46 safeguard is required. Use "pseudonymisation" (Art. 32(1)(a)) — never "pseudo-anonymisation".
-11. GOVERNING LAW & JURISDICTION. The governing law clause MUST resolve to a SINGLE jurisdiction — never offer two alternatives joined by "or". Derive the single governing law from the intake: (a) if the controller's country of establishment is provided, use the law of that jurisdiction (e.g. "the laws of England and Wales" for a UK-incorporated controller, "French law" for a French company, "German law" for a German company, "the laws of [Province]" for a Canadian entity in that province); (b) if the country is not provided, output a single placeholder "[TO BE COMPLETED: governing law — state the jurisdiction whose law will govern this agreement]" — never two alternatives. The dispute resolution / jurisdiction clause that follows MUST identify courts consistent with the single governing law chosen (e.g. courts of England and Wales for English law; courts of Paris for French law). Never write "UK law"; use "the laws of England and Wales", "the laws of Scotland", or "the law of Northern Ireland" as appropriate. Apply the same rule to the jurisdiction/forum clause: a single forum, not a choice.
+11. GOVERNING LAW & JURISDICTION. The governing law clause MUST resolve to a SINGLE jurisdiction — never offer two alternatives joined by "or". Derive the single governing law from the intake:
+(a) EU/EEA entities: use the law of the controller's member state (e.g. "French law" for a France-incorporated controller, "German law" for a German company, "the laws of England and Wales" for a UK-incorporated controller, "Irish law" for an Irish entity, "Spanish law" for a Spanish entity, "Dutch law" for a Netherlands entity).
+(b) US entities — CRITICAL: "United States" or "United States (federal)" is NOT a valid governing law for a data processing agreement. US privacy law is state-level. When the controller's jurisdiction is "United States (federal)" or any generic US designation, output the governing law as: "the laws of the State of Delaware, without regard to its conflict-of-laws principles" — Delaware is the most widely used US state for commercial contract governing law — and add a parenthetical: "(the parties should confirm whether a different state is preferred, particularly if either party's principal place of business or state of incorporation is in another state)." When the controller's jurisdiction IS a specific US state (e.g. "California", "Texas"), use the laws of that state instead.
+(c) Canadian entities: use the law of the controller's province or "Canadian federal law (PIPEDA)" as applicable.
+(d) If no jurisdiction is provided at all, output: "[TO BE COMPLETED: governing law — state the jurisdiction whose law will govern this agreement]" — never two alternatives.
+The dispute resolution / jurisdiction clause that follows MUST identify courts consistent with the single governing law (e.g. courts of England and Wales for English law; courts of Paris for French law; courts of the State of Delaware or federal courts sitting in Delaware for Delaware law). Never write "UK law"; use "the laws of England and Wales", "the laws of Scotland", or "the law of Northern Ireland" as appropriate. Single forum only — never offer two.
 
 Output format:
 - First, output ONLY the DPA document. No preamble, commentary, or explanation.
@@ -388,7 +393,23 @@ Output format:
     "relevance": "one sentence why this case informed a specific clause choice"
   }
 ]
-- If no cases from the context informed any clause choice, output an empty array [].`;
+- If no cases from the context informed any clause choice, output an empty array [].
+
+12. ENTITY LEGAL FORM CONSISTENCY. Before drafting, inspect the controller name and processor name for legal form suffixes and verify they are consistent with the stated incorporation jurisdiction. Apply these known mappings:
+- B.V. (Besloten Vennootschap) → Netherlands only. If the stated jurisdiction is not the Netherlands, flag it.
+- GmbH (Gesellschaft mit beschränkter Haftung) → Germany, Austria, or Switzerland only.
+- SE (Societas Europaea) → any EU member state; SE is a supranational form, not UK-specific. Do NOT describe an SE entity as incorporated under English law.
+- Ltd → typically England and Wales, Scotland, Northern Ireland, or Ireland. For Ireland, specify "Republic of Ireland."
+- SRL → typically France, Italy, Spain, Romania, or Latin American jurisdictions.
+- SA / S.A. → typically France, Spain, Belgium, or Switzerland.
+- LLC / Inc / Corp → United States only.
+- AB → Sweden only.
+- OY / OYJ → Finland only.
+- AS → Norway or Denmark.
+- NV → Netherlands or Belgium.
+- PLC → England and Wales or Ireland.
+If a detected mismatch exists between the entity's legal form and the stated incorporation jurisdiction, include a flagging recital in Section 1 (Parties and Recitals) immediately after the party identification:
+"NOTE FOR LEGAL REVIEW: The [Controller/Processor] entity [name] uses the legal form [form], which is typically associated with [expected jurisdiction]. The stated incorporation jurisdiction ([stated jurisdiction]) appears inconsistent with this legal form. The parties should confirm the correct incorporation jurisdiction and legal form before executing this agreement."`;
 
     const GDPR_USER = `${PARTIES_BLOCK}
 Legal framework: ${body.legalFramework}
@@ -409,7 +430,7 @@ Draft the complete DPA with ALL of the following sections. Number clauses hierar
 1. PARTIES AND RECITALS
 2. SUBJECT MATTER, NATURE, DURATION AND PURPOSE
 3. PROCESSOR OBLIGATIONS (all eight Article 28(3) elements: instructions, confidentiality, security, sub-processors, assistance with rights, assistance with security/breach/DPIA, deletion/return, information/audit)
-4. SUB-PROCESSOR PROVISIONS (Articles 28(2) and 28(4)) – include specific approval mechanism and notification timeline. The clause MUST state explicitly: "General authorisation under this clause applies ONLY to the Sub-processors listed in Schedule 1 at the Effective Date. All subsequent additions or replacements require prior specific written authorisation under the [30]-day notice procedure set out in this clause." Use a 30-day notice window.
+4. SUB-PROCESSOR PROVISIONS (Articles 28(2) and 28(4)) – include specific approval mechanism and notification timeline. The clause MUST state explicitly: "General authorisation under this clause applies ONLY to the Sub-processors listed in Schedule 1 at the Effective Date. All subsequent additions or replacements require prior written notice under the 30-day notice procedure set out in this clause." Use a 30-day notice window.
 5. SECURITY MEASURES (Article 32) – specify technical and organisational measures calibrated to the data categories listed above
 6. DATA BREACH NOTIFICATION (Article 33) – the Processor MUST notify the Controller without undue delay and in any event within forty-eight (48) hours of becoming aware of a Personal Data Breach. Include this clarifying sentence verbatim in the clause: "This 48-hour window is the Processor's obligation to the Controller, designed to enable the Controller to comply with its own obligation under Article 33(1) GDPR to notify the supervisory authority within 72 hours of becoming aware of the breach." Include minimum content requirements.
 7. DATA SUBJECT RIGHTS ASSISTANCE (ARTICLES 12-23) AND DPIA ASSISTANCE — output this section heading verbatim, with a space between DPIA and ASSISTANCE. Never concatenate words in headings. The DPIA-assistance clause must reflect the actual processing: cite Article 35(3)(b) as the mandatory DPIA trigger ONLY if the data categories listed above include special category data under Article 9 (health/medical data, genetic data, biometric data used for unique identification, data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, data concerning sex life or sexual orientation, or criminal records/offences). For processing that does NOT involve Article 9 special category data, use a general DPIA-assistance clause without citing Article 35(3)(b): "To the extent any processing activities covered by this DPA are likely to result in a high risk to the rights and freedoms of natural persons (as assessed under GDPR Article 35), the Processor shall assist the Controller in conducting a Data Protection Impact Assessment."
@@ -529,7 +550,7 @@ Additional requirements:
   (a) assist the Controller in responding to consumer access requests under Cal. Civ. Code § 1798.100 (CCPA) and equivalent provisions of any other applicable state laws (TDPSA, CPA, VCDPA, etc.);
   (b) assist the Controller in responding to consumer deletion requests under Cal. Civ. Code § 1798.105 and equivalent state provisions;
   (c) pass through and honor any opt-out of sale/sharing signals under Cal. Civ. Code § 1798.120;
-  (d) notify the Controller within [5] business days upon receiving any consumer rights request directly;
+  (d) notify the Controller within five (5) business days upon receiving any consumer rights request directly;
   (e) not respond to consumer rights requests directly without Controller's prior written authorization.
   This clause must appear as an explicit named section in the document, not merely as implied language elsewhere.
 - Cite the specific statutory provision (e.g. "Cal. Civ. Code § 1798.100(d)(1)") for each key obligation.
