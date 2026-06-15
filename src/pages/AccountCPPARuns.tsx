@@ -113,8 +113,8 @@ export default function AccountCPPARuns() {
         <header>
           <h1 className="font-serif text-brand-navy">My CPPA Runs</h1>
           <p className="text-sm text-muted-foreground mt-2">
-            Every CPPA assessment you've run, grouped into Suite runs (Risk + Cybersecurity together) and
-            standalone module runs. Re-open the result page or download a PDF.
+            Every CPPA assessment you've run, including Suite runs (Risk + Cybersecurity together),
+            standalone module runs, and ADMT Compliance Checker results. Re-open the result page or download a PDF.
           </p>
         </header>
 
