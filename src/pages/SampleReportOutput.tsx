@@ -31,7 +31,7 @@ const TOOL_DISPLAY: Record<string, string> = {
   biometric: "Biometric Compliance Check",
   cppa_risk: "CPPA Risk Assessment",
   cppa_cyber: "CPPA Cybersecurity Audit",
-  cppa_admt: "ADMT Compliance Checker",
+  cppa_admt: "ADMT Compliance Assessment",
   ropa: "Record of Processing Activities (RoPA)",
   us_notice: "US State Privacy Notice",
   eu_notice: "EU / Global Privacy Notice",

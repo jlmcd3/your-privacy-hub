@@ -1,6 +1,6 @@
 // src/components/admt/admtRailEntries.ts
 // Verbatim regulation text, plain summaries, and FSOR context
-// for every field in the ADMT Compliance Checker.
+// for every field in the ADMT Compliance Assessment.
 
 import type { RailEntry } from "./StatuteRail";
 

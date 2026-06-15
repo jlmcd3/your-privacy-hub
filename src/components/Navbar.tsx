@@ -146,7 +146,7 @@ const navItems: NavItem[] = [
           },
           {
             icon: "🧭",
-            label: "ADMT Compliance Checker",
+            label: "ADMT Compliance Assessment",
             href: "/cppa-admt-checker",
             tooltip: "Automated Decisionmaking Technology disclosure checker · Jan 1 2027 deadline",
           },

@@ -175,7 +175,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "cppa_admt",
-    label: "ADMT Compliance Checker",
+    label: "ADMT Compliance Assessment",
     blurb: "Gap analysis for pre-use notices, opt-out obligations, and access rights. January 1, 2027 deadline.",
     startPath: "/cppa-admt-checker",
     viewPath: "/dashboard/reports",

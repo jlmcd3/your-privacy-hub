@@ -453,7 +453,7 @@ const F_CPPA_ADMT_US: SampleFixture = {
   variant: "us",
   title: "ADMT gap analysis for an automated loan-approval engine",
   scenario_summary:
-    "Tomorrow4Cariboo Lending uses a gradient-boosted ML model to score California loan applicants. The ADMT Compliance Checker reviews pre-use notice, opt-out mechanisms, and access-right disclosures against 11 CCR §§ 7220–7222 ahead of the January 1, 2027 deadline.",
+    "Tomorrow4Cariboo Lending uses a gradient-boosted ML model to score California loan applicants. The ADMT Compliance Assessment reviews pre-use notice, opt-out mechanisms, and access-right disclosures against 11 CCR §§ 7220–7222 ahead of the January 1, 2027 deadline.",
   source_table: "cppa_assessments",
   result_url_pattern: "/cppa-admt-checker/result/{id}",
   fixture: {

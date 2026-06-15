@@ -24,7 +24,7 @@ const LINKS: Record<ToolKey, { to: string; title: string; blurb: string }> = {
   },
   admt: {
     to: "/cppa-admt-checker",
-    title: "ADMT Compliance Checker",
+    title: "ADMT Compliance Assessment",
     blurb: "Module 3 — pre-use notice, opt-out, and access right gap analysis for automated decisionmaking systems. January 1, 2027 deadline.",
   },
 };

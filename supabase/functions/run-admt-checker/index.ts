@@ -1,5 +1,5 @@
 // supabase/functions/run-admt-checker/index.ts
-// ADMT Compliance Checker — gap analysis generator.
+// ADMT Compliance Assessment — gap analysis generator.
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";

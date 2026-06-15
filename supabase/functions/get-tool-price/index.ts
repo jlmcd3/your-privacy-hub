@@ -179,7 +179,7 @@ const TOOLS: Record<
     classification: "smart",
   },
   cppa_admt: {
-    name: "ADMT Compliance Checker — Module 3",
+    name: "ADMT Compliance Assessment — Module 3",
     standalone_lookup: "cppa_admt_standalone",
     subscriber_lookup: "cppa_admt_subscriber",
     fallback_standalone_cents: 9900,
