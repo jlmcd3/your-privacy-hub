@@ -39,6 +39,7 @@ interface ExtractInput {
   page_from?: number;
   page_to?: number;
   force_shape?: boolean;
+  force_rotation?: number | null;
 }
 
 function fixOcrSpaces(text: string): string {
@@ -398,6 +399,7 @@ function extractAppendix2023(
   colBounds: [number, number, number, number],
   appendixLabel: string,
   includeRoots: Set<string> | null,
+  forceRotation: number | null = null,
 ): { units: Unit[]; noCitationDropped: number } {
   const [b1, b2, b3, b4] = colBounds;
   const units: Unit[] = [];
@@ -437,7 +439,8 @@ function extractAppendix2023(
 
   const ROW_GAP = 8;
   for (const pg of pages) {
-    const rotated = pg.rotate === 90 || pg.rotate === 270;
+    const effectiveRotate = forceRotation !== null ? forceRotation : pg.rotate;
+    const rotated = effectiveRotate === 90 || effectiveRotate === 270;
     // Normalize row_axis so ascending = reading order (top-to-bottom).
     // Rotated (90/270): row_axis = x, ascending already top-to-bottom in rotated view.
     // Unrotated: row_axis = -y (invert), since PDF y grows upward.
@@ -606,7 +609,8 @@ Deno.serve(async (req) => {
         const colBounds: [number, number, number, number] =
           body.col_bounds ?? [90, 420, 610, 670];
         const label = appendixLabelFromUrl(source_url);
-        const res = extractAppendix2023(pages, colBounds, label, includeRoots);
+        const forceRotation = body?.force_rotation !== undefined ? Number(body.force_rotation) : null;
+        const res = extractAppendix2023(pages, colBounds, label, includeRoots, forceRotation);
         units = res.units;
         noCitationDropped = res.noCitationDropped;
       }
