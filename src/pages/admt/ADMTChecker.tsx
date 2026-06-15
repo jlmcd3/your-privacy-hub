@@ -147,6 +147,9 @@ export default function ADMTChecker() {
   const [humanReview, setHumanReview] = useState("");
   const [trainingDataUse, setTrainingDataUse] = useState("");
   const [profilingUse, setProfilingUse] = useState("");
+  // Step 1 additions
+  const [caConsumerCount, setCaConsumerCount] = useState("");
+  const [thirdPartyAdmt, setThirdPartyAdmt] = useState("");
 
   // Step 2
   const [noticeDelivery, setNoticeDelivery] = useState<string[]>([]);
