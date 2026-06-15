@@ -131,7 +131,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
       { action: "Document DPIA rationale for high-risk workflows and record residual-risk approval.", domain: "Privacy Impact Assessment Status", timeline: "this quarter", owner: "DPO" },
     ],
     overall_readiness_rating: hasCoreControls ? "Defined" : "Developing",
-    readiness_rationale: "Stress-run severities reflect whether controls are present, documented, and ready for evidence review.",
+    readiness_rationale: "Severity ratings reflect whether controls are present, documented, and ready for evidence review. Confirm each rating against actual artifacts before relying on this assessment.",
     interaction_effects: "Inventory, vendor terms, DPIA records, and privacy notices reinforce each other; gaps in one area weaken the reliability of the others.",
     dpia_scope: hasEuUk || intake?.special_category === "Yes" || intake?.special_category_data
       ? [{ processing_activity: "High-risk platform and workflow processing", regulatory_basis: hasEuUk ? "GDPR Art. 35" : "State privacy assessment requirements", priority: "This quarter" }]
