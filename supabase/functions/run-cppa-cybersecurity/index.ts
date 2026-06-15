@@ -688,6 +688,9 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           .replace(/^(?:Businesses?\s+must\s+(?:implement|maintain|establish|ensure|provide|limit|document|collect|develop|oversee|conduct)\s+)/i, "")
           .replace(/^(?:The\s+(?:programme|program|business)\s+must\s+include\s+)/i, "")
           .replace(/^(?:Maintaining\s+and\s+)/i, "Maintaining ")
+          // Strip "and document" or "and maintain" openers that create "must assess and document and document..."
+          .replace(/^and\s+(?:document|maintain|manage|implement|establish|ensure|provide|limit)\s+/i, "")
+          .replace(/^document\s+and\s+(?:document|maintain)\s+/i, "")
           // Strip "The {noun} must {verb} " openers (capital-letter mandate phrases)
           .replace(/^The\s+(?:organisation|organization|business|controller|entity|company|programme|program)\s+must\s+\w+\s+/i, "")
           // Strip "An organisation must …", "A business must …"
