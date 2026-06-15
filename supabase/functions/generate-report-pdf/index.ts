@@ -1699,12 +1699,41 @@ Deno.serve(async (req) => {
       const calloutText = isEUish
         ? "This playbook and its documentation checklist contribute to your Article 33(5) accountability record."
         : "This playbook and its documentation checklist contribute to your accountability record under the applicable breach-notification frameworks.";
+      const orgName = record.organization_name || intake.organizationName || "";
+      const orgType = intake.organisationType || intake.organizationType || "";
+      const causeShort = (intake.cause || "").length > 80
+        ? (intake.cause || "").slice(0, 77) + "…"
+        : (intake.cause || "");
+      const metadataBlock = `<div style="border:1px solid #dde5ea;border-radius:8px;padding:14px 18px;margin:16px 0 20px;background:#f8fafc;">
+  <table style="width:100%;border-collapse:collapse;font-size:11px;">
+    <tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Prepared for</td>
+      <td style="padding:3px 0;color:#1a1916;font-weight:600;">${escHtml(orgName || "[TO BE COMPLETED: organisation name]")}</td>
+      <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:100px;">Incident ID</td>
+      <td style="padding:3px 0;color:#b45309;font-weight:600;">[TO BE COMPLETED: assign unique incident ID]</td>
+    </tr>
+    <tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Organisation type</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml(orgType || "—")}</td>
+      <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Status</td>
+      <td style="padding:3px 0;color:#7c1a1a;font-weight:600;">DRAFT — CONFIRM ALL DEADLINES WITH COUNSEL</td>
+    </tr>
+    <tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Jurisdictions</td>
+      <td style="padding:3px 0;color:#1a1916;" colspan="3">${escHtml(jurArr.join(", ") || "—")}</td>
+    </tr>
+    ${causeShort ? `<tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Incident scenario</td>
+      <td style="padding:3px 0;color:#1a1916;" colspan="3">${escHtml(causeShort)}</td>
+    </tr>` : ""}
+  </table>
+</div>`;
       html = buildTextReportHTML({
         title: "Your Incident Response Playbook",
         metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
-          (record.organization_name ? ` · ${record.organization_name}` : "") +
+          (orgName ? ` · ${orgName}` : "") +
           (jurArr.length ? ` · ${jurArr.join(", ")}` : ""),
-        text: record.playbook_text || "",
+        text: metadataBlock + "\n\n" + (record.playbook_text || ""),
         showJurisdictionChip: false,
         callout: { kind: "muted", html: calloutText },
         disclaimerHtml: `<span class="kw">Not legal advice.</span> This is an operational incident-response playbook generated from your inputs. Deadlines and notification decisions must be confirmed with qualified legal counsel before reliance during a live incident.`,
