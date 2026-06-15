@@ -730,6 +730,7 @@ export type Database = {
       }
       cppa_fsor_commentary: {
         Row: {
+          agency_position_summary: string | null
           agency_response: string
           comment_summary: string
           content_hash: string
@@ -746,6 +747,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agency_position_summary?: string | null
           agency_response: string
           comment_summary: string
           content_hash: string
@@ -762,6 +764,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agency_position_summary?: string | null
           agency_response?: string
           comment_summary?: string
           content_hash?: string

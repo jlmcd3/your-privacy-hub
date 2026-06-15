@@ -1,0 +1,1 @@
+ALTER TABLE public.cppa_fsor_commentary ADD COLUMN IF NOT EXISTS agency_position_summary text;
