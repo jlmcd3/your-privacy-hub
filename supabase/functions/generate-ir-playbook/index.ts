@@ -310,7 +310,35 @@ Numbered, specific steps. Name the role responsible for each. Be direct.
 For each jurisdiction listed, state: (a) the notification threshold test, (b) whether this incident likely meets it based on the data types and count provided, (c) your confidence level (High / Medium / Low) and a one-sentence reason.
 
 ## Section 3: REGULATORY NOTIFICATION TIMELINE
-For each jurisdiction: the deadline (hours from discovery), the notification portal URL (use the portals provided above), the minimum content required for initial notification, what can be filed as preliminary versus what must follow, and – based on the enforcement context – specific omissions that have been penalised. If a processor is involved, include a dedicated step titled "Processor notification" describing how and when the processor must be notified.
+For each jurisdiction: the deadline (computed from the Article 33 awareness timestamp or
+statutory discovery date as appropriate), the notification portal URL (use the portals
+provided above), the minimum content required for initial notification, what can be filed
+as preliminary versus what must follow, and — based on the enforcement context — specific
+omissions that have been penalised. If a processor is involved, include a dedicated step
+titled "Processor notification" describing how and when the processor must be notified.
+
+THRESHOLD GATE — MANDATORY: Before stating notification deadlines for any jurisdiction,
+reference your Section 2 confidence assessment for that jurisdiction:
+— If Section 2 assessed notification as HIGH CONFIDENCE: state the deadline and treat
+  it as actionable. Add "Threshold: CONFIRMED — proceed."
+— If Section 2 assessed notification as MEDIUM CONFIDENCE: state the deadline but
+  prominently mark it: "⚠ PROVISIONAL — notification trigger requires confirmation.
+  Begin preparation and clock management but do not file until threshold confirmed."
+— If Section 2 assessed notification as LOW CONFIDENCE or "notification not required":
+  do not compute a deadline. Instead state: "Notification trigger not met on current
+  facts — monitor for new information and reassess. Do not begin the notification clock."
+
+RESIDENT COUNT GATE — MANDATORY FOR STATE THRESHOLDS: For any state threshold that
+depends on a per-state resident count (California 500+ for AG copy, Texas 250+ for AG
+notice, Virginia 1,000+ for CRA notice): do NOT use the total affected count as the
+operative figure. State explicitly: "This threshold applies only to confirmed [State]
+residents. Conduct a geographic segmentation of the affected population before assessing
+this threshold. [TO BE COMPLETED: confirmed [State] resident count]."
+
+ARTICLE 33 CLOCK START: For all EU GDPR and UK GDPR jurisdictions, the 72-hour deadline
+runs from the CONTROLLER AWARENESS TIMESTAMP — the moment the controller achieved
+reasonable certainty that a personal data breach occurred — not merely from the initial
+detection timestamp. Where these differ, state both and anchor the deadline to awareness.
 
 Output ONLY Sections 1–3. No preamble, no commentary, no Sections 4–7, no annotations. Do not end your output with a horizontal rule or divider line.`;
 
