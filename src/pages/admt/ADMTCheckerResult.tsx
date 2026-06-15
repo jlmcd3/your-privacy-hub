@@ -89,8 +89,20 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function GapTable({ items, title }: { items: any[]; title: string }) {
-  if (!items?.length) return null;
+function GapTable({ items, title, showNoGapsMessage }: { items: any[]; title: string; showNoGapsMessage?: boolean }) {
+  if (!items || items.length === 0) {
+    if (showNoGapsMessage) {
+      return (
+        <section className="space-y-2">
+          <h3 className="font-serif text-lg">{title}</h3>
+          <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">
+            No gaps identified in assessed elements.
+          </p>
+        </section>
+      );
+    }
+    return null;
+  }
   const gaps = items.filter((i) => i.status !== "compliant");
   const ok = items.filter((i) => i.status === "compliant");
   return (
@@ -248,6 +260,12 @@ export default function ADMTCheckerResult() {
       ? "text-amber-700"
       : "text-red-700";
 
+  const orgName =
+    (assessment?.intake_data as any)?.company_name ||
+    (assessment?.intake_data as any)?.org_name ||
+    (assessment?.intake_data as any)?.organizationName ||
+    null;
+
   const totalGaps =
     (report.notice_gaps ?? []).filter((i: any) => i.status !== "compliant").length +
     (report.opt_out_gaps ?? []).filter((i: any) => i.status !== "compliant").length +
@@ -284,6 +302,11 @@ export default function ADMTCheckerResult() {
 
 
         <div className="rounded-lg border p-5 bg-card">
+          {orgName && (
+            <div className="text-sm text-muted-foreground mb-2">
+              Prepared for: <span className="font-medium text-foreground">{orgName}</span>
+            </div>
+          )}
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
             Overall Status
           </p>
@@ -513,9 +536,21 @@ export default function ADMTCheckerResult() {
           </section>
         )}
 
-        <GapTable items={report.notice_gaps ?? []} title="Pre-Use Notice (§ 7220)" />
-        <GapTable items={report.opt_out_gaps ?? []} title="Opt-Out Rights (§ 7221)" />
-        <GapTable items={report.access_gaps ?? []} title="Access Rights (§ 7222)" />
+        <GapTable
+          items={report.notice_gaps ?? []}
+          title="Pre-Use Notice (§ 7220)"
+          showNoGapsMessage={report.scope_analysis?.triggers_significant_decision === true}
+        />
+        <GapTable
+          items={report.opt_out_gaps ?? []}
+          title="Opt-Out Rights (§ 7221)"
+          showNoGapsMessage={report.scope_analysis?.triggers_significant_decision === true}
+        />
+        <GapTable
+          items={report.access_gaps ?? []}
+          title="Access Rights (§ 7222)"
+          showNoGapsMessage={report.scope_analysis?.triggers_significant_decision === true}
+        />
 
         {report.risk_assessment_obligation?.required && (
           <section className="space-y-3">
