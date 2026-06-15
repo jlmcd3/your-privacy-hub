@@ -257,7 +257,7 @@ export default function StartNew() {
   const workspaceLabel = isPersonalActive ? "your personal workspace" : clientName;
 
   const orderedTools = useMemo(() => {
-    const cppaKeys = new Set<ToolKey>(["cppa_risk", "cppa_cyber", "cppa_scope"]);
+    const cppaKeys = new Set<ToolKey>(["cppa_risk", "cppa_cyber", "cppa_admt", "cppa_scope"]);
     return [...TOOLS].sort((a, b) => {
       const aCppa = cppaKeys.has(a.key) ? 1 : 0;
       const bCppa = cppaKeys.has(b.key) ? 1 : 0;
