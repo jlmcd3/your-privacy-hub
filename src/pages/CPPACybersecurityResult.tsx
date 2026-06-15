@@ -135,27 +135,40 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
                           </span>
                         )}
                       </p>
-                      <ul className="space-y-2">
-                        {d.fsor_commentary.slice(0, 3).map((f: any) => (
-                          <li key={f.id} className="space-y-1">
-                            {f.comment_summary && (
-                              <p className="text-xs text-muted-foreground">
-                                <strong>Comment:</strong> {f.comment_summary}
-                              </p>
-                            )}
-                            {f.agency_response && (
-                              <p className="text-xs">
-                                <strong>Agency response:</strong> {f.agency_response}
-                              </p>
-                            )}
-                            <p className="text-[11px] text-muted-foreground">
-                              {f.fsor_package}{f.page_ref ? ` · ${f.page_ref}` : ""}
-                              {f.source_url && (
-                                <> · <a href={f.source_url} target="_blank" rel="noreferrer" className="underline">source</a></>
+                      <ul className="space-y-3">
+                        {d.fsor_commentary.slice(0, 3).map((f: any) => {
+                          const positionText = f.agency_position_summary || f.comment_summary || "";
+                          const sourceLabel = [f.fsor_package, f.page_ref].filter(Boolean).join(" · ");
+                          return (
+                            <li key={f.id} className="space-y-1">
+                              {positionText && (
+                                <p className="text-xs text-foreground leading-relaxed">{positionText}</p>
                               )}
-                            </p>
-                          </li>
-                        ))}
+                              <details className="group">
+                                <summary className="cursor-pointer text-[11px] text-muted-foreground hover:text-foreground list-none">
+                                  <span className="group-open:hidden">▸ View source</span>
+                                  <span className="hidden group-open:inline">▾ Hide source</span>
+                                  {sourceLabel && <span className="ml-1 font-medium">{sourceLabel}</span>}
+                                  {f.source_url && (
+                                    <> · <a href={f.source_url} target="_blank" rel="noreferrer" className="underline">source</a></>
+                                  )}
+                                </summary>
+                                <div className="mt-2 pl-3 border-l-2 border-muted space-y-2">
+                                  {f.comment_summary && (
+                                    <p className="text-[11px] text-muted-foreground">
+                                      <span className="font-semibold">Comment: </span>{f.comment_summary}
+                                    </p>
+                                  )}
+                                  {f.agency_response && (
+                                    <p className="text-[11px] text-muted-foreground whitespace-pre-wrap">
+                                      <span className="font-semibold">Agency (verbatim): </span>{f.agency_response}
+                                    </p>
+                                  )}
+                                </div>
+                              </details>
+                            </li>
+                          );
+                        })}
                       </ul>
                     </div>
                   )}

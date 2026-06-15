@@ -427,38 +427,65 @@ export default function CPPARiskAssessmentResult() {
             {Array.isArray(report?.fsor_commentary) && report.fsor_commentary.length > 0 && (
               <AdminOnly>
                 <section className="bg-card border rounded-lg p-6">
-                  <h2 className="mb-1">Agency Rationale <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span></h2>
+                  <h2 className="mb-1">
+                    Agency Rationale{" "}
+                    <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span>
+                  </h2>
                   <p className="text-xs text-muted-foreground mb-4">
-                    Non-binding interpretive context from the California Privacy Protection Agency's
-                    Final Statement of Reasons (FSOR). Shows why the cited regulations read the way
-                    they do, and what concerns the Agency was responding to.
+                    The CPPA's position on each regulatory issue, synthesized from the Agency's
+                    Final Statement of Reasons. Cite to the source text before relying on any
+                    statement in a legal or compliance context.
                   </p>
-                  <div className="space-y-4">
-                    {report.fsor_commentary.map((f: any, i: number) => (
-                      <details key={f.id ?? i} className="border rounded p-3 group">
-                        <summary className="cursor-pointer text-sm font-semibold flex flex-wrap gap-2 items-baseline">
-                          <span className="font-mono text-xs text-brand-teal">
-                            {f.regulation_citation}
-                          </span>
-                          <span className="text-foreground">{f.comment_summary}</span>
-                          <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {f.fsor_package}{f.page_ref ? ` · ${f.page_ref}` : ""}
-                          </span>
-                        </summary>
-                        <div className="mt-3 text-sm whitespace-pre-wrap text-muted-foreground">
-                          {f.agency_response}
-                        </div>
-                        {Array.isArray(f.topic_tags) && f.topic_tags.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {f.topic_tags.map((t: string) => (
+                  <div className="space-y-3">
+                    {report.fsor_commentary.map((f: any, i: number) => {
+                      const positionText = f.agency_position_summary || f.comment_summary || "";
+                      const sourceLabel = [f.fsor_package, f.page_ref].filter(Boolean).join(" · ");
+                      return (
+                        <div key={f.id ?? i} className="border rounded-lg p-4 space-y-2">
+                          {/* Regulation tag */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-xs font-semibold text-brand-teal">
+                              {f.regulation_citation}
+                            </span>
+                            {Array.isArray(f.topic_tags) && f.topic_tags.slice(0, 2).map((t: string) => (
                               <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                                 {t}
                               </span>
                             ))}
                           </div>
-                        )}
-                      </details>
-                    ))}
+
+                          {/* Agency position — the primary content */}
+                          <p className="text-sm text-foreground leading-relaxed">
+                            {positionText}
+                          </p>
+
+                          {/* Source citation + optional raw text expand */}
+                          <details className="group">
+                            <summary className="cursor-pointer text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 list-none">
+                              <span className="group-open:hidden">▸ View source</span>
+                              <span className="hidden group-open:inline">▾ Hide source</span>
+                              {sourceLabel && (
+                                <span className="ml-1 font-medium">{sourceLabel}</span>
+                              )}
+                            </summary>
+                            <div className="mt-2 pl-3 border-l-2 border-muted space-y-2">
+                              {f.comment_summary && (
+                                <p className="text-xs text-muted-foreground">
+                                  <span className="font-semibold">Comment: </span>
+                                  {f.comment_summary}
+                                </p>
+                              )}
+                              {f.agency_response && (
+                                <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                                  <span className="font-semibold">Agency (verbatim): </span>
+                                  {f.agency_response}
+                                </p>
+                              )}
+                            </div>
+                          </details>
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
               </AdminOnly>
