@@ -178,6 +178,14 @@ const TOOLS: Record<
     fallback_subscriber_cents: 24900,
     classification: "smart",
   },
+  cppa_admt: {
+    name: "ADMT Compliance Checker — Module 3",
+    standalone_lookup: "cppa_admt_standalone",
+    subscriber_lookup: "cppa_admt_subscriber",
+    fallback_standalone_cents: 9900,
+    fallback_subscriber_cents: 4900,
+    classification: "smart",
+  },
   dpa_generator: {
     name: "Your Custom DPA",
     standalone_lookup: "dpa_standalone_v2",
