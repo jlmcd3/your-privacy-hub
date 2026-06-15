@@ -18,6 +18,7 @@ import DownloadWordButton from "@/components/DownloadWordButton";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import ToolDisclaimer from "@/components/ToolDisclaimer";
 
 export default function BiometricCheckerResult() {
   const { id } = useParams();
