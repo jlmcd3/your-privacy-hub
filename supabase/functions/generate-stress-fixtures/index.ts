@@ -435,6 +435,84 @@ function buildCompany(industry: string, geo: string, slot: number, companyId: st
   };
 }
 
+const COUNTRY_JURISDICTION: Record<string, string> = {
+  GB: "United Kingdom",
+  DE: "Germany",
+  FR: "France",
+  IE: "Ireland",
+  NL: "Netherlands",
+  ES: "Spain",
+};
+
+const COUNTRY_ADDRESS: Record<string, string> = {
+  GB: "30 St Mary Axe, London, EC3A 8BF, United Kingdom",
+  DE: "Unter den Linden 1, 10117 Berlin, Germany",
+  FR: "1 Rue de Rivoli, 75001 Paris, France",
+  IE: "1 Grand Canal Street Lower, Dublin 2, D02 H210, Ireland",
+  NL: "Herengracht 500, 1017 CB Amsterdam, Netherlands",
+  ES: "Paseo de la Castellana 100, 28046 Madrid, Spain",
+};
+
+function getEuNoticeCategoriesForSector(industry: string): string[] {
+  const s = industry.toLowerCase();
+  if (/healthcare|life science|clinical|medical|pharma/i.test(s))
+    return ["identifiers", "health_medical", "financial", "internet_activity"];
+  if (/biotech|genomic|genetic|genome/i.test(s))
+    return ["identifiers", "health_medical", "biometric", "internet_activity"];
+  if (/hr|employment|workforce|recruitment|payroll/i.test(s))
+    return ["identifiers", "professional", "financial", "health_medical"];
+  if (/edtech|children|child|schools|students|learning/i.test(s))
+    return ["identifiers", "education", "children", "internet_activity"];
+  if (/adtech|digital media|advertising|programmatic/i.test(s))
+    return ["identifiers", "internet_activity", "geolocation", "commercial"];
+  if (/data broker|data intel|enrichment/i.test(s))
+    return ["identifiers", "commercial", "internet_activity", "geolocation"];
+  if (/fintech|financial|banking|insurance/i.test(s))
+    return ["identifiers", "financial", "commercial"];
+  if (/kyc|identity.*verif/i.test(s))
+    return ["identifiers", "biometric", "financial"];
+  if (/automotive|connected vehicle|iot|smart home/i.test(s))
+    return ["identifiers", "geolocation", "audio_visual", "internet_activity"];
+  if (/gov|public sector|public authority/i.test(s))
+    return ["identifiers", "professional", "financial"];
+  return ["identifiers", "internet_activity", "commercial"];
+}
+
+function getEuNoticePurposesForSector(industry: string): string[] {
+  const s = industry.toLowerCase();
+  if (/healthcare|life science|clinical|medical|pharma/i.test(s))
+    return ["service_delivery", "legal_compliance", "research", "security"];
+  if (/adtech|digital media|advertising/i.test(s))
+    return ["advertising", "analytics", "service_delivery", "security"];
+  if (/data broker|data intel/i.test(s))
+    return ["analytics", "advertising", "other"];
+  if (/hr|employment|workforce/i.test(s))
+    return ["service_delivery", "legal_compliance", "security"];
+  if (/edtech|children|schools/i.test(s))
+    return ["service_delivery", "account_management", "legal_compliance"];
+  return ["service_delivery", "account_management", "security", "analytics", "marketing"];
+}
+
+function getEuNoticeBasisForSector(industry: string): string[] {
+  const s = industry.toLowerCase();
+  if (/gov|public sector|public authority/i.test(s))
+    return ["public_task", "legal_obligation"];
+  if (/healthcare|life science|clinical/i.test(s))
+    return ["contract", "legal_obligation", "consent"];
+  if (/hr|employment/i.test(s))
+    return ["contract", "legal_obligation"];
+  if (/data broker/i.test(s))
+    return ["legitimate_interests", "consent"];
+  return ["contract", "legitimate_interests", "consent"];
+}
+
+function getEuNoticeAutomatedDecisions(industry: string): string {
+  const s = industry.toLowerCase();
+  if (/ai|machine learning|fintech|financial|hr|employment|insurance|kyc|identity|adtech|data broker/i.test(s))
+    return "yes";
+  return "no";
+}
+
 function buildDeterministicProfile(industry: string, geo: string, slot: number, companyId: string) {
   const c = buildCompany(industry, geo, slot, companyId);
   const jurisdictions = geo === "eu" ? ["EU", "GB", c.countryCode] : ["US", "CA", "VA"];
