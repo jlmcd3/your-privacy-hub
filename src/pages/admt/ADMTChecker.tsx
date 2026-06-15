@@ -379,6 +379,8 @@ export default function ADMTChecker() {
     if (typeof d.ca_consumer_count === "string") setCaConsumerCount(d.ca_consumer_count);
     if (typeof d.third_party_admt === "string") setThirdPartyAdmt(d.third_party_admt);
     if (typeof d.opt_out_15_day_process === "string") setOptOut15DayProcess(d.opt_out_15_day_process);
+    if (typeof d.admt_system_count === "string") setAdmtSystemCount(d.admt_system_count);
+    if (typeof d.prior_access_requests_12mo === "string") setPriorAccessRequests12mo(d.prior_access_requests_12mo);
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
