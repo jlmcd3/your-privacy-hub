@@ -283,6 +283,8 @@ export default function ADMTChecker() {
       access_trade_secret_policy: accessTradeSecretPolicy,
       ca_consumer_count: caConsumerCount,
       third_party_admt: thirdPartyAdmt,
+      admt_system_count: admtSystemCount,
+      prior_access_requests_12mo: priorAccessRequests12mo,
       opt_out_15_day_process: optOut15DayProcess,
       opt_out_service_provider_notice: optOutServiceProviderNotice,
     }),
