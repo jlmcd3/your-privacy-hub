@@ -388,7 +388,23 @@ Output format:
     "relevance": "one sentence why this case informed a specific clause choice"
   }
 ]
-- If no cases from the context informed any clause choice, output an empty array [].`;
+- If no cases from the context informed any clause choice, output an empty array [].
+
+12. ENTITY LEGAL FORM CONSISTENCY. Before drafting, inspect the controller name and processor name for legal form suffixes and verify they are consistent with the stated incorporation jurisdiction. Apply these known mappings:
+- B.V. (Besloten Vennootschap) → Netherlands only. If the stated jurisdiction is not the Netherlands, flag it.
+- GmbH (Gesellschaft mit beschränkter Haftung) → Germany, Austria, or Switzerland only.
+- SE (Societas Europaea) → any EU member state; SE is a supranational form, not UK-specific. Do NOT describe an SE entity as incorporated under English law.
+- Ltd → typically England and Wales, Scotland, Northern Ireland, or Ireland. For Ireland, specify "Republic of Ireland."
+- SRL → typically France, Italy, Spain, Romania, or Latin American jurisdictions.
+- SA / S.A. → typically France, Spain, Belgium, or Switzerland.
+- LLC / Inc / Corp → United States only.
+- AB → Sweden only.
+- OY / OYJ → Finland only.
+- AS → Norway or Denmark.
+- NV → Netherlands or Belgium.
+- PLC → England and Wales or Ireland.
+If a detected mismatch exists between the entity's legal form and the stated incorporation jurisdiction, include a flagging recital in Section 1 (Parties and Recitals) immediately after the party identification:
+"NOTE FOR LEGAL REVIEW: The [Controller/Processor] entity [name] uses the legal form [form], which is typically associated with [expected jurisdiction]. The stated incorporation jurisdiction ([stated jurisdiction]) appears inconsistent with this legal form. The parties should confirm the correct incorporation jurisdiction and legal form before executing this agreement."`;
 
     const GDPR_USER = `${PARTIES_BLOCK}
 Legal framework: ${body.legalFramework}
