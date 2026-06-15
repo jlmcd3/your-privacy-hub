@@ -54,22 +54,27 @@ const moduleLabel: Record<string, string> = {
   risk: "Privacy Risk Assessment",
   cybersecurity: "Cybersecurity Audit Readiness",
   "cybersecurity-drift": "Cybersecurity Drift Comparison",
+  admt: "ADMT Compliance Checker",
 };
 
 const moduleResultRoute = (mod: string, id: string) => {
   if (mod === "risk") return `/cppa-risk-assessment/result/${id}`;
   if (mod === "cybersecurity") return `/cppa-cybersecurity/result/${id}`;
+  if (mod === "admt") return `/cppa-admt-checker/result/${id}`;
   return `/cppa-cybersecurity/result/${id}`;
 };
 
 const moduleStartRoute = (mod: string) => {
   if (mod === "risk") return "/cppa-risk-assessment";
   if (mod === "cybersecurity") return "/cppa-cybersecurity";
+  if (mod === "admt") return "/cppa-admt-checker";
   return "/cppa-cybersecurity-drift";
 };
 
-const moduleToolType = (mod: string): "cppa_risk" | "cppa_cybersecurity" => {
-  return mod === "risk" ? "cppa_risk" : "cppa_cybersecurity";
+const moduleToolType = (mod: string): "cppa_risk" | "cppa_cybersecurity" | "cppa_admt" => {
+  if (mod === "risk") return "cppa_risk";
+  if (mod === "admt") return "cppa_admt";
+  return "cppa_cybersecurity";
 };
 
 export default function AccountCPPARuns() {
