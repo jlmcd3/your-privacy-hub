@@ -259,7 +259,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
   "top_risks": [
     { "title": "string", "description": "string", "deadline": "string", "consequence": "string" }
   ],
-  "enforcement_context": "string (2-3 sentences on CPPA cybersecurity audit timing and enforcement priorities — cite the phase-in deadlines as established under § 7121(a): April 1, 2028 for businesses whose 2026 annual gross revenue exceeded $100 million; April 1, 2029 for $50–100 million; April 1, 2030 for under $50 million)",
+  "enforcement_context": "string (2-3 sentences: (1) cite phase-in deadlines under 11 CCR § 7121(a): April 1, 2028 for businesses whose 2026 annual gross revenue exceeded $100 million; April 1, 2029 for $50–100 million; April 1, 2030 for under $50 million. (2) State one sector-relevant enforcement observation using hedged language — 'this sector may attract scrutiny because [specific reason]' — do not assert CPPA has made specific sector-priority announcements without a source. (3) Note that the audit must be performed by a qualified, independent professional and the executive then submits the certification.)",
   "next_steps": ["string"]
 }`;
     }
