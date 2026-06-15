@@ -140,7 +140,8 @@ const CPPACybersecurity = lazy(() => import("./pages/CPPACybersecurity.tsx"));
 const CPPACybersecurityResult = lazy(() => import("./pages/CPPACybersecurityResult.tsx"));
 const CPPACybersecurityDrift = lazy(() => import("./pages/CPPACybersecurityDrift.tsx"));
 const CPPASuiteResult = lazy(() => import("./pages/CPPASuiteResult.tsx"));
-const CPPAAdmtPlaceholder = lazy(() => import("./pages/CPPAAdmtPlaceholder.tsx"));
+const ADMTChecker = lazy(() => import("./pages/admt/ADMTChecker.tsx"));
+const ADMTCheckerResult = lazy(() => import("./pages/admt/ADMTCheckerResult.tsx"));
 const CorpusExtractionAdmin = lazy(() => import("./pages/admin/CorpusExtractionAdmin"));
 const VerificationScanAdmin = lazy(() => import("./pages/admin/VerificationScanAdmin"));
 const PrimarySourceFetcher = lazy(() => import("./pages/admin/PrimarySourceFetcher"));
@@ -628,7 +629,9 @@ const App = () => (
             {/* CPPA Audit Readiness Suite */}
             <Route path="/cppa" element={<CPPAHub />} />
             <Route path="/cppa-scope-checker" element={<CPPAScopeChecker />} />
-            <Route path="/cppa-admt" element={<CPPAAdmtPlaceholder />} />
+            <Route path="/cppa-admt" element={<ADMTChecker />} />
+            <Route path="/cppa-admt-checker" element={<ADMTChecker />} />
+            <Route path="/cppa-admt-checker/result/:id" element={<ADMTCheckerResult />} />
             <Route path="/cppa-risk-assessment" element={<CPPARiskAssessment />} />
             <Route
               path="/cppa-risk-assessment/result/:id"
