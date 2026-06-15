@@ -1141,6 +1141,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   .status-gap { background:var(--orange-soft); color:var(--orange); }
   .status-partial { background:var(--amber-soft); color:var(--amber); }
   .status-compliant { background:var(--green-soft); color:var(--green); }
+  .status-mature { background:#dbeafe; color:#1d4ed8; }
   .status-neutral { background:#f3f4f6; color:var(--muted); }
   .label { font-weight:700; color:var(--navy); }
   .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
