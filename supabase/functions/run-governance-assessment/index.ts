@@ -76,9 +76,23 @@ const DOMAIN_DEFINITIONS = [
 function buildStressGovernanceReport(assessmentId: string, intake: any) {
   const jurisdictions = Array.isArray(intake?.jurisdictions) ? intake.jurisdictions.map(String) : [];
   const hasEuUk = intake?.eu_uk_data === true || jurisdictions.some((j: string) => ["EU", "GB", "UK"].includes(j.toUpperCase()));
+  const sector = String(intake?.sector || "").toLowerCase();
+  const isHealthcare = /healthcare|life science|medical|clinical|pharma/i.test(sector);
+  const isPublicSector = /gov|public sector|public authority|government/i.test(sector);
+  const isFintech = /fintech|financial|banking|insurance/i.test(sector);
+  const isEdTech = /edtech|children|child|schools|students/i.test(sector);
+
   const framework = hasEuUk
     ? "GDPR Art. 24, Art. 28, Art. 32 and Art. 35"
-    : "CCPA §1798.100, CCPA §1798.130, C.R.S. §6-1-1308 and Va. Code §59.1-578";
+    : isHealthcare
+    ? "HIPAA (45 C.F.R. Parts 160 and 164); C.R.S. §6-1-1309 and Va. Code §59.1-580 where applicable"
+    : isPublicSector
+    ? "C.R.S. §6-1-1309 and Va. Code §59.1-580 where applicable — Note: CCPA generally does not apply to government entities"
+    : isFintech
+    ? "GLBA Safeguards Rule (16 C.F.R. Part 314); CCPA §1798.100(d) where applicable; C.R.S. §6-1-1309 and Va. Code §59.1-580"
+    : isEdTech
+    ? "COPPA (16 C.F.R. Part 312); FERPA (34 C.F.R. Part 99) where applicable; CCPA §1798.100(d); C.R.S. §6-1-1309 and Va. Code §59.1-580"
+    : "CCPA §1798.100(d); C.R.S. §6-1-1309 and Va. Code §59.1-580";
   const tools = Array.isArray(intake?.tools) && intake.tools.length ? intake.tools.join(", ") : "external workflow tools";
   const profile = intake?.sector ? `${intake.sector} organisation` : "organisation";
   const hasCoreControls = Boolean(intake?.privacy_policy || intake?.acceptable_use || intake?.training_status || intake?.dpa_status);
@@ -92,7 +106,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
       domain_id: domain.id,
       domain_name: domain.name,
       current_state: `${profile} uses ${tools}; the intake responses indicate ${intake?.privacy_policy || "a privacy notice status not specified"}, ${intake?.dpa_status || "vendor contract status not specified"}, and ${intake?.training_status || "training status not specified"}.`,
-      gap_description: `Stress-run review should confirm evidence quality, ownership, and audit trail completeness for ${domain.name.toLowerCase()}.`,
+      gap_description: `Confirm evidence quality, ownership, and audit trail completeness for ${domain.name.toLowerCase()}. Document the specific artifacts (policies, DPAs, training records, DPIA approvals) that support each control claim.`,
       severity,
       regulatory_basis: framework,
       recommended_action: `Validate documented evidence for ${domain.name.toLowerCase()} against ${framework} and record accountable remediation owners.`,
@@ -105,7 +119,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     generated_at: new Date().toISOString(),
     assessment_id: assessmentId,
     organisation_profile: intake,
-    executive_summary: `The ${profile} shows baseline privacy-governance controls across policies, vendor management, training, and incident response. The top stress-test risks are evidence completeness, vendor classification, and DPIA scoping for high-risk workflows. Immediate action is limited to confirming documentation and ownership rather than rebuilding the program from scratch.`,
+    executive_summary: `The ${profile} shows baseline privacy-governance controls across policies, vendor management, training, and incident response. The primary areas requiring attention are evidence completeness, vendor classification, and ${hasEuUk ? "DPIA" : "data protection assessment"} scoping for high-risk workflows. Immediate action is focused on confirming documentation and ownership rather than rebuilding the program from scratch. All findings should be validated against actual organisational artifacts before sign-off.`,
     top_three_risks: [
       { risk: "Vendor terms evidence", domain: "Vendor Data Terms Compliance", why_urgent: "Processor and independent-controller classifications must be supportable before audit or regulatory review.", severity: "High" },
       { risk: "DPIA evidence trail", domain: "Privacy Impact Assessment Status", why_urgent: "High-risk workflows need documented assessment scope, approvals, and residual-risk decisions.", severity: "High" },
@@ -117,7 +131,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
       { action: "Document DPIA rationale for high-risk workflows and record residual-risk approval.", domain: "Privacy Impact Assessment Status", timeline: "this quarter", owner: "DPO" },
     ],
     overall_readiness_rating: hasCoreControls ? "Defined" : "Developing",
-    readiness_rationale: "Stress-run severities reflect whether controls are present, documented, and ready for evidence review.",
+    readiness_rationale: "Severity ratings reflect whether controls are present, documented, and ready for evidence review. Confirm each rating against actual artifacts before relying on this assessment.",
     interaction_effects: "Inventory, vendor terms, DPIA records, and privacy notices reinforce each other; gaps in one area weaken the reliability of the others.",
     dpia_scope: hasEuUk || intake?.special_category === "Yes" || intake?.special_category_data
       ? [{ processing_activity: "High-risk platform and workflow processing", regulatory_basis: hasEuUk ? "GDPR Art. 35" : "State privacy assessment requirements", priority: "This quarter" }]
@@ -163,17 +177,6 @@ Deno.serve(async (req) => {
         ...(orgName && !(assessment as any).organization_name ? { organization_name: orgName } : {}),
       }).eq("id", assessment_id);
 
-    if (stressRun) {
-      const reportData = buildStressGovernanceReport(assessment_id, intake);
-      await supabase.from("governance_assessments").update({
-        status: "complete",
-        report_data: reportData,
-        dpia_scope: reportData.dpia_scope,
-        updated_at: new Date().toISOString(),
-      }).eq("id", assessment_id);
-      return new Response(JSON.stringify({ success: true, assessment_id, status: "complete", stress_run: true }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
 
     // Dispatch heavy work in background — return 202 immediately so the caller
     // is not held open past the platform's 150s HTTP idle ceiling. Result page
