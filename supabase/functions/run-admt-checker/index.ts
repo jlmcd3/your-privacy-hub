@@ -146,6 +146,10 @@ ANALYTICAL STANDARDS:
 
 6. RISK ASSESSMENT OBLIGATION: Produce a detailed risk_assessment_obligation object (not a one-sentence note) covering the specific statutory triggers, the applicable compliance deadline, and the submission requirement. Base all claims solely on what appears in the REGULATION AUTHORITIES block.
 
+7. CONSOLIDATED NOTICE (§ 7220(e)): Analyze whether the business could benefit from providing a consolidated Pre-Use Notice. Four scenarios permit consolidation: (1) one ADMT for multiple purposes; (2) multiple ADMTs for one purpose; (3) multiple ADMTs for multiple purposes; (4) systematic use of a single ADMT. This is a benefit, not an obligation. Always note the mandatory condition: the consolidated notice must include all required § 7220(c) elements for each system or use covered. Produce the consolidated_notice_analysis field in all cases — mark applicable:false with a brief explanation if a single-system/single-purpose deployment makes it irrelevant.
+
+8. AGGREGATE ACCESS RESPONSE (§ 7222(j)): Note this option if prior_access_requests_12mo exceeds 4 in the intake, or flag it as a threshold to monitor if the count is not provided. This is an option, not a requirement — the business may still provide individualized responses even above the threshold. Clarify that aggregate responses under § 7222(j) apply specifically to the logic and output disclosures; other § 7222 elements (specific purpose, verification, anti-retaliation notice) still apply.
+
 Return ONLY valid JSON — no markdown, no preamble.`;
 
     const userPrompt = `Analyze this business's ADMT compliance and produce a gap report.
