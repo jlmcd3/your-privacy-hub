@@ -484,6 +484,38 @@ export default function ADMTChecker() {
                   </div>
 
                   <div>
+                    <Label>
+                      Approximate number of California consumers this system processes decisions for annually
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Used to estimate regulatory exposure. Required when CPPA requests documentation. Ranges are acceptable.
+                    </p>
+                    <input
+                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                      value={caConsumerCount}
+                      onChange={(e) => setCaConsumerCount(e.target.value)}
+                      placeholder="e.g. 50,000–100,000 annually"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>
+                      Are you using any third-party tools or APIs that make or materially contribute to this decision? (optional)
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      The CPPA treats you as the "business" responsible for ADMT compliance even when using vendor tools (e.g. a credit scoring API, a resume screening SaaS, a fraud detection service). List any third-party systems involved.
+                    </p>
+                    <Textarea
+                      className="mt-2"
+                      rows={2}
+                      value={thirdPartyAdmt}
+                      onChange={(e) => setThirdPartyAdmt(e.target.value)}
+                      placeholder="e.g. FICO Score API for credit decisioning; HireVue for candidate screening; Sardine for fraud detection"
+                    />
+                  </div>
+
+
+                  <div>
                     <Label onFocus={() => focus("scope_significant_decision_domain")}>
                       What significant decision(s) does this system make or materially contribute to? <Req />
                     </Label>
