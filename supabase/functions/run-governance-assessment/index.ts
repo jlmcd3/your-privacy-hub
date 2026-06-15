@@ -76,9 +76,23 @@ const DOMAIN_DEFINITIONS = [
 function buildStressGovernanceReport(assessmentId: string, intake: any) {
   const jurisdictions = Array.isArray(intake?.jurisdictions) ? intake.jurisdictions.map(String) : [];
   const hasEuUk = intake?.eu_uk_data === true || jurisdictions.some((j: string) => ["EU", "GB", "UK"].includes(j.toUpperCase()));
+  const sector = String(intake?.sector || "").toLowerCase();
+  const isHealthcare = /healthcare|life science|medical|clinical|pharma/i.test(sector);
+  const isPublicSector = /gov|public sector|public authority|government/i.test(sector);
+  const isFintech = /fintech|financial|banking|insurance/i.test(sector);
+  const isEdTech = /edtech|children|child|schools|students/i.test(sector);
+
   const framework = hasEuUk
     ? "GDPR Art. 24, Art. 28, Art. 32 and Art. 35"
-    : "CCPA §1798.100, CCPA §1798.130, C.R.S. §6-1-1308 and Va. Code §59.1-578";
+    : isHealthcare
+    ? "HIPAA (45 C.F.R. Parts 160 and 164); C.R.S. §6-1-1309 and Va. Code §59.1-580 where applicable"
+    : isPublicSector
+    ? "C.R.S. §6-1-1309 and Va. Code §59.1-580 where applicable — Note: CCPA generally does not apply to government entities"
+    : isFintech
+    ? "GLBA Safeguards Rule (16 C.F.R. Part 314); CCPA §1798.100(d) where applicable; C.R.S. §6-1-1309 and Va. Code §59.1-580"
+    : isEdTech
+    ? "COPPA (16 C.F.R. Part 312); FERPA (34 C.F.R. Part 99) where applicable; CCPA §1798.100(d); C.R.S. §6-1-1309 and Va. Code §59.1-580"
+    : "CCPA §1798.100(d); C.R.S. §6-1-1309 and Va. Code §59.1-580";
   const tools = Array.isArray(intake?.tools) && intake.tools.length ? intake.tools.join(", ") : "external workflow tools";
   const profile = intake?.sector ? `${intake.sector} organisation` : "organisation";
   const hasCoreControls = Boolean(intake?.privacy_policy || intake?.acceptable_use || intake?.training_status || intake?.dpa_status);
