@@ -278,6 +278,34 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 </header>
 <div class="body">
 <div class="disclaimer">${escHtml(report.disclaimer || "")}</div>
+<div style="border:1px solid #dde5ea;border-radius:8px;padding:14px 18px;margin-bottom:20px;background:#f8fafc;">
+  <table style="width:100%;border-collapse:collapse;font-size:11px;">
+    <tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Organisation</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml(assessment?.organization_name || report.organisation_profile?.organization_name || "—")}</td>
+      <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:100px;">Sector</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml(report.organisation_profile?.sector || "—")}</td>
+    </tr>
+    <tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Jurisdictions</td>
+      <td style="padding:3px 0;color:#1a1916;" colspan="3">${escHtml(
+        Array.isArray(report.organisation_profile?.jurisdictions)
+          ? report.organisation_profile.jurisdictions.join(", ")
+          : (report.organisation_profile?.jurisdictions || "—")
+      )}</td>
+    </tr>
+    <tr>
+      <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Generated</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml(
+        report.generated_at
+          ? new Date(report.generated_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+          : "—"
+      )}</td>
+      <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Status</td>
+      <td style="padding:3px 0;color:#2d7a6e;font-weight:600;">GOVERNANCE FRAMEWORK — FOR INTERNAL REVIEW</td>
+    </tr>
+  </table>
+</div>
 <h2>Executive Summary</h2>
 <div class="rating">Readiness: ${escHtml(report.overall_readiness_rating || "Unknown")}</div>
 <p class="meta" style="font-size:10.5px;color:#5c5a54;margin-top:4px;">
