@@ -1,56 +1,59 @@
-## Goal
+## Gotenberg Deployment Plan
 
-A new admin-only page at **`/admin/tests-realworld`** that exercises the **real** generation pipeline subscribers use — same edge functions, same DB tables, same PDF renderer — using canned fixtures, with per-tool view/download/delete and a global wipe.
+### 1. Pick a Host
+A single small VPS is sufficient for a compliance tool with sporadic report generation. Recommended: **Hetzner CX11** (2 vCPU / 4GB RAM / ~€4.50/mo) or **DigitalOcean Droplet** ($6/mo). Gotenberg needs at least 2GB RAM for Chromium.
 
-## What gets built
+### 2. Deploy Gotenberg
+Run Gotenberg via Docker on the VPS:
 
-### 1. Route + page
-- `src/pages/admin/TestsRealWorld.tsx` — admin-gated via `<AdminOnly>`, registered in `App.tsx` at `/admin/tests-realworld`.
-- Same checkbox grid pattern as `TestsDashboard`, grouped by Assessments / Documents / CPPA / Notices / Other.
-- Top bar: `Run selected (n)` and `Delete all generated` buttons.
-- Below the grid: one results card per tool showing every artifact the harness has produced for that tool (newest first), with `View`, `Download PDF`, `Delete` per row, mirroring the My Workspace row affordance.
+```bash
+docker run -d \
+  --name gotenberg \
+  --restart unless-stopped \
+  -p 127.0.0.1:3000:3000 \
+  gotenberg/gotenberg:8
+```
 
-### 2. Fixtures (code, version-controlled)
-- `src/data/test-fixtures/index.ts` — registry mapping tool id → fixture + runner.
-- One file per tool with a fully populated payload mirroring what the production intake form posts: `lia.ts`, `dpia.ts`, `governance.ts`, `biometric.ts`, `dpa.ts` (+ us/dual/canada variants), `ir-playbook.ts` (+ us), `ropa.ts`, `us-notice.ts`, `eu-notice.ts`, `cppa-scope.ts`, `cppa-risk.ts`, `cppa-cyber.ts`, `registration.ts`, `brief.ts`.
-- Each fixture is a typed object the runner passes straight to the same edge function the subscriber flow invokes.
+This binds to localhost only. Expose it to the internet in step 3.
 
-### 3. Runner (frontend)
-- `src/lib/testsRealWorld/runner.ts` — for each selected tool: invoke the production edge function with the fixture, await the inserted row id, register it in the harness ledger (see #4), then refresh the per-tool artifact list.
-- Stripe is bypassed entirely — the runner calls generation functions directly. RoPA / Notices / subscription-only tools work because the admin already has access; for premium-gated tools the runner relies on the admin's existing role rather than mutating `is_premium`.
+### 3. Secure It
+Do NOT leave port 3000 open to the world. Two options:
 
-### 4. Harness ledger (single new table, no per-tool schema changes)
-- `harness_artifacts (id, run_id, admin_user_id, tool_type, target_table, target_id, created_at)`.
-- RLS: admins read/write their own rows; `service_role` all.
-- Every generation registers a row here; delete-all reads this ledger and removes the linked rows from the underlying tool table + ledger row. This keeps real subscriber data untouched even though the admin's own `user_id` owns the generated rows.
+**Option A: API Key via reverse proxy (recommended)**
+Deploy Caddy or Nginx in front of Gotenberg, require an `X-API-Key` header, and terminate TLS. Keep the origin IP restricted to your edge function egress ranges.
 
-### 5. View / PDF / Delete
-- `View` opens the existing subscriber result route (e.g. `/lia/result/:id`) in a new tab — same React page real users see.
-- `Download PDF` reuses `PDFDownloadButton` + `generate-report-pdf` (no new edge function).
-- `Delete` calls existing `adminDelete` where supported (`ropa_session`, `us_notice_document`, `eu_notice_document`, `registration_document`); for the rest a small `harness-delete` edge function deletes by `(target_table, target_id)` after verifying the row is in `harness_artifacts` for the caller.
+**Option B: Private network only**
+If your edge functions can reach a private IP (e.g., via Tailscale, WireGuard, or a VPC), bind Gotenberg to an internal address and skip public exposure entirely.
 
-### 6. Delete-all
-- Iterates the caller's `harness_artifacts` rows, deletes each, then deletes the ledger rows. Scope is strictly tag-limited — never touches anything the harness did not create.
+### 4. Store the Endpoint + Key as Secrets
+Add two secrets to the project so the edge function can reach Gotenberg:
 
-## Technical notes (skip if non-technical)
+- `GOTENBERG_URL` — e.g. `https://pdf.yourdomain.com/forms/chromium/convert/html`
+- `GOTENBERG_API_KEY` — the key your reverse proxy checks
 
-- No edge functions are forked or re-implemented. The runner uses the same `supabase.functions.invoke(...)` names the production tool pages use.
-- Tools that produce multiple rows per run (e.g. EU notice = one row per framework; RoPA = session + version) get one ledger entry per persisted row so deletion is complete.
-- Tools that today bypass Stripe for `is_pro` (IR Playbook, Biometric) work unchanged; subscription-only tools (RoPA, US/EU Notice) work because the admin has the role. No mutation of `profiles` is needed for the answered "Bypass Stripe" path.
-- New migration:
-  - `harness_artifacts` table + GRANTs + RLS (admins manage own rows, service_role all).
-- New edge function: `harness-delete` (service-role delete by table + id, gated on ledger membership and admin role).
-- Existing `/admin/tests-output` (smoke harness) stays — this is the production-path companion, not a replacement.
+### 5. Wire the Edge Function
+Modify `supabase/functions/generate-report-pdf/index.ts`:
 
-## Out of scope (explicit)
-- No Stripe checkout simulation.
-- No UI fixture editor (fixtures are code only, per your answer).
-- No automated assertions / pass-fail scoring — this is a render-and-eyeball harness, not a CI suite.
+1. Read `GOTENBERG_URL` and `GOTENBERG_API_KEY` from Deno env.
+2. Replace the PDFshift `fetch()` call with a `fetch()` to the Gotenberg endpoint.
+3. POST the same HTML string as `files` (multipart/form-data) — Gotenberg accepts raw HTML upload.
+4. Return the PDF buffer exactly as the function does today.
 
-## Deliverable order
-1. Migration: `harness_artifacts` + RLS + GRANTs.
-2. Edge function: `harness-delete`.
-3. Fixtures (one file per tool).
-4. Runner + ledger client helper.
-5. `TestsRealWorld.tsx` page + route.
-6. Manual smoke: run one tool of each family, confirm view + PDF + delete + delete-all.
+No changes needed in the frontend or DOCX path.
+
+### 6. Test
+Deploy the updated edge function, then trigger a report generation from the preview. Verify:
+- PDF renders correctly
+- Metadata/header layout is preserved
+- No errors in edge function logs
+
+### 7. Cut Over
+Once confirmed working:
+- Cancel the PDFshift subscription
+- Rotate the `GOTENBERG_API_KEY` if it was ever exposed
+- Monitor the VPS for disk/memory usage (Chromium can grow over time; `docker restart` handles this)
+
+### Estimated Monthly Cost
+- VPS: ~$5–6
+- Bandwidth: negligible for HTML-in / PDF-out
+- Total: roughly the same as or less than PDFshift at any meaningful volume, with full data control.
