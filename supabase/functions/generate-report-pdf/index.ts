@@ -917,7 +917,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
   const gatingBlock = gating.ready_for_signoff
     ? `<div class="callout" style="border-left-color:#1e6b3c;background:#eafaf1;"><p class="label">Ready for sign-off</p><p>All automated completeness checks passed. The certifying executive must still review and record the decision in § 8.</p></div>`
     : `<div class="callout"><p class="label">Not yet ready for sign-off</p>${list(Array.isArray(gating.blockers) ? gating.blockers : [])}</div>`;
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${a?.sec_1_trigger?.voluntary ? "Voluntary Privacy Impact Review" : "CPPA Privacy Risk Assessment"}</title>
 <style>
   :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#ffffff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --red:#a32d2d; --red-soft:#fce8e8; --orange:#b45309; --orange-soft:#fdf3e1; --amber:#8b5e0a; --amber-soft:#fef9ec; --green:#1e6b3c; --green-soft:#eafaf1; }
   * { box-sizing:border-box; }
