@@ -962,7 +962,7 @@ export const SUBSCRIBER_ONLY_TOOL_KEYS = [
 export type SubscriberOnlyToolKey = typeof SUBSCRIBER_ONLY_TOOL_KEYS[number];
 
 // camelCase aliases for the same tool keys (so callers using either form work)
-const SMART_TOOL_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber']);
+const SMART_TOOL_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber','cppaAdmt']);
 const SUBSCRIBER_ONLY_TOOL_CAMEL = new Set(['ropa','usNotice','euNotice']);
 
 /** Returns true if the tool requires a subscription (not sold standalone). */
