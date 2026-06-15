@@ -21,6 +21,7 @@ const ANNUAL_GATED_TOOLS = new Set([
   "cppa_risk_assessment",
   "cppa_cybersecurity",
   "cppa_suite",
+  "cppa_admt",
 ]);
 const TOOLS: Record<
   string,
