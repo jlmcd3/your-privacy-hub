@@ -201,6 +201,30 @@ export function lintReportText(text: string, opts?: LintOptions): LintResult {
     violations.push({ code: "concatenated_heading", severity: "auto_fixed", detail: "split concatenated headings" });
   }
 
+  // 13. fixture_language_leak — HARD. Internal testing artifacts must never appear
+  //     in customer-facing report text.
+  const fixtureRe = /\bfixture\s+controls?\s+indicate\b|\bstress[- ]run\b|\bstress_run\b/gi;
+  let fm: RegExpExecArray | null;
+  while ((fm = fixtureRe.exec(clean)) !== null) {
+    violations.push({
+      code: "fixture_language_leak",
+      severity: "hard",
+      detail: fm[0].slice(0, 80),
+    });
+  }
+
+  // 14. test_data_assertion — HARD. Known test-data phrases that assert unverified
+  //     organisational facts must be flagged for human review.
+  const testAssertRe = /\bintake\s+responses?\s+indicate\b/gi;
+  let tam: RegExpExecArray | null;
+  while ((tam = testAssertRe.exec(clean)) !== null) {
+    violations.push({
+      code: "test_data_assertion",
+      severity: "hard",
+      detail: `"${tam[0].slice(0, 60)}" — current-state claims must reference verified artifacts, not intake response summaries`,
+    });
+  }
+
   return { clean, violations };
 }
 
