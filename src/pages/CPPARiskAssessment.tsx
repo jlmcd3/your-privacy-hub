@@ -329,6 +329,8 @@ export default function CPPARiskAssessment() {
     if (typeof d.i7ExternalConsultees === "string") setI7ExternalConsultees(d.i7ExternalConsultees);
     if (typeof d.i8ExecName === "string") setI8ExecName(d.i8ExecName);
     if (typeof d.i8ExecTitle === "string") setI8ExecTitle(d.i8ExecTitle);
+    if (typeof d.i8ContactPhone === "string") setI8ContactPhone(d.i8ContactPhone);
+    if (typeof d.i8ContactEmail === "string") setI8ContactEmail(d.i8ContactEmail);
     if (typeof d.i9HasDpia === "string") setI9HasDpia(d.i9HasDpia);
     if (typeof d.i9DpiaSummary === "string") setI9DpiaSummary(d.i9DpiaSummary);
     if (typeof restoreStage === "number") setStep(restoreStage);
