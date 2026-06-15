@@ -314,8 +314,8 @@ function extractAppendix(
 
   function flush(continuation = false) {
     if (!cur) return;
-    const summary = cur.summary.replace(/\s+/g, " ").trim();
-    const response = cur.response.replace(/\s+/g, " ").trim();
+    const summary = fixOcrSpaces(cur.summary);
+    const response = fixOcrSpaces(cur.response);
     if (response.length < 40) {
       cur = null;
       return;
