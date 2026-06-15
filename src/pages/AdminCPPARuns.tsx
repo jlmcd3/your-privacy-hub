@@ -105,7 +105,7 @@ export default function AdminCPPARuns() {
                         <td className="p-2">{tierOf(r)}</td>
                         <td className="p-2 font-mono text-[10px]">{r.user_id?.slice(0, 8) ?? "—"}</td>
                         <td className="p-2 font-mono text-[10px]">
-                          <Link to={r.module === "cybersecurity" ? `/cppa-cybersecurity/result/${r.id}` : `/cppa-risk-assessment/result/${r.id}`} className="text-brand-teal hover:underline">
+                          <Link to={r.module === "admt" ? `/cppa-admt-checker/result/${r.id}` : r.module === "cybersecurity" ? `/cppa-cybersecurity/result/${r.id}` : `/cppa-risk-assessment/result/${r.id}`} className="text-brand-teal hover:underline">
                             {r.id.slice(0, 8)}
                           </Link>
                         </td>
