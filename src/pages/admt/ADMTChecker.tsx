@@ -147,6 +147,9 @@ export default function ADMTChecker() {
   const [humanReview, setHumanReview] = useState("");
   const [trainingDataUse, setTrainingDataUse] = useState("");
   const [profilingUse, setProfilingUse] = useState("");
+  // Step 1 additions
+  const [caConsumerCount, setCaConsumerCount] = useState("");
+  const [thirdPartyAdmt, setThirdPartyAdmt] = useState("");
 
   // Step 2
   const [noticeDelivery, setNoticeDelivery] = useState<string[]>([]);
@@ -167,6 +170,9 @@ export default function ADMTChecker() {
   const [optOutConfirmationMechanism, setOptOutConfirmationMechanism] = useState("");
   const [optOutAppealProcess, setOptOutAppealProcess] = useState("");
   const [optOutFairnessDoc, setOptOutFairnessDoc] = useState("");
+  // Step 3 additions
+  const [optOut15DayProcess, setOptOut15DayProcess] = useState("");
+  const [optOutServiceProviderNotice, setOptOutServiceProviderNotice] = useState("");
 
   // Step 4
   const [accessSubmissionMethods, setAccessSubmissionMethods] = useState("");
@@ -273,6 +279,10 @@ export default function ADMTChecker() {
       access_outcome_disclosure: accessOutcomeDisclosure,
       access_response_timeline: accessResponseTimeline,
       access_trade_secret_policy: accessTradeSecretPolicy,
+      ca_consumer_count: caConsumerCount,
+      third_party_admt: thirdPartyAdmt,
+      opt_out_15_day_process: optOut15DayProcess,
+      opt_out_service_provider_notice: optOutServiceProviderNotice,
     }),
     [
       systemName, systemType, systemDescription, decisionDomains, humanReview,
@@ -284,6 +294,7 @@ export default function ADMTChecker() {
       optOutFairnessDoc, accessSubmissionMethods, accessVerificationProcess,
       accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
       accessTradeSecretPolicy,
+      caConsumerCount, thirdPartyAdmt, optOut15DayProcess, optOutServiceProviderNotice,
     ],
   );
 
@@ -361,6 +372,9 @@ export default function ADMTChecker() {
     if (typeof d.access_outcome_disclosure === "string") setAccessOutcomeDisclosure(d.access_outcome_disclosure);
     if (typeof d.access_response_timeline === "string") setAccessResponseTimeline(d.access_response_timeline);
     if (typeof d.access_trade_secret_policy === "string") setAccessTradeSecretPolicy(d.access_trade_secret_policy);
+    if (typeof d.ca_consumer_count === "string") setCaConsumerCount(d.ca_consumer_count);
+    if (typeof d.third_party_admt === "string") setThirdPartyAdmt(d.third_party_admt);
+    if (typeof d.opt_out_15_day_process === "string") setOptOut15DayProcess(d.opt_out_15_day_process);
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
@@ -476,6 +490,38 @@ export default function ADMTChecker() {
                       placeholder='e.g. "A gradient-boosted model that scores loan applications 0–100 based on credit history, income, and debt ratio. Scores below 40 are automatically declined without human review."'
                     />
                   </div>
+
+                  <div>
+                    <Label>
+                      Approximate number of California consumers this system processes decisions for annually
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Used to estimate regulatory exposure. Required when CPPA requests documentation. Ranges are acceptable.
+                    </p>
+                    <input
+                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                      value={caConsumerCount}
+                      onChange={(e) => setCaConsumerCount(e.target.value)}
+                      placeholder="e.g. 50,000–100,000 annually"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>
+                      Are you using any third-party tools or APIs that make or materially contribute to this decision? (optional)
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      The CPPA treats you as the "business" responsible for ADMT compliance even when using vendor tools (e.g. a credit scoring API, a resume screening SaaS, a fraud detection service). List any third-party systems involved.
+                    </p>
+                    <Textarea
+                      className="mt-2"
+                      rows={2}
+                      value={thirdPartyAdmt}
+                      onChange={(e) => setThirdPartyAdmt(e.target.value)}
+                      placeholder="e.g. FICO Score API for credit decisioning; HireVue for candidate screening; Sardine for fraud detection"
+                    />
+                  </div>
+
 
                   <div>
                     <Label onFocus={() => focus("scope_significant_decision_domain")}>
@@ -803,6 +849,26 @@ export default function ADMTChecker() {
                         />
                       </div>
 
+                      {provideOptOut && (
+                        <div>
+                          <Label>
+                            Operational opt-out process: how do you action an opt-out request within 15 business days?
+                          </Label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            § 7221(e)–(g) requires you to cease ADMT processing for that consumer within 15 business days of receiving an opt-out request, AND notify all service providers and contractors to do the same. Describe your process.
+                          </p>
+                          <Textarea
+                            className="mt-2"
+                            rows={3}
+                            value={optOut15DayProcess}
+                            onChange={(e) => setOptOut15DayProcess(e.target.value)}
+                            placeholder="e.g. Opt-out requests are logged in [system] by [team]. A suppression flag is set in [system] within [X] days. Service providers [list] are notified via [method] within [Y] days. Process documented in [document name]."
+                          />
+                        </div>
+                      )}
+
+
+
                       <div className="rounded-md border p-4 space-y-3 bg-muted/20">
                         <p className="text-[12px] font-semibold">Confirm opt-out process compliance</p>
                         <div>
@@ -990,6 +1056,9 @@ export default function ADMTChecker() {
                         ["Access — outcome disclosure", accessOutcomeDisclosure],
                         ["Access response timeline", accessResponseTimeline],
                         ...(accessTradeSecretPolicy ? [["Trade secret policy", accessTradeSecretPolicy]] : []),
+                        ...(caConsumerCount ? [["CA consumers (approx.)", caConsumerCount]] : []),
+                        ...(thirdPartyAdmt ? [["Third-party ADMT tools", thirdPartyAdmt]] : []),
+                        ...(optOut15DayProcess ? [["15-day opt-out process", optOut15DayProcess]] : []),
                       ] as [string, string][]
                     )
                       .filter(([, v]) => v)
