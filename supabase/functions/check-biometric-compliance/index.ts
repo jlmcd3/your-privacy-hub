@@ -256,9 +256,82 @@ California has no BIPA-equivalent private litigation; CPPA enforcement is active
     }
 
     if (isVA) {
+      const orgLower = (body.orgType || "").toLowerCase();
+      const isEmploymentContext = orgLower.includes("employ") || orgLower.includes("hr ") || orgLower.includes("workforce") || orgLower.includes("time and attend");
+      const isHealthcareContext = orgLower.includes("health") || orgLower.includes("clinical") || orgLower.includes("medical") || orgLower.includes("hospital") || orgLower.includes("patient");
+
+      if (isEmploymentContext) {
+        return `${jurisdiction} — Virginia CDPA — Employment context applicability gate
+
+Applies to this organisation: Likely not applicable to this data processing activity — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. The Virginia Consumer Data Protection Act (VCDPA), Va. Code § 59.1-571 et seq., defines "consumer" as a natural person acting in an individual or household capacity. Va. Code § 59.1-575 expressly excludes natural persons acting in a commercial or employment context. Biometric data collected from employees or job applicants is therefore likely outside VCDPA scope.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Confirm that the data subjects are employees or applicants — if so, VCDPA consumer rights and consent requirements do not apply to those individuals under § 59.1-575.
+2. No Virginia-specific employment biometric statute currently exists. Virginia common law, Virginia AG consumer protection authority, and any applicable federal employment law (ADA, Title VII) provide the primary legal framework.
+3. If the organisation also processes biometric data of non-employee consumers (e.g. customer-facing biometric systems), those consumers ARE within VCDPA scope — conduct a separate VCDPA analysis for that population.
+4. Monitor Virginia legislative developments: bills to extend biometric protections to employees have been introduced in prior sessions.
+5. Apply strong security, retention, and vendor controls as contractual and operational best practice regardless of VCDPA applicability.
+
+Consent and notice:
+No VCDPA opt-in consent obligation applies to employee data. Use clear notice in employee onboarding materials as best practice. Where separate consumer populations are in scope, opt-in consent is required under § 59.1-577(B).
+
+Retention and destruction:
+Establish a written retention and destruction policy as best practice — no Virginia statute prescribes a specific period for employee biometric data, but proportionality and data minimisation principles apply.
+
+Sale and sharing restrictions:
+No Virginia biometric sale prohibition applies to employee data. Vendor contracts should restrict use to the contracted purpose as standard security practice.
+
+Current enforcement posture:
+Virginia AG has not announced enforcement actions targeting employment biometrics. Primary risk is federal (EEOC, NLRB) and common law rather than VCDPA.
+
+Priority actions:
+1. Document in your data inventory that the biometric data subjects are employees/applicants and therefore outside VCDPA consumer scope under § 59.1-575.
+2. Implement clear employee notice of biometric collection as part of onboarding documentation.
+3. Execute vendor agreements restricting biometric data use to the stated access control or attendance purpose, with defined deletion obligations on employment end.
+
+Compliance risk rating: LOW
+VCDPA does not apply to employee biometric data; Virginia has no employee biometric statute. Primary exposure is federal employment law and common law duty of care.
+---`;
+      }
+
+      if (isHealthcareContext) {
+        return `${jurisdiction} — Virginia CDPA — Healthcare context applicability gate
+
+Applies to this organisation: Likely partially applicable — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. Va. Code § 59.1-575 defines "biometric data" but expressly excludes information collected, used, or stored for health care treatment, payment, or operations purposes where the organisation is subject to HIPAA. If this organisation is a HIPAA covered entity or business associate and the biometric data relates to treatment, payment, or operations, VCDPA biometric requirements do not apply to that data.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Determine HIPAA covered entity / business associate status — if applicable, and if the biometric processing is for treatment, payment, or operations, the VCDPA § 59.1-575 HIPAA exclusion applies to that data.
+2. For biometric data NOT covered by HIPAA exclusion (e.g. biometric access control for non-clinical staff, visitor identification not linked to patient care): VCDPA sensitive data requirements apply — § 59.1-577(B) opt-in consent required.
+3. Conduct a data inventory to draw the HIPAA/non-HIPAA boundary within the organisation's biometric processing activities.
+4. Execute controller-processor agreements under § 59.1-574 for any biometric data outside the HIPAA exclusion.
+5. Virginia AG has exclusive enforcement authority; no private right of action under VCDPA.
+
+Consent and notice:
+For HIPAA-excluded data: standard HIPAA Notice of Privacy Practices and authorisation requirements apply. For non-excluded biometric data: VCDPA § 59.1-577(B) opt-in consent is required before processing.
+
+Retention and destruction:
+HIPAA data: follow HIPAA retention requirements (generally 6 years). Non-HIPAA biometric data: retain only as long as necessary for the stated purpose.
+
+Sale and sharing restrictions:
+HIPAA data: governed by HIPAA minimum necessary and permitted disclosures. Non-HIPAA biometric data: VCDPA prohibits sale without separate disclosure; § 59.1-574 processor contracts required.
+
+Current enforcement posture:
+Virginia AG enforcement nascent. HHS OCR is the primary enforcement risk for HIPAA-covered biometric data. VCDPA exposure is secondary for organisations with valid HIPAA coverage.
+
+Priority actions:
+1. Complete a HIPAA boundary analysis to determine which biometric data falls within the § 59.1-575 HIPAA exclusion and which does not.
+2. For any non-HIPAA-excluded biometric data, implement VCDPA § 59.1-577(B) opt-in consent before processing begins.
+3. Execute both BAAs (for HIPAA) and § 59.1-574 processor agreements (for non-HIPAA biometric data) with all relevant vendors.
+
+Compliance risk rating: MEDIUM
+Partial HIPAA exclusion means VCDPA applies to a subset of biometric processing — organisations that skip the boundary analysis face opt-in consent gaps for non-HIPAA data; HHS OCR is the primary risk for the HIPAA portion.
+---`;
+      }
+
+      // Standard VCDPA consumer biometric section (non-employment, non-HIPAA healthcare)
       return `${jurisdiction} — Virginia Consumer Data Protection Act (VCDPA), Va. Code § 59.1-571 et seq.
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Virginia has no standalone biometric statute. The VCDPA classifies biometric data as sensitive data requiring opt-in consent. HIPAA exemptions may apply where the data relates to protected health information.
+Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Virginia has no standalone biometric statute. The VCDPA classifies biometric data as sensitive data requiring opt-in consent. HIPAA exemptions may apply where the data relates to protected health information; employment-context data is excluded from VCDPA consumer scope under § 59.1-575.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. § 59.1-572: biometric data (data generated by automatic measurements of a consumer's biological characteristics used to identify a specific individual) is sensitive data.
@@ -286,6 +359,172 @@ Priority actions:
 
 Compliance risk rating: MEDIUM
 Virginia AG-only enforcement and nascent enforcement history reduce immediate exposure, but the opt-in consent requirement creates a clear compliance gap for any organisation without a documented consent mechanism.
+---`;
+    }
+
+    if (isUS) {
+      return `${jurisdiction} — United States: No federal biometric statute; state law landscape
+
+Applies to this organisation: Conditional — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. The United States has no comprehensive federal biometric privacy statute. Biometric obligations arise from a patchwork of state laws and sector-specific federal frameworks. The primary exposure jurisdictions are assessed separately where selected; this section covers the national landscape and sector-specific federal frameworks.
+
+Key state biometric statutes (by litigation and enforcement risk):
+1. Illinois BIPA (740 ILCS 14): private right of action per person; highest US biometric litigation risk. Select "Illinois, USA (BIPA)" for a full BIPA analysis.
+2. Texas CUBI (Tex. Bus. & Com. Code § 503.001): AG-only enforcement; $25,000/violation; no private right of action. Select "Texas, USA (CUBI)" for a full CUBI analysis.
+3. Washington MHMD (RCW 70.372): applies where biometrics are used to infer health status; private right of action via WA Consumer Protection Act.
+4. California CCPA/CPRA (Cal. Civ. Code § 1798.100 et seq.): biometric information is Sensitive Personal Information; Limit-Use right applies. Select "California" for full CCPA analysis.
+5. Several additional states (Colorado, Connecticut, Oregon, Montana) have comprehensive privacy laws treating biometrics as sensitive data requiring opt-in consent and data protection assessments.
+
+Federal frameworks applicable to biometrics by sector:
+1. HIPAA (45 CFR Parts 160 and 164): biometric identifiers are listed PHI identifiers under the Privacy Rule (§ 164.514(b)(2)(i)). Covered entities and business associates processing patient biometrics must comply with HIPAA minimum necessary, authorisation, and Security Rule requirements.
+2. GLBA Safeguards Rule (16 CFR Part 314): financial institutions must protect biometric data under their written information security programme.
+3. FTC Act Section 5: the FTC has brought unfair or deceptive practice actions relating to biometric data misuse; consent and security failures are enforcement targets.
+
+Current enforcement posture:
+At federal level, FTC enforcement under Section 5 is the primary risk for deceptive biometric practices. At state level, Illinois BIPA private litigation is by far the highest-volume risk. Texas AG enforcement has produced multi-billion dollar settlements against large companies. State AG enforcement of comprehensive privacy law biometric provisions is expanding.
+
+Priority actions:
+1. Map each operational jurisdiction where the organisation collects biometric data and assess applicable state law — at minimum confirm Illinois, Texas, Washington, and California applicability.
+2. Confirm HIPAA and GLBA sector status and ensure biometric data is covered in the relevant security programme and vendor agreements.
+3. Implement a baseline consent, notice, and retention programme that satisfies the most stringent applicable state law (currently Illinois BIPA) for any biometric collection where state law is unconfirmed.
+
+Compliance risk rating: HIGH
+Multi-state biometric exposure with active private litigation (Illinois) and AG enforcement (Texas) creates material risk; absence of a federal framework means every operational state must be individually assessed.
+---`;
+    }
+
+    if (isFR) {
+      return `${jurisdiction} — GDPR (France) — Supervisory authority: CNIL
+
+Applies to this organisation: In scope — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1). France implements GDPR through the Loi Informatique et Libertés (LIL) as amended. The CNIL has issued specific guidance on biometric systems in the workplace.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Article 6 lawful basis AND a separate Article 9(2) condition — both must be documented before any biometric processing begins.
+2. CNIL authorisation is no longer required for most biometric systems post-GDPR, but a mandatory DPIA under Article 35 applies — biometric processing for identification is on the CNIL's published list of processing operations requiring a DPIA.
+3. In the employment context: CNIL guidance holds that employee consent is generally not valid as an Article 9(2) condition due to power imbalance. Rely on Article 9(2)(b) (employment law basis) supported by a collective agreement or works council consultation (comité social et économique) where applicable.
+4. Pre-collection notice under Articles 13/14 must identify the Article 9(2) condition, biometric modalities, retention periods, and data subject rights in French.
+5. Article 28 DPA required for all processors receiving biometric data; Article 46 transfer safeguard required for any transfer outside the EEA.
+
+Consent and notice:
+A standalone, biometric-specific notice must be provided before any collection. In workplace contexts, use Article 9(2)(b) basis and consult the comité social et économique before deployment.
+
+Retention and destruction:
+CNIL guidance on biometric access control specifies that biometric templates should not be retained longer than necessary for the authentication purpose. Define a destruction trigger event (employment end, contract termination) and a maximum ceiling.
+
+Sale and sharing restrictions:
+GDPR purpose limitation (Article 5(1)(b)) prohibits secondary use of biometric data. Processor agreements (Article 28) must prohibit vendor use for any purpose other than the contracted service.
+
+Current enforcement posture:
+The CNIL is one of Europe's most active supervisory authorities. It has issued enforcement actions for biometric systems deployed without a valid DPIA, without a proper Article 9(2) condition, and for workplace biometrics deployed without works council consultation. Refer to cnil.fr/fr/les-sanctions for current enforcement figures — do not rely on training-knowledge fine amounts.
+
+Priority actions:
+1. Complete a DPIA before deployment and submit to the CNIL for prior consultation if residual risk remains high after mitigation.
+2. Obtain works council (CSE) consultation prior to any employee biometric deployment under French employment law (Code du travail L.2312-38).
+3. Execute Article 28 DPAs with all biometric data processors and confirm any non-EEA transfers use approved Article 46 safeguards.
+
+Compliance risk rating: HIGH
+CNIL enforcement is active and has targeted biometric workplace systems specifically; the mandatory DPIA and works council consultation requirements create clear procedural gaps for organisations that skip them.
+---`;
+    }
+
+    if (isIE) {
+      return `${jurisdiction} — GDPR (Ireland) — Supervisory authority: Data Protection Commission (DPC)
+
+Applies to this organisation: In scope — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1). Ireland implements GDPR through the Data Protection Act 2018. The DPC is the lead supervisory authority for many multinational technology companies under Article 56 GDPR.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Article 6 lawful basis AND a separate Article 9(2) condition — both must be separately documented. For most organisations, the Article 9(2) condition will be explicit consent (9(2)(a)) or, in employment contexts, Article 9(2)(b) with Irish employment law authorisation.
+2. Mandatory DPIA under Article 35 before deployment — the DPC has confirmed biometric processing for identification is high risk and requires prior assessment.
+3. If the organisation is subject to the DPC's oversight as a lead supervisory authority under Article 56, cross-border processing complaints from any EU member state may be routed through the DPC.
+4. Article 13/14 transparency notices required before collection, identifying the Article 9(2) condition, biometric modalities, and data subject rights.
+5. Article 28 DPA for all processors; Article 46 safeguard for non-EEA transfers.
+
+Consent and notice:
+Explicit consent under Article 9(2)(a) must be freely given. In employment contexts, the DPC's guidance aligns with EDPB position: employee consent is generally not valid due to power imbalance. Use Article 9(2)(b) with Irish employment law basis instead.
+
+Retention and destruction:
+Biometric templates must be deleted when the purpose expires. Define the destruction trigger event and a maximum retention ceiling per GDPR storage limitation (Article 5(1)(e)).
+
+Sale and sharing restrictions:
+GDPR purpose limitation (Article 5(1)(b)) and Article 28 processor controls govern sharing. Any transfer to the US or other third countries requires an adequacy decision, SCCs, or BCRs under Chapter V.
+
+Current enforcement posture:
+The DPC is active in cross-border enforcement and has handled major Article 9 cases. Refer to dataprotection.ie/en/dpc-guidance/enforcement for current enforcement actions — do not rely on training-knowledge fine amounts.
+
+Priority actions:
+1. Complete a DPIA and submit for DPC prior consultation under Article 36 if residual high risk remains after mitigation.
+2. Establish which jurisdiction is the DPC's lead supervisory authority remit for this organisation's cross-border processing, and document it.
+3. Audit processor agreements to confirm Article 28 DPAs are executed for all biometric data processors, with appropriate Article 46 transfer mechanisms for any US-hosted processors.
+
+Compliance risk rating: HIGH
+DPC active enforcement and its role as lead supervisory authority for multinational tech processing creates elevated cross-border regulatory exposure for organisations without completed DPIAs and documented Article 9(2) conditions.
+---`;
+    }
+
+    if (isDE) {
+      return `${jurisdiction} — GDPR (Germany) — Supervisory authorities: Federal (BfDI) + 16 state DPAs (Datenschutzkonferenz)
+
+Applies to this organisation: In scope — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1), implemented in Germany through the Bundesdatenschutzgesetz (BDSG) 2018. Germany has a dual supervisory structure: the federal BfDI oversees public federal bodies and telecommunications/postal sectors; the 16 state DPAs (Landesdatenschutzbehörden) oversee private organisations in their respective states, coordinated through the Datenschutzkonferenz (DSK).
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Article 6 GDPR lawful basis AND a separate Article 9(2) condition — both documented. In employment contexts, § 26 BDSG (processing for employment purposes) may provide a basis alongside Article 9(2)(b), but requires necessity and proportionality assessment.
+2. Mandatory DPIA under Article 35 — the DSK publishes a blacklist of processing operations requiring DPIAs; biometric identification systems are included.
+3. Works council (Betriebsrat) codetermination rights: under § 87(1) no. 6 Betriebsverfassungsgesetz (BetrVG), the introduction of technical systems capable of monitoring employee conduct or performance — which includes biometric time-and-attendance or access systems — requires works council agreement before deployment. Proceeding without Betriebsrat consent exposes the employer to injunctive relief.
+4. Article 13/14 transparency notices in German identifying the Article 9(2) condition, biometric modalities, and data subject rights.
+5. Article 28 DPA for all processors; Article 46 safeguard for any non-EEA transfer.
+
+Consent and notice:
+Employee consent is generally not valid as an Article 9(2) condition in the German employment context (DSK and EDPB alignment on power imbalance). Rely on § 26 BDSG with Article 9(2)(b) basis. Works council agreement (Betriebsvereinbarung) is typically the pre-condition for lawful employee biometric processing.
+
+Retention and destruction:
+Delete biometric templates when the employment relationship ends or the stated purpose expires — define the destruction trigger in the Betriebsvereinbarung or retention policy.
+
+Sale and sharing restrictions:
+§ 26 BDSG limits employee data use to employment purposes. GDPR Article 5(1)(b) purpose limitation and Article 28 processor controls govern all sharing. Non-EEA transfers require an Article 46 safeguard.
+
+Current enforcement posture:
+German state DPAs are among the most active in Europe. Enforcement actions have targeted biometric systems deployed without Betriebsrat agreement, without a valid DPIA, and without adequate Article 9(2) documentation. Refer to the BfDI and individual state DPA enforcement registers — do not rely on training-knowledge fine amounts.
+
+Priority actions:
+1. Obtain works council agreement (Betriebsvereinbarung) before deploying any employee biometric system — this is a legal pre-condition, not a best practice.
+2. Complete a DPIA and, if residual risk remains, consult the competent state DPA under Article 36.
+3. Confirm the responsible state DPA (Landesdatenschutzbehörde) for this organisation's location and register the processing where required by state law.
+
+Compliance risk rating: HIGH
+Germany's works council codetermination requirement creates a hard legal gate before employee biometric deployment; state DPA enforcement is active and has specifically targeted biometric workplace systems.
+---`;
+    }
+
+    if (isES) {
+      return `${jurisdiction} — GDPR (Spain) — Supervisory authority: AEPD (Agencia Española de Protección de Datos)
+
+Applies to this organisation: In scope — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1), implemented in Spain through Organic Law 3/2018 (LOPDGDD). The AEPD is Spain's national supervisory authority and is one of the EU's most active enforcers of biometric obligations.
+
+Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
+1. Article 6 GDPR lawful basis AND a separate Article 9(2) condition — both documented. In employment contexts, Article 9(2)(b) with LOPDGDD Article 9 (processing in employment context) may apply; biometric time-and-attendance typically requires works committee (comité de empresa) consultation under the Workers' Statute (Estatuto de los Trabajadores).
+2. Mandatory DPIA under Article 35 — the AEPD's list of processing operations requiring a DPIA includes biometric systems for employee monitoring and identification.
+3. Transparency notice under Articles 13/14 in Spanish identifying the Article 9(2) condition, biometric modalities, and rights.
+4. AEPD guidance on biometric access control systems (2020) states that facial recognition for access control of employees is not proportionate where less invasive alternatives exist — proportionality is a hard requirement, not a best practice.
+5. Article 28 DPA for all processors; Article 46 safeguard for any non-EEA transfer.
+
+Consent and notice:
+AEPD guidance aligns with EDPB: employee consent is not valid as an Article 9(2) condition due to power imbalance. Use Article 9(2)(b) with Spanish employment law authorisation. Works committee consultation (comité de empresa or delegados de personal) is required for technical monitoring systems under Article 64 Estatuto de los Trabajadores.
+
+Retention and destruction:
+Delete biometric templates when purpose expires. Define the destruction trigger (employment end, contract termination) and maximum retention period in the relevant HR policy.
+
+Sale and sharing restrictions:
+LOPDGDD Article 9 and GDPR Article 5(1)(b) purpose limitation prohibit secondary use. Processor agreements (Article 28 DPA) must restrict vendor use to contracted services only.
+
+Current enforcement posture:
+The AEPD has issued some of the highest biometric-specific fines in the EU, targeting organisations for deploying biometric time-and-attendance without a valid legal basis, without a DPIA, and without proportionality analysis. Refer to aepd.es/es/resoluciones for current enforcement figures — do not rely on training-knowledge fine amounts.
+
+Priority actions:
+1. Complete a proportionality analysis before deploying any biometric system — demonstrate why less invasive alternatives (PIN, card, mobile) are insufficient for the stated purpose.
+2. Complete a DPIA and submit for AEPD prior consultation under Article 36 if residual high risk remains.
+3. Conduct works committee consultation before deploying employee biometrics under Article 64 Estatuto de los Trabajadores and document the outcome.
+
+Compliance risk rating: HIGH
+AEPD enforcement of biometric obligations is among the most active in Europe; the proportionality requirement creates an additional substantive hurdle that many deployments fail without documented analysis.
 ---`;
     }
 
