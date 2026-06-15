@@ -189,10 +189,10 @@ ${enforcementBlock}Respond with this exact JSON structure (controls array MUST c
     {
       "control": "string (the component name exactly as listed)",
       "score": 0,
-      "status": "Implemented | Partial | Gap | Critical Gap",
-      "finding": "string (1-2 sentences — specific gap or confirmation only)",
-      "regulatory_basis": "string (the specific programme component being assessed, in plain language — do NOT include a section citation; the citation is added by the system)",
-      "remediation": "string (2-3 specific steps, plain language)",
+      "status": "Implemented | Partial | Gap | Critical Gap | Mature",
+      "finding": "string (1-2 sentences — specific gap or confirmation only — use US English)",
+      "regulatory_basis": "string (the specific program component being assessed, in plain language — do NOT begin with 'and document', 'and maintain', or 'document and' — write a clean noun phrase that completes the sentence 'the annual cybersecurity audit must assess [your text]'; do NOT include a section citation; the citation is added by the system)",
+      "remediation": "string (2-3 specific steps, plain language, US English)",
       "priority": "Immediate | Within 90 days | Within 6 months | Monitor"
     }
   ],
