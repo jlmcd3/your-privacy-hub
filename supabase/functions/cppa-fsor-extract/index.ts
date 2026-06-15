@@ -404,6 +404,7 @@ function extractAppendix2023(
   const [b1, b2, b3, b4] = colBounds;
   const units: Unit[] = [];
   let noCitationDropped = 0;
+  let contextCitation: string | null = null;
   let cur: {
     summary: string;
     response: string;
@@ -419,12 +420,22 @@ function extractAppendix2023(
     if (response.length < 40) return;
     const citRe = /§\s*(7\d{3}(?:\s*\([a-z0-9]+\))*)/i;
     const cm = response.match(citRe) ?? summary.match(citRe);
-    if (!cm) { noCitationDropped++; return; }
-    const citationTail = cm[1].replace(/\s+/g, "");
-    const rootMatch = citationTail.match(/^(7\d{3})/);
-    const root = rootMatch ? rootMatch[1] : null;
-    if (includeRoots && (!root || !includeRoots.has(root))) return;
-    const citation = `11 CCR § ${citationTail}`;
+    let citation: string;
+    if (cm) {
+      const citationTail = cm[1].replace(/\s+/g, "");
+      const rootMatch = citationTail.match(/^(7\d{3})/);
+      const root = rootMatch ? rootMatch[1] : null;
+      if (includeRoots && (!root || !includeRoots.has(root))) return;
+      citation = `11 CCR § ${citationTail}`;
+    } else if (contextCitation) {
+      const rootMatch = contextCitation.match(/^(7\d{3})/);
+      const root = rootMatch ? rootMatch[1] : null;
+      if (includeRoots && (!root || !includeRoots.has(root))) return;
+      citation = `11 CCR § ${contextCitation}`;
+    } else {
+      noCitationDropped++;
+      return;
+    }
     const pageRef = `2023 ${appendixLabel}, p. ${startPage}${continuation ? " (cont.)" : ""}`;
     const respChunks = splitLongUnit(response);
     for (let i = 0; i < respChunks.length; i++) {
