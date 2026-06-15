@@ -231,7 +231,7 @@ function extractFsor(
       const segStart = cuts[c].start;
       const segEnd = c + 1 < cuts.length ? cuts[c + 1].start : block.length;
       const rawSeg = block.slice(segStart, segEnd);
-      const seg = rawSeg.replace(/\u0001PG\d+\u0002/g, " ").replace(/\s+/g, " ").trim();
+      const seg = fixOcrSpaces(rawSeg.replace(/\u0001PG\d+\u0002/g, " "));
       if (!seg) continue;
       if (/^Non-substantial change/i.test(seg)) continue;
       if (seg.length < 40) continue;
