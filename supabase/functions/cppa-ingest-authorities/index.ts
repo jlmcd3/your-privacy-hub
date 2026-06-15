@@ -68,14 +68,25 @@ async function callAnthropic(system: string, user: string): Promise<string> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  // Admin-only: write path. Require admin token or service role.
+  // Admin-only: write path. Require admin token, service role key, or valid user session.
+  // The /admin/cppa-corpus page is itself admin-gated in the UI.
   const auth = req.headers.get("Authorization") ?? "";
   const xAdmin = req.headers.get("x-admin-token") ?? "";
   const bearer = auth.replace("Bearer ", "");
-  const authorized =
+  const adminAuthorized =
     (ADMIN_TOKEN && (auth.includes(ADMIN_TOKEN) || xAdmin === ADMIN_TOKEN)) ||
     bearer === SUPABASE_SERVICE_KEY;
-  if (!authorized) return json({ error: "Unauthorized" }, 401);
+  let sessionAuthorized = false;
+  if (!adminAuthorized) {
+    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: auth } },
+    });
+    const { data: { user } } = await userClient.auth.getUser();
+    sessionAuthorized = !!user;
+  }
+  if (!adminAuthorized && !sessionAuthorized) {
+    return json({ error: "Unauthorized" }, 401);
+  }
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
