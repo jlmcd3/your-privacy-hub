@@ -11,7 +11,7 @@ import { Helmet } from "react-helmet-async";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ReportShell from "@/components/ReportShell";
-import ToolDisclaimer from "@/components/ToolDisclaimer";
+import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, AlertTriangle, XCircle, Clock } from "lucide-react";
