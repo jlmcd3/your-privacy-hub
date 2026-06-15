@@ -236,6 +236,7 @@ Deno.serve(async (req) => {
           related_citations: tagged.related_citations,
           topic_tags: tagged.topic_tags,
           comment_summary: tagged.comment_summary,
+          agency_position_summary: tagged.agency_position_summary || null,
           agency_response: resp,
           page_ref: u.page_ref ?? null,
           source_url,
