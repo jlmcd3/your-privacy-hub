@@ -1656,6 +1656,13 @@ Deno.serve(async (req) => {
       }
       html = buildCPPARiskReportHTML(record.report_data, record);
       generatedAt = record.created_at || new Date().toISOString();
+    } else if (tool_type === "cppa_admt") {
+      if (!record.report_data) {
+        return new Response(JSON.stringify({ error: "Report data not found or not yet complete" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      html = buildADMTReportHTML(record.report_data, record);
+      generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "cppa_cybersecurity") {
       const intake = record.intake_data || {};
       const parts = [record.document_a_text, record.document_b_text].filter(Boolean);
