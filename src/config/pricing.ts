@@ -942,6 +942,7 @@ export const SMART_TOOL_KEYS = [
   'dpia',         // DPIA — necessity/proportionality vs enforcement corpus
   'cppa_risk',    // CPPA Risk Assessment — 5-stage CPPA analysis
   'cppa_cyber',   // CPPA Cybersecurity — 18-control gap analysis
+  'cppa_admt',    // ADMT Compliance Checker — Module 3 gap analysis
 ] as const;
 
 export type SmartToolKey = typeof SMART_TOOL_KEYS[number];
@@ -961,7 +962,7 @@ export const SUBSCRIBER_ONLY_TOOL_KEYS = [
 export type SubscriberOnlyToolKey = typeof SUBSCRIBER_ONLY_TOOL_KEYS[number];
 
 // camelCase aliases for the same tool keys (so callers using either form work)
-const SMART_TOOL_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber']);
+const SMART_TOOL_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber','cppaAdmt']);
 const SUBSCRIBER_ONLY_TOOL_CAMEL = new Set(['ropa','usNotice','euNotice']);
 
 /** Returns true if the tool requires a subscription (not sold standalone). */
@@ -996,8 +997,8 @@ export const ANNUAL_CREDIT_ELIGIBLE_KEYS = ['governance','lia','dpia'] as const;
 // ANY active subscription including monthly. CPPA repriced: 179/99, 249/139, 349/189.
 // Governance subscriber 25→49, DPIA subscriber 49→45.
 // v11 (2026-06-11, ratified): LIA 99/49, DPIA 99/49, RoPA-initial 99, CPPA 229/129 · 299/169 · 449/249, Registration 59, Professional 49/mo · 490/yr. All other prices unchanged.
-export const ANNUAL_GATED_SUBSCRIBER_RATE_KEYS = ['governance','lia','dpia','cppa_risk','cppa_cyber','cppa_suite'] as const;
-const ANNUAL_GATED_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber','cppaSuite']);
+export const ANNUAL_GATED_SUBSCRIBER_RATE_KEYS = ['governance','lia','dpia','cppa_risk','cppa_cyber','cppa_suite','cppa_admt'] as const;
+const ANNUAL_GATED_CAMEL = new Set(['governance','lia','dpia','cppaRisk','cppaCyber','cppaSuite','cppaAdmt']);
 export function requiresAnnualForSubscriberRate(toolKey: string): boolean {
   return (ANNUAL_GATED_SUBSCRIBER_RATE_KEYS as readonly string[]).includes(toolKey) || ANNUAL_GATED_CAMEL.has(toolKey);
 }
