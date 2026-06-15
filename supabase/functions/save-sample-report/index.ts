@@ -225,6 +225,7 @@ const REPORT_PDF_TOOL_TYPE: Record<string, string> = {
   governance: "governance_assessment",
   cppa_risk: "cppa_risk",
   cppa_cyber: "cppa_cybersecurity",
+  cppa_admt: "cppa_admt",
   dpa: "dpa_generator",
   ir_playbook: "ir_playbook",
   biometric: "biometric_checker",
