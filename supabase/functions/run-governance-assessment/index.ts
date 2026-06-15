@@ -119,7 +119,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     generated_at: new Date().toISOString(),
     assessment_id: assessmentId,
     organisation_profile: intake,
-    executive_summary: `The ${profile} shows baseline privacy-governance controls across policies, vendor management, training, and incident response. The top stress-test risks are evidence completeness, vendor classification, and DPIA scoping for high-risk workflows. Immediate action is limited to confirming documentation and ownership rather than rebuilding the program from scratch.`,
+    executive_summary: `The ${profile} shows baseline privacy-governance controls across policies, vendor management, training, and incident response. The primary areas requiring attention are evidence completeness, vendor classification, and ${hasEuUk ? "DPIA" : "data protection assessment"} scoping for high-risk workflows. Immediate action is focused on confirming documentation and ownership rather than rebuilding the program from scratch. All findings should be validated against actual organisational artifacts before sign-off.`,
     top_three_risks: [
       { risk: "Vendor terms evidence", domain: "Vendor Data Terms Compliance", why_urgent: "Processor and independent-controller classifications must be supportable before audit or regulatory review.", severity: "High" },
       { risk: "DPIA evidence trail", domain: "Privacy Impact Assessment Status", why_urgent: "High-risk workflows need documented assessment scope, approvals, and residual-risk decisions.", severity: "High" },
