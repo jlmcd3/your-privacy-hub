@@ -316,6 +316,23 @@ export default function CPPAScopeChecker() {
               </div>
             </div>
 
+            {liveFootprint.length > 0 && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 p-4 space-y-2">
+                <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wide">
+                  ⚡ Obligations triggered by your answers so far
+                </p>
+                {liveFootprint.map((item) => (
+                  <div key={item.citation} className="flex items-start gap-2">
+                    <span className="text-green-600 mt-0.5 shrink-0">✓</span>
+                    <div className="text-xs">
+                      <span className="font-mono text-blue-700 dark:text-blue-400 font-medium">{item.citation}</span>
+                      <span className="text-foreground ml-2">{item.label}</span>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[11px] text-muted-foreground pt-1">Complete all questions and click Check my scope for the full obligation map.</p>
+              </div>
+            )}
             <div className="flex justify-end pt-4 border-t">
               <Button onClick={handleCheck} disabled={!allAnswered}>
                 Check my scope →
