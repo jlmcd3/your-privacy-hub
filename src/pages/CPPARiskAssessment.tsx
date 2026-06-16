@@ -233,6 +233,12 @@ export default function CPPARiskAssessment() {
 
   const enforcementSignals = useEnforcementSignals(["sell_share", "opt_out_link", "sensitive_pi"]);
 
+  const fscrCallouts = useFscrCallouts([
+    "11 CCR § 7152(a)(1)",
+    "11 CCR § 7152(a)(3)(G)",
+    "11 CCR § 7156(b)",
+  ]);
+
   // Regulatory footprint — derived deterministically from current answers.
   // Updates in real time as the user fills in the form.
   const regulatoryFootprint = useMemo(() => {
