@@ -195,6 +195,7 @@ export default function CPPAScopeChecker() {
         <ToolDisclaimer addition="This checker provides an indicative obligation map based on your answers. Applicability thresholds under the CCPA/CPRA are fact-specific; confirm scope conclusions with qualified counsel." />
         {!showResults && (
           <div className="bg-card border rounded-lg p-6 space-y-6">
+            <p className="text-xs font-mono text-muted-foreground pb-2 border-b">Cal. Civ. Code § 1798.140(ag) — applicability thresholds · 11 CCR §§ 7120, 7150(b) — audit and risk assessment triggers</p>
             <div>
               <Label>Q1: Does your business operate for profit and do business in California, OR collect personal information from California residents?</Label>
               <div className="mt-2">
