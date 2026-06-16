@@ -479,7 +479,7 @@ const PRICING_GRID: [string, string][] = [
   ["CPPA Risk Assessment", `${PRICING.tools.cppa_risk.display} (Smart)`],
   ["CPPA Cybersecurity Audit", `${PRICING.tools.cppa_cyber.display} (Smart)`],
   ["ADMT Compliance Assessment", `${(PRICING.tools as any).cppa_admt?.display ?? '$99'} (Smart)`],
-  ["Annual subscription bonus", "1 free Smart Tool run/year (Governance, LIA, or DPIA)"],
+  ["Annual subscription bonus", "1 free Smart Tool run/yr (Intelligence) · 3 free Smart Tool runs/yr (Professional) — Governance, LIA, or DPIA"],
 ];
 
 export default function Tools() {
