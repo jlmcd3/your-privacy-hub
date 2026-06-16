@@ -48,7 +48,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "US Privacy Notice Builder — subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "EU & Global Privacy Notice Builder — subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "Registration Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
-  { feature: "1 free Smart Tool run/year (Governance, LIA, or DPIA)", free: false, intel: "Annual only", platform: "Annual only" },
+  { feature: "Free Smart Tool runs per year (Governance, LIA, or DPIA)", free: false, intel: "1 / year (annual only)", platform: "3 / year (annual only)" },
 
   { isSection: true, feature: "CPPA tools" },
   { feature: "CPPA Risk Assessment (Smart Tool)", free: false, intel: T.cppa_risk.display, platform: T.cppa_risk.display },
