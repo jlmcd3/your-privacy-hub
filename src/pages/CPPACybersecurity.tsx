@@ -229,6 +229,12 @@ export default function CPPACybersecurity() {
                   <Textarea rows={2} value={notes[c.key] || ""} onChange={(e) => setN(c.key, e.target.value)} className="mt-1" placeholder="Tools, scope, exceptions…" />
                 </div>
               </div>
+              {(c.key === "c1_auth" || c.key === "c3_zero_trust") && (
+                <FscrCallout
+                  citation={c.key === "c1_auth" ? "11 CCR § 7122(a)(1)" : "11 CCR § 7122(a)(3)"}
+                  callouts={cyberFscrCallouts}
+                />
+              )}
             </div>
           ))}
         </section>
