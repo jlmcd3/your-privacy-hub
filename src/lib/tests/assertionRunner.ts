@@ -432,9 +432,11 @@ async function runSingleTool(
         addLog("Invoking generate-registration-docs…");
         const { error: genErr } = await invokeWithRetry("generate-registration-docs", { order_id: order.id }, combinedSignal);
         if (genErr) throw new Error(`generate-registration-docs: ${genErr.message}`);
-        const { data: orderRow } = await (supabase as any).from("registration_orders").select("documents, fulfillment_status").eq("id", order.id).single();
-        output = { documents: orderRow?.documents ?? [], documentCount: (orderRow?.documents as unknown[] ?? []).length, text: JSON.stringify(orderRow?.documents ?? []) };
-        addLog(`✓ Complete — ${(orderRow?.documents ?? []).length} docs`);
+        const { data: regDocs } = await (supabase as any).from("registration_documents").select("content_text, document_type, jurisdiction_code").eq("order_id", order.id);
+        const docList = regDocs ?? [];
+        const combinedText = docList.map((d: any) => d.content_text ?? "").join("\n\n");
+        output = { documents: docList, documentCount: docList.length, text: combinedText };
+        addLog(`✓ Complete — ${docList.length} docs`);
 
       } else {
         throw new Error(`Unknown toolId: ${test.toolId}`);
