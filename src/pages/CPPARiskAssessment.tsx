@@ -493,6 +493,7 @@ export default function CPPARiskAssessment() {
           {step === 6 && (
             <>
               <h2>Step 6 — Risk Assessment Specifics</h2>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7152(a)(1)–(9), 7156(b), 7157 — mandatory risk assessment content requirements</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">
                 These questions feed § 7152(a)(1)–(9) Part A and the § 7157 Annual Submission Worksheet. Fields left blank in the generated report will be marked as fill-ins for your team to complete in the review pane before executive sign-off.
