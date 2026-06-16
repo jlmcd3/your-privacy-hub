@@ -338,10 +338,10 @@ const Subscribe = () => {
                   { feature: "Client/matter workspace", free: "—", intel: "—", platform: "✓" },
                   { feature: "Saved reports in My Reports", free: "—", intel: "✓", platform: "✓" },
                 ] as Array<
-                  | { isSection: true; feature: string }
-                  | { isSection?: false; feature: string; free: string; intel: string; platform: string }
+                  | { type: 'section'; feature: string }
+                  | { type: 'row'; feature: string; free: string; intel: string; platform: string }
                 >).map((row, i) => {
-                  if ("isSection" in row && row.isSection) {
+                  if (row.type === 'section') {
                     return (
                       <tr key={i} className="bg-brand-navy/5">
                         <td colSpan={4} className="px-5 py-2 text-eyebrow text-brand-navy/60 border-t border-brand-cloud">
