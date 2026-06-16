@@ -326,7 +326,7 @@ const Subscribe = () => {
                   { type: 'row', feature: "US Privacy Notice Builder", free: "—", intel: "Included", platform: "Included" },
                   { type: 'row', feature: "EU & Global Privacy Notice Builder", free: "—", intel: "Included", platform: "Included" },
                   { type: 'row', feature: "Registration Filings (Convenience)", free: "—", intel: T.registration.display, platform: T.registration.display },
-                  { type: 'row', feature: "1 free Smart Tool run/year (Governance, LIA, or DPIA)", free: "—", intel: "Annual only", platform: "Annual only" },
+                  { type: 'row', feature: "Free Smart Tool runs per year (Governance, LIA, or DPIA)", free: "—", intel: "1 / year (annual only)", platform: "3 / year (annual only)" },
 
                   { type: 'section', feature: "CPPA tools" },
                   { type: 'row', feature: "CPPA Risk Assessment (Smart)", free: "—", intel: T.cppa_risk.display, platform: T.cppa_risk.display },
