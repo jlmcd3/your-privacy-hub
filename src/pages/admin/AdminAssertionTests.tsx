@@ -260,41 +260,31 @@ export default function AdminAssertionTests() {
 
   const statusLabel: Record<string, string> = { idle: "Ready", running: "Running…", paused: "Paused", complete: "Complete", stopped: "Stopped" };
 
-  const handleDownload = () => {
-    const exportData = {
-      exportedAt: new Date().toISOString(),
-      runStatus: runnerState.status,
-      elapsedMs: runnerState.elapsedMs,
-      totalAssertions: runnerState.totalAssertions,
-      passedAssertions: runnerState.passedAssertions,
-      failedAssertions: runnerState.failedAssertions,
-      tools: runnerState.tools.map((t) => ({
-        toolId: t.toolId,
-        toolName: t.toolName,
-        status: t.status,
-        elapsedMs: t.elapsedMs,
-        passCount: t.passCount,
-        failCount: t.failCount,
-        error: t.error,
-        log: t.log,
-        assertions: t.results.map((r) => ({
-          id: r.assertion.id,
-          description: r.assertion.description,
-          category: r.assertion.category,
-          passed: r.passed,
-          errorMessage: r.passed ? null : r.assertion.errorMessage,
-          runtimeError: r.error ?? null,
-        })),
-      })),
-    };
+  const handleDownload = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from("assertion_run_results")
+        .select("*")
+        .order("run_at", { ascending: false });
+      if (error) throw error;
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `eup-assertion-results-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        totalRuns: data?.length ?? 0,
+        runs: data ?? [],
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `eup-assertion-results-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Failed to download assertion results:", e);
+      alert("Failed to download results: " + (e as Error).message);
+    }
   };
 
   return (
