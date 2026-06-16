@@ -23,6 +23,8 @@ import SampleReportLink from "@/components/SampleReportLink";
 import GuidedRail from "@/components/GuidedRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
+import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
