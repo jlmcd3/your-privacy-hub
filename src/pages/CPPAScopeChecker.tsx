@@ -216,7 +216,7 @@ export default function CPPAScopeChecker() {
             </div>
 
             <div>
-              <Label>Q3: How many California consumers' personal information does your business buy, sell, receive for commercial purposes, or share for cross-context behavioural advertising annually?</Label>
+              <Label>Q3: How many California consumers' personal information does your business buy, sell, receive for commercial purposes, or share for cross-context behavioural advertising annually? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag)(2)(A))</span></Label>
               <div className="mt-2">
                 <Radio
                   name="q3"
