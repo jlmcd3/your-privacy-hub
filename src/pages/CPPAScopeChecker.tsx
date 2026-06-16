@@ -16,6 +16,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { PRICING_REGISTRY } from "@/config/pricing";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
