@@ -246,7 +246,7 @@ export default function CPPAScopeChecker() {
             </div>
 
             <div>
-              <Label>Q5: Does 50% or more of your annual revenue come from selling or sharing consumers' personal information?</Label>
+              <Label>Q5: Does 50% or more of your annual revenue come from selling or sharing consumers' personal information? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag)(3))</span></Label>
               <div className="mt-2">
                 <Radio name="q5" options={["Yes", "No", "Unsure"]} value={q5} onChange={(v) => setQ5(v as Q5)} />
               </div>
