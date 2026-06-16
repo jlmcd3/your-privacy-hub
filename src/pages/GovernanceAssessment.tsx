@@ -188,7 +188,7 @@ const GovernanceAssessment = () => {
   return (
     <WorkspaceLayout className="bg-background">
       <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title>
-        <meta name="description" content="Score your privacy programme across ten domains against what regulators actually inspect — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>      <header className="bg-slate-900 text-white py-12">
+        <meta name="description" content="Score your privacy programme across ten domains against what regulators actually inspect — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>      <header className="bg-[#0d2a45] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Privacy Programme Assessment · ${pricing.price}
