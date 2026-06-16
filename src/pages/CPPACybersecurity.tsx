@@ -227,6 +227,7 @@ export default function CPPACybersecurity() {
             </Button>
           )}
         </div>
+        </div>
         <StatuteRail entry={activeCyberRailEntry} />
         </div>
 
