@@ -645,7 +645,7 @@ export default function CPPARiskAssessment() {
               </div>
 
               {admtTriggered && (
-                <div className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
+                <div onFocus={() => focusRail('i5_admt')} className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
                   <Label className="font-semibold">I-5: ADMT specifics (required because you indicated ADMT use) <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(G))</span></Label>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
