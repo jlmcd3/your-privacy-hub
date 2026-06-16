@@ -227,6 +227,8 @@ export default function CPPACybersecurity() {
             </Button>
           )}
         </div>
+        <StatuteRail entry={activeCyberRailEntry} />
+        </div>
 
         <p className="text-xs text-muted-foreground italic">
           This is a compliance framework tool mapped to CPPA cybersecurity audit regulations. It does not constitute legal or security advice. Output should be reviewed with qualified counsel and your security team.
