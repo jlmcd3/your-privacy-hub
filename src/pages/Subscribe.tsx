@@ -199,7 +199,7 @@ const Subscribe = () => {
             </div>
 
             {/* Professional card */}
-            <div className="bg-amber-400/10 border-2 border-amber-400/60 rounded-2xl p-6 relative">
+            <div className="bg-amber-400/10 border-2 border-amber-400/60 rounded-2xl p-6 relative flex flex-col h-full">
               <p className="text-eyebrow text-amber-300 mb-2">
                 Professional
               </p>
