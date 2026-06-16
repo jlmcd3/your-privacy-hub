@@ -216,7 +216,7 @@ export default function RegistrationLanding() {
             </Card>
           </div>
           <p className="text-center text-xs text-brand-mist mt-6">
-            Annual subscribers (Intelligence or Professional): 1 free Smart Tool run per year — redeemable on Governance, LIA, or DPIA.
+            Annual subscribers: 1 free Smart Tool run/year on Intelligence annual, 3 on Professional annual — redeemable on Governance, LIA, or DPIA.
           </p>
         </section>
 
