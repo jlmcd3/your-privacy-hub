@@ -515,7 +515,9 @@ function getEuNoticeAutomatedDecisions(industry: string): string {
 
 function buildDeterministicProfile(industry: string, geo: string, slot: number, companyId: string) {
   const c = buildCompany(industry, geo, slot, companyId);
-  const jurisdictions = geo === "eu" ? ["EU", "GB", c.countryCode] : ["US", "CA", "VA"];
+  const jurisdictions = geo === "eu"
+    ? ["EU", "UK", c.countryCode]
+    : ["US", "US-CA", "US-VA"];
   const dataCategories = ["account identifiers", "contact details", "usage logs", "device identifiers", "support records"];
   const usesBiometric = /health|financial|security|workforce|hr/i.test(industry);
   return {
@@ -592,8 +594,8 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       markets_served: jurisdictions,
       has_eu_establishment: geo === "eu",
       has_uk_establishment: geo === "eu",
-      acts_as_data_broker: /adtech|marketing/i.test(industry),
-      sells_or_shares_personal_info: /adtech|marketing|media/i.test(industry),
+      acts_as_data_broker: /adtech|marketing|data.broker|data.intel|enrichment/i.test(industry),
+      sells_or_shares_personal_info: /adtech|marketing|media|data.broker|data.intel|enrichment/i.test(industry),
       processes_biometrics_for_id: usesBiometric,
     },
   };

@@ -1392,6 +1392,192 @@ function buildADMTReportHTML(report: any, record: any): string {
 }
 
 
+function buildRegistrationReportHTML(record: any): string {
+  const summary = record.result_summary || {};
+  const orgName: string = record.organization_name || summary.organization_name || "[Organisation]";
+  const generatedAt: string = record.created_at || new Date().toISOString();
+  const generatedHuman = new Date(generatedAt).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+
+  const confidence: string = summary.confidence || record.confidence_tier || "—";
+  const rulesFired: string[] = Array.isArray(summary.rules_fired) ? summary.rules_fired : [];
+  const warnings: string[] = Array.isArray(summary.warnings) ? summary.warnings : [];
+  const confidenceReasons: string[] = Array.isArray(summary.confidence_reasons) ? summary.confidence_reasons : [];
+  const jurisdictions: any[] = Array.isArray(summary.jurisdictions) ? summary.jurisdictions : [];
+  const obSummary = summary.obligations_summary || {};
+
+  const confColor = confidence === "high" ? "#2d9b90" : confidence === "medium" ? "#e8a020" : "#cc3333";
+
+  const recCodes: string[] = Array.isArray(record.recommended_jurisdictions)
+    ? record.recommended_jurisdictions
+    : jurisdictions.map((j: any) => j.code);
+  const codeBadges = recCodes.map((c: string) =>
+    `<span style="display:inline-block;background:#edf2f5;border:1px solid #c8d6de;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;margin:2px 3px 2px 0;font-family:monospace;">${escHtml(c)}</span>`
+  ).join("");
+
+  const jurisdictionCards = jurisdictions.map((j: any) => {
+    const obligations: string[] = Array.isArray(j.obligations) ? j.obligations : [];
+    const obLabels: Record<string, string> = {
+      registration: "Data-protection registration",
+      lead_authority: "Lead supervisory authority (EU OSS)",
+      eu_representative: "EU Article 27 representative required",
+      uk_representative: "UK Article 27 representative required",
+      ico_fee: "Annual ICO data-protection fee",
+      dpo: "DPO appointment required",
+      ai_eu_database: "EU AI Act database registration (Annex VIII)",
+      data_broker_registration: "Data broker registration",
+      biometric_consent_policy: "Biometric consent policy required",
+      childrens_data_safeguards: "Children's data safeguards required",
+      sale_share_opt_out: "Sale/sharing opt-out and disclosures required",
+    };
+    const filteredObs = obligations
+      .filter((o: string) => o !== "registration" || j.registration_required !== false)
+      .filter((o: string) => o !== "childrens_data_safeguards" || obligations.length > 1)
+      .map((o: string) => obLabels[o] || o);
+
+    const feeStr = j.filing_fee_cents && j.filing_currency
+      ? `${(j.filing_fee_cents / 100).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} ${j.filing_currency}`
+      : null;
+    const renewalStr = j.renewal_period_months ? `${j.renewal_period_months} months` : null;
+
+    const dpoYN = j.dpo_required === true ? "✓ Required" : j.dpo_required === false ? "Not required" : "—";
+    const repYN = j.representative_required === true ? "✓ Required" : j.representative_required === false ? "Not required" : "—";
+    const aiYN = j.ai_registration_required === true ? "✓ Required" : j.ai_registration_required === false ? "Not required" : "—";
+
+    return `
+<div style="border:1px solid #dde5ea;border-radius:8px;padding:16px;margin-bottom:14px;break-inside:avoid;page-break-inside:avoid;">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:12px;">
+    <div>
+      <span style="font-family:monospace;font-size:11px;font-weight:700;background:#0c2a44;color:#fff;padding:2px 7px;border-radius:4px;">${escHtml(j.code)}</span>
+      <span style="font-size:14px;font-weight:600;color:#0c2a44;margin-left:8px;">${escHtml(j.name || j.code)}</span>
+      ${j.region ? `<span style="font-size:11px;color:#5c6d7a;margin-left:6px;">${escHtml(j.region)}</span>` : ""}
+    </div>
+    <span style="font-size:10px;color:#5c6d7a;white-space:nowrap;flex-shrink:0;">${escHtml(j.rule_id || "")}</span>
+  </div>
+  ${j.law ? `<div style="font-size:12px;color:#0c2a44;font-weight:600;margin-bottom:4px;">${escHtml(j.law)}</div>` : ""}
+  ${j.authority ? `<div style="font-size:12px;color:#5c6d7a;margin-bottom:8px;">Authority: ${j.authority_url ? `<a href="${escHtml(j.authority_url)}" style="color:#2d9b90;">${escHtml(j.authority)}</a>` : escHtml(j.authority)}</div>` : ""}
+  ${j.why ? `<div style="font-size:12px;color:#3d4f5a;margin-bottom:10px;line-height:1.5;">${escHtml(j.why)}</div>` : ""}
+
+  <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px;">
+    <tr style="background:#f6f8fa;">
+      <td style="padding:4px 8px;color:#5c6d7a;font-weight:600;width:40%;">DPO</td>
+      <td style="padding:4px 8px;color:#1a1a1a;">${dpoYN}</td>
+    </tr>
+    <tr>
+      <td style="padding:4px 8px;color:#5c6d7a;font-weight:600;">Representative</td>
+      <td style="padding:4px 8px;color:#1a1a1a;">${repYN}</td>
+    </tr>
+    <tr style="background:#f6f8fa;">
+      <td style="padding:4px 8px;color:#5c6d7a;font-weight:600;">AI Act registration</td>
+      <td style="padding:4px 8px;color:#1a1a1a;">${aiYN}</td>
+    </tr>
+    ${feeStr ? `<tr><td style="padding:4px 8px;color:#5c6d7a;font-weight:600;">Filing fee</td><td style="padding:4px 8px;color:#1a1a1a;">${escHtml(feeStr)}</td></tr>` : ""}
+    ${renewalStr ? `<tr style="background:#f6f8fa;"><td style="padding:4px 8px;color:#5c6d7a;font-weight:600;">Renewal</td><td style="padding:4px 8px;color:#1a1a1a;">${escHtml(renewalStr)}</td></tr>` : ""}
+  </table>
+
+  ${filteredObs.length > 0 ? `
+  <div style="margin-bottom:6px;font-size:11px;font-weight:600;color:#5c6d7a;">Obligations</div>
+  <ul style="margin:0;padding-left:16px;font-size:11px;color:#3d4f5a;line-height:1.6;">
+    ${filteredObs.map((o: string) => `<li>${escHtml(o)}</li>`).join("")}
+  </ul>` : ""}
+
+  ${j.notes ? `<div style="margin-top:10px;padding:8px 10px;background:#f6f8fa;border-left:3px solid #c8d6de;font-size:11px;color:#5c6d7a;line-height:1.5;">${escHtml(j.notes)}</div>` : ""}
+</div>`;
+  }).join("");
+
+  const brokerRegs: string[] = Array.isArray(obSummary.data_broker_registrations)
+    ? obSummary.data_broker_registrations : [];
+  const summaryRows: [string, string][] = [
+    ["DPO required", obSummary.dpo_required === true ? "✓ Yes" : "No"],
+    ["EU representative required", obSummary.eu_representative_required === true ? "✓ Yes" : "No"],
+    ["UK representative required", obSummary.uk_representative_required === true ? "✓ Yes" : "No"],
+    ["EU AI Act provider obligations", obSummary.ai_act_provider_obligations === true ? "✓ Yes" : "No"],
+    ["Data broker registrations", brokerRegs.length > 0 ? brokerRegs.join(", ") : "None"],
+  ];
+
+  const warningsHtml = warnings.length > 0 ? `
+<div style="margin-bottom:20px;">
+  <h2 style="font-size:14px;font-weight:700;color:#0c2a44;border-bottom:2px solid #2d9b90;padding-bottom:4px;margin-bottom:10px;">Warnings</h2>
+  <ul style="margin:0;padding-left:16px;font-size:12px;color:#8a5c00;line-height:1.7;">
+    ${warnings.map((w: string) => `<li>${escHtml(w)}</li>`).join("")}
+  </ul>
+</div>` : "";
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Registration Assessment — ${escHtml(orgName)}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1.5rem; color: #1a1a1a; line-height: 1.5; font-size: 13px; }
+  .eup-bar { background: #0c2a44; padding: 9px 1.5rem; display: flex; align-items: center; gap: 12px; margin: -2rem -1.5rem 2rem -1.5rem; }
+  .eup-bar span { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: #93b5c6; }
+  h1 { font-size: 1.6rem; color: #0c2a44; margin-bottom: 0.2rem; }
+  h2 { font-size: 14px; font-weight: 700; color: #0c2a44; border-bottom: 2px solid #2d9b90; padding-bottom: 4px; margin: 20px 0 10px; break-after: avoid; page-break-after: avoid; }
+  h2 + * { break-before: avoid; page-break-before: avoid; }
+  .meta { color: #5c6d7a; font-size: 12px; margin-bottom: 1.5rem; }
+  a { color: #2d9b90; }
+  table.kv { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.kv tr:nth-child(even) { background: #f6f8fa; }
+  table.kv td { padding: 5px 10px; }
+  table.kv td:first-child { color: #5c6d7a; font-weight: 600; width: 45%; }
+  .conf-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; color: #fff; background: ${confColor}; }
+  footer { color: #5c6d7a; font-size: 11px; margin-top: 2rem; border-top: 1px solid #dde5ea; padding-top: 1rem; }
+  @media print {
+    h2 { break-after: avoid; page-break-after: avoid; }
+    h2 + * { break-before: avoid; page-break-before: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="eup-bar">
+  <img src="${LOGO_URL}" alt="End User Privacy" style="height:22px;width:auto;display:block;" />
+  <span>Compliance Tool · Customised Analysis</span>
+</div>
+<h1>Registration Assessment</h1>
+<div class="meta">Generated ${escHtml(generatedHuman)} · ${escHtml(orgName)}</div>
+<p style="font-size:11px;color:#5c6d7a;border:1px solid #dde5ea;padding:8px 12px;border-radius:4px;margin-bottom:1.5rem;">
+  Not legal advice. This document is a compliance framework generated for informational purposes only.
+  It does not create an attorney-client relationship. Always consult qualified legal counsel for advice specific to your situation.
+</p>
+
+<h2>Recommended Jurisdictions</h2>
+<div style="margin-bottom:16px;">${codeBadges}</div>
+<div style="display:flex;gap:20px;margin-bottom:20px;font-size:12px;flex-wrap:wrap;">
+  <span>Confidence: <span class="conf-badge">${escHtml(confidence)}</span></span>
+  <span style="color:#5c6d7a;">Rules: ${escHtml(rulesFired.join(", ") || "—")}</span>
+</div>
+
+${warningsHtml}
+
+<h2>Jurisdictions</h2>
+${jurisdictionCards || "<p style='color:#5c6d7a;font-size:12px;'>No jurisdictions identified.</p>"}
+
+<h2>Obligations Summary</h2>
+<table class="kv" style="margin-bottom:20px;">
+  ${summaryRows.map(([k, v]) => `<tr><td>${escHtml(k)}</td><td style="color:${String(v).startsWith("✓") ? "#1a7a5e" : "#1a1a1a"};">${escHtml(String(v))}</td></tr>`).join("")}
+</table>
+
+<h2>Confidence Reasons</h2>
+<ul style="font-size:12px;color:#3d4f5a;padding-left:20px;margin-bottom:20px;">
+  ${confidenceReasons.map((r: string) => `<li>${escHtml(r)}</li>`).join("") || "<li style='color:#5c6d7a;'>No confidence signals recorded.</li>"}
+</ul>
+
+<footer>
+  Generated by <strong>EndUserPrivacy</strong> · enduserprivacy.com ·
+  This assessment is a starting framework based on your inputs and is not legal advice.
+  Review with qualified legal counsel before acting on any recommendation.
+</footer>
+</body>
+</html>`;
+}
+
+
+
+
+
 // ─────────────────────────────────────────────────────────────────────────
 // FILENAME HELPERS
 // ─────────────────────────────────────────────────────────────────────────
@@ -1828,19 +2014,7 @@ Deno.serve(async (req) => {
       });
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "registration_assessment") {
-      const summary = record.result_summary || {};
-      const text = summaryToText({
-        recommended_jurisdictions: record.recommended_jurisdictions,
-        confidence_tier: record.confidence_tier,
-        ...summary,
-      });
-      html = buildTextReportHTML({
-        title: "Registration Assessment",
-        metaLine: `Generated ${new Date(record.created_at).toLocaleDateString("en-US",{ year:"numeric", month:"long", day:"numeric" })}` +
-          (record.organization_name ? ` · ${record.organization_name}` : ""),
-        text,
-        showJurisdictionChip: false,
-      });
+      html = buildRegistrationReportHTML(record);
       generatedAt = record.created_at || new Date().toISOString();
     } else if (tool_type === "registration_document") {
       html = buildTextReportHTML({

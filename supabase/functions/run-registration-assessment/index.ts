@@ -73,9 +73,14 @@ Deno.serve(async (req) => {
           authority: r?.authority_name || null,
           authority_url: r?.authority_url || null,
           registration_required: r?.registration_required ?? null,
-          dpo_required: r?.dpo_required ?? null,
-          ai_registration_required: r?.ai_registration_required ?? null,
-          representative_required: r?.representative_required ?? null,
+          // Use engine-computed values rather than the generic DB row defaults.
+          // The DB row encodes a jurisdiction's rules; the engine applies them
+          // to the entity's actual data (size, processing scope, establishment).
+          dpo_required: engineOutput.obligations_summary.dpo_required,
+          ai_registration_required: engineOutput.obligations_summary.ai_act_provider_obligations,
+          representative_required: j.obligations.includes("eu_representative")
+            ? true
+            : (j.obligations.includes("uk_representative") ? true : false),
           filing_fee_cents: r?.filing_fee_cents ?? null,
           filing_currency: r?.filing_currency ?? null,
           renewal_period_months: r?.renewal_period_months ?? null,
