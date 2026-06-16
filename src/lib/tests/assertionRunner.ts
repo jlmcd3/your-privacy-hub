@@ -8,8 +8,12 @@
  *   - Streaming results as each tool completes
  *   - Pause / stop support via AbortController
  *
- * CPPA Scope is deterministic — runs in JS without an edge function call.
- * RoPA requires multi-step DB setup before invoking the edge function.
+ * Fixes applied:
+ *   - LIA: removed non-existent 'analysis_text' column
+ *   - DPA: fixed column name 'dpa_text' -> 'document_text'
+ *   - Registration: query registration_documents table (not registration_orders.documents)
+ *   - Brief: generate-brief-on-demand is 410 Gone; query weekly_briefs table directly
+ *   - RoPA: fetch activities_count and jurisdictions_covered from ropa_document_versions
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -158,7 +162,7 @@ async function setupAndRunRopa(
   userId: string,
   log: (msg: string) => void,
   abortSignal: AbortSignal,
-): Promise<{ sessionId: string; documentVersionId?: string }> {
+): Promise<{ sessionId: string; documentVersionId?: string; activitiesCount: number; jurisdictionsCovered: unknown[] }> {
   const persona = ROPA_TEST_FIXTURE;
 
   const { data: clients } = await (supabase as any).from("clients").select("id").eq("owner_id", userId).eq("is_active", true).limit(1);
@@ -203,9 +207,9 @@ async function setupAndRunRopa(
   log("Polling ropa_sessions…");
   await pollUntilComplete("ropa_sessions", session.id, "generated", 45, 4000, log, abortSignal);
 
-  const { data: ver } = await (supabase as any).from("ropa_document_versions").select("id").eq("session_id", session.id).eq("document_format", "pdf").eq("is_current", true).maybeSingle();
+  const { data: ver } = await (supabase as any).from("ropa_document_versions").select("id, activities_count, jurisdictions_covered").eq("session_id", session.id).eq("document_format", "pdf").eq("is_current", true).maybeSingle();
 
-  return { sessionId: session.id, documentVersionId: ver?.id };
+  return { sessionId: session.id, documentVersionId: ver?.id, activitiesCount: ver?.activities_count ?? 0, jurisdictionsCovered: ver?.jurisdictions_covered ?? [] };
 }
 
 // ─── US Notice multi-step setup ───────────────────────────────────────────────
@@ -306,8 +310,8 @@ async function runSingleTool(
       } else if (test.toolId === "ropa") {
         const result = await setupAndRunRopa(userId, addLog, combinedSignal);
         recordId = result.sessionId;
-        output = { documentVersionId: result.documentVersionId, _synthetic_article_30_present: !!result.documentVersionId };
-        addLog(`✓ RoPA generated — version ID: ${result.documentVersionId}`);
+        output = { documentVersionId: result.documentVersionId, activitiesCount: result.activitiesCount, jurisdictionsCovered: result.jurisdictionsCovered };
+        addLog(`✓ RoPA generated — version ID: ${result.documentVersionId}, activities: ${result.activitiesCount}`);
 
       } else if (test.toolId === "us-notice") {
         output = await setupAndRunUSNotice(userId, test.testInput, addLog, combinedSignal);
