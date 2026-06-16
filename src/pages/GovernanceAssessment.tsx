@@ -190,7 +190,7 @@ const GovernanceAssessment = () => {
 
   const summaryStep = step === totalSteps;
 
-  // GuidedRail — tier-gated GDPR regulation reference, updates per step
+  
   const guidanceTier = useGuidanceTier();
   
 
