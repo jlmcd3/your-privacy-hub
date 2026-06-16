@@ -184,9 +184,10 @@ export default function CPPACybersecurity() {
 
           {CONTROLS.map((c, i) => (
             <div key={c.key} className="border-t pt-5 first:border-t-0 first:pt-0">
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-2 flex-wrap">
                 <span className="text-xs text-muted-foreground font-mono">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="">{c.label}</h3>
+                <span className="text-xs text-muted-foreground font-mono">(11 CCR {c.citation})</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1 mb-3">{c.description}</p>
               <div className="grid sm:grid-cols-2 gap-3">
