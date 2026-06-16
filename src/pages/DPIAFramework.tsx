@@ -307,11 +307,7 @@ const DPIAFramework = () => {
             </select>
           </div>
         </form>
-        <GuidedRail
-          entry={dpiaRailEntry}
-          guidanceTier={guidanceTier.tier}
-          promptTriggered={railPromptTriggered}
-        />
+        <StatuteRail entry={dpiaRailEntry} />
         </div>
 
 
