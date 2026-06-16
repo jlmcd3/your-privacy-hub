@@ -27,6 +27,9 @@ import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
 import { useToolDraft } from "@/hooks/useToolDraft";
+import StatuteRail from "@/components/admt/StatuteRail";
+import { CPPA_RISK_RAIL } from "@/components/cppa/CPPARiskRailEntries";
+import type { RailEntry } from "@/components/admt/StatuteRail";
 
 function formatRelativeTime(d: Date): string {
   const s = Math.round((Date.now() - d.getTime()) / 1000);
