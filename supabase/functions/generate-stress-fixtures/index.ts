@@ -786,20 +786,8 @@ function getRopaActivitiesForSector(industry: string, companyName: string) {
 function buildDeterministicGeo(industry: string, geo: string, slot: number, companyId: string, companyName?: string) {
   const c = { ...buildCompany(industry, geo, slot, companyId), companyName: companyName || buildCompany(industry, geo, slot, companyId).companyName };
   if (geo === "eu") {
-    const activities = ["Customer account management", "Security monitoring", "Marketing preferences"].map((name, i) => ({
-      activity_name: name,
-      category: ["customer_service", "technology", "marketing"][i],
-      purpose: `${name} for ${industry.toLowerCase()} services`,
-      lawful_basis: i === 2 ? "Consent" : "Legitimate interests",
-      special_category_basis: null,
-      data_categories: ["contact details", "account identifiers", "usage logs"],
-      data_subjects: "Customers and platform users",
-      recipients: "Hosting, analytics, and support providers",
-      transfer_destination: "United States",
-      transfer_mechanism: "EU SCCs and UK IDTA",
-      retention_period: "24 months after account closure",
-      security_measures: "MFA, encryption, access logging, vendor review",
-    }));
+
+
     return {
       lia: {
         organization_name: c.companyName,
