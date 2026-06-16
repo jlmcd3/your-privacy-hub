@@ -229,6 +229,8 @@ export default function CPPARiskAssessment() {
   const activeRiskRailEntry: RailEntry | null = activeRiskRailKey ? (CPPA_RISK_RAIL[activeRiskRailKey] ?? null) : null;
   const focusRail = (key: string) => setActiveRiskRailKey(key);
 
+  const enforcementSignals = useEnforcementSignals(["sell_share", "opt_out_link", "sensitive_pi"]);
+
   // Regulatory footprint — derived deterministically from current answers.
   // Updates in real time as the user fills in the form.
   const regulatoryFootprint = useMemo(() => {
