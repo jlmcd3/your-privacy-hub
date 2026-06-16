@@ -275,6 +275,15 @@ const Subscribe = () => {
               </p>
             </div>
           </div>
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => startCheckout("year", "intelligence")}
+              disabled={!!loading}
+              className="py-3 px-8 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
+            >
+              Start free trial
+            </button>
+          </div>
           {error && <p className="text-red-300 text-meta mt-4">{error}</p>}
           {isPremium && (
             <p className="text-blue-200 text-meta mt-4">
