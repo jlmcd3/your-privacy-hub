@@ -309,7 +309,7 @@ const Subscribe = () => {
       </div>
 
       <p className="text-center text-meta text-slate-500 mt-4 mb-8 px-4">
-        Every tool output calibrated against 3,700+ real enforcement decisions — not just statutory text.
+        Tool output calibrated against enforcement decisions and regulatory guidance — not just statutory text.
       </p>
 
       {/* Feature comparison table */}
