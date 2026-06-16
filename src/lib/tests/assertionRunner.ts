@@ -387,8 +387,8 @@ async function runSingleTool(
         const { error: fnErr } = await invokeWithRetry(test.edgeFunction, { assessment_id: recordId }, combinedSignal);
         if (fnErr) addLog(`⚠ dispatch: ${fnErr.message}`);
         await pollUntilComplete("li_assessments", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
-        const { data: row } = await (supabase as any).from("li_assessments").select("report_data, analysis_text").eq("id", recordId).single();
-        output = { ...(row?.report_data ?? {}), text: row?.analysis_text ?? "" };
+        const { data: row } = await (supabase as any).from("li_assessments").select("report_data").eq("id", recordId).single();
+        output = { ...(row?.report_data ?? {}) };
         addLog(`✓ Complete`);
 
       } else if (test.toolId === "dpia") {
