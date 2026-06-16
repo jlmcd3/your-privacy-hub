@@ -926,7 +926,8 @@ export default function ADMTChecker() {
 
               {step === 4 && (
                 <>
-                  <h2 className="font-serif text-xl">Step 4 — Access Right Readiness</h2>
+                 <h2 className="font-serif text-xl">Step 4 — Access Right Readiness</h2>
+                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7222 — consumer right to access ADMT information</p>
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     Consumers have the right to request information about your use of ADMT with respect to them (§ 7222). Unlike opt-out, access requests require identity verification. You must respond within 45 days.
