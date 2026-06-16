@@ -13,6 +13,7 @@ import {
   type ToolRunResult,
   CONCURRENCY,
 } from "@/lib/tests/assertionRunner";
+import { supabase } from "@/integrations/supabase/client";
 
 function elapsed(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
