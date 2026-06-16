@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
-import DownloadWordButton from "@/components/DownloadWordButton";
+
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
@@ -99,30 +99,6 @@ const DPIAFrameworkResult = () => {
         assessmentId={dpia?.id}
         pdfUrl={dpia?.pdf_url}
         onGenerated={(url) => setDpia({ ...dpia, pdf_url: url })}
-      />
-      <DownloadWordButton
-        text={[
-          ["Section 1 — Description", [
-            report?.section_1_description?.processing_nature,
-            report?.section_1_description?.processing_scope,
-            report?.section_1_description?.processing_context,
-            report?.section_1_description?.processing_purposes,
-            report?.section_1_description?.legal_basis_proposed,
-          ].filter(Boolean).join("\n")],
-          ["Section 2 — Necessity & Proportionality", [
-            report?.section_2_necessity?.necessity_analysis,
-            report?.section_2_necessity?.proportionality_analysis,
-            report?.section_2_necessity?.alternatives_considered,
-          ].filter(Boolean).join("\n")],
-          ["Section 3 — Risks", report?.section_3_risks?.residual_risk_assessment],
-          ["Section 4 — Mitigation", (report?.section_4_mitigation?.proposed_measures || [])
-            .map((m: any) => m?.measure || m?.description).filter(Boolean).join("\n")],
-          ["Section 6 — Conclusion", report?.section_6_conclusion?.review_schedule],
-        ]
-          .filter(([, body]) => body)
-          .map(([title, body]) => `${title}\n\n${body}`)
-          .join("\n\n")}
-        label="DPIA Framework"
       />
       <Button onClick={() => window.print()} variant="outline" size="sm">Print</Button>
     </>

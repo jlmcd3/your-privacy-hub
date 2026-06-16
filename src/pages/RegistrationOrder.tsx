@@ -12,7 +12,7 @@ import BackLink from "@/components/dashboard/BackLink";
 import { toast } from "sonner";
 import { Loader2, FileText, Download } from "lucide-react";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
-import DownloadWordButton from "@/components/DownloadWordButton";
+
 import CopyButton from "@/components/CopyButton";
 
 const DOC_LABELS: Record<string, string> = {
@@ -201,13 +201,6 @@ function DocRow({ doc }: { doc: any }) {
         </button>
         <div className="flex items-center gap-2">
           {doc.content_text && <CopyButton text={cleanedText} />}
-          {doc.content_text && (
-            <DownloadWordButton
-              text={cleanedText}
-              label={downloadLabel}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-white hover:bg-brand-cloud border border-border rounded-lg transition-colors disabled:opacity-60"
-            />
-          )}
         </div>
       </div>
       {open && (

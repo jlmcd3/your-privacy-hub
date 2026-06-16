@@ -15,7 +15,7 @@ import { Loader2, FileText, ArrowLeft, Download, Mail, Printer, Trash2 } from "l
 import { toast } from "sonner";
 import RegistrationDisclaimer from "@/components/RegistrationDisclaimer";
 import CopyButton from "@/components/CopyButton";
-import DownloadWordButton from "@/components/DownloadWordButton";
+
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { adminDelete } from "@/lib/adminDelete";
@@ -257,13 +257,6 @@ export default function RegistrationDocuments() {
                           }}
                           className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-brand-navy hover:bg-brand-navy/90 border border-brand-navy rounded-lg no-underline transition-colors disabled:opacity-60"
                         />
-                        {selected.content_text && (
-                          <DownloadWordButton
-                            text={cleanMarkdown(selected.content_text)}
-                            label={`${DOC_LABELS[selected.document_type] || selected.document_type}-${selected.jurisdiction_code}`}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-white hover:bg-brand-cloud border border-border rounded-lg transition-colors disabled:opacity-60"
-                          />
-                        )}
                         <Button
                           variant="outline"
                           size="sm"

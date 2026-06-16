@@ -15,7 +15,7 @@ import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
-import DownloadWordButton from "@/components/DownloadWordButton";
+
 import { AnnotationAppendix } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { detectDocumentType } from "@/lib/dpaDocumentType";
@@ -89,7 +89,7 @@ export default function DPAResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
-                <DownloadWordButton text={(translated?.document_text ?? row?.document_text) || ""} label="Custom DPA" />
+                
                 {(translated?.document_text ?? row.document_text) && <CopyButton text={translated?.document_text ?? row.document_text} />}
               </>
             }

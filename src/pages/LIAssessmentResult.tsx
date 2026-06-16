@@ -8,7 +8,7 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
-import DownloadWordButton from "@/components/DownloadWordButton";
+
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
@@ -185,17 +185,6 @@ const LIAssessmentResult = () => {
           onGenerated={(url) => setAssessment({ ...assessment, pdf_url: url })}
         />
       )}
-      <DownloadWordButton
-        text={[
-          report?.three_part_test?.overall_assessment?.summary,
-          report?.three_part_test?.purpose_test?.analysis,
-          report?.three_part_test?.necessity_test?.analysis,
-          report?.three_part_test?.balancing_test?.analysis,
-        ]
-          .filter(Boolean)
-          .join("\n\n")}
-        label="Legitimate Interest Assessment"
-      />
     </>
   );
 

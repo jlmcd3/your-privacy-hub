@@ -15,7 +15,7 @@ import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
-import DownloadWordButton from "@/components/DownloadWordButton";
+
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 
@@ -93,7 +93,7 @@ export default function IRPlaybookResult() {
                   pdfUrl={row.pdf_url}
                   onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 />
-                <DownloadWordButton text={(translated?.playbook_text ?? row?.playbook_text) || ""} label="Incident Response Playbook" />
+                
                 {(translated?.playbook_text ?? row.playbook_text) && <CopyButton text={translated?.playbook_text ?? row.playbook_text} />}
               </>
             }
