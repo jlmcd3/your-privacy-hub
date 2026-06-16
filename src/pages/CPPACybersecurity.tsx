@@ -146,6 +146,7 @@ export default function CPPACybersecurity() {
         <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7122(a). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
         <section className="bg-card border rounded-lg p-6 space-y-4">
           <h2 className="">Organisation Profile</h2>
+          <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7122(a) — cybersecurity audit programme scope; § 7122(b) — certification requirement</p>
           <RequiredLegend />
           <div>
             <Label>Industry sector<Req /></Label>
