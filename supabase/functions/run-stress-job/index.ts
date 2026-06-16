@@ -286,11 +286,25 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       }).select("id").single();
       if (sErr || !session) throw new Error(`us-notice session: ${sErr?.message}`);
       try {
-        await admin.from("us_notice_state_selections").insert([
+        // Slot derived from company_id char-sum so coverage varies across the batch.
+        const slot = ((job.company_id ?? "").toString()
+          .split("").reduce((a: number, c: string) => a + c.charCodeAt(0), 0)) % 2 === 0 ? 1 : 2;
+        const core = [
           { session_id: session.id, state_code: "CA", state_name: "California", framework_type: "ccpa" },
           { session_id: session.id, state_code: "VA", state_name: "Virginia", framework_type: "virginia_model" },
           { session_id: session.id, state_code: "TX", state_name: "Texas", framework_type: "virginia_model" },
-        ]);
+        ];
+        const slot1Extra = [
+          { session_id: session.id, state_code: "CO", state_name: "Colorado", framework_type: "virginia_model" },
+          { session_id: session.id, state_code: "CT", state_name: "Connecticut", framework_type: "virginia_model" },
+        ];
+        const slot2Extra = [
+          { session_id: session.id, state_code: "OR", state_name: "Oregon", framework_type: "virginia_model" },
+          { session_id: session.id, state_code: "MT", state_name: "Montana", framework_type: "virginia_model" },
+        ];
+        await admin.from("us_notice_state_selections").insert(
+          slot === 1 ? [...core, ...slot1Extra] : [...core, ...slot2Extra],
+        );
       } catch (e) {
         console.warn("[run-stress-job] us_notice_state_selections insert failed:", e);
       }
