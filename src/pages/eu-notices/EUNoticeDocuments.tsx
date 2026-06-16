@@ -23,7 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RelatedToolsChips } from "@/components/cross-tool/CrossToolPrompts";
-import DownloadWordButton from "@/components/DownloadWordButton";
+
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 interface DocRow {
@@ -302,13 +302,6 @@ export default function EUNoticeDocuments() {
             {preview?.text}
           </div>
           <DialogFooter className="gap-2 sm:gap-2">
-            {preview && (
-              <DownloadWordButton
-                text={preview.text}
-                label={labelForDoc(preview.doc)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold rounded-lg border bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60"
-              />
-            )}
             <Button variant="outline" size="sm" onClick={() => setPreview(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>

@@ -8,7 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout, AnnotationAppendix } from "@/components/AnnotationCallout";
-import DownloadWordButton from "@/components/DownloadWordButton";
+
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { AdminOnly } from "@/components/AdminOnly";
 import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
@@ -507,22 +507,6 @@ export default function CPPARiskAssessmentResult() {
                 onGenerated={(url) => setRow({ ...row, pdf_url: url })}
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
               />
-              <DownloadWordButton
-                text={isV3
-                  ? buildV3Text(report)
-                  : [
-                      report?.executive_summary,
-                      ...(Array.isArray(report?.domains)
-                        ? report.domains
-                            .filter(hasUserFacingFinding)
-                            .map((d: any) =>
-                              `${d.domain}\nStatus: ${d.status ?? ""}\n${d.finding}\n${d.remediation ?? ""}`)
-                        : [])
-                    ].filter(Boolean).join("\n\n")}
-                label="CPPA Risk Assessment"
-                buttonLabel="Download Word — Risk Assessment"
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
-              />
 
               {/* Sprint 1 #2 — Regulator-Rationale Memo */}
               {Array.isArray(report?.fsor_commentary) && report.fsor_commentary.length > 0 && (() => {
@@ -560,17 +544,7 @@ export default function CPPARiskAssessmentResult() {
                   if (f.source_url) memoLines.push(`Source: ${f.source_url}`);
                   memoLines.push("");
                 }
-                return (
-                  <AdminOnly>
-                    <DownloadWordButton
-                      text={memoLines.join("\n")}
-                      label="Regulator Rationale Memo"
-                      subtitle="CPPA Risk Assessment — FSOR Appendix"
-                      buttonLabel="Download Word — Regulator Memo (admin)"
-                      className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg transition-colors disabled:opacity-60"
-                    />
-                  </AdminOnly>
-                );
+                return null;
               })()}
 
               <Button asChild variant="outline"><Link to="/cppa-risk-assessment">Run New Assessment</Link></Button>

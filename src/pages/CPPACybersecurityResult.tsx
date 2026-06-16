@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
-import DownloadWordButton from "@/components/DownloadWordButton";
+
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
@@ -499,14 +499,6 @@ export default function CPPACybersecurityResult() {
         assessmentId={row.id}
         pdfUrl={row.pdf_url}
         onGenerated={(url) => setRow({ ...row, pdf_url: url })}
-      />
-      <DownloadWordButton
-        text={[
-          viewRow?.report_data?.executive_summary,
-          ...(Array.isArray(viewRow?.report_data?.controls) ? viewRow.report_data.controls.map((c: any) =>
-            `${c.control}\nStatus: ${c.status ?? ""}\n${c.finding ?? ""}\n${c.remediation ?? ""}`) : [])
-        ].filter(Boolean).join("\n\n")}
-        label="CPPA Cybersecurity Readiness"
       />
       <Button asChild variant="outline" size="sm"><Link to="/cppa-cybersecurity">Run New Assessment</Link></Button>
     </>

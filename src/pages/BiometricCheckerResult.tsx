@@ -14,7 +14,7 @@ import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
-import DownloadWordButton from "@/components/DownloadWordButton";
+
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
@@ -76,10 +76,6 @@ export default function BiometricCheckerResult() {
         assessmentId={row.id}
         pdfUrl={row.pdf_url}
         onGenerated={(url) => setRow({ ...row, pdf_url: url })}
-      />
-      <DownloadWordButton
-        text={text || ""}
-        label="Biometric Compliance Assessment"
       />
       {text && <CopyButton text={text} />}
     </>

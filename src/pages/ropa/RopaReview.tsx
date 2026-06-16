@@ -15,7 +15,7 @@ import SessionCheckoutModal from "@/components/SessionCheckoutModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import RopaSetup from "./RopaSetup";
 
-type GenStep = "client" | "activities" | "transfers" | "pdf" | "docx" | "xlsx";
+type GenStep = "client" | "activities" | "transfers" | "pdf" | "xlsx";
 
 const SUPA = supabase as any;
 
@@ -55,7 +55,7 @@ export default function RopaReview() {
   const [docDate, setDocDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [authorName, setAuthorName] = useState("");
   const [internalRef, setInternalRef] = useState("");
-  const [includeWord] = useState(false);
+  
   const [includeExcel] = useState(true);
 
   const [acknowledged, setAcknowledged] = useState(false);
@@ -68,7 +68,6 @@ export default function RopaReview() {
     activities: "pending",
     transfers: "pending",
     pdf: "pending",
-    docx: "pending",
     xlsx: "pending",
   });
 
@@ -174,7 +173,6 @@ export default function RopaReview() {
     if (!sessionId) return;
     setGenerating(true);
     const updates: GenStep[] = ["client", "activities", "transfers", "pdf"];
-    if (includeWord) updates.push("docx");
     if (includeExcel) updates.push("xlsx");
 
     // Tick steps optimistically while we wait for the edge function
@@ -194,7 +192,6 @@ export default function RopaReview() {
           document_date: docDate,
           author_name: authorName,
           internal_reference: internalRef || null,
-          include_word: includeWord,
           include_excel: includeExcel,
         },
       });
@@ -239,7 +236,6 @@ export default function RopaReview() {
         activities: "done",
         transfers: "done",
         pdf: "done",
-        docx: includeWord ? "done" : "pending",
         xlsx: includeExcel ? "done" : "pending",
       });
       setTimeout(
@@ -503,7 +499,6 @@ export default function RopaReview() {
               <GenStepRow done={genSteps.activities === "done"} label={`${allActivities.length} processing activities`} />
               <GenStepRow done={genSteps.transfers === "done"} label="Cross-border transfer register" />
               <GenStepRow done={genSteps.pdf === "done"} label="Generating PDF" pending={genSteps.pdf !== "done"} />
-              {includeWord && <GenStepRow done={genSteps.docx === "done"} label="Generating Word document" pending={genSteps.docx !== "done"} />}
               {includeExcel && <GenStepRow done={genSteps.xlsx === "done"} label="Generating Excel worksheet" pending={genSteps.xlsx !== "done"} />}
             </ul>
           </div>

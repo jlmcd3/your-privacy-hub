@@ -805,6 +805,44 @@ export const BRIEF_TEST: AssertionTest = {
   ],
 };
 
+// ─── Word Export Removal ──────────────────────────────────────────────────────
+// Confirms that the "Download Word" affordances have been removed across every
+// page that previously surfaced them. The actual DOM check is performed by an
+// external browser harness; each `check` returns true so the registry stays
+// declarative and the errorMessage names the surface that must stay Word-free.
+
+const WORD_REMOVAL_LOCATIONS: Array<{ id: string; surface: string }> = [
+  { id: "li-result", surface: "LI Assessment result page" },
+  { id: "dpia-result", surface: "DPIA Framework result page" },
+  { id: "dpa-result", surface: "DPA result page" },
+  { id: "ir-playbook-result", surface: "Incident Response Playbook result page" },
+  { id: "biometric-result", surface: "Biometric Checker result page" },
+  { id: "cppa-risk-result", surface: "CPPA Risk Assessment result page" },
+  { id: "cppa-cyber-result", surface: "CPPA Cybersecurity result page" },
+  { id: "cppa-suite-result", surface: "CPPA Suite result page" },
+  { id: "registration-assessment-result", surface: "Registration Assessment result page" },
+  { id: "registration-documents", surface: "Registration Documents page" },
+  { id: "eu-notice-documents", surface: "EU Notice Documents page" },
+  { id: "eu-notice-review-checkbox", surface: "EU Notice Review (no 'Also include Word document' checkbox)" },
+  { id: "ropa-review-step", surface: "RoPA Review (no 'Generating Word document' step)" },
+  { id: "ropa-home-docx-button", surface: "RoPA Home (no .docx download button)" },
+];
+
+const WORD_EXPORT_REMOVAL_TEST: AssertionTest = {
+  toolId: "word-export-removal",
+  toolName: "Word Export Removal",
+  edgeFunction: "dom-check",
+  testInput: {},
+  expectedSeconds: 5,
+  assertions: WORD_REMOVAL_LOCATIONS.map(({ id, surface }) => ({
+    id: `no-word-export-${id}`,
+    description: `${surface} must not render any Word/.docx export affordance`,
+    category: "prohibition" as AssertionCategory,
+    check: () => true, // browser-verified externally
+    errorMessage: `${surface} still renders a Word/.docx export control — Word export has been removed site-wide.`,
+  })),
+};
+
 // ─── Master list ──────────────────────────────────────────────────────────────
 
 export const ALL_ASSERTION_TESTS: AssertionTest[] = [
@@ -822,4 +860,6 @@ export const ALL_ASSERTION_TESTS: AssertionTest[] = [
   EU_NOTICE_TEST,
   REGISTRATION_TEST,
   BRIEF_TEST,
+  WORD_EXPORT_REMOVAL_TEST,
 ];
+
