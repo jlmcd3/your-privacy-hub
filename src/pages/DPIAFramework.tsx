@@ -120,6 +120,11 @@ const DPIAFramework = () => {
     setActiveRailField(field);
   };
 
+  const dpiaEnforcementSignals = useGdprEnforcementSignals(
+    ["special_categories", "dpia_absence", "international_transfer"],
+    guidanceTier.tier === "paid"
+  );
+
   // DPIA mandatory trigger detection — Art. 35(3), visible to all users
   const dpiaTriggers = useMemo(() => {
     const SPECIAL = ["Health / medical data", "Biometric data", "Genetic data"];
