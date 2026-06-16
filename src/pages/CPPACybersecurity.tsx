@@ -86,6 +86,8 @@ export default function CPPACybersecurity() {
   const activeCyberRailEntry: RailEntry | null = activeCyberRailKey ? (CPPA_CYBER_RAIL[activeCyberRailKey] ?? null) : null;
   const focusRail = (key: string) => setActiveCyberRailKey(key);
 
+  const cyberEnforcementSignals = useEnforcementSignals(["authentication", "vulnerability", "incident_response"]);
+
   const allComplete = useMemo(
     () => CONTROLS.every((c) => maturity[c.key]) && profile.industry && profile.incidents_12mo && profile.framework && profile.last_audit,
     [maturity, profile]
