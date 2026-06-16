@@ -14,7 +14,7 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
-import GuidedRail from "@/components/GuidedRail";
+import StatuteRail from "@/components/admt/StatuteRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
@@ -71,7 +71,7 @@ const LIAssessmentIntake = () => {
   // GuidedRail — tier-gated GDPR regulation reference
   const guidanceTier = useGuidanceTier();
   const [activeRailSection, setActiveRailSection] = useState<"purpose" | "necessity" | "balancing" | null>(null);
-  const [railPromptTriggered, setRailPromptTriggered] = useState(false);
+  
 
   const liaRailOpts = activeRailSection ? {
     article: "6",
@@ -95,15 +95,9 @@ const LIAssessmentIntake = () => {
     ],
   } : null;
 
-  const { entry: liaRailEntry } = useGdprRailEntry(
-    guidanceTier.tier !== "anonymous" ? liaRailOpts : null
-  );
+  const { entry: liaRailEntry } = useGdprRailEntry(liaRailOpts);
 
   const handleRailFocus = (section: "purpose" | "necessity" | "balancing") => {
-    if (guidanceTier.tier === "anonymous") {
-      setRailPromptTriggered(true);
-      return;
-    }
     setActiveRailSection(section);
   };
 
