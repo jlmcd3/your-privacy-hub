@@ -120,6 +120,40 @@ export default function CPPAScopeChecker() {
     };
   }, [q1, q2, q3, q4, q5, q6, q7, q8]);
 
+  // Live footprint — lights up as user answers, before submission.
+  const liveFootprint = useMemo(() => {
+    const items: { citation: string; label: string; triggered: boolean }[] = [
+      {
+        citation: "Cal. Civ. Code §§ 1798.100–1798.135",
+        label: "CCPA/CPRA consumer rights obligations apply",
+        triggered: (q1 === "Yes" || q1 === "Unsure") &&
+          (["$25M–$100M", "$100M–$500M", "Over $500M", "Unsure"].includes(q2) ||
+            ["100,000–1 million", "Over 1 million", "Unsure"].includes(q3)),
+      },
+      {
+        citation: "11 CCR § 7150(b)(1)",
+        label: "Risk assessment required — sell/share of PI",
+        triggered: ["Yes — we sell PI", "Yes — we share for targeted/behavioural advertising", "Both"].includes(q4),
+      },
+      {
+        citation: "11 CCR § 7152(a)(5)",
+        label: "Sensitive PI handling obligations apply",
+        triggered: q6 === "Yes" || q6 === "Unsure",
+      },
+      {
+        citation: "11 CCR §§ 7001(e), 7150(b)(3)",
+        label: "ADMT disclosure and opt-out required — January 1, 2027",
+        triggered: ["Yes", "In evaluation", "Unsure"].includes(q7),
+      },
+      {
+        citation: "11 CCR § 7122(a)",
+        label: "Cybersecurity audit required — April 1, 2028",
+        triggered: ["$100M–$500M", "Over $500M"].includes(q2),
+      },
+    ];
+    return items.filter((i) => i.triggered);
+  }, [q1, q2, q3, q4, q6, q7]);
+
   const handleCheck = () => {
     setShowResults(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
