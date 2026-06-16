@@ -201,7 +201,7 @@ export default function Account() {
               {PRICING.professional.annual.display}/yr · {PRICING.professional.perClient.display}/additional client
             </p>
             <p className="text-[12px] text-slate mt-1">
-              Client workspaces, RoPA + Notice Builders + IR Playbook + Biometric + DPA Generator included, plus 1 free Smart Tool run per year.
+              Client workspaces, RoPA + Notice Builders + IR Playbook + Biometric + DPA Generator included, plus 3 free Smart Tool runs per year (annual plan).
             </p>
           </div>
         )}
