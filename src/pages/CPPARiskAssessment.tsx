@@ -783,6 +783,7 @@ export default function CPPARiskAssessment() {
               <div onFocus={() => focusRail('i9_dpia')}>
                 <Label>I-9: Is there an existing GDPR DPIA (or other PIA) for this activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
                 <div className="mt-2"><Radio name="i9" options={["Yes", "No"]} value={i9HasDpia} onChange={setI9HasDpia} /></div>
+                <FscrCallout citation="11 CCR § 7156(b)" callouts={fscrCallouts} />
                 {i9HasDpia === "Yes" && (
                   <Textarea
                     className="mt-2"
