@@ -61,3 +61,29 @@ export async function getAvailableAnnualCredit(
   }
   return { hasCredit: true, creditId: data.id, cycleStart: data.cycle_start };
 }
+
+/**
+ * Count unredeemed annual credits available to a user (optionally scoped to a
+ * client). Used by tool intake pages so Professional annual subscribers see
+ * "3 free Smart Tool runs available" instead of "1".
+ */
+export async function countAvailableAnnualCredits(
+  userId:    string,
+  clientId?: string | null,
+): Promise<number> {
+  let q = supabase
+    .from('annual_tool_credits')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .is('redeemed_at', null);
+
+  if (clientId) {
+    q = q.eq('client_id', clientId);
+  } else {
+    q = q.is('client_id', null);
+  }
+
+  const { count, error } = await q;
+  if (error) return 0;
+  return count ?? 0;
+}
