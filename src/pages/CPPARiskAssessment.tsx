@@ -102,14 +102,34 @@ const RETENTION_CRITERIA = [
 ];
 
 
-const Pills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
+const Pills = ({ options, value, onChange, sensitiveSet }: {
+  options: string[];
+  value: string[];
+  onChange: (v: string[]) => void;
+  sensitiveSet?: Set<string>;
+}) => (
   <div className="flex flex-wrap gap-2">
     {options.map((opt) => {
       const checked = value.includes(opt);
+      const isSensitive = sensitiveSet?.has(opt) ?? false;
       return (
-        <button key={opt} type="button" onClick={() => onChange(checked ? value.filter((v) => v !== opt) : [...value, opt])}
-          className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${checked ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted border-input"}`}>
+        <button
+          key={opt}
+          type="button"
+          onClick={() => onChange(checked ? value.filter((v) => v !== opt) : [...value, opt])}
+          title={isSensitive ? "Sensitive PI under Cal. Civ. Code § 1798.140(ae) — triggers additional obligations" : undefined}
+          className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+            checked
+              ? isSensitive
+                ? "bg-red-600 text-white border-red-600"
+                : "bg-primary text-primary-foreground border-primary"
+              : isSensitive
+              ? "bg-background hover:bg-red-50 border-red-300 text-red-700"
+              : "bg-background hover:bg-muted border-input"
+          }`}
+        >
           {opt}
+          {isSensitive && <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide opacity-80">Sensitive</span>}
         </button>
       );
     })}
