@@ -485,7 +485,7 @@ export default function CPPARiskAssessment() {
                   <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
-              <div>
+              <div onFocus={() => focusRail('q4_pi_categories')}>
                 <Label>Q4: Categories of personal information processed <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(2))</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">Categories marked <span className="text-red-600 font-semibold">Sensitive</span> trigger additional obligations under Cal. Civ. Code § 1798.140(ae) and will auto-advance Q15.</p>
                 <div className="mt-2">
