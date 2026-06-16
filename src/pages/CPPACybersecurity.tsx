@@ -178,6 +178,7 @@ export default function CPPACybersecurity() {
         <section className="bg-card border rounded-lg p-6 space-y-6">
           <div>
             <h2 className="">18 Cybersecurity Programme Components</h2>
+            <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7122(a)(1)–(18) — enumerated programme components</p>
             <p className="text-sm text-muted-foreground mt-1">Rate each control against the CPPA's enumerated programme components.</p>
           </div>
 
