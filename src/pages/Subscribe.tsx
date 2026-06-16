@@ -228,39 +228,6 @@ const Subscribe = () => {
         </div>
       </div>
 
-      {/* Smart Tools / Convenience Tools explainer */}
-      <div className="max-w-3xl mx-auto px-4 mt-8">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
-          <h3 className="text-slate-700 mb-3">
-            About our compliance tools
-          </h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 text-sm text-slate-600">
-            <div>
-              <p className="font-semibold text-slate-800 mb-1">Smart Tools</p>
-              <p>
-                Multi-stage assessments calibrated against 3,700+ enforcement
-                decisions. Methodology reviewed by qualified privacy counsel.
-                Cannot be replicated by prompting a general AI.
-              </p>
-              <p className="mt-2 text-xs text-slate-500">
-                Governance Assessment · LIA · DPIA · CPPA Risk ·
-                CPPA Cybersecurity · DPA Generator · Biometric Check
-              </p>
-            </div>
-            <div>
-              <p className="font-semibold text-slate-800 mb-1">Included with any subscription</p>
-              <p>
-                Jurisdiction-specific document generators bundled into every
-                paid plan — Intelligence or Professional, monthly or annual.
-              </p>
-              <p className="mt-2 text-xs text-slate-500">
-                RoPA Builder · US Notice Builder · EU/Global Notice Builder ·
-                IR Playbook · Biometric Checker · DPA Generator
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Registration Manager mention */}
       <div className="bg-white border-b border-brand-cloud py-4 px-4 mt-6">
