@@ -451,7 +451,8 @@ export default function ADMTChecker() {
 
               {step === 1 && (
                 <>
-                  <h2 className="font-serif text-xl">Step 1 — ADMT System Inventory</h2>
+                 <h2 className="font-serif text-xl">Step 1 — ADMT System Inventory</h2>
+                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR §§ 7001(e), 7001(ddd), 7200(a) — ADMT and significant decision definitions</p>
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     Complete one assessment per ADMT system. If you use multiple ADMT systems for significant decisions, run the checker once per system. Each system requires its own pre-use notice, opt-out mechanism, and access right process.
@@ -615,7 +616,8 @@ export default function ADMTChecker() {
 
               {step === 2 && (
                 <>
-                  <h2 className="font-serif text-xl">Step 2 — Pre-Use Notice Assessment</h2>
+                 <h2 className="font-serif text-xl">Step 2 — Pre-Use Notice Assessment</h2>
+                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR §§ 7220(b)–(c) — pre-use notice timing and required content</p>
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     The Pre-use Notice must be provided prominently at or before the point you collect PI for ADMT use (§ 7220(b)). If you've already collected the PI for another purpose and now plan to use ADMT, you must provide the notice before starting ADMT processing.
@@ -755,7 +757,8 @@ export default function ADMTChecker() {
 
               {step === 3 && (
                 <>
-                  <h2 className="font-serif text-xl">Step 3 — Opt-Out Mechanism</h2>
+                 <h2 className="font-serif text-xl">Step 3 — Opt-Out Mechanism</h2>
+                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7221 — opt-out right, exceptions, methods, and timing</p>
                   <RequiredLegend />
 
                   <div>
@@ -923,7 +926,8 @@ export default function ADMTChecker() {
 
               {step === 4 && (
                 <>
-                  <h2 className="font-serif text-xl">Step 4 — Access Right Readiness</h2>
+                 <h2 className="font-serif text-xl">Step 4 — Access Right Readiness</h2>
+                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7222 — consumer right to access ADMT information</p>
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     Consumers have the right to request information about your use of ADMT with respect to them (§ 7222). Unlike opt-out, access requests require identity verification. You must respond within 45 days.

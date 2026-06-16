@@ -27,6 +27,13 @@ import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
 import { useToolDraft } from "@/hooks/useToolDraft";
+import StatuteRail from "@/components/admt/StatuteRail";
+import { CPPA_RISK_RAIL } from "@/components/cppa/CPPARiskRailEntries";
+import type { RailEntry } from "@/components/admt/StatuteRail";
+import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
+import { useFscrCallouts } from "@/hooks/useFscrCallouts";
+import { FscrCallout } from "@/components/FscrCallout";
 
 function formatRelativeTime(d: Date): string {
   const s = Math.round((Date.now() - d.getTime()) / 1000);
@@ -59,6 +66,19 @@ const PI_CATEGORIES = [
   "Other",
 ];
 
+// Categories that are sensitive PI under Cal. Civ. Code § 1798.140(ae).
+// These trigger additional obligations (Q15 follow-ups, § 7152(a)(5) harm categories).
+const SENSITIVE_PI_CATEGORIES = new Set([
+  "Health or medical information",
+  "Biometric information",
+  "Genetic data",
+  "Racial or ethnic origin",
+  "Religious or philosophical beliefs",
+  "Union membership",
+  "Sexual orientation or gender identity",
+  "Children's data (under 16)",
+]);
+
 // I-3: California-consumer count band (§ 4D).
 const CA_CONSUMER_BAND = [
   "Fewer than 10,000",
@@ -89,14 +109,34 @@ const RETENTION_CRITERIA = [
 ];
 
 
-const Pills = ({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) => (
+const Pills = ({ options, value, onChange, sensitiveSet }: {
+  options: string[];
+  value: string[];
+  onChange: (v: string[]) => void;
+  sensitiveSet?: Set<string>;
+}) => (
   <div className="flex flex-wrap gap-2">
     {options.map((opt) => {
       const checked = value.includes(opt);
+      const isSensitive = sensitiveSet?.has(opt) ?? false;
       return (
-        <button key={opt} type="button" onClick={() => onChange(checked ? value.filter((v) => v !== opt) : [...value, opt])}
-          className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${checked ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted border-input"}`}>
+        <button
+          key={opt}
+          type="button"
+          onClick={() => onChange(checked ? value.filter((v) => v !== opt) : [...value, opt])}
+          title={isSensitive ? "Sensitive PI under Cal. Civ. Code § 1798.140(ae) — triggers additional obligations" : undefined}
+          className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+            checked
+              ? isSensitive
+                ? "bg-red-600 text-white border-red-600"
+                : "bg-primary text-primary-foreground border-primary"
+              : isSensitive
+              ? "bg-background hover:bg-red-50 border-red-300 text-red-700"
+              : "bg-background hover:bg-muted border-input"
+          }`}
+        >
           {opt}
+          {isSensitive && <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide opacity-80">Sensitive</span>}
         </button>
       );
     })}
@@ -186,6 +226,57 @@ export default function CPPARiskAssessment() {
   // ADMT trigger fires when § 7150(b)(3) or (b)(6) implicated.
   // From Step 5: q18 === "Yes".
   const admtTriggered = q18 === "Yes" || q18 === "In evaluation";
+
+  const [activeRiskRailKey, setActiveRiskRailKey] = useState<string | null>(null);
+  const activeRiskRailEntry: RailEntry | null = activeRiskRailKey ? (CPPA_RISK_RAIL[activeRiskRailKey] ?? null) : null;
+  const focusRail = (key: string) => setActiveRiskRailKey(key);
+
+  const enforcementSignals = useEnforcementSignals(["sell_share", "opt_out_link", "sensitive_pi"]);
+
+  const fscrCallouts = useFscrCallouts([
+    "11 CCR § 7152(a)(1)",
+    "11 CCR § 7152(a)(3)(G)",
+    "11 CCR § 7156(b)",
+  ]);
+
+  // Regulatory footprint — derived deterministically from current answers.
+  // Updates in real time as the user fills in the form.
+  const regulatoryFootprint = useMemo(() => {
+    const items: { citation: string; label: string; triggered: boolean; note?: string }[] = [
+      {
+        citation: "11 CCR § 7150(b)(1)",
+        label: "Risk assessment required — sell/share activities",
+        triggered: ["Yes — sell only", "Yes — share for advertising only", "Both"].includes(q5),
+      },
+      {
+        citation: "11 CCR § 7150(b)(2)",
+        label: "Risk assessment required — sensitive PI processing",
+        triggered: q15 === "Yes" || q4.some((c) => SENSITIVE_PI_CATEGORIES.has(c)),
+      },
+      {
+        citation: "11 CCR §§ 7150(b)(3), 7150(b)(6)",
+        label: "Risk assessment required — ADMT use",
+        triggered: q18 === "Yes" || q18 === "In evaluation",
+      },
+      {
+        citation: "11 CCR § 7122(a)",
+        label: "Cybersecurity audit may be required (Module 2)",
+        triggered: ["$100M–$500M", "Over $500M"].includes(q1),
+        note: "April 1, 2028 deadline for revenue > $100M",
+      },
+      {
+        citation: "Cal. Civ. Code §§ 1798.120, 1798.135(a)",
+        label: "Do Not Sell or Share link required",
+        triggered: ["Yes — sell only", "Yes — share for advertising only", "Both"].includes(q5),
+      },
+      {
+        citation: "Cal. Civ. Code § 1798.140(ae)",
+        label: "Sensitive PI limit right must be offered",
+        triggered: q15 === "Yes",
+      },
+    ];
+    return items.filter((i) => i.triggered);
+  }, [q1, q4, q5, q15, q18]);
 
   const stepValid = (): string | null => {
     if (step === 1 && (!q1 || !q2 || !q3 || !q4.length || !q5)) return "Please complete the business profile.";
@@ -392,20 +483,37 @@ export default function CPPARiskAssessment() {
         )}
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
-        <div className="bg-card border rounded-lg p-6 space-y-6">
+        <div className="flex gap-6 items-start">
+        <div className="flex-1 min-w-0 bg-card border rounded-lg p-6 space-y-6">
           {step === 1 && (
             <>
               <h2>Step 1 — Business Profile</h2>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code § 1798.140(ag) — CCPA/CPRA business definition and applicability thresholds</p>
               <RequiredLegend />
-              <div><Label>Q1: Annual gross revenue <Req /></Label><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
-              <div><Label>Q2: Number of California consumers whose PI you process annually <Req /></Label><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
-              <div><Label>Q3: Primary business sector <Req /></Label>
+              <div onFocus={() => focusRail('q1_revenue')}><Label>Q1: Annual gross revenue <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
+              <div onFocus={() => focusRail('q2_consumers')}><Label>Q2: Number of California consumers whose PI you process annually <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
+              <div onFocus={() => focusRail('q3_sector')}><Label>Q3: Primary business sector <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
                 <select value={q3} onChange={(e) => setQ3(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
-              <div><Label>Q4: Categories of personal information processed <Req /></Label><div className="mt-2"><Pills options={PI_CATEGORIES} value={q4} onChange={setQ4} /></div></div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /></div>
+              <div onFocus={() => focusRail('q4_pi_categories')}>
+                <Label>Q4: Categories of personal information processed <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(2))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Categories marked <span className="text-red-600 font-semibold">Sensitive</span> trigger additional obligations under Cal. Civ. Code § 1798.140(ae) and will auto-advance Q15.</p>
+                <div className="mt-2">
+                  <Pills
+                    options={PI_CATEGORIES}
+                    value={q4}
+                    sensitiveSet={SENSITIVE_PI_CATEGORIES}
+                    onChange={(v) => {
+                      setQ4(v);
+                      const hasSensitive = v.some((cat) => SENSITIVE_PI_CATEGORIES.has(cat));
+                      if (hasSensitive && q15 === "") setQ15("Yes");
+                    }}
+                  />
+                </div>
+              </div>
+              <div onFocus={() => focusRail('q5_sell_share')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /><EnforcementSignalIcon signalKey="sell_share" signals={enforcementSignals} /></div>
                 <div className="mt-2"><Radio name="q5" options={["Yes — sell only", "Yes — share for advertising only", "Both", "No"]} value={q5} onChange={setQ5} /></div>
               </div>
             </>
@@ -414,6 +522,7 @@ export default function CPPARiskAssessment() {
           {step === 2 && (
             <>
               <h2>Step 2 — Consumer Rights Infrastructure</h2>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code §§ 1798.100–1798.135 — consumer rights obligations</p>
               <RequiredLegend />
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q6: Right to Know / Access mechanism <Req /></Label><DefPopover termKey="right_to_know" /></div>
@@ -439,27 +548,29 @@ export default function CPPARiskAssessment() {
               </div>
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q7: Right to Deletion mechanism <Req /></Label><DefPopover termKey="right_to_delete" /></div><div className="mt-2"><Radio name="q7" options={["Automated deletion with confirmation", "Manual process, documented", "Case-by-case handling", "No formal process"]} value={q7} onChange={setQ7} /></div></div>
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q8: Right to Correction mechanism <Req /></Label><DefPopover termKey="right_to_correct" /></div><div className="mt-2"><Radio name="q8" options={["Online self-service", "Handled via support", "No formal process"]} value={q8} onChange={setQ8} /></div></div>
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q9: Right to Opt-Out — do you have a "Do Not Sell or Share" link? <Req /></Label><DefPopover termKey="right_to_opt_out" /></div><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
-              <div><Label>Q10: Identity verification for rights requests <Req /></Label><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
+              <div onFocus={() => focusRail('q9_opt_out')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q9: Right to Opt-Out — do you have a "Do Not Sell or Share" link? <Req /></Label><DefPopover termKey="right_to_opt_out" /><EnforcementSignalIcon signalKey="opt_out_link" signals={enforcementSignals} /></div><div className="mt-2"><Radio name="q9" options={["Yes, prominently on homepage", "Yes, but in footer only", "In progress", "No"]} value={q9} onChange={setQ9} /></div></div>
+              <div onFocus={() => focusRail('q10_verification')}><Label>Q10: Identity verification for rights requests <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7060–7062)</span></Label><div className="mt-2"><Radio name="q10" options={["Documented verification process matching CPPA guidance", "Informal verification", "No verification process"]} value={q10} onChange={setQ10} /></div></div>
             </>
           )}
 
           {step === 3 && (
             <>
               <h2>Step 3 — Privacy Notices</h2>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code §§ 1798.100(a), 1798.130; 11 CCR § 7003 — notice requirements</p>
               <RequiredLegend />
-              <div><Label>Q11: Privacy policy last reviewed/updated <Req /></Label><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div></div>
-              <div><Label>Q12: Notice at Collection (displayed before or at time of data collection) <Req /></Label><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>
+              <div><Label>Q11: Privacy policy last reviewed/updated <Req /> <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.130(a)(5))</span></Label><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div></div>
+              <div><Label>Q12: Notice at Collection (displayed before or at time of data collection) <Req /> <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.100(a))</span></Label><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q13: Do your notices include the categories of PI collected, the purpose, and the right to opt-out? <Req /></Label><DefPopover termKey="notice_at_collection" /></div><div className="mt-2"><Radio name="q13" options={["Yes, all three", "Some elements", "No"]} value={q13} onChange={setQ13} /></div></div>
-              <div><Label>Q14: For employees/job applicants — do you provide a separate California-specific notice? <Req /></Label><div className="mt-2"><Radio name="q14" options={["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"]} value={q14} onChange={setQ14} /></div></div>
+              <div><Label>Q14: For employees/job applicants — do you provide a separate California-specific notice? <Req /> <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.100(a))</span></Label><div className="mt-2"><Radio name="q14" options={["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"]} value={q14} onChange={setQ14} /></div></div>
             </>
           )}
 
           {step === 4 && (
             <>
               <h2>Step 4 — Sensitive Personal Information</h2>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code § 1798.140(ae); 11 CCR § 7152(a)(5) — sensitive PI definition and obligations</p>
               <RequiredLegend />
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /></div><div className="mt-2"><Radio name="q15" options={["Yes", "No", "Unsure"]} value={q15} onChange={setQ15} /></div></div>
+              <div onFocus={() => focusRail('q15_sensitive_pi')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q15: Do you process any sensitive PI? <Req /></Label><DefPopover termKey="sensitive_pi" /><EnforcementSignalIcon signalKey="sensitive_pi" signals={enforcementSignals} /></div><div className="mt-2"><Radio name="q15" options={["Yes", "No", "Unsure"]} value={q15} onChange={setQ15} /></div></div>
               {q15 === "Yes" && (<>
                 <div><Label>Q16: Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
                 <div><Label>Q17: What is your legal basis for processing sensitive PI? <Req /></Label><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
@@ -470,8 +581,9 @@ export default function CPPARiskAssessment() {
           {step === 5 && (
             <>
               <div className="inline-flex items-center gap-1.5 flex-wrap"><h2>Step 5 — Automated Decision-Making Technology (ADMT)</h2><DefPopover termKey="admt" /></div>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7001(e), 7001(ddd), 7150(b)(3), 7150(b)(6) — ADMT definition and risk assessment triggers</p>
               <RequiredLegend />
-              <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /></div><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
+              <div onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
                 <div><Label>Q19: Describe the ADMT system and its decisions <Req /></Label>
                   <Textarea value={q19} onChange={(e) => setQ19(e.target.value)} rows={3} placeholder="E.g. Credit scoring algorithm, automated fraud detection, hiring screening software…" className="mt-2" />
@@ -488,12 +600,13 @@ export default function CPPARiskAssessment() {
           {step === 6 && (
             <>
               <h2>Step 6 — Risk Assessment Specifics</h2>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7152(a)(1)–(9), 7156(b), 7157 — mandatory risk assessment content requirements</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">
                 These questions feed § 7152(a)(1)–(9) Part A and the § 7157 Annual Submission Worksheet. Fields left blank in the generated report will be marked as fill-ins for your team to complete in the review pane before executive sign-off.
               </p>
 
-              <div>
+              <div onFocus={() => focusRail('i1_purpose')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-1: Specific processing purpose <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(1))</span></Label><StatutePopover term="I-1 · Specific purpose" summary="The assessment must state the specific purpose of the processing; generic purposes such as 'improving services' are insufficient." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Describe what you do with the personal information, who it relates to, and what business outcome it supports. Avoid generic phrases such as "improve services," "for security purposes," "analytics," or "as described in our privacy policy" — these will be flagged by the validator.
@@ -505,9 +618,10 @@ export default function CPPARiskAssessment() {
                   placeholder='E.g. "To present personalised product recommendations to registered users based on their 12-month purchase history on the platform, using collaborative filtering applied to purchase transaction data."'
                   className="mt-2"
                 />
+                <FscrCallout citation="11 CCR § 7152(a)(1)" callouts={fscrCallouts} />
               </div>
 
-              <div>
+              <div onFocus={() => focusRail('i2_retention')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-2: Retention period and criteria <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(B))</span></Label><StatutePopover term="I-2 · Retention period" summary="State how long each category of personal information will be retained, or the criteria used to determine that period." cite="11 CCR § 7152(a)(4)(B)" /></div>
                 <input
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
@@ -544,7 +658,7 @@ export default function CPPARiskAssessment() {
               </div>
 
               {admtTriggered && (
-                <div className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
+                <div onFocus={() => focusRail('i5_admt')} className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
                   <Label className="font-semibold">I-5: ADMT specifics (required because you indicated ADMT use) <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(G))</span></Label>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -594,6 +708,7 @@ export default function CPPARiskAssessment() {
                     </div>
                     <Textarea rows={2} value={i5AdmtHumanReview} onChange={(e) => setI5AdmtHumanReview(e.target.value)} placeholder="Human review process for outputs *" />
                   </div>
+                  <FscrCallout citation="11 CCR § 7152(a)(3)(G)" callouts={fscrCallouts} />
                 </div>
               )}
 
@@ -665,9 +780,10 @@ export default function CPPARiskAssessment() {
                 Required by § 7157(b)(1) for the annual submission to the CPPA. The CPPA may contact this person about the filing.
               </p>
 
-              <div>
+              <div onFocus={() => focusRail('i9_dpia')}>
                 <Label>I-9: Is there an existing GDPR DPIA (or other PIA) for this activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7156(b))</span></Label>
                 <div className="mt-2"><Radio name="i9" options={["Yes", "No"]} value={i9HasDpia} onChange={setI9HasDpia} /></div>
+                <FscrCallout citation="11 CCR § 7156(b)" callouts={fscrCallouts} />
                 {i9HasDpia === "Yes" && (
                   <Textarea
                     className="mt-2"
@@ -683,6 +799,23 @@ export default function CPPARiskAssessment() {
 
           {summaryStep && <SummaryTable intake={intake} />}
 
+          {!summaryStep && regulatoryFootprint.length > 0 && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 p-4 space-y-2">
+              <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wide">
+                ⚡ Regulatory exposure — updated from your answers
+              </p>
+              {regulatoryFootprint.map((item) => (
+                <div key={item.citation} className="flex items-start gap-2">
+                  <span className="text-green-600 mt-0.5 shrink-0">✓</span>
+                  <div className="text-xs">
+                    <span className="font-mono text-blue-700 dark:text-blue-400 font-medium">{item.citation}</span>
+                    <span className="text-foreground ml-2">{item.label}</span>
+                    {item.note && <span className="text-muted-foreground ml-1">— {item.note}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex justify-between pt-4 border-t flex-wrap gap-3 items-center">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
             <div className="flex items-center gap-3 ml-auto">
@@ -710,6 +843,9 @@ export default function CPPARiskAssessment() {
               )}
             </div>
           </div>
+        </div>
+
+        <StatuteRail entry={activeRiskRailEntry} />
         </div>
 
         <p className="text-xs text-muted-foreground italic">

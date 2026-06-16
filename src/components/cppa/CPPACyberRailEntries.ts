@@ -1,0 +1,156 @@
+// src/components/cppa/CPPACyberRailEntries.ts
+// StatuteRail entries for the CPPA Cybersecurity Audit Readiness tool (Module 2).
+// Citations from 11 CCR § 7122(a)(1)–(18), verified from codebase.
+
+import type { RailEntry } from "@/components/admt/StatuteRail";
+
+const CPPA_URL = "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
+
+export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
+  profile_industry: {
+    fieldLabel: "Industry sector",
+    citation: "11 CCR § 7122(a)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The cybersecurity audit must assess controls in the context of the business's specific processing activities and risk environment. Industry sector shapes the threat landscape and determines which controls are most material.",
+    regulationText: "A business shall conduct a cybersecurity audit on an annual basis, including assessing administrative, technical, and physical safeguards.",
+  },
+  profile_audit: {
+    fieldLabel: "Last independent security audit",
+    citation: "11 CCR § 7122(b)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Businesses meeting the revenue threshold must certify completion of an independent cybersecurity audit to the CPPA by April 1, 2028, and annually thereafter. 'Independent' means the auditor has no financial or other relationship that would impair objectivity.",
+    regulationText: "A business that is required to conduct a cybersecurity audit pursuant to this section shall submit to the Agency a certification, under penalty of perjury, that the business has conducted a cybersecurity audit.",
+    enforcementNote: "The April 1, 2028 deadline applies to businesses with annual gross revenue exceeding $100M. Audits must be conducted by a qualified, independent auditor — internal assessments do not satisfy the certification requirement.",
+  },
+  c1_auth: {
+    fieldLabel: "C1: Authentication and access controls",
+    citation: "11 CCR § 7122(a)(1)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The regulations require controls over who can access personal information and how that access is authenticated. This includes multi-factor authentication, password policies, and role-based access controls that limit access to PI to those with a business need.",
+    regulationText: "Controls to authenticate the identity of persons who seek to access personal information and to grant access only to those persons for whom access is necessary to perform their duties.",
+    enforcementNote: "Authentication failures — particularly weak MFA, shared credentials, and excessive access rights — appear in the majority of data breach enforcement actions in the corpus. The CPPA specifically cited HHS OCR breach investigation methodology when designing this control.",
+  },
+  c2_encryption: {
+    fieldLabel: "C2: Encryption of personal information",
+    citation: "11 CCR § 7122(a)(2)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Personal information must be encrypted both at rest and in transit. Encryption at rest protects data stored on servers, databases, and portable devices. Encryption in transit protects data moving between systems.",
+    regulationText: "Controls to encrypt personal information in transit and at rest.",
+  },
+  c3_zero_trust: {
+    fieldLabel: "C3: Zero-trust architecture",
+    citation: "11 CCR § 7122(a)(3)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Zero-trust requires continuous verification of identity and device state, rather than trusting by network location. The principle is that no user, device, or network segment is inherently trusted.",
+    regulationText: "Controls to implement zero trust architecture, which requires that no person, device, or network is inherently trusted, and that all persons, devices, and networks are considered potentially compromised.",
+    fscrContext: "Zero trust was added to the final regulations after the CPPA rejected commenter arguments that the concept was too advanced for smaller businesses. The Agency noted that zero trust is achievable at any scale through policy controls and access verification, even without advanced technical infrastructure.",
+  },
+  c4_account_mgmt: {
+    fieldLabel: "C4: Account management and access control",
+    citation: "11 CCR § 7122(a)(4)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Businesses must have documented processes for provisioning and deprovisioning accounts, and must periodically review access rights. Orphaned accounts — credentials that remain active after an employee leaves — are a frequent breach vector.",
+    regulationText: "Controls to manage access accounts, including provisioning of new accounts, deprovisioning of accounts when they are no longer needed, and periodic review of access.",
+  },
+  c5_inventory: {
+    fieldLabel: "C5: Inventory of personal information and systems",
+    citation: "11 CCR § 7122(a)(5)",
+    citationUrl: CPPA_URL,
+    plainSummary: "You cannot protect data you don't know you have. This control requires a current inventory of all personal information processed and the systems that process it — a foundational prerequisite for all other controls.",
+    regulationText: "Controls to maintain an inventory of personal information and the systems that process it.",
+  },
+  c6_secure_config: {
+    fieldLabel: "C6: Secure configuration of hardware and software",
+    citation: "11 CCR § 7122(a)(6)",
+    citationUrl: CPPA_URL,
+    plainSummary: "All hardware and software processing personal information must be configured to minimise attack surface. This includes hardening baselines — removing unnecessary services, disabling default credentials, and applying security benchmarks.",
+    regulationText: "Controls to establish and maintain a secure configuration of hardware and software.",
+  },
+  c7_vuln_mgmt: {
+    fieldLabel: "C7: Vulnerability management and patching",
+    citation: "11 CCR § 7122(a)(7)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Systems must be regularly scanned for vulnerabilities and patches must be applied within defined timeframes. The scanning cadence and patch SLAs must be documented.",
+    regulationText: "Controls to identify and address security vulnerabilities in a timely manner, including through the use of vulnerability scanning and patch management.",
+    enforcementNote: "Unpatched known vulnerabilities are cited in a significant proportion of breach enforcement actions. Several major GDPR fines have been levied specifically for failure to patch known CVEs within reasonable timeframes.",
+  },
+  c8_audit_logs: {
+    fieldLabel: "C8: Audit-log management",
+    citation: "11 CCR § 7122(a)(8)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Audit logs must be generated for access to personal information, retained for a sufficient period to support incident investigation, and reviewed periodically. Logs are essential evidence in breach response and regulatory investigations.",
+    regulationText: "Controls to generate, maintain, and review audit logs.",
+  },
+  c9_network_mon: {
+    fieldLabel: "C9: Network monitoring and defence",
+    citation: "11 CCR § 7122(a)(9)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Networks processing personal information must be monitored for anomalous activity. This typically involves IDS/IPS systems, SIEM platforms, and defined alerting thresholds for suspicious behaviour.",
+    regulationText: "Controls to monitor networks for anomalous activity and to defend against attacks.",
+  },
+  c10_anti_malware: {
+    fieldLabel: "C10: Anti-malware protections",
+    citation: "11 CCR § 7122(a)(10)",
+    citationUrl: CPPA_URL,
+    plainSummary: "All endpoints and servers processing personal information must have anti-malware protections deployed and kept current. Modern EDR solutions are generally expected for organisations processing significant volumes of PI.",
+    regulationText: "Controls to prevent or detect the presence of malicious code.",
+  },
+  c11_segmentation: {
+    fieldLabel: "C11: Network segmentation",
+    citation: "11 CCR § 7122(a)(11)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Systems processing sensitive or high-risk personal information should be isolated from less-critical systems and from the public internet. Segmentation limits the blast radius of a compromise.",
+    regulationText: "Controls to separate networks that process personal information from other networks.",
+  },
+  c12_physical: {
+    fieldLabel: "C12: Limitation of physical access",
+    citation: "11 CCR § 7122(a)(12)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Physical access to facilities, datacentres, and devices processing personal information must be controlled and logged. Uncontrolled physical access can bypass all technical security controls.",
+    regulationText: "Controls to limit physical access to personal information and systems that process personal information.",
+  },
+  c13_secure_dev: {
+    fieldLabel: "C13: Secure development of software",
+    citation: "11 CCR § 7122(a)(13)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Software that processes personal information must be developed using secure development practices: threat modelling, code review, dependency scanning, and testing for security vulnerabilities before deployment.",
+    regulationText: "Controls to develop software securely, including identifying and addressing security vulnerabilities in software prior to deployment.",
+  },
+  c14_third_party: {
+    fieldLabel: "C14: Oversight of service providers and third parties",
+    citation: "11 CCR § 7122(a)(14)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Businesses remain responsible for the security of personal information processed by their service providers and contractors. Due diligence at onboarding, contractual security requirements, and ongoing monitoring are required.",
+    regulationText: "Controls to oversee security practices of service providers and third parties that process personal information on behalf of the business.",
+    enforcementNote: "Third-party vendor breaches are a leading source of PI exposure. Regulators including the FTC and ICO have held businesses liable for breach incidents caused by inadequately vetted service providers.",
+  },
+  c15_retention: {
+    fieldLabel: "C15: Retention schedules and secure disposal",
+    citation: "11 CCR § 7122(a)(15)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Personal information that is no longer needed must be securely deleted or destroyed. Retention schedules must be documented and followed. Data retained beyond its retention period is both a security risk and a compliance violation.",
+    regulationText: "Controls to securely dispose of personal information when it is no longer needed.",
+  },
+  c16_training: {
+    fieldLabel: "C16: Cybersecurity awareness, education and training",
+    citation: "11 CCR § 7122(a)(16)",
+    citationUrl: CPPA_URL,
+    plainSummary: "All employees who handle personal information must receive cybersecurity awareness training. Training should be annual at minimum and should include phishing recognition, incident reporting procedures, and applicable policies.",
+    regulationText: "Controls to provide cybersecurity awareness training to employees who have access to personal information.",
+  },
+  c17_incident: {
+    fieldLabel: "C17: Incident response and post-incident analysis",
+    citation: "11 CCR § 7122(a)(17)",
+    citationUrl: CPPA_URL,
+    plainSummary: "A documented incident response plan is required, covering detection, containment, notification, and recovery. Post-incident analysis must identify root causes and implement improvements. Tabletop exercises are strongly recommended.",
+    regulationText: "Controls to prepare for, respond to, and recover from security incidents, including through developing and implementing an incident response plan.",
+    enforcementNote: "Absence of an incident response plan, or failure to follow an existing plan, is cited as an aggravating factor in regulatory enforcement actions across multiple jurisdictions. The CPPA's cybersecurity audit regulations treat IR planning as a baseline expectation.",
+  },
+  c18_continuity: {
+    fieldLabel: "C18: Business continuity and disaster recovery",
+    citation: "11 CCR § 7122(a)(18)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Systems processing personal information must have tested business continuity and disaster recovery plans. Backups must be regular, verified, and protected. Recovery time and recovery point objectives must be documented.",
+    regulationText: "Controls to ensure business continuity and disaster recovery, including through backing up personal information and systems that process personal information.",
+  },
+};

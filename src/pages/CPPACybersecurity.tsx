@@ -20,6 +20,13 @@ import SampleReportLink from "@/components/SampleReportLink";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
+import StatuteRail from "@/components/admt/StatuteRail";
+import { CPPA_CYBER_RAIL } from "@/components/cppa/CPPACyberRailEntries";
+import type { RailEntry } from "@/components/admt/StatuteRail";
+import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
+import { useFscrCallouts } from "@/hooks/useFscrCallouts";
+import { FscrCallout } from "@/components/FscrCallout";
 
 const MATURITY = [
   "Not implemented",
@@ -29,27 +36,27 @@ const MATURITY = [
   "Implemented with continuous monitoring",
 ];
 
-type Control = { key: string; label: string; description: string };
+type Control = { key: string; label: string; description: string; citation: string };
 
 const CONTROLS: Control[] = [
-  { key: "c1_auth", label: "Authentication and access controls", description: "MFA, password policies, role-based access." },
-  { key: "c2_encryption", label: "Encryption of personal information", description: "At rest and in transit." },
-  { key: "c3_zero_trust", label: "Zero-trust architecture", description: "Continuous verification, least privilege." },
-  { key: "c4_account_mgmt", label: "Account management and access control", description: "Provisioning, deprovisioning, periodic review." },
-  { key: "c5_inventory", label: "Inventory of personal information and systems", description: "Data mapping and asset inventory." },
-  { key: "c6_secure_config", label: "Secure configuration of hardware and software", description: "Hardening baselines." },
-  { key: "c7_vuln_mgmt", label: "Vulnerability management and patching", description: "Scanning cadence and SLAs." },
-  { key: "c8_audit_logs", label: "Audit-log management", description: "Generation, retention, review." },
-  { key: "c9_network_mon", label: "Network monitoring and defence", description: "IDS/IPS, SIEM, alerting." },
-  { key: "c10_anti_malware", label: "Anti-malware protections", description: "EDR/AV across endpoints and servers." },
-  { key: "c11_segmentation", label: "Network segmentation", description: "Separation of sensitive systems." },
-  { key: "c12_physical", label: "Limitation of physical access", description: "Facility, datacentre, device controls." },
-  { key: "c13_secure_dev", label: "Secure development of software", description: "SDLC, code review, dependency scanning." },
-  { key: "c14_third_party", label: "Oversight of service providers and third parties", description: "Due diligence, contracts, monitoring." },
-  { key: "c15_retention", label: "Retention schedules and secure disposal", description: "Documented retention and deletion." },
-  { key: "c16_training", label: "Cybersecurity awareness, education and training", description: "Annual training, phishing simulations." },
-  { key: "c17_incident", label: "Incident response and post-incident analysis", description: "IR plan, tabletop exercises, post-mortems." },
-  { key: "c18_continuity", label: "Business continuity and disaster recovery", description: "BCP/DR plans, tested backups." },
+  { key: "c1_auth", label: "Authentication and access controls", description: "MFA, password policies, role-based access.", citation: "§ 7122(a)(1)" },
+  { key: "c2_encryption", label: "Encryption of personal information", description: "At rest and in transit.", citation: "§ 7122(a)(2)" },
+  { key: "c3_zero_trust", label: "Zero-trust architecture", description: "Continuous verification, least privilege.", citation: "§ 7122(a)(3)" },
+  { key: "c4_account_mgmt", label: "Account management and access control", description: "Provisioning, deprovisioning, periodic review.", citation: "§ 7122(a)(4)" },
+  { key: "c5_inventory", label: "Inventory of personal information and systems", description: "Data mapping and asset inventory.", citation: "§ 7122(a)(5)" },
+  { key: "c6_secure_config", label: "Secure configuration of hardware and software", description: "Hardening baselines.", citation: "§ 7122(a)(6)" },
+  { key: "c7_vuln_mgmt", label: "Vulnerability management and patching", description: "Scanning cadence and SLAs.", citation: "§ 7122(a)(7)" },
+  { key: "c8_audit_logs", label: "Audit-log management", description: "Generation, retention, review.", citation: "§ 7122(a)(8)" },
+  { key: "c9_network_mon", label: "Network monitoring and defence", description: "IDS/IPS, SIEM, alerting.", citation: "§ 7122(a)(9)" },
+  { key: "c10_anti_malware", label: "Anti-malware protections", description: "EDR/AV across endpoints and servers.", citation: "§ 7122(a)(10)" },
+  { key: "c11_segmentation", label: "Network segmentation", description: "Separation of sensitive systems.", citation: "§ 7122(a)(11)" },
+  { key: "c12_physical", label: "Limitation of physical access", description: "Facility, datacentre, device controls.", citation: "§ 7122(a)(12)" },
+  { key: "c13_secure_dev", label: "Secure development of software", description: "SDLC, code review, dependency scanning.", citation: "§ 7122(a)(13)" },
+  { key: "c14_third_party", label: "Oversight of service providers and third parties", description: "Due diligence, contracts, monitoring.", citation: "§ 7122(a)(14)" },
+  { key: "c15_retention", label: "Retention schedules and secure disposal", description: "Documented retention and deletion.", citation: "§ 7122(a)(15)" },
+  { key: "c16_training", label: "Cybersecurity awareness, education and training", description: "Annual training, phishing simulations.", citation: "§ 7122(a)(16)" },
+  { key: "c17_incident", label: "Incident response and post-incident analysis", description: "IR plan, tabletop exercises, post-mortems.", citation: "§ 7122(a)(17)" },
+  { key: "c18_continuity", label: "Business continuity and disaster recovery", description: "BCP/DR plans, tested backups.", citation: "§ 7122(a)(18)" },
 ];
 
 export default function CPPACybersecurity() {
@@ -76,6 +83,17 @@ export default function CPPACybersecurity() {
 
   const setM = (k: string, v: string) => setMaturity((s) => ({ ...s, [k]: v }));
   const setN = (k: string, v: string) => setNotes((s) => ({ ...s, [k]: v }));
+
+  const [activeCyberRailKey, setActiveCyberRailKey] = useState<string | null>(null);
+  const activeCyberRailEntry: RailEntry | null = activeCyberRailKey ? (CPPA_CYBER_RAIL[activeCyberRailKey] ?? null) : null;
+  const focusRail = (key: string) => setActiveCyberRailKey(key);
+
+  const cyberEnforcementSignals = useEnforcementSignals(["authentication", "vulnerability", "incident_response"]);
+
+  const cyberFscrCallouts = useFscrCallouts([
+    "11 CCR § 7122(a)(1)",
+    "11 CCR § 7122(a)(3)",
+  ]);
 
   const allComplete = useMemo(
     () => CONTROLS.every((c) => maturity[c.key]) && profile.industry && profile.incidents_12mo && profile.framework && profile.last_audit,
@@ -144,10 +162,13 @@ export default function CPPACybersecurity() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7122(a). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
+        <div className="flex gap-6 items-start">
+        <div className="flex-1 min-w-0 space-y-6">
         <section className="bg-card border rounded-lg p-6 space-y-4">
           <h2 className="">Organisation Profile</h2>
+          <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7122(a) — cybersecurity audit programme scope; § 7122(b) — certification requirement</p>
           <RequiredLegend />
-          <div>
+          <div onFocus={() => focusRail('profile_industry')}>
             <Label>Industry sector<Req /></Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="e.g. SaaS, healthcare, retail" />
           </div>
@@ -165,7 +186,7 @@ export default function CPPACybersecurity() {
               <option>NIST CSF</option><option>ISO 27001</option><option>SOC 2</option><option>HITRUST</option><option>PCI DSS</option><option>None / informal</option><option>Other</option>
             </select>
           </div>
-          <div>
+          <div onFocus={() => focusRail('profile_audit')}>
             <Label>Last independent security audit<Req /></Label>
             <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.last_audit} onChange={(e) => setProfile({ ...profile, last_audit: e.target.value })}>
               <option value="">Select…</option>
@@ -177,20 +198,28 @@ export default function CPPACybersecurity() {
         <section className="bg-card border rounded-lg p-6 space-y-6">
           <div>
             <h2 className="">18 Cybersecurity Programme Components</h2>
+            <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7122(a)(1)–(18) — enumerated programme components</p>
             <p className="text-sm text-muted-foreground mt-1">Rate each control against the CPPA's enumerated programme components.</p>
           </div>
 
           {CONTROLS.map((c, i) => (
             <div key={c.key} className="border-t pt-5 first:border-t-0 first:pt-0">
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-2 flex-wrap">
                 <span className="text-xs text-muted-foreground font-mono">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="">{c.label}</h3>
+                <span className="text-xs text-muted-foreground font-mono">(11 CCR {c.citation})</span>
+                {(c.key === "c1_auth" || c.key === "c7_vuln_mgmt" || c.key === "c17_incident") && (
+                  <EnforcementSignalIcon
+                    signalKey={c.key === "c1_auth" ? "authentication" : c.key === "c7_vuln_mgmt" ? "vulnerability" : "incident_response"}
+                    signals={cyberEnforcementSignals}
+                  />
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-1 mb-3">{c.description}</p>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Maturity<Req /></Label>
-                  <select className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
+                  <select onFocus={() => focusRail(c.key)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
                     <option value="">Select…</option>
                     {MATURITY.map((m) => <option key={m}>{m}</option>)}
                   </select>
@@ -200,6 +229,12 @@ export default function CPPACybersecurity() {
                   <Textarea rows={2} value={notes[c.key] || ""} onChange={(e) => setN(c.key, e.target.value)} className="mt-1" placeholder="Tools, scope, exceptions…" />
                 </div>
               </div>
+              {(c.key === "c1_auth" || c.key === "c3_zero_trust") && (
+                <FscrCallout
+                  citation={c.key === "c1_auth" ? "11 CCR § 7122(a)(1)" : "11 CCR § 7122(a)(3)"}
+                  callouts={cyberFscrCallouts}
+                />
+              )}
             </div>
           ))}
         </section>
@@ -214,6 +249,9 @@ export default function CPPACybersecurity() {
               Run Cybersecurity Readiness — ${displayPrice}
             </Button>
           )}
+        </div>
+        </div>
+        <StatuteRail entry={activeCyberRailEntry} />
         </div>
 
         <p className="text-xs text-muted-foreground italic">

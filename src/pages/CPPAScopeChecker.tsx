@@ -16,6 +16,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { PRICING_REGISTRY } from "@/config/pricing";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
+import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
@@ -120,6 +122,42 @@ export default function CPPAScopeChecker() {
     };
   }, [q1, q2, q3, q4, q5, q6, q7, q8]);
 
+  // Live footprint — lights up as user answers, before submission.
+  const liveFootprint = useMemo(() => {
+    const items: { citation: string; label: string; triggered: boolean }[] = [
+      {
+        citation: "Cal. Civ. Code §§ 1798.100–1798.135",
+        label: "CCPA/CPRA consumer rights obligations apply",
+        triggered: (q1 === "Yes" || q1 === "Unsure") &&
+          (["$25M–$100M", "$100M–$500M", "Over $500M", "Unsure"].includes(q2) ||
+            ["100,000–1 million", "Over 1 million", "Unsure"].includes(q3)),
+      },
+      {
+        citation: "11 CCR § 7150(b)(1)",
+        label: "Risk assessment required — sell/share of PI",
+        triggered: ["Yes — we sell PI", "Yes — we share for targeted/behavioural advertising", "Both"].includes(q4),
+      },
+      {
+        citation: "11 CCR § 7152(a)(5)",
+        label: "Sensitive PI handling obligations apply",
+        triggered: q6 === "Yes" || q6 === "Unsure",
+      },
+      {
+        citation: "11 CCR §§ 7001(e), 7150(b)(3)",
+        label: "ADMT disclosure and opt-out required — January 1, 2027",
+        triggered: ["Yes", "In evaluation", "Unsure"].includes(q7),
+      },
+      {
+        citation: "11 CCR § 7122(a)",
+        label: "Cybersecurity audit required — April 1, 2028",
+        triggered: ["$100M–$500M", "Over $500M"].includes(q2),
+      },
+    ];
+    return items.filter((i) => i.triggered);
+  }, [q1, q2, q3, q4, q6, q7]);
+
+  const scopeEnforcementSignals = useEnforcementSignals(["sell_share", "sensitive_pi"]);
+
   const handleCheck = () => {
     setShowResults(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -195,15 +233,16 @@ export default function CPPAScopeChecker() {
         <ToolDisclaimer addition="This checker provides an indicative obligation map based on your answers. Applicability thresholds under the CCPA/CPRA are fact-specific; confirm scope conclusions with qualified counsel." />
         {!showResults && (
           <div className="bg-card border rounded-lg p-6 space-y-6">
+            <p className="text-xs font-mono text-muted-foreground pb-2 border-b">Cal. Civ. Code § 1798.140(ag) — applicability thresholds · 11 CCR §§ 7120, 7150(b) — audit and risk assessment triggers</p>
             <div>
-              <Label>Q1: Does your business operate for profit and do business in California, OR collect personal information from California residents?</Label>
+              <Label>Q1: Does your business operate for profit and do business in California, OR collect personal information from California residents? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag))</span></Label>
               <div className="mt-2">
                 <Radio name="q1" options={["Yes", "No", "Unsure"]} value={q1} onChange={(v) => setQ1(v as Q1)} />
               </div>
             </div>
 
             <div>
-              <Label>Q2: What is your business's annual gross revenue?</Label>
+              <Label>Q2: What is your business's annual gross revenue? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag)(1))</span></Label>
               <div className="mt-2">
                 <Radio
                   name="q2"
@@ -215,7 +254,7 @@ export default function CPPAScopeChecker() {
             </div>
 
             <div>
-              <Label>Q3: How many California consumers' personal information does your business buy, sell, receive for commercial purposes, or share for cross-context behavioural advertising annually?</Label>
+              <Label>Q3: How many California consumers' personal information does your business buy, sell, receive for commercial purposes, or share for cross-context behavioural advertising annually? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag)(2)(A))</span></Label>
               <div className="mt-2">
                 <Radio
                   name="q3"
@@ -227,7 +266,8 @@ export default function CPPAScopeChecker() {
             </div>
 
             <div>
-              <Label>Q4: Does your business sell or share consumers' personal information (in any quantity)?</Label>
+              <Label>Q4: Does your business sell or share consumers' personal information (in any quantity)? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.120; 11 CCR § 7150(b)(1))</span></Label>
+              <span className="inline-block ml-1 align-middle"><EnforcementSignalIcon signalKey="sell_share" signals={scopeEnforcementSignals} /></span>
               <div className="mt-2">
                 <Radio
                   name="q4"
@@ -245,28 +285,29 @@ export default function CPPAScopeChecker() {
             </div>
 
             <div>
-              <Label>Q5: Does 50% or more of your annual revenue come from selling or sharing consumers' personal information?</Label>
+              <Label>Q5: Does 50% or more of your annual revenue come from selling or sharing consumers' personal information? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag)(3))</span></Label>
               <div className="mt-2">
                 <Radio name="q5" options={["Yes", "No", "Unsure"]} value={q5} onChange={(v) => setQ5(v as Q5)} />
               </div>
             </div>
 
             <div>
-              <Label>Q6: Does your business process any sensitive personal information? (health data, precise geolocation, racial/ethnic origin, religious beliefs, union membership, biometric data, genetic data, sexual orientation, or citizenship/immigration status)</Label>
+              <Label>Q6: Does your business process any sensitive personal information? (health data, precise geolocation, racial/ethnic origin, religious beliefs, union membership, biometric data, genetic data, sexual orientation, or citizenship/immigration status) <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ae); 11 CCR § 7152(a)(5))</span></Label>
+              <span className="inline-block ml-1 align-middle"><EnforcementSignalIcon signalKey="sensitive_pi" signals={scopeEnforcementSignals} /></span>
               <div className="mt-2">
                 <Radio name="q6" options={["Yes", "No", "Unsure"]} value={q6} onChange={(v) => setQ6(v as Q6)} />
               </div>
             </div>
 
             <div>
-              <Label>Q7: Does your business use automated decision-making technology (ADMT) to make, or factor into, decisions that have significant effects on California consumers — such as employment, credit, housing, insurance, or access to services?</Label>
+              <Label>Q7: Does your business use automated decision-making technology (ADMT) to make, or factor into, decisions that have significant effects on California consumers — such as employment, credit, housing, insurance, or access to services? <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7001(e), 7001(ddd), 7150(b)(3))</span></Label>
               <div className="mt-2">
                 <Radio name="q7" options={["Yes", "No", "In evaluation", "Unsure"]} value={q7} onChange={(v) => setQ7(v as Q7)} />
               </div>
             </div>
 
             <div>
-              <Label>Q8: Are you registered as a data broker with the California Attorney General?</Label>
+              <Label>Q8: Are you registered as a data broker with the California Attorney General? <span className="text-xs text-muted-foreground font-mono">(Cal. Bus. & Prof. Code § 22757)</span></Label>
               <div className="mt-2">
                 <Radio
                   name="q8"
@@ -281,6 +322,23 @@ export default function CPPAScopeChecker() {
               </div>
             </div>
 
+            {liveFootprint.length > 0 && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 p-4 space-y-2">
+                <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wide">
+                  ⚡ Obligations triggered by your answers so far
+                </p>
+                {liveFootprint.map((item) => (
+                  <div key={item.citation} className="flex items-start gap-2">
+                    <span className="text-green-600 mt-0.5 shrink-0">✓</span>
+                    <div className="text-xs">
+                      <span className="font-mono text-blue-700 dark:text-blue-400 font-medium">{item.citation}</span>
+                      <span className="text-foreground ml-2">{item.label}</span>
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[11px] text-muted-foreground pt-1">Complete all questions and click Check my scope for the full obligation map.</p>
+              </div>
+            )}
             <div className="flex justify-end pt-4 border-t">
               <Button onClick={handleCheck} disabled={!allAnswered}>
                 Check my scope →
