@@ -201,6 +201,12 @@ export default function CPPACybersecurity() {
                 <span className="text-xs text-muted-foreground font-mono">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="">{c.label}</h3>
                 <span className="text-xs text-muted-foreground font-mono">(11 CCR {c.citation})</span>
+                {(c.key === "c1_auth" || c.key === "c7_vuln_mgmt" || c.key === "c17_incident") && (
+                  <EnforcementSignalIcon
+                    signalKey={c.key === "c1_auth" ? "authentication" : c.key === "c7_vuln_mgmt" ? "vulnerability" : "incident_response"}
+                    signals={cyberEnforcementSignals}
+                  />
+                )}
               </div>
               <p className="text-xs text-muted-foreground mt-1 mb-3">{c.description}</p>
               <div className="grid sm:grid-cols-2 gap-3">
