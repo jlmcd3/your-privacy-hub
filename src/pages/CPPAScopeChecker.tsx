@@ -253,7 +253,7 @@ export default function CPPAScopeChecker() {
             </div>
 
             <div>
-              <Label>Q6: Does your business process any sensitive personal information? (health data, precise geolocation, racial/ethnic origin, religious beliefs, union membership, biometric data, genetic data, sexual orientation, or citizenship/immigration status)</Label>
+              <Label>Q6: Does your business process any sensitive personal information? (health data, precise geolocation, racial/ethnic origin, religious beliefs, union membership, biometric data, genetic data, sexual orientation, or citizenship/immigration status) <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ae); 11 CCR § 7152(a)(5))</span></Label>
               <div className="mt-2">
                 <Radio name="q6" options={["Yes", "No", "Unsure"]} value={q6} onChange={(v) => setQ6(v as Q6)} />
               </div>
