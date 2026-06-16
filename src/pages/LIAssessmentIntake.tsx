@@ -107,6 +107,11 @@ const LIAssessmentIntake = () => {
     setActiveRailSection(section);
   };
 
+  const liaEnforcementSignals = useGdprEnforcementSignals(
+    ["special_categories"],
+    guidanceTier.tier === "paid"
+  );
+
   // Purpose
   const [interestHolder, setInterestHolder] = useState("");
   const [interestType, setInterestType] = useState("");
