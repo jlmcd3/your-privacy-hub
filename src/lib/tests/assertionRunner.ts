@@ -334,9 +334,9 @@ async function runSingleTool(
         recordId = d.id as string;
         addLog(`Polling dpa_documents (id: ${recordId})…`);
         await pollUntilComplete("dpa_documents", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
-        const { data: row } = await (supabase as any).from("dpa_documents").select("dpa_text, report_data").eq("id", recordId).single();
-        output = { ...(row?.report_data ?? {}), dpa_text: row?.dpa_text ?? "" };
-        addLog(`✓ Complete — ${(row?.dpa_text ?? "").length} chars`);
+        const { data: row } = await (supabase as any).from("dpa_documents").select("document_text, report_data").eq("id", recordId).single();
+        output = { ...(row?.report_data ?? {}), dpa_text: row?.document_text ?? "" };
+        addLog(`✓ Complete — ${(row?.document_text ?? "").length} chars`);
 
       } else if (test.toolId === "ir-playbook") {
         addLog("Invoking generate-ir-playbook…");
