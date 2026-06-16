@@ -398,9 +398,9 @@ export default function CPPARiskAssessment() {
               <h2>Step 1 — Business Profile</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code § 1798.140(ag) — CCPA/CPRA business definition and applicability thresholds</p>
               <RequiredLegend />
-              <div><Label>Q1: Annual gross revenue <Req /></Label><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
-              <div><Label>Q2: Number of California consumers whose PI you process annually <Req /></Label><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
-              <div><Label>Q3: Primary business sector <Req /></Label>
+              <div><Label>Q1: Annual gross revenue <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
+              <div><Label>Q2: Number of California consumers whose PI you process annually <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
+              <div><Label>Q3: Primary business sector <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
                 <select value={q3} onChange={(e) => setQ3(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
                   <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
                 </select>
