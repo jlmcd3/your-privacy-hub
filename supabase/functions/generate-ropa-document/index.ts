@@ -639,7 +639,12 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
       kvRow("Legal entity", d.profile?.legal_entity_type ?? "—"),
       kvRow("Sector", d.client?.sector ?? "—"),
       kvRow("Employee band", d.profile?.employee_band ?? "—"),
-      kvRow("DPO", `${d.profile?.dpo_name ?? "Not designated"}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`),
+      kvRow(
+        "DPO",
+        d.profile?.dpo_name
+          ? `${d.profile.dpo_name}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`
+          : "Not designated — confirm Article 37 GDPR designation triggers before leaving blank",
+      ),
       kvRow("EU representative", euRepValue),
       kvRow("UK representative", ukRepValue),
       kvRow("Jurisdictions", jurisdictionList(d.jurisdictions, true) || "—"),
