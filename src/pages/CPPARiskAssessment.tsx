@@ -776,6 +776,23 @@ export default function CPPARiskAssessment() {
 
           {summaryStep && <SummaryTable intake={intake} />}
 
+          {!summaryStep && regulatoryFootprint.length > 0 && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 p-4 space-y-2">
+              <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wide">
+                ⚡ Regulatory exposure — updated from your answers
+              </p>
+              {regulatoryFootprint.map((item) => (
+                <div key={item.citation} className="flex items-start gap-2">
+                  <span className="text-green-600 mt-0.5 shrink-0">✓</span>
+                  <div className="text-xs">
+                    <span className="font-mono text-blue-700 dark:text-blue-400 font-medium">{item.citation}</span>
+                    <span className="text-foreground ml-2">{item.label}</span>
+                    {item.note && <span className="text-muted-foreground ml-1">— {item.note}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex justify-between pt-4 border-t flex-wrap gap-3 items-center">
             <Button variant="outline" onClick={back} disabled={step === 1}>Back</Button>
             <div className="flex items-center gap-3 ml-auto">
