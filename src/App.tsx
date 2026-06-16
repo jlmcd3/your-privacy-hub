@@ -154,6 +154,7 @@ const AdminQAExport = lazy(() => import("./pages/admin/AdminQAExport"));
 const SampleReport = lazy(() => import("./pages/SampleReport.tsx"));
 const SampleReportOutput = lazy(() => import("./pages/SampleReportOutput.tsx"));
 const TestsGdprDocs = lazy(() => import("./pages/admin/TestsGdprDocs"));
+const AdminAssertionTests = lazy(() => import("./pages/admin/AdminAssertionTests"));
 const queryClient = new QueryClient();
 
 function CategoryRedirect() {
