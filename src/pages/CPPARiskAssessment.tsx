@@ -438,7 +438,22 @@ export default function CPPARiskAssessment() {
                   <option value="">Select…</option>{SECTORS.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
-              <div><Label>Q4: Categories of personal information processed <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(2))</span></Label><div className="mt-2"><Pills options={PI_CATEGORIES} value={q4} onChange={setQ4} /></div></div>
+              <div>
+                <Label>Q4: Categories of personal information processed <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7152(a)(2))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Categories marked <span className="text-red-600 font-semibold">Sensitive</span> trigger additional obligations under Cal. Civ. Code § 1798.140(ae) and will auto-advance Q15.</p>
+                <div className="mt-2">
+                  <Pills
+                    options={PI_CATEGORIES}
+                    value={q4}
+                    sensitiveSet={SENSITIVE_PI_CATEGORIES}
+                    onChange={(v) => {
+                      setQ4(v);
+                      const hasSensitive = v.some((cat) => SENSITIVE_PI_CATEGORIES.has(cat));
+                      if (hasSensitive && q15 === "") setQ15("Yes");
+                    }}
+                  />
+                </div>
+              </div>
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /></div>
                 <div className="mt-2"><Radio name="q5" options={["Yes — sell only", "Yes — share for advertising only", "Both", "No"]} value={q5} onChange={setQ5} /></div>
               </div>
