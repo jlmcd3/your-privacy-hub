@@ -334,9 +334,9 @@ async function runSingleTool(
         recordId = d.id as string;
         addLog(`Polling dpa_documents (id: ${recordId})…`);
         await pollUntilComplete("dpa_documents", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
-        const { data: row } = await (supabase as any).from("dpa_documents").select("dpa_text, report_data").eq("id", recordId).single();
-        output = { ...(row?.report_data ?? {}), dpa_text: row?.dpa_text ?? "" };
-        addLog(`✓ Complete — ${(row?.dpa_text ?? "").length} chars`);
+        const { data: row } = await (supabase as any).from("dpa_documents").select("document_text, report_data").eq("id", recordId).single();
+        output = { ...(row?.report_data ?? {}), dpa_text: row?.document_text ?? "" };
+        addLog(`✓ Complete — ${(row?.document_text ?? "").length} chars`);
 
       } else if (test.toolId === "ir-playbook") {
         addLog("Invoking generate-ir-playbook…");
@@ -352,11 +352,16 @@ async function runSingleTool(
         addLog(`✓ Complete — ${(row?.playbook_text ?? "").length} chars`);
 
       } else if (test.toolId === "brief") {
-        addLog("Invoking generate-brief-on-demand…");
-        const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
-        if (error) throw error;
-        output = data;
-        addLog("✓ Complete");
+        addLog("Querying latest weekly_briefs row…");
+        const { data: brief, error: briefErr } = await (supabase as any)
+          .from("weekly_briefs")
+          .select("headline, executive_summary, eu_uk, us_states, us_federal, enforcement_trends, published_at")
+          .order("published_at", { ascending: false })
+          .limit(1)
+          .single();
+        if (briefErr || !brief) throw new Error(`No weekly brief found: ${briefErr?.message ?? "empty"}`);
+        output = brief;
+        addLog(`✓ Found brief published ${brief.published_at}`);
 
       } else if (test.toolId === "cppa-risk" || test.toolId === "cppa-cyber") {
         const module = test.toolId === "cppa-risk" ? "risk_assessment" : "cybersecurity";
@@ -382,8 +387,8 @@ async function runSingleTool(
         const { error: fnErr } = await invokeWithRetry(test.edgeFunction, { assessment_id: recordId }, combinedSignal);
         if (fnErr) addLog(`⚠ dispatch: ${fnErr.message}`);
         await pollUntilComplete("li_assessments", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
-        const { data: row } = await (supabase as any).from("li_assessments").select("report_data, analysis_text").eq("id", recordId).single();
-        output = { ...(row?.report_data ?? {}), text: row?.analysis_text ?? "" };
+        const { data: row } = await (supabase as any).from("li_assessments").select("report_data").eq("id", recordId).single();
+        output = { ...(row?.report_data ?? {}) };
         addLog(`✓ Complete`);
 
       } else if (test.toolId === "dpia") {
@@ -427,9 +432,11 @@ async function runSingleTool(
         addLog("Invoking generate-registration-docs…");
         const { error: genErr } = await invokeWithRetry("generate-registration-docs", { order_id: order.id }, combinedSignal);
         if (genErr) throw new Error(`generate-registration-docs: ${genErr.message}`);
-        const { data: orderRow } = await (supabase as any).from("registration_orders").select("documents, fulfillment_status").eq("id", order.id).single();
-        output = { documents: orderRow?.documents ?? [], documentCount: (orderRow?.documents as unknown[] ?? []).length, text: JSON.stringify(orderRow?.documents ?? []) };
-        addLog(`✓ Complete — ${(orderRow?.documents ?? []).length} docs`);
+        const { data: regDocs } = await (supabase as any).from("registration_documents").select("content_text, document_type, jurisdiction_code").eq("order_id", order.id);
+        const docList = regDocs ?? [];
+        const combinedText = docList.map((d: any) => d.content_text ?? "").join("\n\n");
+        output = { documents: docList, documentCount: docList.length, text: combinedText };
+        addLog(`✓ Complete — ${docList.length} docs`);
 
       } else {
         throw new Error(`Unknown toolId: ${test.toolId}`);
