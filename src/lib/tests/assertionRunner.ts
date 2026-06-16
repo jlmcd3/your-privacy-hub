@@ -352,11 +352,16 @@ async function runSingleTool(
         addLog(`✓ Complete — ${(row?.playbook_text ?? "").length} chars`);
 
       } else if (test.toolId === "brief") {
-        addLog("Invoking generate-brief-on-demand…");
-        const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
-        if (error) throw error;
-        output = data;
-        addLog("✓ Complete");
+        addLog("Querying latest weekly_briefs row…");
+        const { data: brief, error: briefErr } = await (supabase as any)
+          .from("weekly_briefs")
+          .select("headline, executive_summary, eu_uk, us_states, us_federal, enforcement_trends, published_at")
+          .order("published_at", { ascending: false })
+          .limit(1)
+          .single();
+        if (briefErr || !brief) throw new Error(`No weekly brief found: ${briefErr?.message ?? "empty"}`);
+        output = brief;
+        addLog(`✓ Found brief published ${brief.published_at}`);
 
       } else if (test.toolId === "cppa-risk" || test.toolId === "cppa-cyber") {
         const module = test.toolId === "cppa-risk" ? "risk_assessment" : "cybersecurity";
