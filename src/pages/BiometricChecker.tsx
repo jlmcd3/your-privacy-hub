@@ -69,6 +69,11 @@ export default function BiometricChecker() {
   };
 
   const [biometricFreeRunAvailable, setBiometricFreeRunAvailable] = useState(false);
+  const guidanceTier = useGuidanceTier();
+  const bioEnforcementSignals = useGdprEnforcementSignals(
+    ["biometric", "special_categories"],
+    guidanceTier.tier === "paid"
+  );
 
   useEffect(() => {
     if (!access.user) { setBiometricFreeRunAvailable(false); return; }
