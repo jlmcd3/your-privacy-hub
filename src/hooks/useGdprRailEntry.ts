@@ -1,6 +1,6 @@
 // src/hooks/useGdprRailEntry.ts
 // Fetches verbatim GDPR article text + recital context from the database.
-// Returns a RailEntry for use with GuidedRail / StatuteRail.
+// Returns a RailEntry for use with StatuteRail.
 //
 // gdpr_articles: Articles 1–99, jurisdictions "eu" and "uk", fully populated.
 // gdpr_recitals: Recitals 1–173, fully populated — no backfill needed.

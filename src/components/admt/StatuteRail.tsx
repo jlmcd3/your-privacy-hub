@@ -21,15 +21,12 @@ export type RailEntry = {
 interface StatuteRailProps {
   entry: RailEntry | null;
   className?: string;
-  /** When false, hides the Agency reasoning section and shows a subscribe teaser.
-   *  Defaults to true so existing callers (ADMTChecker) are unaffected. */
-  showAgencyReasoning?: boolean;
 }
 
 const OFFICIAL_URL =
   "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
 
-export default function StatuteRail({ entry, className = "", showAgencyReasoning = true }: StatuteRailProps) {
+export default function StatuteRail({ entry, className = "" }: StatuteRailProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const content = entry ? (
@@ -70,25 +67,12 @@ export default function StatuteRail({ entry, className = "", showAgencyReasoning
         </div>
       </div>
 
-      {entry.fscrContext && showAgencyReasoning && (
+      {entry.fscrContext && (
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
             Agency reasoning (FSOR)
           </p>
           <p className="text-[11px] leading-relaxed text-foreground/70">{entry.fscrContext}</p>
-        </div>
-      )}
-      {entry.fscrContext && !showAgencyReasoning && (
-        <div className="rounded-md border border-dashed border-muted-foreground/30 px-3 py-2">
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Subscribe to see the agency reasoning behind this requirement.
-          </p>
-          <a
-            href="/subscribe"
-            className="text-[11px] font-semibold text-[hsl(var(--cobalt))] hover:underline mt-0.5 inline-block"
-          >
-            View plans →
-          </a>
         </div>
       )}
 

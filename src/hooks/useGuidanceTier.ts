@@ -1,11 +1,13 @@
 // src/hooks/useGuidanceTier.ts
 // Returns the user's guidance tier for contextual intelligence features.
 //
-// Tier 1 "anonymous"  — no account. Sees citation text only.
-// Tier 2 "registered" — free account. Sees StatuteRail plain summary +
-//                       regulation text. Agency reasoning section gated.
-// Tier 3 "paid"       — active subscription (post-trial). Full StatuteRail
-//                       including agency reasoning + enforcement signals.
+// "anonymous"  — no account. Sees citations, StatuteRail, footprint panels.
+// "registered" — free account. Same as anonymous for content display.
+// "paid"       — active subscription (post-trial). Additionally sees enforcement
+//               signal icons (corpus-derived intelligence, proprietary).
+//
+// All users see the full StatuteRail including agency reasoning.
+// Enforcement signals are gated to paid subscribers only.
 
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
@@ -14,10 +16,8 @@ export type GuidanceTier = "anonymous" | "registered" | "paid";
 
 export interface GuidanceTierState {
   tier: GuidanceTier;
-  /** True while auth state is loading — callers should render nothing. */
+  /** True while auth state is loading. */
   isLoading: boolean;
-  /** Convenience: pass directly to StatuteRail showAgencyReasoning prop. */
-  showAgencyReasoning: boolean;
 }
 
 export function useGuidanceTier(): GuidanceTierState {
@@ -25,13 +25,13 @@ export function useGuidanceTier(): GuidanceTierState {
   const { hasToolAccess, isLoading: tierLoading } = useSubscriptionTier();
 
   if (loading || tierLoading) {
-    return { tier: "anonymous", isLoading: true, showAgencyReasoning: false };
+    return { tier: "anonymous", isLoading: true };
   }
   if (!user) {
-    return { tier: "anonymous", isLoading: false, showAgencyReasoning: false };
+    return { tier: "anonymous", isLoading: false };
   }
   if (hasToolAccess) {
-    return { tier: "paid", isLoading: false, showAgencyReasoning: true };
+    return { tier: "paid", isLoading: false };
   }
-  return { tier: "registered", isLoading: false, showAgencyReasoning: false };
+  return { tier: "registered", isLoading: false };
 }
