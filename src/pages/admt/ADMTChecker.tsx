@@ -616,7 +616,8 @@ export default function ADMTChecker() {
 
               {step === 2 && (
                 <>
-                  <h2 className="font-serif text-xl">Step 2 — Pre-Use Notice Assessment</h2>
+                 <h2 className="font-serif text-xl">Step 2 — Pre-Use Notice Assessment</h2>
+                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR §§ 7220(b)–(c) — pre-use notice timing and required content</p>
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     The Pre-use Notice must be provided prominently at or before the point you collect PI for ADMT use (§ 7220(b)). If you've already collected the PI for another purpose and now plan to use ADMT, you must provide the notice before starting ADMT processing.
