@@ -214,6 +214,11 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
         is_controller: true, is_processor: false,
         dpo_name: persona.dpo_name, dpo_email: persona.dpo_email,
       }, { onConflict: "client_id" });
+
+      // Write sector to clients table — generate-ropa-document reads sector from clients.sector
+      if (persona.sector) {
+        await admin.from("clients").update({ sector: persona.sector }).eq("id", clientId);
+      }
       if (Array.isArray(persona.jurisdictions) && persona.jurisdictions.length) {
         await admin.from("ropa_jurisdiction_selections").upsert(
           persona.jurisdictions.map((j: any) => ({
