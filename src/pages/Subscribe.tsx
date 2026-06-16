@@ -189,9 +189,7 @@ const Subscribe = () => {
                 {[
                   "Everything in Intelligence (for account holder)",
                   "Client/matter workspace & compliance record",
-                  "Branded document outputs",
                   "3 free Smart Tool runs per year (annual plan only — up to $267 value)",
-                  
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
