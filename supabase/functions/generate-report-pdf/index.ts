@@ -163,6 +163,35 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 .meta { color:#5c6d7a; font-size:12px; margin-bottom:24px; }
 .label { font-weight:bold; text-transform:uppercase; font-size:11px;
   letter-spacing:0.05em; color:#5c6d7a; }
+@media print {
+  /* Prevent orphan section headings at page breaks */
+  h1, h2, h3, h4, h5, h6,
+  .section-heading,
+  .label {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  /* Keep heading with the first content element that follows */
+  h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + *,
+  .section-heading + *,
+  .label + * {
+    break-before: avoid;
+    page-break-before: avoid;
+  }
+  /* Keep bullet/list items together where possible */
+  li {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* Keep the three-part test result cards and summary together */
+  .section,
+  .test-result-card,
+  .assessment-summary,
+  .disclaimer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
 </style></head><body>
 <div class="shell">
 <header class="header">
