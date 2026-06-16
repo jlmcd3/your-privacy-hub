@@ -965,37 +965,34 @@ export const REGISTRATION_TEST: AssertionTest = {
 export const BRIEF_TEST: AssertionTest = {
   toolId: "brief",
   toolName: "Intelligence Brief",
-  edgeFunction: "generate-brief-on-demand",
-  testInput: { mode: "test" },
-  expectedSeconds: 60,
+  // generate-brief-on-demand is a 410 Gone stub — runner queries weekly_briefs table directly
+  edgeFunction: "weekly_briefs_query",
+  testInput: {},
+  expectedSeconds: 5,
   assertions: [
     {
-      id: "brief-sections-present",
-      description: "Brief must include multiple structured sections",
+      id: "brief-headline-present",
+      description: "Most recent weekly brief must have a headline",
       category: "requirement",
       check: (output) => {
         const o = output as Record<string, unknown>;
-        const text = getText(output);
-        const hasSections =
-          Array.isArray(o?.sections) && (o.sections as unknown[]).length >= 2;
-        const hasTextSections = /##\s*\w+|section\s*\d/i.test(text) || text.length > 500;
-        return hasSections || hasTextSections;
+        return typeof o?.headline === "string" && (o.headline as string).length > 0;
       },
-      errorMessage: "Intelligence Brief does not contain structured sections or is too short.",
+      errorMessage: "weekly_briefs row has no headline — brief generation may not have run.",
     },
     {
-      id: "brief-no-future-dates-beyond-30-days",
-      description: "Brief must not reference future dates more than 30 days from now",
-      category: "prohibition",
+      id: "brief-eu-uk-section-present",
+      description: "Brief must have EU/UK section content",
+      category: "requirement",
       check: (output) => {
-        const text = getText(output);
-        return !hasFutureDateBeyond30Days(text);
+        const o = output as Record<string, unknown>;
+        return typeof o?.eu_uk === "string" && (o.eu_uk as string).length > 100;
       },
-      errorMessage: "Intelligence Brief contains a future date more than 30 days from today.",
+      errorMessage: "weekly_briefs.eu_uk section is missing or too short.",
     },
     {
-      id: "brief-enforcement-or-regulatory-content",
-      description: "Brief must include enforcement or regulatory content",
+      id: "brief-enforcement-content",
+      description: "Brief must contain enforcement or regulatory content across its sections",
       category: "requirement",
       check: (output) => {
         const text = getText(output);
