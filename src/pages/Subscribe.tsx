@@ -163,6 +163,30 @@ const Subscribe = () => {
               <p className="text-center text-blue-200/80 text-meta mt-2">
                 10-day free trial · Card required · No tools in trial
               </p>
+
+              {/* Annual perk callout */}
+              <div className="mt-5 pt-4 border-t border-white/20">
+                <p className="text-eyebrow text-brand-mist mb-2">
+                  Go annual, pay less per tool
+                </p>
+                <ul className="space-y-1.5 text-sm text-white/90">
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-mist font-bold">✓</span>
+                    <span><strong className="text-white">1 free Smart Tool run/year</strong> (Governance, LIA, or DPIA — up to $89 value)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-mist font-bold">✓</span>
+                    <span>Subscriber pricing on Smart Tools — <strong className="text-white">LIA & DPIA drop from $99 → $49</strong>, Governance $89 → $49, CPPA tools 30–45% off</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-mist font-bold">✓</span>
+                    <span>Two months free vs. paying monthly</span>
+                  </li>
+                </ul>
+                <p className="text-blue-200/80 text-meta mt-3 italic">
+                  One annual Smart Tool run pays back most of your subscription.
+                </p>
+              </div>
             </div>
 
             {/* Professional card */}
@@ -215,6 +239,30 @@ const Subscribe = () => {
               <p className="text-center text-amber-100/80 text-meta mt-2">
                 Add clients at {PRICING.professional.perClient.display}/client/year — no minimum.
               </p>
+
+              {/* Annual perk callout */}
+              <div className="mt-5 pt-4 border-t border-amber-400/30">
+                <p className="text-eyebrow text-amber-200 mb-2">
+                  Go annual, pay least per tool
+                </p>
+                <ul className="space-y-1.5 text-sm text-white/90">
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-400 font-bold">✓</span>
+                    <span><strong className="text-white">3 free Smart Tool runs/year</strong> (Governance, LIA, or DPIA — up to $267 value)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-400 font-bold">✓</span>
+                    <span>Lowest per-tool pricing — <strong className="text-white">LIA & DPIA drop from $99 → $49</strong>, Governance $89 → $49, CPPA tools 30–45% off</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-400 font-bold">✓</span>
+                    <span>Two months free vs. paying monthly + client workspace unlocked</span>
+                  </li>
+                </ul>
+                <p className="text-amber-100/80 text-meta mt-3 italic">
+                  Three free annual runs alone cover more than half your subscription.
+                </p>
+              </div>
             </div>
           </div>
           {error && <p className="text-red-300 text-meta mt-4">{error}</p>}
