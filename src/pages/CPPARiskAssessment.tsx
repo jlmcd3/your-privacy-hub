@@ -30,6 +30,8 @@ import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/admt/StatuteRail";
 import { CPPA_RISK_RAIL } from "@/components/cppa/CPPARiskRailEntries";
 import type { RailEntry } from "@/components/admt/StatuteRail";
+import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 
 function formatRelativeTime(d: Date): string {
   const s = Math.round((Date.now() - d.getTime()) / 1000);
