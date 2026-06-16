@@ -68,7 +68,7 @@ const LIAssessmentIntake = () => {
   const [intakeForCheckout, setIntakeForCheckout] = useState<Record<string, unknown> | null>(null);
   const [acknowledged, setAcknowledged] = useState(false);
 
-  // GuidedRail — tier-gated GDPR regulation reference
+  
   const guidanceTier = useGuidanceTier();
   const [activeRailSection, setActiveRailSection] = useState<"purpose" | "necessity" | "balancing" | null>(null);
   

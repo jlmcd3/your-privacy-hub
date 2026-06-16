@@ -75,7 +75,7 @@ const DPIAFramework = () => {
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  // GuidedRail — tier-gated GDPR regulation reference
+  
   const guidanceTier = useGuidanceTier();
   const [activeRailField, setActiveRailField] = useState<"trigger" | "legal_basis" | "transfers" | null>(null);
   
