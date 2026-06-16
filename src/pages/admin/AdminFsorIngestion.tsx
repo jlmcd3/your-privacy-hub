@@ -267,7 +267,7 @@ export default function AdminFsorIngestion() {
     setBackfillLog((prev) => [...prev, `[${ts}] Calling backfill-fsor-summaries…`]);
     try {
       const r = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/backfill-fsor-summaries`,
+        `${SUPABASE_URL}/functions/v1/backfill-fsor-summaries`,
         {
           method: "POST",
           headers: {
@@ -308,7 +308,7 @@ export default function AdminFsorIngestion() {
       setBackfillLog((prev) => [...prev, `[${ts}] Round ${round} — calling backfill-fsor-summaries…`]);
       try {
         const r = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/backfill-fsor-summaries`,
+          `${SUPABASE_URL}/functions/v1/backfill-fsor-summaries`,
           {
             method: "POST",
             headers: {
