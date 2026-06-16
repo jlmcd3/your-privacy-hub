@@ -243,7 +243,7 @@ const Subscribe = () => {
               {/* Annual perk callout */}
               <div className="mt-5 pt-4 border-t border-amber-400/30">
                 <p className="text-eyebrow text-amber-200 mb-2">
-                  Go annual, pay least per tool
+                  Go annual, pay less per tool
                 </p>
                 <ul className="space-y-1.5 text-sm text-white/90">
                   <li className="flex items-start gap-2">
