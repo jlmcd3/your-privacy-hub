@@ -501,11 +501,7 @@ const GovernanceAssessment = () => {
             )}
           </div>
         </div>
-        <GuidedRail
-          entry={govRailEntry}
-          guidanceTier={guidanceTier.tier}
-          promptTriggered={railPromptTriggered}
-        />
+        <StatuteRail entry={govRailEntry} />
         </div>
 
 
