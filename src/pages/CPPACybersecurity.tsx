@@ -202,7 +202,7 @@ export default function CPPACybersecurity() {
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Maturity<Req /></Label>
-                  <select className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
+                  <select onFocus={() => focusRail(c.key)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={maturity[c.key] || ""} onChange={(e) => setM(c.key, e.target.value)}>
                     <option value="">Select…</option>
                     {MATURITY.map((m) => <option key={m}>{m}</option>)}
                   </select>
