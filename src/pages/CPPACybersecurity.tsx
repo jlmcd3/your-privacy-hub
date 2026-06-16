@@ -80,6 +80,10 @@ export default function CPPACybersecurity() {
   const setM = (k: string, v: string) => setMaturity((s) => ({ ...s, [k]: v }));
   const setN = (k: string, v: string) => setNotes((s) => ({ ...s, [k]: v }));
 
+  const [activeCyberRailKey, setActiveCyberRailKey] = useState<string | null>(null);
+  const activeCyberRailEntry: RailEntry | null = activeCyberRailKey ? (CPPA_CYBER_RAIL[activeCyberRailKey] ?? null) : null;
+  const focusRail = (key: string) => setActiveCyberRailKey(key);
+
   const allComplete = useMemo(
     () => CONTROLS.every((c) => maturity[c.key]) && profile.industry && profile.incidents_12mo && profile.framework && profile.last_audit,
     [maturity, profile]
