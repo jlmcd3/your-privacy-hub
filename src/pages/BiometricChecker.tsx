@@ -165,7 +165,7 @@ export default function BiometricChecker() {
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Primary purpose</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}>
                 {PURPOSE.map(p => <option key={p}>{p}</option>)}</select></label>
-            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 GDPR — biometric data is special category requiring explicit consent or Art. 9(2) condition)</span></legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 GDPR — biometric data is special category requiring explicit consent or Art. 9(2) condition)</span> <EnforcementSignalIcon signalKey="special_categories" signals={bioEnforcementSignals} /></legend>
               <div className="grid grid-cols-1 gap-1 mt-1">{JURS.map(j => {
                 const isIL = j.includes("Illinois");
                 const isWA = j.includes("Washington");
