@@ -175,7 +175,7 @@ export default function CPPACybersecurity() {
               <option>NIST CSF</option><option>ISO 27001</option><option>SOC 2</option><option>HITRUST</option><option>PCI DSS</option><option>None / informal</option><option>Other</option>
             </select>
           </div>
-          <div>
+          <div onFocus={() => focusRail('profile_audit')}>
             <Label>Last independent security audit<Req /></Label>
             <select className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.last_audit} onChange={(e) => setProfile({ ...profile, last_audit: e.target.value })}>
               <option value="">Select…</option>
