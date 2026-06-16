@@ -29,27 +29,27 @@ const MATURITY = [
   "Implemented with continuous monitoring",
 ];
 
-type Control = { key: string; label: string; description: string };
+type Control = { key: string; label: string; description: string; citation: string };
 
 const CONTROLS: Control[] = [
-  { key: "c1_auth", label: "Authentication and access controls", description: "MFA, password policies, role-based access." },
-  { key: "c2_encryption", label: "Encryption of personal information", description: "At rest and in transit." },
-  { key: "c3_zero_trust", label: "Zero-trust architecture", description: "Continuous verification, least privilege." },
-  { key: "c4_account_mgmt", label: "Account management and access control", description: "Provisioning, deprovisioning, periodic review." },
-  { key: "c5_inventory", label: "Inventory of personal information and systems", description: "Data mapping and asset inventory." },
-  { key: "c6_secure_config", label: "Secure configuration of hardware and software", description: "Hardening baselines." },
-  { key: "c7_vuln_mgmt", label: "Vulnerability management and patching", description: "Scanning cadence and SLAs." },
-  { key: "c8_audit_logs", label: "Audit-log management", description: "Generation, retention, review." },
-  { key: "c9_network_mon", label: "Network monitoring and defence", description: "IDS/IPS, SIEM, alerting." },
-  { key: "c10_anti_malware", label: "Anti-malware protections", description: "EDR/AV across endpoints and servers." },
-  { key: "c11_segmentation", label: "Network segmentation", description: "Separation of sensitive systems." },
-  { key: "c12_physical", label: "Limitation of physical access", description: "Facility, datacentre, device controls." },
-  { key: "c13_secure_dev", label: "Secure development of software", description: "SDLC, code review, dependency scanning." },
-  { key: "c14_third_party", label: "Oversight of service providers and third parties", description: "Due diligence, contracts, monitoring." },
-  { key: "c15_retention", label: "Retention schedules and secure disposal", description: "Documented retention and deletion." },
-  { key: "c16_training", label: "Cybersecurity awareness, education and training", description: "Annual training, phishing simulations." },
-  { key: "c17_incident", label: "Incident response and post-incident analysis", description: "IR plan, tabletop exercises, post-mortems." },
-  { key: "c18_continuity", label: "Business continuity and disaster recovery", description: "BCP/DR plans, tested backups." },
+  { key: "c1_auth", label: "Authentication and access controls", description: "MFA, password policies, role-based access.", citation: "§ 7122(a)(1)" },
+  { key: "c2_encryption", label: "Encryption of personal information", description: "At rest and in transit.", citation: "§ 7122(a)(2)" },
+  { key: "c3_zero_trust", label: "Zero-trust architecture", description: "Continuous verification, least privilege.", citation: "§ 7122(a)(3)" },
+  { key: "c4_account_mgmt", label: "Account management and access control", description: "Provisioning, deprovisioning, periodic review.", citation: "§ 7122(a)(4)" },
+  { key: "c5_inventory", label: "Inventory of personal information and systems", description: "Data mapping and asset inventory.", citation: "§ 7122(a)(5)" },
+  { key: "c6_secure_config", label: "Secure configuration of hardware and software", description: "Hardening baselines.", citation: "§ 7122(a)(6)" },
+  { key: "c7_vuln_mgmt", label: "Vulnerability management and patching", description: "Scanning cadence and SLAs.", citation: "§ 7122(a)(7)" },
+  { key: "c8_audit_logs", label: "Audit-log management", description: "Generation, retention, review.", citation: "§ 7122(a)(8)" },
+  { key: "c9_network_mon", label: "Network monitoring and defence", description: "IDS/IPS, SIEM, alerting.", citation: "§ 7122(a)(9)" },
+  { key: "c10_anti_malware", label: "Anti-malware protections", description: "EDR/AV across endpoints and servers.", citation: "§ 7122(a)(10)" },
+  { key: "c11_segmentation", label: "Network segmentation", description: "Separation of sensitive systems.", citation: "§ 7122(a)(11)" },
+  { key: "c12_physical", label: "Limitation of physical access", description: "Facility, datacentre, device controls.", citation: "§ 7122(a)(12)" },
+  { key: "c13_secure_dev", label: "Secure development of software", description: "SDLC, code review, dependency scanning.", citation: "§ 7122(a)(13)" },
+  { key: "c14_third_party", label: "Oversight of service providers and third parties", description: "Due diligence, contracts, monitoring.", citation: "§ 7122(a)(14)" },
+  { key: "c15_retention", label: "Retention schedules and secure disposal", description: "Documented retention and deletion.", citation: "§ 7122(a)(15)" },
+  { key: "c16_training", label: "Cybersecurity awareness, education and training", description: "Annual training, phishing simulations.", citation: "§ 7122(a)(16)" },
+  { key: "c17_incident", label: "Incident response and post-incident analysis", description: "IR plan, tabletop exercises, post-mortems.", citation: "§ 7122(a)(17)" },
+  { key: "c18_continuity", label: "Business continuity and disaster recovery", description: "BCP/DR plans, tested backups.", citation: "§ 7122(a)(18)" },
 ];
 
 export default function CPPACybersecurity() {
