@@ -125,9 +125,9 @@ const Subscribe = () => {
             Run a client-facing practice with Professional from {PRICING.professional.monthly.display}/month.
           </p>
 
-          <div id="pro-plan-card" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[760px] mx-auto text-left">
+          <div id="pro-plan-card" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[760px] mx-auto text-left items-stretch">
             {/* Intelligence card */}
-            <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
+            <div className="bg-white/10 border border-white/20 rounded-2xl p-6 flex flex-col h-full">
               <p className="text-eyebrow text-brand-mist mb-2">
                 Privacy Intelligence
               </p>
@@ -177,7 +177,7 @@ const Subscribe = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mt-5">
+              <div className="grid grid-cols-2 gap-2 mt-auto pt-5">
                 <button
                   onClick={() => startCheckout("month", "intelligence")}
                   disabled={!!loading}
@@ -199,7 +199,7 @@ const Subscribe = () => {
             </div>
 
             {/* Professional card */}
-            <div className="bg-amber-400/10 border-2 border-amber-400/60 rounded-2xl p-6 relative">
+            <div className="bg-amber-400/10 border-2 border-amber-400/60 rounded-2xl p-6 relative flex flex-col h-full">
               <p className="text-eyebrow text-amber-300 mb-2">
                 Professional
               </p>
@@ -254,7 +254,7 @@ const Subscribe = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mt-5">
+              <div className="grid grid-cols-2 gap-2 mt-auto pt-5">
                 <button
                   onClick={() => startCheckout("month", "professional")}
                   disabled={!!loading}
