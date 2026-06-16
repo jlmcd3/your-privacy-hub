@@ -479,6 +479,26 @@ function buildHtml(d: AssembledData): string {
       border-bottom:1px dashed #dde5ea; }
     .signature { margin-top:32px; border-top:2px solid #2d9b90; padding-top:16px; }
     .footer-note { font-size:11px; color:#5c6d7a; margin-top:24px; }
+
+    /* ── Print / PDF pagination fixes (PDFShift/Chromium) ──────────── */
+    .activity { break-inside: avoid; page-break-inside: avoid; }
+    h2, h3 { break-after: avoid; page-break-after: avoid; }
+    h2 + *, h3 + * { break-before: avoid; page-break-before: avoid; }
+    table.kv tr { break-inside: avoid; page-break-inside: avoid; }
+    ul { break-inside: avoid; page-break-inside: avoid; }
+    .signature { break-before: avoid; page-break-before: avoid; }
+    .signature + * { break-inside: avoid; page-break-inside: avoid; }
+    .footer-note:last-child { break-before: avoid; page-break-before: avoid; }
+    @media print {
+      .activity { break-inside: avoid; page-break-inside: avoid; }
+      h2, h3 { break-after: avoid; page-break-after: avoid; }
+      h2 + *, h3 + * { break-before: avoid; page-break-before: avoid; }
+      table.kv tr { break-inside: avoid; page-break-inside: avoid; }
+      ul { break-inside: avoid; page-break-inside: avoid; }
+      .signature { break-before: avoid; page-break-before: avoid; }
+      .signature + * { break-inside: avoid; page-break-inside: avoid; }
+      .footer-note:last-child { break-before: avoid; page-break-before: avoid; }
+    }
   </style>
 </head>
 <body>
