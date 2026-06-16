@@ -147,6 +147,45 @@ export type Database = {
         }
         Relationships: []
       }
+      assertion_run_results: {
+        Row: {
+          completed_tools: number
+          created_by: string | null
+          elapsed_ms: number | null
+          failed_assertions: number
+          id: string
+          passed_assertions: number
+          run_at: string
+          run_status: string
+          tool_results: Json
+          total_assertions: number
+        }
+        Insert: {
+          completed_tools?: number
+          created_by?: string | null
+          elapsed_ms?: number | null
+          failed_assertions?: number
+          id?: string
+          passed_assertions?: number
+          run_at?: string
+          run_status: string
+          tool_results?: Json
+          total_assertions?: number
+        }
+        Update: {
+          completed_tools?: number
+          created_by?: string | null
+          elapsed_ms?: number | null
+          failed_assertions?: number
+          id?: string
+          passed_assertions?: number
+          run_at?: string
+          run_status?: string
+          tool_results?: Json
+          total_assertions?: number
+        }
+        Relationships: []
+      }
       assessment_purchases: {
         Row: {
           amount_cents: number

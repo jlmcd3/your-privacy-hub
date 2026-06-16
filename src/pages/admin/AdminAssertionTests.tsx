@@ -13,6 +13,7 @@ import {
   type ToolRunResult,
   CONCURRENCY,
 } from "@/lib/tests/assertionRunner";
+import { supabase } from "@/integrations/supabase/client";
 
 function elapsed(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -181,14 +182,50 @@ export default function AdminAssertionTests() {
   const [isPaused, setIsPaused] = useState(false);
   const isRunning = runnerState.status === "running" || runnerState.status === "paused";
 
+  const saveResults = useCallback(async (state: RunnerState) => {
+    if (!user) return;
+    try {
+      await (supabase as any).from("assertion_run_results").insert({
+        run_status: state.status,
+        elapsed_ms: state.elapsedMs,
+        total_assertions: state.totalAssertions,
+        passed_assertions: state.passedAssertions,
+        failed_assertions: state.failedAssertions,
+        completed_tools: state.completedTools,
+        created_by: user.id,
+        tool_results: state.tools.map((t) => ({
+          toolId: t.toolId,
+          toolName: t.toolName,
+          status: t.status,
+          elapsedMs: t.elapsedMs,
+          passCount: t.passCount,
+          failCount: t.failCount,
+          error: t.error ?? null,
+          log: t.log,
+          assertions: t.results.map((r) => ({
+            id: r.assertion.id,
+            description: r.assertion.description,
+            category: r.assertion.category,
+            passed: r.passed,
+            errorMessage: r.passed ? null : r.assertion.errorMessage,
+            runtimeError: r.error ?? null,
+          })),
+        })),
+      });
+    } catch (e) {
+      console.error("Failed to save assertion results:", e);
+    }
+  }, [user]);
+
   const handleRunAll = useCallback(async () => {
     if (!user) return;
     const runner = new AssertionRunner();
     runnerRef.current = runner;
     setIsPaused(false);
     setRunnerState({ status: "running", tools: ALL_ASSERTION_TESTS.map(emptyToolResult), startedAt: Date.now(), elapsedMs: 0, totalAssertions: ALL_ASSERTION_TESTS.reduce((a, t) => a + t.assertions.length, 0), passedAssertions: 0, failedAssertions: 0, completedTools: 0 });
-    await runner.run(ALL_ASSERTION_TESTS, user.id, (_toolId, result) => { setRunnerState((s) => ({ ...s, tools: s.tools.map((t) => (t.toolId === result.toolId ? result : t)) })); }, (state) => setRunnerState({ ...state }));
-  }, [user]);
+    const finalState = await runner.run(ALL_ASSERTION_TESTS, user.id, (_toolId, result) => { setRunnerState((s) => ({ ...s, tools: s.tools.map((t) => (t.toolId === result.toolId ? result : t)) })); }, (state) => setRunnerState({ ...state }));
+    await saveResults(finalState);
+  }, [user, saveResults]);
 
   const handleRunSingle = useCallback(async (toolId: string) => {
     if (!user || isRunning) return;
@@ -223,41 +260,31 @@ export default function AdminAssertionTests() {
 
   const statusLabel: Record<string, string> = { idle: "Ready", running: "Running…", paused: "Paused", complete: "Complete", stopped: "Stopped" };
 
-  const handleDownload = () => {
-    const exportData = {
-      exportedAt: new Date().toISOString(),
-      runStatus: runnerState.status,
-      elapsedMs: runnerState.elapsedMs,
-      totalAssertions: runnerState.totalAssertions,
-      passedAssertions: runnerState.passedAssertions,
-      failedAssertions: runnerState.failedAssertions,
-      tools: runnerState.tools.map((t) => ({
-        toolId: t.toolId,
-        toolName: t.toolName,
-        status: t.status,
-        elapsedMs: t.elapsedMs,
-        passCount: t.passCount,
-        failCount: t.failCount,
-        error: t.error,
-        log: t.log,
-        assertions: t.results.map((r) => ({
-          id: r.assertion.id,
-          description: r.assertion.description,
-          category: r.assertion.category,
-          passed: r.passed,
-          errorMessage: r.passed ? null : r.assertion.errorMessage,
-          runtimeError: r.error ?? null,
-        })),
-      })),
-    };
+  const handleDownload = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from("assertion_run_results")
+        .select("*")
+        .order("run_at", { ascending: false });
+      if (error) throw error;
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `eup-assertion-results-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        totalRuns: data?.length ?? 0,
+        runs: data ?? [],
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `eup-assertion-results-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Failed to download assertion results:", e);
+      alert("Failed to download results: " + (e as Error).message);
+    }
   };
 
   return (
