@@ -260,7 +260,7 @@ export default function CPPAScopeChecker() {
             </div>
 
             <div>
-              <Label>Q7: Does your business use automated decision-making technology (ADMT) to make, or factor into, decisions that have significant effects on California consumers — such as employment, credit, housing, insurance, or access to services?</Label>
+              <Label>Q7: Does your business use automated decision-making technology (ADMT) to make, or factor into, decisions that have significant effects on California consumers — such as employment, credit, housing, insurance, or access to services? <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7001(e), 7001(ddd), 7150(b)(3))</span></Label>
               <div className="mt-2">
                 <Radio name="q7" options={["Yes", "No", "In evaluation", "Unsure"]} value={q7} onChange={(v) => setQ7(v as Q7)} />
               </div>
