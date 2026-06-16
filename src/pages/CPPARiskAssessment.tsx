@@ -830,7 +830,6 @@ export default function CPPARiskAssessment() {
           </div>
         </div>
 
-        </div>
         <StatuteRail entry={activeRiskRailEntry} />
         </div>
 
