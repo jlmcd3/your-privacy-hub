@@ -204,7 +204,7 @@ export default function CPPAScopeChecker() {
             </div>
 
             <div>
-              <Label>Q2: What is your business's annual gross revenue?</Label>
+              <Label>Q2: What is your business's annual gross revenue? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag)(1))</span></Label>
               <div className="mt-2">
                 <Radio
                   name="q2"
