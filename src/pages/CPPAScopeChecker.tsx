@@ -197,7 +197,7 @@ export default function CPPAScopeChecker() {
           <div className="bg-card border rounded-lg p-6 space-y-6">
             <p className="text-xs font-mono text-muted-foreground pb-2 border-b">Cal. Civ. Code § 1798.140(ag) — applicability thresholds · 11 CCR §§ 7120, 7150(b) — audit and risk assessment triggers</p>
             <div>
-              <Label>Q1: Does your business operate for profit and do business in California, OR collect personal information from California residents?</Label>
+              <Label>Q1: Does your business operate for profit and do business in California, OR collect personal information from California residents? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag))</span></Label>
               <div className="mt-2">
                 <Radio name="q1" options={["Yes", "No", "Unsure"]} value={q1} onChange={(v) => setQ1(v as Q1)} />
               </div>
