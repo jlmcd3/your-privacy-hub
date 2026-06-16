@@ -170,7 +170,7 @@ export const PRICING_REGISTRY = {
     productKey: "professional",
     productName: "Professional — Annual",
     description:
-      "Annual Professional subscription. Save $98 — pay for 10 months, get 12. Unlocks client/matter workspace, branded outputs, every Layer-1 tool (RoPA, Notice Builders, IR Playbook, Biometric, DPA), and 3 free Smart Tool runs per year (Governance, LIA, or DPIA — up to $267 value).",
+      "Annual Professional subscription. Save $98 — pay for 10 months, get 12. Unlocks client/matter workspace, every Layer-1 tool (RoPA, Notice Builders, IR Playbook, Biometric, DPA), and 3 free Smart Tool runs per year (Governance, LIA, or DPIA — up to $267 value).",
     amountCents: 49000,
     currency: "usd",
     displayPrice: "$490",
