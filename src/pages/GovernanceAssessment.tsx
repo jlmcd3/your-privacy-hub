@@ -14,7 +14,7 @@ import ToolSamplePreview from "@/components/tools/ToolSamplePreview";
 import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
-import GuidedRail from "@/components/GuidedRail";
+import StatuteRail from "@/components/admt/StatuteRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
@@ -192,7 +192,7 @@ const GovernanceAssessment = () => {
 
   // GuidedRail — tier-gated GDPR regulation reference, updates per step
   const guidanceTier = useGuidanceTier();
-  const [railPromptTriggered, setRailPromptTriggered] = useState(false);
+  
 
   const govRailConfigs: Record<number, Parameters<typeof useGdprRailEntry>[0]> = {
     1: {
@@ -234,15 +234,9 @@ const GovernanceAssessment = () => {
   };
 
   const govRailOpts = !summaryStep ? (govRailConfigs[step] ?? null) : null;
-  const { entry: govRailEntry } = useGdprRailEntry(
-    guidanceTier.tier !== "anonymous" ? govRailOpts : null
-  );
+  const { entry: govRailEntry } = useGdprRailEntry(govRailOpts);
 
-  const handleGovRailFocus = () => {
-    if (guidanceTier.tier === "anonymous") {
-      setRailPromptTriggered(true);
-    }
-  };
+  const handleGovRailFocus = () => {};
 
   const govEnforcementSignals = useGdprEnforcementSignals(
     ["special_categories", "breach_notification", "dpo_absence", "dpia_absence",
@@ -507,11 +501,7 @@ const GovernanceAssessment = () => {
             )}
           </div>
         </div>
-        <GuidedRail
-          entry={govRailEntry}
-          guidanceTier={guidanceTier.tier}
-          promptTriggered={railPromptTriggered}
-        />
+        <StatuteRail entry={govRailEntry} />
         </div>
 
 
