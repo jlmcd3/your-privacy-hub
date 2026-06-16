@@ -276,14 +276,12 @@ export default function AdminAssertionTests() {
           {isRunning && <button onClick={handlePauseResume} className="px-4 py-2 rounded border border-slate-300 text-slate-700 text-sm hover:bg-slate-100">{isPaused ? "▶ Resume" : "⏸ Pause"}</button>}
           {isRunning && <button onClick={handleStop} className="px-4 py-2 rounded border border-red-300 text-red-700 text-sm hover:bg-red-50">⏹ Stop</button>}
           {!isRunning && runnerState.status !== "idle" && <button onClick={handleClear} className="px-4 py-2 rounded border border-slate-300 text-slate-600 text-sm hover:bg-slate-100">🗑 Clear results</button>}
-          {!isRunning && runnerState.status !== "idle" && (
-            <button
-              onClick={handleDownload}
-              className="px-4 py-2 rounded border border-slate-300 text-slate-600 text-sm hover:bg-slate-100"
-            >
-              ⬇ Download results
-            </button>
-          )}
+          <button
+            onClick={handleDownload}
+            className="px-4 py-2 rounded border border-slate-300 text-slate-600 text-sm hover:bg-slate-100"
+          >
+            ⬇ Download results
+          </button>
           {!user && <span className="text-xs text-red-600">Sign in as admin to run tests.</span>}
         </div>
 
