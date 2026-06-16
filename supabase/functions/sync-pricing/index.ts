@@ -48,6 +48,8 @@ interface RegistryEntry {
   kind: PriceKind;
   recurringInterval?: "month" | "year";
   active: boolean;
+  /** Optional extra price metadata pushed into Stripe alongside lovable_external_id. */
+  extraMetadata?: Record<string, string>;
 }
 
 const REGISTRY_SNAPSHOT: RegistryEntry[] = [
