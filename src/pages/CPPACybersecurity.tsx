@@ -157,7 +157,7 @@ export default function CPPACybersecurity() {
           <h2 className="">Organisation Profile</h2>
           <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7122(a) — cybersecurity audit programme scope; § 7122(b) — certification requirement</p>
           <RequiredLegend />
-          <div>
+          <div onFocus={() => focusRail('profile_industry')}>
             <Label>Industry sector<Req /></Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="e.g. SaaS, healthcare, retail" />
           </div>
