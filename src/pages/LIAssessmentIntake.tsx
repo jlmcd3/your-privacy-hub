@@ -261,7 +261,7 @@ const LIAssessmentIntake = () => {
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         {hasSpecialCategory && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded text-sm text-red-900">
-            <strong>Important:</strong> You indicated special category data is involved. Article 6(1)(f) legitimate interest
+            <strong>Important:</strong> <EnforcementSignalIcon signalKey="special_categories" signals={liaEnforcementSignals} /> You indicated special category data is involved. Article 6(1)(f) legitimate interest
             alone is generally insufficient — Article 9 requires an additional condition. The full assessment will flag
             this and recommend the Article 9 condition you'll need.
           </div>
