@@ -145,7 +145,7 @@ export default function BiometricChecker() {
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <RequiredLegend />
-            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Biometric data types<Req /> <DefPopover termKey="gdpr_biometric_data" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(14) GDPR · Art. 9(1) — special category)</span></legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Biometric data types<Req /> <DefPopover termKey="gdpr_biometric_data" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(14) GDPR · Art. 9(1) — special category)</span> <EnforcementSignalIcon signalKey="biometric" signals={bioEnforcementSignals} /></legend>
               <div className="grid grid-cols-2 gap-1 mt-1">{TYPES.map(t => <label key={t} className="flex items-center gap-2 text-meta">
                 <input type="checkbox" checked={form.biometricTypes.includes(t)} onChange={() => toggle("biometricTypes", t)} />{t}</label>)}</div></fieldset>
             <div>
