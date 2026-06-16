@@ -267,7 +267,7 @@ export default function CPPAScopeChecker() {
             </div>
 
             <div>
-              <Label>Q8: Are you registered as a data broker with the California Attorney General?</Label>
+              <Label>Q8: Are you registered as a data broker with the California Attorney General? <span className="text-xs text-muted-foreground font-mono">(Cal. Bus. & Prof. Code § 22757)</span></Label>
               <div className="mt-2">
                 <Radio
                   name="q8"
