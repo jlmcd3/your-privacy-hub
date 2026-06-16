@@ -96,7 +96,7 @@ export default function EUNoticeReview() {
   const [acknowledged, setAcknowledged] = useState(false);
 
   const [includeHtml, setIncludeHtml] = useState(true);
-  const [includeWord, setIncludeWord] = useState(false);
+  
   const [includeCombined, setIncludeCombined] = useState(true);
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
