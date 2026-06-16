@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Check, X as XIcon } from "lucide-react";
+import { Check, X as XIcon, ArrowRight } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
 import { PRICING } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
@@ -275,13 +275,13 @@ const Subscribe = () => {
               </p>
             </div>
           </div>
-          <div className="flex justify-center mt-6">
+          <div className="flex justify-center mt-8">
             <button
               onClick={() => startCheckout("year", "intelligence")}
               disabled={!!loading}
-              className="py-3 px-8 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
+              className="flex items-center gap-2 py-4 px-10 rounded-2xl text-base font-bold bg-white text-brand-navy shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
             >
-              Start free trial
+              Start free trial <ArrowRight className="w-5 h-5" />
             </button>
           </div>
           {error && <p className="text-red-300 text-meta mt-4">{error}</p>}
@@ -321,7 +321,7 @@ const Subscribe = () => {
           <div className="cmp-table overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="border-b-2 border-brand-cloud">
+                <tr className="border-b-2 border-brand-cloud bg-brand-cloud">
                   <th className="text-left py-3 pr-4 pl-5 font-semibold text-gray-700 w-1/2">Feature</th>
                   <th className="text-center py-3 px-2 font-semibold text-gray-500 text-xs uppercase tracking-wider">Anonymous</th>
                   <th className="text-center py-3 px-2 font-semibold text-brand-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">{PRICING.intelligence.monthly.display}/mo</span></th>
