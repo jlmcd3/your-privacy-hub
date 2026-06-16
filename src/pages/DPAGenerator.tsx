@@ -183,9 +183,10 @@ export default function DPAGenerator() {
 
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <h2 className="font-display text-brand-navy">DPA Intake</h2>
+            <p className="text-xs font-mono text-muted-foreground">Art. 28 GDPR — controller-processor contracts · Art. 28(3)(a)–(h) — eight mandatory clauses</p>
             <div className="space-y-3 text-sm">
               <RequiredLegend />
-              <label className="block"><span className="font-semibold text-brand-navy">Controller name<Req /> <DefPopover termKey="gdpr_controller" /></span>
+              <label className="block"><span className="font-semibold text-brand-navy">Controller name<Req /> <DefPopover termKey="gdpr_controller" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(7) GDPR)</span></span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
               <label className="block"><span className="font-semibold text-brand-navy">Controller jurisdiction</span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.controllerJurisdiction} onChange={e => setForm(f => ({ ...f, controllerJurisdiction: e.target.value }))}>
@@ -194,16 +195,16 @@ export default function DPAGenerator() {
                   <optgroup label="🇨🇦 Canada">{JURS_CANADA.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🌏 Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
                 </select></label>
-              <label className="block"><span className="font-semibold text-brand-navy">Processor name<Req /> <DefPopover termKey="gdpr_processor" /></span>
+              <label className="block"><span className="font-semibold text-brand-navy">Processor name<Req /> <DefPopover termKey="gdpr_processor" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(8) GDPR)</span></span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorName} onChange={e => setForm(f => ({ ...f, processorName: e.target.value }))} /></label>
-              <label className="block"><span className="font-semibold text-brand-navy">Processor jurisdiction <DefPopover termKey="gdpr_sccs" /></span>
+              <label className="block"><span className="font-semibold text-brand-navy">Processor jurisdiction <DefPopover termKey="gdpr_sccs" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–46 GDPR — transfer mechanism triggered when outside EEA)</span></span>
                 <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.processorJurisdiction} onChange={e => setForm(f => ({ ...f, processorJurisdiction: e.target.value }))}>
                   <optgroup label="🇪🇺 EU / EEA / UK">{JURS_EU.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🇺🇸 United States">{JURS_US.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🇨🇦 Canada">{JURS_CANADA.map(j => <option key={j}>{j}</option>)}</optgroup>
                   <optgroup label="🌏 Other">{JURS_OTHER.map(j => <option key={j}>{j}</option>)}</optgroup>
                 </select></label>
-              <label className="block"><span className="font-semibold text-brand-navy">Services description<Req /> <DefPopover termKey="gdpr_processor_contract" /></span>
+              <label className="block"><span className="font-semibold text-brand-navy">Services description<Req /> <DefPopover termKey="gdpr_processor_contract" /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR — subject matter and nature of processing)</span></span>
                 <textarea className="w-full mt-1 border border-border rounded-lg px-3 py-2" rows={3} value={form.services} onChange={e => setForm(f => ({ ...f, services: e.target.value }))} /></label>
 
               <fieldset><legend className="font-semibold text-brand-navy">Data categories<Req /></legend>

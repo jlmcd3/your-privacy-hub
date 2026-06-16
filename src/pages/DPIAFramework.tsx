@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
@@ -20,6 +20,11 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import GuidedRail from "@/components/GuidedRail";
+import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { useGuidanceTier } from "@/hooks/useGuidanceTier";
+import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
@@ -69,6 +74,85 @@ const DPIAFramework = () => {
   const [prefilled, setPrefilled] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  // GuidedRail — tier-gated GDPR regulation reference
+  const guidanceTier = useGuidanceTier();
+  const [activeRailField, setActiveRailField] = useState<"trigger" | "legal_basis" | "transfers" | null>(null);
+  const [railPromptTriggered, setRailPromptTriggered] = useState(false);
+
+  const dpiaRailConfigs = {
+    trigger: {
+      article: "35", jurisdiction: "eu" as const, recital: 84,
+      fieldLabel: "DPIA trigger — Art. 35 GDPR",
+      plainSummary: "A DPIA is mandatory where processing is likely to result in high risk — particularly with new technologies, large-scale special category processing, or systematic profiling. Art. 35(3) lists three mandatory trigger categories; supervisory authorities also publish lists of additional types.",
+      relatedCitations: [
+        { citation: "Art. 35(3) GDPR", label: "Three mandatory DPIA triggers" },
+        { citation: "Recital 89 GDPR", label: "What constitutes high risk" },
+      ],
+    },
+    legal_basis: {
+      article: "6", jurisdiction: "eu" as const, recital: 40,
+      fieldLabel: "Legal basis — Art. 6(1) GDPR",
+      plainSummary: "Processing requires at least one of six lawful bases. In a DPIA context, the legal basis informs the residual risk assessment — consent-based processing poses lower risk than legitimate interests where data subjects may not expect the processing. Always cite the specific sub-clause (a)–(f).",
+      relatedCitations: [{ citation: "Art. 9 GDPR", label: "Additional condition for special categories" }],
+    },
+    transfers: {
+      article: "44", jurisdiction: "eu" as const,
+      fieldLabel: "International transfers — Arts. 44–49 GDPR",
+      plainSummary: "Any transfer to a third country (outside EEA/UK) requires a Chapter V mechanism. The transfer itself is a processing activity that must be risk-assessed within the DPIA when it involves high-risk data. Post-Schrems II, SCCs require a documented Transfer Impact Assessment.",
+      relatedCitations: [
+        { citation: "Art. 46(2)(c) GDPR", label: "Standard Contractual Clauses" },
+        { citation: "EDPB Recommendations 01/2020", label: "Transfer impact assessment" },
+      ],
+    },
+  };
+
+  const dpiaRailOpts = activeRailField ? dpiaRailConfigs[activeRailField] : null;
+  const { entry: dpiaRailEntry } = useGdprRailEntry(
+    guidanceTier.tier !== "anonymous" ? dpiaRailOpts : null
+  );
+
+  const handleDpiaRailFocus = (field: "trigger" | "legal_basis" | "transfers") => {
+    if (guidanceTier.tier === "anonymous") {
+      setRailPromptTriggered(true);
+      return;
+    }
+    setActiveRailField(field);
+  };
+
+  const dpiaEnforcementSignals = useGdprEnforcementSignals(
+    ["special_categories", "dpia_absence", "international_transfer"],
+    guidanceTier.tier === "paid"
+  );
+
+  // DPIA mandatory trigger detection — Art. 35(3), visible to all users
+  const dpiaTriggers = useMemo(() => {
+    const SPECIAL = ["Health / medical data", "Biometric data", "Genetic data"];
+    const hasSpecial = dataCategories.some(c => SPECIAL.includes(c));
+    const hasChildren = dataCategories.some(c => c.toLowerCase().includes("child"));
+    const items = [
+      {
+        citation: "Art. 35(3)(b) GDPR",
+        label: "Large-scale processing of special category data",
+        triggered: hasSpecial,
+        note: "Health, biometric, or genetic data selected",
+      },
+      {
+        citation: "Art. 35(3)(a) GDPR",
+        label: "Systematic and extensive profiling with significant effects",
+        triggered: description.toLowerCase().includes("profil"),
+        note: "Profiling activity detected in processing description",
+      },
+      {
+        citation: "Recital 38 GDPR",
+        label: "Processing children's data — heightened obligations apply",
+        triggered: hasChildren,
+        note: "Children's data requires particular protection under GDPR",
+      },
+    ].filter(i => i.triggered);
+    return items;
+  }, [dataCategories, description]);
+
 
   // Pre-populate from governance assessment if ?source= present
   useEffect(() => {
@@ -172,9 +256,11 @@ const DPIAFramework = () => {
           </div>
         )}
 
-        <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="bg-card border rounded-lg p-6 space-y-6">
+        <div className="flex gap-6 items-start">
+        <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="flex-1 min-w-0 bg-card border rounded-lg p-6 space-y-6">
           <RequiredLegend />
           <div>
+            <p className="text-xs font-mono text-muted-foreground pb-2 border-b">Art. 35 GDPR — Data Protection Impact Assessment · Recitals 84, 89–90 — when a DPIA is mandatory</p>
             <Label htmlFor="org">Organisation being assessed<Req /></Label>
             <Input id="org" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="e.g. Acme Retail Ltd" className="mt-2" />
             <p className="text-meta text-muted-foreground mt-1">The controller/entity whose processing this DPIA documents.</p>
@@ -193,7 +279,24 @@ const DPIAFramework = () => {
             <Textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">Be specific. Vague purposes weaken both the legal basis and the DPIA.</p>
           </div>
-          <div><Label>Data categories<Req /> <DefPopover termKey="gdpr_special_categories" /></Label><div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div></div>
+          <div onFocus={() => handleDpiaRailFocus("trigger")}><Label>Data categories<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 — special categories trigger Art. 35(3)(b))</span> <EnforcementSignalIcon signalKey="special_categories" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div></div>
+          {dpiaTriggers.length > 0 && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 p-3 space-y-1.5">
+              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 uppercase tracking-wide">
+                ⚡ DPIA triggers detected from your data categories <EnforcementSignalIcon signalKey="dpia_absence" signals={dpiaEnforcementSignals} />
+              </p>
+              {dpiaTriggers.map((item) => (
+                <div key={item.citation} className="flex items-start gap-2">
+                  <span className="text-amber-600 mt-0.5 shrink-0">▸</span>
+                  <div className="text-xs">
+                    <span className="font-mono text-amber-700 dark:text-amber-400 font-medium">{item.citation}</span>
+                    <span className="text-foreground ml-2">{item.label}</span>
+                    {item.note && <span className="text-muted-foreground ml-1">— {item.note}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           <div><Label>Who are the data subjects?<Req /> <DefPopover termKey="gdpr_personal_data" /></Label><Input value={dataSubjects} onChange={(e) => setDataSubjects(e.target.value)} placeholder="e.g. Employees in the UK and Ireland aged 18+" className="mt-2" /></div>
           <div><Label>Volume and frequency<Req /></Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="e.g. 250 employees, continuous monitoring during working hours" className="mt-2" /></div>
           <div>
@@ -202,14 +305,21 @@ const DPIAFramework = () => {
             <Input placeholder="Other (specify)" value={otherProcessor} onChange={(e) => setOtherProcessor(e.target.value)} className="mt-2" />
           </div>
           <div><Label>Existing safeguards</Label><div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div></div>
-          <div><Label>Jurisdictions<Req /> <DefPopover termKey="gdpr_international_transfer" /></Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
+          <div onFocus={() => handleDpiaRailFocus("transfers")}><Label>Jurisdictions<Req /> <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–49 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
           <div>
-            <Label>Legal basis proposed<Req /></Label>
-            <select value={legalBasis} onChange={(e) => setLegalBasis(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+            <Label>Legal basis proposed<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 6(1) GDPR — six lawful bases)</span></Label>
+            <select value={legalBasis} onChange={(e) => setLegalBasis(e.target.value)} onFocus={() => handleDpiaRailFocus("legal_basis")} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>{LEGAL_BASES.map((b) => <option key={b}>{b}</option>)}
             </select>
           </div>
         </form>
+        <GuidedRail
+          entry={dpiaRailEntry}
+          guidanceTier={guidanceTier.tier}
+          promptTriggered={railPromptTriggered}
+        />
+        </div>
+
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpia-framework" />
         <ToolCheckoutModal

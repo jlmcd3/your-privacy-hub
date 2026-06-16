@@ -20,6 +20,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
+import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
+import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
@@ -66,6 +69,11 @@ export default function BiometricChecker() {
   };
 
   const [biometricFreeRunAvailable, setBiometricFreeRunAvailable] = useState(false);
+  const guidanceTier = useGuidanceTier();
+  const bioEnforcementSignals = useGdprEnforcementSignals(
+    ["biometric", "special_categories"],
+    guidanceTier.tier === "paid"
+  );
 
   useEffect(() => {
     if (!access.user) { setBiometricFreeRunAvailable(false); return; }
@@ -137,7 +145,7 @@ export default function BiometricChecker() {
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
             <RequiredLegend />
-            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Biometric data types<Req /> <DefPopover termKey="gdpr_biometric_data" /></legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Biometric data types<Req /> <DefPopover termKey="gdpr_biometric_data" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(14) GDPR · Art. 9(1) — special category)</span> <EnforcementSignalIcon signalKey="biometric" signals={bioEnforcementSignals} /></legend>
               <div className="grid grid-cols-2 gap-1 mt-1">{TYPES.map(t => <label key={t} className="flex items-center gap-2 text-meta">
                 <input type="checkbox" checked={form.biometricTypes.includes(t)} onChange={() => toggle("biometricTypes", t)} />{t}</label>)}</div></fieldset>
             <div>
@@ -157,7 +165,7 @@ export default function BiometricChecker() {
             <label className="block text-sm"><span className="font-semibold text-brand-navy">Primary purpose</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))}>
                 {PURPOSE.map(p => <option key={p}>{p}</option>)}</select></label>
-            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions<Req /> <DefPopover termKey="gdpr_special_categories" /></legend>
+            <fieldset className="text-sm"><legend className="font-semibold text-brand-navy">Jurisdictions<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 GDPR — biometric data is special category requiring explicit consent or Art. 9(2) condition)</span> <EnforcementSignalIcon signalKey="special_categories" signals={bioEnforcementSignals} /></legend>
               <div className="grid grid-cols-1 gap-1 mt-1">{JURS.map(j => {
                 const isIL = j.includes("Illinois");
                 const isWA = j.includes("Washington");
