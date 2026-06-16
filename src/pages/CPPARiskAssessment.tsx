@@ -471,7 +471,8 @@ export default function CPPARiskAssessment() {
         )}
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
-        <div className="bg-card border rounded-lg p-6 space-y-6">
+        <div className="flex gap-6 items-start">
+        <div className="flex-1 min-w-0 bg-card border rounded-lg p-6 space-y-6">
           {step === 1 && (
             <>
               <h2>Step 1 — Business Profile</h2>
