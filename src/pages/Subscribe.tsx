@@ -101,7 +101,7 @@ const Subscribe = () => {
         <title>Pricing & Plans | End User Privacy</title>
         <meta
           name="description"
-          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month — client workspaces, branded outputs. Any subscription includes RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
+          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month — client/matter workspaces. Any subscription includes RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
         />
       </Helmet>
       <Navbar />
@@ -189,9 +189,7 @@ const Subscribe = () => {
                 {[
                   "Everything in Intelligence (for account holder)",
                   "Client/matter workspace & compliance record",
-                  "Branded document outputs",
                   "3 free Smart Tool runs per year (annual plan only — up to $267 value)",
-                  
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
