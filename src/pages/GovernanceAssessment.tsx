@@ -234,15 +234,9 @@ const GovernanceAssessment = () => {
   };
 
   const govRailOpts = !summaryStep ? (govRailConfigs[step] ?? null) : null;
-  const { entry: govRailEntry } = useGdprRailEntry(
-    guidanceTier.tier !== "anonymous" ? govRailOpts : null
-  );
+  const { entry: govRailEntry } = useGdprRailEntry(govRailOpts);
 
-  const handleGovRailFocus = () => {
-    if (guidanceTier.tier === "anonymous") {
-      setRailPromptTriggered(true);
-    }
-  };
+  const handleGovRailFocus = () => {};
 
   const govEnforcementSignals = useGdprEnforcementSignals(
     ["special_categories", "breach_notification", "dpo_absence", "dpia_absence",
