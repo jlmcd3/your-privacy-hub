@@ -125,7 +125,7 @@ const Subscribe = () => {
             Run a client-facing practice with Professional from {PRICING.professional.monthly.display}/month.
           </p>
 
-          <div id="pro-plan-card" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[760px] mx-auto text-left items-stretch">
+          <div id="pro-plan-card" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[840px] mx-auto text-left items-stretch">
             {/* Intelligence card */}
             <div className="bg-white/10 border border-white/20 rounded-2xl p-6 flex flex-col h-full">
               <p className="text-eyebrow text-brand-mist mb-2">
