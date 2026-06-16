@@ -415,6 +415,7 @@ export default function CPPARiskAssessment() {
           {step === 2 && (
             <>
               <h2>Step 2 — Consumer Rights Infrastructure</h2>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code §§ 1798.100–1798.135 — consumer rights obligations</p>
               <RequiredLegend />
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q6: Right to Know / Access mechanism <Req /></Label><DefPopover termKey="right_to_know" /></div>
