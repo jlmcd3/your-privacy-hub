@@ -14,6 +14,11 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
+import GuidedRail from "@/components/GuidedRail";
+import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { useGuidanceTier } from "@/hooks/useGuidanceTier";
+import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 
 
 interface PreviewRow {
@@ -62,6 +67,45 @@ const LIAssessmentIntake = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [intakeForCheckout, setIntakeForCheckout] = useState<Record<string, unknown> | null>(null);
   const [acknowledged, setAcknowledged] = useState(false);
+
+  // GuidedRail — tier-gated GDPR regulation reference
+  const guidanceTier = useGuidanceTier();
+  const [activeRailSection, setActiveRailSection] = useState<"purpose" | "necessity" | "balancing" | null>(null);
+  const [railPromptTriggered, setRailPromptTriggered] = useState(false);
+
+  const liaRailOpts = activeRailSection ? {
+    article: "6",
+    jurisdiction: ((row?.jurisdictions ?? []) as string[]).some(j => /uk/i.test(j))
+      ? "uk" as const
+      : "eu" as const,
+    recital: activeRailSection === "balancing" ? 47 : undefined,
+    fieldLabel: activeRailSection === "purpose"
+      ? "Purpose test — Art. 6(1)(f)"
+      : activeRailSection === "necessity"
+      ? "Necessity test — Art. 6(1)(f)"
+      : "Balancing test — Art. 6(1)(f)",
+    plainSummary: activeRailSection === "purpose"
+      ? "Processing is lawful where necessary for the purposes of legitimate interests pursued by the controller or a third party, except where overridden by the interests or fundamental rights of the data subject. The purpose test asks: what is the specific legitimate interest, and is it genuine and present?"
+      : activeRailSection === "necessity"
+      ? "The processing must be necessary to achieve the legitimate interest — not merely convenient. Where a less privacy-intrusive alternative exists that achieves the same result, the necessity test fails. You must show you have considered and rejected less intrusive alternatives."
+      : "Even where a legitimate interest exists and processing is necessary, it can be overridden by the data subject's interests, rights, or freedoms. Recital 47 requires consideration of reasonable expectations, the nature of the relationship, and whether the data subject can reasonably foresee the processing at the time of collection.",
+    relatedCitations: [
+      { citation: "Recital 47 GDPR", label: "Reasonable expectations standard" },
+      { citation: "EDPB WP29 Opinion 06/2014", label: "Legitimate interests guidance" },
+    ],
+  } : null;
+
+  const { entry: liaRailEntry } = useGdprRailEntry(
+    guidanceTier.tier !== "anonymous" ? liaRailOpts : null
+  );
+
+  const handleRailFocus = (section: "purpose" | "necessity" | "balancing") => {
+    if (guidanceTier.tier === "anonymous") {
+      setRailPromptTriggered(true);
+      return;
+    }
+    setActiveRailSection(section);
+  };
 
   // Purpose
   const [interestHolder, setInterestHolder] = useState("");
@@ -219,10 +263,13 @@ const LIAssessmentIntake = () => {
         )}
 
         {/* Purpose */}
-        <section className="bg-card border rounded-lg p-6 space-y-5">
+        <div className="flex gap-6 items-start">
+        <div className="flex-1 min-w-0 space-y-6">
+        <section className="bg-card border rounded-lg p-6 space-y-5" onFocus={() => handleRailFocus("purpose")}>
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 01</span>
             <h2 className="font-serif">Purpose test</h2>
+            <p className="text-xs font-mono text-muted-foreground -mt-2">Art. 6(1)(f) GDPR — legitimate interests · Recital 47 — what constitutes legitimate interest</p>
             <p className="text-sm text-muted-foreground">Is the interest legitimate, specific and present?</p>
           </div>
 
@@ -268,10 +315,11 @@ const LIAssessmentIntake = () => {
         </section>
 
         {/* Necessity */}
-        <section className="bg-card border rounded-lg p-6 space-y-5">
+        <section className="bg-card border rounded-lg p-6 space-y-5" onFocus={() => handleRailFocus("necessity")}>
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 02</span>
             <h2 className="font-serif">Necessity test</h2>
+            <p className="text-xs font-mono text-muted-foreground -mt-2">Art. 6(1)(f) GDPR — processing must be necessary · EDPB WP29 Opinion 06/2014 — necessity standard</p>
             <p className="text-sm text-muted-foreground">Is processing necessary, and is the data minimum?</p>
           </div>
 
@@ -302,10 +350,11 @@ const LIAssessmentIntake = () => {
         </section>
 
         {/* Balancing */}
-        <section className="bg-card border rounded-lg p-6 space-y-5">
+        <section className="bg-card border rounded-lg p-6 space-y-5" onFocus={() => handleRailFocus("balancing")}>
           <div>
             <span className="text-xs uppercase tracking-wider text-primary font-semibold">Step 03</span>
             <h2 className="font-serif">Balancing test</h2>
+            <p className="text-xs font-mono text-muted-foreground -mt-2">Art. 6(1)(f) GDPR — interests or fundamental rights · Recital 47 — reasonable expectations of data subjects</p>
             <p className="text-sm text-muted-foreground">Do data subjects' interests, rights and freedoms override yours?</p>
           </div>
 
@@ -395,6 +444,15 @@ const LIAssessmentIntake = () => {
             </p>
           )}
         </section>
+        </div>
+        <GuidedRail
+          entry={liaRailEntry}
+          guidanceTier={guidanceTier.tier}
+          promptTriggered={railPromptTriggered}
+        />
+        </div>
+
+
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo={`/li-assessment/intake/${row.id}`} />
         <ToolCheckoutModal
