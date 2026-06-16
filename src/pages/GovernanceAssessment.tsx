@@ -193,7 +193,7 @@ const GovernanceAssessment = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Privacy Programme Assessment · ${pricing.price}
           </span>
-          <h1 className="font-serif mb-3">Privacy Program Assessment Tool</h1>
+          <h1 className="font-serif text-white mb-3">Privacy Program Assessment Tool</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding.</p>
           <p className="text-slate-400 text-sm mt-3">
             {isPremium

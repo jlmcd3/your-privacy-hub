@@ -454,7 +454,7 @@ export default function CPPARiskAssessment() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
           </span>
-          <h1 className="font-serif mb-3">CPPA Privacy Risk Assessment</h1>
+          <h1 className="font-serif text-white mb-3">CPPA Privacy Risk Assessment</h1>
           <p className="text-slate-300 text-lg">A regulation-mapped risk assessment framework, structured 1:1 to Cal. Code Regs. tit. 11 § 7152(a)(1)–(9), pre-populated from your intake and ready for your team to review, complete, and sign.</p>
           <p className="text-slate-400 text-sm mt-3">Generates two deliverables: an internal report retained for the § 7156(c) 30-day production demand, and a § 7157 Annual Submission Worksheet for the April 1, 2028 filing.</p>
           <p className="text-slate-400 text-xs italic mt-2">

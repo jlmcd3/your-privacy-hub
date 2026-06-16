@@ -116,7 +116,7 @@ export default function DPAGenerator() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             📄 Custom DPA Generator · ${pricing.price}
           </span>
-          <h1 className="font-serif mb-3">Custom Data Processing Agreement</h1>
+          <h1 className="font-serif text-white mb-3">Custom Data Processing Agreement</h1>
           <p className="text-slate-300 text-lg max-w-3xl">
             Draft a controller-processor data processing agreement tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions.
           </p>

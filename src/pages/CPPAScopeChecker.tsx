@@ -218,7 +218,7 @@ export default function CPPAScopeChecker() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             🛡️ CPPA Scope Checker · Free · No account required
           </span>
-          <h1 className="font-serif mb-3">CPPA Scope Checker</h1>
+          <h1 className="font-serif text-white mb-3">CPPA Scope Checker</h1>
           <p className="text-slate-300 text-lg">
             Find out whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA
             enforcement obligations apply to your business. Takes 2 minutes.
