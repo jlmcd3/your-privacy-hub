@@ -220,6 +220,45 @@ export default function CPPARiskAssessment() {
   // From Step 5: q18 === "Yes".
   const admtTriggered = q18 === "Yes" || q18 === "In evaluation";
 
+  // Regulatory footprint — derived deterministically from current answers.
+  // Updates in real time as the user fills in the form.
+  const regulatoryFootprint = useMemo(() => {
+    const items: { citation: string; label: string; triggered: boolean; note?: string }[] = [
+      {
+        citation: "11 CCR § 7150(b)(1)",
+        label: "Risk assessment required — sell/share activities",
+        triggered: ["Yes — sell only", "Yes — share for advertising only", "Both"].includes(q5),
+      },
+      {
+        citation: "11 CCR § 7150(b)(2)",
+        label: "Risk assessment required — sensitive PI processing",
+        triggered: q15 === "Yes" || q4.some((c) => SENSITIVE_PI_CATEGORIES.has(c)),
+      },
+      {
+        citation: "11 CCR §§ 7150(b)(3), 7150(b)(6)",
+        label: "Risk assessment required — ADMT use",
+        triggered: q18 === "Yes" || q18 === "In evaluation",
+      },
+      {
+        citation: "11 CCR § 7122(a)",
+        label: "Cybersecurity audit may be required (Module 2)",
+        triggered: ["$100M–$500M", "Over $500M"].includes(q1),
+        note: "April 1, 2028 deadline for revenue > $100M",
+      },
+      {
+        citation: "Cal. Civ. Code §§ 1798.120, 1798.135(a)",
+        label: "Do Not Sell or Share link required",
+        triggered: ["Yes — sell only", "Yes — share for advertising only", "Both"].includes(q5),
+      },
+      {
+        citation: "Cal. Civ. Code § 1798.140(ae)",
+        label: "Sensitive PI limit right must be offered",
+        triggered: q15 === "Yes",
+      },
+    ];
+    return items.filter((i) => i.triggered);
+  }, [q1, q4, q5, q15, q18]);
+
   const stepValid = (): string | null => {
     if (step === 1 && (!q1 || !q2 || !q3 || !q4.length || !q5)) return "Please complete the business profile.";
     if (step === 2 && (!q6Multi.length || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
