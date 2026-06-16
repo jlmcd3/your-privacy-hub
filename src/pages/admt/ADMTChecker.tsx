@@ -451,7 +451,8 @@ export default function ADMTChecker() {
 
               {step === 1 && (
                 <>
-                  <h2 className="font-serif text-xl">Step 1 — ADMT System Inventory</h2>
+                 <h2 className="font-serif text-xl">Step 1 — ADMT System Inventory</h2>
+                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR §§ 7001(e), 7001(ddd), 7200(a) — ADMT and significant decision definitions</p>
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     Complete one assessment per ADMT system. If you use multiple ADMT systems for significant decisions, run the checker once per system. Each system requires its own pre-use notice, opt-out mechanism, and access right process.
