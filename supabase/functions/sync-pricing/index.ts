@@ -231,7 +231,7 @@ async function syncOne(
     currency: entry.currency,
     lookup_key: entry.lookupKey,
     transfer_lookup_key: true,
-    metadata: { lovable_external_id: entry.lookupKey },
+    metadata: { lovable_external_id: entry.lookupKey, ...(entry.extraMetadata ?? {}) },
     ...(entry.kind === "subscription" && entry.recurringInterval
       ? { recurring: { interval: entry.recurringInterval } }
       : {}),
