@@ -20,7 +20,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
-import GuidedRail from "@/components/GuidedRail";
+import StatuteRail from "@/components/admt/StatuteRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
@@ -78,7 +78,7 @@ const DPIAFramework = () => {
   // GuidedRail — tier-gated GDPR regulation reference
   const guidanceTier = useGuidanceTier();
   const [activeRailField, setActiveRailField] = useState<"trigger" | "legal_basis" | "transfers" | null>(null);
-  const [railPromptTriggered, setRailPromptTriggered] = useState(false);
+  
 
   const dpiaRailConfigs = {
     trigger: {
@@ -108,15 +108,9 @@ const DPIAFramework = () => {
   };
 
   const dpiaRailOpts = activeRailField ? dpiaRailConfigs[activeRailField] : null;
-  const { entry: dpiaRailEntry } = useGdprRailEntry(
-    guidanceTier.tier !== "anonymous" ? dpiaRailOpts : null
-  );
+  const { entry: dpiaRailEntry } = useGdprRailEntry(dpiaRailOpts);
 
   const handleDpiaRailFocus = (field: "trigger" | "legal_basis" | "transfers") => {
-    if (guidanceTier.tier === "anonymous") {
-      setRailPromptTriggered(true);
-      return;
-    }
     setActiveRailField(field);
   };
 
