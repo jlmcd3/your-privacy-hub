@@ -285,55 +285,83 @@ const Subscribe = () => {
         <h2 className="text-center font-display text-brand-navy mb-6">
           What's included at each level
         </h2>
-        <div className="cmp-table overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="text-left py-3 pr-4 font-semibold text-gray-700 w-1/2">Feature</th>
-                <th className="text-center py-3 px-2 font-semibold text-gray-500 text-xs uppercase tracking-wider">Anonymous</th>
-                <th className="text-center py-3 px-2 font-semibold text-brand-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">{PRICING.intelligence.monthly.display}/mo</span></th>
-                <th className="text-center py-3 px-2 font-semibold text-xs uppercase tracking-wider" style={{color:'hsl(var(--gold))'}}>Professional<br/><span className="font-normal normal-case tracking-normal">{PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr</span></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {([
-                ['Privacy Intelligence Feed (news)', '✓', '✓', '✓'],
-                ['Article Alert summaries', '✓', '✓', '✓'],
-                ['Article Context layer', '—', '✓', '✓'],
-                ['Article Analysis and Guidance', '—', '—', '✓'],
-                ['Weekly Privacy Intelligence Report', '—', '✓', '✓'],
-                ['Personalised by role, jurisdiction, topics', '—', '✓', '✓'],
-                ['AI investigation prompts on every article', '—', '✓', '✓'],
-                ['Privacy authority enforcement tracking', 'Limited', '✓', '✓'],
-                ['Research guides (GDPR, biometric, health, etc.)', '✓', '✓', '✓'],
-                ['1 free Smart Tool run/year (Governance, LIA, or DPIA)', '—', '✓ (annual)', '✓ (annual)'],
-                ['Governance Assessment (Smart)', '—', T.governance.display, T.governance.display],
-                ['Legitimate Interest Assessment (Smart)', '—', T.lia.display, T.lia.display],
-                ['DPIA Builder (Smart)', '—', T.dpia.display, T.dpia.display],
-                ['DPA Generator (Smart)', '—', T.dpa.display, T.dpa.display],
-                ['Biometric Privacy Checker (Smart)', '—', T.biometric.display, T.biometric.display],
-                ['CPPA Risk Assessment (Smart)', '—', T.cppa_risk.display, T.cppa_risk.display],
-                ['CPPA Cybersecurity Audit (Smart)', '—', T.cppa_cyber.display, T.cppa_cyber.display],
-                ['ADMT Compliance Assessment (Smart)', '—', T.cppa_admt.display, T.cppa_admt.display],
-                ['CPPA Scope Checker', 'Free', 'Free', 'Free'],
-                ['IR Playbook (Convenience)', '—', T.ir_playbook.display, T.ir_playbook.display],
-                ['RoPA Builder (Convenience)', '—', 'Included', 'Included'],
-                ['US Privacy Notice Builder', '—', 'Included', 'Included'],
-                ['EU & Global Privacy Notice Builder', '—', 'Included', 'Included'],
-                ['Registration Filings (Convenience)', '—', T.registration.display, T.registration.display],
-                ['Client/matter workspace', '—', '—', '✓'],
-                ['Saved reports in My Reports', '—', '✓', '✓'],
-                ['Personalized investigation prompts', '—', '✓', '✓'],
-              ] as const).map(([feature, anon, intel, platform], i) => (
-                <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="py-2.5 pr-4 text-gray-700">{feature}</td>
-                  <td className="py-2.5 px-2 text-center text-gray-400">{anon}</td>
-                  <td className="py-2.5 px-2 text-center font-medium text-brand-steel">{intel}</td>
-                  <td className="py-2.5 px-2 text-center font-medium" style={{color:'hsl(var(--gold))'}}>{platform}</td>
+        <div className="bg-card border border-brand-cloud rounded-2xl overflow-hidden shadow-eup-sm">
+          <div className="cmp-table overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b-2 border-brand-cloud">
+                  <th className="text-left py-3 pr-4 pl-5 font-semibold text-gray-700 w-1/2">Feature</th>
+                  <th className="text-center py-3 px-2 font-semibold text-gray-500 text-xs uppercase tracking-wider">Anonymous</th>
+                  <th className="text-center py-3 px-2 font-semibold text-brand-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">{PRICING.intelligence.monthly.display}/mo</span></th>
+                  <th className="text-center py-3 px-2 font-semibold text-xs uppercase tracking-wider" style={{color:'hsl(var(--gold))'}}>Professional<br/><span className="font-normal normal-case tracking-normal">{PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr</span></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-brand-cloud/60">
+                {([
+                  { isSection: true, feature: "The monitoring layer" },
+                  { feature: "Regulatory developments, monitored daily", free: "✓", intel: "✓", platform: "✓" },
+                  { feature: "Jurisdiction profiles (worldwide)", free: "✓", intel: "✓", platform: "✓" },
+                  { feature: "Regulator directory", free: "✓", intel: "✓", platform: "✓" },
+                  { feature: "Research guides (GDPR, biometric, health, etc.)", free: "✓", intel: "✓", platform: "✓" },
+                  { feature: "Enforcement tracker — all actions", free: "✓", intel: "✓", platform: "✓" },
+                  { feature: "Personalized weekly digest", free: "✓", intel: "✓", platform: "✓" },
+
+                  { isSection: true, feature: "The intelligence layer" },
+                  { feature: "Cross-jurisdiction signals and pattern analysis", free: "✓", intel: "✓", platform: "✓" },
+                  { feature: "Full Privacy Intelligence Report — customized for your industry & jurisdictions", free: "—", intel: "✓", platform: "✓" },
+                  { feature: "Enforcement trends & pattern signals", free: "—", intel: "✓", platform: "✓" },
+                  { feature: "Per-article intelligence: regulatory theory, action items, sectors", free: "—", intel: "✓", platform: "✓" },
+                  { feature: "AI investigation prompt — pre-loaded with regulatory context, ready to paste into any AI assistant", free: "—", intel: "✓", platform: "✓" },
+                  { feature: "Priority Monday delivery", free: "—", intel: "✓", platform: "✓" },
+
+                  { isSection: true, feature: "The action layer — compliance tools with cited enforcement evidence" },
+                  { feature: "Sample preview of all tools", free: "✓", intel: "✓", platform: "✓" },
+                  { feature: "Governance Assessment (Smart)", free: "—", intel: T.governance.display, platform: T.governance.display },
+                  { feature: "Legitimate Interest Assessment (Smart)", free: "—", intel: T.lia.display, platform: T.lia.display },
+                  { feature: "DPIA / Impact Assessment (Smart)", free: "—", intel: T.dpia.display, platform: T.dpia.display },
+                  { feature: "DPA Generator (Smart)", free: "—", intel: T.dpa.display, platform: T.dpa.display },
+                  { feature: "Biometric Privacy Checker (Smart)", free: "—", intel: T.biometric.display, platform: T.biometric.display },
+                  { feature: "IR Playbook (Convenience)", free: "—", intel: T.ir_playbook.display, platform: T.ir_playbook.display },
+                  { feature: "RoPA Builder (Convenience)", free: "—", intel: "Included", platform: "Included" },
+                  { feature: "US Privacy Notice Builder", free: "—", intel: "Included", platform: "Included" },
+                  { feature: "EU & Global Privacy Notice Builder", free: "—", intel: "Included", platform: "Included" },
+                  { feature: "Registration Filings (Convenience)", free: "—", intel: T.registration.display, platform: T.registration.display },
+                  { feature: "1 free Smart Tool run/year (Governance, LIA, or DPIA)", free: "—", intel: "Annual only", platform: "Annual only" },
+
+                  { isSection: true, feature: "CPPA tools" },
+                  { feature: "CPPA Risk Assessment (Smart)", free: "—", intel: T.cppa_risk.display, platform: T.cppa_risk.display },
+                  { feature: "CPPA Cybersecurity Audit (Smart)", free: "—", intel: T.cppa_cyber.display, platform: T.cppa_cyber.display },
+                  { feature: "ADMT Compliance Assessment (Smart)", free: "—", intel: T.cppa_admt.display, platform: T.cppa_admt.display },
+                  { feature: "CPPA Scope Checker", free: "Free", intel: "Free", platform: "Free" },
+
+                  { isSection: true, feature: "Platform features" },
+                  { feature: "Client/matter workspace", free: "—", intel: "—", platform: "✓" },
+                  { feature: "Saved reports in My Reports", free: "—", intel: "✓", platform: "✓" },
+                ] as Array<
+                  | { isSection: true; feature: string }
+                  | { isSection?: false; feature: string; free: string; intel: string; platform: string }
+                >).map((row, i) => {
+                  if ("isSection" in row && row.isSection) {
+                    return (
+                      <tr key={i} className="bg-brand-navy/5">
+                        <td colSpan={4} className="px-5 py-2 text-eyebrow text-brand-navy/60 border-t border-brand-cloud">
+                          {row.feature}
+                        </td>
+                      </tr>
+                    );
+                  }
+                  return (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-card' : 'bg-brand-cloud/50'}>
+                      <td className="py-2.5 pr-4 pl-5 text-gray-700">{row.feature}</td>
+                      <td className="py-2.5 px-2 text-center text-gray-400">{row.free}</td>
+                      <td className="py-2.5 px-2 text-center font-medium text-brand-steel">{row.intel}</td>
+                      <td className="py-2.5 px-2 text-center font-medium" style={{color:'hsl(var(--gold))'}}>{row.platform}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
         <p className="text-center text-xs text-gray-400 mt-4">
           Individual tools also available as standalone purchases.
