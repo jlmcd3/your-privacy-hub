@@ -209,3 +209,6 @@ verify_jwt = false
 
 [functions.run-admt-checker]
 verify_jwt = false
+
+[functions.backfill-fsor-summaries]
+verify_jwt = false
