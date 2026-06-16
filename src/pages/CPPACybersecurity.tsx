@@ -90,6 +90,11 @@ export default function CPPACybersecurity() {
 
   const cyberEnforcementSignals = useEnforcementSignals(["authentication", "vulnerability", "incident_response"]);
 
+  const cyberFscrCallouts = useFscrCallouts([
+    "11 CCR § 7122(a)(1)",
+    "11 CCR § 7122(a)(3)",
+  ]);
+
   const allComplete = useMemo(
     () => CONTROLS.every((c) => maturity[c.key]) && profile.industry && profile.incidents_12mo && profile.framework && profile.last_audit,
     [maturity, profile]
