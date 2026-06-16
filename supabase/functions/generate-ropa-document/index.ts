@@ -620,14 +620,11 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
   const orgNameForRepCheck = (d.client?.name ?? "").trim().toLowerCase();
   const euRepName = (d.profile?.eu_rep_name ?? "").trim();
   const ukRepName = (d.profile?.uk_rep_name ?? "").trim();
-  // EU/UK representative: blank field means not designated (Art. 27 only applies
-  // to non-EU/non-UK-established controllers, so blank is the correct state
-  // for most customers and should not show a dangling dash or placeholder).
   const euRepValue = !euRepName
-    ? "Not designated — not required for EU/EEA-established controllers (GDPR Art. 27)"
+    ? "Not designated — Article 27 EU GDPR applies only to controllers not established in the EU/EEA"
     : `${euRepName}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`;
   const ukRepValue = !ukRepName
-    ? "Not designated — not required for UK-established controllers (UK GDPR Art. 27)"
+    ? "Not designated — Article 27 UK GDPR applies only to controllers not established in the UK"
     : `${ukRepName}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`;
 
   const clientTable = new Table({
