@@ -264,7 +264,7 @@ export default function AdminFsorIngestion() {
     if (!adminToken) return;
     setBackfillRunning(true);
     const ts = new Date().toLocaleTimeString();
-    setBackfillLog((prev) => [...prev, `[${ts}] Calling backfill-fsor-summaries…`)]);
+    setBackfillLog((prev) => [...prev, `[${ts}] Calling backfill-fsor-summaries…`]);
     try {
       const r = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/backfill-fsor-summaries`,
@@ -322,7 +322,7 @@ export default function AdminFsorIngestion() {
         const data = await r.json();
         const ts2 = new Date().toLocaleTimeString();
         if (data.message?.includes("All rows already backfilled") || data.processed === 0) {
-          setBackfillLog((prev) => [...prev, `[${ts2}] ✅ Complete — all rows backfilled after ${round} round(s).`]]);
+          setBackfillLog((prev) => [...prev, `[${ts2}] ✅ Complete — all rows backfilled after ${round} round(s).`]);
           break;
         }
         remaining = typeof data.remaining === "number" ? data.remaining : 9999;
@@ -331,14 +331,14 @@ export default function AdminFsorIngestion() {
           `[${ts2}] updated: ${data.updated ?? 0}, failed: ${data.failed ?? 0}, remaining: ${remaining}`,
         ]);
         if (data.failed > 0 && data.updated === 0) {
-          setBackfillLog((prev) => [...prev, `[${ts2}] ⚠ All rows in this batch failed — stopping to avoid loop.`]]);
+          setBackfillLog((prev) => [...prev, `[${ts2}] ⚠ All rows in this batch failed — stopping to avoid loop.`]);
           break;
         }
         // Brief pause between rounds to avoid rate limits
         await new Promise((res) => setTimeout(res, 2000));
       } catch (e: any) {
         const ts2 = new Date().toLocaleTimeString();
-        setBackfillLog((prev) => [...prev, `[${ts2}] ❌ Error: ${e?.message ?? String(e)} — stopping.`]]);
+        setBackfillLog((prev) => [...prev, `[${ts2}] ❌ Error: ${e?.message ?? String(e)} — stopping.`]);
         break;
       }
     }
