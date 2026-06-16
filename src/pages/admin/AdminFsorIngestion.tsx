@@ -273,7 +273,6 @@ export default function AdminFsorIngestion() {
           headers: {
             "Content-Type": "application/json",
             "x-admin-token": adminToken,
-            "Authorization": `Bearer ${adminToken}`,
           },
           body: JSON.stringify({ limit: 50 }),
         }
@@ -309,15 +308,14 @@ export default function AdminFsorIngestion() {
       try {
         const r = await fetch(
           `${SUPABASE_URL}/functions/v1/backfill-fsor-summaries`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-admin-token": adminToken,
-              "Authorization": `Bearer ${adminToken}`,
-            },
-            body: JSON.stringify({ limit: 50 }),
-          }
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-token": adminToken,
+          },
+          body: JSON.stringify({ limit: 50 }),
+        }
         );
         const data = await r.json();
         const ts2 = new Date().toLocaleTimeString();
