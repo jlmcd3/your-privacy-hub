@@ -283,7 +283,7 @@ const DPIAFramework = () => {
           {dpiaTriggers.length > 0 && (
             <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 p-3 space-y-1.5">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 uppercase tracking-wide">
-                ⚡ DPIA triggers detected from your data categories
+                ⚡ DPIA triggers detected from your data categories <EnforcementSignalIcon signalKey="dpia_absence" signals={dpiaEnforcementSignals} />
               </p>
               {dpiaTriggers.map((item) => (
                 <div key={item.citation} className="flex items-start gap-2">
