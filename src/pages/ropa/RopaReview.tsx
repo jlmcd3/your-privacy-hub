@@ -15,7 +15,7 @@ import SessionCheckoutModal from "@/components/SessionCheckoutModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import RopaSetup from "./RopaSetup";
 
-type GenStep = "client" | "activities" | "transfers" | "pdf" | "docx" | "xlsx";
+type GenStep = "client" | "activities" | "transfers" | "pdf" | "xlsx";
 
 const SUPA = supabase as any;
 
