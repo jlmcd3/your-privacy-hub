@@ -156,6 +156,8 @@ export default function CPPAScopeChecker() {
     return items.filter((i) => i.triggered);
   }, [q1, q2, q3, q4, q6, q7]);
 
+  const scopeEnforcementSignals = useEnforcementSignals(["sell_share", "sensitive_pi"]);
+
   const handleCheck = () => {
     setShowResults(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
