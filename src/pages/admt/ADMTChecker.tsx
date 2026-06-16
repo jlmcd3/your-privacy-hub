@@ -757,7 +757,8 @@ export default function ADMTChecker() {
 
               {step === 3 && (
                 <>
-                  <h2 className="font-serif text-xl">Step 3 — Opt-Out Mechanism</h2>
+                 <h2 className="font-serif text-xl">Step 3 — Opt-Out Mechanism</h2>
+                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7221 — opt-out right, exceptions, methods, and timing</p>
                   <RequiredLegend />
 
                   <div>
