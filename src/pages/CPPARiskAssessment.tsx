@@ -830,6 +830,10 @@ export default function CPPARiskAssessment() {
           </div>
         </div>
 
+        </div>
+        <StatuteRail entry={activeRiskRailEntry} />
+        </div>
+
         <p className="text-xs text-muted-foreground italic">
           This is a compliance framework tool. It does not constitute legal advice and is not a substitute for review by qualified California privacy counsel.
         </p>
