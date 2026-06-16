@@ -26,7 +26,7 @@ export default function SearchFirstHero() {
               {/* Card 1 — Privacy Intelligence Feed (Free, subdued blue) */}
               <a
                 href="#updates"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-ocean hover:bg-brand-ocean/80 border border-brand-ocean hover:border-brand-ocean/80 transition-all duration-200"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-teal hover:bg-brand-teal/80 border border-brand-teal hover:border-brand-teal/80 transition-all duration-200"
               >
                 <p className="text-eyebrow text-white/50 mb-1.5">
                   Privacy Intelligence Feed
@@ -74,7 +74,7 @@ export default function SearchFirstHero() {
               {/* Card 4 — CPPA Compliance (California-specific) */}
               <a
                 href="/cppa-scope-checker"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-teal hover:bg-brand-light-teal border border-brand-teal hover:border-brand-light-teal transition-all duration-200"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-[#1a4a6e] hover:bg-[#1a4a6e]/80 border border-[#1a4a6e] hover:border-[#1a4a6e]/80 transition-all duration-200"
               >
                 <p className="text-eyebrow text-white/80 mb-1.5">
                   CPPA Compliance
