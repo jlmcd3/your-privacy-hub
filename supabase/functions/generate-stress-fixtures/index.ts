@@ -421,7 +421,7 @@ function buildCompany(industry: string, geo: string, slot: number, companyId: st
   const suffix = geo === "eu" ? ["SE", "GmbH", "B.V.", "Ltd"][seed % 4] : ["Inc.", "Corp.", "LLC", "Technologies"][seed % 4];
   const sectorWord = industry.split(/\s|&/).find((w) => w.length > 3)?.replace(/[^a-z]/gi, "") || "Privacy";
   const companyName = `${roots[seed % roots.length]} ${sectorWord} ${suffix}`;
-  const domain = `${companyName.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 22)}.${geo === "eu" ? "eu" : "com"}`;
+  const domain = `${companyName.toLowerCase().replace(/[^a-z0-9]+/g, "")}.${geo === "eu" ? "eu" : "com"}`;
   const countryCode = geo === "eu" ? ["GB", "DE", "FR", "IE", "NL", "ES"][seed % 6] : "US";
   return {
     companyName,
@@ -879,7 +879,12 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       collection_purposes: "Provide services, secure accounts, process transactions, support users, and improve products",
       third_party_sharing: "Shared with service providers for hosting, analytics, payments, and support",
       third_party_categories: "Cloud hosting, analytics, payment, customer support, and security vendors",
-      sale_or_sharing: /adtech|marketing|media/i.test(industry) ? "Limited sharing for cross-context advertising" : "No sale; limited service-provider disclosure",
+      sale_or_sharing: (() => {
+        const s = industry.toLowerCase();
+        if (/adtech|data broker|social media|social platform/i.test(s)) return "sell_and_share";
+        if (/gaming|media|publishing|retail|mobile app|web service|online/i.test(s)) return "share_only";
+        return "no_sale";
+      })(),
       retention_general: "Retained for the account life plus 24 months unless law requires longer",
       sensitive_data_types: /health|financial|hr/i.test(industry) ? "Account credentials and sector-specific sensitive data" : "Account credentials only",
       data_sources: "Provided by users, generated during service use, and received from service providers",

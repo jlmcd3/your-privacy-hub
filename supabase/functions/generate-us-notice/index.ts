@@ -54,7 +54,7 @@ const FRAMEWORK_LABELS: Record<string, string> = {
 
 const STATE_LAW_NAMES: Record<string, { name: string; cite: string }> = {
   CA: { name: "California Consumer Privacy Act / California Privacy Rights Act (CCPA/CPRA)", cite: "Cal. Civ. Code §1798.100 et seq." },
-  VA: { name: "Virginia Consumer Data Protection Act (VCDPA)", cite: "Va. Code §59.1-575 et seq." },
+  VA: { name: "Virginia Consumer Data Protection Act (VCDPA)", cite: "Va. Code Ann. §59.1-571 et seq." },
   CO: { name: "Colorado Privacy Act (CPA)", cite: "C.R.S. §6-1-1301 et seq." },
   CT: { name: "Connecticut Data Privacy Act (CTDPA)", cite: "Conn. Pub. Acts 22-15" },
   UT: { name: "Utah Consumer Privacy Act (UCPA)", cite: "Utah Code §13-61-101 et seq." },
@@ -140,6 +140,19 @@ function buildNoticeHtml(
   .badge { display: inline-block; background: #edf2f5; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; }
   .opt-out { background:#e5f4f2; border:1px solid #2d9b90; padding:1rem; border-radius:0.375rem; margin:1rem 0; }
   footer { color:#5c6d7a; font-size: 0.75rem; margin-top: 3rem; border-top: 2px solid #2d9b90; padding-top: 1rem; }
+  /* Print / PDF pagination fixes */
+  h2 { break-after: avoid; page-break-after: avoid; }
+  h2 + * { break-before: avoid; page-break-before: avoid; }
+  p { orphans: 3; widows: 3; }
+  .opt-out { break-inside: avoid; page-break-inside: avoid; }
+  ul { break-inside: avoid; page-break-inside: avoid; }
+  @media print {
+    h2 { break-after: avoid; page-break-after: avoid; }
+    h2 + * { break-before: avoid; page-break-before: avoid; }
+    p { orphans: 3; widows: 3; }
+    .opt-out { break-inside: avoid; page-break-inside: avoid; }
+    ul { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -174,9 +187,28 @@ function buildNoticeHtml(
   ${
     sharing === "yes"
       ? `<p>We share personal information with the following categories of recipients: ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}.</p>`
-      : `<p>We do not share personal information with third parties for their own use, except as required by law. We may disclose personal information to: service providers that assist with our business operations (such as hosting, payment processing, and customer support); professional advisers including lawyers and accountants; and government or regulatory authorities when required by applicable law.</p>`
+      : `<p>We do not share personal information with third parties for their own use, except as described below. We may disclose personal information to: service providers and contractors that assist with our business operations (such as hosting, payment processing, and customer support); professional advisers including lawyers and accountants; and government or regulatory authorities when required by applicable law.</p>`
   }
-  ${state.framework_type === "ccpa" && !showOptOut ? `<p>We do not sell personal information, and we do not share it for cross-context behavioral advertising.</p>` : ""}
+
+  ${state.framework_type === "ccpa" ? `
+  <h2>3a. Categories of recipients</h2>
+  <p>In the preceding 12 months, we have disclosed personal information to the following categories of third parties:</p>
+  <ul>
+    <li><strong>Service providers and contractors</strong> — companies that provide services on our behalf, such as cloud hosting, analytics, payment processing, customer support, and marketing platforms, under contractual restrictions preventing them from using your personal information for their own purposes.</li>
+    <li><strong>Professional advisers</strong> — lawyers, accountants, auditors, and insurers in connection with legal, financial, or regulatory obligations.</li>
+    <li><strong>Government and regulatory authorities</strong> — when required by applicable law, court order, or regulatory obligation.</li>
+    ${sharing === "yes" ? `<li><strong>Third-party partners</strong> — ${escapeHtml(thirdParties.replace(/[.\s]+$/, ""))}.</li>` : ""}
+  </ul>
+
+  <h2>3b. Sale and sharing — prior 12 months</h2>
+  ${showOptOut
+    ? `<p>In the preceding 12 months, we have sold or shared the following categories of personal information for cross-context behavioral advertising: ${escapeHtml(dataCategories)}. You have the right to opt out — see Section 5 and the "Do Not Sell or Share My Personal Information" link on our website.</p>`
+    : `<p>We have <strong>not</strong> sold personal information, and we have <strong>not</strong> shared personal information for cross-context behavioral advertising, in the preceding 12 months.</p>`
+  }
+
+  <h2>3c. Business-purpose disclosures — prior 12 months</h2>
+  <p>In the preceding 12 months, we have disclosed personal information to service providers and contractors for the following business purposes: operating and maintaining our services; detecting and preventing fraud and security incidents; performing analytics to improve our products; fulfilling your requests and supporting our customer relationships; and complying with legal obligations. The categories of personal information disclosed for these purposes include: identifiers, commercial information, internet or network activity, and other information you provide when using our services.</p>
+  ` : ""}
 
   ${
     showOptOut
@@ -192,8 +224,22 @@ function buildNoticeHtml(
 
   <h2>5. Your rights</h2>
   ${state.framework_type === "ccpa"
-    ? `<p>As a California resident under the CCPA/CPRA, you have the right to: (a) know what personal information we collect, use, disclose, and sell; (b) request access to or a copy of that information; (c) request correction or deletion; (d) opt out of the sale or sharing of your personal information${!showOptOut ? " (we do not currently sell or share your personal information for cross-context behavioral advertising, but this right remains available to you)" : ""}; (e) limit the use of sensitive personal information; and (f) non-discrimination for exercising these rights. You may designate an authorized agent to exercise these rights on your behalf. To exercise any right, contact us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>.</p>`
-    : `<p>As a ${escapeHtml(state.state_name)} resident under the ${escapeHtml(resolveLawLabel(state))}, you have the right to: (a) know what personal information we collect about you; (b) request access to or a copy of that information; (c) request correction or deletion; (d) obtain a copy of your personal data in a portable and, to the extent technically feasible, readily usable format that allows you to transmit it to another controller without hindrance; (e) opt out of the processing of your personal data for purposes of targeted advertising, the sale of personal data, or profiling in furtherance of decisions that produce legal or similarly significant effects; and (f) appeal our refusal to act on a request — if we decline your request, we will explain how to appeal, and if your appeal is denied you may contact the ${escapeHtml(state.state_name)} Attorney General. You may also designate an authorized agent to exercise these rights on your behalf.</p>${state.state_code === "CO" ? `<p>We honor opt-out preference signals such as Global Privacy Control as a valid request to opt out of targeted advertising and sale.</p>` : ""}`
+    ? `<p>As a California resident under the CCPA/CPRA, you have the right to: (a) know what personal information we collect, use, disclose, and sell; (b) request access to or a copy of that information; (c) request correction or deletion; (d) opt out of the sale or sharing of your personal information${!showOptOut ? " (we do not currently sell or share your personal information for cross-context behavioral advertising, but this right remains available to you)" : ""}; (e) limit the use of sensitive personal information; and (f) non-discrimination for exercising these rights. You may designate an authorized agent to exercise these rights on your behalf. To exercise any right, you may: (i) email us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a>; or (ii) submit a request through our privacy request form at our website. We will acknowledge your request within 10 business days and respond within 45 days, or notify you if an extension is needed. You may designate an authorized agent to submit requests on your behalf — we may require written proof of authorization.</p>`
+    : `<p>As a ${escapeHtml(state.state_name)} resident under the ${escapeHtml(resolveLawLabel(state))}, you have the right to: (a) know what personal information we collect about you; (b) request access to or a copy of that information; (c) request correction or deletion; (d) obtain a copy of your personal data in a portable and, to the extent technically feasible, readily usable format that allows you to transmit it to another controller without hindrance; (e) opt out of the processing of your personal data for purposes of targeted advertising, the sale of personal data, or profiling in furtherance of decisions that produce legal or similarly significant effects; and (f) appeal our refusal to act on a request — if we decline your request, we will explain how to appeal, and if your appeal is denied you may contact the ${escapeHtml(state.state_name)} Attorney General. You may also designate an authorized agent to exercise these rights on your behalf.</p>${state.state_code === "CO" ? `<p>We honor opt-out preference signals such as Global Privacy Control as a valid request to opt out of targeted advertising and sale.</p>` : ""}
+
+  <h2>5a. How to submit a rights request</h2>
+  <p>To exercise any of the rights listed above, contact us by email at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a> or through the privacy request form on our website. Please include your name, state of residence, the right you wish to exercise, and enough information to verify your identity. We will respond within <strong>45 days</strong> of receiving a verifiable request. If we need additional time, we will notify you within the initial 45-day period and may extend the response period by an additional 45 days.</p>
+
+  <h2>5b. Appeal process</h2>
+  <p>If we decline your request, we will provide you with a written explanation of our reasons. You may appeal our decision by emailing us at <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a> with the subject line "Privacy Rights Appeal." We will respond to your appeal within <strong>60 days</strong>. If we deny your appeal, you have the right to contact your state Attorney General:
+  ${state.state_code === "VA" ? `<ul><li><strong>Virginia Attorney General:</strong> <a href="https://www.oag.state.va.us">oag.state.va.us</a> · (804) 786-2071</li></ul>` : ""}
+  ${state.state_code === "TX" ? `<ul><li><strong>Texas Attorney General:</strong> <a href="https://www.texasattorneygeneral.gov">texasattorneygeneral.gov</a> · (800) 252-8011</li></ul>` : ""}
+  ${state.state_code === "CO" ? `<ul><li><strong>Colorado Attorney General:</strong> <a href="https://coag.gov">coag.gov</a> · (720) 508-6000</li></ul>` : ""}
+  ${state.state_code === "CT" ? `<ul><li><strong>Connecticut Attorney General:</strong> <a href="https://portal.ct.gov/ag">portal.ct.gov/ag</a> · (860) 808-5318</li></ul>` : ""}
+  ${state.state_code === "OR" ? `<ul><li><strong>Oregon Attorney General:</strong> <a href="https://www.doj.state.or.us">doj.state.or.us</a> · (503) 378-4400</li></ul>` : ""}
+  ${state.state_code === "MT" ? `<ul><li><strong>Montana Attorney General:</strong> <a href="https://doj.mt.gov">doj.mt.gov</a> · (406) 444-2026</li></ul>` : ""}
+  ${!["VA","TX","CO","CT","OR","MT"].includes(state.state_code) ? `<ul><li>Contact your state Attorney General for more information about your rights and how to file a complaint.</li></ul>` : ""}
+  </p>`
   }
 
   <h2>6. How to contact us</h2>
@@ -412,7 +458,13 @@ Deno.serve(async (req) => {
   <span>Privacy Intelligence</span>
 </div>
 <h1>US State Privacy Notice Suite</h1>
-<div class="meta">${escapeHtml(businessName)} · Last updated: ${escapeHtml(generatedAtHuman)} · ${states.length} state${states.length === 1 ? "" : "s"}</div>
+<div class="meta">${escapeHtml(businessName)} · Last updated: ${escapeHtml(generatedAtHuman)} · ${states.length} state${states.length === 1 ? "" : "s"} covered</div>
+${states.length < 10
+  ? `<div style="background:#fff8e1;border:1px solid #f59e0b;border-radius:0.375rem;padding:0.75rem 1rem;margin-bottom:1.5rem;font-size:0.85rem;color:#92400e;">
+      <strong>Scope note:</strong> This suite covers ${states.length} state${states.length === 1 ? "" : "s"} (${states.map((s) => escapeHtml(s.state_name)).join(", ")}). As of 2024–2026, approximately 20 US states have enacted comprehensive privacy laws. This document does not constitute a complete US national privacy notice — consult qualified counsel to determine which additional state laws apply to your organisation.
+    </div>`
+  : ""
+}
 <p>This suite consolidates the privacy notices ${escapeHtml(businessName)} maintains for residents of each US state listed below. Each state's section incorporates the rights and disclosures required by that state's privacy law. Use the table of contents to jump to the section that applies to you.</p>
 <h2>Table of contents</h2>
 <ul class="toc">${tocHtml}</ul>
