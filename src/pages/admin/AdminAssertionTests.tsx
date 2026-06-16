@@ -182,14 +182,50 @@ export default function AdminAssertionTests() {
   const [isPaused, setIsPaused] = useState(false);
   const isRunning = runnerState.status === "running" || runnerState.status === "paused";
 
+  const saveResults = useCallback(async (state: RunnerState) => {
+    if (!user) return;
+    try {
+      await (supabase as any).from("assertion_run_results").insert({
+        run_status: state.status,
+        elapsed_ms: state.elapsedMs,
+        total_assertions: state.totalAssertions,
+        passed_assertions: state.passedAssertions,
+        failed_assertions: state.failedAssertions,
+        completed_tools: state.completedTools,
+        created_by: user.id,
+        tool_results: state.tools.map((t) => ({
+          toolId: t.toolId,
+          toolName: t.toolName,
+          status: t.status,
+          elapsedMs: t.elapsedMs,
+          passCount: t.passCount,
+          failCount: t.failCount,
+          error: t.error ?? null,
+          log: t.log,
+          assertions: t.results.map((r) => ({
+            id: r.assertion.id,
+            description: r.assertion.description,
+            category: r.assertion.category,
+            passed: r.passed,
+            errorMessage: r.passed ? null : r.assertion.errorMessage,
+            runtimeError: r.error ?? null,
+          })),
+        })),
+      });
+    } catch (e) {
+      console.error("Failed to save assertion results:", e);
+    }
+  }, [user]);
+
   const handleRunAll = useCallback(async () => {
     if (!user) return;
     const runner = new AssertionRunner();
     runnerRef.current = runner;
     setIsPaused(false);
     setRunnerState({ status: "running", tools: ALL_ASSERTION_TESTS.map(emptyToolResult), startedAt: Date.now(), elapsedMs: 0, totalAssertions: ALL_ASSERTION_TESTS.reduce((a, t) => a + t.assertions.length, 0), passedAssertions: 0, failedAssertions: 0, completedTools: 0 });
-    await runner.run(ALL_ASSERTION_TESTS, user.id, (_toolId, result) => { setRunnerState((s) => ({ ...s, tools: s.tools.map((t) => (t.toolId === result.toolId ? result : t)) })); }, (state) => setRunnerState({ ...state }));
-  }, [user]);
+    const finalState = await runner.run(ALL_ASSERTION_TESTS, user.id, (_toolId, result) => { setRunnerState((s) => ({ ...s, tools: s.tools.map((t) => (t.toolId === result.toolId ? result : t)) })); }, (state) => setRunnerState({ ...state }));
+    await saveResults(finalState);
+  }, [user, saveResults]);
 
   const handleRunSingle = useCallback(async (toolId: string) => {
     if (!user || isRunning) return;
