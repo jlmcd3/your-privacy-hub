@@ -20,6 +20,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
+import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
+import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
