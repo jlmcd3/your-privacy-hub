@@ -444,11 +444,7 @@ const LIAssessmentIntake = () => {
           )}
         </section>
         </div>
-        <GuidedRail
-          entry={liaRailEntry}
-          guidanceTier={guidanceTier.tier}
-          promptTriggered={railPromptTriggered}
-        />
+        <StatuteRail entry={liaRailEntry} />
         </div>
 
 
