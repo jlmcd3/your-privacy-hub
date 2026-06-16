@@ -223,6 +223,10 @@ export default function CPPARiskAssessment() {
   // From Step 5: q18 === "Yes".
   const admtTriggered = q18 === "Yes" || q18 === "In evaluation";
 
+  const [activeRiskRailKey, setActiveRiskRailKey] = useState<string | null>(null);
+  const activeRiskRailEntry: RailEntry | null = activeRiskRailKey ? (CPPA_RISK_RAIL[activeRiskRailKey] ?? null) : null;
+  const focusRail = (key: string) => setActiveRiskRailKey(key);
+
   // Regulatory footprint — derived deterministically from current answers.
   // Updates in real time as the user fills in the form.
   const regulatoryFootprint = useMemo(() => {
