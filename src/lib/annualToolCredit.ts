@@ -1,9 +1,11 @@
 /**
- * Annual Tool Credit — v9 Layer 3.
+ * Annual Tool Credit — v9 Layer 3 (June 2026 update).
  *
- * Subscribers receive 1 free Smart Tool run per subscription year, redeemable
- * on Governance, LIA, or DPIA only (see ANNUAL_CREDIT_ELIGIBLE_KEYS in
- * src/config/pricing.ts).
+ * Annual subscribers receive free Smart Tool runs per subscription year,
+ * redeemable on Governance, LIA, or DPIA only (see
+ * ANNUAL_CREDIT_ELIGIBLE_KEYS in src/config/pricing.ts). Grant size depends
+ * on tier: Intelligence annual = 1 credit/yr; Professional annual = 3
+ * credits/yr.
  *
  * Credits are stored in `public.annual_tool_credits`. A credit is available
  * when its `redeemed_at` is NULL. Redemption happens server-side in the
@@ -58,4 +60,30 @@ export async function getAvailableAnnualCredit(
     return { hasCredit: false, creditId: null, cycleStart: null };
   }
   return { hasCredit: true, creditId: data.id, cycleStart: data.cycle_start };
+}
+
+/**
+ * Count unredeemed annual credits available to a user (optionally scoped to a
+ * client). Used by tool intake pages so Professional annual subscribers see
+ * "3 free Smart Tool runs available" instead of "1".
+ */
+export async function countAvailableAnnualCredits(
+  userId:    string,
+  clientId?: string | null,
+): Promise<number> {
+  let q = supabase
+    .from('annual_tool_credits')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .is('redeemed_at', null);
+
+  if (clientId) {
+    q = q.eq('client_id', clientId);
+  } else {
+    q = q.is('client_id', null);
+  }
+
+  const { count, error } = await q;
+  if (error) return 0;
+  return count ?? 0;
 }

@@ -201,7 +201,7 @@ export default function Account() {
               {PRICING.professional.annual.display}/yr · {PRICING.professional.perClient.display}/additional client
             </p>
             <p className="text-[12px] text-slate mt-1">
-              Client workspaces, RoPA + Notice Builders + IR Playbook + Biometric + DPA Generator included, plus 1 free Smart Tool run per year.
+              Client workspaces, RoPA + Notice Builders + IR Playbook + Biometric + DPA Generator included, plus 3 free Smart Tool runs per year (annual plan).
             </p>
           </div>
         )}
@@ -220,7 +220,7 @@ export default function Account() {
                 Add client workspaces with Professional
               </p>
               <p className="text-[11px] text-slate mb-2">
-                {PRICING.professional.annual.display}/yr · client workspaces + 1 free Smart Tool run per year.
+                {PRICING.professional.annual.display}/yr · client workspaces + 3 free Smart Tool runs per year (annual plan).
               </p>
               <Link to="/subscribe" className="text-[12px] font-bold text-brand-navy underline">
                 Upgrade to Professional →

@@ -39,7 +39,7 @@ export default function SubscribeSuccess() {
     : "Your Intelligence Feed is active.";
 
   const subheadline = hasToolAccess
-    ? "Your client workspace is live. RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are now included — annual plans also get 1 free Smart Tool run this year."
+    ? "Your client workspace is live. RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are now included — annual Professional plans also get 3 free Smart Tool runs this year (Intelligence annual gets 1)."
     : "Your weekly report is configured. You'll receive your first issue this coming Monday morning.";
 
   const NEXT_STEPS = hasToolAccess
@@ -47,7 +47,7 @@ export default function SubscribeSuccess() {
         {
           icon: "🛠️",
           title: "Use your included tools",
-          body: "RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are included with your subscription. Smart Tools (Governance, LIA, DPIA, CPPA) are per-run; annual subscribers get 1 free Smart Tool run per year.",
+          body: "RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator are included with your subscription. Smart Tools (Governance, LIA, DPIA, CPPA) are per-run; annual Intelligence subscribers get 1 free Smart Tool run per year and annual Professional subscribers get 3.",
         },
         {
           icon: "🎯",

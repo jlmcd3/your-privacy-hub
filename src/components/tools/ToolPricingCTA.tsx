@@ -14,7 +14,7 @@ import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PRICING, type ToolKey, isIncludedTool } from "@/config/pricing";
 import {
   isAnnualCreditEligible,
-  getAvailableAnnualCredit,
+  countAvailableAnnualCredits,
 } from "@/lib/annualToolCredit";
 
 interface Props {
@@ -27,15 +27,16 @@ interface Props {
 export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: Props) {
   const { user } = useAuth();
   const { isPremium, isLoading } = useSubscriptionTier();
-  const [hasCredit, setHasCredit] = useState<boolean>(false);
+  const [credits, setCredits] = useState<number>(0);
+  const hasCredit = credits > 0;
 
   const eligible = isAnnualCreditEligible(toolKey);
 
   useEffect(() => {
     if (isLoading || !user || !isPremium || !eligible) return;
     let cancelled = false;
-    getAvailableAnnualCredit(user.id).then((s) => {
-      if (!cancelled) setHasCredit(s.hasCredit);
+    countAvailableAnnualCredits(user.id).then((n) => {
+      if (!cancelled) setCredits(n);
     });
     return () => { cancelled = true; };
   }, [user, isPremium, isLoading, eligible]);
@@ -77,7 +78,7 @@ export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: P
       <div className={`text-sm ${className}`}>
         <div className="font-bold text-brand-navy">{standaloneDisplay}{unit}</div>
         <div className="mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-md text-meta text-green-800">
-          🎁 You have 1 free Smart Tool run available this year — this run will be free.
+          🎁 You have {credits} free Smart Tool {credits === 1 ? "run" : "runs"} available this year — this run will be free.
         </div>
       </div>
     );

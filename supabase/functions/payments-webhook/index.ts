@@ -106,20 +106,24 @@ Deno.serve(async (req) => {
           .select("id")
           .maybeSingle();
 
-        // v9 Layer 3 — Annual subscribers get 1 free Smart Tool run per
-        // cycle. Idempotent: the (user_id, client_id, cycle_start) unique
-        // index makes the insert a no-op when re-applied for the same cycle.
+        // Layer 3 — Annual subscribers receive free Smart Tool credits per
+        // cycle. Professional annual = 3 credits/yr, Intelligence annual = 1.
+        // Idempotent: the (user_id, client_id, cycle_start, credit_index)
+        // unique index makes re-inserts a no-op when the same cycle replays.
         if (isActive && isAnnualTier && updatedProfile?.id && periodStart) {
           const cycleStart = new Date(periodStart * 1000)
             .toISOString()
             .split("T")[0];
+          const creditsToGrant = subscriptionType === "pro_annual" ? 3 : 1;
+          const rows = Array.from({ length: creditsToGrant }, (_, i) => ({
+            user_id: updatedProfile.id,
+            client_id: null,
+            cycle_start: cycleStart,
+            credit_index: i + 1,
+          }));
           const { error: creditErr } = await supabase
             .from("annual_tool_credits")
-            .insert({
-              user_id: updatedProfile.id,
-              client_id: null,
-              cycle_start: cycleStart,
-            });
+            .insert(rows);
           // 23505 = unique_violation → expected on replay; everything else is real.
           if (creditErr && (creditErr as any).code !== "23505") {
             console.error("annual_tool_credits insert failed:", creditErr.message);

@@ -124,7 +124,7 @@ export default function HomepageToolsSection() {
     <SectionShell
       eyebrow="Compliance Toolkit"
       headline="Assessments and documents in a two-column catalogue"
-      subline={`Per-use compliance tools calibrated against 3,700+ enforcement decisions. Any subscription includes RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator; annual plans add 1 free Smart Tool run per year.`}
+      subline={`Per-use compliance tools calibrated against 3,700+ enforcement decisions. Any subscription includes RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator; annual Professional plans add 3 free Smart Tool runs/year (annual Intelligence adds 1).`}
       ctaLabel="Browse tools →"
       ctaHref="/tools"
     >

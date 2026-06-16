@@ -48,7 +48,7 @@ const comparisonRows: ComparisonRow[] = [
   { feature: "US Privacy Notice Builder — subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "EU & Global Privacy Notice Builder — subscriber-only", free: "—", intel: "Included", platform: "Included" },
   { feature: "Registration Manager (Convenience)", free: false, intel: T.registration.display, platform: T.registration.display },
-  { feature: "1 free Smart Tool run/year (Governance, LIA, or DPIA)", free: false, intel: "Annual only", platform: "Annual only" },
+  { feature: "Free Smart Tool runs per year (Governance, LIA, or DPIA)", free: false, intel: "1 / year (annual only)", platform: "3 / year (annual only)" },
 
   { isSection: true, feature: "CPPA tools" },
   { feature: "CPPA Risk Assessment (Smart Tool)", free: false, intel: T.cppa_risk.display, platform: T.cppa_risk.display },
@@ -101,7 +101,7 @@ const Subscribe = () => {
         <title>Pricing & Plans | End User Privacy</title>
         <meta
           name="description"
-          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month — client workspaces, branded outputs. Any subscription includes RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator; annual plans add 1 free Smart Tool run per year.`}
+          content={`Privacy Intelligence at ${PRICING.intelligence.monthly.display}/month with a 10-day free trial. Professional from ${PRICING.professional.monthly.display}/month — client workspaces, branded outputs. Any subscription includes RoPA, Notice Builders, IR Playbook, Biometric Checker, and DPA Generator; annual plans add free Smart Tool runs (1 with Intelligence annual, 3 with Professional annual).`}
         />
       </Helmet>
       <Navbar />
@@ -190,7 +190,7 @@ const Subscribe = () => {
                   "Everything in Intelligence (for account holder)",
                   "Client/matter workspace & compliance record",
                   "Branded document outputs",
-                  "1 free Smart Tool run per year (annual plans only)",
+                  "3 free Smart Tool runs per year (annual plan only — up to $267 value)",
                   
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
@@ -326,7 +326,7 @@ const Subscribe = () => {
                   { type: 'row', feature: "US Privacy Notice Builder", free: "—", intel: "Included", platform: "Included" },
                   { type: 'row', feature: "EU & Global Privacy Notice Builder", free: "—", intel: "Included", platform: "Included" },
                   { type: 'row', feature: "Registration Filings (Convenience)", free: "—", intel: T.registration.display, platform: T.registration.display },
-                  { type: 'row', feature: "1 free Smart Tool run/year (Governance, LIA, or DPIA)", free: "—", intel: "Annual only", platform: "Annual only" },
+                  { type: 'row', feature: "Free Smart Tool runs per year (Governance, LIA, or DPIA)", free: "—", intel: "1 / year (annual only)", platform: "3 / year (annual only)" },
 
                   { type: 'section', feature: "CPPA tools" },
                   { type: 'row', feature: "CPPA Risk Assessment (Smart)", free: "—", intel: T.cppa_risk.display, platform: T.cppa_risk.display },

@@ -48,6 +48,8 @@ interface RegistryEntry {
   kind: PriceKind;
   recurringInterval?: "month" | "year";
   active: boolean;
+  /** Optional extra price metadata pushed into Stripe alongside lovable_external_id. */
+  extraMetadata?: Record<string, string>;
 }
 
 const REGISTRY_SNAPSHOT: RegistryEntry[] = [
@@ -67,12 +69,13 @@ const REGISTRY_SNAPSHOT: RegistryEntry[] = [
     lookupKey: "intelligence_annual",
     productKey: "intelligence",
     productName: "Intelligence — Annual",
-    description: "Annual Intelligence subscription. Save $40 — pay for 10 months, get 12.",
+    description: "Annual Intelligence subscription. Save $40 — pay for 10 months, get 12. Includes 1 free Smart Tool run per year (Governance, LIA, or DPIA).",
     amountCents: 20000,
     currency: "usd",
     kind: "subscription",
     recurringInterval: "year",
     active: true,
+    extraMetadata: { smart_tool_credits: "1", smart_tool_eligible_tools: "governance,lia,dpia" },
   },
   {
     lookupKey: "intelligence_yearly",
@@ -100,12 +103,13 @@ const REGISTRY_SNAPSHOT: RegistryEntry[] = [
     lookupKey: "professional_annual",
     productKey: "professional",
     productName: "Professional — Annual",
-    description: "Annual Professional subscription. Save $98. Unlocks client/matter workspace, branded outputs, and 1 free Convenience Tool run per client per month.",
+    description: "Annual Professional subscription. Save $98. Unlocks client/matter workspace, branded outputs, and 3 free Smart Tool runs per year (Governance, LIA, or DPIA — up to $267 value).",
     amountCents: 49000,
     currency: "usd",
     kind: "subscription",
     recurringInterval: "year",
     active: true,
+    extraMetadata: { smart_tool_credits: "3", smart_tool_eligible_tools: "governance,lia,dpia" },
   },
   {
     lookupKey: "professional_client",
@@ -227,7 +231,7 @@ async function syncOne(
     currency: entry.currency,
     lookup_key: entry.lookupKey,
     transfer_lookup_key: true,
-    metadata: { lovable_external_id: entry.lookupKey },
+    metadata: { lovable_external_id: entry.lookupKey, ...(entry.extraMetadata ?? {}) },
     ...(entry.kind === "subscription" && entry.recurringInterval
       ? { recurring: { interval: entry.recurringInterval } }
       : {}),

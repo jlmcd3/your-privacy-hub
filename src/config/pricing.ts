@@ -170,7 +170,7 @@ export const PRICING_REGISTRY = {
     productKey: "professional",
     productName: "Professional — Annual",
     description:
-      "Annual Professional subscription. Save $98 — pay for 10 months, get 12. Unlocks client/matter workspace, branded outputs, every Layer-1 tool (RoPA, Notice Builders, IR Playbook, Biometric, DPA), and 1 free Smart Tool run per year.",
+      "Annual Professional subscription. Save $98 — pay for 10 months, get 12. Unlocks client/matter workspace, branded outputs, every Layer-1 tool (RoPA, Notice Builders, IR Playbook, Biometric, DPA), and 3 free Smart Tool runs per year (Governance, LIA, or DPIA — up to $267 value).",
     amountCents: 49000,
     currency: "usd",
     displayPrice: "$490",
@@ -1004,11 +1004,27 @@ export function requiresAnnualForSubscriberRate(toolKey: string): boolean {
 }
 
 export const ANNUAL_CREDIT = {
-  intelligenceAnnual: 1,          // credits per subscription year (personal)
-  professionalAnnualPerClient: 1, // credits per non-personal client workspace per year
+  intelligenceAnnual: 1,           // credits per Intelligence annual cycle
+  professionalAnnualPerClient: 3,  // credits per Professional annual cycle
+  // Per-credit cap. The most expensive Smart Tool currently runs at $89
+  // standalone, so the credit value cap stays at $89/credit.
   maxValueCents: 8900,
-  marketingLabel: 'Includes 1 free Smart Tool run per year (up to $89 value)',
+  marketingLabel:
+    'Annual plans include free Smart Tool runs each year — 1 with Intelligence, 3 with Professional (Governance, LIA, or DPIA).',
+  professionalLabel:
+    '3 free Smart Tool runs per year (Governance, LIA, or DPIA — up to $267 value)',
+  intelligenceLabel:
+    '1 free Smart Tool run per year (Governance, LIA, or DPIA — up to $89 value)',
 } as const;
+
+/** Credits granted at each annual renewal, by subscription type. */
+export function annualCreditsFor(
+  subscriptionType: 'monthly' | 'annual' | 'pro_monthly' | 'pro_annual' | null | undefined,
+): number {
+  if (subscriptionType === 'pro_annual') return ANNUAL_CREDIT.professionalAnnualPerClient;
+  if (subscriptionType === 'annual') return ANNUAL_CREDIT.intelligenceAnnual;
+  return 0;
+}
 
 // ── SUBSCRIBER PRICING (no promotional discount) ─────────────────────────
 //
@@ -1050,11 +1066,10 @@ export function foundingPrice(amountCents: number, _smartTool: boolean): number 
 //    Layer 2 — Per-use tools at subscriber rates for any active subscription:
 //              Governance, LIA, DPIA, CPPA Risk, CPPA Cybersecurity,
 //              CPPA Full Audit Suite. Registration is flat $45 (no discount).
-//    Layer 3 — Annual credit: 1 free Smart Tool run per subscription year
-//              (Intelligence annual) or per non-personal active client
-//              workspace per year (Professional annual). Redeemable on
-//              Governance / LIA / DPIA only. See ANNUAL_CREDIT_ELIGIBLE_KEYS
-//              and ANNUAL_CREDIT.
+//    Layer 3 — Annual credit: free Smart Tool runs per subscription year.
+//              Intelligence annual = 1 credit/yr; Professional annual = 3
+//              credits/yr. Redeemable on Governance / LIA / DPIA only. See
+//              ANNUAL_CREDIT_ELIGIBLE_KEYS and ANNUAL_CREDIT.
 //
 //  Pool symbols (FREE_RUN_POOL_SIZES, getFreeRunPoolSize, CONVENIENCE_TOOL_KEYS,
 //  isConvenienceTool, getToolMonthlyCapLimit, PRICING.intelligence/professional
