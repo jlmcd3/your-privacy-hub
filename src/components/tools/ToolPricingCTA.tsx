@@ -78,7 +78,7 @@ export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: P
       <div className={`text-sm ${className}`}>
         <div className="font-bold text-brand-navy">{standaloneDisplay}{unit}</div>
         <div className="mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-md text-meta text-green-800">
-          🎁 You have 1 free Smart Tool run available this year — this run will be free.
+          🎁 You have {credits} free Smart Tool {credits === 1 ? "run" : "runs"} available this year — this run will be free.
         </div>
       </div>
     );
