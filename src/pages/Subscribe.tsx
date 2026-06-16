@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Check, X as XIcon, ArrowRight } from "lucide-react";
+import { Check, X as XIcon, ArrowRight, ShieldCheck } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
 import { PRICING } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
@@ -308,9 +308,14 @@ const Subscribe = () => {
         </div>
       </div>
 
-      <p className="text-center text-meta text-slate-500 mt-4 mb-8 px-4">
-        Tool output calibrated against enforcement decisions and regulatory guidance — not just statutory text.
-      </p>
+      <div className="max-w-3xl mx-auto px-4 mt-6 mb-10">
+        <div className="flex items-center justify-center gap-2 rounded-xl bg-brand-cloud py-3 px-5">
+          <ShieldCheck className="w-5 h-5 text-brand-teal flex-shrink-0" />
+          <p className="text-center text-base font-semibold text-brand-navy">
+            Tool output calibrated against enforcement decisions and regulatory guidance — not just statutory text.
+          </p>
+        </div>
+      </div>
 
       {/* Feature comparison table */}
       <div className="max-w-3xl mx-auto px-4 mt-12 mb-8">
