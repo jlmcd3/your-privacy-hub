@@ -223,6 +223,43 @@ export default function AdminAssertionTests() {
 
   const statusLabel: Record<string, string> = { idle: "Ready", running: "Running…", paused: "Paused", complete: "Complete", stopped: "Stopped" };
 
+  const handleDownload = () => {
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      runStatus: runnerState.status,
+      elapsedMs: runnerState.elapsedMs,
+      totalAssertions: runnerState.totalAssertions,
+      passedAssertions: runnerState.passedAssertions,
+      failedAssertions: runnerState.failedAssertions,
+      tools: runnerState.tools.map((t) => ({
+        toolId: t.toolId,
+        toolName: t.toolName,
+        status: t.status,
+        elapsedMs: t.elapsedMs,
+        passCount: t.passCount,
+        failCount: t.failCount,
+        error: t.error,
+        log: t.log,
+        assertions: t.results.map((r) => ({
+          id: r.assertion.id,
+          description: r.assertion.description,
+          category: r.assertion.category,
+          passed: r.passed,
+          errorMessage: r.passed ? null : r.assertion.errorMessage,
+          runtimeError: r.error ?? null,
+        })),
+      })),
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `eup-assertion-results-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
@@ -239,6 +276,14 @@ export default function AdminAssertionTests() {
           {isRunning && <button onClick={handlePauseResume} className="px-4 py-2 rounded border border-slate-300 text-slate-700 text-sm hover:bg-slate-100">{isPaused ? "▶ Resume" : "⏸ Pause"}</button>}
           {isRunning && <button onClick={handleStop} className="px-4 py-2 rounded border border-red-300 text-red-700 text-sm hover:bg-red-50">⏹ Stop</button>}
           {!isRunning && runnerState.status !== "idle" && <button onClick={handleClear} className="px-4 py-2 rounded border border-slate-300 text-slate-600 text-sm hover:bg-slate-100">🗑 Clear results</button>}
+          {!isRunning && runnerState.status !== "idle" && (
+            <button
+              onClick={handleDownload}
+              className="px-4 py-2 rounded border border-slate-300 text-slate-600 text-sm hover:bg-slate-100"
+            >
+              ⬇ Download results
+            </button>
+          )}
           {!user && <span className="text-xs text-red-600">Sign in as admin to run tests.</span>}
         </div>
 
