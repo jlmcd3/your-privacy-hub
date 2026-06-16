@@ -167,6 +167,10 @@ export default function AdminFsorIngestion() {
   const [gdprBusy, setGdprBusy] = useState<string | null>(null);
   const [gdprResult, setGdprResult] = useState<string>("");
   const [gdprDryRun, setGdprDryRun] = useState(true);
+  const [backfillRunning, setBackfillRunning] = useState(false);
+  const [backfillLog, setBackfillLog] = useState<string[]>([]);
+
+
 
 
   async function runGdprIngest(fn: "ingest-gdpr-eu" | "ingest-gdpr-uk" | "ingest-edpb-guidelines", label: string) {
@@ -255,6 +259,95 @@ export default function AdminFsorIngestion() {
     if (failures) toast.error(`EDPB ingest: ${failures} of ${EDPB_REFS.length} failed`);
     else toast.success(`EDPB ingest: all ${EDPB_REFS.length} guidelines processed`);
   }
+
+  async function runBackfill() {
+    if (!adminToken) return;
+    setBackfillRunning(true);
+    const ts = new Date().toLocaleTimeString();
+    setBackfillLog((prev) => [...prev, `[${ts}] Calling backfill-fsor-summaries…`]);
+    try {
+      const r = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/backfill-fsor-summaries`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-token": adminToken,
+            "Authorization": `Bearer ${adminToken}`,
+          },
+          body: JSON.stringify({ limit: 50 }),
+        }
+      );
+      const data = await r.json();
+      const ts2 = new Date().toLocaleTimeString();
+      if (data.message) {
+        setBackfillLog((prev) => [...prev, `[${ts2}] ✅ ${data.message}`]);
+      } else {
+        setBackfillLog((prev) => [
+          ...prev,
+          `[${ts2}] updated: ${data.updated ?? 0}, failed: ${data.failed ?? 0}, remaining: ${data.remaining ?? "?"}`,
+        ]);
+      }
+    } catch (e: any) {
+      const ts2 = new Date().toLocaleTimeString();
+      setBackfillLog((prev) => [...prev, `[${ts2}] ❌ Error: ${e?.message ?? String(e)}`]);
+    } finally {
+      setBackfillRunning(false);
+    }
+  }
+
+  async function runBackfillUntilDone() {
+    if (!adminToken) return;
+    setBackfillRunning(true);
+    setBackfillLog([]);
+    let remaining = 9999;
+    let round = 0;
+    while (remaining > 0) {
+      round++;
+      const ts = new Date().toLocaleTimeString();
+      setBackfillLog((prev) => [...prev, `[${ts}] Round ${round} — calling backfill-fsor-summaries…`]);
+      try {
+        const r = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/backfill-fsor-summaries`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-admin-token": adminToken,
+              "Authorization": `Bearer ${adminToken}`,
+            },
+            body: JSON.stringify({ limit: 50 }),
+          }
+        );
+        const data = await r.json();
+        const ts2 = new Date().toLocaleTimeString();
+        if (data.message?.includes("All rows already backfilled") || data.processed === 0) {
+          setBackfillLog((prev) => [...prev, `[${ts2}] ✅ Complete — all rows backfilled after ${round} round(s).`]);
+          break;
+        }
+        remaining = typeof data.remaining === "number" ? data.remaining : 9999;
+        setBackfillLog((prev) => [
+          ...prev,
+          `[${ts2}] updated: ${data.updated ?? 0}, failed: ${data.failed ?? 0}, remaining: ${remaining}`,
+        ]);
+        if (data.failed > 0 && data.updated === 0) {
+          setBackfillLog((prev) => [...prev, `[${ts2}] ⚠ All rows in this batch failed — stopping to avoid loop.`]);
+          break;
+        }
+        // Brief pause between rounds to avoid rate limits
+        await new Promise((res) => setTimeout(res, 2000));
+      } catch (e: any) {
+        const ts2 = new Date().toLocaleTimeString();
+        setBackfillLog((prev) => [...prev, `[${ts2}] ❌ Error: ${e?.message ?? String(e)} — stopping.`]);
+        break;
+      }
+    }
+    setBackfillRunning(false);
+  }
+
+
+
+
 
 
 
@@ -610,6 +703,45 @@ export default function AdminFsorIngestion() {
             </Button>
           </div>
         </section>
+
+        {/* ── FSOR Position Summary Backfill ─────────────────────────────── */}
+        <section className="bg-white p-4 rounded border space-y-3 mt-4">
+          <h2 className="text-lg font-semibold">FSOR Position Summary Backfill</h2>
+          <p className="text-sm text-muted-foreground">
+            Populates <code>agency_position_summary</code> for all rows in <code>cppa_fsor_commentary</code>
+            where it is currently NULL. Processes 50 rows per call. Run repeatedly until the remaining count reaches zero.
+            Uses the admin token entered above.
+          </p>
+
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              onClick={runBackfill}
+              disabled={backfillRunning || !adminToken}
+            >
+              {backfillRunning ? "Running…" : "Run backfill (50 rows)"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={runBackfillUntilDone}
+              disabled={backfillRunning || !adminToken}
+            >
+              {backfillRunning ? "Running…" : "Run until complete (auto-loop)"}
+            </Button>
+            {!adminToken && (
+              <span className="text-xs text-red-600">Enter admin token above first.</span>
+            )}
+          </div>
+
+          {backfillLog.length > 0 && (
+            <div className="bg-slate-900 text-green-400 font-mono text-xs rounded p-3 max-h-64 overflow-y-auto space-y-0.5">
+              {backfillLog.map((line, i) => (
+                <div key={i}>{line}</div>
+              ))}
+            </div>
+          )}
+        </section>
+
+
 
         {extractResult && (
           <section className="bg-white p-4 rounded border space-y-3">
