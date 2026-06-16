@@ -479,6 +479,26 @@ function buildHtml(d: AssembledData): string {
       border-bottom:1px dashed #dde5ea; }
     .signature { margin-top:32px; border-top:2px solid #2d9b90; padding-top:16px; }
     .footer-note { font-size:11px; color:#5c6d7a; margin-top:24px; }
+
+    /* ── Print / PDF pagination fixes (PDFShift/Chromium) ──────────── */
+    .activity { break-inside: avoid; page-break-inside: avoid; }
+    h2, h3 { break-after: avoid; page-break-after: avoid; }
+    h2 + *, h3 + * { break-before: avoid; page-break-before: avoid; }
+    table.kv tr { break-inside: avoid; page-break-inside: avoid; }
+    ul { break-inside: avoid; page-break-inside: avoid; }
+    .signature { break-before: avoid; page-break-before: avoid; }
+    .signature + * { break-inside: avoid; page-break-inside: avoid; }
+    .footer-note:last-child { break-before: avoid; page-break-before: avoid; }
+    @media print {
+      .activity { break-inside: avoid; page-break-inside: avoid; }
+      h2, h3 { break-after: avoid; page-break-after: avoid; }
+      h2 + *, h3 + * { break-before: avoid; page-break-before: avoid; }
+      table.kv tr { break-inside: avoid; page-break-inside: avoid; }
+      ul { break-inside: avoid; page-break-inside: avoid; }
+      .signature { break-before: avoid; page-break-before: avoid; }
+      .signature + * { break-inside: avoid; page-break-inside: avoid; }
+      .footer-note:last-child { break-before: avoid; page-break-before: avoid; }
+    }
   </style>
 </head>
 <body>
@@ -506,20 +526,21 @@ function buildHtml(d: AssembledData): string {
       <tr><th>Legal entity</th><td>${escapeHtml(d.profile?.legal_entity_type ?? "—")}</td></tr>
       <tr><th>Sector</th><td>${escapeHtml(d.client?.sector ?? "—")}</td></tr>
       <tr><th>Employee band</th><td>${escapeHtml(d.profile?.employee_band ?? "—")}</td></tr>
-      <tr><th>DPO</th><td>${escapeHtml(d.profile?.dpo_name ?? "Not designated")}${d.profile?.dpo_email ? ` &lt;${escapeHtml(d.profile.dpo_email)}&gt;` : ""}${d.profile?.dpo_phone ? ` · ${escapeHtml(d.profile.dpo_phone)}` : ""}</td></tr>
+      <tr><th>DPO</th><td>${
+        d.profile?.dpo_name
+          ? escapeHtml(d.profile.dpo_name) +
+            (d.profile?.dpo_email ? ` &lt;${escapeHtml(d.profile.dpo_email)}&gt;` : "") +
+            (d.profile?.dpo_phone ? ` · ${escapeHtml(d.profile.dpo_phone)}` : "")
+          : `<span style="color:#5c6d7a;font-style:italic;">Not designated — Article 37 GDPR requires DPO designation for: (a) public authorities and bodies; (b) controllers whose core activities require large-scale, regular and systematic monitoring of data subjects; or (c) controllers whose core activities involve large-scale processing of special category or criminal offence data. Confirm whether a DPO is required for this controller before leaving this field blank.</span>`
+      }</td></tr>
       ${(() => {
-        const orgName = (d.client?.name ?? "").trim().toLowerCase();
         const euRep = (d.profile?.eu_rep_name ?? "").trim();
         const ukRep = (d.profile?.uk_rep_name ?? "").trim();
-        // EU representative: only required for non-EU-established controllers (GDPR Art. 27).
-        // If the field is blank/null, the controller has not designated a rep —
-        // either because they are EU-established (no obligation) or because they
-        // have not yet supplied one. Show a neutral "not designated" label either way.
         const euRow = !euRep
-          ? `<tr><th>EU representative</th><td>Not designated — not required for EU/EEA-established controllers (GDPR Art. 27)</td></tr>`
+          ? `<tr><th>EU representative</th><td style="color:#5c6d7a;font-style:italic;">Not designated — Article 27 EU GDPR requires a representative only for controllers not established in the EU/EEA. If this controller is EU/EEA-established, no representative is required and this field should remain blank.</td></tr>`
           : `<tr><th>EU representative</th><td>${escapeHtml(euRep)}${d.profile?.eu_rep_email ? ` &lt;${escapeHtml(d.profile.eu_rep_email)}&gt;` : ""}</td></tr>`;
         const ukRow = !ukRep
-          ? `<tr><th>UK representative</th><td>Not designated — not required for UK-established controllers (UK GDPR Art. 27)</td></tr>`
+          ? `<tr><th>UK representative</th><td style="color:#5c6d7a;font-style:italic;">Not designated — Article 27 UK GDPR requires a representative only for controllers not established in the UK. If this controller is UK-established, no representative is required and this field should remain blank.</td></tr>`
           : `<tr><th>UK representative</th><td>${escapeHtml(ukRep)}${d.profile?.uk_rep_email ? ` &lt;${escapeHtml(d.profile.uk_rep_email)}&gt;` : ""}</td></tr>`;
         return euRow + ukRow;
       })()}
@@ -619,14 +640,11 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
   const orgNameForRepCheck = (d.client?.name ?? "").trim().toLowerCase();
   const euRepName = (d.profile?.eu_rep_name ?? "").trim();
   const ukRepName = (d.profile?.uk_rep_name ?? "").trim();
-  // EU/UK representative: blank field means not designated (Art. 27 only applies
-  // to non-EU/non-UK-established controllers, so blank is the correct state
-  // for most customers and should not show a dangling dash or placeholder).
   const euRepValue = !euRepName
-    ? "Not designated — not required for EU/EEA-established controllers (GDPR Art. 27)"
+    ? "Not designated — Article 27 EU GDPR applies only to controllers not established in the EU/EEA"
     : `${euRepName}${d.profile?.eu_rep_email ? ` <${d.profile.eu_rep_email}>` : ""}`;
   const ukRepValue = !ukRepName
-    ? "Not designated — not required for UK-established controllers (UK GDPR Art. 27)"
+    ? "Not designated — Article 27 UK GDPR applies only to controllers not established in the UK"
     : `${ukRepName}${d.profile?.uk_rep_email ? ` <${d.profile.uk_rep_email}>` : ""}`;
 
   const clientTable = new Table({
@@ -641,7 +659,12 @@ async function buildDocx(d: AssembledData): Promise<Uint8Array> {
       kvRow("Legal entity", d.profile?.legal_entity_type ?? "—"),
       kvRow("Sector", d.client?.sector ?? "—"),
       kvRow("Employee band", d.profile?.employee_band ?? "—"),
-      kvRow("DPO", `${d.profile?.dpo_name ?? "Not designated"}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`),
+      kvRow(
+        "DPO",
+        d.profile?.dpo_name
+          ? `${d.profile.dpo_name}${d.profile?.dpo_email ? ` <${d.profile.dpo_email}>` : ""}${d.profile?.dpo_phone ? ` · ${d.profile.dpo_phone}` : ""}`
+          : "Not designated — confirm Article 37 GDPR designation triggers before leaving blank",
+      ),
       kvRow("EU representative", euRepValue),
       kvRow("UK representative", ukRepValue),
       kvRow("Jurisdictions", jurisdictionList(d.jurisdictions, true) || "—"),
