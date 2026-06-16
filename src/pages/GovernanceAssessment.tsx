@@ -192,7 +192,7 @@ const GovernanceAssessment = () => {
 
   // GuidedRail — tier-gated GDPR regulation reference, updates per step
   const guidanceTier = useGuidanceTier();
-  const [railPromptTriggered, setRailPromptTriggered] = useState(false);
+  
 
   const govRailConfigs: Record<number, Parameters<typeof useGdprRailEntry>[0]> = {
     1: {
