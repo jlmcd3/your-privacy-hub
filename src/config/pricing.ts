@@ -1004,11 +1004,27 @@ export function requiresAnnualForSubscriberRate(toolKey: string): boolean {
 }
 
 export const ANNUAL_CREDIT = {
-  intelligenceAnnual: 1,          // credits per subscription year (personal)
-  professionalAnnualPerClient: 1, // credits per non-personal client workspace per year
+  intelligenceAnnual: 1,           // credits per Intelligence annual cycle
+  professionalAnnualPerClient: 3,  // credits per Professional annual cycle
+  // Per-credit cap. The most expensive Smart Tool currently runs at $89
+  // standalone, so the credit value cap stays at $89/credit.
   maxValueCents: 8900,
-  marketingLabel: 'Includes 1 free Smart Tool run per year (up to $89 value)',
+  marketingLabel:
+    'Annual plans include free Smart Tool runs each year — 1 with Intelligence, 3 with Professional (Governance, LIA, or DPIA).',
+  professionalLabel:
+    '3 free Smart Tool runs per year (Governance, LIA, or DPIA — up to $267 value)',
+  intelligenceLabel:
+    '1 free Smart Tool run per year (Governance, LIA, or DPIA — up to $89 value)',
 } as const;
+
+/** Credits granted at each annual renewal, by subscription type. */
+export function annualCreditsFor(
+  subscriptionType: 'monthly' | 'annual' | 'pro_monthly' | 'pro_annual' | null | undefined,
+): number {
+  if (subscriptionType === 'pro_annual') return ANNUAL_CREDIT.professionalAnnualPerClient;
+  if (subscriptionType === 'annual') return ANNUAL_CREDIT.intelligenceAnnual;
+  return 0;
+}
 
 // ── SUBSCRIBER PRICING (no promotional discount) ─────────────────────────
 //
