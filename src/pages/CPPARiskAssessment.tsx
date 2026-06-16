@@ -618,6 +618,7 @@ export default function CPPARiskAssessment() {
                   placeholder='E.g. "To present personalised product recommendations to registered users based on their 12-month purchase history on the platform, using collaborative filtering applied to purchase transaction data."'
                   className="mt-2"
                 />
+                <FscrCallout citation="11 CCR § 7152(a)(1)" callouts={fscrCallouts} />
               </div>
 
               <div onFocus={() => focusRail('i2_retention')}>
