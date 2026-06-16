@@ -267,6 +267,7 @@ export default function CPPAScopeChecker() {
 
             <div>
               <Label>Q4: Does your business sell or share consumers' personal information (in any quantity)? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.120; 11 CCR § 7150(b)(1))</span></Label>
+              <span className="inline-block ml-1 align-middle"><EnforcementSignalIcon signalKey="sell_share" signals={scopeEnforcementSignals} /></span>
               <div className="mt-2">
                 <Radio
                   name="q4"
