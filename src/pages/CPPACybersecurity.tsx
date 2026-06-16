@@ -23,6 +23,8 @@ import { Req, RequiredLegend } from "@/components/RequiredMark";
 import StatuteRail from "@/components/admt/StatuteRail";
 import { CPPA_CYBER_RAIL } from "@/components/cppa/CPPACyberRailEntries";
 import type { RailEntry } from "@/components/admt/StatuteRail";
+import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
+import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 
 const MATURITY = [
   "Not implemented",
