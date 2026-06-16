@@ -59,6 +59,19 @@ const PI_CATEGORIES = [
   "Other",
 ];
 
+// Categories that are sensitive PI under Cal. Civ. Code § 1798.140(ae).
+// These trigger additional obligations (Q15 follow-ups, § 7152(a)(5) harm categories).
+const SENSITIVE_PI_CATEGORIES = new Set([
+  "Health or medical information",
+  "Biometric information",
+  "Genetic data",
+  "Racial or ethnic origin",
+  "Religious or philosophical beliefs",
+  "Union membership",
+  "Sexual orientation or gender identity",
+  "Children's data (under 16)",
+]);
+
 // I-3: California-consumer count band (§ 4D).
 const CA_CONSUMER_BAND = [
   "Fewer than 10,000",
