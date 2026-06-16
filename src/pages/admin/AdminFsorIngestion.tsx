@@ -305,7 +305,7 @@ export default function AdminFsorIngestion() {
     while (remaining > 0) {
       round++;
       const ts = new Date().toLocaleTimeString();
-      setBackfillLog((prev) => [...prev, `[${ts}] Round ${round} — calling backfill-fsor-summaries…`]]);
+      setBackfillLog((prev) => [...prev, `[${ts}] Round ${round} — calling backfill-fsor-summaries…`]);
       try {
         const r = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/backfill-fsor-summaries`,
