@@ -474,6 +474,7 @@ export default function CPPARiskAssessment() {
           {step === 5 && (
             <>
               <div className="inline-flex items-center gap-1.5 flex-wrap"><h2>Step 5 — Automated Decision-Making Technology (ADMT)</h2><DefPopover termKey="admt" /></div>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR §§ 7001(e), 7001(ddd), 7150(b)(3), 7150(b)(6) — ADMT definition and risk assessment triggers</p>
               <RequiredLegend />
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /></div><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
