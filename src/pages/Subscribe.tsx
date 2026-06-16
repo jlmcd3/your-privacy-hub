@@ -321,7 +321,7 @@ const Subscribe = () => {
           <div className="cmp-table overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="border-b-2 border-brand-cloud bg-brand-cloud">
+                <tr className="border-b-2 border-brand-cloud bg-brand-mist">
                   <th className="text-left py-3 pr-4 pl-5 font-semibold text-gray-700 w-1/2">Feature</th>
                   <th className="text-center py-3 px-2 font-semibold text-gray-500 text-xs uppercase tracking-wider">Anonymous</th>
                   <th className="text-center py-3 px-2 font-semibold text-brand-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">{PRICING.intelligence.monthly.display}/mo</span></th>
