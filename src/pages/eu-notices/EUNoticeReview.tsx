@@ -605,14 +605,6 @@ export default function EUNoticeReview() {
               />
               Also include HTML (Included)
             </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={includeWord}
-                onChange={(e) => setIncludeWord(e.target.checked)}
-              />
-              Also include Word document (Included)
-            </label>
             {combinedAvailable && (
               <label className="flex items-center gap-2 text-sm">
                 <input
@@ -653,12 +645,6 @@ export default function EUNoticeReview() {
             {includeHtml && (
               <div className="flex justify-between text-meta text-muted-foreground mt-1">
                 <span>+ HTML versions</span>
-                <span>Included</span>
-              </div>
-            )}
-            {includeWord && (
-              <div className="flex justify-between text-meta text-muted-foreground">
-                <span>+ Word documents</span>
                 <span>Included</span>
               </div>
             )}

@@ -55,7 +55,7 @@ export default function RopaReview() {
   const [docDate, setDocDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [authorName, setAuthorName] = useState("");
   const [internalRef, setInternalRef] = useState("");
-  const [includeWord] = useState(true);
+  const [includeWord] = useState(false);
   const [includeExcel] = useState(true);
 
   const [acknowledged, setAcknowledged] = useState(false);
