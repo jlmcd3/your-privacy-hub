@@ -393,7 +393,7 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       });
       const assessmentId = assess?.assessment_id;
       if (!assessmentId) throw new Error("registration: no assessment_id");
-      const codes: string[] = (assess.recommended_jurisdictions || []).slice(0, 3);
+      const codes: string[] = (assess.recommended_jurisdictions || []).slice(0, 8);
       if (!codes.length) throw new Error("registration: no jurisdictions");
       const { data: order, error: oErr } = await admin.from("registration_orders").insert({
         user_id: userId, assessment_id: assessmentId, tier: "diy",

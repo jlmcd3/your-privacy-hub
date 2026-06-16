@@ -339,6 +339,23 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
   else warnings.push("No markets selected — extraterritorial application not evaluated.");
   if (intake.processes_personal_data !== undefined) { score += 1; reasons.push("processing scope confirmed"); }
 
+  // Warn when AI is used but no R6 rule fired — the entity may still have
+  // EU AI Act compliance obligations (transparency, human oversight, etc.)
+  // without being an Article 49 registrant.
+  if (
+    intake.uses_ai_systems &&
+    !intake.ai_high_risk &&
+    !intake.ai_general_purpose_provider &&
+    (intake.has_eu_establishment || euMarkets.length > 0)
+  ) {
+    warnings.push(
+      "AI systems in use: EU AI Act applies, but Article 49 database registration " +
+      "requires provider or deployer of a high-risk AI system (Annex III) or GPAI model. " +
+      "Confirm whether your AI systems fall within scope before concluding no registration obligation."
+    );
+  }
+
+
   const confidence: "high" | "medium" | "low" =
     score >= 8 ? "high" : score >= 5 ? "medium" : "low";
 
