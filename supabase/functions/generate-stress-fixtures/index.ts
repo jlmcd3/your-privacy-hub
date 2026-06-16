@@ -815,7 +815,36 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
         };
       })(),
 
-      ropa: { org_name: c.companyName, legal_entity_type: "Private company", employee_band: slot === 1 ? "1000+" : "100-499", dpo_name: c.dpoName, dpo_email: c.dpoEmail, jurisdictions: [{ code: c.countryCode, name: c.countryCode === "GB" ? "United Kingdom" : "European Union", region: "Europe" }], activities },
+      ropa: {
+        org_name: c.companyName,
+        sector: industry,
+        legal_entity_type: (() => {
+          const s = industry.toLowerCase();
+          if (/gov|public sector|public authority/i.test(s)) return "Public sector body";
+          if (/non.?profit|ngo|charity|foundation/i.test(s)) return "Registered charity";
+          if (/university|college|higher ed/i.test(s)) return "Higher education institution";
+          const sfx = geo === "eu" ? ["SE", "GmbH", "B.V.", "Ltd"][fixtureSeed(companyId) % 4] : "Inc.";
+          if (sfx === "SE") return "Societas Europaea (SE)";
+          if (sfx === "GmbH") return "Gesellschaft mit beschränkter Haftung (GmbH)";
+          if (sfx === "B.V.") return "Besloten Vennootschap (B.V.)";
+          if (sfx === "Ltd") return "Private limited company (UK)";
+          return "Private limited company";
+        })(),
+        employee_band: (() => {
+          const s = industry.toLowerCase();
+          if (/non.?profit|ngo|charity|foundation/i.test(s)) return slot === 1 ? "50-249" : "1-49";
+          if (/consult|advisory/i.test(s)) return slot === 1 ? "250-999" : "50-249";
+          return slot === 1 ? "1000+" : "250-999";
+        })(),
+        dpo_name: c.dpoName,
+        dpo_email: c.dpoEmail,
+        jurisdictions: [
+          { code: "EU_GDPR", name: "European Union", region: "EU & UK" },
+          { code: "UK_GDPR", name: "United Kingdom", region: "EU & UK" },
+          { code: c.countryCode, name: EU_EEA_MEMBER_STATE_NAMES[c.countryCode] ?? c.countryCode, region: "EU Member State" },
+        ],
+        activities: getRopaActivitiesForSector(industry, c.companyName),
+      },
       euNotice: {
         controller_name: c.companyName,
         controller_address: COUNTRY_ADDRESS[c.countryCode] ?? COUNTRY_ADDRESS["IE"],
