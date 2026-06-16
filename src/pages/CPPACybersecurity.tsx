@@ -145,7 +145,7 @@ export default function CPPACybersecurity() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
           </span>
-          <h1 className="font-serif mb-3">CPPA Cybersecurity Audit Readiness</h1>
+          <h1 className="font-serif text-white mb-3">CPPA Cybersecurity Audit Readiness</h1>
           <p className="text-slate-300 text-lg">A structured readiness review mapped to the 18 cybersecurity programme components in the CPPA's cybersecurity audit regulations. Generates a control-by-control gap report.</p>
           <p className="text-slate-400 text-sm mt-3">Required for businesses processing personal information posing significant risk. Audit cadence begins for the largest businesses in 2026.</p>
           <p className="text-slate-400 text-xs italic mt-2">

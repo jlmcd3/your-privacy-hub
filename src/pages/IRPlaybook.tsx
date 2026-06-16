@@ -132,7 +132,7 @@ export default function IRPlaybook() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             🚨 Incident Response Playbook · ${pricing.price}
           </span>
-          <h1 className="font-serif mb-3">Incident Response Playbook</h1>
+          <h1 className="font-serif text-white mb-3">Incident Response Playbook</h1>
           <p className="text-slate-300 text-lg max-w-3xl">
             A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — cited enforcement decisions included for every deadline and threshold recommendation.
           </p>
