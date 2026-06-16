@@ -153,19 +153,9 @@ const Subscribe = () => {
                   </li>
                 ))}
               </ul>
-              <button
-                onClick={() => startCheckout("month", "intelligence")}
-                disabled={!!loading}
-                className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
-              >
-                Start free 10-day trial →
-              </button>
-              <p className="text-center text-blue-200/80 text-meta mt-2">
-                10-day free trial · Card required · No tools in trial
-              </p>
 
               {/* Annual perk callout */}
-              <div className="mt-5 pt-4 border-t border-white/20">
+              <div className="mt-0 pt-4 border-t border-white/20">
                 <p className="text-eyebrow text-brand-mist mb-2">
                   Go annual, pay less per tool
                 </p>
@@ -187,6 +177,26 @@ const Subscribe = () => {
                   One annual Smart Tool run pays back most of your subscription.
                 </p>
               </div>
+
+              <div className="grid grid-cols-2 gap-2 mt-5">
+                <button
+                  onClick={() => startCheckout("month", "intelligence")}
+                  disabled={!!loading}
+                  className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
+                >
+                  Monthly →
+                </button>
+                <button
+                  onClick={() => startCheckout("year", "intelligence")}
+                  disabled={!!loading}
+                  className="w-full py-3 rounded-xl text-sm font-bold bg-brand-mist text-brand-navy hover:opacity-90 disabled:opacity-50"
+                >
+                  Annual →
+                </button>
+              </div>
+              <p className="text-center text-blue-200/80 text-meta mt-2">
+                10-day free trial · Card required · No tools in trial
+              </p>
             </div>
 
             {/* Professional card */}
@@ -220,28 +230,9 @@ const Subscribe = () => {
                   </li>
                 ))}
               </ul>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => startCheckout("month", "professional")}
-                  disabled={!!loading}
-                  className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
-                >
-                  Monthly →
-                </button>
-                <button
-                  onClick={() => startCheckout("year", "professional")}
-                  disabled={!!loading}
-                  className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-brand-navy hover:opacity-90 disabled:opacity-50"
-                >
-                  Annual →
-                </button>
-              </div>
-              <p className="text-center text-amber-100/80 text-meta mt-2">
-                Add clients at {PRICING.professional.perClient.display}/client/year — no minimum.
-              </p>
 
               {/* Annual perk callout */}
-              <div className="mt-5 pt-4 border-t border-amber-400/30">
+              <div className="mt-0 pt-4 border-t border-amber-400/30">
                 <p className="text-eyebrow text-amber-200 mb-2">
                   Go annual, pay less per tool
                 </p>
@@ -263,6 +254,26 @@ const Subscribe = () => {
                   Three free annual runs alone cover more than half your subscription.
                 </p>
               </div>
+
+              <div className="grid grid-cols-2 gap-2 mt-5">
+                <button
+                  onClick={() => startCheckout("month", "professional")}
+                  disabled={!!loading}
+                  className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
+                >
+                  Monthly →
+                </button>
+                <button
+                  onClick={() => startCheckout("year", "professional")}
+                  disabled={!!loading}
+                  className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-brand-navy hover:opacity-90 disabled:opacity-50"
+                >
+                  Annual →
+                </button>
+              </div>
+              <p className="text-center text-amber-100/80 text-meta mt-2">
+                Add clients at {PRICING.professional.perClient.display}/client/year — no minimum.
+              </p>
             </div>
           </div>
           {error && <p className="text-red-300 text-meta mt-4">{error}</p>}
