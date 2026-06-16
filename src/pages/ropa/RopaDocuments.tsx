@@ -57,7 +57,6 @@ type DocVersion = {
 
 const FORMAT_META: Record<string, { label: string; icon: typeof FileText; ext: string }> = {
   pdf: { label: "PDF", icon: FileText, ext: "pdf" },
-  docx: { label: "Word", icon: FileType, ext: "docx" },
   xlsx: { label: "Excel", icon: FileSpreadsheet, ext: "xlsx" },
 };
 
@@ -455,7 +454,7 @@ export default function RopaDocuments() {
                 {generated && (
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {(["pdf", "docx", "xlsx"] as const).map((fmt) => {
+                      {(["pdf", "xlsx"] as const).map((fmt) => {
                         const doc = sessionDocs.find((d) => d.document_format === fmt);
                         const meta = FORMAT_META[fmt];
                         const Icon = meta.icon;

@@ -184,7 +184,7 @@ export default function NoticeBuilderLanding() {
               {[
                 { n: "1", title: "Pick your jurisdictions", body: "Select states or frameworks. We surface only the questions that actually apply." },
                 { n: "2", title: "Answer once", body: "4–18 questions per jurisdiction. Save and resume any time. RoPA answers pre-fill." },
-                { n: "3", title: "Download anywhere", body: "PDF, Word, and embeddable HTML — separate notice per jurisdiction." },
+                { n: "3", title: "Download anywhere", body: "PDF and embeddable HTML — separate notice per jurisdiction." },
               ].map((step) => (
                 <Card key={step.n}>
                   <CardContent className="p-6">

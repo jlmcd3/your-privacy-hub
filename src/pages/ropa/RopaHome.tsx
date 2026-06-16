@@ -148,7 +148,7 @@ export default function RopaHome() {
       title="RoPA Builder — End User Privacy"
       heading="RoPA Builder"
       chip="📒 Article 30 Record Builder"
-      description="Build and maintain the Article 30 GDPR Record of Processing Activities your DPO is expected to produce on request — a guided wizard captures each processing activity, legal basis, data category, and transfer detail, then outputs the documented record in .docx, .pdf, and .xlsx."
+      description="Build and maintain the Article 30 GDPR Record of Processing Activities your DPO is expected to produce on request — a guided wizard captures each processing activity, legal basis, data category, and transfer detail, then outputs the documented record in .pdf and .xlsx."
     >
       {loading ? (
         <div className="space-y-4">
@@ -292,15 +292,6 @@ export default function RopaHome() {
                 </p>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
-                {latestGenerated.generated_docx_path && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => downloadDoc(latestGenerated.generated_docx_path!)}
-                  >
-                    <Download className="mr-1.5 h-4 w-4" /> .docx
-                  </Button>
-                )}
                 {latestGenerated.generated_pdf_path && (
                   <Button
                     variant="outline"
