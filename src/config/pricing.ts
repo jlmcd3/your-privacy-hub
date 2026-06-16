@@ -1066,11 +1066,10 @@ export function foundingPrice(amountCents: number, _smartTool: boolean): number 
 //    Layer 2 — Per-use tools at subscriber rates for any active subscription:
 //              Governance, LIA, DPIA, CPPA Risk, CPPA Cybersecurity,
 //              CPPA Full Audit Suite. Registration is flat $45 (no discount).
-//    Layer 3 — Annual credit: 1 free Smart Tool run per subscription year
-//              (Intelligence annual) or per non-personal active client
-//              workspace per year (Professional annual). Redeemable on
-//              Governance / LIA / DPIA only. See ANNUAL_CREDIT_ELIGIBLE_KEYS
-//              and ANNUAL_CREDIT.
+//    Layer 3 — Annual credit: free Smart Tool runs per subscription year.
+//              Intelligence annual = 1 credit/yr; Professional annual = 3
+//              credits/yr. Redeemable on Governance / LIA / DPIA only. See
+//              ANNUAL_CREDIT_ELIGIBLE_KEYS and ANNUAL_CREDIT.
 //
 //  Pool symbols (FREE_RUN_POOL_SIZES, getFreeRunPoolSize, CONVENIENCE_TOOL_KEYS,
 //  isConvenienceTool, getToolMonthlyCapLimit, PRICING.intelligence/professional
