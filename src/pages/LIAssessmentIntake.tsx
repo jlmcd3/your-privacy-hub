@@ -192,7 +192,7 @@ const LIAssessmentIntake = () => {
       </Helmet>
       <Navbar />
 
-      <header className="bg-slate-900 text-white py-10">
+      <header className="bg-[#0d2a45] text-white py-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             Step 2 — Full assessment · ${pricing.price}{pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate)` : ""}
