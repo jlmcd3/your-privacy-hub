@@ -58,6 +58,7 @@ export type Database = {
       annual_tool_credits: {
         Row: {
           client_id: string | null
+          credit_index: number
           cycle_start: string
           granted_at: string
           id: string
@@ -68,6 +69,7 @@ export type Database = {
         }
         Insert: {
           client_id?: string | null
+          credit_index?: number
           cycle_start: string
           granted_at?: string
           id?: string
@@ -78,6 +80,7 @@ export type Database = {
         }
         Update: {
           client_id?: string | null
+          credit_index?: number
           cycle_start?: string
           granted_at?: string
           id?: string
