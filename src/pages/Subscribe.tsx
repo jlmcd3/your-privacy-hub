@@ -137,7 +137,6 @@ const Subscribe = () => {
               <p className="text-blue-200 text-meta mb-1">
                 or {PRICING.intelligence.annual.display}/year — {PRICING.intelligence.annual.savingDisplay}
               </p>
-              <p className="text-blue-200 text-meta mb-4">Cancel any time</p>
               <ul className="space-y-2 mb-6">
                 {[
                   "Daily privacy intelligence feed",
