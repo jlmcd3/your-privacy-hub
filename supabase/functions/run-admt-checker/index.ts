@@ -150,11 +150,54 @@ ANALYTICAL STANDARDS:
 
 8. AGGREGATE ACCESS RESPONSE (§ 7222(j)): Note this option if prior_access_requests_12mo exceeds 4 in the intake, or flag it as a threshold to monitor if the count is not provided. This is an option, not a requirement — the business may still provide individualized responses even above the threshold. Clarify that aggregate responses under § 7222(j) apply specifically to the logic and output disclosures; other § 7222 elements (specific purpose, verification, anti-retaliation notice) still apply.
 
-9. SIGNIFICANT-DECISION CLASSIFIER — CRITICAL: Under the CPPA final regulations (OAL-approved September 2025), "significant decision" under § 7001(ddd) is limited to decisions concerning: financial or lending services, housing, education, employment or independent contracting, or healthcare services. The following are expressly NOT significant decisions:
-   - Advertising to a consumer, including: ad-auction eligibility, audience scoring, targeted advertising, audience segmentation, behavioral targeting, ad personalization, or lookalike audience assignment. If the intake decision_domains contains "advertising" or the system description describes targeting, segmentation, or audience scoring for advertising, set triggers_significant_decision to FALSE and explain this in significant_decision_reasoning.
-   - Generic service eligibility or pricing tiers for entertainment, gaming, or subscription services that are not financial/lending services, housing, education, employment, or healthcare. Service eligibility and pricing for a gaming company is NOT a significant decision unless the facts specifically show the decision involves financial/credit terms, housing, employment, education, or healthcare access.
-   When triggers_significant_decision is FALSE because advertising or gaming-service-eligibility is the sole basis, do NOT generate § 7220 notice gaps, § 7221 opt-out gaps, or § 7222 access gaps — those Article 11 obligations only apply when ADMT is used for a significant decision. Instead, note in the scope_analysis summary that § 7220/§ 7221/§ 7222 ADMT significant-decision obligations are NOT triggered, and that the business should separately evaluate CCPA sale/sharing opt-out obligations (§ 1798.120) and risk assessment obligations under § 7150(b)(1) for selling/sharing PI for cross-context behavioral advertising.
-   The automated test suite checks for this rule: do not assert advertising as a significant decision under any framing.
+9. SIGNIFICANT-DECISION CLASSIFIER — STRUCTURAL GATE:
+
+Under the CPPA final regulations (OAL-approved September 2025), "significant decision" under § 7001(ddd) is ONLY a decision concerning: financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services.
+
+THE FOLLOWING ARE EXPRESSLY NOT SIGNIFICANT DECISIONS — PERIOD:
+- Advertising to a consumer: this includes ad-auction eligibility, audience scoring, targeted advertising, audience segmentation, behavioral targeting, ad personalization, and lookalike audience assignment. If decision_domains contains "advertising" OR the system description mentions targeting, segmentation, audience scoring, or ad personalization → triggers_significant_decision MUST be false.
+- Gaming, entertainment, or subscription service eligibility and pricing: service eligibility and pricing tiers for gaming, streaming, or subscription services are NOT significant decisions under § 7001(ddd) unless the facts specifically state the decision involves financial/lending services, housing, education, employment, or healthcare. A "service eligibility" domain for a gaming company is NOT a significant decision.
+
+STRUCTURAL ENFORCEMENT — READ BEFORE GENERATING ANY GAP:
+Step 1: Set triggers_significant_decision = true ONLY if the system description connects the ADMT output to one of the five enumerated § 7001(ddd) categories.
+Step 2: If triggers_significant_decision = false, the notice_gaps array MUST be empty [], the opt_out_gaps array MUST be empty [], and the access_gaps array MUST be empty []. Do NOT generate any § 7220, § 7221, or § 7222 gaps. Populate the scope_analysis.summary field with an explanation that Article 11 ADMT obligations are not triggered, and direct the business to evaluate (a) CCPA sale/sharing opt-out obligations under § 1798.120 and (b) Article 10 risk assessment obligations under § 7150(b)(1) for cross-context behavioral advertising.
+Step 3: If triggers_significant_decision = true, proceed normally with the full gap analysis.
+
+SELF-CHECK BEFORE GENERATING OUTPUT: If I am about to set triggers_significant_decision = true for an advertising or gaming service-eligibility use case, STOP. Re-read this rule. The answer is false.
+
+9a. ARTICLE 10 vs ARTICLE 11 — SEPARATE GATES (CRITICAL):
+
+Article 11 (§§ 7200–7222) creates ADMT rights: pre-use notice, opt-out, access right. These apply ONLY when ADMT is used to make a significant decision under § 7001(ddd).
+
+Article 10 (§§ 7150–7157) creates risk assessment obligations. These have SEPARATE, BROADER triggers that do NOT require a significant decision:
+- § 7150(b)(1): selling or sharing personal information
+- § 7150(b)(2): processing sensitive personal information
+- § 7150(b)(3): using ADMT to make a significant decision [overlaps with Art. 11]
+- § 7150(b)(4): using ADMT to make, or that substantially facilitates, an automated inference/profiling about a consumer
+- § 7150(b)(5): training ADMT on personal information
+- § 7150(b)(6): processing personal information of minors
+
+CONSEQUENCE: An AdTech or gaming business may have NO Article 11 obligations (because targeted advertising and gaming pricing are not significant decisions) but STILL have Article 10 risk assessment obligations (because they train ADMT on personal information under § 7150(b)(5), or sell/share personal information under § 7150(b)(1)).
+
+When triggers_significant_decision = false:
+- Set triggers_risk_assessment based on whether ANY of § 7150(b)(1)-(6) apply to the facts — NOT based on whether a significant decision is made.
+- Populate risk_assessment_obligation even when notice_gaps, opt_out_gaps, and access_gaps are all empty.
+- In scope_analysis.summary, explicitly distinguish: "Article 11 ADMT obligations are NOT triggered because [reason]. However, Article 10 risk assessment obligations ARE triggered because [specific § 7150(b)(X) trigger]."
+
+9b. TRADE-SECRET CARVE-OUTS — CORRECT CITATIONS ONLY:
+
+There are two ADMT-specific trade-secret carve-out provisions:
+- For Pre-use Notice disclosures: 11 CCR § 7220(d) allows the business to omit information from the Pre-use Notice that would reveal trade secrets as defined in Civil Code § 3426.1(d).
+- For Access Right responses: 11 CCR § 7222(c) allows the business to withhold information from the access response that would reveal trade secrets as defined in Civil Code § 3426.1(d), or information whose disclosure would create a substantial risk to the security of the business's systems.
+
+NEVER cite the following for ADMT trade-secret carve-outs:
+- § 7152(a)(3): this section governs risk assessment content, not trade secrets in ADMT disclosures
+- Cal. Civ. Code § 1798.185(a)(3): this is the enabling statute for rulemaking, not a trade-secret exception
+
+When a trade-secret carve-out finding is generated:
+- For notice gaps: cite § 7220(d) and Civil Code § 3426.1(d)
+- For access gaps: cite § 7222(c) and Civil Code § 3426.1(d)
+- Always add: "Even with trade-secret protection, the business must still provide sufficient plain-language explanation of the ADMT's logic to enable the consumer to understand how their personal information generated the output. The carve-out permits withholding of specific proprietary weights, not the omission of the conceptual logic and input factors altogether."
 
 10. OPT-OUT DENIAL vs OPT-OUT EXCEPTION — keep these distinct:
     - § 7221(b): When a business is NOT REQUIRED to provide an opt-out right at all (because it qualifies for the human-appeal exception or the employment/education exception). Analyze whether the described facts meet the exception criteria.
