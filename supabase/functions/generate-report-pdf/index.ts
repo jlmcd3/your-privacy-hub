@@ -1318,8 +1318,8 @@ function buildADMTReportHTML(report: any, record: any): string {
     const rows: Array<[string, any]> = [
       ["Qualifies as ADMT (§ 7001(e))", sa.is_admt],
       ["Triggers significant decision obligations (§ 7200)", sa.triggers_significant_decision],
-      ["Triggers risk assessment requirement (§§ 7150–7157)", sa.triggers_risk_assessment],
-      ["Triggers risk assessment under § 7150(b)", sa.triggers_profiling],
+      ["Triggers risk assessment — use/training on PI (§§ 7150–7157)", sa.triggers_risk_assessment],
+      ["Triggers risk assessment — profiling/inference (§ 7150(b)(4)–(5))", sa.triggers_profiling],
     ];
     const items = rows.map(([label, val]) =>
       `<li><span class="label">${escHtml(label)}:</span> ${val ? "Yes — obligations apply" : "No — not triggered"}</li>`
