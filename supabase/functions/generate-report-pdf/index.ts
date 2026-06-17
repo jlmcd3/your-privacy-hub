@@ -1328,7 +1328,7 @@ function buildADMTReportHTML(report: any, record: any): string {
   })() : "";
 
   const priorityBlock = Array.isArray(report?.priority_actions) && report.priority_actions.length
-    ? `<section class="section"><h2>Priority Actions</h2><ol>${report.priority_actions.map((a: string) => `<li>${text(a.replace(/^\s*\d+[.)]\s*/, ""))}</li>`).join("")}</ol></section>`
+    ? `<section class="section"><h2>Priority Actions</h2><ol>${report.priority_actions.map((a: string) => `<li>${text(a.replace(/^(\s*\d+[.)]\s*)+/, ""))}</li>`).join("")}</ol></section>`
     : "";
 
   const riskNote = report?.risk_assessment_note
