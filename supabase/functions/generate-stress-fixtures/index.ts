@@ -901,23 +901,41 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       company_name: c.companyName,
       controls: Object.fromEntries(["c1_auth", "c2_encryption", "c3_zero_trust", "c4_account_mgmt", "c5_inventory", "c7_vuln_mgmt", "c8_audit_logs", "c9_network_mon", "c10_anti_malware", "c14_third_party", "c15_retention", "c16_training", "c17_incident", "c18_continuity"].map((k) => [k, ["implemented", "Documented and reviewed"]])),
     },
-    cppaAdmt: /ai|fintech|hr|adtech/i.test(industry) ? {
-      system_name: /ai/i.test(industry) ? "AI Decisioning Engine" : /fintech/i.test(industry) ? "Credit Risk Scoring Model" : /hr/i.test(industry) ? "Candidate Screening System" : "Audience Segmentation Engine",
+    cppaAdmt: /ai|fintech|hr|adtech|gaming|entertainment/i.test(industry) ? {
+      system_name:
+        /fintech/i.test(industry) ? "Credit Risk Scoring Model" :
+        /hr/i.test(industry) ? "Candidate Screening System" :
+        /adtech/i.test(industry) ? "Audience Segmentation Engine" :
+        /gaming|entertainment/i.test(industry) ? "Dynamic Difficulty and Monetization Engine" :
+        "AI Decisioning Engine",
       system_type: "ML model",
-      system_description: /ai/i.test(industry)
-        ? "Gradient-boosted ensemble that produces a risk score used to determine service eligibility and pricing tiers for California consumers."
-        : /fintech/i.test(industry)
-        ? "Logistic regression model trained on payment history, utilisation, and income proxies to produce a 0–850 creditworthiness score used for loan approval."
-        : /hr/i.test(industry)
-        ? "NLP-based resume parser and ranking model that scores applicants 0–100 for initial screening shortlists; human recruiter reviews all shortlisted candidates."
-        : "Collaborative-filtering model that assigns consumers to behavioural segments used for targeted advertising on third-party platforms.",
-      decision_domains: /ai/i.test(industry) ? ["service_eligibility"] : /fintech/i.test(industry) ? ["financial_services"] : /hr/i.test(industry) ? ["employment"] : ["advertising"],
+      system_description:
+        /fintech/i.test(industry)
+          ? "Logistic regression model trained on payment history, utilization, and income proxies to produce a 0–850 creditworthiness score used for loan approval and credit limit decisions for California consumers."
+          : /hr/i.test(industry)
+          ? "NLP-based resume parser and ranking model that scores applicants 0–100 for initial screening shortlists; human recruiter reviews all shortlisted candidates before any employment decision is made."
+          : /adtech/i.test(industry)
+          ? "Collaborative-filtering model that assigns consumers to behavioral segments used for targeted advertising on third-party platforms. The model processes browsing history, purchase signals, and demographic inferences to determine which advertising audiences a consumer is placed in."
+          : /gaming|entertainment/i.test(industry)
+          ? "Reinforcement-learning model that adjusts in-game difficulty and surfaces in-game purchase offers based on player behavior signals. The system determines which items are shown to which players and at what price points, and is used solely for entertainment service personalization — not for any financial, housing, employment, education, or healthcare decision."
+          : "Gradient-boosted ensemble that produces a risk score used to determine service eligibility and pricing tiers for California consumers.",
+      decision_domains:
+        /fintech/i.test(industry) ? ["financial_services"] :
+        /hr/i.test(industry) ? ["employment"] :
+        /adtech/i.test(industry) ? ["advertising"] :
+        /gaming|entertainment/i.test(industry) ? ["entertainment_personalization"] :
+        ["service_eligibility"],
       human_review: /hr/i.test(industry) ? "Yes — recruiter reviews all shortlisted candidates before any employment decision" : "No — fully automated; opt-out suppresses scoring immediately",
       training_data_use: "Yes",
       profiling_use: "Yes",
       notice_delivery: ["privacy_policy", "just_in_time"],
       notice_has_specific_purpose: "Yes",
-      notice_purpose_text: "To assess eligibility and personalise your experience using automated analysis of your data.",
+      notice_purpose_text:
+        /fintech/i.test(industry) ? "To assess your creditworthiness using automated analysis of your payment history and financial data, for the purpose of determining your eligibility for a loan or credit product." :
+        /hr/i.test(industry) ? "To screen and rank your job application using automated analysis of your resume and application materials, for the purpose of initial candidate shortlisting for employment opportunities." :
+        /adtech/i.test(industry) ? "To assign you to behavioral audience segments for the purpose of delivering targeted advertising on behalf of our advertising clients." :
+        /gaming|entertainment/i.test(industry) ? "To personalize your in-game experience and surface relevant in-game offers using automated analysis of your gameplay behavior." :
+        "To assess eligibility and personalize your experience using automated analysis of your data.",
       notice_has_opt_out_desc: "Yes",
       notice_has_access_desc: "Yes",
       notice_has_anti_retaliation: "Yes",
@@ -931,6 +949,7 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       opt_out_confirmation_mechanism: "Email confirmation within 24 hours",
       opt_out_appeal_process: "Consumer may request human review within 30 days",
       opt_out_fairness_doc: "",
+      opt_out_15_day_process: "",
       access_submission_methods: "Webform at privacy.example.com/access-request",
       access_verification_process: "Email verification plus last-4 of account identifier",
       access_logic_disclosure: "Yes — plain-language description of inputs and weightings provided",

@@ -146,20 +146,71 @@ ANALYTICAL STANDARDS:
 
 6. RISK ASSESSMENT OBLIGATION: Produce a detailed risk_assessment_obligation object (not a one-sentence note) covering the specific statutory triggers, the applicable compliance deadline, and the submission requirement. Base all claims solely on what appears in the REGULATION AUTHORITIES block. Note that the compliance deadline depends on when processing was initiated: for processing activities initiated before January 1, 2026 that continue after that date, the deadline for completing and documenting the risk assessment is December 31, 2027. For new processing activities initiated on or after January 1, 2026, the risk assessment must be completed BEFORE initiating the processing. The JSON schema already has separate fields for both deadlines — populate both accurately.
 
+PRIORITY ACTION DEADLINE RULE: When generating priority_actions items that reference risk assessment deadlines, determine which deadline applies based on the intake data:
+- If the system has been in use before January 1, 2026 (or the intake does not specify when processing began): use "December 31, 2027" as the deadline.
+- If the intake explicitly states processing began on or after January 1, 2026: use "before initiating processing" or "immediately — risk assessment required before processing can continue."
+When in doubt, include BOTH deadlines and explain the distinction in a single action item: "Complete and document a risk assessment: before January 1, 2026 if processing has already begun, or before commencing processing if not yet initiated."
+
 7. CONSOLIDATED NOTICE (§ 7220(e)): Analyze whether the business could benefit from providing a consolidated Pre-Use Notice. Four scenarios permit consolidation: (1) one ADMT for multiple purposes; (2) multiple ADMTs for one purpose; (3) multiple ADMTs for multiple purposes; (4) systematic use of a single ADMT. This is a benefit, not an obligation. Always note the mandatory condition: the consolidated notice must include all required § 7220(c) elements for each system or use covered. Produce the consolidated_notice_analysis field in all cases — mark applicable:false with a brief explanation if a single-system/single-purpose deployment makes it irrelevant.
 
 8. AGGREGATE ACCESS RESPONSE (§ 7222(j)): Note this option if prior_access_requests_12mo exceeds 4 in the intake, or flag it as a threshold to monitor if the count is not provided. This is an option, not a requirement — the business may still provide individualized responses even above the threshold. Clarify that aggregate responses under § 7222(j) apply specifically to the logic and output disclosures; other § 7222 elements (specific purpose, verification, anti-retaliation notice) still apply.
 
-9. SIGNIFICANT-DECISION CLASSIFIER — CRITICAL: Under the CPPA final regulations (OAL-approved September 2025), "significant decision" under § 7001(ddd) is limited to decisions concerning: financial or lending services, housing, education, employment or independent contracting, or healthcare services. The following are expressly NOT significant decisions:
-   - Advertising to a consumer, including: ad-auction eligibility, audience scoring, targeted advertising, audience segmentation, behavioral targeting, ad personalization, or lookalike audience assignment. If the intake decision_domains contains "advertising" or the system description describes targeting, segmentation, or audience scoring for advertising, set triggers_significant_decision to FALSE and explain this in significant_decision_reasoning.
-   - Generic service eligibility or pricing tiers for entertainment, gaming, or subscription services that are not financial/lending services, housing, education, employment, or healthcare. Service eligibility and pricing for a gaming company is NOT a significant decision unless the facts specifically show the decision involves financial/credit terms, housing, employment, education, or healthcare access.
-   When triggers_significant_decision is FALSE because advertising or gaming-service-eligibility is the sole basis, do NOT generate § 7220 notice gaps, § 7221 opt-out gaps, or § 7222 access gaps — those Article 11 obligations only apply when ADMT is used for a significant decision. Instead, note in the scope_analysis summary that § 7220/§ 7221/§ 7222 ADMT significant-decision obligations are NOT triggered, and that the business should separately evaluate CCPA sale/sharing opt-out obligations (§ 1798.120) and risk assessment obligations under § 7150(b)(1) for selling/sharing PI for cross-context behavioral advertising.
-   The automated test suite checks for this rule: do not assert advertising as a significant decision under any framing.
+9. SIGNIFICANT-DECISION CLASSIFIER — STRUCTURAL GATE:
+
+Under the CPPA final regulations (OAL-approved September 2025), "significant decision" under § 7001(ddd) is ONLY a decision concerning: financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services.
+
+THE FOLLOWING ARE EXPRESSLY NOT SIGNIFICANT DECISIONS — PERIOD:
+- Advertising to a consumer: this includes ad-auction eligibility, audience scoring, targeted advertising, audience segmentation, behavioral targeting, ad personalization, and lookalike audience assignment. If decision_domains contains "advertising" OR the system description mentions targeting, segmentation, audience scoring, or ad personalization → triggers_significant_decision MUST be false.
+- Gaming, entertainment, or subscription service eligibility and pricing: service eligibility and pricing tiers for gaming, streaming, or subscription services are NOT significant decisions under § 7001(ddd) unless the facts specifically state the decision involves financial/lending services, housing, education, employment, or healthcare. A "service eligibility" domain for a gaming company is NOT a significant decision.
+
+STRUCTURAL ENFORCEMENT — READ BEFORE GENERATING ANY GAP:
+Step 1: Set triggers_significant_decision = true ONLY if the system description connects the ADMT output to one of the five enumerated § 7001(ddd) categories.
+Step 2: If triggers_significant_decision = false, the notice_gaps array MUST be empty [], the opt_out_gaps array MUST be empty [], and the access_gaps array MUST be empty []. Do NOT generate any § 7220, § 7221, or § 7222 gaps. Populate the scope_analysis.summary field with an explanation that Article 11 ADMT obligations are not triggered, and direct the business to evaluate (a) CCPA sale/sharing opt-out obligations under § 1798.120 and (b) Article 10 risk assessment obligations under § 7150(b)(1) for cross-context behavioral advertising.
+Step 3: If triggers_significant_decision = true, proceed normally with the full gap analysis.
+
+SELF-CHECK BEFORE GENERATING OUTPUT: If I am about to set triggers_significant_decision = true for an advertising or gaming service-eligibility use case, STOP. Re-read this rule. The answer is false.
+
+9a. ARTICLE 10 vs ARTICLE 11 — SEPARATE GATES (CRITICAL):
+
+Article 11 (§§ 7200–7222) creates ADMT rights: pre-use notice, opt-out, access right. These apply ONLY when ADMT is used to make a significant decision under § 7001(ddd).
+
+Article 10 (§§ 7150–7157) creates risk assessment obligations. These have SEPARATE, BROADER triggers that do NOT require a significant decision:
+- § 7150(b)(1): selling or sharing personal information
+- § 7150(b)(2): processing sensitive personal information
+- § 7150(b)(3): using ADMT to make a significant decision [overlaps with Art. 11]
+- § 7150(b)(4): using ADMT to make, or that substantially facilitates, an automated inference/profiling about a consumer
+- § 7150(b)(5): training ADMT on personal information
+- § 7150(b)(6): processing personal information of minors
+
+CONSEQUENCE: An AdTech or gaming business may have NO Article 11 obligations (because targeted advertising and gaming pricing are not significant decisions) but STILL have Article 10 risk assessment obligations (because they train ADMT on personal information under § 7150(b)(5), or sell/share personal information under § 7150(b)(1)).
+
+When triggers_significant_decision = false:
+- Set triggers_risk_assessment based on whether ANY of § 7150(b)(1)-(6) apply to the facts — NOT based on whether a significant decision is made.
+- Populate risk_assessment_obligation even when notice_gaps, opt_out_gaps, and access_gaps are all empty.
+- In scope_analysis.summary, explicitly distinguish: "Article 11 ADMT obligations are NOT triggered because [reason]. However, Article 10 risk assessment obligations ARE triggered because [specific § 7150(b)(X) trigger]."
+
+9b. TRADE-SECRET CARVE-OUTS — CORRECT CITATIONS ONLY:
+
+There are two ADMT-specific trade-secret carve-out provisions:
+- For Pre-use Notice disclosures: 11 CCR § 7220(d) allows the business to omit information from the Pre-use Notice that would reveal trade secrets as defined in Civil Code § 3426.1(d).
+- For Access Right responses: 11 CCR § 7222(c) allows the business to withhold information from the access response that would reveal trade secrets as defined in Civil Code § 3426.1(d), or information whose disclosure would create a substantial risk to the security of the business's systems.
+
+NEVER cite the following for ADMT trade-secret carve-outs:
+- § 7152(a)(3): this section governs risk assessment content, not trade secrets in ADMT disclosures
+- Cal. Civ. Code § 1798.185(a)(3): this is the enabling statute for rulemaking, not a trade-secret exception
+
+When a trade-secret carve-out finding is generated:
+- For notice gaps: cite § 7220(d) and Civil Code § 3426.1(d)
+- For access gaps: cite § 7222(c) and Civil Code § 3426.1(d)
+- Always add: "Even with trade-secret protection, the business must still provide sufficient plain-language explanation of the ADMT's logic to enable the consumer to understand how their personal information generated the output. The carve-out permits withholding of specific proprietary weights, not the omission of the conceptual logic and input factors altogether."
 
 10. OPT-OUT DENIAL vs OPT-OUT EXCEPTION — keep these distinct:
+    CITATION PROHIBITION: Do NOT cite § 7221(c)(5) for any purpose related to appeals of denied opt-out requests. § 7221(c)(5) does not create an appeal process. It does not exist as a basis for that proposition in the final regulations. If you are about to cite § 7221(c)(5) for an appeal finding, replace it with a note that CPPA enforcement procedures govern the process for disputing a denied opt-out, and do not cite a specific subsection.
     - § 7221(b): When a business is NOT REQUIRED to provide an opt-out right at all (because it qualifies for the human-appeal exception or the employment/education exception). Analyze whether the described facts meet the exception criteria.
     - § 7221(g): When a business DENIES a specific opt-out REQUEST because the request is fraudulent or the consumer is not a California consumer. This is a denial of an individual request, not an exception from the obligation. If the intake describes a process for denying opt-out requests, cite § 7221(g), not § 7221(b) or § 7221(c).
     - § 7221(c): The designated methods consumers may use to submit opt-out requests (webform, email, etc.). This section does not create an appeal process for denied opt-out requests. Do not cite § 7221(c)(5) — that subsection does not provide a basis for an appeal of a denied opt-out. If an appeal process for denied requests is needed, it derives from general CPPA enforcement procedures, not a numbered § 7221(c) subsection.
+    - § 7221(n)(1)-(2): The correct citation for the 15-business-day opt-out processing obligation. Use the exact phrasing "as soon as feasibly possible, but no later than 15 business days" — not "reasonably possible" or "typically within 15 business days." § 7221(n)(2) adds the obligation to notify service providers, contractors, and other persons involved in ADMT processing.
+    - § 7221(b)(2)-(3): The employment/education exception. In HR or employment screening contexts, always analyze this exception explicitly — not just § 7221(b)(1) (human appeal). The employment exception applies when the ADMT is used SOLELY to assess the applicant's ability to perform at work, works for the business's purpose, AND does not unlawfully discriminate. If the intake describes an employment/hiring use case and the business has not claimed an exception, flag § 7221(b)(2)-(3) as a potential exception to evaluate, and explain the three-part test.
 
 11. PRE-USE NOTICE COMPLETENESS: When triggers_significant_decision is TRUE, the notice_gaps array MUST always be populated — either with specific gaps, or with a "compliant" entry for each assessed element. Never return an empty notice_gaps array for an in-scope ADMT deployment that makes significant decisions. If the intake answers indicate the Pre-use Notice satisfies all § 7220(c) elements, populate the array with compliant entries. An empty array signals an assessment error, not full compliance.
 
