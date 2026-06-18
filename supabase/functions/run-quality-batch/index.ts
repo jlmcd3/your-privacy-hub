@@ -564,7 +564,15 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         continue;
       }
 
-      const gptEval = await evaluateDocumentGPT(tool, intake, result.reportData);
+      const gptResult = await evaluateDocumentGPT(tool, intake, result.reportData);
+      const gptEval = gptResult.eval;
+      if (gptEval) {
+        await log("success", `${docLabel}: GPT-4o call OK (overall ${gptEval.overall_score}/100)`);
+      } else if (gptResult.skipReason) {
+        await log("warn", `${docLabel}: GPT-4o SKIPPED — ${gptResult.skipReason}`);
+      } else {
+        await log("error", `${docLabel}: GPT-4o call FAILED — ${gptResult.error ?? "unknown error"}`);
+      }
       const crossReview = await crossReviewEvaluations(tool, intake, result.reportData, claudeEval, gptEval);
       await log("success", `${docLabel}: scored ${claudeEval.overall_score}/100${gptEval ? ` (GPT ${gptEval.overall_score}/100)` : ""}`);
 
