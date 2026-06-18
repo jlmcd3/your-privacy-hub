@@ -3545,6 +3545,7 @@ export type Database = {
           gpt_score_intelligence: number | null
           gpt_score_overall: number | null
           id: string
+          last_heartbeat_at: string | null
           progress_log: Json
           run_number: number
           score_accuracy: number | null
@@ -3578,6 +3579,7 @@ export type Database = {
           gpt_score_intelligence?: number | null
           gpt_score_overall?: number | null
           id?: string
+          last_heartbeat_at?: string | null
           progress_log?: Json
           run_number?: number
           score_accuracy?: number | null
@@ -3611,6 +3613,7 @@ export type Database = {
           gpt_score_intelligence?: number | null
           gpt_score_overall?: number | null
           id?: string
+          last_heartbeat_at?: string | null
           progress_log?: Json
           run_number?: number
           score_accuracy?: number | null
@@ -6886,6 +6889,7 @@ export type Database = {
       my_client_ids: { Args: never; Returns: string[] }
       normalize_provisions: { Args: { provs: string[] }; Returns: string[] }
       owns_client: { Args: { _client_id: string }; Returns: boolean }
+      quality_runs_watchdog: { Args: never; Returns: Json }
       recompute_memo_eligible_interim: { Args: never; Returns: number }
       stress_batch_watchdog: { Args: never; Returns: Json }
       verify_admin_secret_token: { Args: { _token: string }; Returns: boolean }
