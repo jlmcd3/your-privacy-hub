@@ -181,7 +181,9 @@ Deno.serve(async (req) => {
   try {
     const results = [];
     for (const t of TARGETS) results.push(await reap(t));
+    results.push(await reapQualityRuns());
     const total = results.reduce((n, r) => n + r.reaped, 0);
+
     return new Response(
       JSON.stringify({
         ok: true,
