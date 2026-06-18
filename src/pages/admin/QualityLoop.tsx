@@ -95,6 +95,41 @@ function ScoreCard({ label, score, weight }: { label: string; score: number|null
   );
 }
 
+function RunLog({ entries, live }: { entries: Array<{ t: string; level: string; msg: string }>; live: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
+  }, [entries.length]);
+  const levelClass: Record<string, string> = {
+    info: "text-gray-300", success: "text-emerald-300", warn: "text-amber-300", error: "text-red-300",
+  };
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          Live activity log
+          {live && <span className="inline-block w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />}
+        </h2>
+        <span className="text-xs text-gray-400">{entries.length} {entries.length === 1 ? "entry" : "entries"}</span>
+      </div>
+      <div ref={ref} className="bg-[#0c1722] text-gray-100 rounded-lg p-3 font-mono text-xs leading-relaxed max-h-72 overflow-y-auto">
+        {entries.map((e, i) => {
+          const time = new Date(e.t).toLocaleTimeString();
+          return (
+            <div key={i} className="flex gap-2">
+              <span className="text-gray-500 shrink-0">{time}</span>
+              <span className={`shrink-0 uppercase text-[10px] font-semibold w-14 ${levelClass[e.level] ?? "text-gray-400"}`}>
+                {e.level}
+              </span>
+              <span className={`${levelClass[e.level] ?? "text-gray-200"} whitespace-pre-wrap break-words`}>{e.msg}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function QualityLoop() {
   const [tool, setTool]                     = useState("cppa-admt");
   const [batchSize, setBatchSize]           = useState(10);
