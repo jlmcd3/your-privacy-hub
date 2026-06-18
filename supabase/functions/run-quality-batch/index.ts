@@ -16,12 +16,12 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const TOOL_BATCH_SIZE: Record<string, number> = { "cppa-risk": 3, "biometric-checker": 3 };
-const RUN_WALL_CLOCK_BUDGET_MS = 360_000;
-const MIN_DOC_START_REMAINING_MS = 120_000;
-const MIN_FIX_GENERATION_REMAINING_MS = 35_000;
-const EVALUATION_TIMEOUT_MS = 80_000;
+// Per-invocation chunk size: slow tools get 1 doc, fast tools get 2.
+const SLOW_TOOLS = new Set(["governance", "cppa-risk", "cppa-admt"]);
+const docsPerInvocation = (tool: string) => (SLOW_TOOLS.has(tool) ? 1 : 2);
+const EVALUATION_TIMEOUT_MS = 90_000;
 const CROSS_REVIEW_TIMEOUT_MS = 45_000;
+const HEARTBEAT_INTERVAL_MS = 10_000;
 
 
 type Admin = ReturnType<typeof createClient>;
