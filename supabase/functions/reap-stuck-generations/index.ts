@@ -88,8 +88,6 @@ async function reap(target: ReapTarget): Promise<{ table: string; reaped: number
     return { table: target.table, reaped: 0, error: updErr.message };
   }
 
-  // Set report_data: { error: 'reaped_stuck_generation' } ONLY where it is
-  // currently null, so we never clobber partial output written by the worker.
   if (target.hasReportData) {
     const nullDataIds = candidates
       .filter((r: any) => r.report_data === null)
@@ -108,13 +106,84 @@ async function reap(target: ReapTarget): Promise<{ table: string; reaped: number
   return { table: target.table, reaped: ids.length };
 }
 
+// Quality runs have a different shape: non-terminal statuses are
+// pending/generating/building/evaluating, terminal column is `error` (not
+// generation_error), and they carry a `progress_log` jsonb array that drives
+// the admin UI's live log view. When we reap one, append an entry to that
+// log so John and Katherine can see exactly why a run was terminated and
+// stop / re-run accordingly.
+const QUALITY_STUCK_STATUSES = ["pending", "generating", "building", "evaluating"];
+const QUALITY_STUCK_MINUTES = 20; // longer than other tables — eval phase is slow
+
+async function reapQualityRuns(): Promise<{ table: string; reaped: number; error?: string }> {
+  const cutoff = new Date(Date.now() - QUALITY_STUCK_MINUTES * 60_000).toISOString();
+  const { data: candidates, error: selErr } = await supabase
+    .from("quality_runs")
+    .select("id, tool, run_number, status, progress_log, started_at, updated_at")
+    .in("status", QUALITY_STUCK_STATUSES)
+    .lt("updated_at", cutoff);
+
+  if (selErr) {
+    console.error("[reap-stuck] quality_runs: select failed", selErr);
+    return { table: "quality_runs", reaped: 0, error: selErr.message };
+  }
+  if (!candidates || candidates.length === 0) {
+    console.log("[reap-stuck] quality_runs: 0 rows reaped");
+    return { table: "quality_runs", reaped: 0 };
+  }
+
+  let reaped = 0;
+  for (const row of candidates as any[]) {
+    const stuckSince = row.updated_at ?? row.started_at;
+    const minutesStuck = Math.round(
+      (Date.now() - new Date(stuckSince).getTime()) / 60_000,
+    );
+    const reapEntry = {
+      ts: new Date().toISOString(),
+      phase: "reaped",
+      message:
+        `⚠️ Auto-terminated by watchdog. Run was stuck in '${row.status}' for ${minutesStuck} min ` +
+        `with no progress (likely edge-function wall-clock timeout or worker crash). ` +
+        `Safe to re-run.`,
+    };
+    const newLog = Array.isArray(row.progress_log)
+      ? [...row.progress_log, reapEntry]
+      : [reapEntry];
+
+    const { error: updErr } = await supabase
+      .from("quality_runs")
+      .update({
+        status: "error",
+        error: `Reaped after ${minutesStuck} min stuck in '${row.status}' (worker did not complete).`,
+        completed_at: new Date().toISOString(),
+        progress_log: newLog,
+      })
+      .eq("id", row.id)
+      .in("status", QUALITY_STUCK_STATUSES); // race guard
+
+    if (updErr) {
+      console.error(`[reap-stuck] quality_runs ${row.id}: update failed`, updErr);
+      continue;
+    }
+    reaped += 1;
+    console.log(
+      `[reap-stuck] quality_runs: reaped ${row.tool} #${row.run_number} ` +
+      `(stuck ${minutesStuck}m in '${row.status}')`,
+    );
+  }
+  return { table: "quality_runs", reaped };
+}
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const results = [];
     for (const t of TARGETS) results.push(await reap(t));
+    results.push(await reapQualityRuns());
     const total = results.reduce((n, r) => n + r.reaped, 0);
+
     return new Response(
       JSON.stringify({
         ok: true,

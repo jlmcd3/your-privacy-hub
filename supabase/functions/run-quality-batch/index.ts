@@ -30,7 +30,7 @@ async function claude(system: string, user: string, maxTokens = 4000, model = "c
     method: "POST",
     headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: signal ?? AbortSignal.timeout(120_000),
+    signal: signal ?? AbortSignal.timeout(300_000),
   });
   if (!r.ok) throw new Error(`Claude ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();
@@ -48,7 +48,7 @@ async function gpt4o(system: string, user: string, maxTokens = 3000): Promise<st
       response_format: { type: "json_object" },
       messages: [{ role: "system", content: system }, { role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(90_000),
+    signal: AbortSignal.timeout(300_000),
   });
   if (!r.ok) throw new Error(`GPT-4o ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();
@@ -65,7 +65,7 @@ async function o3(system: string, user: string, maxTokens = 3000): Promise<strin
       max_completion_tokens: maxTokens,
       messages: [{ role: "system", content: system }, { role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(90_000),
+    signal: AbortSignal.timeout(300_000),
   });
   if (!r.ok) throw new Error(`o3 ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();
@@ -402,7 +402,7 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
     "biometric-checker": `Biometric compliance checker. Required camelCase fields exactly: orgName (string), orgType (sector string), biometricTypes (array — e.g. ["facial geometry"],["fingerprint","hand geometry"],["iris scan","fingerprint"]), purpose (string — e.g. "Loss prevention","Workforce time and attendance","Physical access control"), jurisdictions (array of US-state codes like ["US-IL"],["US-TX"],["US-WA"]), enrolledCount (string range like "500-5000"). Vary compliance posture: include some with no written policy, some without informed consent, some with third-party sharing, some with undefined retention.`,
   };
   const description = toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`;
-  const intakeTimeoutMs = tool === "cppa-risk" ? 180_000 : 90_000;
+  const intakeTimeoutMs = tool === "cppa-risk" ? 300_000 : 180_000;
   const raw = await claude(
     `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.`,
     `Generate ${count} varied realistic intake objects for the "${tool}" compliance tool.\n\n${description}\n\nReturn a JSON array of exactly ${count} objects.`,
@@ -481,7 +481,7 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
       await invokeFn("check-biometric-compliance", { ...intake, assessment_id: rec.id, user_id: userId, stress_run: true });
 
-      for (let i = 0; i < 24; i++) {
+      for (let i = 0; i < 120; i++) {
         await new Promise(r => setTimeout(r, 2500));
         const { data } = await admin.from("biometric_assessments")
           .select("status, analysis_text, report_data")
