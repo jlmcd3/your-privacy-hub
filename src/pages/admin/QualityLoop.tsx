@@ -148,6 +148,28 @@ export default function QualityLoop() {
   const [selectedFixes, setSelectedFixes]   = useState<Set<string>>(new Set());
   const [expandedFix, setExpandedFix]       = useState<string|null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval>|null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const verifyToken = useCallback(async () => {
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-github-token", { body: {} });
+      if (error) throw error;
+      const msg = data?.ok
+        ? (data.message ?? `✅ GitHub push enabled — ${data.repo}`)
+        : `❌ ${data?.error ?? "Unknown error"}${data?.likely_cause ? ` — ${data.likely_cause}` : ""}`;
+      setVerifyResult({ ok: !!data?.ok, message: msg });
+      setTimeout(() => setVerifyResult(null), 10000);
+    } catch (e: any) {
+      setVerifyResult({ ok: false, message: `❌ ${e?.message ?? String(e)}` });
+      setTimeout(() => setVerifyResult(null), 10000);
+    } finally {
+      setVerifying(false);
+    }
+  }, []);
+
 
   const stopPolling = () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
 
