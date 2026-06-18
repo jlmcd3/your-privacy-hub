@@ -270,6 +270,10 @@ export default function QualityLoop() {
           )}
         </div>
 
+        {activeRun && Array.isArray(activeRun.progress_log) && activeRun.progress_log.length > 0 && (
+          <RunLog entries={activeRun.progress_log} live={running} />
+        )}
+
         {activeRun && activeRun.score_overall != null && (
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
             <div className="flex items-center justify-between mb-4">
