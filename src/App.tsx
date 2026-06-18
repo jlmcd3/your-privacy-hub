@@ -150,6 +150,7 @@ const CPPAEvalHarness = lazy(() => import("./pages/admin/CPPAEvalHarness"));
 const AdminFsorIngestion = lazy(() => import("./pages/admin/AdminFsorIngestion"));
 const AdminSampleReports = lazy(() => import("./pages/admin/AdminSampleReports"));
 const AdminStaticStress = lazy(() => import("./pages/admin/AdminStaticStress"));
+const QualityLoop = lazy(() => import("./pages/admin/QualityLoop"));
 const AdminQAExport = lazy(() => import("./pages/admin/AdminQAExport"));
 const SampleReport = lazy(() => import("./pages/SampleReport.tsx"));
 const SampleReportOutput = lazy(() => import("./pages/SampleReportOutput.tsx"));
