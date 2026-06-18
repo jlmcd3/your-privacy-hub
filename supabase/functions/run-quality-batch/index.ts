@@ -402,7 +402,7 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
     "biometric-checker": `Biometric compliance checker. Required camelCase fields exactly: orgName (string), orgType (sector string), biometricTypes (array — e.g. ["facial geometry"],["fingerprint","hand geometry"],["iris scan","fingerprint"]), purpose (string — e.g. "Loss prevention","Workforce time and attendance","Physical access control"), jurisdictions (array of US-state codes like ["US-IL"],["US-TX"],["US-WA"]), enrolledCount (string range like "500-5000"). Vary compliance posture: include some with no written policy, some without informed consent, some with third-party sharing, some with undefined retention.`,
   };
   const description = toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`;
-  const intakeTimeoutMs = tool === "cppa-risk" ? 180_000 : 90_000;
+  const intakeTimeoutMs = tool === "cppa-risk" ? 300_000 : 180_000;
   const raw = await claude(
     `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.`,
     `Generate ${count} varied realistic intake objects for the "${tool}" compliance tool.\n\n${description}\n\nReturn a JSON array of exactly ${count} objects.`,
