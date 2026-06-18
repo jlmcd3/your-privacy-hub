@@ -812,10 +812,11 @@ async function runBatch(runId: string): Promise<void> {
       byCheck.get(f.check_id)!.push(f);
     }
 
-    // Pre-compute aggregates per check so we can rank by impact and cap AI fix-generation.
-    // Without a cap, ~87 sequential Claude calls (10-30s each) exceed the edge runtime budget,
-    // the run gets orphaned, and scoring never persists.
-    const MAX_AI_FIXES = 12;
+    // Cap exists because Claude fix-generation is the long pole. Running batches of
+    // FIX_CONCURRENCY in parallel lets us raise MAX_AI_FIXES well above the sequential ceiling
+    // while staying inside the edge runtime budget.
+    const MAX_AI_FIXES = 50;
+    const FIX_CONCURRENCY = 5;
     type CheckAgg = {
       checkId: string; findings: any[]; first: any;
       passed: number; failed: number; failRate: number; evidence: string[];
@@ -853,9 +854,22 @@ async function runBatch(runId: string): Promise<void> {
       .filter(a => !a.rubricAddition && a.failRate > 0.2 && a.evidence.length > 0 && a.crossCategory !== "conflict")
       .sort((x, y) => (y.severityRank - x.severityRank) || (y.failed * y.failRate - x.failed * x.failRate))
       .slice(0, MAX_AI_FIXES);
-    const aiTargets = new Set(aiCandidates.map(a => a.checkId));
 
-    await log("info", `Aggregating ${byCheck.size} unique checks; generating AI fixes for top ${aiTargets.size} (capped at ${MAX_AI_FIXES})…`);
+    await log("info", `Aggregating ${byCheck.size} unique checks; generating AI fixes for top ${aiCandidates.length} (cap ${MAX_AI_FIXES}, concurrency ${FIX_CONCURRENCY})…`);
+
+    // Run fix-generation in parallel batches so we can raise the cap without exceeding runtime.
+    const fixResults = new Map<string, { fix: string; location: string } | null>();
+    for (let i = 0; i < aiCandidates.length; i += FIX_CONCURRENCY) {
+      const batch = aiCandidates.slice(i, i + FIX_CONCURRENCY);
+      const settled = await Promise.all(batch.map(a =>
+        withTimeout(
+          generateProposedFix(tool, a.checkId, a.first.dimension, a.evidence),
+          30_000,
+          `generateProposedFix(${a.checkId})`,
+        ).catch(e => { console.warn(`[fix-gen] skipped ${a.checkId}:`, e?.message); return null; })
+      ));
+      batch.forEach((a, idx) => fixResults.set(a.checkId, settled[idx] ?? null));
+    }
 
     for (const a of aggregates) {
       let proposedFix = a.rubricAddition ?? "";
@@ -863,12 +877,8 @@ async function runBatch(runId: string): Promise<void> {
         ? "Evaluator rubric — add to CLAUDE_RUBRIC_SYSTEM in run-quality-batch/index.ts"
         : "";
 
-      if (!proposedFix && aiTargets.has(a.checkId)) {
-        const fix = await withTimeout(
-          generateProposedFix(tool, a.checkId, a.first.dimension, a.evidence),
-          30_000,
-          `generateProposedFix(${a.checkId})`,
-        ).catch(e => { console.warn(`[fix-gen] skipped ${a.checkId}:`, e?.message); return null; });
+      if (!proposedFix && fixResults.has(a.checkId)) {
+        const fix = fixResults.get(a.checkId);
         proposedFix = fix?.fix ?? "";
         fixLocation = fix?.location ?? "";
       }
