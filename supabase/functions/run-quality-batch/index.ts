@@ -582,6 +582,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
     }
 
     await upd({ status: "evaluating" });
+    await log("info", `All documents processed (${built}/${intakes.length} built). Aggregating scores…`);
 
     const avg = (v: number) => built > 0 ? Math.round(v / built) : 0;
     const scores = {
@@ -596,6 +597,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       if (!byCheck.has(f.check_id)) byCheck.set(f.check_id, []);
       byCheck.get(f.check_id)!.push(f);
     }
+    await log("info", `Generating proposed fixes for ${byCheck.size} unique checks…`);
 
     for (const [checkId, findings] of byCheck) {
       const passed   = findings.filter(f => f.passed).length;
