@@ -3545,7 +3545,10 @@ export type Database = {
           gpt_score_intelligence: number | null
           gpt_score_overall: number | null
           id: string
+          intakes: Json | null
           last_heartbeat_at: string | null
+          next_doc_index: number
+          partial_state: Json | null
           progress_log: Json
           run_number: number
           score_accuracy: number | null
@@ -3558,6 +3561,7 @@ export type Database = {
           started_at: string | null
           status: string
           tool: string
+          user_id: string | null
         }
         Insert: {
           batch_size?: number
@@ -3579,7 +3583,10 @@ export type Database = {
           gpt_score_intelligence?: number | null
           gpt_score_overall?: number | null
           id?: string
+          intakes?: Json | null
           last_heartbeat_at?: string | null
+          next_doc_index?: number
+          partial_state?: Json | null
           progress_log?: Json
           run_number?: number
           score_accuracy?: number | null
@@ -3592,6 +3599,7 @@ export type Database = {
           started_at?: string | null
           status?: string
           tool: string
+          user_id?: string | null
         }
         Update: {
           batch_size?: number
@@ -3613,7 +3621,10 @@ export type Database = {
           gpt_score_intelligence?: number | null
           gpt_score_overall?: number | null
           id?: string
+          intakes?: Json | null
           last_heartbeat_at?: string | null
+          next_doc_index?: number
+          partial_state?: Json | null
           progress_log?: Json
           run_number?: number
           score_accuracy?: number | null
@@ -3626,6 +3637,7 @@ export type Database = {
           started_at?: string | null
           status?: string
           tool?: string
+          user_id?: string | null
         }
         Relationships: []
       }

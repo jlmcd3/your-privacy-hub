@@ -16,12 +16,12 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const TOOL_BATCH_SIZE: Record<string, number> = { "cppa-risk": 3, "biometric-checker": 3 };
-const RUN_WALL_CLOCK_BUDGET_MS = 360_000;
-const MIN_DOC_START_REMAINING_MS = 120_000;
-const MIN_FIX_GENERATION_REMAINING_MS = 35_000;
-const EVALUATION_TIMEOUT_MS = 80_000;
+// Per-invocation chunk size: slow tools get 1 doc, fast tools get 2.
+const SLOW_TOOLS = new Set(["governance", "cppa-risk", "cppa-admt"]);
+const docsPerInvocation = (tool: string) => (SLOW_TOOLS.has(tool) ? 1 : 2);
+const EVALUATION_TIMEOUT_MS = 90_000;
 const CROSS_REVIEW_TIMEOUT_MS = 45_000;
+const HEARTBEAT_INTERVAL_MS = 10_000;
 
 
 type Admin = ReturnType<typeof createClient>;
@@ -380,7 +380,8 @@ DOCUMENT: ${JSON.stringify(report ?? {}).slice(0, 5000)}
 CLAUDE'S EVALUATION: ${JSON.stringify({ dimension_scores: claudeEval?.dimension_scores, overall_score: claudeEval?.overall_score, findings: claudeEval?.findings?.filter((f: any) => !f.passed) ?? [], critical_failures: claudeEval?.critical_failures ?? [] })}
 GPT-4o'S EVALUATION: ${JSON.stringify({ dimension_scores: gptEval?.dimension_scores, overall_score: gptEval?.overall_score, findings: gptEval?.findings?.filter((f: any) => !f.passed) ?? [], critical_failures: gptEval?.critical_failures ?? [] })}
 Reconcile these evaluations. Identify all agreements, disagreements, and blind spots.`;
-    const raw = await o3(CROSS_REVIEW_SYSTEM, userMsg, 3000);
+    // Cross-review uses claude-haiku-4-5 — same instruction-following, ~10× faster than o3.
+    const raw = await claude(CROSS_REVIEW_SYSTEM, userMsg, 3000, "claude-haiku-4-5-20251001");
     return tryParse(raw);
   } catch (e) {
     console.warn("[run-quality-batch] cross-review failed (non-fatal):", (e as Error).message);
@@ -537,14 +538,74 @@ async function generateProposedFix(tool: string, checkId: string, dimension: str
   return { fix: parsed?.new_text ?? raw.slice(0, 1500), location: parsed?.location ?? `${edgeFn} system prompt — ${dimension} dimension` };
 }
 
-async function runBatch(runId: string, tool: string, batchSize: number, userId: string, runNumber: number): Promise<void> {
+async function selfReinvoke(runId: string): Promise<void> {
+  // Fire-and-forget self-call so the current invocation can return cleanly.
+  // Each new invocation gets its own fresh runtime budget.
+  fetch(`${SUPABASE_URL}/functions/v1/run-quality-batch`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${SERVICE_KEY}`,
+      "x-internal-resume": "1",
+    },
+    body: JSON.stringify({ resume_run_id: runId }),
+  }).catch(e => console.warn("[run-quality-batch] self-reinvoke failed:", (e as Error).message));
+}
+
+type PartialState = {
+  dimTotals: Record<string, number>;
+  gptTotals: Record<string, number>;
+  built: number;
+  gptBuilt: number;
+  allDocFindings: any[];
+  logBuf: Array<{ t: string; level: string; msg: string }>;
+};
+
+function emptyState(): PartialState {
+  return {
+    dimTotals: { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 },
+    gptTotals: { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 },
+    built: 0,
+    gptBuilt: 0,
+    allDocFindings: [],
+    logBuf: [],
+  };
+}
+
+async function runBatch(runId: string): Promise<void> {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const upd = (data: any) => admin.from("quality_runs").update(data).eq("id", runId);
-  const runStartedAt = Date.now();
-  const remainingRunMs = () => RUN_WALL_CLOCK_BUDGET_MS - (Date.now() - runStartedAt);
-  const hasRunBudget = (minRemainingMs: number) => remainingRunMs() > minRemainingMs;
 
-  const logBuf: Array<{ t: string; level: string; msg: string }> = [];
+  // Heartbeat: write last_heartbeat_at every 10s independent of log messages.
+  const heartbeat = setInterval(() => {
+    admin.from("quality_runs").update({ last_heartbeat_at: new Date().toISOString() }).eq("id", runId)
+      .then(() => {}, () => {});
+  }, HEARTBEAT_INTERVAL_MS);
+
+  // Load run state
+  const { data: runRow, error: runErr } = await admin
+    .from("quality_runs")
+    .select("id, tool, batch_size, run_number, created_by, user_id, status, next_doc_index, intakes, partial_state, progress_log")
+    .eq("id", runId).single();
+  if (runErr || !runRow) {
+    clearInterval(heartbeat);
+    console.error("[run-quality-batch] cannot load run:", runErr?.message);
+    return;
+  }
+  const run: any = runRow;
+  const tool: string = run.tool;
+  const batchSize: number = run.batch_size;
+  const userId: string = run.user_id ?? run.created_by;
+  const runNumber: number = run.run_number;
+
+  const state: PartialState = run.partial_state ?? emptyState();
+  // Restore log buffer from saved state OR from progress_log so log keeps appending across invocations.
+  const logBuf: Array<{ t: string; level: string; msg: string }> =
+    Array.isArray(state.logBuf) && state.logBuf.length
+      ? state.logBuf
+      : Array.isArray(run.progress_log) ? run.progress_log : [];
+  state.logBuf = logBuf;
+
   const log = async (level: "info" | "warn" | "error" | "success", msg: string) => {
     const entry = { t: new Date().toISOString(), level, msg: String(msg).slice(0, 500) };
     logBuf.push(entry);
@@ -553,46 +614,57 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
     try { await admin.from("quality_runs").update({ progress_log: logBuf, last_heartbeat_at: new Date().toISOString() }).eq("id", runId); } catch { /* */ }
   };
 
-  try {
-    await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents)`);
-    await log(OPENAI_API_KEY ? "success" : "warn",
-      OPENAI_API_KEY
-        ? `OPENAI_API_KEY detected (len=${OPENAI_API_KEY.length}) — GPT-4o cross-review enabled`
-        : `OPENAI_API_KEY NOT detected in edge function env — GPT-4o cross-review will be SKIPPED for every doc`);
-    await upd({ status: "generating" });
-    await log("info", `Generating ${batchSize} intake scenarios via Claude…`);
-    let intakes: any[];
+  const persistState = async (extra: Record<string, any> = {}) => {
     try {
-      intakes = await generateIntakes(tool, batchSize);
-      await log("success", `Generated ${intakes.length} intake scenarios`);
-    } catch (e) {
-      await log("error", `Intake generation failed: ${(e as Error).message}`);
-      await upd({ status: "error", error: `Intake generation failed: ${(e as Error).message}` });
-      return;
+      await admin.from("quality_runs").update({
+        partial_state: state,
+        last_heartbeat_at: new Date().toISOString(),
+        ...extra,
+      }).eq("id", runId);
+    } catch { /* */ }
+  };
+
+  try {
+    // ---------- 1. Intake generation (only on first invocation) ----------
+    let intakes: any[] = Array.isArray(run.intakes) ? run.intakes : [];
+    if (intakes.length === 0) {
+      await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents)`);
+      await log(OPENAI_API_KEY ? "success" : "warn",
+        OPENAI_API_KEY
+          ? `OPENAI_API_KEY detected — GPT-4o cross-review enabled`
+          : `OPENAI_API_KEY NOT detected — GPT-4o cross-review will be SKIPPED for every doc`);
+      await upd({ status: "generating" });
+      await log("info", `Generating ${batchSize} intake scenarios via Claude…`);
+      try {
+        intakes = await generateIntakes(tool, batchSize);
+        await log("success", `Generated ${intakes.length} intake scenarios`);
+      } catch (e) {
+        await log("error", `Intake generation failed: ${(e as Error).message}`);
+        await upd({ status: "error", error: `Intake generation failed: ${(e as Error).message}`, completed_at: new Date().toISOString() });
+        clearInterval(heartbeat);
+        return;
+      }
+      await admin.from("quality_runs").update({ intakes, status: "building" }).eq("id", runId);
+    } else {
+      await log("info", `Resuming run #${runNumber} for ${tool} at doc ${(run.next_doc_index ?? 0) + 1}/${intakes.length}`);
+      await upd({ status: "building" });
     }
 
-    await upd({ status: "building" });
-    await log("info", `Building & evaluating ${intakes.length} documents…`);
+    // ---------- 2. Process chunk of docs ----------
+    const startIdx = run.next_doc_index ?? 0;
+    const chunkSize = docsPerInvocation(tool);
+    const endIdx = Math.min(startIdx + chunkSize, intakes.length);
 
-    const dimTotals    = { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 };
-    const gptTotals    = { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 };
-    let built    = 0;
-    let gptBuilt = 0;
-    let stoppedForBudget = false;
-    const allDocFindings: any[] = [];
-
-    for (let i = 0; i < intakes.length; i++) {
+    for (let i = startIdx; i < endIdx; i++) {
+      // Cancel check
       const { data: cancelCheck } = await admin.from("quality_runs").select("cancel_requested").eq("id", runId).single();
       if ((cancelCheck as any)?.cancel_requested) {
         await log("warn", `Run cancelled by user after ${i}/${intakes.length} documents`);
         await upd({ status: "cancelled", completed_at: new Date().toISOString(), error: "Cancelled by user" });
+        clearInterval(heartbeat);
         return;
       }
-      if (!hasRunBudget(MIN_DOC_START_REMAINING_MS)) {
-        stoppedForBudget = true;
-        await log("warn", `Stopping before Doc ${i + 1}/${intakes.length} to stay within the edge runtime budget; aggregating ${built}/${intakes.length} completed documents.`);
-        break;
-      }
+
       const intake = intakes[i];
       const docLabel = `Doc ${i + 1}/${intakes.length}`;
       await log("info", `${docLabel}: building…`);
@@ -609,65 +681,55 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         continue;
       }
 
-      if (!hasRunBudget(EVALUATION_TIMEOUT_MS + CROSS_REVIEW_TIMEOUT_MS + 20_000)) {
-        stoppedForBudget = true;
-        await log("warn", `${docLabel}: skipped evaluation to stay within the edge runtime budget; aggregating ${built}/${intakes.length} completed documents.`);
-        await admin.from("quality_run_documents").update({
-          report_data: result.reportData,
-          source_table: result.sourceTable,
-          source_row_id: result.sourceRowId,
-          status: "error",
-          error: "Skipped before evaluation due to runtime budget",
-        }).eq("id", docRow.id);
-        break;
-      }
-
-      await log("info", `${docLabel}: built — evaluating with Claude${OPENAI_API_KEY ? " + GPT-4o" : ""}…`);
+      await log("info", `${docLabel}: built — evaluating Claude + GPT-4o + cross-review in parallel…`);
       await admin.from("quality_run_documents").update({
         report_data: result.reportData, source_table: result.sourceTable,
         source_row_id: result.sourceRowId, status: "evaluating",
       }).eq("id", docRow.id);
 
-      const claudeEval = await withTimeout(evaluateDocumentClaude(tool, intake, result.reportData), EVALUATION_TIMEOUT_MS, "Claude eval")
-        .catch(e => { console.warn("Claude eval failed:", e.message); return null; });
+      // Run Claude eval and GPT eval in parallel.
+      const [claudeEval, gptResult] = await Promise.all([
+        withTimeout(evaluateDocumentClaude(tool, intake, result.reportData), EVALUATION_TIMEOUT_MS, "Claude eval")
+          .catch(e => { console.warn("Claude eval failed:", e.message); return null; }),
+        withTimeout(evaluateDocumentGPT(tool, intake, result.reportData), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
+          .catch(e => ({ eval: null as any, error: e.message })),
+      ]);
+
       if (!claudeEval) {
         await log("error", `${docLabel}: Claude evaluation failed or timed out`);
         await admin.from("quality_run_documents").update({ status: "error", error: "Claude evaluation failed or timed out" }).eq("id", docRow.id);
         continue;
       }
-
-      const gptResult = await withTimeout(evaluateDocumentGPT(tool, intake, result.reportData), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
-        .catch(e => ({ eval: null as any, error: e.message }));
       const gptEval = gptResult.eval;
       if (gptEval) {
-        await log("success", `${docLabel}: GPT-4o call OK (overall ${gptEval.overall_score}/100)`);
+        await log("success", `${docLabel}: GPT-4o OK (overall ${gptEval.overall_score}/100)`);
       } else if (gptResult.skipReason) {
         await log("warn", `${docLabel}: GPT-4o SKIPPED — ${gptResult.skipReason}`);
       } else {
-        await log("error", `${docLabel}: GPT-4o call FAILED — ${gptResult.error ?? "unknown error"}`);
+        await log("error", `${docLabel}: GPT-4o FAILED — ${gptResult.error ?? "unknown error"}`);
       }
-      let crossReview: any | null = null;
-      if (hasRunBudget(CROSS_REVIEW_TIMEOUT_MS + 15_000)) {
-        crossReview = await withTimeout(crossReviewEvaluations(tool, intake, result.reportData, claudeEval, gptEval), CROSS_REVIEW_TIMEOUT_MS, "Cross-review")
-          .catch(e => { console.warn("Cross-review failed:", e.message); return null; });
-      } else {
-        await log("warn", `${docLabel}: cross-review skipped to stay within the edge runtime budget`);
-      }
+
+      // Cross-review (depends on both prior evals, so run after).
+      const crossReview = await withTimeout(
+        crossReviewEvaluations(tool, intake, result.reportData, claudeEval, gptEval),
+        CROSS_REVIEW_TIMEOUT_MS, "Cross-review",
+      ).catch(e => { console.warn("Cross-review failed:", e.message); return null; });
+
       await log("success", `${docLabel}: scored ${claudeEval.overall_score}/100${gptEval ? ` (GPT ${gptEval.overall_score}/100)` : ""}`);
 
       const finalScores  = crossReview?.dimension_scores_reconciled ?? claudeEval.dimension_scores;
       const finalOverall = crossReview?.overall_score_reconciled    ?? claudeEval.overall_score;
 
-      for (const dim of Object.keys(dimTotals) as Array<keyof typeof dimTotals>) {
-        dimTotals[dim] += (finalScores as any)[dim] ?? 60;
+      for (const dim of Object.keys(state.dimTotals)) {
+        state.dimTotals[dim] += (finalScores as any)[dim] ?? 60;
       }
       if (gptEval?.dimension_scores) {
-        for (const dim of Object.keys(gptTotals) as Array<keyof typeof gptTotals>) {
-          gptTotals[dim] += (gptEval.dimension_scores as any)[dim] ?? 60;
+        for (const dim of Object.keys(state.gptTotals)) {
+          state.gptTotals[dim] += (gptEval.dimension_scores as any)[dim] ?? 60;
         }
-        gptBuilt++;
+        state.gptBuilt++;
       }
-      built++;
+      state.built++;
 
       const crossStatus = !gptEval ? "gpt_failed" : !crossReview ? "pending" : "complete";
 
@@ -692,7 +754,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       const crossFindingsMap = new Map<string, any>(
         (crossReview?.findings ?? []).map((f: any) => [f.check_id, f])
       );
-      allDocFindings.push(...claudeEval.findings.map((f: any) => ({
+      state.allDocFindings.push(...claudeEval.findings.map((f: any) => ({
         ...f,
         doc_id: docRow.id,
         cross_category: crossFindingsMap.get(f.check_id)?.category ?? null,
@@ -703,7 +765,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       const claudeCheckIds = new Set(claudeEval.findings.map((f: any) => f.check_id));
       for (const gptFinding of (gptEval?.findings ?? []).filter((f: any) => !f.passed)) {
         if (!claudeCheckIds.has(gptFinding.check_id)) {
-          allDocFindings.push({
+          state.allDocFindings.push({
             check_id: gptFinding.check_id, check_type: "gpt_only",
             dimension: gptFinding.dimension, severity: gptFinding.severity,
             passed: false, evidence: gptFinding.evidence ?? null, doc_id: docRow.id,
@@ -712,35 +774,45 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
           });
         }
       }
+
+      await persistState({ next_doc_index: i + 1 });
     }
 
-    if (built === 0) {
-      await log("error", `No documents completed before the edge runtime budget was reached`);
-      await upd({ status: "error", completed_at: new Date().toISOString(), error: "No documents completed before runtime budget was reached" });
+    // ---------- 3. More work? Self-reinvoke ----------
+    if (endIdx < intakes.length) {
+      await log("info", `Chunk complete (${endIdx}/${intakes.length}). Self-reinvoking for next chunk…`);
+      await persistState({ next_doc_index: endIdx });
+      selfReinvoke(runId);
+      clearInterval(heartbeat);
+      return;
+    }
+
+    // ---------- 4. Final aggregation ----------
+    if (state.built === 0) {
+      await log("error", `No documents completed successfully`);
+      await upd({ status: "error", completed_at: new Date().toISOString(), error: "No documents completed" });
+      clearInterval(heartbeat);
       return;
     }
 
     await upd({ status: "evaluating" });
-    await log("info", stoppedForBudget
-      ? `Runtime budget reached; aggregating partial results (${built}/${intakes.length} completed).`
-      : `All documents processed (${built}/${intakes.length} built). Aggregating scores…`);
+    await log("info", `All documents processed (${state.built}/${intakes.length} built). Aggregating scores…`);
 
-    const avg = (v: number) => built > 0 ? Math.round(v / built) : 0;
+    const avg = (v: number) => state.built > 0 ? Math.round(v / state.built) : 0;
     const scores = {
-      accuracy: avg(dimTotals.accuracy), citation: avg(dimTotals.citation),
-      hallucination: avg(dimTotals.hallucination), analysis: avg(dimTotals.analysis),
-      intelligence: avg(dimTotals.intelligence), formatting: avg(dimTotals.formatting),
+      accuracy: avg(state.dimTotals.accuracy), citation: avg(state.dimTotals.citation),
+      hallucination: avg(state.dimTotals.hallucination), analysis: avg(state.dimTotals.analysis),
+      intelligence: avg(state.dimTotals.intelligence), formatting: avg(state.dimTotals.formatting),
     };
     const overall = Math.round(scores.accuracy * 0.30 + scores.citation * 0.25 + scores.hallucination * 0.20 + scores.analysis * 0.15 + scores.intelligence * 0.05 + scores.formatting * 0.05);
 
     const byCheck = new Map<string, any[]>();
-    for (const f of allDocFindings) {
+    for (const f of state.allDocFindings) {
       if (!byCheck.has(f.check_id)) byCheck.set(f.check_id, []);
       byCheck.get(f.check_id)!.push(f);
     }
     await log("info", `Generating proposed fixes for ${byCheck.size} unique checks…`);
 
-    let skippedFixesForBudget = false;
     for (const [checkId, findings] of byCheck) {
       const passed   = findings.filter(f => f.passed).length;
       const failed   = findings.filter(f => !f.passed).length;
@@ -765,17 +837,15 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         ? "Evaluator rubric — add to CLAUDE_RUBRIC_SYSTEM in run-quality-batch/index.ts"
         : "";
 
-      if (!proposedFix && failRate > 0.2 && evidence.length > 0 && hasRunBudget(MIN_FIX_GENERATION_REMAINING_MS)) {
+      if (!proposedFix && failRate > 0.2 && evidence.length > 0) {
         const fix = await generateProposedFix(tool, checkId, first.dimension, evidence).catch(() => null);
         proposedFix = fix?.fix ?? "";
         fixLocation = fix?.location ?? "";
-      } else if (!proposedFix && failRate > 0.2 && evidence.length > 0) {
-        skippedFixesForBudget = true;
       }
 
       const gptFailed  = findings.filter(f => !f.passed && f.cross_category === "gpt_only").length;
-      const gptPassed  = Math.max(0, gptBuilt - gptFailed);
-      const gptFailRate = gptBuilt > 0 ? gptFailed / gptBuilt : 0;
+      const gptPassed  = Math.max(0, state.gptBuilt - gptFailed);
+      const gptFailRate = state.gptBuilt > 0 ? gptFailed / state.gptBuilt : 0;
 
       await admin.from("quality_check_results").upsert({
         run_id: runId, tool, run_number: runNumber, check_id: checkId,
@@ -795,25 +865,24 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         fix_selected: false, fix_applied: false,
       }, { onConflict: "run_id,check_id" });
     }
-    if (skippedFixesForBudget) await log("warn", "Some proposed fixes were skipped to stay within the edge runtime budget");
 
-    const gptAvg = (v: number) => gptBuilt > 0 ? Math.round(v / gptBuilt) : null;
-    const gptScores = gptBuilt > 0 ? {
-      gpt_score_accuracy:      gptAvg(gptTotals.accuracy),
-      gpt_score_citation:      gptAvg(gptTotals.citation),
-      gpt_score_hallucination: gptAvg(gptTotals.hallucination),
-      gpt_score_analysis:      gptAvg(gptTotals.analysis),
-      gpt_score_intelligence:  gptAvg(gptTotals.intelligence),
-      gpt_score_formatting:    gptAvg(gptTotals.formatting),
+    const gptAvg = (v: number) => state.gptBuilt > 0 ? Math.round(v / state.gptBuilt) : null;
+    const gptScores = state.gptBuilt > 0 ? {
+      gpt_score_accuracy:      gptAvg(state.gptTotals.accuracy),
+      gpt_score_citation:      gptAvg(state.gptTotals.citation),
+      gpt_score_hallucination: gptAvg(state.gptTotals.hallucination),
+      gpt_score_analysis:      gptAvg(state.gptTotals.analysis),
+      gpt_score_intelligence:  gptAvg(state.gptTotals.intelligence),
+      gpt_score_formatting:    gptAvg(state.gptTotals.formatting),
       gpt_score_overall: Math.round(
-        (gptAvg(gptTotals.accuracy) ?? 0) * 0.30 + (gptAvg(gptTotals.citation) ?? 0) * 0.25 +
-        (gptAvg(gptTotals.hallucination) ?? 0) * 0.20 + (gptAvg(gptTotals.analysis) ?? 0) * 0.15 +
-        (gptAvg(gptTotals.intelligence) ?? 0) * 0.05 + (gptAvg(gptTotals.formatting) ?? 0) * 0.05
+        (gptAvg(state.gptTotals.accuracy) ?? 0) * 0.30 + (gptAvg(state.gptTotals.citation) ?? 0) * 0.25 +
+        (gptAvg(state.gptTotals.hallucination) ?? 0) * 0.20 + (gptAvg(state.gptTotals.analysis) ?? 0) * 0.15 +
+        (gptAvg(state.gptTotals.intelligence) ?? 0) * 0.05 + (gptAvg(state.gptTotals.formatting) ?? 0) * 0.05
       ),
     } : {};
 
-    const gptOnlyTotal  = allDocFindings.filter(f => f.cross_category === "gpt_only" && !f.passed).length;
-    const conflictTotal = allDocFindings.filter(f => f.cross_category === "conflict").length;
+    const gptOnlyTotal  = state.allDocFindings.filter(f => f.cross_category === "gpt_only" && !f.passed).length;
+    const conflictTotal = state.allDocFindings.filter(f => f.cross_category === "conflict").length;
 
     await upd({
       status: "complete", completed_at: new Date().toISOString(),
@@ -821,21 +890,21 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       score_hallucination: scores.hallucination, score_analysis: scores.analysis,
       score_intelligence: scores.intelligence, score_formatting: scores.formatting,
       score_overall: overall,
-      checks_total: allDocFindings.length,
-      checks_passed: allDocFindings.filter(f => f.passed).length,
-      checks_failed: allDocFindings.filter(f => !f.passed).length,
+      checks_total: state.allDocFindings.length,
+      checks_passed: state.allDocFindings.filter(f => f.passed).length,
+      checks_failed: state.allDocFindings.filter(f => !f.passed).length,
       ...gptScores,
-      cross_review_complete: gptBuilt > 0,
+      cross_review_complete: state.gptBuilt > 0,
       gpt_only_count: gptOnlyTotal,
       conflict_count: conflictTotal,
     });
-    await log("success", `Run complete — overall score ${overall}/100 (${allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks)`);
+    await log("success", `Run complete — overall score ${overall}/100 (${state.allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks)`);
 
-    // Insert aggregate snapshot into quality_score_ledger
+    // Aggregate snapshot
     try {
       const num = (n: number) => parseFloat(Number(n ?? 0).toFixed(2));
-      const agreeTotal     = allDocFindings.filter(f => f.cross_category === "agree").length;
-      const claudeOnlyTot  = allDocFindings.filter(f => f.cross_category === "claude_only").length;
+      const agreeTotal     = state.allDocFindings.filter(f => f.cross_category === "agree").length;
+      const claudeOnlyTot  = state.allDocFindings.filter(f => f.cross_category === "claude_only").length;
       await admin.from("quality_score_ledger").insert({
         tool_name: tool,
         run_date: new Date().toISOString(),
@@ -847,8 +916,8 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         regulatory_coverage_score: num(scores.intelligence),
         actionability_score: num(scores.formatting),
         consistency_score: num(scores.hallucination),
-        documents_evaluated: built,
-        findings_count: allDocFindings.length,
+        documents_evaluated: state.built,
+        findings_count: state.allDocFindings.length,
         agree_count: agreeTotal,
         claude_only_count: claudeOnlyTot,
         gpt_only_count: gptOnlyTotal,
@@ -861,7 +930,9 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
   } catch (e) {
     console.error("[run-quality-batch] fatal:", e);
     await log("error", `Fatal: ${(e as Error).message}`);
-    await upd({ status: "error", error: (e as Error).message?.slice(0, 300) }).catch(() => {});
+    await upd({ status: "error", error: (e as Error).message?.slice(0, 300), completed_at: new Date().toISOString() }).catch(() => {});
+  } finally {
+    clearInterval(heartbeat);
   }
 }
 
@@ -872,6 +943,21 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get("Authorization") ?? "";
   if (!authHeader.startsWith("Bearer ")) return json({ error: "Unauthorized: missing bearer token" }, 401);
   const token = authHeader.replace("Bearer ", "");
+
+  let body: any;
+  try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
+
+  // ---------- Resume path: called by self-reinvoke with service-role bearer ----------
+  const isInternalResume = req.headers.get("x-internal-resume") === "1" && token === SERVICE_KEY;
+  if (isInternalResume) {
+    const resumeId: string | undefined = body?.resume_run_id;
+    if (!resumeId) return json({ error: "resume_run_id required" }, 400);
+    // @ts-ignore
+    EdgeRuntime.waitUntil(runBatch(resumeId));
+    return json({ resumed: resumeId }, 202);
+  }
+
+  // ---------- Normal path: admin user starts a new run ----------
   const userClient = createClient(SUPABASE_URL, ANON_KEY, {
     global: { headers: { Authorization: authHeader } },
   });
@@ -882,22 +968,23 @@ Deno.serve(async (req) => {
   const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
-  let body: any;
-  try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-
   const { tool, batch_size: requestedBatch } = body;
-  const batch_size = TOOL_BATCH_SIZE[tool] ?? requestedBatch ?? 10;
+  const batch_size = requestedBatch ?? 5;
   if (!tool) return json({ error: "tool required" }, 400);
 
   const { count } = await admin.from("quality_runs").select("id", { count: "exact", head: true }).eq("tool", tool);
   const runNumber = (count ?? 0) + 1;
 
   const { data: run, error: rErr } = await admin.from("quality_runs").insert({
-    tool, status: "pending", batch_size, run_number: runNumber, created_by: userData.user.id,
+    tool, status: "pending", batch_size, run_number: runNumber,
+    created_by: userData.user.id, user_id: userData.user.id,
+    started_at: new Date().toISOString(),
+    last_heartbeat_at: new Date().toISOString(),
+    next_doc_index: 0,
   }).select("id").single();
   if (rErr || !run) return json({ error: `run insert: ${rErr?.message}` }, 500);
 
   // @ts-ignore
-  EdgeRuntime.waitUntil(runBatch(run.id, tool, batch_size, userData.user.id, runNumber));
+  EdgeRuntime.waitUntil(runBatch(run.id));
   return json({ run_id: run.id, tool, batch_size, run_number: runNumber }, 202);
 });
