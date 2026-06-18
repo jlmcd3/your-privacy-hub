@@ -815,10 +815,14 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
 
-  const auth  = req.headers.get("Authorization") ?? "";
-  const token = auth.replace("Bearer ", "");
-  const { data: userData } = await createClient(SUPABASE_URL, ANON_KEY).auth.getUser(token);
-  if (!userData?.user) return json({ error: "Unauthorized" }, 401);
+  const authHeader = req.headers.get("Authorization") ?? "";
+  if (!authHeader.startsWith("Bearer ")) return json({ error: "Unauthorized: missing bearer token" }, 401);
+  const token = authHeader.replace("Bearer ", "");
+  const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+  if (userErr || !userData?.user) return json({ error: "Unauthorized", detail: userErr?.message ?? "no user" }, 401);
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
