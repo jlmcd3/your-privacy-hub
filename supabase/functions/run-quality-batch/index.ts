@@ -811,8 +811,18 @@ async function runBatch(runId: string): Promise<void> {
       if (!byCheck.has(f.check_id)) byCheck.set(f.check_id, []);
       byCheck.get(f.check_id)!.push(f);
     }
-    await log("info", `Generating proposed fixes for ${byCheck.size} unique checks…`);
 
+    // Pre-compute aggregates per check so we can rank by impact and cap AI fix-generation.
+    // Without a cap, ~87 sequential Claude calls (10-30s each) exceed the edge runtime budget,
+    // the run gets orphaned, and scoring never persists.
+    const MAX_AI_FIXES = 12;
+    type CheckAgg = {
+      checkId: string; findings: any[]; first: any;
+      passed: number; failed: number; failRate: number; evidence: string[];
+      crossCategory: string | null; gptEvidence: string[]; rubricAddition: string | null;
+      severityRank: number;
+    };
+    const aggregates: CheckAgg[] = [];
     for (const [checkId, findings] of byCheck) {
       const passed   = findings.filter(f => f.passed).length;
       const failed   = findings.filter(f => !f.passed).length;
@@ -831,34 +841,54 @@ async function runBatch(runId: string): Promise<void> {
 
       const gptEvidence    = findings.filter(f => f.cross_evidence_gpt).map(f => f.cross_evidence_gpt).slice(0, 3);
       const rubricAddition = findings.filter(f => f.rubric_addition).map(f => f.rubric_addition)[0] ?? null;
+      const sev = String(first?.severity ?? "").toLowerCase();
+      const severityRank = sev === "critical" ? 3 : sev === "high" ? 2 : sev === "medium" ? 1 : 0;
 
-      let proposedFix = rubricAddition ?? "";
-      let fixLocation = rubricAddition
+      aggregates.push({ checkId, findings, first, passed, failed, failRate, evidence, crossCategory, gptEvidence, rubricAddition, severityRank });
+    }
+
+    // Rank candidates for AI fix-generation: needs evidence, failRate>0.2, no rubric override,
+    // not a conflict (those require manual legal review). Sort by severity then impact (failed × failRate).
+    const aiCandidates = aggregates
+      .filter(a => !a.rubricAddition && a.failRate > 0.2 && a.evidence.length > 0 && a.crossCategory !== "conflict")
+      .sort((x, y) => (y.severityRank - x.severityRank) || (y.failed * y.failRate - x.failed * x.failRate))
+      .slice(0, MAX_AI_FIXES);
+    const aiTargets = new Set(aiCandidates.map(a => a.checkId));
+
+    await log("info", `Aggregating ${byCheck.size} unique checks; generating AI fixes for top ${aiTargets.size} (capped at ${MAX_AI_FIXES})…`);
+
+    for (const a of aggregates) {
+      let proposedFix = a.rubricAddition ?? "";
+      let fixLocation = a.rubricAddition
         ? "Evaluator rubric — add to CLAUDE_RUBRIC_SYSTEM in run-quality-batch/index.ts"
         : "";
 
-      if (!proposedFix && failRate > 0.2 && evidence.length > 0) {
-        const fix = await generateProposedFix(tool, checkId, first.dimension, evidence).catch(() => null);
+      if (!proposedFix && aiTargets.has(a.checkId)) {
+        const fix = await withTimeout(
+          generateProposedFix(tool, a.checkId, a.first.dimension, a.evidence),
+          30_000,
+          `generateProposedFix(${a.checkId})`,
+        ).catch(e => { console.warn(`[fix-gen] skipped ${a.checkId}:`, e?.message); return null; });
         proposedFix = fix?.fix ?? "";
         fixLocation = fix?.location ?? "";
       }
 
-      const gptFailed  = findings.filter(f => !f.passed && f.cross_category === "gpt_only").length;
+      const gptFailed  = a.findings.filter(f => !f.passed && f.cross_category === "gpt_only").length;
       const gptPassed  = Math.max(0, state.gptBuilt - gptFailed);
       const gptFailRate = state.gptBuilt > 0 ? gptFailed / state.gptBuilt : 0;
 
       await admin.from("quality_check_results").upsert({
-        run_id: runId, tool, run_number: runNumber, check_id: checkId,
-        check_type: first.check_type, dimension: first.dimension, severity: first.severity,
-        pass_count: passed, fail_count: failed, fail_rate: failRate,
-        sample_evidence: evidence,
+        run_id: runId, tool, run_number: runNumber, check_id: a.checkId,
+        check_type: a.first.check_type, dimension: a.first.dimension, severity: a.first.severity,
+        pass_count: a.passed, fail_count: a.failed, fail_rate: a.failRate,
+        sample_evidence: a.evidence,
         gpt_pass_count: gptPassed, gpt_fail_count: gptFailed, gpt_fail_rate: gptFailRate,
-        gpt_sample_evidence: gptEvidence.length ? gptEvidence : null,
-        cross_review_category: crossCategory,
-        cross_review_summary: rubricAddition
-          ? `GPT-only finding — Claude missed this. Proposed rubric addition: ${rubricAddition.slice(0, 120)}…`
-          : crossCategory === "agree" ? "Both evaluators agree on this finding."
-          : crossCategory === "conflict" ? "Evaluators disagree — requires manual legal review."
+        gpt_sample_evidence: a.gptEvidence.length ? a.gptEvidence : null,
+        cross_review_category: a.crossCategory,
+        cross_review_summary: a.rubricAddition
+          ? `GPT-only finding — Claude missed this. Proposed rubric addition: ${a.rubricAddition.slice(0, 120)}…`
+          : a.crossCategory === "agree" ? "Both evaluators agree on this finding."
+          : a.crossCategory === "conflict" ? "Evaluators disagree — requires manual legal review."
           : null,
         proposed_fix: proposedFix || null,
         fix_location: fixLocation || null,
