@@ -10,12 +10,15 @@ import { toast } from "sonner";
 import { ExternalLink, RefreshCw } from "lucide-react";
 
 const TOOLS = [
-  { id: "cppa-admt",  label: "CPPA ADMT Assessment",    edgeFn: "run-admt-checker" },
-  { id: "cppa-risk",  label: "CPPA Risk Assessment",     edgeFn: "run-cppa-risk-assessment" },
-  { id: "cppa-cyber", label: "CPPA Cybersecurity Audit", edgeFn: "run-cppa-cybersecurity" },
-  { id: "lia",        label: "LIA Tool",                 edgeFn: "run-li-assessment" },
-  { id: "dpia",       label: "DPIA Framework",           edgeFn: "run-dpia-framework" },
-  { id: "governance", label: "Governance Assessment",    edgeFn: "run-governance-assessment" },
+  { id: "cppa-admt",         label: "CPPA ADMT Assessment",     edgeFn: "run-admt-checker" },
+  { id: "cppa-risk",         label: "CPPA Risk Assessment",     edgeFn: "run-cppa-risk-assessment" },
+  { id: "cppa-cyber",        label: "CPPA Cybersecurity Audit", edgeFn: "run-cppa-cybersecurity" },
+  { id: "lia",               label: "LIA Tool",                 edgeFn: "run-li-assessment" },
+  { id: "dpia",              label: "DPIA Framework",           edgeFn: "run-dpia-framework" },
+  { id: "governance",        label: "Governance Assessment",    edgeFn: "run-governance-assessment" },
+  { id: "dpa-generator",     label: "DPA Generator",            edgeFn: "generate-dpa" },
+  { id: "ir-playbook",       label: "IR Playbook",              edgeFn: "generate-ir-playbook" },
+  { id: "biometric-checker", label: "Biometric Checker",        edgeFn: "check-biometric-compliance" },
 ];
 
 const DIMS = [

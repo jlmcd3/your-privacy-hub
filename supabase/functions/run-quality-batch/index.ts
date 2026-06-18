@@ -366,6 +366,9 @@ async function generateIntakes(tool: string, count: number): Promise<any[]> {
     "cppa-risk": `CPPA Risk Assessment. Fields: q1_revenue, q2_consumers, q3_sector, q4_pi_categories (array), q5_sell_share, q6_right_know, q7_right_delete, q8_right_correct, q9_opt_out, q10_id_verification, q11_policy_review, q12_notice_at_collection, q13_notice_content, q14_employee_notice, q15_sensitive_pi, q18_admt_use.`,
     "cppa-cyber": `CPPA Cybersecurity Audit. Fields: company_name, industry_sector, profile (object: incidents_12mo, framework, last_audit), controls (object mapping control IDs to [status, notes]).`,
     "governance": `Governance Assessment. Same fields as CPPA risk assessment.`,
+    "dpa-generator": `Data Processing Agreement (DPA) generator. Required camelCase fields exactly: controllerName (string), controllerJurisdiction (e.g. "UK","DE","US-CA","EU"), processorName (string), processorJurisdiction (string), services (one-line description of the processing services), dataCategories (array of strings, e.g. ["name","email","IP address","behavioral data"]), dataSubjectCount (string range like "1000-10000"), retention (string like "3 years"), hasSubProcessors (boolean), subProcessorList (string, only if hasSubProcessors is true), legalFramework (one of "GDPR","UK GDPR","CCPA","PIPEDA","Dual EU/US"), auditRights (string description), includeTransferClause (boolean), transferMechanism (string — "Standard Contractual Clauses","Adequacy decision","Binding Corporate Rules", or "N/A"), documentType (one of "gdpr","us-state","canada","dual-eu-us","dual-eu-ca"). Vary sectors (AdTech, Healthcare, FinTech, HR) and jurisdictions; include some intra-EU and some cross-border transfers.`,
+    "ir-playbook": `Incident Response Playbook generator. Required camelCase fields exactly: organizationName (string), discoveryDateTime (ISO date-time within the last 7 days), cause (e.g. "Ransomware attack","Phishing-led credential theft","Misconfigured S3 bucket","Insider exfiltration","Third-party vendor breach"), dataTypes (array, e.g. ["PII","health information","financial records","credentials"]), affectedCount (string range like "1000-10000"), jurisdictions (array of ISO codes like ["US-CA","US-TX","UK","EU"]), processorInvolved (boolean), processorName (string, only if processorInvolved), contained (one of "Yes","Partially","No","Under investigation"), organisationType (sector string). Vary sectors (Healthcare, Retail, FinTech, EdTech) and severity.`,
+    "biometric-checker": `Biometric compliance checker. Required camelCase fields exactly: orgName (string), orgType (sector string), biometricTypes (array — e.g. ["facial geometry"],["fingerprint","hand geometry"],["iris scan","fingerprint"]), purpose (string — e.g. "Loss prevention","Workforce time and attendance","Physical access control"), jurisdictions (array of US-state codes like ["US-IL"],["US-TX"],["US-WA"]), enrolledCount (string range like "500-5000"). Vary compliance posture: include some with no written policy, some without informed consent, some with third-party sharing, some with undefined retention.`,
   };
   const description = toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`;
   const raw = await claude(
@@ -427,6 +430,24 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       invokeFn("run-governance-assessment", { assessment_id: rec.id }).catch(() => {});
       return { sourceTable: "governance_assessments", sourceRowId: rec.id, reportData: await poll("governance_assessments", rec.id) };
     }
+    if (tool === "dpa-generator") {
+      const { data: rec, error } = await admin.from("dpa_documents").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("generate-dpa", { assessment_id: rec.id, user_id: userId }).catch(() => {});
+      return { sourceTable: "dpa_documents", sourceRowId: rec.id, reportData: await poll("dpa_documents", rec.id) };
+    }
+    if (tool === "ir-playbook") {
+      const { data: rec, error } = await admin.from("ir_playbooks").insert({ user_id: userId, status: "pending", intake_data: intake, organization_name: intake?.organizationName ?? "Test Org" }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("generate-ir-playbook", { assessment_id: rec.id, user_id: userId }).catch(() => {});
+      return { sourceTable: "ir_playbooks", sourceRowId: rec.id, reportData: await poll("ir_playbooks", rec.id) };
+    }
+    if (tool === "biometric-checker") {
+      const { data: rec, error } = await admin.from("biometric_assessments").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("check-biometric-compliance", { assessment_id: rec.id, user_id: userId }).catch(() => {});
+      return { sourceTable: "biometric_assessments", sourceRowId: rec.id, reportData: await poll("biometric_assessments", rec.id) };
+    }
     console.warn(`[run-quality-batch] no builder for tool: ${tool}`);
     return null;
   } catch (e) {
@@ -440,6 +461,8 @@ async function generateProposedFix(tool: string, checkId: string, dimension: str
     "cppa-admt": "run-admt-checker", "cppa-risk": "run-cppa-risk-assessment",
     "cppa-cyber": "run-cppa-cybersecurity", "lia": "run-li-assessment",
     "dpia": "run-dpia-framework", "governance": "run-governance-assessment",
+    "dpa-generator": "generate-dpa", "ir-playbook": "generate-ir-playbook",
+    "biometric-checker": "check-biometric-compliance",
   };
   const edgeFn = toolToEdgeFn[tool] ?? `run-${tool}`;
   const raw = await claude(
