@@ -489,18 +489,22 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
 
     for (let i = 0; i < intakes.length; i++) {
       const intake = intakes[i];
+      const docLabel = `Doc ${i + 1}/${intakes.length}`;
+      await log("info", `${docLabel}: building…`);
 
       const { data: docRow } = await admin.from("quality_run_documents").insert({
         run_id: runId, tool, doc_number: i + 1, intake_data: intake, status: "building",
       }).select("id").single();
-      if (!docRow) continue;
+      if (!docRow) { await log("warn", `${docLabel}: could not insert doc row`); continue; }
 
       const result = await buildDocument(admin, tool, intake, userId);
       if (!result) {
+        await log("warn", `${docLabel}: build failed`);
         await admin.from("quality_run_documents").update({ status: "error", error: "build failed" }).eq("id", docRow.id);
         continue;
       }
 
+      await log("info", `${docLabel}: built — evaluating with Claude${OPENAI_API_KEY ? " + GPT-4o" : ""}…`);
       await admin.from("quality_run_documents").update({
         report_data: result.reportData, source_table: result.sourceTable,
         source_row_id: result.sourceRowId, status: "evaluating",
@@ -509,12 +513,14 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       const claudeEval = await evaluateDocumentClaude(tool, intake, result.reportData)
         .catch(e => { console.warn("Claude eval failed:", e.message); return null; });
       if (!claudeEval) {
+        await log("error", `${docLabel}: Claude evaluation failed`);
         await admin.from("quality_run_documents").update({ status: "error", error: "Claude evaluation failed" }).eq("id", docRow.id);
         continue;
       }
 
       const gptEval = await evaluateDocumentGPT(tool, intake, result.reportData);
       const crossReview = await crossReviewEvaluations(tool, intake, result.reportData, claudeEval, gptEval);
+      await log("success", `${docLabel}: scored ${claudeEval.overall_score}/100${gptEval ? ` (GPT ${gptEval.overall_score}/100)` : ""}`);
 
       const finalScores  = crossReview?.dimension_scores_reconciled ?? claudeEval.dimension_scores;
       const finalOverall = crossReview?.overall_score_reconciled    ?? claudeEval.overall_score;
