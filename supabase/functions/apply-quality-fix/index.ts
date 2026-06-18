@@ -24,7 +24,7 @@ function json(b: unknown, s = 200) {
 async function ghGet(path: string): Promise<any> {
   const r = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/${path}`, {
     headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(45_000),
   });
   if (!r.ok) throw new Error(`GitHub GET ${path}: ${r.status} ${(await r.text()).slice(0, 200)}`);
   return r.json();
@@ -35,7 +35,7 @@ async function ghPut(path: string, body: any): Promise<any> {
     method: "PUT",
     headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "Content-Type": "application/json" },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(45_000),
   });
   if (!r.ok) throw new Error(`GitHub PUT ${path}: ${r.status} ${(await r.text()).slice(0, 200)}`);
   return r.json();
@@ -117,77 +117,67 @@ Deno.serve(async (req) => {
     byFile.get(filePath)!.push(chk);
   }
 
-  // Run long-running Claude + GitHub work in the background; respond 202 immediately.
-  // @ts-ignore - EdgeRuntime is available in Supabase Edge Runtime
-  EdgeRuntime.waitUntil((async () => {
-    const results: Array<{ check_id: string; success: boolean; commit_url?: string; error?: string }> = [...earlyResults];
+  const results: Array<{ check_id: string; success: boolean; commit_url?: string; error?: string }> = [...earlyResults];
 
-    for (const [filePath, fileChecks] of byFile) {
-      try {
-        const ghFile = await ghGet(`contents/${filePath}?ref=${GITHUB_BRANCH}`);
-        let currentContent = atob(ghFile.content.replace(/\n/g, ""));
-        const currentSha   = ghFile.sha;
+  for (const [filePath, fileChecks] of byFile) {
+    try {
+      const ghFile = await ghGet(`contents/${filePath}?ref=${GITHUB_BRANCH}`);
+      let currentContent = atob(ghFile.content.replace(/\n/g, ""));
+      const currentSha   = ghFile.sha;
 
-        for (const chk of fileChecks) {
-          if (!chk.proposed_fix) {
-            results.push({ check_id: chk.check_id, success: false, error: "No proposed fix stored" });
-            continue;
-          }
-          const patched = await applyPatchWithClaude(currentContent, chk.check_id, chk.proposed_fix, chk.fix_location ?? "");
-          if (!patched || patched.length < currentContent.length * 0.5) {
-            results.push({ check_id: chk.check_id, success: false, error: "Patch produced suspiciously short output — rejected" });
-            continue;
-          }
-          currentContent = patched;
+      for (const chk of fileChecks) {
+        if (!chk.proposed_fix) {
+          results.push({ check_id: chk.check_id, success: false, error: "No proposed fix stored" });
+          continue;
         }
-
-        const appliedIds = fileChecks.map(c => c.check_id).join(", ");
-        const pushResult = await ghPut(`contents/${filePath}`, {
-          message: `fix(quality-loop): prompt patches for ${appliedIds}\n\nApplied via EndUserPrivacy quality refinement loop.\nChecks fixed: ${appliedIds}\nFile: ${filePath}`,
-          content: btoa(unescape(encodeURIComponent(currentContent))),
-          sha: currentSha,
-          branch: GITHUB_BRANCH,
-        });
-
-        const commitSha = pushResult?.commit?.sha ?? "";
-        const commitUrl = pushResult?.commit?.html_url ?? `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/commit/${commitSha}`;
-
-        for (const chk of fileChecks) {
-          await admin.from("quality_check_results").update({
-            fix_applied: true, fix_commit_sha: commitSha, fix_applied_at: new Date().toISOString(),
-          }).eq("id", chk.id);
-
-          const tool = (chk as any).quality_runs?.tool ?? (chk as any).tool;
-          await admin.from("quality_applied_patches").insert({
-            run_id: chk.run_id, check_result_id: chk.id, tool,
-            edge_function: TOOL_FILE_PATH[tool]?.split("/")[2] ?? tool,
-            file_path: filePath, check_id: chk.check_id,
-            patch_description: `Quality loop fix: ${chk.check_id} (${chk.dimension}, ${chk.severity}, ${Math.round((chk.fail_rate ?? 0) * 100)}% fail rate)`,
-            old_text: "(see commit diff)", new_text: chk.proposed_fix,
-            commit_sha: commitSha, commit_url: commitUrl,
-            applied_by: userId,
-          });
-          results.push({ check_id: chk.check_id, success: true, commit_url: commitUrl });
+        const patched = await applyPatchWithClaude(currentContent, chk.check_id, chk.proposed_fix, chk.fix_location ?? "");
+        if (!patched || patched.length < currentContent.length * 0.5) {
+          results.push({ check_id: chk.check_id, success: false, error: "Patch produced suspiciously short output — rejected" });
+          continue;
         }
-
-      } catch (e) {
-        const err = (e as Error).message?.slice(0, 200);
-        for (const chk of fileChecks) results.push({ check_id: chk.check_id, success: false, error: err });
+        currentContent = patched;
       }
+
+      const appliedIds = fileChecks.map(c => c.check_id).join(", ");
+      const pushResult = await ghPut(`contents/${filePath}`, {
+        message: `fix(quality-loop): prompt patches for ${appliedIds}\n\nApplied via EndUserPrivacy quality refinement loop.\nChecks fixed: ${appliedIds}\nFile: ${filePath}`,
+        content: btoa(unescape(encodeURIComponent(currentContent))),
+        sha: currentSha,
+        branch: GITHUB_BRANCH,
+      });
+
+      const commitSha = pushResult?.commit?.sha ?? "";
+      const commitUrl = pushResult?.commit?.html_url ?? `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/commit/${commitSha}`;
+
+      for (const chk of fileChecks) {
+        await admin.from("quality_check_results").update({
+          fix_applied: true, fix_commit_sha: commitSha, fix_applied_at: new Date().toISOString(),
+        }).eq("id", chk.id);
+
+        const tool = (chk as any).quality_runs?.tool ?? (chk as any).tool;
+        await admin.from("quality_applied_patches").insert({
+          run_id: chk.run_id, check_result_id: chk.id, tool,
+          edge_function: TOOL_FILE_PATH[tool]?.split("/")[2] ?? tool,
+          file_path: filePath, check_id: chk.check_id,
+          patch_description: `Quality loop fix: ${chk.check_id} (${chk.dimension}, ${chk.severity}, ${Math.round((chk.fail_rate ?? 0) * 100)}% fail rate)`,
+          old_text: "(see commit diff)", new_text: chk.proposed_fix,
+          commit_sha: commitSha, commit_url: commitUrl,
+          applied_by: userId,
+        });
+        results.push({ check_id: chk.check_id, success: true, commit_url: commitUrl });
+      }
+
+    } catch (e) {
+      const err = (e as Error).message?.slice(0, 200);
+      for (const chk of fileChecks) results.push({ check_id: chk.check_id, success: false, error: err });
     }
+  }
 
-    console.log("[apply-quality-fix] background complete", JSON.stringify({
-      total: results.length,
-      succeeded: results.filter(r => r.success).length,
-      failed: results.filter(r => !r.success).length,
-    }));
-  })());
+  console.log("[apply-quality-fix] complete", JSON.stringify({
+    total: results.length,
+    succeeded: results.filter(r => r.success).length,
+    failed: results.filter(r => !r.success).length,
+  }));
 
-  return json({
-    accepted: true,
-    queued: ids.length,
-    files: byFile.size,
-    early_errors: earlyResults,
-    message: `Processing ${ids.length} fix(es) across ${byFile.size} file(s) in the background. Patches will be pushed to main and quality_applied_patches updated when complete (typically 1–3 minutes).`,
-  }, 202);
+  return json({ results }, 200);
 });
