@@ -215,8 +215,20 @@ export default function QualityLoop() {
     }
   };
 
+  const stopRun = async () => {
+    if (!activeRun) return;
+    if (!confirm("Stop the current run? Any in-flight document will finish, then the run will halt.")) return;
+    // Cancel any in-progress runs for this tool (defensive: also flags orphans).
+    const { error } = await supabase.from("quality_runs")
+      .update({ cancel_requested: true })
+      .eq("tool", tool).in("status", IN_PROGRESS_STATUSES);
+    if (error) { toast.error(`Stop failed: ${error.message}`); return; }
+    toast.message("Stop requested — run will halt after the current document.");
+    await loadRun(activeRun.id);
+  };
+
   useEffect(() => {
-    if (activeRun?.status === "complete" || activeRun?.status === "error") {
+    if (activeRun && TERMINAL_STATUSES.includes(activeRun.status)) {
       setRunning(false);
       stopPolling();
       if (activeRun.status === "complete") { loadPrevRuns(tool); loadPatches(tool); }
