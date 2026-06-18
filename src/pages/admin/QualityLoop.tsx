@@ -269,6 +269,43 @@ export default function QualityLoop() {
     setSelectedFixes(next);
   };
 
+  const selectAllFixes = () => {
+    const selectable = failingChecks.filter(c => !!c.proposed_fix && c.cross_review_category !== "conflict");
+    setSelectedFixes(new Set(selectable.map(c => c.id)));
+  };
+
+  const clearAllFixes = () => setSelectedFixes(new Set());
+
+  const applyAllFixes = async () => {
+    const selectable = failingChecks.filter(c => !!c.proposed_fix && c.cross_review_category !== "conflict");
+    if (!selectable.length) return;
+    setSelectedFixes(new Set(selectable.map(c => c.id)));
+    setApplying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("apply-quality-fix", {
+        body: { check_result_ids: selectable.map(c => c.id) },
+      });
+      if (error) throw error;
+      if (data.all_succeeded) {
+        toast.success(data.message);
+        for (const url of data.commit_urls ?? []) {
+          toast.message("View commit on GitHub", {
+            action: { label: "Open", onClick: () => window.open(url, "_blank") },
+          });
+        }
+      } else {
+        toast.warning(data.message);
+      }
+      setSelectedFixes(new Set());
+      if (activeRun) await loadChecks(activeRun.id);
+      await loadPatches(tool);
+    } catch (e: any) {
+      toast.error(`Apply all failed: ${e.message}`);
+    } finally {
+      setApplying(false);
+    }
+  };
+
   const applyFixes = async () => {
     if (!selectedFixes.size) return;
     setApplying(true);
@@ -443,14 +480,32 @@ export default function QualityLoop() {
                   {failingChecks.length} failing · {passingChecks.length} passing
                 </span>
               </h2>
-              {selectedFixes.size > 0 && (
-                <Button onClick={applyFixes} disabled={applying}
-                  className="bg-[#2d9b90] hover:bg-[#237a70] text-white h-8 text-sm">
-                  {applying
-                    ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Pushing to main…</>
-                    : `Apply ${selectedFixes.size} fix${selectedFixes.size > 1 ? "es" : ""} → push to main`}
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {failingChecks.some(c => !!c.proposed_fix && c.cross_review_category !== "conflict") && (
+                  <button
+                    onClick={selectedFixes.size > 0 ? clearAllFixes : selectAllFixes}
+                    className="text-xs text-blue-600 hover:underline"
+                    disabled={applying}>
+                    {selectedFixes.size > 0 ? "Clear selection" : "Select all"}
+                  </button>
+                )}
+                {selectedFixes.size > 0 && (
+                  <Button onClick={applyFixes} disabled={applying}
+                    className="bg-[#2d9b90] hover:bg-[#237a70] text-white h-8 text-sm">
+                    {applying
+                      ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Pushing to main…</>
+                      : `Apply ${selectedFixes.size} fix${selectedFixes.size > 1 ? "es" : ""} → push to main`}
+                  </Button>
+                )}
+                {selectedFixes.size === 0 && failingChecks.some(c => !!c.proposed_fix && c.cross_review_category !== "conflict") && (
+                  <Button onClick={applyAllFixes} disabled={applying}
+                    className="bg-[#0c2a44] hover:bg-[#1a3a5c] text-white h-8 text-sm">
+                    {applying
+                      ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Pushing to main…</>
+                      : `Apply all fixes → push to main`}
+                  </Button>
+                )}
+              </div>
             </div>
 
             {failingChecks.length > 0 && (
