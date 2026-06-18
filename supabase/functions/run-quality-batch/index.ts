@@ -715,6 +715,33 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
     });
     await log("success", `Run complete — overall score ${overall}/100 (${allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks)`);
 
+    // Insert aggregate snapshot into quality_score_ledger
+    try {
+      const num = (n: number) => parseFloat(Number(n ?? 0).toFixed(2));
+      const agreeTotal     = allDocFindings.filter(f => f.cross_category === "agree").length;
+      const claudeOnlyTot  = allDocFindings.filter(f => f.cross_category === "claude_only").length;
+      await admin.from("quality_score_ledger").insert({
+        tool_name: tool,
+        run_date: new Date().toISOString(),
+        quality_run_id: runId,
+        overall_score: num(overall),
+        accuracy_score: num(scores.accuracy),
+        completeness_score: num(scores.analysis),
+        citation_quality_score: num(scores.citation),
+        regulatory_coverage_score: num(scores.intelligence),
+        actionability_score: num(scores.formatting),
+        consistency_score: num(scores.hallucination),
+        documents_evaluated: built,
+        findings_count: allDocFindings.length,
+        agree_count: agreeTotal,
+        claude_only_count: claudeOnlyTot,
+        gpt_only_count: gptOnlyTotal,
+        conflict_count: conflictTotal,
+      });
+    } catch (ledgerErr) {
+      console.error("[run-quality-batch] ledger insert failed:", ledgerErr);
+    }
+
   } catch (e) {
     console.error("[run-quality-batch] fatal:", e);
     await log("error", `Fatal: ${(e as Error).message}`);

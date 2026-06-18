@@ -3626,6 +3626,83 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_score_ledger: {
+        Row: {
+          accuracy_score: number | null
+          actionability_score: number | null
+          agree_count: number
+          citation_quality_score: number | null
+          claude_only_count: number
+          completeness_score: number | null
+          conflict_count: number
+          consistency_score: number | null
+          created_at: string
+          documents_evaluated: number
+          findings_count: number
+          gpt_only_count: number
+          id: string
+          notes: string | null
+          overall_score: number
+          passed_launch_threshold: boolean | null
+          quality_run_id: string | null
+          regulatory_coverage_score: number | null
+          run_date: string
+          tool_name: string
+        }
+        Insert: {
+          accuracy_score?: number | null
+          actionability_score?: number | null
+          agree_count?: number
+          citation_quality_score?: number | null
+          claude_only_count?: number
+          completeness_score?: number | null
+          conflict_count?: number
+          consistency_score?: number | null
+          created_at?: string
+          documents_evaluated?: number
+          findings_count?: number
+          gpt_only_count?: number
+          id?: string
+          notes?: string | null
+          overall_score: number
+          passed_launch_threshold?: boolean | null
+          quality_run_id?: string | null
+          regulatory_coverage_score?: number | null
+          run_date?: string
+          tool_name: string
+        }
+        Update: {
+          accuracy_score?: number | null
+          actionability_score?: number | null
+          agree_count?: number
+          citation_quality_score?: number | null
+          claude_only_count?: number
+          completeness_score?: number | null
+          conflict_count?: number
+          consistency_score?: number | null
+          created_at?: string
+          documents_evaluated?: number
+          findings_count?: number
+          gpt_only_count?: number
+          id?: string
+          notes?: string | null
+          overall_score?: number
+          passed_launch_threshold?: boolean | null
+          quality_run_id?: string | null
+          regulatory_coverage_score?: number | null
+          run_date?: string
+          tool_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_score_ledger_quality_run_id_fkey"
+            columns: ["quality_run_id"]
+            isOneToOne: false
+            referencedRelation: "quality_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       questionnaire_versions: {
         Row: {
           created_at: string

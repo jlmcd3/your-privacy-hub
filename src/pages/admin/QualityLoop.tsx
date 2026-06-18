@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { ExternalLink, RefreshCw } from "lucide-react";
+import QualityScoreLedger from "./QualityScoreLedger";
 
 const TOOLS = [
   { id: "cppa-admt",         label: "CPPA ADMT Assessment",     edgeFn: "run-admt-checker" },
@@ -607,6 +608,8 @@ export default function QualityLoop() {
             </div>
           </div>
         )}
+
+        <QualityScoreLedger />
       </div>
     </div>
   );
