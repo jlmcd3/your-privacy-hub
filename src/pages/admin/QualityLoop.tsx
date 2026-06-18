@@ -180,8 +180,10 @@ export default function QualityLoop() {
 
   useEffect(() => {
     (async () => {
+      const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
       const { data } = await supabase.from("quality_runs")
         .select("*").eq("tool", tool).in("status", IN_PROGRESS_STATUSES)
+        .gte("started_at", cutoff)
         .order("started_at", { ascending: false }).limit(1).maybeSingle();
       if (data) {
         setActiveRun(data as Run);
