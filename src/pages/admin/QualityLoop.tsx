@@ -272,10 +272,14 @@ export default function QualityLoop() {
 
   const statusLabel = (s: string) => ({
     pending: "Pending", generating: "Generating intakes…", building: "Building documents…",
-    evaluating: "Evaluating…", complete: "Complete", error: "Error",
+    evaluating: "Evaluating…", complete: "Complete", error: "Error", cancelled: "Cancelled",
   }[s] ?? s);
 
-  const statusColor = (s: string) => s === "complete" ? "text-emerald-600" : s === "error" ? "text-red-600" : "text-blue-600";
+  const statusColor = (s: string) =>
+    s === "complete" ? "text-emerald-600"
+    : s === "error" ? "text-red-600"
+    : s === "cancelled" ? "text-amber-600"
+    : "text-blue-600";
 
   const failingChecks  = checks.filter(c => c.fail_count > 0 && !c.fix_applied);
   const appliedChecks  = checks.filter(c => c.fix_applied);
