@@ -536,6 +536,11 @@ export default function QualityLoop() {
                                 {crossCategoryLabels[chk.cross_review_category] ?? chk.cross_review_category}
                               </span>
                             )}
+                            {chk.fix_applied && (
+                              <span className="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded">
+                                ✓ Applied {chk.fix_commit_sha?.slice(0, 7)}
+                              </span>
+                            )}
                           </div>
 
                           {chk.sample_evidence?.[0] && (
