@@ -1,0 +1,1 @@
+UPDATE public.quality_runs SET status = 'error', error = COALESCE(error, 'Stale run cleared (predates progress log feature)'), completed_at = now() WHERE status IN ('pending','generating','building','evaluating') AND started_at < now() - interval '5 minutes';
