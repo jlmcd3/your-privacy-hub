@@ -445,8 +445,24 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
     if (tool === "biometric-checker") {
       const { data: rec, error } = await admin.from("biometric_assessments").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
-      invokeFn("check-biometric-compliance", { assessment_id: rec.id, user_id: userId }).catch(() => {});
-      return { sourceTable: "biometric_assessments", sourceRowId: rec.id, reportData: await poll("biometric_assessments", rec.id) };
+      await invokeFn("check-biometric-compliance", { ...intake, assessment_id: rec.id, user_id: userId, stress_run: true });
+
+      for (let i = 0; i < 12; i++) {
+        await new Promise(r => setTimeout(r, 2500));
+        const { data } = await admin.from("biometric_assessments")
+          .select("status, analysis_text, report_data")
+          .eq("id", rec.id).single();
+        if ((data as any)?.status === "complete") {
+          return {
+            sourceTable: "biometric_assessments",
+            sourceRowId: rec.id,
+            reportData: { ...((data as any)?.report_data ?? {}), assessment_text: (data as any)?.analysis_text ?? "" },
+          };
+        }
+        if (["error", "failed", "cancelled"].includes((data as any)?.status ?? ""))
+          throw new Error(`biometric_assessments status=${(data as any)?.status}`);
+      }
+      throw new Error("timeout polling biometric_assessments");
     }
     console.warn(`[run-quality-batch] no builder for tool: ${tool}`);
     return null;
