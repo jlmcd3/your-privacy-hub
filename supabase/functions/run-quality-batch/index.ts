@@ -65,7 +65,7 @@ async function o3(system: string, user: string, maxTokens = 3000): Promise<strin
       max_completion_tokens: maxTokens,
       messages: [{ role: "system", content: system }, { role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(90_000),
+    signal: AbortSignal.timeout(300_000),
   });
   if (!r.ok) throw new Error(`o3 ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();
