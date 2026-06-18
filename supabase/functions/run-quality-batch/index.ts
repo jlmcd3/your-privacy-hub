@@ -960,12 +960,14 @@ Deno.serve(async (req) => {
   // ---------- Normal path: admin user starts a new run ----------
   const userClient = createClient(SUPABASE_URL, ANON_KEY, {
     global: { headers: { Authorization: authHeader } },
+    auth: { persistSession: false },
   });
-  const { data: userData, error: userErr } = await userClient.auth.getUser(token);
-  if (userErr || !userData?.user) return json({ error: "Unauthorized", detail: userErr?.message ?? "no user" }, 401);
+  const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+  const userId = claimsData?.claims?.sub;
+  if (claimsErr || !userId) return json({ error: "Unauthorized", detail: claimsErr?.message ?? "invalid token" }, 401);
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-  const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
+  const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
   const { tool, batch_size: requestedBatch } = body;
@@ -977,7 +979,7 @@ Deno.serve(async (req) => {
 
   const { data: run, error: rErr } = await admin.from("quality_runs").insert({
     tool, status: "pending", batch_size, run_number: runNumber,
-    created_by: userData.user.id, user_id: userData.user.id,
+    created_by: userId, user_id: userId,
     started_at: new Date().toISOString(),
     last_heartbeat_at: new Date().toISOString(),
     next_doc_index: 0,
