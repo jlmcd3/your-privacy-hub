@@ -364,7 +364,7 @@ DOCUMENT: ${JSON.stringify(report ?? {}).slice(0, 5000)}
 CLAUDE'S EVALUATION: ${JSON.stringify({ dimension_scores: claudeEval?.dimension_scores, overall_score: claudeEval?.overall_score, findings: claudeEval?.findings?.filter((f: any) => !f.passed) ?? [], critical_failures: claudeEval?.critical_failures ?? [] })}
 GPT-4o'S EVALUATION: ${JSON.stringify({ dimension_scores: gptEval?.dimension_scores, overall_score: gptEval?.overall_score, findings: gptEval?.findings?.filter((f: any) => !f.passed) ?? [], critical_failures: gptEval?.critical_failures ?? [] })}
 Reconcile these evaluations. Identify all agreements, disagreements, and blind spots.`;
-    const raw = await claude(CROSS_REVIEW_SYSTEM, userMsg, 3000);
+    const raw = await o3(CROSS_REVIEW_SYSTEM, userMsg, 3000);
     return tryParse(raw);
   } catch (e) {
     console.warn("[run-quality-batch] cross-review failed (non-fatal):", (e as Error).message);
