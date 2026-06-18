@@ -461,6 +461,8 @@ async function generateProposedFix(tool: string, checkId: string, dimension: str
     "cppa-admt": "run-admt-checker", "cppa-risk": "run-cppa-risk-assessment",
     "cppa-cyber": "run-cppa-cybersecurity", "lia": "run-li-assessment",
     "dpia": "run-dpia-framework", "governance": "run-governance-assessment",
+    "dpa-generator": "generate-dpa", "ir-playbook": "generate-ir-playbook",
+    "biometric-checker": "check-biometric-compliance",
   };
   const edgeFn = toolToEdgeFn[tool] ?? `run-${tool}`;
   const raw = await claude(
