@@ -825,7 +825,8 @@ Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
 
-  const { tool, batch_size = 10 } = body;
+  const { tool, batch_size: requestedBatch } = body;
+  const batch_size = TOOL_BATCH_SIZE[tool] ?? requestedBatch ?? 10;
   if (!tool) return json({ error: "tool required" }, 400);
 
   const { count } = await admin.from("quality_runs").select("id", { count: "exact", head: true }).eq("tool", tool);
