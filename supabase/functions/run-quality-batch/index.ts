@@ -18,9 +18,6 @@ const cors = {
 
 const TOOL_BATCH_SIZE: Record<string, number> = { "cppa-risk": 3 };
 
-// Tools that use the Lovable AI Gateway (Gemini) rather than Anthropic direct.
-// The fix proposer needs this context to generate correctly-targeted patch instructions.
-const GATEWAY_TOOLS = new Set(["cppa-admt", "cppa-risk"]);
 
 type Admin = ReturnType<typeof createClient>;
 
@@ -517,12 +514,9 @@ async function generateProposedFix(tool: string, checkId: string, dimension: str
     "biometric-checker": "check-biometric-compliance",
   };
   const edgeFn = toolToEdgeFn[tool] ?? `run-${tool}`;
-  const gatewayNote = GATEWAY_TOOLS.has(tool)
-    ? `\n\nPROMPT ARCHITECTURE: This tool uses the Lovable AI Gateway (Gemini model), NOT the Anthropic API. The system prompt is stored as a TypeScript const string (e.g. SYSTEM_PROMPT_TEMPLATE or passed inline as messages[0] with role "system"). When describing the fix location, reference the const string name or the inline message position — do NOT reference an Anthropic "system:" parameter.`
-    : "";
   const raw = await claude(
     `You are a prompt engineer for legal compliance AI systems. Given a failing quality check, write a precise targeted fix to the generation system prompt. Write the ACTUAL replacement text — not a description of what to change. Format as JSON: { "location": "where in the prompt", "new_text": "the complete replacement text" }`,
-    `TOOL: ${tool}\nEDGE FUNCTION: ${edgeFn}\nFAILING CHECK: ${checkId}\nDIMENSION: ${dimension}\nEVIDENCE:\n${evidence.slice(0, 3).map((e, i) => `[${i + 1}] ${e}`).join("\n")}${gatewayNote}\nWrite the prompt patch.`,
+    `TOOL: ${tool}\nEDGE FUNCTION: ${edgeFn}\nFAILING CHECK: ${checkId}\nDIMENSION: ${dimension}\nEVIDENCE:\n${evidence.slice(0, 3).map((e, i) => `[${i + 1}] ${e}`).join("\n")}\nWrite the prompt patch.`,
     1500
   ).catch(() => "");
   const parsed = tryParse(raw);

@@ -19,7 +19,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -338,36 +337,40 @@ Return only valid JSON matching the specified output structure. No preamble, no 
 }
 
 // ---------------------------------------------------------------------------
-// Model call. The brief specifies claude-sonnet-4-6 with 8000 max tokens;
-// routed through the Lovable AI gateway.
+// Model call — Claude Sonnet 4.6 via Anthropic API direct.
 // ---------------------------------------------------------------------------
-async function callModel(system: string, user: string, label = "generate-v4"): Promise<string> {
+async function callModel(
+  system: string,
+  user: string,
+  label = "generate-v4"
+): Promise<{ text: string; stopReason: string | null }> {
   const t0 = Date.now();
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
+      "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
+      model: "claude-sonnet-4-6",
       max_tokens: 8000,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
+      system,
+      messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(720_000),
+    signal: AbortSignal.timeout(900_000),
   });
   const elapsed = Date.now() - t0;
   if (!res.ok) {
     const t = await res.text();
     console.error(`[${label}] HTTP ${res.status} in ${elapsed}ms: ${t.slice(0, 300)}`);
-    throw new Error(`Gateway ${res.status}: ${t.slice(0, 300)}`);
+    throw new Error(`Anthropic ${res.status}: ${t.slice(0, 300)}`);
   }
   const d = await res.json();
-  console.log(`[${label}] ok in ${elapsed}ms, ~${d.usage?.completion_tokens ?? "?"} tokens`);
-  return d.choices?.[0]?.message?.content ?? "";
+  const text = d.content?.[0]?.text ?? "";
+  const stopReason: string | null = d.stop_reason ?? null;
+  console.log(`[${label}] ok in ${elapsed}ms chars=${text.length} stop=${stopReason}`);
+  return { text, stopReason };
 }
 
 function tryParseJson(text: string): any | null {
@@ -407,19 +410,54 @@ async function runPipeline(assessment_id: string) {
     const userPrompt = buildUserPrompt(fiveStage);
 
     const t0 = Date.now();
-    let rawText = await callModel(system, userPrompt, "generate-v4");
-    let parsed = tryParseJson(rawText);
-    if (!parsed) {
-      console.warn("[cppa-risk v4] first parse failed, retrying once");
-      rawText = await callModel(system, userPrompt, "generate-v4-retry");
-      parsed = tryParseJson(rawText);
+    let parsed: any = null;
+    let debugRaw = "";
+
+    const first = await callModel(system, userPrompt, "generate-v4");
+
+    if (first.stopReason === "max_tokens") {
+      // Output was truncated — retry at 12000 tokens
+      console.warn("[cppa-risk v4] output truncated (max_tokens) — retrying at 12000 tokens");
+      const retryRes = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 12000,
+          system,
+          messages: [{ role: "user", content: userPrompt }],
+        }),
+        signal: AbortSignal.timeout(900_000),
+      });
+      if (retryRes.ok) {
+        const retryData = await retryRes.json();
+        const retryText = retryData.content?.[0]?.text ?? "";
+        debugRaw = retryText;
+        parsed = tryParseJson(retryText);
+      } else {
+        debugRaw = first.text;
+      }
+    } else {
+      debugRaw = first.text;
+      parsed = tryParseJson(first.text);
+      if (!parsed) {
+        console.warn("[cppa-risk v4] first parse failed — retrying once");
+        const retry = await callModel(system, userPrompt, "generate-v4-retry");
+        debugRaw = retry.text;
+        parsed = tryParseJson(retry.text);
+      }
     }
+
     console.log(`[cppa-risk v4] generation total ${Date.now() - t0}ms`);
 
     if (!parsed || !parsed.assessment_summary) {
       await supabase.from("cppa_assessments").update({
         status: "error",
-        report_data: { error: "generation_parse_failed", debug: rawText?.slice(0, 4000) ?? "" },
+        report_data: { error: "generation_parse_failed", debug: debugRaw.slice(0, 4000) },
       }).eq("id", assessment_id);
       return;
     }

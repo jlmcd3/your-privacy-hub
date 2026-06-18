@@ -7,7 +7,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -23,29 +23,39 @@ function json(b: unknown, s = 200) {
   });
 }
 
-async function callGateway(system: string, user: string, maxTokens: number): Promise<string> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+async function callAnthropic(
+  system: string,
+  user: string,
+  maxTokens: number,
+  label = "admt"
+): Promise<{ text: string; stopReason: string | null }> {
+  const t0 = Date.now();
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "claude-sonnet-4-6",
       max_tokens: maxTokens,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
+      system,
+      messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(720_000),
+    signal: AbortSignal.timeout(900_000),
   });
   if (!res.ok) {
     const t = await res.text();
-    throw new Error(`Gateway ${res.status}: ${t.slice(0, 300)}`);
+    throw new Error(`Anthropic ${res.status}: ${t.slice(0, 300)}`);
   }
   const d = await res.json();
-  return d.choices?.[0]?.message?.content || "";
+  const text = d.content?.[0]?.text ?? "";
+  const stopReason: string | null = d.stop_reason ?? null;
+  console.log(
+    `[run-admt-checker] label=${label} elapsed=${Date.now() - t0}ms stop=${stopReason} chars=${text.length}`
+  );
+  return { text, stopReason };
 }
 
 function tryParseJson(text: string): any | null {
@@ -87,9 +97,11 @@ Deno.serve(async (req) => {
 
   if (!assessment) return json({ error: "Assessment not found" }, 404);
 
-  await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
-
-  try {
+  // Return 202 immediately; run generation in background
+  // @ts-ignore — EdgeRuntime is provided by the Supabase edge runtime
+  EdgeRuntime.waitUntil((async () => {
+   try {
+    await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
     const intake = assessment.intake_data as any;
 
     // 1. Retrieve ADMT authorities from corpus (best-effort).
@@ -376,7 +388,17 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
   "compliant_elements": ["List of elements assessed as compliant, with brief explanation."]
 }`;
 
-    const rawText = await callGateway(system, userPrompt, 8000);
+    let rawText: string;
+    {
+      const first = await callAnthropic(system, userPrompt, 8000, "gap-analysis");
+      if (first.stopReason === "max_tokens") {
+        console.warn("[run-admt-checker] gap-analysis truncated — retrying at 12000 tokens");
+        const retry = await callAnthropic(system, userPrompt, 12000, "gap-analysis-retry");
+        rawText = retry.text;
+      } else {
+        rawText = first.text;
+      }
+    }
     const report = tryParseJson(rawText);
 
     if (!report) {
@@ -384,7 +406,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
         status: "error",
         report_data: { error: "parse_failed", raw: rawText.slice(0, 500) },
       }).eq("id", assessment_id);
-      return json({ error: "parse_failed" }, 502);
+      return;
     }
 
     // ── PASS 2: Sample Language Drafting ─────────────────────────────────────
@@ -475,7 +497,17 @@ Return this JSON structure exactly:
   ]
 }`;
 
-        const draftRaw = await callGateway(draftSystem, draftPrompt, 5000);
+        let draftRaw: string;
+        {
+          const first = await callAnthropic(draftSystem, draftPrompt, 5000, "sample-language");
+          if (first.stopReason === "max_tokens") {
+            console.warn("[run-admt-checker] sample-language truncated — retrying at 7500 tokens");
+            const retry = await callAnthropic(draftSystem, draftPrompt, 7500, "sample-language-retry");
+            draftRaw = retry.text;
+          } else {
+            draftRaw = first.text;
+          }
+        }
         const draftResult = tryParseJson(draftRaw);
 
         if (draftResult?.drafts && Array.isArray(draftResult.drafts)) {
@@ -503,14 +535,14 @@ Return this JSON structure exactly:
       report_data: report,
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
-
-    return json({ success: true, assessment_id, status: "complete" });
-  } catch (e) {
-    console.error("[run-admt-checker] error:", e);
+   } catch (e) {
+    console.error("[run-admt-checker] pipeline error:", e);
     await supabase.from("cppa_assessments").update({
       status: "error",
       report_data: { error: String(e) },
     }).eq("id", assessment_id);
-    return json({ error: String(e) }, 500);
-  }
+   }
+  })());
+
+  return json({ accepted: true, assessment_id }, 202);
 });
