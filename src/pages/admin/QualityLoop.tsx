@@ -276,26 +276,38 @@ export default function QualityLoop() {
 
   const clearAllFixes = () => setSelectedFixes(new Set());
 
+  const handleApplyResponse = async (data: any) => {
+    const results = data?.results ?? [];
+    const succeeded = results.filter((r: any) => r.success).length;
+    const failed = results.filter((r: any) => !r.success);
+
+    if (activeRun) await loadChecks(activeRun.id);
+    await loadPatches(tool);
+
+    if (failed.length === 0) {
+      toast.success(`${succeeded} fix${succeeded === 1 ? "" : "es"} pushed to main.`);
+    } else {
+      toast.warning(
+        `${succeeded} pushed, ${failed.length} failed: ${failed.map((f: any) => f.error).slice(0, 2).join("; ")}`
+      );
+    }
+  };
+
   const applyAllFixes = async () => {
     const selectable = failingChecks.filter(c => !!c.proposed_fix && c.cross_review_category !== "conflict");
     if (!selectable.length) return;
     setSelectedFixes(new Set(selectable.map(c => c.id)));
     setApplying(true);
     try {
-      const { error } = await supabase.functions.invoke("apply-quality-fix", {
+      const { data, error } = await supabase.functions.invoke("apply-quality-fix", {
         body: { check_result_ids: selectable.map(c => c.id) },
       });
       if (error) throw error;
       setSelectedFixes(new Set());
-      toast.message("Pushing fixes to GitHub… refreshing in 20 seconds.");
-      setTimeout(async () => {
-        if (activeRun) await loadChecks(activeRun.id);
-        await loadPatches(tool);
-        toast.success("Done — check the Applied patches section for commit links.");
-        setApplying(false);
-      }, 20000);
+      await handleApplyResponse(data);
     } catch (e: any) {
       toast.error(`Apply all failed: ${e.message}`);
+    } finally {
       setApplying(false);
     }
   };
@@ -304,20 +316,15 @@ export default function QualityLoop() {
     if (!selectedFixes.size) return;
     setApplying(true);
     try {
-      const { error } = await supabase.functions.invoke("apply-quality-fix", {
+      const { data, error } = await supabase.functions.invoke("apply-quality-fix", {
         body: { check_result_ids: [...selectedFixes] },
       });
       if (error) throw error;
       setSelectedFixes(new Set());
-      toast.message("Pushing fixes to GitHub… refreshing in 20 seconds.");
-      setTimeout(async () => {
-        if (activeRun) await loadChecks(activeRun.id);
-        await loadPatches(tool);
-        toast.success("Done — check the Applied patches section for commit links.");
-        setApplying(false);
-      }, 20000);
+      await handleApplyResponse(data);
     } catch (e: any) {
       toast.error(`Apply failed: ${e.message}`);
+    } finally {
       setApplying(false);
     }
   };
