@@ -40,7 +40,7 @@ type Run = {
   conflict_count: number;
   checks_total: number; checks_passed: number; checks_failed: number;
   started_at: string; completed_at: string|null; error: string|null;
-  progress_log: Array<{ t: string; level: string; msg: string }> | null;
+  progress_log: any;
 };
 
 type CheckResult = {
