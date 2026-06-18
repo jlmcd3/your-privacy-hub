@@ -282,26 +282,20 @@ export default function QualityLoop() {
     setSelectedFixes(new Set(selectable.map(c => c.id)));
     setApplying(true);
     try {
-      const { data, error } = await supabase.functions.invoke("apply-quality-fix", {
+      const { error } = await supabase.functions.invoke("apply-quality-fix", {
         body: { check_result_ids: selectable.map(c => c.id) },
       });
       if (error) throw error;
-      if (data.all_succeeded) {
-        toast.success(data.message);
-        for (const url of data.commit_urls ?? []) {
-          toast.message("View commit on GitHub", {
-            action: { label: "Open", onClick: () => window.open(url, "_blank") },
-          });
-        }
-      } else {
-        toast.warning(data.message);
-      }
       setSelectedFixes(new Set());
-      if (activeRun) await loadChecks(activeRun.id);
-      await loadPatches(tool);
+      toast.message("Pushing fixes to GitHub… refreshing in 20 seconds.");
+      setTimeout(async () => {
+        if (activeRun) await loadChecks(activeRun.id);
+        await loadPatches(tool);
+        toast.success("Done — check the Applied patches section for commit links.");
+        setApplying(false);
+      }, 20000);
     } catch (e: any) {
       toast.error(`Apply all failed: ${e.message}`);
-    } finally {
       setApplying(false);
     }
   };
@@ -310,26 +304,20 @@ export default function QualityLoop() {
     if (!selectedFixes.size) return;
     setApplying(true);
     try {
-      const { data, error } = await supabase.functions.invoke("apply-quality-fix", {
+      const { error } = await supabase.functions.invoke("apply-quality-fix", {
         body: { check_result_ids: [...selectedFixes] },
       });
       if (error) throw error;
-      if (data.all_succeeded) {
-        toast.success(data.message);
-        for (const url of data.commit_urls ?? []) {
-          toast.message("View commit on GitHub", {
-            action: { label: "Open", onClick: () => window.open(url, "_blank") },
-          });
-        }
-      } else {
-        toast.warning(data.message);
-      }
       setSelectedFixes(new Set());
-      if (activeRun) await loadChecks(activeRun.id);
-      await loadPatches(tool);
+      toast.message("Pushing fixes to GitHub… refreshing in 20 seconds.");
+      setTimeout(async () => {
+        if (activeRun) await loadChecks(activeRun.id);
+        await loadPatches(tool);
+        toast.success("Done — check the Applied patches section for commit links.");
+        setApplying(false);
+      }, 20000);
     } catch (e: any) {
       toast.error(`Apply failed: ${e.message}`);
-    } finally {
       setApplying(false);
     }
   };
