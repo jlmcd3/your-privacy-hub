@@ -943,6 +943,21 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get("Authorization") ?? "";
   if (!authHeader.startsWith("Bearer ")) return json({ error: "Unauthorized: missing bearer token" }, 401);
   const token = authHeader.replace("Bearer ", "");
+
+  let body: any;
+  try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
+
+  // ---------- Resume path: called by self-reinvoke with service-role bearer ----------
+  const isInternalResume = req.headers.get("x-internal-resume") === "1" && token === SERVICE_KEY;
+  if (isInternalResume) {
+    const resumeId: string | undefined = body?.resume_run_id;
+    if (!resumeId) return json({ error: "resume_run_id required" }, 400);
+    // @ts-ignore
+    EdgeRuntime.waitUntil(runBatch(resumeId));
+    return json({ resumed: resumeId }, 202);
+  }
+
+  // ---------- Normal path: admin user starts a new run ----------
   const userClient = createClient(SUPABASE_URL, ANON_KEY, {
     global: { headers: { Authorization: authHeader } },
   });
@@ -953,22 +968,23 @@ Deno.serve(async (req) => {
   const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
-  let body: any;
-  try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-
   const { tool, batch_size: requestedBatch } = body;
-  const batch_size = TOOL_BATCH_SIZE[tool] ?? requestedBatch ?? 10;
+  const batch_size = requestedBatch ?? 5;
   if (!tool) return json({ error: "tool required" }, 400);
 
   const { count } = await admin.from("quality_runs").select("id", { count: "exact", head: true }).eq("tool", tool);
   const runNumber = (count ?? 0) + 1;
 
   const { data: run, error: rErr } = await admin.from("quality_runs").insert({
-    tool, status: "pending", batch_size, run_number: runNumber, created_by: userData.user.id,
+    tool, status: "pending", batch_size, run_number: runNumber,
+    created_by: userData.user.id, user_id: userData.user.id,
+    started_at: new Date().toISOString(),
+    last_heartbeat_at: new Date().toISOString(),
+    next_doc_index: 0,
   }).select("id").single();
   if (rErr || !run) return json({ error: `run insert: ${rErr?.message}` }, 500);
 
   // @ts-ignore
-  EdgeRuntime.waitUntil(runBatch(run.id, tool, batch_size, userData.user.id, runNumber));
+  EdgeRuntime.waitUntil(runBatch(run.id));
   return json({ run_id: run.id, tool, batch_size, run_number: runNumber }, 202);
 });
