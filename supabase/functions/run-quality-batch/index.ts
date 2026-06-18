@@ -430,6 +430,24 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       invokeFn("run-governance-assessment", { assessment_id: rec.id }).catch(() => {});
       return { sourceTable: "governance_assessments", sourceRowId: rec.id, reportData: await poll("governance_assessments", rec.id) };
     }
+    if (tool === "dpa-generator") {
+      const { data: rec, error } = await admin.from("dpa_documents").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("generate-dpa", { assessment_id: rec.id, user_id: userId }).catch(() => {});
+      return { sourceTable: "dpa_documents", sourceRowId: rec.id, reportData: await poll("dpa_documents", rec.id) };
+    }
+    if (tool === "ir-playbook") {
+      const { data: rec, error } = await admin.from("ir_playbooks").insert({ user_id: userId, status: "pending", intake_data: intake, organization_name: intake?.organizationName ?? "Test Org" }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("generate-ir-playbook", { assessment_id: rec.id, user_id: userId }).catch(() => {});
+      return { sourceTable: "ir_playbooks", sourceRowId: rec.id, reportData: await poll("ir_playbooks", rec.id) };
+    }
+    if (tool === "biometric-checker") {
+      const { data: rec, error } = await admin.from("biometric_assessments").insert({ user_id: userId, status: "pending", intake_data: intake }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("check-biometric-compliance", { assessment_id: rec.id, user_id: userId }).catch(() => {});
+      return { sourceTable: "biometric_assessments", sourceRowId: rec.id, reportData: await poll("biometric_assessments", rec.id) };
+    }
     console.warn(`[run-quality-batch] no builder for tool: ${tool}`);
     return null;
   } catch (e) {
