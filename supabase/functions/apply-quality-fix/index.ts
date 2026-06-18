@@ -187,6 +187,7 @@ Deno.serve(async (req) => {
       const commitUrl = pushResult?.commit?.html_url ?? `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/commit/${commitSha}`;
 
       for (const chk of fileChecks) {
+        if (alreadyAppliedIds.has(chk.id)) continue; // already counted via skipped result
         await admin.from("quality_check_results").update({
           fix_applied: true, fix_commit_sha: commitSha, fix_applied_at: new Date().toISOString(),
         }).eq("id", chk.id);
