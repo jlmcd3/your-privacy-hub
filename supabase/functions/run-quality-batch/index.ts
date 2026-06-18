@@ -16,7 +16,12 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const TOOL_BATCH_SIZE: Record<string, number> = { "cppa-risk": 3 };
+const TOOL_BATCH_SIZE: Record<string, number> = { "cppa-risk": 3, "biometric-checker": 3 };
+const RUN_WALL_CLOCK_BUDGET_MS = 360_000;
+const MIN_DOC_START_REMAINING_MS = 120_000;
+const MIN_FIX_GENERATION_REMAINING_MS = 35_000;
+const EVALUATION_TIMEOUT_MS = 80_000;
+const CROSS_REVIEW_TIMEOUT_MS = 45_000;
 
 
 type Admin = ReturnType<typeof createClient>;
@@ -535,6 +540,9 @@ async function generateProposedFix(tool: string, checkId: string, dimension: str
 async function runBatch(runId: string, tool: string, batchSize: number, userId: string, runNumber: number): Promise<void> {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const upd = (data: any) => admin.from("quality_runs").update(data).eq("id", runId);
+  const runStartedAt = Date.now();
+  const remainingRunMs = () => RUN_WALL_CLOCK_BUDGET_MS - (Date.now() - runStartedAt);
+  const hasRunBudget = (minRemainingMs: number) => remainingRunMs() > minRemainingMs;
 
   const logBuf: Array<{ t: string; level: string; msg: string }> = [];
   const log = async (level: "info" | "warn" | "error" | "success", msg: string) => {
@@ -570,6 +578,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
     const gptTotals    = { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 };
     let built    = 0;
     let gptBuilt = 0;
+    let stoppedForBudget = false;
     const allDocFindings: any[] = [];
 
     for (let i = 0; i < intakes.length; i++) {
@@ -578,6 +587,11 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         await log("warn", `Run cancelled by user after ${i}/${intakes.length} documents`);
         await upd({ status: "cancelled", completed_at: new Date().toISOString(), error: "Cancelled by user" });
         return;
+      }
+      if (!hasRunBudget(MIN_DOC_START_REMAINING_MS)) {
+        stoppedForBudget = true;
+        await log("warn", `Stopping before Doc ${i + 1}/${intakes.length} to stay within the edge runtime budget; aggregating ${built}/${intakes.length} completed documents.`);
+        break;
       }
       const intake = intakes[i];
       const docLabel = `Doc ${i + 1}/${intakes.length}`;
@@ -595,13 +609,26 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         continue;
       }
 
+      if (!hasRunBudget(EVALUATION_TIMEOUT_MS + CROSS_REVIEW_TIMEOUT_MS + 20_000)) {
+        stoppedForBudget = true;
+        await log("warn", `${docLabel}: skipped evaluation to stay within the edge runtime budget; aggregating ${built}/${intakes.length} completed documents.`);
+        await admin.from("quality_run_documents").update({
+          report_data: result.reportData,
+          source_table: result.sourceTable,
+          source_row_id: result.sourceRowId,
+          status: "error",
+          error: "Skipped before evaluation due to runtime budget",
+        }).eq("id", docRow.id);
+        break;
+      }
+
       await log("info", `${docLabel}: built — evaluating with Claude${OPENAI_API_KEY ? " + GPT-4o" : ""}…`);
       await admin.from("quality_run_documents").update({
         report_data: result.reportData, source_table: result.sourceTable,
         source_row_id: result.sourceRowId, status: "evaluating",
       }).eq("id", docRow.id);
 
-      const claudeEval = await withTimeout(evaluateDocumentClaude(tool, intake, result.reportData), 100_000, "Claude eval")
+      const claudeEval = await withTimeout(evaluateDocumentClaude(tool, intake, result.reportData), EVALUATION_TIMEOUT_MS, "Claude eval")
         .catch(e => { console.warn("Claude eval failed:", e.message); return null; });
       if (!claudeEval) {
         await log("error", `${docLabel}: Claude evaluation failed or timed out`);
@@ -609,7 +636,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         continue;
       }
 
-      const gptResult = await withTimeout(evaluateDocumentGPT(tool, intake, result.reportData), 100_000, "GPT-4o eval")
+      const gptResult = await withTimeout(evaluateDocumentGPT(tool, intake, result.reportData), EVALUATION_TIMEOUT_MS, "GPT-4o eval")
         .catch(e => ({ eval: null as any, error: e.message }));
       const gptEval = gptResult.eval;
       if (gptEval) {
@@ -619,8 +646,13 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       } else {
         await log("error", `${docLabel}: GPT-4o call FAILED — ${gptResult.error ?? "unknown error"}`);
       }
-      const crossReview = await withTimeout(crossReviewEvaluations(tool, intake, result.reportData, claudeEval, gptEval), 100_000, "Cross-review")
-        .catch(e => { console.warn("Cross-review failed:", e.message); return null; });
+      let crossReview: any | null = null;
+      if (hasRunBudget(CROSS_REVIEW_TIMEOUT_MS + 15_000)) {
+        crossReview = await withTimeout(crossReviewEvaluations(tool, intake, result.reportData, claudeEval, gptEval), CROSS_REVIEW_TIMEOUT_MS, "Cross-review")
+          .catch(e => { console.warn("Cross-review failed:", e.message); return null; });
+      } else {
+        await log("warn", `${docLabel}: cross-review skipped to stay within the edge runtime budget`);
+      }
       await log("success", `${docLabel}: scored ${claudeEval.overall_score}/100${gptEval ? ` (GPT ${gptEval.overall_score}/100)` : ""}`);
 
       const finalScores  = crossReview?.dimension_scores_reconciled ?? claudeEval.dimension_scores;
@@ -682,8 +714,16 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       }
     }
 
+    if (built === 0) {
+      await log("error", `No documents completed before the edge runtime budget was reached`);
+      await upd({ status: "error", completed_at: new Date().toISOString(), error: "No documents completed before runtime budget was reached" });
+      return;
+    }
+
     await upd({ status: "evaluating" });
-    await log("info", `All documents processed (${built}/${intakes.length} built). Aggregating scores…`);
+    await log("info", stoppedForBudget
+      ? `Runtime budget reached; aggregating partial results (${built}/${intakes.length} completed).`
+      : `All documents processed (${built}/${intakes.length} built). Aggregating scores…`);
 
     const avg = (v: number) => built > 0 ? Math.round(v / built) : 0;
     const scores = {
@@ -700,6 +740,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
     }
     await log("info", `Generating proposed fixes for ${byCheck.size} unique checks…`);
 
+    let skippedFixesForBudget = false;
     for (const [checkId, findings] of byCheck) {
       const passed   = findings.filter(f => f.passed).length;
       const failed   = findings.filter(f => !f.passed).length;
@@ -724,10 +765,12 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         ? "Evaluator rubric — add to CLAUDE_RUBRIC_SYSTEM in run-quality-batch/index.ts"
         : "";
 
-      if (!proposedFix && failRate > 0.2 && evidence.length > 0) {
+      if (!proposedFix && failRate > 0.2 && evidence.length > 0 && hasRunBudget(MIN_FIX_GENERATION_REMAINING_MS)) {
         const fix = await generateProposedFix(tool, checkId, first.dimension, evidence).catch(() => null);
         proposedFix = fix?.fix ?? "";
         fixLocation = fix?.location ?? "";
+      } else if (!proposedFix && failRate > 0.2 && evidence.length > 0) {
+        skippedFixesForBudget = true;
       }
 
       const gptFailed  = findings.filter(f => !f.passed && f.cross_category === "gpt_only").length;
@@ -752,6 +795,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         fix_selected: false, fix_applied: false,
       }, { onConflict: "run_id,check_id" });
     }
+    if (skippedFixesForBudget) await log("warn", "Some proposed fixes were skipped to stay within the edge runtime budget");
 
     const gptAvg = (v: number) => gptBuilt > 0 ? Math.round(v / gptBuilt) : null;
     const gptScores = gptBuilt > 0 ? {
