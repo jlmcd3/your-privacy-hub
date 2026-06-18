@@ -402,7 +402,9 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   const raw = await claude(
     `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.`,
     `Generate ${count} varied realistic intake objects for the "${tool}" compliance tool.\n\n${description}\n\nReturn a JSON array of exactly ${count} objects.`,
-    8000
+    8000,
+    "claude-sonnet-4-6",
+    AbortSignal.timeout(90_000)
   );
   const parsed = tryParse(raw);
   if (!Array.isArray(parsed) || parsed.length === 0) throw new Error(`Intake generator returned invalid data for ${tool}`);
