@@ -388,7 +388,17 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
   "compliant_elements": ["List of elements assessed as compliant, with brief explanation."]
 }`;
 
-    const rawText = await callGateway(system, userPrompt, 8000);
+    let rawText: string;
+    {
+      const first = await callAnthropic(system, userPrompt, 8000, "gap-analysis");
+      if (first.stopReason === "max_tokens") {
+        console.warn("[run-admt-checker] gap-analysis truncated — retrying at 12000 tokens");
+        const retry = await callAnthropic(system, userPrompt, 12000, "gap-analysis-retry");
+        rawText = retry.text;
+      } else {
+        rawText = first.text;
+      }
+    }
     const report = tryParseJson(rawText);
 
     if (!report) {
@@ -396,7 +406,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
         status: "error",
         report_data: { error: "parse_failed", raw: rawText.slice(0, 500) },
       }).eq("id", assessment_id);
-      return json({ error: "parse_failed" }, 502);
+      return;
     }
 
     // ── PASS 2: Sample Language Drafting ─────────────────────────────────────
