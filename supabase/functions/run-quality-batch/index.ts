@@ -550,7 +550,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
     logBuf.push(entry);
     if (level === "error" || level === "warn") console.warn(`[quality-batch ${level}]`, msg);
     else console.log(`[quality-batch]`, msg);
-    try { await admin.from("quality_runs").update({ progress_log: logBuf }).eq("id", runId); } catch { /* */ }
+    try { await admin.from("quality_runs").update({ progress_log: logBuf, last_heartbeat_at: new Date().toISOString() }).eq("id", runId); } catch { /* */ }
   };
 
   try {
