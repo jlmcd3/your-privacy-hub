@@ -897,6 +897,12 @@ async function runBatch(runId: string): Promise<void> {
         fixLocation = fix?.location ?? "";
       }
 
+      // RX-1b: if this check was filtered out because it was already patched recently,
+      // surface that explicitly instead of showing a blank fix.
+      if (!proposedFix && alreadyFixedIds.has(a.checkId)) {
+        fixLocation = "DUPLICATE: already applied in a prior run — see quality_applied_patches";
+      }
+
       const gptFailed  = a.findings.filter(f => !f.passed && f.cross_category === "gpt_only").length;
       const gptPassed  = Math.max(0, state.gptBuilt - gptFailed);
       const gptFailRate = state.gptBuilt > 0 ? gptFailed / state.gptBuilt : 0;
