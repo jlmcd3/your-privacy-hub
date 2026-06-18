@@ -278,17 +278,20 @@ export default function QualityLoop() {
 
   const handleApplyResponse = async (data: any) => {
     const results = data?.results ?? [];
-    const succeeded = results.filter((r: any) => r.success).length;
+    const succeeded = results.filter((r: any) => r.success && !r.skipped).length;
+    const skipped = results.filter((r: any) => r.skipped).length;
     const failed = results.filter((r: any) => !r.success);
 
     if (activeRun) await loadChecks(activeRun.id);
     await loadPatches(tool);
 
-    if (failed.length === 0) {
+    if (failed.length === 0 && skipped === 0) {
       toast.success(`${succeeded} fix${succeeded === 1 ? "" : "es"} pushed to main.`);
+    } else if (failed.length === 0) {
+      toast.success(`${succeeded} pushed, ${skipped} already present (skipped).`);
     } else {
       toast.warning(
-        `${succeeded} pushed, ${failed.length} failed: ${failed.map((f: any) => f.error).slice(0, 2).join("; ")}`
+        `${succeeded} pushed, ${skipped} skipped, ${failed.length} failed: ${failed.map((f: any) => f.error).slice(0, 2).join("; ")}`
       );
     }
   };

@@ -37,7 +37,11 @@ async function ghPut(path: string, body: any): Promise<any> {
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(45_000),
   });
-  if (!r.ok) throw new Error(`GitHub PUT ${path}: ${r.status} ${(await r.text()).slice(0, 200)}`);
+  if (!r.ok) {
+    const err = new Error(`GitHub PUT ${path}: ${r.status} ${(await r.text()).slice(0, 200)}`);
+    (err as any).status = r.status;
+    throw err;
+  }
   return r.json();
 }
 
@@ -107,8 +111,18 @@ Deno.serve(async (req) => {
     .select("*, quality_runs(tool)").in("id", ids);
   if (chkErr || !checks?.length) return json({ error: "check results not found" }, 404);
 
+  // RX-2: re-check fix_applied for all requested ids in one query (not per-check in the loop)
+  // to catch rows marked applied since the request was queued (duplicate clicks, parallel tabs).
+  const { data: freshStatus } = await admin
+    .from("quality_check_results")
+    .select("id, fix_applied")
+    .in("id", ids);
+  const alreadyAppliedIds = new Set(
+    (freshStatus ?? []).filter((r: any) => r.fix_applied).map((r: any) => r.id)
+  );
+
   const byFile = new Map<string, typeof checks>();
-  const earlyResults: Array<{ check_id: string; success: boolean; error?: string }> = [];
+  const earlyResults: Array<{ check_id: string; success: boolean; skipped?: boolean; error?: string }> = [];
   for (const chk of checks) {
     const tool = (chk as any).quality_runs?.tool ?? (chk as any).tool;
     const filePath = TOOL_FILE_PATH[tool];
@@ -117,7 +131,7 @@ Deno.serve(async (req) => {
     byFile.get(filePath)!.push(chk);
   }
 
-  const results: Array<{ check_id: string; success: boolean; commit_url?: string; error?: string }> = [...earlyResults];
+  const results: Array<{ check_id: string; success: boolean; skipped?: boolean; commit_url?: string; error?: string }> = [...earlyResults];
 
   for (const [filePath, fileChecks] of byFile) {
     try {
@@ -126,6 +140,10 @@ Deno.serve(async (req) => {
       const currentSha   = ghFile.sha;
 
       for (const chk of fileChecks) {
+        if (alreadyAppliedIds.has(chk.id)) {
+          results.push({ check_id: chk.check_id, success: true, skipped: true, error: "Already applied — skipped duplicate" });
+          continue;
+        }
         if (!chk.proposed_fix) {
           results.push({ check_id: chk.check_id, success: false, error: "No proposed fix stored" });
           continue;
@@ -139,17 +157,37 @@ Deno.serve(async (req) => {
       }
 
       const appliedIds = fileChecks.map(c => c.check_id).join(", ");
-      const pushResult = await ghPut(`contents/${filePath}`, {
-        message: `fix(quality-loop): prompt patches for ${appliedIds}\n\nApplied via EndUserPrivacy quality refinement loop.\nChecks fixed: ${appliedIds}\nFile: ${filePath}`,
-        content: btoa(unescape(encodeURIComponent(currentContent))),
-        sha: currentSha,
-        branch: GITHUB_BRANCH,
-      });
+      const commitMessage = `fix(quality-loop): prompt patches for ${appliedIds}\n\nApplied via EndUserPrivacy quality refinement loop.\nChecks fixed: ${appliedIds}\nFile: ${filePath}`;
+
+      let pushResult: any;
+      try {
+        pushResult = await ghPut(`contents/${filePath}`, {
+          message: commitMessage,
+          content: btoa(unescape(encodeURIComponent(currentContent))),
+          sha: currentSha,
+          branch: GITHUB_BRANCH,
+        });
+      } catch (e) {
+        if ((e as any).status === 409) {
+          // RX-3: concurrent push changed the file underneath us — refetch sha and retry once.
+          console.warn(`[apply-quality-fix] 409 on ${filePath}, refetching sha and retrying once`);
+          const freshFile = await ghGet(`contents/${filePath}?ref=${GITHUB_BRANCH}`);
+          pushResult = await ghPut(`contents/${filePath}`, {
+            message: commitMessage,
+            content: btoa(unescape(encodeURIComponent(currentContent))),
+            sha: freshFile.sha,
+            branch: GITHUB_BRANCH,
+          });
+        } else {
+          throw e;
+        }
+      }
 
       const commitSha = pushResult?.commit?.sha ?? "";
       const commitUrl = pushResult?.commit?.html_url ?? `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/commit/${commitSha}`;
 
       for (const chk of fileChecks) {
+        if (alreadyAppliedIds.has(chk.id)) continue; // already counted via skipped result
         await admin.from("quality_check_results").update({
           fix_applied: true, fix_commit_sha: commitSha, fix_applied_at: new Date().toISOString(),
         }).eq("id", chk.id);
