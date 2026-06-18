@@ -7,7 +7,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -23,29 +23,39 @@ function json(b: unknown, s = 200) {
   });
 }
 
-async function callGateway(system: string, user: string, maxTokens: number): Promise<string> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+async function callAnthropic(
+  system: string,
+  user: string,
+  maxTokens: number,
+  label = "admt"
+): Promise<{ text: string; stopReason: string | null }> {
+  const t0 = Date.now();
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "claude-sonnet-4-6",
       max_tokens: maxTokens,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
+      system,
+      messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(720_000),
+    signal: AbortSignal.timeout(900_000),
   });
   if (!res.ok) {
     const t = await res.text();
-    throw new Error(`Gateway ${res.status}: ${t.slice(0, 300)}`);
+    throw new Error(`Anthropic ${res.status}: ${t.slice(0, 300)}`);
   }
   const d = await res.json();
-  return d.choices?.[0]?.message?.content || "";
+  const text = d.content?.[0]?.text ?? "";
+  const stopReason: string | null = d.stop_reason ?? null;
+  console.log(
+    `[run-admt-checker] label=${label} elapsed=${Date.now() - t0}ms stop=${stopReason} chars=${text.length}`
+  );
+  return { text, stopReason };
 }
 
 function tryParseJson(text: string): any | null {
