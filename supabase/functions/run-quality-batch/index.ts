@@ -258,7 +258,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
 
   let claudeResult: any = null;
   try {
-    const raw = await claude(CLAUDE_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2500)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 10000)}\nEvaluate this report. Quote actual text as evidence for each finding.`, 3500);
+    const raw = await claude(CLAUDE_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2500)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`, 5000);
     claudeResult = tryParse(raw);
   } catch (e) {
     console.warn("[run-quality-batch] Claude rubric eval failed:", (e as Error).message);
@@ -316,7 +316,7 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
   try {
-    const raw = await gpt4o(GPT_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2000)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 9000)}\nEvaluate this compliance document. Quote actual text as evidence for each finding.`, 3000);
+    const raw = await gpt4o(GPT_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2000)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 15000)}\nEvaluate this compliance document. Quote actual text as evidence for each finding.`, 3000);
     const parsed = tryParse(raw);
     if (!parsed?.dimension_scores) {
       return { eval: null, error: `GPT returned unexpected structure (first 120 chars: ${raw.slice(0, 120)})` };
