@@ -410,19 +410,54 @@ async function runPipeline(assessment_id: string) {
     const userPrompt = buildUserPrompt(fiveStage);
 
     const t0 = Date.now();
-    let rawText = await callModel(system, userPrompt, "generate-v4");
-    let parsed = tryParseJson(rawText);
-    if (!parsed) {
-      console.warn("[cppa-risk v4] first parse failed, retrying once");
-      rawText = await callModel(system, userPrompt, "generate-v4-retry");
-      parsed = tryParseJson(rawText);
+    let parsed: any = null;
+    let debugRaw = "";
+
+    const first = await callModel(system, userPrompt, "generate-v4");
+
+    if (first.stopReason === "max_tokens") {
+      // Output was truncated — retry at 12000 tokens
+      console.warn("[cppa-risk v4] output truncated (max_tokens) — retrying at 12000 tokens");
+      const retryRes = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 12000,
+          system,
+          messages: [{ role: "user", content: userPrompt }],
+        }),
+        signal: AbortSignal.timeout(900_000),
+      });
+      if (retryRes.ok) {
+        const retryData = await retryRes.json();
+        const retryText = retryData.content?.[0]?.text ?? "";
+        debugRaw = retryText;
+        parsed = tryParseJson(retryText);
+      } else {
+        debugRaw = first.text;
+      }
+    } else {
+      debugRaw = first.text;
+      parsed = tryParseJson(first.text);
+      if (!parsed) {
+        console.warn("[cppa-risk v4] first parse failed — retrying once");
+        const retry = await callModel(system, userPrompt, "generate-v4-retry");
+        debugRaw = retry.text;
+        parsed = tryParseJson(retry.text);
+      }
     }
+
     console.log(`[cppa-risk v4] generation total ${Date.now() - t0}ms`);
 
     if (!parsed || !parsed.assessment_summary) {
       await supabase.from("cppa_assessments").update({
         status: "error",
-        report_data: { error: "generation_parse_failed", debug: rawText?.slice(0, 4000) ?? "" },
+        report_data: { error: "generation_parse_failed", debug: debugRaw.slice(0, 4000) },
       }).eq("id", assessment_id);
       return;
     }
