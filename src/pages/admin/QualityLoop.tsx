@@ -317,9 +317,17 @@ export default function QualityLoop() {
               ? <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Running…</>
               : "▶ Run Tests"}
           </Button>
+          {running && (
+            <Button onClick={stopRun} variant="outline"
+              disabled={!!activeRun?.cancel_requested}
+              className="h-10 border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800">
+              {activeRun?.cancel_requested ? "Stopping…" : "■ Stop"}
+            </Button>
+          )}
           {activeRun && running && (
             <span className={`text-sm font-medium ${statusColor(activeRun.status)}`}>
               {statusLabel(activeRun.status)}
+              {activeRun.cancel_requested && " (cancel requested)"}
             </span>
           )}
         </div>
