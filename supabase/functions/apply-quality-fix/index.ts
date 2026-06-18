@@ -37,7 +37,11 @@ async function ghPut(path: string, body: any): Promise<any> {
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(45_000),
   });
-  if (!r.ok) throw new Error(`GitHub PUT ${path}: ${r.status} ${(await r.text()).slice(0, 200)}`);
+  if (!r.ok) {
+    const err = new Error(`GitHub PUT ${path}: ${r.status} ${(await r.text()).slice(0, 200)}`);
+    (err as any).status = r.status;
+    throw err;
+  }
   return r.json();
 }
 
