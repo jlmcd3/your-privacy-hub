@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
           patch_description: `Quality loop fix: ${chk.check_id} (${chk.dimension}, ${chk.severity}, ${Math.round((chk.fail_rate ?? 0) * 100)}% fail rate)`,
           old_text: "(see commit diff)", new_text: chk.proposed_fix,
           commit_sha: commitSha, commit_url: commitUrl,
-          applied_by: userData.user.id,
+          applied_by: userId,
         });
         results.push({ check_id: chk.check_id, success: true, commit_url: commitUrl });
       }
