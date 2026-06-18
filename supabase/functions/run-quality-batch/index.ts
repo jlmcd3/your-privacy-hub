@@ -848,10 +848,24 @@ async function runBatch(runId: string): Promise<void> {
       aggregates.push({ checkId, findings, first, passed, failed, failRate, evidence, crossCategory, gptEvidence, rubricAddition, severityRank });
     }
 
+    // Skip check_ids already successfully patched into this tool's file recently —
+    // avoids proposing (and re-applying) the same instruction across separate runs.
+    const { data: recentlyApplied, error: recentLookupErr } = await admin
+      .from("quality_applied_patches")
+      .select("check_id")
+      .eq("tool", tool)
+      .gte("applied_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+    if (recentLookupErr) {
+      console.warn("[run-quality-batch] dedup lookup failed, proceeding without it:", recentLookupErr.message);
+    }
+    const alreadyFixedIds = new Set((recentlyApplied ?? []).map((r: any) => r.check_id));
+
     // Rank candidates for AI fix-generation: needs evidence, failRate>0.2, no rubric override,
     // not a conflict (those require manual legal review). Sort by severity then impact (failed × failRate).
     const aiCandidates = aggregates
       .filter(a => !a.rubricAddition && a.failRate > 0.2 && a.evidence.length > 0 && a.crossCategory !== "conflict")
+      .filter(a => !alreadyFixedIds.has(a.checkId))
       .sort((x, y) => (y.severityRank - x.severityRank) || (y.failed * y.failRate - x.failed * x.failRate))
       .slice(0, MAX_AI_FIXES);
 
