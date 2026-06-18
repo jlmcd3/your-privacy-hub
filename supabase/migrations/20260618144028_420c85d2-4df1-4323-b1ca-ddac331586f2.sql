@@ -1,0 +1,1 @@
+UPDATE public.quality_runs SET status='failed', completed_at=now(), error='Edge function timeout — instance shutdown at 14:32:58Z after Doc 5/5 evaluation stalled (Claude/GPT-4o call exceeded wall-clock limit)' WHERE id='11093337-2dea-45d5-9dac-e01d67999008' AND status='building';
