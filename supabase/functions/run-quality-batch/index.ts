@@ -684,9 +684,11 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       gpt_only_count: gptOnlyTotal,
       conflict_count: conflictTotal,
     });
+    await log("success", `Run complete — overall score ${overall}/100 (${allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks)`);
 
   } catch (e) {
     console.error("[run-quality-batch] fatal:", e);
+    await log("error", `Fatal: ${(e as Error).message}`);
     await upd({ status: "error", error: (e as Error).message?.slice(0, 300) }).catch(() => {});
   }
 }
