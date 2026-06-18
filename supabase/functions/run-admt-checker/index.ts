@@ -497,7 +497,17 @@ Return this JSON structure exactly:
   ]
 }`;
 
-        const draftRaw = await callGateway(draftSystem, draftPrompt, 5000);
+        let draftRaw: string;
+        {
+          const first = await callAnthropic(draftSystem, draftPrompt, 5000, "sample-language");
+          if (first.stopReason === "max_tokens") {
+            console.warn("[run-admt-checker] sample-language truncated — retrying at 7500 tokens");
+            const retry = await callAnthropic(draftSystem, draftPrompt, 7500, "sample-language-retry");
+            draftRaw = retry.text;
+          } else {
+            draftRaw = first.text;
+          }
+        }
         const draftResult = tryParseJson(draftRaw);
 
         if (draftResult?.drafts && Array.isArray(draftResult.drafts)) {
@@ -525,14 +535,14 @@ Return this JSON structure exactly:
       report_data: report,
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
-
-    return json({ success: true, assessment_id, status: "complete" });
-  } catch (e) {
-    console.error("[run-admt-checker] error:", e);
+   } catch (e) {
+    console.error("[run-admt-checker] pipeline error:", e);
     await supabase.from("cppa_assessments").update({
       status: "error",
       report_data: { error: String(e) },
     }).eq("id", assessment_id);
-    return json({ error: String(e) }, 500);
-  }
+   }
+  })());
+
+  return json({ accepted: true, assessment_id }, 202);
 });
