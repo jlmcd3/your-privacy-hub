@@ -56,7 +56,39 @@ const TOOL_FILE_PATH: Record<string, string> = {
   "global-privacy-notice": "supabase/functions/generate-privacy-notice/index.ts",
 };
 
-async function applyPatchWithClaude(currentContent: string, checkId: string, proposedFix: string, fixLocation: string): Promise<string> {
+// Maps each tool to its prompt architecture so the patcher targets the right location.
+// "anthropic" = system prompt in Anthropic API `system` parameter
+// "lovable-gateway" = system prompt in messages[0] as { role: "system", content: `...` }
+//   or as a named const string (e.g. SYSTEM_PROMPT_TEMPLATE) passed to the gateway call
+const TOOL_PROMPT_FORMAT: Record<string, "anthropic" | "lovable-gateway"> = {
+  "cppa-admt":             "lovable-gateway",
+  "cppa-risk":             "lovable-gateway",
+  "cppa-cyber":            "anthropic",
+  "lia":                   "anthropic",
+  "dpia":                  "anthropic",
+  "governance":            "anthropic",
+  "biometric-checker":     "anthropic",
+  "dpa-generator":         "anthropic",
+  "ir-playbook":           "anthropic",
+  "rofa":                  "anthropic",
+  "privacy-notice-us":     "anthropic",
+  "global-privacy-notice": "anthropic",
+};
+
+async function applyPatchWithClaude(
+  currentContent: string,
+  checkId: string,
+  proposedFix: string,
+  fixLocation: string,
+  promptFormat: "anthropic" | "lovable-gateway"
+): Promise<string> {
+  const architectureNote = promptFormat === "lovable-gateway"
+    ? `IMPORTANT: This file calls the Lovable AI Gateway (https://ai.gateway.lovable.dev), NOT the Anthropic API directly. The system prompt in this file is either:
+- A TypeScript const string (e.g. const SYSTEM_PROMPT_TEMPLATE = \`...\` or const system = \`...\`) that is passed to a gateway call
+- Or passed inline as messages[0] with role "system" in a chat completions request
+When applying the patch, locate and modify the correct const string or inline system message. Do NOT look for an Anthropic-style \`system:\` parameter — it does not exist in this file.`
+    : `This file calls the Anthropic API directly. The system prompt is in the \`system\` parameter of the API call or in a named const string passed to it.`;
+
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
@@ -64,7 +96,7 @@ async function applyPatchWithClaude(currentContent: string, checkId: string, pro
       model: "claude-sonnet-4-6",
       max_tokens: 16000,
       system: "You are a code editor. Apply ONLY the specified patch to the TypeScript file — change nothing else. Return the complete modified file content as raw TypeScript. No explanation, no markdown, no code fences.",
-      messages: [{ role: "user", content: `Apply this patch.\n\nPATCH LOCATION: ${fixLocation}\nCHECK BEING FIXED: ${checkId}\n\nPATCH TO APPLY:\n${proposedFix}\n\nCURRENT FILE:\n${currentContent}\n\nReturn the complete modified file. Raw TypeScript only.` }],
+      messages: [{ role: "user", content: `Apply this patch.\n\nPATCH LOCATION: ${fixLocation}\nCHECK BEING FIXED: ${checkId}\n\nPROMPT ARCHITECTURE NOTE:\n${architectureNote}\n\nPATCH TO APPLY:\n${proposedFix}\n\nCURRENT FILE:\n${currentContent}\n\nReturn the complete modified file. Raw TypeScript only.` }],
     }),
     signal: AbortSignal.timeout(120_000),
   });
@@ -72,6 +104,7 @@ async function applyPatchWithClaude(currentContent: string, checkId: string, pro
   const d = await r.json();
   return (d.content?.[0]?.text ?? "").replace(/^```(?:typescript|ts)?\s*/i, "").replace(/```\s*$/i, "").trim();
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -121,7 +154,9 @@ Deno.serve(async (req) => {
           results.push({ check_id: chk.check_id, success: false, error: "No proposed fix stored" });
           continue;
         }
-        const patched = await applyPatchWithClaude(currentContent, chk.check_id, chk.proposed_fix, chk.fix_location ?? "");
+        const tool = (chk as any).quality_runs?.tool ?? (chk as any).tool;
+        const promptFormat = TOOL_PROMPT_FORMAT[tool] ?? "anthropic";
+        const patched = await applyPatchWithClaude(currentContent, chk.check_id, chk.proposed_fix, chk.fix_location ?? "", promptFormat);
         if (!patched || patched.length < currentContent.length * 0.5) {
           results.push({ check_id: chk.check_id, success: false, error: "Patch produced suspiciously short output — rejected" });
           continue;
