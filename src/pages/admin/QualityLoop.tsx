@@ -150,7 +150,7 @@ export default function QualityLoop() {
     const { data } = await supabase.from("quality_runs").select("*").eq("id", runId).single();
     if (data) {
       setActiveRun(data as Run);
-      if (["complete", "error"].includes(data.status)) stopPolling();
+      if (TERMINAL_STATUSES.includes(data.status)) stopPolling();
     }
   }, []);
 
