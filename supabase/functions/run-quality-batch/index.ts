@@ -481,7 +481,7 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
       await invokeFn("check-biometric-compliance", { ...intake, assessment_id: rec.id, user_id: userId, stress_run: true });
 
-      for (let i = 0; i < 24; i++) {
+      for (let i = 0; i < 120; i++) {
         await new Promise(r => setTimeout(r, 2500));
         const { data } = await admin.from("biometric_assessments")
           .select("status, analysis_text, report_data")
