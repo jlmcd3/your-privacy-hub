@@ -280,8 +280,8 @@ export default function AdminQAExport() {
         )}
         <p className="text-xs text-muted-foreground">
           See also:{" "}
-          <a href="/admin/quality-loop" className="text-brand-teal underline">🔬 /admin/quality-loop</a>{" "}— self-improving quality refinement loop.
-        )}
+          <a href="/admin/quality-loop" className="text-brand-teal underline">🔬 /admin/quality-loop</a> — self-improving quality refinement loop.
+        </p>
         {batches.length > 0 && (
           <div className="space-y-2">
             {batches.map((b) => (
