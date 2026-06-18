@@ -48,7 +48,7 @@ async function gpt4o(system: string, user: string, maxTokens = 3000): Promise<st
       response_format: { type: "json_object" },
       messages: [{ role: "system", content: system }, { role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(300_000),
+    signal: AbortSignal.timeout(90_000),
   });
   if (!r.ok) throw new Error(`GPT-4o ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();
