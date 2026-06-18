@@ -140,6 +140,10 @@ Deno.serve(async (req) => {
       const currentSha   = ghFile.sha;
 
       for (const chk of fileChecks) {
+        if (alreadyAppliedIds.has(chk.id)) {
+          results.push({ check_id: chk.check_id, success: true, skipped: true, error: "Already applied — skipped duplicate" });
+          continue;
+        }
         if (!chk.proposed_fix) {
           results.push({ check_id: chk.check_id, success: false, error: "No proposed fix stored" });
           continue;
@@ -153,12 +157,31 @@ Deno.serve(async (req) => {
       }
 
       const appliedIds = fileChecks.map(c => c.check_id).join(", ");
-      const pushResult = await ghPut(`contents/${filePath}`, {
-        message: `fix(quality-loop): prompt patches for ${appliedIds}\n\nApplied via EndUserPrivacy quality refinement loop.\nChecks fixed: ${appliedIds}\nFile: ${filePath}`,
-        content: btoa(unescape(encodeURIComponent(currentContent))),
-        sha: currentSha,
-        branch: GITHUB_BRANCH,
-      });
+      const commitMessage = `fix(quality-loop): prompt patches for ${appliedIds}\n\nApplied via EndUserPrivacy quality refinement loop.\nChecks fixed: ${appliedIds}\nFile: ${filePath}`;
+
+      let pushResult: any;
+      try {
+        pushResult = await ghPut(`contents/${filePath}`, {
+          message: commitMessage,
+          content: btoa(unescape(encodeURIComponent(currentContent))),
+          sha: currentSha,
+          branch: GITHUB_BRANCH,
+        });
+      } catch (e) {
+        if ((e as any).status === 409) {
+          // RX-3: concurrent push changed the file underneath us — refetch sha and retry once.
+          console.warn(`[apply-quality-fix] 409 on ${filePath}, refetching sha and retrying once`);
+          const freshFile = await ghGet(`contents/${filePath}?ref=${GITHUB_BRANCH}`);
+          pushResult = await ghPut(`contents/${filePath}`, {
+            message: commitMessage,
+            content: btoa(unescape(encodeURIComponent(currentContent))),
+            sha: freshFile.sha,
+            branch: GITHUB_BRANCH,
+          });
+        } else {
+          throw e;
+        }
+      }
 
       const commitSha = pushResult?.commit?.sha ?? "";
       const commitUrl = pushResult?.commit?.html_url ?? `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/commit/${commitSha}`;
