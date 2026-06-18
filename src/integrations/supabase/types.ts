@@ -3238,6 +3238,388 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_applied_patches: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          check_id: string
+          check_result_id: string | null
+          commit_sha: string | null
+          commit_url: string | null
+          edge_function: string
+          file_path: string
+          id: string
+          new_text: string
+          old_text: string
+          patch_description: string
+          run_id: string
+          tool: string
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          check_id: string
+          check_result_id?: string | null
+          commit_sha?: string | null
+          commit_url?: string | null
+          edge_function: string
+          file_path: string
+          id?: string
+          new_text: string
+          old_text: string
+          patch_description: string
+          run_id: string
+          tool: string
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          check_id?: string
+          check_result_id?: string | null
+          commit_sha?: string | null
+          commit_url?: string | null
+          edge_function?: string
+          file_path?: string
+          id?: string
+          new_text?: string
+          old_text?: string
+          patch_description?: string
+          run_id?: string
+          tool?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_applied_patches_check_result_id_fkey"
+            columns: ["check_result_id"]
+            isOneToOne: false
+            referencedRelation: "quality_check_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_applied_patches_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "quality_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_check_results: {
+        Row: {
+          check_id: string
+          check_type: string
+          cross_review_category: string | null
+          cross_review_summary: string | null
+          dimension: string
+          fail_count: number
+          fail_rate: number
+          fix_applied: boolean
+          fix_applied_at: string | null
+          fix_commit_sha: string | null
+          fix_location: string | null
+          fix_selected: boolean
+          gpt_fail_count: number | null
+          gpt_fail_rate: number | null
+          gpt_pass_count: number | null
+          gpt_sample_evidence: string[] | null
+          id: string
+          pass_count: number
+          proposed_fix: string | null
+          run_id: string
+          run_number: number
+          sample_evidence: string[] | null
+          severity: string
+          tool: string
+        }
+        Insert: {
+          check_id: string
+          check_type: string
+          cross_review_category?: string | null
+          cross_review_summary?: string | null
+          dimension: string
+          fail_count?: number
+          fail_rate?: number
+          fix_applied?: boolean
+          fix_applied_at?: string | null
+          fix_commit_sha?: string | null
+          fix_location?: string | null
+          fix_selected?: boolean
+          gpt_fail_count?: number | null
+          gpt_fail_rate?: number | null
+          gpt_pass_count?: number | null
+          gpt_sample_evidence?: string[] | null
+          id?: string
+          pass_count?: number
+          proposed_fix?: string | null
+          run_id: string
+          run_number: number
+          sample_evidence?: string[] | null
+          severity: string
+          tool: string
+        }
+        Update: {
+          check_id?: string
+          check_type?: string
+          cross_review_category?: string | null
+          cross_review_summary?: string | null
+          dimension?: string
+          fail_count?: number
+          fail_rate?: number
+          fix_applied?: boolean
+          fix_applied_at?: string | null
+          fix_commit_sha?: string | null
+          fix_location?: string | null
+          fix_selected?: boolean
+          gpt_fail_count?: number | null
+          gpt_fail_rate?: number | null
+          gpt_pass_count?: number | null
+          gpt_sample_evidence?: string[] | null
+          id?: string
+          pass_count?: number
+          proposed_fix?: string | null
+          run_id?: string
+          run_number?: number
+          sample_evidence?: string[] | null
+          severity?: string
+          tool?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_check_results_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "quality_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_findings: {
+        Row: {
+          check_id: string
+          check_type: string
+          created_at: string | null
+          dimension: string
+          doc_id: string | null
+          evidence: string | null
+          id: string
+          passed: boolean
+          run_id: string
+          run_number: number
+          severity: string
+          tool: string
+        }
+        Insert: {
+          check_id: string
+          check_type: string
+          created_at?: string | null
+          dimension: string
+          doc_id?: string | null
+          evidence?: string | null
+          id?: string
+          passed: boolean
+          run_id: string
+          run_number: number
+          severity: string
+          tool: string
+        }
+        Update: {
+          check_id?: string
+          check_type?: string
+          created_at?: string | null
+          dimension?: string
+          doc_id?: string | null
+          evidence?: string | null
+          id?: string
+          passed?: boolean
+          run_id?: string
+          run_number?: number
+          severity?: string
+          tool?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_findings_doc_id_fkey"
+            columns: ["doc_id"]
+            isOneToOne: false
+            referencedRelation: "quality_run_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_findings_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "quality_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_run_documents: {
+        Row: {
+          created_at: string | null
+          cross_review: Json | null
+          cross_review_status: string | null
+          dimension_scores: Json | null
+          doc_number: number
+          error: string | null
+          gpt_dimension_scores: Json | null
+          gpt_evaluation: Json | null
+          gpt_overall_score: number | null
+          id: string
+          intake_data: Json
+          overall_score: number | null
+          report_data: Json | null
+          run_id: string
+          source_row_id: string | null
+          source_table: string | null
+          status: string
+          tool: string
+        }
+        Insert: {
+          created_at?: string | null
+          cross_review?: Json | null
+          cross_review_status?: string | null
+          dimension_scores?: Json | null
+          doc_number: number
+          error?: string | null
+          gpt_dimension_scores?: Json | null
+          gpt_evaluation?: Json | null
+          gpt_overall_score?: number | null
+          id?: string
+          intake_data: Json
+          overall_score?: number | null
+          report_data?: Json | null
+          run_id: string
+          source_row_id?: string | null
+          source_table?: string | null
+          status?: string
+          tool: string
+        }
+        Update: {
+          created_at?: string | null
+          cross_review?: Json | null
+          cross_review_status?: string | null
+          dimension_scores?: Json | null
+          doc_number?: number
+          error?: string | null
+          gpt_dimension_scores?: Json | null
+          gpt_evaluation?: Json | null
+          gpt_overall_score?: number | null
+          id?: string
+          intake_data?: Json
+          overall_score?: number | null
+          report_data?: Json | null
+          run_id?: string
+          source_row_id?: string | null
+          source_table?: string | null
+          status?: string
+          tool?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_run_documents_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "quality_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_runs: {
+        Row: {
+          batch_size: number
+          checks_failed: number | null
+          checks_passed: number | null
+          checks_total: number | null
+          completed_at: string | null
+          conflict_count: number
+          created_by: string | null
+          cross_review_complete: boolean
+          error: string | null
+          gpt_only_count: number
+          gpt_score_accuracy: number | null
+          gpt_score_analysis: number | null
+          gpt_score_citation: number | null
+          gpt_score_formatting: number | null
+          gpt_score_hallucination: number | null
+          gpt_score_intelligence: number | null
+          gpt_score_overall: number | null
+          id: string
+          run_number: number
+          score_accuracy: number | null
+          score_analysis: number | null
+          score_citation: number | null
+          score_formatting: number | null
+          score_hallucination: number | null
+          score_intelligence: number | null
+          score_overall: number | null
+          started_at: string | null
+          status: string
+          tool: string
+        }
+        Insert: {
+          batch_size?: number
+          checks_failed?: number | null
+          checks_passed?: number | null
+          checks_total?: number | null
+          completed_at?: string | null
+          conflict_count?: number
+          created_by?: string | null
+          cross_review_complete?: boolean
+          error?: string | null
+          gpt_only_count?: number
+          gpt_score_accuracy?: number | null
+          gpt_score_analysis?: number | null
+          gpt_score_citation?: number | null
+          gpt_score_formatting?: number | null
+          gpt_score_hallucination?: number | null
+          gpt_score_intelligence?: number | null
+          gpt_score_overall?: number | null
+          id?: string
+          run_number?: number
+          score_accuracy?: number | null
+          score_analysis?: number | null
+          score_citation?: number | null
+          score_formatting?: number | null
+          score_hallucination?: number | null
+          score_intelligence?: number | null
+          score_overall?: number | null
+          started_at?: string | null
+          status?: string
+          tool: string
+        }
+        Update: {
+          batch_size?: number
+          checks_failed?: number | null
+          checks_passed?: number | null
+          checks_total?: number | null
+          completed_at?: string | null
+          conflict_count?: number
+          created_by?: string | null
+          cross_review_complete?: boolean
+          error?: string | null
+          gpt_only_count?: number
+          gpt_score_accuracy?: number | null
+          gpt_score_analysis?: number | null
+          gpt_score_citation?: number | null
+          gpt_score_formatting?: number | null
+          gpt_score_hallucination?: number | null
+          gpt_score_intelligence?: number | null
+          gpt_score_overall?: number | null
+          id?: string
+          run_number?: number
+          score_accuracy?: number | null
+          score_analysis?: number | null
+          score_citation?: number | null
+          score_formatting?: number | null
+          score_hallucination?: number | null
+          score_intelligence?: number | null
+          score_overall?: number | null
+          started_at?: string | null
+          status?: string
+          tool?: string
+        }
+        Relationships: []
+      }
       questionnaire_versions: {
         Row: {
           created_at: string
