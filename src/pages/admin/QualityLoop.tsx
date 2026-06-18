@@ -355,7 +355,25 @@ export default function QualityLoop() {
               {activeRun.cancel_requested && " (cancel requested)"}
             </span>
           )}
+          <div className="ml-auto flex items-center gap-3">
+            {verifyResult && (
+              <span className={`text-xs font-medium ${verifyResult.ok ? "text-emerald-700" : "text-red-600"}`}>
+                {verifyResult.message}
+              </span>
+            )}
+            <Button
+              onClick={verifyToken}
+              disabled={verifying}
+              variant="outline"
+              size="sm"
+              className="h-9"
+            >
+              <KeyRound className="w-3.5 h-3.5 mr-1.5" />
+              {verifying ? "Verifying…" : "Verify GitHub Token"}
+            </Button>
+          </div>
         </div>
+
 
         {activeRun && Array.isArray(activeRun.progress_log) && activeRun.progress_log.length > 0 && (
           <RunLog entries={activeRun.progress_log} live={running} />
