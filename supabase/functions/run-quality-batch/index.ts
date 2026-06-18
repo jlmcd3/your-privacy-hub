@@ -52,6 +52,23 @@ async function gpt4o(system: string, user: string, maxTokens = 3000): Promise<st
   return d.choices?.[0]?.message?.content ?? "";
 }
 
+async function o3(system: string, user: string, maxTokens = 3000): Promise<string> {
+  if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not set");
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "o3",
+      max_completion_tokens: maxTokens,
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+    signal: AbortSignal.timeout(90_000),
+  });
+  if (!r.ok) throw new Error(`o3 ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content ?? "";
+}
+
 function tryParse(t: string): any | null {
   const c = t.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
   try { return JSON.parse(c); } catch { /* */ }
