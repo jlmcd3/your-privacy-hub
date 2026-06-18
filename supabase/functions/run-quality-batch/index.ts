@@ -455,17 +455,31 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const upd = (data: any) => admin.from("quality_runs").update(data).eq("id", runId);
 
+  const logBuf: Array<{ t: string; level: string; msg: string }> = [];
+  const log = async (level: "info" | "warn" | "error" | "success", msg: string) => {
+    const entry = { t: new Date().toISOString(), level, msg: String(msg).slice(0, 500) };
+    logBuf.push(entry);
+    if (level === "error" || level === "warn") console.warn(`[quality-batch ${level}]`, msg);
+    else console.log(`[quality-batch]`, msg);
+    try { await admin.from("quality_runs").update({ progress_log: logBuf }).eq("id", runId); } catch { /* */ }
+  };
+
   try {
+    await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents)`);
     await upd({ status: "generating" });
+    await log("info", `Generating ${batchSize} intake scenarios via Claude…`);
     let intakes: any[];
     try {
       intakes = await generateIntakes(tool, batchSize);
+      await log("success", `Generated ${intakes.length} intake scenarios`);
     } catch (e) {
+      await log("error", `Intake generation failed: ${(e as Error).message}`);
       await upd({ status: "error", error: `Intake generation failed: ${(e as Error).message}` });
       return;
     }
 
     await upd({ status: "building" });
+    await log("info", `Building & evaluating ${intakes.length} documents…`);
 
     const dimTotals    = { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 };
     const gptTotals    = { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 };
