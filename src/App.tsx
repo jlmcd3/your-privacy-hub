@@ -150,6 +150,7 @@ const CPPAEvalHarness = lazy(() => import("./pages/admin/CPPAEvalHarness"));
 const AdminFsorIngestion = lazy(() => import("./pages/admin/AdminFsorIngestion"));
 const AdminSampleReports = lazy(() => import("./pages/admin/AdminSampleReports"));
 const AdminStaticStress = lazy(() => import("./pages/admin/AdminStaticStress"));
+const QualityLoop = lazy(() => import("./pages/admin/QualityLoop"));
 const AdminQAExport = lazy(() => import("./pages/admin/AdminQAExport"));
 const SampleReport = lazy(() => import("./pages/SampleReport.tsx"));
 const SampleReportOutput = lazy(() => import("./pages/SampleReportOutput.tsx"));
@@ -576,6 +577,18 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminOnly fallback={<NotFound />}>
                     <AdminQAExport />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/quality-loop"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
+                      <QualityLoop />
+                    </Suspense>
                   </AdminOnly>
                 </ProtectedRoute>
               }
