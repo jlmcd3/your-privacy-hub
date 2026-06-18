@@ -30,7 +30,7 @@ async function claude(system: string, user: string, maxTokens = 4000, model = "c
     method: "POST",
     headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: signal ?? AbortSignal.timeout(120_000),
+    signal: signal ?? AbortSignal.timeout(300_000),
   });
   if (!r.ok) throw new Error(`Claude ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();
