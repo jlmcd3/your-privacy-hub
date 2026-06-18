@@ -16,6 +16,8 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const TOOL_BATCH_SIZE: Record<string, number> = { "cppa-risk": 3 };
+
 type Admin = ReturnType<typeof createClient>;
 
 function json(b: unknown, s = 200) {
