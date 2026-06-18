@@ -28,6 +28,7 @@ const DIMS = [
 ];
 
 const IN_PROGRESS_STATUSES = ["pending", "generating", "building", "evaluating"];
+const TERMINAL_STATUSES = ["complete", "error", "cancelled"];
 
 type Run = {
   id: string; tool: string; status: string; batch_size: number; run_number: number;
