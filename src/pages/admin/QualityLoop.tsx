@@ -28,6 +28,7 @@ const DIMS = [
 ];
 
 const IN_PROGRESS_STATUSES = ["pending", "generating", "building", "evaluating"];
+const TERMINAL_STATUSES = ["complete", "error", "cancelled"];
 
 type Run = {
   id: string; tool: string; status: string; batch_size: number; run_number: number;
@@ -41,6 +42,7 @@ type Run = {
   checks_total: number; checks_passed: number; checks_failed: number;
   started_at: string; completed_at: string|null; error: string|null;
   progress_log: any;
+  cancel_requested?: boolean;
 };
 
 type CheckResult = {
@@ -149,7 +151,7 @@ export default function QualityLoop() {
     const { data } = await supabase.from("quality_runs").select("*").eq("id", runId).single();
     if (data) {
       setActiveRun(data as Run);
-      if (["complete", "error"].includes(data.status)) stopPolling();
+      if (TERMINAL_STATUSES.includes(data.status)) stopPolling();
     }
   }, []);
 
@@ -214,8 +216,20 @@ export default function QualityLoop() {
     }
   };
 
+  const stopRun = async () => {
+    if (!activeRun) return;
+    if (!confirm("Stop the current run? Any in-flight document will finish, then the run will halt.")) return;
+    // Cancel any in-progress runs for this tool (defensive: also flags orphans).
+    const { error } = await supabase.from("quality_runs")
+      .update({ cancel_requested: true })
+      .eq("tool", tool).in("status", IN_PROGRESS_STATUSES);
+    if (error) { toast.error(`Stop failed: ${error.message}`); return; }
+    toast.message("Stop requested — run will halt after the current document.");
+    await loadRun(activeRun.id);
+  };
+
   useEffect(() => {
-    if (activeRun?.status === "complete" || activeRun?.status === "error") {
+    if (activeRun && TERMINAL_STATUSES.includes(activeRun.status)) {
       setRunning(false);
       stopPolling();
       if (activeRun.status === "complete") { loadPrevRuns(tool); loadPatches(tool); }
@@ -259,10 +273,14 @@ export default function QualityLoop() {
 
   const statusLabel = (s: string) => ({
     pending: "Pending", generating: "Generating intakes…", building: "Building documents…",
-    evaluating: "Evaluating…", complete: "Complete", error: "Error",
+    evaluating: "Evaluating…", complete: "Complete", error: "Error", cancelled: "Cancelled",
   }[s] ?? s);
 
-  const statusColor = (s: string) => s === "complete" ? "text-emerald-600" : s === "error" ? "text-red-600" : "text-blue-600";
+  const statusColor = (s: string) =>
+    s === "complete" ? "text-emerald-600"
+    : s === "error" ? "text-red-600"
+    : s === "cancelled" ? "text-amber-600"
+    : "text-blue-600";
 
   const failingChecks  = checks.filter(c => c.fail_count > 0 && !c.fix_applied);
   const appliedChecks  = checks.filter(c => c.fix_applied);
@@ -300,9 +318,17 @@ export default function QualityLoop() {
               ? <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Running…</>
               : "▶ Run Tests"}
           </Button>
+          {running && (
+            <Button onClick={stopRun} variant="outline"
+              disabled={!!activeRun?.cancel_requested}
+              className="h-10 border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800">
+              {activeRun?.cancel_requested ? "Stopping…" : "■ Stop"}
+            </Button>
+          )}
           {activeRun && running && (
             <span className={`text-sm font-medium ${statusColor(activeRun.status)}`}>
               {statusLabel(activeRun.status)}
+              {activeRun.cancel_requested && " (cancel requested)"}
             </span>
           )}
         </div>

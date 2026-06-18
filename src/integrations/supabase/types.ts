@@ -3527,6 +3527,7 @@ export type Database = {
       quality_runs: {
         Row: {
           batch_size: number
+          cancel_requested: boolean
           checks_failed: number | null
           checks_passed: number | null
           checks_total: number | null
@@ -3559,6 +3560,7 @@ export type Database = {
         }
         Insert: {
           batch_size?: number
+          cancel_requested?: boolean
           checks_failed?: number | null
           checks_passed?: number | null
           checks_total?: number | null
@@ -3591,6 +3593,7 @@ export type Database = {
         }
         Update: {
           batch_size?: number
+          cancel_requested?: boolean
           checks_failed?: number | null
           checks_passed?: number | null
           checks_total?: number | null

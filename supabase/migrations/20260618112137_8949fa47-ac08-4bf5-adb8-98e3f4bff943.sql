@@ -1,0 +1,1 @@
+ALTER TABLE public.quality_runs ADD COLUMN IF NOT EXISTS cancel_requested boolean NOT NULL DEFAULT false;

@@ -488,6 +488,12 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
     const allDocFindings: any[] = [];
 
     for (let i = 0; i < intakes.length; i++) {
+      const { data: cancelCheck } = await admin.from("quality_runs").select("cancel_requested").eq("id", runId).single();
+      if ((cancelCheck as any)?.cancel_requested) {
+        await log("warn", `Run cancelled by user after ${i}/${intakes.length} documents`);
+        await upd({ status: "cancelled", completed_at: new Date().toISOString(), error: "Cancelled by user" });
+        return;
+      }
       const intake = intakes[i];
       const docLabel = `Doc ${i + 1}/${intakes.length}`;
       await log("info", `${docLabel}: building…`);
