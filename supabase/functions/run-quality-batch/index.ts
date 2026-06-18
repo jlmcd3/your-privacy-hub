@@ -18,6 +18,10 @@ const cors = {
 
 const TOOL_BATCH_SIZE: Record<string, number> = { "cppa-risk": 3 };
 
+// Tools that use the Lovable AI Gateway (Gemini) rather than Anthropic direct.
+// The fix proposer needs this context to generate correctly-targeted patch instructions.
+const GATEWAY_TOOLS = new Set(["cppa-admt", "cppa-risk"]);
+
 type Admin = ReturnType<typeof createClient>;
 
 function json(b: unknown, s = 200) {
