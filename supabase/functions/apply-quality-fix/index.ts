@@ -42,12 +42,13 @@ async function ghPut(path: string, body: any): Promise<any> {
 }
 
 const TOOL_FILE_PATH: Record<string, string> = {
-  "cppa-admt":  "supabase/functions/run-admt-checker/index.ts",
-  "cppa-risk":  "supabase/functions/run-cppa-risk-assessment/index.ts",
-  "cppa-cyber": "supabase/functions/run-cppa-cybersecurity/index.ts",
-  "lia":        "supabase/functions/run-li-assessment/index.ts",
-  "dpia":       "supabase/functions/run-dpia-framework/index.ts",
-  "governance": "supabase/functions/run-governance-assessment/index.ts",
+  "cppa-admt":         "supabase/functions/run-admt-checker/index.ts",
+  "cppa-risk":         "supabase/functions/run-cppa-risk-assessment/index.ts",
+  "cppa-cyber":        "supabase/functions/run-cppa-cybersecurity/index.ts",
+  "lia":               "supabase/functions/run-li-assessment/index.ts",
+  "dpia":              "supabase/functions/run-dpia-framework/index.ts",
+  "governance":        "supabase/functions/run-governance-assessment/index.ts",
+  "biometric-checker": "supabase/functions/check-biometric-compliance/index.ts",
 };
 
 async function applyPatchWithClaude(currentContent: string, checkId: string, proposedFix: string, fixLocation: string): Promise<string> {
