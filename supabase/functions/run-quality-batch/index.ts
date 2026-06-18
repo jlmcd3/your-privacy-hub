@@ -384,7 +384,7 @@ async function generateIntakes(tool: string, count: number): Promise<any[]> {
 async function buildDocument(admin: Admin, tool: string, intake: any, userId: string): Promise<{ sourceTable: string; sourceRowId: string; reportData: any } | null> {
   try {
     const poll = async (table: string, id: string) => {
-      for (let i = 0; i < 60; i++) {
+      for (let i = 0; i < 120; i++) {
         await new Promise(r => setTimeout(r, 5000));
         const { data } = await admin.from(table).select("status, report_data").eq("id", id).single();
         if ((data as any)?.status === "complete") return (data as any)?.report_data;
@@ -447,7 +447,7 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
       await invokeFn("check-biometric-compliance", { ...intake, assessment_id: rec.id, user_id: userId, stress_run: true });
 
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 24; i++) {
         await new Promise(r => setTimeout(r, 2500));
         const { data } = await admin.from("biometric_assessments")
           .select("status, analysis_text, report_data")
