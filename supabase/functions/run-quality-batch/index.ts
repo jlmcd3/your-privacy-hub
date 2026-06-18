@@ -455,17 +455,31 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const upd = (data: any) => admin.from("quality_runs").update(data).eq("id", runId);
 
+  const logBuf: Array<{ t: string; level: string; msg: string }> = [];
+  const log = async (level: "info" | "warn" | "error" | "success", msg: string) => {
+    const entry = { t: new Date().toISOString(), level, msg: String(msg).slice(0, 500) };
+    logBuf.push(entry);
+    if (level === "error" || level === "warn") console.warn(`[quality-batch ${level}]`, msg);
+    else console.log(`[quality-batch]`, msg);
+    try { await admin.from("quality_runs").update({ progress_log: logBuf }).eq("id", runId); } catch { /* */ }
+  };
+
   try {
+    await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents)`);
     await upd({ status: "generating" });
+    await log("info", `Generating ${batchSize} intake scenarios via Claude…`);
     let intakes: any[];
     try {
       intakes = await generateIntakes(tool, batchSize);
+      await log("success", `Generated ${intakes.length} intake scenarios`);
     } catch (e) {
+      await log("error", `Intake generation failed: ${(e as Error).message}`);
       await upd({ status: "error", error: `Intake generation failed: ${(e as Error).message}` });
       return;
     }
 
     await upd({ status: "building" });
+    await log("info", `Building & evaluating ${intakes.length} documents…`);
 
     const dimTotals    = { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 };
     const gptTotals    = { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 };
@@ -475,18 +489,22 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
 
     for (let i = 0; i < intakes.length; i++) {
       const intake = intakes[i];
+      const docLabel = `Doc ${i + 1}/${intakes.length}`;
+      await log("info", `${docLabel}: building…`);
 
       const { data: docRow } = await admin.from("quality_run_documents").insert({
         run_id: runId, tool, doc_number: i + 1, intake_data: intake, status: "building",
       }).select("id").single();
-      if (!docRow) continue;
+      if (!docRow) { await log("warn", `${docLabel}: could not insert doc row`); continue; }
 
       const result = await buildDocument(admin, tool, intake, userId);
       if (!result) {
+        await log("warn", `${docLabel}: build failed`);
         await admin.from("quality_run_documents").update({ status: "error", error: "build failed" }).eq("id", docRow.id);
         continue;
       }
 
+      await log("info", `${docLabel}: built — evaluating with Claude${OPENAI_API_KEY ? " + GPT-4o" : ""}…`);
       await admin.from("quality_run_documents").update({
         report_data: result.reportData, source_table: result.sourceTable,
         source_row_id: result.sourceRowId, status: "evaluating",
@@ -495,12 +513,14 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       const claudeEval = await evaluateDocumentClaude(tool, intake, result.reportData)
         .catch(e => { console.warn("Claude eval failed:", e.message); return null; });
       if (!claudeEval) {
+        await log("error", `${docLabel}: Claude evaluation failed`);
         await admin.from("quality_run_documents").update({ status: "error", error: "Claude evaluation failed" }).eq("id", docRow.id);
         continue;
       }
 
       const gptEval = await evaluateDocumentGPT(tool, intake, result.reportData);
       const crossReview = await crossReviewEvaluations(tool, intake, result.reportData, claudeEval, gptEval);
+      await log("success", `${docLabel}: scored ${claudeEval.overall_score}/100${gptEval ? ` (GPT ${gptEval.overall_score}/100)` : ""}`);
 
       const finalScores  = crossReview?.dimension_scores_reconciled ?? claudeEval.dimension_scores;
       const finalOverall = crossReview?.overall_score_reconciled    ?? claudeEval.overall_score;
@@ -562,6 +582,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
     }
 
     await upd({ status: "evaluating" });
+    await log("info", `All documents processed (${built}/${intakes.length} built). Aggregating scores…`);
 
     const avg = (v: number) => built > 0 ? Math.round(v / built) : 0;
     const scores = {
@@ -576,6 +597,7 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       if (!byCheck.has(f.check_id)) byCheck.set(f.check_id, []);
       byCheck.get(f.check_id)!.push(f);
     }
+    await log("info", `Generating proposed fixes for ${byCheck.size} unique checks…`);
 
     for (const [checkId, findings] of byCheck) {
       const passed   = findings.filter(f => f.passed).length;
@@ -662,9 +684,11 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
       gpt_only_count: gptOnlyTotal,
       conflict_count: conflictTotal,
     });
+    await log("success", `Run complete — overall score ${overall}/100 (${allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks)`);
 
   } catch (e) {
     console.error("[run-quality-batch] fatal:", e);
+    await log("error", `Fatal: ${(e as Error).message}`);
     await upd({ status: "error", error: (e as Error).message?.slice(0, 300) }).catch(() => {});
   }
 }

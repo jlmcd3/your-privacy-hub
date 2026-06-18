@@ -40,6 +40,7 @@ type Run = {
   conflict_count: number;
   checks_total: number; checks_passed: number; checks_failed: number;
   started_at: string; completed_at: string|null; error: string|null;
+  progress_log: any;
 };
 
 type CheckResult = {
@@ -90,6 +91,41 @@ function ScoreCard({ label, score, weight }: { label: string; score: number|null
       <span className="text-xs text-gray-500 text-center leading-tight">{label}</span>
       <span className="text-[10px] text-gray-400">{weight}</span>
       <Progress value={v} className="h-1 w-16 mt-0.5" />
+    </div>
+  );
+}
+
+function RunLog({ entries, live }: { entries: Array<{ t: string; level: string; msg: string }>; live: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
+  }, [entries.length]);
+  const levelClass: Record<string, string> = {
+    info: "text-gray-300", success: "text-emerald-300", warn: "text-amber-300", error: "text-red-300",
+  };
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          Live activity log
+          {live && <span className="inline-block w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />}
+        </h2>
+        <span className="text-xs text-gray-400">{entries.length} {entries.length === 1 ? "entry" : "entries"}</span>
+      </div>
+      <div ref={ref} className="bg-[#0c1722] text-gray-100 rounded-lg p-3 font-mono text-xs leading-relaxed max-h-72 overflow-y-auto">
+        {entries.map((e, i) => {
+          const time = new Date(e.t).toLocaleTimeString();
+          return (
+            <div key={i} className="flex gap-2">
+              <span className="text-gray-500 shrink-0">{time}</span>
+              <span className={`shrink-0 uppercase text-[10px] font-semibold w-14 ${levelClass[e.level] ?? "text-gray-400"}`}>
+                {e.level}
+              </span>
+              <span className={`${levelClass[e.level] ?? "text-gray-200"} whitespace-pre-wrap break-words`}>{e.msg}</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -150,7 +186,7 @@ export default function QualityLoop() {
       if (data) {
         setActiveRun(data as Run);
         setRunning(true);
-        pollRef.current = setInterval(() => { loadRun(data.id); loadChecks(data.id); }, 6000);
+        pollRef.current = setInterval(() => { loadRun(data.id); loadChecks(data.id); }, 3000);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -169,7 +205,7 @@ export default function QualityLoop() {
       pollRef.current = setInterval(async () => {
         await loadRun(data.run_id);
         await loadChecks(data.run_id);
-      }, 6000);
+      }, 3000);
     } catch (e: any) {
       toast.error(`Run failed: ${e.message}`);
       setRunning(false);
@@ -268,6 +304,10 @@ export default function QualityLoop() {
             </span>
           )}
         </div>
+
+        {activeRun && Array.isArray(activeRun.progress_log) && activeRun.progress_log.length > 0 && (
+          <RunLog entries={activeRun.progress_log} live={running} />
+        )}
 
         {activeRun && activeRun.score_overall != null && (
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
