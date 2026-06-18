@@ -992,9 +992,9 @@ Deno.serve(async (req) => {
     global: { headers: { Authorization: authHeader } },
     auth: { persistSession: false },
   });
-  const { data: userData, error: userErr } = await userClient.auth.getUser(token);
-  if (userErr || !userData?.user) return json({ error: "Unauthorized", detail: userErr?.message ?? "no user" }, 401);
-  const userId = userData.user.id;
+  const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+  if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized", detail: claimsErr?.message ?? "no claims" }, 401);
+  const userId = claimsData.claims.sub as string;
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
