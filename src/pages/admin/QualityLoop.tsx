@@ -42,6 +42,7 @@ type Run = {
   checks_total: number; checks_passed: number; checks_failed: number;
   started_at: string; completed_at: string|null; error: string|null;
   progress_log: any;
+  cancel_requested?: boolean;
 };
 
 type CheckResult = {
