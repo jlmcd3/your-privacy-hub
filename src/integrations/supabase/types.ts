@@ -3544,6 +3544,7 @@ export type Database = {
           gpt_score_intelligence: number | null
           gpt_score_overall: number | null
           id: string
+          progress_log: Json
           run_number: number
           score_accuracy: number | null
           score_analysis: number | null
@@ -3575,6 +3576,7 @@ export type Database = {
           gpt_score_intelligence?: number | null
           gpt_score_overall?: number | null
           id?: string
+          progress_log?: Json
           run_number?: number
           score_accuracy?: number | null
           score_analysis?: number | null
@@ -3606,6 +3608,7 @@ export type Database = {
           gpt_score_intelligence?: number | null
           gpt_score_overall?: number | null
           id?: string
+          progress_log?: Json
           run_number?: number
           score_accuracy?: number | null
           score_analysis?: number | null

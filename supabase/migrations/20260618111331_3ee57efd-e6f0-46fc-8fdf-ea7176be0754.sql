@@ -1,0 +1,1 @@
+ALTER TABLE public.quality_runs ADD COLUMN IF NOT EXISTS progress_log jsonb NOT NULL DEFAULT '[]'::jsonb;
