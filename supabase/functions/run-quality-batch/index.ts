@@ -505,6 +505,10 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
 
   try {
     await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents)`);
+    await log(OPENAI_API_KEY ? "success" : "warn",
+      OPENAI_API_KEY
+        ? `OPENAI_API_KEY detected (len=${OPENAI_API_KEY.length}) — GPT-4o cross-review enabled`
+        : `OPENAI_API_KEY NOT detected in edge function env — GPT-4o cross-review will be SKIPPED for every doc`);
     await upd({ status: "generating" });
     await log("info", `Generating ${batchSize} intake scenarios via Claude…`);
     let intakes: any[];
