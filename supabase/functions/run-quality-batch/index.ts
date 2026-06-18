@@ -292,22 +292,19 @@ Return ONLY valid JSON:
   "critical_failures": ["critical failures, empty array if none"]
 }`;
 
-async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<any | null> {
+async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string }> {
   if (!OPENAI_API_KEY) {
-    console.warn("[run-quality-batch] OPENAI_API_KEY not set — skipping GPT evaluation");
-    return null;
+    return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
   try {
     const raw = await gpt4o(GPT_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2000)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 9000)}\nEvaluate this compliance document. Quote actual text as evidence for each finding.`, 3000);
     const parsed = tryParse(raw);
     if (!parsed?.dimension_scores) {
-      console.warn("[run-quality-batch] GPT evaluation returned unexpected structure");
-      return null;
+      return { eval: null, error: `GPT returned unexpected structure (first 120 chars: ${raw.slice(0, 120)})` };
     }
-    return parsed;
+    return { eval: parsed };
   } catch (e) {
-    console.warn("[run-quality-batch] GPT evaluation failed (non-fatal):", (e as Error).message);
-    return null;
+    return { eval: null, error: (e as Error).message };
   }
 }
 
@@ -505,6 +502,10 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
 
   try {
     await log("info", `Starting run #${runNumber} for ${tool} (${batchSize} documents)`);
+    await log(OPENAI_API_KEY ? "success" : "warn",
+      OPENAI_API_KEY
+        ? `OPENAI_API_KEY detected (len=${OPENAI_API_KEY.length}) — GPT-4o cross-review enabled`
+        : `OPENAI_API_KEY NOT detected in edge function env — GPT-4o cross-review will be SKIPPED for every doc`);
     await upd({ status: "generating" });
     await log("info", `Generating ${batchSize} intake scenarios via Claude…`);
     let intakes: any[];
@@ -563,7 +564,15 @@ async function runBatch(runId: string, tool: string, batchSize: number, userId: 
         continue;
       }
 
-      const gptEval = await evaluateDocumentGPT(tool, intake, result.reportData);
+      const gptResult = await evaluateDocumentGPT(tool, intake, result.reportData);
+      const gptEval = gptResult.eval;
+      if (gptEval) {
+        await log("success", `${docLabel}: GPT-4o call OK (overall ${gptEval.overall_score}/100)`);
+      } else if (gptResult.skipReason) {
+        await log("warn", `${docLabel}: GPT-4o SKIPPED — ${gptResult.skipReason}`);
+      } else {
+        await log("error", `${docLabel}: GPT-4o call FAILED — ${gptResult.error ?? "unknown error"}`);
+      }
       const crossReview = await crossReviewEvaluations(tool, intake, result.reportData, claudeEval, gptEval);
       await log("success", `${docLabel}: scored ${claudeEval.overall_score}/100${gptEval ? ` (GPT ${gptEval.overall_score}/100)` : ""}`);
 
