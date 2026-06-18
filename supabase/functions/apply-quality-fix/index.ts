@@ -127,7 +127,6 @@ Deno.serve(async (req) => {
           results.push({ check_id: chk.check_id, success: false, error: "No proposed fix stored" });
           continue;
         }
-        const tool = (chk as any).quality_runs?.tool ?? (chk as any).tool;
         const patched = await applyPatchWithClaude(currentContent, chk.check_id, chk.proposed_fix, chk.fix_location ?? "");
         if (!patched || patched.length < currentContent.length * 0.5) {
           results.push({ check_id: chk.check_id, success: false, error: "Patch produced suspiciously short output — rejected" });
