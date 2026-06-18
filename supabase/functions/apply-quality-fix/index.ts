@@ -111,8 +111,18 @@ Deno.serve(async (req) => {
     .select("*, quality_runs(tool)").in("id", ids);
   if (chkErr || !checks?.length) return json({ error: "check results not found" }, 404);
 
+  // RX-2: re-check fix_applied for all requested ids in one query (not per-check in the loop)
+  // to catch rows marked applied since the request was queued (duplicate clicks, parallel tabs).
+  const { data: freshStatus } = await admin
+    .from("quality_check_results")
+    .select("id, fix_applied")
+    .in("id", ids);
+  const alreadyAppliedIds = new Set(
+    (freshStatus ?? []).filter((r: any) => r.fix_applied).map((r: any) => r.id)
+  );
+
   const byFile = new Map<string, typeof checks>();
-  const earlyResults: Array<{ check_id: string; success: boolean; error?: string }> = [];
+  const earlyResults: Array<{ check_id: string; success: boolean; skipped?: boolean; error?: string }> = [];
   for (const chk of checks) {
     const tool = (chk as any).quality_runs?.tool ?? (chk as any).tool;
     const filePath = TOOL_FILE_PATH[tool];
@@ -121,7 +131,7 @@ Deno.serve(async (req) => {
     byFile.get(filePath)!.push(chk);
   }
 
-  const results: Array<{ check_id: string; success: boolean; commit_url?: string; error?: string }> = [...earlyResults];
+  const results: Array<{ check_id: string; success: boolean; skipped?: boolean; commit_url?: string; error?: string }> = [...earlyResults];
 
   for (const [filePath, fileChecks] of byFile) {
     try {
