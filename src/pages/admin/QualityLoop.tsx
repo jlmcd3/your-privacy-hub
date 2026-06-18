@@ -608,6 +608,8 @@ export default function QualityLoop() {
             </div>
           </div>
         )}
+
+        <QualityScoreLedger />
       </div>
     </div>
   );
