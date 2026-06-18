@@ -16,18 +16,20 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const TOOL_BATCH_SIZE: Record<string, number> = { "cppa-risk": 3 };
+
 type Admin = ReturnType<typeof createClient>;
 
 function json(b: unknown, s = 200) {
   return new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 }
 
-async function claude(system: string, user: string, maxTokens = 4000): Promise<string> {
+async function claude(system: string, user: string, maxTokens = 4000, model = "claude-opus-4-6", signal?: AbortSignal): Promise<string> {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: "claude-opus-4-6", max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: AbortSignal.timeout(120_000),
+    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
+    signal: signal ?? AbortSignal.timeout(120_000),
   });
   if (!r.ok) throw new Error(`Claude ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const d = await r.json();
@@ -402,7 +404,9 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   const raw = await claude(
     `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.`,
     `Generate ${count} varied realistic intake objects for the "${tool}" compliance tool.\n\n${description}\n\nReturn a JSON array of exactly ${count} objects.`,
-    8000
+    8000,
+    "claude-sonnet-4-6",
+    AbortSignal.timeout(90_000)
   );
   const parsed = tryParse(raw);
   if (!Array.isArray(parsed) || parsed.length === 0) throw new Error(`Intake generator returned invalid data for ${tool}`);
@@ -821,7 +825,8 @@ Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
 
-  const { tool, batch_size = 10 } = body;
+  const { tool, batch_size: requestedBatch } = body;
+  const batch_size = TOOL_BATCH_SIZE[tool] ?? requestedBatch ?? 10;
   if (!tool) return json({ error: "tool required" }, 400);
 
   const { count } = await admin.from("quality_runs").select("id", { count: "exact", head: true }).eq("tool", tool);
