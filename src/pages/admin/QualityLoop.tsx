@@ -186,7 +186,7 @@ export default function QualityLoop() {
       if (data) {
         setActiveRun(data as Run);
         setRunning(true);
-        pollRef.current = setInterval(() => { loadRun(data.id); loadChecks(data.id); }, 6000);
+        pollRef.current = setInterval(() => { loadRun(data.id); loadChecks(data.id); }, 3000);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -205,7 +205,7 @@ export default function QualityLoop() {
       pollRef.current = setInterval(async () => {
         await loadRun(data.run_id);
         await loadChecks(data.run_id);
-      }, 6000);
+      }, 3000);
     } catch (e: any) {
       toast.error(`Run failed: ${e.message}`);
       setRunning(false);
