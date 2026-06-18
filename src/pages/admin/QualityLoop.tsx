@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { ExternalLink, RefreshCw } from "lucide-react";
+import { ExternalLink, RefreshCw, KeyRound } from "lucide-react";
 import QualityScoreLedger from "./QualityScoreLedger";
 
 const TOOLS = [
@@ -148,6 +148,28 @@ export default function QualityLoop() {
   const [selectedFixes, setSelectedFixes]   = useState<Set<string>>(new Set());
   const [expandedFix, setExpandedFix]       = useState<string|null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval>|null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const verifyToken = useCallback(async () => {
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-github-token", { body: {} });
+      if (error) throw error;
+      const msg = data?.ok
+        ? (data.message ?? `✅ GitHub push enabled — ${data.repo}`)
+        : `❌ ${data?.error ?? "Unknown error"}${data?.likely_cause ? ` — ${data.likely_cause}` : ""}`;
+      setVerifyResult({ ok: !!data?.ok, message: msg });
+      setTimeout(() => setVerifyResult(null), 10000);
+    } catch (e: any) {
+      setVerifyResult({ ok: false, message: `❌ ${e?.message ?? String(e)}` });
+      setTimeout(() => setVerifyResult(null), 10000);
+    } finally {
+      setVerifying(false);
+    }
+  }, []);
+
 
   const stopPolling = () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
 
@@ -333,7 +355,25 @@ export default function QualityLoop() {
               {activeRun.cancel_requested && " (cancel requested)"}
             </span>
           )}
+          <div className="ml-auto flex items-center gap-3">
+            {verifyResult && (
+              <span className={`text-xs font-medium ${verifyResult.ok ? "text-emerald-700" : "text-red-600"}`}>
+                {verifyResult.message}
+              </span>
+            )}
+            <Button
+              onClick={verifyToken}
+              disabled={verifying}
+              variant="outline"
+              size="sm"
+              className="h-9"
+            >
+              <KeyRound className="w-3.5 h-3.5 mr-1.5" />
+              {verifying ? "Verifying…" : "Verify GitHub Token"}
+            </Button>
+          </div>
         </div>
+
 
         {activeRun && Array.isArray(activeRun.progress_log) && activeRun.progress_log.length > 0 && (
           <RunLog entries={activeRun.progress_log} live={running} />
