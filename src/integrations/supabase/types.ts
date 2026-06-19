@@ -1865,6 +1865,60 @@ export type Database = {
         }
         Relationships: []
       }
+      function_runs: {
+        Row: {
+          archetype: string | null
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          finished_at: string | null
+          function_name: string
+          id: string
+          invoked_by: string | null
+          metadata: Json
+          source_row_id: string | null
+          source_table: string | null
+          started_at: string
+          status: string
+          trust_class: string | null
+          user_id: string | null
+        }
+        Insert: {
+          archetype?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          function_name: string
+          id?: string
+          invoked_by?: string | null
+          metadata?: Json
+          source_row_id?: string | null
+          source_table?: string | null
+          started_at?: string
+          status?: string
+          trust_class?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          archetype?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          function_name?: string
+          id?: string
+          invoked_by?: string | null
+          metadata?: Json
+          source_row_id?: string | null
+          source_table?: string | null
+          started_at?: string
+          status?: string
+          trust_class?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       gdpr_articles: {
         Row: {
           article_number: string
