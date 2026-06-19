@@ -461,7 +461,13 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       return { sourceTable: "cppa_assessments", sourceRowId: rec.id, reportData: await poll("cppa_assessments", rec.id) };
     }
     if (tool === "lia") {
-      const { data: rec, error } = await admin.from("li_assessments").insert({ ...intake, user_id: userId }).select("id").single();
+      // Whitelist columns to li_assessments schema — drop any AI-hallucinated keys
+      const LIA_COLS = ["stage","status","organization_name","processing_description","relationship_type","data_categories","jurisdictions","sector","stated_purpose","alternatives_considered","purpose_details","necessity_details","balancing_details","preview_signal"];
+      const cleaned: any = {};
+      for (const k of LIA_COLS) if (intake?.[k] !== undefined) cleaned[k] = intake[k];
+      if (!cleaned.stage) cleaned.stage = "final";
+      if (!cleaned.status) cleaned.status = "pending";
+      const { data: rec, error } = await admin.from("li_assessments").insert({ ...cleaned, user_id: userId }).select("id").single();
       if (error || !rec) throw new Error(`insert: ${error?.message}`);
       invokeFn("run-li-assessment", { assessment_id: rec.id }).catch(() => {});
       return { sourceTable: "li_assessments", sourceRowId: rec.id, reportData: await poll("li_assessments", rec.id) };
