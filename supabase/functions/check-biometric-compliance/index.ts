@@ -620,7 +620,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const caller = await verifyCaller(req);
+    const caller = await verifyCaller(req, "user");
     if (!caller.internal && !caller.userId) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
