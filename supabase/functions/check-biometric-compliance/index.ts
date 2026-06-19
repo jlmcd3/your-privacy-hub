@@ -2,6 +2,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -646,6 +647,14 @@ Deno.serve(async (req) => {
       return await runStressBiometric(body, resolvedUserId);
     }
 
+    const fnRun = await startFunctionRun(supabase, "check-biometric-compliance", {
+      archetype: "streaming",
+      trustClass: "user",
+      userId: resolvedUserId,
+      invokedBy: caller.internal ? "internal" : "user",
+      metadata: { jurisdictions: body.jurisdictions, biometricTypes: body.biometricTypes },
+    });
+
     // Wrap heavy work in a streaming response so the edge runtime's 150s
     // request-idle timeout never trips — we write a single whitespace byte
     // every 10s as a keep-alive, then the final JSON. JSON.parse() ignores
@@ -1092,6 +1101,12 @@ Output ONLY the compliance assessment. No preamble.`,
       console.error("biometric_assessments persist failed:", persistErr);
     }
 
+    await finishFunctionRun(supabase, fnRun, {
+      status: savedId ? "success" : "partial",
+      sourceTable: "biometric_assessments",
+      sourceRowId: savedId,
+    });
+
     // C4 RoPA accumulator: biometric processing is always RoPA-relevant & high-risk
     if (savedId && body.client_id) {
       const useCase = (body as any).use_case || (body as any).biometric_use_case || "Biometric processing";
@@ -1118,6 +1133,7 @@ Output ONLY the compliance assessment. No preamble.`,
           generated_at: report_data.generated_at,
         })));
       } catch (e) {
+        await failFunctionRun(supabase, fnRun, e);
         console.error("check-biometric-compliance error:", e);
         try {
           await writer.write(encoder.encode(JSON.stringify({ error: "An internal error occurred" })));
