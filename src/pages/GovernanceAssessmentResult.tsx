@@ -323,9 +323,9 @@ const GovernanceAssessmentResult = () => {
               {Array.isArray(report?.domain_findings) && report.domain_findings.length > 0 && (
                 <section className="bg-card border rounded-lg p-6">
                   <h2 className="mb-4">Domain Findings</h2>
-                  <Accordion type="multiple">
+                  <Accordion type="multiple" value={openDomains} onValueChange={setOpenDomains}>
                     {report.domain_findings.map((d: any, i: number) => (
-                      <AccordionItem key={i} value={`d${i}`}>
+                      <AccordionItem key={i} value={`d${i}`} id={`domain-d${i}`}>
                         <AccordionTrigger>
                           <div className="flex items-center gap-3">
                             <span>{d.domain_name || d.name}</span>
