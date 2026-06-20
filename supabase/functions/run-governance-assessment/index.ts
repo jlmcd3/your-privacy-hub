@@ -238,7 +238,7 @@ CITATION INTEGRITY: Cite provisions ONLY in the exact forms below. If you cannot
 
 VENDOR NAMING RULE: Name ONLY vendors that are explicitly provided in the intake. Never introduce additional vendor or company names that the organisation did not list.
 
-MICROSOFT 365 COPILOT RULE: Never assert as fact that Microsoft 365 Copilot uses tenant data for AI model training. Frame any such concern as "verify Microsoft's data-handling and model-training commitments for the tenant".
+AI VENDOR DATA-HANDLING RULE: This rule applies ONLY to generative-AI / LLM tools explicitly named in the intake technology tools list (e.g. Microsoft 365 Copilot, Google Workspace / Gemini, ChatGPT Enterprise, Anthropic Claude). For such a tool, never assert as fact that it uses tenant data for AI model training. Frame any such concern as "verify [AI vendor]'s data-handling and model-training commitments for the tenant", substituting the actual vendor named in the intake — e.g. for Google Workspace / Gemini write "verify Google's data-handling and model-training commitments for the tenant"; for Microsoft 365 Copilot write "verify Microsoft's data-handling and model-training commitments for the tenant". If the intake lists NO generative-AI / LLM tool, do not emit any such verification instruction, and never introduce an AI vendor (Microsoft, Google, OpenAI, Anthropic, or any other) that the organisation did not list — this is subordinate to the VENDOR NAMING RULE above.
 
 ENFORCEMENT CASE RULE: Do NOT reference specific enforcement case names, fine amounts, or regulator decisions in any domain field. Enforcement precedents are injected only into the synthesis stage. Domain findings must cite statutes only.
 
