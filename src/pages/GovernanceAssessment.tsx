@@ -143,12 +143,21 @@ const GovernanceAssessment = () => {
     if (step === 3) {
       if (!privacyPolicy || !acceptableUse || !dpiaStatus || !incidentResponse) return "Please complete all required questions.";
       if (showDpoQ && !dpoStatus) return "Please answer the DPO question.";
+      if (!dsrCapability) return "Please answer the data subject rights question (Q17).";
+      if (!inventoryAudit) return "Please answer the inventory / shadow-tool audit question (Q18).";
+      if (dpiaStatus.startsWith("Yes") && !dpiaAiCoverage) return "Please answer the DPIA AI-coverage follow-up (Q11a).";
     }
     if (step === 4) {
       if (!trainingStatus || !toolInstruction) return "Please complete training questions.";
+      if (!technicalControls) return "Please answer the technical controls question (Q19).";
+      if (trainingStatus.startsWith("Yes") && !trainingAiCoverage) return "Please answer the training AI-coverage follow-up (Q13a).";
     }
     if (step === 5 && showStep5) {
       if (!dpaStatus || !transferStatus) return "Please complete transfer questions.";
+      if ((dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors") && !dpaArt28Verified)
+        return "Please answer the Art. 28(3) verification follow-up (Q15a).";
+      if ((transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries") && !transferMechanism)
+        return "Please answer the transfer-mechanism follow-up (Q16a).";
     }
     return null;
   };
@@ -172,6 +181,15 @@ const GovernanceAssessment = () => {
     training_status: trainingStatus, tool_instruction: toolInstruction,
     dpa_status: showStep5 ? dpaStatus : "n/a",
     transfer_status: showStep5 ? transferStatus : "n/a",
+    technical_controls: technicalControls,
+    technical_controls_list: (technicalControls === "Yes — DLP/content filtering actively enforced" || technicalControls.startsWith("Partial")) ? technicalControlsList : [],
+    dsr_capability: dsrCapability,
+    dsr_rights_tested: dsrCapability === "Yes — documented and tested across all vendors" ? dsrRightsTested : [],
+    inventory_audit: inventoryAudit,
+    dpia_ai_coverage: dpiaStatus.startsWith("Yes") ? dpiaAiCoverage : "n/a",
+    training_ai_coverage: trainingStatus.startsWith("Yes") ? trainingAiCoverage : "n/a",
+    dpa_art28_verified: (showStep5 && (dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors")) ? dpaArt28Verified : "n/a",
+    transfer_mechanism: (showStep5 && (transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries")) ? transferMechanism : "n/a",
   });
 
   const handlePurchase = async () => {
