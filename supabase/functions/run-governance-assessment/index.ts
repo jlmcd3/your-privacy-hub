@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 const supabase = createClient(
@@ -150,7 +151,7 @@ Deno.serve(async (req) => {
 
   let assessment_id: string | undefined;
   try {
-    const caller = await verifyCaller(req);
+    const caller = await verifyCaller(req, "user");
     if (!caller.internal && !caller.userId) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -177,6 +178,14 @@ Deno.serve(async (req) => {
         ...(orgName && !(assessment as any).organization_name ? { organization_name: orgName } : {}),
       }).eq("id", assessment_id);
 
+
+    const fnRun = await startFunctionRun(supabase, "run-governance-assessment", {
+      archetype: "background",
+      trustClass: "user",
+      userId: caller.internal ? (assessment.user_id ?? null) : caller.userId,
+      invokedBy: caller.internal ? "internal" : "user",
+      metadata: { assessment_id },
+    });
 
     // Dispatch heavy work in background — return 202 immediately so the caller
     // is not held open past the platform's 150s HTTP idle ceiling. Result page
@@ -530,6 +539,8 @@ Return JSON:
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
 
+    await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "governance_assessments", sourceRowId: assessment_id });
+
     // C4 RoPA accumulator: governance assessment surfaces a "Programme governance" obligation
     if (assessment.client_id) {
       supabase.functions.invoke("accumulate-ropa-activity", {
@@ -566,6 +577,7 @@ Return JSON:
     }).catch((e: Error) => console.error("PDF/email delivery failed (non-fatal):", e));
 
       } catch (bgErr) {
+        await failFunctionRun(supabase, fnRun, bgErr);
         console.error("run-governance-assessment background error:", bgErr);
         if (assessment_id) {
           await supabase.from("governance_assessments")
