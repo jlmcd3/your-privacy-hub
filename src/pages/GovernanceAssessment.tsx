@@ -389,6 +389,11 @@ const GovernanceAssessment = () => {
               <div>
                 <Label>Q3: Jurisdictions where you operate or process personal data<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 3 GDPR)</span></Label>
                 <div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
+                {jurisdictions.includes("California (CCPA/CPRA)") && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    California (CCPA/CPRA) obligations aren't graded here. Use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a> for that scope — this selection still informs the GDPR transfer analysis.
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Q4: Do you process personal data of EU or UK residents?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 3(2) GDPR — extra-territorial scope)</span></Label>
