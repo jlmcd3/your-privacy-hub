@@ -607,7 +607,7 @@ const Dashboard = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-eyebrow text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                              ⭐ {b.week_label}
+                              ⭐ {describeBriefPeriod(b.generated_at)}
                             </span>
                             {isLatest && (
                               <span className="text-eyebrow text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
