@@ -182,6 +182,21 @@ export const DEFINITIONS: Record<string, TermDefinition> = {
     definition: "A controller or processor must designate a DPO where processing is carried out by a public authority, or where core activities consist of regular and systematic monitoring of data subjects on a large scale, or large-scale processing of special categories of data or criminal conviction data. (summary)",
     cite: "Arts. 37–39 GDPR / UK GDPR",
   },
+  gdpr_security_measures: {
+    term: "Security of processing (Article 32)",
+    definition: "Controllers and processors must implement appropriate technical and organisational measures to ensure a level of security appropriate to the risk — including, as appropriate, pseudonymisation and encryption, the ability to ensure ongoing confidentiality, integrity, availability and resilience of systems, and a process for regularly testing the effectiveness of those measures. (summary)",
+    cite: "Art. 32 GDPR / UK GDPR",
+  },
+  gdpr_data_subject_rights: {
+    term: "Data subject rights",
+    definition: "Data subjects have the right to be informed and to obtain access to their personal data, and to rectification, erasure, restriction of processing, data portability, and to object. The controller must facilitate these rights and respond without undue delay and within one month. (summary)",
+    cite: "Arts. 12, 15–22 GDPR / UK GDPR",
+  },
+  gdpr_accountability: {
+    term: "Accountability (Article 24)",
+    definition: "The controller must implement appropriate technical and organisational measures to ensure, and to be able to demonstrate, that processing complies with the Regulation — reviewing and updating those measures where necessary, and maintaining records, inventories and governance processes that evidence compliance. (summary)",
+    cite: "Art. 24 GDPR / UK GDPR",
+  },
 };
 
 export type DefinitionKey = keyof typeof DEFINITIONS;
