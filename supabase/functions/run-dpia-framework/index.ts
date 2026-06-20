@@ -115,6 +115,9 @@ EPRIVACY AND DEVICE-ACCESS GATE RULE: For processing activities involving IP add
     const safeguards = (intake.existing_safeguards || []).join(", ") || "None identified";
     const jurisdictions = (intake.jurisdictions || []).join(", ") || "Not specified";
     const legalBasisProposed = intake.legal_basis_proposed || "Not specified";
+    const article9Condition = intake.article_9_condition || "Not specified";
+    const necessityProportionality = intake.necessity_proportionality || "Not provided";
+    const retentionPeriod = intake.retention_period || "Not specified";
     const sector = intake.sector || intake.organization_sector || "Not specified";
 
     // Determine GDPR jurisdiction from verified jurisdictions (srcIntake preferred).
