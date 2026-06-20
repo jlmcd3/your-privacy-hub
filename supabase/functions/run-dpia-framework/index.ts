@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -60,6 +61,15 @@ Deno.serve(async (req) => {
       status: "processing",
       ...(orgName && !(dpia as any).organization_name ? { organization_name: orgName } : {}),
     }).eq("id", dpia_id);
+
+    const fnRun = await startFunctionRun(supabase, "run-dpia-framework", {
+      archetype: "background",
+      trustClass: "user",
+      userId: caller.internal ? (dpia.user_id ?? null) : caller.userId,
+      invokedBy: caller.internal ? "internal" : "user",
+      metadata: { dpia_id },
+    });
+
 
     // Dispatch heavy work in background — return 202 immediately so the caller
     // is not held open past the platform's 150s HTTP idle ceiling. The result
@@ -465,6 +475,9 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
       updated_at: new Date().toISOString(),
     }).eq("id", dpia_id);
 
+    await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id });
+
+
     // C4 RoPA accumulator
     if (dpia.client_id) {
       const intakeAny = (dpia.intake_data as any) || {};
@@ -505,7 +518,9 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
       } catch (bgErr) {
         console.error("run-dpia-framework background error:", bgErr);
         await supabase.from("dpia_frameworks").update({ status: "failed" }).eq("id", dpia_id);
+        await failFunctionRun(supabase, fnRun, bgErr);
       }
+
     })());
 
     return new Response(JSON.stringify({ success: true, dpia_id, status: "processing" }),
