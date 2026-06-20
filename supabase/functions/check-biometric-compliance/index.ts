@@ -662,11 +662,21 @@ Deno.serve(async (req) => {
     const encoder = new TextEncoder();
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
+        let streamClosed = false;
+        let finished = false;
         const writer = {
-          write: async (chunk: Uint8Array) => { controller.enqueue(chunk); },
-          close: async () => { controller.close(); },
+          write: async (chunk: Uint8Array) => {
+            if (streamClosed) return;
+            try { controller.enqueue(chunk); } catch { streamClosed = true; }
+          },
+          close: async () => {
+            if (streamClosed) return;
+            streamClosed = true;
+            try { controller.close(); } catch { /* already closed */ }
+          },
         };
         const keepAlive = setInterval(() => {
+          if (streamClosed) return;
           writer.write(encoder.encode(" ")).catch(() => {});
         }, 10000);
 
@@ -1106,6 +1116,7 @@ Output ONLY the compliance assessment. No preamble.`,
       sourceTable: "biometric_assessments",
       sourceRowId: savedId,
     });
+    finished = true;
 
     // C4 RoPA accumulator: biometric processing is always RoPA-relevant & high-risk
     if (savedId && body.client_id) {
@@ -1123,7 +1134,7 @@ Output ONLY the compliance assessment. No preamble.`,
       }).catch((e: Error) => console.error("[biometric] accumulate-ropa failed (non-fatal):", e.message));
     }
 
-
+        clearInterval(keepAlive);
         await writer.write(encoder.encode(JSON.stringify({
           id: savedId,
           assessment_text,
@@ -1133,7 +1144,12 @@ Output ONLY the compliance assessment. No preamble.`,
           generated_at: report_data.generated_at,
         })));
       } catch (e) {
-        await failFunctionRun(supabase, fnRun, e);
+        clearInterval(keepAlive);
+        if (!finished) {
+          await failFunctionRun(supabase, fnRun, e);
+        } else {
+          console.error("[biometric] post-success stream delivery failed (non-fatal):", e);
+        }
         console.error("check-biometric-compliance error:", e);
         try {
           await writer.write(encoder.encode(JSON.stringify({ error: "An internal error occurred" })));
