@@ -467,7 +467,7 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
     // C4 RoPA accumulator
     if (dpia.client_id) {
       const intakeAny = (dpia.intake_data as any) || {};
-      const summary = intakeAny.processing_description || intakeAny.activity_description || "Processing activity requiring DPIA";
+      const summary = intakeAny.processing_description || intakeAny.activity_description || intakeAny.description || "Processing activity requiring DPIA";
       supabase.functions.invoke("accumulate-ropa-activity", {
         body: {
           client_id: dpia.client_id,
