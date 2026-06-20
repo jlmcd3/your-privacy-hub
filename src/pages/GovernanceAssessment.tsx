@@ -331,13 +331,13 @@ const GovernanceAssessment = () => {
 
   return (
     <WorkspaceLayout className="bg-background">
-      <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title>
-        <meta name="description" content="Score your privacy programme across ten domains against what regulators actually inspect — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>      <header className="bg-[#0d2a45] text-white py-12">
+      <Helmet><title>GDPR Governance Assessment | End User Privacy</title>
+        <meta name="description" content="Score your privacy programme against the GDPR framework — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>      <header className="bg-[#0d2a45] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            ⚖️ Privacy Programme Assessment · ${pricing.price}
+            ⚖️ GDPR Governance Assessment · ${pricing.price}
           </span>
-          <h1 className="font-serif text-white mb-3">Privacy Program Assessment Tool</h1>
+          <h1 className="font-serif text-white mb-3">GDPR Governance Assessment</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding.</p>
           <p className="text-slate-400 text-sm mt-3">
             {isPremium
