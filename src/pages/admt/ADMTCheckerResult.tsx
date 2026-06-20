@@ -281,6 +281,7 @@ export default function ADMTCheckerResult() {
       <ReportShell
         title={`ADMT Compliance Assessment — ${report.system_name}`}
         meta={`Generated ${new Date(assessment.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} · Compliance deadline: ${report.compliance_deadline}`}
+        topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
         toolCategory="assessment"
         disclaimerAddition="This gap analysis is an analytical aid, not legal advice. Review with qualified California privacy counsel before relying on it for regulatory compliance decisions."
         actions={
