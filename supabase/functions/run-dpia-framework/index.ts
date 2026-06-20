@@ -429,7 +429,7 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
 
     if (!reportData.section_1_description && !reportData.section_4_mitigation) {
       reportData = {
-        framework_disclaimer: "This is a compliance framework tool, not legal advice.",
+        framework_disclaimer: "This is not legal advice.",
         error: "Report generation encountered an issue. Please retry."
       };
     }

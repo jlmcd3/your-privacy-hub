@@ -731,7 +731,7 @@ function buildTextReportHTML(opts: TextReportOpts): string {
   </header>
   <div class="body">
     <div class="disclaimer">${opts.disclaimerHtml ?? `<span class="kw">Not legal advice.</span>
-      This document is a compliance framework generated for informational purposes only.
+      This document is provided to support your organisation's compliance review.
       It does not create an attorney-client relationship. Always consult qualified legal
       counsel for advice specific to your situation.`}</div>
     ${calloutHtml}
@@ -872,7 +872,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     ${report?.executive_summary ? `<section class="section"><h2>Executive Summary</h2><p>${text(report.executive_summary)}</p></section>` : ""}
     ${Object.keys(scope).length ? `<section class="section"><h2>Scope Confirmation</h2>
       <p><span class="label">In scope:</span> ${text(scope.in_scope)}</p>
@@ -893,7 +893,7 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
     ${renderCppaSectionCommentary(report?.fsor_section_commentary)}
     ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
@@ -1033,7 +1033,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
     </div>
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     <section class="section"><h2>Cover — Assessment Record</h2>
       <p><span class="label">Business legal name:</span> ${fillIn(cover.business_legal_name, "[FILL IN]")}</p>
       <p><span class="label">Processing activity:</span> ${text(cover.activity_name)}</p>
@@ -1113,7 +1113,7 @@ function buildCPPARiskV3HTML(report: any, record: any): string {
          ${b.perjury_attestation_block ? `<div class="attest">${text(b.perjury_attestation_block)}</div>
          <p class="meta" style="margin-top:8px;font-size:10px;color:#b55a00;border-top:1px solid #e6e3da;padding-top:6px;">⚠ Sample document — the certifying executive name, title, and execution date above are placeholder values from the sample intake. Replace with the actual certifying executive's legal name, title, and execution date before this document is signed or submitted to the CPPA.</p>` : ""}
          ${b.submission_banner ? `<div class="callout"><p>${text(b.submission_banner)}</p></div>` : ""}`}
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
@@ -1258,7 +1258,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     ${dedupedFsorBlock || renderCppaSectionCommentary(report?.fsor_section_commentary)}
     ${renderCppaEnforcementPrecedents(Array.isArray(report?.enforcement_precedents) ? report.enforcement_precedents : [])}
     ${annotations.length ? `<section class="section"><h2>Annotation Appendix</h2>${annotations.map((a: any) => `<article class="annotation"><h3>${text(a.regulator || "Enforcement source")}</h3>${a.summary ? `<p>${text(a.summary)}</p>` : ""}${a.relevance ? `<p><span class="label">Relevance:</span> ${text(a.relevance)}</p>` : ""}</article>`).join("")}</section>` : ""}
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance framework report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This report does not constitute legal advice. Findings should be reviewed with qualified legal counsel.</div>
     <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}</div>
   </div>
 </div></body></html>`;
@@ -1377,7 +1377,7 @@ function buildADMTReportHTML(report: any, record: any): string {
     ${orgName ? `<p class="prepared-for">Prepared for: ${escHtml(orgName)}</p>` : ""}
   </header>
   <div class="body">
-    <div class="notice"><span class="label">Not legal advice.</span> This compliance gap analysis is generated for informational purposes only. Review all findings with qualified California privacy counsel before relying on them for regulatory submissions. Primary authorities: 11 CCR §§ 7001, 7150–7157, 7200, 7220–7222, and Cal. Civ. Code § 1798.185. Verify all citations against the current official text before reliance.</div>
+    <div class="notice"><span class="label">Not legal advice.</span> This compliance gap analysis is provided to support your review. Review all findings with qualified California privacy counsel before relying on them for regulatory submissions. Primary authorities: 11 CCR §§ 7001, 7150–7157, 7200, 7220–7222, and Cal. Civ. Code § 1798.185. Verify all citations against the current official text before reliance.</div>
     ${scopeBlock}
     ${priorityBlock}
     ${gapSection("Pre-Use Notice (§ 7220)", report?.notice_gaps ?? [])}
@@ -1537,7 +1537,7 @@ function buildRegistrationReportHTML(record: any): string {
 <h1>Registration Assessment</h1>
 <div class="meta">Generated ${escHtml(generatedHuman)} · ${escHtml(orgName)}</div>
 <p style="font-size:11px;color:#5c6d7a;border:1px solid #dde5ea;padding:8px 12px;border-radius:4px;margin-bottom:1.5rem;">
-  Not legal advice. This document is a compliance framework generated for informational purposes only.
+  Not legal advice. This document is provided to support your organisation's compliance review.
   It does not create an attorney-client relationship. Always consult qualified legal counsel for advice specific to your situation.
 </p>
 

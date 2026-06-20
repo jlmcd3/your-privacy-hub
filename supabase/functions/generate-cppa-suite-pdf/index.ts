@@ -193,7 +193,7 @@ function buildHTML(riskRow: any, cyberRow: any) {
   ${cyberRow ? `<div class="page-break"></div>${renderCyber(cyberRow)}` : ""}
 
   <div class="notice">
-    <strong>Not legal advice.</strong> This compliance framework report does not constitute legal advice.
+    <strong>Not legal advice.</strong> This report does not constitute legal advice.
     Findings should be reviewed with qualified legal counsel and an independent CPPA cybersecurity auditor.
   </div>
 </div>

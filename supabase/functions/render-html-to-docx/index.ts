@@ -71,7 +71,7 @@ function wrapHtml(innerHtml: string, title: string, subtitle?: string): string {
 </div>
 ${innerHtml}
 <div class="eup-disclaimer">
-  This document is a compliance framework tool and does not constitute legal advice.
+  This document does not constitute legal advice.
   Review all findings with qualified legal counsel before relying on any regulatory position.
 </div>
 </body></html>`;

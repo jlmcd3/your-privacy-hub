@@ -142,7 +142,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     enforcement_meta: { attempted: false, skipped: "stress_run" },
     annotations: [],
     lint_warnings: [],
-    disclaimer: "This report is a compliance framework tool produced to assist organisations in identifying governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
+    disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
   };
 }
 
@@ -544,7 +544,7 @@ Return JSON:
         })),
         ...lintViolations,
       ],
-      disclaimer: "This report is a compliance framework tool produced to assist organisations in identifying governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
+      disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
 
     const dpiaScope = synthesis.dpia_scope || [];

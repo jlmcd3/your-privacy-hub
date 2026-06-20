@@ -701,7 +701,7 @@ Return JSON:
       console.error("[LIA] Stage 3 parse failed even with repair. Length:", docsText.length);
       docRecs = {
         recommended_documentation: [],
-        disclaimer: "This is a compliance framework tool, not legal advice."
+        disclaimer: "This is not legal advice."
       };
     }
 
