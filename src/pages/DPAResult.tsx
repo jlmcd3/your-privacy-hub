@@ -69,6 +69,7 @@ export default function DPAResult() {
           const docType = detectDocumentType(intake.controllerJurisdiction || "", intake.processorJurisdiction || "");
           return (
           <ReportShell
+            topDisclaimer={(row?.report_data as any)?.framework_disclaimer ?? (row?.report_data as any)?.disclaimer}
             title={`Your ${docType.label} — ${intake.controllerName || "Controller"} / ${intake.processorName || "Processor"}`}
             meta={
               <>
