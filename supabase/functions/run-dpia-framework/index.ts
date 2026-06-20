@@ -518,7 +518,9 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
       } catch (bgErr) {
         console.error("run-dpia-framework background error:", bgErr);
         await supabase.from("dpia_frameworks").update({ status: "failed" }).eq("id", dpia_id);
+        await failFunctionRun(supabase, fnRun, bgErr);
       }
+
     })());
 
     return new Response(JSON.stringify({ success: true, dpia_id, status: "processing" }),
