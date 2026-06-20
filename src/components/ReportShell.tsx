@@ -87,14 +87,11 @@ export default function ReportShell({
         style={{ breakInside: "avoid", pageBreakInside: "avoid" }}
       >
         {!whiteLabel && (
-          <Link
-            to="/"
-            className="inline-block mb-6 bg-white rounded-md px-3 py-1.5 shadow-sm"
-          >
+          <Link to="/" className="inline-block mb-6">
             <img
-              src="/logo.png"
+              src="/brand/logo-light.svg"
               alt="End User Privacy"
-              className="h-7 w-auto shrink-0 rounded object-contain"
+              className="h-10 w-auto shrink-0 object-contain"
             />
           </Link>
         )}
