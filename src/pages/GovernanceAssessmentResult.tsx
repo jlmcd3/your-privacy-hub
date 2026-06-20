@@ -52,6 +52,16 @@ const GovernanceAssessmentResult = () => {
   const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
+  const [openDomains, setOpenDomains] = useState<string[]>([]);
+
+  const focusDomain = (i: number) => {
+    const v = `d${i}`;
+    setOpenDomains((prev) => (prev.includes(v) ? prev : [...prev, v]));
+    setTimeout(() => {
+      const el = document.getElementById(`domain-${v}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -188,14 +198,20 @@ const GovernanceAssessmentResult = () => {
                   <p className="text-sm text-muted-foreground mb-3">Click any domain below for detailed findings</p>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     {domainList.map((d: any, i: number) => (
-                      <div key={i} className={`border rounded-lg p-3 ${sevBg(d.severity)}`}>
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => focusDomain(i)}
+                        className={`text-left border rounded-lg p-3 transition hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${sevBg(d.severity)}`}
+                        aria-label={`View findings for ${d.domain_name || d.name}`}
+                      >
                         <p className="text-meta font-semibold leading-snug mb-2">{d.domain_name || d.name}</p>
                         {d.severity && (
                           <span className={`inline-block px-1.5 py-0.5 text-eyebrow rounded ${sevColor(d.severity)}`}>
                             {d.severity}
                           </span>
                         )}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </section>
@@ -248,9 +264,9 @@ const GovernanceAssessmentResult = () => {
                 Object.values(report.domain_findings).length > 0 && (
                   <section className="bg-card border rounded-lg p-6">
                     <h2 className="mb-4">Domain Findings</h2>
-                    <Accordion type="multiple">
+                    <Accordion type="multiple" value={openDomains} onValueChange={setOpenDomains}>
                       {Object.values(report.domain_findings).map((d: any, i: number) => (
-                        <AccordionItem key={i} value={`d${i}`}>
+                        <AccordionItem key={i} value={`d${i}`} id={`domain-d${i}`}>
                           <AccordionTrigger>
                             <div className="flex items-center gap-3">
                               <span>{d.domain_name || d.name}</span>
@@ -307,9 +323,9 @@ const GovernanceAssessmentResult = () => {
               {Array.isArray(report?.domain_findings) && report.domain_findings.length > 0 && (
                 <section className="bg-card border rounded-lg p-6">
                   <h2 className="mb-4">Domain Findings</h2>
-                  <Accordion type="multiple">
+                  <Accordion type="multiple" value={openDomains} onValueChange={setOpenDomains}>
                     {report.domain_findings.map((d: any, i: number) => (
-                      <AccordionItem key={i} value={`d${i}`}>
+                      <AccordionItem key={i} value={`d${i}`} id={`domain-d${i}`}>
                         <AccordionTrigger>
                           <div className="flex items-center gap-3">
                             <span>{d.domain_name || d.name}</span>
