@@ -475,6 +475,9 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
       updated_at: new Date().toISOString(),
     }).eq("id", dpia_id);
 
+    await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id });
+
+
     // C4 RoPA accumulator
     if (dpia.client_id) {
       const intakeAny = (dpia.intake_data as any) || {};
