@@ -202,16 +202,37 @@ const GovernanceAssessment = () => {
     // For $0 (included with Platform), bypass Stripe entirely
     if (pricing.price === 0) {
       setPurchasing(true);
-      const { data, error } = await supabase.functions.invoke(
-        "run-governance-assessment",
-        { body: { intake_data: buildIntake(), user_id: user.id, client_id: clientId ?? null } }
-      );
-      setPurchasing(false);
-      if (error || !data?.id) {
+      // Create the row first (the run- edge requires assessment_id, not raw
+      // intake_data), mirroring the server's subscriber-credit row shape,
+      // then trigger generation. The result page polls until complete.
+      const { data: row, error: insErr } = await supabase
+        .from("governance_assessments")
+        .insert({
+          user_id: user.id,
+          client_id: clientId ?? null,
+          status: "pending",
+          intake_data: buildIntake(),
+          purchased_as_standalone: false,
+          is_subscriber_credit: true,
+          purchase_price_cents: 0,
+        })
+        .select("id")
+        .single();
+      if (insErr || !row) {
+        setPurchasing(false);
         toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
         return;
       }
-      navigate(`/governance-assessment/result/${data.id}?purchased=true`);
+      const { error: fnErr } = await supabase.functions.invoke(
+        "run-governance-assessment",
+        { body: { assessment_id: row.id } }
+      );
+      setPurchasing(false);
+      if (fnErr) {
+        toast({ title: "Generation failed", description: "Please try again.", variant: "destructive" });
+        return;
+      }
+      navigate(`/governance-assessment/result/${row.id}?purchased=true`);
       return;
     }
 
