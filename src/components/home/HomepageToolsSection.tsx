@@ -12,7 +12,7 @@ type Product = {
 
 const ASSESSMENTS: Product[] = [
   {
-    title: "Privacy Programme Assessment",
+    title: "GDPR Governance Assessment",
     blurb: "Score your program against the domains regulators actually inspect — with cited enforcement decisions behind every risk finding.",
     href: "/governance-assessment",
   },

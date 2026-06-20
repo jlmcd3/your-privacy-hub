@@ -122,7 +122,7 @@ const GovernanceAssessmentResult = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title></Helmet>
+      <Helmet><title>GDPR Governance Assessment | End User Privacy</title></Helmet>
       <Navbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
@@ -135,7 +135,7 @@ const GovernanceAssessmentResult = () => {
         )}
 
         <ReportShell
-          title="Privacy Program Assessment"
+          title="GDPR Governance Assessment"
           meta={metaBits.length ? metaBits.join(" · ") : undefined}
           actions={status === "complete" || status === "failed" ? actions : undefined}
         >

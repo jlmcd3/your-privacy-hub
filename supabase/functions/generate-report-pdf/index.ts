@@ -302,7 +302,7 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
   <p class="eyebrow">Compliance Tool · Customised Analysis</p>
-  <h1>Data Governance Readiness Assessment</h1>
+  <h1>GDPR Governance Assessment</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: assessment?.organization_name }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">

@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -69,6 +69,7 @@ const GovernanceAssessment = () => {
   const { clientId } = useActiveClient();
 
   const [step, setStep] = useState(1);
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
   const [purchasing, setPurchasing] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -102,6 +103,17 @@ const GovernanceAssessment = () => {
   const [dpaStatus, setDpaStatus] = useState("");
   const [transferStatus, setTransferStatus] = useState("");
 
+  // New (intake redesign)
+  const [technicalControls, setTechnicalControls] = useState("");
+  const [technicalControlsList, setTechnicalControlsList] = useState<string[]>([]);
+  const [dsrCapability, setDsrCapability] = useState("");
+  const [dsrRightsTested, setDsrRightsTested] = useState<string[]>([]);
+  const [inventoryAudit, setInventoryAudit] = useState("");
+  const [dpiaAiCoverage, setDpiaAiCoverage] = useState("");
+  const [trainingAiCoverage, setTrainingAiCoverage] = useState("");
+  const [dpaArt28Verified, setDpaArt28Verified] = useState("");
+  const [transferMechanism, setTransferMechanism] = useState("");
+
   const orgSizeNum = useMemo(() => {
     if (orgSize === "1-10" || orgSize === "11-50") return "small";
     return "large";
@@ -109,6 +121,13 @@ const GovernanceAssessment = () => {
 
   const showDpoQ = euUkData === "Yes" || orgSizeNum === "large";
   const showStep5 = euUkData === "Yes";
+  const isUk = jurisdictions.includes("United Kingdom (UK GDPR)");
+  const isEu = jurisdictions.includes("EU (GDPR)");
+  const transferMechOptions =
+    isUk && !isEu ? ["UK IDTA", "UK Addendum to EU SCCs", "UK adequacy regulations", "None / not sure"]
+    : isEu && !isUk ? ["EU Standard Contractual Clauses (SCCs)", "Binding Corporate Rules", "Adequacy decision", "None / not sure"]
+    : ["UK IDTA / Addendum", "EU SCCs", "Binding Corporate Rules", "Adequacy decision/regulations", "None / not sure"];
+  const transferMechCite = isUk && !isEu ? "(UK IDTA / Addendum · s.119A DPA 2018)" : "(Art. 46 GDPR — SCCs/IDTA)";
   const totalSteps = showStep5 ? 6 : 5; // 5 sections + summary
 
   const stepValid = (): string | null => {
@@ -124,12 +143,21 @@ const GovernanceAssessment = () => {
     if (step === 3) {
       if (!privacyPolicy || !acceptableUse || !dpiaStatus || !incidentResponse) return "Please complete all required questions.";
       if (showDpoQ && !dpoStatus) return "Please answer the DPO question.";
+      if (!dsrCapability) return "Please answer the data subject rights question (Q17).";
+      if (!inventoryAudit) return "Please answer the inventory / shadow-tool audit question (Q18).";
+      if (dpiaStatus.startsWith("Yes") && !dpiaAiCoverage) return "Please answer the DPIA AI-coverage follow-up (Q11a).";
     }
     if (step === 4) {
       if (!trainingStatus || !toolInstruction) return "Please complete training questions.";
+      if (!technicalControls) return "Please answer the technical controls question (Q19).";
+      if (trainingStatus.startsWith("Yes") && !trainingAiCoverage) return "Please answer the training AI-coverage follow-up (Q13a).";
     }
     if (step === 5 && showStep5) {
       if (!dpaStatus || !transferStatus) return "Please complete transfer questions.";
+      if ((dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors") && !dpaArt28Verified)
+        return "Please answer the Art. 28(3) verification follow-up (Q15a).";
+      if ((transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries") && !transferMechanism)
+        return "Please answer the transfer-mechanism follow-up (Q16a).";
     }
     return null;
   };
@@ -153,6 +181,15 @@ const GovernanceAssessment = () => {
     training_status: trainingStatus, tool_instruction: toolInstruction,
     dpa_status: showStep5 ? dpaStatus : "n/a",
     transfer_status: showStep5 ? transferStatus : "n/a",
+    technical_controls: technicalControls,
+    technical_controls_list: (technicalControls === "Yes — DLP/content filtering actively enforced" || technicalControls.startsWith("Partial")) ? technicalControlsList : [],
+    dsr_capability: dsrCapability,
+    dsr_rights_tested: dsrCapability === "Yes — documented and tested across all vendors" ? dsrRightsTested : [],
+    inventory_audit: inventoryAudit,
+    dpia_ai_coverage: dpiaStatus.startsWith("Yes") ? dpiaAiCoverage : "n/a",
+    training_ai_coverage: trainingStatus.startsWith("Yes") ? trainingAiCoverage : "n/a",
+    dpa_art28_verified: (showStep5 && (dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors")) ? dpaArt28Verified : "n/a",
+    transfer_mechanism: (showStep5 && (transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries")) ? transferMechanism : "n/a",
   });
 
   const handlePurchase = async () => {
@@ -186,6 +223,8 @@ const GovernanceAssessment = () => {
     specialCategory, specialCategoriesList, privacyPolicy, acceptableUse,
     dpoStatus, dpiaStatus, incidentResponse, trainingStatus, toolInstruction,
     dpaStatus, transferStatus, showDpoQ, showStep5,
+    technicalControls, technicalControlsList, dsrCapability, dsrRightsTested,
+    inventoryAudit, dpiaAiCoverage, trainingAiCoverage, dpaArt28Verified, transferMechanism,
   ]);
 
   const summaryStep = step === totalSteps;
@@ -292,13 +331,13 @@ const GovernanceAssessment = () => {
 
   return (
     <WorkspaceLayout className="bg-background">
-      <Helmet><title>Privacy Program Assessment Tool | End User Privacy</title>
-        <meta name="description" content="Score your privacy programme across ten domains against what regulators actually inspect — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>      <header className="bg-[#0d2a45] text-white py-12">
+      <Helmet><title>GDPR Governance Assessment | End User Privacy</title>
+        <meta name="description" content="Score your privacy programme against the GDPR framework — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>      <header className="bg-[#0d2a45] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
-            ⚖️ Privacy Programme Assessment · ${pricing.price}
+            ⚖️ GDPR Governance Assessment · ${pricing.price}
           </span>
-          <h1 className="font-serif text-white mb-3">Privacy Program Assessment Tool</h1>
+          <h1 className="font-serif text-white mb-3">GDPR Governance Assessment</h1>
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding.</p>
           <p className="text-slate-400 text-sm mt-3">
             {isPremium
@@ -316,6 +355,9 @@ const GovernanceAssessment = () => {
         <ActiveClientLabel />
         <div className="p-4 bg-muted/50 border-l-4 border-muted-foreground/30 rounded text-sm text-muted-foreground">
           This assessment is a compliance framework tool. It identifies governance gaps to review with qualified legal counsel. It does not constitute legal advice or a legal compliance opinion.
+        </div>
+        <div className="text-sm text-muted-foreground">
+          This assessment evaluates your privacy programme against the GDPR framework (EU &amp; UK GDPR and GDPR-modelled regimes). For California (CCPA/CPRA) obligations, use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a>.
         </div>
 
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
@@ -347,6 +389,11 @@ const GovernanceAssessment = () => {
               <div>
                 <Label>Q3: Jurisdictions where you operate or process personal data<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 3 GDPR)</span></Label>
                 <div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
+                {jurisdictions.includes("California (CCPA/CPRA)") && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    California (CCPA/CPRA) obligations aren't graded here. Use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a> for that scope — this selection still informs the GDPR transfer analysis.
+                  </p>
+                )}
               </div>
               <div>
                 <Label>Q4: Do you process personal data of EU or UK residents?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 3(2) GDPR — extra-territorial scope)</span></Label>
@@ -386,16 +433,33 @@ const GovernanceAssessment = () => {
               <div><Label>Q9: Acceptable use policy for technology tools<Req /></Label><div className="mt-2"><Radio name="aup" options={["Yes, covers external technology tools specifically", "Yes, but general only", "No"]} value={acceptableUse} onChange={setAcceptableUse} /></div></div>
               {showDpoQ && (<div><Label>Q10: Designated DPO or equivalent?<Req /> <DefPopover termKey="gdpr_dpo" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 37–39 GDPR)</span> <EnforcementSignalIcon signalKey="dpo_absence" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpo" options={["Yes, formal DPO", "Yes, informal privacy lead", "No"]} value={dpoStatus} onChange={setDpoStatus} /></div></div>)}
               <div><Label>Q11: Has any DPIA been conducted?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 35 GDPR)</span> <EnforcementSignalIcon signalKey="dpia_absence" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpia" options={["Yes, multiple DPIAs completed", "Yes, one DPIA completed", "No, none conducted", "Unsure"]} value={dpiaStatus} onChange={setDpiaStatus} /></div></div>
+              {dpiaStatus.startsWith("Yes") && (
+                <div><Label>Q11a: Do your DPIAs specifically cover your current AI / high-risk tools?<Req /> <DefPopover termKey="gdpr_dpia" /> <span className="text-xs text-muted-foreground font-mono">(Art. 35 GDPR)</span> <EnforcementSignalIcon signalKey="dpia_absence" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpia_ai" options={["Yes — all AI/high-risk tools assessed", "Some covered", "No — not for AI tools", "Unsure"]} value={dpiaAiCoverage} onChange={setDpiaAiCoverage} /></div></div>
+              )}
               <div><Label>Q12: Incident response plan covering personal data breaches<Req /> <DefPopover termKey="gdpr_breach_notification" /> <span className="text-xs text-muted-foreground font-mono">(Art. 33 GDPR — 72 hours)</span> <EnforcementSignalIcon signalKey="breach_notification" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="ir" options={["Yes, tested in last 12 months", "Yes, but not tested", "Documented but informal", "No"]} value={incidentResponse} onChange={setIncidentResponse} /></div></div>
+              <div><Label>Q17: Can you fulfil data subject rights (access, erasure, portability, rectification) across your external/cloud vendors?<Req /> <DefPopover termKey="gdpr_data_subject_rights" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 12, 15–20 GDPR)</span></Label><div className="mt-2"><Radio name="dsr" options={["Yes — documented and tested across all vendors", "Documented but not tested", "Ad hoc / not documented", "No process in place", "Unsure"]} value={dsrCapability} onChange={setDsrCapability} /></div>
+                {dsrCapability === "Yes — documented and tested across all vendors" && (
+                  <div className="mt-3"><Label>Which rights have you tested end-to-end?</Label><div className="mt-2"><Pills options={["Access","Erasure","Portability","Rectification"]} value={dsrRightsTested} onChange={setDsrRightsTested} /></div></div>
+                )}
+              </div>
+              <div><Label>Q18: Is your tool/processing inventory periodically audited for unauthorised ("shadow") tools, with a formal approval process for new tools?<Req /> <DefPopover termKey="gdpr_accountability" /> <span className="text-xs text-muted-foreground font-mono">(Art. 24 GDPR)</span></Label><div className="mt-2"><Radio name="inv" options={["Yes — audited + formal approval process", "Inventory exists, no formal audit/approval", "No formal inventory", "Unsure"]} value={inventoryAudit} onChange={setInventoryAudit} /></div></div>
             </>
           )}
 
           {step === 4 && (
             <>
-              <h2 className="">Training and Awareness</h2>
-              <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 5(2) — accountability · Art. 32(4) — staff training obligation</p>
+              <h2 className="">Training and Technical Controls</h2>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 5(2) — accountability · Art. 32 — security of processing · Art. 32(4) — staff training obligation</p>
               <div><Label>Q13: Privacy / data protection training<Req /></Label><div className="mt-2"><Radio name="train" options={["Yes, formal onboarding + annual refresh", "Yes, onboarding only", "Ad hoc only", "No formal training"]} value={trainingStatus} onChange={setTrainingStatus} /></div></div>
+              {trainingStatus.startsWith("Yes") && (
+                <div><Label>Q13a: Does training specifically cover prohibited use of AI tools and data-submission risk? <span className="text-xs text-muted-foreground font-mono">(Art. 32(4) GDPR)</span></Label><div className="mt-2"><Radio name="train_ai" options={["Yes — explicitly covers AI tools", "Generally covers data handling", "No — not AI-specific", "Unsure"]} value={trainingAiCoverage} onChange={setTrainingAiCoverage} /></div></div>
+              )}
               <div><Label>Q14: Instruction on what data may/may not be submitted to external technology tools<Req /></Label><div className="mt-2"><Radio name="ti" options={["Yes, written policy with specific prohibitions", "Verbal guidance only", "No instruction provided"]} value={toolInstruction} onChange={setToolInstruction} /></div></div>
+              <div><Label>Q19: Technical controls — not just policy — preventing prohibited personal data being submitted to your AI/cloud tools?<Req /> <DefPopover termKey="gdpr_security_measures" /> <span className="text-xs text-muted-foreground font-mono">(Art. 32(1)(b) GDPR)</span></Label><div className="mt-2"><Radio name="tc" options={["Yes — DLP/content filtering actively enforced", "Partial — some tools or categories", "No — policy and training only", "Unsure"]} value={technicalControls} onChange={setTechnicalControls} /></div>
+                {(technicalControls === "Yes — DLP/content filtering actively enforced" || technicalControls.startsWith("Partial")) && (
+                  <div className="mt-3"><Label>Which controls are in place?</Label><div className="mt-2"><Pills options={["DLP rules","Content filtering","Endpoint upload restrictions","Prompt-injection detection","Approval workflow"]} value={technicalControlsList} onChange={setTechnicalControlsList} /></div></div>
+                )}
+              </div>
             </>
           )}
 
@@ -404,7 +468,13 @@ const GovernanceAssessment = () => {
               <h2 className="">Transfer and Compliance</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 28 — processor contracts · Arts. 44–49 — international transfers · Art. 46(2)(c) — SCCs</p>
               <div><Label>Q15: DPAs signed with relevant vendors<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR)</span> <EnforcementSignalIcon signalKey="processor_contract" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpa" options={["Yes, all vendors", "Most vendors", "Some vendors", "No"]} value={dpaStatus} onChange={setDpaStatus} /></div></div>
+              {(dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors") && (
+                <div><Label>Q15a: Have those DPAs been verified against the Art. 28(3) mandatory clauses? <DefPopover termKey="gdpr_processor_contract" /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR)</span> <EnforcementSignalIcon signalKey="processor_contract" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpa28" options={["Yes — verified", "Partially", "Not verified", "Unsure"]} value={dpaArt28Verified} onChange={setDpaArt28Verified} /></div></div>
+              )}
               <div><Label>Q16: Cross-border transfers outside EU/UK<Req /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–46 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="xfer" options={["Yes, US-based tools", "Yes, other non-adequate countries", "All tools store data in EU/UK", "Unsure"]} value={transferStatus} onChange={setTransferStatus} /></div></div>
+              {(transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries") && (
+                <div><Label>Q16a: Which transfer mechanism is in place for those transfers? <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">{transferMechCite}</span> <EnforcementSignalIcon signalKey="international_transfer" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="xfermech" options={transferMechOptions} value={transferMechanism} onChange={setTransferMechanism} /></div></div>
+              )}
             </>
           )}
 
@@ -441,6 +511,15 @@ const GovernanceAssessment = () => {
               push("DPA signed with vendors", dpaStatus);
               push("Cross-border transfers", transferStatus);
             }
+            push("Technical controls", technicalControls);
+            push("Technical controls in place", (technicalControls === "Yes — DLP/content filtering actively enforced" || technicalControls.startsWith("Partial")) ? technicalControlsList : []);
+            push("DSR fulfilment capability", dsrCapability);
+            push("DSR rights tested", dsrCapability === "Yes — documented and tested across all vendors" ? dsrRightsTested : []);
+            push("Inventory / shadow-tool audit", inventoryAudit);
+            if (dpiaStatus.startsWith("Yes")) push("DPIA AI coverage", dpiaAiCoverage);
+            if (trainingStatus.startsWith("Yes")) push("Training AI coverage", trainingAiCoverage);
+            if (showStep5 && (dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors")) push("DPA Art 28(3) verified", dpaArt28Verified);
+            if (showStep5 && (transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries")) push("Transfer mechanism", transferMechanism);
             return (
               <>
                 <div>
@@ -521,7 +600,7 @@ const GovernanceAssessment = () => {
         />
         <ToolSamplePreview
           toolType="healthcheck"
-          toolName="Privacy Program Assessment Tool"
+          toolName="GDPR Governance Assessment"
           price={pricing.price}
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}

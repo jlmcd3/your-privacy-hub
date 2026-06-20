@@ -235,8 +235,8 @@ export const PRICING_REGISTRY = {
     kind: "one_time",
     lookupKey: "hc_standalone_v2",
     productKey: "governance_v8",
-    productName: "Privacy Program Assessment (Standalone)",
-    description: "Standalone per-use price for the Privacy Program Assessment Tool.",
+    productName: "GDPR Governance Assessment (Standalone)",
+    description: "Standalone per-use price for the GDPR Governance Assessment.",
     amountCents: 8900,
     currency: "usd",
     displayPrice: "$89",
@@ -247,8 +247,8 @@ export const PRICING_REGISTRY = {
     kind: "addon",
     lookupKey: "hc_subscriber_v2",
     productKey: "governance_v8",
-    productName: "Privacy Program Assessment (Subscriber)",
-    description: "Subscriber per-use price for the Privacy Program Assessment Tool.",
+    productName: "GDPR Governance Assessment (Subscriber)",
+    description: "Subscriber per-use price for the GDPR Governance Assessment.",
     amountCents: 4900,
     currency: "usd",
     displayPrice: "$49",
@@ -869,7 +869,7 @@ export const PRICING = {
     ropa:         { name: 'RoPA Builder',                       dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     registration: { name: 'Registration Filings',               dollars: 59,  display: '$59',  stripePriceId: 'registration_standalone' },
-    governance:   { name: 'Privacy Program Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
+    governance:   { name: 'GDPR Governance Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
     cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 229, display: '$229', stripePriceId: 'cppa_risk_standalone' },
     cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 299, display: '$299', stripePriceId: 'cppa_cyber_standalone' },
     cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 449, display: '$449', stripePriceId: 'cppa_suite_standalone' },
@@ -937,7 +937,7 @@ export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
  * Cannot be replicated by prompting a general AI.
  */
 export const SMART_TOOL_KEYS = [
-  'governance',   // Privacy Program Assessment — 10-domain scoring
+  'governance',   // GDPR Governance Assessment — 10-domain scoring
   'lia',          // Legitimate Interest Assessment — 3-part enforcement test
   'dpia',         // DPIA — necessity/proportionality vs enforcement corpus
   'cppa_risk',    // CPPA Risk Assessment — 5-stage CPPA analysis
