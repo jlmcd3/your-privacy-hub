@@ -24,7 +24,7 @@ type Row = {
 
 const TOOL_DISPLAY: Record<string, string> = {
   li_assessment: "Legitimate Interests Assessment",
-  dpia: "DPIA Framework",
+  dpia: "Impact Assessment Builder",
   dpa: "Data Processing Agreement",
   governance: "Governance Assessment",
   ir_playbook: "Incident Response Playbook",
