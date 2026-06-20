@@ -200,9 +200,10 @@ Organisation size: ${intake.org_size || "not specified"}
 Jurisdictions of operation: ${(intake.jurisdictions || []).join(", ") || "not specified"}
 EU/UK personal data processed: ${intake.eu_uk_data || "not specified"}
 Technology tools in use: ${(intake.tools || []).join(", ") || "not specified"}
-Data categories processed: ${(intake.data_categories || []).join(", ") || "not specified"}
-Existing privacy policy: ${intake.privacy_policy || "not specified"}
-Existing acceptable use policy: ${intake.acceptable_use || "not specified"}
+  Data categories processed: ${(intake.data_categories || []).join(", ") || "not specified"}
+  Existing privacy policy: ${intake.privacy_policy || "not specified"}
+  Privacy notice coverage: ${intake.privacy_notice_coverage || "not specified"}
+  Existing acceptable use policy: ${intake.acceptable_use || "not specified"}
 DPO status: ${intake.dpo_status || "not specified"}
 DPIA status: ${intake.dpia_status || "not specified"}
 DPIA AI/high-risk coverage: ${intake.dpia_ai_coverage || "not specified"}
