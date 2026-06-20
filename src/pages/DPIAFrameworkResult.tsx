@@ -122,7 +122,7 @@ const DPIAFrameworkResult = () => {
 
         <ReportShell title={titleText} meta={metaBits.length ? metaBits.join(" · ") : undefined} actions={actions}>
           <div dir={dir} style={{ display: "contents" }}>
-          {orgName && (
+          {status === "complete" && orgName && (
             <p className="text-sm text-muted-foreground mb-2">
               This Impact Assessment documents processing carried out by <span className="font-semibold text-foreground">{orgName}</span>{activityName ? <> in connection with <span className="italic">{activityName}</span></> : null}.
             </p>
