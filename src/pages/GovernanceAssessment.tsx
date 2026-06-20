@@ -103,6 +103,17 @@ const GovernanceAssessment = () => {
   const [dpaStatus, setDpaStatus] = useState("");
   const [transferStatus, setTransferStatus] = useState("");
 
+  // New (intake redesign)
+  const [technicalControls, setTechnicalControls] = useState("");
+  const [technicalControlsList, setTechnicalControlsList] = useState<string[]>([]);
+  const [dsrCapability, setDsrCapability] = useState("");
+  const [dsrRightsTested, setDsrRightsTested] = useState<string[]>([]);
+  const [inventoryAudit, setInventoryAudit] = useState("");
+  const [dpiaAiCoverage, setDpiaAiCoverage] = useState("");
+  const [trainingAiCoverage, setTrainingAiCoverage] = useState("");
+  const [dpaArt28Verified, setDpaArt28Verified] = useState("");
+  const [transferMechanism, setTransferMechanism] = useState("");
+
   const orgSizeNum = useMemo(() => {
     if (orgSize === "1-10" || orgSize === "11-50") return "small";
     return "large";
@@ -110,6 +121,13 @@ const GovernanceAssessment = () => {
 
   const showDpoQ = euUkData === "Yes" || orgSizeNum === "large";
   const showStep5 = euUkData === "Yes";
+  const isUk = jurisdictions.includes("United Kingdom (UK GDPR)");
+  const isEu = jurisdictions.includes("EU (GDPR)");
+  const transferMechOptions =
+    isUk && !isEu ? ["UK IDTA", "UK Addendum to EU SCCs", "UK adequacy regulations", "None / not sure"]
+    : isEu && !isUk ? ["EU Standard Contractual Clauses (SCCs)", "Binding Corporate Rules", "Adequacy decision", "None / not sure"]
+    : ["UK IDTA / Addendum", "EU SCCs", "Binding Corporate Rules", "Adequacy decision/regulations", "None / not sure"];
+  const transferMechCite = isUk && !isEu ? "(UK IDTA / Addendum · s.119A DPA 2018)" : "(Art. 46 GDPR — SCCs/IDTA)";
   const totalSteps = showStep5 ? 6 : 5; // 5 sections + summary
 
   const stepValid = (): string | null => {
