@@ -191,7 +191,7 @@ const navItems: NavItem[] = [
             tooltip: "Full three-part documented LIA, calibrated to enforcement decisions" },
           { icon: "🛡️", label: "GDPR Governance Assessment", href: "/governance-assessment",
             tooltip: "Scored programme health check against what regulators actually enforce" },
-          { icon: "📑", label: "Data Protection Impact Assessment", href: "/dpia-framework",
+          { icon: "📑", label: "Impact Assessment Builder", href: "/dpia-framework",
             tooltip: "EDPB-aligned DPIA for high-risk processing activities" },
           { icon: "👁️", label: "Biometric Compliance Assessment", href: "/biometric-checker",
             tooltip: "BIPA statutory exposure calculator and multi-jurisdiction analysis" },
