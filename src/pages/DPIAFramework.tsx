@@ -341,6 +341,19 @@ const DPIAFramework = () => {
               <option value="">Select…</option>{LEGAL_BASES.map((b) => <option key={b}>{b}</option>)}
             </select>
           </div>
+          {hasSpecialCategory && (
+            <div>
+              <Label>Article 9(2) condition for special-category data<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 9(2) — required in addition to the Art. 6 basis)</span></Label>
+              <select value={article9Condition} onChange={(e) => setArticle9Condition(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                <option value="">Select…</option>{ARTICLE_9_CONDITIONS.map((c) => <option key={c}>{c}</option>)}
+              </select>
+              <p className="text-xs text-muted-foreground mt-1">You selected a special category (health/medical or biometric data). Article 6 alone is not a sufficient legal basis — a separate Article 9(2) condition is required.</p>
+            </div>
+          )}
+          <div>
+            <Label>Necessity, proportionality & alternatives considered<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 35(7)(b))</span></Label>
+            <Textarea value={necessityProportionality} onChange={(e) => setNecessityProportionality(e.target.value)} placeholder="Why is this processing necessary for the purpose, and what less-intrusive alternatives did you consider and why were they rejected?" className="mt-2 min-h-24" />
+          </div>
         </form>
         <StatuteRail entry={dpiaRailEntry} />
         </div>
