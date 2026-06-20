@@ -32,7 +32,7 @@ export default function RecentReportsCard() {
           summary: (r.processing_description || "").slice(0, 80),
         })),
         fetchTool("dpia_frameworks", user.id, "id, created_at, intake_data", (r: any) => ({
-          id: r.id, tool_label: "DPIA Framework", created_at: r.created_at,
+          id: r.id, tool_label: "Impact Assessment Builder", created_at: r.created_at,
           view_path: `/dpia-framework/result/${r.id}`,
           summary: r.intake_data?.processing_name || "DPIA",
         })),
