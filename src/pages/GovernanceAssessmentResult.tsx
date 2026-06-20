@@ -94,8 +94,8 @@ const GovernanceAssessmentResult = () => {
         : [];
 
   const metaBits: string[] = [];
-  if (intake.sector) metaBits.push(intake.sector);
   if (report?.generated_at) metaBits.push(new Date(report.generated_at).toLocaleDateString());
+  if (intake.sector) metaBits.push(intake.sector);
 
   const actions = (
     <>
