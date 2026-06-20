@@ -1582,7 +1582,7 @@ ${jurisdictionCards || "<p style='color:#5c6d7a;font-size:12px;'>No jurisdiction
 const TOOL_LABELS: Record<string, string> = {
   li_assessment: "LI-Assessment",
   governance_assessment: "Governance-Assessment",
-  dpia_framework: "DPIA-Framework",
+  dpia_framework: "Impact-Assessment-Builder",
   biometric_checker: "Biometric-Compliance",
   ir_playbook: "Breach-Response-Playbook",
   dpa_generator: "Custom-DPA",
