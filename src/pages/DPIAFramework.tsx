@@ -200,6 +200,9 @@ const DPIAFramework = () => {
     existing_safeguards: safeguards,
     jurisdictions,
     legal_basis_proposed: legalBasis,
+    article_9_condition: hasSpecialCategory ? article9Condition : "",
+    necessity_proportionality: necessityProportionality,
+    retention_period: retentionPeriod,
     source_assessment_id: sourceId || null,
   });
 
