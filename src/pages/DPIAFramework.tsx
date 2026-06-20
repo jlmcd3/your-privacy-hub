@@ -84,6 +84,7 @@ const DPIAFramework = () => {
   
   const guidanceTier = useGuidanceTier();
   const [activeRailField, setActiveRailField] = useState<"trigger" | "legal_basis" | "transfers" | null>(null);
+  const hasSpecialCategory = dataCategories.some((c) => SPECIAL_CATEGORY_CATS.includes(c));
   
 
   const dpiaRailConfigs = {
