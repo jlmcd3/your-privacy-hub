@@ -503,6 +503,15 @@ const GovernanceAssessment = () => {
               push("DPA signed with vendors", dpaStatus);
               push("Cross-border transfers", transferStatus);
             }
+            push("Technical controls", technicalControls);
+            push("Technical controls in place", (technicalControls === "Yes — DLP/content filtering actively enforced" || technicalControls.startsWith("Partial")) ? technicalControlsList : []);
+            push("DSR fulfilment capability", dsrCapability);
+            push("DSR rights tested", dsrCapability === "Yes — documented and tested across all vendors" ? dsrRightsTested : []);
+            push("Inventory / shadow-tool audit", inventoryAudit);
+            if (dpiaStatus.startsWith("Yes")) push("DPIA AI coverage", dpiaAiCoverage);
+            if (trainingStatus.startsWith("Yes")) push("Training AI coverage", trainingAiCoverage);
+            if (showStep5 && (dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors")) push("DPA Art 28(3) verified", dpaArt28Verified);
+            if (showStep5 && (transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries")) push("Transfer mechanism", transferMechanism);
             return (
               <>
                 <div>
