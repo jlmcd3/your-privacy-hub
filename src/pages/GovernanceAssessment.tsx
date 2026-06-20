@@ -356,6 +356,9 @@ const GovernanceAssessment = () => {
         <div className="p-4 bg-muted/50 border-l-4 border-muted-foreground/30 rounded text-sm text-muted-foreground">
           This assessment is a compliance framework tool. It identifies governance gaps to review with qualified legal counsel. It does not constitute legal advice or a legal compliance opinion.
         </div>
+        <div className="text-sm text-muted-foreground">
+          This assessment evaluates your privacy programme against the GDPR framework (EU &amp; UK GDPR and GDPR-modelled regimes). For California (CCPA/CPRA) obligations, use the <a href="/cppa" className="underline text-primary">CPPA Assessment</a>.
+        </div>
 
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
