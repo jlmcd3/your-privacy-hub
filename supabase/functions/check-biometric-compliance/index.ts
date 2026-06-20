@@ -1116,6 +1116,7 @@ Output ONLY the compliance assessment. No preamble.`,
       sourceTable: "biometric_assessments",
       sourceRowId: savedId,
     });
+    finished = true;
 
     // C4 RoPA accumulator: biometric processing is always RoPA-relevant & high-risk
     if (savedId && body.client_id) {
@@ -1133,7 +1134,7 @@ Output ONLY the compliance assessment. No preamble.`,
       }).catch((e: Error) => console.error("[biometric] accumulate-ropa failed (non-fatal):", e.message));
     }
 
-
+        clearInterval(keepAlive);
         await writer.write(encoder.encode(JSON.stringify({
           id: savedId,
           assessment_text,
