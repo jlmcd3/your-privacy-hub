@@ -80,10 +80,12 @@ const DPIAFrameworkResult = () => {
   const activityName = meta.processing_activity_name || dpia?.intake_data?.processing_activity_name;
   const orgName = dpia?.organization_name || dpia?.intake_data?.organization_name;
   const metaBits: string[] = [];
-  if (orgName) metaBits.push(orgName);
-  if (activityName) metaBits.push(activityName);
-  if (meta.framework_version) metaBits.push(`Version ${meta.framework_version}`);
-  if (meta.generated_at) metaBits.push(`Generated ${new Date(meta.generated_at).toLocaleDateString()}`);
+  if (status === "complete") {
+    if (orgName) metaBits.push(orgName);
+    if (activityName) metaBits.push(activityName);
+    if (meta.framework_version) metaBits.push(`Version ${meta.framework_version}`);
+    if (meta.generated_at) metaBits.push(`Generated ${new Date(meta.generated_at).toLocaleDateString()}`);
+  }
 
   const actions = status === "complete" ? (
     <>
@@ -120,7 +122,7 @@ const DPIAFrameworkResult = () => {
 
         <ReportShell title={titleText} meta={metaBits.length ? metaBits.join(" · ") : undefined} actions={actions}>
           <div dir={dir} style={{ display: "contents" }}>
-          {orgName && (
+          {status === "complete" && orgName && (
             <p className="text-sm text-muted-foreground mb-2">
               This Impact Assessment documents processing carried out by <span className="font-semibold text-foreground">{orgName}</span>{activityName ? <> in connection with <span className="italic">{activityName}</span></> : null}.
             </p>
