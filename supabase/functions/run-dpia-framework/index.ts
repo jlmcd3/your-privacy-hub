@@ -115,6 +115,9 @@ EPRIVACY AND DEVICE-ACCESS GATE RULE: For processing activities involving IP add
     const safeguards = (intake.existing_safeguards || []).join(", ") || "None identified";
     const jurisdictions = (intake.jurisdictions || []).join(", ") || "Not specified";
     const legalBasisProposed = intake.legal_basis_proposed || "Not specified";
+    const article9Condition = intake.article_9_condition || "Not specified";
+    const necessityProportionality = intake.necessity_proportionality || "Not provided";
+    const retentionPeriod = intake.retention_period || "Not specified";
     const sector = intake.sector || intake.organization_sector || "Not specified";
 
     // Determine GDPR jurisdiction from verified jurisdictions (srcIntake preferred).
@@ -208,12 +211,17 @@ Volume/frequency: ${volume}
 Third-party processors: ${thirdParties}
 Existing safeguards: ${safeguards}
 Jurisdictions: ${jurisdictions}
+Article 9(2) condition for special-category data (selected by user): ${article9Condition}
+Retention period (provided by user): ${retentionPeriod}
+Necessity, proportionality & alternatives considered (provided by user): ${necessityProportionality}
 ${orgContext}
 
 ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
 ${enforcementContextStr}
 
-ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a risk identification, severity rating, or mitigation measure in section_3_risks, include it in the section_3_risks.annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.`;
+ANNOTATION REQUIREMENT: For each enforcement action cited above (tagged [E1], [E2], etc.), if it directly supports a risk identification, severity rating, or mitigation measure in section_3_risks, include it in the section_3_risks.annotations array using the id value from the enforcement context exactly as provided. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge. If an enforcement action is not in the provided context, do not cite it.
+
+USER-PROVIDED INPUT HANDLING: The intake above may include three user-provided inputs — an Article 9(2) condition, a necessity/proportionality & alternatives statement, and a retention period. Where a value is provided (i.e. not "Not specified"/"Not provided"): (1) Article 9(2) condition — treat it as the controller's PROPOSED special-category condition in the section_1 legal-basis analysis: state it explicitly and assess whether it is sound for this processing (for example, flag that explicit consent under Art. 9(2)(a) may not be freely given where an employment or other power imbalance exists). Do NOT emit a blank "[TO COMPLETE — identify Article 9(2) condition]" when the user has supplied one — assess what they supplied. (2) Necessity, proportionality & alternatives — incorporate the user's stated alternatives and justification into section_2_necessity, assessing them, rather than emitting only [TO COMPLETE] placeholders for the alternatives analysis. (3) Retention period — use it in the section_2 proportionality (storage-limitation, Art. 5(1)(e)) analysis and in the retention mitigation measure, rather than treating retention as undefined. Where a value is "Not specified"/"Not provided", retain the existing [TO COMPLETE] behaviour. Never treat these user inputs as settled legal conclusions — assess them as proposals the organisation must validate with counsel.`;
 
     const promptA = `${sharedContext}
 

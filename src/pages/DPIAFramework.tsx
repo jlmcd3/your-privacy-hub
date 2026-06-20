@@ -32,6 +32,9 @@ const TOOLS = ["Microsoft 365 / Copilot", "Google Workspace / Gemini", "Salesfor
 const SAFEGUARDS = ["Encryption at rest", "Encryption in transit", "Access controls", "Data minimisation", "Pseudonymisation", "Staff training", "DPA signed with processor", "Anonymisation", "Contractual restrictions", "None"];
 const JURISDICTIONS = ["EU (GDPR)", "United Kingdom (UK GDPR)", "United States — Federal", "California (CCPA/CPRA)", "Other US States", "Canada", "Brazil (LGPD)", "Australia", "Singapore", "Other"];
 const LEGAL_BASES = ["Consent (Art. 6(1)(a))", "Contract (Art. 6(1)(b))", "Legal obligation (Art. 6(1)(c))", "Vital interests (Art. 6(1)(d))", "Public task (Art. 6(1)(e))", "Legitimate interest (Art. 6(1)(f))", "Not yet determined"];
+const ARTICLE_9_CONDITIONS = ["Explicit consent (Art. 9(2)(a))", "Employment, social security & social protection law (Art. 9(2)(b))", "Vital interests — data subject incapable of consent (Art. 9(2)(c))", "Not-for-profit body's legitimate activities (Art. 9(2)(d))", "Data manifestly made public by the data subject (Art. 9(2)(e))", "Establishment, exercise or defence of legal claims (Art. 9(2)(f))", "Substantial public interest — Union/Member State law (Art. 9(2)(g))", "Preventive/occupational medicine, health or social care (Art. 9(2)(h))", "Public interest in public health (Art. 9(2)(i))", "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))", "Not yet determined"];
+// DATA_CATS labels that are Article 9 special categories — drives the conditional Art 9(2) field.
+const SPECIAL_CATEGORY_CATS = ["Health or medical data", "Biometric data"];
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -70,6 +73,9 @@ const DPIAFramework = () => {
   const [safeguards, setSafeguards] = useState<string[]>([]);
   const [jurisdictions, setJurisdictions] = useState<string[]>([]);
   const [legalBasis, setLegalBasis] = useState("");
+  const [article9Condition, setArticle9Condition] = useState("");
+  const [necessityProportionality, setNecessityProportionality] = useState("");
+  const [retentionPeriod, setRetentionPeriod] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
@@ -78,6 +84,7 @@ const DPIAFramework = () => {
   
   const guidanceTier = useGuidanceTier();
   const [activeRailField, setActiveRailField] = useState<"trigger" | "legal_basis" | "transfers" | null>(null);
+  const hasSpecialCategory = dataCategories.some((c) => SPECIAL_CATEGORY_CATS.includes(c));
   
 
   const dpiaRailConfigs = {
@@ -176,6 +183,9 @@ const DPIAFramework = () => {
     if (!volume.trim()) return "Volume and frequency required.";
     if (!jurisdictions.length) return "Select at least one jurisdiction.";
     if (!legalBasis) return "Select a legal basis.";
+    if (hasSpecialCategory && !article9Condition) return "Select an Article 9(2) condition for the special-category data you indicated.";
+    if (!retentionPeriod.trim()) return "Retention period is required.";
+    if (!necessityProportionality.trim()) return "Describe necessity, proportionality and alternatives considered.";
     return null;
   };
 
@@ -190,6 +200,9 @@ const DPIAFramework = () => {
     existing_safeguards: safeguards,
     jurisdictions,
     legal_basis_proposed: legalBasis,
+    article_9_condition: hasSpecialCategory ? article9Condition : "",
+    necessity_proportionality: necessityProportionality,
+    retention_period: retentionPeriod,
     source_assessment_id: sourceId || null,
   });
 
@@ -314,6 +327,7 @@ const DPIAFramework = () => {
           )}
           <div><Label>Who are the data subjects?<Req /> <DefPopover termKey="gdpr_personal_data" /></Label><Input value={dataSubjects} onChange={(e) => setDataSubjects(e.target.value)} placeholder="e.g. Employees in the UK and Ireland aged 18+" className="mt-2" /></div>
           <div><Label>Volume and frequency<Req /></Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="e.g. 250 employees, continuous monitoring during working hours" className="mt-2" /></div>
+          <div><Label>Retention period<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 5(1)(e) — storage limitation)</span></Label><Input value={retentionPeriod} onChange={(e) => setRetentionPeriod(e.target.value)} placeholder="e.g. Deleted 90 days after each verification event; no central template stored" className="mt-2" /></div>
           <div>
             <Label>Third-party processors</Label>
             <div className="mt-2"><Pills options={TOOLS} value={processors} onChange={setProcessors} /></div>
@@ -326,6 +340,19 @@ const DPIAFramework = () => {
             <select value={legalBasis} onChange={(e) => setLegalBasis(e.target.value)} onFocus={() => handleDpiaRailFocus("legal_basis")} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
               <option value="">Select…</option>{LEGAL_BASES.map((b) => <option key={b}>{b}</option>)}
             </select>
+          </div>
+          {hasSpecialCategory && (
+            <div>
+              <Label>Article 9(2) condition for special-category data<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 9(2) — required in addition to the Art. 6 basis)</span></Label>
+              <select value={article9Condition} onChange={(e) => setArticle9Condition(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                <option value="">Select…</option>{ARTICLE_9_CONDITIONS.map((c) => <option key={c}>{c}</option>)}
+              </select>
+              <p className="text-xs text-muted-foreground mt-1">You selected a special category (health/medical or biometric data). Article 6 alone is not a sufficient legal basis — a separate Article 9(2) condition is required.</p>
+            </div>
+          )}
+          <div>
+            <Label>Necessity, proportionality & alternatives considered<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 35(7)(b))</span></Label>
+            <Textarea value={necessityProportionality} onChange={(e) => setNecessityProportionality(e.target.value)} placeholder="Why is this processing necessary for the purpose, and what less-intrusive alternatives did you consider and why were they rejected?" className="mt-2 min-h-24" />
           </div>
         </form>
         <StatuteRail entry={dpiaRailEntry} />
