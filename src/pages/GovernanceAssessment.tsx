@@ -147,6 +147,7 @@ const GovernanceAssessment = () => {
       if (!dsrCapability) return "Please answer the data subject rights question (Q17).";
       if (!inventoryAudit) return "Please answer the inventory / shadow-tool audit question (Q18).";
       if (dpiaStatus.startsWith("Yes") && !dpiaAiCoverage) return "Please answer the DPIA AI-coverage follow-up (Q11a).";
+      if (privacyPolicy.startsWith("Yes") && !privacyNoticeCoverage) return "Please answer the privacy-notice coverage follow-up (Q8a).";
     }
     if (step === 4) {
       if (!trainingStatus || !toolInstruction) return "Please complete training questions.";
