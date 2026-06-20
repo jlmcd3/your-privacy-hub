@@ -206,6 +206,7 @@ const LIAssessmentResult = () => {
           title="Legitimate Interest Assessment"
           meta={metaParts.length ? metaParts.join(" · ") : undefined}
           actions={status === "complete" || status === "failed" ? actions : undefined}
+          topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
         >
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
