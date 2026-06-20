@@ -69,6 +69,7 @@ const GovernanceAssessment = () => {
   const { clientId } = useActiveClient();
 
   const [step, setStep] = useState(1);
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
   const [purchasing, setPurchasing] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
