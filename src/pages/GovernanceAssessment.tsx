@@ -600,7 +600,7 @@ const GovernanceAssessment = () => {
         />
         <ToolSamplePreview
           toolType="healthcheck"
-          toolName="Privacy Program Assessment Tool"
+          toolName="GDPR Governance Assessment"
           price={pricing.price}
           standalonePrice={pricing.standalonePrice}
           subscriberPrice={pricing.subscriberPrice}
