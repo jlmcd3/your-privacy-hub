@@ -94,8 +94,6 @@ export default function ReportShell({
             <img
               src="/logo.png"
               alt="End User Privacy"
-              width={1111}
-              height={281}
               className="h-7 w-auto shrink-0 rounded object-contain"
             />
           </Link>
