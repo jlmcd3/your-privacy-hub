@@ -93,7 +93,7 @@ export default function FunctionHealth() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-serif text-white">Function Health</h1>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               Per-invocation telemetry from <code className="text-xs">function_runs</code>.
             </p>
           </div>
@@ -113,11 +113,11 @@ export default function FunctionHealth() {
         <section className="mb-10">
           <h2 className="text-lg font-semibold text-white mb-3">Health summary</h2>
           {summary.length === 0 && !loading ? (
-            <div className="text-sm text-gray-500">No runs recorded yet.</div>
+            <div className="text-sm text-gray-600">No runs recorded yet.</div>
           ) : (
             <div className="overflow-x-auto rounded border border-gray-800">
               <table className="w-full text-sm">
-                <thead className="bg-gray-900/60 text-gray-400">
+                <thead className="bg-gray-100 text-gray-700">
                   <tr>
                     <th className="text-left px-3 py-2 font-medium">Function</th>
                     <th className="text-left px-3 py-2 font-medium">Latest status</th>
@@ -135,8 +135,8 @@ export default function FunctionHealth() {
                           {r.status}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-gray-300">{fmtTime(r.started_at)}</td>
-                      <td className="px-3 py-2 text-gray-300">{fmtDuration(r.duration_ms)}</td>
+                      <td className="px-3 py-2 text-gray-800">{fmtTime(r.started_at)}</td>
+                      <td className="px-3 py-2 text-gray-800">{fmtDuration(r.duration_ms)}</td>
                       <td className="px-3 py-2 text-red-300 text-xs max-w-md truncate" title={r.error_message ?? ""}>
                         {r.status === "error" ? (r.error_message ?? "—") : "—"}
                       </td>
@@ -153,7 +153,7 @@ export default function FunctionHealth() {
           <h2 className="text-lg font-semibold text-white mb-3">Recent runs ({recent.length})</h2>
           <div className="overflow-x-auto rounded border border-gray-800">
             <table className="w-full text-sm">
-              <thead className="bg-gray-900/60 text-gray-400">
+              <thead className="bg-gray-100 text-gray-700">
                 <tr>
                   <th className="text-left px-3 py-2 font-medium">Function</th>
                   <th className="text-left px-3 py-2 font-medium">Status</th>
@@ -173,10 +173,10 @@ export default function FunctionHealth() {
                         {r.status}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-gray-300">{fmtTime(r.started_at)}</td>
-                    <td className="px-3 py-2 text-gray-300">{fmtDuration(r.duration_ms)}</td>
-                    <td className="px-3 py-2 text-gray-400 text-xs">{r.invoked_by ?? "—"}</td>
-                    <td className="px-3 py-2 text-gray-400 font-mono text-xs">
+                    <td className="px-3 py-2 text-gray-800">{fmtTime(r.started_at)}</td>
+                    <td className="px-3 py-2 text-gray-800">{fmtDuration(r.duration_ms)}</td>
+                    <td className="px-3 py-2 text-gray-800 text-xs">{r.invoked_by ?? "—"}</td>
+                    <td className="px-3 py-2 text-gray-800 font-mono text-xs">
                       {r.source_row_id ? r.source_row_id.slice(0, 8) : "—"}
                     </td>
                     <td className="px-3 py-2 text-red-300 text-xs max-w-xs truncate" title={r.error_message ?? ""}>
