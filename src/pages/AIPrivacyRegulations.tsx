@@ -63,7 +63,7 @@ const AIPrivacyRegulations = () => (
           "Applies if you place an AI system on the EU market, put one into service in the EU, or your AI system's output is used in the EU — regardless of where you're established.",
         toolCtaPlacement: "top",
         toolCta: {
-          toolName: "Data Protection Impact Assessment",
+          toolName: "Impact Assessment Builder",
           toolDescription: "High-risk AI systems under the EU AI Act and GDPR Article 35 require a DPIA. Generate one structured to EDPB WP 248 requirements.",
           href: "/dpia-framework",
         },

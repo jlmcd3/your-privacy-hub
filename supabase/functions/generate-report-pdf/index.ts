@@ -412,7 +412,7 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
 <header class="header">
   <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
   <p class="eyebrow">Compliance Tool · Customised Analysis</p>
-  <h1>DPIA Framework</h1>
+  <h1>Impact Assessment Builder</h1>
   <div class="meta">${buildReportMetaLine({ generatedAt: report.generated_at, organizationName: dpia?.organization_name, extra: [meta.processing_activity_name ? `Processing activity: ${meta.processing_activity_name}` : null, `Version: ${meta.framework_version || "1.0"}`].filter(Boolean).join(" · ") }).replace(/<[^>]+>/g,'')}</div>
 </header>
 <div class="body">
@@ -1582,7 +1582,7 @@ ${jurisdictionCards || "<p style='color:#5c6d7a;font-size:12px;'>No jurisdiction
 const TOOL_LABELS: Record<string, string> = {
   li_assessment: "LI-Assessment",
   governance_assessment: "Governance-Assessment",
-  dpia_framework: "DPIA-Framework",
+  dpia_framework: "Impact-Assessment-Builder",
   biometric_checker: "Biometric-Compliance",
   ir_playbook: "Breach-Response-Playbook",
   dpa_generator: "Custom-DPA",

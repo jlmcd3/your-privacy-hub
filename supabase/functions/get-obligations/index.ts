@@ -203,7 +203,7 @@ Deno.serve(async (req) => {
       table: string; kind: string; titleSlug: string; route: (id: string) => string;
     }> = [
       { table: "li_assessments", kind: "lia_review", titleSlug: "Legitimate Interest Assessment", route: (id) => `/li-assessment/result/${id}` },
-      { table: "dpia_frameworks", kind: "dpia_review", titleSlug: "DPIA Framework", route: (id) => `/dpia-framework/result/${id}` },
+      { table: "dpia_frameworks", kind: "dpia_review", titleSlug: "Impact Assessment Builder", route: (id) => `/dpia-framework/result/${id}` },
       { table: "governance_assessments", kind: "governance_review", titleSlug: "Governance Assessment", route: (id) => `/governance-assessment/result/${id}` },
     ];
     for (const spec of reviewSpecs) {

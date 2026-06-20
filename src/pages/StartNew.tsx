@@ -65,7 +65,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     key: "dpia",
-    label: "DPIA Framework",
+    label: "Impact Assessment Builder",
     blurb: "Structured Data Protection Impact Assessment for high-risk processing.",
     startPath: "/dpia-framework",
     viewPath: "/dashboard/reports",
