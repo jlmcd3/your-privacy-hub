@@ -330,8 +330,6 @@ ul { padding-left:20px; } li { margin-bottom:4px; }
           ? new Date(report.generated_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
           : "—"
       )}</td>
-      <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Status</td>
-      <td style="padding:3px 0;color:#2d7a6e;font-weight:600;">GOVERNANCE FRAMEWORK — FOR INTERNAL REVIEW</td>
     </tr>
   </table>
 </div>
