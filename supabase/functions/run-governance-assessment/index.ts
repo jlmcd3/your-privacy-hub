@@ -205,11 +205,19 @@ Existing privacy policy: ${intake.privacy_policy || "not specified"}
 Existing acceptable use policy: ${intake.acceptable_use || "not specified"}
 DPO status: ${intake.dpo_status || "not specified"}
 DPIA status: ${intake.dpia_status || "not specified"}
+DPIA AI/high-risk coverage: ${intake.dpia_ai_coverage || "not specified"}
 Incident response plan: ${intake.incident_response || "not specified"}
 Employee privacy training: ${intake.training_status || "not specified"}
+Training AI-tool coverage: ${intake.training_ai_coverage || "not specified"}
 Special category data: ${intake.special_category || "not specified"}${intake.special_categories_list?.length ? ` — ${intake.special_categories_list.join(", ")}` : ""}
+Tool inventory audit: ${intake.inventory_audit || "not specified"}
+Technical controls preventing prohibited submission: ${intake.technical_controls || "not specified"}${intake.technical_controls_list?.length ? ` — ${intake.technical_controls_list.join(", ")}` : ""}
+DSR fulfilment capability: ${intake.dsr_capability || "not specified"}${intake.dsr_rights_tested?.length ? ` (rights tested end-to-end: ${intake.dsr_rights_tested.join(", ")})` : ""}
 Vendor DPA status: ${intake.dpa_status || "not specified"}
-Cross-border transfer status: ${intake.transfer_status || "not specified"}${intake.tool_instruction ? `\nTool-specific note: ${intake.tool_instruction}` : ""}
+DPA Article 28(3) verification: ${intake.dpa_art28_verified || "not specified"}
+Cross-border transfer status: ${intake.transfer_status || "not specified"}
+Transfer mechanism in place: ${intake.transfer_mechanism || "not specified"}${intake.tool_instruction ? `\nTool-specific note: ${intake.tool_instruction}` : ""}
+
 `;
 
     const domainSystem = `You are a senior privacy and data protection compliance analyst. You are assessing an organisation's data governance practices against applicable regulatory requirements. Be specific, cite regulatory provisions where applicable (GDPR Article numbers, CCPA sections, etc.), and be direct about findings. This is a compliance framework tool. Return ONLY valid JSON, no preamble.
