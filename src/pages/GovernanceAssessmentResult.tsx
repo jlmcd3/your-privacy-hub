@@ -147,6 +147,7 @@ const GovernanceAssessmentResult = () => {
           title="GDPR Governance Assessment"
           meta={metaBits.length ? metaBits.join(" · ") : undefined}
           actions={status === "complete" || status === "failed" ? actions : undefined}
+          topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
         >
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}

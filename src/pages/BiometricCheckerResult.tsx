@@ -130,6 +130,7 @@ export default function BiometricCheckerResult() {
             title="Biometric Compliance Assessment"
             meta={meta}
             actions={actions}
+            topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
           >
             <div dir={dir} style={{ display: "contents" }}>
             {(orgName || orgType) && (
