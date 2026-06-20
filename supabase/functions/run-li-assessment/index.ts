@@ -680,7 +680,7 @@ Return JSON:
   "review_triggers": [
     "circumstances that would require this LIA to be revisited"
   ],
-  "disclaimer": "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
+  "disclaimer": "This analysis helps your organisation assess whether legitimate interest is an appropriate processing basis. It does not constitute legal advice. Review the findings with qualified legal counsel before relying on legitimate interest as a processing legal basis."
 }`;
 
     const t3Start = Date.now();
