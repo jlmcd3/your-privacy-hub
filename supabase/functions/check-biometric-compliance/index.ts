@@ -662,11 +662,21 @@ Deno.serve(async (req) => {
     const encoder = new TextEncoder();
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
+        let streamClosed = false;
+        let finished = false;
         const writer = {
-          write: async (chunk: Uint8Array) => { controller.enqueue(chunk); },
-          close: async () => { controller.close(); },
+          write: async (chunk: Uint8Array) => {
+            if (streamClosed) return;
+            try { controller.enqueue(chunk); } catch { streamClosed = true; }
+          },
+          close: async () => {
+            if (streamClosed) return;
+            streamClosed = true;
+            try { controller.close(); } catch { /* already closed */ }
+          },
         };
         const keepAlive = setInterval(() => {
+          if (streamClosed) return;
           writer.write(encoder.encode(" ")).catch(() => {});
         }, 10000);
 
