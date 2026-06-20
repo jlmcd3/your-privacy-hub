@@ -296,7 +296,7 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
     "sign_off_template": "Controller sign-off template (the controller, not the DPO, owns this decision): Processing activity: [name] | DPIA version: [TO COMPLETE] | DPIA completion date: [TO COMPLETE] | DPO advice received and considered: Yes / No / N/A (no DPO designated) | Overall residual risk level (post-measures): [TO BE RE-SCORED by organisation] | Supervisory authority consultation required: Yes / No / Conditional | Controller representative name and title: [TO COMPLETE] | Signature: [TO COMPLETE] | Date: [TO COMPLETE]",
     "review_schedule": "recommended review triggers for this DPIA"
   },
-  "framework_disclaimer": "This DPIA framework document is provided as a compliance framework tool to assist organisations in structuring their Data Protection Impact Assessment process. It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. The organisation's qualified Data Protection Officer or legal counsel must review, complete, and own this document. This framework does not constitute legal advice."
+  "framework_disclaimer": "This document helps your organisation structure its Data Protection Impact Assessment. It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. Your qualified Data Protection Officer or legal counsel must review, complete, and own it. It does not constitute legal advice."
 }`;
 
     function parseJsonish(text: string): any {
@@ -429,7 +429,7 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
 
     if (!reportData.section_1_description && !reportData.section_4_mitigation) {
       reportData = {
-        framework_disclaimer: "This is a compliance framework tool, not legal advice.",
+        framework_disclaimer: "This is not legal advice.",
         error: "Report generation encountered an issue. Please retry."
       };
     }
