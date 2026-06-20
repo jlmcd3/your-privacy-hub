@@ -1144,7 +1144,12 @@ Output ONLY the compliance assessment. No preamble.`,
           generated_at: report_data.generated_at,
         })));
       } catch (e) {
-        await failFunctionRun(supabase, fnRun, e);
+        clearInterval(keepAlive);
+        if (!finished) {
+          await failFunctionRun(supabase, fnRun, e);
+        } else {
+          console.error("[biometric] post-success stream delivery failed (non-fatal):", e);
+        }
         console.error("check-biometric-compliance error:", e);
         try {
           await writer.write(encoder.encode(JSON.stringify({ error: "An internal error occurred" })));
