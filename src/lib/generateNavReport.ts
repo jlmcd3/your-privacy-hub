@@ -70,7 +70,7 @@ const NAV_HIERARCHY = [
   {
     section: "Intelligence Mega-menu — Professional Tools",
     items: [
-      { label: "Privacy Program Assessment", href: "/governance-assessment", badge: "PRO" },
+      { label: "GDPR Governance Assessment", href: "/governance-assessment", badge: "PRO" },
       { label: "Legitimate Interest Assessment", href: "/li-assessment", badge: "PRO" },
       { label: "Impact Assessment Builder (DPIA)", href: "/dpia-framework", badge: "PRO" },
       { label: "Custom DPA", href: "/dpa-generator", badge: "PRO" },

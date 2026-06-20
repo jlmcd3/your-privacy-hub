@@ -135,7 +135,7 @@ const GovernanceAssessmentResult = () => {
         )}
 
         <ReportShell
-          title="Privacy Program Assessment"
+          title="GDPR Governance Assessment"
           meta={metaBits.length ? metaBits.join(" · ") : undefined}
           actions={status === "complete" || status === "failed" ? actions : undefined}
         >

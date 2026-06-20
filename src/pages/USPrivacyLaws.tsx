@@ -229,7 +229,7 @@ const USPrivacyLaws = () => {
       {/* Landscape at a glance */}
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <ResearchToolCTA
-          toolName="Privacy Programme Assessment"
+          toolName="GDPR Governance Assessment"
           toolDescription="See where your privacy program stands against the state laws on this page — a structured, enforcement-calibrated assessment across ten governance domains."
           href="/governance-assessment"
         />

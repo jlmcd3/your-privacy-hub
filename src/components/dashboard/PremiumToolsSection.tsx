@@ -24,7 +24,7 @@ const TOOLS = [
   },
   {
     icon: "🛡️",
-    title: "Privacy Program Assessment Tool",
+    title: "GDPR Governance Assessment",
     description:
       "Ten-domain review of your organisation's privacy practices mapped to applicable regulatory frameworks. Each finding is rated by severity and paired with a recommended action, suggested owner, and timeline.",
     cta: "View Sample & Purchase",
@@ -86,7 +86,7 @@ const TOOLS = [
 
 const TYPE_LABEL: Record<AssessmentRow["type"], string> = {
   li: "LI Assessment Tool",
-  governance: "Privacy Program Assessment Tool",
+  governance: "GDPR Governance Assessment",
   dpia: "Impact Assessment Builder",
 };
 

@@ -46,7 +46,7 @@ const TOOLS: Tool[] = [
   },
   {
     icon: ShieldCheck,
-    title: "Privacy Program Assessment",
+    title: "GDPR Governance Assessment",
     blurb: "Score your program against the domains regulators actually inspect — cited enforcement decisions behind every risk finding.",
     price: T.governance.display,
     cta: "Run assessment",

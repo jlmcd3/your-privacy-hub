@@ -170,7 +170,7 @@ const TOOLS: ToolDef[] = [
     slug: "healthcheck",
     section: "assessments",
     icon: "🛡️",
-    name: "Privacy Programme Assessment",
+    name: "GDPR Governance Assessment",
     tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect.",
     href: "/governance-assessment",
     subscriberPrice: PRICING.tools.governance.display,
@@ -465,7 +465,7 @@ const TOOLS: ToolDef[] = [
 ];
 
 const PRICING_GRID: [string, string][] = [
-  ["Privacy Programme Assessment", `${PRICING.tools.governance.display} (Smart)`],
+  ["GDPR Governance Assessment", `${PRICING.tools.governance.display} (Smart)`],
   ["Legitimate Interest Assessment", `${PRICING.tools.lia.display} (Smart)`],
   ["Impact Assessment (DPIA)", `${PRICING.tools.dpia.display} (Smart)`],
   ["DPA Generator", `Included with subscription · ${PRICING.tools.dpa.display} standalone`],

@@ -510,7 +510,7 @@ const JurisdictionPage = () => {
           const tools: Tool[] = [];
           if (usEnacted) {
             tools.push({
-              label: "Privacy Program Assessment",
+              label: "GDPR Governance Assessment",
               desc: "Assess your organisation's privacy programme posture.",
               href: "/governance-assessment",
             });

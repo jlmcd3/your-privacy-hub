@@ -189,7 +189,7 @@ const navItems: NavItem[] = [
         items: [
           { icon: "⚖️", label: "Legitimate Interest Assessment", href: "/li-assessment",
             tooltip: "Full three-part documented LIA, calibrated to enforcement decisions" },
-          { icon: "🛡️", label: "Privacy Program Assessment", href: "/governance-assessment",
+          { icon: "🛡️", label: "GDPR Governance Assessment", href: "/governance-assessment",
             tooltip: "Scored programme health check against what regulators actually enforce" },
           { icon: "📑", label: "Data Protection Impact Assessment", href: "/dpia-framework",
             tooltip: "EDPB-aligned DPIA for high-risk processing activities" },
