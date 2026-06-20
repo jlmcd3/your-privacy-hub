@@ -96,7 +96,7 @@ ARTICLE 35 MANDATORY TRIGGER RULE: Section 1 of the DPIA framework must identify
 
 EPRIVACY AND DEVICE-ACCESS GATE RULE: For processing activities involving IP addresses, device identifiers, cookies, mobile advertising IDs, SDKs, pixel tags, browser fingerprinting, or IoT sensor data, flag in section_1 completion_guidance that ePrivacy Directive (2002/58/EC) obligations apply in addition to GDPR. Specifically: (a) accessing or storing information on a terminal device requires prior informed consent under ePrivacy Article 5(3), unless strictly necessary for the service; (b) in the UK, PECR (Privacy and Electronic Communications Regulations 2003) imposes equivalent requirements; (c) GDPR lawful basis alone (e.g. legitimate interests) does NOT satisfy the ePrivacy consent requirement for non-essential device access. Where the processing involves tracking cookies, advertising SDKs, or analytics pixels, the organisation must: complete a separate ePrivacy mapping; implement a consent management platform (CMP) that captures granular consent; and document that the CMP records are sufficient to demonstrate compliance. This gate applies specifically to AdTech, Media, Mobile, Web, Social, IoT, Automotive, and KYC sectors where device-level data access is routine.`;
 
-    const processingDesc = intake.processing_description || "Not provided";
+    const processingDesc = intake.processing_description || intake.description || "Not provided";
     const purpose = intake.purpose || "Not provided";
     const dataCategories = (intake.data_categories || []).join(", ") || "Not specified";
     const dataSubjects = intake.data_subjects || "Not specified";
@@ -467,7 +467,7 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
     // C4 RoPA accumulator
     if (dpia.client_id) {
       const intakeAny = (dpia.intake_data as any) || {};
-      const summary = intakeAny.processing_description || intakeAny.activity_description || "Processing activity requiring DPIA";
+      const summary = intakeAny.processing_description || intakeAny.activity_description || intakeAny.description || "Processing activity requiring DPIA";
       supabase.functions.invoke("accumulate-ropa-activity", {
         body: {
           client_id: dpia.client_id,
