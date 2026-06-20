@@ -143,10 +143,10 @@ export default function ReportShell({
             <span className="font-semibold text-brand-navy">{topDisclaimerLead}</span>{" "}
             {topDisclaimer ?? (
               <>
-                This document is a compliance framework generated for informational
-                purposes only. It does not create an attorney-client relationship.
-                Always consult qualified legal counsel for advice specific to your
-                situation.
+                This document is a starting point for your organisation's compliance
+                work, not a finished or authoritative compliance document. It does
+                not create an attorney-client relationship. Have qualified legal
+                counsel review it before you rely on it.
               </>
             )}
           </p>
