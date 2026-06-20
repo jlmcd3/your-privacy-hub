@@ -489,7 +489,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
   }, [removeHighlight]);
 
   return (
-    <div className="relative w-full flex flex-col items-center">
+    <div className={`relative w-full flex flex-col items-center ${compact ? "h-full" : ""}`}>
 
       {!compact && (
         <div className="text-center mb-6">
