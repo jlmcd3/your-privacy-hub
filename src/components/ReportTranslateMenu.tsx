@@ -90,7 +90,7 @@ export default function ReportTranslateMenu({
           type="button"
           onClick={() => setOpen((v) => !v)}
           disabled={loading !== null}
-          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-input bg-background text-foreground text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-60"
           aria-haspopup="listbox"
           aria-expanded={open}
         >
