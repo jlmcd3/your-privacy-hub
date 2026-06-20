@@ -90,6 +90,7 @@ const GovernanceAssessment = () => {
 
   // Step 3
   const [privacyPolicy, setPrivacyPolicy] = useState("");
+  const [privacyNoticeCoverage, setPrivacyNoticeCoverage] = useState("");
   const [acceptableUse, setAcceptableUse] = useState("");
   const [dpoStatus, setDpoStatus] = useState("");
   const [dpiaStatus, setDpiaStatus] = useState("");
@@ -175,7 +176,9 @@ const GovernanceAssessment = () => {
     tools: otherTool.trim() ? [...tools, `Other: ${otherTool.trim()}`] : tools,
     data_categories: dataCategories,
     special_category: specialCategory, special_categories_list: specialCategoriesList,
-    privacy_policy: privacyPolicy, acceptable_use: acceptableUse,
+    privacy_policy: privacyPolicy,
+    privacy_notice_coverage: privacyPolicy.startsWith("Yes") ? privacyNoticeCoverage : "n/a",
+    acceptable_use: acceptableUse,
     dpo_status: showDpoQ ? dpoStatus : "n/a",
     dpia_status: dpiaStatus, incident_response: incidentResponse,
     training_status: trainingStatus, tool_instruction: toolInstruction,
@@ -430,6 +433,9 @@ const GovernanceAssessment = () => {
               <h2 className="">Governance Infrastructure</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 5(2) — accountability · Art. 24 — controller responsibility · Art. 37 — DPO designation</p>
               <div><Label>Q8: Documented privacy policy/notice<Req /> <DefPopover termKey="gdpr_transparency" /></Label><div className="mt-2"><Radio name="pp" options={["Yes, current (reviewed in last 12 months)", "Yes, but outdated", "No"]} value={privacyPolicy} onChange={setPrivacyPolicy} /></div></div>
+              {privacyPolicy.startsWith("Yes") && (
+                <div><Label>Q8a: Does your published privacy notice describe all current processing activities, recipients, international transfers, retention periods, and data-subject rights for your tools?<Req /> <DefPopover termKey="gdpr_transparency" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 13–14 GDPR)</span></Label><div className="mt-2"><Radio name="pncov" options={["Yes — notice covers all current activities, transfers, retention, and rights", "Partially — some activities or tools not yet reflected", "No — notice not updated for current tools", "Unsure"]} value={privacyNoticeCoverage} onChange={setPrivacyNoticeCoverage} /></div></div>
+              )}
               <div><Label>Q9: Acceptable use policy for technology tools<Req /></Label><div className="mt-2"><Radio name="aup" options={["Yes, covers external technology tools specifically", "Yes, but general only", "No"]} value={acceptableUse} onChange={setAcceptableUse} /></div></div>
               {showDpoQ && (<div><Label>Q10: Designated DPO or equivalent?<Req /> <DefPopover termKey="gdpr_dpo" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 37–39 GDPR)</span> <EnforcementSignalIcon signalKey="dpo_absence" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpo" options={["Yes, formal DPO", "Yes, informal privacy lead", "No"]} value={dpoStatus} onChange={setDpoStatus} /></div></div>)}
               <div><Label>Q11: Has any DPIA been conducted?<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 35 GDPR)</span> <EnforcementSignalIcon signalKey="dpia_absence" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpia" options={["Yes, multiple DPIAs completed", "Yes, one DPIA completed", "No, none conducted", "Unsure"]} value={dpiaStatus} onChange={setDpiaStatus} /></div></div>
@@ -501,6 +507,7 @@ const GovernanceAssessment = () => {
             push("Special category data", specialCategory);
             if (specialCategory === "Yes") push("Special categories", specialCategoriesList);
             push("Privacy policy", privacyPolicy);
+            if (privacyPolicy.startsWith("Yes")) push("Privacy notice coverage", privacyNoticeCoverage);
             push("Acceptable use policy", acceptableUse);
             if (showDpoQ) push("DPO appointed", dpoStatus);
             push("DPIA conducted previously", dpiaStatus);
