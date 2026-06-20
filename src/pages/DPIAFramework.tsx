@@ -183,6 +183,9 @@ const DPIAFramework = () => {
     if (!volume.trim()) return "Volume and frequency required.";
     if (!jurisdictions.length) return "Select at least one jurisdiction.";
     if (!legalBasis) return "Select a legal basis.";
+    if (hasSpecialCategory && !article9Condition) return "Select an Article 9(2) condition for the special-category data you indicated.";
+    if (!retentionPeriod.trim()) return "Retention period is required.";
+    if (!necessityProportionality.trim()) return "Describe necessity, proportionality and alternatives considered.";
     return null;
   };
 
