@@ -15,7 +15,7 @@ const TOOLS = [
   { id: "cppa-risk",         label: "CPPA Risk Assessment",     edgeFn: "run-cppa-risk-assessment" },
   { id: "cppa-cyber",        label: "CPPA Cybersecurity Audit", edgeFn: "run-cppa-cybersecurity" },
   { id: "lia",               label: "LIA Tool",                 edgeFn: "run-li-assessment" },
-  { id: "dpia",              label: "DPIA Framework",           edgeFn: "run-dpia-framework" },
+  { id: "dpia",              label: "Impact Assessment Builder", edgeFn: "run-dpia-framework" },
   { id: "governance",        label: "Governance Assessment",    edgeFn: "run-governance-assessment" },
   { id: "dpa-generator",     label: "DPA Generator",            edgeFn: "generate-dpa" },
   { id: "ir-playbook",       label: "IR Playbook",              edgeFn: "generate-ir-playbook" },
