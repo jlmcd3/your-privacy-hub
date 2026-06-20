@@ -543,7 +543,7 @@ const JurisdictionPage = () => {
               href: "/li-assessment",
             });
             tools.push({
-              label: "DPIA Framework",
+              label: "Impact Assessment Builder",
               desc: "Build a Data Protection Impact Assessment under Article 35.",
               href: "/dpia-framework",
             });
