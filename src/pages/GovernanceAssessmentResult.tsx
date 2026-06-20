@@ -52,6 +52,16 @@ const GovernanceAssessmentResult = () => {
   const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
+  const [openDomains, setOpenDomains] = useState<string[]>([]);
+
+  const focusDomain = (i: number) => {
+    const v = `d${i}`;
+    setOpenDomains((prev) => (prev.includes(v) ? prev : [...prev, v]));
+    setTimeout(() => {
+      const el = document.getElementById(`domain-${v}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  };
 
   useEffect(() => {
     if (!id) return;
