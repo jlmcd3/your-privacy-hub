@@ -198,14 +198,20 @@ const GovernanceAssessmentResult = () => {
                   <p className="text-sm text-muted-foreground mb-3">Click any domain below for detailed findings</p>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     {domainList.map((d: any, i: number) => (
-                      <div key={i} className={`border rounded-lg p-3 ${sevBg(d.severity)}`}>
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => focusDomain(i)}
+                        className={`text-left border rounded-lg p-3 transition hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${sevBg(d.severity)}`}
+                        aria-label={`View findings for ${d.domain_name || d.name}`}
+                      >
                         <p className="text-meta font-semibold leading-snug mb-2">{d.domain_name || d.name}</p>
                         {d.severity && (
                           <span className={`inline-block px-1.5 py-0.5 text-eyebrow rounded ${sevColor(d.severity)}`}>
                             {d.severity}
                           </span>
                         )}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </section>
