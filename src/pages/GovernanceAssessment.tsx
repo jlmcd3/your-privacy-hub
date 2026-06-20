@@ -440,10 +440,18 @@ const GovernanceAssessment = () => {
 
           {step === 4 && (
             <>
-              <h2 className="">Training and Awareness</h2>
-              <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 5(2) — accountability · Art. 32(4) — staff training obligation</p>
+              <h2 className="">Training and Technical Controls</h2>
+              <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 5(2) — accountability · Art. 32 — security of processing · Art. 32(4) — staff training obligation</p>
               <div><Label>Q13: Privacy / data protection training<Req /></Label><div className="mt-2"><Radio name="train" options={["Yes, formal onboarding + annual refresh", "Yes, onboarding only", "Ad hoc only", "No formal training"]} value={trainingStatus} onChange={setTrainingStatus} /></div></div>
+              {trainingStatus.startsWith("Yes") && (
+                <div><Label>Q13a: Does training specifically cover prohibited use of AI tools and data-submission risk? <span className="text-xs text-muted-foreground font-mono">(Art. 32(4) GDPR)</span></Label><div className="mt-2"><Radio name="train_ai" options={["Yes — explicitly covers AI tools", "Generally covers data handling", "No — not AI-specific", "Unsure"]} value={trainingAiCoverage} onChange={setTrainingAiCoverage} /></div></div>
+              )}
               <div><Label>Q14: Instruction on what data may/may not be submitted to external technology tools<Req /></Label><div className="mt-2"><Radio name="ti" options={["Yes, written policy with specific prohibitions", "Verbal guidance only", "No instruction provided"]} value={toolInstruction} onChange={setToolInstruction} /></div></div>
+              <div><Label>Q19: Technical controls — not just policy — preventing prohibited personal data being submitted to your AI/cloud tools?<Req /> <DefPopover termKey="gdpr_security_measures" /> <span className="text-xs text-muted-foreground font-mono">(Art. 32(1)(b) GDPR)</span></Label><div className="mt-2"><Radio name="tc" options={["Yes — DLP/content filtering actively enforced", "Partial — some tools or categories", "No — policy and training only", "Unsure"]} value={technicalControls} onChange={setTechnicalControls} /></div>
+                {(technicalControls === "Yes — DLP/content filtering actively enforced" || technicalControls.startsWith("Partial")) && (
+                  <div className="mt-3"><Label>Which controls are in place?</Label><div className="mt-2"><Pills options={["DLP rules","Content filtering","Endpoint upload restrictions","Prompt-injection detection","Approval workflow"]} value={technicalControlsList} onChange={setTechnicalControlsList} /></div></div>
+                )}
+              </div>
             </>
           )}
 
@@ -452,7 +460,13 @@ const GovernanceAssessment = () => {
               <h2 className="">Transfer and Compliance</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Art. 28 — processor contracts · Arts. 44–49 — international transfers · Art. 46(2)(c) — SCCs</p>
               <div><Label>Q15: DPAs signed with relevant vendors<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR)</span> <EnforcementSignalIcon signalKey="processor_contract" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpa" options={["Yes, all vendors", "Most vendors", "Some vendors", "No"]} value={dpaStatus} onChange={setDpaStatus} /></div></div>
+              {(dpaStatus === "Yes, all vendors" || dpaStatus === "Most vendors") && (
+                <div><Label>Q15a: Have those DPAs been verified against the Art. 28(3) mandatory clauses? <DefPopover termKey="gdpr_processor_contract" /> <span className="text-xs text-muted-foreground font-mono">(Art. 28(3) GDPR)</span> <EnforcementSignalIcon signalKey="processor_contract" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="dpa28" options={["Yes — verified", "Partially", "Not verified", "Unsure"]} value={dpaArt28Verified} onChange={setDpaArt28Verified} /></div></div>
+              )}
               <div><Label>Q16: Cross-border transfers outside EU/UK<Req /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–46 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="xfer" options={["Yes, US-based tools", "Yes, other non-adequate countries", "All tools store data in EU/UK", "Unsure"]} value={transferStatus} onChange={setTransferStatus} /></div></div>
+              {(transferStatus === "Yes, US-based tools" || transferStatus === "Yes, other non-adequate countries") && (
+                <div><Label>Q16a: Which transfer mechanism is in place for those transfers? <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">{transferMechCite}</span> <EnforcementSignalIcon signalKey="international_transfer" signals={govEnforcementSignals} /></Label><div className="mt-2"><Radio name="xfermech" options={transferMechOptions} value={transferMechanism} onChange={setTransferMechanism} /></div></div>
+              )}
             </>
           )}
 
