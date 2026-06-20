@@ -937,7 +937,7 @@ export function isToolFreeForTier(toolKey: string, tier?: string): boolean {
  * Cannot be replicated by prompting a general AI.
  */
 export const SMART_TOOL_KEYS = [
-  'governance',   // Privacy Program Assessment — 10-domain scoring
+  'governance',   // GDPR Governance Assessment — 10-domain scoring
   'lia',          // Legitimate Interest Assessment — 3-part enforcement test
   'dpia',         // DPIA — necessity/proportionality vs enforcement corpus
   'cppa_risk',    // CPPA Risk Assessment — 5-stage CPPA analysis
