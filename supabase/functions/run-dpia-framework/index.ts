@@ -62,6 +62,15 @@ Deno.serve(async (req) => {
       ...(orgName && !(dpia as any).organization_name ? { organization_name: orgName } : {}),
     }).eq("id", dpia_id);
 
+    const fnRun = await startFunctionRun(supabase, "run-dpia-framework", {
+      archetype: "background",
+      trustClass: "user",
+      userId: caller.internal ? (dpia.user_id ?? null) : caller.userId,
+      invokedBy: caller.internal ? "internal" : "user",
+      metadata: { dpia_id },
+    });
+
+
     // Dispatch heavy work in background — return 202 immediately so the caller
     // is not held open past the platform's 150s HTTP idle ceiling. The result
     // page polls dpia_frameworks.status. On unhandled error we mark the row
