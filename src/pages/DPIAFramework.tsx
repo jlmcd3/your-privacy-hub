@@ -73,6 +73,9 @@ const DPIAFramework = () => {
   const [safeguards, setSafeguards] = useState<string[]>([]);
   const [jurisdictions, setJurisdictions] = useState<string[]>([]);
   const [legalBasis, setLegalBasis] = useState("");
+  const [article9Condition, setArticle9Condition] = useState("");
+  const [necessityProportionality, setNecessityProportionality] = useState("");
+  const [retentionPeriod, setRetentionPeriod] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
