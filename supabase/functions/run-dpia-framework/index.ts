@@ -187,6 +187,7 @@ EPRIVACY AND DEVICE-ACCESS GATE RULE: For processing activities involving IP add
     // ── Split DPIA generation into two parallel calls to stay within timeout ──
     const sharedContext = `PROCESSING ACTIVITY DETAILS:
 Organisation (controller) being assessed: ${orgName || "not specified"}
+Processing activity name: ${intake.processing_activity_name || "not specified"}
 Sector: ${sector}
 Legal basis selected by user: ${legalBasisProposed}
 Description: ${processingDesc}
