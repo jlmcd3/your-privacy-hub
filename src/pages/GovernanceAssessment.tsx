@@ -223,6 +223,8 @@ const GovernanceAssessment = () => {
     specialCategory, specialCategoriesList, privacyPolicy, acceptableUse,
     dpoStatus, dpiaStatus, incidentResponse, trainingStatus, toolInstruction,
     dpaStatus, transferStatus, showDpoQ, showStep5,
+    technicalControls, technicalControlsList, dsrCapability, dsrRightsTested,
+    inventoryAudit, dpiaAiCoverage, trainingAiCoverage, dpaArt28Verified, transferMechanism,
   ]);
 
   const summaryStep = step === totalSteps;
