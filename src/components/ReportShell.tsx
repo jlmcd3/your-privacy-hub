@@ -89,7 +89,7 @@ export default function ReportShell({
         {!whiteLabel && (
           <Link to="/" className="inline-block mb-6">
             <img
-              src="/brand/logo-light.svg"
+              src="/brand/logo-dark.svg"
               alt="End User Privacy"
               className="h-10 w-auto shrink-0 object-contain"
             />
