@@ -869,7 +869,7 @@ export const PRICING = {
     ropa:         { name: 'RoPA Builder',                       dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     eu_notice:    { name: 'EU / Global Privacy Notice Builder', dollars: 0,   display: 'Included with subscription', stripePriceId: null },
     registration: { name: 'Registration Filings',               dollars: 59,  display: '$59',  stripePriceId: 'registration_standalone' },
-    governance:   { name: 'Privacy Program Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
+    governance:   { name: 'GDPR Governance Assessment',         dollars: 89,  display: '$89',  stripePriceId: 'hc_standalone_v2' },
     cppa_risk:    { name: 'CPPA Risk Assessment',               dollars: 229, display: '$229', stripePriceId: 'cppa_risk_standalone' },
     cppa_cyber:   { name: 'CPPA Cybersecurity Readiness',       dollars: 299, display: '$299', stripePriceId: 'cppa_cyber_standalone' },
     cppa_suite:   { name: 'CPPA Full Audit Suite',              dollars: 449, display: '$449', stripePriceId: 'cppa_suite_standalone' },
