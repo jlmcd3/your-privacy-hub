@@ -520,6 +520,7 @@ export default function CPPACybersecurityResult() {
           title="CPPA Cybersecurity Audit Readiness"
           meta={metaText}
           actions={actions}
+          topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
         >
           {loading && <p>Loading…</p>}
 
