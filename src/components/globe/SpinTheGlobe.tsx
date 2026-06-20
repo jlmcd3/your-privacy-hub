@@ -507,7 +507,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         ref={mountRef}
         className={`relative rounded-full overflow-hidden cursor-pointer ${compact ? "shadow-[0_0_20px_4px_rgba(59,130,196,0.35),0_0_40px_10px_rgba(59,130,196,0.15)]" : "shadow-eup-lg"}`}
         style={compact
-          ? { width: 330, height: 330, background: "radial-gradient(circle at 50% 50%, #0d1f3c 0%, #050b18 70%, #020609 100%)" }
+          ? { width: 280, height: 280, background: "radial-gradient(circle at 50% 50%, #0d1f3c 0%, #050b18 70%, #020609 100%)" }
           : { width: 380, height: 380, background: "radial-gradient(circle at 50% 50%, #0d1f3c 0%, #050b18 70%, #020609 100%)" }
         }
         onClick={phase === "idle" ? handleSpin : undefined}
