@@ -211,6 +211,9 @@ Volume/frequency: ${volume}
 Third-party processors: ${thirdParties}
 Existing safeguards: ${safeguards}
 Jurisdictions: ${jurisdictions}
+Article 9(2) condition for special-category data (selected by user): ${article9Condition}
+Retention period (provided by user): ${retentionPeriod}
+Necessity, proportionality & alternatives considered (provided by user): ${necessityProportionality}
 ${orgContext}
 
 ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
