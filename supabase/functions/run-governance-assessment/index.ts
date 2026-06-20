@@ -197,16 +197,19 @@ Deno.serve(async (req) => {
 Organisation (controller) being assessed: ${orgName || "not specified"}
 Organisation sector: ${intake.sector || "not specified"}
 Organisation size: ${intake.org_size || "not specified"}
-Jurisdictions of operation: ${(intake.jurisdictions || []).join(", ")}
-EU/UK personal data processed: ${intake.eu_uk_data ? "Yes" : "No"}
-Technology tools in use: ${(intake.tools || []).join(", ")}
-Existing privacy policy: ${intake.has_privacy_policy ? "Yes" : "No"}
-Existing acceptable use policy: ${intake.has_aup ? "Yes" : "No"}
-DPO appointed: ${intake.has_dpo ? "Yes" : "No"}
-DPIA conducted previously: ${intake.has_conducted_dpia ? "Yes" : "No"}
-Incident response plan exists: ${intake.has_ir_plan ? "Yes" : "No"}
-Employee privacy training conducted: ${intake.has_privacy_training ? "Yes" : "No"}
-Health or special category data processed: ${intake.special_category_data ? "Yes" : "No"}
+Jurisdictions of operation: ${(intake.jurisdictions || []).join(", ") || "not specified"}
+EU/UK personal data processed: ${intake.eu_uk_data || "not specified"}
+Technology tools in use: ${(intake.tools || []).join(", ") || "not specified"}
+Data categories processed: ${(intake.data_categories || []).join(", ") || "not specified"}
+Existing privacy policy: ${intake.privacy_policy || "not specified"}
+Existing acceptable use policy: ${intake.acceptable_use || "not specified"}
+DPO status: ${intake.dpo_status || "not specified"}
+DPIA status: ${intake.dpia_status || "not specified"}
+Incident response plan: ${intake.incident_response || "not specified"}
+Employee privacy training: ${intake.training_status || "not specified"}
+Special category data: ${intake.special_category || "not specified"}${intake.special_categories_list?.length ? ` — ${intake.special_categories_list.join(", ")}` : ""}
+Vendor DPA status: ${intake.dpa_status || "not specified"}
+Cross-border transfer status: ${intake.transfer_status || "not specified"}${intake.tool_instruction ? `\nTool-specific note: ${intake.tool_instruction}` : ""}
 `;
 
     const domainSystem = `You are a senior privacy and data protection compliance analyst. You are assessing an organisation's data governance practices against applicable regulatory requirements. Be specific, cite regulatory provisions where applicable (GDPR Article numbers, CCPA sections, etc.), and be direct about findings. This is a compliance framework tool. Return ONLY valid JSON, no preamble.
@@ -235,7 +238,7 @@ MONETARY PENALTY RULE: In the synthesis stage, never state a specific monetary f
 JURISDICTION SCOPING RULE (critical): Cite regulatory bases ONLY for the jurisdictions listed in the intake jurisdictions field provided below. If eu_uk_data is "No", do NOT cite GDPR, UK GDPR, EU member-state law, or any EU/UK authority anywhere in the report — not in the executive summary's framework count, not in domain regulatory bases, not in actions. Never reference a country (e.g., Ireland) absent from the intake. The number of "applicable regulatory frameworks" must equal the number of intake jurisdictions.
 
 INTAKE JURISDICTIONS: ${JSON.stringify(intake.jurisdictions || [])}
-EU_UK_DATA: ${intake.eu_uk_data ? "Yes" : "No"}
+EU_UK_DATA: ${intake.eu_uk_data || "not specified"}
 
 STATUTE-GLOSS INTEGRITY RULE: When citing a statute at the section/subsection level, the parenthetical gloss must match that exact subsection. If you are not certain of the subsection, cite at the statute level only. Verified anchors you MUST use when relevant — CCPA: §1798.100 notice/collection; §1798.105 right to DELETE; §1798.106 right to CORRECT; §1798.110 right to know; §1798.120 opt-out of sale/sharing; §1798.121 limit SPI; §1798.130 request methods; §1798.135 opt-out links; §1798.140(ag) service-provider definition (never (v) or (w)); §1798.150 breach private right of action. There is NO §1798.104. BIPA 740 ILCS 14/15: (a) retention/destruction policy; (b) informed written consent; (c) no profit; (d) disclosure restrictions; (e) reasonable safeguards — BIPA grants no general access right. GDPR: Art 24 accountability; Art 32(1)(b) confidentiality/integrity/availability/resilience; Art 32(4)/29 act-only-on-instructions (an instruction duty, not a training mandate); Art 37(1)(b) systematic monitoring; Art 37(1)(c) large-scale special categories. DSR response deadlines: CCPA 45 days (extendable 45); GDPR one month; Colorado 45 days; Virginia 45 days. California breach notification (Cal. Civ. Code §1798.82, as amended by SB 446 effective Jan 1, 2026): 30-day INDIVIDUAL notice from discovery; AG receives a SAMPLE COPY within 15 days of consumer notice when 500+ CA residents are affected; there is NO 45-day AG deadline and there never was.
 
@@ -263,8 +266,8 @@ TERMINOLOGY RULE: DPA expands to "Data Processing Agreement" only. Use US Englis
     const dataTypes: string[] = Array.isArray(intake.data_types) ? intake.data_types : [];
     const jurisdictionsLower: string[] = (intake.jurisdictions || []).map((j: string) => String(j).toLowerCase());
     const needsHigherQuality =
-      intake.eu_uk_data ||
-      intake.special_category_data ||
+      intake.eu_uk_data === "Yes" ||
+      intake.special_category === "Yes" ||
       sector === "healthcare" ||
       sector === "financial_services" || sector === "finance" ||
       dataTypes.some((t: string) =>
