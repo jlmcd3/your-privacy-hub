@@ -120,7 +120,7 @@ const DPIAFrameworkResult = () => {
           </div>
         )}
 
-        <ReportShell title={titleText} meta={metaBits.length ? metaBits.join(" · ") : undefined} actions={actions}>
+        <ReportShell title={titleText} meta={metaBits.length ? metaBits.join(" · ") : undefined} actions={actions} topDisclaimer={report.framework_disclaimer ?? report.disclaimer}>
           <div dir={dir} style={{ display: "contents" }}>
           {status === "complete" && orgName && (
             <p className="text-sm text-muted-foreground mb-2">
