@@ -122,10 +122,7 @@ export default function BiometricCheckerResult() {
             <Button asChild className="mt-4"><Link to="/dashboard/reports">Back to My Reports</Link></Button>
           </div>
         ) : row.status === "pending" || row.status === "processing" ? (
-          <div className="bg-card border border-border rounded-2xl p-10 text-center">
-            <Loader2 className="w-6 h-6 animate-spin text-brand-navy mx-auto mb-3" />
-            <p className="text-foreground">Your assessment is being generated.</p>
-          </div>
+          <ProcessingInterstitial tool="biometric" />
         ) : (
           <ReportShell
             title="Biometric Compliance Assessment"
