@@ -392,7 +392,9 @@ const LIAssessmentIntake = () => {
               <option>Probably — disclosed in privacy notice and consistent with the relationship</option>
               <option>Maybe — they may not have anticipated this specific use</option>
               <option>Unlikely — this would surprise most data subjects</option>
+              <option>No — we have no relationship with these individuals; they would not expect this</option>
             </select>
+            <Textarea value={reasonableExpectationDetail} onChange={(e) => setReasonableExpectationDetail(e.target.value)} placeholder="Optional: briefly, why would (or wouldn't) they expect it?" className="mt-2" rows={2} />
           </div>
 
           <div>
