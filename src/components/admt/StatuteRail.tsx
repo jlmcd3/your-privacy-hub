@@ -112,7 +112,7 @@ export default function StatuteRail({ entry, className = "" }: StatuteRailProps)
   return (
     <>
       <aside
-        className={`hidden lg:flex flex-col w-[300px] shrink-0 ${className}`}
+        className={`hidden lg:flex flex-col w-[300px] shrink-0 self-stretch ${className}`}
         aria-label="Regulation reference"
       >
         <div className="sticky top-4">
