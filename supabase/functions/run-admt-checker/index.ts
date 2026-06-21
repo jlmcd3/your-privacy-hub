@@ -98,12 +98,19 @@ Deno.serve(async (req) => {
 
   if (!assessment) return json({ error: "Assessment not found" }, 404);
 
+  const fnRun = await startFunctionRun(supabase, "run-admt-checker", {
+    archetype: "background",
+    trustClass: "user",
+    invokedBy: "user",
+    metadata: { assessment_id },
+  });
   // Return 202 immediately; run generation in background
   // @ts-ignore — EdgeRuntime is provided by the Supabase edge runtime
   EdgeRuntime.waitUntil((async () => {
    try {
     await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
     const intake = assessment.intake_data as any;
+
 
     // 1. Retrieve ADMT authorities from corpus (best-effort).
     let authorities: any[] = [];
