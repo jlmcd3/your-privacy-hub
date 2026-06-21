@@ -181,6 +181,9 @@ const LIAssessmentIntake = () => {
   const validate = (): string | null => {
     if (!interestHolder) return "Tell us whose interest is being served.";
     if (!interestType) return "Tell us what type of interest this is.";
+    if (!interestStatement.trim()) return "Describe, in your own words, the legitimate interest you're relying on.";
+    if (interestHolder === "Other (describe below)" && !interestHolderOther.trim()) return "Please specify whose interest is being served.";
+    if (interestType === "Other (describe below)" && !interestTypeOther.trim()) return "Please specify the type of interest.";
     if (!statedPurpose.trim()) return "Describe how you'd state this purpose to data subjects.";
     if (!alternatives.trim()) return "Describe alternatives you've considered.";
     if (!reasonableExpectation) return "Tell us whether data subjects would reasonably expect this.";
