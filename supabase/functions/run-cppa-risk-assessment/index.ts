@@ -38,6 +38,7 @@ type FiveStageIntake = {
   impact: Record<string, any>;
   org_context: Record<string, any>;
   annual_consumer_volume?: string;
+  content_detail?: Record<string, any>;
 };
 
 const EMPTY_TRIGGERS = {
@@ -95,15 +96,17 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     children_in_scope: false,
   }];
 
+  const hasDpia = intake.i9_has_existing_dpia === "Yes" || intake.i9_has_existing_dpia === true;
+  const im = (intake.impact_intake ?? {}) as Record<string, any>;
   const impact = {
-    likelihood_of_harm: "Possible",
-    severity_of_harm: "Moderate",
-    harm_types: [] as string[],
-    vulnerable_populations_detail: "",
-    benefits_outweigh_risks: "Uncertain",
-    benefits_outweigh_risks_rationale: "Legacy intake did not capture a benefits/risks rationale.",
-    cybersecurity_gaps_identified: false,
-    prior_assessments_conducted: false,
+    likelihood_of_harm: String(im.likelihood || "Possible"),
+    severity_of_harm: String(im.severity || "Moderate"),
+    harm_types: Array.isArray(im.harmTypes) ? im.harmTypes : [],
+    vulnerable_populations_detail: String(im.vulnerable ?? ""),
+    benefits_outweigh_risks: String(im.benefitsOutweigh || "Uncertain"),
+    benefits_outweigh_risks_rationale: String(im.benefitsRationale || "Not captured in intake — flag as a required fill-in."),
+    cybersecurity_gaps_identified: im.cyberGaps === "Yes",
+    prior_assessments_conducted: hasDpia,
     prior_assessment_date: "",
   };
 
@@ -119,13 +122,55 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     additional_context: "Generated from legacy flat intake schema via compatibility shim.",
   };
 
+  // Map the user's claimed § 7152 exceptions over the empty baseline.
+  const exceptionsIntake = (intake.exceptions_intake ?? {}) as Record<string, any>;
+  const exceptions = { ...EMPTY_EXCEPTIONS };
+  for (const [key, v] of Object.entries(exceptionsIntake)) {
+    if (v && v.claimed && key in exceptions) {
+      (exceptions as Record<string, any>)[key] = {
+        claimed: true,
+        scope: String(v.scope ?? ""),
+        safeguards: String(v.safeguards ?? ""),
+        documented: Boolean(v.scope || v.safeguards),
+      };
+    }
+  }
+
+  // Recover the § 7152(a)(1)–(9) content the wizard collects but the v4 slots don't carry.
+  const content_detail = {
+    retention_period: String(intake.i2_retention_period ?? ""),
+    retention_criteria: String(intake.i2_retention_criteria ?? ""),
+    retention_detail: String(intake.i2_retention_detail ?? ""),
+    consumer_disclosures: Array.isArray(intake.i4_disclosure_mechanisms)
+      ? intake.i4_disclosure_mechanisms.join("; ")
+      : String(intake.i4_disclosure_mechanisms ?? ""),
+    admt_logic: String(intake.i5_admt_logic ?? ""),
+    admt_training_source: String(intake.i5_admt_training_source ?? ""),
+    admt_fairness_testing: String(intake.i5_admt_fairness_testing ?? ""),
+    admt_human_review: String(intake.i5_admt_human_review ?? ""),
+    admt_description: String(intake.q19_admt_description ?? ""),
+    admt_opt_out: String(intake.q20_admt_opt_out ?? ""),
+    internal_contributors: String(intake.i7_internal_contributors ?? ""),
+    external_consultees: String(intake.i7_external_consultees ?? ""),
+    certifying_exec_name: String(intake.i8_certifying_exec_name ?? ""),
+    certifying_exec_title: String(intake.i8_certifying_exec_title ?? ""),
+    certifying_contact_email: String(intake.i8_contact_email ?? ""),
+    certifying_contact_phone: String(intake.i8_contact_phone ?? ""),
+    existing_dpia: hasDpia ? String(intake.i9_existing_dpia_summary ?? "Yes — summary not provided") : "No",
+    sensitive_pi_limit_offered: String(intake.q16_sensitive_limit ?? ""),
+    sensitive_pi_basis: String(intake.q17_sensitive_basis ?? ""),
+    opt_out_link: String(intake.q9_opt_out ?? ""),
+    notice_at_collection: String(intake.q12_notice_at_collection ?? ""),
+  };
+
   return {
     triggers,
-    exceptions: { ...EMPTY_EXCEPTIONS },
+    exceptions,
     activity_details,
     impact,
     org_context,
     annual_consumer_volume: String(intake.q2_consumers ?? ""),
+    content_detail,
   };
 }
 
@@ -181,7 +226,7 @@ function validateFiveStage(intake: FiveStageIntake, lenient: boolean): { ok: tru
 // ---------------------------------------------------------------------------
 // Corpus retrieval (CR-2 Step 1).
 // ---------------------------------------------------------------------------
-async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforcementContext: string; longitudinalSynthesis: string }> {
+async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforcementContext: string; longitudinalSynthesis: string; statuteContext: string; fsorContext: string }> {
   const primaryActivity = Object.entries(intake.triggers)
     .filter(([, v]) => v === true)
     .map(([k]) => k.replace(/_/g, " "))
@@ -189,7 +234,11 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
   const sector = intake.org_context?.sector ?? "general";
   const corpusQuery = `CPPA risk assessment ${sector} ${primaryActivity} California privacy enforcement`;
 
-  const [enforcementRes, longitudinalRes] = await Promise.allSettled([
+  const statuteTopics = ["risk-assessment", "thresholds"];
+  if (intake.triggers.admt_involved) statuteTopics.push("admt", "significant-decision");
+  if (intake.triggers.profiling_significant_effects) statuteTopics.push("profiling");
+
+  const [enforcementRes, longitudinalRes, statuteRes] = await Promise.allSettled([
     supabase.functions.invoke("get-enforcement-context", {
       body: { query: corpusQuery, jurisdiction: "US-CA", regulation: "CPPA", limit: 8 },
     }),
@@ -201,6 +250,9 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
         focus_areas: [primaryActivity, "audit division enforcement priorities", "§ 7153 documentation requirements"],
       },
     }),
+    supabase.functions.invoke("cppa-retrieve-context", {
+      body: { topics: statuteTopics, query: `risk assessment ${primaryActivity}`, include_deadlines: false, full_text_limit: 10, limit: 16 },
+    }),
   ]);
 
   const enforcementContext = enforcementRes.status === "fulfilled"
@@ -210,7 +262,33 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
     ? (longitudinalRes.value?.data?.synthesis ?? "")
     : (console.warn("[cppa-risk] generate-longitudinal-synthesis failed:", longitudinalRes.reason), "");
 
-  return { enforcementContext, longitudinalSynthesis };
+  // Verbatim statutory text + plain summaries from the CPPA authorities corpus.
+  const authorities: any[] = statuteRes.status === "fulfilled" ? (statuteRes.value?.data?.authorities ?? []) : [];
+  if (statuteRes.status === "rejected") console.warn("[cppa-risk] cppa-retrieve-context failed:", statuteRes.reason);
+  const statuteContext = authorities
+    .map((a: any) => `${a.citation}${a.title ? ` — ${a.title}` : ""}\nPlain summary: ${a.plain_summary ?? ""}\nRegulation text: ${String(a.full_text ?? "").slice(0, 1200)}`)
+    .join("\n\n");
+
+  // Agency's own commentary (Final Statement of Reasons) for the retrieved citations.
+  let fsorContext = "";
+  try {
+    const cites = authorities.map((a: any) => a.citation).filter(Boolean).slice(0, 20);
+    if (cites.length) {
+      const { data: fsorRows } = await supabase
+        .from("cppa_fsor_commentary")
+        .select("regulation_citation, agency_position_summary")
+        .in("regulation_citation", cites)
+        .not("agency_position_summary", "is", null)
+        .limit(20);
+      fsorContext = (fsorRows ?? [])
+        .map((r: any) => `${r.regulation_citation}: ${r.agency_position_summary}`)
+        .join("\n\n");
+    }
+  } catch (e) {
+    console.warn("[cppa-risk] FSOR commentary fetch failed:", e);
+  }
+
+  return { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext };
 }
 
 // ---------------------------------------------------------------------------
@@ -225,6 +303,12 @@ ENFORCEMENT CONTEXT FROM CORPUS:
 LONGITUDINAL ENFORCEMENT PATTERNS:
 {{LONGITUDINAL}}
 
+VERBATIM REGULATION TEXT (Cal. Code Regs. tit. 11 — authoritative; ground every citation in this text):
+{{STATUTE}}
+
+CPPA AGENCY COMMENTARY — FINAL STATEMENT OF REASONS (the Agency's own stated intent for these provisions):
+{{FSOR}}
+
 CORE OPERATING RULES:
 1. NO ADAPTIVE GUIDANCE — Present enforcement patterns and regulatory standards as context only. Do not tell the user what answers to give or what conclusions to reach. All risk flags must cite the specific regulation, not a recommendation.
 2. VALIDATE EXCEPTIONS RIGOROUSLY — For each § 7152 exception claimed, assess whether the scope description and safeguards cited are sufficient to sustain the exception under CPPA audit scrutiny. Flag weak or undocumented exception claims explicitly with citation to § 7152.
@@ -236,6 +320,7 @@ CORE OPERATING RULES:
 8. BENEFITS-OUTWEIGH-RISKS ANALYSIS — The § 7153(e) analysis must be grounded in the specific activities and impacts described in the intake. Do not produce generic balancing language. Reference the specific benefits and harms the organisation has identified.
 
 CITATION STANDARDS:
+- GROUND IN THE PROVIDED TEXT — When the VERBATIM REGULATION TEXT above contains the provision you cite, your description of what it requires must match that text; do not paraphrase it into a different requirement. Where the AGENCY COMMENTARY (FSOR) explains a provision's intent, reflect that intent. Prefer citing provisions that appear in the provided text.
 - All citations must be to Cal. Code Regs. tit. 11 (CPPA regulations) or Cal. Civ. Code § 1798 (CCPA/CPRA statute)
 - Format: § 7150(b)(1) for regulations, § 1798.185 for statute
 - Do not cite provisions that do not exist
@@ -333,7 +418,27 @@ Board-level privacy oversight: ${org_context.board_level_oversight ? "Yes" : "No
 Existing privacy programme: ${org_context.existing_privacy_programme}
 CPPA audit notification received: ${org_context.cppa_audit_notification_received ? "YES — URGENT" : "No"}
 ${org_context.additional_context ? `Additional context: ${org_context.additional_context}` : ""}
-
+${intake.content_detail ? `
+§ 7152(a)(1)–(9) CONTENT DETAIL (from the user's intake — map each to its required content element; treat blanks as fill-ins, not findings of absence):
+Retention period: ${intake.content_detail.retention_period || "not provided"}
+Retention criteria: ${intake.content_detail.retention_criteria || "not provided"}
+Retention detail: ${intake.content_detail.retention_detail || "not provided"}
+How consumers are informed / disclosures (§ 7152(a)(3)(E)): ${intake.content_detail.consumer_disclosures || "not provided"}
+ADMT — logic: ${intake.content_detail.admt_logic || "n/a"}
+ADMT — training-data source: ${intake.content_detail.admt_training_source || "n/a"}
+ADMT — fairness/bias testing: ${intake.content_detail.admt_fairness_testing || "n/a"}
+ADMT — human review / appeal: ${intake.content_detail.admt_human_review || "n/a"}
+ADMT — description: ${intake.content_detail.admt_description || "n/a"}
+ADMT — opt-out offered: ${intake.content_detail.admt_opt_out || "n/a"}
+Sensitive-PI use-limitation offered: ${intake.content_detail.sensitive_pi_limit_offered || "n/a"}
+Sensitive-PI processing basis: ${intake.content_detail.sensitive_pi_basis || "n/a"}
+"Do Not Sell/Share" opt-out link: ${intake.content_detail.opt_out_link || "n/a"}
+Notice at collection: ${intake.content_detail.notice_at_collection || "n/a"}
+Contributors to this assessment (§ 7152(a)(8)): ${intake.content_detail.internal_contributors || "not provided"}
+External consultees: ${intake.content_detail.external_consultees || "none stated"}
+Certifying executive (§ 7157): ${intake.content_detail.certifying_exec_name || "[FILL IN]"}${intake.content_detail.certifying_exec_title ? `, ${intake.content_detail.certifying_exec_title}` : ""}${intake.content_detail.certifying_contact_email ? ` (${intake.content_detail.certifying_contact_email})` : ""}
+Existing DPIA/assessment to cross-reference: ${intake.content_detail.existing_dpia || "No"}
+` : ""}
 Return only valid JSON matching the specified output structure. No preamble, no markdown fences.`;
 }
 
@@ -403,11 +508,13 @@ async function runPipeline(assessment_id: string) {
     }
 
     // Corpus retrieval (parallel).
-    const { enforcementContext, longitudinalSynthesis } = await retrieveCorpusContext(fiveStage);
+    const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext } = await retrieveCorpusContext(fiveStage);
 
     const system = SYSTEM_PROMPT_TEMPLATE
       .replace("{{ENFORCEMENT}}", enforcementContext || "(no enforcement context returned by corpus)")
-      .replace("{{LONGITUDINAL}}", longitudinalSynthesis || "(no longitudinal synthesis returned by corpus)");
+      .replace("{{LONGITUDINAL}}", longitudinalSynthesis || "(no longitudinal synthesis returned by corpus)")
+      .replace("{{STATUTE}}", statuteContext || "(no statute text returned by corpus)")
+      .replace("{{FSOR}}", fsorContext || "(no agency commentary returned by corpus)");
     const userPrompt = buildUserPrompt(fiveStage);
 
     const t0 = Date.now();

@@ -157,6 +157,23 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
 );
 
 
+const CPPA_EXCEPTIONS: { key: string; label: string; cite: string }[] = [
+  { key: "fraud_detection", label: "Fraud prevention / detection", cite: "11 CCR § 7152" },
+  { key: "security_integrity", label: "Security & integrity of systems and data", cite: "11 CCR § 7152" },
+  { key: "debugging", label: "Debugging to identify and repair errors", cite: "11 CCR § 7152" },
+  { key: "transient_use", label: "Transient use (not disclosed, no profile built)", cite: "11 CCR § 7152" },
+  { key: "internal_research", label: "Internal research for technological development", cite: "11 CCR § 7152" },
+  { key: "employment_context", label: "Employment-context processing", cite: "11 CCR § 7152" },
+  { key: "legal_compliance", label: "Compliance with a legal obligation", cite: "11 CCR § 7152" },
+  { key: "consumer_request", label: "Performing a service the consumer requested", cite: "11 CCR § 7152" },
+];
+
+const HARM_TYPES = [
+  "Financial loss", "Identity theft", "Reputational harm", "Discrimination or bias",
+  "Physical or safety risk", "Loss of privacy or autonomy", "Emotional distress",
+  "Loss of opportunity (employment, housing, credit, education)",
+];
+
 // Step 6 statute popover helper — one-line plain-language summary with citation.
 function StatutePopover({ term, summary, cite }: { term: string; summary: string; cite: string }) {
   return (
@@ -222,6 +239,10 @@ export default function CPPARiskAssessment() {
   // I-9: existing DPIA?
   const [i9HasDpia, setI9HasDpia] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
+
+  // § 7152 exceptions + impact (optional). Consolidated objects to keep submission wiring simple.
+  const [exceptionClaims, setExceptionClaims] = useState<Record<string, { claimed: boolean; scope: string; safeguards: string }>>({});
+  const [impactData, setImpactData] = useState<{ likelihood: string; severity: string; harmTypes: string[]; vulnerable: string; benefitsOutweigh: string; benefitsRationale: string; cyberGaps: string }>({ likelihood: "", severity: "", harmTypes: [], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "" });
 
   const totalSteps = 7; // 6 input steps + summary
 
@@ -342,12 +363,14 @@ export default function CPPARiskAssessment() {
     i8_contact_email: i8ContactEmail,
     i9_has_existing_dpia: i9HasDpia,
     i9_existing_dpia_summary: i9DpiaSummary,
+    exceptions_intake: exceptionClaims,
+    impact_intake: impactData,
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
-    i9HasDpia, i9DpiaSummary,
+    i9HasDpia, i9DpiaSummary, exceptionClaims, impactData,
   ]);
 
   // ---- Draft autosave ------------------------------------------------------
@@ -797,6 +820,83 @@ export default function CPPARiskAssessment() {
                     placeholder="Brief summary: framework, scope, date — Appendix E will map § 7152 elements already covered."
                   />
                 )}
+              </div>
+
+              {/* === § 7152 Exceptions (optional) === */}
+              <div className="border-t pt-6 mt-6">
+                <Label className="text-base font-semibold">§ 7152 Exceptions <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  If you are claiming a statutory exception that removes an activity from full risk-assessment scope, identify it and describe its scope and safeguards. Leave blank if none apply. Claimed exceptions are <span className="font-medium">assessed against § 7152</span>, not assumed valid.
+                </p>
+                <div className="mt-3 space-y-3">
+                  {CPPA_EXCEPTIONS.map((ex) => {
+                    const cur = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "" };
+                    return (
+                      <div key={ex.key} className="rounded border p-3">
+                        <label className="flex items-start gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="mt-1"
+                            checked={cur.claimed}
+                            onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, claimed: e.target.checked } }))}
+                          />
+                          <span className="text-sm font-medium">{ex.label} <span className="text-xs text-muted-foreground font-mono">({ex.cite})</span></span>
+                        </label>
+                        {cur.claimed && (
+                          <div className="mt-2 space-y-2 pl-6">
+                            <Textarea
+                              rows={2}
+                              value={cur.scope}
+                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, scope: e.target.value } }))}
+                              placeholder="Scope: which activity/data does this exception cover, and why does it qualify?"
+                            />
+                            <Textarea
+                              rows={2}
+                              value={cur.safeguards}
+                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, safeguards: e.target.value } }))}
+                              placeholder="Safeguards documented to sustain this exception under audit."
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* === Impact assessment (optional but recommended) === */}
+              <div className="border-t pt-6 mt-6">
+                <Label className="text-base font-semibold">Impact assessment <span className="text-xs font-normal text-muted-foreground">(optional but recommended)</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your assessment of the risks to consumers. These feed the § 7153(e) benefits-vs-risks analysis; fields left blank are marked as fill-ins in the report rather than guessed.
+                </p>
+                <div className="mt-3 space-y-4">
+                  <div>
+                    <Label>Likelihood of harm to consumers</Label>
+                    <div className="mt-2"><Radio name="impact_likelihood" options={["Unlikely", "Possible", "Likely", "Highly likely"]} value={impactData.likelihood} onChange={(v) => setImpactData((d) => ({ ...d, likelihood: v }))} /></div>
+                  </div>
+                  <div>
+                    <Label>Severity of harm if it occurs</Label>
+                    <div className="mt-2"><Radio name="impact_severity" options={["Minimal", "Moderate", "Significant", "Severe"]} value={impactData.severity} onChange={(v) => setImpactData((d) => ({ ...d, severity: v }))} /></div>
+                  </div>
+                  <div>
+                    <Label>Types of harm that could result</Label>
+                    <div className="mt-2"><Pills options={HARM_TYPES} value={impactData.harmTypes} onChange={(v) => setImpactData((d) => ({ ...d, harmTypes: v }))} /></div>
+                  </div>
+                  <div>
+                    <Label>Vulnerable populations affected (if any)</Label>
+                    <Textarea className="mt-2" rows={2} value={impactData.vulnerable} onChange={(e) => setImpactData((d) => ({ ...d, vulnerable: e.target.value }))} placeholder="e.g. minors, patients, employees, protected classes — and how they are affected." />
+                  </div>
+                  <div>
+                    <Label>Do the benefits of this processing outweigh the risks to consumers?</Label>
+                    <div className="mt-2"><Radio name="impact_benefits" options={["Yes", "No", "Uncertain"]} value={impactData.benefitsOutweigh} onChange={(v) => setImpactData((d) => ({ ...d, benefitsOutweigh: v }))} /></div>
+                    <Textarea className="mt-2" rows={3} value={impactData.benefitsRationale} onChange={(e) => setImpactData((d) => ({ ...d, benefitsRationale: e.target.value }))} placeholder="Rationale (§ 7153(e)): explain the specific benefits and how they weigh against the specific harms above." />
+                  </div>
+                  <div>
+                    <Label>Have you identified cybersecurity gaps relevant to this processing?</Label>
+                    <div className="mt-2"><Radio name="impact_cyber" options={["Yes", "No"]} value={impactData.cyberGaps} onChange={(v) => setImpactData((d) => ({ ...d, cyberGaps: v }))} /></div>
+                  </div>
+                </div>
               </div>
             </>
           )}
