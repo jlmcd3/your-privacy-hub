@@ -116,12 +116,15 @@ const LIAssessment = () => {
     }
     setLoading(true);
     try {
+      // Fold any "Other" free-text into the stored values so it flows through the existing columns
+      const dataCategoriesOut = dataCategories.map((c) => (c === "Other" && dataCategoriesOther.trim() ? `Other: ${dataCategoriesOther.trim()}` : c));
+      const relationshipOut = relationship === "Other" && relationshipOther.trim() ? `Other: ${relationshipOther.trim()}` : relationship;
       // Call free preview function
       const { data: previewData, error: fnErr } = await supabase.functions.invoke("preview-li-assessment", {
         body: {
           processing_description: processingDescription,
-          data_categories: dataCategories,
-          relationship_type: relationship,
+          data_categories: dataCategoriesOut,
+          relationship_type: relationshipOut,
           jurisdictions,
         },
       });
