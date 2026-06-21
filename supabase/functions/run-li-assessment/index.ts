@@ -76,13 +76,15 @@ async function callAnthropic(
 // the caller immediately and avoid the 150s HTTP idle-timeout — generation
 // regularly runs 60–120s and an awaited HTTP response can be cut off by the
 // platform even though the row eventually finishes.
-async function generateAssessment(assessment_id: string, assessment: any): Promise<void> {
+async function generateAssessment(assessment_id: string, assessment: any, fnRun: FnRunHandle): Promise<void> {
   try {
     await runAssessment(assessment_id, assessment);
+    await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "li_assessments", sourceRowId: assessment_id });
   } catch (e) {
     console.error("run-li-assessment background error:", e);
     await supabase.from("li_assessments")
       .update({ status: "failed" }).eq("id", assessment_id);
+    await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
   }
 }
 
