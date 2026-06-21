@@ -12,6 +12,7 @@ import { CybersecurityReportBody } from "./CPPACybersecurityResult";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 import CPPASuitePDFButton from "@/components/cppa/CPPASuitePDFButton";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
