@@ -835,6 +835,7 @@ templates (Section 5) or post-incident actions (Section 7):
             updated_at: new Date().toISOString(),
           })
           .eq("id", rowId);
+        await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "ir_playbooks", sourceRowId: rowId });
       } catch (bgErr) {
         console.error("[generate-ir-playbook] background error:", bgErr);
         try {
@@ -845,6 +846,7 @@ templates (Section 5) or post-incident actions (Section 7):
         } catch (persistErr) {
           console.error("[generate-ir-playbook] failure-persist error:", persistErr);
         }
+        await failFunctionRun(supabase, fnRun, bgErr, { metadata: { rowId } });
       }
     })());
 
