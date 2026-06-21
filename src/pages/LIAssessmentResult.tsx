@@ -154,14 +154,7 @@ const LIAssessmentResult = () => {
   const docs = report?.documentation_recommendations;
 
   const metaParts: string[] = [];
-  if (assessment?.processing_description) {
-    metaParts.push(
-      assessment.processing_description.length > 120
-        ? assessment.processing_description.slice(0, 120) + "…"
-        : assessment.processing_description
-    );
-  }
-  if (report?.generated_at) {
+  if (status === "complete" && report?.generated_at) {
     metaParts.push(`Generated ${new Date(report.generated_at).toLocaleString()}`);
   }
 
