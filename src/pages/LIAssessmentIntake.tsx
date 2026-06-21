@@ -401,11 +401,14 @@ const LIAssessmentIntake = () => {
             <Label className="text-base">Are vulnerable groups involved? (select all that apply)</Label>
             <div className="mt-2">
               <Pills
-                options={["Children under 16", "Patients / health context", "Employees", "Job applicants", "Financially vulnerable", "None"]}
+                options={["Children under 16", "Patients / health context", "Employees", "Job applicants", "Financially vulnerable", "Other", "None"]}
                 value={vulnerableSubjects}
                 onChange={setVulnerableSubjects}
               />
             </div>
+            {vulnerableSubjects.includes("Other") && (
+              <input value={vulnerableSubjectsOther} onChange={(e) => setVulnerableSubjectsOther(e.target.value)} placeholder="Describe the other vulnerable group(s)" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            )}
           </div>
 
           <div>
