@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
+import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -253,6 +254,7 @@ const LIAssessmentIntake = () => {
 
 
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <IntakeGuidance>Answer each question as specifically and completely as you can. Where several things apply — multiple alternatives, safeguards, or vulnerable groups — list them separately rather than as one lump. Anything left blank shows up as "not addressed" in your report.</IntakeGuidance>
         {hasSpecialCategory && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded text-sm text-red-900">
             <strong>Important:</strong> <EnforcementSignalIcon signalKey="special_categories" signals={liaEnforcementSignals} /> You indicated special category data is involved. Article 6(1)(f) legitimate interest

@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
+import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate } from "react-router-dom";
@@ -290,7 +291,7 @@ const LIAssessment = () => {
                 placeholder="e.g. Send personalised product recommendations to existing customers based on their purchase history."
                 className="mt-2 min-h-24 border-brand-cloud"
               />
-              <p className="text-meta text-muted-foreground mt-1">A sentence or two is enough. More detail produces a sharper signal.</p>
+              <IntakeGuidance className="mt-2" lead="Assess one interest at a time:">If you have several distinct purposes, run a separate LIA for each — combining them into one weakens the balancing test and muddies the result. A sentence or two describing this single purpose is enough; more detail sharpens the analysis.</IntakeGuidance>
             </div>
 
             <div>

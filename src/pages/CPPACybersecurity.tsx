@@ -1,6 +1,7 @@
 // CPPA Cybersecurity Audit Readiness — Module 2 intake. Covers 18 programme components.
 import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
+import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -160,6 +161,7 @@ export default function CPPACybersecurity() {
 
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <IntakeGuidance>For each control, note the specific tools in place, the scope they cover, and any exceptions — separately and concretely. A control marked "in place" with a vague note produces a weaker gap analysis than one described precisely.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7122(a). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
         <div className="flex gap-6 items-start">

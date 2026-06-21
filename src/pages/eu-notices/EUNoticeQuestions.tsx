@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Info, AlertTriangle } from "lucide-react";
 import { EUNoticeShell } from "@/components/eu-notices/EUNoticeShell";
+import { IntakeGuidance } from "@/components/IntakeGuidance";
 import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -190,7 +191,10 @@ export default function EUNoticeQuestions() {
             <Input value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" />
           )}
           {currentQ.type === "text_long" && (
-            <Textarea value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" rows={4} />
+            <>
+              <Textarea value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" rows={4} />
+              <IntakeGuidance className="mt-2">Answer as specifically and completely as you can — anything left vague or blank becomes placeholder text in your published notice.</IntakeGuidance>
+            </>
           )}
           {(currentQ.type === "yes_no" || currentQ.type === "yes_no_unsure") && (
             <RadioGroup value={(value as string) ?? ""} onValueChange={(v) => saveAnswer(currentQ, v)}>

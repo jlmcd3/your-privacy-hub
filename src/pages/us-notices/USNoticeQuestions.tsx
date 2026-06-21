@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Info, AlertTriangle, Lightbulb } from "lucide-react";
 import { USNoticeShell } from "@/components/us-notices/USNoticeShell";
+import { IntakeGuidance } from "@/components/IntakeGuidance";
 import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -363,12 +364,15 @@ function QuestionInput({
     case "text_long":
     case "date_or_period":
       return (
-        <Textarea
-          value={(value as string) ?? ""}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Type your answer"
-          rows={4}
-        />
+        <>
+          <Textarea
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Type your answer"
+            rows={4}
+          />
+          <IntakeGuidance className="mt-2">Answer as specifically and completely as you can — anything left vague or blank becomes placeholder text in your published notice.</IntakeGuidance>
+        </>
       );
     case "yes_no":
       return (

@@ -5,6 +5,7 @@
 
 import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
+import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -468,6 +469,7 @@ export default function CPPARiskAssessment() {
       </div>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <IntakeGuidance>Where a field asks you to describe something, be specific and complete — name the systems, the data, and the steps. Where several items apply, list each one separately. The report is only as precise as what you put in.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid, not legal advice, and does not constitute a certified audit or regulatory submission. Review all output with qualified counsel before relying on it." />
         {draftFound && !touched && (
