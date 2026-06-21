@@ -12,6 +12,7 @@ import { CybersecurityReportBody } from "./CPPACybersecurityResult";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 import CPPASuitePDFButton from "@/components/cppa/CPPASuitePDFButton";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -136,11 +137,7 @@ function StatusBlock({ row, label, ctaTo }: { row: any; label: string; ctaTo: st
   const status = row?.status;
   if (status === "pending" || status === "processing") {
     return (
-      <div className="bg-card border rounded-lg p-10 text-center">
-        <div className="animate-pulse mb-4 text-2xl">⏳</div>
-        <p>Generating your {label}.</p>
-        <p className="text-muted-foreground text-sm mt-1">This typically takes 30–60 seconds.</p>
-      </div>
+      <ProcessingInterstitial tool="cppa_suite" label={label} />
     );
   }
   if (status === "error") {

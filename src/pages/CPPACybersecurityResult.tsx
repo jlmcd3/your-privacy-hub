@@ -13,6 +13,7 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
 import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdvisor";
@@ -525,11 +526,7 @@ export default function CPPACybersecurityResult() {
           {loading && <p>Loading…</p>}
 
           {showRunning && (
-            <div className="bg-card border rounded-lg p-10 text-center">
-              <div className="animate-pulse mb-4 text-2xl">⏳</div>
-              <p>Running your CPPA Cybersecurity Readiness assessment.</p>
-              <p className="text-muted-foreground text-sm mt-1">This typically takes 30–60 seconds.</p>
-            </div>
+            <ProcessingInterstitial tool="cppa_cyber" />
           )}
 
           {status === "error" && (

@@ -14,6 +14,7 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import ReportShell from "@/components/ReportShell";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 
 const sevColor = (s: string) => {
@@ -130,10 +131,7 @@ const DPIAFrameworkResult = () => {
           {loading && <p>Loading…</p>}
 
           {!loading && (status === "pending" || status === "processing") && (
-            <div className="bg-card border rounded-lg p-10 text-center">
-              <div className="animate-pulse mb-4 text-2xl">⏳</div>
-              <p>Generating your Impact Assessment report — this takes about 30 seconds.</p>
-            </div>
+            <ProcessingInterstitial tool="dpia" />
           )}
 
           {status === "failed" && (

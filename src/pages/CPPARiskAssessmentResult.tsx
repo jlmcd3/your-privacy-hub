@@ -13,6 +13,7 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { AdminOnly } from "@/components/AdminOnly";
 import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 // Truncate to first sentence (or 200 chars if no sentence boundary).
 const firstSentence = (text: string): string => {
@@ -145,11 +146,7 @@ export default function CPPARiskAssessmentResult() {
         {loading && <p>Loading…</p>}
 
         {showRunning && (
-          <div className="bg-card border rounded-lg p-10 text-center">
-            <div className="animate-pulse mb-4 text-2xl">⏳</div>
-            <p>Running your CPPA Risk Assessment.</p>
-            <p className="text-muted-foreground text-sm mt-1">This typically takes 30–60 seconds.</p>
-          </div>
+          <ProcessingInterstitial tool="cppa_risk" />
         )}
 
         {status === "error" && (

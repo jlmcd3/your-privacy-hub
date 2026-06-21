@@ -12,6 +12,7 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 
 const strengthColor = (s: string) => {
@@ -205,11 +206,7 @@ const LIAssessmentResult = () => {
           {loading && <p>Loading…</p>}
 
           {!loading && (status === "pending" || status === "processing") && (
-            <div className="bg-card border rounded-lg p-10 text-center">
-              <div className="animate-pulse mb-4 text-2xl">⏳</div>
-              <p className="text-foreground">Analysing your processing activity against the regulatory precedent database.</p>
-              <p className="text-muted-foreground text-sm mt-1">This typically takes 20-40 seconds.</p>
-            </div>
+            <ProcessingInterstitial tool="lia" />
           )}
 
           {status === "failed" && (
