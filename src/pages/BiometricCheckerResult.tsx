@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import BackLink from "@/components/dashboard/BackLink";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
