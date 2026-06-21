@@ -302,6 +302,9 @@ const LIAssessment = () => {
             <div>
               <Label className="text-sm font-semibold text-brand-navy">Data categories involved<Req /> <DefPopover termKey="gdpr_special_categories" /></Label>
               <div className="mt-2"><MultiPills options={DATA_CATEGORIES} value={dataCategories} onChange={setDataCategories} /></div>
+              {dataCategories.includes("Other") && (
+                <input value={dataCategoriesOther} onChange={(e) => setDataCategoriesOther(e.target.value)} placeholder="Specify the other data categories" className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm" />
+              )}
             </div>
 
             <div>
