@@ -319,6 +319,12 @@ const LIAssessmentIntake = () => {
           </div>
 
           <div>
+            <Label className="text-base">In your own words, what is the legitimate interest you're relying on? *</Label>
+            <p className="text-xs text-muted-foreground mt-1">The interest itself — e.g. "informing local voters about a candidate," "preventing payment fraud" — not how you'd word it in a notice.</p>
+            <Textarea value={interestStatement} onChange={(e) => setInterestStatement(e.target.value)} className="mt-2" rows={3} />
+          </div>
+
+          <div>
             <Label className="text-base">How would you state this purpose to data subjects in a privacy notice? *</Label>
             <Textarea value={statedPurpose} onChange={(e) => setStatedPurpose(e.target.value)} className="mt-2" rows={3} />
           </div>
