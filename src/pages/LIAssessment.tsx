@@ -313,6 +313,9 @@ const LIAssessment = () => {
                 <option value="">Select…</option>
                 {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
+              {relationship === "Other" && (
+                <input value={relationshipOther} onChange={(e) => setRelationshipOther(e.target.value)} placeholder="Describe your relationship with the data subjects" className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm" />
+              )}
             </div>
 
             <div>
