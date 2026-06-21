@@ -856,9 +856,19 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
           status: "failed",
           updated_at: new Date().toISOString(),
         }).eq("id", rowId);
+        await failFunctionRun(supabase, fnRun, bgErr, { metadata: { rowId } });
+        return;
       }
+      await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpa_documents", sourceRowId: rowId });
     };
 
+    const fnRun = await startFunctionRun(supabase, "generate-dpa", {
+      archetype: "background",
+      trustClass: "user",
+      userId: resolvedUserId,
+      invokedBy: caller.internal ? "internal" : "user",
+      metadata: { rowId },
+    });
     // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
     EdgeRuntime.waitUntil(runBackground());
 
