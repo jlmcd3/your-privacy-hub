@@ -26,6 +26,11 @@ const supabase = createClient(
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const fnRun = await startFunctionRun(supabase, "run-registration-assessment", {
+    archetype: "foreground",
+    trustClass: "user",
+    invokedBy: "user",
+  });
   try {
     const body = await req.json();
     const intake = (body.intake_data || {}) as IntakeData;
