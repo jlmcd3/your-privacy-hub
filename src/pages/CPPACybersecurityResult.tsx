@@ -13,6 +13,7 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 import { CPPA_CYBER_FRAMEWORK_MAPPING } from "@/data/cppa-cyber-framework-mapping";
 import AuditorIndependenceAdvisor from "@/components/cppa/AuditorIndependenceAdvisor";
