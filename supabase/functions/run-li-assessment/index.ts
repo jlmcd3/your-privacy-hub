@@ -395,7 +395,7 @@ ${enforcementContextStr}
 
 ANNOTATION REQUIREMENT: For each enforcement action you actually cite (tagged [E1], [E2], etc.), include it in the annotations array using the id value from the enforcement context exactly as provided AND include its authority_tier (1|2|3) and authority_framing ('in_regime' | 'persuasive_not_binding' | 'supportive_not_authoritative'). The tier/framing pairing must follow this mapping exactly: tier 1 → in_regime; tier 2 → persuasive_not_binding; tier 3 → supportive_not_authoritative. You MUST only cite enforcement actions from the ENFORCEMENT PRECEDENTS provided above — never cite cases from training knowledge.
 
-Apply the EDPB Guidelines 1/2024 three-part test. For each step, test the SPECIFIC facts above — do not generalise. Return JSON with this exact structure:
+Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above — and only those facts. "Specific" means test exactly what the controller stated; it does NOT license inventing details they did not provide. Where a fact a step needs is missing, record it under open_questions rather than assuming it. Return JSON with this exact structure:
 {
   "purpose_test": {
     "verdict": "passes | fails | uncertain",
