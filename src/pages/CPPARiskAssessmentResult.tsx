@@ -127,6 +127,7 @@ export default function CPPARiskAssessmentResult() {
   const report = (translated?.report_data ?? row?.report_data) || {};
   const status = row?.status;
   const isV3 = !!(row?.report_data && (row.report_data as any).schema_version === "v3-part-a-part-b" && (row.report_data as any).part_a);
+  const isV4 = !isV3 && isV4Report(row?.report_data);
   const reportReady = !!(
     row?.report_data
     && typeof row.report_data === "object"
