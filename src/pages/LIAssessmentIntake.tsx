@@ -310,7 +310,12 @@ const LIAssessmentIntake = () => {
               <option>Legal / regulatory compliance</option>
               <option>Public interest / societal benefit</option>
               <option>Research / product improvement</option>
+              <option>Political / electoral campaigning</option>
+              <option>Other (describe below)</option>
             </select>
+            {interestType === "Other (describe below)" && (
+              <input value={interestTypeOther} onChange={(e) => setInterestTypeOther(e.target.value)} placeholder="Describe the type of interest in your own words" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            )}
           </div>
 
           <div>
