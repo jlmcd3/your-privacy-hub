@@ -76,7 +76,6 @@ export default function ReportShell({
   // Matter-style meta rows — render only those with values.
   const matterRows: Array<{ label: string; value: ReactNode }> = [];
   if (preparedFor) matterRows.push({ label: "Prepared for", value: preparedFor });
-  if (meta) matterRows.push({ label: "Date", value: meta });
   if (version) matterRows.push({ label: "Version", value: version });
 
   return (
