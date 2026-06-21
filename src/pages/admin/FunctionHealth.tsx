@@ -152,8 +152,8 @@ export default function FunctionHealth() {
         <section>
           <h2 className="text-lg font-semibold text-white mb-3">Recent runs ({recent.length})</h2>
           <div className="overflow-x-auto rounded border border-gray-800">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100 text-gray-700">
+            <table className="w-full text-sm text-black">
+              <thead className="bg-gray-100 text-black">
                 <tr>
                   <th className="text-left px-3 py-2 font-medium">Function</th>
                   <th className="text-left px-3 py-2 font-medium">Status</th>
@@ -167,19 +167,19 @@ export default function FunctionHealth() {
               <tbody>
                 {recent.map((r) => (
                   <tr key={r.id} className="border-t border-gray-800">
-                    <td className="px-3 py-2 text-gray-200 font-mono text-xs">{r.function_name}</td>
+                    <td className="px-3 py-2 text-black font-mono text-xs">{r.function_name}</td>
                     <td className="px-3 py-2">
                       <span className={`px-2 py-0.5 rounded text-xs ${statusColor(r.status)}`}>
                         {r.status}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-gray-800">{fmtTime(r.started_at)}</td>
-                    <td className="px-3 py-2 text-gray-800">{fmtDuration(r.duration_ms)}</td>
-                    <td className="px-3 py-2 text-gray-800 text-xs">{r.invoked_by ?? "—"}</td>
-                    <td className="px-3 py-2 text-gray-800 font-mono text-xs">
+                    <td className="px-3 py-2 text-black">{fmtTime(r.started_at)}</td>
+                    <td className="px-3 py-2 text-black">{fmtDuration(r.duration_ms)}</td>
+                    <td className="px-3 py-2 text-black text-xs">{r.invoked_by ?? "—"}</td>
+                    <td className="px-3 py-2 text-black font-mono text-xs">
                       {r.source_row_id ? r.source_row_id.slice(0, 8) : "—"}
                     </td>
-                    <td className="px-3 py-2 text-red-300 text-xs max-w-xs truncate" title={r.error_message ?? ""}>
+                    <td className="px-3 py-2 text-red-600 text-xs max-w-xs truncate" title={r.error_message ?? ""}>
                       {r.error_message ?? "—"}
                     </td>
                   </tr>
