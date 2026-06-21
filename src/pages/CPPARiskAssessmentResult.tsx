@@ -182,34 +182,37 @@ export default function CPPARiskAssessmentResult() {
                 />
               </div>
             )}
-            <section className="bg-slate-900 text-white rounded-lg p-8">
-              <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
-              <p className="text-slate-300 text-sm">
-                Generated {row?.created_at ? new Date(row.created_at).toLocaleDateString() : ""}
-              </p>
-              {isV3 && (
-                <p className="text-slate-300 text-sm mt-2">
-                  Regulation-mapped framework (Cal. Code Regs. tit. 11 § 7152(a)(1)–(9)) — pre-populated from your intake, ready for review, completion, and executive sign-off.
+            {!isV4 && (
+              <section className="bg-slate-900 text-white rounded-lg p-8">
+                <h1 className="font-serif mb-2">CPPA Privacy Risk Assessment</h1>
+                <p className="text-slate-300 text-sm">
+                  Generated {row?.created_at ? new Date(row.created_at).toLocaleDateString() : ""}
                 </p>
-              )}
-              {!isV3 && (
-                <div className="mt-4 flex items-center gap-3 flex-wrap">
-                  {report?.overall_score != null && (
-                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded font-medium bg-white/10">
-                      Overall score: <strong>{report.overall_score} / 100</strong>
-                    </span>
-                  )}
-                  {report?.risk_level && (
-                    <span className={`inline-block px-3 py-1.5 rounded font-medium ${riskColor(report.risk_level)}`}>
-                      {report.risk_level} risk
-                    </span>
-                  )}
-                </div>
-              )}
-              {!isV3 && report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
-            </section>
+                {isV3 && (
+                  <p className="text-slate-300 text-sm mt-2">
+                    Regulation-mapped framework (Cal. Code Regs. tit. 11 § 7152(a)(1)–(9)) — pre-populated from your intake, ready for review, completion, and executive sign-off.
+                  </p>
+                )}
+                {!isV3 && (
+                  <div className="mt-4 flex items-center gap-3 flex-wrap">
+                    {report?.overall_score != null && (
+                      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded font-medium bg-white/10">
+                        Overall score: <strong>{report.overall_score} / 100</strong>
+                      </span>
+                    )}
+                    {report?.risk_level && (
+                      <span className={`inline-block px-3 py-1.5 rounded font-medium ${riskColor(report.risk_level)}`}>
+                        {report.risk_level} risk
+                      </span>
+                    )}
+                  </div>
+                )}
+                {!isV3 && report?.executive_summary && <p className="mt-4 text-slate-200">{report.executive_summary}</p>}
+              </section>
+            )}
 
             {isV3 && <RiskAssessmentReportV3 report={report as any} />}
+            {isV4 && <RiskAssessmentReportV4 report={report as any} />}
 
 
             {report?.accuracy_caveat && (
