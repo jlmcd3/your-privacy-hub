@@ -102,7 +102,13 @@ export default function CPPARiskAssessmentResult() {
       // status === 'complete' arrived before report_data was written.
       const rd = data?.report_data as any;
       const reportReady = rd && typeof rd === "object" && Object.keys(rd).length > 0
-        && (Array.isArray(rd.domains) || typeof rd.executive_summary === "string");
+        && (
+          Array.isArray(rd.domains)
+          || typeof rd.executive_summary === "string"
+          || !!rd.assessment_summary
+          || !!rd.risk_assessment_by_activity
+          || !!rd.part_a
+        );
       const stillRunning = data && (
         data.status === "pending"
         || data.status === "processing"
@@ -124,7 +130,14 @@ export default function CPPARiskAssessmentResult() {
     row?.report_data
     && typeof row.report_data === "object"
     && Object.keys(row.report_data).length > 0
-    && (isV3 || Array.isArray((row.report_data as any).domains) || typeof (row.report_data as any).executive_summary === "string")
+    && (
+      isV3
+      || Array.isArray((row.report_data as any).domains)
+      || typeof (row.report_data as any).executive_summary === "string"
+      || !!(row.report_data as any).assessment_summary
+      || !!(row.report_data as any).risk_assessment_by_activity
+      || !!(row.report_data as any).part_a
+    )
   );
   const showRunning = !loading && (
     status === "pending"
