@@ -124,6 +124,16 @@ const LIAssessmentIntake = () => {
   const [safeguards, setSafeguards] = useState<string[]>([]);
   const [optOutMechanism, setOptOutMechanism] = useState("");
 
+  // Added flexibility — core interest field, free-form companions, catch-all
+  const [interestStatement, setInterestStatement] = useState("");
+  const [interestHolderOther, setInterestHolderOther] = useState("");
+  const [interestTypeOther, setInterestTypeOther] = useState("");
+  const [reasonableExpectationDetail, setReasonableExpectationDetail] = useState("");
+  const [potentialHarmDetail, setPotentialHarmDetail] = useState("");
+  const [vulnerableSubjectsOther, setVulnerableSubjectsOther] = useState("");
+  const [safeguardsOther, setSafeguardsOther] = useState("");
+  const [additionalContext, setAdditionalContext] = useState("");
+
   // Adaptive branches
   const [statutoryRestrictions, setStatutoryRestrictions] = useState(""); // shown for marketing / advertising
   const [pseudonymisationOptions, setPseudonymisationOptions] = useState(""); // shown for analytics / research
