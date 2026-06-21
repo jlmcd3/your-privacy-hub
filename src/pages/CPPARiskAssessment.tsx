@@ -510,7 +510,7 @@ export default function CPPARiskAssessment() {
             </div>
           </div>
         )}
-        <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
+        <div ref={topRef} className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
         <div className="flex gap-6 items-start">
         <div className="flex-1 min-w-0 bg-card border rounded-lg p-6 space-y-6">
