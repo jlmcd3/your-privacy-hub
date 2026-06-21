@@ -106,6 +106,9 @@ export default function ReportShell({
             <h1 className="font-display leading-tight text-white mt-2 text-3xl sm:text-4xl">
               {title}
             </h1>
+            {meta && (
+              <p className="mt-3 text-[12px] text-slate-300">{meta}</p>
+            )}
 
             {matterRows.length > 0 && (
               <dl className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-[12px] text-slate-300 max-w-xl">
