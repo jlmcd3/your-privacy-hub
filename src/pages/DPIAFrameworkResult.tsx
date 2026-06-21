@@ -14,6 +14,7 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import ReportShell from "@/components/ReportShell";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 
 const sevColor = (s: string) => {
