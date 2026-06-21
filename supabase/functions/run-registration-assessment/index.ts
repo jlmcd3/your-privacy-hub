@@ -10,6 +10,7 @@ import {
   type IntakeData,
 } from "../_shared/registration-engine.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
