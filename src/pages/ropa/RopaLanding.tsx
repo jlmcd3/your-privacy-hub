@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
@@ -114,6 +115,7 @@ export default function RopaLanding() {
           <h1 className="font-serif text-white mb-3">
             Build an audit-ready Record of Processing Activities (RoPA) in minutes
           </h1>
+          <RequirementBadge variant="hero" tier="required" text="GDPR Article 30 requires a Record of Processing Activities — the under-250-employee exemption falls away if your processing is regular, risky, or involves special-category data." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Guided questions in plain language. Covers GDPR Article 30, LGPD, CCPA, and 20+
             frameworks. Included with every Intelligence and Professional subscription —

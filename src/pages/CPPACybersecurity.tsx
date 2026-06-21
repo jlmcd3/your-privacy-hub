@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -147,6 +148,7 @@ export default function CPPACybersecurity() {
             {headerLabel} · ${displayPrice}
           </span>
           <h1 className="font-serif text-white mb-3">CPPA Cybersecurity Audit Readiness</h1>
+          <RequirementBadge variant="hero" tier="conditional" text="If your business clears the CCPA revenue and data-volume thresholds, an independent annual cybersecurity audit is required — first certification due April 1, 2028 for businesses over $100M in revenue." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">A structured readiness review mapped to the 18 cybersecurity programme components in the CPPA's cybersecurity audit regulations. Generates a control-by-control gap report.</p>
           <p className="text-slate-400 text-sm mt-3">Required for businesses processing personal information posing significant risk. Audit cadence begins for the largest businesses in 2026.</p>
           <p className="text-slate-400 text-xs italic mt-2">

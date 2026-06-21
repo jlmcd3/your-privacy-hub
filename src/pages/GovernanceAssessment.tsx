@@ -1,6 +1,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
@@ -363,6 +364,7 @@ const GovernanceAssessment = () => {
             ⚖️ GDPR Governance Assessment · ${pricing.price}
           </span>
           <h1 className="font-serif text-white mb-3">GDPR Governance Assessment</h1>
+          <RequirementBadge variant="hero" tier="supports" text="GDPR Article 5(2) requires you to demonstrate compliance — this assessment produces the documented evidence of that accountability." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding.</p>
           <p className="text-slate-400 text-sm mt-3">
             {isPremium

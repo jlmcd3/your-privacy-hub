@@ -3,6 +3,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -184,6 +185,7 @@ const LIAssessment = () => {
           <h1 className="font-serif text-white mb-3">
             Legitimate Interest Assessment
           </h1>
+          <RequirementBadge variant="hero" tier="expected" text="To rely on legitimate interests under GDPR Article 6(1)(f), you must conduct and document a balancing test — regulators expect a written LIA as your accountability record." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Get an instant indication whether your proposed processing could qualify for legitimate interest under
             GDPR Article 6(1)(f) — then optionally continue to a full three-part test based on the precedents we've

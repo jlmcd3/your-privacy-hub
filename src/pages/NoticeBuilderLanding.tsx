@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Check, Globe2, MapPin, RefreshCw, Shield } from "lucide-react";
 
 import Navbar from "@/components/Navbar";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { PageHero } from "@/components/PageHero";
@@ -117,6 +118,7 @@ export default function NoticeBuilderLanding() {
                     and every active US state framework — one questionnaire, separate
                     notices per state.
                   </p>
+                  <RequirementBadge tier="required" text="Required — CCPA notice-at-collection & most US state laws" />
                   <div>
                     <p className="text-xs font-medium text-foreground mb-2">Coverage</p>
                     <div className="flex flex-wrap gap-1.5">
@@ -151,6 +153,7 @@ export default function NoticeBuilderLanding() {
                     major non-US frameworks — built around Article 13/14 with
                     jurisdiction-specific overlays.
                   </p>
+                  <RequirementBadge tier="required" text="Required — GDPR Articles 13–14" />
                   <div>
                     <p className="text-xs font-medium text-foreground mb-2">Frameworks</p>
                     <div className="flex flex-wrap gap-1.5">

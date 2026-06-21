@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -456,6 +457,7 @@ export default function CPPARiskAssessment() {
             {headerLabel} · ${displayPrice}
           </span>
           <h1 className="font-serif text-white mb-3">CPPA Privacy Risk Assessment</h1>
+          <RequirementBadge variant="hero" tier="conditional" text="California (11 CCR § 7150) requires a privacy risk assessment if you sell or share personal information, process sensitive data, or use automated decision-making. Existing activities must be assessed by December 31, 2027." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">A regulation-mapped risk assessment framework, structured 1:1 to Cal. Code Regs. tit. 11 § 7152(a)(1)–(9), pre-populated from your intake and ready for your team to review, complete, and sign.</p>
           <p className="text-slate-400 text-sm mt-3">Generates two deliverables: an internal report retained for the § 7156(c) 30-day production demand, and a § 7157 Annual Submission Worksheet for the April 1, 2028 filing.</p>
           <p className="text-slate-400 text-xs italic mt-2">
