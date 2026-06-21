@@ -92,6 +92,8 @@ const LIAssessment = () => {
   const [dataCategories, setDataCategories] = useState<string[]>([]);
   const [relationship, setRelationship] = useState("");
   const [jurisdictions, setJurisdictions] = useState<string[]>([]);
+  const [dataCategoriesOther, setDataCategoriesOther] = useState("");
+  const [relationshipOther, setRelationshipOther] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<PreviewSignal | null>(null);
