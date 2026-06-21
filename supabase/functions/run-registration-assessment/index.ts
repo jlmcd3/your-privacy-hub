@@ -135,6 +135,7 @@ Deno.serve(async (req) => {
       row = data;
     }
 
+    await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "registration_assessments", sourceRowId: row.id });
     return new Response(
       JSON.stringify({
         assessment_id: row.id,
@@ -147,6 +148,7 @@ Deno.serve(async (req) => {
     );
   } catch (e) {
     console.error("run-registration-assessment error", e);
+    await failFunctionRun(supabase, fnRun, e);
     return new Response(
       JSON.stringify({ error: (e as Error).message || "Internal error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
