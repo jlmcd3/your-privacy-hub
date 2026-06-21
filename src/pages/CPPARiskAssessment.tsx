@@ -157,6 +157,23 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
 );
 
 
+const CPPA_EXCEPTIONS: { key: string; label: string; cite: string }[] = [
+  { key: "fraud_detection", label: "Fraud prevention / detection", cite: "11 CCR § 7152" },
+  { key: "security_integrity", label: "Security & integrity of systems and data", cite: "11 CCR § 7152" },
+  { key: "debugging", label: "Debugging to identify and repair errors", cite: "11 CCR § 7152" },
+  { key: "transient_use", label: "Transient use (not disclosed, no profile built)", cite: "11 CCR § 7152" },
+  { key: "internal_research", label: "Internal research for technological development", cite: "11 CCR § 7152" },
+  { key: "employment_context", label: "Employment-context processing", cite: "11 CCR § 7152" },
+  { key: "legal_compliance", label: "Compliance with a legal obligation", cite: "11 CCR § 7152" },
+  { key: "consumer_request", label: "Performing a service the consumer requested", cite: "11 CCR § 7152" },
+];
+
+const HARM_TYPES = [
+  "Financial loss", "Identity theft", "Reputational harm", "Discrimination or bias",
+  "Physical or safety risk", "Loss of privacy or autonomy", "Emotional distress",
+  "Loss of opportunity (employment, housing, credit, education)",
+];
+
 // Step 6 statute popover helper — one-line plain-language summary with citation.
 function StatutePopover({ term, summary, cite }: { term: string; summary: string; cite: string }) {
   return (
