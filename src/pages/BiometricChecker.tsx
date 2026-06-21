@@ -2,6 +2,7 @@
 import { PRICING } from "@/config/pricing";
 import { useEffect, useState } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
@@ -111,6 +112,7 @@ export default function BiometricChecker() {
             🧬 Biometric Compliance Assessment · ${pricing.price}
           </span>
           <h1 className="font-serif text-white mb-3">Biometric Privacy Compliance Assessment</h1>
+          <RequirementBadge variant="hero" tier="required" text="Illinois BIPA requires a written retention-and-destruction policy and informed written consent before you collect any biometric identifier — with statutory damages per violation." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl">
             A per-jurisdiction read on your biometric data processing — surfacing obligations under Illinois BIPA, Texas CUBI, Washington MHMD, GDPR Article 9, and other regimes, with cited enforcement decisions behind every priority action.
           </p>

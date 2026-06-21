@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
@@ -133,6 +134,7 @@ export default function IRPlaybook() {
             🚨 Incident Response Playbook · ${pricing.price}
           </span>
           <h1 className="font-serif text-white mb-3">Incident Response Playbook</h1>
+          <RequirementBadge variant="hero" tier="supports" text="Breach notification is mandatory under GDPR Articles 33–34 and every U.S. state breach law — and HIPAA, NYDFS, and DORA require a written incident-response plan." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl">
             A jurisdiction-specific breach response runbook with regulator notification deadlines, DPA portal links, and notification templates — cited enforcement decisions included for every deadline and threshold recommendation.
           </p>

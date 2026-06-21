@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -117,6 +118,7 @@ export default function DPAGenerator() {
             📄 Custom DPA Generator · ${pricing.price}
           </span>
           <h1 className="font-serif text-white mb-3">Custom Data Processing Agreement</h1>
+          <RequirementBadge variant="hero" tier="required" text="GDPR Article 28 requires a written data-processing agreement whenever you let a vendor or processor handle personal data on your behalf." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl">
             Draft a controller-processor data processing agreement tailored to your jurisdictions — GDPR Article 28, US state processor agreements (CCPA, TDPSA, CTDPA, VCDPA, CPA), Canadian PIPEDA/Law 25, or dual-compliance for cross-border arrangements. Every clause calibrated to enforcement decisions.
           </p>

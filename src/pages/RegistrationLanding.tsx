@@ -5,6 +5,7 @@
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link } from "react-router-dom";
 import ToolTierNote from "@/components/tools/ToolTierNote";
@@ -72,6 +73,7 @@ export default function RegistrationLanding() {
           <h1 className="font-serif text-white mb-3">
             Privacy registration filings, drafted and tracked
           </h1>
+          <RequirementBadge variant="hero" tier="required" text="Several jurisdictions require controllers to register with — or pay a data-protection fee to — their supervisory authority. In the UK, the ICO data-protection fee is a legal requirement for most organisations." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl">
             DPO appointments, RoPA templates, Article 27 representative letters, and EU AI Act
             registration drafts — generated in minutes, tailored to every jurisdiction you operate in,

@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -219,6 +220,7 @@ export default function CPPAScopeChecker() {
             🛡️ CPPA Scope Checker · Free · No account required
           </span>
           <h1 className="font-serif text-white mb-3">CPPA Scope Checker</h1>
+          <RequirementBadge variant="hero" tier="free" text="Free. Find out which CPPA obligations — risk assessment, cybersecurity audit, ADMT — apply to your business, and by when." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">
             Find out whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA
             enforcement obligations apply to your business. Takes 2 minutes.

@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 
@@ -161,6 +162,7 @@ type ToolDef = {
   alwaysFree?: boolean;
   body: string[];
   sampleSections: { label: string; content: string }[];
+  requirement?: { tier: "required" | "conditional" | "expected" | "supports" | "free"; text: string };
 };
 
 // ── Tools — ordered by section to match homepage triptych ─────────────────
@@ -173,6 +175,7 @@ const TOOLS: ToolDef[] = [
     name: "GDPR Governance Assessment",
     tagline: "A structured assessment of your privacy programme across the domains regulators actually inspect.",
     href: "/governance-assessment",
+    requirement: { tier: "supports", text: "Demonstrates Art. 5(2) accountability" },
     subscriberPrice: PRICING.tools.governance.display,
     standalonePrice: PRICING.tools.governance.display,
     freeBadge: "Quick scan free",
@@ -196,6 +199,7 @@ const TOOLS: ToolDef[] = [
     name: "Legitimate Interest Assessment",
     tagline: "Build a complete, documented Legitimate Interest Assessment — the three-part test, done properly.",
     href: "/li-assessment",
+    requirement: { tier: "expected", text: "Expected — to rely on Art. 6(1)(f)" },
     subscriberPrice: PRICING.tools.lia.display,
     standalonePrice: PRICING.tools.lia.display,
     freeBadge: "Step 1 free",
@@ -219,6 +223,7 @@ const TOOLS: ToolDef[] = [
     name: "Impact Assessment Builder (DPIA)",
     tagline: "A complete Data Protection Impact Assessment for high-risk processing — structured to EDPB guidelines.",
     href: "/dpia-framework",
+    requirement: { tier: "required", text: "Required — GDPR Art. 35" },
     subscriberPrice: PRICING.tools.dpia.display,
     standalonePrice: PRICING.tools.dpia.display,
     body: [
@@ -241,6 +246,7 @@ const TOOLS: ToolDef[] = [
     name: "Biometric Privacy Compliance Assessment",
     tagline: "Per-jurisdiction compliance assessment for biometric data. Free account required.",
     href: "/biometric-checker",
+    requirement: { tier: "required", text: "Required — Illinois BIPA" },
     subscriberPrice: PRICING.tools.biometric.display,
     standalonePrice: PRICING.tools.biometric.display,
     body: [
@@ -265,6 +271,7 @@ const TOOLS: ToolDef[] = [
     name: "DPA Generator",
     tagline: "Your custom GDPR Article 28-compliant Data Processing Agreement, calibrated to real enforcement failures.",
     href: "/dpa-generator",
+    requirement: { tier: "required", text: "Required — GDPR Art. 28" },
     subscriberPrice: PRICING.tools.dpa.display,
     standalonePrice: PRICING.tools.dpa.display,
     body: [
@@ -285,6 +292,7 @@ const TOOLS: ToolDef[] = [
     name: "Incident Response Playbook",
     tagline: "Your complete breach response playbook — with deadlines, regulator portal links, and notification templates.",
     href: "/ir-playbook",
+    requirement: { tier: "supports", text: "Supports breach-notification duties" },
     subscriberPrice: PRICING.tools.ir_playbook.display,
     standalonePrice: PRICING.tools.ir_playbook.display,
     freeBadge: "Deadline lookup free",
@@ -306,6 +314,7 @@ const TOOLS: ToolDef[] = [
     name: "RoPA Builder (Article 30)",
     tagline: "Build and maintain your Article 30 Record of Processing Activities — by activity, by platform, by jurisdiction. Included with any subscription.",
     href: "/ropa-builder",
+    requirement: { tier: "required", text: "Required — GDPR Art. 30" },
     subscriberPrice: PRICING.tools.ropa.display,
     standalonePrice: PRICING.tools.ropa.display,
     body: [
@@ -326,6 +335,7 @@ const TOOLS: ToolDef[] = [
     name: "U.S. Privacy Notice Builder",
     tagline: "State-specific consumer privacy notices for CCPA, Virginia, Colorado, and other US state privacy laws.",
     href: "/us-notices",
+    requirement: { tier: "required", text: "Required — CCPA notice-at-collection" },
     subscriberPrice: PRICING.tools.us_notice.display,
     standalonePrice: PRICING.tools.us_notice.display,
     body: [
@@ -345,6 +355,7 @@ const TOOLS: ToolDef[] = [
     name: "EU/UK Privacy Notice Builder",
     tagline: "GDPR & UK GDPR-aligned privacy notices with Article 13/14 disclosures and international transfer language.",
     href: "/eu-notices",
+    requirement: { tier: "required", text: "Required — GDPR Art. 13–14" },
     subscriberPrice: PRICING.tools.eu_notice.display,
     standalonePrice: PRICING.tools.eu_notice.display,
     body: [
@@ -364,6 +375,7 @@ const TOOLS: ToolDef[] = [
     name: "Registration Manager",
     tagline: "Identify where your organisation must register, generate the filings, and stay on top of deadlines. Renewal tracking included with any subscription. You submit the filings.",
     href: "/registration-manager",
+    requirement: { tier: "required", text: "Required in some jurisdictions (e.g. UK ICO fee)" },
     subscriberPrice: PRICING.tools.registration.display,
     standalonePrice: PRICING.tools.registration.display,
     body: [
@@ -387,6 +399,7 @@ const TOOLS: ToolDef[] = [
     name: "CPPA Scope Checker",
     tagline: "Find out if your organisation is in scope for CCPA/CPRA and the 2027 CPPA audit — always free, no account required.",
     href: "/cppa-scope-checker",
+    requirement: { tier: "free", text: "Free — see what you're required to do" },
     subscriberPrice: PRICING.tools.cppa_scope.display,
     standalonePrice: PRICING.tools.cppa_scope.display,
     alwaysFree: true,
@@ -409,6 +422,7 @@ const TOOLS: ToolDef[] = [
     name: "CPPA Risk Assessment",
     tagline: "California-specific risk assessment aligned to the CPPA's risk assessment regulations.",
     href: "/cppa-risk-assessment",
+    requirement: { tier: "conditional", text: "Required if in scope — due Dec 31, 2027" },
     subscriberPrice: PRICING.tools.cppa_risk.display,
     standalonePrice: PRICING.tools.cppa_risk.display,
     body: [
@@ -430,6 +444,7 @@ const TOOLS: ToolDef[] = [
     name: "CPPA Cybersecurity Audit",
     tagline: "Structured cybersecurity audit aligned to the CPPA's cybersecurity audit regulations.",
     href: "/cppa-cybersecurity",
+    requirement: { tier: "conditional", text: "Required above CCPA thresholds — first cert Apr 1, 2028" },
     subscriberPrice: PRICING.tools.cppa_cyber.display,
     standalonePrice: PRICING.tools.cppa_cyber.display,
     body: [
@@ -450,6 +465,7 @@ const TOOLS: ToolDef[] = [
     name: "ADMT Compliance Assessment",
     tagline: "Module 3 — pre-use notice, opt-out, and access right gap analysis for automated decisionmaking systems. January 1, 2027 deadline.",
     href: "/cppa-admt-checker",
+    requirement: { tier: "conditional", text: "Required for ADMT decisions — by Jan 1, 2027" },
     subscriberPrice: (PRICING.tools as any).cppa_admt?.display ?? "$49",
     standalonePrice: (PRICING.tools as any).cppa_admt?.display ?? "$99",
     body: [
@@ -621,6 +637,9 @@ export default function Tools() {
 
                     <h2 className="font-display text-brand-navy mb-1">{tool.name}</h2>
                     <p className="text-sm text-gray-600">{tool.tagline}</p>
+                    {tool.requirement && (
+                      <RequirementBadge tier={tool.requirement.tier} text={tool.requirement.text} className="mt-1.5" />
+                    )}
                     {tool.freeBadge && (
                       <span className="inline-block mt-1.5 text-eyebrow bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
                         ✓ {tool.freeBadge}

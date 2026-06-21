@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
+import { RequirementBadge } from "@/components/RequirementBadge";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -417,6 +418,7 @@ export default function ADMTChecker() {
             CPPA AUDIT READINESS · MODULE 3 · ${pricing.price}
           </span>
           <h1 className="font-serif text-white mb-3">ADMT Compliance Assessment</h1>
+          <RequirementBadge variant="hero" tier="conditional" text="If you use automated decision-making for significant decisions — hiring, lending, housing, healthcare — California requires pre-use notice, an opt-out, and a risk assessment by January 1, 2027." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl">
             Assess your automated decisionmaking technology against the CPPA's final regulations. Covers pre-use notice requirements (§ 7220), opt-out obligations (§ 7221), and access rights (§ 7222). Generates a gap report with specific remediation steps for each deficit, cited to the regulation.
           </p>
