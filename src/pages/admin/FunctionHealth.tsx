@@ -116,8 +116,8 @@ export default function FunctionHealth() {
             <div className="text-sm text-gray-600">No runs recorded yet.</div>
           ) : (
             <div className="overflow-x-auto rounded border border-gray-800">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-100 text-gray-700">
+              <table className="w-full text-sm text-black">
+                <thead className="bg-gray-100 text-black">
                   <tr>
                     <th className="text-left px-3 py-2 font-medium">Function</th>
                     <th className="text-left px-3 py-2 font-medium">Latest status</th>
@@ -129,15 +129,15 @@ export default function FunctionHealth() {
                 <tbody>
                   {summary.map((r) => (
                     <tr key={r.function_name} className="border-t border-gray-800">
-                      <td className="px-3 py-2 text-gray-200 font-mono text-xs">{r.function_name}</td>
+                      <td className="px-3 py-2 text-black font-mono text-xs">{r.function_name}</td>
                       <td className="px-3 py-2">
                         <span className={`px-2 py-0.5 rounded text-xs ${statusColor(r.status)}`}>
                           {r.status}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-gray-800">{fmtTime(r.started_at)}</td>
-                      <td className="px-3 py-2 text-gray-800">{fmtDuration(r.duration_ms)}</td>
-                      <td className="px-3 py-2 text-red-300 text-xs max-w-md truncate" title={r.error_message ?? ""}>
+                      <td className="px-3 py-2 text-black">{fmtTime(r.started_at)}</td>
+                      <td className="px-3 py-2 text-black">{fmtDuration(r.duration_ms)}</td>
+                      <td className="px-3 py-2 text-red-600 text-xs max-w-md truncate" title={r.error_message ?? ""}>
                         {r.status === "error" ? (r.error_message ?? "—") : "—"}
                       </td>
                     </tr>
