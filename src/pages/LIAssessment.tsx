@@ -92,6 +92,8 @@ const LIAssessment = () => {
   const [dataCategories, setDataCategories] = useState<string[]>([]);
   const [relationship, setRelationship] = useState("");
   const [jurisdictions, setJurisdictions] = useState<string[]>([]);
+  const [dataCategoriesOther, setDataCategoriesOther] = useState("");
+  const [relationshipOther, setRelationshipOther] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<PreviewSignal | null>(null);
@@ -114,12 +116,15 @@ const LIAssessment = () => {
     }
     setLoading(true);
     try {
+      // Fold any "Other" free-text into the stored values so it flows through the existing columns
+      const dataCategoriesOut = dataCategories.map((c) => (c === "Other" && dataCategoriesOther.trim() ? `Other: ${dataCategoriesOther.trim()}` : c));
+      const relationshipOut = relationship === "Other" && relationshipOther.trim() ? `Other: ${relationshipOther.trim()}` : relationship;
       // Call free preview function
       const { data: previewData, error: fnErr } = await supabase.functions.invoke("preview-li-assessment", {
         body: {
           processing_description: processingDescription,
-          data_categories: dataCategories,
-          relationship_type: relationship,
+          data_categories: dataCategoriesOut,
+          relationship_type: relationshipOut,
           jurisdictions,
         },
       });
@@ -135,8 +140,8 @@ const LIAssessment = () => {
           stage: "preview",
           organization_name: organizationName,
           processing_description: processingDescription,
-          data_categories: dataCategories,
-          relationship_type: relationship,
+          data_categories: dataCategoriesOut,
+          relationship_type: relationshipOut,
           jurisdictions,
           preview_signal: previewData,
         } as any)
@@ -297,6 +302,9 @@ const LIAssessment = () => {
             <div>
               <Label className="text-sm font-semibold text-brand-navy">Data categories involved<Req /> <DefPopover termKey="gdpr_special_categories" /></Label>
               <div className="mt-2"><MultiPills options={DATA_CATEGORIES} value={dataCategories} onChange={setDataCategories} /></div>
+              {dataCategories.includes("Other") && (
+                <input value={dataCategoriesOther} onChange={(e) => setDataCategoriesOther(e.target.value)} placeholder="Specify the other data categories" className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm" />
+              )}
             </div>
 
             <div>
@@ -305,6 +313,9 @@ const LIAssessment = () => {
                 <option value="">Select…</option>
                 {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
+              {relationship === "Other" && (
+                <input value={relationshipOther} onChange={(e) => setRelationshipOther(e.target.value)} placeholder="Describe your relationship with the data subjects" className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm" />
+              )}
             </div>
 
             <div>

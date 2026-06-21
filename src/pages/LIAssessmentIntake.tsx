@@ -124,6 +124,16 @@ const LIAssessmentIntake = () => {
   const [safeguards, setSafeguards] = useState<string[]>([]);
   const [optOutMechanism, setOptOutMechanism] = useState("");
 
+  // Added flexibility — core interest field, free-form companions, catch-all
+  const [interestStatement, setInterestStatement] = useState("");
+  const [interestHolderOther, setInterestHolderOther] = useState("");
+  const [interestTypeOther, setInterestTypeOther] = useState("");
+  const [reasonableExpectationDetail, setReasonableExpectationDetail] = useState("");
+  const [potentialHarmDetail, setPotentialHarmDetail] = useState("");
+  const [vulnerableSubjectsOther, setVulnerableSubjectsOther] = useState("");
+  const [safeguardsOther, setSafeguardsOther] = useState("");
+  const [additionalContext, setAdditionalContext] = useState("");
+
   // Adaptive branches
   const [statutoryRestrictions, setStatutoryRestrictions] = useState(""); // shown for marketing / advertising
   const [pseudonymisationOptions, setPseudonymisationOptions] = useState(""); // shown for analytics / research
@@ -171,6 +181,9 @@ const LIAssessmentIntake = () => {
   const validate = (): string | null => {
     if (!interestHolder) return "Tell us whose interest is being served.";
     if (!interestType) return "Tell us what type of interest this is.";
+    if (!interestStatement.trim()) return "Describe, in your own words, the legitimate interest you're relying on.";
+    if (interestHolder === "Other (describe below)" && !interestHolderOther.trim()) return "Please specify whose interest is being served.";
+    if (interestType === "Other (describe below)" && !interestTypeOther.trim()) return "Please specify the type of interest.";
     if (!statedPurpose.trim()) return "Describe how you'd state this purpose to data subjects.";
     if (!alternatives.trim()) return "Describe alternatives you've considered.";
     if (!reasonableExpectation) return "Tell us whether data subjects would reasonably expect this.";
@@ -202,7 +215,7 @@ const LIAssessmentIntake = () => {
       // Stage B
       stated_purpose: statedPurpose,
       alternatives_considered: alternatives,
-      purpose_details: { interest_holder: interestHolder, interest_type: interestType },
+      purpose_details: { interest_holder: interestHolder, interest_type: interestType, interest_statement: interestStatement, interest_holder_other: interestHolderOther, interest_type_other: interestTypeOther },
       necessity_details: {
         alternatives,
         why_consent_not_used: whyConsentNotUsed,
@@ -211,13 +224,18 @@ const LIAssessmentIntake = () => {
       },
       balancing_details: {
         reasonable_expectation: reasonableExpectation,
+        reasonable_expectation_detail: reasonableExpectationDetail,
         vulnerable_subjects: vulnerableSubjects,
+        vulnerable_subjects_other: vulnerableSubjectsOther,
         potential_harm: potentialHarm,
+        potential_harm_detail: potentialHarmDetail,
         safeguards,
+        safeguards_other: safeguardsOther,
         opt_out_mechanism: optOutMechanism,
         special_category_data: hasSpecialCategory,
         statutory_restrictions: showMarketingBranch ? statutoryRestrictions : null,
         employment_safeguards: showEmploymentBranch ? employmentSafeguards : null,
+        additional_context: additionalContext,
       },
       stage: "submitted",
       // Tie back to the preview row for analytics
@@ -283,7 +301,11 @@ const LIAssessmentIntake = () => {
               <option>A third party we share data with</option>
               <option>The data subject themselves</option>
               <option>The wider public</option>
+              <option>Other (describe below)</option>
             </select>
+            {interestHolder === "Other (describe below)" && (
+              <input value={interestHolderOther} onChange={(e) => setInterestHolderOther(e.target.value)} placeholder="Whose interest? e.g. a named third party, a political campaign…" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            )}
           </div>
 
           <div>
@@ -296,7 +318,18 @@ const LIAssessmentIntake = () => {
               <option>Legal / regulatory compliance</option>
               <option>Public interest / societal benefit</option>
               <option>Research / product improvement</option>
+              <option>Political / electoral campaigning</option>
+              <option>Other (describe below)</option>
             </select>
+            {interestType === "Other (describe below)" && (
+              <input value={interestTypeOther} onChange={(e) => setInterestTypeOther(e.target.value)} placeholder="Describe the type of interest in your own words" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            )}
+          </div>
+
+          <div>
+            <Label className="text-base">In your own words, what is the legitimate interest you're relying on? *</Label>
+            <p className="text-xs text-muted-foreground mt-1">The interest itself — e.g. "informing local voters about a candidate," "preventing payment fraud" — not how you'd word it in a notice.</p>
+            <Textarea value={interestStatement} onChange={(e) => setInterestStatement(e.target.value)} className="mt-2" rows={3} />
           </div>
 
           <div>
@@ -367,18 +400,23 @@ const LIAssessmentIntake = () => {
               <option>Probably — disclosed in privacy notice and consistent with the relationship</option>
               <option>Maybe — they may not have anticipated this specific use</option>
               <option>Unlikely — this would surprise most data subjects</option>
+              <option>No — we have no relationship with these individuals; they would not expect this</option>
             </select>
+            <Textarea value={reasonableExpectationDetail} onChange={(e) => setReasonableExpectationDetail(e.target.value)} placeholder="Optional: briefly, why would (or wouldn't) they expect it?" className="mt-2" rows={2} />
           </div>
 
           <div>
             <Label className="text-base">Are vulnerable groups involved? (select all that apply)</Label>
             <div className="mt-2">
               <Pills
-                options={["Children under 16", "Patients / health context", "Employees", "Job applicants", "Financially vulnerable", "None"]}
+                options={["Children under 16", "Patients / health context", "Employees", "Job applicants", "Financially vulnerable", "Other", "None"]}
                 value={vulnerableSubjects}
                 onChange={setVulnerableSubjects}
               />
             </div>
+            {vulnerableSubjects.includes("Other") && (
+              <input value={vulnerableSubjectsOther} onChange={(e) => setVulnerableSubjectsOther(e.target.value)} placeholder="Describe the other vulnerable group(s)" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            )}
           </div>
 
           <div>
@@ -390,6 +428,7 @@ const LIAssessmentIntake = () => {
               <option>Significant — discrimination, financial loss, reputational damage</option>
               <option>Severe — physical safety, identity theft, loss of livelihood</option>
             </select>
+            <Textarea value={potentialHarmDetail} onChange={(e) => setPotentialHarmDetail(e.target.value)} placeholder="Optional: what specific harms did you consider (financial, reputational, autonomy, distress…)?" className="mt-2" rows={2} />
           </div>
 
           <div>
@@ -404,11 +443,21 @@ const LIAssessmentIntake = () => {
                   "Independent oversight (DPO / privacy committee)",
                   "DPIA completed",
                   "Vendor due diligence",
+                  "Other",
                 ]}
                 value={safeguards}
                 onChange={setSafeguards}
               />
             </div>
+            {safeguards.includes("Other") && (
+              <input value={safeguardsOther} onChange={(e) => setSafeguardsOther(e.target.value)} placeholder="Describe the other safeguard(s) in place" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            )}
+          </div>
+
+          <div>
+            <Label className="text-base">Anything else about this processing we should weigh?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Context, constraints, or specifics the questions above didn't capture — in your own words. Optional, but it sharpens the assessment.</p>
+            <Textarea value={additionalContext} onChange={(e) => setAdditionalContext(e.target.value)} className="mt-2" rows={3} />
           </div>
 
           <div>

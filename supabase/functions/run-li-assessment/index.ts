@@ -349,6 +349,8 @@ Sector: ${assessment.sector || "not specified"}
 STAGE B — PURPOSE FACTS:
 Whose interest: ${purposeDetails.interest_holder || "not specified"}
 Type of interest: ${purposeDetails.interest_type || "not specified"}
+Interest — controller's clarification (if "Other"): ${purposeDetails.interest_holder_other || purposeDetails.interest_type_other || "n/a"}
+Legitimate interest in the controller's own words: ${purposeDetails.interest_statement || "not provided"}
 Stated purpose to data subjects: ${assessment.stated_purpose || "not specified"}
 Statutory restrictions noted: ${balancingDetails.statutory_restrictions || "none noted"}
 
@@ -360,9 +362,14 @@ Pseudonymisation/aggregation options: ${necessityDetails.pseudonymisation_option
 
 STAGE B — BALANCING FACTS:
 Reasonable expectation: ${balancingDetails.reasonable_expectation || "not specified"}
+Reasonable expectation — controller's explanation: ${balancingDetails.reasonable_expectation_detail || "none given"}
 Vulnerable subjects involved: ${(balancingDetails.vulnerable_subjects || []).join(", ") || "none indicated"}
+Vulnerable subjects — other (if specified): ${balancingDetails.vulnerable_subjects_other || "n/a"}
 Worst-case harm: ${balancingDetails.potential_harm || "not specified"}
+Worst-case harm — controller's description: ${balancingDetails.potential_harm_detail || "none given"}
 Safeguards in place: ${(balancingDetails.safeguards || []).join(", ") || "none specified"}
+Safeguards — other (if specified): ${balancingDetails.safeguards_other || "n/a"}
+Additional context from the controller: ${balancingDetails.additional_context || "none provided"}
 Opt-out mechanism: ${balancingDetails.opt_out_mechanism || "not specified"}
 Special category data flag: ${balancingDetails.special_category_data ? "YES — Article 9 condition required in addition" : "no"}
 Employment-context safeguards: ${balancingDetails.employment_safeguards || "not applicable / not addressed"}
