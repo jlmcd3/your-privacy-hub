@@ -430,6 +430,7 @@ export default function ADMTChecker() {
       </div>
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <IntakeGuidance className="mb-4">Describe each automated decision-making system specifically and separately — what it decides, on what data, and the human-review step. If you run several systems, give each its own description rather than merging them.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a compliance gap analysis for your ADMT systems under 11 CCR Article 11 (§§ 7200–7222). It is an analytical aid, not legal advice. Review all output with qualified California privacy counsel before relying on it for regulatory submissions." />
 

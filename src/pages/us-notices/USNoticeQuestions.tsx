@@ -363,12 +363,15 @@ function QuestionInput({
     case "text_long":
     case "date_or_period":
       return (
-        <Textarea
-          value={(value as string) ?? ""}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Type your answer"
-          rows={4}
-        />
+        <>
+          <Textarea
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Type your answer"
+            rows={4}
+          />
+          <IntakeGuidance className="mt-2">Answer as specifically and completely as you can — anything left vague or blank becomes placeholder text in your published notice.</IntakeGuidance>
+        </>
       );
     case "yes_no":
       return (

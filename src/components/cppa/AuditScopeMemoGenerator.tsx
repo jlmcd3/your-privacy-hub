@@ -133,6 +133,7 @@ export default function AuditScopeMemoGenerator({ intake, report }: Props) {
       </div>
 
       <div className="space-y-3 mb-4">
+        <IntakeGuidance className="text-xs">List one item per line in the fields below — each system, data category, activity, and exclusion on its own line, so the memo can scope them individually.</IntakeGuidance>
         <div>
           <Label className="text-xs">In-scope systems and infrastructure</Label>
           <Textarea rows={5} value={systems} onChange={(e) => setSystems(e.target.value)} className="mt-1 text-xs font-mono" />

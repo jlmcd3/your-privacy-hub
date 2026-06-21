@@ -300,6 +300,7 @@ const DPIAFramework = () => {
           <div>
             <Label>Describe the processing activity in detail<Req /></Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe: what data is collected, how it is used, who has access, where it is stored." className="mt-2 min-h-32" />
+            <IntakeGuidance className="mt-2">If this activity serves more than one purpose or use case, set each one out clearly and separately (number them, or a short paragraph each) — each purpose is analysed and reported on individually. For each, cover what data is involved, why it's needed, who can access it, where it's stored, and how long it's kept.</IntakeGuidance>
             <p className="text-xs text-muted-foreground mt-1">Min 100 characters.</p>
           </div>
           <div>
@@ -353,6 +354,7 @@ const DPIAFramework = () => {
           <div>
             <Label>Necessity, proportionality & alternatives considered<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 35(7)(b))</span></Label>
             <Textarea value={necessityProportionality} onChange={(e) => setNecessityProportionality(e.target.value)} placeholder="Why is this processing necessary for the purpose, and what less-intrusive alternatives did you consider and why were they rejected?" className="mt-2 min-h-24" />
+            <IntakeGuidance className="mt-2">Take each alternative you considered in turn and say plainly why it was rejected. Listing them separately lets the assessment weigh each one — a single general statement can't be.</IntakeGuidance>
           </div>
         </form>
         <StatuteRail entry={dpiaRailEntry} />

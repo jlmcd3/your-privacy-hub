@@ -190,7 +190,10 @@ export default function EUNoticeQuestions() {
             <Input value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" />
           )}
           {currentQ.type === "text_long" && (
-            <Textarea value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" rows={4} />
+            <>
+              <Textarea value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" rows={4} />
+              <IntakeGuidance className="mt-2">Answer as specifically and completely as you can — anything left vague or blank becomes placeholder text in your published notice.</IntakeGuidance>
+            </>
           )}
           {(currentQ.type === "yes_no" || currentQ.type === "yes_no_unsure") && (
             <RadioGroup value={(value as string) ?? ""} onValueChange={(v) => saveAnswer(currentQ, v)}>
