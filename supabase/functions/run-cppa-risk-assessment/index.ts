@@ -226,7 +226,7 @@ function validateFiveStage(intake: FiveStageIntake, lenient: boolean): { ok: tru
 // ---------------------------------------------------------------------------
 // Corpus retrieval (CR-2 Step 1).
 // ---------------------------------------------------------------------------
-async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforcementContext: string; longitudinalSynthesis: string }> {
+async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforcementContext: string; longitudinalSynthesis: string; statuteContext: string; fsorContext: string }> {
   const primaryActivity = Object.entries(intake.triggers)
     .filter(([, v]) => v === true)
     .map(([k]) => k.replace(/_/g, " "))
@@ -234,7 +234,11 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
   const sector = intake.org_context?.sector ?? "general";
   const corpusQuery = `CPPA risk assessment ${sector} ${primaryActivity} California privacy enforcement`;
 
-  const [enforcementRes, longitudinalRes] = await Promise.allSettled([
+  const statuteTopics = ["risk-assessment", "thresholds"];
+  if (intake.triggers.admt_involved) statuteTopics.push("admt", "significant-decision");
+  if (intake.triggers.profiling_significant_effects) statuteTopics.push("profiling");
+
+  const [enforcementRes, longitudinalRes, statuteRes] = await Promise.allSettled([
     supabase.functions.invoke("get-enforcement-context", {
       body: { query: corpusQuery, jurisdiction: "US-CA", regulation: "CPPA", limit: 8 },
     }),
@@ -246,6 +250,9 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
         focus_areas: [primaryActivity, "audit division enforcement priorities", "§ 7153 documentation requirements"],
       },
     }),
+    supabase.functions.invoke("cppa-retrieve-context", {
+      body: { topics: statuteTopics, query: `risk assessment ${primaryActivity}`, include_deadlines: false, full_text_limit: 10, limit: 16 },
+    }),
   ]);
 
   const enforcementContext = enforcementRes.status === "fulfilled"
@@ -255,7 +262,33 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
     ? (longitudinalRes.value?.data?.synthesis ?? "")
     : (console.warn("[cppa-risk] generate-longitudinal-synthesis failed:", longitudinalRes.reason), "");
 
-  return { enforcementContext, longitudinalSynthesis };
+  // Verbatim statutory text + plain summaries from the CPPA authorities corpus.
+  const authorities: any[] = statuteRes.status === "fulfilled" ? (statuteRes.value?.data?.authorities ?? []) : [];
+  if (statuteRes.status === "rejected") console.warn("[cppa-risk] cppa-retrieve-context failed:", statuteRes.reason);
+  const statuteContext = authorities
+    .map((a: any) => `${a.citation}${a.title ? ` — ${a.title}` : ""}\nPlain summary: ${a.plain_summary ?? ""}\nRegulation text: ${String(a.full_text ?? "").slice(0, 1200)}`)
+    .join("\n\n");
+
+  // Agency's own commentary (Final Statement of Reasons) for the retrieved citations.
+  let fsorContext = "";
+  try {
+    const cites = authorities.map((a: any) => a.citation).filter(Boolean).slice(0, 20);
+    if (cites.length) {
+      const { data: fsorRows } = await supabase
+        .from("cppa_fsor_commentary")
+        .select("regulation_citation, agency_position_summary")
+        .in("regulation_citation", cites)
+        .not("agency_position_summary", "is", null)
+        .limit(20);
+      fsorContext = (fsorRows ?? [])
+        .map((r: any) => `${r.regulation_citation}: ${r.agency_position_summary}`)
+        .join("\n\n");
+    }
+  } catch (e) {
+    console.warn("[cppa-risk] FSOR commentary fetch failed:", e);
+  }
+
+  return { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext };
 }
 
 // ---------------------------------------------------------------------------
@@ -270,6 +303,12 @@ ENFORCEMENT CONTEXT FROM CORPUS:
 LONGITUDINAL ENFORCEMENT PATTERNS:
 {{LONGITUDINAL}}
 
+VERBATIM REGULATION TEXT (Cal. Code Regs. tit. 11 — authoritative; ground every citation in this text):
+{{STATUTE}}
+
+CPPA AGENCY COMMENTARY — FINAL STATEMENT OF REASONS (the Agency's own stated intent for these provisions):
+{{FSOR}}
+
 CORE OPERATING RULES:
 1. NO ADAPTIVE GUIDANCE — Present enforcement patterns and regulatory standards as context only. Do not tell the user what answers to give or what conclusions to reach. All risk flags must cite the specific regulation, not a recommendation.
 2. VALIDATE EXCEPTIONS RIGOROUSLY — For each § 7152 exception claimed, assess whether the scope description and safeguards cited are sufficient to sustain the exception under CPPA audit scrutiny. Flag weak or undocumented exception claims explicitly with citation to § 7152.
@@ -281,6 +320,7 @@ CORE OPERATING RULES:
 8. BENEFITS-OUTWEIGH-RISKS ANALYSIS — The § 7153(e) analysis must be grounded in the specific activities and impacts described in the intake. Do not produce generic balancing language. Reference the specific benefits and harms the organisation has identified.
 
 CITATION STANDARDS:
+- GROUND IN THE PROVIDED TEXT — When the VERBATIM REGULATION TEXT above contains the provision you cite, your description of what it requires must match that text; do not paraphrase it into a different requirement. Where the AGENCY COMMENTARY (FSOR) explains a provision's intent, reflect that intent. Prefer citing provisions that appear in the provided text.
 - All citations must be to Cal. Code Regs. tit. 11 (CPPA regulations) or Cal. Civ. Code § 1798 (CCPA/CPRA statute)
 - Format: § 7150(b)(1) for regulations, § 1798.185 for statute
 - Do not cite provisions that do not exist
