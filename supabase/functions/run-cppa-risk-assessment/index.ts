@@ -16,6 +16,7 @@
 // (tracked as a follow-up) before it can render the new output structure.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -512,13 +513,27 @@ Deno.serve(async (req) => {
     await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
   } catch { /* row presence is re-checked inside runPipeline */ }
 
+  const fnRun = await startFunctionRun(supabase, "run-cppa-risk-assessment", {
+    archetype: "background",
+    trustClass: "user",
+    invokedBy: "user",
+    metadata: { assessment_id },
+  });
+  const wrapped = (async () => {
+    try {
+      await runPipeline(assessment_id!);
+      await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id! });
+    } catch (e) {
+      console.error("pipeline error:", e);
+      await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
+    }
+  })();
   // @ts-ignore Deno Edge Runtime API
   const er = (globalThis as any).EdgeRuntime;
   if (er?.waitUntil) {
-    er.waitUntil(runPipeline(assessment_id));
-  } else {
-    runPipeline(assessment_id).catch((e) => console.error("pipeline error:", e));
+    er.waitUntil(wrapped);
   }
+
 
   return new Response(JSON.stringify({ accepted: true, assessment_id }), {
     status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" },

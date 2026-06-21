@@ -10,6 +10,7 @@ import {
   type IntakeData,
 } from "../_shared/registration-engine.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,6 +26,11 @@ const supabase = createClient(
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const fnRun = await startFunctionRun(supabase, "run-registration-assessment", {
+    archetype: "foreground",
+    trustClass: "user",
+    invokedBy: "user",
+  });
   try {
     const body = await req.json();
     const intake = (body.intake_data || {}) as IntakeData;
@@ -129,6 +135,7 @@ Deno.serve(async (req) => {
       row = data;
     }
 
+    await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "registration_assessments", sourceRowId: row.id });
     return new Response(
       JSON.stringify({
         assessment_id: row.id,
@@ -141,6 +148,7 @@ Deno.serve(async (req) => {
     );
   } catch (e) {
     console.error("run-registration-assessment error", e);
+    await failFunctionRun(supabase, fnRun, e);
     return new Response(
       JSON.stringify({ error: (e as Error).message || "Internal error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

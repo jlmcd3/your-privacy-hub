@@ -3,6 +3,7 @@ import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun, type FnRunHandle } from "../_shared/function-run-logger.ts";
 
 
 // Robustly parse a JSON object from an LLM response that may include
@@ -75,13 +76,15 @@ async function callAnthropic(
 // the caller immediately and avoid the 150s HTTP idle-timeout — generation
 // regularly runs 60–120s and an awaited HTTP response can be cut off by the
 // platform even though the row eventually finishes.
-async function generateAssessment(assessment_id: string, assessment: any): Promise<void> {
+async function generateAssessment(assessment_id: string, assessment: any, fnRun: FnRunHandle): Promise<void> {
   try {
     await runAssessment(assessment_id, assessment);
+    await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "li_assessments", sourceRowId: assessment_id });
   } catch (e) {
     console.error("run-li-assessment background error:", e);
     await supabase.from("li_assessments")
       .update({ status: "failed" }).eq("id", assessment_id);
+    await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
   }
 }
 
@@ -117,12 +120,20 @@ Deno.serve(async (req) => {
     await supabase.from("li_assessments").update({ status: "processing" })
       .eq("id", assessment_id);
 
+    const fnRun = await startFunctionRun(supabase, "run-li-assessment", {
+      archetype: "background",
+      trustClass: "user",
+      userId: caller.internal ? (assessment.user_id ?? null) : caller.userId,
+      invokedBy: caller.internal ? "internal" : "user",
+      metadata: { assessment_id },
+    });
+
     // Kick off heavy work in the background; respond immediately so the
     // caller's HTTP request doesn't sit open for 60–120s and trip the 150s
     // idle-timeout. All client callers (webhook, admin harness, result page)
     // already poll the li_assessments row for status.
     // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
-    EdgeRuntime.waitUntil(generateAssessment(assessment_id, assessment));
+    EdgeRuntime.waitUntil(generateAssessment(assessment_id, assessment, fnRun));
 
     return new Response(
       JSON.stringify({ success: true, assessment_id, status: "processing" }),

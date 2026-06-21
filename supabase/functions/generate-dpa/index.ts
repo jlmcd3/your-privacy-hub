@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -855,9 +856,19 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
           status: "failed",
           updated_at: new Date().toISOString(),
         }).eq("id", rowId);
+        await failFunctionRun(supabase, fnRun, bgErr, { metadata: { rowId } });
+        return;
       }
+      await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpa_documents", sourceRowId: rowId });
     };
 
+    const fnRun = await startFunctionRun(supabase, "generate-dpa", {
+      archetype: "background",
+      trustClass: "user",
+      userId: resolvedUserId,
+      invokedBy: caller.internal ? "internal" : "user",
+      metadata: { rowId },
+    });
     // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
     EdgeRuntime.waitUntil(runBackground());
 

@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -820,8 +821,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    const fnRun = await startFunctionRun(supabase, "run-cppa-cybersecurity", {
+      archetype: "background",
+      trustClass: "user",
+      invokedBy: "user",
+      metadata: { assessment_id },
+    });
     // @ts-ignore — EdgeRuntime is provided by the Supabase edge runtime
-    EdgeRuntime.waitUntil(runAssessment(assessment_id));
+    EdgeRuntime.waitUntil((async () => {
+      try {
+        await runAssessment(assessment_id);
+        await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
+      } catch (e) {
+        await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
+      }
+    })());
+
 
     return new Response(JSON.stringify({ accepted: true, assessment_id }), {
       status: 202,

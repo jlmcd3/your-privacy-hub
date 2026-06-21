@@ -2,6 +2,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { lintReportText } from "../_shared/output-lint.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
@@ -229,6 +230,13 @@ Deno.serve(async (req) => {
       });
     }
 
+    const fnRun = await startFunctionRun(supabase, "generate-ir-playbook", {
+      archetype: "background",
+      trustClass: "user",
+      userId: resolvedUserId,
+      invokedBy: caller.internal ? "internal" : "user",
+      metadata: { rowId },
+    });
     // Dispatch heavy work in background — return 202 immediately so the caller is not
     // held open past the platform's ~150s HTTP idle ceiling. The result page polls
     // ir_playbooks.status. On unhandled error we mark the row failed so callers don't
@@ -240,6 +248,7 @@ Deno.serve(async (req) => {
         // Step 1 — enforcement context
         let enforcement_context: any[] = [];
         let enforcementMeta: any = { attempted: false };
+
         try {
           const er = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/get-enforcement-context`, {
             method: "POST",
@@ -826,6 +835,7 @@ templates (Section 5) or post-incident actions (Section 7):
             updated_at: new Date().toISOString(),
           })
           .eq("id", rowId);
+        await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "ir_playbooks", sourceRowId: rowId });
       } catch (bgErr) {
         console.error("[generate-ir-playbook] background error:", bgErr);
         try {
@@ -836,6 +846,7 @@ templates (Section 5) or post-incident actions (Section 7):
         } catch (persistErr) {
           console.error("[generate-ir-playbook] failure-persist error:", persistErr);
         }
+        await failFunctionRun(supabase, fnRun, bgErr, { metadata: { rowId } });
       }
     })());
 

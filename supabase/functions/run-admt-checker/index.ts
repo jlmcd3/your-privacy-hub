@@ -3,6 +3,7 @@
 // Pipeline: retrieve corpus → generate gap analysis JSON → persist.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -97,12 +98,19 @@ Deno.serve(async (req) => {
 
   if (!assessment) return json({ error: "Assessment not found" }, 404);
 
+  const fnRun = await startFunctionRun(supabase, "run-admt-checker", {
+    archetype: "background",
+    trustClass: "user",
+    invokedBy: "user",
+    metadata: { assessment_id },
+  });
   // Return 202 immediately; run generation in background
   // @ts-ignore — EdgeRuntime is provided by the Supabase edge runtime
   EdgeRuntime.waitUntil((async () => {
    try {
     await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
     const intake = assessment.intake_data as any;
+
 
     // 1. Retrieve ADMT authorities from corpus (best-effort).
     let authorities: any[] = [];
@@ -535,12 +543,14 @@ Return this JSON structure exactly:
       report_data: report,
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
+    await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
    } catch (e) {
     console.error("[run-admt-checker] pipeline error:", e);
     await supabase.from("cppa_assessments").update({
       status: "error",
       report_data: { error: String(e) },
     }).eq("id", assessment_id);
+    await failFunctionRun(supabase, fnRun, e, { metadata: { assessment_id } });
    }
   })());
 
