@@ -140,8 +140,8 @@ const LIAssessment = () => {
           stage: "preview",
           organization_name: organizationName,
           processing_description: processingDescription,
-          data_categories: dataCategories,
-          relationship_type: relationship,
+          data_categories: dataCategoriesOut,
+          relationship_type: relationshipOut,
           jurisdictions,
           preview_signal: previewData,
         } as any)
