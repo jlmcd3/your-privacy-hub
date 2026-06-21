@@ -420,6 +420,7 @@ const LIAssessmentIntake = () => {
               <option>Significant — discrimination, financial loss, reputational damage</option>
               <option>Severe — physical safety, identity theft, loss of livelihood</option>
             </select>
+            <Textarea value={potentialHarmDetail} onChange={(e) => setPotentialHarmDetail(e.target.value)} placeholder="Optional: what specific harms did you consider (financial, reputational, autonomy, distress…)?" className="mt-2" rows={2} />
           </div>
 
           <div>
