@@ -4,6 +4,7 @@
 // attach to the engagement letter. Pure client-side, no backend changes.
 import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { IntakeGuidance } from "@/components/IntakeGuidance";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

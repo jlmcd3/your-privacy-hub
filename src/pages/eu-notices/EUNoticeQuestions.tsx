@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Info, AlertTriangle } from "lucide-react";
 import { EUNoticeShell } from "@/components/eu-notices/EUNoticeShell";
+import { IntakeGuidance } from "@/components/IntakeGuidance";
 import { AutosaveIndicator } from "@/components/AutosaveIndicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

@@ -1,6 +1,7 @@
 // CPPA Cybersecurity Audit Readiness — Module 2 intake. Covers 18 programme components.
 import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
+import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate, useSearchParams } from "react-router-dom";
