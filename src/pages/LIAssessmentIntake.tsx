@@ -212,7 +212,7 @@ const LIAssessmentIntake = () => {
       // Stage B
       stated_purpose: statedPurpose,
       alternatives_considered: alternatives,
-      purpose_details: { interest_holder: interestHolder, interest_type: interestType },
+      purpose_details: { interest_holder: interestHolder, interest_type: interestType, interest_statement: interestStatement, interest_holder_other: interestHolderOther, interest_type_other: interestTypeOther },
       necessity_details: {
         alternatives,
         why_consent_not_used: whyConsentNotUsed,
@@ -221,13 +221,18 @@ const LIAssessmentIntake = () => {
       },
       balancing_details: {
         reasonable_expectation: reasonableExpectation,
+        reasonable_expectation_detail: reasonableExpectationDetail,
         vulnerable_subjects: vulnerableSubjects,
+        vulnerable_subjects_other: vulnerableSubjectsOther,
         potential_harm: potentialHarm,
+        potential_harm_detail: potentialHarmDetail,
         safeguards,
+        safeguards_other: safeguardsOther,
         opt_out_mechanism: optOutMechanism,
         special_category_data: hasSpecialCategory,
         statutory_restrictions: showMarketingBranch ? statutoryRestrictions : null,
         employment_safeguards: showEmploymentBranch ? employmentSafeguards : null,
+        additional_context: additionalContext,
       },
       stage: "submitted",
       // Tie back to the preview row for analytics
