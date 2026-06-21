@@ -574,6 +574,7 @@ Deno.serve(async (req) => {
         // that are not persisted columns — spreading them caused the insert
         // to fail with PGRST204 "column not found".
         const LI_ALLOWED_KEYS = new Set([
+          "organization_name",
           "processing_description",
           "data_categories",
           "relationship_type",
