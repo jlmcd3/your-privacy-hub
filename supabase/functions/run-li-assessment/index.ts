@@ -120,12 +120,20 @@ Deno.serve(async (req) => {
     await supabase.from("li_assessments").update({ status: "processing" })
       .eq("id", assessment_id);
 
+    const fnRun = await startFunctionRun(supabase, "run-li-assessment", {
+      archetype: "background",
+      trustClass: "user",
+      userId: caller.internal ? (assessment.user_id ?? null) : caller.userId,
+      invokedBy: caller.internal ? "internal" : "user",
+      metadata: { assessment_id },
+    });
+
     // Kick off heavy work in the background; respond immediately so the
     // caller's HTTP request doesn't sit open for 60–120s and trip the 150s
     // idle-timeout. All client callers (webhook, admin harness, result page)
     // already poll the li_assessments row for status.
     // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
-    EdgeRuntime.waitUntil(generateAssessment(assessment_id, assessment));
+    EdgeRuntime.waitUntil(generateAssessment(assessment_id, assessment, fnRun));
 
     return new Response(
       JSON.stringify({ success: true, assessment_id, status: "processing" }),
