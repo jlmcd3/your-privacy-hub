@@ -3,7 +3,7 @@
 // new § 7152(a)(1)–(9) Part A / § 7157 Part B generator. Branching: I-5 only
 // when ADMT trigger fires; I-9 only when user has a prior DPIA.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
