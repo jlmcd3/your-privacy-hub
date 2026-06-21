@@ -435,11 +435,21 @@ const LIAssessmentIntake = () => {
                   "Independent oversight (DPO / privacy committee)",
                   "DPIA completed",
                   "Vendor due diligence",
+                  "Other",
                 ]}
                 value={safeguards}
                 onChange={setSafeguards}
               />
             </div>
+            {safeguards.includes("Other") && (
+              <input value={safeguardsOther} onChange={(e) => setSafeguardsOther(e.target.value)} placeholder="Describe the other safeguard(s) in place" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            )}
+          </div>
+
+          <div>
+            <Label className="text-base">Anything else about this processing we should weigh?</Label>
+            <p className="text-xs text-muted-foreground mt-1">Context, constraints, or specifics the questions above didn't capture — in your own words. Optional, but it sharpens the assessment.</p>
+            <Textarea value={additionalContext} onChange={(e) => setAdditionalContext(e.target.value)} className="mt-2" rows={3} />
           </div>
 
           <div>
