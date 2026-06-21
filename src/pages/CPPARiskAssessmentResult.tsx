@@ -130,7 +130,14 @@ export default function CPPARiskAssessmentResult() {
     row?.report_data
     && typeof row.report_data === "object"
     && Object.keys(row.report_data).length > 0
-    && (isV3 || Array.isArray((row.report_data as any).domains) || typeof (row.report_data as any).executive_summary === "string")
+    && (
+      isV3
+      || Array.isArray((row.report_data as any).domains)
+      || typeof (row.report_data as any).executive_summary === "string"
+      || !!(row.report_data as any).assessment_summary
+      || !!(row.report_data as any).risk_assessment_by_activity
+      || !!(row.report_data as any).part_a
+    )
   );
   const showRunning = !loading && (
     status === "pending"
