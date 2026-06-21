@@ -12,6 +12,7 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 
 const strengthColor = (s: string) => {
