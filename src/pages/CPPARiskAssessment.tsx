@@ -240,6 +240,10 @@ export default function CPPARiskAssessment() {
   const [i9HasDpia, setI9HasDpia] = useState("");
   const [i9DpiaSummary, setI9DpiaSummary] = useState("");
 
+  // § 7152 exceptions + impact (optional). Consolidated objects to keep submission wiring simple.
+  const [exceptionClaims, setExceptionClaims] = useState<Record<string, { claimed: boolean; scope: string; safeguards: string }>>({});
+  const [impactData, setImpactData] = useState<{ likelihood: string; severity: string; harmTypes: string[]; vulnerable: string; benefitsOutweigh: string; benefitsRationale: string; cyberGaps: string }>({ likelihood: "", severity: "", harmTypes: [], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "" });
+
   const totalSteps = 7; // 6 input steps + summary
 
   // ADMT trigger fires when § 7150(b)(3) or (b)(6) implicated.
