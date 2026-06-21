@@ -293,7 +293,11 @@ const LIAssessmentIntake = () => {
               <option>A third party we share data with</option>
               <option>The data subject themselves</option>
               <option>The wider public</option>
+              <option>Other (describe below)</option>
             </select>
+            {interestHolder === "Other (describe below)" && (
+              <input value={interestHolderOther} onChange={(e) => setInterestHolderOther(e.target.value)} placeholder="Whose interest? e.g. a named third party, a political campaign…" className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" />
+            )}
           </div>
 
           <div>
