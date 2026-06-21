@@ -38,6 +38,7 @@ type FiveStageIntake = {
   impact: Record<string, any>;
   org_context: Record<string, any>;
   annual_consumer_volume?: string;
+  content_detail?: Record<string, any>;
 };
 
 const EMPTY_TRIGGERS = {
@@ -95,15 +96,17 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     children_in_scope: false,
   }];
 
+  const hasDpia = intake.i9_has_existing_dpia === "Yes" || intake.i9_has_existing_dpia === true;
+  const im = (intake.impact_intake ?? {}) as Record<string, any>;
   const impact = {
-    likelihood_of_harm: "Possible",
-    severity_of_harm: "Moderate",
-    harm_types: [] as string[],
-    vulnerable_populations_detail: "",
-    benefits_outweigh_risks: "Uncertain",
-    benefits_outweigh_risks_rationale: "Legacy intake did not capture a benefits/risks rationale.",
-    cybersecurity_gaps_identified: false,
-    prior_assessments_conducted: false,
+    likelihood_of_harm: String(im.likelihood || "Possible"),
+    severity_of_harm: String(im.severity || "Moderate"),
+    harm_types: Array.isArray(im.harmTypes) ? im.harmTypes : [],
+    vulnerable_populations_detail: String(im.vulnerable ?? ""),
+    benefits_outweigh_risks: String(im.benefitsOutweigh || "Uncertain"),
+    benefits_outweigh_risks_rationale: String(im.benefitsRationale || "Not captured in intake — flag as a required fill-in."),
+    cybersecurity_gaps_identified: im.cyberGaps === "Yes",
+    prior_assessments_conducted: hasDpia,
     prior_assessment_date: "",
   };
 
@@ -119,13 +122,55 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     additional_context: "Generated from legacy flat intake schema via compatibility shim.",
   };
 
+  // Map the user's claimed § 7152 exceptions over the empty baseline.
+  const exceptionsIntake = (intake.exceptions_intake ?? {}) as Record<string, any>;
+  const exceptions = { ...EMPTY_EXCEPTIONS };
+  for (const [key, v] of Object.entries(exceptionsIntake)) {
+    if (v && v.claimed && key in exceptions) {
+      (exceptions as Record<string, any>)[key] = {
+        claimed: true,
+        scope: String(v.scope ?? ""),
+        safeguards: String(v.safeguards ?? ""),
+        documented: Boolean(v.scope || v.safeguards),
+      };
+    }
+  }
+
+  // Recover the § 7152(a)(1)–(9) content the wizard collects but the v4 slots don't carry.
+  const content_detail = {
+    retention_period: String(intake.i2_retention_period ?? ""),
+    retention_criteria: String(intake.i2_retention_criteria ?? ""),
+    retention_detail: String(intake.i2_retention_detail ?? ""),
+    consumer_disclosures: Array.isArray(intake.i4_disclosure_mechanisms)
+      ? intake.i4_disclosure_mechanisms.join("; ")
+      : String(intake.i4_disclosure_mechanisms ?? ""),
+    admt_logic: String(intake.i5_admt_logic ?? ""),
+    admt_training_source: String(intake.i5_admt_training_source ?? ""),
+    admt_fairness_testing: String(intake.i5_admt_fairness_testing ?? ""),
+    admt_human_review: String(intake.i5_admt_human_review ?? ""),
+    admt_description: String(intake.q19_admt_description ?? ""),
+    admt_opt_out: String(intake.q20_admt_opt_out ?? ""),
+    internal_contributors: String(intake.i7_internal_contributors ?? ""),
+    external_consultees: String(intake.i7_external_consultees ?? ""),
+    certifying_exec_name: String(intake.i8_certifying_exec_name ?? ""),
+    certifying_exec_title: String(intake.i8_certifying_exec_title ?? ""),
+    certifying_contact_email: String(intake.i8_contact_email ?? ""),
+    certifying_contact_phone: String(intake.i8_contact_phone ?? ""),
+    existing_dpia: hasDpia ? String(intake.i9_existing_dpia_summary ?? "Yes — summary not provided") : "No",
+    sensitive_pi_limit_offered: String(intake.q16_sensitive_limit ?? ""),
+    sensitive_pi_basis: String(intake.q17_sensitive_basis ?? ""),
+    opt_out_link: String(intake.q9_opt_out ?? ""),
+    notice_at_collection: String(intake.q12_notice_at_collection ?? ""),
+  };
+
   return {
     triggers,
-    exceptions: { ...EMPTY_EXCEPTIONS },
+    exceptions,
     activity_details,
     impact,
     org_context,
     annual_consumer_volume: String(intake.q2_consumers ?? ""),
+    content_detail,
   };
 }
 
