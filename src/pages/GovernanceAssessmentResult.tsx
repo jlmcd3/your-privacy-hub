@@ -154,11 +154,7 @@ const GovernanceAssessmentResult = () => {
           {loading && <p>Loading…</p>}
 
           {!loading && (status === "pending" || status === "processing") && (
-            <div className="bg-card border rounded-lg p-10 text-center">
-              <div className="animate-pulse mb-4 text-2xl">⏳</div>
-              <p>Running your governance assessment.</p>
-              <p className="text-muted-foreground text-sm mt-1">This typically takes 45-60 seconds.</p>
-            </div>
+            <ProcessingInterstitial tool="governance" />
           )}
 
           {status === "failed" && (
