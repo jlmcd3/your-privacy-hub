@@ -418,7 +418,27 @@ Board-level privacy oversight: ${org_context.board_level_oversight ? "Yes" : "No
 Existing privacy programme: ${org_context.existing_privacy_programme}
 CPPA audit notification received: ${org_context.cppa_audit_notification_received ? "YES — URGENT" : "No"}
 ${org_context.additional_context ? `Additional context: ${org_context.additional_context}` : ""}
-
+${intake.content_detail ? `
+§ 7152(a)(1)–(9) CONTENT DETAIL (from the user's intake — map each to its required content element; treat blanks as fill-ins, not findings of absence):
+Retention period: ${intake.content_detail.retention_period || "not provided"}
+Retention criteria: ${intake.content_detail.retention_criteria || "not provided"}
+Retention detail: ${intake.content_detail.retention_detail || "not provided"}
+How consumers are informed / disclosures (§ 7152(a)(3)(E)): ${intake.content_detail.consumer_disclosures || "not provided"}
+ADMT — logic: ${intake.content_detail.admt_logic || "n/a"}
+ADMT — training-data source: ${intake.content_detail.admt_training_source || "n/a"}
+ADMT — fairness/bias testing: ${intake.content_detail.admt_fairness_testing || "n/a"}
+ADMT — human review / appeal: ${intake.content_detail.admt_human_review || "n/a"}
+ADMT — description: ${intake.content_detail.admt_description || "n/a"}
+ADMT — opt-out offered: ${intake.content_detail.admt_opt_out || "n/a"}
+Sensitive-PI use-limitation offered: ${intake.content_detail.sensitive_pi_limit_offered || "n/a"}
+Sensitive-PI processing basis: ${intake.content_detail.sensitive_pi_basis || "n/a"}
+"Do Not Sell/Share" opt-out link: ${intake.content_detail.opt_out_link || "n/a"}
+Notice at collection: ${intake.content_detail.notice_at_collection || "n/a"}
+Contributors to this assessment (§ 7152(a)(8)): ${intake.content_detail.internal_contributors || "not provided"}
+External consultees: ${intake.content_detail.external_consultees || "none stated"}
+Certifying executive (§ 7157): ${intake.content_detail.certifying_exec_name || "[FILL IN]"}${intake.content_detail.certifying_exec_title ? `, ${intake.content_detail.certifying_exec_title}` : ""}${intake.content_detail.certifying_contact_email ? ` (${intake.content_detail.certifying_contact_email})` : ""}
+Existing DPIA/assessment to cross-reference: ${intake.content_detail.existing_dpia || "No"}
+` : ""}
 Return only valid JSON matching the specified output structure. No preamble, no markdown fences.`;
 }
 
@@ -488,11 +508,13 @@ async function runPipeline(assessment_id: string) {
     }
 
     // Corpus retrieval (parallel).
-    const { enforcementContext, longitudinalSynthesis } = await retrieveCorpusContext(fiveStage);
+    const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext } = await retrieveCorpusContext(fiveStage);
 
     const system = SYSTEM_PROMPT_TEMPLATE
       .replace("{{ENFORCEMENT}}", enforcementContext || "(no enforcement context returned by corpus)")
-      .replace("{{LONGITUDINAL}}", longitudinalSynthesis || "(no longitudinal synthesis returned by corpus)");
+      .replace("{{LONGITUDINAL}}", longitudinalSynthesis || "(no longitudinal synthesis returned by corpus)")
+      .replace("{{STATUTE}}", statuteContext || "(no statute text returned by corpus)")
+      .replace("{{FSOR}}", fsorContext || "(no agency commentary returned by corpus)");
     const userPrompt = buildUserPrompt(fiveStage);
 
     const t0 = Date.now();
