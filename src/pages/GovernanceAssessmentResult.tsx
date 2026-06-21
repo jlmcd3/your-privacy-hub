@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BackLink from "@/components/dashboard/BackLink";
 import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout, AnnotationBadge } from "@/components/AnnotationCallout";
+import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 
 const ratingColor = (r: string) => {
