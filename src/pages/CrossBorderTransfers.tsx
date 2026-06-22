@@ -3,6 +3,7 @@ import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { TransferMechanismSelector } from "@/components/research/TransferMechanismSelector";
 import { getProduct } from "@/lib/productRegistry";
 import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
+import { CROSS_BORDER_SECTION_RAIL } from "@/components/research/researchRailEntries/crossBorderRailEntries";
 
 const MECHANISM_TABLE = `
 <div class="cmp-table overflow-x-auto rounded-xl border border-brand-cloud">
@@ -209,6 +210,7 @@ export default function CrossBorderTransfersPage() {
           { label: "Subscribe to Intelligence", href: "/subscribe" },
         ]}
         intelligenceUpsellTopic="cross-border data transfers"
+        sectionRailEntries={CROSS_BORDER_SECTION_RAIL}
       />
     </>
   );
