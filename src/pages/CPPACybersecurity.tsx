@@ -93,8 +93,8 @@ export default function CPPACybersecurity() {
   const cyberEnforcementSignals = useEnforcementSignals(["authentication", "vulnerability", "incident_response"]);
 
   const cyberFscrCallouts = useFscrCallouts([
-    "11 CCR § 7122(a)(1)",
-    "11 CCR § 7122(a)(3)",
+    "11 CCR § 7123(c)(1)",
+    "11 CCR § 7123",
   ]);
 
   const allComplete = useMemo(
