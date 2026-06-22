@@ -81,7 +81,7 @@ export default function CPPACybersecurity() {
 
   const [maturity, setMaturity] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const [profile, setProfile] = useState({ industry: "", incidents_12mo: "", framework: "", last_audit: "" });
+  const [profile, setProfile] = useState({ entity_name: "", industry: "", incidents_12mo: "", framework: "", last_audit: "" });
 
   const setM = (k: string, v: string) => setMaturity((s) => ({ ...s, [k]: v }));
   const setN = (k: string, v: string) => setNotes((s) => ({ ...s, [k]: v }));
@@ -98,7 +98,7 @@ export default function CPPACybersecurity() {
   ]);
 
   const allComplete = useMemo(
-    () => CONTROLS.every((c) => maturity[c.key]) && profile.industry && profile.incidents_12mo && profile.framework && profile.last_audit,
+    () => CONTROLS.every((c) => maturity[c.key]) && profile.entity_name.trim() && profile.industry && profile.incidents_12mo && profile.framework && profile.last_audit,
     [maturity, profile]
   );
 
@@ -172,6 +172,10 @@ export default function CPPACybersecurity() {
           <h2 className="">Organisation Profile</h2>
           <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7122(a) — cybersecurity audit programme scope; § 7122(b) — certification requirement</p>
           <RequiredLegend />
+          <div>
+            <Label>Entity name<Req /> <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report)</span></Label>
+            <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.entity_name} onChange={(e) => setProfile({ ...profile, entity_name: e.target.value })} placeholder="e.g., Acme Retail, Inc." autoComplete="organization" />
+          </div>
           <div onFocus={() => focusRail('profile_industry')}>
             <Label>Industry sector<Req /></Label>
             <input className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background" value={profile.industry} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} placeholder="e.g. SaaS, healthcare, retail" />
