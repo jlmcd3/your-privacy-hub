@@ -153,20 +153,20 @@ export default function BiometricChecker() {
           <div className="flex gap-6 items-start">
           <div className="flex-1 min-w-0 bg-card border border-border rounded-2xl p-6 space-y-5">
             <RequiredLegend />
-            <fieldset onFocus={() => focusBioRail("types")} onClick={() => focusBioRail("types")} className="text-sm"><legend className="font-semibold text-brand-navy">Biometric data types<Req /> <DefPopover termKey="gdpr_biometric_data" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(14) GDPR · Art. 9(1) — special category)</span> <EnforcementSignalIcon signalKey="biometric" signals={bioEnforcementSignals} /></legend>
-              <div className="grid grid-cols-2 gap-1 mt-1">{TYPES.map(t => <label key={t} className="flex items-center gap-2 text-meta">
-                <input type="checkbox" checked={form.biometricTypes.includes(t)} onChange={() => toggle("biometricTypes", t)} />{t}</label>)}</div></fieldset>
             <div onFocus={() => focusBioRail("orgName")}>
-              <label className="text-sm font-medium">Organisation name (optional)</label>
+              <label className="text-sm font-semibold text-brand-navy">Entity name<Req /> <span className="text-xs text-muted-foreground">(legal organisation name; printed on the report header)</span></label>
               <input
                 type="text"
                 className="mt-1 w-full rounded border px-3 py-2 text-sm"
-                placeholder="e.g. Acme Retail Ltd"
+                placeholder="e.g., Acme Retail Ltd"
                 value={form.orgName}
                 onChange={(e) => setForm(f => ({ ...f, orgName: e.target.value }))}
+                autoComplete="organization"
               />
-              <p className="text-xs text-muted-foreground mt-1">Used to identify the organisation in the report header.</p>
             </div>
+            <fieldset onFocus={() => focusBioRail("types")} onClick={() => focusBioRail("types")} className="text-sm"><legend className="font-semibold text-brand-navy">Biometric data types<Req /> <DefPopover termKey="gdpr_biometric_data" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(14) GDPR · Art. 9(1) — special category)</span> <EnforcementSignalIcon signalKey="biometric" signals={bioEnforcementSignals} /></legend>
+              <div className="grid grid-cols-2 gap-1 mt-1">{TYPES.map(t => <label key={t} className="flex items-center gap-2 text-meta">
+                <input type="checkbox" checked={form.biometricTypes.includes(t)} onChange={() => toggle("biometricTypes", t)} />{t}</label>)}</div></fieldset>
             <label onFocus={() => focusBioRail("orgType")} className="block text-sm"><span className="font-semibold text-brand-navy">Organisation type</span>
               <select className="w-full mt-1 border border-border rounded-lg px-3 py-2" value={form.orgType} onChange={e => setForm(f => ({ ...f, orgType: e.target.value }))}>
                 {ORG.map(o => <option key={o}>{o}</option>)}</select></label>           
@@ -211,7 +211,7 @@ export default function BiometricChecker() {
               )}
               <DisclaimerCheckbox checked={acknowledged} onChange={setAcknowledged} />
               <div className="flex gap-3 flex-wrap mt-4">
-                <button onClick={handleAnalyse} disabled={form.biometricTypes.length === 0 || form.jurisdictions.length === 0}
+                <button onClick={handleAnalyse} disabled={!form.orgName.trim() || form.biometricTypes.length === 0 || form.jurisdictions.length === 0}
                   className="bg-gradient-to-br from-brand-navy to-brand-teal text-white font-semibold text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-all disabled:opacity-50">
                   {ctaLabel}</button>
                 {access.user && !access.isPremium && (
