@@ -157,15 +157,20 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
 );
 
 
-const CPPA_EXCEPTIONS: { key: string; label: string; cite: string }[] = [
-  { key: "fraud_detection", label: "Fraud prevention / detection", cite: "11 CCR § 7152" },
-  { key: "security_integrity", label: "Security & integrity of systems and data", cite: "11 CCR § 7152" },
-  { key: "debugging", label: "Debugging to identify and repair errors", cite: "11 CCR § 7152" },
-  { key: "transient_use", label: "Transient use (not disclosed, no profile built)", cite: "11 CCR § 7152" },
-  { key: "internal_research", label: "Internal research for technological development", cite: "11 CCR § 7152" },
-  { key: "employment_context", label: "Employment-context processing", cite: "11 CCR § 7152" },
-  { key: "legal_compliance", label: "Compliance with a legal obligation", cite: "11 CCR § 7152" },
-  { key: "consumer_request", label: "Performing a service the consumer requested", cite: "11 CCR § 7152" },
+// Eight "business purposes" / statutory exemptions enumerated in CCPA itself
+// (Cal. Civ. Code § 1798.140(e) "business purpose" list and § 1798.145 exemptions).
+// These do NOT remove a § 7150 trigger from risk-assessment scope on their own;
+// they describe permitted internal uses or carve-outs from specific obligations.
+// Rail key (railKey) maps to CPPA_RISK_RAIL entries with verbatim statutory text.
+const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKey: string }[] = [
+  { key: "fraud_detection",   label: "Fraud prevention / detection",                       cite: "Cal. Civ. Code § 1798.140(e)(2)", railKey: "exc_fraud_detection" },
+  { key: "security_integrity", label: "Security & integrity of systems and data",          cite: "Cal. Civ. Code § 1798.140(e)(2)", railKey: "exc_security_integrity" },
+  { key: "debugging",         label: "Debugging to identify and repair errors",            cite: "Cal. Civ. Code § 1798.140(e)(3)", railKey: "exc_debugging" },
+  { key: "transient_use",     label: "Transient / short-term use (no profile built)",      cite: "Cal. Civ. Code § 1798.140(e)(4)", railKey: "exc_transient_use" },
+  { key: "internal_research", label: "Internal research for technological development",    cite: "Cal. Civ. Code § 1798.140(e)(8)", railKey: "exc_internal_research" },
+  { key: "employment_context", label: "Employment-context processing",                     cite: "Cal. Civ. Code § 1798.145(m)",    railKey: "exc_employment_context" },
+  { key: "legal_compliance",  label: "Compliance with a legal obligation",                 cite: "Cal. Civ. Code § 1798.145(a)(1)", railKey: "exc_legal_compliance" },
+  { key: "consumer_request",  label: "Performing a service the consumer requested",        cite: "Cal. Civ. Code § 1798.140(e)(1)", railKey: "exc_consumer_request" },
 ];
 
 const HARM_TYPES = [
@@ -203,6 +208,7 @@ export default function CPPARiskAssessment() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // Step 1 — Business Profile
+  const [entityName, setEntityName] = useState("");
   const [q1, setQ1] = useState(""); const [q2, setQ2] = useState(""); const [q3, setQ3] = useState("");
   const [q4, setQ4] = useState<string[]>([]); const [q5, setQ5] = useState("");
   // Step 2 — Consumer Rights
@@ -304,7 +310,7 @@ export default function CPPARiskAssessment() {
   }, [q1, q4, q5, q15, q18]);
 
   const stepValid = (): string | null => {
-    if (step === 1 && (!q1 || !q2 || !q3 || !q4.length || !q5)) return "Please complete the business profile.";
+    if (step === 1 && (!entityName.trim() || !q1 || !q2 || !q3 || !q4.length || !q5)) return "Please complete the business profile, including the entity name.";
     if (step === 2 && (!q6Multi.length || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
     if (step === 3 && (!q11 || !q12 || !q13 || !q14)) return "Please complete privacy notice questions.";
     if (step === 4) {
@@ -339,6 +345,7 @@ export default function CPPARiskAssessment() {
   const back = () => setStep((s) => Math.max(1, s - 1));
 
   const intake = useMemo(() => ({
+    entity_name: entityName.trim(),
     // legacy keys preserved
     q1_revenue: q1, q2_consumers: q2, q3_sector: q3, q4_pi_categories: q4, q5_sell_share: q5,
     q6_right_know: q6Multi.join("; "), q6_right_know_multi: q6Multi, q7_right_delete: q7, q8_right_correct: q8, q9_opt_out: q9, q10_id_verification: q10,
@@ -368,6 +375,7 @@ export default function CPPARiskAssessment() {
     exceptions_intake: exceptionClaims,
     impact_intake: impactData,
   }), [
+    entityName,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
@@ -519,6 +527,18 @@ export default function CPPARiskAssessment() {
               <h2>Step 1 — Business Profile</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code § 1798.140(ag) — CCPA/CPRA business definition and applicability thresholds</p>
               <RequiredLegend />
+              <div>
+                <Label htmlFor="entity_name">Entity name <Req /> <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report and § 7157 worksheet)</span></Label>
+                <input
+                  id="entity_name"
+                  type="text"
+                  value={entityName}
+                  onChange={(e) => setEntityName(e.target.value)}
+                  placeholder="e.g., Acme Retail, Inc."
+                  className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                  autoComplete="organization"
+                />
+              </div>
               <div onFocus={() => focusRail('q1_revenue')}><Label>Q1: What is your business's annual gross revenue? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
               <div onFocus={() => focusRail('q2_consumers')}><Label>Q2: How many California consumers' personal information do you process in a year? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
               <div onFocus={() => focusRail('q3_sector')}><Label>Q3: What is your primary business sector? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
@@ -824,17 +844,17 @@ export default function CPPARiskAssessment() {
                 )}
               </div>
 
-              {/* === § 7152 Exceptions (optional) === */}
+              {/* === CCPA business purposes / statutory exemptions (optional) === */}
               <div className="border-t pt-6 mt-6">
-                <Label className="text-base font-semibold">§ 7152 Exceptions <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
+                <Label className="text-base font-semibold">CCPA business purposes &amp; statutory exemptions <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">
-                  If you are claiming a statutory exception that removes an activity from full risk-assessment scope, identify it and describe its scope and safeguards. Leave blank if none apply. Claimed exceptions are <span className="font-medium">assessed against § 7152</span>, not assumed valid.
+                  These are the enumerated "business purposes" in <span className="font-mono">Cal. Civ. Code § 1798.140(e)</span> and exemptions in <span className="font-mono">§ 1798.145</span>. They permit specific internal uses or carve out specific obligations — they do <span className="font-medium">not</span> remove a § 7150 trigger from risk-assessment scope. Identify any you rely on so the report can address them; leave blank if none apply.
                 </p>
                 <div className="mt-3 space-y-3">
                   {CPPA_EXCEPTIONS.map((ex) => {
                     const cur = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "" };
                     return (
-                      <div key={ex.key} className="rounded border p-3">
+                      <div key={ex.key} className="rounded border p-3" onFocus={() => focusRail(ex.railKey)} onClick={() => focusRail(ex.railKey)}>
                         <label className="flex items-start gap-2 cursor-pointer">
                           <input
                             type="checkbox"
@@ -850,13 +870,13 @@ export default function CPPARiskAssessment() {
                               rows={2}
                               value={cur.scope}
                               onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, scope: e.target.value } }))}
-                              placeholder="Scope: which activity/data does this exception cover, and why does it qualify?"
+                              placeholder="Scope: which activity/data does this purpose cover, and why does it qualify?"
                             />
                             <Textarea
                               rows={2}
                               value={cur.safeguards}
                               onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, safeguards: e.target.value } }))}
-                              placeholder="Safeguards documented to sustain this exception under audit."
+                              placeholder="Safeguards documented to keep this within the permitted purpose under audit."
                             />
                           </div>
                         )}

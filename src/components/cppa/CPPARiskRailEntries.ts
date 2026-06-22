@@ -160,4 +160,84 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     regulationText: "A business may satisfy the requirements of section 7152 by cross-referencing an existing risk assessment… provided that any such existing risk assessment addresses the requirements of this Article and the business identifies the portions of that risk assessment addressing each of the requirements of section 7152.",
     fscrContext: "Commenters argued that an existing GDPR DPIA should substitute entirely for the CPPA risk assessment. The Agency rejected full substitution but confirmed in the FSOR that cross-referencing is permitted under § 7156(b) where the prior assessment covers the required elements, reducing the compliance burden without compromising the assessment's integrity.",
   },
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // CCPA "business purposes" (Civ. Code § 1798.140(e)) and statutory
+  // exemptions (Civ. Code § 1798.145). These are NOT § 7152 exceptions — the
+  // CCPA does not exempt these activities from a risk assessment when a
+  // § 7150 trigger applies. They define permitted internal uses or carve
+  // out specific obligations (e.g., HR data, legal compliance).
+  // ──────────────────────────────────────────────────────────────────────────
+
+  exc_fraud_detection: {
+    fieldLabel: "Business purpose: Fraud prevention / detection",
+    citation: "Cal. Civ. Code § 1798.140(e)(2)",
+    citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
+    plainSummary: "Detecting security incidents, protecting against malicious, deceptive, fraudulent, or illegal activity, and prosecuting those responsible is an enumerated CCPA \"business purpose.\" It permits service providers/contractors to use personal information for this purpose and supports a § 1798.121 limit-use carve-out for sensitive PI — but it does NOT remove a § 7150 risk-assessment trigger. If you sell/share, process sensitive PI, or use ADMT, you must still conduct the assessment.",
+    regulationText: "Helping to ensure security and integrity to the extent the use of the consumer's personal information is reasonably necessary and proportionate for these purposes. Detecting security incidents, protecting against malicious, deceptive, fraudulent, or illegal actions directed at the business, and prosecuting those responsible for those actions.",
+    enforcementNote: "Common error: treating fraud-detection as a blanket exemption. The CPPA's enforcement posture treats it as a permitted purpose with a proportionality test — over-collection or secondary use beyond fraud will not qualify.",
+    relatedCitations: [
+      { citation: "Cal. Civ. Code § 1798.121(d)", label: "Sensitive PI limit-use carve-out" },
+      { citation: "11 CCR § 7150", label: "Risk assessment triggers (not removed)" },
+    ],
+  },
+
+  exc_security_integrity: {
+    fieldLabel: "Business purpose: Security & integrity of systems and data",
+    citation: "Cal. Civ. Code § 1798.140(e)(2)",
+    citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
+    plainSummary: "Maintaining the security and integrity of information and the systems that process it is an enumerated business purpose. Like fraud detection, it permits the use but does NOT exempt the activity from risk-assessment scope when a § 7150 trigger fires.",
+    regulationText: "Helping to ensure security and integrity to the extent the use of the consumer's personal information is reasonably necessary and proportionate for these purposes. Resisting malicious, deceptive, fraudulent, or illegal actions directed at the business and helping to prosecute those responsible for those actions.",
+    enforcementNote: "The \"reasonably necessary and proportionate\" qualifier is doing real work. Logging an entire session keystroke-by-keystroke for security purposes will not qualify; targeted, time-boxed retention will.",
+  },
+
+  exc_debugging: {
+    fieldLabel: "Business purpose: Debugging to identify and repair errors",
+    citation: "Cal. Civ. Code § 1798.140(e)(3)",
+    citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
+    plainSummary: "Debugging to identify and repair errors that impair existing intended functionality is a permitted business purpose. It does not authorize using debug data for product development, analytics, or model training, and it does not remove a § 7150 trigger when one applies.",
+    regulationText: "Debugging to identify and repair errors that impair existing intended functionality.",
+  },
+
+  exc_transient_use: {
+    fieldLabel: "Business purpose: Transient / short-term use",
+    citation: "Cal. Civ. Code § 1798.140(e)(4)",
+    citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
+    plainSummary: "Short-term, transient use — including non-personalized advertising shown as part of a consumer's current interaction — where the personal information is not disclosed to another third party and is not used to build a profile or otherwise alter the consumer's experience outside that current interaction. Strict conditions; rarely satisfied for tracked sessions.",
+    regulationText: "Short-term, transient use, including, but not limited to, nonpersonalized advertising shown as part of a consumer's current interaction with the business, provided that the consumer's personal information is not disclosed to another third party and is not used to build a profile about the consumer or otherwise alter the consumer's experience outside the current interaction with the business.",
+    enforcementNote: "If any of (a) disclosure to a third party, (b) profile building, or (c) cross-session experience changes occurs, the transient-use carve-out is lost.",
+  },
+
+  exc_internal_research: {
+    fieldLabel: "Business purpose: Internal research for technological development",
+    citation: "Cal. Civ. Code § 1798.140(e)(8)",
+    citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
+    plainSummary: "Undertaking internal research for technological development and demonstration is an enumerated business purpose. Note: training ADMT/AI systems on personal information almost always implicates § 7150(b) triggers regardless of this purpose — a risk assessment is still required.",
+    regulationText: "Undertaking internal research for technological development and demonstration.",
+  },
+
+  exc_employment_context: {
+    fieldLabel: "Exemption: Employment-context processing",
+    citation: "Cal. Civ. Code § 1798.145(m)",
+    citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.145.",
+    plainSummary: "The CCPA's employee/applicant/contractor exemption expired January 1, 2023. HR and B2B data are now fully in scope. The original § 1798.145(m) carve-out remains only for emergency-contact and benefits-administration disclosures to third parties — it does NOT remove HR processing from risk-assessment scope.",
+    regulationText: "This title shall not apply to personal information collected by a business about a natural person in the course of the natural person acting as a job applicant to, an employee of, owner of, director of, officer of, medical staff member of, or contractor of that business to the extent that the natural person's personal information is collected and used by the business solely within the context of having an emergency contact on file for the natural person, or administering specified benefits.",
+    enforcementNote: "Common error: treating all HR data as exempt. Post-AB 1184 / AB 1281 sunset, employee and applicant data are subject to the full CCPA, including risk assessments where § 7150 triggers apply (e.g., ADMT in hiring).",
+  },
+
+  exc_legal_compliance: {
+    fieldLabel: "Exemption: Compliance with a legal obligation",
+    citation: "Cal. Civ. Code § 1798.145(a)(1)",
+    citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.145.",
+    plainSummary: "The CCPA does not restrict a business's ability to comply with federal, state, or local laws, or to comply with a court order or subpoena. This is a narrow carve-out for the specific compelled disclosure — it does NOT exempt the underlying processing activity (e.g., the AML monitoring program itself) from a risk assessment when a § 7150 trigger applies.",
+    regulationText: "The obligations imposed on businesses by this title shall not restrict a business's ability to: (1) Comply with federal, state, or local laws or comply with a court order or subpoena to provide information.",
+  },
+
+  exc_consumer_request: {
+    fieldLabel: "Business purpose: Performing a service the consumer requested",
+    citation: "Cal. Civ. Code § 1798.140(e)(1)",
+    citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
+    plainSummary: "Auditing related to counting ad impressions, verifying positioning and quality of ad impressions, and auditing compliance with this and other specifications — together with performing services on behalf of the business or service provider — is an enumerated business purpose. It permits service-provider arrangements and supports primary-purpose use, but does not remove a § 7150 trigger.",
+    regulationText: "Performing services on behalf of the business or service provider, including maintaining or servicing accounts, providing customer service, processing or fulfilling orders and transactions, verifying customer information, processing payments, providing financing, providing analytic services, providing storage, or providing similar services on behalf of the business or service provider.",
+  },
 };
