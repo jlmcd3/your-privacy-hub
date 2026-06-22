@@ -151,16 +151,23 @@ export default function USNoticeQuestions() {
   async function persistAnswer(key: string, value: AnswerValue) {
     if (!sessionId) return;
     setSaving(true);
-    const { error } = await supabase
+    // Partial unique index (WHERE ropa_activity_id IS NULL) cannot be targeted
+    // by supabase-js .upsert({ onConflict }) — it raises 42P10 and the answer is
+    // lost. Manual upsert: update the universal row if present, else insert.
+    const { data: updated, error: updError } = await supabase
       .from("us_notice_answers")
-      .upsert(
-        {
-          session_id: sessionId,
-          question_key: key,
-          answer_value: value as never,
-        },
-        { onConflict: "session_id,question_key" },
-      );
+      .update({ answer_value: value as never })
+      .eq("session_id", sessionId)
+      .eq("question_key", key)
+      .is("ropa_activity_id", null)
+      .select("question_key");
+    let error = updError;
+    if (!error && (!updated || updated.length === 0)) {
+      const { error: insError } = await supabase
+        .from("us_notice_answers")
+        .insert({ session_id: sessionId, question_key: key, answer_value: value as never, ropa_activity_id: null });
+      error = insError;
+    }
     setSaving(false);
     if (error) {
       console.error("[USNoticeQuestions] persist error", error);

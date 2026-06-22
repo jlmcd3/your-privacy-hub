@@ -113,15 +113,28 @@ export default function EUNoticeQuestions() {
     if (!sessionId) return;
     setAnswers((prev) => ({ ...prev, [q.key]: v }));
     setSaving(true);
-    const { error } = await supabase
+    // The (session_id, question_key) unique index is PARTIAL (WHERE
+    // ropa_activity_id IS NULL); supabase-js .upsert({ onConflict }) cannot
+    // target a partial index — Postgres raises 42P10 and the answer is silently
+    // lost. Manual upsert: update the universal row if present, else insert.
+    const { data: updated, error: updError } = await supabase
       .from("eu_notice_answers")
-      .upsert(
-        { session_id: sessionId, question_key: q.key, answer_value: v as never, ropa_activity_id: null, updated_at: new Date().toISOString() },
-        { onConflict: "session_id,question_key" },
-      );
+      .update({ answer_value: v as never, updated_at: new Date().toISOString() })
+      .eq("session_id", sessionId)
+      .eq("question_key", q.key)
+      .is("ropa_activity_id", null)
+      .select("question_key");
+    let error = updError;
+    if (!error && (!updated || updated.length === 0)) {
+      const { error: insError } = await supabase
+        .from("eu_notice_answers")
+        .insert({ session_id: sessionId, question_key: q.key, answer_value: v as never, ropa_activity_id: null });
+      error = insError;
+    }
     setSaving(false);
     if (error) {
       console.error("[EUNoticeQuestions] save error", error);
+      toast({ title: "Answer not saved", description: "We couldn't save that answer — please check your connection and try again.", variant: "destructive" });
       return;
     }
     setLastSavedAt(new Date());
