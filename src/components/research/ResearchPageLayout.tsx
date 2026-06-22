@@ -112,7 +112,32 @@ export function ResearchPageLayout({
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className={`${hasRail ? "max-w-[1180px]" : "max-w-4xl"} mx-auto px-6 py-8`}>
+        {hasRail ? (
+          <div className="lg:flex lg:gap-6 lg:items-start">
+            <div className="flex-1 min-w-0">
+              <ResearchPageInner
+                pageSynthesisKey={pageSynthesisKey}
+                setContextUpdated={setContextUpdated}
+                topToolCta={topToolCta}
+                introBlock={introBlock}
+                sections={sections}
+              />
+            </div>
+            <SectionReferenceRail
+              entries={sectionRailEntries!}
+              sectionIds={sections.map((s) => s.id)}
+            />
+          </div>
+        ) : (
+          <ResearchPageInner
+            pageSynthesisKey={pageSynthesisKey}
+            setContextUpdated={setContextUpdated}
+            topToolCta={topToolCta}
+            introBlock={introBlock}
+            sections={sections}
+          />
+        )}
         {pageSynthesisKey && (
           <div className="mb-10">
             <ResearchSynthesisBlock
