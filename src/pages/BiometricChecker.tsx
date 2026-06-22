@@ -24,6 +24,8 @@ import { DefPopover } from "@/components/DefPopover";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
+import StatuteRail, { type RailEntry } from "@/components/admt/StatuteRail";
+import { BIOMETRIC_RAIL } from "@/components/biometric/BiometricRailEntries";
 
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
@@ -48,6 +50,9 @@ export default function BiometricChecker() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [bioRailKey, setBioRailKey] = useState<string | null>(null);
+  const bioRailEntry: RailEntry | null = bioRailKey ? (BIOMETRIC_RAIL[bioRailKey] ?? null) : null;
+  const focusBioRail = (k: string) => setBioRailKey(k);
 
   useEffect(() => {
     if (params.get("session_id") || params.get("purchased")) setPhase("generating");
