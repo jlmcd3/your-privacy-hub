@@ -139,6 +139,7 @@ async function runAssessment(assessment_id: string): Promise<void> {
           },
           body: JSON.stringify({
             tool: "CPPA",
+            regime: "ccpa",
             jurisdictions: ["California", "United States", "US-CA"],
             breach: true,
             limit: 6,
