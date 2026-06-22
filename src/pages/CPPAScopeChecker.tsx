@@ -72,6 +72,7 @@ const Radio = ({
 export default function CPPAScopeChecker() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [entityName, setEntityName] = useState("");
   const [q1, setQ1] = useState<Q1>("");
   const [q2, setQ2] = useState<Q2>("");
   const [q3, setQ3] = useState<Q3>("");
@@ -88,11 +89,11 @@ export default function CPPAScopeChecker() {
   const sessionIdRef = useRef<string>(crypto.randomUUID());
   const insertedKeyRef = useRef<string | null>(null);
 
-  const allAnswered = q1 && q2 && q3 && q4 && q5 && q6 && q7 && q8;
+  const allAnswered = entityName.trim() && q1 && q2 && q3 && q4 && q5 && q6 && q7 && q8;
 
   const answers = useMemo(
-    () => ({ q1, q2, q3, q4, q5, q6, q7, q8 }),
-    [q1, q2, q3, q4, q5, q6, q7, q8],
+    () => ({ entity_name: entityName.trim(), q1, q2, q3, q4, q5, q6, q7, q8 }),
+    [entityName, q1, q2, q3, q4, q5, q6, q7, q8],
   );
 
   const obligationMap = useMemo(() => {
@@ -192,7 +193,7 @@ export default function CPPAScopeChecker() {
   }, [showResults, answers, obligationMap, user?.id]);
 
   const reset = () => {
-    setQ1(""); setQ2(""); setQ3(""); setQ4("");
+    setEntityName(""); setQ1(""); setQ2(""); setQ3(""); setQ4("");
     setQ5(""); setQ6(""); setQ7(""); setQ8("");
     setShowResults(false);
     insertedKeyRef.current = null;
@@ -243,6 +244,17 @@ export default function CPPAScopeChecker() {
         {!showResults && (
           <div className="bg-card border rounded-lg p-6 space-y-6">
             <p className="text-xs font-mono text-muted-foreground pb-2 border-b">Cal. Civ. Code § 1798.140(ag) — applicability thresholds · 11 CCR §§ 7120, 7150(b) — audit and risk assessment triggers</p>
+            <div>
+              <Label>Entity name <span className="text-xs text-muted-foreground">(legal business name; printed on the obligation map)</span></Label>
+              <input
+                type="text"
+                value={entityName}
+                onChange={(e) => setEntityName(e.target.value)}
+                placeholder="e.g., Acme Retail, Inc."
+                className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                autoComplete="organization"
+              />
+            </div>
             <div onFocus={() => focusScopeRail("q1_california_nexus")}>
               <Label>Q1: Does your business operate for profit and do business in California, OR collect personal information from California residents? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag))</span></Label>
               <div className="mt-2">
