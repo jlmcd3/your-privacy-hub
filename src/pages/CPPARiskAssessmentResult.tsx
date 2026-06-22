@@ -174,7 +174,14 @@ export default function CPPARiskAssessmentResult() {
         {status === "complete" && reportReady && (
           <div dir={dir} className="space-y-6">
             {row?.id && (
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <PDFDownloadButton
+                  toolType="cppa_risk"
+                  assessmentId={row.id}
+                  pdfUrl={row.pdf_url}
+                  onGenerated={(url) => setRow({ ...row, pdf_url: url })}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
+                />
                 <ReportTranslateMenu
                   toolType="cppa_risk"
                   reportId={row.id}

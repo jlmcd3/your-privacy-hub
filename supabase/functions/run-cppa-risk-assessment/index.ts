@@ -111,7 +111,7 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
   };
 
   const org_context = {
-    company_name: String(intake.i8_certifying_exec_name ? "[FILL IN — business legal name]" : "[FILL IN — business legal name]"),
+    company_name: String(intake.entity_name || "[FILL IN — business legal name]"),
     sector: String(intake.q3_sector ?? "Not specified"),
     annual_revenue_threshold: String(intake.q1_revenue ?? "Not specified"),
     privacy_counsel_engaged: false,
@@ -240,7 +240,7 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
 
   const [enforcementRes, longitudinalRes, statuteRes] = await Promise.allSettled([
     supabase.functions.invoke("get-enforcement-context", {
-      body: { query: corpusQuery, jurisdiction: "US-CA", regulation: "CPPA", limit: 8 },
+      body: { query: corpusQuery, jurisdictions: ["California", "US-CA", "United States"], regime: "ccpa", limit: 8 },
     }),
     supabase.functions.invoke("generate-longitudinal-synthesis", {
       body: {
@@ -255,9 +255,16 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
     }),
   ]);
 
-  const enforcementContext = enforcementRes.status === "fulfilled"
-    ? (enforcementRes.value?.data?.context ?? "")
-    : (console.warn("[cppa-risk] get-enforcement-context failed:", enforcementRes.reason), "");
+  const enforcementRows = enforcementRes.status === "fulfilled"
+    ? (enforcementRes.value?.data?.results ?? [])
+    : (console.warn("[cppa-risk] get-enforcement-context failed:", enforcementRes.reason), []);
+  const enforcementContext = Array.isArray(enforcementRows) && enforcementRows.length
+    ? enforcementRows.slice(0, 8).map((r: any) => {
+        const fine = r.fine_amount ?? r.fine_eur_equivalent;
+        const failure = r.key_compliance_failure ?? r.violation ?? "compliance failure not specified";
+        return `• ${r.regulator ?? "Regulator"}${r.jurisdiction ? ` (${r.jurisdiction})` : ""}${r.subject ? ` — ${r.subject}` : ""}: ${failure}${fine ? ` [fine: ${fine}]` : ""}${r.decision_date ? ` (${r.decision_date})` : ""}${r.source_url ? ` ${r.source_url}` : ""}`;
+      }).join("\n")
+    : "";
   const longitudinalSynthesis = longitudinalRes.status === "fulfilled"
     ? (longitudinalRes.value?.data?.synthesis ?? "")
     : (console.warn("[cppa-risk] generate-longitudinal-synthesis failed:", longitudinalRes.reason), "");
