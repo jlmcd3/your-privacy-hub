@@ -170,7 +170,7 @@ export default function CPPACybersecurity() {
         <div className="flex-1 min-w-0 space-y-6">
         <section className="bg-card border rounded-lg p-6 space-y-4">
           <h2 className="">Organisation Profile</h2>
-          <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7122(a) — cybersecurity audit programme scope; § 7122(b) — certification requirement</p>
+          <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7123 — cybersecurity audit scope and components; § 7124 — annual certification requirement</p>
           <RequiredLegend />
           <div>
             <Label>Entity name<Req /> <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report)</span></Label>
