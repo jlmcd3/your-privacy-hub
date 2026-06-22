@@ -113,31 +113,6 @@ export function ResearchPageLayout({
       )}
 
       <div className={`${hasRail ? "max-w-[1180px]" : "max-w-4xl"} mx-auto px-6 py-8`}>
-        {hasRail ? (
-          <div className="lg:flex lg:gap-6 lg:items-start">
-            <div className="flex-1 min-w-0">
-              <ResearchPageInner
-                pageSynthesisKey={pageSynthesisKey}
-                setContextUpdated={setContextUpdated}
-                topToolCta={topToolCta}
-                introBlock={introBlock}
-                sections={sections}
-              />
-            </div>
-            <SectionReferenceRail
-              entries={sectionRailEntries!}
-              sectionIds={sections.map((s) => s.id)}
-            />
-          </div>
-        ) : (
-          <ResearchPageInner
-            pageSynthesisKey={pageSynthesisKey}
-            setContextUpdated={setContextUpdated}
-            topToolCta={topToolCta}
-            introBlock={introBlock}
-            sections={sections}
-          />
-        )}
         {pageSynthesisKey && (
           <div className="mb-10">
             <ResearchSynthesisBlock
@@ -147,7 +122,6 @@ export function ResearchPageLayout({
             />
           </div>
         )}
-
 
         {topToolCta && <ResearchToolCTA {...topToolCta} />}
 
@@ -167,37 +141,45 @@ export function ResearchPageLayout({
           </nav>
         )}
 
-        <div className="space-y-10">
-          {sections.map((sec, idx) => {
-            const placement = sec.toolCtaPlacement ?? "bottom";
-            return (
-              <section key={sec.id} id={sec.id} className={`scroll-mt-24 ${idx > 0 ? "pt-10 border-t border-brand-navy/10" : ""}`}>
-                <h3 className="font-display text-brand-navy mb-4 leading-tight">
-                  <span className="text-brand-mist mr-2">{idx + 1}.</span>{sec.h2}
-                </h3>
-                {sec.complianceTrigger && (
-                  <div className="mb-4 rounded-lg border-l-4 border-accent bg-accent/5 px-4 py-3">
-                    <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-1">
-                      Compliance trigger
+        <div className={hasRail ? "lg:flex lg:gap-6 lg:items-start" : ""}>
+          <div className={hasRail ? "flex-1 min-w-0 space-y-10" : "space-y-10"}>
+            {sections.map((sec, idx) => {
+              const placement = sec.toolCtaPlacement ?? "bottom";
+              return (
+                <section key={sec.id} id={sec.id} className={`scroll-mt-24 ${idx > 0 ? "pt-10 border-t border-brand-navy/10" : ""}`}>
+                  <h3 className="font-display text-brand-navy mb-4 leading-tight">
+                    <span className="text-brand-mist mr-2">{idx + 1}.</span>{sec.h2}
+                  </h3>
+                  {sec.complianceTrigger && (
+                    <div className="mb-4 rounded-lg border-l-4 border-accent bg-accent/5 px-4 py-3">
+                      <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-1">
+                        Compliance trigger
+                      </div>
+                      <p className="text-sm text-brand-navy leading-relaxed m-0">
+                        {sec.complianceTrigger}
+                      </p>
                     </div>
-                    <p className="text-sm text-brand-navy leading-relaxed m-0">
-                      {sec.complianceTrigger}
-                    </p>
-                  </div>
-                )}
-                {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
-                {sec.content && (
-                  <div
-                    className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-brand-teal [&_a]:no-underline [&_a:hover]:underline [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-brand-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-brand-navy [&_strong]:font-semibold [&_table]:w-full [&_table]:text-sm [&_table]:border-collapse [&_table]:my-4 [&_th]:text-left [&_th]:font-semibold [&_th]:text-brand-navy [&_th]:border-b [&_th]:border-brand-navy/30 [&_th]:py-2 [&_th]:pr-4 [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:border-brand-cloud [&_td]:align-top"
-                    dangerouslySetInnerHTML={{ __html: sec.content }}
-                  />
-                )}
-                {sec.children}
-                {sec.synthesisKey && <ResearchSynthesisBlock sectionKey={sec.synthesisKey} compact />}
-                {sec.toolCta && placement === "bottom" && <ResearchToolCTA {...sec.toolCta} />}
-              </section>
-            );
-          })}
+                  )}
+                  {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
+                  {sec.content && (
+                    <div
+                      className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-brand-teal [&_a]:no-underline [&_a:hover]:underline [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-brand-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-brand-navy [&_strong]:font-semibold [&_table]:w-full [&_table]:text-sm [&_table]:border-collapse [&_table]:my-4 [&_th]:text-left [&_th]:font-semibold [&_th]:text-brand-navy [&_th]:border-b [&_th]:border-brand-navy/30 [&_th]:py-2 [&_th]:pr-4 [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:border-brand-cloud [&_td]:align-top"
+                      dangerouslySetInnerHTML={{ __html: sec.content }}
+                    />
+                  )}
+                  {sec.children}
+                  {sec.synthesisKey && <ResearchSynthesisBlock sectionKey={sec.synthesisKey} compact />}
+                  {sec.toolCta && placement === "bottom" && <ResearchToolCTA {...sec.toolCta} />}
+                </section>
+              );
+            })}
+          </div>
+          {hasRail && (
+            <SectionReferenceRail
+              entries={sectionRailEntries!}
+              sectionIds={sections.map((s) => s.id)}
+            />
+          )}
         </div>
 
 
