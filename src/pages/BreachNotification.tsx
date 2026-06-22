@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { ResearchPageLayout } from "@/components/research/ResearchPageLayout";
 import { getProduct } from "@/lib/productRegistry";
 import { linkGlossaryFirstMentions } from "@/lib/linkGlossaryTerms";
+import { BREACH_SECTION_RAIL } from "@/components/research/researchRailEntries/breachRailEntries";
 
 export default function BreachNotificationPage() {
   return (
@@ -89,6 +90,7 @@ export default function BreachNotificationPage() {
           { label: "Subscribe to Intelligence", href: "/subscribe" },
         ]}
         intelligenceUpsellTopic="breach notification"
+        sectionRailEntries={BREACH_SECTION_RAIL}
       />
     </>
   );

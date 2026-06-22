@@ -210,6 +210,7 @@ export default function CrossBorderTransfersPage() {
           { label: "Subscribe to Intelligence", href: "/subscribe" },
         ]}
         intelligenceUpsellTopic="cross-border data transfers"
+        sectionRailEntries={CROSS_BORDER_SECTION_RAIL}
       />
     </>
   );
