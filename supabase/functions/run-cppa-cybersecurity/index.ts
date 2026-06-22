@@ -457,10 +457,10 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       const v = validateControls(assembled);
       if (!v.ok) {
         const missing1 = v.missing.filter((n) => n >= 1 && n <= 9);
-        const missing2 = v.missing.filter((n) => n >= 10 && n <= 17);
+        const missing2 = v.missing.filter((n) => n >= 10 && n <= 18);
         const retries: Promise<any>[] = [];
         if (missing1.length) retries.push(callControlsHalf(1, 9, "PREVIOUS ATTEMPT was incomplete or out of order — emit exactly the 9 listed components, in order.").then((r) => { if (r) half1 = r; }));
-        if (missing2.length) retries.push(callControlsHalf(10, 17, "PREVIOUS ATTEMPT was incomplete or out of order — emit exactly the 8 listed components, in order.").then((r) => { if (r) half2 = r; }));
+        if (missing2.length) retries.push(callControlsHalf(10, 18, "PREVIOUS ATTEMPT was incomplete or out of order — emit exactly the 9 listed components, in order.").then((r) => { if (r) half2 = r; }));
         await Promise.all(retries);
         const reAssembled = assembleControls(half1!.controls, half2!.controls);
         const v2 = validateControls(reAssembled);
