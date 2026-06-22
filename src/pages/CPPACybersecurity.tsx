@@ -93,8 +93,8 @@ export default function CPPACybersecurity() {
   const cyberEnforcementSignals = useEnforcementSignals(["authentication", "vulnerability", "incident_response"]);
 
   const cyberFscrCallouts = useFscrCallouts([
-    "11 CCR § 7122(a)(1)",
-    "11 CCR § 7122(a)(3)",
+    "11 CCR § 7123(c)(1)",
+    "11 CCR § 7123",
   ]);
 
   const allComplete = useMemo(
@@ -165,12 +165,12 @@ export default function CPPACybersecurity() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <IntakeGuidance>For each control, note the specific tools in place, the scope they cover, and any exceptions — separately and concretely. A control marked "in place" with a vague note produces a weaker gap analysis than one described precisely.</IntakeGuidance>
         <ActiveClientLabel />
-        <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7122(a). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
+        <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7123(c). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
         <div className="flex gap-6 items-start">
         <div className="flex-1 min-w-0 space-y-6">
         <section className="bg-card border rounded-lg p-6 space-y-4">
           <h2 className="">Organisation Profile</h2>
-          <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7122(a) — cybersecurity audit programme scope; § 7122(b) — certification requirement</p>
+          <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7123 — cybersecurity audit scope and components; § 7124 — annual certification requirement</p>
           <RequiredLegend />
           <div>
             <Label>Entity name<Req /> <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report)</span></Label>
@@ -206,7 +206,7 @@ export default function CPPACybersecurity() {
         <section className="bg-card border rounded-lg p-6 space-y-6">
           <div>
             <h2 className="">18 Cybersecurity Programme Components</h2>
-            <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7122(a)(1)–(18) — enumerated programme components</p>
+            <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7123(c)(1)–(18) — enumerated programme components</p>
             <p className="text-sm text-muted-foreground mt-1">Rate each control against the CPPA's enumerated programme components.</p>
           </div>
 
