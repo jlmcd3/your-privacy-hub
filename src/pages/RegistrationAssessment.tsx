@@ -134,6 +134,10 @@ export default function RegistrationAssessment() {
   }
 
   async function submit() {
+    if (!intake.organization_name.trim()) {
+      toast.error("Please enter your organization name.");
+      return;
+    }
     if (!intake.organization_country && intake.markets_served.length === 0) {
       toast.error("Tell us where you're based or which markets you serve");
       return;
@@ -213,8 +217,9 @@ export default function RegistrationAssessment() {
                 {step === 1 && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="org">Organization name (optional)</Label>
-                      <Input id="org" value={intake.organization_name}
+                      <Label htmlFor="org">Organization name<Req /> <span className="text-xs text-muted-foreground">(legal entity name as it will appear on the assessment)</span></Label>
+                      <Input id="org" value={intake.organization_name} autoComplete="organization"
+                        placeholder="e.g., Acme Retail, Inc."
                         onChange={(e) => setIntake({ ...intake, organization_name: e.target.value })} />
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
