@@ -236,8 +236,10 @@ export default function CPPAScopeChecker() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main className="flex-1 max-w-[1180px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ToolDisclaimer addition="This checker provides an indicative obligation map based on your answers. Applicability thresholds under the CCPA/CPRA are fact-specific; confirm scope conclusions with qualified counsel." />
+        <div className="flex gap-6 items-start">
+        <div className="flex-1 min-w-0 space-y-6">
         {!showResults && (
           <div className="bg-card border rounded-lg p-6 space-y-6">
             <p className="text-xs font-mono text-muted-foreground pb-2 border-b">Cal. Civ. Code § 1798.140(ag) — applicability thresholds · 11 CCR §§ 7120, 7150(b) — audit and risk assessment triggers</p>
@@ -366,6 +368,9 @@ export default function CPPAScopeChecker() {
             isAuthed={!!user}
           />
         )}
+        </div>
+        <StatuteRail entry={scopeRailEntry} />
+        </div>
       </main>
       <CPPAToolsCrossLinks current="scope" />
     <Footer />
