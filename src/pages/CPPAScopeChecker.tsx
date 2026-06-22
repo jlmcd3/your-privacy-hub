@@ -19,6 +19,8 @@ import { PRICING_REGISTRY } from "@/config/pricing";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
+import StatuteRail, { type RailEntry } from "@/components/admt/StatuteRail";
+import { CPPA_SCOPE_RAIL } from "@/components/cppa/CPPAScopeRailEntries";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
@@ -78,6 +80,9 @@ export default function CPPAScopeChecker() {
   const [q6, setQ6] = useState<Q6>("");
   const [q7, setQ7] = useState<Q7>("");
   const [q8, setQ8] = useState<Q8>("");
+  const [scopeRailKey, setScopeRailKey] = useState<string | null>(null);
+  const scopeRailEntry: RailEntry | null = scopeRailKey ? (CPPA_SCOPE_RAIL[scopeRailKey] ?? null) : null;
+  const focusScopeRail = (k: string) => setScopeRailKey(k);
   const [showResults, setShowResults] = useState(false);
   // One UUID per page load, never persisted to browser storage (per spec).
   const sessionIdRef = useRef<string>(crypto.randomUUID());
