@@ -157,15 +157,20 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
 );
 
 
-const CPPA_EXCEPTIONS: { key: string; label: string; cite: string }[] = [
-  { key: "fraud_detection", label: "Fraud prevention / detection", cite: "11 CCR § 7152" },
-  { key: "security_integrity", label: "Security & integrity of systems and data", cite: "11 CCR § 7152" },
-  { key: "debugging", label: "Debugging to identify and repair errors", cite: "11 CCR § 7152" },
-  { key: "transient_use", label: "Transient use (not disclosed, no profile built)", cite: "11 CCR § 7152" },
-  { key: "internal_research", label: "Internal research for technological development", cite: "11 CCR § 7152" },
-  { key: "employment_context", label: "Employment-context processing", cite: "11 CCR § 7152" },
-  { key: "legal_compliance", label: "Compliance with a legal obligation", cite: "11 CCR § 7152" },
-  { key: "consumer_request", label: "Performing a service the consumer requested", cite: "11 CCR § 7152" },
+// Eight "business purposes" / statutory exemptions enumerated in CCPA itself
+// (Cal. Civ. Code § 1798.140(e) "business purpose" list and § 1798.145 exemptions).
+// These do NOT remove a § 7150 trigger from risk-assessment scope on their own;
+// they describe permitted internal uses or carve-outs from specific obligations.
+// Rail key (railKey) maps to CPPA_RISK_RAIL entries with verbatim statutory text.
+const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKey: string }[] = [
+  { key: "fraud_detection",   label: "Fraud prevention / detection",                       cite: "Cal. Civ. Code § 1798.140(e)(2)", railKey: "exc_fraud_detection" },
+  { key: "security_integrity", label: "Security & integrity of systems and data",          cite: "Cal. Civ. Code § 1798.140(e)(2)", railKey: "exc_security_integrity" },
+  { key: "debugging",         label: "Debugging to identify and repair errors",            cite: "Cal. Civ. Code § 1798.140(e)(3)", railKey: "exc_debugging" },
+  { key: "transient_use",     label: "Transient / short-term use (no profile built)",      cite: "Cal. Civ. Code § 1798.140(e)(4)", railKey: "exc_transient_use" },
+  { key: "internal_research", label: "Internal research for technological development",    cite: "Cal. Civ. Code § 1798.140(e)(8)", railKey: "exc_internal_research" },
+  { key: "employment_context", label: "Employment-context processing",                     cite: "Cal. Civ. Code § 1798.145(m)",    railKey: "exc_employment_context" },
+  { key: "legal_compliance",  label: "Compliance with a legal obligation",                 cite: "Cal. Civ. Code § 1798.145(a)(1)", railKey: "exc_legal_compliance" },
+  { key: "consumer_request",  label: "Performing a service the consumer requested",        cite: "Cal. Civ. Code § 1798.140(e)(1)", railKey: "exc_consumer_request" },
 ];
 
 const HARM_TYPES = [
@@ -824,17 +829,17 @@ export default function CPPARiskAssessment() {
                 )}
               </div>
 
-              {/* === § 7152 Exceptions (optional) === */}
+              {/* === CCPA business purposes / statutory exemptions (optional) === */}
               <div className="border-t pt-6 mt-6">
-                <Label className="text-base font-semibold">§ 7152 Exceptions <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
+                <Label className="text-base font-semibold">CCPA business purposes &amp; statutory exemptions <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
                 <p className="text-xs text-muted-foreground mt-1">
-                  If you are claiming a statutory exception that removes an activity from full risk-assessment scope, identify it and describe its scope and safeguards. Leave blank if none apply. Claimed exceptions are <span className="font-medium">assessed against § 7152</span>, not assumed valid.
+                  These are the enumerated "business purposes" in <span className="font-mono">Cal. Civ. Code § 1798.140(e)</span> and exemptions in <span className="font-mono">§ 1798.145</span>. They permit specific internal uses or carve out specific obligations — they do <span className="font-medium">not</span> remove a § 7150 trigger from risk-assessment scope. Identify any you rely on so the report can address them; leave blank if none apply.
                 </p>
                 <div className="mt-3 space-y-3">
                   {CPPA_EXCEPTIONS.map((ex) => {
                     const cur = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "" };
                     return (
-                      <div key={ex.key} className="rounded border p-3">
+                      <div key={ex.key} className="rounded border p-3" onFocus={() => focusRail(ex.railKey)} onClick={() => focusRail(ex.railKey)}>
                         <label className="flex items-start gap-2 cursor-pointer">
                           <input
                             type="checkbox"
@@ -850,13 +855,13 @@ export default function CPPARiskAssessment() {
                               rows={2}
                               value={cur.scope}
                               onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, scope: e.target.value } }))}
-                              placeholder="Scope: which activity/data does this exception cover, and why does it qualify?"
+                              placeholder="Scope: which activity/data does this purpose cover, and why does it qualify?"
                             />
                             <Textarea
                               rows={2}
                               value={cur.safeguards}
                               onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, safeguards: e.target.value } }))}
-                              placeholder="Safeguards documented to sustain this exception under audit."
+                              placeholder="Safeguards documented to keep this within the permitted purpose under audit."
                             />
                           </div>
                         )}
