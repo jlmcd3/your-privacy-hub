@@ -257,6 +257,19 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
   });
 
   sections.push({ title: "Personal data we process", html: `<p>${escapeHtml(categories)}</p>` });
+
+  // Article 14: where personal data is not obtained from the data subject,
+  // Art.14(2)(f) requires disclosing the source(s) and Art.14(3) the timing.
+  const collectionSource = answerToken(answers["collection_source"]);
+  if (isGdprFamily && (collectionSource === "indirect" || collectionSource === "mixed")) {
+    const sourceCats = formatAnswer("data_source_categories", answers["data_source_categories"]) || "third-party sources";
+    const fromPublic = /public/i.test(sourceCats);
+    sections.push({
+      title: "Source of the personal data",
+      html: `<p>Where we did not obtain your personal data directly from you, we obtain it from the following sources: ${escapeHtml(sourceCats)}.</p>${fromPublic ? `\n<p>Some of this personal data is obtained from publicly accessible sources.</p>` : ""}
+<p>Where personal data is obtained from a source other than you, we provide this information within a reasonable period after obtaining it (at the latest within one month); or, if the data is used to communicate with you, at the latest at the time of first communication; or, if disclosure to another recipient is envisaged, at the latest when the data is first disclosed (Art. 14(3) of the ${escapeHtml(lawName)}).</p>`,
+    });
+  }
   sections.push({ title: "Purposes of processing", html: `<p>${escapeHtml(purposes)}</p>` });
 
   // Lawful-basis-to-purpose mapping: when the user supplied both purposes and
@@ -284,7 +297,7 @@ export function buildNoticeSections(opts: BuildNoticeOptions): {
   const art9Html =
     isGdprFamily && specialCatsPresent.length > 0
       ? `\n<p>Because we process the following special category personal data, we additionally rely on a condition under <strong>Article 9(2)</strong> of the ${escapeHtml(lawName)}:</p>\n<ul>${specialCatsPresent.map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>`
-      : isGdprFamily
+      : isGdprFamily && dataCatArr.length === 0
       ? `\n<p>If we process special category personal data (such as health, biometric, racial or ethnic origin, religious beliefs, trade union membership, sexual orientation, or political opinions), we will additionally rely on a condition under <strong>Article 9(2)</strong> of the ${escapeHtml(lawName)} — most commonly explicit consent under Art.9(2)(a).</p>`
       : "";
 
