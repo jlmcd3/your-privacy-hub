@@ -8,6 +8,8 @@ import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import { ResearchPageHeader, type BreadcrumbItem } from "./ResearchPageHeader";
 import { ResearchSynthesisBlock } from "./ResearchSynthesisBlock";
 import { ResearchToolCTA } from "./ResearchToolCTA";
+import SectionReferenceRail from "./SectionReferenceRail";
+import type { RailEntry } from "@/components/admt/StatuteRail";
 
 const SITE_ORIGIN = "https://enduserprivacy.com";
 
@@ -58,6 +60,8 @@ export interface ResearchPageLayoutProps {
   adAfterHeader?: boolean;
   /** Optional block rendered immediately after pageSynthesis/topToolCta and before the section nav. */
   introBlock?: ReactNode;
+  /** Optional map of section.id → RailEntry. When provided, a sticky right-column rail tracks the in-view section and shows the controlling statute. */
+  sectionRailEntries?: Record<string, RailEntry>;
 }
 
 export function ResearchPageLayout({
@@ -71,11 +75,13 @@ export function ResearchPageLayout({
   intelligenceUpsellTopic,
   adAfterHeader = true,
   introBlock,
+  sectionRailEntries,
 }: ResearchPageLayoutProps) {
   const { isPremium } = usePremiumStatus();
   const { pathname } = useLocation();
   const canonicalUrl = `${SITE_ORIGIN}${pathname}`;
   const [contextUpdated, setContextUpdated] = useState<string | undefined>(undefined);
+  const hasRail = !!sectionRailEntries && Object.keys(sectionRailEntries).length > 0;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
