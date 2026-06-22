@@ -307,7 +307,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
             <thead className="text-left bg-muted/40">
               <tr>
                 <th className="p-2 border">#</th>
-                <th className="p-2 border">CPPA component (§ 7122(a))</th>
+                <th className="p-2 border">CPPA component (§ 7123(c))</th>
                 <th className="p-2 border">NIST CSF 2.0</th>
                 <th className="p-2 border">ISO 27001:2022</th>
                 <th className="p-2 border">SOC 2 (TSC)</th>
