@@ -46,6 +46,7 @@ export default function DPAGenerator() {
   const { clientId } = useActiveClient();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
+    entityName: "",
     controllerName: "", controllerJurisdiction: "Germany",
     processorName: "", processorJurisdiction: "Germany",
     services: "", dataCategories: [] as string[],
@@ -62,6 +63,7 @@ export default function DPAGenerator() {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const validateForm = (): string | null => {
+    if (!form.entityName.trim()) return "Please enter your entity name.";
     if (!form.controllerName.trim()) return "Please enter the Controller name.";
     if (!form.processorName.trim()) return "Please enter the Processor name.";
     if (!form.services.trim()) return "Please describe the Services to be provided.";
@@ -188,6 +190,8 @@ export default function DPAGenerator() {
             <p className="text-xs font-mono text-muted-foreground">Art. 28 GDPR — controller-processor contracts · Art. 28(3)(a)–(h) — eight mandatory clauses</p>
             <div className="space-y-3 text-sm">
               <RequiredLegend />
+              <label className="block"><span className="font-semibold text-brand-navy">Entity name<Req /> <span className="text-xs text-muted-foreground">(your organisation — the party engaging this DPA on your side)</span></span>
+                <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="e.g., Acme Retail, Inc." value={form.entityName} onChange={e => setForm(f => ({ ...f, entityName: e.target.value }))} autoComplete="organization" /></label>
               <label className="block"><span className="font-semibold text-brand-navy">Controller name<Req /> <DefPopover termKey="gdpr_controller" /> <span className="text-xs text-muted-foreground font-mono">(Art. 4(7) GDPR)</span></span>
                 <input className="w-full mt-1 border border-border rounded-lg px-3 py-2" placeholder="Acme Corp" value={form.controllerName} onChange={e => setForm(f => ({ ...f, controllerName: e.target.value }))} /></label>
               <label className="block"><span className="font-semibold text-brand-navy">Controller jurisdiction</span>
