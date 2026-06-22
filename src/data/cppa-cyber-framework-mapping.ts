@@ -1,17 +1,17 @@
-// Sprint 1 #7 — NIST CSF / ISO 27001 / SOC 2 → CPPA Cybersecurity control mapping.
-// Source: 11 CCR § 7123(c)(1)–(17) enumerated cybersecurity programme components
-// (OAL approved September 22, 2025; effective January 1, 2026), cross-walked
-// to the most directly equivalent control identifier in each framework.
-// Note: "Zero-trust architecture" appeared in earlier drafts but was deleted from
-// the final regulations by CalPrivacy before OAL approval. The 17 remaining
-// components retain their final § 7123(c) numbered positions.
-// `cppa_specific_evidence` captures what an existing-framework auditor must add to
-// satisfy the CPPA audit beyond their normal control evidence — the FSOR makes clear
-// that holding NIST/ISO/SOC 2 certifications does NOT, on its own, satisfy the CPPA
-// regulations.
+// Sprint 1 #7 — NIST CSF 2.0 / ISO 27001:2022 / SOC 2 → CPPA Cybersecurity control mapping.
+// Source: 11 CCR § 7123(c)(1)–(18) enumerated cybersecurity program components
+// (OAL approved September 22, 2025; effective January 1, 2026), cross-walked to the
+// most directly equivalent control identifier in each framework.
+// Note: "Zero-trust architecture" appeared in earlier drafts but was deleted from the
+// final regulations. "Port and protocol management and protection" was added at (c)(11);
+// awareness (c)(12) and education/training (c)(13) are distinct components; physical access
+// is folded into "Account management and access controls" (c)(3). The 18 components retain
+// their final § 7123(c) numbered positions. Framework control IDs are best-effort equivalences
+// for guidance only — holding a NIST/ISO/SOC 2 certification does NOT, on its own, satisfy the
+// CPPA audit (the FSOR is explicit on this), which is what `cppa_specific_evidence` captures.
 
 export type FrameworkMappingRow = {
-  index: number; // 1–17 matching § 7123(c)(N) of the final regulations
+  index: number; // 1–18 matching § 7123(c)(N) of the final regulations
   cppa_component: string;
   nist_csf: string;
   iso_27001: string;
@@ -22,138 +22,146 @@ export type FrameworkMappingRow = {
 export const CPPA_CYBER_FRAMEWORK_MAPPING: FrameworkMappingRow[] = [
   {
     index: 1,
-    cppa_component: "Authentication (incl. MFA for privileged/remote access)",
+    cppa_component: "Authentication",
     nist_csf: "PR.AA-01, PR.AA-03",
     iso_27001: "A.5.15, A.5.17, A.8.5",
     soc2: "CC6.1, CC6.6",
-    cppa_specific_evidence: "Evidence MFA is enforced specifically for accounts that can access California consumer PI and for remote administrative access; CPPA expects component-level attestation, not org-wide.",
+    cppa_specific_evidence: "Evidence that MFA (phishing-resistant where used) and password standards are enforced specifically for accounts that can access California consumer PI and for remote/privileged access; CPPA expects component-level attestation, not an org-wide statement.",
   },
   {
     index: 2,
-    cppa_component: "Encryption of personal information (at rest and in transit)",
+    cppa_component: "Encryption of personal information",
     nist_csf: "PR.DS-01, PR.DS-02",
     iso_27001: "A.8.24",
     soc2: "CC6.7",
-    cppa_specific_evidence: "Encryption scope must be tied to the PI inventory used for CCPA disclosures; key management evidence must cover California consumer datasets, not just production-tier classification.",
+    cppa_specific_evidence: "Encryption scope must be tied to the PI inventory used for CCPA disclosures; key-management evidence must cover California consumer datasets at rest and in transit, not just a production-tier classification.",
   },
   {
     index: 3,
-    cppa_component: "Inventory of personal information and information systems",
-    nist_csf: "ID.AM-01, ID.AM-02, ID.AM-05",
-    iso_27001: "A.5.9, A.5.12",
-    soc2: "CC3.2",
-    cppa_specific_evidence: "Inventory must align with the categories disclosed under § 1798.130 and identify systems storing sensitive PI; generic asset registers are insufficient.",
+    cppa_component: "Account management and access controls",
+    nist_csf: "PR.AA-01, PR.AA-05",
+    iso_27001: "A.5.15, A.5.16, A.5.18, A.8.2, A.8.3",
+    soc2: "CC6.1, CC6.2, CC6.3",
+    cppa_specific_evidence: "Least-privilege, privileged-account limits, account lifecycle (provisioning/deprovisioning), periodic access reviews, AND physical-access restrictions to systems holding PI — the final rule folds physical access into this component, so evidence must cover it.",
   },
   {
     index: 4,
-    cppa_component: "Secure configuration of hardware and software",
-    nist_csf: "PR.PS-01, PR.IR-01",
-    iso_27001: "A.8.9, A.8.27",
-    soc2: "CC7.1",
-    cppa_specific_evidence: "Baselines must be evidenced for systems processing PI specifically; CIS/STIG benchmarks accepted as starting point, deviations require risk-based justification.",
+    cppa_component: "Inventory and management of personal information and systems",
+    nist_csf: "ID.AM-01, ID.AM-02, ID.AM-08",
+    iso_27001: "A.5.9, A.8.1",
+    soc2: "CC3.2, CC6.1",
+    cppa_specific_evidence: "Inventory must map PI, data flows, hardware and software — explicitly including cloud and third-party systems the business does not own or operate. This is broader than a typical asset register; evidence must show the maintenance cadence.",
   },
   {
     index: 5,
-    cppa_component: "Internal and external vulnerability scans, penetration testing",
-    nist_csf: "ID.RA-01, ID.IM-02",
-    iso_27001: "A.8.8, A.8.29",
-    soc2: "CC4.1, CC7.1",
-    cppa_specific_evidence: "Cadence and scope must cover all PI-processing systems; remediation SLAs must be documented and met. Annual pen test alone is insufficient if attack surface changes mid-year.",
+    cppa_component: "Secure configuration of hardware and software",
+    nist_csf: "PR.PS-01",
+    iso_27001: "A.8.9",
+    soc2: "CC6.6, CC6.8, CC7.1",
+    cppa_specific_evidence: "Hardening baselines, patch and change management, and masking — on-prem and cloud. Evidence must show drift detection/remediation for systems that process California consumer PI.",
   },
   {
     index: 6,
-    cppa_component: "Audit-log management",
-    nist_csf: "DE.AE-03, PR.PS-04",
-    iso_27001: "A.8.15, A.8.16",
-    soc2: "CC7.2, CC7.3",
-    cppa_specific_evidence: "Logs must capture access to PI specifically and be retained long enough to support breach investigation; FSOR expects log review on a defined cadence, not solely incident-driven.",
+    cppa_component: "Vulnerability scanning and penetration testing",
+    nist_csf: "ID.RA-01, DE.CM-08",
+    iso_27001: "A.8.8",
+    soc2: "CC7.1",
+    cppa_specific_evidence: "Internal/external scans, penetration testing, AND a vulnerability disclosure/reporting process (e.g. bug bounty / ethical hacking) — the disclosure element is explicit in (c)(6). Evidence must show scope, frequency, and remediation-to-closure.",
   },
   {
     index: 7,
-    cppa_component: "Network monitoring and defenses",
-    nist_csf: "DE.CM-01, PR.IR-01",
-    iso_27001: "A.8.16, A.8.20, A.8.21",
-    soc2: "CC6.6, CC7.2",
-    cppa_specific_evidence: "Detection coverage must extend to data-exfiltration paths from PI stores; segmentation evidence must show PI environments are isolated from general corporate networks where practical.",
+    cppa_component: "Audit-log management",
+    nist_csf: "PR.PS-04, DE.CM-01, DE.CM-03",
+    iso_27001: "A.8.15, A.8.16",
+    soc2: "CC7.2",
+    cppa_specific_evidence: "Centralized storage, retention, tamper-protection, and review of logs for systems that access or process PI. Evidence must show logs cannot be altered by standard accounts and are reviewed on a defined cadence.",
   },
   {
     index: 8,
-    cppa_component: "Anti-malware and endpoint protection",
-    nist_csf: "PR.PS-05, DE.CM-09",
-    iso_27001: "A.8.7",
-    soc2: "CC6.8",
-    cppa_specific_evidence: "Coverage must include all endpoints that can access PI, including BYOD if permitted; exception register required for systems where EDR is not technically feasible.",
+    cppa_component: "Network monitoring and defenses",
+    nist_csf: "DE.CM-01, PR.IR-01",
+    iso_27001: "A.8.16, A.8.20, A.8.21",
+    soc2: "CC7.2, CC7.3",
+    cppa_specific_evidence: "Detection and defense against unauthorized access (IDS/IPS are examples, not mandates). Evidence must show monitoring coverage of all segments through which California consumer PI traverses.",
   },
   {
     index: 9,
-    cppa_component: "Secure software development (SSDLC)",
-    nist_csf: "PR.PS-06, ID.RA-06",
-    iso_27001: "A.8.25, A.8.28, A.8.29",
-    soc2: "CC8.1",
-    cppa_specific_evidence: "Threat modelling and privacy-by-design artefacts required for features touching PI; secure code review evidence should reference data-handling functions specifically.",
+    cppa_component: "Antivirus and anti-malware protections",
+    nist_csf: "PR.PS-05, DE.CM-09",
+    iso_27001: "A.8.7",
+    soc2: "CC6.8",
+    cppa_specific_evidence: "Deployment coverage, definition/update frequency, and exception handling across endpoints and servers that access or process PI. Evidence must show coverage reporting and gap remediation.",
   },
   {
     index: 10,
-    cppa_component: "Patch management",
-    nist_csf: "ID.RA-01, ID.IM-02",
-    iso_27001: "A.8.8",
-    soc2: "CC7.1",
-    cppa_specific_evidence: "Critical-patch SLAs for PI-processing systems should be defined and tracked separately from general IT; exception process required for unpatched legacy systems still holding PI.",
+    cppa_component: "Segmentation of an information system",
+    nist_csf: "PR.IR-01",
+    iso_27001: "A.8.22",
+    soc2: "CC6.6",
+    cppa_specific_evidence: "Isolation of systems containing PI from other segments to limit blast radius. Evidence must include current segmentation diagrams scoped to PI data flows and validation testing of segment boundaries.",
   },
   {
     index: 11,
-    cppa_component: "Backup and recovery; resilience",
-    nist_csf: "PR.DS-11, RC.RP-01",
-    iso_27001: "A.8.13, A.8.14",
-    soc2: "A1.2, A1.3",
-    cppa_specific_evidence: "Restore tests must include PI datasets; immutable / offline backup evidence required to support ransomware-driven CCPA breach notification scenarios.",
+    cppa_component: "Port and protocol management and protection",
+    nist_csf: "PR.IR-01, PR.PS-01",
+    iso_27001: "A.8.20, A.8.21",
+    soc2: "CC6.6",
+    cppa_specific_evidence: "Identify, restrict, and monitor network ports and protocols to reduce attack surface. Evidence must include an authorized-ports-and-protocols register and a change gate before new ports reach production.",
   },
   {
     index: 12,
-    cppa_component: "Personnel security and training",
-    nist_csf: "PR.AT-01, PR.AT-02",
-    iso_27001: "A.6.3, A.6.6, A.6.8",
+    cppa_component: "Cybersecurity awareness",
+    nist_csf: "PR.AT-01",
+    iso_27001: "A.6.3",
     soc2: "CC1.4, CC2.2",
-    cppa_specific_evidence: "Training must include CCPA-specific obligations (consumer requests, sensitive PI handling, opt-outs); generic security awareness alone is insufficient under § 7122.",
+    cppa_specific_evidence: "Ongoing activity to keep all personnel current on evolving threats and safe behaviors — distinct from role-based training (c)(13). Evidence must show cadence, topic coverage, and completion metrics.",
   },
   {
     index: 13,
-    cppa_component: "Vendor and third-party security management",
-    nist_csf: "GV.SC-01, GV.SC-05, ID.SC-04",
-    iso_27001: "A.5.19, A.5.20, A.5.21, A.5.22",
-    soc2: "CC9.2",
-    cppa_specific_evidence: "Contractual evidence must include CCPA service-provider / contractor clauses (§ 1798.140) and § 7053 onward-transfer terms — not just generic DPAs.",
+    cppa_component: "Cybersecurity education and training",
+    nist_csf: "PR.AT-01, PR.AT-02",
+    iso_27001: "A.6.3",
+    soc2: "CC1.4",
+    cppa_specific_evidence: "Role-based training for employees, contractors, and anyone with system access (onboarding, annual, post-breach). Evidence must differentiate by role and retain completion records, including CCPA-specific handling obligations.",
   },
   {
     index: 14,
-    cppa_component: "Incident response and reporting (incl. breach notification)",
-    nist_csf: "RS.MA-01, RS.AN-06, RC.CO-03",
-    iso_27001: "A.5.24, A.5.25, A.5.26, A.5.27",
-    soc2: "CC7.3, CC7.4, CC7.5",
-    cppa_specific_evidence: "Playbook must encode California breach-notification triggers and timelines (Cal. Civ. Code § 1798.82) and CPPA notification pathways; tabletop evidence required.",
+    cppa_component: "Secure development and coding practices",
+    nist_csf: "PR.PS-06",
+    iso_27001: "A.8.25, A.8.26, A.8.27, A.8.28",
+    soc2: "CC8.1",
+    cppa_specific_evidence: "Secure coding standards, code review, and security testing (SAST/DAST) across the SDLC. Evidence must show security gates at design/review/pre-release and retained scan/remediation records.",
   },
   {
     index: 15,
-    cppa_component: "Business continuity and disaster recovery",
-    nist_csf: "GV.RM-04, RC.RP-01",
-    iso_27001: "A.5.29, A.5.30",
-    soc2: "A1.2",
-    cppa_specific_evidence: "RTO/RPO must be defined for systems processing California consumer rights requests so DSAR / opt-out timelines remain achievable during a DR event.",
+    cppa_component: "Oversight of service providers, contractors, and third parties",
+    nist_csf: "GV.SC-01, GV.SC-04, ID.RA-10",
+    iso_27001: "A.5.19, A.5.20, A.5.21, A.5.22",
+    soc2: "CC9.2",
+    cppa_specific_evidence: "Assess, contractually obligate, and continuously monitor vendors that access/store/process PI on the business's behalf. Evidence must include a current third-party inventory and contract clauses (security standards, breach notice, right-to-audit, disposal).",
   },
   {
     index: 16,
-    cppa_component: "Physical security of PI and processing facilities",
-    nist_csf: "PR.AA-06",
-    iso_27001: "A.7.1, A.7.2, A.7.4, A.7.5",
-    soc2: "CC6.4, CC6.5",
-    cppa_specific_evidence: "Coverage must include any office or facility where physical PI is held (paper, screens visible to non-authorised staff); secure disposal records required for printed PI.",
+    cppa_component: "Retention schedules and proper disposal of personal information",
+    nist_csf: "PR.DS-03, ID.AM-08",
+    iso_27001: "A.5.34, A.8.10",
+    soc2: "CC6.5, C1.2",
+    cppa_specific_evidence: "Documented retention schedules and verified secure disposal of PI no longer needed. Evidence must be scoped to California PI/sensitive PI and include disposal verification (certificates of destruction / deletion logs).",
   },
   {
     index: 17,
-    cppa_component: "Cybersecurity governance, oversight, and program management",
-    nist_csf: "GV.OC-01, GV.RM-01, GV.OV-01",
-    iso_27001: "A.5.1, A.5.2, A.5.4, A.5.31",
-    soc2: "CC1.1, CC1.2, CC1.3",
-    cppa_specific_evidence: "Board / executive oversight of the cybersecurity program must be documented and include explicit review of CPPA audit findings; written program required regardless of existing ISMS.",
+    cppa_component: "Security-incident response management",
+    nist_csf: "RS.MA-01, RS.AN-01, RC.RP-01",
+    iso_27001: "A.5.24, A.5.25, A.5.26, A.5.27",
+    soc2: "CC7.3, CC7.4, CC7.5",
+    cppa_specific_evidence: "Documented plan, assigned roles, and tested procedures to detect/contain/eradicate/recover, including timely notification of affected individuals and regulators. Evidence must include tabletop history and review of incidents in the audit period.",
+  },
+  {
+    index: 18,
+    cppa_component: "Business-continuity and disaster-recovery planning",
+    nist_csf: "RC.RP-01, PR.IR-04",
+    iso_27001: "A.5.29, A.5.30, A.8.13, A.8.14",
+    soc2: "A1.1, A1.2, A1.3",
+    cppa_specific_evidence: "BC/DR plans, data-recovery capabilities, backups, and testing to ensure availability of PI. Evidence must include defined RTO/RPO for PI-processing systems and at least one documented test with results.",
   },
 ];
