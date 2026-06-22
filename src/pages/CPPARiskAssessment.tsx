@@ -208,6 +208,7 @@ export default function CPPARiskAssessment() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // Step 1 — Business Profile
+  const [entityName, setEntityName] = useState("");
   const [q1, setQ1] = useState(""); const [q2, setQ2] = useState(""); const [q3, setQ3] = useState("");
   const [q4, setQ4] = useState<string[]>([]); const [q5, setQ5] = useState("");
   // Step 2 — Consumer Rights
@@ -309,7 +310,7 @@ export default function CPPARiskAssessment() {
   }, [q1, q4, q5, q15, q18]);
 
   const stepValid = (): string | null => {
-    if (step === 1 && (!q1 || !q2 || !q3 || !q4.length || !q5)) return "Please complete the business profile.";
+    if (step === 1 && (!entityName.trim() || !q1 || !q2 || !q3 || !q4.length || !q5)) return "Please complete the business profile, including the entity name.";
     if (step === 2 && (!q6Multi.length || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
     if (step === 3 && (!q11 || !q12 || !q13 || !q14)) return "Please complete privacy notice questions.";
     if (step === 4) {
@@ -344,6 +345,7 @@ export default function CPPARiskAssessment() {
   const back = () => setStep((s) => Math.max(1, s - 1));
 
   const intake = useMemo(() => ({
+    entity_name: entityName.trim(),
     // legacy keys preserved
     q1_revenue: q1, q2_consumers: q2, q3_sector: q3, q4_pi_categories: q4, q5_sell_share: q5,
     q6_right_know: q6Multi.join("; "), q6_right_know_multi: q6Multi, q7_right_delete: q7, q8_right_correct: q8, q9_opt_out: q9, q10_id_verification: q10,
@@ -373,6 +375,7 @@ export default function CPPARiskAssessment() {
     exceptions_intake: exceptionClaims,
     impact_intake: impactData,
   }), [
+    entityName,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
@@ -523,6 +526,19 @@ export default function CPPARiskAssessment() {
             <>
               <h2>Step 1 — Business Profile</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code § 1798.140(ag) — CCPA/CPRA business definition and applicability thresholds</p>
+              <RequiredLegend />
+              <div>
+                <Label htmlFor="entity_name">Entity name <Req /> <span className="text-xs text-muted-foreground">(legal business name as it will appear on the report and § 7157 worksheet)</span></Label>
+                <input
+                  id="entity_name"
+                  type="text"
+                  value={entityName}
+                  onChange={(e) => setEntityName(e.target.value)}
+                  placeholder="e.g., Acme Retail, Inc."
+                  className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                  autoComplete="organization"
+                />
+              </div>
               <RequiredLegend />
               <div onFocus={() => focusRail('q1_revenue')}><Label>Q1: What is your business's annual gross revenue? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
               <div onFocus={() => focusRail('q2_consumers')}><Label>Q2: How many California consumers' personal information do you process in a year? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
