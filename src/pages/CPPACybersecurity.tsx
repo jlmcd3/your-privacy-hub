@@ -41,24 +41,24 @@ const MATURITY = [
 type Control = { key: string; label: string; description: string; citation: string };
 
 const CONTROLS: Control[] = [
-  { key: "c1_auth", label: "Authentication and access controls", description: "MFA, password policies, role-based access.", citation: "§ 7122(a)(1)" },
-  { key: "c2_encryption", label: "Encryption of personal information", description: "At rest and in transit.", citation: "§ 7122(a)(2)" },
-  { key: "c3_zero_trust", label: "Zero-trust architecture", description: "Continuous verification, least privilege.", citation: "§ 7122(a)(3)" },
-  { key: "c4_account_mgmt", label: "Account management and access control", description: "Provisioning, deprovisioning, periodic review.", citation: "§ 7122(a)(4)" },
-  { key: "c5_inventory", label: "Inventory of personal information and systems", description: "Data mapping and asset inventory.", citation: "§ 7122(a)(5)" },
-  { key: "c6_secure_config", label: "Secure configuration of hardware and software", description: "Hardening baselines.", citation: "§ 7122(a)(6)" },
-  { key: "c7_vuln_mgmt", label: "Vulnerability management and patching", description: "Scanning cadence and SLAs.", citation: "§ 7122(a)(7)" },
-  { key: "c8_audit_logs", label: "Audit-log management", description: "Generation, retention, review.", citation: "§ 7122(a)(8)" },
-  { key: "c9_network_mon", label: "Network monitoring and defence", description: "IDS/IPS, SIEM, alerting.", citation: "§ 7122(a)(9)" },
-  { key: "c10_anti_malware", label: "Anti-malware protections", description: "EDR/AV across endpoints and servers.", citation: "§ 7122(a)(10)" },
-  { key: "c11_segmentation", label: "Network segmentation", description: "Separation of sensitive systems.", citation: "§ 7122(a)(11)" },
-  { key: "c12_physical", label: "Limitation of physical access", description: "Facility, datacentre, device controls.", citation: "§ 7122(a)(12)" },
-  { key: "c13_secure_dev", label: "Secure development of software", description: "SDLC, code review, dependency scanning.", citation: "§ 7122(a)(13)" },
-  { key: "c14_third_party", label: "Oversight of service providers and third parties", description: "Due diligence, contracts, monitoring.", citation: "§ 7122(a)(14)" },
-  { key: "c15_retention", label: "Retention schedules and secure disposal", description: "Documented retention and deletion.", citation: "§ 7122(a)(15)" },
-  { key: "c16_training", label: "Cybersecurity awareness, education and training", description: "Annual training, phishing simulations.", citation: "§ 7122(a)(16)" },
-  { key: "c17_incident", label: "Incident response and post-incident analysis", description: "IR plan, tabletop exercises, post-mortems.", citation: "§ 7122(a)(17)" },
-  { key: "c18_continuity", label: "Business continuity and disaster recovery", description: "BCP/DR plans, tested backups.", citation: "§ 7122(a)(18)" },
+  { key: "c1_auth", label: "Authentication", description: "MFA (phishing-resistant where used), strong passwords, and controls over who can access PI.", citation: "§ 7123(c)(1)" },
+  { key: "c2_encryption", label: "Encryption of personal information", description: "Encryption of personal information at rest and in transit.", citation: "§ 7123(c)(2)" },
+  { key: "c3_account_access", label: "Account management and access controls", description: "Least-privilege access, privileged-account limits, account lifecycle, and physical-access restrictions to PI.", citation: "§ 7123(c)(3)" },
+  { key: "c4_inventory", label: "Inventory and management of personal information and systems", description: "Inventory of PI, data flows, hardware and software — including cloud and third-party systems.", citation: "§ 7123(c)(4)" },
+  { key: "c5_secure_config", label: "Secure configuration of hardware and software", description: "Hardening, patch and change management, and masking — on-prem and cloud.", citation: "§ 7123(c)(5)" },
+  { key: "c6_vuln_mgmt", label: "Vulnerability scanning and penetration testing", description: "Internal/external vulnerability scans, penetration testing, and vulnerability disclosure/reporting.", citation: "§ 7123(c)(6)" },
+  { key: "c7_audit_logs", label: "Audit-log management", description: "Centralized storage, retention, and monitoring of logs.", citation: "§ 7123(c)(7)" },
+  { key: "c8_network_mon", label: "Network monitoring and defenses", description: "Detection and defense against unauthorized access (tools such as IDS/IPS are examples, not mandates).", citation: "§ 7123(c)(8)" },
+  { key: "c9_anti_malware", label: "Antivirus and anti-malware protections", description: "Deployment and maintenance of antivirus and anti-malware.", citation: "§ 7123(c)(9)" },
+  { key: "c10_segmentation", label: "Segmentation of an information system", description: "Segmentation of information systems (e.g. firewalls, routers, switches).", citation: "§ 7123(c)(10)" },
+  { key: "c11_port_protocol", label: "Port and protocol management and protection", description: "Limitation and control of ports, services, and protocols to reduce attack surface.", citation: "§ 7123(c)(11)" },
+  { key: "c12_awareness", label: "Cybersecurity awareness", description: "How the business keeps current on evolving threats and countermeasures (distinct from training).", citation: "§ 7123(c)(12)" },
+  { key: "c13_training", label: "Cybersecurity education and training", description: "Training for employees, contractors, and anyone with system access — onboarding, annual, and post-breach.", citation: "§ 7123(c)(13)" },
+  { key: "c14_secure_dev", label: "Secure development and coding practices", description: "Secure coding standards, code review, and security testing across the SDLC.", citation: "§ 7123(c)(14)" },
+  { key: "c15_third_party", label: "Oversight of service providers, contractors, and third parties", description: "Oversight of vendors/contractors handling PI to ensure they meet program obligations.", citation: "§ 7123(c)(15)" },
+  { key: "c16_retention", label: "Retention schedules and proper disposal of personal information", description: "Retention schedules and secure disposal of PI no longer needed.", citation: "§ 7123(c)(16)" },
+  { key: "c17_incident", label: "Security-incident response management", description: "Incident response program, documented procedures, testing, and review of incidents in the period.", citation: "§ 7123(c)(17)" },
+  { key: "c18_continuity", label: "Business-continuity and disaster-recovery planning", description: "BC/DR plans, data-recovery, backups, and testing to ensure availability of PI.", citation: "§ 7123(c)(18)" },
 ];
 
 export default function CPPACybersecurity() {
@@ -216,9 +216,9 @@ export default function CPPACybersecurity() {
                 <span className="text-xs text-muted-foreground font-mono">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="">{c.label}</h3>
                 <span className="text-xs text-muted-foreground font-mono">(11 CCR {c.citation})</span>
-                {(c.key === "c1_auth" || c.key === "c7_vuln_mgmt" || c.key === "c17_incident") && (
+                {(c.key === "c1_auth" || c.key === "c6_vuln_mgmt" || c.key === "c17_incident") && (
                   <EnforcementSignalIcon
-                    signalKey={c.key === "c1_auth" ? "authentication" : c.key === "c7_vuln_mgmt" ? "vulnerability" : "incident_response"}
+                    signalKey={c.key === "c1_auth" ? "authentication" : c.key === "c6_vuln_mgmt" ? "vulnerability" : "incident_response"}
                     signals={cyberEnforcementSignals}
                   />
                 )}
@@ -237,9 +237,9 @@ export default function CPPACybersecurity() {
                   <Textarea rows={2} value={notes[c.key] || ""} onChange={(e) => setN(c.key, e.target.value)} className="mt-1" placeholder="Tools, scope, exceptions…" />
                 </div>
               </div>
-              {(c.key === "c1_auth" || c.key === "c3_zero_trust") && (
+              {c.key === "c1_auth" && (
                 <FscrCallout
-                  citation={c.key === "c1_auth" ? "11 CCR § 7122(a)(1)" : "11 CCR § 7122(a)(3)"}
+                  citation="11 CCR § 7123(c)(1)"
                   callouts={cyberFscrCallouts}
                 />
               )}
