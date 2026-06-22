@@ -241,14 +241,14 @@ export default function CPPAScopeChecker() {
         {!showResults && (
           <div className="bg-card border rounded-lg p-6 space-y-6">
             <p className="text-xs font-mono text-muted-foreground pb-2 border-b">Cal. Civ. Code § 1798.140(ag) — applicability thresholds · 11 CCR §§ 7120, 7150(b) — audit and risk assessment triggers</p>
-            <div>
+            <div onFocus={() => focusScopeRail("q1_california_nexus")}>
               <Label>Q1: Does your business operate for profit and do business in California, OR collect personal information from California residents? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag))</span></Label>
               <div className="mt-2">
                 <Radio name="q1" options={["Yes", "No", "Unsure"]} value={q1} onChange={(v) => setQ1(v as Q1)} />
               </div>
             </div>
 
-            <div>
+            <div onFocus={() => focusScopeRail("q2_revenue")}>
               <Label>Q2: What is your business's annual gross revenue? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag)(1))</span></Label>
               <div className="mt-2">
                 <Radio
@@ -260,7 +260,7 @@ export default function CPPAScopeChecker() {
               </div>
             </div>
 
-            <div>
+            <div onFocus={() => focusScopeRail("q3_consumer_volume")}>
               <Label>Q3: How many California consumers' personal information does your business buy, sell, receive for commercial purposes, or share for cross-context behavioural advertising annually? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag)(2)(A))</span></Label>
               <div className="mt-2">
                 <Radio
@@ -272,7 +272,7 @@ export default function CPPAScopeChecker() {
               </div>
             </div>
 
-            <div>
+            <div onFocus={() => focusScopeRail("q4_sell_share")}>
               <Label>Q4: Does your business sell or share consumers' personal information (in any quantity)? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.120; 11 CCR § 7150(b)(1))</span></Label>
               <span className="inline-block ml-1 align-middle"><EnforcementSignalIcon signalKey="sell_share" signals={scopeEnforcementSignals} /></span>
               <div className="mt-2">
@@ -291,14 +291,14 @@ export default function CPPAScopeChecker() {
               </div>
             </div>
 
-            <div>
+            <div onFocus={() => focusScopeRail("q5_50pct_revenue")}>
               <Label>Q5: Does 50% or more of your annual revenue come from selling or sharing consumers' personal information? <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ag)(3))</span></Label>
               <div className="mt-2">
                 <Radio name="q5" options={["Yes", "No", "Unsure"]} value={q5} onChange={(v) => setQ5(v as Q5)} />
               </div>
             </div>
 
-            <div>
+            <div onFocus={() => focusScopeRail("q6_sensitive_pi")}>
               <Label>Q6: Does your business process any sensitive personal information? (health data, precise geolocation, racial/ethnic origin, religious beliefs, union membership, biometric data, genetic data, sexual orientation, or citizenship/immigration status) <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.140(ae); 11 CCR § 7152(a)(5))</span></Label>
               <span className="inline-block ml-1 align-middle"><EnforcementSignalIcon signalKey="sensitive_pi" signals={scopeEnforcementSignals} /></span>
               <div className="mt-2">
@@ -306,14 +306,14 @@ export default function CPPAScopeChecker() {
               </div>
             </div>
 
-            <div>
+            <div onFocus={() => focusScopeRail("q7_admt")}>
               <Label>Q7: Does your business use automated decision-making technology (ADMT) to make, or factor into, decisions that have significant effects on California consumers — such as employment, credit, housing, insurance, or access to services? <span className="text-xs text-muted-foreground font-mono">(11 CCR §§ 7001(e), 7001(ddd), 7150(b)(3))</span></Label>
               <div className="mt-2">
                 <Radio name="q7" options={["Yes", "No", "In evaluation", "Unsure"]} value={q7} onChange={(v) => setQ7(v as Q7)} />
               </div>
             </div>
 
-            <div>
+            <div onFocus={() => focusScopeRail("q8_data_broker")}>
               <Label>Q8: Are you registered as a data broker with the California Attorney General? <span className="text-xs text-muted-foreground font-mono">(Cal. Bus. & Prof. Code § 22757)</span></Label>
               <div className="mt-2">
                 <Radio
