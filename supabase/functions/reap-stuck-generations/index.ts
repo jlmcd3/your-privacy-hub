@@ -174,6 +174,55 @@ async function reapQualityRuns(): Promise<{ table: string; reaped: number; error
   return { table: "quality_runs", reaped };
 }
 
+// function_runs is per-invocation telemetry written by _shared/run-logger.ts.
+// If an edge function hits the wall-clock limit / OOM / instance shutdown
+// before the logger's finally block runs, the row stays at status='running'
+// forever and the /admin/function-health "Latest status" card stays amber.
+// Sweep anything still 'running' after 15 min and mark it errored.
+const FUNCTION_RUN_STUCK_MINUTES = 15;
+async function reapFunctionRuns(): Promise<{ table: string; reaped: number; error?: string }> {
+  const cutoff = new Date(Date.now() - FUNCTION_RUN_STUCK_MINUTES * 60_000).toISOString();
+  const { data: candidates, error: selErr } = await supabase
+    .from("function_runs")
+    .select("id, started_at")
+    .eq("status", "running")
+    .lt("started_at", cutoff);
+
+  if (selErr) {
+    console.error("[reap-stuck] function_runs: select failed", selErr);
+    return { table: "function_runs", reaped: 0, error: selErr.message };
+  }
+  if (!candidates || candidates.length === 0) {
+    console.log("[reap-stuck] function_runs: 0 rows reaped");
+    return { table: "function_runs", reaped: 0 };
+  }
+
+  const now = new Date();
+  let reaped = 0;
+  for (const row of candidates as any[]) {
+    const started = new Date(row.started_at);
+    const durationMs = now.getTime() - started.getTime();
+    const { error: updErr } = await supabase
+      .from("function_runs")
+      .update({
+        status: "error",
+        finished_at: now.toISOString(),
+        duration_ms: durationMs,
+        error_message:
+          "Orphaned — worker did not write a finish signal (likely wall-clock timeout, OOM, or instance shutdown).",
+      })
+      .eq("id", row.id)
+      .eq("status", "running"); // race guard
+    if (updErr) {
+      console.error(`[reap-stuck] function_runs ${row.id}: update failed`, updErr);
+      continue;
+    }
+    reaped += 1;
+  }
+  console.log(`[reap-stuck] function_runs: ${reaped} rows reaped`);
+  return { table: "function_runs", reaped };
+}
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -182,6 +231,7 @@ Deno.serve(async (req) => {
     const results = [];
     for (const t of TARGETS) results.push(await reap(t));
     results.push(await reapQualityRuns());
+    results.push(await reapFunctionRuns());
     const total = results.reduce((n, r) => n + r.reaped, 0);
 
     return new Response(
