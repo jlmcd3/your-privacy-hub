@@ -241,8 +241,18 @@ When a trade-secret carve-out finding is generated:
     - Hedging phrases like "regulations typically require" or "while not explicitly covered in the provided subset" — if a requirement exists, cite the section; if you cannot confirm it from the authorities block, omit the finding
     These phrases are internal AI reasoning. They must never appear in customer-facing compliance documents.
 
+13. USE THE ADMT DETAIL INPUTS — incorporate the structured detail fields, and never invent values not provided:
+    - Human-involvement self-test → drive scope_analysis.human_review_qualifies and human_review_reasoning. Qualifying human involvement under § 7001(e)(1) requires ALL THREE: (A) knows how to interpret the output, (B) reviews the output plus other relevant information, and (C) has authority to change the decision — applied BEFORE the decision is issued. If any element is "No", or the reviewer acts only after the decision, conclude the review does NOT qualify and Article 11 obligations apply.
+    - Decision profile → if "solely advertising" is "Yes", set triggers_significant_decision=false and explain Article 11 does not attach. Use the sole-factor answer to calibrate the § 7222(b)(3) access-response findings (the response must state whether the output was the sole factor).
+    - Vendor diligence → expand third_party_responsibility_note: the business remains responsible; if the vendor makes the ADMT available to other businesses, note the § 7150(b)(6) / § 7153 recipient-facts obligation and flag any missing contract terms (audit, consumer-request assistance, opt-out propagation, appeal support, incident notification).
+    - Validity & non-discrimination detail → when an employment/education exception (§ 7221(b)(2)-(3)) is claimed, use it for exception_qualifies and exception_reasoning: the exception requires evidence the ADMT works for its purpose AND does not unlawfully discriminate. Thin or vendor-only testing weakens the claim — say so.
+    - Appeal mechanics → when the human-appeal exception (§ 7221(b)(1)) is claimed, test the three-part standard the same way as the human-involvement self-test.
+    - Access edge-cases (secure transmission, denial basis) → fold into access_gaps where relevant.
+    Where a detail field is "(n/a)" / "(not answered)", do not fabricate — note the gap if the regulation requires that information.
+
 Return ONLY valid JSON — no markdown, no preamble.`;
 
+    const d = (intake as any).admt_detail || {};
     const userPrompt = `Analyze this business's ADMT compliance and produce a gap report.
 
 ADMT SYSTEM: ${intake.system_name}
@@ -250,10 +260,13 @@ SYSTEM TYPE: ${intake.system_type || "(not specified)"}
 DESCRIPTION: ${intake.system_description}
 CALIFORNIA CONSUMERS PROCESSED ANNUALLY (APPROX.): ${intake.ca_consumer_count || "(not provided)"}
 DECISION DOMAINS: ${(intake.decision_domains ?? []).join("; ")}
+DECISION PROFILE: vendor/product: ${d.vendor_product || "(n/a)"}; hosting: ${d.hosting || "(n/a)"}; model type(s): ${(d.model_types ?? []).join(", ") || "(n/a)"}; decision effect(s): ${(d.decision_effects ?? []).join(", ") || "(n/a)"}; cadence: ${d.decision_cadence || "(n/a)"}; ADMT output is sole factor: ${d.sole_factor || "(not answered)"}; other factors: ${d.other_factors || "(n/a)"}; feeds future significant decisions: ${d.feeds_future_decisions || "(n/a)"}; solely advertising: ${d.solely_advertising || "(n/a)"}
 HUMAN REVIEW: ${intake.human_review}
+HUMAN-INVOLVEMENT SELF-TEST (§ 7001(e)(1)): reviewer present: ${d.hi_reviewer_present || "(not answered)"}; role: ${d.hi_reviewer_role || "(n/a)"}; stage: ${d.hi_stage || "(n/a)"}; (A) knows how to interpret output: ${d.hi_trained || "(n/a)"}; (B) reviews output + other info: ${d.hi_reviews_other_info || "(n/a)"}; (C) authority to change decision: ${d.hi_authority_override || "(n/a)"}; override rate: ${d.hi_override_rate || "(n/a)"}
 TRAINS ADMT ON PI: ${intake.training_data_use}
 PROFILING USE: ${intake.profiling_use}
 THIRD-PARTY ADMT TOOLS IN USE: ${intake.third_party_admt || "(none disclosed)"}
+VENDOR DILIGENCE: status: ${d.vendor_status || "(n/a)"}; documentation on file: ${(d.vendor_docs ?? []).join(", ") || "(none)"}; contract — audit rights: ${d.v_audit || "(n/a)"}, consumer-request assistance: ${d.v_assist || "(n/a)"}, opt-out propagation: ${d.v_optout || "(n/a)"}, appeal support: ${d.v_appeal || "(n/a)"}, incident notification: ${d.v_incident || "(n/a)"}; vendor makes ADMT available to other businesses: ${d.vendor_makes_available || "(n/a)"}; vendor training / model-improvement rights: ${d.vendor_training_rights || "(n/a)"}
 NUMBER OF DISTINCT ADMT SYSTEMS THIS BUSINESS OPERATES: ${intake.admt_system_count || "(not specified — assume single system)"}
 PRIOR ACCESS REQUESTS FROM THIS CONSUMER (ESTIMATED, 12-MONTH PERIOD): ${intake.prior_access_requests_12mo || "(not tracked)"}
 
@@ -276,6 +289,8 @@ OPT-OUT:
 - Confirmation mechanism: ${intake.opt_out_confirmation_mechanism}
 - Appeal process: ${intake.opt_out_appeal_process || "(not applicable)"}
 - Fairness documentation: ${intake.opt_out_fairness_doc || "(not applicable)"}
+- Validity & non-discrimination detail: protected characteristics tested: ${(d.bias_protected_chars ?? []).join(", ") || "(n/a)"}; proxy variables / mitigation: ${d.bias_proxy_vars || "(n/a)"}; testing cadence: ${d.bias_testing_cadence || "(n/a)"}; last test: ${d.bias_last_test || "(n/a)"}; next test: ${d.bias_next_test || "(n/a)"}; adverse-impact analysis: ${d.bias_adverse_impact || "(n/a)"}; outcome / FPR / FNR by group: ${d.bias_outcome_summary || "(n/a)"}
+- Appeal mechanics: reviewer role: ${d.appeal_reviewer_role || "(n/a)"}; trained: ${d.appeal_trained || "(n/a)"}; authority to overturn: ${d.appeal_authority_overturn || "(n/a)"}; consumer may submit: ${(d.appeal_consumer_submit ?? []).join(", ") || "(n/a)"}; timeline: ${d.appeal_timeline || "(n/a)"}; outcomes: ${(d.appeal_outcomes ?? []).join(", ") || "(n/a)"}; reversal rate: ${d.appeal_reversal_rate || "(n/a)"}
 - 15-business-day opt-out process documented: ${intake.opt_out_15_day_process || "(not described — operational gap)"}
 
 ACCESS RIGHT:
@@ -285,6 +300,8 @@ ACCESS RIGHT:
 - Outcome disclosure: ${intake.access_outcome_disclosure}
 - Response timeline: ${intake.access_response_timeline}
 - Trade secret / security carve-out policy: ${intake.access_trade_secret_policy || "(not documented)"}
+- Secure transmission method: ${d.access_secure_transmission || "(not specified)"}
+- Partial / complete denial basis: ${d.access_denial_basis || "(not specified)"}
 
 REGULATION AUTHORITIES:
 ${authBlock}
