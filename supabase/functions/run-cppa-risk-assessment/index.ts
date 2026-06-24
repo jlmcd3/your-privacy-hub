@@ -83,7 +83,7 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
   // Profiling via systematic observation / sensitive location (§ 7150(b)(4)).
   if (typeof intake.q5b_profiling_observation === "string" && /yes|both/i.test(intake.q5b_profiling_observation)) triggers.profiling_significant_effects = true;
   if (intake.q18_admt_use === "Yes" || intake.q18_admt_use === "In evaluation") triggers.admt_involved = true;
-  // Training ADMT / facial / emotion / biometric (§ 7150(b)(5)).
+  // Training ADMT / facial / emotion / biometric (§ 7150(b)(6)).
   if (typeof intake.q18b_admt_training === "string" && /^yes/i.test(intake.q18b_admt_training)) triggers.admt_involved = true;
   const consumerBand = String(intake.q2_consumers ?? intake.i3_ca_consumer_band ?? "");
   if (/100[,\s]?000|million|m\+|>=?\s*100k/i.test(consumerBand)) triggers.high_volume_processing = true;
@@ -519,7 +519,7 @@ Minimum PI necessary (§ 7152(a)(2)): ${intake.content_detail.minimum_pi_necessa
 Sources of the PI (§ 7152(a)(3)): ${intake.content_detail.pi_sources || "not provided"}
 Under-16 actual knowledge (§ 7001(bbb)): ${intake.content_detail.under16_actual_knowledge || "not stated"}
 Systematic-observation / sensitive-location profiling trigger (§ 7150(b)(4)): ${intake.content_detail.profiling_observation_trigger || "no"}
-ADMT / biometric training trigger (§ 7150(b)(5)): ${intake.content_detail.admt_training_trigger || "no"}
+ADMT / biometric training trigger (§ 7150(b)(6)): ${intake.content_detail.admt_training_trigger || "no"}
 Negative-impact sources and causes (§ 7152(a)(5)): ${intake.content_detail.harm_sources_and_causes || "not provided"}
 Contributors to this assessment (§ 7152(a)(8)): ${intake.content_detail.internal_contributors || "not provided"}
 External consultees: ${intake.content_detail.external_consultees || "none stated"}
