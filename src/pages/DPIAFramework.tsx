@@ -117,6 +117,20 @@ const DPIAFramework = () => {
   const [reasonsToConduct, setReasonsToConduct] = useState<string[]>([]);// 0.5 reasons (multi-select)
   const [dpiaScopeNote, setDpiaScopeNote] = useState("");                // 0.5 scope in/out
   const [publicationIntent, setPublicationIntent] = useState("");        // 0.5 publish / share externally
+
+  // EDPB template — Sections 1, 2 & 5 (controller-provided detail; consumed by the edge). All optional.
+  const [secondaryUses, setSecondaryUses] = useState("");                                 // 1.1.c
+  const [natureScopeContext, setNatureScopeContext] = useState("");                       // 1.1.d
+  const [functionalDescription, setFunctionalDescription] = useState("");                 // 1.2
+  const [supportingAssets, setSupportingAssets] = useState("");                           // 1.3
+  const [codesOfConduct, setCodesOfConduct] = useState("");                               // 1.4
+  const [dataMinimisationJustification, setDataMinimisationJustification] = useState(""); // 2.2.a
+  const [dataQualityMeasures, setDataQualityMeasures] = useState("");                     // 2.2.b
+  const [dataSubjectRightsMechanisms, setDataSubjectRightsMechanisms] = useState("");     // 2.3.b
+  const [dpByDesignMeasures, setDpByDesignMeasures] = useState("");                       // 2.3.d
+  const [dpoAdvice, setDpoAdvice] = useState("");                                         // 5.1
+  const [dataSubjectsViewsSought, setDataSubjectsViewsSought] = useState("");             // 5.2
+  const [dataSubjectsViews, setDataSubjectsViews] = useState("");                         // 5.2
   const [activeTemplateRef, setActiveTemplateRef] = useState<string | null>(null);
 
   
@@ -281,6 +295,19 @@ const DPIAFramework = () => {
     reasons_to_conduct: reasonsToConduct,
     dpia_scope_note: dpiaScopeNote,
     publication_intent: publicationIntent,
+    // EDPB template — Sections 1, 2 & 5
+    secondary_uses: secondaryUses,
+    nature_scope_context: natureScopeContext,
+    functional_description: functionalDescription,
+    supporting_assets: supportingAssets,
+    codes_of_conduct: codesOfConduct,
+    data_minimisation_justification: dataMinimisationJustification,
+    data_quality_measures: dataQualityMeasures,
+    data_subject_rights_mechanisms: dataSubjectRightsMechanisms,
+    dp_by_design_measures: dpByDesignMeasures,
+    dpo_advice: dpoAdvice,
+    data_subjects_views_sought: dataSubjectsViewsSought,
+    data_subjects_views: dataSubjectsViews,
     source_assessment_id: sourceId || null,
   });
 
@@ -510,6 +537,74 @@ const DPIAFramework = () => {
             <Label>Necessity, proportionality & alternatives considered<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 35(7)(b))</span></Label>
             <Textarea value={necessityProportionality} onChange={(e) => setNecessityProportionality(e.target.value)} placeholder="Why is this processing necessary for the purpose, and what less-intrusive alternatives did you consider and why were they rejected?" className="mt-2 min-h-24" />
             <IntakeGuidance className="mt-2">Take each alternative you considered in turn and say plainly why it was rejected. Listing them separately lets the assessment weigh each one — a single general statement can't be.</IntakeGuidance>
+          </div>
+
+          {/* === EDPB template — Section 1: Description of the processing === */}
+          <div className="pt-4 mt-2 border-t">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Section 1 — Description of the processing</span>
+            <p className="text-xs text-muted-foreground mt-1">Optional EDPB-template detail. The data categories, purpose and description above already feed Sections 1.1.a–b; these add the remaining sub-sections.</p>
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('1.1.c')}>
+            <Label>Secondary or compatible uses <span className="text-xs text-muted-foreground font-mono">(§ 1.1.c)</span></Label>
+            <Textarea value={secondaryUses} onChange={(e) => setSecondaryUses(e.target.value)} placeholder="Any further uses of the data beyond the primary purpose, and why they are compatible with it (Art. 6(4))." className="mt-2 min-h-16" />
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('1.1.d')}>
+            <Label>Nature, scope &amp; context of the processing <span className="text-xs text-muted-foreground font-mono">(§ 1.1.d)</span></Label>
+            <Textarea value={natureScopeContext} onChange={(e) => setNatureScopeContext(e.target.value)} placeholder="Nature (what you do with the data), scope (extent — volume, geography, duration), and context (relationship with data subjects and their expectations)." className="mt-2 min-h-16" />
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('1.2')}>
+            <Label>Functional description <span className="text-xs text-muted-foreground font-mono">(§ 1.2)</span></Label>
+            <Textarea value={functionalDescription} onChange={(e) => setFunctionalDescription(e.target.value)} placeholder="How the processing works end to end: the data lifecycle from collection through use, storage, sharing and deletion." className="mt-2 min-h-16" />
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('1.3')}>
+            <Label>Means of processing, supporting assets &amp; architecture <span className="text-xs text-muted-foreground font-mono">(§ 1.3)</span></Label>
+            <ExhibitTextarea value={supportingAssets} onChange={setSupportingAssets} placeholder="IT systems, infrastructure, applications and sub-processor systems that support the processing." className="mt-2 min-h-16" />
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('1.4')}>
+            <Label>Approved codes of conduct / certifications <span className="text-xs text-muted-foreground font-mono">(§ 1.4)</span></Label>
+            <Input value={codesOfConduct} onChange={(e) => setCodesOfConduct(e.target.value)} placeholder="e.g. an approved Art. 40 code of conduct or Art. 42 certification, if any." className="mt-2" />
+          </div>
+
+          {/* === EDPB template — Section 2: Analysis of necessity, proportionality & compliance === */}
+          <div className="pt-4 mt-2 border-t">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Section 2 — Analysis of necessity, proportionality &amp; compliance</span>
+            <p className="text-xs text-muted-foreground mt-1">The legal basis, Article 9(2) condition and retention period above already feed Sections 2.1 and 2.2.a; these add the remaining compliance measures.</p>
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('2.2.a')}>
+            <Label>Data minimisation — why each category is necessary <span className="text-xs text-muted-foreground font-mono">(§ 2.2.a)</span></Label>
+            <Textarea value={dataMinimisationJustification} onChange={(e) => setDataMinimisationJustification(e.target.value)} placeholder="For each category of data, why it is adequate, relevant and limited to what is necessary (Art. 5(1)(c))." className="mt-2 min-h-16" />
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('2.2.b')}>
+            <Label>Data quality measures <span className="text-xs text-muted-foreground font-mono">(§ 2.2.b)</span></Label>
+            <Textarea value={dataQualityMeasures} onChange={(e) => setDataQualityMeasures(e.target.value)} placeholder="How you keep data accurate and up to date, and correct or erase inaccuracies (Art. 5(1)(d))." className="mt-2 min-h-16" />
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('2.3.b')}>
+            <Label>Measures supporting data subjects' rights <span className="text-xs text-muted-foreground font-mono">(§ 2.3.b)</span></Label>
+            <Textarea value={dataSubjectRightsMechanisms} onChange={(e) => setDataSubjectRightsMechanisms(e.target.value)} placeholder="How data subjects exercise access, rectification, erasure, restriction, portability and objection — and how you handle those requests (Arts. 12–22)." className="mt-2 min-h-16" />
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('2.3.d')}>
+            <Label>Data protection by design &amp; by default <span className="text-xs text-muted-foreground font-mono">(§ 2.3.d)</span></Label>
+            <Textarea value={dpByDesignMeasures} onChange={(e) => setDpByDesignMeasures(e.target.value)} placeholder="Measures built into the design — pseudonymisation, minimisation and access restriction by default (Art. 25)." className="mt-2 min-h-16" />
+          </div>
+
+          {/* === EDPB template — Section 5: Interested parties === */}
+          <div className="pt-4 mt-2 border-t">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Section 5 — Interested parties</span>
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('5.1')}>
+            <Label>DPO advice <span className="text-xs text-muted-foreground font-mono">(§ 5.1)</span></Label>
+            <Textarea value={dpoAdvice} onChange={(e) => setDpoAdvice(e.target.value)} placeholder="Has the DPO been consulted on this DPIA, and what is their advice / opinion? (Art. 35(2))" className="mt-2 min-h-16" />
+          </div>
+          <div onFocus={() => handleTemplateRailFocus('5.2')}>
+            <Label>Views of data subjects or their representatives <span className="text-xs text-muted-foreground font-mono">(§ 5.2)</span></Label>
+            <select value={dataSubjectsViewsSought} onChange={(e) => setDataSubjectsViewsSought(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+              <option value="">Have you sought data subjects' views? (Art. 35(9))</option>
+              <option value="Yes — views sought">Yes — views sought</option>
+              <option value="No — not sought">No — not sought</option>
+              <option value="Planned">Planned but not yet done</option>
+              <option value="Not appropriate — justified">Not appropriate (with justification)</option>
+            </select>
+            <Textarea value={dataSubjectsViews} onChange={(e) => setDataSubjectsViews(e.target.value)} placeholder="If sought: how, and what views were obtained. If not: why it is not appropriate (Art. 35(9))." className="mt-2 min-h-16" />
           </div>
         </form>
         <StatuteRail entry={templateRailEntry ?? dpiaRailEntry} />

@@ -132,6 +132,18 @@ EPRIVACY AND DEVICE-ACCESS GATE RULE: For processing activities involving IP add
     const reasonsToConduct = (intake.reasons_to_conduct || []).join("; ") || "Not specified";
     const dpiaScopeNote = intake.dpia_scope_note || "Not specified";
     const publicationIntent = intake.publication_intent || "Not specified";
+    const secondaryUses = intake.secondary_uses || "Not specified";
+    const natureScopeContext = intake.nature_scope_context || "Not specified";
+    const functionalDescription = intake.functional_description || "Not specified";
+    const supportingAssets = intake.supporting_assets || "Not specified";
+    const codesOfConduct = intake.codes_of_conduct || "Not specified";
+    const dataMinimisationJustification = intake.data_minimisation_justification || "Not specified";
+    const dataQualityMeasures = intake.data_quality_measures || "Not specified";
+    const dataSubjectRightsMechanisms = intake.data_subject_rights_mechanisms || "Not specified";
+    const dpByDesignMeasures = intake.dp_by_design_measures || "Not specified";
+    const dpoAdvice = intake.dpo_advice || "Not specified";
+    const dataSubjectsViewsSought = intake.data_subjects_views_sought || "Not specified";
+    const dataSubjectsViews = intake.data_subjects_views || "Not specified";
 
     // Determine GDPR jurisdiction from verified jurisdictions (srcIntake preferred).
     let srcIntakeJurisdictions: string[] | null = null;
@@ -240,6 +252,12 @@ Guidelines / standards used: ${referenceMaterials}
 Reasons to conduct the DPIA (controller-selected): ${reasonsToConduct}
 Scope of this DPIA (in / out): ${dpiaScopeNote}
 Publication / external-sharing intent: ${publicationIntent}
+
+EDPB TEMPLATE — SECTIONS 1, 2 & 5 INPUTS (controller-provided; assess these as proposals, do not treat as settled conclusions):
+[Section 1 — description] Secondary / compatible uses: ${secondaryUses}; Nature, scope & context: ${natureScopeContext}; Functional description: ${functionalDescription}; Means / supporting assets & architecture: ${supportingAssets}; Approved codes of conduct / certifications: ${codesOfConduct}
+[Section 2 — compliance] Data minimisation justification: ${dataMinimisationJustification}; Data quality measures: ${dataQualityMeasures}; Measures supporting data subjects' rights: ${dataSubjectRightsMechanisms}; Data protection by design & default: ${dpByDesignMeasures}
+[Section 5 — interested parties] DPO advice: ${dpoAdvice}; Data subjects' views sought: ${dataSubjectsViewsSought}; Data subjects' views / justification: ${dataSubjectsViews}
+USE THESE INPUTS: fold them into section_1_description (secondary uses, nature/scope/context, functional description, supporting assets, codes of conduct), section_2_analysis (data minimisation under Art. 5(1)(c); data quality under Art. 5(1)(d); measures supporting data-subject rights under Arts. 12–22; data protection by design & default under Art. 25), and section_5_interested_parties (DPO advice under Art. 35(2); data subjects' views under Art. 35(9), including the controller's justification where views were not sought). Where a value is "Not specified", keep the existing [TO COMPLETE] behaviour for that element rather than inventing content.
 ${orgContext}
 
 ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
