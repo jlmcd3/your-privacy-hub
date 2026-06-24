@@ -539,11 +539,11 @@ export default function ADMTChecker() {
                     <p className="text-xs text-muted-foreground mt-1">
                       The CPPA treats you as the "business" responsible for ADMT compliance even when using vendor tools (e.g. a credit scoring API, a resume screening SaaS, a fraud detection service). List any third-party systems involved.
                     </p>
-                    <Textarea
+                    <ExhibitTextarea
                       className="mt-2"
                       rows={2}
                       value={thirdPartyAdmt}
-                      onChange={(e) => setThirdPartyAdmt(e.target.value)}
+                      onChange={setThirdPartyAdmt}
                       placeholder="e.g. FICO Score API for credit decisioning; HireVue for candidate screening; Sardine for fraud detection"
                     />
                   </div>
