@@ -76,4 +76,81 @@ export const EDPB_DPIA_GUIDANCE: Record<string, EdpbGuidanceEntry> = {
       "Note whether the DPIA, or parts of it, will be published or shared externally. Publishing can support transparency, but withhold sensitive detail such as security specifics.",
     paraRefs: [11],
   },
+  "1.1.c": {
+    sectionRef: "1.1.c",
+    sectionTitle: "Secondary or compatible uses",
+    guidance:
+      "Describe any further use of the data beyond the primary purpose, and explain why each is compatible with the purpose for which the data was originally collected (the Art. 6(4) compatibility test — link to the original purpose, the context, the nature of the data, possible consequences, and any safeguards).",
+    paraRefs: [],
+  },
+  "1.1.d": {
+    sectionRef: "1.1.d",
+    sectionTitle: "Nature, scope and context of the processing",
+    guidance:
+      "Set out the nature (what you actually do with the data), the scope (its extent — the volume, variety, geography and duration), and the context (the relationship with the data subjects, their reasonable expectations, any power imbalance, and the wider circumstances of the processing).",
+    paraRefs: [],
+  },
+  "1.2": {
+    sectionRef: "1.2",
+    sectionTitle: "Functional description",
+    guidance:
+      "Give a plain, operational description of how the processing works from end to end — the data lifecycle from collection through use, storage, any sharing, and deletion — so a reader can follow what happens to the data at each stage.",
+    paraRefs: [],
+  },
+  "1.3": {
+    sectionRef: "1.3",
+    sectionTitle: "Means of processing, supporting assets and underlying architecture",
+    guidance:
+      "Identify the means and supporting assets: the IT systems, applications, infrastructure and sub-processor systems that the processing relies on. These are the assets whose vulnerabilities the risk assessment will later consider.",
+    paraRefs: [],
+  },
+  "1.4": {
+    sectionRef: "1.4",
+    sectionTitle: "Compliance with approved codes of conduct",
+    guidance:
+      "Note any approved code of conduct (Art. 40) or certification (Art. 42) the processing adheres to. Adherence can help demonstrate compliance, but does not by itself remove the need for the DPIA.",
+    paraRefs: [],
+  },
+  "2.2.a": {
+    sectionRef: "2.2.a",
+    sectionTitle: "Data minimisation and retention periods",
+    guidance:
+      "Justify, for each category of data, that it is adequate, relevant and limited to what is necessary for the purpose (Art. 5(1)(c)), and state the retention period or the criteria used to set it (Art. 5(1)(e)). Flag any data collected that is not strictly necessary as a candidate for minimisation.",
+    paraRefs: [],
+  },
+  "2.2.b": {
+    sectionRef: "2.2.b",
+    sectionTitle: "Data quality",
+    guidance:
+      "Describe the measures that keep the data accurate and, where necessary, up to date — and how inaccurate data is corrected or erased without delay (Art. 5(1)(d)). Data quality is especially important where the data feeds decisions about people.",
+    paraRefs: [],
+  },
+  "2.3.b": {
+    sectionRef: "2.3.b",
+    sectionTitle: "Measures supporting the exercise of data subjects' rights",
+    guidance:
+      "Describe how data subjects can exercise their rights — information, access, rectification, erasure, restriction, portability, and objection — and how you receive, verify and action those requests within the time limits (Arts. 12–22).",
+    paraRefs: [],
+  },
+  "2.3.d": {
+    sectionRef: "2.3.d",
+    sectionTitle: "Measures supporting data protection by design and by default",
+    guidance:
+      "Describe the measures designed into the processing — for example pseudonymisation, data minimisation by default, and access restricted by default — that implement data protection by design and by default (Art. 25).",
+    paraRefs: [],
+  },
+  "5.1": {
+    sectionRef: "5.1",
+    sectionTitle: "DPO advice",
+    guidance:
+      "Record whether the DPO was consulted on the DPIA and what advice they gave (Art. 35(2)). Where the controller departs from the DPO's advice, the reasons should be documented.",
+    paraRefs: [],
+  },
+  "5.2": {
+    sectionRef: "5.2",
+    sectionTitle: "Views of data subjects or their representatives",
+    guidance:
+      "Record whether the views of data subjects (or their representatives) were sought, how, and what they said (Art. 35(9)). Where their views were not sought, or were not followed, document the justification.",
+    paraRefs: [],
+  },
 };
