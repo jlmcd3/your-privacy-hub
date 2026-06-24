@@ -39,7 +39,7 @@ const TOOLS: Record<ToolKey, ToolConfig> = {
     label: "CPPA Risk Assessment",
     etaText: "about 2–4 minutes",
     etaSeconds: 240,
-    stages: ["Mapping CCPA obligations", "Assessing risk factors", "Drafting the assessment", "Building your PDF"],
+    stages: ["Mapping CPPA obligations", "Assessing risk factors", "Drafting the assessment", "Building your PDF"],
   },
   cppa_cyber: {
     label: "CPPA Cybersecurity Readiness assessment",
