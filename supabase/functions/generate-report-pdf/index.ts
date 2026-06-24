@@ -899,12 +899,166 @@ function buildCPPARiskLegacyHTML(report: any, record: any): string {
 </div></body></html>`;
 }
 
-// Dispatch on schema: v3 rows carry part_a; legacy rows carry domains.
+// Dispatch on schema: v4 rows carry risk_assessment_by_activity; v3 rows carry part_a; legacy rows carry domains.
 function buildCPPARiskReportHTML(report: any, record: any): string {
+  if (report && (Array.isArray(report.risk_assessment_by_activity) || (report.assessment_summary && typeof report.assessment_summary === "object"))) {
+    return buildCPPARiskV4HTML(report, record);
+  }
   if (report && typeof report.part_a === "object" && report.part_a !== null) {
     return buildCPPARiskV3HTML(report, record);
   }
   return buildCPPARiskLegacyHTML(report, record);
+}
+
+function buildCPPARiskV4HTML(report: any, record: any): string {
+  const generatedDate = new Date(record?.created_at || report?.generated_at || Date.now()).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+  const text = (v: any) => escHtml(v === null || v === undefined ? "" : String(v));
+  const para = (v: any) => `<p>${text(v).replace(/\n+/g, "</p><p>")}</p>`;
+  const list = (items: any[]) =>
+    Array.isArray(items) && items.length
+      ? `<ul>${items.map((i) => `<li>${text(typeof i === "string" ? i : JSON.stringify(i))}</li>`).join("")}</ul>`
+      : "";
+  const summary = report.assessment_summary || {};
+  const scope = report.scope_and_triggers || {};
+  const activities = Array.isArray(report.risk_assessment_by_activity) ? report.risk_assessment_by_activity : [];
+  const exceptions = Array.isArray(report.exception_analysis) ? report.exception_analysis : [];
+  const actions = Array.isArray(report.priority_actions) ? report.priority_actions : [];
+  const flags = Array.isArray(report.inconsistency_flags) ? report.inconsistency_flags : [];
+  const enf = report.enforcement_context || {};
+  const xrec = report.cross_tool_recommendations || {};
+  const meta = report.document_metadata || {};
+  const orgName = summary.company_name || record?.intake_data?.org_context?.company_name || "";
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CPPA Privacy Risk Assessment</title>
+<style>
+  :root { --navy:#0c2a44; --ink:#1a1916; --paper:#f5f8fa; --card:#fff; --border:#dde5ea; --muted:#5c6d7a; --teal:#2d9b90; --teal-soft:#e5f4f2; --orange:#b45309; --orange-soft:#fdf3e1; --red:#a32d2d; --red-soft:#fce8e8; }
+  * { box-sizing:border-box; }
+  body { font-family:'Times New Roman',Times,serif; color:var(--ink); background:var(--paper); font-size:11pt; line-height:1.5; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .shell { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .header { background:var(--navy); color:#fff; padding:24px 28px; }
+  .logo-img { display:block; height:34px; width:auto; margin-bottom:12px; object-fit:contain; }
+  .eyebrow { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:#93b5c6; margin:0 0 4px; }
+  h1 { font-size:24px; margin:0; line-height:1.2; }
+  .meta { margin-top:6px; font-size:11px; color:#cbd5e1; }
+  .summary-bar { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
+  .pill { display:inline-block; border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700; background:rgba(255,255,255,.12); color:#fff; }
+  .body { padding:22px 28px 28px; }
+  h2 { color:var(--navy); font-size:17px; margin:24px 0 10px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+  h3 { color:var(--navy); font-size:14px; margin:0 0 8px; }
+  p { margin:0 0 9px; }
+  .notice { border-left:4px solid var(--teal); background:var(--teal-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11px; margin-bottom:16px; }
+  .callout { border-left:4px solid var(--orange); background:var(--orange-soft); border-radius:0 6px 6px 0; padding:10px 14px; font-size:11.5px; margin:14px 0; }
+  .card { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:12px; page-break-inside:avoid; background:#fff; }
+  .label { font-weight:700; color:var(--navy); }
+  .pri { display:inline-block; border-radius:999px; padding:2px 8px; font-size:10px; font-weight:700; margin-left:6px; background:var(--red-soft); color:var(--red); }
+  .pri-medium { background:var(--orange-soft); color:var(--orange); }
+  .pri-low { background:var(--teal-soft); color:var(--teal); }
+  .footer { margin-top:22px; padding-top:12px; border-top:1px solid var(--border); font-size:10px; color:var(--muted); text-align:center; }
+  table.harm { width:100%; border-collapse:collapse; margin-top:6px; font-size:10.5pt; }
+  table.harm th, table.harm td { border:1px solid var(--border); padding:6px 8px; vertical-align:top; text-align:left; }
+  table.harm th { background:#f8fafc; color:var(--navy); }
+</style></head><body><div class="shell">
+  <header class="header">
+    <img class="logo-img" src="${LOGO_URL}" alt="End User Privacy" />
+    <p class="eyebrow">Compliance Tool · Customised Analysis</p>
+    <h1>CPPA Privacy Risk Assessment</h1>
+    ${buildReportMetaLine({ generatedAt: record?.created_at || report?.generated_at || Date.now(), jurisdictionLabel: "California (CPPA)", organizationName: orgName })}
+    <div class="summary-bar">
+      ${summary.overall_risk_level ? `<span class="pill">${text(summary.overall_risk_level)} risk</span>` : ""}
+      ${summary.sector ? `<span class="pill">${text(summary.sector)}</span>` : ""}
+      ${summary.admt_disclosure_required ? `<span class="pill">ADMT disclosure required</span>` : ""}
+      ${summary.cybersecurity_audit_required ? `<span class="pill">Cybersecurity audit required</span>` : ""}
+    </div>
+  </header>
+  <div class="body">
+    <div class="notice"><span class="label">Not legal advice.</span> ${text(meta.disclaimer || "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.")}</div>
+
+    <section><h2>Assessment Summary</h2>
+      ${summary.company_name ? `<p><span class="label">Company:</span> ${text(summary.company_name)}</p>` : ""}
+      ${summary.assessment_date ? `<p><span class="label">Assessment date:</span> ${text(summary.assessment_date)}</p>` : ""}
+      ${summary.exceptions_status ? `<p><span class="label">Exceptions:</span> ${text(summary.exceptions_status)}</p>` : ""}
+      ${Array.isArray(summary.triggered_activities) && summary.triggered_activities.length ? `<p><span class="label">Triggered activities:</span></p>${list(summary.triggered_activities)}` : ""}
+      ${summary.corpus_enforcement_note ? `<div class="callout"><p class="label">Enforcement context note</p>${para(summary.corpus_enforcement_note)}</div>` : ""}
+    </section>
+
+    ${scope.scope_notes || (Array.isArray(scope.triggered_activities_detail) && scope.triggered_activities_detail.length) ? `<section><h2>Scope &amp; Triggers</h2>
+      ${scope.scope_notes ? para(scope.scope_notes) : ""}
+      ${(Array.isArray(scope.triggered_activities_detail) ? scope.triggered_activities_detail : []).map((t: any) => `<div class="card">
+        <h3>${text(t.activity || "")}</h3>
+        ${t.statutory_basis ? `<p><span class="label">Statutory basis:</span> ${text(t.statutory_basis)}</p>` : ""}
+        ${Array.isArray(t.data_categories) && t.data_categories.length ? `<p><span class="label">Data categories:</span> ${text(t.data_categories.join(", "))}</p>` : ""}
+        ${Array.isArray(t.consumer_categories) && t.consumer_categories.length ? `<p><span class="label">Consumer categories:</span> ${text(t.consumer_categories.join(", "))}</p>` : ""}
+        ${t.assessment_required_rationale ? `<p><span class="label">Rationale:</span> ${text(t.assessment_required_rationale)}</p>` : ""}
+      </div>`).join("")}
+    </section>` : ""}
+
+    ${activities.length ? `<section><h2>Risk Assessment by Activity</h2>
+      ${activities.map((a: any) => `<div class="card">
+        <h3>${text(a.activity || "")}</h3>
+        ${a.purpose ? `<p><span class="label">Purpose:</span> ${text(a.purpose)}</p>` : ""}
+        ${a.statutory_basis ? `<p><span class="label">Statutory basis:</span> ${text(a.statutory_basis)}</p>` : ""}
+        ${a.section_7153_mapping ? `<p><span class="label">§ 7153 mapping:</span> ${text(a.section_7153_mapping)}</p>` : ""}
+        ${a.current_safeguards ? `<p><span class="label">Current safeguards:</span> ${text(a.current_safeguards)}</p>` : ""}
+        ${a.safeguard_gaps ? `<p><span class="label">Safeguard gaps:</span> ${text(a.safeguard_gaps)}</p>` : ""}
+        ${a.benefits_to_business ? `<p><span class="label">Business benefits:</span> ${text(a.benefits_to_business)}</p>` : ""}
+        ${a.benefits_to_consumers ? `<p><span class="label">Consumer benefits:</span> ${text(a.benefits_to_consumers)}</p>` : ""}
+        ${Array.isArray(a.adverse_effects) && a.adverse_effects.length ? `<p class="label" style="margin-top:8px;">Adverse effects</p>
+          <table class="harm"><thead><tr><th>Harm</th><th>Severity</th><th>Likelihood</th><th>Description</th></tr></thead><tbody>
+          ${a.adverse_effects.map((h: any) => `<tr><td>${text(h.harm_type || "")}</td><td>${text(h.severity || "")}</td><td>${text(h.likelihood || "")}</td><td>${text(h.description || "")}</td></tr>`).join("")}
+          </tbody></table>` : ""}
+        ${a.benefits_outweigh_risks_conclusion ? `<p style="margin-top:8px;"><span class="label">Benefits outweigh risks:</span> ${text(a.benefits_outweigh_risks_conclusion)}</p>` : ""}
+        ${a.benefits_outweigh_risks_rationale ? `<p>${text(a.benefits_outweigh_risks_rationale)}</p>` : ""}
+      </div>`).join("")}
+    </section>` : ""}
+
+    ${exceptions.length ? `<section><h2>Exception Analysis</h2>
+      ${exceptions.map((e: any) => `<div class="card">
+        <h3>${text(e.exception_name || "")}</h3>
+        <p><span class="label">Claimed:</span> ${e.claimed ? "Yes" : "No"}</p>
+        ${e.statutory_basis ? `<p><span class="label">Statutory basis:</span> ${text(e.statutory_basis)}</p>` : ""}
+        ${e.documentation_status ? `<p><span class="label">Documentation:</span> ${text(e.documentation_status)}</p>` : ""}
+        ${e.validity_assessment ? `<p><span class="label">Validity:</span> ${text(e.validity_assessment)}</p>` : ""}
+        ${Array.isArray(e.flags) && e.flags.length ? list(e.flags) : ""}
+      </div>`).join("")}
+    </section>` : ""}
+
+    ${actions.length ? `<section><h2>Priority Actions</h2>
+      ${actions.map((a: any) => {
+        const p = String(a.priority || "").toLowerCase();
+        const cls = p === "medium" ? "pri pri-medium" : p === "low" ? "pri pri-low" : "pri";
+        return `<div class="card"><h3>${text(a.action || "")}<span class="${cls}">${text(a.priority || "")}</span></h3>
+          ${a.deadline ? `<p><span class="label">Deadline:</span> ${text(a.deadline)}</p>` : ""}
+          ${a.statutory_basis ? `<p><span class="label">Statutory basis:</span> ${text(a.statutory_basis)}</p>` : ""}
+        </div>`;
+      }).join("")}
+    </section>` : ""}
+
+    ${flags.length ? `<section><h2>Inconsistencies to Resolve</h2>
+      ${flags.map((f: any) => `<div class="card">
+        ${f.description ? `<p>${text(f.description)}</p>` : ""}
+        ${f.intake_field_1 || f.intake_field_2 ? `<p><span class="label">Conflicting inputs:</span> ${text([f.intake_field_1, f.intake_field_2].filter(Boolean).join(" ↔ "))}</p>` : ""}
+        ${f.regulatory_citation ? `<p><span class="label">Citation:</span> ${text(f.regulatory_citation)}</p>` : ""}
+        ${f.resolution_required ? `<p><span class="label">Resolution:</span> ${text(f.resolution_required)}</p>` : ""}
+      </div>`).join("")}
+    </section>` : ""}
+
+    ${(enf.relevant_precedents || enf.sector_specific_patterns || enf.audit_division_priorities) ? `<section><h2>Enforcement Context</h2>
+      ${enf.relevant_precedents ? `<div class="card"><h3>Relevant precedents</h3>${para(enf.relevant_precedents)}</div>` : ""}
+      ${enf.sector_specific_patterns ? `<div class="card"><h3>Sector-specific patterns</h3>${para(enf.sector_specific_patterns)}</div>` : ""}
+      ${enf.audit_division_priorities ? `<div class="card"><h3>Audit division priorities</h3>${para(enf.audit_division_priorities)}</div>` : ""}
+    </section>` : ""}
+
+    ${(xrec.admt_assessment || xrec.cybersecurity_audit || xrec.admt_assessment_rationale || xrec.cybersecurity_audit_rationale) ? `<section><h2>Cross-Tool Recommendations</h2>
+      ${xrec.admt_assessment_rationale ? `<div class="card"><h3>ADMT assessment ${xrec.admt_assessment ? "(recommended)" : ""}</h3>${para(xrec.admt_assessment_rationale)}</div>` : ""}
+      ${xrec.cybersecurity_audit_rationale ? `<div class="card"><h3>Cybersecurity audit ${xrec.cybersecurity_audit ? "(recommended)" : ""}</h3>${para(xrec.cybersecurity_audit_rationale)}</div>` : ""}
+    </section>` : ""}
+
+    <div class="notice"><span class="label">Not legal advice.</span> ${text(meta.disclaimer || "This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance.")}</div>
+    <div class="footer">EndUserPrivacy.com · Generated ${text(generatedDate)}${meta.assessment_version ? ` · v${text(meta.assessment_version)}` : ""}</div>
+  </div>
+</div></body></html>`;
 }
 
 function buildCPPARiskV3HTML(report: any, record: any): string {
@@ -1720,9 +1874,14 @@ Deno.serve(async (req) => {
             missingKey = "dpia_metadata|section_1_description";
             break;
           case "cppa_risk":
-            // v3 schema persists part_a/part_b; legacy rows have a domains array.
-            bodyOk = isNonEmptyObj(rd.part_a) || isNonEmptyArr(rd.domains);
-            missingKey = "part_a|domains";
+            // v4 persists risk_assessment_by_activity + assessment_summary;
+            // v3 persists part_a/part_b; legacy rows have a domains array.
+            bodyOk =
+              isNonEmptyArr(rd.risk_assessment_by_activity) ||
+              isNonEmptyObj(rd.assessment_summary) ||
+              isNonEmptyObj(rd.part_a) ||
+              isNonEmptyArr(rd.domains);
+            missingKey = "risk_assessment_by_activity|assessment_summary|part_a|domains";
             break;
           case "cppa_cybersecurity":
             // Only enforce when the structured path would be selected.
