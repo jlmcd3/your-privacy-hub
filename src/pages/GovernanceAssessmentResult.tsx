@@ -68,7 +68,7 @@ const GovernanceAssessmentResult = () => {
     if (!id) return;
     let timer: any;
     let pollCount = 0;
-    const MAX_POLLS = 75; // 5 minutes at 4s intervals — generator runs can exceed 2 min
+    const MAX_POLLS = 300; // ~20 min: 4s × 75 (5 min) + 8s × 225 (30 min cap) — heavy runs can exceed prior 5-min cap
 
     const fetchOnce = async () => {
       const { data } = await supabase
@@ -82,7 +82,8 @@ const GovernanceAssessmentResult = () => {
       if (data && (data.status === "pending" || data.status === "processing")) {
         pollCount += 1;
         if (pollCount < MAX_POLLS) {
-          timer = setTimeout(fetchOnce, 4000);
+          const delay = pollCount < 75 ? 4000 : 8000;
+          timer = setTimeout(fetchOnce, delay);
         } else {
           setAssessment((prev: any) => ({ ...prev, status: "failed" }));
         }
