@@ -547,7 +547,7 @@ Generate substantive draft rows for every table for the controller to verify; us
       }
     }
 
-    if (!reportData.section_1_description && !reportData.section_4_mitigation) {
+    if (!reportData.section_0_overview && !reportData.section_4_risk_management) {
       reportData = {
         framework_disclaimer: "This is not legal advice.",
         error: "Report generation encountered an issue. Please retry."
