@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ExhibitTextarea } from "@/components/ExhibitTextarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -205,7 +206,11 @@ export default function EUNoticeQuestions() {
           )}
           {currentQ.type === "text_long" && (
             <>
-              <Textarea value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" rows={4} />
+              {["third_party_recipients"].includes(currentQ.key) ? (
+                <ExhibitTextarea value={(value as string) ?? ""} onChange={(v) => saveAnswer(currentQ, v)} placeholder="Your answer" rows={4} />
+              ) : (
+                <Textarea value={(value as string) ?? ""} onChange={(e) => saveAnswer(currentQ, e.target.value)} placeholder="Your answer" rows={4} />
+              )}
               <IntakeGuidance className="mt-2">Answer as specifically and completely as you can — anything left vague or blank becomes placeholder text in your published notice.</IntakeGuidance>
             </>
           )}

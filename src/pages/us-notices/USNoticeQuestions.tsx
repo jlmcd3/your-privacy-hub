@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ExhibitTextarea } from "@/components/ExhibitTextarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -372,12 +373,21 @@ function QuestionInput({
     case "date_or_period":
       return (
         <>
-          <Textarea
-            value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="Type your answer"
-            rows={4}
-          />
+          {["third_party_categories", "or_specific_third_parties"].includes(question.key) ? (
+            <ExhibitTextarea
+              value={(value as string) ?? ""}
+              onChange={onChange}
+              placeholder="Type your answer"
+              rows={4}
+            />
+          ) : (
+            <Textarea
+              value={(value as string) ?? ""}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="Type your answer"
+              rows={4}
+            />
+          )}
           <IntakeGuidance className="mt-2">Answer as specifically and completely as you can — anything left vague or blank becomes placeholder text in your published notice.</IntakeGuidance>
         </>
       );
