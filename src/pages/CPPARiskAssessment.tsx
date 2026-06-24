@@ -893,29 +893,29 @@ export default function CPPARiskAssessment() {
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap" onFocus={() => focusRail('i6_recipients')}><Label>I-6: Which service providers, contractors, or third parties are involved? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="I-6 · Recipients of the PI" summary="Identify the recipients of the personal information — service providers, contractors, and third parties — together with their category and the purpose of each disclosure." cite="11 CCR § 7152(a)(3)(F)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">For each recipient, note its category — <span className="font-medium">service provider</span>, <span className="font-medium">contractor</span>, or <span className="font-medium">third party</span> — and the purpose of the disclosure. The category matters: disclosure to a third party for its own use is a sale or share.</p>
-                <Textarea
+                <ExhibitTextarea
                   className="mt-2"
                   rows={3}
                   value={i6Vendors}
-                  onChange={(e) => setI6Vendors(e.target.value)}
+                  onChange={setI6Vendors}
                   placeholder='One per line: "Vendor name — role — PI categories shared". Write "None" if none.'
                 />
               </div>
 
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-7: Who contributed to or was consulted in preparing this assessment? <Req /> <span className="text-xs text-muted-foreground">(§§ 7151, 7152(a)(8))</span></Label><StatutePopover term="I-7 · Contributors and consultees" summary="Identify the individuals and roles who contributed to or were consulted in preparing the risk assessment." cite="11 CCR § 7152(a)(9)" /></div>
-                <Textarea
+                <ExhibitTextarea
                   className="mt-2"
                   rows={2}
                   value={i7InternalContributors}
-                  onChange={(e) => setI7InternalContributors(e.target.value)}
+                  onChange={setI7InternalContributors}
                   placeholder="Internal — roles (e.g. Privacy lead, CISO, Legal, Business owner)"
                 />
-                <Textarea
+                <ExhibitTextarea
                   className="mt-2"
                   rows={2}
                   value={i7ExternalConsultees}
-                  onChange={(e) => setI7ExternalConsultees(e.target.value)}
+                  onChange={setI7ExternalConsultees}
                   placeholder="External — counsel, auditors, regulator engagement (optional)"
                 />
               </div>
