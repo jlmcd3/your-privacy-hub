@@ -331,10 +331,10 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
 
     async function genHalf(prompt: string, extraUser: string): Promise<any> {
       const finalUser = extraUser ? `${prompt}\n\n${extraUser}` : prompt;
-      let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, 6000);
+      let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
       if (r.stopReason === "max_tokens") {
-        console.warn("[DPIA] genHalf truncated_output — retrying once at 1.5x");
-        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, Math.ceil(6000 * 1.5));
+        console.warn(`[DPIA] genHalf truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
+        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
         if (r.stopReason === "max_tokens") {
           console.error("[DPIA] genHalf truncated_output after retry — returning empty half");
           return {};
