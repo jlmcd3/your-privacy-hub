@@ -407,6 +407,10 @@ h2 { font-size:16px; color:#0c2a44; margin-top:28px; border-bottom:1px solid #dd
 .meta { color:#5c6d7a; font-size:12px; margin-bottom:24px; }
 .label { font-weight:bold; text-transform:uppercase; font-size:11px; letter-spacing:0.05em; color:#5c6d7a; }
 ul { padding-left:20px; } li { margin-bottom:4px; }
+h3 { font-size:12.5px; color:#0c2a44; margin:16px 0 6px; }
+table.dt { width:100%; border-collapse:collapse; margin:8px 0 14px; font-size:10.5px; }
+table.dt th { text-align:left; background:#eef3f6; color:#5c6d7a; text-transform:uppercase; letter-spacing:0.04em; font-size:9px; padding:5px 7px; border:1px solid #dde5ea; }
+table.dt td { padding:5px 7px; border:1px solid #dde5ea; vertical-align:top; }
 </style></head><body>
 <div class="shell">
 <header class="header">
