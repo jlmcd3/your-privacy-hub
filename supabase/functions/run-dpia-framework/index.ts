@@ -326,38 +326,72 @@ Generate the first half of an EDPB-format DPIA (Overview, Systematic Description
 
     const promptB = `${sharedContext}
 
-Generate the second half of a DPIA framework document. Return ONLY this JSON structure, no preamble:
+Generate the second half of an EDPB-format DPIA (Necessity & Proportionality, Risk Assessment & Management, Interested Parties, Conclusion). CRITICAL — keep the EDPB design-risk vs incident-risk distinction:
+- section_3_necessity_proportionality.design_risk_impacts = risks that exist EVEN IF everything works exactly as designed and all actors follow the rules (inherent, structural risks flowing from the data, the purpose, and the nature/scope/context).
+- section_4_risk_management.incident_risk_impacts = risks from non-default, accidental, unlawful or abnormal events (malfunctions, deviations from design, cyber threats to confidentiality / integrity / availability, malicious actors).
+- section_4_risk_management.inherent_risk_assessment = the combined list of risks drawn from BOTH design_risk_impacts and incident_risk_impacts, each scored likelihood × severity with modulating factors.
+- section_4_risk_management.residual_risk_assessment = those risks re-scored AFTER the additional mitigating measures.
+Generate substantive draft rows for every table for the controller to verify; use "[TO COMPLETE — …]" only where a value cannot be inferred. Return ONLY this JSON structure, no preamble:
 
 {
-  "section_4_mitigation": {
-    "title": "Measures to Address Risks",
-    "guidance_note": "GDPR Article 35(7)(d) requires measures envisaged to address the risks.",
-    "proposed_measures": [
+  "section_3_necessity_proportionality": {
+    "title": "Considerations on Necessity and Proportionality",
+    "guidance_note": "EDPB Section 3 — design / structural impacts on rights and freedoms, plus the necessity and proportionality tests.",
+    "design_risk_impacts": [
+      { "threat": "threat from the processing as designed", "how_materialised": "how it can materialise with no failure or attack", "risk_sources": "purpose, design weaknesses, unique identifiers, long retention, exposures", "impact_on_rights": "impact on data subjects' rights and freedoms" }
+    ],
+    "necessity_assessment": "is the processing effective and the least intrusive option; evidence and the alternatives considered",
+    "proportionality_assessment": "do the benefits outweigh the impacts on rights and freedoms; evidence and justification (necessity is a pre-condition)",
+    "completion_guidance": "What the organisation must complete or verify in Section 3"
+  },
+  "section_4_risk_management": {
+    "title": "Risk Assessment and Management",
+    "guidance_note": "EDPB Section 4 — incident / deviation risks, method, inherent risk, additional mitigating measures, residual risk, and the action plan.",
+    "incident_risk_impacts": [
+      { "threat": "threat from malfunction, deviation, cyber, or malicious actor", "how_materialised": "how it can materialise when something deviates from the intended state", "risk_sources": "software bugs, misconfiguration, wrong access rights, operational error, unpatched vulnerabilities, insider abuse, external attack", "impact_on_rights": "impact on data subjects' rights and freedoms" }
+    ],
+    "method": "likelihood and severity scales and their meanings, risk metrics, prioritisation, and risk-acceptance levels; note that a high-severity risk may be unacceptable even at low likelihood",
+    "inherent_risk_assessment": [
+      { "risk": "risk scenario (drawn from design_risk_impacts and incident_risk_impacts)", "likelihood": "Low | Medium | High", "severity": "Low | Medium | High", "modulating_factors": "aggravating / mitigating factors (scale, sensitivity, vulnerability, exposure)", "risk_level": "Low | Medium | High", "acceptable": "Acceptable | Not acceptable — requires additional mitigation" }
+    ],
+    "additional_mitigating_measures": [
+      { "measure": "additional technical / legal / organisational measure", "mitigated_risks": "which inherent risks it addresses", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+    ],
+    "residual_risk_assessment": [
+      { "risk": "reassessed risk", "additional_measures": "measures applied", "residual_likelihood": "Low | Medium | High", "residual_severity": "Low | Medium | High", "residual_risk_level": "Low | Medium | High — proposed, subject to the organisation's re-scoring", "acceptable": "Acceptable | Not acceptable" }
+    ],
+    "plan": "activities to add the measures (responsible team, timelines) and to monitor, review and update them once the processing is live",
+    "annotations": [
       {
-        "measure": "name of measure",
-        "addresses_risk": "which risk this addresses",
-        "implementation_guidance": "how to implement",
-        "residual_risk_after": "expected residual risk level after implementation"
+        "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
+        "regulator": "regulator name",
+        "jurisdiction": "jurisdiction",
+        "decision_date": "YYYY-MM-DD or null",
+        "summary": "one sentence what the case involved, max 25 words, plain English",
+        "outcome": "rejected | accepted | penalised | required",
+        "relevance": "one sentence why this case is relevant to a risk in this DPIA"
       }
     ],
-    "completion_guidance": "What the organisation must complete in this section"
+    "completion_guidance": "What the organisation must complete or verify in Section 4"
   },
-  "section_5_consultation": {
-    "title": "DPO and Stakeholder Consultation",
-    "guidance_note": "Where a DPO is designated (GDPR Article 35(2)), their advice must be sought and documented. The DPO's role is advisory — the controller is responsible for the DPIA decision and sign-off. Do not give the DPO an approval or sign-off gating role; record their advice and whether it was accepted.",
-    "dpo_consultation_required": "Required if a DPO is designated (GDPR Article 35(2)). If no DPO is designated, assess whether Article 37 appointment is triggered (public authority, large-scale systematic monitoring, or large-scale special category processing) and document that assessment here.",
-    "dpo_consultation_record": "Template for recording DPO consultation — DPO name and contact: [TO COMPLETE] | Date consulted: [TO COMPLETE DD/MM/YYYY] | Summary of advice given: [TO COMPLETE] | DPO recommendations accepted / partially accepted / not accepted (with reasons): [TO COMPLETE]",
-    "stakeholder_consultation": "list any other stakeholders who should be consulted",
-    "completion_guidance": "What the organisation must complete in this section"
+  "section_5_interested_parties": {
+    "title": "Involvement of Interested Parties",
+    "guidance_note": "EDPB Section 5 — DPO advice (advisory only) and the views of data subjects or their representatives.",
+    "dpo_advice": "DPO advice received and documented — the DPO's opinion, conclusions and recommendations, and how the advice was implemented. Required if a DPO is designated (GDPR Art. 35(2)); if none is designated, assess whether an Article 37 appointment is triggered. [TO COMPLETE — summary of DPO advice]",
+    "data_subject_views": "Where appropriate, the views of data subjects or their representatives, or an explanation of why their participation was not sought or was not possible",
+    "completion_guidance": "What the organisation must complete or verify in Section 5"
   },
   "section_6_conclusion": {
-    "title": "Conclusion and Sign-Off",
-    "guidance_note": "Document whether identified risks are acceptable and whether supervisory authority consultation is required.",
-    "supervisory_authority_consultation_required": "conditional guidance on when consultation is required",
+    "title": "Conclusion and Decision",
+    "guidance_note": "EDPB Section 6 — the decision on processing viability, based on the residual-risk assessment.",
+    "decision": "REJECTED | CONSULTATION (SA) | APPROVED | CONDITIONALLY APPROVED — with a one-line explanation tied to the residual-risk outcome",
+    "conditions": ["if CONDITIONALLY APPROVED, the specific conditions to meet before proceeding (link to the section_4 measures)"],
+    "supervisory_authority_consultation_required": "conditional guidance — Art. 36 prior consultation is required where residual risk remains High after all measures; name the lead supervisory authority",
     "sign_off_template": "Controller sign-off template (the controller, not the DPO, owns this decision): Processing activity: [name] | DPIA version: [TO COMPLETE] | DPIA completion date: [TO COMPLETE] | DPO advice received and considered: Yes / No / N/A (no DPO designated) | Overall residual risk level (post-measures): [TO BE RE-SCORED by organisation] | Supervisory authority consultation required: Yes / No / Conditional | Controller representative name and title: [TO COMPLETE] | Signature: [TO COMPLETE] | Date: [TO COMPLETE]",
-    "review_schedule": "recommended review triggers for this DPIA"
+    "review_schedule": "review triggers — (1) legal requirement: whenever the risk represented by the processing changes (GDPR Art. 35(11)); (2) recommended practice: at least annually as an internal governance measure",
+    "justification": "optional explanation / justification of the decision"
   },
-  "framework_disclaimer": "This document helps your organisation structure its Data Protection Impact Assessment. It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. Your qualified Data Protection Officer or legal counsel must review, complete, and own it. It does not constitute legal advice."
+  "framework_disclaimer": "This document helps your organisation structure its Data Protection Impact Assessment using the EDPB DPIA template (v1.0, public-consultation draft). It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. Your qualified Data Protection Officer or legal counsel must review, complete, and own it. It does not constitute legal advice."
 }`;
 
     function parseJsonish(text: string): any {
