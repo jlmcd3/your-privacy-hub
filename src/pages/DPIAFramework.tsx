@@ -295,6 +295,19 @@ const DPIAFramework = () => {
     reasons_to_conduct: reasonsToConduct,
     dpia_scope_note: dpiaScopeNote,
     publication_intent: publicationIntent,
+    // EDPB template — Sections 1, 2 & 5
+    secondary_uses: secondaryUses,
+    nature_scope_context: natureScopeContext,
+    functional_description: functionalDescription,
+    supporting_assets: supportingAssets,
+    codes_of_conduct: codesOfConduct,
+    data_minimisation_justification: dataMinimisationJustification,
+    data_quality_measures: dataQualityMeasures,
+    data_subject_rights_mechanisms: dataSubjectRightsMechanisms,
+    dp_by_design_measures: dpByDesignMeasures,
+    dpo_advice: dpoAdvice,
+    data_subjects_views_sought: dataSubjectsViewsSought,
+    data_subjects_views: dataSubjectsViews,
     source_assessment_id: sourceId || null,
   });
 
