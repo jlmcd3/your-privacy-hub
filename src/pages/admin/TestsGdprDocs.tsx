@@ -133,13 +133,19 @@ function liaAssertions(report: any): Assertion[] {
 function dpiaAssertions(report: any): Assertion[] {
   const meta = report?.gdpr_meta;
   const matched: string[] = meta?.matched_articles ?? [];
+  const rm = report?.section_4_risk_management;
+  const np = report?.section_3_necessity_proportionality;
   return [
     { label: "report_data.gdpr_meta exists", passed: !!meta },
     { label: "gdpr_meta.attempted === true", passed: meta?.attempted === true },
     { label: "jurisdiction is 'eu' or 'uk'", passed: meta?.jurisdiction === "eu" || meta?.jurisdiction === "uk", detail: String(meta?.jurisdiction) },
     { label: "matched_articles includes '35'", passed: matched.includes("35"), detail: matched.join(",") },
     { label: "matched_articles includes '36'", passed: matched.includes("36") },
-    { label: "section_3_risks.risk_assessment ≥ 1", passed: Array.isArray(report?.section_3_risks?.risk_assessment) && report.section_3_risks.risk_assessment.length >= 1 },
+    { label: "section_0_overview exists (EDPB structure)", passed: !!report?.section_0_overview },
+    { label: "section_3.design_risk_impacts ≥ 1", passed: Array.isArray(np?.design_risk_impacts) && np.design_risk_impacts.length >= 1 },
+    { label: "section_4.incident_risk_impacts ≥ 1", passed: Array.isArray(rm?.incident_risk_impacts) && rm.incident_risk_impacts.length >= 1 },
+    { label: "section_4.inherent_risk_assessment ≥ 1", passed: Array.isArray(rm?.inherent_risk_assessment) && rm.inherent_risk_assessment.length >= 1 },
+    { label: "section_4.residual_risk_assessment ≥ 1", passed: Array.isArray(rm?.residual_risk_assessment) && rm.residual_risk_assessment.length >= 1 },
     { label: "enforcement_precedents is an array", passed: Array.isArray(report?.enforcement_precedents) },
   ];
 }
