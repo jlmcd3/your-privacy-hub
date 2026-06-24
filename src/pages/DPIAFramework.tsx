@@ -117,6 +117,20 @@ const DPIAFramework = () => {
   const [reasonsToConduct, setReasonsToConduct] = useState<string[]>([]);// 0.5 reasons (multi-select)
   const [dpiaScopeNote, setDpiaScopeNote] = useState("");                // 0.5 scope in/out
   const [publicationIntent, setPublicationIntent] = useState("");        // 0.5 publish / share externally
+
+  // EDPB template — Sections 1, 2 & 5 (controller-provided detail; consumed by the edge). All optional.
+  const [secondaryUses, setSecondaryUses] = useState("");                                 // 1.1.c
+  const [natureScopeContext, setNatureScopeContext] = useState("");                       // 1.1.d
+  const [functionalDescription, setFunctionalDescription] = useState("");                 // 1.2
+  const [supportingAssets, setSupportingAssets] = useState("");                           // 1.3
+  const [codesOfConduct, setCodesOfConduct] = useState("");                               // 1.4
+  const [dataMinimisationJustification, setDataMinimisationJustification] = useState(""); // 2.2.a
+  const [dataQualityMeasures, setDataQualityMeasures] = useState("");                     // 2.2.b
+  const [dataSubjectRightsMechanisms, setDataSubjectRightsMechanisms] = useState("");     // 2.3.b
+  const [dpByDesignMeasures, setDpByDesignMeasures] = useState("");                       // 2.3.d
+  const [dpoAdvice, setDpoAdvice] = useState("");                                         // 5.1
+  const [dataSubjectsViewsSought, setDataSubjectsViewsSought] = useState("");             // 5.2
+  const [dataSubjectsViews, setDataSubjectsViews] = useState("");                         // 5.2
   const [activeTemplateRef, setActiveTemplateRef] = useState<string | null>(null);
 
   
