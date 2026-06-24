@@ -573,8 +573,8 @@ Generate substantive draft rows for every table for the controller to verify; us
       reportStr.includes("[TO BE ASSESSED") ||
       reportStr.includes("[TO BE COMPLETED");
     try {
-      reportData.annotations = Array.isArray(reportData?.section_3_risks?.annotations)
-        ? reportData.section_3_risks.annotations
+      reportData.annotations = Array.isArray(reportData?.section_4_risk_management?.annotations)
+        ? reportData.section_4_risk_management.annotations
         : [];
     } catch { reportData.annotations = []; }
 
