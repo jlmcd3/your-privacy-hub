@@ -19,9 +19,9 @@ import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
 const sevColor = (s: string) => {
   const x = (s || "").toLowerCase();
-  if (x === "critical" || x === "high") return "bg-red-100 text-red-800";
-  if (x === "medium") return "bg-amber-100 text-amber-800";
-  if (x === "low") return "bg-blue-100 text-blue-800";
+  if (x.includes("critical") || x.includes("high")) return "bg-red-100 text-red-800";
+  if (x.includes("medium")) return "bg-amber-100 text-amber-800";
+  if (x.includes("low")) return "bg-blue-100 text-blue-800";
   return "bg-muted text-foreground";
 };
 
@@ -30,7 +30,7 @@ const Section = ({ num, title, guidance, completion, children }: any) => (
     <h2 className="mb-2">Section {num}: {title}</h2>
     {guidance && (
       <details className="mb-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded p-3 text-sm">
-        <summary className="cursor-pointer font-medium">Article 35 Requirement</summary>
+        <summary className="cursor-pointer font-medium">Guidance</summary>
         <p className="mt-2">{guidance}</p>
       </details>
     )}
@@ -45,8 +45,59 @@ const Section = ({ num, title, guidance, completion, children }: any) => (
 );
 
 const Field = ({ label, value }: { label: string; value: any }) => value ? (
-  <div><span className="text-xs uppercase font-medium text-muted-foreground">{label}</span><p className="text-sm mt-1">{value}</p></div>
+  <div><span className="text-xs uppercase font-medium text-muted-foreground">{label}</span><p className="text-sm mt-1 whitespace-pre-wrap">{value}</p></div>
 ) : null;
+
+const SubH = ({ children }: any) => <h3 className="text-sm font-semibold mt-5 mb-1.5">{children}</h3>;
+
+const StatusBadge = ({ value }: { value: string }) => {
+  const v = (value || "").toLowerCase();
+  const cls =
+    v.includes("not accept") ? "bg-red-100 text-red-800"
+    : v.includes("partial") ? "bg-amber-100 text-amber-800"
+    : v.includes("implemented") ? "bg-green-100 text-green-800"
+    : v.includes("planned") ? "bg-blue-100 text-blue-800"
+    : v.includes("accept") ? "bg-green-100 text-green-800"
+    : "bg-muted text-foreground";
+  return <span className={`inline-block px-2 py-0.5 text-xs rounded ${cls}`}>{value}</span>;
+};
+
+const RISK_BADGE = new Set(["likelihood", "severity", "risk_level", "residual_likelihood", "residual_severity", "residual_risk_level"]);
+const STATUS_BADGE = new Set(["implementation_status", "acceptable"]);
+
+const renderCell = (key: string, val: any) => {
+  if (val === null || val === undefined || val === "") return <span className="text-muted-foreground">—</span>;
+  if (Array.isArray(val)) return val.join(", ");
+  if (typeof val === "object") {
+    if ("is_special" in val) return val.is_special ? `Yes${Array.isArray(val.categories) && val.categories.length ? ": " + val.categories.join(", ") : ""}` : "No";
+    return JSON.stringify(val);
+  }
+  if (RISK_BADGE.has(key)) return <span className={`inline-block px-2 py-0.5 text-xs rounded ${sevColor(String(val))}`}>{String(val)}</span>;
+  if (STATUS_BADGE.has(key)) return <StatusBadge value={String(val)} />;
+  return <span className="whitespace-pre-wrap">{String(val)}</span>;
+};
+
+const DataTable = ({ columns, rows }: { columns: { key: string; label: string }[]; rows: any[] }) =>
+  Array.isArray(rows) && rows.length ? (
+    <div className="overflow-x-auto rounded border">
+      <table className="w-full text-sm border-collapse">
+        <thead>
+          <tr className="bg-muted/40 border-b">
+            {columns.map((c) => (
+              <th key={c.key} className="text-left font-medium px-3 py-2 align-top text-[11px] uppercase tracking-wide text-muted-foreground">{c.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className="border-b last:border-0 align-top">
+              {columns.map((c) => <td key={c.key} className="px-3 py-2">{renderCell(c.key, r?.[c.key])}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ) : <p className="text-sm text-muted-foreground italic">[TO COMPLETE — no rows generated]</p>;
 
 const DPIAFrameworkResult = () => {
   const { id } = useParams();
