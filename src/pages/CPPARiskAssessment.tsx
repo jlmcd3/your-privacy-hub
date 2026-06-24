@@ -747,7 +747,7 @@ export default function CPPARiskAssessment() {
               <div onFocus={() => focusRail('i1b_min_pi')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-1b: What is the minimum personal information necessary to achieve this purpose? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="I-1b · Minimum PI necessary" summary="The assessment must identify the minimum personal information necessary to achieve the purpose, reflecting the CCPA's data-minimisation principle." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Name the specific data elements you actually need for the purpose above, and note any you collect today that are <span className="font-medium">not</span> strictly necessary. If a less-identifying alternative (de-identified, aggregated, or shorter-retained data) could achieve the same purpose, say so — § 7152(a)(2) requires this minimisation analysis.</p>
-                <Textarea className="mt-2" rows={3} value={i1bMinPi} onChange={(e) => setI1bMinPi(e.target.value)} placeholder='E.g. "Purpose needs account ID + 12-month purchase history only. Precise geolocation and device fingerprint are collected but not required for recommendations; candidates for minimisation."' />
+                <ExhibitTextarea className="mt-2" rows={3} value={i1bMinPi} onChange={setI1bMinPi} placeholder='E.g. "Purpose needs account ID + 12-month purchase history only. Precise geolocation and device fingerprint are collected but not required for recommendations; candidates for minimisation."' />
               </div>
 
               <div onFocus={() => focusRail('i2_retention')}>
