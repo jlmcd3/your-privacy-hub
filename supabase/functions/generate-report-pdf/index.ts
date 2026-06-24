@@ -440,7 +440,7 @@ ${report.has_unresolved_placeholders ? `<div style="background:#7c1a1a;color:#ff
   <table style="width:100%;border-collapse:collapse;font-size:11px;">
     <tr>
       <td style="padding:3px 12px 3px 0;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:140px;">Controller</td>
-      <td style="padding:3px 0;color:#1a1916;">${escHtml(dpia?.organization_name || meta.controller_name || "[TO COMPLETE — controller legal name]")}</td>
+      <td style="padding:3px 0;color:#1a1916;">${escHtml(dpia?.organization_name || report.section_0_overview?.controllers?.[0]?.name || meta.controller_name || "[TO COMPLETE — controller legal name]")}</td>
       <td style="padding:3px 12px 3px 24px;color:#5c6d7a;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;width:120px;">Version</td>
       <td style="padding:3px 0;color:#1a1916;">${escHtml(meta.framework_version || "1.0")}</td>
     </tr>
