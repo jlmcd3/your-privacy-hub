@@ -454,7 +454,7 @@ const DPIAFramework = () => {
           </div>
           <div>
             <Label>Describe the processing activity in detail<Req /></Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe: what data is collected, how it is used, who has access, where it is stored." className="mt-2 min-h-32" />
+            <ExhibitTextarea value={description} onChange={setDescription} placeholder="Describe: what data is collected, how it is used, who has access, where it is stored." className="mt-2 min-h-32" />
             <IntakeGuidance className="mt-2">If this activity serves more than one purpose or use case, set each one out clearly and separately (number them, or a short paragraph each) — each purpose is analysed and reported on individually. For each, cover what data is involved, why it's needed, who can access it, where it's stored, and how long it's kept.</IntakeGuidance>
             <p className="text-xs text-muted-foreground mt-1">Min 100 characters.</p>
           </div>
