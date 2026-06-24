@@ -399,10 +399,10 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
 
     let rawText: string;
     {
-      const first = await callAnthropic(system, userPrompt, 8000, "gap-analysis");
+      const first = await callAnthropic(system, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS, "gap-analysis");
       if (first.stopReason === "max_tokens") {
-        console.warn("[run-admt-checker] gap-analysis truncated — retrying at 12000 tokens");
-        const retry = await callAnthropic(system, userPrompt, 12000, "gap-analysis-retry");
+        console.warn(`[run-admt-checker] gap-analysis truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
+        const retry = await callAnthropic(system, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS, "gap-analysis-retry");
         rawText = retry.text;
       } else {
         rawText = first.text;
@@ -508,10 +508,10 @@ Return this JSON structure exactly:
 
         let draftRaw: string;
         {
-          const first = await callAnthropic(draftSystem, draftPrompt, 5000, "sample-language");
+          const first = await callAnthropic(draftSystem, draftPrompt, PRODUCT_MAX_OUTPUT_TOKENS, "sample-language");
           if (first.stopReason === "max_tokens") {
-            console.warn("[run-admt-checker] sample-language truncated — retrying at 7500 tokens");
-            const retry = await callAnthropic(draftSystem, draftPrompt, 7500, "sample-language-retry");
+            console.warn(`[run-admt-checker] sample-language truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
+            const retry = await callAnthropic(draftSystem, draftPrompt, PRODUCT_MAX_OUTPUT_TOKENS, "sample-language-retry");
             draftRaw = retry.text;
           } else {
             draftRaw = first.text;
