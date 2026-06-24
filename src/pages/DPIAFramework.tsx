@@ -387,7 +387,7 @@ const DPIAFramework = () => {
 
             <div onFocus={() => handleTemplateRailFocus('0.2')}>
               <Label>Processors / sub-processors — obligations & tasks</Label>
-              <Textarea value={processorObligations} onChange={(e) => setProcessorObligations(e.target.value)} placeholder="For each processor / sub-processor, define their obligations and tasks." className="mt-2 min-h-16" />
+              <ExhibitTextarea value={processorObligations} onChange={setProcessorObligations} placeholder="For each processor / sub-processor, define their obligations and tasks." className="mt-2 min-h-16" />
               <p className="text-meta text-muted-foreground mt-1">EDPB §0.2: list every processor and sub-processor in the chain and define each one's obligations unequivocally.</p>
             </div>
 
