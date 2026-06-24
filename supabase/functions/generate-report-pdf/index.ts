@@ -457,26 +457,48 @@ ${report.has_unresolved_placeholders ? `<div style="background:#7c1a1a;color:#ff
   </table>
 </div>
 ${meta.supervisory_authority_consultation_trigger ? `<div class="completion"><strong>Supervisory authority consultation trigger: </strong>${meta.supervisory_authority_consultation_trigger}</div>` : ""}
-${sections.map(([key, heading]) => {
-    const s = report[key] || {};
-    return `<h2>${heading}</h2>
-${s.guidance_note ? `<div class="guidance"><strong>Article 35 requirement: </strong>${s.guidance_note}</div>` : ""}
-${(s.risk_assessment || []).length ? `<ul>${(s.risk_assessment || []).map((r: any) =>
-        `<li><strong>${r.risk_type || ""}</strong> — Likelihood: ${r.likelihood || ""}, Severity: ${r.severity || ""}. ${sanitizeNarrative(r.description || "")}</li>`
-      ).join("")}</ul>` : ""}
-${(s.proposed_measures || []).length ? `<ul>${(s.proposed_measures || []).map((m: any) =>
-        `<li><strong>${m.measure || ""}</strong>: ${sanitizeNarrative(m.implementation_guidance || "")} (Residual risk: ${m.residual_risk_after || ""})</li>`
-      ).join("")}</ul>` : ""}
-${Object.entries(s)
-        .filter(([k, v]) => !["title", "guidance_note", "completion_guidance", "risk_assessment", "proposed_measures", "annotations"].includes(k)
-          && (typeof v === "string" ? v.trim().length > 0 : typeof v === "boolean"))
-        .map(([k, v]) => `<p><span class="label">${k.replace(/_/g, " ")}:</span> ${typeof v === "boolean" ? (v ? "Yes" : "No") : sanitizeNarrative(String(v))}</p>`)
-        .join("")}
-${Array.isArray(s.annotations) && s.annotations.length ? `<p class="label">Enforcement annotations:</p><ul>${s.annotations.map((a: any) =>
-        `<li><strong>${a.regulator || "Enforcement source"}</strong>${a.summary ? ` — ${sanitizeNarrative(a.summary)}` : ""}${a.relevance ? ` (Relevance: ${sanitizeNarrative(a.relevance)})` : ""}</li>`
-      ).join("")}</ul>` : ""}
-${s.completion_guidance ? `<div class="completion"><strong>Your DPO/Counsel must complete: </strong>${s.completion_guidance}</div>` : ""}`;
-  }).join("")}
+${sec("0. Overview of the Processing", ov, `
+<h3>Controller(s)</h3>${tbl([{ key: "name", label: "Controller" }, { key: "responsible_unit", label: "Responsible unit" }, { key: "main_establishment_or_representative", label: "Main establishment / representative" }, { key: "dpo", label: "DPO" }], ov?.controllers)}
+<h3>Processor(s) / sub-processor(s)</h3>${tbl([{ key: "name", label: "Processor" }, { key: "obligations_and_tasks", label: "Obligations & tasks" }], ov?.processors)}
+${prose("Processing name", ov?.processing_name)}${prose("Version / change history", ov?.processing_version)}${prose("Estimated launch date", ov?.planning?.estimated_launch_date)}${prose("Estimated end date", ov?.planning?.estimated_end_date)}
+<h3>DPIA technical sheet</h3>${prose("Team (RACI)", ts.team_raci)}${prose("Reference materials", ts.reference_materials)}${prose("Reasons to conduct", Array.isArray(ts.reasons_to_conduct) ? ts.reasons_to_conduct.join("; ") : ts.reasons_to_conduct)}${prose("Scope", ts.scope)}${prose("Completion date", ts.completion_date)}${prose("Formal validation date", ts.formal_validation_date)}${prose("Publication intent", ts.publication_intent)}`)}
+
+${sec("1. Systematic Description of the Processing", d1, `
+<h3>Processed personal data</h3>${tbl([{ key: "item", label: "Data item" }, { key: "explanation", label: "Explanation" }, { key: "special_category", label: "Special category" }], d1?.processed_personal_data)}
+<h3>Purposes</h3>${tbl([{ key: "purpose", label: "Purpose" }, { key: "personal_data_involved_and_justification", label: "Data involved & justification" }], d1?.purposes)}
+<h3>Secondary or compatible uses</h3>${tbl([{ key: "use", label: "Use" }, { key: "conditions_and_compatibility", label: "Conditions & compatibility" }], d1?.secondary_uses)}
+${prose("Nature", d1?.nature)}${prose("Scope", d1?.scope)}${prose("Context", d1?.context)}${prose("Cross-border", d1?.cross_border)}${prose("International transfers", d1?.international_transfers)}
+<h3>Functional description</h3>${tbl([{ key: "phase", label: "Phase" }, { key: "operations", label: "Operations" }, { key: "explanation", label: "Explanation" }], d1?.functional_description)}
+<h3>Supporting assets</h3>${tbl([{ key: "phase", label: "Phase" }, { key: "assets", label: "Assets" }, { key: "explanation", label: "Explanation" }], d1?.supporting_assets)}
+<h3>Codes of conduct</h3>${tbl([{ key: "code", label: "Code" }, { key: "basis", label: "Basis" }, { key: "explanation", label: "Explanation" }], d1?.codes_of_conduct)}`)}
+
+${sec("2. Analysis of the Processing", an, `
+<h3>Legal basis (per purpose)</h3>${tbl([{ key: "purpose", label: "Purpose / use" }, { key: "article_6_basis", label: "Art. 6(1) basis" }, { key: "justification", label: "Justification" }], an?.legal_basis)}
+<h3>Reasons to lift the prohibition (special categories)</h3>${tbl([{ key: "data_item", label: "Data item" }, { key: "article_9_condition", label: "Art. 9(2) condition" }, { key: "justification", label: "Justification" }], an?.special_category_conditions)}
+<h3>Data minimisation & retention</h3>${tbl([{ key: "data_item", label: "Data item" }, { key: "need_justification", label: "Need" }, { key: "recipients", label: "Recipients" }, { key: "retention_period", label: "Retention" }, { key: "retention_justification", label: "Retention justification" }], an?.data_minimisation_retention)}
+<h3>Data quality</h3>${tbl([{ key: "data_item", label: "Data item" }, { key: "metrics", label: "Metrics" }, { key: "justification", label: "Justification" }], an?.data_quality)}
+<h3>Measures — Article 5(1) principles</h3>${tbl([{ key: "principle", label: "Principle" }, { key: "measures", label: "Measures" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }], an?.measures_article5)}
+<h3>Measures — data subject rights</h3>${tbl([{ key: "right", label: "Right" }, { key: "measures", label: "Measures" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }], an?.measures_rights)}
+<h3>Measures — other GDPR requirements</h3>${tbl([{ key: "requirement", label: "Requirement" }, { key: "measures", label: "Measures" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }], an?.measures_other)}
+<h3>Measures — by design & default (Art. 25)</h3>${tbl([{ key: "measures", label: "Measures" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }], an?.measures_dpbd)}
+<h3>Measures — security (Art. 32)</h3>${tbl([{ key: "measures", label: "Measures" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }], an?.measures_security)}`)}
+
+${sec("3. Considerations on Necessity and Proportionality", np, `
+<h3>Design / structural risk impacts</h3>${tbl([{ key: "threat", label: "Threat" }, { key: "how_materialised", label: "How it materialises" }, { key: "risk_sources", label: "Risk sources" }, { key: "impact_on_rights", label: "Impact on rights" }], np?.design_risk_impacts)}
+${prose("Necessity assessment", np?.necessity_assessment)}${prose("Proportionality assessment", np?.proportionality_assessment)}`)}
+
+${sec("4. Risk Assessment and Management", rm, `
+<h3>Incident / deviation risk impacts</h3>${tbl([{ key: "threat", label: "Threat" }, { key: "how_materialised", label: "How it materialises" }, { key: "risk_sources", label: "Risk sources" }, { key: "impact_on_rights", label: "Impact on rights" }], rm?.incident_risk_impacts)}
+${prose("Method", rm?.method)}
+<h3>Inherent risk assessment</h3>${tbl([{ key: "risk", label: "Risk" }, { key: "likelihood", label: "Likelihood" }, { key: "severity", label: "Severity" }, { key: "modulating_factors", label: "Modulating factors" }, { key: "risk_level", label: "Risk level" }, { key: "acceptable", label: "Acceptable?" }], rm?.inherent_risk_assessment)}
+${Array.isArray(rm?.annotations) && rm.annotations.length ? `<p class="label">Enforcement annotations:</p><ul>${rm.annotations.map((a: any) => `<li><strong>${escHtml(a.regulator || "Enforcement source")}</strong>${a.summary ? ` — ${sanitizeNarrative(a.summary)}` : ""}${a.relevance ? ` (Relevance: ${sanitizeNarrative(a.relevance)})` : ""}</li>`).join("")}</ul>` : ""}
+<h3>Additional mitigating measures</h3>${tbl([{ key: "measure", label: "Measure" }, { key: "mitigated_risks", label: "Mitigates" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }], rm?.additional_mitigating_measures)}
+<h3>Residual risk assessment</h3>${tbl([{ key: "risk", label: "Risk" }, { key: "residual_likelihood", label: "Residual likelihood" }, { key: "residual_severity", label: "Residual severity" }, { key: "residual_risk_level", label: "Residual level" }, { key: "acceptable", label: "Acceptable?" }], rm?.residual_risk_assessment)}
+${prose("Action plan", rm?.plan)}`)}
+
+${sec("5. Involvement of Interested Parties", ip, `${prose("DPO advice", ip?.dpo_advice)}${prose("Views of data subjects or their representatives", ip?.data_subject_views)}`)}
+
+${sec("6. Conclusion and Decision", cc, `${prose("Decision", cc?.decision)}${Array.isArray(cc?.conditions) && cc.conditions.length ? `<p class="label">Conditions:</p><ul>${cc.conditions.map((c: string) => `<li>${sanitizeNarrative(String(c))}</li>`).join("")}</ul>` : ""}${prose("Supervisory authority consultation", cc?.supervisory_authority_consultation_required)}${prose("Review schedule", cc?.review_schedule)}${prose("Justification", cc?.justification)}`)}
 ${report.section_6_conclusion?.sign_off_template ? `<h2>Sign-Off Record</h2>
 <div class="signoff">
 Name: ___________________________<br>
