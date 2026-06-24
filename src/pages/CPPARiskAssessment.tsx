@@ -52,7 +52,8 @@ const PI_CATEGORIES = [
   "Contact identifiers (name, email, phone)",
   "Device identifiers (IP, cookies, device IDs)",
   "Internet or network activity",
-  "Geolocation data",
+  "Precise geolocation (GPS-level / specific address)",
+  "General location (city, region, ZIP, IP-derived)",
   "Financial information",
   "Health or medical information",
   "Biometric information",
@@ -71,6 +72,7 @@ const PI_CATEGORIES = [
 // Categories that are sensitive PI under Cal. Civ. Code § 1798.140(ae).
 // These trigger additional obligations (Q15 follow-ups, § 7152(a)(5) harm categories).
 const SENSITIVE_PI_CATEGORIES = new Set([
+  "Precise geolocation (GPS-level / specific address)",
   "Health or medical information",
   "Biometric information",
   "Genetic data",
@@ -173,10 +175,17 @@ const CPPA_EXCEPTIONS: { key: string; label: string; cite: string; railKey: stri
   { key: "consumer_request",  label: "Performing a service the consumer requested",        cite: "Cal. Civ. Code § 1798.140(e)(1)", railKey: "exc_consumer_request" },
 ];
 
+// Aligned to the § 7152(a)(5) enumerated negative-impact examples.
 const HARM_TYPES = [
-  "Financial loss", "Identity theft", "Reputational harm", "Discrimination or bias",
-  "Physical or safety risk", "Loss of privacy or autonomy", "Emotional distress",
-  "Loss of opportunity (employment, housing, credit, education)",
+  "Unauthorised access, destruction, use, modification, or disclosure",
+  "Loss of availability of personal information",
+  "Unlawful discrimination",
+  "Impairment of consumer control over personal information",
+  "Coercion or dark patterns",
+  "Economic harm",
+  "Physical harm",
+  "Reputational harm",
+  "Psychological harm",
 ];
 
 // Step 6 statute popover helper — one-line plain-language summary with citation.
@@ -250,7 +259,14 @@ export default function CPPARiskAssessment() {
 
   // § 7152 exceptions + impact (optional). Consolidated objects to keep submission wiring simple.
   const [exceptionClaims, setExceptionClaims] = useState<Record<string, { claimed: boolean; scope: string; safeguards: string }>>({});
-  const [impactData, setImpactData] = useState<{ likelihood: string; severity: string; harmTypes: string[]; vulnerable: string; benefitsOutweigh: string; benefitsRationale: string; cyberGaps: string }>({ likelihood: "", severity: "", harmTypes: [], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "" });
+  const [impactData, setImpactData] = useState<{ likelihood: string; severity: string; harmTypes: string[]; vulnerable: string; benefitsOutweigh: string; benefitsRationale: string; cyberGaps: string; businessBenefits: string; consumerBenefits: string; stakeholderBenefits: string; safeguards: string; harmCauses: string }>({ likelihood: "", severity: "", harmTypes: [], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" });
+
+  // New § 7152 data elements (see EUP gap analysis). Each persists via draft (Prompt 2/3).
+  const [q5bProfiling, setQ5bProfiling] = useState("");      // § 7150(b)(4) systematic-observation / sensitive-location profiling trigger
+  const [q15bUnder16, setQ15bUnder16] = useState("");        // § 7001(bbb) under-16 actual-knowledge -> SPI elevation
+  const [q18bTraining, setQ18bTraining] = useState("");      // § 7150(b)(6) training ADMT / facial / emotion / biometric
+  const [i1bMinPi, setI1bMinPi] = useState("");              // § 7152(a)(2) minimum PI necessary
+  const [i4bSources, setI4bSources] = useState("");          // § 7152(a)(3) sources of the PI
 
   const totalSteps = 7; // 6 input steps + summary
 
@@ -310,21 +326,25 @@ export default function CPPARiskAssessment() {
   }, [q1, q4, q5, q15, q18]);
 
   const stepValid = (): string | null => {
-    if (step === 1 && (!entityName.trim() || !q1 || !q2 || !q3 || !q4.length || !q5)) return "Please complete the business profile, including the entity name.";
+    if (step === 1 && (!entityName.trim() || !q1 || !q2 || !q3 || !q4.length || !q5 || !q5bProfiling)) return "Please complete the business profile, including the entity name and the profiling question.";
     if (step === 2 && (!q6Multi.length || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
     if (step === 3 && (!q11 || !q12 || !q13 || !q14)) return "Please complete privacy notice questions.";
     if (step === 4) {
       if (!q15) return "Please answer Q15.";
       if (q15 === "Yes" && (!q16 || !q17)) return "Please complete sensitive PI follow-ups.";
+      if (!q15bUnder16) return "Please answer whether you have actual knowledge of processing under-16 consumers' data.";
     }
     if (step === 5) {
       if (!q18) return "Please answer Q18.";
       if ((q18 === "Yes" || q18 === "In evaluation") && !q19) return "Please describe the ADMT system.";
       if (q18 === "Yes" && !q20) return "Please answer Q20.";
+      if (!q18bTraining) return "Please answer whether you process PI to train ADMT, facial-, emotion-, or biometric-recognition technology.";
     }
     if (step === 6) {
       if (!i1Purpose || i1Purpose.length < 30) return "I-1: Please describe the specific processing purpose (at least 30 characters).";
       if (!i2RetentionPeriod || !i2RetentionCriteria) return "I-2: Please provide a retention period and criteria.";
+      if (!i1bMinPi || i1bMinPi.length < 20) return "I-1b: Please state the minimum personal information necessary for this purpose (§ 7152(a)(2)).";
+      if (!i4bSources) return "I-4b: Please identify where this personal information comes from (§ 7152(a)(3)).";
       if (!i3CaConsumerBand) return "I-3: Please select the approximate California consumer band.";
       if (!i4Disclosures.length) return "I-4: Please select at least one disclosure mechanism (or 'No standalone disclosure').";
       if (admtTriggered && (!i5AdmtLogic || !i5AdmtHumanReview)) return "I-5: ADMT logic and human review fields are required.";
@@ -352,6 +372,12 @@ export default function CPPARiskAssessment() {
     q11_policy_review: q11, q12_notice_at_collection: q12, q13_notice_content: q13, q14_employee_notice: q14,
     q15_sensitive_pi: q15, q16_sensitive_limit: q16, q17_sensitive_basis: q17,
     q18_admt_use: q18, q19_admt_description: q19, q20_admt_opt_out: q20,
+    // new § 7152 elements
+    q5b_profiling_observation: q5bProfiling,
+    q15b_under16_knowledge: q15bUnder16,
+    q18b_admt_training: q18bTraining,
+    i1b_min_pi: i1bMinPi,
+    i4b_sources: i4bSources,
     // v3 additions (I-1 through I-9)
     i1_processing_purpose: i1Purpose,
     i2_retention_period: i2RetentionPeriod,
@@ -377,6 +403,7 @@ export default function CPPARiskAssessment() {
   }), [
     entityName,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
+    q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
@@ -390,12 +417,16 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
+    entityName, q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
+    exceptionClaims, impactData,
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
+    entityName, q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
+    exceptionClaims, impactData,
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
     q1: "", q2: "", q3: "", q4: [] as string[], q5: "", q6Multi: [] as string[], q7: "", q8: "", q9: "", q10: "",
@@ -404,6 +435,9 @@ export default function CPPARiskAssessment() {
     i3CaConsumerBand: "", i4Disclosures: [] as string[], i5AdmtLogic: "", i5AdmtTrainingSource: "",
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "",
+    entityName: "", q5bProfiling: "", q15bUnder16: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
+    exceptionClaims: {} as Record<string, { claimed: boolean; scope: string; safeguards: string }>,
+    impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
   }), []);
   const touched = useMemo(() => JSON.stringify(draftData) !== INITIAL_DRAFT_JSON, [draftData, INITIAL_DRAFT_JSON]);
   const {
@@ -459,6 +493,14 @@ export default function CPPARiskAssessment() {
     if (typeof d.i8ContactEmail === "string") setI8ContactEmail(d.i8ContactEmail);
     if (typeof d.i9HasDpia === "string") setI9HasDpia(d.i9HasDpia);
     if (typeof d.i9DpiaSummary === "string") setI9DpiaSummary(d.i9DpiaSummary);
+    if (typeof d.entityName === "string") setEntityName(d.entityName);
+    if (typeof d.q5bProfiling === "string") setQ5bProfiling(d.q5bProfiling);
+    if (typeof d.q15bUnder16 === "string") setQ15bUnder16(d.q15bUnder16);
+    if (typeof d.q18bTraining === "string") setQ18bTraining(d.q18bTraining);
+    if (typeof d.i1bMinPi === "string") setI1bMinPi(d.i1bMinPi);
+    if (typeof d.i4bSources === "string") setI4bSources(d.i4bSources);
+    if (d.exceptionClaims && typeof d.exceptionClaims === "object") setExceptionClaims(d.exceptionClaims);
+    if (d.impactData && typeof d.impactData === "object") setImpactData((prev) => ({ ...prev, ...d.impactData }));
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
@@ -565,6 +607,11 @@ export default function CPPARiskAssessment() {
               <div onFocus={() => focusRail('q5_sell_share')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /><EnforcementSignalIcon signalKey="sell_share" signals={enforcementSignals} /></div>
                 <p className="text-xs text-muted-foreground mt-1">"Sell" and "share" have specific CCPA meanings — tap the definition icon.</p><div className="mt-2"><Radio name="q5" options={["Yes — sell only", "Yes — share for advertising only", "Both", "No"]} value={q5} onChange={setQ5} /></div>
               </div>
+              <div onFocus={() => focusRail('q5b_profiling')}>
+                <Label>Q5b: Do you profile consumers based on systematic observation, or based on their presence in a sensitive location? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(4))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">This is a separate risk-assessment trigger from selling/sharing. It covers profiling of applicants, employees, students, or independent contractors through systematic observation (e.g. productivity or location tracking), or profiling based on presence in a sensitive location such as a health-care facility, shelter, place of worship, or domestic-violence services provider.</p>
+                <div className="mt-2"><Radio name="q5b" options={["Yes — systematic observation of workers/students/applicants", "Yes — based on sensitive-location presence", "Both", "No"]} value={q5bProfiling} onChange={setQ5bProfiling} /></div>
+              </div>
             </>
           )}
 
@@ -624,6 +671,11 @@ export default function CPPARiskAssessment() {
                 <div><Label>Q16: Do you provide consumers the right to limit use of their sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The right to limit applies when you use sensitive PI beyond what's necessary.</p><div className="mt-2"><Radio name="q16" options={["Yes, with a separate \"Limit the Use of My Sensitive PI\" link", "Yes, handled within privacy settings", "No", "Not yet implemented"]} value={q16} onChange={setQ16} /></div></div>
                 <div><Label>Q17: What is your legal basis for processing sensitive PI? <Req /></Label><p className="text-xs text-muted-foreground mt-1">The lawful basis you rely on to process sensitive PI.</p><div className="mt-2"><Radio name="q17" options={["Consent", "Necessary for the service", "Employment contract", "Other permitted purpose"]} value={q17} onChange={setQ17} /></div></div>
               </>)}
+              <div onFocus={() => focusRail('q15b_under16')}>
+                <Label>Q15b: Do you have actual knowledge that you process the personal information of consumers under 16? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(bbb))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Under the 2026 regulations, <span className="font-medium">all</span> personal information of a consumer under 16 is sensitive personal information where the business has actual knowledge of the age. Requesting age at sign-up, or willfully disregarding age, counts as actual knowledge — and pulls this processing into the sensitive-PI rules.</p>
+                <div className="mt-2"><Radio name="q15b" options={["Yes — we knowingly process under-16 data", "No — we do not knowingly process under-16 data", "Unsure"]} value={q15bUnder16} onChange={setQ15bUnder16} /></div>
+              </div>
             </>
           )}
 
@@ -642,6 +694,11 @@ export default function CPPARiskAssessment() {
               {q18 === "Yes" && (
                 <div><Label>Q20: Do you provide consumers with the right to opt out of ADMT? <Req /></Label><p className="text-xs text-muted-foreground mt-1">An opt-out is required for qualifying ADMT.</p><div className="mt-2"><Radio name="q20" options={["Yes, with documented opt-out", "Planned for implementation", "No"]} value={q20} onChange={setQ20} /></div></div>
               )}
+              <div onFocus={() => focusRail('q18b_admt_training')}>
+                <Label>Q21: Do you process personal information to train ADMT, facial-recognition, emotion-recognition, identity-verification, or physical/biological-identification technology? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">Training such a model is an independent risk-assessment trigger, separate from <span className="font-medium">using</span> ADMT for a decision. It applies even if the trained system is never deployed against your own consumers — for example, building or fine-tuning a facial-recognition or biometric model on collected data.</p>
+                <div className="mt-2"><Radio name="q21" options={["Yes — training ADMT for significant decisions", "Yes — training facial/emotion/biometric recognition", "No"]} value={q18bTraining} onChange={setQ18bTraining} /></div>
+              </div>
             </>
           )}
 
@@ -670,6 +727,12 @@ export default function CPPARiskAssessment() {
                 <FscrCallout citation="11 CCR § 7152(a)(1)" callouts={fscrCallouts} />
               </div>
 
+              <div onFocus={() => focusRail('i1b_min_pi')}>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-1b: What is the minimum personal information necessary to achieve this purpose? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="I-1b · Minimum PI necessary" summary="The assessment must identify the minimum personal information necessary to achieve the purpose, reflecting the CCPA's data-minimisation principle." cite="11 CCR § 7152(a)(2)" /></div>
+                <p className="text-xs text-muted-foreground mt-1">Name the specific data elements you actually need for the purpose above, and note any you collect today that are <span className="font-medium">not</span> strictly necessary. If a less-identifying alternative (de-identified, aggregated, or shorter-retained data) could achieve the same purpose, say so — § 7152(a)(2) requires this minimisation analysis.</p>
+                <Textarea className="mt-2" rows={3} value={i1bMinPi} onChange={(e) => setI1bMinPi(e.target.value)} placeholder='E.g. "Purpose needs account ID + 12-month purchase history only. Precise geolocation and device fingerprint are collected but not required for recommendations; candidates for minimisation."' />
+              </div>
+
               <div onFocus={() => focusRail('i2_retention')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-2: How long will you keep this data, and how is that period set? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(B))</span></Label><StatutePopover term="I-2 · Retention period" summary="State how long each category of personal information will be retained, or the criteria used to determine that period." cite="11 CCR § 7152(a)(4)(B)" /></div>
                 <input
@@ -695,6 +758,48 @@ export default function CPPARiskAssessment() {
                 />
               </div>
 
+              {/* === CCPA business purposes / statutory exemptions (optional) — moved to follow retention === */}
+              <div className="border-t pt-6 mt-6">
+                <Label className="text-base font-semibold">CCPA business purposes &amp; statutory exemptions <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  These are the enumerated "business purposes" in <span className="font-mono">Cal. Civ. Code § 1798.140(e)</span> and exemptions in <span className="font-mono">§ 1798.145</span>. They permit specific internal uses or carve out specific obligations — they do <span className="font-medium">not</span> remove a § 7150 trigger from risk-assessment scope. Identify any you rely on so the report can address them; leave blank if none apply.
+                </p>
+                <div className="mt-3 space-y-3">
+                  {CPPA_EXCEPTIONS.map((ex) => {
+                    const cur = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "" };
+                    return (
+                      <div key={ex.key} className="rounded border p-3" onFocus={() => focusRail(ex.railKey)} onClick={() => focusRail(ex.railKey)}>
+                        <label className="flex items-start gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="mt-1"
+                            checked={cur.claimed}
+                            onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, claimed: e.target.checked } }))}
+                          />
+                          <span className="text-sm font-medium">{ex.label} <span className="text-xs text-muted-foreground font-mono">({ex.cite})</span></span>
+                        </label>
+                        {cur.claimed && (
+                          <div className="mt-2 space-y-2 pl-6">
+                            <Textarea
+                              rows={2}
+                              value={cur.scope}
+                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, scope: e.target.value } }))}
+                              placeholder="Scope: which activity/data does this purpose cover, and why does it qualify?"
+                            />
+                            <Textarea
+                              rows={2}
+                              value={cur.safeguards}
+                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, safeguards: e.target.value } }))}
+                              placeholder="Safeguards documented to keep this within the permitted purpose under audit."
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-3: Approximately how many California consumers does this activity affect? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(D))</span></Label><StatutePopover term="I-3 · California consumer count" summary="State the approximate number of consumers whose personal information the processing affects." cite="11 CCR § 7152(a)(4)(D)" /></div>
                 <div className="mt-2"><Radio name="i3" options={CA_CONSUMER_BAND} value={i3CaConsumerBand} onChange={setI3CaConsumerBand} /></div>
@@ -705,6 +810,13 @@ export default function CPPARiskAssessment() {
                 <p className="text-xs text-muted-foreground mt-1">Select every mechanism that applies. The report will map your selections against the conspicuousness requirements of § 7003.</p>
                 <div className="mt-2"><Pills options={DISCLOSURE_MECHANISMS} value={i4Disclosures} onChange={setI4Disclosures} /></div>
               </div>
+
+              <div onFocus={() => focusRail('i4b_sources')}>
+                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-4b: Where does this personal information come from? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3))</span></Label><StatutePopover term="I-4b · Sources of the PI" summary="The operational elements of the processing must identify the sources of the personal information — for example, directly from the consumer, observed, or obtained from third parties." cite="11 CCR § 7152(a)(3)" /></div>
+                <p className="text-xs text-muted-foreground mt-1">Identify each source: collected directly from the consumer, passively observed from their activity, generated/inferred by you, or obtained from third parties (data brokers, advertising or analytics partners, affiliates, public records). Note which categories come from which source.</p>
+                <Textarea className="mt-2" rows={3} value={i4bSources} onChange={(e) => setI4bSources(e.target.value)} placeholder='E.g. "Contact + account data: directly from consumer at sign-up. Device + activity: observed in-app. Geolocation: derived from IP. Audience segments: appended from ad partner X."' />
+              </div>
+
 
               {admtTriggered && (
                 <div onFocus={() => focusRail('i5_admt')} className="border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/40 dark:bg-amber-950/10 rounded-r">
@@ -762,7 +874,8 @@ export default function CPPARiskAssessment() {
               )}
 
               <div>
-                <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-6: Which service providers, contractors, or third parties are involved? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="I-6 · Vendors / service providers" summary="Identify the service providers, contractors, and third parties to whom personal information is disclosed for this processing." cite="11 CCR § 7152(a)(4)(F)" /></div>
+                <div className="inline-flex items-center gap-1.5 flex-wrap" onFocus={() => focusRail('i6_recipients')}><Label>I-6: Which service providers, contractors, or third parties are involved? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="I-6 · Recipients of the PI" summary="Identify the recipients of the personal information — service providers, contractors, and third parties — together with their category and the purpose of each disclosure." cite="11 CCR § 7152(a)(3)(F)" /></div>
+                <p className="text-xs text-muted-foreground mt-1">For each recipient, note its category — <span className="font-medium">service provider</span>, <span className="font-medium">contractor</span>, or <span className="font-medium">third party</span> — and the purpose of the disclosure. The category matters: disclosure to a third party for its own use is a sale or share.</p>
                 <Textarea
                   className="mt-2"
                   rows={3}
@@ -844,48 +957,6 @@ export default function CPPARiskAssessment() {
                 )}
               </div>
 
-              {/* === CCPA business purposes / statutory exemptions (optional) === */}
-              <div className="border-t pt-6 mt-6">
-                <Label className="text-base font-semibold">CCPA business purposes &amp; statutory exemptions <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
-                <p className="text-xs text-muted-foreground mt-1">
-                  These are the enumerated "business purposes" in <span className="font-mono">Cal. Civ. Code § 1798.140(e)</span> and exemptions in <span className="font-mono">§ 1798.145</span>. They permit specific internal uses or carve out specific obligations — they do <span className="font-medium">not</span> remove a § 7150 trigger from risk-assessment scope. Identify any you rely on so the report can address them; leave blank if none apply.
-                </p>
-                <div className="mt-3 space-y-3">
-                  {CPPA_EXCEPTIONS.map((ex) => {
-                    const cur = exceptionClaims[ex.key] ?? { claimed: false, scope: "", safeguards: "" };
-                    return (
-                      <div key={ex.key} className="rounded border p-3" onFocus={() => focusRail(ex.railKey)} onClick={() => focusRail(ex.railKey)}>
-                        <label className="flex items-start gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="mt-1"
-                            checked={cur.claimed}
-                            onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, claimed: e.target.checked } }))}
-                          />
-                          <span className="text-sm font-medium">{ex.label} <span className="text-xs text-muted-foreground font-mono">({ex.cite})</span></span>
-                        </label>
-                        {cur.claimed && (
-                          <div className="mt-2 space-y-2 pl-6">
-                            <Textarea
-                              rows={2}
-                              value={cur.scope}
-                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, scope: e.target.value } }))}
-                              placeholder="Scope: which activity/data does this purpose cover, and why does it qualify?"
-                            />
-                            <Textarea
-                              rows={2}
-                              value={cur.safeguards}
-                              onChange={(e) => setExceptionClaims((m) => ({ ...m, [ex.key]: { ...cur, safeguards: e.target.value } }))}
-                              placeholder="Safeguards documented to keep this within the permitted purpose under audit."
-                            />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
               {/* === Impact assessment (optional but recommended) === */}
               <div className="border-t pt-6 mt-6">
                 <Label className="text-base font-semibold">Impact assessment <span className="text-xs font-normal text-muted-foreground">(optional but recommended)</span></Label>
@@ -901,18 +972,34 @@ export default function CPPARiskAssessment() {
                     <Label>Severity of harm if it occurs</Label>
                     <div className="mt-2"><Radio name="impact_severity" options={["Minimal", "Moderate", "Significant", "Severe"]} value={impactData.severity} onChange={(v) => setImpactData((d) => ({ ...d, severity: v }))} /></div>
                   </div>
-                  <div>
-                    <Label>Types of harm that could result</Label>
+                  <div onFocus={() => focusRail('impact_harm_causes')}>
+                    <Label>Types of harm that could result <span className="text-xs text-muted-foreground font-mono">(§ 7152(a)(5))</span></Label>
                     <div className="mt-2"><Pills options={HARM_TYPES} value={impactData.harmTypes} onChange={(v) => setImpactData((d) => ({ ...d, harmTypes: v }))} /></div>
+                    <p className="text-xs text-muted-foreground mt-2">For the harms selected above, describe their <span className="font-medium">sources and causes</span> — what about this processing creates each harm. § 7152(a)(5) requires the assessment to identify the sources and causes of negative impacts, not just the harms.</p>
+                    <Textarea className="mt-2" rows={3} value={impactData.harmCauses} onChange={(e) => setImpactData((d) => ({ ...d, harmCauses: e.target.value }))} placeholder='E.g. "Profiling harm is caused by combining first-party data with broker-appended segments; discrimination risk arises from using inferred attributes in eligibility decisions."' />
                   </div>
                   <div>
                     <Label>Vulnerable populations affected (if any)</Label>
                     <Textarea className="mt-2" rows={2} value={impactData.vulnerable} onChange={(e) => setImpactData((d) => ({ ...d, vulnerable: e.target.value }))} placeholder="e.g. minors, patients, employees, protected classes — and how they are affected." />
                   </div>
-                  <div>
+                  <div onFocus={() => focusRail('impact_benefits')}>
+                    <Label>Benefits of this processing <span className="text-xs text-muted-foreground font-mono">(§ 7152(a)(4))</span></Label>
+                    <p className="text-xs text-muted-foreground mt-1">§ 7152(a)(4) requires the benefits to be identified <span className="font-medium">specifically</span> for each group — generic descriptions are not permitted. Complete each that applies.</p>
+                    <div className="mt-2 space-y-2">
+                      <Textarea rows={2} value={impactData.businessBenefits} onChange={(e) => setImpactData((d) => ({ ...d, businessBenefits: e.target.value }))} placeholder="Benefit to the business — be specific (e.g. ad-placement revenue, % of total revenue, product viability)." />
+                      <Textarea rows={2} value={impactData.consumerBenefits} onChange={(e) => setImpactData((d) => ({ ...d, consumerBenefits: e.target.value }))} placeholder="Benefit to the consumer — be specific (e.g. free access to the ad-supported tier, relevance of content)." />
+                      <Textarea rows={2} value={impactData.stakeholderBenefits} onChange={(e) => setImpactData((d) => ({ ...d, stakeholderBenefits: e.target.value }))} placeholder="Benefit to other stakeholders or the public, if any (optional)." />
+                    </div>
+                  </div>
+                  <div onFocus={() => focusRail('impact_safeguards')}>
+                    <Label>Safeguards planned to address these harms <span className="text-xs text-muted-foreground font-mono">(§ 7152(a))</span></Label>
+                    <p className="text-xs text-muted-foreground mt-1">Identify the safeguards you have or plan to put in place to reduce the negative impacts above — for example encryption, access controls, data minimisation at point of transfer, contractual restrictions on recipients, privacy-enhancing technologies, or de-identification. This is a required element; leaving it blank produces a fill-in in the report.</p>
+                    <Textarea className="mt-2" rows={3} value={impactData.safeguards} onChange={(e) => setImpactData((d) => ({ ...d, safeguards: e.target.value }))} placeholder='E.g. "Contractual use-restrictions + data-processing agreements with ad partners; IP truncation before transfer; SSP opt-out signal propagation; SOC 2 access controls."' />
+                  </div>
+                  <div onFocus={() => focusRail('impact_benefits')}>
                     <Label>Do the benefits of this processing outweigh the risks to consumers?</Label>
                     <div className="mt-2"><Radio name="impact_benefits" options={["Yes", "No", "Uncertain"]} value={impactData.benefitsOutweigh} onChange={(v) => setImpactData((d) => ({ ...d, benefitsOutweigh: v }))} /></div>
-                    <Textarea className="mt-2" rows={3} value={impactData.benefitsRationale} onChange={(e) => setImpactData((d) => ({ ...d, benefitsRationale: e.target.value }))} placeholder="Rationale (§ 7153(e)): explain the specific benefits and how they weigh against the specific harms above." />
+                    <Textarea className="mt-2" rows={3} value={impactData.benefitsRationale} onChange={(e) => setImpactData((d) => ({ ...d, benefitsRationale: e.target.value }))} placeholder="Rationale (§ 7152(a)(4)): explain how the specific benefits weigh against the specific harms above." />
                   </div>
                   <div>
                     <Label>Have you identified cybersecurity gaps relevant to this processing?</Label>

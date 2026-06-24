@@ -75,7 +75,16 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     && !/^no/i.test(intake.q5_sell_share);
   if (sells) triggers.sells_or_shares_pi = true;
   if (intake.q15_sensitive_pi === "Yes") triggers.sensitive_pi_beyond_enumerated = true;
+  // Precise geolocation is sensitive PI under § 1798.140(ae)(1).
+  const piCatsForTrig = Array.isArray(intake.q4_pi_categories) ? intake.q4_pi_categories : [];
+  if (piCatsForTrig.some((c: string) => /precise geolocation/i.test(String(c)))) triggers.sensitive_pi_beyond_enumerated = true;
+  // Under-16 actual knowledge elevates to sensitive PI (§ 7001(bbb)).
+  if (typeof intake.q15b_under16_knowledge === "string" && /^yes/i.test(intake.q15b_under16_knowledge)) triggers.sensitive_pi_beyond_enumerated = true;
+  // Profiling via systematic observation / sensitive location (§ 7150(b)(4)).
+  if (typeof intake.q5b_profiling_observation === "string" && /yes|both/i.test(intake.q5b_profiling_observation)) triggers.profiling_significant_effects = true;
   if (intake.q18_admt_use === "Yes" || intake.q18_admt_use === "In evaluation") triggers.admt_involved = true;
+  // Training ADMT / facial / emotion / biometric (§ 7150(b)(5)).
+  if (typeof intake.q18b_admt_training === "string" && /^yes/i.test(intake.q18b_admt_training)) triggers.admt_involved = true;
   const consumerBand = String(intake.q2_consumers ?? intake.i3_ca_consumer_band ?? "");
   if (/100[,\s]?000|million|m\+|>=?\s*100k/i.test(consumerBand)) triggers.high_volume_processing = true;
   // If nothing matched, mark sells_or_shares_pi so generation still runs.
@@ -87,9 +96,12 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     data_categories: piCats,
     consumer_categories: [],
     purpose_description: String(intake.i1_processing_purpose ?? "Legacy intake — purpose not captured at this specificity."),
-    business_benefits: String(intake.i5_business_benefits ?? "Not captured in legacy intake."),
-    consumer_benefits: "",
-    current_safeguards: String(intake.i7_safeguards ?? "Not captured in legacy intake."),
+    business_benefits: String((intake.impact_intake?.businessBenefits ?? "").trim() || "Not provided."),
+    consumer_benefits: String((intake.impact_intake?.consumerBenefits ?? "").trim() || "Not provided."),
+    stakeholder_public_benefits: String((intake.impact_intake?.stakeholderBenefits ?? "").trim() || "Not provided."),
+    current_safeguards: String((intake.impact_intake?.safeguards ?? "").trim() || "Not provided."),
+    minimum_pi_necessary: String((intake.i1b_min_pi ?? "").trim() || "Not provided."),
+    pi_sources: String((intake.i4b_sources ?? "").trim() || "Not provided."),
     known_gaps: "",
     third_party_recipients: String(intake.i6_vendors ?? ""),
     cross_context_tracking: !!triggers.sells_or_shares_pi,
@@ -162,6 +174,16 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     sensitive_pi_basis: String(intake.q17_sensitive_basis ?? ""),
     opt_out_link: String(intake.q9_opt_out ?? ""),
     notice_at_collection: String(intake.q12_notice_at_collection ?? ""),
+    minimum_pi_necessary: String(intake.i1b_min_pi ?? ""),
+    pi_sources: String(intake.i4b_sources ?? ""),
+    under16_actual_knowledge: String(intake.q15b_under16_knowledge ?? ""),
+    profiling_observation_trigger: String(intake.q5b_profiling_observation ?? ""),
+    admt_training_trigger: String(intake.q18b_admt_training ?? ""),
+    business_benefits: String(intake.impact_intake?.businessBenefits ?? ""),
+    consumer_benefits: String(intake.impact_intake?.consumerBenefits ?? ""),
+    stakeholder_public_benefits: String(intake.impact_intake?.stakeholderBenefits ?? ""),
+    planned_safeguards: String(intake.impact_intake?.safeguards ?? ""),
+    harm_sources_and_causes: String(intake.impact_intake?.harmCauses ?? ""),
   };
 
   return {
@@ -200,6 +222,12 @@ function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimm
 function validateFiveStage(intake: FiveStageIntake, lenient: boolean): { ok: true } | { ok: false; message: string; field: string } {
   if (!Object.values(intake.triggers).some((v) => v === true)) {
     return { ok: false, message: "At least one § 7150(b) triggering activity must be selected.", field: "triggers" };
+  }
+  // Runs in BOTH modes: a blank/placeholder company name produced
+  // "[FILL IN — business legal name]" in finished reports. Block it.
+  const companyName = String(intake.org_context?.company_name ?? "");
+  if (!companyName.trim() || companyName.includes("[FILL IN")) {
+    return { ok: false, message: "The business legal name is missing. Please complete the entity name on Step 1 before generating.", field: "org_context.company_name" };
   }
   if (lenient) return { ok: true };
 
@@ -325,7 +353,9 @@ CORE OPERATING RULES:
 5. § 7153 MAPPING — Every section of the output document must map explicitly to a § 7153 required content element. Do not generate content that is not required by statute — every paragraph earns its place.
 6. CYBERSECURITY AUDIT LINKAGE — If the intake reveals cybersecurity gaps or if the organisation's revenue exceeds $100M, flag the § 7158 cybersecurity audit obligation explicitly with the April 1, 2028 certification deadline.
 7. ADMT LINKAGE — If ADMT is involved in any triggered activity, flag the January 1, 2027 ADMT disclosure deadline under § 7221 and recommend the ADMT Assessment tool.
-8. BENEFITS-OUTWEIGH-RISKS ANALYSIS — The § 7153(e) analysis must be grounded in the specific activities and impacts described in the intake. Do not produce generic balancing language. Reference the specific benefits and harms the organisation has identified.
+8. BENEFITS-OUTWEIGH-RISKS ANALYSIS — The § 7152(a)(4) analysis must be grounded in the specific activities and impacts described in the intake. Do not produce generic balancing language. Reference the specific benefits and harms the organisation has identified.
+9. NO INTERNAL FIELD NAMES — The intake is described to you in plain language. Never reproduce internal variable or field names in the report (e.g. do not write "cross_context_tracking: true", "profiling_inferences: true", "admt_involved", or any snake_case key). Describe the underlying facts in ordinary professional prose ("the intake confirms cross-context tracking"). The reader never sees raw field names.
+10. DO NOT INVENT MISSING FACTS — Where an intake value is "Not provided" / "not stated", mark it as a fill-in for the organisation to complete with a citation to the governing subsection. Never fabricate a company name, date, benefit, or safeguard.
 
 CITATION STANDARDS:
 - GROUND IN THE PROVIDED TEXT — When the VERBATIM REGULATION TEXT above contains the provision you cite, your description of what it requires must match that text; do not paraphrase it into a different requirement. Where the AGENCY COMMENTARY (FSOR) explains a provision's intent, reflect that intent. Prefer citing provisions that appear in the provided text.
@@ -389,22 +419,65 @@ OUTPUT FORMAT — Return a single JSON object with this exact structure. No mark
 
 function buildUserPrompt(intake: FiveStageIntake): string {
   const { triggers, exceptions, activity_details, impact, org_context } = intake;
-  const claimed = Object.entries(exceptions).filter(([, v]: any) => v?.claimed)
-    .reduce((acc: any, [k, v]) => { acc[k] = v; return acc; }, {});
   const noExceptions = Object.values(exceptions).every((v: any) => !v?.claimed);
-  return `Generate a CPPA risk assessment for the following organisation. Map all output to the § 7153 required content elements.
 
-STAGE 1 — TRIGGERED ACTIVITIES:
-${JSON.stringify(triggers, null, 2)}
+  // Plain-language labels — never emit the raw snake_case keys into the prompt,
+  // or the model echoes them ("cross_context_tracking: true") into the report.
+  const TRIGGER_LABELS: Record<string, string> = {
+    sells_or_shares_pi: "Selling or sharing personal information",
+    targeted_advertising: "Cross-context behavioural / targeted advertising",
+    profiling_significant_effects: "Profiling via systematic observation or sensitive-location presence",
+    sensitive_pi_beyond_enumerated: "Processing sensitive personal information",
+    high_volume_processing: "High-volume processing",
+    admt_involved: "Automated decisionmaking technology (use and/or training)",
+  };
+  const EXCEPTION_LABELS: Record<string, string> = {
+    fraud_detection: "Fraud prevention / detection",
+    security_integrity: "Security & integrity of systems and data",
+    debugging: "Debugging to identify and repair errors",
+    transient_use: "Transient / short-term use",
+    internal_research: "Internal research for technological development",
+    employment_context: "Employment-context processing",
+    legal_compliance: "Compliance with a legal obligation",
+    consumer_request: "Performing a service the consumer requested",
+  };
+  const yn = (b: any) => (b ? "yes" : "no");
+
+  const activeTriggers = Object.entries(triggers).filter(([, v]) => v).map(([k]) => TRIGGER_LABELS[k] ?? k);
+  const claimedList = Object.entries(exceptions)
+    .filter(([, v]: any) => v?.claimed)
+    .map(([k, v]: any) => `- ${EXCEPTION_LABELS[k] ?? k}: scope — ${String(v.scope || "not described")}; safeguards — ${String(v.safeguards || "not described")}`);
+  const activityProse = (activity_details ?? []).map((a: any, i: number) => {
+    const cats = Array.isArray(a.data_categories) ? a.data_categories.join(", ") : String(a.data_categories ?? "not specified");
+    const cons = Array.isArray(a.consumer_categories) && a.consumer_categories.length ? a.consumer_categories.join(", ") : "not specified";
+    return `Activity ${i + 1} — ${TRIGGER_LABELS[a.trigger_key] ?? a.trigger_key}:
+  Data categories: ${cats}
+  Consumer categories: ${cons}
+  Specific purpose: ${String(a.purpose_description ?? "not provided")}
+  Minimum PI necessary (§ 7152(a)(2)): ${String(a.minimum_pi_necessary ?? "Not provided.")}
+  Sources of the PI (§ 7152(a)(3)): ${String(a.pi_sources ?? "Not provided.")}
+  Recipients / third parties: ${String(a.third_party_recipients || "none stated")}
+  Benefit to the business (§ 7152(a)(4)): ${String(a.business_benefits ?? "Not provided.")}
+  Benefit to the consumer (§ 7152(a)(4)): ${String(a.consumer_benefits ?? "Not provided.")}
+  Benefit to other stakeholders / the public: ${String(a.stakeholder_public_benefits ?? "Not provided.")}
+  Planned safeguards (§ 7152(a)): ${String(a.current_safeguards ?? "Not provided.")}
+  Cross-context tracking: ${yn(a.cross_context_tracking)}; profiling/inferences: ${yn(a.profiling_inferences)}; children in scope: ${yn(a.children_in_scope)}`;
+  }).join("\n\n");
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  return `Generate a CPPA risk assessment for the following organisation. Map all output to the § 7152 required content elements. Use ${today} as the assessment_date — do not invent a different date.
+
+STAGE 1 — TRIGGERED ACTIVITIES (§ 7150(b)):
+${activeTriggers.length ? activeTriggers.map((t) => `- ${t}`).join("\n") : "- None explicitly indicated."}
 
 Annual consumer volume: ${intake.annual_consumer_volume ?? "Not specified"}
 
-STAGE 2 — EXCEPTION CLAIMS:
-${JSON.stringify(claimed, null, 2)}
-${noExceptions ? "No exceptions claimed." : ""}
+STAGE 2 — § 7152 EXCEPTION / BUSINESS-PURPOSE CLAIMS:
+${noExceptions ? "No exceptions claimed." : claimedList.join("\n")}
 
 STAGE 3 — PROCESSING ACTIVITY DETAILS:
-${JSON.stringify(activity_details, null, 2)}
+${activityProse || "No activity detail provided."}
 
 STAGE 4 — IMPACT ASSESSMENT:
 Likelihood of harm: ${impact.likelihood_of_harm}
@@ -442,6 +515,12 @@ Sensitive-PI use-limitation offered: ${intake.content_detail.sensitive_pi_limit_
 Sensitive-PI processing basis: ${intake.content_detail.sensitive_pi_basis || "n/a"}
 "Do Not Sell/Share" opt-out link: ${intake.content_detail.opt_out_link || "n/a"}
 Notice at collection: ${intake.content_detail.notice_at_collection || "n/a"}
+Minimum PI necessary (§ 7152(a)(2)): ${intake.content_detail.minimum_pi_necessary || "not provided"}
+Sources of the PI (§ 7152(a)(3)): ${intake.content_detail.pi_sources || "not provided"}
+Under-16 actual knowledge (§ 7001(bbb)): ${intake.content_detail.under16_actual_knowledge || "not stated"}
+Systematic-observation / sensitive-location profiling trigger (§ 7150(b)(4)): ${intake.content_detail.profiling_observation_trigger || "no"}
+ADMT / biometric training trigger (§ 7150(b)(5)): ${intake.content_detail.admt_training_trigger || "no"}
+Negative-impact sources and causes (§ 7152(a)(5)): ${intake.content_detail.harm_sources_and_causes || "not provided"}
 Contributors to this assessment (§ 7152(a)(8)): ${intake.content_detail.internal_contributors || "not provided"}
 External consultees: ${intake.content_detail.external_consultees || "none stated"}
 Certifying executive (§ 7157): ${intake.content_detail.certifying_exec_name || "[FILL IN]"}${intake.content_detail.certifying_exec_title ? `, ${intake.content_detail.certifying_exec_title}` : ""}${intake.content_detail.certifying_contact_email ? ` (${intake.content_detail.certifying_contact_email})` : ""}
