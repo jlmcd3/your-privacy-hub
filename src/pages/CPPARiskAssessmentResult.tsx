@@ -147,11 +147,12 @@ export default function CPPARiskAssessmentResult() {
       || !!(row.report_data as any).part_a
     )
   );
-  const showRunning = !loading && (
+  const showRunning = !loading && !pollTimedOut && (
     status === "pending"
     || status === "processing"
     || (status === "complete" && !reportReady)
   );
+  const terminal = status === "complete" || status === "error";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -159,7 +160,7 @@ export default function CPPARiskAssessmentResult() {
       <Navbar />
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
-        {purchased && (
+        {purchased && !terminal && !pollTimedOut && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             ✅ Purchase confirmed. Your assessment is being generated.
           </div>
@@ -168,6 +169,16 @@ export default function CPPARiskAssessmentResult() {
 
         {showRunning && (
           <ProcessingInterstitial tool="cppa_risk" />
+        )}
+
+        {pollTimedOut && status !== "complete" && status !== "error" && (
+          <div className="bg-card border rounded-lg p-6 space-y-3">
+            <p className="font-medium text-amber-700">Status check timed out.</p>
+            <p className="text-sm text-muted-foreground">
+              We stopped polling after ~20 minutes. The job may still be running, or it may have failed silently. Refresh to re-check, or contact support if this persists.
+            </p>
+            <Button onClick={() => window.location.reload()}>Refresh status</Button>
+          </div>
         )}
 
         {status === "error" && (
