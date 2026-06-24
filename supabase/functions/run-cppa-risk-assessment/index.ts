@@ -527,13 +527,14 @@ async function runPipeline(assessment_id: string) {
     const t0 = Date.now();
     let parsed: any = null;
     let debugRaw = "";
+    let lastStopReason: string | null = null;
 
     const first = await callModel(system, userPrompt, "generate-v4");
+    lastStopReason = first.stopReason;
 
-    if (first.stopReason === "max_tokens") {
-      // Output was truncated — retry at 12000 tokens
-      console.warn("[cppa-risk v4] output truncated (max_tokens) — retrying at 12000 tokens");
-      const retryRes = await fetch("https://api.anthropic.com/v1/messages", {
+    // Helper: re-call Claude at an explicit token ceiling.
+    const callAt = async (maxTokens: number, label: string) => {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
           "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!,
@@ -542,19 +543,36 @@ async function runPipeline(assessment_id: string) {
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-6",
-          max_tokens: 12000,
+          max_tokens: maxTokens,
           system,
           messages: [{ role: "user", content: userPrompt }],
         }),
         signal: AbortSignal.timeout(900_000),
       });
-      if (retryRes.ok) {
-        const retryData = await retryRes.json();
-        const retryText = retryData.content?.[0]?.text ?? "";
-        debugRaw = retryText;
-        parsed = tryParseJson(retryText);
-      } else {
-        debugRaw = first.text;
+      if (!res.ok) {
+        console.warn(`[${label}] http ${res.status}`);
+        return { text: "", stopReason: null as string | null };
+      }
+      const data = await res.json();
+      const text = data.content?.[0]?.text ?? "";
+      const stopReason: string | null = data.stop_reason ?? null;
+      console.log(`[${label}] ok chars=${text.length} stop=${stopReason}`);
+      return { text, stopReason };
+    };
+
+    if (first.stopReason === "max_tokens") {
+      console.warn("[cppa-risk v4] output truncated (max_tokens) — retrying at 16000 tokens");
+      const retry = await callAt(16000, "generate-v4-retry-16k");
+      lastStopReason = retry.stopReason;
+      debugRaw = retry.text;
+      parsed = tryParseJson(retry.text);
+      // If still truncated, escalate once more at the model's working ceiling.
+      if (!parsed && retry.stopReason === "max_tokens") {
+        console.warn("[cppa-risk v4] retry still truncated — escalating to 32000 tokens");
+        const retry2 = await callAt(32000, "generate-v4-retry-32k");
+        lastStopReason = retry2.stopReason;
+        debugRaw = retry2.text;
+        parsed = tryParseJson(retry2.text);
       }
     } else {
       debugRaw = first.text;
@@ -562,17 +580,25 @@ async function runPipeline(assessment_id: string) {
       if (!parsed) {
         console.warn("[cppa-risk v4] first parse failed — retrying once");
         const retry = await callModel(system, userPrompt, "generate-v4-retry");
+        lastStopReason = retry.stopReason;
         debugRaw = retry.text;
         parsed = tryParseJson(retry.text);
       }
     }
 
-    console.log(`[cppa-risk v4] generation total ${Date.now() - t0}ms`);
+    console.log(`[cppa-risk v4] generation total ${Date.now() - t0}ms stop=${lastStopReason}`);
 
     if (!parsed || !parsed.assessment_summary) {
+      const errorCode = lastStopReason === "max_tokens"
+        ? "generation_truncated"
+        : "generation_parse_failed";
       await supabase.from("cppa_assessments").update({
         status: "error",
-        report_data: { error: "generation_parse_failed", debug: debugRaw.slice(0, 4000) },
+        report_data: {
+          error: errorCode,
+          stop_reason: lastStopReason,
+          debug: debugRaw.slice(0, 4000),
+        },
       }).eq("id", assessment_id);
       return;
     }

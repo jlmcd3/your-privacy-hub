@@ -90,17 +90,20 @@ export default function CPPARiskAssessmentResult() {
   const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
+  const [pollTimedOut, setPollTimedOut] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     let timer: any;
     let attempts = 0;
+    // Extended poll budget: 3s × 100 (5 min) + 6s × 150 (15 min) ≈ 20 min total.
+    // Generator runs can exceed 6 min on heavy intakes; old 5-min cap silently
+    // froze the page on a stale "processing" snapshot.
+    const MAX_POLLS = 250;
     const fetchOnce = async () => {
       const { data } = await supabase.from("cppa_assessments").select("*").eq("id", id).maybeSingle();
       setRow(data);
       setLoading(false);
-      // Dual-polling: keep polling not only on pending/processing, but also when
-      // status === 'complete' arrived before report_data was written.
       const rd = data?.report_data as any;
       const reportReady = rd && typeof rd === "object" && Object.keys(rd).length > 0
         && (
@@ -116,8 +119,11 @@ export default function CPPARiskAssessmentResult() {
         || (data.status === "complete" && !reportReady)
       );
       attempts += 1;
-      if (stillRunning && attempts < 100) {
-        timer = setTimeout(fetchOnce, 3000);
+      if (stillRunning && attempts < MAX_POLLS) {
+        const delay = attempts < 100 ? 3000 : 6000;
+        timer = setTimeout(fetchOnce, delay);
+      } else if (stillRunning) {
+        setPollTimedOut(true);
       }
     };
     fetchOnce();
@@ -141,11 +147,12 @@ export default function CPPARiskAssessmentResult() {
       || !!(row.report_data as any).part_a
     )
   );
-  const showRunning = !loading && (
+  const showRunning = !loading && !pollTimedOut && (
     status === "pending"
     || status === "processing"
     || (status === "complete" && !reportReady)
   );
+  const terminal = status === "complete" || status === "error";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -153,7 +160,7 @@ export default function CPPARiskAssessmentResult() {
       <Navbar />
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
-        {purchased && (
+        {purchased && !terminal && !pollTimedOut && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             ✅ Purchase confirmed. Your assessment is being generated.
           </div>
@@ -162,6 +169,16 @@ export default function CPPARiskAssessmentResult() {
 
         {showRunning && (
           <ProcessingInterstitial tool="cppa_risk" />
+        )}
+
+        {pollTimedOut && status !== "complete" && status !== "error" && (
+          <div className="bg-card border rounded-lg p-6 space-y-3">
+            <p className="font-medium text-amber-700">Status check timed out.</p>
+            <p className="text-sm text-muted-foreground">
+              We stopped polling after ~20 minutes. The job may still be running, or it may have failed silently. Refresh to re-check, or contact support if this persists.
+            </p>
+            <Button onClick={() => window.location.reload()}>Refresh status</Button>
+          </div>
         )}
 
         {status === "error" && (

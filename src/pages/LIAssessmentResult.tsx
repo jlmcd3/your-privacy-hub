@@ -128,7 +128,7 @@ const LIAssessmentResult = () => {
     if (!id) return;
     let timer: any;
     let pollCount = 0;
-    const MAX_POLLS = 100; // 5 minutes at 3s intervals — corpus-grounded runs take ~3 min
+    const MAX_POLLS = 400; // ~20 min total: 3s × 100 (5 min) + 6s × 300 (15 min) — heavy runs can exceed prior 5-min cap
 
     const fetchOnce = async () => {
       const { data } = await supabase.from("li_assessments").select("*").eq("id", id).maybeSingle();
@@ -138,7 +138,8 @@ const LIAssessmentResult = () => {
       if (data && (data.status === "pending" || data.status === "processing")) {
         pollCount += 1;
         if (pollCount < MAX_POLLS) {
-          timer = setTimeout(fetchOnce, 3000);
+          const delay = pollCount < 100 ? 3000 : 6000;
+          timer = setTimeout(fetchOnce, delay);
         } else {
           setAssessment((prev: any) => ({ ...prev, status: "failed" }));
         }
@@ -190,7 +191,7 @@ const LIAssessmentResult = () => {
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         <ClientContextBadge />
 
-        {purchased && (
+        {purchased && status !== "complete" && status !== "failed" && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             ✅ Purchase confirmed. Your assessment is being generated.
           </div>
