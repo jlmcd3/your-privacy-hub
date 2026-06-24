@@ -83,7 +83,7 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
   // Profiling via systematic observation / sensitive location (§ 7150(b)(4)).
   if (typeof intake.q5b_profiling_observation === "string" && /yes|both/i.test(intake.q5b_profiling_observation)) triggers.profiling_significant_effects = true;
   if (intake.q18_admt_use === "Yes" || intake.q18_admt_use === "In evaluation") triggers.admt_involved = true;
-  // Training ADMT / facial / emotion / biometric (§ 7150(b)(5)).
+  // Training ADMT / facial / emotion / biometric (§ 7150(b)(6)).
   if (typeof intake.q18b_admt_training === "string" && /^yes/i.test(intake.q18b_admt_training)) triggers.admt_involved = true;
   const consumerBand = String(intake.q2_consumers ?? intake.i3_ca_consumer_band ?? "");
   if (/100[,\s]?000|million|m\+|>=?\s*100k/i.test(consumerBand)) triggers.high_volume_processing = true;
