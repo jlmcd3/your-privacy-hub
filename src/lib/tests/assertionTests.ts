@@ -845,6 +845,142 @@ const WORD_EXPORT_REMOVAL_TEST: AssertionTest = {
 
 // ─── Master list ──────────────────────────────────────────────────────────────
 
+// ─── ADMT Compliance Assessment ───────────────────────────────────────────────
+
+const ADMT_INPUT = {
+  system_name: "Automated Loan Approval Engine",
+  system_type: "Gradient-boosted ML model (third-party vendor API)",
+  system_description:
+    "A gradient-boosted model scores California consumer loan applications 0–100 using credit history, income, and debt-to-income ratio. Applications scoring below 40 are automatically declined and applications above 75 are automatically approved, with no human review at either threshold. The score is the determining factor in the lending decision.",
+  decision_domains: ["Financial or lending services (credit decisions, loans, accounts)"],
+  human_review: "No — fully automated, no human review",
+  training_data_use: "Yes",
+  profiling_use: "Yes",
+  ca_consumer_count: "50,000–100,000 annually",
+  third_party_admt: "Vendor X ScoreEngine API provides the underlying credit-scoring model.",
+  admt_system_count: "1",
+  prior_access_requests_12mo: "2",
+  notice_delivery: ["Separate standalone Pre-use Notice"],
+  notice_has_specific_purpose: "Yes",
+  notice_purpose_text: "We use an automated model to decide whether to approve your loan application.",
+  notice_has_opt_out_desc: "Yes",
+  notice_has_access_desc: "No",
+  notice_has_anti_retaliation: "No",
+  notice_has_how_it_works: "Partially",
+  notice_has_alternative_process: "No",
+  opt_out_exception: "No exception — we provide a full opt-out right",
+  opt_out_methods: ["Interactive online form linked from the Pre-use Notice", "Designated email address"],
+  opt_out_link_title: "Opt-out of Automated Decisionmaking Technology",
+  opt_out_no_cookie_banner: "Yes",
+  opt_out_no_account_required: "Yes",
+  opt_out_confirmation_mechanism: "Confirmation email within 24 hours",
+  opt_out_appeal_process: "",
+  opt_out_fairness_doc: "",
+  opt_out_15_day_process: "",
+  opt_out_service_provider_notice: "",
+  access_submission_methods: "Online form and designated email address",
+  access_verification_process: "Match to account credentials plus a one-time email code",
+  access_logic_disclosure: "We explain the categories of data used and the general logic of the score.",
+  access_outcome_disclosure: "We disclose the decision outcome and whether the score was the sole factor.",
+  access_response_timeline: "Within 45 calendar days (standard)",
+  access_trade_secret_policy: "We withhold model weights as a trade secret under Civil Code § 3426.1(d).",
+  admt_detail: {
+    hi_reviewer_present: "No — fully automated",
+    hi_trained: "No",
+    hi_reviews_other_info: "No",
+    hi_authority_override: "No",
+    sole_factor: "Sole factor — output alone determines the outcome",
+    feeds_future_decisions: "No",
+    solely_advertising: "No",
+    model_types: ["ML classifier"],
+    decision_effects: ["Provision", "Denial"],
+    decision_cadence: "Continuous",
+    vendor_status: "Service provider",
+    vendor_docs: ["Validation report"],
+    v_audit: "No",
+    v_assist: "No",
+    v_optout: "No",
+    vendor_makes_available: "Yes",
+    vendor_training_rights: "Vendor may use de-identified inputs to improve its model.",
+  },
+};
+
+export const ADMT_TEST: AssertionTest = {
+  toolId: "cppa-admt",
+  toolName: "ADMT Compliance Assessment",
+  edgeFunction: "run-admt-checker",
+  testInput: ADMT_INPUT,
+  expectedSeconds: 120,
+  pollConfig: { table: "cppa_assessments", successStatus: "complete", maxPolls: 90, intervalMs: 4000 },
+  assertions: [
+    {
+      id: "admt-is-admt",
+      description: "scope_analysis.is_admt must be true for a fully-automated scoring model",
+      category: "requirement",
+      check: (output) => {
+        const s = (output as Record<string, unknown>)?.scope_analysis as Record<string, unknown> | undefined;
+        return s?.is_admt === true;
+      },
+      errorMessage: "scope_analysis.is_admt is not true for a clear ADMT system.",
+    },
+    {
+      id: "admt-significant-decision",
+      description: "scope_analysis.triggers_significant_decision must be true for a lending decision",
+      category: "requirement",
+      check: (output) => {
+        const s = (output as Record<string, unknown>)?.scope_analysis as Record<string, unknown> | undefined;
+        return s?.triggers_significant_decision === true;
+      },
+      errorMessage: "Lending decision not recognised as a § 7001(ddd) significant decision.",
+    },
+    {
+      id: "admt-human-review-not-qualified",
+      description: "Fully-automated system, no reviewer → human_review_qualifies must be false (verifies the § 7001(e)(1) self-test inputs are consumed)",
+      category: "consistency",
+      check: (output) => {
+        const s = (output as Record<string, unknown>)?.scope_analysis as Record<string, unknown> | undefined;
+        return s?.human_review_qualifies === false;
+      },
+      errorMessage: "human_review_qualifies should be false when the intake describes no human in the loop and the self-test answers are all 'No'.",
+    },
+    {
+      id: "admt-third-party-note-present",
+      description: "Disclosed vendor that makes the ADMT available → third_party_responsibility_note must be non-empty (verifies vendor-detail consumption)",
+      category: "requirement",
+      check: (output) => {
+        const s = (output as Record<string, unknown>)?.scope_analysis as Record<string, unknown> | undefined;
+        const note = s?.third_party_responsibility_note;
+        return typeof note === "string" && note.trim().length > 0;
+      },
+      errorMessage: "third_party_responsibility_note is empty despite a disclosed third-party ADMT vendor.",
+    },
+    {
+      id: "admt-gap-arrays-present",
+      description: "notice_gaps, opt_out_gaps and access_gaps must all be arrays",
+      category: "requirement",
+      check: (output) => {
+        const o = output as Record<string, unknown>;
+        return Array.isArray(o?.notice_gaps) && Array.isArray(o?.opt_out_gaps) && Array.isArray(o?.access_gaps);
+      },
+      errorMessage: "One or more of notice_gaps / opt_out_gaps / access_gaps is not an array.",
+    },
+    {
+      id: "admt-deadline-cited",
+      description: "Output must reference the January 1, 2027 ADMT compliance deadline",
+      category: "requirement",
+      check: (output) => /january\s*1,?\s*2027|2027-01-01/i.test(getText(output)),
+      errorMessage: "Output does not reference the January 1, 2027 deadline.",
+    },
+    {
+      id: "admt-no-gdpr-contamination",
+      description: "ADMT (CCPA) output must not cite GDPR / Article 6 / lawful basis",
+      category: "prohibition",
+      check: (output) => !/\bgdpr\b|\barticle\s*6\b|\blawful basis\b/i.test(getText(output)),
+      errorMessage: "ADMT output contains GDPR / Article 6 / lawful-basis language — this is a CCPA tool.",
+    },
+  ],
+};
+
 export const ALL_ASSERTION_TESTS: AssertionTest[] = [
   LIA_TEST,
   DPIA_TEST,
