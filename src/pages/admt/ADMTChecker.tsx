@@ -15,7 +15,7 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ExhibitTextarea } from "@/components/ExhibitTextarea";
+import { ExhibitTextarea, isExhibit } from "@/components/ExhibitTextarea";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
@@ -201,6 +201,10 @@ export default function ADMTChecker() {
   const [accessResponseTimeline, setAccessResponseTimeline] = useState("");
   const [accessTradeSecretPolicy, setAccessTradeSecretPolicy] = useState("");
 
+  // Article 11 detail fields (G1–G7) — kept in one nested object to avoid per-field bookkeeping.
+  const [adv, setAdv] = useState<Record<string, any>>({});
+  const setA = (k: string, v: any) => setAdv((a) => ({ ...a, [k]: v }));
+
   const provideOptOut =
     !optOutException.startsWith("Human appeal") &&
     !optOutException.startsWith("Hiring") &&
@@ -304,6 +308,7 @@ export default function ADMTChecker() {
       prior_access_requests_12mo: priorAccessRequests12mo,
       opt_out_15_day_process: optOut15DayProcess,
       opt_out_service_provider_notice: optOutServiceProviderNotice,
+      admt_detail: adv,
     }),
     [
       systemName, systemType, systemDescription, decisionDomains, humanReview,
@@ -315,7 +320,7 @@ export default function ADMTChecker() {
       optOutFairnessDoc, accessSubmissionMethods, accessVerificationProcess,
       accessLogicDisclosure, accessOutcomeDisclosure, accessResponseTimeline,
       accessTradeSecretPolicy,
-      caConsumerCount, thirdPartyAdmt, admtSystemCount, priorAccessRequests12mo, optOut15DayProcess, optOutServiceProviderNotice,
+      caConsumerCount, thirdPartyAdmt, admtSystemCount, priorAccessRequests12mo, optOut15DayProcess, optOutServiceProviderNotice, adv,
     ],
   );
 
@@ -398,6 +403,7 @@ export default function ADMTChecker() {
     if (typeof d.opt_out_15_day_process === "string") setOptOut15DayProcess(d.opt_out_15_day_process);
     if (typeof d.admt_system_count === "string") setAdmtSystemCount(d.admt_system_count);
     if (typeof d.prior_access_requests_12mo === "string") setPriorAccessRequests12mo(d.prior_access_requests_12mo);
+    if (d.admt_detail && typeof d.admt_detail === "object") setAdv(d.admt_detail);
     if (typeof restoreStage === "number") setStep(restoreStage);
     dismissDraft();
   };
@@ -548,6 +554,41 @@ export default function ADMTChecker() {
                     />
                   </div>
 
+                  {thirdPartyAdmt.trim() && !isExhibit(thirdPartyAdmt) && (
+                    <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_does_business_use_admt")}>
+                      <p className="text-[12px] font-semibold">Vendor / downstream-recipient detail</p>
+                      <p className="text-[12px] text-muted-foreground">You remain the CCPA-responsible "business." If a vendor makes ADMT trained on personal information available to you for significant decisions, the vendor must supply all facts you need for your own risk assessment (§ 7150(b)(6) / § 7153).</p>
+                      <div>
+                        <Label className="text-[12px]">Vendor's role under the CCPA</Label>
+                        <div className="mt-1"><Radio name="v_status" options={["Service provider", "Contractor", "Third party", "Unsure"]} value={adv.vendor_status || ""} onChange={(v) => setA("vendor_status", v)} /></div>
+                      </div>
+                      <div>
+                        <Label className="text-[12px]">Vendor documentation on file (select all)</Label>
+                        <div className="mt-1"><Pills options={["Model card / datasheet", "Validation report", "Bias-testing report", "SOC 2 / pen test", "DPIA", "None on file"]} value={adv.vendor_docs || []} onChange={(v) => setA("vendor_docs", v)} /></div>
+                      </div>
+                      <div>
+                        <Label className="text-[12px]">Do your vendor contracts include these obligations?</Label>
+                        <div className="mt-1 space-y-1">
+                          {[["v_audit", "Audit / monitoring rights"], ["v_assist", "Assistance with consumer access requests"], ["v_optout", "Opt-out propagation downstream"], ["v_appeal", "Appeal / human-review support"], ["v_incident", "Incident notification"]].map(([k, label]) => (
+                            <div key={k} className="flex items-center justify-between gap-3">
+                              <span className="text-[12px]">{label}</span>
+                              <span className="shrink-0"><Radio name={k} options={["Yes", "No"]} value={adv[k] || ""} onChange={(val) => setA(k, val)} /></span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-[12px]">Does the vendor make this ADMT available to other businesses?</Label>
+                        <p className="text-[11px] text-muted-foreground">If yes, the recipient-facts obligation under § 7150(b)(6) / § 7153 is engaged.</p>
+                        <div className="mt-1"><Radio name="v_avail" options={["Yes", "No", "Unsure"]} value={adv.vendor_makes_available || ""} onChange={(v) => setA("vendor_makes_available", v)} /></div>
+                      </div>
+                      <div>
+                        <Label className="text-[12px]">Vendor training-data / model-improvement rights &amp; sub-processors</Label>
+                        <ExhibitTextarea className="mt-1" rows={2} value={adv.vendor_training_rights || ""} onChange={(v) => setA("vendor_training_rights", v)} placeholder="e.g. Vendor may use de-identified inputs to improve its model; sub-processors: AWS (hosting), Acme Labelling Co." />
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <Label>How many distinct ADMT systems does your business operate for significant decisions? (optional)</Label>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -578,6 +619,50 @@ export default function ADMTChecker() {
                     </div>
                   </div>
 
+                  <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_significant_decision_domain")}>
+                    <p className="text-[12px] font-semibold">System &amp; decision detail (optional)</p>
+                    <p className="text-[12px] text-muted-foreground">Helps an auditor identify the exact system and decision under review, and shapes the access-response analysis.</p>
+                    <div>
+                      <Label className="text-[12px]">Vendor / product name &amp; version</Label>
+                      <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.vendor_product || ""} onChange={(e) => setA("vendor_product", e.target.value)} placeholder="e.g. Acme ScoreEngine v3.2 (internal), or FICO Score 9 API" />
+                    </div>
+                    <div>
+                      <Label className="text-[12px]">Where is the system hosted?</Label>
+                      <div className="mt-1"><Radio name="adv_hosting" options={["Hosted internally", "Hosted by the vendor", "Hybrid"]} value={adv.hosting || ""} onChange={(v) => setA("hosting", v)} /></div>
+                    </div>
+                    <div>
+                      <Label className="text-[12px]">Model type (select all that apply)</Label>
+                      <div className="mt-1"><Pills options={["Rules engine", "Statistical model", "ML classifier", "Ranking / recommender", "Generative AI", "Biometric", "Emotion recognition", "Identity verification"]} value={adv.model_types || []} onChange={(v) => setA("model_types", v)} /></div>
+                    </div>
+                    <div>
+                      <Label className="text-[12px]">What does the decision actually do? (select all)</Label>
+                      <div className="mt-1"><Pills options={["Provision", "Denial", "Ranking", "Eligibility", "Pricing", "Allocation", "Assignment", "Promotion / demotion", "Suspension / termination", "Compensation", "Credentialing", "Diagnosis / care / treatment"]} value={adv.decision_effects || []} onChange={(v) => setA("decision_effects", v)} /></div>
+                    </div>
+                    <div>
+                      <Label className="text-[12px]">Decision cadence</Label>
+                      <div className="mt-1"><Radio name="adv_cadence" options={["One-time", "Repeated", "Continuous", "Systematic"]} value={adv.decision_cadence || ""} onChange={(v) => setA("decision_cadence", v)} /></div>
+                    </div>
+                    <div>
+                      <Label className="text-[12px]">Is the ADMT output the sole factor in the decision?</Label>
+                      <div className="mt-1"><Radio name="adv_sole" options={["Sole factor — output alone determines the outcome", "Material factor — heavily weighted alongside others", "One of many factors"]} value={adv.sole_factor || ""} onChange={(v) => setA("sole_factor", v)} /></div>
+                    </div>
+                    {adv.sole_factor && !adv.sole_factor.startsWith("Sole") && (
+                      <div>
+                        <Label className="text-[12px]">What other factors feed the decision, and how are they weighted?</Label>
+                        <Textarea className="mt-1" rows={2} value={adv.other_factors || ""} onChange={(e) => setA("other_factors", e.target.value)} placeholder="e.g. Underwriter reviews scores 40–60; scores >60 auto-approve; manual policy checks always apply" />
+                      </div>
+                    )}
+                    <div>
+                      <Label className="text-[12px]">Will the output be used to feed future significant decisions? (§ 7222(b))</Label>
+                      <div className="mt-1"><Radio name="adv_future" options={["Yes", "No", "Unsure"]} value={adv.feeds_future_decisions || ""} onChange={(v) => setA("feeds_future_decisions", v)} /></div>
+                    </div>
+                    <div>
+                      <Label className="text-[12px]">Is this system used solely for advertising?</Label>
+                      <p className="text-[11px] text-muted-foreground">Advertising is excluded from "significant decision" — a Yes here means Article 11 ADMT obligations do not attach.</p>
+                      <div className="mt-1"><Radio name="adv_ads" options={["Yes — solely advertising", "No"]} value={adv.solely_advertising || ""} onChange={(v) => setA("solely_advertising", v)} /></div>
+                    </div>
+                  </div>
+
                   <div>
                     <Label onFocus={() => focus("scope_human_involvement")}>
                       Human review of system outputs <Req />
@@ -594,6 +679,50 @@ export default function ADMTChecker() {
                         onFocus={() => focus("scope_human_involvement")}
                       />
                     </div>
+                  </div>
+
+                  <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_human_involvement")}>
+                    <p className="text-[12px] font-semibold">Human-involvement self-test (§ 7001(e)(1))</p>
+                    <p className="text-[12px] text-muted-foreground">This is the gate for the entire regime: if a qualifying human is in the loop, the system does not "substantially replace" human decisionmaking and Article 11 obligations may not attach.</p>
+                    <div>
+                      <Label className="text-[12px]">Is a human reviewer involved in the decision?</Label>
+                      <div className="mt-1"><Radio name="hi_present" options={["Yes — on every decision", "Sometimes / on a subset", "No — fully automated"]} value={adv.hi_reviewer_present || ""} onChange={(v) => setA("hi_reviewer_present", v)} /></div>
+                    </div>
+                    {adv.hi_reviewer_present && !adv.hi_reviewer_present.startsWith("No") && (
+                      <>
+                        <div>
+                          <Label className="text-[12px]">Reviewer role / title</Label>
+                          <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.hi_reviewer_role || ""} onChange={(e) => setA("hi_reviewer_role", e.target.value)} placeholder="e.g. Senior Underwriter; Hiring Manager" />
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">At what stage does the reviewer act?</Label>
+                          <div className="mt-1"><Radio name="hi_stage" options={["Before the decision is issued", "After the decision (review of completed decisions)", "Appeal only"]} value={adv.hi_stage || ""} onChange={(v) => setA("hi_stage", v)} /></div>
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">Does the reviewer know how to interpret the ADMT output? (§ 7001(e)(1)(A))</Label>
+                          <div className="mt-1"><Radio name="hi_trained" options={["Yes", "No"]} value={adv.hi_trained || ""} onChange={(v) => setA("hi_trained", v)} /></div>
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">Does the reviewer review the output plus other relevant information? (§ 7001(e)(1)(B))</Label>
+                          <div className="mt-1"><Radio name="hi_other" options={["Yes", "No"]} value={adv.hi_reviews_other_info || ""} onChange={(v) => setA("hi_reviews_other_info", v)} /></div>
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">Does the reviewer have authority to change the decision? (§ 7001(e)(1)(C))</Label>
+                          <div className="mt-1"><Radio name="hi_auth" options={["Yes", "No"]} value={adv.hi_authority_override || ""} onChange={(v) => setA("hi_authority_override", v)} /></div>
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">Actual override rate, last 12 months (optional)</Label>
+                          <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.hi_override_rate || ""} onChange={(e) => setA("hi_override_rate", e.target.value)} placeholder="e.g. 8%" />
+                        </div>
+                        {adv.hi_reviewer_present && (
+                          <div className={`p-3 rounded text-[12px] ${adv.hi_trained === "Yes" && adv.hi_reviews_other_info === "Yes" && adv.hi_authority_override === "Yes" && (adv.hi_stage || "").startsWith("Before") ? "bg-green-50 border border-green-200 text-green-900 dark:bg-green-950/20 dark:text-green-200" : "bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-950/20 dark:text-amber-200"}`}>
+                            {adv.hi_trained === "Yes" && adv.hi_reviews_other_info === "Yes" && adv.hi_authority_override === "Yes" && (adv.hi_stage || "").startsWith("Before")
+                              ? "Based on your answers, this likely qualifies as human involvement under § 7001(e)(1) — the system may not 'substantially replace' human decisionmaking, so Article 11 ADMT obligations may not attach. Confirm with counsel."
+                              : "Based on your answers, this likely does NOT qualify as human involvement under § 7001(e)(1) — all three elements (interpret, review-plus-other-info, authority-to-change) must be present and applied before the decision. Article 11 obligations (notice, opt-out, access) therefore apply."}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   <div className="rounded-md border border-amber-200 bg-amber-50/40 dark:bg-amber-950/10 p-4">
@@ -830,6 +959,34 @@ export default function ADMTChecker() {
                         onFocus={() => focus("optout_exception_hiring")}
                         placeholder="e.g. Annual disparate-impact analysis across protected classes conducted by [firm]; results documented in [document]; last conducted [date]"
                       />
+                      <div className="mt-4 space-y-3 border-t pt-3">
+                        <p className="text-[12px] font-semibold">Validity &amp; non-discrimination detail (§ 7221(b)(2)(B), (b)(3)(B))</p>
+                        <p className="text-[12px] text-muted-foreground">This exception only holds if the ADMT works for its purpose AND does not unlawfully discriminate, with evidence.</p>
+                        <div>
+                          <Label className="text-[12px]">Protected characteristics tested (select all)</Label>
+                          <div className="mt-1"><Pills options={["Race", "Sex / gender", "Age", "Disability", "National origin", "Religion", "Veteran status", "Pregnancy", "Genetic info"]} value={adv.bias_protected_chars || []} onChange={(v) => setA("bias_protected_chars", v)} /></div>
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">Proxy variables identified &amp; how mitigated</Label>
+                          <Textarea className="mt-1" rows={2} value={adv.bias_proxy_vars || ""} onChange={(e) => setA("bias_proxy_vars", e.target.value)} placeholder="e.g. ZIP code dropped as a race proxy; tenure capped to avoid age correlation" />
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">Fairness-testing cadence</Label>
+                          <div className="mt-1"><Radio name="bias_cadence" options={["Pre-deployment + ongoing monitoring", "Pre-deployment only", "Vendor-supplied only", "None"]} value={adv.bias_testing_cadence || ""} onChange={(v) => setA("bias_testing_cadence", v)} /></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div><Label className="text-[12px]">Last test date</Label><input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.bias_last_test || ""} onChange={(e) => setA("bias_last_test", e.target.value)} placeholder="e.g. 03/2026" /></div>
+                          <div><Label className="text-[12px]">Next test date</Label><input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.bias_next_test || ""} onChange={(e) => setA("bias_next_test", e.target.value)} placeholder="e.g. 03/2027" /></div>
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">Adverse-impact analysis performed?</Label>
+                          <div className="mt-1"><Radio name="bias_adverse" options={["Yes", "No", "Vendor-supplied"]} value={adv.bias_adverse_impact || ""} onChange={(v) => setA("bias_adverse_impact", v)} /></div>
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">Outcome distribution / false-positive &amp; false-negative rates by group</Label>
+                          <ExhibitTextarea className="mt-1" rows={2} value={adv.bias_outcome_summary || ""} onChange={(v) => setA("bias_outcome_summary", v)} placeholder="Summarise selection rates and error rates by protected group, or attach as an Exhibit." />
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -1067,6 +1224,25 @@ export default function ADMTChecker() {
                       onFocus={() => focus("access_logic_disclosure")}
                       placeholder="e.g. We withhold: model architecture and weights (trade secret per Civil Code § 3426.1(d)); fraud detection rule thresholds (security per § 7222(c)(2)(B))"
                     />
+                  </div>
+
+                  <div>
+                    <Label onFocus={() => focus("access_logic_disclosure")}>
+                      How do you securely transmit the access response? (optional)
+                    </Label>
+                    <div className="mt-2">
+                      <Radio name="access_secure_tx" options={["Encrypted self-service portal", "Encrypted email", "Postal mail", "Not yet defined"]} value={adv.access_secure_transmission || ""} onChange={(v) => setA("access_secure_transmission", v)} onFocus={() => focus("access_logic_disclosure")} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label onFocus={() => focus("access_logic_disclosure")}>
+                      If you would partially or fully deny an access request, on what basis? (optional)
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      § 7222 permits denial only on specific grounds — a conflict with federal/state law, an enumerated CCPA exception, trade secret (Civil Code § 3426.1(d)), or a substantial security risk. Documenting your basis in advance avoids ad-hoc denials under time pressure.
+                    </p>
+                    <ExhibitTextarea className="mt-2" rows={2} value={adv.access_denial_basis || ""} onChange={(v) => setA("access_denial_basis", v)} placeholder="e.g. We withhold model weights as trade secret; we deny duplicative requests beyond the § 7222(j) aggregate-response threshold." />
                   </div>
                 </>
               )}
