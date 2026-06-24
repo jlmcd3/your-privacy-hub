@@ -138,7 +138,8 @@ const LIAssessmentResult = () => {
       if (data && (data.status === "pending" || data.status === "processing")) {
         pollCount += 1;
         if (pollCount < MAX_POLLS) {
-          timer = setTimeout(fetchOnce, 3000);
+          const delay = pollCount < 100 ? 3000 : 6000;
+          timer = setTimeout(fetchOnce, delay);
         } else {
           setAssessment((prev: any) => ({ ...prev, status: "failed" }));
         }
