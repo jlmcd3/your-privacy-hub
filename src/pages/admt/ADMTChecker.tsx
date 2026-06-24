@@ -941,6 +941,29 @@ export default function ADMTChecker() {
                         onFocus={() => focus("optout_exception_human_appeal")}
                         placeholder="Who is the designated reviewer? What is their title and training? How does the consumer submit an appeal? What information can the consumer provide? What is the decision timeline? Can the reviewer change the decision?"
                       />
+                      <div className="mt-4 space-y-3 border-t pt-3">
+                        <p className="text-[12px] font-semibold">Appeal mechanics (feeds the § 7221(b)(1) three-part test)</p>
+                        <div>
+                          <Label className="text-[12px]">Appeal reviewer role / title</Label>
+                          <input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.appeal_reviewer_role || ""} onChange={(e) => setA("appeal_reviewer_role", e.target.value)} placeholder="e.g. Adverse Action Review Officer" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div><Label className="text-[12px]">Trained to interpret output?</Label><div className="mt-1"><Radio name="ap_trained" options={["Yes", "No"]} value={adv.appeal_trained || ""} onChange={(v) => setA("appeal_trained", v)} /></div></div>
+                          <div><Label className="text-[12px]">Authority to overturn?</Label><div className="mt-1"><Radio name="ap_auth" options={["Yes", "No"]} value={adv.appeal_authority_overturn || ""} onChange={(v) => setA("appeal_authority_overturn", v)} /></div></div>
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">What may the consumer submit on appeal? (select all)</Label>
+                          <div className="mt-1"><Pills options={["Free-text statement", "Supporting documents", "Witness statements"]} value={adv.appeal_consumer_submit || []} onChange={(v) => setA("appeal_consumer_submit", v)} /></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div><Label className="text-[12px]">Target response timeline</Label><input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.appeal_timeline || ""} onChange={(e) => setA("appeal_timeline", e.target.value)} placeholder="e.g. 10 business days" /></div>
+                          <div><Label className="text-[12px]">Reversal rate, 12 mo (optional)</Label><input className="mt-1 w-full h-9 px-3 rounded-md border border-input bg-background text-sm" value={adv.appeal_reversal_rate || ""} onChange={(e) => setA("appeal_reversal_rate", e.target.value)} placeholder="e.g. 12%" /></div>
+                        </div>
+                        <div>
+                          <Label className="text-[12px]">Appeal outcome categories (select all)</Label>
+                          <div className="mt-1"><Pills options={["Uphold", "Reverse", "Modify", "Remand"]} value={adv.appeal_outcomes || []} onChange={(v) => setA("appeal_outcomes", v)} /></div>
+                        </div>
+                      </div>
                     </div>
                   )}
 
