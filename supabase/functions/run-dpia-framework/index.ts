@@ -227,6 +227,19 @@ Jurisdictions: ${jurisdictions}
 Article 9(2) condition for special-category data (selected by user): ${article9Condition}
 Retention period (provided by user): ${retentionPeriod}
 Necessity, proportionality & alternatives considered (provided by user): ${necessityProportionality}
+
+EDPB TEMPLATE — SECTION 0 (OVERVIEW) INPUTS (controller-provided; use to populate section_0_overview):
+Controller main establishment / point of contact: ${controllerContact}
+DPO (or similar function): ${dpoInfo}
+Processor / sub-processor obligations & tasks: ${processorObligations}
+Processing current version / change history: ${processingVersion}
+Estimated launch date: ${launchDate}
+Estimated end date / expiry: ${endDate}
+DPIA team / roles (RACI): ${dpiaTeam}
+Guidelines / standards used: ${referenceMaterials}
+Reasons to conduct the DPIA (controller-selected): ${reasonsToConduct}
+Scope of this DPIA (in / out): ${dpiaScopeNote}
+Publication / external-sharing intent: ${publicationIntent}
 ${orgContext}
 
 ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
