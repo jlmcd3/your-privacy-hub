@@ -240,4 +240,112 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     plainSummary: "Auditing related to counting ad impressions, verifying positioning and quality of ad impressions, and auditing compliance with this and other specifications — together with performing services on behalf of the business or service provider — is an enumerated business purpose. It permits service-provider arrangements and supports primary-purpose use, but does not remove a § 7150 trigger.",
     regulationText: "Performing services on behalf of the business or service provider, including maintaining or servicing accounts, providing customer service, processing or fulfilling orders and transactions, verifying customer information, processing payments, providing financing, providing analytic services, providing storage, or providing similar services on behalf of the business or service provider.",
   },
+
+  q5b_profiling: {
+    fieldLabel: "Q5b: Profiling via systematic observation / sensitive location",
+    citation: "11 CCR § 7150(b)(4)",
+    citationUrl: CPPA_URL,
+    plainSummary: "A risk assessment is independently required where a business profiles consumers acting as job applicants, employees, students, or independent contractors based on systematic observation, or profiles consumers based on their presence in a sensitive location. This is separate from selling/sharing or ADMT use.",
+    regulationText: "Processing the personal information of consumers to profile them while they are acting in their capacity as a job applicant, student, employee, or independent contractor, where the profiling is based on the consumer's systematic observation; or to profile a consumer based on their presence in a sensitive location.",
+    relatedCitations: [
+      { citation: "11 CCR § 7001(ii)", label: "'Profiling' definition" },
+      { citation: "11 CCR § 7001", label: "'Sensitive location' / 'systematic observation'" },
+    ],
+  },
+
+  q15b_under16: {
+    fieldLabel: "Q15b: Actual knowledge of under-16 processing",
+    citation: "11 CCR § 7001(bbb)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The 2026 regulations make all personal information of a consumer under 16 sensitive personal information where the business has actual knowledge of the consumer's age. Requesting age, or willfully disregarding it, is treated as actual knowledge. Processing under-16 data therefore engages the sensitive-PI risk-assessment trigger.",
+    regulationText: "'Sensitive personal information' includes the personal information of consumers that the business has actual knowledge are less than 16 years of age. A business that willfully disregards the consumer's age shall be deemed to have had actual knowledge of the consumer's age.",
+    relatedCitations: [
+      { citation: "Cal. Civ. Code § 1798.140(ae)", label: "Sensitive PI definition" },
+      { citation: "11 CCR § 7070", label: "Consumers under 13" },
+    ],
+  },
+
+  q18b_admt_training: {
+    fieldLabel: "Q21: Training ADMT / facial / emotion / biometric",
+    citation: "11 CCR § 7150(b)(5)",
+    citationUrl: CPPA_URL,
+    plainSummary: "Processing personal information to train automated decisionmaking technology for significant decisions, or to train facial-recognition, emotion-recognition, identity-verification, or physical/biological-identification or profiling technology, independently requires a risk assessment — separate from deploying ADMT against consumers.",
+    regulationText: "Processing the personal information of consumers to train automated decisionmaking technology that is capable of being used for a significant decision concerning a consumer, or to train facial-recognition, emotion-recognition, or other technology used to verify a consumer's identity or to conduct physical or biological identification or profiling of a consumer.",
+    relatedCitations: [
+      { citation: "11 CCR § 7150(b)(3)", label: "Using ADMT for significant decisions" },
+      { citation: "11 CCR § 7001(e)", label: "'ADMT' definition" },
+    ],
+  },
+
+  i1b_min_pi: {
+    fieldLabel: "I-1b: Minimum PI necessary",
+    citation: "11 CCR § 7152(a)(2)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The risk assessment must identify the minimum personal information necessary to achieve the processing purpose. This reflects the CCPA's data-minimisation requirement: a business may only collect and process what is reasonably necessary and proportionate to the disclosed purpose.",
+    regulationText: "The categories of personal information processed, including… the minimum personal information that is necessary to achieve the purpose identified in subsection (a)(1).",
+    relatedCitations: [
+      { citation: "Cal. Civ. Code § 1798.100(c)", label: "Reasonably necessary & proportionate" },
+      { citation: "11 CCR § 7002", label: "Restrictions on collection and use" },
+    ],
+  },
+
+  i4b_sources: {
+    fieldLabel: "I-4b: Sources of the personal information",
+    citation: "11 CCR § 7152(a)(3)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The operational elements of the processing must identify the sources of the personal information — for example collected directly from the consumer, passively observed, generated or inferred by the business, or obtained from third parties such as data brokers, advertising partners, or affiliates.",
+    regulationText: "The operational elements of the processing, including… the sources of the personal information and the business's planned method for collecting, using, disclosing, retaining, or otherwise processing the personal information.",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(3)(E)", label: "Disclosures to consumers" },
+      { citation: "11 CCR § 7152(a)(3)(F)", label: "Recipients of the PI" },
+    ],
+  },
+
+  i6_recipients: {
+    fieldLabel: "I-6: Recipients of the personal information",
+    citation: "11 CCR § 7152(a)(3)(F)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The assessment must identify the recipients of the personal information and the purpose of each disclosure. The recipient's category matters: a service provider or contractor is bound by contract to the business's purposes, whereas disclosure to a third party for its own use is a sale or share that carries opt-out and additional assessment obligations.",
+    regulationText: "The operational elements of the processing, including… the names or categories of the recipients to whom the business discloses or makes available the personal information, and the purpose for which the personal information is disclosed or made available.",
+    relatedCitations: [
+      { citation: "Cal. Civ. Code § 1798.140(ah)", label: "'Share' definition" },
+      { citation: "11 CCR § 7051", label: "Service provider / contractor contracts" },
+    ],
+  },
+
+  impact_benefits: {
+    fieldLabel: "Benefits of the processing",
+    citation: "11 CCR § 7152(a)(4)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The assessment must identify the benefits of the processing to the business, the consumer, other stakeholders, and the public, as applicable. Benefits must be described specifically — generic descriptions are not permitted — and are weighed against the negative impacts to reach the risk/benefit determination.",
+    regulationText: "The benefits resulting from the processing to the business, the consumer, other stakeholders, and the public, as applicable. A business shall not describe the benefits in generic terms.",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(5)", label: "Negative impacts" },
+      { citation: "11 CCR § 7154", label: "Goal of a risk assessment" },
+    ],
+  },
+
+  impact_safeguards: {
+    fieldLabel: "Safeguards for the processing",
+    citation: "11 CCR § 7152(a)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The assessment must identify the safeguards the business plans to implement to address the negative impacts of the processing. The regulations give examples including encryption, access controls, network monitoring, privacy-enhancing technologies, de-identification, and policies and training.",
+    regulationText: "The safeguards that the business plans to implement to address the negative impacts… Examples of safeguards include, but are not limited to, encryption; the segmentation of personal information; access controls; privacy-enhancing technologies; and policies, procedures, and training.",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(5)", label: "Negative impacts addressed" },
+      { citation: "11 CCR § 7123", label: "Cybersecurity audit safeguards" },
+    ],
+  },
+
+  impact_harm_causes: {
+    fieldLabel: "Negative impacts — sources and causes",
+    citation: "11 CCR § 7152(a)(5)",
+    citationUrl: CPPA_URL,
+    plainSummary: "The assessment must identify the negative impacts to consumers' privacy associated with the processing, including the sources and causes of those impacts. The regulations enumerate examples: unauthorised access, destruction, use, modification or disclosure; loss of availability; unlawful discrimination; impairment of control; coercion or dark patterns; and economic, physical, reputational, and psychological harms.",
+    regulationText: "The negative impacts to consumers' privacy associated with the processing, including the sources and causes of the negative impacts. Negative impacts include, but are not limited to: unauthorized access, destruction, use, modification, or disclosure of personal information; unlawful discrimination; impairment of consumers' control over their personal information; economic, physical, psychological, or reputational harms; and coercion or the use of dark patterns.",
+    relatedCitations: [
+      { citation: "11 CCR § 7152(a)(4)", label: "Benefits weighed against impacts" },
+      { citation: "11 CCR § 7002", label: "Dark patterns / restrictions on use" },
+    ],
+  },
 };
