@@ -132,6 +132,18 @@ EPRIVACY AND DEVICE-ACCESS GATE RULE: For processing activities involving IP add
     const reasonsToConduct = (intake.reasons_to_conduct || []).join("; ") || "Not specified";
     const dpiaScopeNote = intake.dpia_scope_note || "Not specified";
     const publicationIntent = intake.publication_intent || "Not specified";
+    const secondaryUses = intake.secondary_uses || "Not specified";
+    const natureScopeContext = intake.nature_scope_context || "Not specified";
+    const functionalDescription = intake.functional_description || "Not specified";
+    const supportingAssets = intake.supporting_assets || "Not specified";
+    const codesOfConduct = intake.codes_of_conduct || "Not specified";
+    const dataMinimisationJustification = intake.data_minimisation_justification || "Not specified";
+    const dataQualityMeasures = intake.data_quality_measures || "Not specified";
+    const dataSubjectRightsMechanisms = intake.data_subject_rights_mechanisms || "Not specified";
+    const dpByDesignMeasures = intake.dp_by_design_measures || "Not specified";
+    const dpoAdvice = intake.dpo_advice || "Not specified";
+    const dataSubjectsViewsSought = intake.data_subjects_views_sought || "Not specified";
+    const dataSubjectsViews = intake.data_subjects_views || "Not specified";
 
     // Determine GDPR jurisdiction from verified jurisdictions (srcIntake preferred).
     let srcIntakeJurisdictions: string[] | null = null;
