@@ -24,6 +24,7 @@ import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
 import StatuteRail from "@/components/admt/StatuteRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
+import { EDPB_DPIA_GUIDANCE, EDPB_DPIA_SOURCE } from "@/components/dpia/EdpbDpiaGuidance";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
@@ -37,6 +38,26 @@ const LEGAL_BASES = ["Consent (Art. 6(1)(a))", "Contract (Art. 6(1)(b))", "Legal
 const ARTICLE_9_CONDITIONS = ["Explicit consent (Art. 9(2)(a))", "Employment, social security & social protection law (Art. 9(2)(b))", "Vital interests — data subject incapable of consent (Art. 9(2)(c))", "Not-for-profit body's legitimate activities (Art. 9(2)(d))", "Data manifestly made public by the data subject (Art. 9(2)(e))", "Establishment, exercise or defence of legal claims (Art. 9(2)(f))", "Substantial public interest — Union/Member State law (Art. 9(2)(g))", "Preventive/occupational medicine, health or social care (Art. 9(2)(h))", "Public interest in public health (Art. 9(2)(i))", "Archiving, research or statistics — Art. 89(1) (Art. 9(2)(j))", "Not yet determined"];
 // DATA_CATS labels that are Article 9 special categories — drives the conditional Art 9(2) field.
 const SPECIAL_CATEGORY_CATS = ["Health or medical data", "Biometric data"];
+
+// EDPB template §0.5 — reasons to conduct (condensed: Art. 35(3) + WP248 criteria + beneficial).
+const REASONS_TO_CONDUCT = [
+  "Systematic, extensive evaluation / profiling with significant effects (Art. 35(3)(a))",
+  "Large-scale special-category or criminal-offence data (Art. 35(3)(b))",
+  "Large-scale systematic monitoring of a public area (Art. 35(3)(c))",
+  "Evaluation or scoring (incl. profiling / prediction)",
+  "Automated decision-making with legal or significant effect",
+  "Sensitive or highly personal data",
+  "Data processed on a large scale",
+  "Matching or combining datasets",
+  "Data concerning vulnerable subjects",
+  "Innovative use of new technology",
+  "Processing prevents exercising a right / using a service",
+  "Required by national law",
+  "DPO or data-subject recommendation",
+  "Required by a code of conduct / standard",
+  "Risk management / accountability (beneficial)",
+  "Existing processing — the risk has changed",
+];
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -83,6 +104,20 @@ const DPIAFramework = () => {
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  // EDPB template — Section 0 (Overview of the processing). All optional in this tranche.
+  const [controllerContact, setControllerContact] = useState("");        // 0.1 main establishment / point of contact
+  const [dpoInfo, setDpoInfo] = useState("");                            // 0.1 DPO or similar function
+  const [processorObligations, setProcessorObligations] = useState("");  // 0.2 obligations & tasks
+  const [processingVersion, setProcessingVersion] = useState("");        // 0.3 current version / change history
+  const [launchDate, setLaunchDate] = useState("");                      // 0.4 estimated launch date
+  const [endDate, setEndDate] = useState("");                            // 0.4 estimated end date / expiry
+  const [dpiaTeam, setDpiaTeam] = useState("");                          // 0.5 team / RACI
+  const [referenceMaterials, setReferenceMaterials] = useState("");      // 0.5 guidelines / standards
+  const [reasonsToConduct, setReasonsToConduct] = useState<string[]>([]);// 0.5 reasons (multi-select)
+  const [dpiaScopeNote, setDpiaScopeNote] = useState("");                // 0.5 scope in/out
+  const [publicationIntent, setPublicationIntent] = useState("");        // 0.5 publish / share externally
+  const [activeTemplateRef, setActiveTemplateRef] = useState<string | null>(null);
+
   
   const guidanceTier = useGuidanceTier();
   const [activeRailField, setActiveRailField] = useState<"trigger" | "legal_basis" | "transfers" | null>(null);
@@ -120,8 +155,36 @@ const DPIAFramework = () => {
   const { entry: dpiaRailEntry } = useGdprRailEntry(dpiaRailOpts);
 
   const handleDpiaRailFocus = (field: "trigger" | "legal_basis" | "transfers") => {
+    setActiveTemplateRef(null);
     setActiveRailField(field);
   };
+
+  // EDPB template-guidance rail: builds a guidance-only RailEntry from the
+  // Explainer paraphrase registry — no GDPR article fetch, no verbatim block.
+  const handleTemplateRailFocus = (sectionRef: string) => {
+    setActiveRailField(null);
+    setActiveTemplateRef(sectionRef);
+  };
+  const templateRailEntry = useMemo(() => {
+    if (!activeTemplateRef) return null;
+    const g = EDPB_DPIA_GUIDANCE[activeTemplateRef];
+    if (!g) return null;
+    return {
+      fieldLabel: `EDPB DPIA template · § ${g.sectionRef}`,
+      citation: `EDPB DPIA template § ${g.sectionRef}`,
+      citationUrl: EDPB_DPIA_SOURCE.url,
+      plainSummary: g.guidance,
+      regulationText: "",
+      templateGuidance: {
+        sectionRef: g.sectionRef,
+        sectionTitle: g.sectionTitle,
+        guidance: g.guidance,
+        paraRefs: g.paraRefs,
+        sourceLabel: EDPB_DPIA_SOURCE.label,
+        sourceUrl: EDPB_DPIA_SOURCE.url,
+      },
+    };
+  }, [activeTemplateRef]);
 
   const dpiaEnforcementSignals = useGdprEnforcementSignals(
     ["special_categories", "dpia_absence", "international_transfer"],
@@ -205,6 +268,18 @@ const DPIAFramework = () => {
     article_9_condition: hasSpecialCategory ? article9Condition : "",
     necessity_proportionality: necessityProportionality,
     retention_period: retentionPeriod,
+    // EDPB template — Section 0 (carried now; consumed by the edge rebuild tranche)
+    controller_contact: controllerContact,
+    dpo_info: dpoInfo,
+    processor_obligations: processorObligations,
+    processing_version: processingVersion,
+    estimated_launch_date: launchDate,
+    estimated_end_date: endDate,
+    dpia_team: dpiaTeam,
+    reference_materials: referenceMaterials,
+    reasons_to_conduct: reasonsToConduct,
+    dpia_scope_note: dpiaScopeNote,
+    publication_intent: publicationIntent,
     source_assessment_id: sourceId || null,
   });
 
@@ -290,6 +365,82 @@ const DPIAFramework = () => {
         <div className="flex gap-6 items-start">
         <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="flex-1 min-w-0 bg-card border rounded-lg p-6 space-y-6">
           <RequiredLegend />
+
+          {/* === EDPB template — Section 0: Overview of the processing === */}
+          <div className="space-y-5">
+            <div className="flex items-center gap-2 pb-1 border-b">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--brand-navy))]">Section 0 — Overview of the processing</span>
+              <span className="text-[10px] font-mono text-muted-foreground">EDPB DPIA template</span>
+            </div>
+
+            <div onFocus={() => handleTemplateRailFocus('0.1')}>
+              <Label>Controller — main establishment / point of contact</Label>
+              <Input value={controllerContact} onChange={(e) => setControllerContact(e.target.value)} placeholder="Main establishment or representative, and the contact point for this processing" className="mt-2" />
+              <p className="text-meta text-muted-foreground mt-1">EDPB §0.1: identify the controller's responsible unit, main establishment or representative, and the DPO. For joint controllers, define each party's obligations.</p>
+            </div>
+
+            <div onFocus={() => handleTemplateRailFocus('0.1')}>
+              <Label>DPO (or similar function), if applicable</Label>
+              <Input value={dpoInfo} onChange={(e) => setDpoInfo(e.target.value)} placeholder="DPO name / contact, or note if none is designated" className="mt-2" />
+            </div>
+
+            <div onFocus={() => handleTemplateRailFocus('0.2')}>
+              <Label>Processors / sub-processors — obligations & tasks</Label>
+              <Textarea value={processorObligations} onChange={(e) => setProcessorObligations(e.target.value)} placeholder="For each processor / sub-processor, define their obligations and tasks." className="mt-2 min-h-16" />
+              <p className="text-meta text-muted-foreground mt-1">EDPB §0.2: list every processor and sub-processor in the chain and define each one's obligations unequivocally.</p>
+            </div>
+
+            <div onFocus={() => handleTemplateRailFocus('0.3')}>
+              <Label>Processing — current version / change history</Label>
+              <Input value={processingVersion} onChange={(e) => setProcessingVersion(e.target.value)} placeholder="e.g. v2 — added biometric step in Q1 2026" className="mt-2" />
+              <p className="text-meta text-muted-foreground mt-1">EDPB §0.3: the internal name (from your RoPA) plus a short history of past changes to the processing.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div onFocus={() => handleTemplateRailFocus('0.4')}>
+                <Label>Estimated launch date</Label>
+                <Input type="date" value={launchDate} onChange={(e) => setLaunchDate(e.target.value)} className="mt-2" />
+              </div>
+              <div onFocus={() => handleTemplateRailFocus('0.4')}>
+                <Label>Estimated end date / expiry (if temporary)</Label>
+                <Input value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="Date or expiry condition; leave blank if ongoing" className="mt-2" />
+              </div>
+            </div>
+
+            <div onFocus={() => handleTemplateRailFocus('0.5')}>
+              <Label>DPIA team / roles (RACI)</Label>
+              <Input value={dpiaTeam} onChange={(e) => setDpiaTeam(e.target.value)} placeholder="Who is Responsible, Accountable, Consulted, Informed for this DPIA" className="mt-2" />
+              <p className="text-meta text-muted-foreground mt-1">EDPB §0.5: the team conducting the DPIA and their roles / responsibilities.</p>
+            </div>
+
+            <div onFocus={() => handleTemplateRailFocus('0.5')}>
+              <Label>Guidelines / standards used</Label>
+              <Input value={referenceMaterials} onChange={(e) => setReferenceMaterials(e.target.value)} placeholder="e.g. EDPB DPIA template, WP248 rev.01, ISO 29134" className="mt-2" />
+            </div>
+
+            <div onFocus={() => handleTemplateRailFocus('0.5.reasons')}>
+              <Label>Reasons for conducting this DPIA</Label>
+              <p className="text-meta text-muted-foreground mt-1 mb-2">EDPB §0.5: select every reason that applies — a DPIA may be a legal obligation, required by guidance, or simply beneficial.</p>
+              <Pills options={REASONS_TO_CONDUCT} value={reasonsToConduct} onChange={setReasonsToConduct} />
+            </div>
+
+            <div onFocus={() => handleTemplateRailFocus('0.5.scope')}>
+              <Label>Scope of this DPIA — what's in and what's out</Label>
+              <Textarea value={dpiaScopeNote} onChange={(e) => setDpiaScopeNote(e.target.value)} placeholder="State what this assessment covers, what it deliberately excludes, and why." className="mt-2 min-h-16" />
+            </div>
+
+            <div onFocus={() => handleTemplateRailFocus('0.5.publication')}>
+              <Label>Will the DPIA be published or shared externally?</Label>
+              <select value={publicationIntent} onChange={(e) => setPublicationIntent(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background">
+                <option value="">Select…</option>
+                <option>No</option>
+                <option>Yes — published</option>
+                <option>Yes — shared externally</option>
+              </select>
+              <p className="text-meta text-muted-foreground mt-1">EDPB §0.5: note publication / sharing intent; withhold sensitive security detail if you publish.</p>
+            </div>
+          </div>
+
           <div>
             <p className="text-xs font-mono text-muted-foreground pb-2 border-b">Art. 35 GDPR — Data Protection Impact Assessment · Recitals 84, 89–90 — when a DPIA is mandatory</p>
             <Label htmlFor="org">Organisation being assessed<Req /></Label>
@@ -360,7 +511,7 @@ const DPIAFramework = () => {
             <IntakeGuidance className="mt-2">Take each alternative you considered in turn and say plainly why it was rejected. Listing them separately lets the assessment weigh each one — a single general statement can't be.</IntakeGuidance>
           </div>
         </form>
-        <StatuteRail entry={dpiaRailEntry} />
+        <StatuteRail entry={templateRailEntry ?? dpiaRailEntry} />
         </div>
 
 
