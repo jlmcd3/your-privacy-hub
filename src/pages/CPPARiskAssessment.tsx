@@ -15,6 +15,7 @@ import ActiveClientLabel from "@/components/ActiveClientLabel";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ExhibitTextarea } from "@/components/ExhibitTextarea";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
@@ -746,7 +747,7 @@ export default function CPPARiskAssessment() {
               <div onFocus={() => focusRail('i1b_min_pi')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-1b: What is the minimum personal information necessary to achieve this purpose? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="I-1b · Minimum PI necessary" summary="The assessment must identify the minimum personal information necessary to achieve the purpose, reflecting the CCPA's data-minimisation principle." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Name the specific data elements you actually need for the purpose above, and note any you collect today that are <span className="font-medium">not</span> strictly necessary. If a less-identifying alternative (de-identified, aggregated, or shorter-retained data) could achieve the same purpose, say so — § 7152(a)(2) requires this minimisation analysis.</p>
-                <Textarea className="mt-2" rows={3} value={i1bMinPi} onChange={(e) => setI1bMinPi(e.target.value)} placeholder='E.g. "Purpose needs account ID + 12-month purchase history only. Precise geolocation and device fingerprint are collected but not required for recommendations; candidates for minimisation."' />
+                <ExhibitTextarea className="mt-2" rows={3} value={i1bMinPi} onChange={setI1bMinPi} placeholder='E.g. "Purpose needs account ID + 12-month purchase history only. Precise geolocation and device fingerprint are collected but not required for recommendations; candidates for minimisation."' />
               </div>
 
               <div onFocus={() => focusRail('i2_retention')}>
@@ -830,7 +831,7 @@ export default function CPPARiskAssessment() {
               <div onFocus={() => focusRail('i4b_sources')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-4b: Where does this personal information come from? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3))</span></Label><StatutePopover term="I-4b · Sources of the PI" summary="The operational elements of the processing must identify the sources of the personal information — for example, directly from the consumer, observed, or obtained from third parties." cite="11 CCR § 7152(a)(3)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Identify each source: collected directly from the consumer, passively observed from their activity, generated/inferred by you, or obtained from third parties (data brokers, advertising or analytics partners, affiliates, public records). Note which categories come from which source.</p>
-                <Textarea className="mt-2" rows={3} value={i4bSources} onChange={(e) => setI4bSources(e.target.value)} placeholder='E.g. "Contact + account data: directly from consumer at sign-up. Device + activity: observed in-app. Geolocation: derived from IP. Audience segments: appended from ad partner X."' />
+                <ExhibitTextarea className="mt-2" rows={3} value={i4bSources} onChange={setI4bSources} placeholder='E.g. "Contact + account data: directly from consumer at sign-up. Device + activity: observed in-app. Geolocation: derived from IP. Audience segments: appended from ad partner X."' />
               </div>
 
 
@@ -892,29 +893,29 @@ export default function CPPARiskAssessment() {
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap" onFocus={() => focusRail('i6_recipients')}><Label>I-6: Which service providers, contractors, or third parties are involved? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(F))</span></Label><StatutePopover term="I-6 · Recipients of the PI" summary="Identify the recipients of the personal information — service providers, contractors, and third parties — together with their category and the purpose of each disclosure." cite="11 CCR § 7152(a)(3)(F)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">For each recipient, note its category — <span className="font-medium">service provider</span>, <span className="font-medium">contractor</span>, or <span className="font-medium">third party</span> — and the purpose of the disclosure. The category matters: disclosure to a third party for its own use is a sale or share.</p>
-                <Textarea
+                <ExhibitTextarea
                   className="mt-2"
                   rows={3}
                   value={i6Vendors}
-                  onChange={(e) => setI6Vendors(e.target.value)}
+                  onChange={setI6Vendors}
                   placeholder='One per line: "Vendor name — role — PI categories shared". Write "None" if none.'
                 />
               </div>
 
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-7: Who contributed to or was consulted in preparing this assessment? <Req /> <span className="text-xs text-muted-foreground">(§§ 7151, 7152(a)(8))</span></Label><StatutePopover term="I-7 · Contributors and consultees" summary="Identify the individuals and roles who contributed to or were consulted in preparing the risk assessment." cite="11 CCR § 7152(a)(9)" /></div>
-                <Textarea
+                <ExhibitTextarea
                   className="mt-2"
                   rows={2}
                   value={i7InternalContributors}
-                  onChange={(e) => setI7InternalContributors(e.target.value)}
+                  onChange={setI7InternalContributors}
                   placeholder="Internal — roles (e.g. Privacy lead, CISO, Legal, Business owner)"
                 />
-                <Textarea
+                <ExhibitTextarea
                   className="mt-2"
                   rows={2}
                   value={i7ExternalConsultees}
-                  onChange={(e) => setI7ExternalConsultees(e.target.value)}
+                  onChange={setI7ExternalConsultees}
                   placeholder="External — counsel, auditors, regulator engagement (optional)"
                 />
               </div>
