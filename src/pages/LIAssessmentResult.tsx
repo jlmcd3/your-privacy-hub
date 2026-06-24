@@ -191,7 +191,7 @@ const LIAssessmentResult = () => {
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         <ClientContextBadge />
 
-        {purchased && (
+        {purchased && status !== "complete" && status !== "failed" && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             ✅ Purchase confirmed. Your assessment is being generated.
           </div>
