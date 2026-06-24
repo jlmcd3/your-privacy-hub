@@ -235,10 +235,13 @@ export type Database = {
           is_free_tier: boolean | null
           is_subscriber_credit: boolean | null
           jurisdictions: string[] | null
+          last_attempt_at: string | null
+          last_error: string | null
           pdf_url: string | null
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
           report_data: Json | null
+          retry_count: number
           status: string
           stripe_payment_intent_id: string | null
           updated_at: string | null
@@ -253,10 +256,13 @@ export type Database = {
           is_free_tier?: boolean | null
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
+          retry_count?: number
           status?: string
           stripe_payment_intent_id?: string | null
           updated_at?: string | null
@@ -271,10 +277,13 @@ export type Database = {
           is_free_tier?: boolean | null
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
+          retry_count?: number
           status?: string
           stripe_payment_intent_id?: string | null
           updated_at?: string | null
@@ -514,11 +523,14 @@ export type Database = {
           document_b_text: string | null
           id: string
           intake_data: Json
+          last_attempt_at: string | null
+          last_error: string | null
           module: string
           obligation_snapshot: Json | null
           pdf_url: string | null
           purchase_price_cents: number | null
           report_data: Json | null
+          retry_count: number
           status: string
           stripe_payment_intent_id: string | null
           updated_at: string
@@ -531,11 +543,14 @@ export type Database = {
           document_b_text?: string | null
           id?: string
           intake_data?: Json
+          last_attempt_at?: string | null
+          last_error?: string | null
           module: string
           obligation_snapshot?: Json | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           report_data?: Json | null
+          retry_count?: number
           status?: string
           stripe_payment_intent_id?: string | null
           updated_at?: string
@@ -548,11 +563,14 @@ export type Database = {
           document_b_text?: string | null
           id?: string
           intake_data?: Json
+          last_attempt_at?: string | null
+          last_error?: string | null
           module?: string
           obligation_snapshot?: Json | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           report_data?: Json | null
+          retry_count?: number
           status?: string
           stripe_payment_intent_id?: string | null
           updated_at?: string
@@ -997,11 +1015,14 @@ export type Database = {
           id: string
           intake_data: Json
           is_subscriber_credit: boolean | null
+          last_attempt_at: string | null
+          last_error: string | null
           lint_warnings: Json | null
           pdf_url: string | null
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
           report_data: Json | null
+          retry_count: number
           status: string
           stripe_payment_intent_id: string | null
           updated_at: string | null
@@ -1014,11 +1035,14 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           lint_warnings?: Json | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
+          retry_count?: number
           status?: string
           stripe_payment_intent_id?: string | null
           updated_at?: string | null
@@ -1031,11 +1055,14 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           lint_warnings?: Json | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
+          retry_count?: number
           status?: string
           stripe_payment_intent_id?: string | null
           updated_at?: string | null
@@ -1058,12 +1085,15 @@ export type Database = {
           id: string
           intake_data: Json
           is_subscriber_credit: boolean | null
+          last_attempt_at: string | null
+          last_error: string | null
           organization_name: string | null
           pdf_url: string | null
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
           report_data: Json | null
           report_version: number | null
+          retry_count: number
           source_assessment_id: string | null
           status: string
           stripe_payment_intent_id: string | null
@@ -1076,12 +1106,15 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           organization_name?: string | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
           report_version?: number | null
+          retry_count?: number
           source_assessment_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
@@ -1094,12 +1127,15 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           organization_name?: string | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
           report_version?: number | null
+          retry_count?: number
           source_assessment_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
@@ -2008,12 +2044,15 @@ export type Database = {
           id: string
           intake_data: Json
           is_subscriber_credit: boolean | null
+          last_attempt_at: string | null
+          last_error: string | null
           organization_name: string | null
           pdf_url: string | null
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
           report_data: Json | null
           report_version: number | null
+          retry_count: number
           status: string
           stripe_payment_intent_id: string | null
           updated_at: string | null
@@ -2026,12 +2065,15 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           organization_name?: string | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
           report_version?: number | null
+          retry_count?: number
           status?: string
           stripe_payment_intent_id?: string | null
           updated_at?: string | null
@@ -2044,12 +2086,15 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           organization_name?: string | null
           pdf_url?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
           report_version?: number | null
+          retry_count?: number
           status?: string
           stripe_payment_intent_id?: string | null
           updated_at?: string | null
@@ -2329,12 +2374,15 @@ export type Database = {
           id: string
           intake_data: Json
           is_subscriber_credit: boolean | null
+          last_attempt_at: string | null
+          last_error: string | null
           organization_name: string | null
           pdf_url: string | null
           playbook_text: string | null
           purchase_price_cents: number | null
           purchased_as_standalone: boolean | null
           report_data: Json | null
+          retry_count: number
           status: string
           stripe_payment_intent_id: string | null
           updated_at: string | null
@@ -2346,12 +2394,15 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           organization_name?: string | null
           pdf_url?: string | null
           playbook_text?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
+          retry_count?: number
           status?: string
           stripe_payment_intent_id?: string | null
           updated_at?: string | null
@@ -2363,12 +2414,15 @@ export type Database = {
           id?: string
           intake_data?: Json
           is_subscriber_credit?: boolean | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           organization_name?: string | null
           pdf_url?: string | null
           playbook_text?: string | null
           purchase_price_cents?: number | null
           purchased_as_standalone?: boolean | null
           report_data?: Json | null
+          retry_count?: number
           status?: string
           stripe_payment_intent_id?: string | null
           updated_at?: string | null
@@ -2830,6 +2884,8 @@ export type Database = {
           id: string
           is_subscriber_credit: boolean | null
           jurisdictions: string[] | null
+          last_attempt_at: string | null
+          last_error: string | null
           necessity_details: Json | null
           organization_name: string | null
           pdf_url: string | null
@@ -2841,6 +2897,7 @@ export type Database = {
           relationship_type: string | null
           report_data: Json | null
           report_version: number | null
+          retry_count: number
           sector: string | null
           stage: string
           stated_purpose: string | null
@@ -2858,6 +2915,8 @@ export type Database = {
           id?: string
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           necessity_details?: Json | null
           organization_name?: string | null
           pdf_url?: string | null
@@ -2869,6 +2928,7 @@ export type Database = {
           relationship_type?: string | null
           report_data?: Json | null
           report_version?: number | null
+          retry_count?: number
           sector?: string | null
           stage?: string
           stated_purpose?: string | null
@@ -2886,6 +2946,8 @@ export type Database = {
           id?: string
           is_subscriber_credit?: boolean | null
           jurisdictions?: string[] | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           necessity_details?: Json | null
           organization_name?: string | null
           pdf_url?: string | null
@@ -2897,6 +2959,7 @@ export type Database = {
           relationship_type?: string | null
           report_data?: Json | null
           report_version?: number | null
+          retry_count?: number
           sector?: string | null
           stage?: string
           stated_purpose?: string | null
