@@ -135,6 +135,8 @@ const LIAssessmentResult = () => {
       setAssessment(data);
       setLoading(false);
 
+      // Keep polling only while non-terminal. New statuses 'refunded' and
+      // 'failed_resolved' come from the cross-product retry sweeper.
       if (data && (data.status === "pending" || data.status === "processing")) {
         pollCount += 1;
         if (pollCount < MAX_POLLS) {
@@ -191,9 +193,11 @@ const LIAssessmentResult = () => {
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
         <ClientContextBadge />
 
-        {purchased && status !== "complete" && status !== "failed" && (
+        {purchased && status !== "complete" && status !== "failed" && status !== "error" && status !== "refunded" && status !== "failed_resolved" && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
-            ✅ Purchase confirmed. Your assessment is being generated.
+            {assessment?.retry_count > 0
+              ? `⏳ We hit a problem on the first try and are automatically retrying (attempt ${assessment.retry_count + 1} of 3). No action needed.`
+              : "✅ Purchase confirmed. Your assessment is being generated."}
           </div>
         )}
 
@@ -210,10 +214,26 @@ const LIAssessmentResult = () => {
             <ProcessingInterstitial tool="lia" />
           )}
 
-          {status === "failed" && (
+          {(status === "failed" || status === "error") && (
             <div className="bg-card border rounded-lg p-6">
               <p className="font-medium text-red-700 mb-3">Assessment could not be completed. Please try again.</p>
               <Button asChild><Link to="/li-assessment">Try Again</Link></Button>
+            </div>
+          )}
+
+          {status === "refunded" && (
+            <div className="bg-card border rounded-lg p-6">
+              <p className="font-medium mb-2">We couldn't generate this assessment and have refunded your payment.</p>
+              <p className="text-sm text-muted-foreground mb-4">The refund will appear on your statement within 5–10 business days. You can start a fresh assessment whenever you're ready.</p>
+              <Button asChild><Link to="/li-assessment">Start a new assessment</Link></Button>
+            </div>
+          )}
+
+          {status === "failed_resolved" && (
+            <div className="bg-card border rounded-lg p-6">
+              <p className="font-medium mb-2">We couldn't generate this assessment.</p>
+              <p className="text-sm text-muted-foreground mb-4">As a subscriber make-good, a free service credit has been added to your account. Use it on any Smart Tool.</p>
+              <Button asChild><Link to="/li-assessment">Start a new assessment</Link></Button>
             </div>
           )}
 
