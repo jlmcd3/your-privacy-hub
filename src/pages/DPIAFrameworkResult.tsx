@@ -126,6 +126,14 @@ const DPIAFrameworkResult = () => {
 
   const report = (translated?.report_data ?? dpia?.report_data) || {};
   const meta = report?.dpia_metadata || {};
+  const ov = report?.section_0_overview;
+  const ts = ov?.technical_sheet || {};
+  const d1 = report?.section_1_description;
+  const an = report?.section_2_analysis;
+  const np = report?.section_3_necessity_proportionality;
+  const rm = report?.section_4_risk_management;
+  const ip = report?.section_5_interested_parties;
+  const cc = report?.section_6_conclusion;
   const status = dpia?.status;
 
   const titleText = "Impact Assessment Builder";
