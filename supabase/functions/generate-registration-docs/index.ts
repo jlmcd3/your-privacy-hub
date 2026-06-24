@@ -9,6 +9,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,7 +42,7 @@ async function callClaude(
   model: string,
   systemPrompt: string,
   userContent: string,
-  maxTokens: number = 12000,
+  maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS,
   timeoutMs: number = 720_000
 ): Promise<{ text: string; stopReason: string | null }> {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
@@ -314,8 +315,8 @@ Deno.serve(async (req) => {
           const notesEarly: string[] = [];
           let initial = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot));
           if (initial.stopReason === "max_tokens") {
-            console.warn(`[reg-docs] ${r.jurisdiction_code}/${docDef.type} truncated_output — retrying once at 5000`);
-            initial = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot), 5000);
+            console.warn(`[reg-docs] ${r.jurisdiction_code}/${docDef.type} truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
+            initial = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot), PRODUCT_MAX_OUTPUT_TOKENS);
             if (initial.stopReason === "max_tokens") {
               notesEarly.push("truncated_output: document hit token ceiling twice");
             }

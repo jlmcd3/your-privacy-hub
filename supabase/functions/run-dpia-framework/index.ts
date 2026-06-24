@@ -3,6 +3,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -14,7 +15,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function callAnthropic(model: string, system: string, user: string, maxTokens = 7500, timeoutMs = 720_000): Promise<{ text: string; stopReason: string | null }> {
+async function callAnthropic(model: string, system: string, user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS, timeoutMs = 720_000): Promise<{ text: string; stopReason: string | null }> {
   const startedAt = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -330,10 +331,10 @@ Generate the second half of a DPIA framework document. Return ONLY this JSON str
 
     async function genHalf(prompt: string, extraUser: string): Promise<any> {
       const finalUser = extraUser ? `${prompt}\n\n${extraUser}` : prompt;
-      let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, 6000);
+      let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
       if (r.stopReason === "max_tokens") {
-        console.warn("[DPIA] genHalf truncated_output — retrying once at 1.5x");
-        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, Math.ceil(6000 * 1.5));
+        console.warn(`[DPIA] genHalf truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
+        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
         if (r.stopReason === "max_tokens") {
           console.error("[DPIA] genHalf truncated_output after retry — returning empty half");
           return {};

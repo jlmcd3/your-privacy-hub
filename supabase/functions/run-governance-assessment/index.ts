@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 const supabase = createClient(
@@ -323,14 +324,14 @@ Return JSON:
   "suggested_owner": "DPO | Legal Counsel | CISO | CTO | HR | Compliance Manager",
   "suggested_timeline": "Immediate (within 7 days) | This quarter | This year | Ongoing"
 }`;
-        const firstText = await callAnthropic(model, domainSystem, userPrompt, 1600);
+        const firstText = await callAnthropic(model, domainSystem, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
         let parsed = tryParseJson(firstText);
         if (!parsed) {
           // Retry once before giving up. Never emit placeholder "parse error"
           // copy into customer-facing report; failed domains are excluded
           // from the report entirely and recorded as a lint warning.
           console.warn(`[Governance] domain ${domain.id} (${domain.name}) parse failed; retrying once.`);
-          const retryText = await callAnthropic(model, domainSystem, userPrompt, 1600);
+          const retryText = await callAnthropic(model, domainSystem, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
           parsed = tryParseJson(retryText);
         }
         if (!parsed) {
@@ -445,7 +446,7 @@ Return JSON:
 
     async function runSynthesis(extra: string): Promise<any> {
       const finalUser = extra ? `${synthesisUserBase}\n\n${extra}` : synthesisUserBase;
-      const synthesisText = await callAnthropic("claude-sonnet-4-6", domainSystem, finalUser, 5000);
+      const synthesisText = await callAnthropic("claude-sonnet-4-6", domainSystem, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
       try {
         const m = synthesisText.match(/\{[\s\S]*\}/);
         if (m) return JSON.parse(m[0]);

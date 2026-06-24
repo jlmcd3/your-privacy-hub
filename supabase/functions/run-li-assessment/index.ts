@@ -4,6 +4,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun, type FnRunHandle } from "../_shared/function-run-logger.ts";
+import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 
 
 // Robustly parse a JSON object from an LLM response that may include
@@ -443,7 +444,7 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
   ]
 }`;
 
-    async function runStage2(extraUser: string, maxTokens: number = 15000): Promise<{ text: string; stopReason: string | null }> {
+    async function runStage2(extraUser: string, maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
       return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, maxTokens);
     }
@@ -451,8 +452,8 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
     const t2Start = Date.now();
     let stage2 = await runStage2("");
     if (stage2.stopReason === "max_tokens") {
-      console.warn("[LIA] Stage 2 truncated_output — retrying at 1.5x token budget");
-      stage2 = await runStage2("", Math.ceil(5000 * 1.5));
+      console.warn(`[LIA] Stage 2 truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
+      stage2 = await runStage2("", PRODUCT_MAX_OUTPUT_TOKENS);
       if (stage2.stopReason === "max_tokens") {
         console.error("[LIA] Stage 2 truncated_output after retry — failing run");
         throw new Error("truncated_output: LIA Stage 2 (analysis) exceeded token budget twice");
@@ -708,10 +709,10 @@ Return JSON:
 }`;
 
     const t3Start = Date.now();
-    let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, 3500);
+    let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
     if (docsStage.stopReason === "max_tokens") {
-      console.warn("[LIA] Stage 3 truncated_output — retrying at 1.5x token budget");
-      docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, Math.ceil(3500 * 1.5));
+      console.warn(`[LIA] Stage 3 truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
+      docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
       if (docsStage.stopReason === "max_tokens") {
         console.error("[LIA] Stage 3 truncated_output after retry — failing run");
         throw new Error("truncated_output: LIA Stage 3 (docs) exceeded token budget twice");

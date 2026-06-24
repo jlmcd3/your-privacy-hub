@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { lintReportText } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
@@ -682,9 +683,9 @@ templates (Section 5) or post-incident actions (Section 7):
 
         async function generateHalves(extra: string): Promise<{ partA: string; partB: string; partC: string; incomplete?: string }> {
           const [a, b, c] = await Promise.all([
-            generatePart("A", extra, 21000, 720_000),
-            generatePart("B", extra, 21000, 720_000),
-            generatePart("C", extra, 21000, 720_000),
+            generatePart("A", extra, PRODUCT_MAX_OUTPUT_TOKENS, 720_000),
+            generatePart("B", extra, PRODUCT_MAX_OUTPUT_TOKENS, 720_000),
+            generatePart("C", extra, PRODUCT_MAX_OUTPUT_TOKENS, 720_000),
           ]);
           const initial: Array<{ which: "A" | "B" | "C"; text: string; stopReason: string | null }> = [
             { which: "A", text: a.text, stopReason: a.stopReason },
@@ -714,7 +715,7 @@ templates (Section 5) or post-incident actions (Section 7):
 
           // Phase 2 — run all needed continuations concurrently.
           const continuedResults = await Promise.all(
-            failures.map((f) => continuePart(f.which, extra, f.text, 12000, 600_000)),
+            failures.map((f) => continuePart(f.which, extra, f.text, PRODUCT_MAX_OUTPUT_TOKENS, 600_000)),
           );
 
           const stillFailing: string[] = [];

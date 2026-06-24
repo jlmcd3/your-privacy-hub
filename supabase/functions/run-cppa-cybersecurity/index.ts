@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -300,7 +301,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     async function callControlsHalf(startIdx: number, endIdx: number, extra: string): Promise<{ controls: any[]; annotations: any[] } | null> {
       const base = buildControlsPrompt(startIdx, endIdx);
       const user = extra ? `${base}\n\n${extra}` : base;
-      const first = await callAnthropic(system, user, 4500);
+      const first = await callAnthropic(system, user, PRODUCT_MAX_OUTPUT_TOKENS);
       let parsed: any = null;
       if (first.stopReason === "max_tokens") {
         console.warn(`[CPPA Cyber] controls_${startIdx}_${endIdx} truncated_output — skipping parse, retrying at 1.5x`);
@@ -309,7 +310,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       }
       if (!parsed || !Array.isArray(parsed.controls)) {
         // One retry — at 1.5x tokens when previous attempt truncated.
-        const retryBudget = first.stopReason === "max_tokens" ? Math.ceil(4500 * 1.5) : 4500;
+        const retryBudget = PRODUCT_MAX_OUTPUT_TOKENS;
         const retry = await callAnthropic(system, `${base}\n\nPREVIOUS ATTEMPT did not return valid JSON. Produce the JSON again, ensuring it is well-formed.`, retryBudget);
         if (retry.stopReason === "max_tokens") {
           console.error(`[CPPA Cyber] controls_${startIdx}_${endIdx} truncated_output after retry`);
@@ -327,7 +328,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     async function callSynthesis(controlsDigest: string, computedScore: number, extra: string): Promise<any | null> {
       const base = buildSynthesisPrompt(controlsDigest, computedScore);
       const user = extra ? `${base}\n\n${extra}` : base;
-      const first = await callAnthropic(system, user, 1800);
+      const first = await callAnthropic(system, user, PRODUCT_MAX_OUTPUT_TOKENS);
       let parsed: any = null;
       if (first.stopReason === "max_tokens") {
         console.warn("[CPPA Cyber] synthesis truncated_output — skipping parse, retrying at 1.5x");
@@ -335,7 +336,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
         parsed = tryParseJson(first.text, "synthesis");
       }
       if (!parsed) {
-        const retryBudget = first.stopReason === "max_tokens" ? Math.ceil(1800 * 1.5) : 1800;
+        const retryBudget = PRODUCT_MAX_OUTPUT_TOKENS;
         const retry = await callAnthropic(system, `${base}\n\nPREVIOUS ATTEMPT did not return valid JSON. Produce the JSON again, ensuring it is well-formed.`, retryBudget);
         if (retry.stopReason === "max_tokens") {
           console.error("[CPPA Cyber] synthesis truncated_output after retry");

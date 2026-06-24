@@ -17,6 +17,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -467,7 +468,7 @@ async function callModel(
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 8000,
+      max_tokens: PRODUCT_MAX_OUTPUT_TOKENS,
       system,
       messages: [{ role: "user", content: user }],
     }),
@@ -561,19 +562,15 @@ async function runPipeline(assessment_id: string) {
     };
 
     if (first.stopReason === "max_tokens") {
-      console.warn("[cppa-risk v4] output truncated (max_tokens) — retrying at 16000 tokens");
-      const retry = await callAt(16000, "generate-v4-retry-16k");
+      // First call already runs at the model ceiling (PRODUCT_MAX_OUTPUT_TOKENS).
+      // Truncation here is exceptional; one retry at the same ceiling is the
+      // most we can do synchronously. Cross-product retry/refund flow picks up
+      // any residual failures.
+      console.warn(`[cppa-risk v4] output truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} tokens — single retry`);
+      const retry = await callAt(PRODUCT_MAX_OUTPUT_TOKENS, "generate-v4-retry-max");
       lastStopReason = retry.stopReason;
       debugRaw = retry.text;
       parsed = tryParseJson(retry.text);
-      // If still truncated, escalate once more at the model's working ceiling.
-      if (!parsed && retry.stopReason === "max_tokens") {
-        console.warn("[cppa-risk v4] retry still truncated — escalating to 32000 tokens");
-        const retry2 = await callAt(32000, "generate-v4-retry-32k");
-        lastStopReason = retry2.stopReason;
-        debugRaw = retry2.text;
-        parsed = tryParseJson(retry2.text);
-      }
     } else {
       debugRaw = first.text;
       parsed = tryParseJson(first.text);

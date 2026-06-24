@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -757,7 +758,7 @@ Deno.serve(async (req) => {
 
     const isStressRun = body.stress_run === true;
     const model = isStressRun ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6";
-    const maxTokens = isStressRun ? 6500 : 12000;
+    const maxTokens = isStressRun ? 6500 : PRODUCT_MAX_OUTPUT_TOKENS;
 
     const prompt = `You are a biometric privacy compliance analyst. Analyse the biometric data processing described below and produce a structured compliance assessment for each jurisdiction.
 
@@ -1027,7 +1028,7 @@ Output ONLY the compliance assessment. No preamble.`,
             },
             body: JSON.stringify({
               model: "claude-sonnet-4-6",
-              max_tokens: 12000,
+              max_tokens: PRODUCT_MAX_OUTPUT_TOKENS,
               system: "You are a biometric privacy compliance analyst. Reproduce the prior assessment, correcting these automated-lint defects silently and without meta-commentary: " + details,
               messages: [
                 { role: "user", content: prompt + stressBudget },
