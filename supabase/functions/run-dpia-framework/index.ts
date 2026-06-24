@@ -497,8 +497,8 @@ Generate substantive draft rows for every table for the controller to verify; us
       return hardSeen;
     }
 
-    const HALF_A_KEYS = new Set(["dpia_metadata", "section_1_description", "section_2_necessity", "section_3_risks"]);
-    const HALF_B_KEYS = new Set(["section_4_mitigation", "section_5_consultation", "section_6_conclusion", "framework_disclaimer"]);
+    const HALF_A_KEYS = new Set(["dpia_metadata", "section_0_overview", "section_1_description", "section_2_analysis"]);
+    const HALF_B_KEYS = new Set(["section_3_necessity_proportionality", "section_4_risk_management", "section_5_interested_parties", "section_6_conclusion", "framework_disclaimer"]);
 
     if (walkAndLint(reportData, "report", null)) {
       try {
