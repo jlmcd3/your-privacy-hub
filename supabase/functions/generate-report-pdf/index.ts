@@ -1910,7 +1910,7 @@ Deno.serve(async (req) => {
             missingKey = "domain_findings";
             break;
           case "dpia_framework":
-            bodyOk = isNonEmptyObj(rd.dpia_metadata) || isNonEmptyObj(rd.section_1_description);
+            bodyOk = isNonEmptyObj(rd.dpia_metadata) || isNonEmptyObj(rd.section_0_overview) || isNonEmptyObj(rd.section_1_description);
             missingKey = "dpia_metadata|section_1_description";
             break;
           case "cppa_risk":
