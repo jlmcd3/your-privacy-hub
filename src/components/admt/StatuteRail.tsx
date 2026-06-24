@@ -16,6 +16,14 @@ export type RailEntry = {
   fscrContext?: string;
   enforcementNote?: string;
   relatedCitations?: { citation: string; label: string }[];
+  templateGuidance?: {
+    sectionRef: string;
+    sectionTitle: string;
+    guidance: string;
+    paraRefs?: number[];
+    sourceLabel: string;
+    sourceUrl: string;
+  };
 };
 
 interface StatuteRailProps {
@@ -56,16 +64,46 @@ export default function StatuteRail({ entry, className = "" }: StatuteRailProps)
         <p className="text-[12px] leading-relaxed text-foreground">{entry.plainSummary}</p>
       </div>
 
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
-          Regulation text (verbatim)
-        </p>
-        <div className="border-l-2 border-border pl-3">
-          <p className="text-[11px] leading-relaxed text-foreground/80 italic whitespace-pre-wrap">
-            {entry.regulationText}
+      {entry.templateGuidance && (
+        <div className="rounded-md bg-[hsl(var(--brand-navy)/0.05)] border border-[hsl(var(--brand-navy)/0.12)] p-3">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <p className="text-[11px] font-semibold text-[hsl(var(--brand-navy))] uppercase tracking-wide">
+              EDPB DPIA template — completing this field
+            </p>
+            <a
+              href={entry.templateGuidance.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="EDPB source"
+            >
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+          <p className="text-[10px] font-mono text-muted-foreground mb-1.5">
+            § {entry.templateGuidance.sectionRef} · {entry.templateGuidance.sectionTitle}
+          </p>
+          <p className="text-[12px] leading-relaxed text-foreground">
+            {entry.templateGuidance.guidance}
+          </p>
+          <p className="text-[10px] text-muted-foreground mt-2 italic">
+            {entry.templateGuidance.sourceLabel}
           </p>
         </div>
-      </div>
+      )}
+
+      {entry.regulationText && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+            Regulation text (verbatim)
+          </p>
+          <div className="border-l-2 border-border pl-3">
+            <p className="text-[11px] leading-relaxed text-foreground/80 italic whitespace-pre-wrap">
+              {entry.regulationText}
+            </p>
+          </div>
+        </div>
+      )}
 
       {entry.fscrContext && (
         <div>
