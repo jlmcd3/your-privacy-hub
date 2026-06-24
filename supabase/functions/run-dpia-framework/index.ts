@@ -3,6 +3,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -14,7 +15,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function callAnthropic(model: string, system: string, user: string, maxTokens = 7500, timeoutMs = 720_000): Promise<{ text: string; stopReason: string | null }> {
+async function callAnthropic(model: string, system: string, user: string, maxTokens = PRODUCT_MAX_OUTPUT_TOKENS, timeoutMs = 720_000): Promise<{ text: string; stopReason: string | null }> {
   const startedAt = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
