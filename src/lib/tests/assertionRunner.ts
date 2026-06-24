@@ -367,8 +367,8 @@ async function runSingleTool(
         output = brief;
         addLog(`✓ Found brief published ${brief.published_at}`);
 
-      } else if (test.toolId === "cppa-risk" || test.toolId === "cppa-cyber") {
-        const module = test.toolId === "cppa-risk" ? "risk_assessment" : "cybersecurity";
+      } else if (test.toolId === "cppa-risk" || test.toolId === "cppa-cyber" || test.toolId === "cppa-admt") {
+        const module = test.toolId === "cppa-risk" ? "risk_assessment" : test.toolId === "cppa-cyber" ? "cybersecurity" : "admt";
         addLog(`Inserting cppa_assessments (module=${module})…`);
         const { data: rec, error: insErr } = await (supabase as any).from("cppa_assessments").insert({ user_id: userId, module, status: "pending", intake_data: test.testInput }).select("id").single();
         if (insErr || !rec) throw new Error(`cppa_assessments insert: ${insErr?.message}`);
