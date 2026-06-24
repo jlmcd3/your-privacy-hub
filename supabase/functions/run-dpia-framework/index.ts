@@ -120,6 +120,18 @@ EPRIVACY AND DEVICE-ACCESS GATE RULE: For processing activities involving IP add
     const necessityProportionality = intake.necessity_proportionality || "Not provided";
     const retentionPeriod = intake.retention_period || "Not specified";
     const sector = intake.sector || intake.organization_sector || "Not specified";
+    // EDPB template — Section 0 (Overview) inputs (from Tranche 1 intake)
+    const controllerContact = intake.controller_contact || "Not specified";
+    const dpoInfo = intake.dpo_info || "Not specified";
+    const processorObligations = intake.processor_obligations || "Not specified";
+    const processingVersion = intake.processing_version || "Not specified";
+    const launchDate = intake.estimated_launch_date || "Not specified";
+    const endDate = intake.estimated_end_date || "Not specified";
+    const dpiaTeam = intake.dpia_team || "Not specified";
+    const referenceMaterials = intake.reference_materials || "Not specified";
+    const reasonsToConduct = (intake.reasons_to_conduct || []).join("; ") || "Not specified";
+    const dpiaScopeNote = intake.dpia_scope_note || "Not specified";
+    const publicationIntent = intake.publication_intent || "Not specified";
 
     // Determine GDPR jurisdiction from verified jurisdictions (srcIntake preferred).
     let srcIntakeJurisdictions: string[] | null = null;
