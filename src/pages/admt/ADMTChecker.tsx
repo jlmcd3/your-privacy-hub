@@ -4,7 +4,7 @@
 // Signature feature: StatuteRail — persistent right column showing verbatim
 // regulation text, plain summary, and FSOR context for every field.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
