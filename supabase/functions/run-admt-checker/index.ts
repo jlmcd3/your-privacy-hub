@@ -203,7 +203,7 @@ Article 10 (§§ 7150–7157) creates risk assessment obligations. These have SE
 - § 7150(b)(5): profiling a consumer based on their presence in a sensitive location
 - § 7150(b)(6): processing personal information to train an ADMT for a significant decision, or to train facial-recognition, emotion-recognition, identity-verification, or other physical/biological identification or profiling technology (per the § 7150(b)(6) / § 7153 "train" definition)
 
-CONSEQUENCE: An AdTech or gaming business may have NO Article 11 obligations (because targeted advertising and gaming pricing are not significant decisions) but STILL have Article 10 risk assessment obligations (because they train ADMT on personal information under § 7150(b)(5), or sell/share personal information under § 7150(b)(1)).
+CONSEQUENCE: An AdTech or gaming business may have NO Article 11 obligations (because targeted advertising and gaming pricing are not significant decisions) but STILL have Article 10 risk assessment obligations (because they train ADMT on personal information under § 7150(b)(6), or sell/share personal information under § 7150(b)(1)).
 
 When triggers_significant_decision = false:
 - Set triggers_risk_assessment based on whether ANY of § 7150(b)(1)-(6) apply to the facts — NOT based on whether a significant decision is made.
