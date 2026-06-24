@@ -204,6 +204,9 @@ verify_jwt = false
 [functions.reap-stuck-generations]
 verify_jwt = false
 
+[functions.retry-failed-generations]
+verify_jwt = false
+
 
 
 
