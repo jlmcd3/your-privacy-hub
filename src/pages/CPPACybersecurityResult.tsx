@@ -412,6 +412,7 @@ export default function CPPACybersecurityResult() {
   const [priorId, setPriorId] = useState<string | null>(null);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
+  const [pollTimedOut, setPollTimedOut] = useState(false);
 
   // Look for an earlier cybersecurity assessment by the same user (for drift compare).
   useEffect(() => {
@@ -437,13 +438,12 @@ export default function CPPACybersecurityResult() {
     if (!id) return;
     let timer: any;
     let attempts = 0;
+    // Extended budget: 3s × 100 (5 min) + 6s × 150 (15 min) ≈ 20 min total.
+    const MAX_POLLS = 250;
     const fetchOnce = async () => {
       const { data } = await supabase.from("cppa_assessments").select("*").eq("id", id).maybeSingle();
       setRow(data);
       setLoading(false);
-      // Dual-polling: keep polling not only on pending/processing, but also when
-      // status flipped to `complete` before report_data was written (race seen in
-      // the cyber hotfix). Stops once both signals agree, or after ~5 min budget.
       const reportReady = data?.report_data
         && typeof data.report_data === "object"
         && Object.keys(data.report_data).length > 0
@@ -457,8 +457,11 @@ export default function CPPACybersecurityResult() {
         || (data.status === "complete" && !reportReady)
       );
       attempts += 1;
-      if (stillRunning && attempts < 100) {
-        timer = setTimeout(fetchOnce, 3000);
+      if (stillRunning && attempts < MAX_POLLS) {
+        const delay = attempts < 100 ? 3000 : 6000;
+        timer = setTimeout(fetchOnce, delay);
+      } else if (stillRunning) {
+        setPollTimedOut(true);
       }
     };
     fetchOnce();
@@ -472,11 +475,12 @@ export default function CPPACybersecurityResult() {
     && Object.keys(row.report_data).length > 0
     && (Array.isArray(row.report_data.controls) || typeof row.report_data.executive_summary === "string")
   );
-  const showRunning = !loading && (
+  const showRunning = !loading && !pollTimedOut && (
     status === "pending"
     || status === "processing"
     || (status === "complete" && !reportReady)
   );
+  const terminal = status === "complete" || status === "error";
 
   const metaText = row?.created_at ? `Generated ${new Date(row.created_at).toLocaleDateString()}` : undefined;
 
