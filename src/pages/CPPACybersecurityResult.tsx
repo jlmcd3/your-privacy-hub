@@ -515,7 +515,7 @@ export default function CPPACybersecurityResult() {
       <Navbar />
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <BackLink to="/dashboard/reports" label="Back to My Reports" />
-        {purchased && (
+        {purchased && !terminal && !pollTimedOut && (
           <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm">
             ✅ Purchase confirmed. Your readiness report is being generated.
           </div>
@@ -531,6 +531,16 @@ export default function CPPACybersecurityResult() {
 
           {showRunning && (
             <ProcessingInterstitial tool="cppa_cyber" />
+          )}
+
+          {pollTimedOut && status !== "complete" && status !== "error" && (
+            <div className="bg-card border rounded-lg p-6 space-y-3">
+              <p className="font-medium text-amber-700">Status check timed out.</p>
+              <p className="text-sm text-muted-foreground">
+                We stopped polling after ~20 minutes. The job may still be running, or it may have failed silently. Refresh to re-check, or contact support if this persists.
+              </p>
+              <Button onClick={() => window.location.reload()}>Refresh status</Button>
+            </div>
           )}
 
           {status === "error" && (
