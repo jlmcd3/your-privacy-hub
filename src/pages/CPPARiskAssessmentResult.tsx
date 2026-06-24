@@ -90,17 +90,20 @@ export default function CPPARiskAssessmentResult() {
   const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
+  const [pollTimedOut, setPollTimedOut] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     let timer: any;
     let attempts = 0;
+    // Extended poll budget: 3s × 100 (5 min) + 6s × 150 (15 min) ≈ 20 min total.
+    // Generator runs can exceed 6 min on heavy intakes; old 5-min cap silently
+    // froze the page on a stale "processing" snapshot.
+    const MAX_POLLS = 250;
     const fetchOnce = async () => {
       const { data } = await supabase.from("cppa_assessments").select("*").eq("id", id).maybeSingle();
       setRow(data);
       setLoading(false);
-      // Dual-polling: keep polling not only on pending/processing, but also when
-      // status === 'complete' arrived before report_data was written.
       const rd = data?.report_data as any;
       const reportReady = rd && typeof rd === "object" && Object.keys(rd).length > 0
         && (
@@ -116,8 +119,11 @@ export default function CPPARiskAssessmentResult() {
         || (data.status === "complete" && !reportReady)
       );
       attempts += 1;
-      if (stillRunning && attempts < 100) {
-        timer = setTimeout(fetchOnce, 3000);
+      if (stillRunning && attempts < MAX_POLLS) {
+        const delay = attempts < 100 ? 3000 : 6000;
+        timer = setTimeout(fetchOnce, delay);
+      } else if (stillRunning) {
+        setPollTimedOut(true);
       }
     };
     fetchOnce();
