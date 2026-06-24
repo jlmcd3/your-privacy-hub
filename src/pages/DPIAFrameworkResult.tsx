@@ -217,114 +217,151 @@ const DPIAFrameworkResult = () => {
                 </div>
               )}
 
-              {/* Section 1 */}
-              <Section num={1} title="Description of Processing"
-                guidance={report?.section_1_description?.guidance_note}
-                completion={report?.section_1_description?.completion_guidance}>
-                <Field label="Processing nature" value={report?.section_1_description?.processing_nature} />
-                <Field label="Processing scope" value={report?.section_1_description?.processing_scope} />
-                <Field label="Processing context" value={report?.section_1_description?.processing_context} />
-                <Field label="Processing purposes" value={report?.section_1_description?.processing_purposes} />
-                <Field label="Legal basis proposed" value={report?.section_1_description?.legal_basis_proposed} />
-              </Section>
+              {/* Section 0 — Overview */}
+              {ov && (
+                <Section num={0} title="Overview of the Processing" guidance={ov.guidance_note} completion={ov.completion_guidance}>
+                  <SubH>Controller(s)</SubH>
+                  <DataTable columns={[{ key: "name", label: "Controller" }, { key: "responsible_unit", label: "Responsible unit" }, { key: "main_establishment_or_representative", label: "Main establishment / representative" }, { key: "dpo", label: "DPO" }]} rows={ov.controllers} />
+                  <SubH>Processor(s) / sub-processor(s)</SubH>
+                  <DataTable columns={[{ key: "name", label: "Processor" }, { key: "obligations_and_tasks", label: "Obligations & tasks" }]} rows={ov.processors} />
+                  <Field label="Processing name" value={ov.processing_name} />
+                  <Field label="Version / change history" value={ov.processing_version} />
+                  <Field label="Estimated launch date" value={ov.planning?.estimated_launch_date} />
+                  <Field label="Estimated end date" value={ov.planning?.estimated_end_date} />
+                  <SubH>DPIA technical sheet</SubH>
+                  <Field label="Team (RACI)" value={ts.team_raci} />
+                  <Field label="Reference materials" value={ts.reference_materials} />
+                  <Field label="Reasons to conduct" value={Array.isArray(ts.reasons_to_conduct) ? ts.reasons_to_conduct.join("; ") : ts.reasons_to_conduct} />
+                  <Field label="Scope" value={ts.scope} />
+                  <Field label="Completion date" value={ts.completion_date} />
+                  <Field label="Formal validation date" value={ts.formal_validation_date} />
+                  <Field label="Publication intent" value={ts.publication_intent} />
+                </Section>
+              )}
 
-              {/* Section 2 */}
-              <Section num={2} title="Necessity and Proportionality"
-                guidance={report?.section_2_necessity?.guidance_note}
-                completion={report?.section_2_necessity?.completion_guidance}>
-                <Field label="Necessity analysis" value={report?.section_2_necessity?.necessity_analysis} />
-                <Field label="Proportionality analysis" value={report?.section_2_necessity?.proportionality_analysis} />
-                <Field label="Alternatives considered" value={report?.section_2_necessity?.alternatives_considered} />
-              </Section>
+              {/* Section 1 — Systematic description */}
+              {d1 && (
+                <Section num={1} title="Systematic Description of the Processing" guidance={d1.guidance_note} completion={d1.completion_guidance}>
+                  <SubH>Processed personal data</SubH>
+                  <DataTable columns={[{ key: "item", label: "Data item" }, { key: "explanation", label: "Explanation" }, { key: "special_category", label: "Special category" }]} rows={d1.processed_personal_data} />
+                  <SubH>Purposes</SubH>
+                  <DataTable columns={[{ key: "purpose", label: "Purpose" }, { key: "personal_data_involved_and_justification", label: "Data involved & justification" }]} rows={d1.purposes} />
+                  <SubH>Secondary or compatible uses</SubH>
+                  <DataTable columns={[{ key: "use", label: "Use" }, { key: "conditions_and_compatibility", label: "Conditions & compatibility" }]} rows={d1.secondary_uses} />
+                  <Field label="Nature" value={d1.nature} />
+                  <Field label="Scope" value={d1.scope} />
+                  <Field label="Context" value={d1.context} />
+                  <Field label="Cross-border" value={d1.cross_border} />
+                  <Field label="International transfers" value={d1.international_transfers} />
+                  <SubH>Functional description</SubH>
+                  <DataTable columns={[{ key: "phase", label: "Phase" }, { key: "operations", label: "Operations" }, { key: "explanation", label: "Explanation" }]} rows={d1.functional_description} />
+                  <SubH>Supporting assets</SubH>
+                  <DataTable columns={[{ key: "phase", label: "Phase" }, { key: "assets", label: "Assets" }, { key: "explanation", label: "Explanation" }]} rows={d1.supporting_assets} />
+                  <SubH>Codes of conduct</SubH>
+                  <DataTable columns={[{ key: "code", label: "Code" }, { key: "basis", label: "Basis" }, { key: "explanation", label: "Explanation" }]} rows={d1.codes_of_conduct} />
+                </Section>
+              )}
 
-              {/* Section 3 */}
-              <Section num={3} title="Risk Assessment"
-                guidance={report?.section_3_risks?.guidance_note}
-                completion={report?.section_3_risks?.completion_guidance}>
-                {Array.isArray(report?.section_3_risks?.risk_assessment) && report.section_3_risks.risk_assessment.map((r: any, i: number) => (
-                  <div key={i} className="border rounded p-4">
-                    <p className="font-medium">{r.risk_type || r.type}</p>
-                    {r.description && <p className="text-sm mt-1">{r.description}</p>}
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                      {r.likelihood && <span className={`px-2 py-0.5 text-xs rounded ${sevColor(r.likelihood)}`}>Likelihood: {r.likelihood}</span>}
-                      {r.severity && <span className={`px-2 py-0.5 text-xs rounded ${sevColor(r.severity)}`}>Severity: {r.severity}</span>}
-                    </div>
-                    {r.affected_rights && <p className="text-xs text-muted-foreground mt-2">Affected rights: {Array.isArray(r.affected_rights) ? r.affected_rights.join(", ") : r.affected_rights}</p>}
-                    <AnnotationCallout
-                      annotations={(report?.annotations || []).filter(
-                        (a: any) => a.relevance?.toLowerCase().includes(
-                          (r.risk_type || r.type || "").toLowerCase().slice(0, 20)
-                        )
-                      )}
+              {/* Section 2 — Analysis */}
+              {an && (
+                <Section num={2} title="Analysis of the Processing" guidance={an.guidance_note} completion={an.completion_guidance}>
+                  <SubH>Legal basis (per purpose)</SubH>
+                  <DataTable columns={[{ key: "purpose", label: "Purpose / use" }, { key: "article_6_basis", label: "Art. 6(1) basis" }, { key: "justification", label: "Justification" }]} rows={an.legal_basis} />
+                  <SubH>Reasons to lift the prohibition (special categories)</SubH>
+                  <DataTable columns={[{ key: "data_item", label: "Data item" }, { key: "article_9_condition", label: "Art. 9(2) condition" }, { key: "justification", label: "Justification" }]} rows={an.special_category_conditions} />
+                  <SubH>Data minimisation & retention</SubH>
+                  <DataTable columns={[{ key: "data_item", label: "Data item" }, { key: "need_justification", label: "Need" }, { key: "recipients", label: "Recipients" }, { key: "retention_period", label: "Retention" }, { key: "retention_justification", label: "Retention justification" }]} rows={an.data_minimisation_retention} />
+                  <SubH>Data quality</SubH>
+                  <DataTable columns={[{ key: "data_item", label: "Data item" }, { key: "metrics", label: "Metrics" }, { key: "justification", label: "Justification" }]} rows={an.data_quality} />
+                  <SubH>Measures — Article 5(1) principles</SubH>
+                  <DataTable columns={[{ key: "principle", label: "Principle" }, { key: "measures", label: "Measures" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }]} rows={an.measures_article5} />
+                  <SubH>Measures — data subject rights</SubH>
+                  <DataTable columns={[{ key: "right", label: "Right" }, { key: "measures", label: "Measures" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }]} rows={an.measures_rights} />
+                  <SubH>Measures — other GDPR requirements</SubH>
+                  <DataTable columns={[{ key: "requirement", label: "Requirement" }, { key: "measures", label: "Measures" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }]} rows={an.measures_other} />
+                  <SubH>Measures — data protection by design & default (Art. 25)</SubH>
+                  <DataTable columns={[{ key: "measures", label: "Measures" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }]} rows={an.measures_dpbd} />
+                  <SubH>Measures — security of processing (Art. 32)</SubH>
+                  <DataTable columns={[{ key: "measures", label: "Measures" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }]} rows={an.measures_security} />
+                </Section>
+              )}
+
+              {/* Section 3 — Necessity & Proportionality (design / structural risk) */}
+              {np && (
+                <Section num={3} title="Necessity and Proportionality" guidance={np.guidance_note} completion={np.completion_guidance}>
+                  <SubH>Design / structural risk impacts <span className="font-normal text-muted-foreground">— risks even if everything works exactly as designed</span></SubH>
+                  <DataTable columns={[{ key: "threat", label: "Threat" }, { key: "how_materialised", label: "How it materialises" }, { key: "risk_sources", label: "Risk sources" }, { key: "impact_on_rights", label: "Impact on rights" }]} rows={np.design_risk_impacts} />
+                  <Field label="Necessity assessment" value={np.necessity_assessment} />
+                  <Field label="Proportionality assessment" value={np.proportionality_assessment} />
+                </Section>
+              )}
+
+              {/* Section 4 — Risk Assessment & Management */}
+              {rm && (
+                <Section num={4} title="Risk Assessment and Management" guidance={rm.guidance_note} completion={rm.completion_guidance}>
+                  <SubH>Incident / deviation risk impacts <span className="font-normal text-muted-foreground">— when something deviates from the intended state</span></SubH>
+                  <DataTable columns={[{ key: "threat", label: "Threat" }, { key: "how_materialised", label: "How it materialises" }, { key: "risk_sources", label: "Risk sources" }, { key: "impact_on_rights", label: "Impact on rights" }]} rows={rm.incident_risk_impacts} />
+                  <Field label="Method" value={rm.method} />
+                  <SubH>Inherent risk assessment</SubH>
+                  <DataTable columns={[{ key: "risk", label: "Risk" }, { key: "likelihood", label: "Likelihood" }, { key: "severity", label: "Severity" }, { key: "modulating_factors", label: "Modulating factors" }, { key: "risk_level", label: "Risk level" }, { key: "acceptable", label: "Acceptable?" }]} rows={rm.inherent_risk_assessment} />
+                  {Array.isArray(report?.annotations) && report.annotations.length > 0 && <AnnotationCallout annotations={report.annotations} />}
+                  <SubH>Additional mitigating measures</SubH>
+                  <DataTable columns={[{ key: "measure", label: "Measure" }, { key: "mitigated_risks", label: "Mitigates" }, { key: "appropriateness", label: "Appropriateness" }, { key: "implementation_status", label: "Status" }]} rows={rm.additional_mitigating_measures} />
+                  <SubH>Residual risk assessment</SubH>
+                  <DataTable columns={[{ key: "risk", label: "Risk" }, { key: "residual_likelihood", label: "Residual likelihood" }, { key: "residual_severity", label: "Residual severity" }, { key: "residual_risk_level", label: "Residual level" }, { key: "acceptable", label: "Acceptable?" }]} rows={rm.residual_risk_assessment} />
+                  <Field label="Action plan" value={rm.plan} />
+                </Section>
+              )}
+
+              {/* Section 5 — Interested parties */}
+              {ip && (
+                <Section num={5} title="Involvement of Interested Parties" guidance={ip.guidance_note} completion={ip.completion_guidance}>
+                  <Field label="DPO advice" value={ip.dpo_advice} />
+                  <div>
+                    <Label className="text-xs uppercase font-medium text-muted-foreground">Record consultation outcome</Label>
+                    <Textarea
+                      value={consultationNote}
+                      onChange={(e) => setConsultationNote(e.target.value)}
+                      placeholder={ip.dpo_advice || "Capture consultation outcome here…"}
+                      className="mt-2 min-h-24"
                     />
                   </div>
-                ))}
-                <Field label="Residual risk guidance" value={report?.section_3_risks?.residual_risk_assessment} />
-              </Section>
+                  <Field label="Views of data subjects or their representatives" value={ip.data_subject_views} />
+                </Section>
+              )}
 
-              {/* Section 4 */}
-              <Section num={4} title="Mitigation Measures"
-                guidance={report?.section_4_mitigation?.guidance_note}
-                completion={report?.section_4_mitigation?.completion_guidance}>
-                {Array.isArray(report?.section_4_mitigation?.proposed_measures) && report.section_4_mitigation.proposed_measures.map((m: any, i: number) => (
-                  <div key={i} className="border rounded p-4">
-                    <p className="font-medium">{m.measure || m.name}</p>
-                    {m.addresses_risk && <p className="text-xs text-muted-foreground mt-1">Addresses: {m.addresses_risk}</p>}
-                    {m.implementation_guidance && <p className="text-sm mt-2">{m.implementation_guidance}</p>}
-                    {m.residual_risk_after && <p className="text-xs mt-2 text-muted-foreground">Residual risk: {m.residual_risk_after}</p>}
-                  </div>
-                ))}
-              </Section>
-
-              {/* Section 5 */}
-              <Section num={5} title="Consultation"
-                guidance={report?.section_5_consultation?.guidance_note}
-                completion={report?.section_5_consultation?.completion_guidance}>
-                {report?.section_5_consultation?.dpo_consultation_required !== undefined && (
-                  <Field
-                    label="DPO consultation requirement"
-                    value={report.section_5_consultation.dpo_consultation_required ? "Required" : "Not required"}
-                  />
-                )}
-                <div>
-                  <Label className="text-xs uppercase font-medium text-muted-foreground">Record consultation outcome</Label>
-                  <Textarea
-                    value={consultationNote}
-                    onChange={(e) => setConsultationNote(e.target.value)}
-                    placeholder={report?.section_5_consultation?.dpo_consultation_record || "Capture consultation outcome here…"}
-                    className="mt-2 min-h-24"
-                  />
-                </div>
-                <Field label="Stakeholder consultation" value={report?.section_5_consultation?.stakeholder_consultation} />
-              </Section>
-
-              {/* Section 6 */}
-              <Section num={6} title="Conclusion and Sign-Off"
-                guidance={report?.section_6_conclusion?.guidance_note}
-                completion={report?.section_6_conclusion?.completion_guidance}>
-                <Field
-                  label="Supervisory authority consultation conditions"
-                  value={report?.section_6_conclusion?.supervisory_authority_consultation_required}
-                />
-                <div className="border rounded p-4 bg-muted/30 font-mono text-sm space-y-2">
-                  {report?.section_6_conclusion?.sign_off_template ? (
-                    <p className="whitespace-pre-wrap font-mono text-sm">{report.section_6_conclusion.sign_off_template}</p>
-                  ) : (
-                    <>
-                      <div>Name: ___________________________</div>
-                      <div>Role: ___________________________</div>
-                      <div>Date of review: ___________________________</div>
-                      <div>Decision: [ ] Processing may proceed as described &nbsp;&nbsp; [ ] Processing requires further mitigation</div>
-                      <div>Signature: ___________________________</div>
-                    </>
+              {/* Section 6 — Conclusion & decision */}
+              {cc && (
+                <Section num={6} title="Conclusion and Decision" guidance={cc.guidance_note} completion={cc.completion_guidance}>
+                  <Field label="Decision" value={cc.decision} />
+                  {Array.isArray(cc.conditions) && cc.conditions.length > 0 && (
+                    <div>
+                      <span className="text-xs uppercase font-medium text-muted-foreground">Conditions</span>
+                      <ul className="list-disc pl-5 text-sm mt-1">{cc.conditions.map((c: string, i: number) => <li key={i}>{c}</li>)}</ul>
+                    </div>
                   )}
-                </div>
-                <Field label="Review schedule" value={report?.section_6_conclusion?.review_schedule} />
-              </Section>
+                  <Field label="Supervisory authority consultation" value={cc.supervisory_authority_consultation_required} />
+                  <div className="border rounded p-4 bg-muted/30 font-mono text-sm space-y-2">
+                    {cc.sign_off_template ? (
+                      <p className="whitespace-pre-wrap font-mono text-sm">{cc.sign_off_template}</p>
+                    ) : (
+                      <>
+                        <div>Name: ___________________________</div>
+                        <div>Role: ___________________________</div>
+                        <div>Date of review: ___________________________</div>
+                        <div>Decision: [ ] Proceed &nbsp;&nbsp; [ ] Conditionally proceed &nbsp;&nbsp; [ ] Consult SA &nbsp;&nbsp; [ ] Abandon</div>
+                        <div>Signature: ___________________________</div>
+                      </>
+                    )}
+                  </div>
+                  <Field label="Review schedule" value={cc.review_schedule} />
+                  <Field label="Justification" value={cc.justification} />
+                </Section>
+              )}
 
               <EnforcementPrecedents
                 precedents={report?.enforcement_precedents}
-                context="Recent regulator decisions on similar processing activities — review these alongside Section 3 (Risks) and Section 4 (Mitigation)."
+                context="Recent regulator decisions on similar processing activities — review these alongside Section 4 (Risk Assessment and Management)."
               />
             </div>
           )}
