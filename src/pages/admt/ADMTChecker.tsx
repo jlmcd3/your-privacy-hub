@@ -4,7 +4,7 @@
 // Signature feature: StatuteRail — persistent right column showing verbatim
 // regulation text, plain summary, and FSOR context for every field.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
@@ -140,6 +140,20 @@ export default function ADMTChecker() {
   const activeRailEntry: RailEntry | null =
     activeRailKey ? (ADMT_RAIL[activeRailKey] ?? null) : null;
   const focus = (key: string) => setActiveRailKey(key);
+
+  // Default rail entry for the first question on each step — updates the rail
+  // automatically when the user advances/goes back, so it never shows stale
+  // guidance from the previous page.
+  const STEP_DEFAULT_RAIL_KEY: Record<number, string | null> = {
+    1: "scope_does_business_use_admt",
+    2: "notice_timing",
+    3: "optout_exception_human_appeal",
+    4: "access_logic_disclosure",
+  };
+  useEffect(() => {
+    setActiveRailKey(STEP_DEFAULT_RAIL_KEY[step] ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   // Step 1
   const [systemName, setSystemName] = useState("");

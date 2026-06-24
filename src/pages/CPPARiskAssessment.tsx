@@ -278,6 +278,22 @@ export default function CPPARiskAssessment() {
   const activeRiskRailEntry: RailEntry | null = activeRiskRailKey ? (CPPA_RISK_RAIL[activeRiskRailKey] ?? null) : null;
   const focusRail = (key: string) => setActiveRiskRailKey(key);
 
+  // Default rail entry for the first question on each step — updates the rail
+  // automatically when the user advances/goes back, so it never shows stale
+  // guidance from the previous page.
+  const STEP_DEFAULT_RAIL_KEY: Record<number, string | null> = {
+    1: "q1_revenue",
+    2: "q9_opt_out",
+    3: null,
+    4: "q15_sensitive_pi",
+    5: "q18_admt",
+    6: "i1_purpose",
+  };
+  useEffect(() => {
+    setActiveRiskRailKey(STEP_DEFAULT_RAIL_KEY[step] ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
   const enforcementSignals = useEnforcementSignals(["sell_share", "opt_out_link", "sensitive_pi"]);
 
   const fscrCallouts = useFscrCallouts([
