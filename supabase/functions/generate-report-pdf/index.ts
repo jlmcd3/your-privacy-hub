@@ -374,14 +374,28 @@ ${dn.gap_description ? `<p class="label">Gap</p><p>${escHtml(dn.gap_description)
 
 function buildDPIAReportHTML(report: any, dpia: any): string {
   const meta = report.dpia_metadata || {};
-  const sections = [
-    ["section_1_description", "1. Description of Processing"],
-    ["section_2_necessity", "2. Necessity and Proportionality"],
-    ["section_3_risks", "3. Risk Assessment"],
-    ["section_4_mitigation", "4. Mitigation Measures"],
-    ["section_5_consultation", "5. DPO and Stakeholder Consultation"],
-    ["section_6_conclusion", "6. Conclusion and Sign-Off"],
-  ] as const;
+  const cellHtml = (key: string, val: any): string => {
+    if (val === null || val === undefined || val === "") return "—";
+    if (Array.isArray(val)) return escHtml(val.join(", "));
+    if (typeof val === "object") {
+      if ("is_special" in val) return val.is_special ? "Yes" + (Array.isArray(val.categories) && val.categories.length ? ": " + escHtml(val.categories.join(", ")) : "") : "No";
+      return escHtml(JSON.stringify(val));
+    }
+    return sanitizeNarrative(String(val));
+  };
+  const tbl = (cols: { key: string; label: string }[], rows: any[]): string =>
+    Array.isArray(rows) && rows.length
+      ? `<table class="dt"><thead><tr>${cols.map((c) => `<th>${escHtml(c.label)}</th>`).join("")}</tr></thead><tbody>${rows.map((r: any) => `<tr>${cols.map((c) => `<td>${cellHtml(c.key, r?.[c.key])}</td>`).join("")}</tr>`).join("")}</tbody></table>`
+      : `<p style="font-style:italic;color:#5c6d7a;">[TO COMPLETE — no rows generated]</p>`;
+  const prose = (label: string, val: any): string =>
+    val ? `<p><span class="label">${escHtml(label)}:</span> ${sanitizeNarrative(String(val))}</p>` : "";
+  const sec = (heading: string, s: any, inner: string): string =>
+    !s ? "" : `<h2>${escHtml(heading)}</h2>${s.guidance_note ? `<div class="guidance">${escHtml(s.guidance_note)}</div>` : ""}${inner}${s.completion_guidance ? `<div class="completion"><strong>Your DPO/Counsel must complete: </strong>${escHtml(s.completion_guidance)}</div>` : ""}`;
+
+  const ov = report.section_0_overview, d1 = report.section_1_description, an = report.section_2_analysis;
+  const np = report.section_3_necessity_proportionality, rm = report.section_4_risk_management;
+  const ip = report.section_5_interested_parties, cc = report.section_6_conclusion;
+  const ts = ov?.technical_sheet || {};
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
