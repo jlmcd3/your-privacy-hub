@@ -226,60 +226,101 @@ USER-PROVIDED INPUT HANDLING: The intake above may include three user-provided i
 
     const promptA = `${sharedContext}
 
-Generate the first half of a DPIA framework document. Return ONLY this JSON structure, no preamble:
+Generate the first half of an EDPB-format DPIA (Overview, Systematic Description, Analysis). Mirror the EDPB DPIA template structure. The repeatable tables (controllers, processors, data items, purposes, legal-basis rows, retention rows, and the measure matrices) must be GENERATED from the processing details above for the controller to verify — populate each row with substantive draft content, and use "[TO COMPLETE — …]" only where a value genuinely cannot be inferred from the intake. For the measure matrices, provide one row per Article 5(1)(a–f) principle (fairness, transparency, purpose limitation, data minimisation, accuracy, storage limitation, integrity & confidentiality, accountability), one row per data-subject right group, and one row per other GDPR requirement. Return ONLY this JSON structure, no preamble:
 
 {
   "dpia_metadata": {
     "processing_activity_name": "brief name for this processing activity",
     "framework_version": "1.0",
+    "template_basis": "EDPB DPIA template v1.0 (10 Mar 2026, public-consultation draft)",
     "applicable_frameworks": ["list of applicable frameworks — GDPR Art. 35, UK GDPR, etc."],
     "article_35_3_trigger": "Identify which Article 35(3) subparagraph mandates this DPIA, or state that this DPIA is precautionary. Options: Art. 35(3)(a) — systematic evaluation of personal aspects including profiling with significant effects; Art. 35(3)(b) — large-scale processing of special category or criminal offence data; Art. 35(3)(c) — systematic monitoring of publicly accessible area at large scale; Precautionary — processing does not meet Art. 35(3) thresholds but DPIA is conducted as best practice or because supervisory authority list applies.",
     "consultation_requirement": "State whether DPO consultation is required under GDPR Article 35(2) (applies only if a DPO is designated per Article 37). If no DPO is designated, state this and document whether an Article 37 appointment obligation is triggered. DPO CONSULTATION REQUIRED: [Required under Art. 35(2) — DPO designated / Not required — no DPO designated, Article 37 assessment: [TO COMPLETE] / Not confirmed — confirm DPO designation status]",
     "supervisory_authority_consultation_trigger": "For cross-border EU processing, identify the lead supervisory authority under the one-stop-shop mechanism (GDPR Article 56). Prior consultation under Article 36 is required if residual risk remains High after all measures are applied."
   },
-  "section_1_description": {
-    "title": "Description of the Processing",
-    "guidance_note": "GDPR Article 35(7)(a) requires a systematic description of the processing operations and purposes.",
-    "processing_nature": "describe the nature of the processing",
-    "processing_scope": "describe the scope — volume, range of data subjects, geographic reach",
-    "processing_context": "describe the context — relationships, reasonable expectations of data subjects",
-    "processing_purposes": "clearly state each purpose",
-    "legal_basis_proposed": "the proposed legal basis and why",
-    "completion_guidance": "What the organisation's counsel/DPO must complete or verify in this section"
-  },
-  "section_2_necessity": {
-    "title": "Assessment of Necessity and Proportionality",
-    "guidance_note": "GDPR Article 35(7)(b) requires assessment of necessity and proportionality.",
-    "necessity_analysis": "framework analysis of whether processing is necessary for the stated purpose",
-    "proportionality_analysis": "framework analysis of whether processing is proportionate",
-    "alternatives_considered": "list alternatives evaluated and why rejected",
-    "completion_guidance": "What the organisation must complete or verify in this section"
-  },
-  "section_3_risks": {
-    "title": "Assessment of Risks to Data Subjects",
-    "guidance_note": "GDPR Article 35(7)(c) requires identification of risks to the rights and freedoms of natural persons.",
-    "risk_assessment": [
-      {
-        "risk_type": "name of risk",
-        "description": "how this risk could materialise",
-        "likelihood": "Low | Medium | High",
-        "severity": "Low | Medium | High",
-        "affected_rights": ["which data subject rights are implicated"]
-      }
+  "section_0_overview": {
+    "title": "Overview of the Processing",
+    "guidance_note": "EDPB DPIA template Section 0 — controller(s), processor(s), name, planning, and the DPIA technical sheet.",
+    "controllers": [
+      { "name": "controller name", "responsible_unit": "internal unit responsible", "main_establishment_or_representative": "from intake or [TO COMPLETE — main establishment / representative]", "dpo": "from intake or [TO COMPLETE — DPO or 'none designated']" }
     ],
-    "residual_risk_assessment": "framework guidance on assessing residual risk after mitigation",
-    "completion_guidance": "What the organisation must complete in this section",
-    "annotations": [
-      {
-        "enforcement_action_id": "exact id string from the enforcement context above (the value after 'id:')",
-        "regulator": "regulator name",
-        "jurisdiction": "jurisdiction",
-        "decision_date": "YYYY-MM-DD or null",
-        "summary": "one sentence what the case involved, max 25 words, plain English",
-        "outcome": "rejected | accepted | penalised | required",
-        "relevance": "one sentence why this case is relevant to a risk in this DPIA"
-      }
-    ]
+    "processors": [
+      { "name": "processor / sub-processor (from intake), or 'None identified'", "obligations_and_tasks": "their obligations & tasks, or [TO COMPLETE — define obligations]" }
+    ],
+    "processing_name": "internal name from the record of processing activities",
+    "processing_version": "current version / change history (from intake), or [TO COMPLETE — version / change history]",
+    "planning": { "estimated_launch_date": "from intake or [TO COMPLETE — launch date]", "estimated_end_date": "from intake or 'Ongoing'" },
+    "technical_sheet": {
+      "dpia_version": "1.0",
+      "team_raci": "from intake or [TO COMPLETE — Responsible / Accountable / Consulted / Informed]",
+      "reference_materials": "guidelines / standards used (include EDPB DPIA template and WP248 rev.01)",
+      "reasons_to_conduct": ["the controller-selected reasons, mapped to Art. 35(3) sub-paragraphs and the WP248 criteria they correspond to"],
+      "scope": "what this DPIA covers and what it excludes, and why",
+      "completion_date": "[TO COMPLETE — DD/MM/YYYY]",
+      "formal_validation_date": "[TO COMPLETE — DD/MM/YYYY, approval as complete by a responsible official]",
+      "publication_intent": "from intake (No / published / shared externally)"
+    },
+    "completion_guidance": "What the organisation must confirm or complete in Section 0"
+  },
+  "section_1_description": {
+    "title": "Systematic Description of the Processing",
+    "guidance_note": "EDPB Section 1 / GDPR Art. 35(7)(a) — processed data, purposes, secondary uses, nature/scope/context, functional description, supporting assets, and codes of conduct.",
+    "processed_personal_data": [
+      { "item": "data item / element", "explanation": "data type, data subject category, details", "special_category": { "is_special": true, "categories": ["e.g. data concerning health; biometric data for unique identification"] } }
+    ],
+    "purposes": [
+      { "purpose": "specific and explicit purpose", "personal_data_involved_and_justification": "which data (from processed_personal_data) and why it is needed" }
+    ],
+    "secondary_uses": [
+      { "use": "secondary / compatible use, or 'None identified'", "conditions_and_compatibility": "conditions and a compatibility assessment" }
+    ],
+    "nature": "how personal data will be handled (operations involved, technologies used)",
+    "scope": "breadth and extent — volume / scale, geographic and organisational reach, frequency or duration",
+    "context": "circumstances and environment — controller–data-subject relationship, vulnerable groups, cross-border",
+    "cross_border": "Yes / No, with justification",
+    "international_transfers": "Yes / No — third country and transfer mechanism, or 'None'",
+    "functional_description": [
+      { "phase": "processing phase / stage", "operations": ["Collection","Use","Storage","Sharing and Transfer","Deletion and Destruction"], "explanation": "what happens in this phase across the controller/processor chain" }
+    ],
+    "supporting_assets": [
+      { "phase": "phase (from functional_description)", "assets": "means of processing and essential supporting assets", "explanation": "how the asset relates to the processing and to risk" }
+    ],
+    "codes_of_conduct": [
+      { "code": "approved code of conduct, or 'None applicable'", "basis": "Required (legal obligation) | Necessary or beneficial | N/A", "explanation": "why" }
+    ],
+    "completion_guidance": "What the organisation must complete or verify in Section 1"
+  },
+  "section_2_analysis": {
+    "title": "Analysis of the Processing",
+    "guidance_note": "EDPB Section 2 — lawfulness, data minimisation / retention / quality, and the measures supporting compliance.",
+    "legal_basis": [
+      { "purpose": "purpose / use (from section_1 purposes and secondary uses)", "article_6_basis": "Art. 6(1)(a)–(f)", "justification": "why; for 6(1)(f) include the legitimate-interests balancing test" }
+    ],
+    "special_category_conditions": [
+      { "data_item": "special-category item (from section_1)", "article_9_condition": "Art. 9(2)(a)–(j)", "justification": "why this condition lifts the prohibition" }
+    ],
+    "data_minimisation_retention": [
+      { "data_item": "data item", "need_justification": "why this data is needed and relevant", "recipients": "recipients", "recipient_justification": "why", "retention_period": "retention period", "retention_justification": "why" }
+    ],
+    "data_quality": [
+      { "data_item": "data item", "metrics": "quality metrics, requirements or thresholds", "justification": "why" }
+    ],
+    "measures_article5": [
+      { "principle": "Fairness | Transparency | Purpose limitation | Data minimisation | Accuracy | Storage limitation | Integrity and confidentiality | Accountability", "measures": "supporting measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+    ],
+    "measures_rights": [
+      { "right": "Information (Arts. 12–14) | Access & portability (Arts. 15, 20) | Rectification & erasure (Arts. 16, 17, 19) | Object & restriction (Arts. 18, 19, 21) | No solely-automated decision (Art. 22)", "measures": "supporting measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+    ],
+    "measures_other": [
+      { "requirement": "Consent (Art. 7) | Processors (Art. 28) | International transfers (Chapter V)", "measures": "supporting measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+    ],
+    "measures_dpbd": [
+      { "measures": "data protection by design and by default (Art. 25) measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+    ],
+    "measures_security": [
+      { "measures": "security of processing (Art. 32) measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+    ],
+    "completion_guidance": "What the organisation must complete or verify in Section 2"
   }
 }`;
 
