@@ -252,6 +252,12 @@ Guidelines / standards used: ${referenceMaterials}
 Reasons to conduct the DPIA (controller-selected): ${reasonsToConduct}
 Scope of this DPIA (in / out): ${dpiaScopeNote}
 Publication / external-sharing intent: ${publicationIntent}
+
+EDPB TEMPLATE — SECTIONS 1, 2 & 5 INPUTS (controller-provided; assess these as proposals, do not treat as settled conclusions):
+[Section 1 — description] Secondary / compatible uses: ${secondaryUses}; Nature, scope & context: ${natureScopeContext}; Functional description: ${functionalDescription}; Means / supporting assets & architecture: ${supportingAssets}; Approved codes of conduct / certifications: ${codesOfConduct}
+[Section 2 — compliance] Data minimisation justification: ${dataMinimisationJustification}; Data quality measures: ${dataQualityMeasures}; Measures supporting data subjects' rights: ${dataSubjectRightsMechanisms}; Data protection by design & default: ${dpByDesignMeasures}
+[Section 5 — interested parties] DPO advice: ${dpoAdvice}; Data subjects' views sought: ${dataSubjectsViewsSought}; Data subjects' views / justification: ${dataSubjectsViews}
+USE THESE INPUTS: fold them into section_1_description (secondary uses, nature/scope/context, functional description, supporting assets, codes of conduct), section_2_analysis (data minimisation under Art. 5(1)(c); data quality under Art. 5(1)(d); measures supporting data-subject rights under Arts. 12–22; data protection by design & default under Art. 25), and section_5_interested_parties (DPO advice under Art. 35(2); data subjects' views under Art. 35(9), including the controller's justification where views were not sought). Where a value is "Not specified", keep the existing [TO COMPLETE] behaviour for that element rather than inventing content.
 ${orgContext}
 
 ENFORCEMENT PRECEDENTS (cite by [E1]–[E5] where relevant):
