@@ -395,6 +395,9 @@ const DPIAFramework = () => {
           <RequiredLegend />
 
 
+          <div className="flex items-center gap-2 pt-1 pb-1 border-b">
+            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">1 · What are you doing?</span>
+          </div>
           <div>
             <p className="text-xs font-mono text-muted-foreground pb-2 border-b">Art. 35 GDPR — Data Protection Impact Assessment · Recitals 84, 89–90 — when a DPIA is mandatory</p>
             <Label htmlFor="org">Organisation being assessed<Req /></Label>
