@@ -15,6 +15,8 @@ export type RailEntry = {
   regulationText: string;
   fscrContext?: string;
   enforcementNote?: string;
+  goodAnswer?: string;
+  commonMistake?: string;
   relatedCitations?: { citation: string; label: string }[];
   templateGuidance?: {
     sectionRef: string;
