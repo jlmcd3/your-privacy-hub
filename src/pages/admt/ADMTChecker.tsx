@@ -28,6 +28,7 @@ import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/admt/StatuteRail";
+import { ChoiceRadio } from "@/components/admt/ChoiceRadio";
 import { ADMT_RAIL } from "@/components/admt/admtRailEntries";
 import type { RailEntry } from "@/components/admt/StatuteRail";
 
@@ -79,26 +80,9 @@ function formatRelativeTime(d: Date) {
   return `${Math.round(s / 86400)}d ago`;
 }
 
-const Radio = ({
-  name, options, value, onChange, onFocus,
-}: {
-  name: string; options: string[]; value: string;
-  onChange: (v: string) => void; onFocus?: () => void;
-}) => (
-  <div className="space-y-2">
-    {options.map((o) => (
-      <label key={o} className="flex items-start gap-2 cursor-pointer">
-        <input
-          type="radio" name={name} value={o} checked={value === o}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={onFocus}
-          className="mt-0.5"
-        />
-        <span className="text-sm leading-snug">{o}</span>
-      </label>
-    ))}
-  </div>
-);
+// Deselect-capable single-select; aliased to the shared ChoiceRadio.
+// The legacy `name` prop is accepted and ignored.
+const Radio = ChoiceRadio;
 
 const Pills = ({
   options, value, onChange, onFocus,
