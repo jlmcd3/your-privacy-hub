@@ -157,6 +157,7 @@ export default function ADMTChecker() {
   }, [step]);
 
   // Step 1
+  const [organizationName, setOrganizationName] = useState("");
   const [systemName, setSystemName] = useState("");
   const [systemType, setSystemType] = useState("");
   const [systemDescription, setSystemDescription] = useState("");
@@ -210,8 +211,26 @@ export default function ADMTChecker() {
     !optOutException.startsWith("Hiring") &&
     !optOutException.startsWith("Work allocation");
 
+  const admtScopeVerdict = useMemo(() => {
+    const hasSignificant = decisionDomains.length > 0;
+    const answeredHuman = !!humanReview;
+    if (!hasSignificant && !answeredHuman) return null;
+    const humanQualifies =
+      humanReview.startsWith("Yes — reviewer knows") ||
+      (adv.hi_trained === "Yes" && adv.hi_reviews_other_info === "Yes" && adv.hi_authority_override === "Yes");
+    if (!hasSignificant)
+      return { level: "out", title: "Article 11 ADMT obligations may not apply yet",
+        body: "You haven't indicated a significant decision (a provision/denial of financial, housing, education, employment, or healthcare). Advertising and ordinary profiling are excluded. If this system doesn't gate one of those, the ADMT notice/opt-out/access duties may not attach — keep this reasoning on file." } as const;
+    if (humanQualifies)
+      return { level: "out", title: "A qualifying human reviewer appears to be in the loop",
+        body: "Because your reviewer can interpret the output, reviews it with other information, AND can change the outcome before it issues, the system may not “substantially replace” human decisionmaking under § 7001(e). Article 11 may not apply — document this and confirm with counsel. You can stop here." } as const;
+    return { level: "in", title: "Article 11 ADMT obligations appear to apply",
+      body: "Your system makes a significant decision and no qualifying human reviewer overrides it before it issues, so it “substantially replaces” human decisionmaking. You'll need a pre-use notice, an opt-out, and an access process — the remaining steps check each. (Preliminary read; your report confirms it.)" } as const;
+  }, [decisionDomains, humanReview, adv]);
+
   const stepValid = (): string | null => {
     if (step === 1) {
+      if (!organizationName.trim()) return "Please tell us which organization is running this assessment.";
       if (!systemName.trim()) return "Please name your ADMT system.";
       if (!systemDescription || systemDescription.length < 30)
         return "Please describe what the system does (at least 30 characters).";
@@ -273,6 +292,7 @@ export default function ADMTChecker() {
 
   const intake = useMemo(
     () => ({
+      organization_name: organizationName,
       system_name: systemName,
       system_type: systemType,
       system_description: systemDescription,
@@ -311,7 +331,7 @@ export default function ADMTChecker() {
       admt_detail: adv,
     }),
     [
-      systemName, systemType, systemDescription, decisionDomains, humanReview,
+      organizationName, systemName, systemType, systemDescription, decisionDomains, humanReview,
       trainingDataUse, profilingUse, noticeDelivery, noticeHasSpecificPurpose,
       noticePurposeText, noticeHasOptOutDesc, noticeHasAccessDesc,
       noticeHasAntiRetaliation, noticeHasHowItWorks, noticeHasAlternativeProcess,
@@ -328,7 +348,7 @@ export default function ADMTChecker() {
   const INITIAL_DRAFT = useMemo(
     () =>
       JSON.stringify({
-        systemName: "", systemType: "", systemDescription: "", decisionDomains: [],
+        organizationName: "", systemName: "", systemType: "", systemDescription: "", decisionDomains: [],
         humanReview: "", trainingDataUse: "", profilingUse: "",
         noticeDelivery: [], noticeHasSpecificPurpose: "", noticePurposeText: "",
         noticeHasOptOutDesc: "", noticeHasAccessDesc: "", noticeHasAntiRetaliation: "",
@@ -344,7 +364,7 @@ export default function ADMTChecker() {
   );
   const touched =
     JSON.stringify({
-      systemName, systemType, systemDescription, decisionDomains, humanReview,
+      organizationName, systemName, systemType, systemDescription, decisionDomains, humanReview,
       trainingDataUse, profilingUse, noticeDelivery, noticeHasSpecificPurpose,
       noticePurposeText, noticeHasOptOutDesc, noticeHasAccessDesc,
       noticeHasAntiRetaliation, noticeHasHowItWorks, noticeHasAlternativeProcess,
@@ -369,6 +389,7 @@ export default function ADMTChecker() {
   const applyRestore = () => {
     const d = restoreData as Record<string, any> | null;
     if (!d) return;
+    if (typeof d.organization_name === "string") setOrganizationName(d.organization_name);
     if (typeof d.system_name === "string") setSystemName(d.system_name);
     if (typeof d.system_type === "string") setSystemType(d.system_type);
     if (typeof d.system_description === "string") setSystemDescription(d.system_description);
@@ -482,6 +503,21 @@ export default function ADMTChecker() {
                   <p className="text-sm text-muted-foreground">
                     Complete one assessment per ADMT system. If you use multiple ADMT systems for significant decisions, run the checker once per system. Each system requires its own pre-use notice, opt-out mechanism, and access right process.
                   </p>
+
+                  <div>
+                    <Label>
+                      Which organization is running this assessment? <Req />
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      The business that is the CCPA-responsible "business" for this ADMT — the entity whose compliance this report documents.
+                    </p>
+                    <input
+                      className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                      value={organizationName}
+                      onChange={(e) => setOrganizationName(e.target.value)}
+                      placeholder="e.g. Acme Lending, Inc."
+                    />
+                  </div>
 
                   <div>
                     <Label onFocus={() => focus("scope_does_business_use_admt")}>
@@ -724,6 +760,14 @@ export default function ADMTChecker() {
                       </>
                     )}
                   </div>
+
+                  {admtScopeVerdict && (
+                    <div className={`rounded-md border p-4 ${admtScopeVerdict.level === "in" ? "border-cobalt/40 bg-[hsl(var(--cobalt)/0.06)]" : "border-emerald-300 bg-emerald-50/60 dark:bg-emerald-950/20"}`}>
+                      <p className="text-sm font-semibold">{admtScopeVerdict.title}</p>
+                      <p className="text-[13px] text-muted-foreground mt-1 leading-relaxed">{admtScopeVerdict.body}</p>
+                      <p className="text-[11px] text-muted-foreground mt-2 italic">This is a preliminary, on-screen read of scope. Your generated report contains the authoritative, regulation-cited determination.</p>
+                    </div>
+                  )}
 
                   <div className="rounded-md border border-amber-200 bg-amber-50/40 dark:bg-amber-950/10 p-4">
                     <p className="text-[12px] font-semibold text-amber-800 dark:text-amber-300 mb-2">
