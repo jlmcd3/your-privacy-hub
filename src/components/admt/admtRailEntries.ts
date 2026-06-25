@@ -224,6 +224,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_timing_response: {
+    goodAnswer:
+      "A documented process that honors an opt-out within 15 business days and stops ADMT processing for that consumer from then on.",
+    commonMistake:
+      "No defined timeline, or honoring the opt-out only for new data while the existing automated decision keeps running.",
     fieldLabel: "Opt-out: response timing",
     citation: "11 CCR § 7221(n)(1)",
     plainSummary:
