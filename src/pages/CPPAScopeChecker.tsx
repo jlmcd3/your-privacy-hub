@@ -620,6 +620,11 @@ function ResultsPanel({
           deadline="January 1, 2027"
           statusLabel={status(obligationMap.admtRequired, obligationMap.hasUnsure)}
           description="Businesses using ADMT for consequential decisions about consumers must provide disclosure and an opt-out right."
+          cta={
+            obligationMap.admtRequired
+              ? { label: "ADMT Compliance Assessment tool", href: "/cppa-admt-checker" }
+              : undefined
+          }
         />
         <Row
           title="Sensitive Personal Information"
@@ -673,6 +678,11 @@ function ResultsPanel({
           {cyberRequiredConfirmed && (
             <Button onClick={() => navigate("/cppa-cybersecurity")}>
               Run CPPA Cybersecurity Readiness — Module 2 →
+            </Button>
+          )}
+          {obligationMap.admtRequired && (
+            <Button onClick={() => navigate("/cppa-admt-checker")}>
+              Run ADMT Compliance Assessment — Module 3 →
             </Button>
           )}
         </div>

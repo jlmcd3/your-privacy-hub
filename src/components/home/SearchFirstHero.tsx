@@ -11,14 +11,20 @@ export default function SearchFirstHero() {
           {/* Left: text content */}
           <div className="flex-1 text-center lg:text-left">
             <p className="text-center lg:text-left text-xs font-semibold tracking-widest uppercase text-blue-300 mb-3">
-              For privacy professionals and the privacy-conscious
+              California's CPPA deadlines are here
             </p>
             <h1 className="text-hero-h1 text-white mb-3">
-              Global privacy law, tracked daily.
+              Find out which CPPA rules apply to you — free.
             </h1>
-            <p className="text-blue-200/80 text-sm md:text-base mb-8 whitespace-pre-line">
-              Privacy developments from across the world. Action intelligence on every development{"\n"}— and the compliance tools to act on it.
+            <p className="text-blue-200/80 text-sm md:text-base mb-6 whitespace-pre-line">
+              California businesses face risk-assessment, cybersecurity-audit, and ADMT deadlines through 2027. Check your obligations in two minutes — then generate the assessments that satisfy them. Plus daily global privacy intelligence and enforcement-calibrated tools.
             </p>
+            <a
+              href="/cppa-scope-checker"
+              className="inline-flex items-center justify-center bg-[#C8922A] text-brand-navy font-semibold px-6 py-3 rounded-lg no-underline hover:opacity-90 mb-8"
+            >
+              Run the free CPPA Scope Checker →
+            </a>
 
             {/* ── Hero CTA Cards ─────────────────────────────────── */}
             <div className="@container flex flex-col gap-3 w-full max-w-3xl mt-2">
@@ -74,7 +80,7 @@ export default function SearchFirstHero() {
               {/* Card 4 — CPPA Compliance (California-specific) */}
               <a
                 href="/cppa-scope-checker"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-[#1a4a6e] hover:bg-[#1a4a6e]/80 border border-[#1a4a6e] hover:border-[#1a4a6e]/80 transition-all duration-200"
+                className="group flex-1 order-first rounded-2xl px-5 py-4 no-underline block bg-[#1a4a6e] hover:bg-[#1a4a6e]/80 border border-[#1a4a6e] hover:border-[#1a4a6e]/80 transition-all duration-200"
               >
                 <p className="text-eyebrow text-white/80 mb-1.5">
                   CPPA Compliance
