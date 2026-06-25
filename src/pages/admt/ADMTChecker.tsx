@@ -30,6 +30,7 @@ import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/admt/StatuteRail";
 import { ChoiceRadio } from "@/components/admt/ChoiceRadio";
+import { ChoiceWithOther } from "@/components/admt/ChoiceWithOther";
 import { ADMT_RAIL } from "@/components/admt/admtRailEntries";
 import type { RailEntry } from "@/components/admt/StatuteRail";
 
