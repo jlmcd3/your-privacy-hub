@@ -66,6 +66,24 @@ export default function StatuteRail({ entry, className = "" }: StatuteRailProps)
         <p className="text-[12px] leading-relaxed text-foreground">{entry.plainSummary}</p>
       </div>
 
+      {entry.goodAnswer && (
+        <div className="rounded-md bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400 mb-1">
+            What a good answer looks like
+          </p>
+          <p className="text-[12px] leading-relaxed text-foreground/80">{entry.goodAnswer}</p>
+        </div>
+      )}
+
+      {entry.commonMistake && (
+        <div className="rounded-md bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-400 mb-1">
+            Common mistake
+          </p>
+          <p className="text-[12px] leading-relaxed text-foreground/80">{entry.commonMistake}</p>
+        </div>
+      )}
+
       {entry.templateGuidance && (
         <div className="rounded-md bg-[hsl(var(--brand-navy)/0.05)] border border-[hsl(var(--brand-navy)/0.12)] p-3">
           <div className="flex items-start justify-between gap-2 mb-1">
