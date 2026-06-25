@@ -53,6 +53,30 @@ export const DEFINITIONS: Record<string, TermDefinition> = {
       "A decision that results in the provision or denial of: financial or lending services; housing; education enrollment or opportunities; employment, independent contracting, or compensation; or healthcare services. Does NOT include advertising (11 CCR § 7001(ddd)).",
     cite: "11 CCR § 7001(ddd)",
   },
+  meaningful_human_involvement: {
+    term: "Meaningful human involvement",
+    definition:
+      "A human reviewer who (A) knows how to interpret and use the system's output, (B) reviews that output together with other relevant information, and (C) has authority to make or change the decision. If all three are present and applied before the decision, the technology does not 'substantially replace' human decisionmaking, and Article 11 may not apply. A reviewer who cannot override the output is NOT meaningful involvement.",
+    cite: "11 CCR § 7001(e)(1)",
+  },
+  pre_use_notice: {
+    term: "Pre-use notice",
+    definition:
+      "A notice a business must give consumers, at or before the point it collects/uses their personal information with ADMT for a significant decision, stating the specific purpose, how the ADMT works and what output it produces, how to opt out, how to access information, that retaliation is prohibited, and the alternative process if the consumer opts out.",
+    cite: "11 CCR § 7220",
+  },
+  admt_opt_out: {
+    term: "ADMT opt-out right",
+    definition:
+      "The consumer's right to opt out of a business's use of ADMT for a significant decision, unless a listed exception applies (human appeal; or use solely to assess for hiring/admission, or work allocation/compensation, with no unlawful discrimination). At least two opt-out methods must be offered.",
+    cite: "11 CCR § 7221",
+  },
+  admt_access_right: {
+    term: "ADMT access right",
+    definition:
+      "The consumer's right to request information about a business's use of ADMT to make a significant decision about them — including the output, how it was used, the logic, and the role of any human reviewer. Trade secrets may be withheld, but the business must still provide the information needed to understand the decision.",
+    cite: "11 CCR § 7222",
+  },
 
   // === GDPR Article 4 core terms (P1-1b) ===
   gdpr_personal_data: {
