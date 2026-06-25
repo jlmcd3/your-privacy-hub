@@ -61,8 +61,38 @@ async function callAnthropic(
 }
 
 function tryParseJson(text: string): any | null {
-  const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  // Strip markdown fences anywhere in the string (model sometimes adds trailing prose).
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/^```(?:json)?\s*/i, "");
+  // Remove a trailing fence even if followed by more prose.
+  const fenceIdx = cleaned.lastIndexOf("```");
+  if (fenceIdx > 0) cleaned = cleaned.slice(0, fenceIdx);
+  cleaned = cleaned.trim();
   try { return JSON.parse(cleaned); } catch { /* fall through */ }
+
+  // Brace-balanced extraction from the first '{'.
+  const start = cleaned.indexOf("{");
+  if (start < 0) return null;
+  let depth = 0, inStr = false, esc = false;
+  for (let i = start; i < cleaned.length; i++) {
+    const c = cleaned[i];
+    if (inStr) {
+      if (esc) { esc = false; continue; }
+      if (c === "\\") { esc = true; continue; }
+      if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') { inStr = true; continue; }
+    if (c === "{") depth++;
+    else if (c === "}") {
+      depth--;
+      if (depth === 0) {
+        const candidate = cleaned.slice(start, i + 1);
+        try { return JSON.parse(candidate); } catch { return null; }
+      }
+    }
+  }
+  // Greedy fallback.
   const m = cleaned.match(/\{[\s\S]*\}/);
   if (!m) return null;
   try { return JSON.parse(m[0]); } catch { return null; }
