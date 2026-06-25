@@ -541,6 +541,74 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
       }
     }
 
+    // ── Layer 3 + Layer 4 — Resolver injection & validator ──────────────────
+    // The model writes prose only. Here we (a) overwrite `citation` on every
+    // finding with the registry-resolved canonical string(s) keyed by
+    // `element_id` + normalized intake, (b) strip any §/7xxx tokens the model
+    // may have authored in prose fields, and (c) run the validator.
+    try {
+      const normalized = normalizeIntake(intake);
+      const proseFields = ["finding", "remediation", "enforcement_exposure", "element"] as const;
+      const resolveInto = (arr: any[] | undefined) => {
+        if (!Array.isArray(arr)) return;
+        for (const item of arr) {
+          for (const f of proseFields) {
+            if (item && typeof item[f] === "string") item[f] = stripModelCitations(item[f]);
+          }
+          const eid = (item?.element_id ?? "") as ElementId | "";
+          if (eid) {
+            const r = resolveCitations(eid as ElementId, intake);
+            item.citation = r.sections.join(" + ");
+            item.citation_ids = r.citationIds;
+          } else {
+            item.citation = "";
+          }
+        }
+      };
+      resolveInto(report.notice_gaps);
+      resolveInto(report.opt_out_gaps);
+      resolveInto(report.access_gaps);
+      resolveInto(report.documentation_to_maintain);
+
+      // Surface an assumption flag if the RA program resolver flagged one.
+      const raResolved = resolveCitations("ra_program", intake);
+      if (raResolved.assumptionFlag && report.risk_assessment_obligation) {
+        report.risk_assessment_obligation.assumption_note = raResolved.assumptionFlag;
+      }
+      if (report.risk_assessment_obligation) {
+        report.risk_assessment_obligation.resolved_citations = raResolved.sections;
+      }
+
+      // Scrub a few free-text places the model may slip a citation into.
+      for (const k of ["scope_analysis", "consolidated_notice_analysis", "aggregate_access_response", "enforcement_context"]) {
+        const obj = report[k];
+        if (obj && typeof obj === "object") {
+          for (const subKey of Object.keys(obj)) {
+            if (typeof obj[subKey] === "string") obj[subKey] = stripModelCitations(obj[subKey]);
+          }
+        }
+      }
+      if (Array.isArray(report.priority_actions)) {
+        report.priority_actions = report.priority_actions.map((s: any) => typeof s === "string" ? stripModelCitations(s) : s);
+      }
+      if (Array.isArray(report.compliant_elements)) {
+        report.compliant_elements = report.compliant_elements.map((s: any) => typeof s === "string" ? stripModelCitations(s) : s);
+      }
+
+      // Validate.
+      const issues = validateReport(report, intake);
+      if (issues.length) {
+        console.warn(`[run-admt-checker] validator issues: ${JSON.stringify(issues)}`);
+        report._validator_issues = issues;
+      }
+      // Echo normalized intake summary into the report for traceability.
+      report._normalized_intake = normalized;
+    } catch (resolveErr) {
+      console.warn("[run-admt-checker] citation resolver failed (non-fatal):", resolveErr);
+    }
+
+
+
     // ── PASS 2: Sample Language Drafting ─────────────────────────────────────
     // For every gap/missing item, generate ready-to-use draft language the user
     // can paste directly into their notice, opt-out mechanism, or access
