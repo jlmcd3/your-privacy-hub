@@ -419,6 +419,9 @@ const DPIAFramework = () => {
             <Textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">Be specific. Vague purposes weaken both the legal basis and the DPIA.</p>
           </div>
+          <div className="flex items-center gap-2 pt-2 pb-1 border-b">
+            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">2 · What data, whose, how much, how long?</span>
+          </div>
           <div onFocus={() => handleDpiaRailFocus("trigger")}><Label>Data categories<Req /> <DefPopover termKey="gdpr_special_categories" /> <span className="text-xs text-muted-foreground font-mono">(Art. 9 — special categories trigger Art. 35(3)(b))</span> <EnforcementSignalIcon signalKey="special_categories" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={DATA_CATS} value={dataCategories} onChange={setDataCategories} /></div></div>
           {dpiaTriggers.length > 0 && (
             <div className="rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 p-3 space-y-1.5">
