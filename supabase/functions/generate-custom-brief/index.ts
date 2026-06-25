@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 
 // Robustly parse a JSON object from an LLM response, tolerating code fences,
@@ -252,6 +253,12 @@ Deno.serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
+  const fnRun = await startFunctionRun(supabase, "generate-custom-brief", {
+    archetype: "sync",
+    trustClass: "internal",
+    invokedBy: "internal",
+  });
+
   // Optional: target a single user for testing
   let targetUserId: string | null = null;
   try {
@@ -268,6 +275,7 @@ Deno.serve(async (req) => {
     .single();
 
   if (!latestBrief) {
+    await finishFunctionRun(supabase, fnRun, { status: "partial", metadata: { reason: "no_brief" } });
     return new Response(JSON.stringify({ error: "No brief found" }),
       { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
@@ -298,6 +306,7 @@ Deno.serve(async (req) => {
   const { data: proUsers } = await usersQuery;
 
   if (!proUsers || proUsers.length === 0) {
+    await finishFunctionRun(supabase, fnRun, { status: "success", metadata: { processed: 0 } });
     return new Response(JSON.stringify({ success: true, processed: 0 }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
@@ -687,6 +696,7 @@ Action items: ${JSON.stringify(customSections.your_action_items || [])}`,
     }
   }
 
+  await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "custom_briefs", metadata: { processed } });
   return new Response(JSON.stringify({ success: true, processed }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 });
