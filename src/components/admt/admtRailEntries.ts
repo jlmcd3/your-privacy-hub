@@ -27,6 +27,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   scope_significant_decision_domain: {
+    goodAnswer:
+      "Tick only the boxes the output actually gates. The loan engine → “Financial or lending services.” If the system merely ranks ads or segments audiences, tick none — that isn't a significant decision.",
+    commonMistake:
+      "Treating any high-stakes-feeling decision as “significant.” The list is closed: advertising, gaming/subscription eligibility, and ordinary profiling don't count, however consequential they feel.",
     fieldLabel: "What type of significant decision does your ADMT make?",
     citation: "11 CCR § 7001(ddd)",
     plainSummary:
@@ -42,6 +46,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   scope_human_involvement: {
+    goodAnswer:
+      "“A senior underwriter reviews every sub-40 score against the file and tax returns and overturns ~8% before any denial issues.” — interprets, reviews-plus-other-info, and can change the outcome, before the fact.",
+    commonMistake:
+      "Counting a reviewer who only sees the score after the decision, or who can't realistically overturn it. After-the-fact or no-authority review is not meaningful involvement.",
     fieldLabel: "Does a human with authority to overturn the decision review each output?",
     citation: "11 CCR § 7001(e)(1)",
     plainSummary:
@@ -55,6 +63,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_timing: {
+    goodAnswer:
+      "The notice appears at or before the point you use ADMT — e.g., on the application page itself, before the applicant submits.",
+    commonMistake:
+      "Burying it in a general privacy policy linked in the footer, or showing it only after the decision. It must come before use.",
     fieldLabel: "When must the pre-use notice be provided?",
     citation: "11 CCR § 7220(b)(2)",
     plainSummary:
@@ -70,6 +82,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_specific_purpose: {
+    goodAnswer:
+      "“We use an automated model to score your loan application and decide approval.” — names the actual decision and that it's automated.",
+    commonMistake:
+      "Generic boilerplate like “we use technology to improve our services.” The purpose must be specific to this ADMT and this decision.",
     fieldLabel: "Pre-use notice: specific purpose for ADMT use",
     citation: "11 CCR § 7220(c)(1)",
     plainSummary:
@@ -86,6 +102,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_opt_out_description: {
+    goodAnswer:
+      "States the right plainly and links the mechanism: “You can opt out of automated scoring — submit a request here [link] or call [number].”",
+    commonMistake:
+      "Mentioning that opt-out exists but giving no clear instructions or link, so a consumer can't actually act on it.",
     fieldLabel: "Pre-use notice: opt-out right description",
     citation: "11 CCR § 7220(c)(2)",
     plainSummary:
@@ -99,6 +119,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_access_right_description: {
+    goodAnswer:
+      "Tells consumers they can ask how the ADMT was used on them, and gives a working method to request it.",
+    commonMistake:
+      "Omitting the access right, or describing it so vaguely the consumer doesn't realize it covers automated decisions.",
     fieldLabel: "Pre-use notice: access right description",
     citation: "11 CCR § 7220(c)(3)",
     plainSummary:
@@ -109,6 +133,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_how_admt_works: {
+    goodAnswer:
+      "A plain summary of inputs and output: “a model weighs your credit history, income, and debt ratio to produce a 0–100 score used to approve or decline.”",
+    commonMistake:
+      "Either saying nothing about how it works, or dumping proprietary model internals. Aim for a consumer-understandable explanation, not a spec sheet.",
     fieldLabel: "Pre-use notice: how the ADMT works (additional information)",
     citation: "11 CCR § 7220(c)(5)",
     plainSummary:
@@ -124,6 +152,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_anti_retaliation: {
+    goodAnswer:
+      "An explicit line that you won't deny service, change prices, or lower quality because someone exercised a CCPA right.",
+    commonMistake:
+      "Assuming it's implied. The non-retaliation statement has to actually appear in the notice.",
     fieldLabel: "Pre-use notice: anti-retaliation statement",
     citation: "11 CCR § 7220(c)(4)",
     plainSummary:
@@ -136,6 +168,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_methods: {
+    goodAnswer:
+      "At least two easy methods — e.g., an online form linked from the notice and a toll-free number — with no account required and not routed through a cookie banner.",
+    commonMistake:
+      "Offering only one method, or one that forces account creation or hides behind a generic cookie banner that doesn't cover ADMT.",
     fieldLabel: "Opt-out: how many methods does your business provide?",
     citation: "11 CCR § 7221(c)",
     plainSummary:
@@ -151,6 +187,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_exception_human_appeal: {
+    goodAnswer:
+      "A named, trained reviewer (e.g., “Adverse Action Review Officer”) who reviews the consumer's submission plus other information and can overturn the decision — documented end to end.",
+    commonMistake:
+      "Claiming the appeal exception while the “appeal” goes to someone who can't actually reverse the outcome — which defeats the exception.",
     fieldLabel: "Opt-out exception: human appeal process",
     citation: "11 CCR § 7221(b)(1)",
     plainSummary:
@@ -166,6 +206,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_exception_hiring: {
+    goodAnswer:
+      "ADMT used solely to assess for a hiring/admission decision, with documented bias testing showing no unlawful discrimination.",
+    commonMistake:
+      "Invoking the hiring exception for a tool that also does more than assess (e.g., sets pay), or with no fairness testing on file.",
     fieldLabel: "Opt-out exception: hiring and educational assessment",
     citation: "11 CCR § 7221(b)(2)-(3)",
     plainSummary:
@@ -180,6 +224,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_timing_response: {
+    goodAnswer:
+      "A documented process that honors an opt-out within 15 business days and stops ADMT processing for that consumer from then on.",
+    commonMistake:
+      "No defined timeline, or honoring the opt-out only for new data while the existing automated decision keeps running.",
     fieldLabel: "Opt-out: response timing",
     citation: "11 CCR § 7221(n)(1)",
     plainSummary:
@@ -193,6 +241,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   access_logic_disclosure: {
+    goodAnswer:
+      "Plain-language logic: “your score reflected a high debt-to-income ratio and a short credit history; these pushed it below the approval threshold.”",
+    commonMistake:
+      "Hiding behind “trade secret” to disclose nothing. You may protect secrets but must still give enough for the consumer to understand the decision.",
     fieldLabel: "Access right: ADMT logic disclosure",
     citation: "11 CCR § 7222(b)(2)",
     plainSummary:
@@ -208,6 +260,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   access_outcome_disclosure: {
+    goodAnswer:
+      "States the output and how it was used: “score 32/100; below the 40 threshold, so the application was automatically declined.”",
+    commonMistake:
+      "Describing the system in general but never telling the consumer their actual result or how it drove the decision.",
     fieldLabel: "Access right: decision outcome disclosure",
     citation: "11 CCR § 7222(b)(3)",
     plainSummary:
@@ -221,6 +277,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   access_verification: {
+    goodAnswer:
+      "A proportionate identity check that matches the request to the account holder — without demanding excessive new personal information.",
+    commonMistake:
+      "Either skipping verification (risking disclosure to the wrong person) or over-collecting sensitive ID data just to process the request.",
     fieldLabel: "Access right: identity verification",
     citation: "11 CCR § 7222(e)",
     plainSummary:
