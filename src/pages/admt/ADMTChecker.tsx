@@ -629,9 +629,9 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label onFocus={() => focus("scope_significant_decision_domain")}>
-                      What significant decision(s) does this system make or materially contribute to? <Req />
+                      What significant decision(s) does this system make or materially contribute to? <DefPopover termKey="significant_decision" /> <Req />
                     </Label>
-                    <p className="text-xs text-muted-foreground mt-1">Select all that apply.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Select all that apply — or none, if this system only affects advertising or ordinary profiling. <span className="font-medium text-foreground">Why we ask:</span> only these specific decisions trigger the ADMT rules; advertising is expressly excluded.</p>
                     <div className="mt-2">
                       <Pills
                         options={SIGNIFICANT_DECISION_DOMAINS}
