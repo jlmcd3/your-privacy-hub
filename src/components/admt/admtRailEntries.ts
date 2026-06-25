@@ -206,6 +206,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_exception_hiring: {
+    goodAnswer:
+      "ADMT used solely to assess for a hiring/admission decision, with documented bias testing showing no unlawful discrimination.",
+    commonMistake:
+      "Invoking the hiring exception for a tool that also does more than assess (e.g., sets pay), or with no fairness testing on file.",
     fieldLabel: "Opt-out exception: hiring and educational assessment",
     citation: "11 CCR § 7221(b)(2)-(3)",
     plainSummary:
