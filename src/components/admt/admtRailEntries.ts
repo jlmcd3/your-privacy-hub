@@ -46,6 +46,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   scope_human_involvement: {
+    goodAnswer:
+      "“A senior underwriter reviews every sub-40 score against the file and tax returns and overturns ~8% before any denial issues.” — interprets, reviews-plus-other-info, and can change the outcome, before the fact.",
+    commonMistake:
+      "Counting a reviewer who only sees the score after the decision, or who can't realistically overturn it. After-the-fact or no-authority review is not meaningful involvement.",
     fieldLabel: "Does a human with authority to overturn the decision review each output?",
     citation: "11 CCR § 7001(e)(1)",
     plainSummary:
