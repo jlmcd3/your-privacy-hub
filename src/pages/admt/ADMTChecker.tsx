@@ -26,6 +26,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/admt/StatuteRail";
 import { ChoiceRadio } from "@/components/admt/ChoiceRadio";
@@ -628,9 +629,9 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label onFocus={() => focus("scope_significant_decision_domain")}>
-                      What significant decision(s) does this system make or materially contribute to? <Req />
+                      What significant decision(s) does this system make or materially contribute to? <DefPopover termKey="significant_decision" /> <Req />
                     </Label>
-                    <p className="text-xs text-muted-foreground mt-1">Select all that apply.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Select all that apply — or none, if this system only affects advertising or ordinary profiling. <span className="font-medium text-foreground">Why we ask:</span> only these specific decisions trigger the ADMT rules; advertising is expressly excluded.</p>
                     <div className="mt-2">
                       <Pills
                         options={SIGNIFICANT_DECISION_DOMAINS}
@@ -690,7 +691,7 @@ export default function ADMTChecker() {
                       Human review of system outputs <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Select the option that best describes how human review works for this system's outputs. Under § 7001(e)(1), 'human involvement' requires the reviewer to know how to interpret the output, review it plus other relevant information, and have the authority to change the decision.
+                      Select the option that best describes how human review works for this system's outputs. Under § 7001(e)(1), 'human involvement' requires the reviewer to know how to interpret the output, review it plus other relevant information, and have the authority to change the decision. <DefPopover termKey="meaningful_human_involvement" />
                     </p>
                     <div className="mt-2">
                       <Radio
@@ -944,8 +945,9 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label onFocus={() => focus("optout_exception_human_appeal")}>
-                      Are you providing a full opt-out right, or relying on an exception? <Req />
+                      Are you providing a full opt-out right, or relying on an exception? <DefPopover termKey="admt_opt_out" /> <Req />
                     </Label>
+                    <p className="text-xs text-muted-foreground mt-1"><span className="font-medium text-foreground">Why we ask:</span> the opt-out only has to be honored if no exception applies — this tells us which path (full opt-out vs. exception) the rest of this step follows.</p>
                     <div className="mt-2">
                       <Radio
                         name="opt_out_exception"
@@ -1168,7 +1170,7 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label onFocus={() => focus("access_logic_disclosure")}>
-                      Submission methods for access requests <Req />
+                      Submission methods for access requests <DefPopover termKey="admt_access_right" /> <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
                       You may use existing right-to-know methods (§ 7222(d)). Methods must be easy to use and must not use dark patterns.
