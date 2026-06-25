@@ -133,6 +133,15 @@ const DPIAFramework = () => {
   const [dataSubjectsViews, setDataSubjectsViews] = useState("");                         // 5.2
   const [activeTemplateRef, setActiveTemplateRef] = useState<string | null>(null);
 
+  // ── Jurisdiction resolver inputs (Layer 5 — feed the deterministic resolvers) ──
+  const [controllerCountry, setControllerCountry] = useState("");          // ISO-2 e.g. DE, IE, FR
+  const [controllerLand, setControllerLand] = useState("");                // DE only
+  const [controllerSector, setControllerSector] = useState<"private" | "public" | "federal-public" | "telecom" | "postal" | "">("");
+  const [centralAdminCountry, setCentralAdminCountry] = useState("");      // for OSS
+  const [euDecisionEstablishment, setEuDecisionEstablishment] = useState(""); // ISO-2 of EU est. with decision authority, blank if none
+  const [transferFlows, setTransferFlows] = useState<Array<{ importer: string; destination: string; originRegime: "EU" | "UK"; dpfCertified: boolean; ukExtensionCertified: boolean }>>([]);
+  const [retentionRecordType, setRetentionRecordType] = useState("");      // e.g. "payroll", "accounting"
+
   
   const guidanceTier = useGuidanceTier();
   const [activeRailField, setActiveRailField] = useState<"trigger" | "legal_basis" | "transfers" | null>(null);
