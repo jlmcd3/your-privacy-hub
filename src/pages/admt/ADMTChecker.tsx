@@ -937,8 +937,9 @@ export default function ADMTChecker() {
 
               {step === 3 && (
                 <>
-                 <h2 className="font-serif text-xl">Step 3 — Opt-Out Mechanism</h2>
-                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7221 — opt-out right, exceptions, methods, and timing</p>
+                 <h2 className="font-serif text-xl">Step 3 · Can people say no?</h2>
+                 <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> consumers can opt out of ADMT for significant decisions unless a narrow exception applies — and if it applies, you must offer at least two ways to opt out.</p>
+                 <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR § 7221</p>
                   <RequiredLegend />
 
                   <div>
