@@ -82,6 +82,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_specific_purpose: {
+    goodAnswer:
+      "“We use an automated model to score your loan application and decide approval.” — names the actual decision and that it's automated.",
+    commonMistake:
+      "Generic boilerplate like “we use technology to improve our services.” The purpose must be specific to this ADMT and this decision.",
     fieldLabel: "Pre-use notice: specific purpose for ADMT use",
     citation: "11 CCR § 7220(c)(1)",
     plainSummary:
