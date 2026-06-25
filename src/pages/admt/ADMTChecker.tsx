@@ -1170,7 +1170,7 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label onFocus={() => focus("access_logic_disclosure")}>
-                      Submission methods for access requests <Req />
+                      Submission methods for access requests <DefPopover termKey="admt_access_right" /> <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
                       You may use existing right-to-know methods (§ 7222(d)). Methods must be easy to use and must not use dark patterns.
