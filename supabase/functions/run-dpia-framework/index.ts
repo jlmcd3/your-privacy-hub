@@ -4,6 +4,7 @@ import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
+import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, type DpiaIntakeFacts, type TransferFlow } from "../_shared/dpia-jurisdiction-registry.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -217,10 +218,49 @@ EPRIVACY AND DEVICE-ACCESS GATE RULE: For processing activities involving IP add
         }).join("\n")
       : "No directly analogous enforcement precedents retrieved.";
 
-    // Append GDPR authority context to the system prompt for both halves.
-    const systemWithGdpr = gdprBlock
+    // ── Layer 1-3: Resolve jurisdiction facts deterministically and inject ──
+    // Heuristic fallbacks: parse from existing free-text fields where the new
+    // structured intake fields are not present.
+    function inferCountryFromJurisdictions(js: string[]): string {
+      const joined = (js || []).join(" ");
+      if (/germany|deutschland|\bDE\b/i.test(joined)) return "DE";
+      if (/united kingdom|\bUK\b|\bGB\b/i.test(joined)) return "UK";
+      if (/ireland|\bIE\b/i.test(joined)) return "IE";
+      if (/france|\bFR\b/i.test(joined)) return "FR";
+      if (/spain|\bES\b/i.test(joined)) return "ES";
+      if (/netherlands|holland|\bNL\b/i.test(joined)) return "NL";
+      if (/italy|\bIT\b/i.test(joined)) return "IT";
+      return "";
+    }
+    const resolverCountry = (intake.controller_country || inferCountryFromJurisdictions(intake.jurisdictions || []) || "").toUpperCase();
+    const resolverSector = (intake.controller_sector || "private") as any;
+    const facts: DpiaIntakeFacts = {
+      controllerSites: resolverCountry ? [{ country: resolverCountry, land: intake.controller_land || undefined, sector: resolverSector }] : [],
+      centralAdministrationCountry: (intake.central_administration_country || resolverCountry || "").toUpperCase(),
+      euEstablishmentWithDecisionAuthority: intake.eu_decision_establishment_country
+        ? { country: String(intake.eu_decision_establishment_country).toUpperCase(), sector: "private" }
+        : null,
+      transferFlows: Array.isArray(intake.transfer_flows)
+        ? (intake.transfer_flows as any[]).map((f): TransferFlow => ({
+            originRegime: (f.originRegime === "UK" ? "UK" : "EU"),
+            destinationCountry: String(f.destination || "").toUpperCase(),
+            importerEntity: f.importer || undefined,
+            importerDpfCertified: !!f.dpfCertified,
+            importerUkExtensionCertified: !!f.ukExtensionCertified,
+          })).filter((f) => f.destinationCountry)
+        : [],
+      article9Condition: intake.article_9_condition || undefined,
+      retentionRecordType: intake.retention_record_type || undefined,
+    };
+    const resolved = resolveDpiaJurisdiction(facts);
+    const resolvedBlock = renderResolvedBlock(resolved);
+    console.log(`[run-dpia-framework] resolver: country=${resolverCountry} land=${intake.controller_land || "-"} oss=${resolved.oss.ossAvailable} transfers=${resolved.transfers.length}`);
+
+    // Append GDPR authority context AND resolved jurisdiction block to the system prompt.
+    const systemWithGdpr = (gdprBlock
       ? `${system}\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}`
-      : system;
+      : system) + `\n\n${resolvedBlock}`;
+
 
     // ── Split DPIA generation into two parallel calls to stay within timeout ──
     const sharedContext = `PROCESSING ACTIVITY DETAILS:
@@ -579,6 +619,26 @@ Generate substantive draft rows for every table for the controller to verify; us
     reportData.enforcement_meta = enforcementMeta;
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
+
+    // ── Layer 4: Jurisdiction validator ──────────────────────────────────────
+    try {
+      const jurisdictionFindings = validateJurisdiction(reportData, resolved);
+      reportData.jurisdiction_validation = {
+        resolved_summary: {
+          competent_authorities: resolved.sites.map((s) => s.competentSA.name),
+          oss_available: resolved.oss.ossAvailable,
+          lead_authority: resolved.oss.leadAuthority?.name || null,
+          transfer_mechanisms: resolved.transfers.map((t) => ({ destination: t.flow.destinationCountry, mechanism: t.resolved.mechanism, citation: t.resolved.citation })),
+          template_status: resolved.template.label,
+        },
+        findings: jurisdictionFindings,
+      };
+      const errs = jurisdictionFindings.filter((f) => f.severity === "error");
+      if (errs.length) console.warn(`[run-dpia-framework] jurisdiction validator errors: ${errs.map((e) => e.code).join(", ")}`);
+    } catch (e) {
+      console.warn("[run-dpia-framework] jurisdiction validator failed (non-fatal):", e);
+    }
+
 
     // Detect unresolved placeholders across the entire report JSON.
     // Any [TO COMPLETE] or [TO BE ASSESSED] string anywhere in the output
