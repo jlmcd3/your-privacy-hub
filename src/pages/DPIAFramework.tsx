@@ -317,6 +317,14 @@ const DPIAFramework = () => {
     dpo_advice: dpoAdvice,
     data_subjects_views_sought: dataSubjectsViewsSought,
     data_subjects_views: dataSubjectsViews,
+    // Jurisdiction resolver inputs (deterministic resolvers in run-dpia-framework)
+    controller_country: controllerCountry,
+    controller_land: controllerLand,
+    controller_sector: controllerSector,
+    central_administration_country: centralAdminCountry,
+    eu_decision_establishment_country: euDecisionEstablishment,
+    transfer_flows: transferFlows,
+    retention_record_type: retentionRecordType,
     source_assessment_id: sourceId || null,
   });
 
