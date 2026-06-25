@@ -259,7 +259,7 @@ ADMT SYSTEM: ${intake.system_name}
 SYSTEM TYPE: ${intake.system_type || "(not specified)"}
 DESCRIPTION: ${intake.system_description}
 CALIFORNIA CONSUMERS PROCESSED ANNUALLY (APPROX.): ${intake.ca_consumer_count || "(not provided)"}
-DECISION DOMAINS: ${(intake.decision_domains ?? []).join("; ")}
+DECISION DOMAINS: ${(intake.decision_domains ?? []).join("; ")}${d.decision_domains_other ? ` — OTHER (described by business, assess against § 7001(ddd)): ${d.decision_domains_other}` : ""}
 DECISION PROFILE: vendor/product: ${d.vendor_product || "(n/a)"}; hosting: ${d.hosting || "(n/a)"}; model type(s): ${(d.model_types ?? []).join(", ") || "(n/a)"}; decision effect(s): ${(d.decision_effects ?? []).join(", ") || "(n/a)"}; cadence: ${d.decision_cadence || "(n/a)"}; ADMT output is sole factor: ${d.sole_factor || "(not answered)"}; other factors: ${d.other_factors || "(n/a)"}; feeds future significant decisions: ${d.feeds_future_decisions || "(n/a)"}; solely advertising: ${d.solely_advertising || "(n/a)"}
 HUMAN REVIEW: ${intake.human_review}
 HUMAN-INVOLVEMENT SELF-TEST (§ 7001(e)(1)): reviewer present: ${d.hi_reviewer_present || "(not answered)"}; role: ${d.hi_reviewer_role || "(n/a)"}; stage: ${d.hi_stage || "(n/a)"}; (A) knows how to interpret output: ${d.hi_trained || "(n/a)"}; (B) reviews output + other info: ${d.hi_reviews_other_info || "(n/a)"}; (C) authority to change decision: ${d.hi_authority_override || "(n/a)"}; override rate: ${d.hi_override_rate || "(n/a)"}
