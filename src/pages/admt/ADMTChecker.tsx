@@ -691,7 +691,7 @@ export default function ADMTChecker() {
                       Human review of system outputs <Req />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Select the option that best describes how human review works for this system's outputs. Under § 7001(e)(1), 'human involvement' requires the reviewer to know how to interpret the output, review it plus other relevant information, and have the authority to change the decision.
+                      Select the option that best describes how human review works for this system's outputs. Under § 7001(e)(1), 'human involvement' requires the reviewer to know how to interpret the output, review it plus other relevant information, and have the authority to change the decision. <DefPopover termKey="meaningful_human_involvement" />
                     </p>
                     <div className="mt-2">
                       <Radio
