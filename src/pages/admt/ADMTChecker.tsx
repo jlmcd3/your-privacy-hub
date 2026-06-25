@@ -577,6 +577,7 @@ export default function ADMTChecker() {
 
                   {thirdPartyAdmt.trim() && !isExhibit(thirdPartyAdmt) && (
                     <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_does_business_use_admt")}>
+                      <p className="text-[11px] italic text-muted-foreground">You're seeing this because you listed a third-party ADMT system above.</p>
                       <p className="text-[12px] font-semibold">Vendor / downstream-recipient detail</p>
                       <p className="text-[12px] text-muted-foreground">You remain the CCPA-responsible "business." If a vendor makes ADMT trained on personal information available to you for significant decisions, the vendor must supply all facts you need for your own risk assessment (§ 7150(b)(6) / § 7153).</p>
                       <div>
