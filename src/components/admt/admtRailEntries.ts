@@ -277,6 +277,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   access_verification: {
+    goodAnswer:
+      "A proportionate identity check that matches the request to the account holder — without demanding excessive new personal information.",
+    commonMistake:
+      "Either skipping verification (risking disclosure to the wrong person) or over-collecting sensitive ID data just to process the request.",
     fieldLabel: "Access right: identity verification",
     citation: "11 CCR § 7222(e)",
     plainSummary:
