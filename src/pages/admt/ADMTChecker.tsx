@@ -704,6 +704,7 @@ export default function ADMTChecker() {
                   </div>
 
                   <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_human_involvement")}>
+                    <p className="text-[11px] italic text-muted-foreground">You're seeing this because how much a human is involved decides whether the law applies at all — it's worth a moment.</p>
                     <p className="text-[12px] font-semibold">Human-involvement self-test (§ 7001(e)(1))</p>
                     <p className="text-[12px] text-muted-foreground">This is the gate for the entire regime: if a qualifying human is in the loop, the system does not "substantially replace" human decisionmaking and Article 11 obligations may not attach.</p>
                     <div>
