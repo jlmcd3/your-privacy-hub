@@ -428,53 +428,58 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
 
   "notice_gaps": [
     {
-      "element": "Name of the specific § 7220 notice element being assessed",
+      "element_id": "notice_purpose | notice_optout | notice_access | notice_antiretaliation | notice_howworks | notice_alternative_process | notice_trade_secret",
+      "element": "Plain-English name of the element (no section number)",
       "status": "compliant" | "gap" | "missing",
-      "finding": "Specific finding explaining what was provided and what the regulation requires. Quote the relevant regulation language from the AUTHORITIES block.",
-      "citation": "11 CCR § 7220(c)(X) — only use subsection numbers that appear in the AUTHORITIES block",
-      "remediation": "Specific action the business must take to achieve compliance.",
-      "enforcement_exposure": "Per-violation exposure for this element if it is a gap or missing item."
+      "finding": "Specific finding in plain language. Do NOT include any '§' or section number — refer to it as 'the cited provision'.",
+      "citation": "",
+      "remediation": "Specific action the business must take. No section numbers.",
+      "enforcement_exposure": "Per-violation exposure if gap or missing. No section numbers."
     }
   ],
 
   "opt_out_gaps": [
     {
-      "element": "Name of the specific § 7221 opt-out element being assessed",
+      "element_id": "optout_offer | optout_designated_methods | optout_account_barrier | optout_confirmation | optout_processing",
+      "element": "Plain-English name of the element (no section number)",
       "status": "compliant" | "gap" | "missing",
-      "finding": "Specific finding. For the 15-business-day operational process: if intake.opt_out_15_day_process was blank or '(not described)', flag this as a gap under § 7221(n)(1)-(2).",
-      "citation": "11 CCR § 7221(X) — only use subsection numbers supported by the AUTHORITIES block",
-      "remediation": "Specific action required.",
-      "enforcement_exposure": "Per-violation exposure if gap or missing."
+      "finding": "Specific finding. For the 15-business-day operational process: if intake.opt_out_15_day_process was blank or '(not described)', flag this under optout_processing. No section numbers.",
+      "citation": "",
+      "remediation": "Specific action required. No section numbers.",
+      "enforcement_exposure": "Per-violation exposure if gap or missing. No section numbers."
     }
   ],
 
   "access_gaps": [
     {
-      "element": "Name of the specific § 7222 access right element being assessed",
+      "element_id": "access_specific_purpose | access_logic | access_outcome_sole_factor | access_antiretaliation | access_trade_secret | access_timeline | access_secure_transmission | access_denial_basis | access_aggregate_log | access_verification",
+      "element": "Plain-English name of the element (no section number)",
       "status": "compliant" | "gap" | "missing",
-      "finding": "Specific finding.",
-      "citation": "11 CCR § 7222(X) — only use subsection numbers supported by the AUTHORITIES block",
-      "remediation": "Specific action required.",
-      "enforcement_exposure": "Per-violation exposure if gap or missing."
+      "finding": "Specific finding. No section numbers.",
+      "citation": "",
+      "remediation": "Specific action required. No section numbers.",
+      "enforcement_exposure": "Per-violation exposure if gap or missing. No section numbers."
     }
   ],
 
   "risk_assessment_obligation": {
     "required": true | false,
-    "triggers_identified": ["List each specific trigger that applies, based only on the REGULATION AUTHORITIES provided. Do not invent triggers not supported by the authorities block."],
+    "triggers_identified": ["Plain-English names of triggers that apply (e.g., 'ADMT used to make a significant decision', 'training ADMT on personal information'). NO section numbers."],
     "compliance_deadline_existing_activities": "December 31, 2027 (for processing activities initiated before January 1, 2026)",
     "compliance_deadline_new_activities": "Before initiating new or materially changed processing activities",
-    "submission_requirement": "Describe the submission requirement as stated in the REGULATION AUTHORITIES block. If the authorities block does not contain submission details, state 'See 11 CCR §§ 7150-7157 for submission requirements' and do not fabricate specifics.",
-    "summary": "2-3 sentence plain-language description of what this business must do and by when, based only on the authorities provided."
+    "submission_requirement": "Plain-English description. No section numbers.",
+    "summary": "2-3 sentence plain-language description. No section numbers."
   },
 
   "documentation_to_maintain": [
     {
+      "element_id": "sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline",
       "document": "Name of document or record",
       "purpose": "What it demonstrates to the CPPA",
-      "citation": "Regulatory basis — only cite sections from the AUTHORITIES block"
+      "citation": ""
     }
   ],
+
 
   "aggregate_access_response": {
     "applicable": "true | false | 'cannot_determine'",
