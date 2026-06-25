@@ -318,6 +318,15 @@ When a trade-secret carve-out finding is generated:
 
 17. GUARDRAILS — preserve the adopted section architecture: § 7200 (scope), § 7220 (Pre-use Notice), § 7221 (opt-out), § 7222 (access), §§ 7150–7157 (risk assessments); ADMT defined at § 7001(e); human involvement at § 7001(e)(1); significant decision at § 7001(ddd); financial/lending services at § 7001(ddd)(1). Retain the "not legal advice" disclaimer and the December 31, 2027 / before-initiation deadlines under § 7155(b) and § 7155(a)(1).
 
+18. CITATION ENGINE — DETERMINISTIC, NOT MODEL-AUTHORED (HARD RULE):
+    The system now owns all "§"-formatted citations. You MUST NOT write any section number, any "§" symbol, any "11 CCR § 7xxx", or any subsection like "(b)(1)" in any output field — not in `finding`, not in `remediation`, not in `enforcement_exposure`, not in `citation`, not in `summary`, not anywhere. Refer to the provision only as "the cited provision" or by its plain-English element name. The template injects the canonical section string post-generation from a registry; any "§ 7xxx" you author will be stripped.
+    Each item in `notice_gaps`, `opt_out_gaps`, `access_gaps`, and `documentation_to_maintain` MUST include an `element_id` chosen from this fixed checklist (no other ids are valid):
+      • notice_gaps:    notice_purpose | notice_optout | notice_access | notice_antiretaliation | notice_howworks | notice_alternative_process | notice_trade_secret
+      • opt_out_gaps:   optout_offer | optout_designated_methods | optout_account_barrier | optout_confirmation | optout_processing
+      • access_gaps:    access_specific_purpose | access_logic | access_outcome_sole_factor | access_antiretaliation | access_trade_secret | access_timeline | access_secure_transmission | access_denial_basis | access_aggregate_log | access_verification
+      • documentation_to_maintain: sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline
+    Always set `citation` to the empty string "" — the template fills it from the registry. Do not omit the field; leave it as "".
+
 Return ONLY valid JSON — no markdown, no preamble.`;
 
     const d = (intake as any).admt_detail || {};
