@@ -241,6 +241,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   access_logic_disclosure: {
+    goodAnswer:
+      "Plain-language logic: “your score reflected a high debt-to-income ratio and a short credit history; these pushed it below the approval threshold.”",
+    commonMistake:
+      "Hiding behind “trade secret” to disclose nothing. You may protect secrets but must still give enough for the consumer to understand the decision.",
     fieldLabel: "Access right: ADMT logic disclosure",
     citation: "11 CCR § 7222(b)(2)",
     plainSummary:
