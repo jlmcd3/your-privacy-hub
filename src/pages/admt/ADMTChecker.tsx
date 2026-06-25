@@ -481,8 +481,9 @@ export default function ADMTChecker() {
 
               {step === 1 && (
                 <>
-                 <h2 className="font-serif text-xl">Step 1 — ADMT System Inventory</h2>
-                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR §§ 7001(e), 7001(ddd), 7200(a) — ADMT and significant decision definitions</p>
+                 <h2 className="font-serif text-xl">Step 1 · Does the ADMT law apply to you?</h2>
+                 <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> whether this system makes a <em>significant decision</em> with no meaningful human involvement — the two things that trigger California's ADMT rules.</p>
+                 <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR §§ 7001(e), 7001(ddd), 7200(a)</p>
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     Complete one assessment per ADMT system. If you use multiple ADMT systems for significant decisions, run the checker once per system. Each system requires its own pre-use notice, opt-out mechanism, and access right process.
@@ -576,6 +577,7 @@ export default function ADMTChecker() {
 
                   {thirdPartyAdmt.trim() && !isExhibit(thirdPartyAdmt) && (
                     <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_does_business_use_admt")}>
+                      <p className="text-[11px] italic text-muted-foreground">You're seeing this because you listed a third-party ADMT system above.</p>
                       <p className="text-[12px] font-semibold">Vendor / downstream-recipient detail</p>
                       <p className="text-[12px] text-muted-foreground">You remain the CCPA-responsible "business." If a vendor makes ADMT trained on personal information available to you for significant decisions, the vendor must supply all facts you need for your own risk assessment (§ 7150(b)(6) / § 7153).</p>
                       <div>
@@ -702,6 +704,7 @@ export default function ADMTChecker() {
                   </div>
 
                   <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_human_involvement")}>
+                    <p className="text-[11px] italic text-muted-foreground">You're seeing this because how much a human is involved decides whether the law applies at all — it's worth a moment.</p>
                     <p className="text-[12px] font-semibold">Human-involvement self-test (§ 7001(e)(1))</p>
                     <p className="text-[12px] text-muted-foreground">This is the gate for the entire regime: if a qualifying human is in the loop, the system does not "substantially replace" human decisionmaking and Article 11 obligations may not attach.</p>
                     <div>
@@ -792,8 +795,9 @@ export default function ADMTChecker() {
 
               {step === 2 && (
                 <>
-                 <h2 className="font-serif text-xl">Step 2 — Pre-Use Notice Assessment</h2>
-                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR §§ 7220(b)–(c) — pre-use notice timing and required content</p>
+                 <h2 className="font-serif text-xl">Step 2 · Do people get the right heads-up?</h2>
+                 <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> before you use ADMT for a significant decision, you must tell people — in specific terms, at or before you use it — what it does and how to opt out.</p>
+                 <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR §§ 7220(b)–(c)</p>
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     The Pre-use Notice must be provided prominently at or before the point you collect PI for ADMT use (§ 7220(b)). If you've already collected the PI for another purpose and now plan to use ADMT, you must provide the notice before starting ADMT processing.
@@ -933,8 +937,9 @@ export default function ADMTChecker() {
 
               {step === 3 && (
                 <>
-                 <h2 className="font-serif text-xl">Step 3 — Opt-Out Mechanism</h2>
-                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7221 — opt-out right, exceptions, methods, and timing</p>
+                 <h2 className="font-serif text-xl">Step 3 · Can people say no?</h2>
+                 <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> consumers can opt out of ADMT for significant decisions unless a narrow exception applies — and if it applies, you must offer at least two ways to opt out.</p>
+                 <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR § 7221</p>
                   <RequiredLegend />
 
                   <div>
@@ -1153,8 +1158,9 @@ export default function ADMTChecker() {
 
               {step === 4 && (
                 <>
-                 <h2 className="font-serif text-xl">Step 4 — Access Right Readiness</h2>
-                 <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7222 — consumer right to access ADMT information</p>
+                 <h2 className="font-serif text-xl">Step 4 · Can people see how it worked?</h2>
+                 <p className="text-sm text-muted-foreground mt-1"><span className="font-semibold text-foreground">What we're checking:</span> consumers can ask what the ADMT did and why — you must be able to explain the output, the logic, and any human reviewer's role.</p>
+                 <p className="text-[10px] font-mono text-muted-foreground/70 mt-1">11 CCR § 7222</p>
                   <RequiredLegend />
                   <p className="text-sm text-muted-foreground">
                     Consumers have the right to request information about your use of ADMT with respect to them (§ 7222). Unlike opt-out, access requests require identity verification. You must respond within 45 days.
