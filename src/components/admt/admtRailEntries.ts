@@ -119,6 +119,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_access_right_description: {
+    goodAnswer:
+      "Tells consumers they can ask how the ADMT was used on them, and gives a working method to request it.",
+    commonMistake:
+      "Omitting the access right, or describing it so vaguely the consumer doesn't realize it covers automated decisions.",
     fieldLabel: "Pre-use notice: access right description",
     citation: "11 CCR § 7220(c)(3)",
     plainSummary:
