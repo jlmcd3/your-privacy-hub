@@ -30,6 +30,7 @@ import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/admt/StatuteRail";
 import { ChoiceRadio } from "@/components/admt/ChoiceRadio";
+import { ChoiceWithOther } from "@/components/admt/ChoiceWithOther";
 import { ADMT_RAIL } from "@/components/admt/admtRailEntries";
 import type { RailEntry } from "@/components/admt/StatuteRail";
 
@@ -640,6 +641,14 @@ export default function ADMTChecker() {
                         onFocus={() => focus("scope_significant_decision_domain")}
                       />
                     </div>
+                    <textarea
+                      className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      rows={2}
+                      value={adv.decision_domains_other || ""}
+                      onChange={(e) => setA("decision_domains_other", e.target.value)}
+                      onFocus={() => focus("scope_significant_decision_domain")}
+                      placeholder="Optional: a significant decision not listed above — describe it, and we'll assess whether it qualifies under § 7001(ddd)."
+                    />
                   </div>
 
                   <div className="rounded-md border bg-muted/20 p-4 space-y-3" onFocus={() => focus("scope_significant_decision_domain")}>
@@ -949,12 +958,14 @@ export default function ADMTChecker() {
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1"><span className="font-medium text-foreground">Why we ask:</span> the opt-out only has to be honored if no exception applies — this tells us which path (full opt-out vs. exception) the rest of this step follows.</p>
                     <div className="mt-2">
-                      <Radio
-                        name="opt_out_exception"
+                      <ChoiceWithOther
                         options={OPT_OUT_EXCEPTIONS}
                         value={optOutException}
                         onChange={setOptOutException}
+                        otherText={adv.opt_out_exception_other || ""}
+                        onOtherText={(v) => setA("opt_out_exception_other", v)}
                         onFocus={() => focus("optout_exception_human_appeal")}
+                        placeholder="Describe your opt-out approach or the exception you rely on, in your own words — we'll assess whether it qualifies."
                       />
                     </div>
                   </div>
