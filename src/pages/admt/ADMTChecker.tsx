@@ -945,8 +945,9 @@ export default function ADMTChecker() {
 
                   <div>
                     <Label onFocus={() => focus("optout_exception_human_appeal")}>
-                      Are you providing a full opt-out right, or relying on an exception? <Req />
+                      Are you providing a full opt-out right, or relying on an exception? <DefPopover termKey="admt_opt_out" /> <Req />
                     </Label>
+                    <p className="text-xs text-muted-foreground mt-1"><span className="font-medium text-foreground">Why we ask:</span> the opt-out only has to be honored if no exception applies — this tells us which path (full opt-out vs. exception) the rest of this step follows.</p>
                     <div className="mt-2">
                       <Radio
                         name="opt_out_exception"
