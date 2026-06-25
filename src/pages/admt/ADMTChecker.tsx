@@ -958,12 +958,14 @@ export default function ADMTChecker() {
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1"><span className="font-medium text-foreground">Why we ask:</span> the opt-out only has to be honored if no exception applies — this tells us which path (full opt-out vs. exception) the rest of this step follows.</p>
                     <div className="mt-2">
-                      <Radio
-                        name="opt_out_exception"
+                      <ChoiceWithOther
                         options={OPT_OUT_EXCEPTIONS}
                         value={optOutException}
                         onChange={setOptOutException}
+                        otherText={adv.opt_out_exception_other || ""}
+                        onOtherText={(v) => setA("opt_out_exception_other", v)}
                         onFocus={() => focus("optout_exception_human_appeal")}
+                        placeholder="Describe your opt-out approach or the exception you rely on, in your own words — we'll assess whether it qualifies."
                       />
                     </div>
                   </div>
