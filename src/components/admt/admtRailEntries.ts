@@ -152,6 +152,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_anti_retaliation: {
+    goodAnswer:
+      "An explicit line that you won't deny service, change prices, or lower quality because someone exercised a CCPA right.",
+    commonMistake:
+      "Assuming it's implied. The non-retaliation statement has to actually appear in the notice.",
     fieldLabel: "Pre-use notice: anti-retaliation statement",
     citation: "11 CCR § 7220(c)(4)",
     plainSummary:
