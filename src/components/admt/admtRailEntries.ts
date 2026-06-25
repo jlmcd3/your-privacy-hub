@@ -27,6 +27,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   scope_significant_decision_domain: {
+    goodAnswer:
+      "Tick only the boxes the output actually gates. The loan engine → “Financial or lending services.” If the system merely ranks ads or segments audiences, tick none — that isn't a significant decision.",
+    commonMistake:
+      "Treating any high-stakes-feeling decision as “significant.” The list is closed: advertising, gaming/subscription eligibility, and ordinary profiling don't count, however consequential they feel.",
     fieldLabel: "What type of significant decision does your ADMT make?",
     citation: "11 CCR § 7001(ddd)",
     plainSummary:
