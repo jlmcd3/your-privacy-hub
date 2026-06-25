@@ -280,6 +280,37 @@ When a trade-secret carve-out finding is generated:
     - Access edge-cases (secure transmission, denial basis) → fold into access_gaps where relevant.
     Where a detail field is "(n/a)" / "(not answered)", do not fabricate — note the gap if the regulation requires that information.
 
+14. AUTHORITATIVE CITATION CORRECTIONS — these supersede prior practice and any earlier examples. Apply rigorously:
+
+    (a) ACCOUNT-CREATION BARRIER on the opt-out form → cite § 7221(e), NOT § 7221(c). § 7221(e) is the on-point prohibition: a business "must not require a consumer submitting a request to opt-out of ADMT to create an account or provide additional information beyond what is necessary." § 7221(c) governs only the two-or-more "designated methods" requirement. NEVER label § 7221(c) as both "Compliant" and a "Gap" in the same report.
+
+    (b) RISK-ASSESSMENT TRIGGER FOR ADMT SIGNIFICANT DECISIONS → cite § 7150(b)(3), NOT § 7150(b)(4) or (b)(5). § 7150(b)(4) covers automated inference from systematic observation of a consumer acting as an educational-program applicant, job applicant, student, employee, or independent contractor. § 7150(b)(5) covers inference from a consumer's presence in a sensitive location. Neither applies to a consumer loan / lending / credit applicant or to general financial-services significant decisions. For credit/lending ADMT, the trigger is § 7150(b)(3). Reserve (b)(4)/(b)(5) for employment, education, or sensitive-location fact patterns ONLY.
+
+    (c) SENSITIVE-PI RISK TRIGGER § 7150(b)(2) → assert ONLY when a real SPI element under § 7001(bbb) is present. Income, debt-to-income ratio, credit history, and generic "bank-transaction patterns" are NOT per se sensitive personal information. SPI requires an element such as a financial account number IN COMBINATION WITH an access credential, precise geolocation, or a government identifier. When that is not clearly present, ground the risk-assessment obligation on § 7150(b)(3) alone and mark (b)(2) as "arguable," not established. Do NOT use the phrase "sensitive financial data" as if SPI status were settled.
+
+    (d) ACCESS-RESPONSE TIMELINE → cite § 7021, NOT § 7222. § 7222 contains no response-timeline provision. § 7021(a): confirm receipt within 10 business days. § 7021(b): respond within 45 calendar days, and the 45-day clock runs from RECEIPT regardless of verification time, extendable once by up to 45 additional days (90-day maximum) with notice and an explanation. Do NOT present the "receipt vs. verification" trigger as an open question — the regulation resolves it. Frame the finding as "document the § 7021 workflow (acknowledgment, extension notice, escalation)," not "confirm the applicable timeline."
+
+    (e) SECURE TRANSMISSION of the access response → cite § 7222(g) ("must use reasonable security measures when transmitting the requested information to the consumer"). Do NOT attribute this requirement to general "applicable data-protection principles."
+
+    (f) ACCESS-REQUEST DENIAL BASIS → cite § 7222(e) and § 7222(f), NOT bare § 7222. § 7222(e): denial where identity cannot be verified. § 7222(f): denial for conflict with federal/state law or a CCPA exception, including the duty to disclose the remaining information on a partial denial.
+
+    (g) § 7222(j) AGGREGATE-RESPONSE THRESHOLD → the trigger is the business having USED THE ADMT WITH RESPECT TO THE CONSUMER MORE THAN FOUR TIMES within a 12-month period (decision frequency). It is NOT "more than four access requests from the same consumer." Keep the § 7222(j) citation; fix the characterizing text. A total inbound access-request count does NOT bear on this threshold. (This overrides any earlier language in this prompt that describes the threshold in terms of access-request counts — describe it in terms of ADMT decisions/uses with respect to the consumer.)
+
+    (h) PRE-USE NOTICE — SPECIFIC PURPOSE vs MECHANICS → separate § 7220(c)(1) from § 7220(c)(5). § 7220(c)(1) requires only a plain-language statement of the SPECIFIC DECISION (e.g., "evaluate eligibility and terms for a personal loan"). If the notice names the specific decision, treat (c)(1) as substantially satisfied. File the following deficiencies under § 7220(c)(5) / (c)(5)(A)–(B), NOT (c)(1): the 0–100 score range, decision thresholds, the auto-decline-with-no-human-review disclosure, and the complete input-category list.
+
+    (i) TWO OPT-OUT ELEMENTS — use the precise subsection: opt-out CONFIRMATION MECHANISM → § 7221(h); opt-out LINK TITLE → § 7221(c)(1) (the title must state what the consumer is opting out of). Replace bare "§ 7221" in these contexts.
+
+    (j) SERVICE-PROVIDER CONTRACT GAPS → anchor to § 7051(a) IN ADDITION TO § 7221(n)(2). The missing contract terms (audit/testing rights, consumer-request assistance, ADMT opt-out propagation, appeal support, incident notification) are governed by § 7051(a) — in particular the requirement that the service provider assist the business in complying with its Article 11 ADMT obligations and the business's right to audit/test at least once every 12 months. Cite § 7051(a) for the contract-amendment recommendation; cite § 7221(n)(2) for the opt-out NOTIFICATION duty.
+
+15. FRAMING — PENALTY EXPOSURE: When multiplying the per-violation figure ($2,663 unintentional / $7,988 intentional or minor-related) by a consumer count, label the result a "theoretical statutory maximum" (each affected consumer may count as a separate violation; no aggregate cap) and add a sentence noting that actual CCPA resolutions settle well below the ceiling. NEVER present the multiplied figure as expected or likely exposure.
+
+16. INPUT-FIDELITY:
+    - Echo the REGULATED ENTITY NAME in the report header and findings, not only the system name.
+    - If the PROCESSING START DATE is not supplied in the intake, do NOT silently assume pre–January 1, 2026 operation. Surface the assumption explicitly wherever it drives the choice between the § 7155(b) deadline (Dec 31, 2027, for processing already underway) and the § 7155(a)(1) deadline (complete before initiating new or materially changed processing).
+    - Continue flagging unanswered intake fields (sole-factor determination, denial basis, secure-transmission method, etc.) as gaps rather than inferring answers.
+
+17. GUARDRAILS — preserve the adopted section architecture: § 7200 (scope), § 7220 (Pre-use Notice), § 7221 (opt-out), § 7222 (access), §§ 7150–7157 (risk assessments); ADMT defined at § 7001(e); human involvement at § 7001(e)(1); significant decision at § 7001(ddd); financial/lending services at § 7001(ddd)(1). Retain the "not legal advice" disclaimer and the December 31, 2027 / before-initiation deadlines under § 7155(b) and § 7155(a)(1).
+
 Return ONLY valid JSON — no markdown, no preamble.`;
 
     const d = (intake as any).admt_detail || {};
