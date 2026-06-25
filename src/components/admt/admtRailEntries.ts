@@ -63,6 +63,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_timing: {
+    goodAnswer:
+      "The notice appears at or before the point you use ADMT — e.g., on the application page itself, before the applicant submits.",
+    commonMistake:
+      "Burying it in a general privacy policy linked in the footer, or showing it only after the decision. It must come before use.",
     fieldLabel: "When must the pre-use notice be provided?",
     citation: "11 CCR § 7220(b)(2)",
     plainSummary:
