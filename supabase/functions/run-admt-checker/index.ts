@@ -281,7 +281,7 @@ PRE-USE NOTICE:
 - Describes alternative process for opt-out consumers: ${intake.notice_has_alternative_process}
 
 OPT-OUT:
-- Approach / exception claimed: ${intake.opt_out_exception}
+- Approach / exception claimed: ${intake.opt_out_exception}${d.opt_out_exception_other ? ` — business's own description (assess whether a § 7221(b) exception is established): ${d.opt_out_exception_other}` : ""}
 - Opt-out methods provided: ${(intake.opt_out_methods ?? []).join("; ")}
 - Opt-out link title: ${intake.opt_out_link_title || "(not provided)"}
 - Not relying on cookie banner only: ${intake.opt_out_no_cookie_banner}
