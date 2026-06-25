@@ -26,6 +26,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
+import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/admt/StatuteRail";
 import { ChoiceRadio } from "@/components/admt/ChoiceRadio";
