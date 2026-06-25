@@ -620,6 +620,26 @@ Generate substantive draft rows for every table for the controller to verify; us
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
 
+    // ── Layer 4: Jurisdiction validator ──────────────────────────────────────
+    try {
+      const jurisdictionFindings = validateJurisdiction(reportData, resolved);
+      reportData.jurisdiction_validation = {
+        resolved_summary: {
+          competent_authorities: resolved.sites.map((s) => s.competentSA.name),
+          oss_available: resolved.oss.ossAvailable,
+          lead_authority: resolved.oss.leadAuthority?.name || null,
+          transfer_mechanisms: resolved.transfers.map((t) => ({ destination: t.flow.destinationCountry, mechanism: t.resolved.mechanism, citation: t.resolved.citation })),
+          template_status: resolved.template.label,
+        },
+        findings: jurisdictionFindings,
+      };
+      const errs = jurisdictionFindings.filter((f) => f.severity === "error");
+      if (errs.length) console.warn(`[run-dpia-framework] jurisdiction validator errors: ${errs.map((e) => e.code).join(", ")}`);
+    } catch (e) {
+      console.warn("[run-dpia-framework] jurisdiction validator failed (non-fatal):", e);
+    }
+
+
     // Detect unresolved placeholders across the entire report JSON.
     // Any [TO COMPLETE] or [TO BE ASSESSED] string anywhere in the output
     // means the document is not ready for sign-off. Set this flag
