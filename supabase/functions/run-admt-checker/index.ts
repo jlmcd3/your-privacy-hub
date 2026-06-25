@@ -61,8 +61,38 @@ async function callAnthropic(
 }
 
 function tryParseJson(text: string): any | null {
-  const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  // Strip markdown fences anywhere in the string (model sometimes adds trailing prose).
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/^```(?:json)?\s*/i, "");
+  // Remove a trailing fence even if followed by more prose.
+  const fenceIdx = cleaned.lastIndexOf("```");
+  if (fenceIdx > 0) cleaned = cleaned.slice(0, fenceIdx);
+  cleaned = cleaned.trim();
   try { return JSON.parse(cleaned); } catch { /* fall through */ }
+
+  // Brace-balanced extraction from the first '{'.
+  const start = cleaned.indexOf("{");
+  if (start < 0) return null;
+  let depth = 0, inStr = false, esc = false;
+  for (let i = start; i < cleaned.length; i++) {
+    const c = cleaned[i];
+    if (inStr) {
+      if (esc) { esc = false; continue; }
+      if (c === "\\") { esc = true; continue; }
+      if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') { inStr = true; continue; }
+    if (c === "{") depth++;
+    else if (c === "}") {
+      depth--;
+      if (depth === 0) {
+        const candidate = cleaned.slice(start, i + 1);
+        try { return JSON.parse(candidate); } catch { return null; }
+      }
+    }
+  }
+  // Greedy fallback.
   const m = cleaned.match(/\{[\s\S]*\}/);
   if (!m) return null;
   try { return JSON.parse(m[0]); } catch { return null; }
@@ -425,14 +455,38 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
         rawText = first.text;
       }
     }
-    const report = tryParseJson(rawText);
+    let report = tryParseJson(rawText);
 
+    // If parsing failed, retry once with a strict JSON-only directive.
     if (!report) {
-      await supabase.from("cppa_assessments").update({
-        status: "error",
-        report_data: { error: "parse_failed", raw: rawText.slice(0, 500) },
-      }).eq("id", assessment_id);
-      return;
+      console.warn(
+        `[run-admt-checker] parse_failed on first pass — chars=${rawText.length} head=${JSON.stringify(rawText.slice(0, 200))} tail=${JSON.stringify(rawText.slice(-300))}`
+      );
+      const strictRetry = await callAnthropic(
+        system,
+        userPrompt +
+          "\n\nCRITICAL OUTPUT REQUIREMENT: Respond with a single valid JSON object only. No markdown fences, no commentary before or after. The first character MUST be '{' and the last character MUST be '}'. Escape all internal quotes and newlines per JSON spec.",
+        PRODUCT_MAX_OUTPUT_TOKENS,
+        "gap-analysis-json-retry"
+      );
+      report = tryParseJson(strictRetry.text);
+      if (report) {
+        rawText = strictRetry.text;
+      } else {
+        console.error(
+          `[run-admt-checker] parse_failed after retry — tail=${JSON.stringify(strictRetry.text.slice(-500))}`
+        );
+        await supabase.from("cppa_assessments").update({
+          status: "error",
+          report_data: {
+            error: "parse_failed",
+            raw_head: rawText.slice(0, 400),
+            raw_tail: rawText.slice(-400),
+            retry_tail: strictRetry.text.slice(-400),
+          },
+        }).eq("id", assessment_id);
+        return;
+      }
     }
 
     // ── PASS 2: Sample Language Drafting ─────────────────────────────────────
