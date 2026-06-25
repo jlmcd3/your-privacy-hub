@@ -3,7 +3,7 @@
 // status badges, citation links, and remediation steps.
 
 import { useEffect, useRef, useState } from "react";
-import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useLocation, useParams, useSearchParams, Link, Navigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
@@ -178,25 +178,38 @@ function GapTable({ items, title, showNoGapsMessage }: { items: any[]; title: st
 export default function ADMTCheckerResult() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const purchased = searchParams.get("purchased") === "true";
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [assessment, setAssessment] = useState<any>(null);
   const [polling, setPolling] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const triggeredRef = useRef(false);
 
   useEffect(() => {
-    if (!id || !user) return;
+    if (!id || authLoading) return;
+    if (!user) {
+      setPolling(false);
+      return;
+    }
     let attempts = 0;
     let cancelled = false;
 
     const poll = async () => {
       if (cancelled) return;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("cppa_assessments")
         .select("*")
         .eq("id", id)
         .eq("user_id", user.id)
         .maybeSingle();
+
+      if (error || !data) {
+        setAssessment(null);
+        setNotFound(true);
+        setPolling(false);
+        return;
+      }
 
       // Kick off generation if the row is still pending and we haven't already.
       if (data?.status === "pending" && !triggeredRef.current) {
@@ -218,7 +231,31 @@ export default function ADMTCheckerResult() {
     return () => {
       cancelled = true;
     };
-  }, [id, user]);
+  }, [id, user, authLoading]);
+
+  if (!authLoading && !user) {
+    const from = location.pathname + location.search;
+    return <Navigate to={`/login?redirect=${encodeURIComponent(from)}`} replace />;
+  }
+
+  if (notFound) {
+    return (
+      <div className="min-h-screen flex flex-col bg-brand-cloud">
+        <Navbar />
+        <DashboardSubnav />
+        <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+          <p className="text-foreground mb-2 font-medium">Assessment not available.</p>
+          <p className="text-muted-foreground text-sm mb-4">
+            Sign in with the account that created this ADMT assessment, then reopen the result link.
+          </p>
+          <Link to="/cppa-admt-checker">
+            <Button variant="outline">Back to ADMT Checker</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (polling || !assessment) {
     return (
