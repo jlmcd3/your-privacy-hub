@@ -102,6 +102,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_opt_out_description: {
+    goodAnswer:
+      "States the right plainly and links the mechanism: “You can opt out of automated scoring — submit a request here [link] or call [number].”",
+    commonMistake:
+      "Mentioning that opt-out exists but giving no clear instructions or link, so a consumer can't actually act on it.",
     fieldLabel: "Pre-use notice: opt-out right description",
     citation: "11 CCR § 7220(c)(2)",
     plainSummary:
