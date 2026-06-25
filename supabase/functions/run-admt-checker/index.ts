@@ -455,14 +455,38 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
         rawText = first.text;
       }
     }
-    const report = tryParseJson(rawText);
+    let report = tryParseJson(rawText);
 
+    // If parsing failed, retry once with a strict JSON-only directive.
     if (!report) {
-      await supabase.from("cppa_assessments").update({
-        status: "error",
-        report_data: { error: "parse_failed", raw: rawText.slice(0, 500) },
-      }).eq("id", assessment_id);
-      return;
+      console.warn(
+        `[run-admt-checker] parse_failed on first pass — chars=${rawText.length} head=${JSON.stringify(rawText.slice(0, 200))} tail=${JSON.stringify(rawText.slice(-300))}`
+      );
+      const strictRetry = await callAnthropic(
+        system,
+        userPrompt +
+          "\n\nCRITICAL OUTPUT REQUIREMENT: Respond with a single valid JSON object only. No markdown fences, no commentary before or after. The first character MUST be '{' and the last character MUST be '}'. Escape all internal quotes and newlines per JSON spec.",
+        PRODUCT_MAX_OUTPUT_TOKENS,
+        "gap-analysis-json-retry"
+      );
+      report = tryParseJson(strictRetry.text);
+      if (report) {
+        rawText = strictRetry.text;
+      } else {
+        console.error(
+          `[run-admt-checker] parse_failed after retry — tail=${JSON.stringify(strictRetry.text.slice(-500))}`
+        );
+        await supabase.from("cppa_assessments").update({
+          status: "error",
+          report_data: {
+            error: "parse_failed",
+            raw_head: rawText.slice(0, 400),
+            raw_tail: rawText.slice(-400),
+            retry_tail: strictRetry.text.slice(-400),
+          },
+        }).eq("id", assessment_id);
+        return;
+      }
     }
 
     // ── PASS 2: Sample Language Drafting ─────────────────────────────────────
