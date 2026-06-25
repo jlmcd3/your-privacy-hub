@@ -187,6 +187,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_exception_human_appeal: {
+    goodAnswer:
+      "A named, trained reviewer (e.g., “Adverse Action Review Officer”) who reviews the consumer's submission plus other information and can overturn the decision — documented end to end.",
+    commonMistake:
+      "Claiming the appeal exception while the “appeal” goes to someone who can't actually reverse the outcome — which defeats the exception.",
     fieldLabel: "Opt-out exception: human appeal process",
     citation: "11 CCR § 7221(b)(1)",
     plainSummary:
