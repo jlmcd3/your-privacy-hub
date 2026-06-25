@@ -260,6 +260,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   access_outcome_disclosure: {
+    goodAnswer:
+      "States the output and how it was used: “score 32/100; below the 40 threshold, so the application was automatically declined.”",
+    commonMistake:
+      "Describing the system in general but never telling the consumer their actual result or how it drove the decision.",
     fieldLabel: "Access right: decision outcome disclosure",
     citation: "11 CCR § 7222(b)(3)",
     plainSummary:
