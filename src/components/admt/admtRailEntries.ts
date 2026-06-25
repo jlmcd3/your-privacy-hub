@@ -168,6 +168,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_methods: {
+    goodAnswer:
+      "At least two easy methods — e.g., an online form linked from the notice and a toll-free number — with no account required and not routed through a cookie banner.",
+    commonMistake:
+      "Offering only one method, or one that forces account creation or hides behind a generic cookie banner that doesn't cover ADMT.",
     fieldLabel: "Opt-out: how many methods does your business provide?",
     citation: "11 CCR § 7221(c)",
     plainSummary:
