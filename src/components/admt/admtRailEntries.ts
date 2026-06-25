@@ -133,6 +133,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_how_admt_works: {
+    goodAnswer:
+      "A plain summary of inputs and output: “a model weighs your credit history, income, and debt ratio to produce a 0–100 score used to approve or decline.”",
+    commonMistake:
+      "Either saying nothing about how it works, or dumping proprietary model internals. Aim for a consumer-understandable explanation, not a spec sheet.",
     fieldLabel: "Pre-use notice: how the ADMT works (additional information)",
     citation: "11 CCR § 7220(c)(5)",
     plainSummary:
