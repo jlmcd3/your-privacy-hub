@@ -491,6 +491,17 @@ export default function ADMTChecker() {
                     Complete one assessment per ADMT system. If you use multiple ADMT systems for significant decisions, run the checker once per system. Each system requires its own pre-use notice, opt-out mechanism, and access right process.
                   </p>
 
+                  <details className="rounded-md border bg-muted/20 p-4">
+                    <summary className="cursor-pointer text-sm font-medium select-none">See a worked example (a loan-approval engine)</summary>
+                    <div className="mt-3 space-y-2 text-[13px] text-muted-foreground leading-relaxed">
+                      <p><span className="font-medium text-foreground">Organization:</span> Acme Lending, Inc.</p>
+                      <p><span className="font-medium text-foreground">System:</span> "ScoreEngine v3.2" — a gradient-boosted model that scores consumer loan applications 0–100 from credit history, income, and debt-to-income ratio.</p>
+                      <p><span className="font-medium text-foreground">Significant decision:</span> financial / lending services — the score gates loan approval or denial.</p>
+                      <p><span className="font-medium text-foreground">Human review:</span> applications scoring under 40 are auto-declined with no one able to override before the decision issues — so there is no meaningful human involvement, and the ADMT rules apply.</p>
+                      <p className="italic">The field examples throughout this form refer back to this scenario.</p>
+                    </div>
+                  </details>
+
                   <div>
                     <Label>
                       Which organization is running this assessment? <Req />
