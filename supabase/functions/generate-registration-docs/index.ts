@@ -10,6 +10,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -260,6 +261,12 @@ Output clean plain text with clear section headings (Title Case, on their own li
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const fnRun = await startFunctionRun(supabase, "generate-registration-docs", {
+    archetype: "sync",
+    trustClass: "user",
+    invokedBy: "user",
+  });
+
   try {
     const { order_id } = await req.json();
     if (!order_id) {
@@ -435,11 +442,18 @@ Deno.serve(async (req) => {
       console.warn("send-registration-delivery-email failed:", (e as Error).message);
     }
 
+    await finishFunctionRun(supabase, fnRun, {
+      status: "success",
+      sourceTable: "registration_orders",
+      sourceRowId: order_id,
+      metadata: { generated_count: generated.length },
+    });
     return new Response(JSON.stringify({ generated_count: generated.length, generated }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("generate-registration-docs error", e);
+    await failFunctionRun(supabase, fnRun, e);
     return new Response(JSON.stringify({ error: (e as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

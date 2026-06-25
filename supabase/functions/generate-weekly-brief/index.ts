@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -107,6 +108,12 @@ Deno.serve(async (req) => {
     );
   }
   // ── End authentication ────────────────────────────────────────────────────
+
+  const fnRun = await startFunctionRun(supabase, "generate-weekly-brief", {
+    archetype: "sync",
+    trustClass: "internal",
+    invokedBy: "internal",
+  });
 
   try {
     // Anchor to previous Sunday midnight UTC for a consistent weekly window.
@@ -636,12 +643,19 @@ VERIFICATION STANDARDS:
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    await finishFunctionRun(supabase, fnRun, {
+      status: "success",
+      sourceTable: "weekly_briefs",
+      sourceRowId: inserted.id,
+      metadata: { week: isoWeek, article_count: articles.length },
+    });
     return new Response(
       JSON.stringify({ success: true, id: inserted.id, week: isoWeek, article_count: articles.length, verification: verificationReport }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
     console.error("generate-weekly-brief error:", e);
+    await failFunctionRun(supabase, fnRun, e);
     return new Response(JSON.stringify({ error: "An internal error occurred" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
