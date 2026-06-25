@@ -443,6 +443,9 @@ const DPIAFramework = () => {
           <div><Label>Who are the data subjects?<Req /> <DefPopover termKey="gdpr_personal_data" /></Label><Input value={dataSubjects} onChange={(e) => setDataSubjects(e.target.value)} placeholder="e.g. Employees in the UK and Ireland aged 18+" className="mt-2" /></div>
           <div><Label>Volume and frequency<Req /></Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="e.g. 250 employees, continuous monitoring during working hours" className="mt-2" /></div>
           <div><Label>Retention period<Req /> <span className="text-xs text-muted-foreground font-mono">(Art. 5(1)(e) — storage limitation)</span></Label><Input value={retentionPeriod} onChange={(e) => setRetentionPeriod(e.target.value)} placeholder="e.g. Deleted 90 days after each verification event; no central template stored" className="mt-2" /></div>
+          <div className="flex items-center gap-2 pt-2 pb-1 border-b">
+            <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">3 · Who else touches the data, and what protects it?</span>
+          </div>
           <div>
             <Label>Third-party processors</Label>
             <div className="mt-2"><Pills options={TOOLS} value={processors} onChange={setProcessors} /></div>
