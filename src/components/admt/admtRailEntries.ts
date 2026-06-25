@@ -16,6 +16,10 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
       "The CPPA deliberately removed explicit references to 'artificial intelligence' from the final regulations to create a technology-neutral standard that focuses on the functional impact — does the system replace human judgment about an individual — rather than the technical architecture.",
     enforcementNote:
       "The CPPA has indicated it will look at whether a human reviewer genuinely has authority to change a decision, not just review it. A 'human in the loop' who cannot override the system's output does not satisfy the human involvement standard.",
+    goodAnswer:
+      "“A gradient-boosted model scores loan applications 0–100 from credit history, income, and debt ratio; scores under 40 are auto-declined with no human review.” — names the technology, the inputs, the output, and exactly where automation makes the call.",
+    commonMistake:
+      "Calling a tool ‘not ADMT’ because a person signs off, when that person only rubber-stamps the output and cannot realistically overturn it. If the human can't change the outcome, it is still ADMT.",
     relatedCitations: [
       { citation: "11 CCR § 7001(ii)", label: "Profiling definition" },
       { citation: "11 CCR § 7001(ddd)", label: "Significant decision definition" },
