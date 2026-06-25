@@ -470,6 +470,67 @@ const DPIAFramework = () => {
           </div>
           <div><Label>Existing safeguards</Label><div className="mt-2"><Pills options={SAFEGUARDS} value={safeguards} onChange={setSafeguards} /></div></div>
           <div onFocus={() => handleDpiaRailFocus("transfers")}><Label>Jurisdictions<Req /> <DefPopover termKey="gdpr_international_transfer" /> <span className="text-xs text-muted-foreground font-mono">(Arts. 44–49 GDPR)</span> <EnforcementSignalIcon signalKey="international_transfer" signals={dpiaEnforcementSignals} /></Label><div className="mt-2"><Pills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div></div>
+
+          {/* ── Jurisdiction resolver inputs (deterministic facts) ─────────── */}
+          <div className="border rounded-lg p-4 bg-slate-50/50 dark:bg-slate-900/30 space-y-3">
+            <p className="text-sm font-semibold text-[hsl(var(--brand-navy))]">Establishment & transfer facts</p>
+            <p className="text-xs text-muted-foreground">These structured fields drive deterministic supervisory-authority, OSS, and transfer-mechanism resolution. The report cites authorities and instruments from these inputs only — never from the model.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs">Controller country (ISO-2)</Label>
+                <Input value={controllerCountry} onChange={(e) => setControllerCountry(e.target.value.toUpperCase().slice(0, 2))} placeholder="DE, IE, FR, UK…" className="mt-1" />
+              </div>
+              {controllerCountry === "DE" && (
+                <div>
+                  <Label className="text-xs">German Land</Label>
+                  <select value={controllerLand} onChange={(e) => setControllerLand(e.target.value)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                    <option value="">Select…</option>
+                    {["Baden-Württemberg","Bavaria","Berlin","Brandenburg","Bremen","Hamburg","Hesse","Lower Saxony","Mecklenburg-Vorpommern","North Rhine-Westphalia","Rhineland-Palatinate","Saarland","Saxony","Saxony-Anhalt","Schleswig-Holstein","Thuringia"].map((l) => <option key={l}>{l}</option>)}
+                  </select>
+                </div>
+              )}
+              <div>
+                <Label className="text-xs">Sector</Label>
+                <select value={controllerSector} onChange={(e) => setControllerSector(e.target.value as any)} className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="">Select…</option>
+                  <option value="private">Private</option>
+                  <option value="public">Public (Land-level)</option>
+                  <option value="federal-public">Federal public body</option>
+                  <option value="telecom">Telecom</option>
+                  <option value="postal">Postal</option>
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs">Central administration country (for OSS)</Label>
+                <Input value={centralAdminCountry} onChange={(e) => setCentralAdminCountry(e.target.value.toUpperCase().slice(0, 2))} placeholder="DE, IE, CH, US…" className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">EU establishment with decision authority</Label>
+                <Input value={euDecisionEstablishment} onChange={(e) => setEuDecisionEstablishment(e.target.value.toUpperCase().slice(0, 2))} placeholder="ISO-2, or blank if none" className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">Statutory retention record type</Label>
+                <Input value={retentionRecordType} onChange={(e) => setRetentionRecordType(e.target.value)} placeholder="payroll, accounting, …" className="mt-1" />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Third-country transfer flows</Label>
+                <button type="button" onClick={() => setTransferFlows([...transferFlows, { importer: "", destination: "", originRegime: "EU", dpfCertified: false, ukExtensionCertified: false }])} className="text-xs underline text-brand-teal">+ Add flow</button>
+              </div>
+              {transferFlows.length === 0 && <p className="text-xs text-muted-foreground mt-1">No transfers added. EEA-internal flows do not need a Chapter V mechanism.</p>}
+              {transferFlows.map((f, i) => (
+                <div key={i} className="mt-2 grid grid-cols-1 md:grid-cols-6 gap-2 items-end border rounded p-2 bg-background">
+                  <div className="md:col-span-2"><Label className="text-xs">Importer entity</Label><Input value={f.importer} onChange={(e) => { const n = [...transferFlows]; n[i].importer = e.target.value; setTransferFlows(n); }} className="mt-1" /></div>
+                  <div><Label className="text-xs">Destination (ISO-2)</Label><Input value={f.destination} onChange={(e) => { const n = [...transferFlows]; n[i].destination = e.target.value.toUpperCase().slice(0,2); setTransferFlows(n); }} className="mt-1" /></div>
+                  <div><Label className="text-xs">Origin</Label><select value={f.originRegime} onChange={(e) => { const n = [...transferFlows]; n[i].originRegime = e.target.value as "EU"|"UK"; setTransferFlows(n); }} className="mt-1 w-full h-10 px-2 rounded-md border border-input bg-background text-sm"><option value="EU">EU</option><option value="UK">UK</option></select></div>
+                  <label className="text-xs flex items-center gap-1"><input type="checkbox" checked={f.dpfCertified} onChange={(e) => { const n = [...transferFlows]; n[i].dpfCertified = e.target.checked; setTransferFlows(n); }} /> EU-US DPF</label>
+                  <label className="text-xs flex items-center gap-1"><input type="checkbox" checked={f.ukExtensionCertified} onChange={(e) => { const n = [...transferFlows]; n[i].ukExtensionCertified = e.target.checked; setTransferFlows(n); }} /> UK Extension</label>
+                  <button type="button" onClick={() => setTransferFlows(transferFlows.filter((_, j) => j !== i))} className="text-xs text-red-600 underline md:col-span-6 text-right">remove</button>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="flex items-center gap-2 pt-2 pb-1 border-b">
             <span className="text-sm font-semibold text-[hsl(var(--brand-navy))]">4 · Is it lawful and necessary?</span>
           </div>
