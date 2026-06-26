@@ -1055,6 +1055,7 @@ export const CPPA_RISK_VARIANTS = [
     i9_existing_dpia_summary: "UK DPIA completed 2024 covering fraud-scoring model.",
   },
   {
+    entity_name: "Northwind Retail Group, LLC",
     q1_revenue: "Over $500M",
     q2_consumers: "Over 10 million",
     q3_sector: "Retail / E-commerce",
