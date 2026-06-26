@@ -16,7 +16,7 @@ export default function SearchFirstHero() {
             <h1 className="text-hero-h1 text-white mb-3">
               Global privacy law — tracked daily.
             </h1>
-            <p className="font-display text-xl md:text-2xl text-white/90 mb-3">
+            <p className="font-display text-3xl md:text-4xl text-white/90 mb-3">
               Find out which CPPA rules apply to you — free.
             </p>
             <p className="text-blue-200/80 text-sm md:text-base mb-6 whitespace-pre-line">
