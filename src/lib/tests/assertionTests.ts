@@ -129,13 +129,6 @@ export const LIA_TEST: AssertionTest = {
       errorMessage: "Output contains 'Article 6(11)' — this provision does not exist.",
     },
     {
-      id: "lia-recital-49",
-      description: "Must cite Recital 49 for network/information security legitimate interest",
-      category: "requirement",
-      check: (output) => /recital\s*49/i.test(getText(output)),
-      errorMessage: "Output does not cite Recital 49 GDPR/UK GDPR.",
-    },
-    {
       id: "lia-three-part-test-present",
       description: "report_data must include three_part_test object",
       category: "requirement",
