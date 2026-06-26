@@ -692,15 +692,11 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
 
 
     // ── STAGE 3: Documentation recommendations ──
-    const docsSystem = `You are a privacy regulatory analyst producing practical documentation guidance. Focus on what documentation would make this legitimate interest assessment defensible. Return ONLY valid JSON, no preamble.
+    const docsSystemBlocks = buildSystemContent({
+      toolModule: LIA_DOCS_TOOL_MODULE,
+      currentDate: today,
+    });
 
-FACT DISCIPLINE: Describe the processing only as generically or specifically as the controller and the analysis actually did. Do NOT introduce any diagnosis, condition, technology, or use case (e.g. "cancer", "AI model training") that does not appear in the processing activity or the analysis you were given. If the input is generic, keep the documentation generic.
-
-CITATION ACCURACY RULE: In the 'basis' field for each recommended document, cite regulatory instruments by name and provision in general terms only (e.g. 'GDPR Article 35 and EDPB Guidelines on DPIA'). Do NOT cite specific enforcement case names, fine amounts, or decision dates — those are only available in Stage 2 where the enforcement corpus is injected. If you are uncertain of a specific provision number, describe the obligation in plain language rather than citing a potentially incorrect section number.
-
-DPO ROLE RULE — non-negotiable: GDPR Articles 38–39 assign the DPO an advisory, monitoring, and information role — not a decision-making or approval role. In all recommended documentation items and all balancing_record_elements, NEVER use "DPO sign-off", "DPO approval", or any language implying the DPO authorises or ratifies the controller's lawful basis choice. The controller makes and owns the lawful basis decision. Always use: "DPO consulted and advice documented" or "record of DPO consultation under Article 38(1)" or equivalent advisory language.
-
-ARTICLE 36 CHAIN RULE: GDPR Article 36 prior consultation with the supervisory authority is triggered by a DPIA that identifies residual high risk AFTER mitigation measures have been applied — it is not a routine LIA output. If you recommend any DPIA-related documentation, always make the chain explicit: the LIA may identify factors that make a DPIA necessary (under Article 35); the DPIA then assesses residual risk; and only if residual risk remains high after mitigation does Article 36 prior consultation become relevant. Never present Article 36 prior consultation as a standalone step or a direct output of the LIA itself.`;
 
     const ukDocsAddendum = isUk
       ? `\n\nUK ARTICLE 9(2)(b) MECHANISM (regime is UK GDPR): For any 'Article 9(2)(b) Employment Law Condition Assessment' document, the description MUST name the UK implementing mechanism: 'Reliance on Article 9(2)(b) under UK GDPR additionally requires satisfying Data Protection Act 2018 s.10 and Schedule 1, Part 1, paragraph 1 (employment, social security and social protection), including having an APPROPRIATE POLICY DOCUMENT (APD) in place per Schedule 1, Part 4. The APD must describe the lawful basis and Schedule 1 condition relied on, retention and erasure policy for the special-category data, and compliance procedures.'${balancingDetails.special_category_data ? `\nFor this UK assessment involving special-category data, you MUST also include a DISTINCT 'Appropriate Policy Document (APD)' entry in recommended_documentation whose key_elements list contains: (i) the lawful basis and Schedule 1 condition relied on, (ii) retention and erasure policy for the special-category data, and (iii) compliance procedures. Cite 'UK Data Protection Act 2018 Schedule 1, Part 4' as its basis.` : ""}`
