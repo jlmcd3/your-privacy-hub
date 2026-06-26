@@ -95,7 +95,7 @@ export default function SearchFirstHero() {
               {/* Card 4 — CPPA Compliance (California-specific) */}
               <a
                 href="/cppa-scope-checker"
-                className="group flex-1 order-first rounded-2xl px-5 py-4 no-underline block bg-[#1a4a6e] hover:bg-[#1a4a6e]/80 border border-[#1a4a6e] hover:border-[#1a4a6e]/80 transition-all duration-200"
+                className="group flex-1 order-first rounded-2xl px-5 py-4 no-underline block bg-[#1f6a6a] hover:bg-[#1f6a6a]/80 border border-[#1f6a6a] hover:border-[#1f6a6a]/80 transition-all duration-200"
               >
                 <p className="text-eyebrow text-white/80 mb-1.5">
                   CPPA Compliance
