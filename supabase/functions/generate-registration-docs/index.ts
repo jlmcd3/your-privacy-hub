@@ -424,9 +424,13 @@ Deno.serve(async (req) => {
             notes.push(`Validation: ${failures.join("; ")}`);
           } else {
             // Haiku citation check on passing docs
-            const { replacements, updatedText } = await haikuCitationCheck(cleaned, r);
+            const { replacements, flaggedForReview, updatedText } = await haikuCitationCheck(cleaned, r);
             cleaned = updatedText;
             if (replacements.length) notes.push(`Citation check: ${replacements.join("; ")}`);
+            if (flaggedForReview.length) {
+              notes.push(`Citations flagged for human review (not rewritten): ${flaggedForReview.join("; ")}`);
+              status = "needs_review";
+            }
           }
 
           // ── R0 PART 3: Output lint on final narrative.
