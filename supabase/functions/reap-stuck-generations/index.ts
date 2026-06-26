@@ -238,7 +238,7 @@ Deno.serve(async (req) => {
     for (const t of TARGETS) results.push(await reap(t));
     results.push(await reapQualityRuns());
     results.push(await reapFunctionRuns());
-    results.push(await reapRegistrationOrders());
+    // Registration orders are swept by retry-failed-generations (scheduled).
     const total = results.reduce((n, r) => n + r.reaped, 0);
 
     return new Response(
