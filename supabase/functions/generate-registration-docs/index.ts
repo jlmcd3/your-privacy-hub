@@ -29,7 +29,7 @@ const HAIKU_MODEL = "claude-haiku-4-5-20251001";
 // Verbatim system prompt — guardrails for AI Act citations, monetary penalties,
 // adequacy decisions, English-only, plain text formatting.
 const SYSTEM_PROMPT =
-  "You are a privacy compliance expert drafting jurisdiction-specific filings. Always write in English regardless of the jurisdiction. Output clean plain text only — NO markdown symbols of any kind. Do not use #, ##, ###, **, *, _, backticks, or > for formatting. Structure documents with section headings on their own line in Title Case followed by a blank line, then prose or bullet items. For bullets, use the bullet character • followed by a space at the start of the line (not * or -). Use real authority names, real laws, and realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of. MANDATORY CITATIONS — these must be used exactly as shown: EU Artificial Intelligence Act: \"Regulation (EU) 2024/1689 of the European Parliament and of the Council of 13 June 2024\" — this regulation entered into force on 1 August 2024. NEVER call it a \"proposal\", \"proposed regulation\", or \"draft\". It is enacted law. Never use 2024/900 or any other regulation number for the AI Act. EU GDPR: \"Regulation (EU) 2016/679\". EU Adequacy decisions: always add the note \"[Verify current status — adequacy decisions are subject to periodic Commission review]\" when citing any adequacy decision (including the EU-UK adequacy decision) as a transfer mechanism. MONETARY PENALTY RULE: Never state a specific fine amount from training knowledge. If referencing an enforcement case, use the format: \"the [regulator] imposed a significant penalty — see [regulator enforcement register URL] for current figures.\" Numbered lists MUST use incrementing integers: the first item in any numbered list is 1, the second is 2, the third is 3. Never repeat a number within the same list. If you find yourself writing \"1.\" for the third or fourth item in a sequence, stop and correct the numbering. No preamble, no chat, no translated text.";
+  "You are a privacy compliance expert drafting jurisdiction-specific filings. Always write in English regardless of the jurisdiction. Output clean plain text only — NO markdown symbols of any kind. Do not use #, ##, ###, **, *, _, backticks, or > for formatting. Structure documents with section headings on their own line in Title Case followed by a blank line, then prose or bullet items. For bullets, use the bullet character • followed by a space at the start of the line (not * or -). Use real authority names, real laws, and realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of. MANDATORY CITATIONS — these must be used exactly as shown: EU Artificial Intelligence Act: \"Regulation (EU) 2024/1689 of the European Parliament and of the Council of 13 June 2024\" — this regulation entered into force on 1 August 2024. NEVER call it a \"proposal\", \"proposed regulation\", or \"draft\". It is enacted law. Never use 2024/900 or any other regulation number for the AI Act. AI ACT PHASED APPLICATION DATES — cite the date that matches the registration/system type: prohibited AI practices (Article 5) applied from 2 February 2025; general-purpose AI model obligations (Chapter V) applied from 2 August 2025; the majority of high-risk AI system obligations (Article 6(2) / Annex III systems and most of Chapters III, IV, VI–IX) apply from 2 August 2026; obligations for high-risk AI systems embedded as safety components in products covered by the Union harmonisation legislation in Annex I apply from 2 August 2027. Do not state a single blanket application date for the entire AI Act. EU GDPR: \"Regulation (EU) 2016/679\". EU Adequacy decisions: always add the note \"[Verify current status — adequacy decisions are subject to periodic Commission review]\" when citing any adequacy decision (including the EU-UK adequacy decision) as a transfer mechanism. MONETARY PENALTY RULE: Never state a specific fine amount from training knowledge. If referencing an enforcement case, use the format: \"the [regulator] imposed a significant penalty — see [regulator enforcement register URL] for current figures.\" Numbered lists MUST use incrementing integers: the first item in any numbered list is 1, the second is 2, the third is 3. Never repeat a number within the same list. If you find yourself writing \"1.\" for the third or fourth item in a sequence, stop and correct the numbering. No preamble, no chat, no translated text.";
 
 const DOCUMENT_TYPES = [
   { type: "dpo_appointment", title: "Data Protection Officer Appointment Letter", when: (r: any) => r.dpo_required },
@@ -184,12 +184,75 @@ function validateDocument(
   return failures;
 }
 
+// Per-jurisdiction recognised national implementing statute(s). Sourced here
+// rather than from a single global list so a correct national citation survives
+// the auditor untouched.
+const JURISDICTION_IMPLEMENTING_STATUTES: Record<string, string[]> = {
+  UK: ["Data Protection Act 2018", "DPA 2018", "PECR 2003", "Privacy and Electronic Communications (EC Directive) Regulations 2003", "Data (Use and Access) Act 2025", "DUAA"],
+  DE: ["Bundesdatenschutzgesetz", "BDSG"],
+  IE: ["Data Protection Act 2018"],
+  FR: ["Loi Informatique et Libertés", "Loi n° 78-17"],
+  ES: ["Ley Orgánica 3/2018", "LOPDGDD"],
+  NL: ["Uitvoeringswet AVG", "UAVG"],
+  IT: ["Decreto Legislativo 196/2003", "Codice Privacy"],
+  SE: ["Dataskyddslagen", "Lag (2018:218)"],
+  DK: ["Databeskyttelsesloven", "Lov nr. 502 af 23. maj 2018"],
+  BE: ["Loi du 30 juillet 2018", "Wet van 30 juli 2018"],
+  AT: ["Datenschutzgesetz", "DSG"],
+  FI: ["Tietosuojalaki", "Data Protection Act (1050/2018)"],
+  PL: ["Ustawa o ochronie danych osobowych z dnia 10 maja 2018"],
+  PT: ["Lei n.º 58/2019"],
+  CZ: ["Zákon č. 110/2019 Sb."],
+  HU: ["2011. évi CXII. törvény", "Infotv."],
+  RO: ["Legea nr. 190/2018"],
+  GR: ["Νόμος 4624/2019", "Law 4624/2019"],
+  LU: ["Loi du 1er août 2018"],
+  CH: ["Federal Act on Data Protection", "FADP", "nFADP", "revFADP"],
+  US: ["California Consumer Privacy Act", "CCPA", "California Privacy Rights Act", "CPRA"],
+};
+
+// Recognised EU regulation/decision numbers — anything else of the form
+// "Regulation (EU) NNNN/NNNN" or "Decision (EU) NNNN/NNNN" is treated as
+// potentially fabricated and may be silently replaced. Other UNSUPPORTED
+// citations (real laws/cases/decisions not in the provided facts) are flagged
+// for human review rather than rewritten.
+const RECOGNISED_EU_INSTRUMENT_NUMBERS = new Set<string>([
+  "2016/679", // GDPR
+  "2024/1689", // AI Act
+  "2018/1725", // EUDPR
+  "2016/680", // LED
+  "2022/2065", // DSA
+  "2022/1925", // DMA
+  "2023/2854", // Data Act
+  "2022/868", // Data Governance Act
+]);
+
+function looksLikeFabricatedEuInstrument(cite: string): boolean {
+  const m = cite.match(/(Regulation|Decision|Directive)\s*\(EU\)\s*(\d{4}\/\d+)/i);
+  if (!m) return false;
+  return !RECOGNISED_EU_INSTRUMENT_NUMBERS.has(m[2]);
+}
+
 async function haikuCitationCheck(
   text: string,
   r: any
-): Promise<{ replacements: string[]; updatedText: string }> {
+): Promise<{ replacements: string[]; flaggedForReview: string[]; updatedText: string }> {
   const facts = `Authority: ${r.authority_name}\nLaw: ${r.law_name}\nJurisdiction: ${r.jurisdiction_name}\nNotes: ${r.notes || ""}`;
-  const instruction = `List every statutory or regulatory citation in this document. For each, answer SUPPORTED if it appears in the provided facts or is one of: Regulation (EU) 2016/679, Regulation (EU) 2024/1689, ${r.law_name}. Otherwise UNSUPPORTED. Return JSON array of {citation, verdict}.
+  const nationalStatutes = JURISDICTION_IMPLEMENTING_STATUTES[r.jurisdiction_code] || [];
+  const supportedList = [
+    "Regulation (EU) 2016/679 (GDPR)",
+    "Regulation (EU) 2024/1689 (AI Act)",
+    "Regulation (EU) 2018/1725 (EUDPR)",
+    "Directive (EU) 2016/680 (LED)",
+    r.law_name,
+    r.authority_name,
+    ...nationalStatutes,
+  ].filter(Boolean).join("; ");
+  const instruction = `List every statutory or regulatory citation in this document. For each, classify as:
+- SUPPORTED — appears in the provided facts OR is one of: ${supportedList}.
+- FABRICATED — looks invented or uncertain (e.g. an EU Regulation/Decision number you cannot verify, a non-existent article/sub-paragraph, an authority that does not exist).
+- UNSUPPORTED_REAL — appears to be a real instrument/case but is not in the provided facts and not on the supported list.
+Return JSON array of {citation, verdict} where verdict is SUPPORTED, FABRICATED, or UNSUPPORTED_REAL.
 
 Document:
 ${text}
@@ -198,35 +261,41 @@ Facts:
 ${facts}`;
   let resp: string;
   try {
-    const r0 = await callClaude(HAIKU_MODEL, "You are a precise legal citation auditor. Output ONLY a JSON array.", instruction, 1500);
+    const r0 = await callClaude(HAIKU_MODEL, "You are a precise legal citation auditor. Output ONLY a JSON array. Distinguish fabricated/uncertain citations from real instruments that are merely absent from the provided facts.", instruction, 1500);
     resp = r0.text;
   } catch (e) {
     console.warn("[reg-docs] Haiku citation check failed (non-fatal):", (e as Error).message);
-    return { replacements: [], updatedText: text };
+    return { replacements: [], flaggedForReview: [], updatedText: text };
   }
   const replacements: string[] = [];
+  const flaggedForReview: string[] = [];
   let updated = text;
   try {
     const m = resp.match(/\[[\s\S]*\]/);
-    if (!m) return { replacements, updatedText: text };
+    if (!m) return { replacements, flaggedForReview, updatedText: text };
     const arr: any[] = JSON.parse(m[0]);
     for (const item of arr) {
       const cite = String(item?.citation || "").trim();
       const verdict = String(item?.verdict || "").toUpperCase();
-      if (!cite || verdict !== "UNSUPPORTED") continue;
-      const replacement = `see ${r.law_name}, administered by ${r.authority_name}`;
-      // Escape regex special chars in the literal citation
-      const safe = cite.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const before = updated;
-      updated = updated.replace(new RegExp(safe, "g"), replacement);
-      if (updated !== before) {
-        replacements.push(`replaced "${cite}" with "${replacement}"`);
+      if (!cite || verdict === "SUPPORTED") continue;
+      const isFabricated = verdict === "FABRICATED" || looksLikeFabricatedEuInstrument(cite);
+      if (isFabricated) {
+        const replacement = `see ${r.law_name}, administered by ${r.authority_name}`;
+        const safe = cite.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const before = updated;
+        updated = updated.replace(new RegExp(safe, "g"), replacement);
+        if (updated !== before) {
+          replacements.push(`replaced "${cite}" with "${replacement}"`);
+        }
+      } else {
+        // UNSUPPORTED_REAL — do NOT rewrite the document; flag for human review.
+        flaggedForReview.push(cite);
       }
     }
   } catch (e) {
     console.warn("[reg-docs] Haiku JSON parse failed:", (e as Error).message);
   }
-  return { replacements, updatedText: updated };
+  return { replacements, flaggedForReview, updatedText: updated };
 }
 
 function buildUserPrompt(
@@ -355,9 +424,13 @@ Deno.serve(async (req) => {
             notes.push(`Validation: ${failures.join("; ")}`);
           } else {
             // Haiku citation check on passing docs
-            const { replacements, updatedText } = await haikuCitationCheck(cleaned, r);
+            const { replacements, flaggedForReview, updatedText } = await haikuCitationCheck(cleaned, r);
             cleaned = updatedText;
             if (replacements.length) notes.push(`Citation check: ${replacements.join("; ")}`);
+            if (flaggedForReview.length) {
+              notes.push(`Citations flagged for human review (not rewritten): ${flaggedForReview.join("; ")}`);
+              status = "needs_review";
+            }
           }
 
           // ── R0 PART 3: Output lint on final narrative.
