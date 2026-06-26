@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
       rowId = inserted.id;
     }
 
-    if (!LOVABLE_API_KEY) {
+    if (!ANTHROPIC_API_KEY) {
       await supabase.from("dpa_documents").update({
         status: "failed",
         updated_at: new Date().toISOString(),
@@ -684,17 +684,18 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         const aiController = new AbortController();
         const aiTimeout = setTimeout(() => aiController.abort(), timeoutMs);
         try {
-          const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "x-api-key": ANTHROPIC_API_KEY!,
+              "anthropic-version": "2023-06-01",
               "content-type": "application/json",
             },
             body: JSON.stringify({
               model: AI_MODEL,
               max_tokens: maxTokens,
+              system: systemPrompt,
               messages: [
-                { role: "system", content: systemPrompt },
                 { role: "user", content: finalUser },
               ],
             }),
@@ -715,9 +716,12 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
             throw new Error(`AI generation failed (status ${aiRes.status})`);
           }
           const aiData = await aiRes.json();
-          const text = aiData.choices?.[0]?.message?.content ?? "";
-          const finishReason: string | null = aiData.choices?.[0]?.finish_reason ?? null;
-          console.log(`[generate-dpa] gen done stop=${finishReason} chars=${text.length} max_tokens=${maxTokens}`);
+          const text = aiData.content?.[0]?.text ?? "";
+          const stopReason: string | null = aiData.stop_reason ?? null;
+          // Normalize to the signal the call sites already expect: the truncation-refusal
+          // logic downstream checks finishReason === "length". Anthropic uses "max_tokens".
+          const finishReason: string | null = stopReason === "max_tokens" ? "length" : stopReason;
+          console.log(`[generate-dpa] gen done stop=${stopReason} chars=${text.length} max_tokens=${maxTokens}`);
           return { text, finishReason };
         } catch (e) {
           clearTimeout(aiTimeout);
