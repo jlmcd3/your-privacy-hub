@@ -5,6 +5,11 @@ import { lintReportText } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
+import {
+  renderAiActCitationBlock,
+  renderTransferAdequacyNote,
+} from "../_shared/gdpr-registry.ts";
+import { renderIcoPenaltyFigures } from "../_shared/enforcement-figures-registry.ts";
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
