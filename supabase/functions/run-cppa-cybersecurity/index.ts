@@ -513,7 +513,13 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
         }));
         rep.overall_score = computed;
       }
-      const expectedLevel = readinessForScore(computed);
+      const insufficientCount = controls.filter((c: any) =>
+        String(c?.status ?? "").trim().toLowerCase() === "insufficient information"
+      ).length;
+      const INSUFFICIENT_THRESHOLD = 6;
+      const expectedLevel = insufficientCount >= INSUFFICIENT_THRESHOLD
+        ? "Insufficient basis to assess"
+        : readinessForScore(computed);
       if (rep?.readiness_level !== expectedLevel) {
         console.log(JSON.stringify({
           evt: "consistency_fix",
@@ -521,8 +527,18 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           field: "readiness_level",
           was: rep?.readiness_level,
           now: expectedLevel,
+          insufficient_count: insufficientCount,
         }));
         rep.readiness_level = expectedLevel;
+      }
+      if (insufficientCount >= INSUFFICIENT_THRESHOLD) {
+        const note = `Note: ${insufficientCount} of 18 controls could not be assessed because the intake did not provide enough information. The overall readiness level is set to "Insufficient basis to assess"; complete the intake for the unassessed controls to obtain a computed band.`;
+        const existing = String(rep?.executive_summary ?? "").trim();
+        if (existing && !existing.toLowerCase().includes("insufficient basis")) {
+          rep.executive_summary = `${existing} ${note}`;
+        } else if (!existing) {
+          rep.executive_summary = note;
+        }
       }
     }
 
