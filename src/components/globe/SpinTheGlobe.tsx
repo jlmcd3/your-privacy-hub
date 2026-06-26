@@ -166,7 +166,10 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
-    renderer.domElement.style.cssText = "display:block;position:absolute;top:0;left:0;width:100%;height:100%;border-radius:9999px;";
+    // No border-radius clip: lets the atmospheric halo feather into the hero
+    // background instead of being cut off at a hard circular edge (which read
+    // as a thin dark ring around the globe).
+    renderer.domElement.style.cssText = "display:block;position:absolute;top:0;left:0;width:100%;height:100%;";
     el.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
