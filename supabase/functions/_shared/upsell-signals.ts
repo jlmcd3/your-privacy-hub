@@ -148,7 +148,7 @@ export function computeUpsellSignals(
     // ── DPIA ────────────────────────────────────────────────────────
     // Verified fields: row.intake_data.jurisdictions, row.intake_data.data_categories,
     //   row.intake_data.third_party_processors, row.source_assessment_id,
-    //   row.report_data.section_3_risks.risk_assessment (array with .severity)
+    //   row.report_data.section_4_risk_management.inherent_risk_assessment (array with .severity)
     case 'dpia_framework': {
       const intake = row?.intake_data ?? {};
       const jurs   = norm(intake?.jurisdictions ?? []);
