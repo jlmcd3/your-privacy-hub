@@ -652,3 +652,60 @@ export function renderGdprCitationBlock(input: {
     .filter(Boolean)
     .join("\n");
 }
+
+// ─── FORK-R1: AI Act citation block (additive — no existing output changes) ───
+// Identity + four current-law phased dates + Digital Omnibus WATCH note.
+// Per Team 3: Omnibus framed as PENDING PROVISIONAL AGREEMENT, never as
+// current law, until OJ publication.
+
+export const AI_ACT = {
+  id: "EU-AI-Act",
+  identifier: "Regulation (EU) 2024/1689",
+  inForce: "1 August 2024",
+  phasedDates: {
+    prohibitedAndLiteracy: "2 February 2025", // Article 5 + AI literacy
+    gpaiAndGovernance: "2 August 2025",       // Chapter V GPAI + governance
+    highRiskAnnexIII: "2 August 2026",        // Article 6(2) / Annex III
+    highRiskAnnexI: "2 August 2027",          // Annex I safety-component systems
+  },
+  digitalOmnibus: {
+    instrument: "Digital Omnibus on AI (COM(2025) 836)",
+    statusAsOf: "2026-06-26",
+    status: "Provisional political agreement reached 6–7 May 2026 — NOT YET ADOPTED / NOT YET PUBLISHED IN OJ",
+    proposedDeferrals: {
+      highRiskAnnexIII: "2 December 2027",
+      highRiskAnnexI: "2 August 2028",
+    },
+    proposedAdditions:
+      "New Article 5 NCII/CSAM ban (~2 Dec 2026); Article 50(2) watermarking → 2 Dec 2026",
+  },
+  verifyAgainst: "https://artificialintelligenceact.eu/implementation-timeline/",
+  lastVerified: "2026-06-26",
+} as const;
+
+export function renderAiActCitationBlock(): string {
+  const a = AI_ACT;
+  return [
+    "EU AI ACT — RESOLVED CITATIONS (authoritative — use ONLY these facts and dates):",
+    `Identity: ${a.identifier}, in force ${a.inForce}. The AI Act is enacted law — never call it a proposal, proposed regulation, or draft, and never use any identifier other than ${a.identifier} (never 2024/900 or any other number).`,
+    "PHASED APPLICATION (current operative law — cite the date that matches the system/registration type; never a single blanket date):",
+    `- Prohibited practices (Article 5) + AI literacy: applied from ${a.phasedDates.prohibitedAndLiteracy}.`,
+    `- General-purpose AI model obligations (Chapter V) + governance: applied from ${a.phasedDates.gpaiAndGovernance}.`,
+    `- Majority of high-risk obligations (Article 6(2) / Annex III systems and most of Chapters III, IV, VI–IX): apply from ${a.phasedDates.highRiskAnnexIII}.`,
+    `- High-risk AI systems that are safety components of products under the Annex I Union harmonisation legislation: apply from ${a.phasedDates.highRiskAnnexI}.`,
+    `WATCH — ${a.digitalOmnibus.instrument}: ${a.digitalOmnibus.status}. Pending provisional agreement (as of ${a.digitalOmnibus.statusAsOf}) would defer Annex III high-risk obligations to ${a.digitalOmnibus.proposedDeferrals.highRiskAnnexIII} and Annex I high-risk obligations to ${a.digitalOmnibus.proposedDeferrals.highRiskAnnexI}; ${a.digitalOmnibus.proposedAdditions}. Until publication in the Official Journal, the dates above remain operative — present any Omnibus deferral expressly as a pending agreement, never as current law.`,
+    `Verify against: ${a.verifyAgainst} (last verified ${a.lastVerified}).`,
+  ].join("\n");
+}
+
+// ─── FORK-R1: Transfer-adequacy note (additive, separate from renderGdprCitationBlock per P5) ───
+// Surfaces the specific EU-UK dated fact already homed in ADEQUACY_EU.UK,
+// while preserving the generic verify-note for any other adequacy decision.
+
+export function renderTransferAdequacyNote(): string {
+  return [
+    "TRANSFER ADEQUACY — RESOLVED CITATION (authoritative):",
+    `EU-UK: ${ADEQUACY_EU.UK.citation}`,
+    "For any OTHER adequacy decision cited as a transfer mechanism, append: [Verify current status — adequacy decisions are subject to periodic Commission review].",
+  ].join("\n");
+}
