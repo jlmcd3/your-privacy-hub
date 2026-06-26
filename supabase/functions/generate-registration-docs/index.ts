@@ -12,6 +12,8 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { auditCitations } from "../_shared/citation-audit.ts";
+import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
+import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
