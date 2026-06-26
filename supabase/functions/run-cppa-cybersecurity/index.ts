@@ -276,13 +276,13 @@ NEXT-STEPS CONSISTENCY: every deadline in next_steps must restate a deadline alr
 EXEC SUMMARY: use US English throughout (organization, program, defense, authorized). Reference "NIST CSF 2.0" not "NIST CSF". This is a readiness assessment, not the Article 9 audit — do not describe it as the cybersecurity audit itself.
 CERTIFICATION DISTINCTION: The formal CPPA cybersecurity audit under § 7122 must be performed by a qualified, objective, independent professional who issues an audit report under § 7123(e). Separately, the business's executive submits the certification under § 7124. These are two different documents from two different parties. The audit report (§ 7123(e)(4)) may include identified gaps with remediation plans — this does not mean the executive certification excuses the gaps. Write "the independent auditor will document any gaps in the audit report; the business's executive then submits the certification under § 7124" — do not collapse these into one step.
 ENFORCEMENT CONTEXT SOURCING: The enforcement_context must cite phase-in deadlines specifically to "11 CCR § 7121(a)" and must use "annual gross revenue" not just "revenue." Any sector-specific enforcement priority statement must be hedged as "this sector may attract scrutiny because [reason tied to data sensitivity or volume]" — do not make unqualified statements that CPPA "has signalled" specific enforcement priority without a citable source.
-READINESS LABEL VALIDATION: The readiness_level must be exactly one of: "Audit-Ready" | "Substantially Ready" | "Material Gaps" | "Critical Gaps". Never output "Ready" alone, "Partially Ready", or any other variant. "Substantially Ready" requires an overall_score of 70–89; "Audit-Ready" requires 90+; "Material Gaps" applies at 50–69; "Critical Gaps" applies below 50.
+READINESS LABEL VALIDATION: The readiness_level must be exactly one of: "Audit-Ready" | "Substantially Ready" | "Material Gaps" | "Critical Gaps" | "Insufficient basis to assess". Never output "Ready" alone, "Partially Ready", or any other variant. "Substantially Ready" requires an overall_score of 70–89; "Audit-Ready" requires 90+; "Material Gaps" applies at 50–69; "Critical Gaps" applies below 50. Use "Insufficient basis to assess" only when the intake leaves a material share of controls unassessed (the system will recompute deterministically).
 
 
 ${enforcementBlock}Respond with ONLY this exact JSON structure:
 {
   "executive_summary": "string (150-200 words — overall readiness posture and top 3 priorities)",
-  "readiness_level": "Audit-Ready | Substantially Ready | Material Gaps | Critical Gaps",
+  "readiness_level": "Audit-Ready | Substantially Ready | Material Gaps | Critical Gaps | Insufficient basis to assess",
   "top_risks": [
     { "title": "string", "description": "string", "deadline": "string", "consequence": "string" }
   ],
