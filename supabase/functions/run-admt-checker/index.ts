@@ -391,11 +391,9 @@ ACCESS RIGHT:
 - Secure transmission method: ${d.access_secure_transmission || "(not specified)"}
 - Partial / complete denial basis: ${d.access_denial_basis || "(not specified)"}
 
-REGULATION AUTHORITIES:
-${authBlock}
+(Regulation authorities and compliance deadlines are provided in the system context.)
 
-COMPLIANCE DEADLINES:
-${deadlineBlock}
+
 
 Return this JSON structure exactly. Do not add fields not listed here. Do not omit required fields.
 {
