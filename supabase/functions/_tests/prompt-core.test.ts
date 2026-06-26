@@ -18,9 +18,32 @@ const toolModule: ToolModule = {
   extraRules: "Tool-specific rules here.",
 };
 
-Deno.test("version is 2.2", () => {
-  assertEquals(PROMPT_CORE_VERSION, "2.2");
+Deno.test("version is 2.3", () => {
+  assertEquals(PROMPT_CORE_VERSION, "2.3");
 });
+
+Deno.test("languageVariant: british emits British English instruction; american the American one", () => {
+  const british = buildSystemContent({
+    toolModule: { ...toolModule, languageVariant: "british" },
+  });
+  assertStringIncludes(british[0].text, "British English");
+  assert(!british[0].text.includes("Use American English throughout this document"));
+
+  const american = buildSystemContent({
+    toolModule: { ...toolModule, languageVariant: "american" },
+  });
+  assertStringIncludes(american[0].text, "American English");
+  assert(!american[0].text.includes("Use British English throughout this document"));
+});
+
+Deno.test("languageVariant: jurisdiction-conditional emits the conditional rule", () => {
+  const blocks = buildSystemContent({
+    toolModule: { ...toolModule, languageVariant: "jurisdiction-conditional" },
+  });
+  assertStringIncludes(blocks[0].text, "American English for US-law outputs");
+  assertStringIncludes(blocks[0].text, "British English for UK/EU outputs");
+});
+
 
 Deno.test("full variant: blocks, placeholders, content", () => {
   const blocks = buildSystemContent({
