@@ -582,11 +582,18 @@ async function runPipeline(assessment_id: string) {
     // Corpus retrieval (parallel).
     const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext } = await retrieveCorpusContext(fiveStage);
 
-    const system = SYSTEM_PROMPT_TEMPLATE
-      .replace("{{ENFORCEMENT}}", enforcementContext || "(no enforcement context returned by corpus)")
-      .replace("{{LONGITUDINAL}}", longitudinalSynthesis || "(no longitudinal synthesis returned by corpus)")
-      .replace("{{STATUTE}}", statuteContext || "(no statute text returned by corpus)")
-      .replace("{{FSOR}}", fsorContext || "(no agency commentary returned by corpus)");
+    const today = new Date().toISOString().slice(0, 10);
+    const injected = [
+      `ENFORCEMENT CONTEXT FROM CORPUS:\n${enforcementContext || "(none returned)"}`,
+      `LONGITUDINAL ENFORCEMENT PATTERNS:\n${longitudinalSynthesis || "(none returned)"}`,
+      `VERBATIM REGULATION TEXT (Cal. Code Regs. tit. 11 — authoritative; ground every citation in this text):\n${statuteContext || "(none returned)"}`,
+      `CPPA AGENCY COMMENTARY — FINAL STATEMENT OF REASONS:\n${fsorContext || "(none returned)"}`,
+    ].join("\n\n");
+    const system = buildSystemContent({
+      toolModule: CPPA_RISK_TOOL_MODULE,
+      currentDate: today,
+      injected,
+    });
     const userPrompt = buildUserPrompt(fiveStage);
 
     const t0 = Date.now();
