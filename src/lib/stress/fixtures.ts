@@ -1009,6 +1009,7 @@ export const CPPA_RISK_VARIANTS = [
     i9_existing_dpia_summary: "",
   },
   {
+    entity_name: "Atlas Financial Services Corporation",
     q1_revenue: "Over $500M",
     q2_consumers: "1–10 million",
     q3_sector: "Financial Services / Banking",
