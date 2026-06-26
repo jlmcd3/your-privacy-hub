@@ -219,12 +219,13 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     ));
 
     // Lighting — low ambient to preserve a visible day/night terminator
-    scene.add(new THREE.AmbientLight(0xffffff, 0.18));
-    const sun = new THREE.DirectionalLight(0xfff4dc, 1.55);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.21));
+    const sun = new THREE.DirectionalLight(0xfff4dc, 1.78);
+
     sun.position.set(5, 2.5, 4);
     scene.add(sun);
     // Cool rim/fill from opposite side — reads as Earthshine, sells the sphere
-    const fill = new THREE.DirectionalLight(0x4a7bd6, 0.35);
+    const fill = new THREE.DirectionalLight(0x4a7bd6, 0.40);
     fill.position.set(-4, -1, -3);
     scene.add(fill);
 
