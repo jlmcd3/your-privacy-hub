@@ -46,6 +46,8 @@ const REGISTRATION_TOOL_MODULE: ToolModule = {
     "ENFORCEMENT REFERENCES — never state a specific fine amount; use the form: the [authority] imposed a significant penalty — see [authority enforcement register URL] for current figures.",
   ].join("\n\n"),
 };
+
+const DOCUMENT_TYPES = [
   { type: "dpo_appointment", title: "Data Protection Officer Appointment Letter", when: (r: any) => r.dpo_required },
   { type: "ropa", title: "Record of Processing Activities (RoPA) Template", when: () => true },
   { type: "ai_registration", title: "AI System Registration Draft", when: (r: any) => r.ai_registration_required },
