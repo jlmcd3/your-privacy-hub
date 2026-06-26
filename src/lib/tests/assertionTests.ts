@@ -166,13 +166,13 @@ export const DPIA_TEST: AssertionTest = {
   assertions: [
     {
       id: "dpia-risk-assessment-present",
-      description: "section_3_risks.risk_assessment must be a non-empty array",
+      description: "section_4_risk_management.inherent_risk_assessment must be a non-empty array",
       category: "requirement",
       check: (output) => {
-        const s3 = (output as Record<string, unknown>)?.section_3_risks as Record<string, unknown> | undefined;
-        return Array.isArray(s3?.risk_assessment) && (s3.risk_assessment as unknown[]).length >= 1;
+        const s4 = (output as Record<string, unknown>)?.section_4_risk_management as Record<string, unknown> | undefined;
+        return Array.isArray(s4?.inherent_risk_assessment) && (s4.inherent_risk_assessment as unknown[]).length >= 1;
       },
-      errorMessage: "report_data.section_3_risks.risk_assessment is missing or empty.",
+      errorMessage: "report_data.section_4_risk_management.inherent_risk_assessment is missing or empty.",
     },
     {
       id: "dpia-article-35-cited",
