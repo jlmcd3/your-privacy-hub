@@ -85,7 +85,7 @@ Deno.test("Non-DPF US importer → SCCs and TIA", () => {
   };
   const resolved = resolveDpiaJurisdiction(facts);
   const t = resolved.transfers[0].resolved;
-  assertStringIncludes(t.mechanism.toLowerCase(), "scc");
+  assertStringIncludes(t.mechanism.toLowerCase(), "standard contractual clauses");
   assertEquals(t.tiaRequired, true);
 });
 
