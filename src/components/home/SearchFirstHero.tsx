@@ -1,8 +1,12 @@
 import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
 import StarFieldBackground from "@/components/globe/StarFieldBackground";
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { useGeoCountry, isEuOrUk } from "@/hooks/useGeoCountry";
 
 export default function SearchFirstHero() {
+  const country = useGeoCountry();
+  const euMode = isEuOrUk(country);
+
   return (
     <div className="relative bg-gradient-to-br from-brand-navy via-brand-ocean to-brand-slate-teal border-b border-white/10 overflow-hidden">
       <StarFieldBackground />
@@ -14,19 +18,27 @@ export default function SearchFirstHero() {
               Global privacy law — tracked daily.
             </h1>
             <p className="text-center lg:text-left text-xl md:text-2xl font-semibold tracking-widest uppercase text-blue-300 mb-2">
-              California's CPPA deadlines are here
+              {euMode
+                ? "New EDPB DPIA template is just about here"
+                : "California's CPPA deadlines are here"}
             </p>
             <p className="font-display text-3xl md:text-4xl text-white/90 mb-6">
-              Find out which CPPA rules apply to you — free.
+              {euMode
+                ? "Generate your EDPB-aligned DPIA now."
+                : "Find out which CPPA rules apply to you — free."}
             </p>
             <p className="text-blue-200/80 text-sm md:text-base mb-6 whitespace-pre-line">
-              California businesses face risk-assessment, cybersecurity-audit, and ADMT deadlines through 2027. Check your obligations in two minutes — then generate the assessments that satisfy them. Plus daily global privacy intelligence and enforcement-calibrated tools.
+              {euMode
+                ? "The EDPB's harmonised DPIA template — out for public consultation through June 2026 — will be adopted by national supervisory authorities across the EEA as their unique or 'meta' template. Get ahead of the rollout: generate a DPIA structured to the EDPB template today, with controller inputs, risk analysis, and Article 35 mapping built in. Plus daily global privacy intelligence and enforcement-calibrated tools."
+                : "California businesses face risk-assessment, cybersecurity-audit, and ADMT deadlines through 2027. Check your obligations in two minutes — then generate the assessments that satisfy them. Plus daily global privacy intelligence and enforcement-calibrated tools."}
             </p>
             <a
-              href="/cppa-scope-checker"
+              href={euMode ? "/dpia-framework" : "/cppa-scope-checker"}
               className="inline-flex items-center justify-center bg-[#C8922A] text-brand-navy font-semibold px-6 py-3 rounded-lg no-underline hover:opacity-90 mb-8"
             >
-              Run the free CPPA Scope Checker →
+              {euMode
+                ? "Start your EDPB-aligned DPIA →"
+                : "Run the free CPPA Scope Checker →"}
             </a>
 
             {/* ── Hero CTA Cards ─────────────────────────────────── */}
