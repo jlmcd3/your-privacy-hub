@@ -616,6 +616,76 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
       console.warn("[run-admt-checker] citation resolver failed (non-fatal):", resolveErr);
     }
 
+    // ── Light English backstop — lint the assembled narrative, NOT citations
+    // (registry-controlled). On hard violations fire one regeneration retry
+    // through the existing strict-JSON retry path.
+    try {
+      const narrativeFields: string[] = [];
+      const push = (s: unknown) => { if (typeof s === "string" && s.trim().length) narrativeFields.push(s); };
+      push(report?.scope_analysis?.summary);
+      push(report?.scope_analysis?.is_admt_reasoning);
+      push(report?.scope_analysis?.significant_decision_reasoning);
+      push(report?.scope_analysis?.human_review_reasoning);
+      push(report?.scope_analysis?.exception_reasoning);
+      push(report?.scope_analysis?.risk_assessment_reasoning);
+      push(report?.scope_analysis?.third_party_responsibility_note);
+      push(report?.consolidated_notice_analysis?.basis);
+      push(report?.consolidated_notice_analysis?.recommendation);
+      push(report?.aggregate_access_response?.explanation);
+      push(report?.risk_assessment_obligation?.summary);
+      for (const arr of [report.notice_gaps, report.opt_out_gaps, report.access_gaps]) {
+        if (Array.isArray(arr)) for (const it of arr) { push(it?.finding); push(it?.remediation); push(it?.enforcement_exposure); }
+      }
+      if (Array.isArray(report.priority_actions)) for (const s of report.priority_actions) push(s);
+      const lint = lintReportText(narrativeFields.join("\n\n"));
+      if (hasHardViolations(lint)) {
+        console.warn(`[run-admt-checker] lint hard violations: ${JSON.stringify(lint.violations)}`);
+        const lintRetry = await callAnthropic(
+          system,
+          userPrompt +
+            "\n\nPREVIOUS DRAFT contained English-style violations (meta-commentary, unresolved tokens, or other non-customer-facing artifacts). Produce the JSON again, cleanly. Same JSON shape; no markdown.",
+          PRODUCT_MAX_OUTPUT_TOKENS,
+          "lint-retry"
+        );
+        const reLinted = tryParseJson(lintRetry.text);
+        if (reLinted) {
+          // Re-run resolver on the retry payload so citations remain registry-controlled.
+          try {
+            const proseFields = ["finding", "remediation", "enforcement_exposure", "element"] as const;
+            const resolveInto2 = (arr: any[] | undefined) => {
+              if (!Array.isArray(arr)) return;
+              for (const item of arr) {
+                for (const f of proseFields) {
+                  if (item && typeof item[f] === "string") item[f] = stripModelCitations(item[f]);
+                }
+                const eid = (item?.element_id ?? "") as ElementId | "";
+                if (eid) {
+                  const r = resolveCitations(eid as ElementId, intake);
+                  item.citation = r.sections.join(" + ");
+                  item.citation_ids = r.citationIds;
+                } else {
+                  item.citation = "";
+                }
+              }
+            };
+            resolveInto2(reLinted.notice_gaps);
+            resolveInto2(reLinted.opt_out_gaps);
+            resolveInto2(reLinted.access_gaps);
+            resolveInto2(reLinted.documentation_to_maintain);
+          } catch (e) {
+            console.warn("[run-admt-checker] resolver on lint-retry failed (non-fatal):", e);
+          }
+          report = reLinted;
+          report._lint_retry = { violations: lint.violations };
+        } else {
+          report._lint_unrecovered = { violations: lint.violations };
+        }
+      }
+    } catch (lintErr) {
+      console.warn("[run-admt-checker] lint backstop failed (non-fatal):", lintErr);
+    }
+
+
 
 
     // ── PASS 2: Sample Language Drafting ─────────────────────────────────────
