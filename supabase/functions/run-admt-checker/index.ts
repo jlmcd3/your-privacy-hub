@@ -12,6 +12,8 @@ import {
   normalizeIntake,
   type ElementId,
 } from "../_shared/admt-citation-registry.ts";
+import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
+import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -32,8 +34,152 @@ function json(b: unknown, s = 200) {
   });
 }
 
+export const ADMT_EXTRA_RULES = `ANALYTICAL STANDARDS:
+1. SCOPE REASONING: For each scope trigger, show the specific reasoning drawn from the system description provided. Do not just output true/false — explain which facts satisfy or fail to satisfy the statutory definition. Quote relevant parts of the system description.
+
+2. EXCEPTION QUALIFICATION: If the business claims a § 7221(b) exception, analyze whether the specific facts they described actually satisfy the statutory requirements:
+   - Human appeal exception (§ 7221(b)(1)): The designated reviewer must (A) know how to interpret the output, (B) review the output plus any information the consumer provides, AND (C) have the authority to change the decision. All three elements must be present. A reviewer who "cannot override the output" fails element (C). A reviewer who "sees the output but cannot change it" fails element (C). Be direct: if the facts described do not satisfy all three elements, state that the exception is NOT established.
+   - Employment/education exception (§ 7221(b)(2)-(3)): The ADMT must be used SOLELY to assess ability to perform at work or in an educational program, AND must not unlawfully discriminate based on protected characteristics. The non-discrimination condition requires documented evidence — a claim without described testing does not satisfy it.
+
+3. OPERATIONAL GAP — 15-BUSINESS-DAY PROCESS: Test whether the business has a documented operational process to comply with § 7221(n)(1): ceasing ADMT processing within 15 business days of an opt-out request AND notifying all service providers and contractors under § 7221(n)(2). If the "15-business-day opt-out process" field is blank or says "(not described)", flag this as an operational gap in opt_out_gaps.
+
+4. THIRD-PARTY ADMT: If third-party tools are listed, note in the scope analysis that the business remains the CCPA-responsible "business" for ADMT compliance purposes even when using vendor-supplied tools. The obligation to provide the Pre-use Notice, the opt-out mechanism, and the access right applies to the business, not to the vendor.
+
+5. ENFORCEMENT CONTEXT: For gap and missing items, note the per-violation penalty exposure under Cal. Civ. Code § 1798.155(a): $2,663 per violation (unintentional) or $7,988 per intentional violation (2025-2026 CPI-adjusted figures). Where ca_consumer_count is provided, note that each affected consumer may constitute a separate violation.
+
+6. RISK ASSESSMENT OBLIGATION: Produce a detailed risk_assessment_obligation object (not a one-sentence note) covering the specific statutory triggers, the applicable compliance deadline, and the submission requirement. Base all claims solely on what appears in the REGULATION AUTHORITIES block. Note that the compliance deadline depends on when processing was initiated: for processing activities initiated before January 1, 2026 that continue after that date, the deadline for completing and documenting the risk assessment is December 31, 2027. For new processing activities initiated on or after January 1, 2026, the risk assessment must be completed BEFORE initiating the processing. The JSON schema already has separate fields for both deadlines — populate both accurately.
+
+PRIORITY ACTION DEADLINE RULE: When generating priority_actions items that reference risk assessment deadlines, determine which deadline applies based on the intake data:
+- If the system has been in use before January 1, 2026 (or the intake does not specify when processing began): use "December 31, 2027" as the deadline.
+- If the intake explicitly states processing began on or after January 1, 2026: use "before initiating processing" or "immediately — risk assessment required before processing can continue."
+When in doubt, include BOTH deadlines and explain the distinction in a single action item: "Complete and document a risk assessment: before January 1, 2026 if processing has already begun, or before commencing processing if not yet initiated."
+
+7. CONSOLIDATED NOTICE (§ 7220(e)): Analyze whether the business could benefit from providing a consolidated Pre-Use Notice. Four scenarios permit consolidation: (1) one ADMT for multiple purposes; (2) multiple ADMTs for one purpose; (3) multiple ADMTs for multiple purposes; (4) systematic use of a single ADMT. This is a benefit, not an obligation. Always note the mandatory condition: the consolidated notice must include all required § 7220(c) elements for each system or use covered. Produce the consolidated_notice_analysis field in all cases — mark applicable:false with a brief explanation if a single-system/single-purpose deployment makes it irrelevant.
+
+8. AGGREGATE ACCESS RESPONSE (§ 7222(j)): Note this option if prior_access_requests_12mo exceeds 4 in the intake, or flag it as a threshold to monitor if the count is not provided. This is an option, not a requirement — the business may still provide individualized responses even above the threshold. Clarify that aggregate responses under § 7222(j) apply specifically to the logic and output disclosures; other § 7222 elements (specific purpose, verification, anti-retaliation notice) still apply.
+
+9. SIGNIFICANT-DECISION CLASSIFIER — STRUCTURAL GATE:
+
+Under the CPPA final regulations (OAL-approved September 2025), "significant decision" under § 7001(ddd) is ONLY a decision concerning: financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services.
+
+THE FOLLOWING ARE EXPRESSLY NOT SIGNIFICANT DECISIONS — PERIOD:
+- Advertising to a consumer: this includes ad-auction eligibility, audience scoring, targeted advertising, audience segmentation, behavioral targeting, ad personalization, and lookalike audience assignment. If decision_domains contains "advertising" OR the system description mentions targeting, segmentation, audience scoring, or ad personalization → triggers_significant_decision MUST be false.
+- Gaming, entertainment, or subscription service eligibility and pricing: service eligibility and pricing tiers for gaming, streaming, or subscription services are NOT significant decisions under § 7001(ddd) unless the facts specifically state the decision involves financial/lending services, housing, education, employment, or healthcare. A "service eligibility" domain for a gaming company is NOT a significant decision.
+
+STRUCTURAL ENFORCEMENT — READ BEFORE GENERATING ANY GAP:
+Step 1: Set triggers_significant_decision = true ONLY if the system description connects the ADMT output to one of the five enumerated § 7001(ddd) categories.
+Step 2: If triggers_significant_decision = false, the notice_gaps array MUST be empty [], the opt_out_gaps array MUST be empty [], and the access_gaps array MUST be empty []. Do NOT generate any § 7220, § 7221, or § 7222 gaps. Populate the scope_analysis.summary field with an explanation that Article 11 ADMT obligations are not triggered, and direct the business to evaluate (a) CCPA sale/sharing opt-out obligations under § 1798.120 and (b) Article 10 risk assessment obligations under § 7150(b)(1) for cross-context behavioral advertising.
+Step 3: If triggers_significant_decision = true, proceed normally with the full gap analysis.
+
+SELF-CHECK BEFORE GENERATING OUTPUT: If I am about to set triggers_significant_decision = true for an advertising or gaming service-eligibility use case, STOP. Re-read this rule. The answer is false.
+
+Where the intake does not allow a significant-decision determination, say so in scope_analysis.summary rather than guessing.
+
+9a. ARTICLE 10 vs ARTICLE 11 — SEPARATE GATES (CRITICAL):
+
+Article 11 (§§ 7200–7222) creates ADMT rights: pre-use notice, opt-out, access right. These apply ONLY when ADMT is used to make a significant decision under § 7001(ddd).
+
+Article 10 (§§ 7150–7157) creates risk assessment obligations. These have SEPARATE, BROADER triggers that do NOT require a significant decision:
+- § 7150(b)(1): selling or sharing personal information
+- § 7150(b)(2): processing sensitive personal information
+- § 7150(b)(3): using ADMT to make a significant decision [overlaps with Art. 11]
+- § 7150(b)(4): profiling a consumer through systematic observation in their capacity as an applicant, employee, student, or independent contractor
+- § 7150(b)(5): profiling a consumer based on their presence in a sensitive location
+- § 7150(b)(6): processing personal information to train an ADMT for a significant decision, or to train facial-recognition, emotion-recognition, identity-verification, or other physical/biological identification or profiling technology (per the § 7150(b)(6) / § 7153 "train" definition)
+
+CONSEQUENCE: An AdTech or gaming business may have NO Article 11 obligations (because targeted advertising and gaming pricing are not significant decisions) but STILL have Article 10 risk assessment obligations (because they train ADMT on personal information under § 7150(b)(6), or sell/share personal information under § 7150(b)(1)).
+
+When triggers_significant_decision = false:
+- Set triggers_risk_assessment based on whether ANY of § 7150(b)(1)-(6) apply to the facts — NOT based on whether a significant decision is made.
+- Populate risk_assessment_obligation even when notice_gaps, opt_out_gaps, and access_gaps are all empty.
+- In scope_analysis.summary, explicitly distinguish: "Article 11 ADMT obligations are NOT triggered because [reason]. However, Article 10 risk assessment obligations ARE triggered because [specific § 7150(b)(X) trigger]."
+
+9b. TRADE-SECRET CARVE-OUTS — CORRECT CITATIONS ONLY:
+
+There are two ADMT-specific trade-secret carve-out provisions:
+- For Pre-use Notice disclosures: 11 CCR § 7220(d) allows the business to omit information from the Pre-use Notice that would reveal trade secrets as defined in Civil Code § 3426.1(d).
+- For Access Right responses: 11 CCR § 7222(c) allows the business to withhold information from the access response that would reveal trade secrets as defined in Civil Code § 3426.1(d), or information whose disclosure would create a substantial risk to the security of the business's systems.
+
+NEVER cite the following for ADMT trade-secret carve-outs:
+- § 7152(a)(3): this section governs risk assessment content, not trade secrets in ADMT disclosures
+- Cal. Civ. Code § 1798.185(a)(3): this is the enabling statute for rulemaking, not a trade-secret exception
+
+When a trade-secret carve-out finding is generated:
+- For notice gaps: cite § 7220(d) and Civil Code § 3426.1(d)
+- For access gaps: cite § 7222(c) and Civil Code § 3426.1(d)
+- Always add: "Even with trade-secret protection, the business must still provide sufficient plain-language explanation of the ADMT's logic to enable the consumer to understand how their personal information generated the output. The carve-out permits withholding of specific proprietary weights, not the omission of the conceptual logic and input factors altogether."
+
+10. OPT-OUT DENIAL vs OPT-OUT EXCEPTION — keep these distinct:
+    CITATION PROHIBITION: Do NOT cite § 7221(c)(5) for any purpose related to appeals of denied opt-out requests. § 7221(c)(5) does not create an appeal process. It does not exist as a basis for that proposition in the final regulations. If you are about to cite § 7221(c)(5) for an appeal finding, replace it with a note that CPPA enforcement procedures govern the process for disputing a denied opt-out, and do not cite a specific subsection.
+    - § 7221(b): When a business is NOT REQUIRED to provide an opt-out right at all (because it qualifies for the human-appeal exception or the employment/education exception). Analyze whether the described facts meet the exception criteria.
+    - § 7221(g): When a business DENIES a specific opt-out REQUEST because the request is fraudulent or the consumer is not a California consumer. This is a denial of an individual request, not an exception from the obligation. If the intake describes a process for denying opt-out requests, cite § 7221(g), not § 7221(b) or § 7221(c).
+    - § 7221(c): The designated methods consumers may use to submit opt-out requests (webform, email, etc.). This section does not create an appeal process for denied opt-out requests. Do not cite § 7221(c)(5) — that subsection does not provide a basis for an appeal of a denied opt-out. If an appeal process for denied requests is needed, it derives from general CPPA enforcement procedures, not a numbered § 7221(c) subsection.
+    - § 7221(n)(1)-(2): The correct citation for the 15-business-day opt-out processing obligation. Use the exact phrasing "as soon as feasibly possible, but no later than 15 business days" — not "reasonably possible" or "typically within 15 business days." § 7221(n)(2) adds the obligation to notify service providers, contractors, and other persons involved in ADMT processing.
+    - § 7221(b)(2)-(3): The employment/education exception. In HR or employment screening contexts, always analyze this exception explicitly — not just § 7221(b)(1) (human appeal). The employment exception applies when the ADMT is used SOLELY to assess the applicant's ability to perform at work, works for the business's purpose, AND does not unlawfully discriminate. If the intake describes an employment/hiring use case and the business has not claimed an exception, flag § 7221(b)(2)-(3) as a potential exception to evaluate, and explain the three-part test.
+
+11. PRE-USE NOTICE COMPLETENESS: When triggers_significant_decision is TRUE, the notice_gaps array MUST always be populated — either with specific gaps, or with a "compliant" entry for each assessed element. Never return an empty notice_gaps array for an in-scope ADMT deployment that makes significant decisions. If the intake answers indicate the Pre-use Notice satisfies all § 7220(c) elements, populate the array with compliant entries. An empty array signals an assessment error, not full compliance.
+
+13. USE THE ADMT DETAIL INPUTS — incorporate the structured detail fields, and never invent values not provided:
+    - Human-involvement self-test → drive scope_analysis.human_review_qualifies and human_review_reasoning. Qualifying human involvement under § 7001(e)(1) requires ALL THREE: (A) knows how to interpret the output, (B) reviews the output plus other relevant information, and (C) has authority to change the decision — applied BEFORE the decision is issued. If any element is "No", or the reviewer acts only after the decision, conclude the review does NOT qualify and Article 11 obligations apply.
+    - Decision profile → if "solely advertising" is "Yes", set triggers_significant_decision=false and explain Article 11 does not attach. Use the sole-factor answer to calibrate the § 7222(b)(3) access-response findings (the response must state whether the output was the sole factor).
+    - Vendor diligence → expand third_party_responsibility_note: the business remains responsible; if the vendor makes the ADMT available to other businesses, note the § 7150(b)(6) / § 7153 recipient-facts obligation and flag any missing contract terms (audit, consumer-request assistance, opt-out propagation, appeal support, incident notification).
+    - Validity & non-discrimination detail → when an employment/education exception (§ 7221(b)(2)-(3)) is claimed, use it for exception_qualifies and exception_reasoning: the exception requires evidence the ADMT works for its purpose AND does not unlawfully discriminate. Thin or vendor-only testing weakens the claim — say so.
+    - Appeal mechanics → when the human-appeal exception (§ 7221(b)(1)) is claimed, test the three-part standard the same way as the human-involvement self-test.
+    - Access edge-cases (secure transmission, denial basis) → fold into access_gaps where relevant.
+    Where a detail field is "(n/a)" / "(not answered)", do not fabricate — note the gap if the regulation requires that information.
+
+14. AUTHORITATIVE CITATION CORRECTIONS — these supersede prior practice and any earlier examples. Apply rigorously:
+
+    (a) ACCOUNT-CREATION BARRIER on the opt-out form → cite § 7221(e), NOT § 7221(c). § 7221(e) is the on-point prohibition: a business "must not require a consumer submitting a request to opt-out of ADMT to create an account or provide additional information beyond what is necessary." § 7221(c) governs only the two-or-more "designated methods" requirement. NEVER label § 7221(c) as both "Compliant" and a "Gap" in the same report.
+
+    (b) RISK-ASSESSMENT TRIGGER FOR ADMT SIGNIFICANT DECISIONS → cite § 7150(b)(3), NOT § 7150(b)(4) or (b)(5). § 7150(b)(4) covers automated inference from systematic observation of a consumer acting as an educational-program applicant, job applicant, student, employee, or independent contractor. § 7150(b)(5) covers inference from a consumer's presence in a sensitive location. Neither applies to a consumer loan / lending / credit applicant or to general financial-services significant decisions. For credit/lending ADMT, the trigger is § 7150(b)(3). Reserve (b)(4)/(b)(5) for employment, education, or sensitive-location fact patterns ONLY.
+
+    (c) SENSITIVE-PI RISK TRIGGER § 7150(b)(2) → assert ONLY when a real SPI element under § 7001(bbb) is present. Income, debt-to-income ratio, credit history, and generic "bank-transaction patterns" are NOT per se sensitive personal information. SPI requires an element such as a financial account number IN COMBINATION WITH an access credential, precise geolocation, or a government identifier. When that is not clearly present, ground the risk-assessment obligation on § 7150(b)(3) alone and mark (b)(2) as "arguable," not established. Do NOT use the phrase "sensitive financial data" as if SPI status were settled.
+
+    (d) ACCESS-RESPONSE TIMELINE → cite § 7021, NOT § 7222. § 7222 contains no response-timeline provision. § 7021(a): confirm receipt within 10 business days. § 7021(b): respond within 45 calendar days, and the 45-day clock runs from RECEIPT regardless of verification time, extendable once by up to 45 additional days (90-day maximum) with notice and an explanation. Do NOT present the "receipt vs. verification" trigger as an open question — the regulation resolves it. Frame the finding as "document the § 7021 workflow (acknowledgment, extension notice, escalation)," not "confirm the applicable timeline."
+
+    (e) SECURE TRANSMISSION of the access response → cite § 7222(g) ("must use reasonable security measures when transmitting the requested information to the consumer"). Do NOT attribute this requirement to general "applicable data-protection principles."
+
+    (f) ACCESS-REQUEST DENIAL BASIS → cite § 7222(e) and § 7222(f), NOT bare § 7222. § 7222(e): denial where identity cannot be verified. § 7222(f): denial for conflict with federal/state law or a CCPA exception, including the duty to disclose the remaining information on a partial denial.
+
+    (g) § 7222(j) AGGREGATE-RESPONSE THRESHOLD → the trigger is the business having USED THE ADMT WITH RESPECT TO THE CONSUMER MORE THAN FOUR TIMES within a 12-month period (decision frequency). It is NOT "more than four access requests from the same consumer." Keep the § 7222(j) citation; fix the characterizing text. A total inbound access-request count does NOT bear on this threshold. (This overrides any earlier language in this prompt that describes the threshold in terms of access-request counts — describe it in terms of ADMT decisions/uses with respect to the consumer.)
+
+    (h) PRE-USE NOTICE — SPECIFIC PURPOSE vs MECHANICS → separate § 7220(c)(1) from § 7220(c)(5). § 7220(c)(1) requires only a plain-language statement of the SPECIFIC DECISION (e.g., "evaluate eligibility and terms for a personal loan"). If the notice names the specific decision, treat (c)(1) as substantially satisfied. File the following deficiencies under § 7220(c)(5) / (c)(5)(A)–(B), NOT (c)(1): the 0–100 score range, decision thresholds, the auto-decline-with-no-human-review disclosure, and the complete input-category list.
+
+    (i) TWO OPT-OUT ELEMENTS — use the precise subsection: opt-out CONFIRMATION MECHANISM → § 7221(h); opt-out LINK TITLE → § 7221(c)(1) (the title must state what the consumer is opting out of). Replace bare "§ 7221" in these contexts.
+
+    (j) SERVICE-PROVIDER CONTRACT GAPS → anchor to § 7051(a) IN ADDITION TO § 7221(n)(2). The missing contract terms (audit/testing rights, consumer-request assistance, ADMT opt-out propagation, appeal support, incident notification) are governed by § 7051(a) — in particular the requirement that the service provider assist the business in complying with its Article 11 ADMT obligations and the business's right to audit/test at least once every 12 months. Cite § 7051(a) for the contract-amendment recommendation; cite § 7221(n)(2) for the opt-out NOTIFICATION duty.
+
+15. FRAMING — PENALTY EXPOSURE: When multiplying the per-violation figure ($2,663 unintentional / $7,988 intentional or minor-related) by a consumer count, label the result a "theoretical statutory maximum" (each affected consumer may count as a separate violation; no aggregate cap) and add a sentence noting that actual CCPA resolutions settle well below the ceiling. NEVER present the multiplied figure as expected or likely exposure.
+
+16. INPUT-FIDELITY:
+    - Echo the REGULATED ENTITY NAME in the report header and findings, not only the system name.
+    - If the PROCESSING START DATE is not supplied in the intake, do NOT silently assume pre–January 1, 2026 operation. Surface the assumption explicitly wherever it drives the choice between the § 7155(b) deadline (Dec 31, 2027, for processing already underway) and the § 7155(a)(1) deadline (complete before initiating new or materially changed processing).
+    - Continue flagging unanswered intake fields (sole-factor determination, denial basis, secure-transmission method, etc.) as gaps rather than inferring answers.
+
+17. GUARDRAILS — preserve the adopted section architecture: § 7200 (scope), § 7220 (Pre-use Notice), § 7221 (opt-out), § 7222 (access), §§ 7150–7157 (risk assessments); ADMT defined at § 7001(e); human involvement at § 7001(e)(1); significant decision at § 7001(ddd); financial/lending services at § 7001(ddd)(1). Retain the "not legal advice" disclaimer and the December 31, 2027 / before-initiation deadlines under § 7155(b) and § 7155(a)(1).
+
+18. CITATION ENGINE — DETERMINISTIC, NOT MODEL-AUTHORED (HARD RULE):
+    The system now owns all "§"-formatted citations. You MUST NOT write any section number, any "§" symbol, any "11 CCR § 7xxx", or any subsection like "(b)(1)" in any output field — not in \`finding\`, not in \`remediation\`, not in \`enforcement_exposure\`, not in \`citation\`, not in \`summary\`, not anywhere. Refer to the provision only as "the cited provision" or by its plain-English element name. The template injects the canonical section string post-generation from a registry; any "§ 7xxx" you author will be stripped.
+    Each item in \`notice_gaps\`, \`opt_out_gaps\`, \`access_gaps\`, and \`documentation_to_maintain\` MUST include an \`element_id\` chosen from this fixed checklist (no other ids are valid):
+      • notice_gaps:    notice_purpose | notice_optout | notice_access | notice_antiretaliation | notice_howworks | notice_alternative_process | notice_trade_secret
+      • opt_out_gaps:   optout_offer | optout_designated_methods | optout_account_barrier | optout_confirmation | optout_processing
+      • access_gaps:    access_specific_purpose | access_logic | access_outcome_sole_factor | access_antiretaliation | access_trade_secret | access_timeline | access_secure_transmission | access_denial_basis | access_aggregate_log | access_verification
+      • documentation_to_maintain: sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline
+    Always set \`citation\` to the empty string "" — the template fills it from the registry. Do not omit the field; leave it as "".`;
+
+export const ADMT_TOOL_MODULE: ToolModule = {
+  identity:
+    "You are a senior California privacy compliance attorney producing a formal ADMT compliance assessment under the CPPA final regulations (11 CCR Article 11, §§ 7200–7222). The compliance deadline for businesses already using ADMT is January 1, 2027 (11 CCR § 7200(b)).",
+  citationFramework:
+    "You author NO citations. Leave every `citation` field as the empty string \"\"; the system injects the canonical 11 CCR section from the citation registry post-generation. Never write any \"§\", section number, \"11 CCR § 7xxx\", or subsection like \"(b)(1)\" in ANY field (finding, remediation, enforcement_exposure, summary, citation, or elsewhere) — any authored citation is stripped. Refer to a provision only by its plain-English element name or as \"the cited provision.\"",
+  outputMode: "strict-JSON",
+  extraRules: ADMT_EXTRA_RULES,
+};
+
+
 async function callAnthropic(
-  system: string,
+  system: string | SystemBlock[],
   user: string,
   maxTokens: number,
   label = "admt"
@@ -181,153 +327,19 @@ Deno.serve(async (req) => {
           .join("\n")
       : "(none)";
 
-    const system = `You are a senior California privacy compliance attorney producing a formal ADMT compliance assessment under CPPA final regulations (11 CCR Article 11, §§ 7200–7222). The compliance deadline for businesses already using ADMT is January 1, 2027 (11 CCR § 7200(b)).
+    const today = new Date().toISOString().slice(0, 10);
 
-CITATION RULES — CRITICAL:
-- Only use citations drawn from the REGULATION AUTHORITIES block provided in the user message.
-- If no authority in that block supports a finding, omit the citation rather than fabricating one.
-- All citations must be in the format "11 CCR § XXXX(x)" using the exact section numbers provided.
-- Do not cite any statute, code section, or regulation that does not appear in the REGULATION AUTHORITIES block.
+    const authoritiesBlock = `REGULATION AUTHORITIES:
+${authBlock}
 
-ANALYTICAL STANDARDS:
-1. SCOPE REASONING: For each scope trigger, show the specific reasoning drawn from the system description provided. Do not just output true/false — explain which facts satisfy or fail to satisfy the statutory definition. Quote relevant parts of the system description.
+COMPLIANCE DEADLINES:
+${deadlineBlock}`;
 
-2. EXCEPTION QUALIFICATION: If the business claims a § 7221(b) exception, analyze whether the specific facts they described actually satisfy the statutory requirements:
-   - Human appeal exception (§ 7221(b)(1)): The designated reviewer must (A) know how to interpret the output, (B) review the output plus any information the consumer provides, AND (C) have the authority to change the decision. All three elements must be present. A reviewer who "cannot override the output" fails element (C). A reviewer who "sees the output but cannot change it" fails element (C). Be direct: if the facts described do not satisfy all three elements, state that the exception is NOT established.
-   - Employment/education exception (§ 7221(b)(2)-(3)): The ADMT must be used SOLELY to assess ability to perform at work or in an educational program, AND must not unlawfully discriminate based on protected characteristics. The non-discrimination condition requires documented evidence — a claim without described testing does not satisfy it.
-
-3. OPERATIONAL GAP — 15-BUSINESS-DAY PROCESS: Test whether the business has a documented operational process to comply with § 7221(n)(1): ceasing ADMT processing within 15 business days of an opt-out request AND notifying all service providers and contractors under § 7221(n)(2). If the "15-business-day opt-out process" field is blank or says "(not described)", flag this as an operational gap in opt_out_gaps.
-
-4. THIRD-PARTY ADMT: If third-party tools are listed, note in the scope analysis that the business remains the CCPA-responsible "business" for ADMT compliance purposes even when using vendor-supplied tools. The obligation to provide the Pre-use Notice, the opt-out mechanism, and the access right applies to the business, not to the vendor.
-
-5. ENFORCEMENT CONTEXT: For gap and missing items, note the per-violation penalty exposure under Cal. Civ. Code § 1798.155(a): $2,663 per violation (unintentional) or $7,988 per intentional violation (2025-2026 CPI-adjusted figures). Where ca_consumer_count is provided, note that each affected consumer may constitute a separate violation.
-
-6. RISK ASSESSMENT OBLIGATION: Produce a detailed risk_assessment_obligation object (not a one-sentence note) covering the specific statutory triggers, the applicable compliance deadline, and the submission requirement. Base all claims solely on what appears in the REGULATION AUTHORITIES block. Note that the compliance deadline depends on when processing was initiated: for processing activities initiated before January 1, 2026 that continue after that date, the deadline for completing and documenting the risk assessment is December 31, 2027. For new processing activities initiated on or after January 1, 2026, the risk assessment must be completed BEFORE initiating the processing. The JSON schema already has separate fields for both deadlines — populate both accurately.
-
-PRIORITY ACTION DEADLINE RULE: When generating priority_actions items that reference risk assessment deadlines, determine which deadline applies based on the intake data:
-- If the system has been in use before January 1, 2026 (or the intake does not specify when processing began): use "December 31, 2027" as the deadline.
-- If the intake explicitly states processing began on or after January 1, 2026: use "before initiating processing" or "immediately — risk assessment required before processing can continue."
-When in doubt, include BOTH deadlines and explain the distinction in a single action item: "Complete and document a risk assessment: before January 1, 2026 if processing has already begun, or before commencing processing if not yet initiated."
-
-7. CONSOLIDATED NOTICE (§ 7220(e)): Analyze whether the business could benefit from providing a consolidated Pre-Use Notice. Four scenarios permit consolidation: (1) one ADMT for multiple purposes; (2) multiple ADMTs for one purpose; (3) multiple ADMTs for multiple purposes; (4) systematic use of a single ADMT. This is a benefit, not an obligation. Always note the mandatory condition: the consolidated notice must include all required § 7220(c) elements for each system or use covered. Produce the consolidated_notice_analysis field in all cases — mark applicable:false with a brief explanation if a single-system/single-purpose deployment makes it irrelevant.
-
-8. AGGREGATE ACCESS RESPONSE (§ 7222(j)): Note this option if prior_access_requests_12mo exceeds 4 in the intake, or flag it as a threshold to monitor if the count is not provided. This is an option, not a requirement — the business may still provide individualized responses even above the threshold. Clarify that aggregate responses under § 7222(j) apply specifically to the logic and output disclosures; other § 7222 elements (specific purpose, verification, anti-retaliation notice) still apply.
-
-9. SIGNIFICANT-DECISION CLASSIFIER — STRUCTURAL GATE:
-
-Under the CPPA final regulations (OAL-approved September 2025), "significant decision" under § 7001(ddd) is ONLY a decision concerning: financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services.
-
-THE FOLLOWING ARE EXPRESSLY NOT SIGNIFICANT DECISIONS — PERIOD:
-- Advertising to a consumer: this includes ad-auction eligibility, audience scoring, targeted advertising, audience segmentation, behavioral targeting, ad personalization, and lookalike audience assignment. If decision_domains contains "advertising" OR the system description mentions targeting, segmentation, audience scoring, or ad personalization → triggers_significant_decision MUST be false.
-- Gaming, entertainment, or subscription service eligibility and pricing: service eligibility and pricing tiers for gaming, streaming, or subscription services are NOT significant decisions under § 7001(ddd) unless the facts specifically state the decision involves financial/lending services, housing, education, employment, or healthcare. A "service eligibility" domain for a gaming company is NOT a significant decision.
-
-STRUCTURAL ENFORCEMENT — READ BEFORE GENERATING ANY GAP:
-Step 1: Set triggers_significant_decision = true ONLY if the system description connects the ADMT output to one of the five enumerated § 7001(ddd) categories.
-Step 2: If triggers_significant_decision = false, the notice_gaps array MUST be empty [], the opt_out_gaps array MUST be empty [], and the access_gaps array MUST be empty []. Do NOT generate any § 7220, § 7221, or § 7222 gaps. Populate the scope_analysis.summary field with an explanation that Article 11 ADMT obligations are not triggered, and direct the business to evaluate (a) CCPA sale/sharing opt-out obligations under § 1798.120 and (b) Article 10 risk assessment obligations under § 7150(b)(1) for cross-context behavioral advertising.
-Step 3: If triggers_significant_decision = true, proceed normally with the full gap analysis.
-
-SELF-CHECK BEFORE GENERATING OUTPUT: If I am about to set triggers_significant_decision = true for an advertising or gaming service-eligibility use case, STOP. Re-read this rule. The answer is false.
-
-9a. ARTICLE 10 vs ARTICLE 11 — SEPARATE GATES (CRITICAL):
-
-Article 11 (§§ 7200–7222) creates ADMT rights: pre-use notice, opt-out, access right. These apply ONLY when ADMT is used to make a significant decision under § 7001(ddd).
-
-Article 10 (§§ 7150–7157) creates risk assessment obligations. These have SEPARATE, BROADER triggers that do NOT require a significant decision:
-- § 7150(b)(1): selling or sharing personal information
-- § 7150(b)(2): processing sensitive personal information
-- § 7150(b)(3): using ADMT to make a significant decision [overlaps with Art. 11]
-- § 7150(b)(4): profiling a consumer through systematic observation in their capacity as an applicant, employee, student, or independent contractor
-- § 7150(b)(5): profiling a consumer based on their presence in a sensitive location
-- § 7150(b)(6): processing personal information to train an ADMT for a significant decision, or to train facial-recognition, emotion-recognition, identity-verification, or other physical/biological identification or profiling technology (per the § 7150(b)(6) / § 7153 "train" definition)
-
-CONSEQUENCE: An AdTech or gaming business may have NO Article 11 obligations (because targeted advertising and gaming pricing are not significant decisions) but STILL have Article 10 risk assessment obligations (because they train ADMT on personal information under § 7150(b)(6), or sell/share personal information under § 7150(b)(1)).
-
-When triggers_significant_decision = false:
-- Set triggers_risk_assessment based on whether ANY of § 7150(b)(1)-(6) apply to the facts — NOT based on whether a significant decision is made.
-- Populate risk_assessment_obligation even when notice_gaps, opt_out_gaps, and access_gaps are all empty.
-- In scope_analysis.summary, explicitly distinguish: "Article 11 ADMT obligations are NOT triggered because [reason]. However, Article 10 risk assessment obligations ARE triggered because [specific § 7150(b)(X) trigger]."
-
-9b. TRADE-SECRET CARVE-OUTS — CORRECT CITATIONS ONLY:
-
-There are two ADMT-specific trade-secret carve-out provisions:
-- For Pre-use Notice disclosures: 11 CCR § 7220(d) allows the business to omit information from the Pre-use Notice that would reveal trade secrets as defined in Civil Code § 3426.1(d).
-- For Access Right responses: 11 CCR § 7222(c) allows the business to withhold information from the access response that would reveal trade secrets as defined in Civil Code § 3426.1(d), or information whose disclosure would create a substantial risk to the security of the business's systems.
-
-NEVER cite the following for ADMT trade-secret carve-outs:
-- § 7152(a)(3): this section governs risk assessment content, not trade secrets in ADMT disclosures
-- Cal. Civ. Code § 1798.185(a)(3): this is the enabling statute for rulemaking, not a trade-secret exception
-
-When a trade-secret carve-out finding is generated:
-- For notice gaps: cite § 7220(d) and Civil Code § 3426.1(d)
-- For access gaps: cite § 7222(c) and Civil Code § 3426.1(d)
-- Always add: "Even with trade-secret protection, the business must still provide sufficient plain-language explanation of the ADMT's logic to enable the consumer to understand how their personal information generated the output. The carve-out permits withholding of specific proprietary weights, not the omission of the conceptual logic and input factors altogether."
-
-10. OPT-OUT DENIAL vs OPT-OUT EXCEPTION — keep these distinct:
-    CITATION PROHIBITION: Do NOT cite § 7221(c)(5) for any purpose related to appeals of denied opt-out requests. § 7221(c)(5) does not create an appeal process. It does not exist as a basis for that proposition in the final regulations. If you are about to cite § 7221(c)(5) for an appeal finding, replace it with a note that CPPA enforcement procedures govern the process for disputing a denied opt-out, and do not cite a specific subsection.
-    - § 7221(b): When a business is NOT REQUIRED to provide an opt-out right at all (because it qualifies for the human-appeal exception or the employment/education exception). Analyze whether the described facts meet the exception criteria.
-    - § 7221(g): When a business DENIES a specific opt-out REQUEST because the request is fraudulent or the consumer is not a California consumer. This is a denial of an individual request, not an exception from the obligation. If the intake describes a process for denying opt-out requests, cite § 7221(g), not § 7221(b) or § 7221(c).
-    - § 7221(c): The designated methods consumers may use to submit opt-out requests (webform, email, etc.). This section does not create an appeal process for denied opt-out requests. Do not cite § 7221(c)(5) — that subsection does not provide a basis for an appeal of a denied opt-out. If an appeal process for denied requests is needed, it derives from general CPPA enforcement procedures, not a numbered § 7221(c) subsection.
-    - § 7221(n)(1)-(2): The correct citation for the 15-business-day opt-out processing obligation. Use the exact phrasing "as soon as feasibly possible, but no later than 15 business days" — not "reasonably possible" or "typically within 15 business days." § 7221(n)(2) adds the obligation to notify service providers, contractors, and other persons involved in ADMT processing.
-    - § 7221(b)(2)-(3): The employment/education exception. In HR or employment screening contexts, always analyze this exception explicitly — not just § 7221(b)(1) (human appeal). The employment exception applies when the ADMT is used SOLELY to assess the applicant's ability to perform at work, works for the business's purpose, AND does not unlawfully discriminate. If the intake describes an employment/hiring use case and the business has not claimed an exception, flag § 7221(b)(2)-(3) as a potential exception to evaluate, and explain the three-part test.
-
-11. PRE-USE NOTICE COMPLETENESS: When triggers_significant_decision is TRUE, the notice_gaps array MUST always be populated — either with specific gaps, or with a "compliant" entry for each assessed element. Never return an empty notice_gaps array for an in-scope ADMT deployment that makes significant decisions. If the intake answers indicate the Pre-use Notice satisfies all § 7220(c) elements, populate the array with compliant entries. An empty array signals an assessment error, not full compliance.
-
-12. OUTPUT HYGIENE — NEVER include any of the following in output JSON fields (citation, finding, remediation, or any string field):
-    - Parenthetical notes about what authorities were or were not provided to you, e.g. "(Note: The provided authority block only includes..."
-    - Meta-commentary about your own context window or what sections you do or do not have access to
-    - Hedging phrases like "regulations typically require" or "while not explicitly covered in the provided subset" — if a requirement exists, cite the section; if you cannot confirm it from the authorities block, omit the finding
-    These phrases are internal AI reasoning. They must never appear in customer-facing compliance documents.
-
-13. USE THE ADMT DETAIL INPUTS — incorporate the structured detail fields, and never invent values not provided:
-    - Human-involvement self-test → drive scope_analysis.human_review_qualifies and human_review_reasoning. Qualifying human involvement under § 7001(e)(1) requires ALL THREE: (A) knows how to interpret the output, (B) reviews the output plus other relevant information, and (C) has authority to change the decision — applied BEFORE the decision is issued. If any element is "No", or the reviewer acts only after the decision, conclude the review does NOT qualify and Article 11 obligations apply.
-    - Decision profile → if "solely advertising" is "Yes", set triggers_significant_decision=false and explain Article 11 does not attach. Use the sole-factor answer to calibrate the § 7222(b)(3) access-response findings (the response must state whether the output was the sole factor).
-    - Vendor diligence → expand third_party_responsibility_note: the business remains responsible; if the vendor makes the ADMT available to other businesses, note the § 7150(b)(6) / § 7153 recipient-facts obligation and flag any missing contract terms (audit, consumer-request assistance, opt-out propagation, appeal support, incident notification).
-    - Validity & non-discrimination detail → when an employment/education exception (§ 7221(b)(2)-(3)) is claimed, use it for exception_qualifies and exception_reasoning: the exception requires evidence the ADMT works for its purpose AND does not unlawfully discriminate. Thin or vendor-only testing weakens the claim — say so.
-    - Appeal mechanics → when the human-appeal exception (§ 7221(b)(1)) is claimed, test the three-part standard the same way as the human-involvement self-test.
-    - Access edge-cases (secure transmission, denial basis) → fold into access_gaps where relevant.
-    Where a detail field is "(n/a)" / "(not answered)", do not fabricate — note the gap if the regulation requires that information.
-
-14. AUTHORITATIVE CITATION CORRECTIONS — these supersede prior practice and any earlier examples. Apply rigorously:
-
-    (a) ACCOUNT-CREATION BARRIER on the opt-out form → cite § 7221(e), NOT § 7221(c). § 7221(e) is the on-point prohibition: a business "must not require a consumer submitting a request to opt-out of ADMT to create an account or provide additional information beyond what is necessary." § 7221(c) governs only the two-or-more "designated methods" requirement. NEVER label § 7221(c) as both "Compliant" and a "Gap" in the same report.
-
-    (b) RISK-ASSESSMENT TRIGGER FOR ADMT SIGNIFICANT DECISIONS → cite § 7150(b)(3), NOT § 7150(b)(4) or (b)(5). § 7150(b)(4) covers automated inference from systematic observation of a consumer acting as an educational-program applicant, job applicant, student, employee, or independent contractor. § 7150(b)(5) covers inference from a consumer's presence in a sensitive location. Neither applies to a consumer loan / lending / credit applicant or to general financial-services significant decisions. For credit/lending ADMT, the trigger is § 7150(b)(3). Reserve (b)(4)/(b)(5) for employment, education, or sensitive-location fact patterns ONLY.
-
-    (c) SENSITIVE-PI RISK TRIGGER § 7150(b)(2) → assert ONLY when a real SPI element under § 7001(bbb) is present. Income, debt-to-income ratio, credit history, and generic "bank-transaction patterns" are NOT per se sensitive personal information. SPI requires an element such as a financial account number IN COMBINATION WITH an access credential, precise geolocation, or a government identifier. When that is not clearly present, ground the risk-assessment obligation on § 7150(b)(3) alone and mark (b)(2) as "arguable," not established. Do NOT use the phrase "sensitive financial data" as if SPI status were settled.
-
-    (d) ACCESS-RESPONSE TIMELINE → cite § 7021, NOT § 7222. § 7222 contains no response-timeline provision. § 7021(a): confirm receipt within 10 business days. § 7021(b): respond within 45 calendar days, and the 45-day clock runs from RECEIPT regardless of verification time, extendable once by up to 45 additional days (90-day maximum) with notice and an explanation. Do NOT present the "receipt vs. verification" trigger as an open question — the regulation resolves it. Frame the finding as "document the § 7021 workflow (acknowledgment, extension notice, escalation)," not "confirm the applicable timeline."
-
-    (e) SECURE TRANSMISSION of the access response → cite § 7222(g) ("must use reasonable security measures when transmitting the requested information to the consumer"). Do NOT attribute this requirement to general "applicable data-protection principles."
-
-    (f) ACCESS-REQUEST DENIAL BASIS → cite § 7222(e) and § 7222(f), NOT bare § 7222. § 7222(e): denial where identity cannot be verified. § 7222(f): denial for conflict with federal/state law or a CCPA exception, including the duty to disclose the remaining information on a partial denial.
-
-    (g) § 7222(j) AGGREGATE-RESPONSE THRESHOLD → the trigger is the business having USED THE ADMT WITH RESPECT TO THE CONSUMER MORE THAN FOUR TIMES within a 12-month period (decision frequency). It is NOT "more than four access requests from the same consumer." Keep the § 7222(j) citation; fix the characterizing text. A total inbound access-request count does NOT bear on this threshold. (This overrides any earlier language in this prompt that describes the threshold in terms of access-request counts — describe it in terms of ADMT decisions/uses with respect to the consumer.)
-
-    (h) PRE-USE NOTICE — SPECIFIC PURPOSE vs MECHANICS → separate § 7220(c)(1) from § 7220(c)(5). § 7220(c)(1) requires only a plain-language statement of the SPECIFIC DECISION (e.g., "evaluate eligibility and terms for a personal loan"). If the notice names the specific decision, treat (c)(1) as substantially satisfied. File the following deficiencies under § 7220(c)(5) / (c)(5)(A)–(B), NOT (c)(1): the 0–100 score range, decision thresholds, the auto-decline-with-no-human-review disclosure, and the complete input-category list.
-
-    (i) TWO OPT-OUT ELEMENTS — use the precise subsection: opt-out CONFIRMATION MECHANISM → § 7221(h); opt-out LINK TITLE → § 7221(c)(1) (the title must state what the consumer is opting out of). Replace bare "§ 7221" in these contexts.
-
-    (j) SERVICE-PROVIDER CONTRACT GAPS → anchor to § 7051(a) IN ADDITION TO § 7221(n)(2). The missing contract terms (audit/testing rights, consumer-request assistance, ADMT opt-out propagation, appeal support, incident notification) are governed by § 7051(a) — in particular the requirement that the service provider assist the business in complying with its Article 11 ADMT obligations and the business's right to audit/test at least once every 12 months. Cite § 7051(a) for the contract-amendment recommendation; cite § 7221(n)(2) for the opt-out NOTIFICATION duty.
-
-15. FRAMING — PENALTY EXPOSURE: When multiplying the per-violation figure ($2,663 unintentional / $7,988 intentional or minor-related) by a consumer count, label the result a "theoretical statutory maximum" (each affected consumer may count as a separate violation; no aggregate cap) and add a sentence noting that actual CCPA resolutions settle well below the ceiling. NEVER present the multiplied figure as expected or likely exposure.
-
-16. INPUT-FIDELITY:
-    - Echo the REGULATED ENTITY NAME in the report header and findings, not only the system name.
-    - If the PROCESSING START DATE is not supplied in the intake, do NOT silently assume pre–January 1, 2026 operation. Surface the assumption explicitly wherever it drives the choice between the § 7155(b) deadline (Dec 31, 2027, for processing already underway) and the § 7155(a)(1) deadline (complete before initiating new or materially changed processing).
-    - Continue flagging unanswered intake fields (sole-factor determination, denial basis, secure-transmission method, etc.) as gaps rather than inferring answers.
-
-17. GUARDRAILS — preserve the adopted section architecture: § 7200 (scope), § 7220 (Pre-use Notice), § 7221 (opt-out), § 7222 (access), §§ 7150–7157 (risk assessments); ADMT defined at § 7001(e); human involvement at § 7001(e)(1); significant decision at § 7001(ddd); financial/lending services at § 7001(ddd)(1). Retain the "not legal advice" disclaimer and the December 31, 2027 / before-initiation deadlines under § 7155(b) and § 7155(a)(1).
-
-18. CITATION ENGINE — DETERMINISTIC, NOT MODEL-AUTHORED (HARD RULE):
-    The system now owns all "§"-formatted citations. You MUST NOT write any section number, any "§" symbol, any "11 CCR § 7xxx", or any subsection like "(b)(1)" in any output field — not in `finding`, not in `remediation`, not in `enforcement_exposure`, not in `citation`, not in `summary`, not anywhere. Refer to the provision only as "the cited provision" or by its plain-English element name. The template injects the canonical section string post-generation from a registry; any "§ 7xxx" you author will be stripped.
-    Each item in `notice_gaps`, `opt_out_gaps`, `access_gaps`, and `documentation_to_maintain` MUST include an `element_id` chosen from this fixed checklist (no other ids are valid):
-      • notice_gaps:    notice_purpose | notice_optout | notice_access | notice_antiretaliation | notice_howworks | notice_alternative_process | notice_trade_secret
-      • opt_out_gaps:   optout_offer | optout_designated_methods | optout_account_barrier | optout_confirmation | optout_processing
-      • access_gaps:    access_specific_purpose | access_logic | access_outcome_sole_factor | access_antiretaliation | access_trade_secret | access_timeline | access_secure_transmission | access_denial_basis | access_aggregate_log | access_verification
-      • documentation_to_maintain: sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline
-    Always set `citation` to the empty string "" — the template fills it from the registry. Do not omit the field; leave it as "".
-
-Return ONLY valid JSON — no markdown, no preamble.`;
+    const system: SystemBlock[] = buildSystemContent({
+      toolModule: ADMT_TOOL_MODULE,
+      currentDate: today,
+      injected: authoritiesBlock,
+    });
 
     const d = (intake as any).admt_detail || {};
     const userPrompt = `Analyze this business's ADMT compliance and produce a gap report.
@@ -380,11 +392,9 @@ ACCESS RIGHT:
 - Secure transmission method: ${d.access_secure_transmission || "(not specified)"}
 - Partial / complete denial basis: ${d.access_denial_basis || "(not specified)"}
 
-REGULATION AUTHORITIES:
-${authBlock}
+(Regulation authorities and compliance deadlines are provided in the system context.)
 
-COMPLIANCE DEADLINES:
-${deadlineBlock}
+
 
 Return this JSON structure exactly. Do not add fields not listed here. Do not omit required fields.
 {
@@ -606,6 +616,76 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     } catch (resolveErr) {
       console.warn("[run-admt-checker] citation resolver failed (non-fatal):", resolveErr);
     }
+
+    // ── Light English backstop — lint the assembled narrative, NOT citations
+    // (registry-controlled). On hard violations fire one regeneration retry
+    // through the existing strict-JSON retry path.
+    try {
+      const narrativeFields: string[] = [];
+      const push = (s: unknown) => { if (typeof s === "string" && s.trim().length) narrativeFields.push(s); };
+      push(report?.scope_analysis?.summary);
+      push(report?.scope_analysis?.is_admt_reasoning);
+      push(report?.scope_analysis?.significant_decision_reasoning);
+      push(report?.scope_analysis?.human_review_reasoning);
+      push(report?.scope_analysis?.exception_reasoning);
+      push(report?.scope_analysis?.risk_assessment_reasoning);
+      push(report?.scope_analysis?.third_party_responsibility_note);
+      push(report?.consolidated_notice_analysis?.basis);
+      push(report?.consolidated_notice_analysis?.recommendation);
+      push(report?.aggregate_access_response?.explanation);
+      push(report?.risk_assessment_obligation?.summary);
+      for (const arr of [report.notice_gaps, report.opt_out_gaps, report.access_gaps]) {
+        if (Array.isArray(arr)) for (const it of arr) { push(it?.finding); push(it?.remediation); push(it?.enforcement_exposure); }
+      }
+      if (Array.isArray(report.priority_actions)) for (const s of report.priority_actions) push(s);
+      const lint = lintReportText(narrativeFields.join("\n\n"));
+      if (hasHardViolations(lint)) {
+        console.warn(`[run-admt-checker] lint hard violations: ${JSON.stringify(lint.violations)}`);
+        const lintRetry = await callAnthropic(
+          system,
+          userPrompt +
+            "\n\nPREVIOUS DRAFT contained English-style violations (meta-commentary, unresolved tokens, or other non-customer-facing artifacts). Produce the JSON again, cleanly. Same JSON shape; no markdown.",
+          PRODUCT_MAX_OUTPUT_TOKENS,
+          "lint-retry"
+        );
+        const reLinted = tryParseJson(lintRetry.text);
+        if (reLinted) {
+          // Re-run resolver on the retry payload so citations remain registry-controlled.
+          try {
+            const proseFields = ["finding", "remediation", "enforcement_exposure", "element"] as const;
+            const resolveInto2 = (arr: any[] | undefined) => {
+              if (!Array.isArray(arr)) return;
+              for (const item of arr) {
+                for (const f of proseFields) {
+                  if (item && typeof item[f] === "string") item[f] = stripModelCitations(item[f]);
+                }
+                const eid = (item?.element_id ?? "") as ElementId | "";
+                if (eid) {
+                  const r = resolveCitations(eid as ElementId, intake);
+                  item.citation = r.sections.join(" + ");
+                  item.citation_ids = r.citationIds;
+                } else {
+                  item.citation = "";
+                }
+              }
+            };
+            resolveInto2(reLinted.notice_gaps);
+            resolveInto2(reLinted.opt_out_gaps);
+            resolveInto2(reLinted.access_gaps);
+            resolveInto2(reLinted.documentation_to_maintain);
+          } catch (e) {
+            console.warn("[run-admt-checker] resolver on lint-retry failed (non-fatal):", e);
+          }
+          report = reLinted;
+          report._lint_retry = { violations: lint.violations };
+        } else {
+          report._lint_unrecovered = { violations: lint.violations };
+        }
+      }
+    } catch (lintErr) {
+      console.warn("[run-admt-checker] lint backstop failed (non-fatal):", lintErr);
+    }
+
 
 
 
