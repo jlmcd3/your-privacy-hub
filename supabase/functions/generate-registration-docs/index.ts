@@ -358,10 +358,17 @@ Deno.serve(async (req) => {
       regime: isUk ? "uk_gdpr" : "gdpr",
       jurisdictions: orderCodes,
     });
+    // FORK-R1: inject AI Act + adequacy + ICO penalty figures from the shared registry.
+    const registryInjections = [
+      gdprBlock,
+      renderAiActCitationBlock(),
+      renderTransferAdequacyNote(),
+      renderIcoPenaltyFigures(),
+    ].filter(Boolean).join("\n\n");
     const registrationSystem: SystemBlock[] = buildSystemContent({
       toolModule: REGISTRATION_TOOL_MODULE,
       currentDate: today,
-      injected: gdprBlock || undefined,
+      injected: registryInjections || undefined,
       cache: true,
     });
 
