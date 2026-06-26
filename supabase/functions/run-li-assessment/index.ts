@@ -480,7 +480,7 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
 
     async function runStage2(extraUser: string, maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
-      return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, maxTokens);
+      return await callAnthropic("claude-sonnet-4-6", analysisSystemBlocks, finalUser, maxTokens);
     }
 
     const t2Start = Date.now();
