@@ -193,15 +193,20 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     scene.add(globe);
     globeRef.current = globe;
 
-    // Atmosphere backglow — inner ring
+    // Atmosphere backglow — inner ring (tighter, brighter rim)
     scene.add(new THREE.Mesh(
-      new THREE.SphereGeometry(1.06, 64, 64),
-      new THREE.MeshBasicMaterial({ color: 0x2a6bbf, side: THREE.BackSide, transparent: true, opacity: 0.10 }),
+      new THREE.SphereGeometry(1.04, 64, 64),
+      new THREE.MeshBasicMaterial({ color: 0x5aa9ff, side: THREE.BackSide, transparent: true, opacity: 0.28 }),
     ));
-    // Atmosphere backglow — outer halo (stronger glow)
+    // Atmosphere backglow — outer halo (soft glow that dissolves the hard edge)
     scene.add(new THREE.Mesh(
-      new THREE.SphereGeometry(1.15, 64, 64),
-      new THREE.MeshBasicMaterial({ color: 0x3b82c4, side: THREE.BackSide, transparent: true, opacity: 0.08 }),
+      new THREE.SphereGeometry(1.18, 64, 64),
+      new THREE.MeshBasicMaterial({ color: 0x3b82c4, side: THREE.BackSide, transparent: true, opacity: 0.18 }),
+    ));
+    // Far halo — feathered bloom edge
+    scene.add(new THREE.Mesh(
+      new THREE.SphereGeometry(1.30, 48, 48),
+      new THREE.MeshBasicMaterial({ color: 0x2a6bbf, side: THREE.BackSide, transparent: true, opacity: 0.08 }),
     ));
 
     // Latitude/longitude grid lines
@@ -210,12 +215,13 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       new THREE.MeshBasicMaterial({ color: 0x4a90d9, wireframe: true, transparent: true, opacity: 0.05 }),
     ));
 
-    // Lighting
-    scene.add(new THREE.AmbientLight(0xffffff, 0.60));
-    const sun = new THREE.DirectionalLight(0xfff8e8, 1.05);
-    sun.position.set(5, 3, 4);
+    // Lighting — low ambient to preserve a visible day/night terminator
+    scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+    const sun = new THREE.DirectionalLight(0xfff4dc, 1.55);
+    sun.position.set(5, 2.5, 4);
     scene.add(sun);
-    const fill = new THREE.DirectionalLight(0x203060, 0.28);
+    // Cool rim/fill from opposite side — reads as Earthshine, sells the sphere
+    const fill = new THREE.DirectionalLight(0x4a7bd6, 0.35);
     fill.position.set(-4, -1, -3);
     scene.add(fill);
 
