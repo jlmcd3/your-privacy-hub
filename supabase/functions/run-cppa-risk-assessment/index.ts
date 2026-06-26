@@ -408,6 +408,12 @@ function buildUserPrompt(intake: FiveStageIntake): string {
   const { triggers, exceptions, activity_details, impact, org_context } = intake;
   const noExceptions = Object.values(exceptions).every((v: any) => !v?.claimed);
 
+  // [REVISED] Pull authoritative § 7150(b) subsection strings from the registry —
+  // never hardcode § 7150(b)(N) literals in this file.
+  const SEC_OBSERVE  = CITATION_REGISTRY.ra_trigger_observe.section;  // systematic observation
+  const SEC_LOCATION = CITATION_REGISTRY.ra_trigger_location.section; // sensitive location
+  const SEC_TRAIN    = CITATION_REGISTRY.ra_trigger_train.section;    // train ADMT / biometric
+
   // Plain-language labels — never emit the raw snake_case keys into the prompt,
   // or the model echoes them ("cross_context_tracking: true") into the report.
   const TRIGGER_LABELS: Record<string, string> = {
