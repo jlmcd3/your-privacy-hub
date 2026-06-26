@@ -342,6 +342,23 @@ Deno.serve(async (req) => {
     const orgSnapshot = order.organization_snapshot || {};
     const generated: Array<{ jurisdiction_code: string; document_type: string }> = [];
 
+    // Build the shared system prompt once per request (prompt-core v2.3 + GDPR registry).
+    const today = new Date().toISOString().slice(0, 10);
+    const orderCodes: string[] = Array.isArray(codes) ? codes : [];
+    const upperCodes = orderCodes.map((c) => String(c).toUpperCase());
+    const isUk = upperCodes.includes("UK") || upperCodes.includes("GB");
+    const gdprBlock = renderGdprCitationBlock({
+      regime: isUk ? "uk_gdpr" : "eu_gdpr",
+      jurisdictions: orderCodes,
+    });
+    const registrationSystem: SystemBlock[] = buildSystemContent({
+      toolModule: REGISTRATION_TOOL_MODULE,
+      currentDate: today,
+      injected: gdprBlock || undefined,
+      cache: true,
+    });
+
+
     for (const r of reqs || []) {
       const applicableDocs = DOCUMENT_TYPES.filter((docDef) => docDef.when(r));
       const applicableTypes = applicableDocs.map((d) => d.type);
