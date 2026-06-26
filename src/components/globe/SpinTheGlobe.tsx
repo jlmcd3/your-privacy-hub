@@ -236,11 +236,16 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
     const applyTexture = (tex: THREE.Texture) => {
       if (!globeRef.current) return;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 4;
       globeRef.current.material = new THREE.MeshPhongMaterial({
         map: tex,
         specularMap: tex,
         specular: new THREE.Color(0x335577),
         shininess: 28,
+        // Reuse the color map as a bump map for cheap terrain relief — gives
+        // the sphere visible texture/detail without shipping a second asset.
+        bumpMap: tex,
+        bumpScale: 0.035,
       });
       setReady(true);
     };
