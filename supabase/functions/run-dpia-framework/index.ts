@@ -313,10 +313,18 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
     const resolvedBlock = renderResolvedBlock(resolved);
     console.log(`[run-dpia-framework] resolver: country=${resolverCountry} land=${intake.controller_land || "-"} oss=${resolved.oss.ossAvailable} transfers=${resolved.transfers.length}`);
 
-    // Append GDPR authority context AND resolved jurisdiction block to the system prompt.
-    const systemWithGdpr = (gdprBlock
-      ? `${system}\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}`
-      : system) + `\n\n${resolvedBlock}`;
+    // Assemble system prompt via the shared core. Block 1 = core (cached);
+    // block 2 = identity + audited DPIA rules (cached); block 3 = corpus +
+    // resolved-jurisdiction injection (NOT cached — per-call facts).
+    const gdprAuthorityContext = gdprBlock
+      ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}`
+      : "";
+    const today = new Date().toISOString().slice(0, 10);
+    const systemWithGdpr = buildSystemContent({
+      toolModule: DPIA_TOOL_MODULE,
+      currentDate: today,
+      injected: [gdprAuthorityContext, resolvedBlock].filter(Boolean).join("\n\n"),
+    });
 
 
     // ── Split DPIA generation into two parallel calls to stay within timeout ──
