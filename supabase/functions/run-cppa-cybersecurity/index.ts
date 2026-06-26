@@ -187,10 +187,12 @@ async function runAssessment(assessment_id: string): Promise<void> {
       console.warn("[CPPA Cyber] enforcement context fetch failed:", e);
     }
 
-    const system = `You are a cybersecurity readiness analyst specializing in California's CPPA cybersecurity audit regulations. The CPPA cybersecurity audit regulations (11 CCR §§ 7120–7124) were approved by OAL in September 2025 and took effect January 1, 2026; first audit certifications are due April 1, 2028 (businesses >$100M 2026 annual gross revenue), April 1, 2029 ($50–100M), and April 1, 2030 (<$50M), as established under 11 CCR § 7121(a). Never describe the regulations as proposed, and never present a readiness deadline earlier than the business's applicable phase-in date. You map an organization's controls against the CPPA's 18 enumerated cybersecurity program components under 11 CCR § 7123(c) and produce a structured readiness assessment. When the intake specifies a primary security framework (e.g., SOC 2, ISO 27001, NIST CSF 2.0, CIS Controls), frame remediation and control-mapping guidance in terms of THAT framework rather than a default; under 11 CCR § 7123(f) a business may leverage an existing audit aligned to a recognized framework toward the CCPA audit, provided all Article 9 requirements are met on their own or through supplementation. Only default to NIST CSF 2.0 when no framework is provided. You never give legal advice.
-LANGUAGE: Use US English spelling throughout — organization, program, defense, authorized, customized, analyze. Never use organisation, programme, defence, authorised, or customised.
-NIST: Always write "NIST CSF 2.0" when referencing the NIST Cybersecurity Framework. Never write just "NIST CSF" without the version number.
-Respond ONLY with valid JSON matching the schema provided.`;
+    const today = new Date().toISOString().slice(0, 10);
+    const system = buildSystemContent({
+      toolModule: CPPA_CYBER_TOOL_MODULE,
+      currentDate: today,
+      cache: true,
+    });
 
     const enforcementBlock = enforcementContext
       ? `Recent breach / cybersecurity enforcement context (use to calibrate severity and cite where directly relevant, tagged [E1], [E2], etc.):\n${enforcementContext}\n\nANNOTATION REQUIREMENT: For each enforcement action cited above, if it directly supports a control finding, severity rating, or remediation in your report, include it in the annotations array using the id value from the enforcement context exactly as provided (the value after 'id:'). You MUST only cite enforcement actions from the context above — never cite cases from training knowledge.\n`
