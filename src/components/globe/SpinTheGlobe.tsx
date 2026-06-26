@@ -236,8 +236,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       globeRef.current.material = new THREE.MeshPhongMaterial({
         map: tex,
         specularMap: tex,
-        specular: new THREE.Color(0x111133),
-        shininess: 15,
+        specular: new THREE.Color(0x335577),
+        shininess: 28,
       });
       setReady(true);
     };
