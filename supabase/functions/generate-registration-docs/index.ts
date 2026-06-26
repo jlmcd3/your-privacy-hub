@@ -348,7 +348,7 @@ Deno.serve(async (req) => {
     const upperCodes = orderCodes.map((c) => String(c).toUpperCase());
     const isUk = upperCodes.includes("UK") || upperCodes.includes("GB");
     const gdprBlock = renderGdprCitationBlock({
-      regime: isUk ? "uk_gdpr" : "eu_gdpr",
+      regime: isUk ? "uk_gdpr" : "gdpr",
       jurisdictions: orderCodes,
     });
     const registrationSystem: SystemBlock[] = buildSystemContent({
