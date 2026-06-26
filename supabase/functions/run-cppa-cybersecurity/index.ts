@@ -45,7 +45,7 @@ function stripMd(s: string | undefined | null): string {
     .replace(/^\s*[-_]{3,}\s*$/gm, '');
 }
 
-async function callAnthropic(system: string, user: string, maxTokens: number): Promise<{ text: string; stopReason: string | null }> {
+async function callAnthropic(system: string | SystemBlock[], user: string, maxTokens: number): Promise<{ text: string; stopReason: string | null }> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
