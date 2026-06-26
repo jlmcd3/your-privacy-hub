@@ -653,6 +653,12 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       }
     }
 
+    // Deterministic consistency check: align status↔score, recompute overall_score,
+    // and align readiness_level to the score band.
+    applyConsistencyFixes(report);
+
+
+
 
     // Obligation snapshot: freeze the cybersecurity audit corpus (§§ 7120–7124)
     // used to evaluate the 18 controls, so the report stays reproducible if any
