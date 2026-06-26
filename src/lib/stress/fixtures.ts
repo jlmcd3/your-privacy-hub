@@ -963,6 +963,7 @@ export const REG_VARIANTS = [
 
 export const CPPA_RISK_VARIANTS = [
   {
+    entity_name: "Cascade Health Partners, Inc.",
     q1_revenue: "Over $500M",
     q2_consumers: "1–10 million",
     q3_sector: "Healthcare/Life Sciences",
@@ -1008,6 +1009,7 @@ export const CPPA_RISK_VARIANTS = [
     i9_existing_dpia_summary: "",
   },
   {
+    entity_name: "Atlas Financial Services Corporation",
     q1_revenue: "Over $500M",
     q2_consumers: "1–10 million",
     q3_sector: "Financial Services / Banking",
@@ -1053,6 +1055,7 @@ export const CPPA_RISK_VARIANTS = [
     i9_existing_dpia_summary: "UK DPIA completed 2024 covering fraud-scoring model.",
   },
   {
+    entity_name: "Northwind Retail Group, LLC",
     q1_revenue: "Over $500M",
     q2_consumers: "Over 10 million",
     q3_sector: "Retail / E-commerce",
@@ -1099,6 +1102,7 @@ export const CPPA_RISK_VARIANTS = [
     i9_existing_dpia_summary: "EU DPIA covers personalisation; updated annually.",
   },
   {
+    entity_name: "Meridian Logistics Holdings, Inc.",
     q1_revenue: "$100M – $500M",
     q2_consumers: "Under 100,000",
     q3_sector: "Logistics / Transportation",
