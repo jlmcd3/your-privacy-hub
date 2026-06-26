@@ -530,3 +530,125 @@ export function stripModelJurisdictionTokens(text: string, allowedNames: string[
   }
   return out;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PART A — Consolidated GDPR registry (SA names + Article-6 LI examples)
+// Single source of truth consumed by LIA, DPIA, and Governance.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const EU_SUPERVISORY_AUTHORITIES: Record<string, string> = {
+  AT: "DSB (Datenschutzbehörde)",
+  BE: "GBA / APD", // never "APE"
+  BG: "CPDP",
+  HR: "AZOP",
+  CY: "OAD",
+  CZ: "ÚOOÚ",
+  DK: "Datatilsynet",
+  EE: "AKI",
+  FI: "Tietosuojavaltuutettu",
+  FR: "CNIL",
+  // Germany handled by resolveSupervisoryAuthorityName (Land vs federal) — NOT a flat string
+  GR: "HDPA",
+  HU: "NAIH",
+  IE: "DPC",
+  IT: "Garante",
+  LV: "DVI",
+  LT: "VDAI",
+  LU: "CNPD",
+  MT: "IDPC",
+  NL: "AP (Autoriteit Persoonsgegevens)", // never "UODO" (that is Poland)
+  PL: "UODO",
+  PT: "CNPD",
+  RO: "ANSPDCP",
+  SK: "ÚOOÚ",
+  SI: "IP",
+  ES: "AEPD",
+  SE: "IMY (Integritetsskyddsmyndigheten)",
+  GB: "ICO",
+  UK: "ICO",
+};
+
+/**
+ * Resolves the correct supervisory-authority NAME for a country.
+ * Germany routes through competentSA so that private-sector controllers
+ * receive the relevant Land authority — never the BfDI.
+ */
+export function resolveSupervisoryAuthorityName(
+  country: string,
+  opts?: { land?: string; sector?: Sector },
+): string {
+  const c = (country || "").toUpperCase();
+  if (c === "DE") {
+    return competentSA({
+      country: "DE",
+      land: opts?.land as any,
+      sector: (opts?.sector ?? "private") as Sector,
+    }).name;
+  }
+  return EU_SUPERVISORY_AUTHORITIES[c] ?? `the relevant supervisory authority in ${country}`;
+}
+
+export type GdprRegime = "gdpr" | "uk_gdpr";
+
+/**
+ * Article-6 legitimate-interest example citations, jurisdiction-conditional.
+ * EU GDPR has NO Article 6(11); recital citations are the correct anchor.
+ * UK GDPR (DUAA 2025) added Article 6(11) and the separate Article 6(1)(ea)+Annex 1
+ * "recognised legitimate interests" basis; never conflate the two.
+ */
+export function resolveArticle6Examples(regime: GdprRegime): {
+  directMarketing: string;
+  intraGroup: string;
+  networkSecurity: string;
+  recognisedLI: string;
+} {
+  if (regime === "uk_gdpr") {
+    return {
+      directMarketing:
+        "Article 6(11) UK GDPR (example legitimate interest; LIA/balancing test still required)",
+      intraGroup:
+        "Article 6(11) UK GDPR (example legitimate interest; LIA/balancing test still required)",
+      networkSecurity:
+        "Article 6(11) UK GDPR (example legitimate interest; LIA/balancing test still required)",
+      recognisedLI:
+        "Article 6(1)(ea) + Annex 1 UK GDPR — recognised legitimate interests (no balancing test; five public-interest purposes; private/third-sector only). Do NOT conflate with Article 6(11).",
+    };
+  }
+  return {
+    // EU GDPR — no Article 6(11)
+    directMarketing: "Recital 47 EU GDPR",
+    intraGroup: "Recital 48 EU GDPR",
+    networkSecurity: "Recital 49 EU GDPR",
+    recognisedLI:
+      "N/A — EU GDPR has no 'recognised legitimate interests' basis (that is a UK GDPR / DUAA 2025 construct).",
+  };
+}
+
+/**
+ * Renderable citation block for injection into LIA / Governance system prompts.
+ * Mirrors renderResolvedBlock so the model can cite SA names + Article-6 examples
+ * deterministically rather than from its own recall.
+ */
+export function renderGdprCitationBlock(input: {
+  regime: GdprRegime;
+  jurisdictions: string[];
+}): string {
+  const a6 = resolveArticle6Examples(input.regime);
+  const sas = (input.jurisdictions || [])
+    .map((j) => `${j}: ${resolveSupervisoryAuthorityName(j)}`)
+    .join("; ");
+  return [
+    "RESOLVED GDPR CITATIONS (authoritative — use ONLY these for the items below):",
+    `Regime: ${
+      input.regime === "uk_gdpr"
+        ? "UK GDPR (DUAA 2025 in force 5 Feb 2026)"
+        : "EU GDPR (Regulation (EU) 2016/679)"
+    }`,
+    `Legitimate-interest examples — direct marketing: ${a6.directMarketing}; intra-group: ${a6.intraGroup}; network/info security: ${a6.networkSecurity}.`,
+    `Recognised legitimate interests: ${a6.recognisedLI}`,
+    sas ? `Supervisory authorities: ${sas}.` : "",
+    "For German private-sector controllers the competent authority is the relevant Land authority, never the BfDI.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
