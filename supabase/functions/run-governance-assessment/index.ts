@@ -33,7 +33,7 @@ function stripMd(s: unknown): string {
     .replace(/^\s*[-_]{3,}\s*$/gm, '');
 }
 
-async function callAnthropic(model: string, system: string, user: string, maxTokens = 6000, timeoutMs = 720_000): Promise<string> {
+async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = 6000, timeoutMs = 720_000): Promise<string> {
   const startedAt = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -49,7 +49,8 @@ async function callAnthropic(model: string, system: string, user: string, maxTok
   const d = await res.json();
   const text = d.content?.[0]?.text || "";
   const elapsed = Date.now() - startedAt;
-  console.log(`[run-governance-assessment] stage=callAnthropic model=${model} elapsed=${elapsed}ms stop=${d.stop_reason ?? null} chars=${text.length}`);
+  const usage = d.usage || {};
+  console.log(`[run-governance-assessment] stage=callAnthropic model=${model} elapsed=${elapsed}ms stop=${d.stop_reason ?? null} chars=${text.length} cache_read=${usage.cache_read_input_tokens ?? 0} cache_create=${usage.cache_creation_input_tokens ?? 0}`);
   return text;
 }
 
