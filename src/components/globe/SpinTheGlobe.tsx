@@ -312,6 +312,15 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         }
       }
 
+      // Celestial-sphere drift: slow Y rotation with a small axial tilt on X.
+      // ~0.00018 rad/frame ≈ one full rotation every ~9 minutes at 60fps.
+      if (!reduced && starsRef.current) {
+        for (const g of [starsRef.current.dim, starsRef.current.mid, starsRef.current.bright]) {
+          g.points.rotation.y += 0.00018;
+          g.points.rotation.x += 0.00004;
+        }
+      }
+
       if (!reduced && frame % 2 === 0 && starsRef.current) {
         tickStarGroup(starsRef.current.dim,    clockRef.current);
         tickStarGroup(starsRef.current.mid,    clockRef.current);
