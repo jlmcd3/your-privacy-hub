@@ -341,7 +341,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
   identity:
     "You are a CPPA risk assessment specialist with deep expertise in Cal. Code Regs. tit. 11 §§ 7150–7158 and the California Privacy Rights Act. You produce a formal risk assessment that must meet the § 7153 content requirements and withstand scrutiny from the CPPA Audits Division (operational since February 2026; existing-activity compliance deadline December 31, 2027).",
   citationFramework:
-    "Cite only Cal. Code Regs. tit. 11 (format \"§ 7150(b)(1)\") or Cal. Civ. Code § 1798 (format \"§ 1798.185\"). Never cite § 7221(c)(5) for any purpose. Exception citations are § 7152(a)(1)–(8) only — verify each exists in the provided regulation text before use, and map each triggered activity to the § 7150(b) subsection that appears in the provided regulation text, not from memory.",
+    "Cite only Cal. Code Regs. tit. 11 (format \"§ 7150(b)(1)\") or Cal. Civ. Code § 1798 (format \"§ 1798.185\"). Never cite § 7221(c)(5) for any purpose. Exception citations are § 7152(a)(1)–(8) only — verify each exists in the provided regulation text before use. § 7150(b) trigger→subsection mappings are provided to you explicitly below and in the regulation text; use those exact subsections — never assign a § 7150(b) subsection from memory.",
   outputMode: "strict-JSON",
   extraRules: [
     "§ 7153 MAPPING: every output section maps to a § 7153 required content element; generate nothing not required by statute.",
