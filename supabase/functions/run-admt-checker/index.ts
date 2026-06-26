@@ -539,15 +539,27 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
         console.error(
           `[run-admt-checker] parse_failed after retry — tail=${JSON.stringify(strictRetry.text.slice(-500))}`
         );
+        const admtTruncated =
+          first.stopReason === "max_tokens" || strictRetry.stopReason === "max_tokens";
+        const admtErrorCode = admtTruncated ? "generation_truncated" : "parse_failed";
         await supabase.from("cppa_assessments").update({
           status: "error",
           report_data: {
-            error: "parse_failed",
+            error: admtErrorCode,
+            stop_reason_first: first.stopReason,
+            stop_reason_retry: strictRetry.stopReason,
             raw_head: rawText.slice(0, 400),
             raw_tail: rawText.slice(-400),
             retry_tail: strictRetry.text.slice(-400),
           },
         }).eq("id", assessment_id);
+        await failFunctionRun(supabase, fnRun, admtErrorCode, {
+          metadata: {
+            assessment_id,
+            stop_reason_first: first.stopReason,
+            stop_reason_retry: strictRetry.stopReason,
+          },
+        });
         return;
       }
     }
