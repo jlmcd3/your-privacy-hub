@@ -1102,6 +1102,7 @@ export const CPPA_RISK_VARIANTS = [
     i9_existing_dpia_summary: "EU DPIA covers personalisation; updated annually.",
   },
   {
+    entity_name: "Meridian Logistics Holdings, Inc.",
     q1_revenue: "$100M – $500M",
     q2_consumers: "Under 100,000",
     q3_sector: "Logistics / Transportation",
