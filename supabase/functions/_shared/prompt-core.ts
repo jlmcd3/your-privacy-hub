@@ -169,12 +169,22 @@ position.`;
 
 export type OutputMode = "strict-JSON" | "document";
 
+export type LanguageVariant = "american" | "british" | "jurisdiction-conditional";
+
 export interface ToolModule {
   identity: string;
   citationFramework: string;
   outputMode: OutputMode;
   schema?: string;
   extraRules?: string;
+  /**
+   * Pins the English variant of the output. Defaults to "american".
+   * - "american": "Use American English throughout this document."
+   * - "british": "Use British English throughout this document."
+   * - "jurisdiction-conditional": defers to a per-output rule (typically supplied
+   *   in the tool's extraRules) keyed off the governing jurisdiction.
+   */
+  languageVariant?: LanguageVariant;
 }
 
 export type SystemBlock = {
@@ -182,6 +192,17 @@ export type SystemBlock = {
   text: string;
   cache_control?: { type: "ephemeral"; ttl?: "5m" | "1h" };
 };
+
+function languageVariantRule(variant: LanguageVariant): string {
+  if (variant === "british") {
+    return "Use British English throughout this document (organisation, behaviour, programme, licence[noun]). Never mix variants.";
+  }
+  if (variant === "jurisdiction-conditional") {
+    return "Write in the English variant that matches the governing jurisdiction of the output — American English for US-law outputs (e.g. CCPA/CPPA); British English for UK/EU outputs (UK GDPR / GDPR). Never mix variants within one document.";
+  }
+  // american (default)
+  return "Use American English throughout this document — spelling (organization, behavior, minimize, recognize, analyze, program, license[noun]), date format, terminology. Never British variants.";
+}
 
 export function buildSystemContent(opts: {
   toolModule: ToolModule;
@@ -200,11 +221,15 @@ export function buildSystemContent(opts: {
     ttl = "5m",
   } = opts;
 
+  const langVariant: LanguageVariant = toolModule.languageVariant ?? "american";
+  const langRule = languageVariantRule(langVariant);
+
   const coreTemplate = variant === "lean" ? EUP_PROMPT_CORE_LEAN : EUP_PROMPT_CORE;
   const block1Text = coreTemplate
     .replaceAll("[[OUTPUT_MODE]]", toolModule.outputMode)
     .replaceAll("[[CITATION_FRAMEWORK]]", toolModule.citationFramework)
-    .replaceAll("[[CURRENT_DATE]]", currentDate);
+    .replaceAll("[[CURRENT_DATE]]", currentDate)
+    .replaceAll("[[LANGUAGE_VARIANT_RULE]]", langRule);
 
   const block2Parts: string[] = [toolModule.identity];
   if (toolModule.extraRules) block2Parts.push(toolModule.extraRules);
@@ -227,3 +252,4 @@ export function buildSystemContent(opts: {
 
   return blocks;
 }
+
