@@ -14,8 +14,11 @@ export default function SearchFirstHero() {
               California's CPPA deadlines are here
             </p>
             <h1 className="text-hero-h1 text-white mb-3">
-              Find out which CPPA rules apply to you — free.
+              Global privacy law — tracked daily.
             </h1>
+            <p className="font-display text-xl md:text-2xl text-white/90 mb-3">
+              Find out which CPPA rules apply to you — free.
+            </p>
             <p className="text-blue-200/80 text-sm md:text-base mb-6 whitespace-pre-line">
               California businesses face risk-assessment, cybersecurity-audit, and ADMT deadlines through 2027. Check your obligations in two minutes — then generate the assessments that satisfy them. Plus daily global privacy intelligence and enforcement-calibrated tools.
             </p>
