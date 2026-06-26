@@ -16,7 +16,7 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
     "SECTOR OVERLAYS (note where relevant): GLBA Safeguards Rule (16 CFR Part 314) for financial services; NERC CIP (CIP-002–CIP-014) for bulk-power operators; CPNI (47 CFR Part 64) for telecom; California IoT Security Law (Cal. Civ. Code §§ 1798.91.04–.06) for connected devices; FDA 21 CFR Part 11 for clinical-records systems.",
     "APPLICABILITY: CPPA cybersecurity audit obligations apply only to 'businesses' (Cal. Civ. Code § 1798.140(ag)); state/local government agencies are excluded, and nonprofits/others must meet a CCPA business threshold. Where the intake indicates a government or nonprofit entity, add the applicability caveat and instruct the entity to confirm covered-business status before relying on the report.",
     "AUDIT vs CERTIFICATION: the independent auditor documents any gaps with remediation in the audit report under § 7123(e); the business's executive then submits the certification under § 7124. Keep these two documents/parties distinct — never collapse them into one step, and the audit's gap list does not excuse the executive certification.",
-    "READINESS LABEL is exactly one of: Audit-Ready (90+) | Substantially Ready (70–89) | Material Gaps (50–69) | Critical Gaps (<50). It is THIS tool's readiness assessment, not a CPPA regulatory determination.",
+    "READINESS LABEL is exactly one of: Audit-Ready (90+) | Substantially Ready (70–89) | Material Gaps (50–69) | Critical Gaps (<50) | Insufficient basis to assess. It is THIS tool's readiness assessment, not a CPPA regulatory determination. Use \"Insufficient basis to assess\" when the intake leaves a material share of controls unassessed (see STATUS↔SCORE).",
     "STATUS↔SCORE: a control's status must match its score (Implemented requires 90+; 21–59 must be Partial or Gap; use Gap only when the control is absent per the intake). Where the intake provides no information on a control, set its status to \"Insufficient information\" and do NOT score it as a Gap.",
   ].join("\n"),
 };
@@ -276,13 +276,13 @@ NEXT-STEPS CONSISTENCY: every deadline in next_steps must restate a deadline alr
 EXEC SUMMARY: use US English throughout (organization, program, defense, authorized). Reference "NIST CSF 2.0" not "NIST CSF". This is a readiness assessment, not the Article 9 audit — do not describe it as the cybersecurity audit itself.
 CERTIFICATION DISTINCTION: The formal CPPA cybersecurity audit under § 7122 must be performed by a qualified, objective, independent professional who issues an audit report under § 7123(e). Separately, the business's executive submits the certification under § 7124. These are two different documents from two different parties. The audit report (§ 7123(e)(4)) may include identified gaps with remediation plans — this does not mean the executive certification excuses the gaps. Write "the independent auditor will document any gaps in the audit report; the business's executive then submits the certification under § 7124" — do not collapse these into one step.
 ENFORCEMENT CONTEXT SOURCING: The enforcement_context must cite phase-in deadlines specifically to "11 CCR § 7121(a)" and must use "annual gross revenue" not just "revenue." Any sector-specific enforcement priority statement must be hedged as "this sector may attract scrutiny because [reason tied to data sensitivity or volume]" — do not make unqualified statements that CPPA "has signalled" specific enforcement priority without a citable source.
-READINESS LABEL VALIDATION: The readiness_level must be exactly one of: "Audit-Ready" | "Substantially Ready" | "Material Gaps" | "Critical Gaps". Never output "Ready" alone, "Partially Ready", or any other variant. "Substantially Ready" requires an overall_score of 70–89; "Audit-Ready" requires 90+; "Material Gaps" applies at 50–69; "Critical Gaps" applies below 50.
+READINESS LABEL VALIDATION: The readiness_level must be exactly one of: "Audit-Ready" | "Substantially Ready" | "Material Gaps" | "Critical Gaps" | "Insufficient basis to assess". Never output "Ready" alone, "Partially Ready", or any other variant. "Substantially Ready" requires an overall_score of 70–89; "Audit-Ready" requires 90+; "Material Gaps" applies at 50–69; "Critical Gaps" applies below 50. Use "Insufficient basis to assess" only when the intake leaves a material share of controls unassessed (the system will recompute deterministically).
 
 
 ${enforcementBlock}Respond with ONLY this exact JSON structure:
 {
   "executive_summary": "string (150-200 words — overall readiness posture and top 3 priorities)",
-  "readiness_level": "Audit-Ready | Substantially Ready | Material Gaps | Critical Gaps",
+  "readiness_level": "Audit-Ready | Substantially Ready | Material Gaps | Critical Gaps | Insufficient basis to assess",
   "top_risks": [
     { "title": "string", "description": "string", "deadline": "string", "consequence": "string" }
   ],
@@ -513,7 +513,13 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
         }));
         rep.overall_score = computed;
       }
-      const expectedLevel = readinessForScore(computed);
+      const insufficientCount = controls.filter((c: any) =>
+        String(c?.status ?? "").trim().toLowerCase() === "insufficient information"
+      ).length;
+      const INSUFFICIENT_THRESHOLD = 6;
+      const expectedLevel = insufficientCount >= INSUFFICIENT_THRESHOLD
+        ? "Insufficient basis to assess"
+        : readinessForScore(computed);
       if (rep?.readiness_level !== expectedLevel) {
         console.log(JSON.stringify({
           evt: "consistency_fix",
@@ -521,8 +527,18 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           field: "readiness_level",
           was: rep?.readiness_level,
           now: expectedLevel,
+          insufficient_count: insufficientCount,
         }));
         rep.readiness_level = expectedLevel;
+      }
+      if (insufficientCount >= INSUFFICIENT_THRESHOLD) {
+        const note = `Note: ${insufficientCount} of 18 controls could not be assessed because the intake did not provide enough information. The overall readiness level is set to "Insufficient basis to assess"; complete the intake for the unassessed controls to obtain a computed band.`;
+        const existing = String(rep?.executive_summary ?? "").trim();
+        if (existing && !existing.toLowerCase().includes("insufficient basis")) {
+          rep.executive_summary = `${existing} ${note}`;
+        } else if (!existing) {
+          rep.executive_summary = note;
+        }
       }
     }
 
