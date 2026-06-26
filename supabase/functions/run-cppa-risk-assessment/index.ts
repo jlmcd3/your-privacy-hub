@@ -671,6 +671,32 @@ async function runPipeline(assessment_id: string) {
       return;
     }
 
+    // Post-generation verification (soft): banned phrases + hard lint violations.
+    // One regeneration via the existing retry path if either fires.
+    try {
+      const flat = JSON.stringify(parsed);
+      const banned = BANNED_PHRASES.filter((p) => flat.includes(p));
+      const lint = lintReportText(flat);
+      if (banned.length || hasHardViolations(lint)) {
+        console.warn(JSON.stringify({
+          evt: "post_gen_violation",
+          fn: "run-cppa-risk-assessment",
+          banned,
+          violations: lint.violations?.slice(0, 20) ?? [],
+        }));
+        const retry = await callModel(system, userPrompt, "generate-v4-retry");
+        const retryParsed = tryParseJson(retry.text);
+        if (retryParsed && retryParsed.assessment_summary) {
+          parsed = retryParsed;
+          lastStopReason = retry.stopReason;
+          debugRaw = retry.text;
+        }
+      }
+    } catch (e) {
+      console.warn("[cppa-risk v4] post-gen verification error:", e);
+    }
+
+
     const report_data = {
       schema_version: "v4-five-stage",
       generated_at: new Date().toISOString(),
