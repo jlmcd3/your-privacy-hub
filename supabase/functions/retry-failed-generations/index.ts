@@ -261,6 +261,69 @@ async function resolveExhausted(table: string, row: any): Promise<Resolution> {
   return "failed";
 }
 
+// ── Registration orders: finalize completed, fail genuinely-stuck ──────────
+// Registration uses `fulfillment_status` (not `status`) and a fan-out worker
+// architecture; this sweeper is the never-stuck backstop. It runs every ~3 min
+// and either finalizes orders whose per-jurisdiction workers have all landed
+// docs, or fails orders that have blown past the wall-clock budget.
+async function sweepRegistrationOrders(): Promise<{ finalized: number; failed: number; errors: string[] }> {
+  const out = { finalized: 0, failed: 0, errors: [] as string[] };
+  const REG_STUCK_MIN = 8;
+  const regCutoff = new Date(Date.now() - REG_STUCK_MIN * 60_000).toISOString();
+  const { data: genOrders, error } = await supabase
+    .from("registration_orders")
+    .select("id, tier, jurisdictions, documents_generation_started_at")
+    .eq("fulfillment_status", "generating");
+  if (error) {
+    out.errors.push(`select registration_orders: ${error.message}`);
+    return out;
+  }
+  for (const o of genOrders ?? []) {
+    const { data: docs } = await supabase
+      .from("registration_documents")
+      .select("jurisdiction_code, document_type")
+      .eq("order_id", o.id);
+    const haveJur = new Set((docs ?? []).map((d: any) => d.jurisdiction_code));
+    const expectedJur = (o.jurisdictions ?? []).length;
+
+    // Finalize when every expected jurisdiction has produced at least one doc.
+    if (expectedJur > 0 && haveJur.size >= expectedJur && (docs ?? []).length > 0) {
+      const { data: flipped } = await supabase
+        .from("registration_orders")
+        .update({
+          fulfillment_status: o.tier === "diy" ? "documents_ready" : "ready_to_file",
+          documents_generated_at: new Date().toISOString(),
+        })
+        .eq("id", o.id)
+        .eq("fulfillment_status", "generating")
+        .select("id")
+        .maybeSingle();
+      if (flipped) {
+        out.finalized += 1;
+        try { await supabase.functions.invoke("send-registration-delivery-email", { body: { order_id: o.id } }); } catch (_) {}
+        try { await supabase.functions.invoke("schedule-registration-renewals", { body: { order_id: o.id } }); } catch (_) {}
+      }
+      continue;
+    }
+
+    // Otherwise, if it has been stuck past the wall-clock budget, fail it.
+    if (o.documents_generation_started_at && o.documents_generation_started_at < regCutoff) {
+      const { data: flipped } = await supabase
+        .from("registration_orders")
+        .update({
+          fulfillment_status: "generation_failed",
+          validation_notes: "reaped: incomplete past wall-clock budget",
+        })
+        .eq("id", o.id)
+        .eq("fulfillment_status", "generating")
+        .select("id")
+        .maybeSingle();
+      if (flipped) out.failed += 1;
+    }
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -274,14 +337,22 @@ Deno.serve(async (req) => {
       results.push({ table, retried: 0, refunded: 0, credited: 0, failed_resolved: 0, errors: [msg] });
     }
   }
+  let registration: { finalized: number; failed: number; errors: string[] } = { finalized: 0, failed: 0, errors: [] };
+  try {
+    registration = await sweepRegistrationOrders();
+  } catch (e) {
+    registration.errors.push(e instanceof Error ? e.message : String(e));
+  }
   const summary = {
     elapsed_ms: Date.now() - startedAt,
     max_attempts: MAX_ATTEMPTS,
     stuck_minutes: STUCK_PROCESSING_MINUTES,
     results,
+    registration,
   };
   console.log("[retry-failed-generations] summary", JSON.stringify(summary));
   return new Response(JSON.stringify(summary), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
+
