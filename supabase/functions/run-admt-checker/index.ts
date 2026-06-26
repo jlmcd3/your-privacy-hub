@@ -35,7 +35,7 @@ function json(b: unknown, s = 200) {
 }
 
 async function callAnthropic(
-  system: string,
+  system: string | SystemBlock[],
   user: string,
   maxTokens: number,
   label = "admt"
