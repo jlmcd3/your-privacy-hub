@@ -366,7 +366,13 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
       ? `UK GUIDANCE FRAMING (regime is UK GDPR): Where this analysis cites EDPB Guidelines 1/2024, frame EDPB guidance as persuasive post-Brexit — the ICO's legitimate interests guidance is the primary UK reference. Note where the Data (Use and Access) Act 2025 recognised-legitimate-interests changes may be relevant.`
       : "";
 
+    const gdprCitations = renderGdprCitationBlock({
+      regime: enforcementRegime,
+      jurisdictions: liaJurisdictions,
+    });
+
     const analysisInjected = [
+      gdprCitations,
       enforcementContextStr ? `ENFORCEMENT PRECEDENTS (cite by code [E1]–[E5]; each entry shows its tier and verification status):\n${enforcementContextStr}` : "",
       gdprBlock ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "",
       ukGuidanceFraming,
