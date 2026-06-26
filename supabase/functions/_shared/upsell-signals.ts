@@ -153,7 +153,7 @@ export function computeUpsellSignals(
       const intake = row?.intake_data ?? {};
       const jurs   = norm(intake?.jurisdictions ?? []);
       const cats   = norm(intake?.data_categories ?? []);
-      const risks  = row?.report_data?.section_3_risks?.risk_assessment ?? [];
+      const risks  = row?.report_data?.section_4_risk_management?.inherent_risk_assessment ?? [];
       const tp     = intake?.third_party_processors;
 
       if (!row?.source_assessment_id)
