@@ -57,7 +57,7 @@ const DOCUMENT_TYPES = [
 
 async function callClaude(
   model: string,
-  systemPrompt: string,
+  system: string | SystemBlock[],
   userContent: string,
   maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS,
   timeoutMs: number = 720_000
@@ -74,7 +74,7 @@ async function callClaude(
     body: JSON.stringify({
       model,
       max_tokens: maxTokens,
-      system: systemPrompt,
+      system,
       messages: [{ role: "user", content: userContent }],
     }),
     signal: AbortSignal.timeout(timeoutMs),
