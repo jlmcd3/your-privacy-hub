@@ -489,13 +489,13 @@ export const CPPA_RISK_TEST: AssertionTest = {
     },
     {
       id: "cppa-risk-document-a-present",
-      description: "report_data must include part_a (risk assessment content)",
+      description: "report_data must include assessment_summary (risk assessment content)",
       category: "requirement",
       check: (output) => {
         const o = output as Record<string, unknown>;
-        return !!(o?.part_a || o?.document_a || o?.document_a_text || o?.risk_assessment);
+        return !!(o?.assessment_summary || o?.part_a || o?.document_a || o?.document_a_text || o?.risk_assessment);
       },
-      errorMessage: "CPPA Risk Assessment output is missing part_a / risk assessment section.",
+      errorMessage: "CPPA Risk Assessment output is missing assessment_summary / risk assessment section.",
     },
     {
       id: "cppa-risk-no-article-6-11",
