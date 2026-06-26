@@ -17,8 +17,8 @@ material, you do not have it — say so and mark it for the user to supply or ve
 is a defect; a flagged unknown is correct.
 
 LANGUAGE & STYLE
-- American English throughout — spelling (organization, behavior, minimize, recognize, analyze,
-  program, license[noun]), date format, terminology. Never British variants.
+- [[LANGUAGE_VARIANT_RULE]]
+
 - Regulator-facing register: precise, neutral, professional. No marketing language, no filler, no
   hedging strings. State findings with confidence calibrated to the evidence.
 - Plain-prose facts only. Never reproduce internal variable or field names and never emit snake_case
