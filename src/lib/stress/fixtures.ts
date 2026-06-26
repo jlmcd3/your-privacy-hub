@@ -963,6 +963,7 @@ export const REG_VARIANTS = [
 
 export const CPPA_RISK_VARIANTS = [
   {
+    entity_name: "Cascade Health Partners, Inc.",
     q1_revenue: "Over $500M",
     q2_consumers: "1–10 million",
     q3_sector: "Healthcare/Life Sciences",
