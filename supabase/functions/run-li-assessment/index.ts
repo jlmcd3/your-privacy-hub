@@ -5,6 +5,8 @@ import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun, type FnRunHandle } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
+import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
+
 
 
 // Robustly parse a JSON object from an LLM response that may include
@@ -43,7 +45,7 @@ const corsHeaders = {
 
 async function callAnthropic(
   model: string,
-  systemPrompt: string,
+  systemPrompt: string | SystemBlock[],
   userContent: string,
   maxTokens: number = 6000,
   timeoutMs: number = 720_000
@@ -71,6 +73,63 @@ async function callAnthropic(
   console.log(`[run-li-assessment] gen done stop=${stopReason} chars=${text.length}`);
   return { text, stopReason };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tool Modules (shared prompt core v2.2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const LIA_SHARED_CITATION_FRAMEWORK =
+  "Cite Article 6(1)(f) GDPR/UK GDPR, EDPB Guidelines 1/2024 (balancing test = §4; necessity = §3, proportionality §3.2; purpose §2 — never cite a non-existent §3.3), ICO LIA guidance, and applicable national DPA positions. For the legitimate-interest EXAMPLES (direct marketing, intra-group transmission, network/information security) cite by JURISDICTION: EU GDPR has only four paragraphs in Article 6 — cite Recital 47 (direct marketing), Recital 48 (intra-group), Recital 49 (network/information security); NEVER cite 'Article 6(11)' for EU. UK GDPR (post-DUAA, in force 5 Feb 2026) DOES have Article 6(11), which codifies those three examples as capable of being Article 6(1)(f) legitimate interests — an LIA/balancing test is STILL required — with Article 6(12) defining the terms; for dual EU/UK documents use 'Recital 49 EU GDPR and Article 6(11) UK GDPR'. Do NOT conflate Article 6(11) with Article 6(1)(ea): 6(1)(ea) + Annex 1 is the separate 'recognised legitimate interests' basis (no balancing test, five public-interest purposes, private/third-sector only). Article 6(11) UK GDPR is a single undivided paragraph — never write 'Article 6(11)(b)' or any sub-letter.";
+
+const LIA_ANALYSIS_EXTRA_RULES = [
+  "FACT DISCIPLINE — non-negotiable: Analyse ONLY the facts the controller actually stated. Do NOT introduce any specific diagnosis, disease, condition, technology, methodology, or named use case the controller did not write — for example, do not infer 'cancer', 'oncology', 'recurrence prediction', 'AI', 'machine learning', or 'model training' from a general description of research or data use. Do NOT make a vague description concrete by supplying a plausible specific example of it. Restate the controller's purpose and processing in their own terms, and characterise them no more specifically than they did. When the description is generic or vague, that vagueness is itself a finding: record it under risk_factors / open_questions (e.g. 'the stated purpose is described too generically to assess specificity under §2') rather than inventing a specific version to assess.",
+  "CITATION ACCURACY RULES — non-negotiable:\n- ICO Royal Free / DeepMind: the enforcement decision was issued in 2017, NOT 2023. If you reference it, cite as 'ICO Royal Free / DeepMind enforcement decision (2017) and subsequent guidance' — never as '2023 Royal Free / DeepMind enforcement.'\n- EDPB Recommendations 01/2021 address supplementary measures for international data transfers post-Schrems II, not LIA necessity analysis. Do NOT cite EDPB Recommendations 01/2021 as authority for pseudonymisation in a necessity test. For pseudonymisation as a necessity/proportionality measure, cite EDPB Guidelines 1/2024 §3.2 (necessity and proportionality) as the primary source.\n- Do NOT invent enforcement years, fine amounts, or case names.",
+  "EDPB BALANCING SECTION RULE — non-negotiable: When citing EDPB Guidelines 1/2024 for the balancing test (the four-factor framework), always cite §4. NEVER cite '§3.3' — section 3.3 does not exist in those Guidelines. Structure: §2 = purpose test, §3 = necessity test (§3.1 general, §3.2 proportionality), §4 = balancing test.",
+  "RECITAL/EXAMPLE CITATION RULE: For EU jurisdictions, cite Recital 47 (direct marketing), Recital 48 (intra-group), Recital 49 (network/information security). For UK jurisdictions, Article 6(11) UK GDPR codifies these three categories as capable of being legitimate interests — an LIA / balancing test is STILL required (Article 6(11) is not an exemption). For dual EU/UK documents use 'Recital 49 EU GDPR and Article 6(11) UK GDPR' (and the parallel pairings for direct marketing / intra-group).",
+  "RECOGNISED-LEGITIMATE-INTERESTS DISTINCTION (UK): Where a UK processing activity falls within one of the five Annex 1 recognised-legitimate-interest purposes, it relies on Article 6(1)(ea) UK GDPR with NO balancing test; run the full LIA balancing test only for general Article 6(1)(f) processing. State which basis applies. Do NOT conflate Article 6(1)(ea) with Article 6(11).",
+  "DPO ROLE RULE — non-negotiable: The DPO's role under GDPR Articles 38–39 is to advise, inform, and monitor — NOT to approve or sign off on the controller's lawful basis decisions. NEVER use language such as 'DPO sign-off', 'DPO approval', 'DPO approves the LIA'. The correct formulation is always: 'DPO consulted and advice documented' or 'record of DPO consultation' or 'DPO involvement recorded per Article 38(1)'.",
+  "ePRIVACY / PECR RULE: If the proposed processing involves cookies, device identifiers, advertising identifiers (GAID, IDFA), device fingerprints, SDKs, pixels, local storage, or any mechanism for storing or accessing information on a user's device, you MUST include the following as a risk factor: 'This GDPR Article 6(1)(f) analysis does not resolve ePrivacy obligations. Storing or accessing information on user devices requires a separate consent or exemption under the ePrivacy Directive (2002/58/EC) and, in the UK, PECR 2003. A valid GDPR lawful basis alone is not sufficient.'",
+  "ADTECH PECR CROSS-REFERENCE RULE: If the sector is AdTech, Digital Media, advertising, or programmatic advertising AND device identifiers appear in the data categories, add to purpose_test.risk_factors verbatim: 'Note: ePrivacy Directive / UK PECR compliance for storage of or access to device identifiers (including SDK identifiers, mobile advertising IDs, and browser fingerprints) must be assessed separately — GDPR Article 6(1)(f) lawful basis does not satisfy PECR consent requirements.'",
+  "PRECEDENT PROSE RULE: The precedent block tags each entry with a bracketed outcome marker like [REJECTED] for machine readability. NEVER reproduce these bracketed markers in your prose. Refer to precedents in natural language naming the deciding regulator. Never attribute an enforcement decision to the EDPB unless the entry's source is an EDPB Article 65 binding decision.",
+  "INTAKE-FACT CONSISTENCY RULE: if the intake names the controller/organisation, use that name and NEVER state that the controller has not been named.",
+  "MINES REGULATIONS CITATION RULE: When citing the Mines Regulations 2014, describe the duty as arrangements to know who is below ground and to respond to emergencies. Do not characterise it as requiring continuous location monitoring.",
+  "HANDBOOK TRANSPARENCY RULE: If a handbook addendum is cited as a transparency mitigation, note in the same breath that a standalone worker notice is still expected.",
+  "BALANCING-RECORD RULE: Do not duplicate balancing-record content: the 'Balancing Record — Must Include' list should reference, not restate, items already specified under the LIA documentation recommendation. Use UK employment terminology (trade union / elected worker representatives) rather than 'works council' unless the intake uses that term.",
+  "CHILDREN'S CODE ATTRIBUTION RULE: The ICO Age Appropriate Design Code is a statutory code of practice issued under section 123 of the Data Protection Act 2018 — NOT under PECR. Always describe it as 'ICO statutory code of practice under DPA 2018 s.123'.",
+  "MANDATORY FIELDS: The 'verdict' field is REQUIRED in every test object (use 'uncertain' if unclear — never omit). 'closest_accepted_precedent' and 'closest_rejected_precedent' MUST be non-empty strings; write 'None identified in current database' if no match.",
+  "TIER FRAMING (annotations): Each enforcement precedent is tagged TIER 1/2/3. TIER 1 = in-regime (binding). TIER 2 = cross-channel persuasive (non-binding; expressly framed as such). TIER 3 = non-EU/UK supportive only (never cite as authority). Every annotation MUST include authority_tier matching the [E#] tag and authority_framing per the mapping: 1→in_regime, 2→persuasive_not_binding, 3→supportive_not_authoritative. UNVERIFIED rows: never state a fine amount.",
+].join("\n\n");
+
+const LIA_ANALYSIS_TOOL_MODULE: ToolModule = {
+  identity:
+    "You are a senior privacy regulatory analyst producing a formal legitimate interest assessment under GDPR / UK GDPR, applying the EDPB Guidelines 1/2024 three-part test (purpose, necessity, balancing) to the specific facts provided.",
+  citationFramework: LIA_SHARED_CITATION_FRAMEWORK,
+  outputMode: "strict-JSON",
+  extraRules: LIA_ANALYSIS_EXTRA_RULES,
+};
+
+const LIA_CLASSIFY_TOOL_MODULE: ToolModule = {
+  identity:
+    "You are a privacy regulatory analyst classifying processing activities for legitimate interest analysis.",
+  citationFramework: LIA_SHARED_CITATION_FRAMEWORK,
+  outputMode: "strict-JSON",
+};
+
+const LIA_DOCS_TOOL_MODULE: ToolModule = {
+  identity:
+    "You are a privacy regulatory analyst producing practical documentation guidance for a legitimate interest assessment. Focus on what documentation would make this LIA defensible.",
+  citationFramework: LIA_SHARED_CITATION_FRAMEWORK,
+  outputMode: "strict-JSON",
+  extraRules: [
+    "FACT DISCIPLINE: Describe the processing only as generically or specifically as the controller and the analysis actually did. Do NOT introduce any diagnosis, condition, technology, or use case (e.g. 'cancer', 'AI model training') that does not appear in the processing activity or the analysis you were given.",
+    "CITATION FORM: Cite regulatory instruments by name and provision in general terms only (e.g. 'GDPR Article 35 and EDPB Guidelines on DPIA'). Do NOT cite specific enforcement case names, fine amounts, or decision dates — those are only available in Stage 2. If unsure of a specific provision number, describe the obligation in plain language.",
+    "DPO ROLE RULE: Articles 38–39 assign the DPO an advisory/monitoring role — not approval. NEVER use 'DPO sign-off' or 'DPO approval'. Always use 'DPO consulted and advice documented' or 'record of DPO consultation under Article 38(1)'.",
+    "ARTICLE 36 CHAIN RULE: GDPR Article 36 prior consultation is triggered by a DPIA identifying residual high risk AFTER mitigation — not a routine LIA output. If you reference it, make the chain explicit (LIA → DPIA under Art. 35 → residual-risk assessment → Art. 36 only if high residual risk remains).",
+  ].join("\n\n"),
+};
+
+export { LIA_ANALYSIS_TOOL_MODULE, LIA_CLASSIFY_TOOL_MODULE, LIA_DOCS_TOOL_MODULE };
+
 
 // Heavy generation work. Returns when the row has been finalised (status=ready
 // or status=failed). Invoked via EdgeRuntime.waitUntil so we can return 202 to
@@ -157,7 +216,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
 
     // ── STAGE 1: Classify use case ──
     const t1Start = Date.now();
-    const classifySystem = `You are a privacy regulatory analyst. Classify processing activities for legitimate interest analysis. Return ONLY valid JSON, no preamble.`;
+    const today = new Date().toISOString().slice(0, 10);
 
     // Determine jurisdiction for GDPR authority retrieval (UK if any verified
     // assessment.jurisdictions value matches /united kingdom|uk|gb/i, else EU).
@@ -168,16 +227,26 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     // Regime gates which enforcement precedents the LIA may cite. UK runs only
     // see UK GDPR / DPA 2018; EU runs only see EU/EEA GDPR enforcement.
     const enforcementRegime: "gdpr" | "uk_gdpr" = isUk ? "uk_gdpr" : "gdpr";
+    // Defensive guard: GDPR tools must never query the California corpus.
+    if (enforcementRegime !== "gdpr" && enforcementRegime !== "uk_gdpr") {
+      throw new Error(`[LIA] invalid enforcementRegime '${enforcementRegime}' — must be 'gdpr' or 'uk_gdpr'`);
+    }
     const regimeLabel = isUk ? "UK GDPR" : "EU GDPR";
+
+    const classifySystemBlocks = buildSystemContent({
+      toolModule: LIA_CLASSIFY_TOOL_MODULE,
+      currentDate: today,
+    });
 
     // Run classification, enforcement context fetch, and GDPR authority retrieval in parallel
     const [classifyResult, enforcementCtxResult, gdprCtxResult] = await Promise.all([
       callAnthropic(
         "claude-haiku-4-5-20251001",
-        classifySystem,
+        classifySystemBlocks,
         `Classify this processing activity for legitimate interest analysis:\nOrganisation (controller) being assessed: ${assessment.organization_name || "not specified"}\nDescription: ${assessment.processing_description}\nData categories: ${(assessment.data_categories || []).join(", ")}\nRelationship type: ${assessment.relationship_type || "not specified"}\nSector: ${assessment.sector || "not specified"}\n\nReturn JSON:\n{\n  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",\n  "primary_data_categories": ["list of data categories involved"],\n  "special_category_data": true or false,\n  "relationship_exists": true or false,\n  "jurisdictions_scope": ["list of relevant jurisdictions"]\n}`,
         500
       ),
+
       supabase.functions.invoke("get-enforcement-context", {
         body: {
           tool: "LIA",
@@ -189,7 +258,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
           limit: 5,
         },
       }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; }),
-      getGdprContext(supabase, {
+      getGdprContext(supabase as any, {
         articles: ["6"],
         jurisdiction: gdprJurisdiction,
         recitals: [47],
@@ -290,56 +359,21 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const balancingDetails = (assessment as any).balancing_details || {};
 
     const ukGuidanceFraming = isUk
-      ? `\n\nUK GUIDANCE FRAMING (regime is UK GDPR): Where this analysis cites EDPB Guidelines 1/2024, frame EDPB guidance as persuasive post-Brexit — the ICO's legitimate interests guidance is the primary UK reference. Note where the Data (Use and Access) Act 2025 recognised-legitimate-interests changes may be relevant.`
+      ? `UK GUIDANCE FRAMING (regime is UK GDPR): Where this analysis cites EDPB Guidelines 1/2024, frame EDPB guidance as persuasive post-Brexit — the ICO's legitimate interests guidance is the primary UK reference. Note where the Data (Use and Access) Act 2025 recognised-legitimate-interests changes may be relevant.`
       : "";
 
-    const analysisSystem = `You are a senior privacy regulatory analyst producing a formal legitimate interest assessment. Your analysis is precise, cites specific regulatory standards (Article 6(1)(f) GDPR, EDPB Guidelines 1/2024 on legitimate interests, ICO LIA guidance, applicable national DPA positions), and is grounded strictly in the facts provided and precedent database. Do NOT invent facts the user did not provide. Where a relevant fact is missing, say so and flag it as an open question.
+    const analysisInjected = [
+      enforcementContextStr ? `ENFORCEMENT PRECEDENTS (cite by code [E1]–[E5]; each entry shows its tier and verification status):\n${enforcementContextStr}` : "",
+      gdprBlock ? `STATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "",
+      ukGuidanceFraming,
+    ].filter(Boolean).join("\n\n");
 
-FACT DISCIPLINE — non-negotiable: Analyse ONLY the facts the controller actually stated. Do NOT introduce any specific diagnosis, disease, condition, technology, methodology, or named use case the controller did not write — for example, do not infer "cancer", "oncology", "recurrence prediction", "AI", "machine learning", or "model training" from a general description of research or data use. Do NOT make a vague description concrete by supplying a plausible specific example of it. Restate the controller's purpose and processing in their own terms, and characterise them no more specifically than they did. When the description is generic or vague, that vagueness is itself a finding: record it under risk_factors / open_questions (e.g. "the stated purpose is described too generically to assess specificity under §2") rather than inventing a specific version to assess.
+    const analysisSystemBlocks = buildSystemContent({
+      toolModule: LIA_ANALYSIS_TOOL_MODULE,
+      currentDate: today,
+      injected: analysisInjected,
+    });
 
-This is a compliance framework tool. All outputs must include the statement: "This analysis is a compliance framework tool and does not constitute legal advice. Review findings with qualified legal counsel." Return ONLY valid JSON, no preamble.${ukGuidanceFraming}
-
-CITATION ACCURACY RULES — non-negotiable:
-- ICO Royal Free / DeepMind: the enforcement decision was issued in **2017**, NOT 2023. If you reference it, cite as "ICO Royal Free / DeepMind enforcement decision (2017) and subsequent guidance" — never as "2023 Royal Free / DeepMind enforcement."
-- EDPB Recommendations 01/2021 address **supplementary measures for international data transfers post-Schrems II**, not LIA necessity analysis. Do NOT cite EDPB Recommendations 01/2021 as authority for pseudonymisation in a necessity test. For pseudonymisation as a necessity/proportionality measure, cite **EDPB Guidelines 1/2024 §3.2 (necessity and proportionality)** as the primary source; EDPB Recommendations 01/2021 may be cited only as supplementary context if the technical-measures argument also concerns international transfers.
-- Do NOT invent enforcement years, fine amounts, or case names. If unsure of a citation detail, use a hedged form (e.g. "ICO guidance, c. 2023") rather than a precise but fabricated date.
-- ARTICLE 6 STRUCTURE RULE — non-negotiable: GDPR Article 6 has exactly four paragraphs: (1), (2), (3), and (4). There is NO Article 6(5), 6(6), 6(7), 6(8), 6(9), 6(10), or 6(11) in the GDPR or UK GDPR. NEVER cite "Article 6(11)" or any other non-existent paragraph of Article 6 — doing so will discredit the entire report when shown to a regulator or in court. The UK Data (Use and Access) Act 2025 added Article 6(1)(ea) (recognised legitimate interests) — this is 6(1)(ea), not 6(11).
-- RECITAL CITATION RULE: For the following common legitimate-interest propositions, use ONLY the correct recital — never a fabricated article number: (a) Network and information security as a type of processing that may constitute a legitimate interest → cite Recital 49 GDPR / Recital 49 UK GDPR, which states verbatim that processing strictly necessary and proportionate for network and information security may constitute a legitimate interest of the controller. (b) Direct marketing as a potential legitimate interest → cite Recital 47 GDPR / Recital 47 UK GDPR. (c) Intra-group data transmission as an example → cite Recital 48 GDPR / Recital 48 UK GDPR. Do NOT use Article 6 to make these points — the recitals are the correct and only proper citation vehicle for these examples.
-
-MANDATORY FIELD RULES — violations will cause downstream system failures:
-
-1. The "verdict" field is REQUIRED in every test object (purpose_test, necessity_test, balancing_test). You MUST include it even when evidence is incomplete or the outcome is genuinely uncertain. Use "uncertain" — never omit the field.
-
-2. The "closest_accepted_precedent" field MUST be a non-empty string. If no close match exists in the database, write "None identified in current database" — never return null.
-
-3. The "closest_rejected_precedent" field MUST be a non-empty string. If none, write "None identified in current database".
-
-4. PRECEDENT PROSE RULE: The precedent block above tags each entry with a bracketed outcome marker like [REJECTED] for machine readability. NEVER reproduce these bracketed markers in your prose. Refer to precedents in natural language naming the deciding regulator from the entry, e.g. 'a rejected decision by the Hessian DPA concerning keystroke logging'. Never attribute an enforcement decision to the EDPB unless the entry's source field is an EDPB Article 65 binding decision; the EDPB is not a first-instance enforcement body.
-
-INTAKE-FACT CONSISTENCY RULE: if the intake names the controller/organisation, use that name and NEVER state that the controller has not been named. Risk factors must not contradict facts stated elsewhere in the same assessment.
-
-MINES REGULATIONS CITATION RULE: When citing the Mines Regulations 2014, describe the duty as arrangements to know who is below ground and to respond to emergencies; cite the specific regulation if known from context, otherwise cite the instrument generally. Do not characterise it as requiring continuous location monitoring.
-
-HANDBOOK TRANSPARENCY RULE: If a handbook addendum is cited as a transparency mitigation, note in the same breath that a standalone worker notice is still expected — do not rely on handbook delivery as sufficient in one section while warning against it in another.
-
-BALANCING-RECORD RULE: Do not duplicate the balancing-record content: the "Balancing Record — Must Include" list should reference, not restate, items already specified under the LIA documentation recommendation. Use UK employment terminology (trade union / elected worker representatives) rather than "works council" unless the intake uses that term.
-
-DPO ROLE RULE — non-negotiable: The DPO's role under GDPR Articles 38–39 is to advise, inform, and monitor — NOT to approve or sign off on the controller's lawful basis decisions. NEVER use language such as "DPO sign-off", "DPO approval", "DPO approves the LIA", or any similar phrasing that implies the DPO makes or ratifies the controller's legal basis choice. The controller (not the DPO) makes and owns the lawful basis decision. The correct formulation is always: "DPO consulted and advice documented" or "record of DPO consultation" or "DPO involvement recorded per Article 38(1)". Apply this rule in all balancing record elements, documentation recommendations, and any other section that references DPO involvement.
-
-ePRIVACY / PECR RULE: If the proposed processing involves any of the following — cookies, device identifiers, advertising identifiers (GAID, IDFA), device fingerprints, SDKs, pixels, local storage, or any mechanism for storing or accessing information on a user's device or terminal equipment — you MUST include the following as a risk factor in the necessity_test or balancing_test: "This GDPR Article 6(1)(f) analysis does not resolve ePrivacy obligations. Storing or accessing information on user devices (including cookies, device identifiers, and SDKs) requires a separate consent or exemption under the ePrivacy Directive (2002/58/EC) and, in the UK, the Privacy and Electronic Communications Regulations 2003 (PECR). A valid GDPR lawful basis alone is not sufficient — the ePrivacy/PECR layer must be assessed and addressed independently." This rule applies regardless of sector.
-
-ADTECH PECR CROSS-REFERENCE RULE: If the sector is AdTech, Digital Media, advertising, or programmatic advertising AND device identifiers (SDK IDs, mobile advertising IDs, browser fingerprints, cookies, pixels) appear in the data categories, you MUST add the following sentence to the risk_factors of the purpose_test, verbatim: "Note: ePrivacy Directive / UK PECR compliance for storage of or access to device identifiers (including SDK identifiers, mobile advertising IDs, and browser fingerprints) must be assessed separately — GDPR Article 6(1)(f) lawful basis does not satisfy PECR consent requirements."
-
-ARTICLE 6(11) SUB-PARAGRAPH RULE — non-negotiable: Never cite "Article 6(11)(b) UK GDPR" or any sub-paragraph letter under Article 6(11). UK GDPR Article 6(11) (as inserted by the Data (Use and Access) Act 2025) is a single undivided paragraph with no sub-paragraphs. Always write "Article 6(11) UK GDPR" without any letter suffix.
-
-EDPB BALANCING SECTION RULE — non-negotiable: When citing EDPB Guidelines 1/2024 for the balancing test (the four-factor framework), always cite §4. NEVER cite "§3.3" — section 3.3 does not exist in those Guidelines. The structure is: §2 = purpose test, §3 = necessity test (§3.1 general, §3.2 proportionality), §4 = balancing test.
-
-ARTICLE 6(11) vs 6(1)(f) ATTRIBUTION RULE: The illustrative examples of legitimate interests (direct marketing, intra-group transmission, network and information security) are found in Article 6(11) UK GDPR. Article 6(1)(f) is the legal basis provision only and contains no illustrative examples. NEVER write "Article 6(1)(f) UK GDPR examples" or attribute these examples to Article 6(1)(f) — always attribute them to "Article 6(11) UK GDPR".
-
-CHILDREN'S CODE ATTRIBUTION RULE: The ICO Age Appropriate Design Code (the "Children's Code") is a statutory code of practice issued under section 123 of the Data Protection Act 2018 — NOT under PECR. Whenever the Children's Code is referenced, always describe it as "ICO statutory code of practice under DPA 2018 s.123". NEVER attribute it to "PECR/UK GDPR" or to PECR alone.
-
-RECITAL 49 EU PARALLEL RULE — non-negotiable: Whenever you cite Article 6(11) UK GDPR for network and information security as an example of legitimate interest processing, you MUST also cite Recital 49 EU GDPR as the parallel EU authority. EU GDPR has no Article 6(11) equivalent — the express recognition of network and information security as a legitimate interest on the EU side is found in Recital 49 EU GDPR, which states: "The processing of personal data to the extent strictly necessary and proportionate for the purposes of ensuring network and information security… constitutes a legitimate interest of the data controller concerned." The correct combined formulation for dual EU/UK jurisdiction documents is: "…expressly recognised in Recital 49 EU GDPR and Article 6(11) UK GDPR as a paradigmatic legitimate interest example." Do NOT cite Article 6(11) UK GDPR alone for network/information security in any document that covers EU-established data subjects or EU-jurisdiction processing. Apply this dual-citation pattern consistently in the purpose_test, any balancing_test supporting factors that reference network security, and the Balancing Record — Must Include section.`
-      + (gdprBlock ? `\n\nSTATUTORY AND EDPB AUTHORITY (cite as [Art. X] / [Recital N] / [EDPB ref]; statutory text is verbatim — do not alter it):\n${gdprBlock}` : "");
 
     const analysisUserBase = `Conduct a three-part legitimate interest assessment for the following proposed processing.
 
@@ -446,7 +480,7 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
 
     async function runStage2(extraUser: string, maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
-      return await callAnthropic("claude-sonnet-4-6", analysisSystem, finalUser, maxTokens);
+      return await callAnthropic("claude-sonnet-4-6", analysisSystemBlocks, finalUser, maxTokens);
     }
 
     const t2Start = Date.now();
@@ -658,15 +692,11 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
 
 
     // ── STAGE 3: Documentation recommendations ──
-    const docsSystem = `You are a privacy regulatory analyst producing practical documentation guidance. Focus on what documentation would make this legitimate interest assessment defensible. Return ONLY valid JSON, no preamble.
+    const docsSystemBlocks = buildSystemContent({
+      toolModule: LIA_DOCS_TOOL_MODULE,
+      currentDate: today,
+    });
 
-FACT DISCIPLINE: Describe the processing only as generically or specifically as the controller and the analysis actually did. Do NOT introduce any diagnosis, condition, technology, or use case (e.g. "cancer", "AI model training") that does not appear in the processing activity or the analysis you were given. If the input is generic, keep the documentation generic.
-
-CITATION ACCURACY RULE: In the 'basis' field for each recommended document, cite regulatory instruments by name and provision in general terms only (e.g. 'GDPR Article 35 and EDPB Guidelines on DPIA'). Do NOT cite specific enforcement case names, fine amounts, or decision dates — those are only available in Stage 2 where the enforcement corpus is injected. If you are uncertain of a specific provision number, describe the obligation in plain language rather than citing a potentially incorrect section number.
-
-DPO ROLE RULE — non-negotiable: GDPR Articles 38–39 assign the DPO an advisory, monitoring, and information role — not a decision-making or approval role. In all recommended documentation items and all balancing_record_elements, NEVER use "DPO sign-off", "DPO approval", or any language implying the DPO authorises or ratifies the controller's lawful basis choice. The controller makes and owns the lawful basis decision. Always use: "DPO consulted and advice documented" or "record of DPO consultation under Article 38(1)" or equivalent advisory language.
-
-ARTICLE 36 CHAIN RULE: GDPR Article 36 prior consultation with the supervisory authority is triggered by a DPIA that identifies residual high risk AFTER mitigation measures have been applied — it is not a routine LIA output. If you recommend any DPIA-related documentation, always make the chain explicit: the LIA may identify factors that make a DPIA necessary (under Article 35); the DPIA then assesses residual risk; and only if residual risk remains high after mitigation does Article 36 prior consultation become relevant. Never present Article 36 prior consultation as a standalone step or a direct output of the LIA itself.`;
 
     const ukDocsAddendum = isUk
       ? `\n\nUK ARTICLE 9(2)(b) MECHANISM (regime is UK GDPR): For any 'Article 9(2)(b) Employment Law Condition Assessment' document, the description MUST name the UK implementing mechanism: 'Reliance on Article 9(2)(b) under UK GDPR additionally requires satisfying Data Protection Act 2018 s.10 and Schedule 1, Part 1, paragraph 1 (employment, social security and social protection), including having an APPROPRIATE POLICY DOCUMENT (APD) in place per Schedule 1, Part 4. The APD must describe the lawful basis and Schedule 1 condition relied on, retention and erasure policy for the special-category data, and compliance procedures.'${balancingDetails.special_category_data ? `\nFor this UK assessment involving special-category data, you MUST also include a DISTINCT 'Appropriate Policy Document (APD)' entry in recommended_documentation whose key_elements list contains: (i) the lawful basis and Schedule 1 condition relied on, (ii) retention and erasure policy for the special-category data, and (iii) compliance procedures. Cite 'UK Data Protection Act 2018 Schedule 1, Part 4' as its basis.` : ""}`
@@ -709,10 +739,10 @@ Return JSON:
 }`;
 
     const t3Start = Date.now();
-    let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
+    let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystemBlocks, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
     if (docsStage.stopReason === "max_tokens") {
       console.warn(`[LIA] Stage 3 truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
-      docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
+      docsStage = await callAnthropic("claude-sonnet-4-6", docsSystemBlocks, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
       if (docsStage.stopReason === "max_tokens") {
         console.error("[LIA] Stage 3 truncated_output after retry — failing run");
         throw new Error("truncated_output: LIA Stage 3 (docs) exceeded token budget twice");
