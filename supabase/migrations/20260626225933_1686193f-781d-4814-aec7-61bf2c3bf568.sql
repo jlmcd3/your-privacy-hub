@@ -1,0 +1,1 @@
+ALTER TABLE public.registration_orders ADD COLUMN IF NOT EXISTS documents_generation_started_at timestamptz;
