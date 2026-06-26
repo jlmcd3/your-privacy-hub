@@ -511,7 +511,10 @@ Return JSON:
     const synthesisSystem = buildSystemContent({
       toolModule: GOVERNANCE_SYNTHESIS_TOOL_MODULE,
       currentDate: today,
-      injected: `ENFORCEMENT CONTEXT (synthesis only):\n${enforcementContextStr}`,
+      injected: [
+        gdprCitationsBlock,
+        `ENFORCEMENT CONTEXT (synthesis only):\n${enforcementContextStr}`,
+      ].filter(Boolean).join("\n\n"),
       cache: true,
     });
 
