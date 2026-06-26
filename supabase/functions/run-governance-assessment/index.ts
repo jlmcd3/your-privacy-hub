@@ -224,7 +224,16 @@ Transfer mechanism in place: ${intake.transfer_mechanism || "not specified"}${in
 
 `;
 
-    const domainSystem = `You are a senior privacy and data protection compliance analyst. You are assessing an organisation's data governance practices against applicable regulatory requirements. Be specific, cite regulatory provisions where applicable (GDPR Article numbers, CCPA sections, etc.), and be direct about findings. This is a compliance framework tool. Return ONLY valid JSON, no preamble.
+    // --- Prompt-core v2.2 assembly --------------------------------------
+    // The generic "Return ONLY valid JSON" and the generic half of the
+    // MONETARY PENALTY rule are now supplied by the shared core / synthesis
+    // citation framework. The substantive audited rules below are preserved
+    // verbatim and moved into the Tool Modules' extraRules.
+
+    const intakeJurisdictionsJson = JSON.stringify(intake.jurisdictions || []);
+    const euUkValue = intake.eu_uk_data || "not specified";
+
+    const GOVERNANCE_SHARED_RULES = `LANGUAGE: use the English variant matching the intake's jurisdictions — American English when no EU/UK jurisdiction is present; British English when any EU/UK jurisdiction is present. Never mix variants within one report. (This overrides the core's default American-English rule for this jurisdiction-aware tool.)
 
 CITATION INTEGRITY: Cite provisions ONLY in the exact forms below. If you cannot match a citation to one of these patterns with certainty, name the law and obligation in plain language instead (e.g. 'CCPA — service provider contract requirement') rather than fabricate.
 - Illinois BIPA: only the form "740 ILCS 14/<section>" (e.g. 740 ILCS 14/15(b)). NEVER write "§15-101", "§15-2", "§1401", "15 ILCS", or "15 USC".
@@ -250,12 +259,10 @@ EVIDENCE-BASIS SEVERITY RULE (calibration): Severity tiers mean exactly: Critica
 
 ENFORCEMENT CASE RULE: Do NOT reference specific enforcement case names, fine amounts, or regulator decisions in any domain field. Enforcement precedents are injected only into the synthesis stage. Domain findings must cite statutes only.
 
-MONETARY PENALTY RULE: In the synthesis stage, never state a specific monetary fine, penalty, or settlement amount unless that exact figure appears in the ENFORCEMENT PRECEDENTS or ENFORCEMENT CONTEXT block provided in this prompt. Training knowledge of regulatory fines is unreliable — amounts change on appeal and training data may be wrong. If a relevant case exists but its amount is not in the provided block, write "[Regulator] imposed a significant penalty for this type of violation — verify the current figure at the regulator's enforcement register" instead of recalling an amount. Known correct figures (use only if the case is in your enforcement block): ICO Clearview AI (2022) £7,552,800; ICO Interserve (2022) £4,400,000 (NOT £5.03M); ICO Capita Pension Solutions (2024) £6,090,000 (NOT £6.88M); ICO British Airways (2020) £20,000,000.
-
 JURISDICTION SCOPING RULE (critical): Cite regulatory bases ONLY for the jurisdictions listed in the intake jurisdictions field provided below. If eu_uk_data is "No", do NOT cite GDPR, UK GDPR, EU member-state law, or any EU/UK authority anywhere in the report — not in the executive summary's framework count, not in domain regulatory bases, not in actions. Never reference a country (e.g., Ireland) absent from the intake. The number of "applicable regulatory frameworks" must equal the number of intake jurisdictions.
 
-INTAKE JURISDICTIONS: ${JSON.stringify(intake.jurisdictions || [])}
-EU_UK_DATA: ${intake.eu_uk_data || "not specified"}
+INTAKE JURISDICTIONS: ${intakeJurisdictionsJson}
+EU_UK_DATA: ${euUkValue}
 
 STATUTE-GLOSS INTEGRITY RULE: When citing a statute at the section/subsection level, the parenthetical gloss must match that exact subsection. If you are not certain of the subsection, cite at the statute level only. Verified anchors you MUST use when relevant — CCPA: §1798.100 notice/collection; §1798.105 right to DELETE; §1798.106 right to CORRECT; §1798.110 right to know; §1798.120 opt-out of sale/sharing; §1798.121 limit SPI; §1798.130 request methods; §1798.135 opt-out links; §1798.140(ag) service-provider definition (never (v) or (w)); §1798.150 breach private right of action. There is NO §1798.104. BIPA 740 ILCS 14/15: (a) retention/destruction policy; (b) informed written consent; (c) no profit; (d) disclosure restrictions; (e) reasonable safeguards — BIPA grants no general access right. GDPR: Art 24 accountability; Art 32(1)(b) confidentiality/integrity/availability/resilience; Art 32(4)/29 act-only-on-instructions (an instruction duty, not a training mandate); Art 37(1)(b) systematic monitoring; Art 37(1)(c) large-scale special categories. DSR response deadlines: CCPA 45 days (extendable 45); GDPR one month; Colorado 45 days; Virginia 45 days. California breach notification (Cal. Civ. Code §1798.82, as amended by SB 446 effective Jan 1, 2026): 30-day INDIVIDUAL notice from discovery; AG receives a SAMPLE COPY within 15 days of consumer notice when 500+ CA residents are affected; there is NO 45-day AG deadline and there never was.
 
@@ -269,13 +276,36 @@ REPETITION AND DEADLINES RULE: Immediate-action deadlines must be staggered real
 
 AI VENDOR VERIFICATION REPETITION RULE — STRICT: This rule applies ONLY when the intake names a generative-AI / LLM tool (see the AI VENDOR DATA-HANDLING RULE). Let [AI tool] be that tool exactly as named in the intake (e.g. "Google Workspace / Gemini", "Microsoft 365 Copilot") and [AI vendor] be its provider (e.g. Google, Microsoft, OpenAI, Anthropic). The full verification instruction — "verify [AI vendor]'s data-handling and model-training commitments for the tenant" (and any close paraphrase) — MUST appear IN FULL in exactly ONE place in the entire output: the Domain 3 (Vendor Data Terms Compliance) recommended action. In every other domain (Domains 1, 2, 4, 5, 6, 7, 8, 9, 10) where the AI tool is relevant, you must NOT restate the verification instruction in any form. Use only this cross-reference, verbatim and parenthetical, substituting the actual tool name: "([AI tool] data-handling and model-training commitments: see the Vendor Data Terms Compliance recommended action.)" Before emitting the final JSON, scan the recommended actions across all ten domains and count those containing an AI-vendor verification sentence; if the count is greater than one, rewrite all duplicates as the parenthetical cross-reference and keep the full sentence only in Domain 3. A duplicate full instruction across multiple domains is a fatal output error. If the intake names NO generative-AI / LLM tool, this rule does not apply and no such instruction or cross-reference may appear in any domain.
 
-SUPERVISORY AUTHORITY MAPPING RULE: When naming a supervisory authority, use only the correct authority for each jurisdiction. Verified mappings — use these and only these: Austria: DSB (Datenschutzbehörde); Belgium: GBA (Gegevensbeschermingsautoriteit) or APD (Autorité de Protection des Données) — NEVER "APE"; Bulgaria: CPDP; Croatia: AZOP; Cyprus: OAD; Czech Republic: ÚOOÚ; Denmark: Datatilsynet; Estonia: AKI; Finland: Tietosuojavaltuutetun; France: CNIL; Germany: BfDI (federal) or LDA/LDI/LfDI (Landesbeauftragte — use the relevant state DPA, or "German state DPAs (DSK)" collectively); Greece: HDPA; Hungary: NAIH; Ireland: DPC; Italy: Garante; Latvia: DVI; Lithuania: VDAI; Luxembourg: CNPD; Malta: IDPC; Netherlands: AP (Autoriteit Persoonsgegevens) — NEVER "UODO" (that is Poland); Poland: UODO (Urząd Ochrony Danych Osobowych); Portugal: CNPD; Romania: ANSPDCP; Slovakia: ÚOOÚ; Slovenia: IP; Spain: AEPD; Sweden: IMY (Integritetsskyddsmyndigheten); United Kingdom: ICO. If a jurisdiction is not on this list, do not invent an authority name — write "the relevant supervisory authority in [country]" instead.
+SUPERVISORY AUTHORITY MAPPING RULE: When naming a supervisory authority, use only the correct authority for each jurisdiction. Verified mappings — use these and only these: Austria: DSB (Datenschutzbehörde); Belgium: GBA (Gegevensbeschermingsautoriteit) or APD (Autorité de Protection des Données) — NEVER "APE"; Bulgaria: CPDP; Croatia: AZOP; Cyprus: OAD; Czech Republic: ÚOOÚ; Denmark: Datatilsynet; Estonia: AKI; Finland: Tietosuojavaltuutetun; France: CNIL; Germany: BfDI (federal public-sector controllers ONLY) — for German private-sector controllers cite the relevant Land (state) DPA (e.g. LDA Bayern for Bavaria, LfDI Baden-Württemberg, BlnBDI for Berlin, HmbBfDI for Hamburg), or "German state DPAs (DSK)" collectively; NEVER name the BfDI for a private-sector German controller; Greece: HDPA; Hungary: NAIH; Ireland: DPC; Italy: Garante; Latvia: DVI; Lithuania: VDAI; Luxembourg: CNPD; Malta: IDPC; Netherlands: AP (Autoriteit Persoonsgegevens) — NEVER "UODO" (that is Poland); Poland: UODO (Urząd Ochrony Danych Osobowych); Portugal: CNPD; Romania: ANSPDCP; Slovakia: ÚOOÚ; Slovenia: IP; Spain: AEPD; Sweden: IMY (Integritetsskyddsmyndigheten); United Kingdom: ICO. If a jurisdiction is not on this list, do not invent an authority name — write "the relevant supervisory authority in [country]" instead.
 
 SUPERVISORY AUTHORITY GUIDANCE DOCUMENTS RULE: Do not cite specific supervisory authority guidance documents, opinions, recommendations, or working papers by title or section number unless the document is listed in the ENFORCEMENT PRECEDENTS block provided in this prompt. Fabricating guidance document titles is a critical error. To reference SA guidance generally, write "the [SA] has published guidance on this topic — verify the current version at [SA]'s website" rather than inventing a document name or section number. The following forms are acceptable without a source block: "EDPB Guidelines [number]/[year]" IF you are certain the guideline exists; "WP248" for the Article 29 Working Party DPIA guidelines; "WP259" for the Article 29 Working Party consent guidelines. Do not cite any other WP or EDPB document unless it appears in the enforcement context.
 
 ONE-STOP-SHOP RULE: For organisations with a main establishment in an EU member state that process personal data of residents in multiple EU member states, the lead supervisory authority mechanism under GDPR Art. 56 means that enforcement is primarily led by the SA of the member state of main establishment, not by every SA simultaneously. When describing enforcement risk for such organisations, note that "the lead supervisory authority under GDPR Art. 56 would coordinate enforcement, with concerned SAs having involvement rights under Arts. 60–62." Do not describe simultaneous independent enforcement by all SAs as the default position for cross-border processing. Exception: where there is no single EU main establishment (e.g. a non-EU controller with representatives in multiple member states, or separate establishments in multiple states), each SA retains independent jurisdiction and the one-stop-shop does not apply — in those cases, multi-authority exposure is correct.
 
-TERMINOLOGY RULE: DPA expands to "Data Processing Agreement" only. Use US English when no EU/UK jurisdiction is in the intake; UK English otherwise. Do not describe a missing privacy notice as making processing "presumptively unlawful under Article 6" — a transparency failure breaches Arts. 13/14; keep lawfulness and transparency distinct (and omit both when GDPR is out of scope).`;
+TERMINOLOGY RULE: DPA expands to "Data Processing Agreement" only. Do not describe a missing privacy notice as making processing "presumptively unlawful under Article 6" — a transparency failure breaches Arts. 13/14; keep lawfulness and transparency distinct (and omit both when GDPR is out of scope).`;
+
+    const GOVERNANCE_CITATION_FRAMEWORK = "Cite regulatory bases ONLY for the jurisdictions in the intake. If the intake has no EU/UK jurisdiction, do NOT cite GDPR/UK GDPR/EU authorities anywhere; the number of applicable frameworks must equal the number of intake jurisdictions. In domain findings cite statutes only — no enforcement case names, fines, or SA guidance titles. Name supervisory authorities only from the verified mapping (e.g. France CNIL, Spain AEPD, Italy Garante, Netherlands AP — never UODO; Germany private-sector controllers → the relevant Land authority, never the BfDI); if a jurisdiction is unlisted, write 'the relevant supervisory authority in [country]'.";
+
+    const GOVERNANCE_DOMAIN_TOOL_MODULE: ToolModule = {
+      identity: "You are a senior privacy and data protection compliance analyst assessing an organisation's data governance practices against the regulatory frameworks applicable to the intake's jurisdictions. This is a compliance framework tool.",
+      citationFramework: GOVERNANCE_CITATION_FRAMEWORK,
+      outputMode: "strict-JSON",
+      extraRules: GOVERNANCE_SHARED_RULES,
+    };
+
+    const GOVERNANCE_SYNTHESIS_TOOL_MODULE: ToolModule = {
+      identity: "You are a senior privacy compliance analyst synthesising ten domain findings into an executive governance assessment.",
+      citationFramework: `${GOVERNANCE_CITATION_FRAMEWORK} In the synthesis you may cite enforcement precedents, but ONLY those provided in the ENFORCEMENT PRECEDENTS / ENFORCEMENT CONTEXT block. Never state a monetary fine amount unless it appears in that block; otherwise write '[Regulator] imposed a significant penalty for this type of violation — verify the current figure at the regulator's enforcement register'. Known correct figures (use only if the case is in your block): ICO Clearview AI (2022) £7,552,800; ICO Interserve (2022) £4,400,000; ICO Capita Pension Solutions (2024) £6,090,000; ICO British Airways (2020) £20,000,000.`,
+      outputMode: "strict-JSON",
+      extraRules: GOVERNANCE_SHARED_RULES,
+    };
+
+    const today = new Date().toISOString().slice(0, 10);
+    const domainSystem = buildSystemContent({
+      toolModule: GOVERNANCE_DOMAIN_TOOL_MODULE,
+      currentDate: today,
+      cache: true,
+    });
 
     const domainResults: Record<string, any> = {};
 
