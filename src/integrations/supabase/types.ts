@@ -4091,6 +4091,7 @@ export type Database = {
           delivery_email: string | null
           delivery_sent_at: string | null
           documents_generated_at: string | null
+          documents_generation_started_at: string | null
           filed_at: string | null
           fulfillment_status: string
           id: string
@@ -4115,6 +4116,7 @@ export type Database = {
           delivery_email?: string | null
           delivery_sent_at?: string | null
           documents_generated_at?: string | null
+          documents_generation_started_at?: string | null
           filed_at?: string | null
           fulfillment_status?: string
           id?: string
@@ -4139,6 +4141,7 @@ export type Database = {
           delivery_email?: string | null
           delivery_sent_at?: string | null
           documents_generated_at?: string | null
+          documents_generation_started_at?: string | null
           filed_at?: string | null
           fulfillment_status?: string
           id?: string

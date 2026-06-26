@@ -45,29 +45,59 @@ export default function RegistrationOrder() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Poll the order until it leaves the "generating" state (or fails). The
+  // generate-registration-docs function now returns 202 immediately and runs
+  // generation in the background, so we cannot trust its invoke resolution.
+  async function pollUntilTerminal(): Promise<"ok" | "failed" | "timeout"> {
+    if (!id) return "timeout";
+    for (let i = 0; i < 60; i++) {
+      await new Promise((res) => setTimeout(res, 4000));
+      const { data: o } = await supabase
+        .from("registration_orders")
+        .select("fulfillment_status")
+        .eq("id", id)
+        .single();
+      if (o?.fulfillment_status === "generation_failed") return "failed";
+      if (o && o.fulfillment_status !== "generating") return "ok";
+    }
+    return "timeout";
+  }
+
   // Auto-trigger doc generation for DIY orders (free toolkit) on first arrival
   useEffect(() => {
     if (!order) return;
     if (order.tier === "diy" && docs.length === 0 && !generating) {
       setGenerating(true);
-      supabase.functions.invoke("generate-registration-docs", { body: { order_id: order.id } })
-        .then(({ error }) => {
-          if (error) toast.error(error.message);
-          else { toast.success("Documents generated"); load(); }
-        })
-        .finally(() => setGenerating(false));
+      (async () => {
+        const { error } = await supabase.functions.invoke(
+          "generate-registration-docs",
+          { body: { order_id: order.id } },
+        );
+        if (error) { toast.error(error.message); setGenerating(false); return; }
+        const outcome = await pollUntilTerminal();
+        setGenerating(false);
+        if (outcome === "failed") toast.error("Document generation failed — please retry.");
+        else if (outcome === "timeout") toast.error("Still generating — check back shortly.");
+        else toast.success("Documents generated");
+        load();
+      })();
     }
-  }, [order, docs.length, generating, load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order, docs.length, generating]);
 
   async function generateDocs() {
     setGenerating(true);
     const { error } = await supabase.functions.invoke(
       "generate-registration-docs",
-      { body: { order_id: id } }
+      { body: { order_id: id } },
     );
+    if (error) { setGenerating(false); toast.error(error.message); return; }
+    const outcome = await pollUntilTerminal();
     setGenerating(false);
-    if (error) toast.error(error.message);
-    else { toast.success("Documents generated"); load(); }
+    if (outcome === "failed") toast.error("Document generation failed — please retry.");
+    else if (outcome === "timeout") toast.error("Still generating — check back shortly.");
+    else toast.success("Documents generated");
+    load();
   }
 
   if (loading) {

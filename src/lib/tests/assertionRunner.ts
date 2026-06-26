@@ -438,6 +438,23 @@ async function runSingleTool(
         addLog("Invoking generate-registration-docs…");
         const { error: genErr } = await invokeWithRetry("generate-registration-docs", { order_id: order.id }, combinedSignal);
         if (genErr) throw new Error(`generate-registration-docs: ${genErr.message}`);
+        // The function now returns 202 immediately and runs in the background.
+        // Poll until the order leaves "generating" (or fails) — never trust the 202.
+        const maxPolls = test.pollConfig?.maxPolls ?? 60;
+        const intervalMs = test.pollConfig?.intervalMs ?? 4000;
+        let regTerminal = false;
+        for (let p = 0; p < maxPolls; p++) {
+          if (combinedSignal.aborted) throw new Error("aborted");
+          await new Promise((r) => setTimeout(r, intervalMs));
+          const { data: o } = await (supabase as any)
+            .from("registration_orders")
+            .select("fulfillment_status")
+            .eq("id", order.id)
+            .single();
+          if (o?.fulfillment_status === "generation_failed") throw new Error("registration generation_failed");
+          if (o && o.fulfillment_status !== "generating") { regTerminal = true; break; }
+        }
+        if (!regTerminal) throw new Error("registration generation timed out");
         const { data: regDocs } = await (supabase as any).from("registration_documents").select("content_text, document_type, jurisdiction_code").eq("order_id", order.id);
         const docList = regDocs ?? [];
         const combinedText = docList.map((d: any) => d.content_text ?? "").join("\n\n");
