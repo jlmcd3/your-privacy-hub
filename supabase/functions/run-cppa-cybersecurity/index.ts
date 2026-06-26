@@ -453,11 +453,79 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     }
 
     function computeOverallScore(controls: any[]): number {
-      const scores = controls.map((c: any) => Number(c?.score)).filter((n) => Number.isFinite(n));
+      // Exclude controls flagged "Insufficient information" from the scored mean.
+      const scores = controls
+        .filter((c: any) => String(c?.status ?? "").trim().toLowerCase() !== "insufficient information")
+        .map((c: any) => Number(c?.score))
+        .filter((n) => Number.isFinite(n));
       if (scores.length === 0) return 0;
       const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
       return Math.round(mean);
     }
+
+    function readinessForScore(score: number): "Audit-Ready" | "Substantially Ready" | "Material Gaps" | "Critical Gaps" {
+      if (score >= 90) return "Audit-Ready";
+      if (score >= 70) return "Substantially Ready";
+      if (score >= 50) return "Material Gaps";
+      return "Critical Gaps";
+    }
+
+    function statusForScore(score: number): "Critical Gap" | "Partial" | "Implemented" | "Mature" {
+      if (score >= 90) return "Mature";
+      if (score >= 60) return "Implemented";
+      if (score >= 21) return "Partial";
+      return "Critical Gap";
+    }
+
+    function applyConsistencyFixes(rep: any): void {
+      const controls: any[] = Array.isArray(rep?.controls) ? rep.controls : [];
+      for (const c of controls) {
+        const status = String(c?.status ?? "").trim();
+        if (status.toLowerCase() === "insufficient information") continue;
+        const score = Number(c?.score);
+        if (!Number.isFinite(score)) continue;
+        const expected = statusForScore(score);
+        // Allow "Gap" as an alias for "Critical Gap"/"Partial" only when it matches the band.
+        const ok =
+          status === expected ||
+          (expected === "Partial" && status === "Gap") ||
+          (expected === "Critical Gap" && status === "Gap");
+        if (!ok) {
+          console.log(JSON.stringify({
+            evt: "consistency_fix",
+            fn: "run-cppa-cybersecurity",
+            field: `controls[${c?.control ?? "?"}].status`,
+            was: status,
+            now: expected,
+            score,
+          }));
+          c.status = expected;
+        }
+      }
+      const computed = computeOverallScore(controls);
+      if (Number(rep?.overall_score) !== computed) {
+        console.log(JSON.stringify({
+          evt: "consistency_fix",
+          fn: "run-cppa-cybersecurity",
+          field: "overall_score",
+          was: rep?.overall_score,
+          now: computed,
+        }));
+        rep.overall_score = computed;
+      }
+      const expectedLevel = readinessForScore(computed);
+      if (rep?.readiness_level !== expectedLevel) {
+        console.log(JSON.stringify({
+          evt: "consistency_fix",
+          fn: "run-cppa-cybersecurity",
+          field: "readiness_level",
+          was: rep?.readiness_level,
+          now: expectedLevel,
+        }));
+        rep.readiness_level = expectedLevel;
+      }
+    }
+
 
     // ── Run two parallel controls halves ─────────────────────────────────
     let [half1, half2] = await Promise.all([
