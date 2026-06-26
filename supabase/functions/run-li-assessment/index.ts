@@ -216,7 +216,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
 
     // ── STAGE 1: Classify use case ──
     const t1Start = Date.now();
-    const classifySystem = `You are a privacy regulatory analyst. Classify processing activities for legitimate interest analysis. Return ONLY valid JSON, no preamble.`;
+    const today = new Date().toISOString().slice(0, 10);
 
     // Determine jurisdiction for GDPR authority retrieval (UK if any verified
     // assessment.jurisdictions value matches /united kingdom|uk|gb/i, else EU).
@@ -227,16 +227,26 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     // Regime gates which enforcement precedents the LIA may cite. UK runs only
     // see UK GDPR / DPA 2018; EU runs only see EU/EEA GDPR enforcement.
     const enforcementRegime: "gdpr" | "uk_gdpr" = isUk ? "uk_gdpr" : "gdpr";
+    // Defensive guard: GDPR tools must never query the California corpus.
+    if (enforcementRegime !== "gdpr" && enforcementRegime !== "uk_gdpr") {
+      throw new Error(`[LIA] invalid enforcementRegime '${enforcementRegime}' — must be 'gdpr' or 'uk_gdpr'`);
+    }
     const regimeLabel = isUk ? "UK GDPR" : "EU GDPR";
+
+    const classifySystemBlocks = buildSystemContent({
+      toolModule: LIA_CLASSIFY_TOOL_MODULE,
+      currentDate: today,
+    });
 
     // Run classification, enforcement context fetch, and GDPR authority retrieval in parallel
     const [classifyResult, enforcementCtxResult, gdprCtxResult] = await Promise.all([
       callAnthropic(
         "claude-haiku-4-5-20251001",
-        classifySystem,
+        classifySystemBlocks,
         `Classify this processing activity for legitimate interest analysis:\nOrganisation (controller) being assessed: ${assessment.organization_name || "not specified"}\nDescription: ${assessment.processing_description}\nData categories: ${(assessment.data_categories || []).join(", ")}\nRelationship type: ${assessment.relationship_type || "not specified"}\nSector: ${assessment.sector || "not specified"}\n\nReturn JSON:\n{\n  "use_case_category": "one of: direct_marketing | fraud_prevention | employee_monitoring | behavioral_advertising | research_analytics | it_security | contractual_administration | other",\n  "primary_data_categories": ["list of data categories involved"],\n  "special_category_data": true or false,\n  "relationship_exists": true or false,\n  "jurisdictions_scope": ["list of relevant jurisdictions"]\n}`,
         500
       ),
+
       supabase.functions.invoke("get-enforcement-context", {
         body: {
           tool: "LIA",
