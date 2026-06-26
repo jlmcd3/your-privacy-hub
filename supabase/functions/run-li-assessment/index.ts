@@ -258,7 +258,7 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
           limit: 5,
         },
       }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; }),
-      getGdprContext(supabase, {
+      getGdprContext(supabase as any, {
         articles: ["6"],
         jurisdiction: gdprJurisdiction,
         recitals: [47],
