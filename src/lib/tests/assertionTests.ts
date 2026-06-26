@@ -719,7 +719,8 @@ export const REGISTRATION_TEST: AssertionTest = {
   toolName: "Registration Manager",
   edgeFunction: "generate-registration-docs",
   testInput: REG_INPUT,
-  expectedSeconds: 90,
+  expectedSeconds: 240,
+  pollConfig: { table: "registration_orders", successStatus: "documents_ready", maxPolls: 60, intervalMs: 4000 },
   assertions: [
     {
       id: "reg-documents-generated",
