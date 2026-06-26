@@ -739,10 +739,10 @@ Return JSON:
 }`;
 
     const t3Start = Date.now();
-    let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
+    let docsStage = await callAnthropic("claude-sonnet-4-6", docsSystemBlocks, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
     if (docsStage.stopReason === "max_tokens") {
       console.warn(`[LIA] Stage 3 truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
-      docsStage = await callAnthropic("claude-sonnet-4-6", docsSystem, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
+      docsStage = await callAnthropic("claude-sonnet-4-6", docsSystemBlocks, docsUserPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
       if (docsStage.stopReason === "max_tokens") {
         console.error("[LIA] Stage 3 truncated_output after retry — failing run");
         throw new Error("truncated_output: LIA Stage 3 (docs) exceeded token budget twice");
