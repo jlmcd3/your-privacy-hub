@@ -94,6 +94,7 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     // ePrivacy / device access
     "EPRIVACY AND DEVICE-ACCESS GATE RULE: For processing activities involving IP addresses, device identifiers, cookies, mobile advertising IDs, SDKs, pixel tags, browser fingerprinting, or IoT sensor data, flag in section_2_analysis.completion_guidance that ePrivacy Directive (2002/58/EC) obligations apply in addition to GDPR. Specifically: (a) accessing or storing information on a terminal device requires prior informed consent under ePrivacy Article 5(3), unless strictly necessary for the service; (b) in the UK, PECR (Privacy and Electronic Communications Regulations 2003) imposes equivalent requirements; (c) GDPR lawful basis alone (e.g. legitimate interests) does NOT satisfy the ePrivacy consent requirement for non-essential device access. Where the processing involves tracking cookies, advertising SDKs, or analytics pixels, the organisation must: complete a separate ePrivacy mapping; implement a consent management platform (CMP) that captures granular consent; and document that the CMP records are sufficient to demonstrate compliance. This gate applies specifically to AdTech, Media, Mobile, Web, Social, IoT, Automotive, and KYC sectors where device-level data access is routine.",
   ].join("\n\n"),
+  languageVariant: "jurisdiction-conditional",
 };
 
 Deno.serve(async (req) => {
