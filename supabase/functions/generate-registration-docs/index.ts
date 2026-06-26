@@ -325,7 +325,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const fnRun = await startFunctionRun(supabase, "generate-registration-docs", {
-    archetype: "sync",
+    archetype: "async",
     trustClass: "user",
     invokedBy: "user",
   });
@@ -339,65 +339,90 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Fast existence check + claim the order so the request can return immediately.
     const { data: order, error: orderErr } = await supabase
       .from("registration_orders")
       .select("*")
       .eq("id", order_id)
       .single();
-    if (orderErr || !order) throw orderErr || new Error("Order not found");
+    if (orderErr || !order) {
+      await failFunctionRun(supabase, fnRun, orderErr || new Error("Order not found"));
+      return new Response(JSON.stringify({ error: "Order not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const codes: string[] = order.jurisdictions || [];
-    const { data: reqs, error: reqsErr } = await supabase
-      .from("jurisdiction_requirements")
-      .select("*")
-      .in("jurisdiction_code", codes.length ? codes : ["__none__"]);
-    if (reqsErr) throw reqsErr;
+    await supabase.from("registration_orders").update({
+      fulfillment_status: "generating",
+      documents_generation_started_at: new Date().toISOString(),
+    }).eq("id", order_id);
 
-    // For "wrong authority referenced" check: load all other authority names
-    const { data: allReqs } = await supabase
-      .from("jurisdiction_requirements")
-      .select("authority_name");
-    const allAuthorityNames: string[] = ((allReqs as any[]) || [])
-      .map((x) => x?.authority_name)
-      .filter((n): n is string => typeof n === "string" && n.length > 0);
-
-    const orgSnapshot = order.organization_snapshot || {};
-    const generated: Array<{ jurisdiction_code: string; document_type: string }> = [];
-
-    // Build the shared system prompt once per request (prompt-core v2.3 + GDPR registry).
-    const today = new Date().toISOString().slice(0, 10);
-    const orderCodes: string[] = Array.isArray(codes) ? codes : [];
-    const upperCodes = orderCodes.map((c) => String(c).toUpperCase());
-    const isUk = upperCodes.includes("UK") || upperCodes.includes("GB");
-    const gdprBlock = renderGdprCitationBlock({
-      regime: isUk ? "uk_gdpr" : "gdpr",
-      jurisdictions: orderCodes,
-    });
-    // FORK-R1: inject AI Act + adequacy + ICO penalty figures from the shared registry.
-    const registryInjections = [
-      gdprBlock,
-      renderAiActCitationBlock(),
-      renderTransferAdequacyNote(),
-      renderIcoPenaltyFigures(),
-    ].filter(Boolean).join("\n\n");
-    const registrationSystem: SystemBlock[] = buildSystemContent({
-      toolModule: REGISTRATION_TOOL_MODULE,
-      currentDate: today,
-      injected: registryInjections || undefined,
-      cache: true,
+    // Best-effort terminalisation if the worker is killed at the 400s wall clock
+    // (the reaper is the real guarantee — beforeunload cannot reliably await).
+    addEventListener("beforeunload", () => {
+      try {
+        supabase.from("registration_orders").update({
+          fulfillment_status: "generation_failed",
+          validation_notes: "timed_out: worker shut down before completion",
+        }).eq("id", order_id).eq("fulfillment_status", "generating");
+      } catch (_) { /* shutting down */ }
     });
 
+    const runGeneration = async () => {
+      try {
+        const codes: string[] = order.jurisdictions || [];
+        const { data: reqs, error: reqsErr } = await supabase
+          .from("jurisdiction_requirements")
+          .select("*")
+          .in("jurisdiction_code", codes.length ? codes : ["__none__"]);
+        if (reqsErr) throw reqsErr;
 
-    for (const r of reqs || []) {
-      const applicableDocs = DOCUMENT_TYPES.filter((docDef) => docDef.when(r));
-      const applicableTypes = applicableDocs.map((d) => d.type);
-      const otherAuthorityNames = allAuthorityNames.filter((n) => n !== r.authority_name);
+        // For "wrong authority referenced" check: load all other authority names
+        const { data: allReqs } = await supabase
+          .from("jurisdiction_requirements")
+          .select("authority_name");
+        const allAuthorityNames: string[] = ((allReqs as any[]) || [])
+          .map((x) => x?.authority_name)
+          .filter((n): n is string => typeof n === "string" && n.length > 0);
 
-      const results = await Promise.all(
-        applicableDocs.map(async (docDef) => {
+        const orgSnapshot = order.organization_snapshot || {};
+        const generated: Array<{ jurisdiction_code: string; document_type: string }> = [];
+
+        // Build the shared system prompt once per request (prompt-core v2.3 + GDPR registry).
+        const today = new Date().toISOString().slice(0, 10);
+        const orderCodes: string[] = Array.isArray(codes) ? codes : [];
+        const upperCodes = orderCodes.map((c) => String(c).toUpperCase());
+        const isUk = upperCodes.includes("UK") || upperCodes.includes("GB");
+        const gdprBlock = renderGdprCitationBlock({
+          regime: isUk ? "uk_gdpr" : "gdpr",
+          jurisdictions: orderCodes,
+        });
+        const registryInjections = [
+          gdprBlock,
+          renderAiActCitationBlock(),
+          renderTransferAdequacyNote(),
+          renderIcoPenaltyFigures(),
+        ].filter(Boolean).join("\n\n");
+        const registrationSystem: SystemBlock[] = buildSystemContent({
+          toolModule: REGISTRATION_TOOL_MODULE,
+          currentDate: today,
+          injected: registryInjections || undefined,
+          cache: true,
+        });
+
+        // Flatten (jurisdiction × applicable docType) and run with a concurrency cap.
+        const tasks = (reqs || []).flatMap((r: any) => {
+          const otherAuthorityNames = allAuthorityNames.filter((n) => n !== r.authority_name);
+          const applicableTypes = DOCUMENT_TYPES.filter((d) => d.when(r)).map((d) => d.type);
+          return DOCUMENT_TYPES.filter((docDef) => docDef.when(r))
+            .map((docDef) => ({ r, docDef, otherAuthorityNames, applicableTypes }));
+        });
+
+        const results = await mapPool(tasks, 4, async ({ r, docDef, otherAuthorityNames, applicableTypes }) => {
           if (docDef.type === "filing_instructions") {
             return {
-              docDef,
+              r, docDef,
               cleaned: buildFilingInstructions(r, applicableTypes),
               model: "deterministic-template",
               status: "ready" as const,
@@ -441,7 +466,6 @@ Deno.serve(async (req) => {
             status = "needs_review";
             notes.push(`Validation: ${failures.join("; ")}`);
           } else {
-            // Haiku citation check on passing docs
             const { replacements, flaggedForReview, updatedText } = await haikuCitationCheck(cleaned, r);
             cleaned = updatedText;
             if (replacements.length) notes.push(`Citation check: ${replacements.join("; ")}`);
@@ -451,7 +475,6 @@ Deno.serve(async (req) => {
             }
           }
 
-          // ── R0 PART 3: Output lint on final narrative.
           const referenceDate = new Date().toISOString();
           let lint = lintReportText(cleaned, {
             checkDates: true, checkUnresolvedTokens: true, referenceDate,
@@ -488,62 +511,73 @@ Deno.serve(async (req) => {
           }
 
           return {
-            docDef,
+            r, docDef,
             cleaned,
             model: SONNET_MODEL,
             status,
             validation_notes: notes.length ? notes.join(" | ") : null,
           };
-
-        })
-      );
-
-      for (const { docDef, cleaned, model, status, validation_notes } of results) {
-        await supabase.from("registration_documents").insert({
-          order_id,
-          jurisdiction_code: r.jurisdiction_code,
-          document_type: docDef.type,
-          language: "en",
-          content_text: cleaned,
-          generation_model: model,
-          status,
-          validation_notes,
         });
-        generated.push({ jurisdiction_code: r.jurisdiction_code, document_type: docDef.type });
+
+        for (const { r, docDef, cleaned, model, status, validation_notes } of results) {
+          await supabase.from("registration_documents").insert({
+            order_id,
+            jurisdiction_code: r.jurisdiction_code,
+            document_type: docDef.type,
+            language: "en",
+            content_text: cleaned,
+            generation_model: model,
+            status,
+            validation_notes,
+          });
+          generated.push({ jurisdiction_code: r.jurisdiction_code, document_type: docDef.type });
+        }
+
+        await supabase
+          .from("registration_orders")
+          .update({
+            documents_generated_at: new Date().toISOString(),
+            fulfillment_status: order.tier === "diy" ? "documents_ready" : "ready_to_file",
+          })
+          .eq("id", order_id);
+
+        try {
+          await supabase.functions.invoke("schedule-registration-renewals", { body: { order_id } });
+        } catch (e) {
+          console.warn("schedule-registration-renewals failed:", (e as Error).message);
+        }
+
+        try {
+          await supabase.functions.invoke("send-registration-delivery-email", { body: { order_id } });
+        } catch (e) {
+          console.warn("send-registration-delivery-email failed:", (e as Error).message);
+        }
+
+        await finishFunctionRun(supabase, fnRun, {
+          status: "success",
+          sourceTable: "registration_orders",
+          sourceRowId: order_id,
+          metadata: { generated_count: generated.length },
+        });
+      } catch (e) {
+        console.error("generate-registration-docs background error", e);
+        // TERMINALISE the order so the customer is never stuck on a caught failure.
+        await supabase.from("registration_orders").update({
+          fulfillment_status: "generation_failed",
+          validation_notes: `generation_failed: ${(e as Error).message}`.slice(0, 2000),
+        }).eq("id", order_id).eq("fulfillment_status", "generating");
+        await failFunctionRun(supabase, fnRun, e);
       }
-    }
+    };
 
-    await supabase
-      .from("registration_orders")
-      .update({
-        documents_generated_at: new Date().toISOString(),
-        fulfillment_status: order.tier === "diy" ? "documents_ready" : "ready_to_file",
-      })
-      .eq("id", order_id);
+    // @ts-ignore — EdgeRuntime is a Deno Deploy/Supabase runtime global
+    EdgeRuntime.waitUntil(runGeneration());
 
-    try {
-      await supabase.functions.invoke("schedule-registration-renewals", { body: { order_id } });
-    } catch (e) {
-      console.warn("schedule-registration-renewals failed:", (e as Error).message);
-    }
-
-    try {
-      await supabase.functions.invoke("send-registration-delivery-email", { body: { order_id } });
-    } catch (e) {
-      console.warn("send-registration-delivery-email failed:", (e as Error).message);
-    }
-
-    await finishFunctionRun(supabase, fnRun, {
-      status: "success",
-      sourceTable: "registration_orders",
-      sourceRowId: order_id,
-      metadata: { generated_count: generated.length },
-    });
-    return new Response(JSON.stringify({ generated_count: generated.length, generated }), {
+    return new Response(JSON.stringify({ order_id, status: "generating" }), {
+      status: 202,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("generate-registration-docs error", e);
     await failFunctionRun(supabase, fnRun, e);
     return new Response(JSON.stringify({ error: (e as Error).message }), {
       status: 500,
