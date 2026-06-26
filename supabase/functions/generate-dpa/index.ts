@@ -82,8 +82,8 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-const AI_MODEL = "google/gemini-2.5-flash";
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+const AI_MODEL = "claude-sonnet-4-6";
 
 interface EnforcementCtx {
   id?: string;
