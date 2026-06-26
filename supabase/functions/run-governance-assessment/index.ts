@@ -156,6 +156,7 @@ export function buildGovernanceSynthesisToolModule(jurisdictions: unknown, euUkD
   };
 }
 
+function buildStressGovernanceReport(assessmentId: string, intake: any) {
   const jurisdictions = Array.isArray(intake?.jurisdictions) ? intake.jurisdictions.map(String) : [];
   const hasEuUk = intake?.eu_uk_data === true || jurisdictions.some((j: string) => ["EU", "GB", "UK"].includes(j.toUpperCase()));
   const sector = String(intake?.sector || "").toLowerCase();
