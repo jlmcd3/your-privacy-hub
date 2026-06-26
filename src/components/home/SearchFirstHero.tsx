@@ -10,14 +10,14 @@ export default function SearchFirstHero() {
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           {/* Left: text content */}
           <div className="flex-1 text-center lg:text-left">
-            <p className="text-center lg:text-left text-xs font-semibold tracking-widest uppercase text-blue-300 mb-3">
-              California's CPPA deadlines are here
-            </p>
             <h1 className="text-hero-h1 text-white mb-3">
               Global privacy law — tracked daily.
             </h1>
-            <p className="font-display text-3xl md:text-4xl text-white/90 mb-3">
+            <p className="font-display text-3xl md:text-4xl text-white/90 mb-2">
               Find out which CPPA rules apply to you — free.
+            </p>
+            <p className="text-center lg:text-left text-xs font-semibold tracking-widest uppercase text-blue-300 mb-6">
+              California's CPPA deadlines are here
             </p>
             <p className="text-blue-200/80 text-sm md:text-base mb-6 whitespace-pre-line">
               California businesses face risk-assessment, cybersecurity-audit, and ADMT deadlines through 2027. Check your obligations in two minutes — then generate the assessments that satisfy them. Plus daily global privacy intelligence and enforcement-calibrated tools.
