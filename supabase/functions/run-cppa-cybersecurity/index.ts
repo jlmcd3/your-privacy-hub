@@ -243,6 +243,7 @@ SCORING RULES:
 - Score 21–59 → status must be "Partial" or "Gap" (use "Gap" when the control is completely absent; "Partial" when it partially exists)
 - Score 60–89 → status must be "Implemented"
 - Score 90–100 → status must be "Mature"
+- If the intake provides no information bearing on a control, set status to "Insufficient information" and omit the score (leave it as 0); do NOT label it "Gap".
 The status MUST be consistent with the score. Never assign "Implemented" to a control scoring 90 or above.
 
 SECTOR RULES — include the following additional context in findings and remediation where applicable to the detected industry sector (from intake industry_sector field):
