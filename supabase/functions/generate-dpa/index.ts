@@ -285,7 +285,7 @@ Deno.serve(async (req) => {
             .join("\n\n")
         : "No specific enforcement precedents retrieved for these parameters.";
 
-    // Step 3 — Draft via Lovable AI Gateway (LOVABLE_API_KEY presence already verified before dispatch)
+    // Step 3 — Draft via Anthropic API (ANTHROPIC_API_KEY presence already verified before dispatch)
 
 
 
