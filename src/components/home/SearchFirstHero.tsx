@@ -13,7 +13,7 @@ export default function SearchFirstHero() {
             <h1 className="text-hero-h1 text-white mb-3">
               Global privacy law — tracked daily.
             </h1>
-            <p className="text-center lg:text-left text-3xl md:text-4xl font-semibold tracking-widest uppercase text-blue-300 mb-2">
+            <p className="text-center lg:text-left text-xl md:text-2xl font-semibold tracking-widest uppercase text-blue-300 mb-2">
               California's CPPA deadlines are here
             </p>
             <p className="font-display text-3xl md:text-4xl text-white/90 mb-6">
