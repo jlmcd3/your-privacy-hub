@@ -295,7 +295,9 @@ async function runSingleTool(
     let recordId: string | undefined;
 
     const timeoutController = new AbortController();
-    const timeoutTimer = setTimeout(() => timeoutController.abort(), TIMEOUT_MS);
+    const pollBudgetMs = test.pollConfig ? test.pollConfig.maxPolls * test.pollConfig.intervalMs : 0;
+    const toolTimeoutMs = Math.max(TIMEOUT_MS, pollBudgetMs + 60_000); // poll window + invoke/setup overhead, floor 3 min
+    const timeoutTimer = setTimeout(() => timeoutController.abort(), toolTimeoutMs);
     const ac = new AbortController();
     abortSignal.addEventListener("abort", () => ac.abort(), { once: true });
     timeoutController.signal.addEventListener("abort", () => ac.abort(), { once: true });
