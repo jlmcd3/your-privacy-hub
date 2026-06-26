@@ -511,8 +511,9 @@ Notice at collection: ${intake.content_detail.notice_at_collection || "n/a"}
 Minimum PI necessary (§ 7152(a)(2)): ${intake.content_detail.minimum_pi_necessary || "not provided"}
 Sources of the PI (§ 7152(a)(3)): ${intake.content_detail.pi_sources || "not provided"}
 Under-16 actual knowledge (§ 7001(bbb)): ${intake.content_detail.under16_actual_knowledge || "not stated"}
-Systematic-observation / sensitive-location profiling trigger (§ 7150(b)(4)): ${intake.content_detail.profiling_observation_trigger || "no"}
-ADMT / biometric training trigger (§ 7150(b)(6)): ${intake.content_detail.admt_training_trigger || "no"}
+Systematic-observation profiling trigger (${SEC_OBSERVE}): ${intake.content_detail.profiling_observation_trigger || "no"}
+Sensitive-location profiling trigger (${SEC_LOCATION}): ${intake.content_detail.profiling_observation_trigger || "no"}
+ADMT / biometric training trigger (${SEC_TRAIN}): ${intake.content_detail.admt_training_trigger || "no"}
 Negative-impact sources and causes (§ 7152(a)(5)): ${intake.content_detail.harm_sources_and_causes || "not provided"}
 Contributors to this assessment (§ 7152(a)(8)): ${intake.content_detail.internal_contributors || "not provided"}
 External consultees: ${intake.content_detail.external_consultees || "none stated"}
