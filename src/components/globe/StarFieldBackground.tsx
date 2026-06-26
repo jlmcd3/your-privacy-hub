@@ -201,8 +201,8 @@ export default function StarFieldBackground() {
     // ── Drawing ───────────────────────────────────────────────────────
     function drawStar(s: Star, mult: number) {
       const [r, gC, b] = s.cls.rgb;
-      const brightness = s.base * mult;
-      const alpha = Math.max(0.05, Math.min(1, brightness));
+      const brightness = s.base * mult * 1.3;
+      const alpha = Math.max(0.065, Math.min(1, brightness));
       const x = s.x * widthCss;
       const y = s.y * heightCss;
 
