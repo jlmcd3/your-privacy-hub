@@ -184,12 +184,75 @@ function validateDocument(
   return failures;
 }
 
+// Per-jurisdiction recognised national implementing statute(s). Sourced here
+// rather than from a single global list so a correct national citation survives
+// the auditor untouched.
+const JURISDICTION_IMPLEMENTING_STATUTES: Record<string, string[]> = {
+  UK: ["Data Protection Act 2018", "DPA 2018", "PECR 2003", "Privacy and Electronic Communications (EC Directive) Regulations 2003", "Data (Use and Access) Act 2025", "DUAA"],
+  DE: ["Bundesdatenschutzgesetz", "BDSG"],
+  IE: ["Data Protection Act 2018"],
+  FR: ["Loi Informatique et Libertés", "Loi n° 78-17"],
+  ES: ["Ley Orgánica 3/2018", "LOPDGDD"],
+  NL: ["Uitvoeringswet AVG", "UAVG"],
+  IT: ["Decreto Legislativo 196/2003", "Codice Privacy"],
+  SE: ["Dataskyddslagen", "Lag (2018:218)"],
+  DK: ["Databeskyttelsesloven", "Lov nr. 502 af 23. maj 2018"],
+  BE: ["Loi du 30 juillet 2018", "Wet van 30 juli 2018"],
+  AT: ["Datenschutzgesetz", "DSG"],
+  FI: ["Tietosuojalaki", "Data Protection Act (1050/2018)"],
+  PL: ["Ustawa o ochronie danych osobowych z dnia 10 maja 2018"],
+  PT: ["Lei n.º 58/2019"],
+  CZ: ["Zákon č. 110/2019 Sb."],
+  HU: ["2011. évi CXII. törvény", "Infotv."],
+  RO: ["Legea nr. 190/2018"],
+  GR: ["Νόμος 4624/2019", "Law 4624/2019"],
+  LU: ["Loi du 1er août 2018"],
+  CH: ["Federal Act on Data Protection", "FADP", "nFADP", "revFADP"],
+  US: ["California Consumer Privacy Act", "CCPA", "California Privacy Rights Act", "CPRA"],
+};
+
+// Recognised EU regulation/decision numbers — anything else of the form
+// "Regulation (EU) NNNN/NNNN" or "Decision (EU) NNNN/NNNN" is treated as
+// potentially fabricated and may be silently replaced. Other UNSUPPORTED
+// citations (real laws/cases/decisions not in the provided facts) are flagged
+// for human review rather than rewritten.
+const RECOGNISED_EU_INSTRUMENT_NUMBERS = new Set<string>([
+  "2016/679", // GDPR
+  "2024/1689", // AI Act
+  "2018/1725", // EUDPR
+  "2016/680", // LED
+  "2022/2065", // DSA
+  "2022/1925", // DMA
+  "2023/2854", // Data Act
+  "2022/868", // Data Governance Act
+]);
+
+function looksLikeFabricatedEuInstrument(cite: string): boolean {
+  const m = cite.match(/(Regulation|Decision|Directive)\s*\(EU\)\s*(\d{4}\/\d+)/i);
+  if (!m) return false;
+  return !RECOGNISED_EU_INSTRUMENT_NUMBERS.has(m[2]);
+}
+
 async function haikuCitationCheck(
   text: string,
   r: any
-): Promise<{ replacements: string[]; updatedText: string }> {
+): Promise<{ replacements: string[]; flaggedForReview: string[]; updatedText: string }> {
   const facts = `Authority: ${r.authority_name}\nLaw: ${r.law_name}\nJurisdiction: ${r.jurisdiction_name}\nNotes: ${r.notes || ""}`;
-  const instruction = `List every statutory or regulatory citation in this document. For each, answer SUPPORTED if it appears in the provided facts or is one of: Regulation (EU) 2016/679, Regulation (EU) 2024/1689, ${r.law_name}. Otherwise UNSUPPORTED. Return JSON array of {citation, verdict}.
+  const nationalStatutes = JURISDICTION_IMPLEMENTING_STATUTES[r.jurisdiction_code] || [];
+  const supportedList = [
+    "Regulation (EU) 2016/679 (GDPR)",
+    "Regulation (EU) 2024/1689 (AI Act)",
+    "Regulation (EU) 2018/1725 (EUDPR)",
+    "Directive (EU) 2016/680 (LED)",
+    r.law_name,
+    r.authority_name,
+    ...nationalStatutes,
+  ].filter(Boolean).join("; ");
+  const instruction = `List every statutory or regulatory citation in this document. For each, classify as:
+- SUPPORTED — appears in the provided facts OR is one of: ${supportedList}.
+- FABRICATED — looks invented or uncertain (e.g. an EU Regulation/Decision number you cannot verify, a non-existent article/sub-paragraph, an authority that does not exist).
+- UNSUPPORTED_REAL — appears to be a real instrument/case but is not in the provided facts and not on the supported list.
+Return JSON array of {citation, verdict} where verdict is SUPPORTED, FABRICATED, or UNSUPPORTED_REAL.
 
 Document:
 ${text}
@@ -198,35 +261,41 @@ Facts:
 ${facts}`;
   let resp: string;
   try {
-    const r0 = await callClaude(HAIKU_MODEL, "You are a precise legal citation auditor. Output ONLY a JSON array.", instruction, 1500);
+    const r0 = await callClaude(HAIKU_MODEL, "You are a precise legal citation auditor. Output ONLY a JSON array. Distinguish fabricated/uncertain citations from real instruments that are merely absent from the provided facts.", instruction, 1500);
     resp = r0.text;
   } catch (e) {
     console.warn("[reg-docs] Haiku citation check failed (non-fatal):", (e as Error).message);
-    return { replacements: [], updatedText: text };
+    return { replacements: [], flaggedForReview: [], updatedText: text };
   }
   const replacements: string[] = [];
+  const flaggedForReview: string[] = [];
   let updated = text;
   try {
     const m = resp.match(/\[[\s\S]*\]/);
-    if (!m) return { replacements, updatedText: text };
+    if (!m) return { replacements, flaggedForReview, updatedText: text };
     const arr: any[] = JSON.parse(m[0]);
     for (const item of arr) {
       const cite = String(item?.citation || "").trim();
       const verdict = String(item?.verdict || "").toUpperCase();
-      if (!cite || verdict !== "UNSUPPORTED") continue;
-      const replacement = `see ${r.law_name}, administered by ${r.authority_name}`;
-      // Escape regex special chars in the literal citation
-      const safe = cite.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const before = updated;
-      updated = updated.replace(new RegExp(safe, "g"), replacement);
-      if (updated !== before) {
-        replacements.push(`replaced "${cite}" with "${replacement}"`);
+      if (!cite || verdict === "SUPPORTED") continue;
+      const isFabricated = verdict === "FABRICATED" || looksLikeFabricatedEuInstrument(cite);
+      if (isFabricated) {
+        const replacement = `see ${r.law_name}, administered by ${r.authority_name}`;
+        const safe = cite.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const before = updated;
+        updated = updated.replace(new RegExp(safe, "g"), replacement);
+        if (updated !== before) {
+          replacements.push(`replaced "${cite}" with "${replacement}"`);
+        }
+      } else {
+        // UNSUPPORTED_REAL — do NOT rewrite the document; flag for human review.
+        flaggedForReview.push(cite);
       }
     }
   } catch (e) {
     console.warn("[reg-docs] Haiku JSON parse failed:", (e as Error).message);
   }
-  return { replacements, updatedText: updated };
+  return { replacements, flaggedForReview, updatedText: updated };
 }
 
 function buildUserPrompt(
