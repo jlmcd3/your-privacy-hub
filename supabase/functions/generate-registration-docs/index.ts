@@ -378,10 +378,10 @@ Deno.serve(async (req) => {
 
           // First attempt
           const notesEarly: string[] = [];
-          let initial = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot));
+          let initial = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot));
           if (initial.stopReason === "max_tokens") {
             console.warn(`[reg-docs] ${r.jurisdiction_code}/${docDef.type} truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
-            initial = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot), PRODUCT_MAX_OUTPUT_TOKENS);
+            initial = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot), PRODUCT_MAX_OUTPUT_TOKENS);
             if (initial.stopReason === "max_tokens") {
               notesEarly.push("truncated_output: document hit token ceiling twice");
             }
@@ -393,7 +393,7 @@ Deno.serve(async (req) => {
           // Regenerate once on failure
           if (failures.length > 0) {
             try {
-              const r2 = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot, failures));
+              const r2 = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot, failures));
               raw = r2.text;
               cleaned = stripMarkdown(raw);
               failures = validateDocument(cleaned, r, otherAuthorityNames);
@@ -434,7 +434,7 @@ Deno.serve(async (req) => {
                 .map((v) => `${v.code}: ${v.detail}`).join("; ");
               const retryRaw = await callClaude(
                 SONNET_MODEL,
-                SYSTEM_PROMPT,
+                registrationSystem,
                 buildUserPrompt(docDef, r, orgSnapshot, [`lint: ${details}`]) +
                 `\n\nPREVIOUS DRAFT REJECTED by automated lint for: ${details}. Reproduce the document correcting these defects silently. Do not mention this instruction.`,
               );
