@@ -11,6 +11,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { auditCitations } from "../_shared/citation-audit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -235,68 +236,24 @@ function looksLikeFabricatedEuInstrument(cite: string): boolean {
 
 async function haikuCitationCheck(
   text: string,
-  r: any
+  r: any,
 ): Promise<{ replacements: string[]; flaggedForReview: string[]; updatedText: string }> {
-  const facts = `Authority: ${r.authority_name}\nLaw: ${r.law_name}\nJurisdiction: ${r.jurisdiction_name}\nNotes: ${r.notes || ""}`;
   const nationalStatutes = JURISDICTION_IMPLEMENTING_STATUTES[r.jurisdiction_code] || [];
-  const supportedList = [
-    "Regulation (EU) 2016/679 (GDPR)",
-    "Regulation (EU) 2024/1689 (AI Act)",
-    "Regulation (EU) 2018/1725 (EUDPR)",
-    "Directive (EU) 2016/680 (LED)",
-    r.law_name,
-    r.authority_name,
-    ...nationalStatutes,
-  ].filter(Boolean).join("; ");
-  const instruction = `List every statutory or regulatory citation in this document. For each, classify as:
-- SUPPORTED — appears in the provided facts OR is one of: ${supportedList}.
-- FABRICATED — looks invented or uncertain (e.g. an EU Regulation/Decision number you cannot verify, a non-existent article/sub-paragraph, an authority that does not exist).
-- UNSUPPORTED_REAL — appears to be a real instrument/case but is not in the provided facts and not on the supported list.
-Return JSON array of {citation, verdict} where verdict is SUPPORTED, FABRICATED, or UNSUPPORTED_REAL.
-
-Document:
-${text}
-
-Facts:
-${facts}`;
-  let resp: string;
-  try {
-    const r0 = await callClaude(HAIKU_MODEL, "You are a precise legal citation auditor. Output ONLY a JSON array. Distinguish fabricated/uncertain citations from real instruments that are merely absent from the provided facts.", instruction, 1500);
-    resp = r0.text;
-  } catch (e) {
-    console.warn("[reg-docs] Haiku citation check failed (non-fatal):", (e as Error).message);
-    return { replacements: [], flaggedForReview: [], updatedText: text };
-  }
-  const replacements: string[] = [];
-  const flaggedForReview: string[] = [];
-  let updated = text;
-  try {
-    const m = resp.match(/\[[\s\S]*\]/);
-    if (!m) return { replacements, flaggedForReview, updatedText: text };
-    const arr: any[] = JSON.parse(m[0]);
-    for (const item of arr) {
-      const cite = String(item?.citation || "").trim();
-      const verdict = String(item?.verdict || "").toUpperCase();
-      if (!cite || verdict === "SUPPORTED") continue;
-      const isFabricated = verdict === "FABRICATED" || looksLikeFabricatedEuInstrument(cite);
-      if (isFabricated) {
-        const replacement = `see ${r.law_name}, administered by ${r.authority_name}`;
-        const safe = cite.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const before = updated;
-        updated = updated.replace(new RegExp(safe, "g"), replacement);
-        if (updated !== before) {
-          replacements.push(`replaced "${cite}" with "${replacement}"`);
-        }
-      } else {
-        // UNSUPPORTED_REAL — do NOT rewrite the document; flag for human review.
-        flaggedForReview.push(cite);
-      }
-    }
-  } catch (e) {
-    console.warn("[reg-docs] Haiku JSON parse failed:", (e as Error).message);
-  }
-  return { replacements, flaggedForReview, updatedText: updated };
+  return await auditCitations(
+    {
+      text,
+      lawName: r.law_name,
+      authorityName: r.authority_name,
+      jurisdictionStatutes: nationalStatutes,
+    },
+    async (model, system, user, maxTokens) => {
+      const resp = await callClaude(model, system, user, maxTokens ?? 1500);
+      return { text: resp.text };
+    },
+    HAIKU_MODEL,
+  );
 }
+
 
 function buildUserPrompt(
   docDef: { type: string; title: string },

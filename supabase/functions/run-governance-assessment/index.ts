@@ -4,6 +4,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
+import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -81,7 +82,7 @@ const DOMAIN_DEFINITIONS = [
 // Tool Module factories (prompt-core v2.2). Substantive audited rules are
 // preserved verbatim and moved out of the inline domainSystem string.
 // ---------------------------------------------------------------------------
-export const GOVERNANCE_CITATION_FRAMEWORK = "Cite regulatory bases ONLY for the jurisdictions in the intake. If the intake has no EU/UK jurisdiction, do NOT cite GDPR/UK GDPR/EU authorities anywhere; the number of applicable frameworks must equal the number of intake jurisdictions. In domain findings cite statutes only — no enforcement case names, fines, or SA guidance titles. Name supervisory authorities only from the verified mapping (e.g. France CNIL, Spain AEPD, Italy Garante, Netherlands AP — never UODO; Germany private-sector controllers → the relevant Land authority, never the BfDI); if a jurisdiction is unlisted, write 'the relevant supervisory authority in [country]'.";
+export const GOVERNANCE_CITATION_FRAMEWORK = "Cite regulatory bases ONLY for the jurisdictions in the intake. If the intake has no EU/UK jurisdiction, do NOT cite GDPR/UK GDPR/EU authorities anywhere; the number of applicable frameworks must equal the number of intake jurisdictions. In domain findings cite statutes only — no enforcement case names, fines, or SA guidance titles. Name supervisory authorities only from the injected RESOLVED GDPR CITATIONS block; if a jurisdiction is absent from it, write 'the relevant supervisory authority in [country]'. Never name the BfDI for a private-sector controller — Germany private-sector controllers are supervised by the relevant Land authority.";
 
 export function buildGovernanceSharedRules(jurisdictions: unknown, euUkData: string): string {
   const intakeJurisdictionsJson = JSON.stringify(Array.isArray(jurisdictions) ? jurisdictions : []);
@@ -129,7 +130,7 @@ REPETITION AND DEADLINES RULE: Immediate-action deadlines must be staggered real
 
 AI VENDOR VERIFICATION REPETITION RULE — STRICT: When the intake names a generative-AI / LLM tool, the full verification instruction must appear IN FULL in exactly ONE place: the Domain 3 (Vendor Data Terms Compliance) recommended action. In every other domain where the AI tool is relevant, use only this cross-reference: "([AI tool] data-handling and model-training commitments: see the Vendor Data Terms Compliance recommended action.)" A duplicate full instruction across multiple domains is a fatal output error. If the intake names NO generative-AI / LLM tool, this rule does not apply.
 
-SUPERVISORY AUTHORITY MAPPING RULE: Use only the correct authority for each jurisdiction. Verified mappings: Austria DSB; Belgium GBA/APD — NEVER "APE"; Bulgaria CPDP; Croatia AZOP; Cyprus OAD; Czech Republic ÚOOÚ; Denmark Datatilsynet; Estonia AKI; Finland Tietosuojavaltuutetun; France CNIL; Germany: private-sector controllers are supervised by the relevant Land (state) data protection authority — e.g. Bayerisches Landesamt für Datenschutzaufsicht (BayLDA) in Bavaria; name the Land authority for the controller's state, or refer to "the competent German Land supervisory authority" / "the German state DPAs (DSK)" collectively if the state is unknown. The Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI) supervises ONLY federal public bodies, telecommunications, and postal services — never name the BfDI for a private-sector controller; Greece HDPA; Hungary NAIH; Ireland DPC; Italy Garante; Latvia DVI; Lithuania VDAI; Luxembourg CNPD; Malta IDPC; Netherlands AP — NEVER "UODO" (that is Poland); Poland UODO; Portugal CNPD; Romania ANSPDCP; Slovakia ÚOOÚ; Slovenia IP; Spain AEPD; Sweden IMY; United Kingdom ICO. If a jurisdiction is not on this list, write "the relevant supervisory authority in [country]" instead.
+SUPERVISORY AUTHORITY NAMING RULE: Name supervisory authorities ONLY from the injected RESOLVED GDPR CITATIONS block. If a jurisdiction is absent from that block, write "the relevant supervisory authority in [country]". For German private-sector controllers, name the relevant Land authority (e.g. BayLDA for Bavaria) — never the BfDI, which supervises only federal public bodies, telecoms, and postal services.
 
 SUPERVISORY AUTHORITY GUIDANCE DOCUMENTS RULE: Do not cite specific SA guidance documents, opinions, recommendations, or working papers by title or section number unless the document is listed in the ENFORCEMENT PRECEDENTS block provided in this prompt. To reference SA guidance generally, write "the [SA] has published guidance on this topic — verify the current version at [SA]'s website". Acceptable without source block: "EDPB Guidelines [number]/[year]" if certain; "WP248" (DPIA); "WP259" (consent).
 
@@ -144,6 +145,7 @@ export function buildGovernanceDomainToolModule(jurisdictions: unknown, euUkData
     citationFramework: GOVERNANCE_CITATION_FRAMEWORK,
     outputMode: "strict-JSON",
     extraRules: buildGovernanceSharedRules(jurisdictions, euUkData),
+    languageVariant: "jurisdiction-conditional",
   };
 }
 
@@ -153,6 +155,7 @@ export function buildGovernanceSynthesisToolModule(jurisdictions: unknown, euUkD
     citationFramework: `${GOVERNANCE_CITATION_FRAMEWORK} In the synthesis you may cite enforcement precedents, but ONLY those provided in the ENFORCEMENT PRECEDENTS / ENFORCEMENT CONTEXT block. Never state a monetary fine amount unless it appears in that block; otherwise write '[Regulator] imposed a significant penalty for this type of violation — verify the current figure at the regulator's enforcement register'. Known correct figures (use only if the case is in your block): ICO Clearview AI (2022) £7,552,800; ICO Interserve (2022) £4,400,000; ICO Capita Pension Solutions (2024) £6,090,000; ICO British Airways (2020) £20,000,000.`,
     outputMode: "strict-JSON",
     extraRules: buildGovernanceSharedRules(jurisdictions, euUkData),
+    languageVariant: "jurisdiction-conditional",
   };
 }
 
@@ -313,9 +316,26 @@ Transfer mechanism in place: ${intake.transfer_mechanism || "not specified"}${in
       intake.jurisdictions || [],
       intake.eu_uk_data || "not specified",
     );
+    // Build the RESOLVED GDPR CITATIONS block (single source for SA names + Art-6 examples).
+    const intakeJurisdictionList: string[] = Array.isArray(intake.jurisdictions)
+      ? intake.jurisdictions.map((j: any) => String(j)) : [];
+    const euUkJurisdictions = intakeJurisdictionList.filter((j) => {
+      const u = j.toUpperCase();
+      return ["GB", "UK", "EU"].includes(u) || Object.keys({
+        AT:1,BE:1,BG:1,HR:1,CY:1,CZ:1,DK:1,EE:1,FI:1,FR:1,DE:1,GR:1,HU:1,IE:1,IT:1,LV:1,LT:1,LU:1,MT:1,NL:1,PL:1,PT:1,RO:1,SK:1,SI:1,ES:1,SE:1,
+      }).includes(u);
+    });
+    const hasUkInScope = intakeJurisdictionList.some((j) => /united kingdom|^uk$|^gb$/i.test(j));
+    const hasEuInScope = euUkJurisdictions.length > 0 && !(hasUkInScope && euUkJurisdictions.length === 1);
+    const governanceRegime: "gdpr" | "uk_gdpr" = hasUkInScope && !hasEuInScope ? "uk_gdpr" : "gdpr";
+    const gdprCitationsBlock = euUkJurisdictions.length
+      ? renderGdprCitationBlock({ regime: governanceRegime, jurisdictions: euUkJurisdictions })
+      : "";
+
     const domainSystem = buildSystemContent({
       toolModule: GOVERNANCE_DOMAIN_TOOL_MODULE,
       currentDate: today,
+      injected: gdprCitationsBlock || undefined,
       cache: true,
     });
 
@@ -491,7 +511,10 @@ Return JSON:
     const synthesisSystem = buildSystemContent({
       toolModule: GOVERNANCE_SYNTHESIS_TOOL_MODULE,
       currentDate: today,
-      injected: `ENFORCEMENT CONTEXT (synthesis only):\n${enforcementContextStr}`,
+      injected: [
+        gdprCitationsBlock,
+        `ENFORCEMENT CONTEXT (synthesis only):\n${enforcementContextStr}`,
+      ].filter(Boolean).join("\n\n"),
       cache: true,
     });
 

@@ -19,6 +19,7 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
     "READINESS LABEL is exactly one of: Audit-Ready (90+) | Substantially Ready (70–89) | Material Gaps (50–69) | Critical Gaps (<50) | Insufficient basis to assess. It is THIS tool's readiness assessment, not a CPPA regulatory determination. Use \"Insufficient basis to assess\" when the intake leaves a material share of controls unassessed (see STATUS↔SCORE).",
     "STATUS↔SCORE: a control's status must match its score (Implemented requires 90+; 21–59 must be Partial or Gap; use Gap only when the control is absent per the intake). Where the intake provides no information on a control, set its status to \"Insufficient information\" and do NOT score it as a Gap.",
   ].join("\n"),
+  languageVariant: "american",
 };
 
 const supabase = createClient(
