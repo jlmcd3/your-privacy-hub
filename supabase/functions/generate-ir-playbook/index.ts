@@ -589,9 +589,18 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         // AG ≤30d (SB 768, eff. 1 Sep 2023). Any edit requires re-verification; see lint
         // class past_deadline.
         const today = new Date().toISOString().slice(0, 10);
+        // FORK-R1: inject AI Act phased dates, adequacy fact, and ICO penalty
+        // figures from the shared registry (replaces inline IR rulebook items
+        // 6/7/8). Guards survive verbatim inside the renderers.
+        const registryInjections = [
+          renderAiActCitationBlock(),
+          renderTransferAdequacyNote(),
+          renderIcoPenaltyFigures(),
+        ].join("\n\n");
         const irSystem: SystemBlock[] = buildSystemContent({
           toolModule: IR_TOOL_MODULE,
           currentDate: today,
+          injected: registryInjections,
           cache: true,
         });
 
