@@ -46,9 +46,11 @@ const REGISTRATION_TOOL_MODULE: ToolModule = {
   extraRules: [
     "FORMAT — output clean plain text only. No markdown symbols of any kind (#, ##, ###, **, *, _, backticks, >). Section headings sit on their own line in Title Case, followed by a blank line, then prose or bullets. Bullets use the character • followed by a space (never * or -). Numbered lists use incrementing integers starting at 1 with no repeats. No preamble, no closing commentary, no translated text — the document only.",
     "PLACEHOLDERS — use [Bracketed Title Case] placeholders for organization-specific values the filer must complete (e.g. [Organization Name], [DPO Full Name], [Filing Date]). Never fabricate a concrete value where a placeholder belongs.",
-    "EU AI ACT — PHASED APPLICATION. Cite the date that matches the system/registration type; never a single blanket date. Prohibited practices (Article 5) applied from 2 February 2025; general-purpose AI model obligations (Chapter V) from 2 August 2025; the majority of high-risk obligations (Article 6(2) / Annex III systems and most of Chapters III, IV, VI–IX) from 2 August 2026; high-risk AI systems that are safety components of products under the Annex I Union harmonisation legislation from 2 August 2027. The AI Act is enacted law (in force 1 August 2024) — never call it a proposal, proposed regulation, or draft, and never use 2024/900 or any number other than 2024/1689.",
-    "ADEQUACY — when citing any adequacy decision (including the EU-UK decision) as a transfer mechanism, append the note: [Verify current status — adequacy decisions are subject to periodic Commission review].",
-    "ENFORCEMENT REFERENCES — never state a specific fine amount; use the form: the [authority] imposed a significant penalty — see [authority enforcement register URL] for current figures.",
+    // EU AI Act phased dates, adequacy citations, and ICO penalty figures are
+    // injected verbatim from the shared registry (see `injected` below). The
+    // load-bearing guards ("never call the AI Act a proposal", "never state a
+    // training-data figure", "[Verify current status]" for other adequacy
+    // decisions) survive intact inside those renderers.
   ].join("\n\n"),
 };
 
