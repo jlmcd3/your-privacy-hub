@@ -2,6 +2,24 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
+import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
+
+export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
+  identity:
+    "You are a cybersecurity readiness analyst specializing in California's CPPA cybersecurity audit regulations (11 CCR §§ 7120–7124), approved by OAL in September 2025 and effective January 1, 2026. You map an organization's controls against the 18 enumerated cybersecurity program components under 11 CCR § 7123(c) and produce a structured readiness assessment.",
+  citationFramework:
+    "Per-control citations are supplied deterministically from the CONTROL_CITATIONS map (11 CCR § 7123(c)(1)–(18)); never invent, alter, or reorder a control citation. Cite procedural provisions only as 11 CCR §§ 7120–7124. Never describe the regulations as proposed.",
+  outputMode: "strict-JSON",
+  extraRules: [
+    "PHASE-IN: first audit certifications are due April 1, 2028 (>$100M 2026 gross revenue), April 1, 2029 ($50–100M), April 1, 2030 (<$50M), under 11 CCR § 7121(a). Never present a readiness deadline earlier than the business's applicable phase-in date (a prospective obligation).",
+    "FRAMEWORK: when the intake specifies a primary framework (SOC 2, ISO 27001, NIST CSF 2.0, CIS Controls), frame remediation and control-mapping in THAT framework; default to NIST CSF 2.0 only when none is given. Under § 7123(f) a business may leverage an existing aligned audit only if all Article 9 requirements are met independently or by supplementation — test each element.",
+    "SECTOR OVERLAYS (note where relevant): GLBA Safeguards Rule (16 CFR Part 314) for financial services; NERC CIP (CIP-002–CIP-014) for bulk-power operators; CPNI (47 CFR Part 64) for telecom; California IoT Security Law (Cal. Civ. Code §§ 1798.91.04–.06) for connected devices; FDA 21 CFR Part 11 for clinical-records systems.",
+    "APPLICABILITY: CPPA cybersecurity audit obligations apply only to 'businesses' (Cal. Civ. Code § 1798.140(ag)); state/local government agencies are excluded, and nonprofits/others must meet a CCPA business threshold. Where the intake indicates a government or nonprofit entity, add the applicability caveat and instruct the entity to confirm covered-business status before relying on the report.",
+    "AUDIT vs CERTIFICATION: the independent auditor documents any gaps with remediation in the audit report under § 7123(e); the business's executive then submits the certification under § 7124. Keep these two documents/parties distinct — never collapse them into one step, and the audit's gap list does not excuse the executive certification.",
+    "READINESS LABEL is exactly one of: Audit-Ready (90+) | Substantially Ready (70–89) | Material Gaps (50–69) | Critical Gaps (<50). It is THIS tool's readiness assessment, not a CPPA regulatory determination.",
+    "STATUS↔SCORE: a control's status must match its score (Implemented requires 90+; 21–59 must be Partial or Gap; use Gap only when the control is absent per the intake). Where the intake provides no information on a control, set its status to \"Insufficient information\" and do NOT score it as a Gap.",
+  ].join("\n"),
+};
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -27,7 +45,7 @@ function stripMd(s: string | undefined | null): string {
     .replace(/^\s*[-_]{3,}\s*$/gm, '');
 }
 
-async function callAnthropic(system: string, user: string, maxTokens: number): Promise<{ text: string; stopReason: string | null }> {
+async function callAnthropic(system: string | SystemBlock[], user: string, maxTokens: number): Promise<{ text: string; stopReason: string | null }> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -169,10 +187,12 @@ async function runAssessment(assessment_id: string): Promise<void> {
       console.warn("[CPPA Cyber] enforcement context fetch failed:", e);
     }
 
-    const system = `You are a cybersecurity readiness analyst specializing in California's CPPA cybersecurity audit regulations. The CPPA cybersecurity audit regulations (11 CCR §§ 7120–7124) were approved by OAL in September 2025 and took effect January 1, 2026; first audit certifications are due April 1, 2028 (businesses >$100M 2026 annual gross revenue), April 1, 2029 ($50–100M), and April 1, 2030 (<$50M), as established under 11 CCR § 7121(a). Never describe the regulations as proposed, and never present a readiness deadline earlier than the business's applicable phase-in date. You map an organization's controls against the CPPA's 18 enumerated cybersecurity program components under 11 CCR § 7123(c) and produce a structured readiness assessment. When the intake specifies a primary security framework (e.g., SOC 2, ISO 27001, NIST CSF 2.0, CIS Controls), frame remediation and control-mapping guidance in terms of THAT framework rather than a default; under 11 CCR § 7123(f) a business may leverage an existing audit aligned to a recognized framework toward the CCPA audit, provided all Article 9 requirements are met on their own or through supplementation. Only default to NIST CSF 2.0 when no framework is provided. You never give legal advice.
-LANGUAGE: Use US English spelling throughout — organization, program, defense, authorized, customized, analyze. Never use organisation, programme, defence, authorised, or customised.
-NIST: Always write "NIST CSF 2.0" when referencing the NIST Cybersecurity Framework. Never write just "NIST CSF" without the version number.
-Respond ONLY with valid JSON matching the schema provided.`;
+    const today = new Date().toISOString().slice(0, 10);
+    const system = buildSystemContent({
+      toolModule: CPPA_CYBER_TOOL_MODULE,
+      currentDate: today,
+      cache: true,
+    });
 
     const enforcementBlock = enforcementContext
       ? `Recent breach / cybersecurity enforcement context (use to calibrate severity and cite where directly relevant, tagged [E1], [E2], etc.):\n${enforcementContext}\n\nANNOTATION REQUIREMENT: For each enforcement action cited above, if it directly supports a control finding, severity rating, or remediation in your report, include it in the annotations array using the id value from the enforcement context exactly as provided (the value after 'id:'). You MUST only cite enforcement actions from the context above — never cite cases from training knowledge.\n`
@@ -195,7 +215,7 @@ ${enforcementBlock}Respond with this exact JSON structure (controls array MUST c
     {
       "control": "string (the component name exactly as listed)",
       "score": 0,
-      "status": "Implemented | Partial | Gap | Critical Gap | Mature",
+      "status": "Implemented | Partial | Gap | Critical Gap | Mature | Insufficient information",
       "finding": "string (1-2 sentences — specific gap or confirmation only — use US English)",
       "regulatory_basis": "string (the specific program component being assessed, in plain language — do NOT begin with 'and document', 'and maintain', or 'document and' — write a clean noun phrase that completes the sentence 'the annual cybersecurity audit must assess [your text]'; do NOT include a section citation; the citation is added by the system)",
       "remediation": "string (2-3 specific steps, plain language, US English)",
@@ -223,6 +243,7 @@ SCORING RULES:
 - Score 21–59 → status must be "Partial" or "Gap" (use "Gap" when the control is completely absent; "Partial" when it partially exists)
 - Score 60–89 → status must be "Implemented"
 - Score 90–100 → status must be "Mature"
+- If the intake provides no information bearing on a control, set status to "Insufficient information" and omit the score (leave it as 0); do NOT label it "Gap".
 The status MUST be consistent with the score. Never assign "Implemented" to a control scoring 90 or above.
 
 SECTOR RULES — include the following additional context in findings and remediation where applicable to the detected industry sector (from intake industry_sector field):
@@ -432,11 +453,79 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     }
 
     function computeOverallScore(controls: any[]): number {
-      const scores = controls.map((c: any) => Number(c?.score)).filter((n) => Number.isFinite(n));
+      // Exclude controls flagged "Insufficient information" from the scored mean.
+      const scores = controls
+        .filter((c: any) => String(c?.status ?? "").trim().toLowerCase() !== "insufficient information")
+        .map((c: any) => Number(c?.score))
+        .filter((n) => Number.isFinite(n));
       if (scores.length === 0) return 0;
       const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
       return Math.round(mean);
     }
+
+    function readinessForScore(score: number): "Audit-Ready" | "Substantially Ready" | "Material Gaps" | "Critical Gaps" {
+      if (score >= 90) return "Audit-Ready";
+      if (score >= 70) return "Substantially Ready";
+      if (score >= 50) return "Material Gaps";
+      return "Critical Gaps";
+    }
+
+    function statusForScore(score: number): "Critical Gap" | "Partial" | "Implemented" | "Mature" {
+      if (score >= 90) return "Mature";
+      if (score >= 60) return "Implemented";
+      if (score >= 21) return "Partial";
+      return "Critical Gap";
+    }
+
+    function applyConsistencyFixes(rep: any): void {
+      const controls: any[] = Array.isArray(rep?.controls) ? rep.controls : [];
+      for (const c of controls) {
+        const status = String(c?.status ?? "").trim();
+        if (status.toLowerCase() === "insufficient information") continue;
+        const score = Number(c?.score);
+        if (!Number.isFinite(score)) continue;
+        const expected = statusForScore(score);
+        // Allow "Gap" as an alias for "Critical Gap"/"Partial" only when it matches the band.
+        const ok =
+          status === expected ||
+          (expected === "Partial" && status === "Gap") ||
+          (expected === "Critical Gap" && status === "Gap");
+        if (!ok) {
+          console.log(JSON.stringify({
+            evt: "consistency_fix",
+            fn: "run-cppa-cybersecurity",
+            field: `controls[${c?.control ?? "?"}].status`,
+            was: status,
+            now: expected,
+            score,
+          }));
+          c.status = expected;
+        }
+      }
+      const computed = computeOverallScore(controls);
+      if (Number(rep?.overall_score) !== computed) {
+        console.log(JSON.stringify({
+          evt: "consistency_fix",
+          fn: "run-cppa-cybersecurity",
+          field: "overall_score",
+          was: rep?.overall_score,
+          now: computed,
+        }));
+        rep.overall_score = computed;
+      }
+      const expectedLevel = readinessForScore(computed);
+      if (rep?.readiness_level !== expectedLevel) {
+        console.log(JSON.stringify({
+          evt: "consistency_fix",
+          fn: "run-cppa-cybersecurity",
+          field: "readiness_level",
+          was: rep?.readiness_level,
+          now: expectedLevel,
+        }));
+        rep.readiness_level = expectedLevel;
+      }
+    }
+
 
     // ── Run two parallel controls halves ─────────────────────────────────
     let [half1, half2] = await Promise.all([
@@ -563,6 +652,12 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
         for (const v of lintSynth.violations) lintViolations.push(v);
       }
     }
+
+    // Deterministic consistency check: align status↔score, recompute overall_score,
+    // and align readiness_level to the score band.
+    applyConsistencyFixes(report);
+
+
 
 
     // Obligation snapshot: freeze the cybersecurity audit corpus (§§ 7120–7124)
