@@ -12,6 +12,8 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { auditCitations } from "../_shared/citation-audit.ts";
+import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
+import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,8 +31,21 @@ const HAIKU_MODEL = "claude-haiku-4-5-20251001";
 
 // Verbatim system prompt — guardrails for AI Act citations, monetary penalties,
 // adequacy decisions, English-only, plain text formatting.
-const SYSTEM_PROMPT =
-  "You are a privacy compliance expert drafting jurisdiction-specific filings. Always write in English regardless of the jurisdiction. Output clean plain text only — NO markdown symbols of any kind. Do not use #, ##, ###, **, *, _, backticks, or > for formatting. Structure documents with section headings on their own line in Title Case followed by a blank line, then prose or bullet items. For bullets, use the bullet character • followed by a space at the start of the line (not * or -). Use real authority names, real laws, and realistic but generic placeholder values like [Organization Name]. Do not invent statute numbers you are not sure of. MANDATORY CITATIONS — these must be used exactly as shown: EU Artificial Intelligence Act: \"Regulation (EU) 2024/1689 of the European Parliament and of the Council of 13 June 2024\" — this regulation entered into force on 1 August 2024. NEVER call it a \"proposal\", \"proposed regulation\", or \"draft\". It is enacted law. Never use 2024/900 or any other regulation number for the AI Act. AI ACT PHASED APPLICATION DATES — cite the date that matches the registration/system type: prohibited AI practices (Article 5) applied from 2 February 2025; general-purpose AI model obligations (Chapter V) applied from 2 August 2025; the majority of high-risk AI system obligations (Article 6(2) / Annex III systems and most of Chapters III, IV, VI–IX) apply from 2 August 2026; obligations for high-risk AI systems embedded as safety components in products covered by the Union harmonisation legislation in Annex I apply from 2 August 2027. Do not state a single blanket application date for the entire AI Act. EU GDPR: \"Regulation (EU) 2016/679\". EU Adequacy decisions: always add the note \"[Verify current status — adequacy decisions are subject to periodic Commission review]\" when citing any adequacy decision (including the EU-UK adequacy decision) as a transfer mechanism. MONETARY PENALTY RULE: Never state a specific fine amount from training knowledge. If referencing an enforcement case, use the format: \"the [regulator] imposed a significant penalty — see [regulator enforcement register URL] for current figures.\" Numbered lists MUST use incrementing integers: the first item in any numbered list is 1, the second is 2, the third is 3. Never repeat a number within the same list. If you find yourself writing \"1.\" for the third or fourth item in a sequence, stop and correct the numbering. No preamble, no chat, no translated text.";
+const REGISTRATION_TOOL_MODULE: ToolModule = {
+  outputMode: "document",
+  languageVariant: "jurisdiction-conditional",
+  citationFramework:
+    "Cite primary instruments by their official identifier (e.g. \"Regulation (EU) 2016/679\" for the GDPR; \"Regulation (EU) 2024/1689\" for the EU AI Act). Use the real registration/supervisory authority name for the filing jurisdiction. Do not invent statute numbers, article numbers, or filing-reference formats you are not certain of — use a [Verify] placeholder instead.",
+  identity:
+    "You are a privacy compliance specialist drafting a single jurisdiction-specific regulatory filing (one of: Data Protection Officer appointment letter, Records of Processing Activities template, EU AI Act registration draft, or Article 27 representative appointment letter). Produce only the requested document, for the stated jurisdiction and authority.",
+  extraRules: [
+    "FORMAT — output clean plain text only. No markdown symbols of any kind (#, ##, ###, **, *, _, backticks, >). Section headings sit on their own line in Title Case, followed by a blank line, then prose or bullets. Bullets use the character • followed by a space (never * or -). Numbered lists use incrementing integers starting at 1 with no repeats. No preamble, no closing commentary, no translated text — the document only.",
+    "PLACEHOLDERS — use [Bracketed Title Case] placeholders for organization-specific values the filer must complete (e.g. [Organization Name], [DPO Full Name], [Filing Date]). Never fabricate a concrete value where a placeholder belongs.",
+    "EU AI ACT — PHASED APPLICATION. Cite the date that matches the system/registration type; never a single blanket date. Prohibited practices (Article 5) applied from 2 February 2025; general-purpose AI model obligations (Chapter V) from 2 August 2025; the majority of high-risk obligations (Article 6(2) / Annex III systems and most of Chapters III, IV, VI–IX) from 2 August 2026; high-risk AI systems that are safety components of products under the Annex I Union harmonisation legislation from 2 August 2027. The AI Act is enacted law (in force 1 August 2024) — never call it a proposal, proposed regulation, or draft, and never use 2024/900 or any number other than 2024/1689.",
+    "ADEQUACY — when citing any adequacy decision (including the EU-UK decision) as a transfer mechanism, append the note: [Verify current status — adequacy decisions are subject to periodic Commission review].",
+    "ENFORCEMENT REFERENCES — never state a specific fine amount; use the form: the [authority] imposed a significant penalty — see [authority enforcement register URL] for current figures.",
+  ].join("\n\n"),
+};
 
 const DOCUMENT_TYPES = [
   { type: "dpo_appointment", title: "Data Protection Officer Appointment Letter", when: (r: any) => r.dpo_required },
@@ -42,7 +57,7 @@ const DOCUMENT_TYPES = [
 
 async function callClaude(
   model: string,
-  systemPrompt: string,
+  system: string | SystemBlock[],
   userContent: string,
   maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS,
   timeoutMs: number = 720_000
@@ -59,7 +74,7 @@ async function callClaude(
     body: JSON.stringify({
       model,
       max_tokens: maxTokens,
-      system: systemPrompt,
+      system,
       messages: [{ role: "user", content: userContent }],
     }),
     signal: AbortSignal.timeout(timeoutMs),
@@ -327,6 +342,23 @@ Deno.serve(async (req) => {
     const orgSnapshot = order.organization_snapshot || {};
     const generated: Array<{ jurisdiction_code: string; document_type: string }> = [];
 
+    // Build the shared system prompt once per request (prompt-core v2.3 + GDPR registry).
+    const today = new Date().toISOString().slice(0, 10);
+    const orderCodes: string[] = Array.isArray(codes) ? codes : [];
+    const upperCodes = orderCodes.map((c) => String(c).toUpperCase());
+    const isUk = upperCodes.includes("UK") || upperCodes.includes("GB");
+    const gdprBlock = renderGdprCitationBlock({
+      regime: isUk ? "uk_gdpr" : "gdpr",
+      jurisdictions: orderCodes,
+    });
+    const registrationSystem: SystemBlock[] = buildSystemContent({
+      toolModule: REGISTRATION_TOOL_MODULE,
+      currentDate: today,
+      injected: gdprBlock || undefined,
+      cache: true,
+    });
+
+
     for (const r of reqs || []) {
       const applicableDocs = DOCUMENT_TYPES.filter((docDef) => docDef.when(r));
       const applicableTypes = applicableDocs.map((d) => d.type);
@@ -346,10 +378,10 @@ Deno.serve(async (req) => {
 
           // First attempt
           const notesEarly: string[] = [];
-          let initial = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot));
+          let initial = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot));
           if (initial.stopReason === "max_tokens") {
             console.warn(`[reg-docs] ${r.jurisdiction_code}/${docDef.type} truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
-            initial = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot), PRODUCT_MAX_OUTPUT_TOKENS);
+            initial = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot), PRODUCT_MAX_OUTPUT_TOKENS);
             if (initial.stopReason === "max_tokens") {
               notesEarly.push("truncated_output: document hit token ceiling twice");
             }
@@ -361,7 +393,7 @@ Deno.serve(async (req) => {
           // Regenerate once on failure
           if (failures.length > 0) {
             try {
-              const r2 = await callClaude(SONNET_MODEL, SYSTEM_PROMPT, buildUserPrompt(docDef, r, orgSnapshot, failures));
+              const r2 = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot, failures));
               raw = r2.text;
               cleaned = stripMarkdown(raw);
               failures = validateDocument(cleaned, r, otherAuthorityNames);
@@ -402,7 +434,7 @@ Deno.serve(async (req) => {
                 .map((v) => `${v.code}: ${v.detail}`).join("; ");
               const retryRaw = await callClaude(
                 SONNET_MODEL,
-                SYSTEM_PROMPT,
+                registrationSystem,
                 buildUserPrompt(docDef, r, orgSnapshot, [`lint: ${details}`]) +
                 `\n\nPREVIOUS DRAFT REJECTED by automated lint for: ${details}. Reproduce the document correcting these defects silently. Do not mention this instruction.`,
               );
