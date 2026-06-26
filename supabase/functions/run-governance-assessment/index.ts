@@ -316,9 +316,26 @@ Transfer mechanism in place: ${intake.transfer_mechanism || "not specified"}${in
       intake.jurisdictions || [],
       intake.eu_uk_data || "not specified",
     );
+    // Build the RESOLVED GDPR CITATIONS block (single source for SA names + Art-6 examples).
+    const intakeJurisdictionList: string[] = Array.isArray(intake.jurisdictions)
+      ? intake.jurisdictions.map((j: any) => String(j)) : [];
+    const euUkJurisdictions = intakeJurisdictionList.filter((j) => {
+      const u = j.toUpperCase();
+      return ["GB", "UK", "EU"].includes(u) || Object.keys({
+        AT:1,BE:1,BG:1,HR:1,CY:1,CZ:1,DK:1,EE:1,FI:1,FR:1,DE:1,GR:1,HU:1,IE:1,IT:1,LV:1,LT:1,LU:1,MT:1,NL:1,PL:1,PT:1,RO:1,SK:1,SI:1,ES:1,SE:1,
+      }).includes(u);
+    });
+    const hasUkInScope = intakeJurisdictionList.some((j) => /united kingdom|^uk$|^gb$/i.test(j));
+    const hasEuInScope = euUkJurisdictions.length > 0 && !(hasUkInScope && euUkJurisdictions.length === 1);
+    const governanceRegime: "gdpr" | "uk_gdpr" = hasUkInScope && !hasEuInScope ? "uk_gdpr" : "gdpr";
+    const gdprCitationsBlock = euUkJurisdictions.length
+      ? renderGdprCitationBlock({ regime: governanceRegime, jurisdictions: euUkJurisdictions })
+      : "";
+
     const domainSystem = buildSystemContent({
       toolModule: GOVERNANCE_DOMAIN_TOOL_MODULE,
       currentDate: today,
+      injected: gdprCitationsBlock || undefined,
       cache: true,
     });
 
