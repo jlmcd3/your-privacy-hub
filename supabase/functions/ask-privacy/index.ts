@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
         // Use Sonnet for paying (premium) subscribers; Haiku for free users
         model: profile.is_premium ? "claude-sonnet-4-6" : "claude-haiku-4-5-20251001",
         max_tokens: 1000,
-        system: SYSTEM_PROMPT,
+        system: askPrivacySystem,
         messages: trimmedMessages,
       }),
       signal: AbortSignal.timeout(30000),
