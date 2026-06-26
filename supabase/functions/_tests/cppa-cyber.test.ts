@@ -50,3 +50,22 @@ Deno.test("extra rules require Insufficient information for ungathered controls"
   const rules = CPPA_CYBER_TOOL_MODULE.extraRules ?? "";
   assertStringIncludes(rules, "Insufficient information");
 });
+
+Deno.test("extra rules allow 'Insufficient basis to assess' as a readiness label", () => {
+  const rules = CPPA_CYBER_TOOL_MODULE.extraRules ?? "";
+  assertStringIncludes(rules, "Insufficient basis to assess");
+});
+
+Deno.test("synthesis prompt schema includes 'Insufficient basis to assess' for readiness_level", async () => {
+  const src = await Deno.readTextFile(new URL("../run-cppa-cybersecurity/index.ts", import.meta.url));
+  assertStringIncludes(
+    src,
+    '"readiness_level": "Audit-Ready | Substantially Ready | Material Gaps | Critical Gaps | Insufficient basis to assess"',
+  );
+});
+
+Deno.test("consistency-fix block applies the ≥6 insufficient-info threshold", async () => {
+  const src = await Deno.readTextFile(new URL("../run-cppa-cybersecurity/index.ts", import.meta.url));
+  assertStringIncludes(src, "INSUFFICIENT_THRESHOLD = 6");
+  assertStringIncludes(src, '"Insufficient basis to assess"');
+});
