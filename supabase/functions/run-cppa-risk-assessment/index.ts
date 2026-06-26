@@ -518,7 +518,7 @@ Return only valid JSON matching the specified output structure. No preamble, no 
 // Model call — Claude Sonnet 4.6 via Anthropic API direct.
 // ---------------------------------------------------------------------------
 async function callModel(
-  system: string,
+  system: string | SystemBlock[],
   user: string,
   label = "generate-v4"
 ): Promise<{ text: string; stopReason: string | null }> {
