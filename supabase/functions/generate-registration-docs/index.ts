@@ -98,6 +98,21 @@ async function callClaude(
   return { text, stopReason };
 }
 
+// Concurrency-capped parallel map — keeps Anthropic load bounded while
+// collapsing per-document latency, so the 400s wall-clock budget holds.
+async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let i = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (i < items.length) {
+      const idx = i++;
+      out[idx] = await fn(items[idx]);
+    }
+  });
+  await Promise.all(workers);
+  return out;
+}
+
 function fmtFee(cents: number | null | undefined, currency: string | null | undefined): string {
   if (!cents || cents <= 0) return "";
   const amount = (cents / 100).toFixed(2).replace(/\.00$/, "");
