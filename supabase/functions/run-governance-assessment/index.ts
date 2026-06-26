@@ -476,9 +476,16 @@ Return JSON:
   ]
 }`;
 
+    const synthesisSystem = buildSystemContent({
+      toolModule: GOVERNANCE_SYNTHESIS_TOOL_MODULE,
+      currentDate: today,
+      injected: `ENFORCEMENT CONTEXT (synthesis only):\n${enforcementContextStr}`,
+      cache: true,
+    });
+
     async function runSynthesis(extra: string): Promise<any> {
       const finalUser = extra ? `${synthesisUserBase}\n\n${extra}` : synthesisUserBase;
-      const synthesisText = await callAnthropic("claude-sonnet-4-6", domainSystem, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
+      const synthesisText = await callAnthropic("claude-sonnet-4-6", synthesisSystem, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
       try {
         const m = synthesisText.match(/\{[\s\S]*\}/);
         if (m) return JSON.parse(m[0]);
