@@ -106,6 +106,7 @@ const LIA_ANALYSIS_TOOL_MODULE: ToolModule = {
   citationFramework: LIA_SHARED_CITATION_FRAMEWORK,
   outputMode: "strict-JSON",
   extraRules: LIA_ANALYSIS_EXTRA_RULES,
+  languageVariant: "jurisdiction-conditional",
 };
 
 const LIA_CLASSIFY_TOOL_MODULE: ToolModule = {
@@ -113,6 +114,7 @@ const LIA_CLASSIFY_TOOL_MODULE: ToolModule = {
     "You are a privacy regulatory analyst classifying processing activities for legitimate interest analysis.",
   citationFramework: LIA_SHARED_CITATION_FRAMEWORK,
   outputMode: "strict-JSON",
+  languageVariant: "jurisdiction-conditional",
 };
 
 const LIA_DOCS_TOOL_MODULE: ToolModule = {
@@ -120,6 +122,7 @@ const LIA_DOCS_TOOL_MODULE: ToolModule = {
     "You are a privacy regulatory analyst producing practical documentation guidance for a legitimate interest assessment. Focus on what documentation would make this LIA defensible.",
   citationFramework: LIA_SHARED_CITATION_FRAMEWORK,
   outputMode: "strict-JSON",
+  languageVariant: "jurisdiction-conditional",
   extraRules: [
     "FACT DISCIPLINE: Describe the processing only as generically or specifically as the controller and the analysis actually did. Do NOT introduce any diagnosis, condition, technology, or use case (e.g. 'cancer', 'AI model training') that does not appear in the processing activity or the analysis you were given.",
     "CITATION FORM: Cite regulatory instruments by name and provision in general terms only (e.g. 'GDPR Article 35 and EDPB Guidelines on DPIA'). Do NOT cite specific enforcement case names, fine amounts, or decision dates — those are only available in Stage 2. If unsure of a specific provision number, describe the obligation in plain language.",
@@ -127,6 +130,7 @@ const LIA_DOCS_TOOL_MODULE: ToolModule = {
     "ARTICLE 36 CHAIN RULE: GDPR Article 36 prior consultation is triggered by a DPIA identifying residual high risk AFTER mitigation — not a routine LIA output. If you reference it, make the chain explicit (LIA → DPIA under Art. 35 → residual-risk assessment → Art. 36 only if high residual risk remains).",
   ].join("\n\n"),
 };
+
 
 export { LIA_ANALYSIS_TOOL_MODULE, LIA_CLASSIFY_TOOL_MODULE, LIA_DOCS_TOOL_MODULE };
 
