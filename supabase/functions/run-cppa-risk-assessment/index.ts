@@ -21,6 +21,8 @@ import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
 import { BANNED_PHRASES } from "../_shared/citation-verifier.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+// [REVISED] authoritative § 7150(b) section strings — single source of truth
+import { CITATION_REGISTRY } from "../_shared/admt-citation-registry.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -339,7 +341,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
   identity:
     "You are a CPPA risk assessment specialist with deep expertise in Cal. Code Regs. tit. 11 §§ 7150–7158 and the California Privacy Rights Act. You produce a formal risk assessment that must meet the § 7153 content requirements and withstand scrutiny from the CPPA Audits Division (operational since February 2026; existing-activity compliance deadline December 31, 2027).",
   citationFramework:
-    "Cite only Cal. Code Regs. tit. 11 (format \"§ 7150(b)(1)\") or Cal. Civ. Code § 1798 (format \"§ 1798.185\"). Never cite § 7221(c)(5) for any purpose. Exception citations are § 7152(a)(1)–(8) only — verify each exists in the provided regulation text before use, and map each triggered activity to the § 7150(b) subsection that appears in the provided regulation text, not from memory.",
+    "Cite only Cal. Code Regs. tit. 11 (format \"§ 7150(b)(1)\") or Cal. Civ. Code § 1798 (format \"§ 1798.185\"). Never cite § 7221(c)(5) for any purpose. Exception citations are § 7152(a)(1)–(8) only — verify each exists in the provided regulation text before use. § 7150(b) trigger→subsection mappings are provided to you explicitly below and in the regulation text; use those exact subsections — never assign a § 7150(b) subsection from memory.",
   outputMode: "strict-JSON",
   extraRules: [
     "§ 7153 MAPPING: every output section maps to a § 7153 required content element; generate nothing not required by statute.",
@@ -405,6 +407,12 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
 function buildUserPrompt(intake: FiveStageIntake): string {
   const { triggers, exceptions, activity_details, impact, org_context } = intake;
   const noExceptions = Object.values(exceptions).every((v: any) => !v?.claimed);
+
+  // [REVISED] Pull authoritative § 7150(b) subsection strings from the registry —
+  // never hardcode § 7150(b)(N) literals in this file.
+  const SEC_OBSERVE  = CITATION_REGISTRY.ra_trigger_observe.section;  // systematic observation
+  const SEC_LOCATION = CITATION_REGISTRY.ra_trigger_location.section; // sensitive location
+  const SEC_TRAIN    = CITATION_REGISTRY.ra_trigger_train.section;    // train ADMT / biometric
 
   // Plain-language labels — never emit the raw snake_case keys into the prompt,
   // or the model echoes them ("cross_context_tracking: true") into the report.
@@ -503,8 +511,9 @@ Notice at collection: ${intake.content_detail.notice_at_collection || "n/a"}
 Minimum PI necessary (§ 7152(a)(2)): ${intake.content_detail.minimum_pi_necessary || "not provided"}
 Sources of the PI (§ 7152(a)(3)): ${intake.content_detail.pi_sources || "not provided"}
 Under-16 actual knowledge (§ 7001(bbb)): ${intake.content_detail.under16_actual_knowledge || "not stated"}
-Systematic-observation / sensitive-location profiling trigger (§ 7150(b)(4)): ${intake.content_detail.profiling_observation_trigger || "no"}
-ADMT / biometric training trigger (§ 7150(b)(6)): ${intake.content_detail.admt_training_trigger || "no"}
+Systematic-observation profiling trigger (${SEC_OBSERVE}): ${intake.content_detail.profiling_observation_trigger || "no"}
+Sensitive-location profiling trigger (${SEC_LOCATION}): ${intake.content_detail.profiling_observation_trigger || "no"}
+ADMT / biometric training trigger (${SEC_TRAIN}): ${intake.content_detail.admt_training_trigger || "no"}
 Negative-impact sources and causes (§ 7152(a)(5)): ${intake.content_detail.harm_sources_and_causes || "not provided"}
 Contributors to this assessment (§ 7152(a)(8)): ${intake.content_detail.internal_contributors || "not provided"}
 External consultees: ${intake.content_detail.external_consultees || "none stated"}
