@@ -166,7 +166,10 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
-    renderer.domElement.style.cssText = "display:block;position:absolute;top:0;left:0;width:100%;height:100%;border-radius:9999px;";
+    // No border-radius clip: lets the atmospheric halo feather into the hero
+    // background instead of being cut off at a hard circular edge (which read
+    // as a thin dark ring around the globe).
+    renderer.domElement.style.cssText = "display:block;position:absolute;top:0;left:0;width:100%;height:100%;";
     el.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -233,11 +236,16 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
 
     const applyTexture = (tex: THREE.Texture) => {
       if (!globeRef.current) return;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 4;
       globeRef.current.material = new THREE.MeshPhongMaterial({
         map: tex,
         specularMap: tex,
         specular: new THREE.Color(0x335577),
         shininess: 28,
+        // Reuse the color map as a bump map for cheap terrain relief — gives
+        // the sphere visible texture/detail without shipping a second asset.
+        bumpMap: tex,
+        bumpScale: 0.035,
       });
       setReady(true);
     };
@@ -312,12 +320,12 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
         }
       }
 
-      // Celestial-sphere drift: slow Y rotation with a small axial tilt on X.
-      // ~0.00018 rad/frame ≈ one full rotation every ~9 minutes at 60fps.
+      // Celestial-sphere drift: Y rotation with a small axial tilt on X.
+      // ~0.00060 rad/frame ≈ one full rotation every ~3 minutes at 60fps.
       if (!reduced && starsRef.current) {
         for (const g of [starsRef.current.dim, starsRef.current.mid, starsRef.current.bright]) {
-          g.points.rotation.y += 0.00018;
-          g.points.rotation.x += 0.00004;
+          g.points.rotation.y += 0.00060;
+          g.points.rotation.x += 0.00014;
         }
       }
 
