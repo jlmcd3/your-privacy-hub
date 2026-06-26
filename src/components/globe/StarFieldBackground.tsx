@@ -52,9 +52,9 @@ export default function StarFieldBackground() {
     for (let i = 0; i < STAR_COUNT; i++) {
       const u = Math.random();
       let layer: Star["layer"]; let rMin: number; let rMax: number; let drift: number;
-      if (u < 0.6)      { layer = "far";  rMin = 0.3; rMax = 0.7; drift = 4 / 60; }
-      else if (u < 0.9) { layer = "mid";  rMin = 0.6; rMax = 1.3; drift = 8 / 60; }
-      else              { layer = "near"; rMin = 1.1; rMax = 2.0; drift = 12 / 60; }
+      if (u < 0.6)      { layer = "far";  rMin = 0.3; rMax = 0.7; drift = 12 / 60; }
+      else if (u < 0.9) { layer = "mid";  rMin = 0.6; rMax = 1.3; drift = 24 / 60; }
+      else              { layer = "near"; rMin = 1.1; rMax = 2.0; drift = 36 / 60; }
 
       const base = powerLawBrightness();
       const cls = pickStarClass(Math.random());

@@ -325,8 +325,8 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
       // ~0.00060 rad/frame ≈ one full rotation every ~3 minutes at 60fps.
       if (!reduced && starsRef.current) {
         for (const g of [starsRef.current.dim, starsRef.current.mid, starsRef.current.bright]) {
-          g.points.rotation.y += 0.00240;
-          g.points.rotation.x += 0.00056;
+          g.points.rotation.y += 0.00720;
+          g.points.rotation.x += 0.00168;
         }
       }
 
