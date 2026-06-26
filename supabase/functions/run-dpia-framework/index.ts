@@ -225,10 +225,13 @@ DPO appointed: ${srcIntake.has_dpo ? "Yes" : "No"}
     let gdprBlock = "";
     let gdprMeta: any = { attempted: false };
     try {
+      // Corpus regime gating: DPIA is a GDPR tool — never query the CCPA corpus.
+      const corpusRegime: "gdpr" | "uk_gdpr" = gdprJurisdiction === "uk" ? "uk_gdpr" : "gdpr";
       const [ecRes, gdprRes] = await Promise.all([
         supabase.functions.invoke("get-enforcement-context", {
           body: {
             tool: "DPIA",
+            regime: corpusRegime,
             data_categories: intake.data_categories || [],
             jurisdictions: intake.jurisdictions || [],
             sector: intake.sector || undefined,
