@@ -223,49 +223,11 @@ async function reapFunctionRuns(): Promise<{ table: string; reaped: number; erro
   return { table: "function_runs", reaped };
 }
 
-// Registration orders use `fulfillment_status` (not `status`) and stamp
-// `documents_generation_started_at` when generation begins. The generator
-// runs in `EdgeRuntime.waitUntil` against the 400s wall-clock; anything
-// still "generating" past ~8 min is dead — flip to generation_failed so
-// the customer is never stuck (and can retry from the order page).
-const REGISTRATION_STUCK_MINUTES = 8;
-async function reapRegistrationOrders(): Promise<{ table: string; reaped: number; error?: string }> {
-  const cutoff = new Date(Date.now() - REGISTRATION_STUCK_MINUTES * 60_000).toISOString();
-  const { data: stuckOrders, error: selErr } = await supabase
-    .from("registration_orders")
-    .select("id")
-    .eq("fulfillment_status", "generating")
-    .lt("documents_generation_started_at", cutoff);
+// NOTE: Registration order sweeping has moved to `retry-failed-generations`
+// (which is the only cross-product sweeper actually scheduled via pg_cron).
+// This function is not on a schedule, so a registration backstop here would
+// never run. See retry-failed-generations/index.ts → sweepRegistrationOrders.
 
-  if (selErr) {
-    console.error("[reap-stuck] registration_orders: select failed", selErr);
-    return { table: "registration_orders", reaped: 0, error: selErr.message };
-  }
-  if (!stuckOrders || stuckOrders.length === 0) {
-    console.log("[reap-stuck] registration_orders: 0 rows reaped");
-    return { table: "registration_orders", reaped: 0 };
-  }
-
-  let reaped = 0;
-  for (const o of stuckOrders as any[]) {
-    const { error: updErr } = await supabase
-      .from("registration_orders")
-      .update({
-        fulfillment_status: "generation_failed",
-        validation_notes: "reaped: stuck in generating past wall-clock budget",
-      })
-      .eq("id", o.id)
-      .eq("fulfillment_status", "generating"); // race guard
-    if (updErr) {
-      console.error(`[reap-stuck] registration_orders ${o.id}: update failed`, updErr);
-      continue;
-    }
-    reaped += 1;
-    console.warn(`[reap] registration_orders ${o.id} marked generation_failed`);
-  }
-  console.log(`[reap-stuck] registration_orders: ${reaped} rows reaped`);
-  return { table: "registration_orders", reaped };
-}
 
 
 Deno.serve(async (req) => {
@@ -276,7 +238,7 @@ Deno.serve(async (req) => {
     for (const t of TARGETS) results.push(await reap(t));
     results.push(await reapQualityRuns());
     results.push(await reapFunctionRuns());
-    results.push(await reapRegistrationOrders());
+    // Registration orders are swept by retry-failed-generations (scheduled).
     const total = results.reduce((n, r) => n + r.reaped, 0);
 
     return new Response(

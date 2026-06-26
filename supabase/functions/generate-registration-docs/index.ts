@@ -331,15 +331,16 @@ Deno.serve(async (req) => {
   });
 
   try {
-    const { order_id } = await req.json();
+    const { order_id, jurisdiction_code } = await req.json();
     if (!order_id) {
+      await failFunctionRun(supabase, fnRun, new Error("order_id required"));
       return new Response(JSON.stringify({ error: "order_id required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fast existence check + claim the order so the request can return immediately.
+    // Fast existence check.
     const { data: order, error: orderErr } = await supabase
       .from("registration_orders")
       .select("*")
@@ -353,45 +354,62 @@ Deno.serve(async (req) => {
       });
     }
 
-    await supabase.from("registration_orders").update({
-      fulfillment_status: "generating",
-      documents_generation_started_at: new Date().toISOString(),
-    }).eq("id", order_id);
+    // ── DISPATCHER (no jurisdiction_code): claim order, fan out, return fast ──
+    if (!jurisdiction_code) {
+      await supabase.from("registration_orders").update({
+        fulfillment_status: "generating",
+        documents_generation_started_at: new Date().toISOString(),
+      }).eq("id", order_id);
 
-    // Best-effort terminalisation if the worker is killed at the 400s wall clock
-    // (the reaper is the real guarantee — beforeunload cannot reliably await).
-    addEventListener("beforeunload", () => {
-      try {
-        supabase.from("registration_orders").update({
-          fulfillment_status: "generation_failed",
-          validation_notes: "timed_out: worker shut down before completion",
-        }).eq("id", order_id).eq("fulfillment_status", "generating");
-      } catch (_) { /* shutting down */ }
-    });
+      const codes: string[] = order.jurisdictions || [];
+      // @ts-ignore EdgeRuntime is a Deno Deploy/Supabase runtime global
+      EdgeRuntime.waitUntil((async () => {
+        for (const code of codes) {
+          // Fire one worker per jurisdiction; do NOT await — each gets its own
+          // 400s wall-clock budget.
+          supabase.functions.invoke("generate-registration-docs", {
+            body: { order_id, jurisdiction_code: code },
+          }).catch((e) => console.error(`[reg] dispatch ${code} failed`, e));
+        }
+      })());
 
-    const runGeneration = async () => {
+      await finishFunctionRun(supabase, fnRun, {
+        status: "success",
+        sourceTable: "registration_orders",
+        sourceRowId: order_id,
+        metadata: { dispatched: codes.length, role: "dispatcher" },
+      });
+      return new Response(JSON.stringify({
+        order_id, status: "generating", dispatched: codes.length,
+      }), {
+        status: 202,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── WORKER (jurisdiction_code present): generate just this jurisdiction ──
+    // @ts-ignore EdgeRuntime is a Deno Deploy/Supabase runtime global
+    EdgeRuntime.waitUntil((async () => {
       try {
-        const codes: string[] = order.jurisdictions || [];
-        const { data: reqs, error: reqsErr } = await supabase
+        const { data: reqRows, error: reqsErr } = await supabase
           .from("jurisdiction_requirements")
           .select("*")
-          .in("jurisdiction_code", codes.length ? codes : ["__none__"]);
+          .eq("jurisdiction_code", jurisdiction_code);
         if (reqsErr) throw reqsErr;
+        const r = reqRows?.[0];
+        if (!r) throw new Error(`worker: missing requirement for ${jurisdiction_code}`);
 
-        // For "wrong authority referenced" check: load all other authority names
         const { data: allReqs } = await supabase
           .from("jurisdiction_requirements")
           .select("authority_name");
         const allAuthorityNames: string[] = ((allReqs as any[]) || [])
           .map((x) => x?.authority_name)
           .filter((n): n is string => typeof n === "string" && n.length > 0);
+        const otherAuthorityNames = allAuthorityNames.filter((n) => n !== r.authority_name);
 
         const orgSnapshot = order.organization_snapshot || {};
-        const generated: Array<{ jurisdiction_code: string; document_type: string }> = [];
-
-        // Build the shared system prompt once per request (prompt-core v2.3 + GDPR registry).
         const today = new Date().toISOString().slice(0, 10);
-        const orderCodes: string[] = Array.isArray(codes) ? codes : [];
+        const orderCodes: string[] = Array.isArray(order.jurisdictions) ? order.jurisdictions : [];
         const upperCodes = orderCodes.map((c) => String(c).toUpperCase());
         const isUk = upperCodes.includes("UK") || upperCodes.includes("GB");
         const gdprBlock = renderGdprCitationBlock({
@@ -411,115 +429,89 @@ Deno.serve(async (req) => {
           cache: true,
         });
 
-        // Flatten (jurisdiction × applicable docType) and run with a concurrency cap.
-        const tasks = (reqs || []).flatMap((r: any) => {
-          const otherAuthorityNames = allAuthorityNames.filter((n) => n !== r.authority_name);
-          const applicableTypes = DOCUMENT_TYPES.filter((d) => d.when(r)).map((d) => d.type);
-          return DOCUMENT_TYPES.filter((docDef) => docDef.when(r))
-            .map((docDef) => ({ r, docDef, otherAuthorityNames, applicableTypes }));
-        });
+        const applicableDocs = DOCUMENT_TYPES.filter((d) => d.when(r));
+        const applicableTypes = applicableDocs.map((d) => d.type);
 
-        const results = await mapPool(tasks, 4, async ({ r, docDef, otherAuthorityNames, applicableTypes }) => {
-          if (docDef.type === "filing_instructions") {
-            return {
-              r, docDef,
-              cleaned: buildFilingInstructions(r, applicableTypes),
-              model: "deterministic-template",
-              status: "ready" as const,
-              validation_notes: null as string | null,
-            };
-          }
-
-          // First attempt
-          const notesEarly: string[] = [];
-          let initial = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot));
-          if (initial.stopReason === "max_tokens") {
-            console.warn(`[reg-docs] ${r.jurisdiction_code}/${docDef.type} truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
-            initial = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot), PRODUCT_MAX_OUTPUT_TOKENS);
-            if (initial.stopReason === "max_tokens") {
-              notesEarly.push("truncated_output: document hit token ceiling twice");
-            }
-          }
-          let raw = initial.text;
-          let cleaned = stripMarkdown(raw);
-          let failures = validateDocument(cleaned, r, otherAuthorityNames);
-
-          // Regenerate once on failure
-          if (failures.length > 0) {
-            try {
-              const r2 = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot, failures));
-              raw = r2.text;
-              cleaned = stripMarkdown(raw);
-              failures = validateDocument(cleaned, r, otherAuthorityNames);
-            } catch (e) {
-              failures.push(`regeneration failed: ${(e as Error).message}`);
-            }
-          }
-
+        // Edit C: insert each document immediately so a kill loses at most one.
+        await mapPool(applicableDocs, 5, async (docDef) => {
+          let cleaned: string;
+          let model: string;
           let status: "ready" | "needs_review" = "ready";
           const notes: string[] = [];
-          for (const ne of notesEarly) notes.push(ne);
-          if (notesEarly.some((n) => n.startsWith("truncated_output"))) {
-            status = "needs_review";
-          }
-          if (failures.length > 0) {
-            status = "needs_review";
-            notes.push(`Validation: ${failures.join("; ")}`);
-          } else {
-            const { replacements, flaggedForReview, updatedText } = await haikuCitationCheck(cleaned, r);
-            cleaned = updatedText;
-            if (replacements.length) notes.push(`Citation check: ${replacements.join("; ")}`);
-            if (flaggedForReview.length) {
-              notes.push(`Citations flagged for human review (not rewritten): ${flaggedForReview.join("; ")}`);
-              status = "needs_review";
-            }
-          }
 
-          const referenceDate = new Date().toISOString();
-          let lint = lintReportText(cleaned, {
-            checkDates: true, checkUnresolvedTokens: true, referenceDate,
-          });
-          if (lint.clean !== cleaned) cleaned = lint.clean;
-          if (hasHardViolations(lint)) {
-            try {
-              const details = lint.violations.filter((v) => v.severity === "hard")
-                .map((v) => `${v.code}: ${v.detail}`).join("; ");
-              const retryRaw = await callClaude(
-                SONNET_MODEL,
-                registrationSystem,
-                buildUserPrompt(docDef, r, orgSnapshot, [`lint: ${details}`]) +
-                `\n\nPREVIOUS DRAFT REJECTED by automated lint for: ${details}. Reproduce the document correcting these defects silently. Do not mention this instruction.`,
-              );
-              const retryCleaned = stripMarkdown(retryRaw.text);
-              const retryLint = lintReportText(retryCleaned, {
-                checkDates: true, checkUnresolvedTokens: true, referenceDate,
-              });
-              if (!hasHardViolations(retryLint)) {
-                cleaned = retryLint.clean;
-                lint = retryLint;
-              } else {
-                notes.push(`Lint (post-retry): ${retryLint.violations.map((v) => v.code).join(", ")}`);
+          if (docDef.type === "filing_instructions") {
+            cleaned = buildFilingInstructions(r, applicableTypes);
+            model = "deterministic-template";
+          } else {
+            const notesEarly: string[] = [];
+            let initial = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot));
+            if (initial.stopReason === "max_tokens") {
+              console.warn(`[reg-docs] ${r.jurisdiction_code}/${docDef.type} truncated — single retry`);
+              initial = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot), PRODUCT_MAX_OUTPUT_TOKENS);
+              if (initial.stopReason === "max_tokens") {
+                notesEarly.push("truncated_output: document hit token ceiling twice");
+              }
+            }
+            let raw = initial.text;
+            cleaned = stripMarkdown(raw);
+            let failures = validateDocument(cleaned, r, otherAuthorityNames);
+            if (failures.length > 0) {
+              try {
+                const r2 = await callClaude(SONNET_MODEL, registrationSystem, buildUserPrompt(docDef, r, orgSnapshot, failures));
+                raw = r2.text;
+                cleaned = stripMarkdown(raw);
+                failures = validateDocument(cleaned, r, otherAuthorityNames);
+              } catch (e) {
+                failures.push(`regeneration failed: ${(e as Error).message}`);
+              }
+            }
+            model = SONNET_MODEL;
+            for (const ne of notesEarly) notes.push(ne);
+            if (notesEarly.some((n) => n.startsWith("truncated_output"))) status = "needs_review";
+            if (failures.length > 0) {
+              status = "needs_review";
+              notes.push(`Validation: ${failures.join("; ")}`);
+            } else {
+              const { replacements, flaggedForReview, updatedText } = await haikuCitationCheck(cleaned, r);
+              cleaned = updatedText;
+              if (replacements.length) notes.push(`Citation check: ${replacements.join("; ")}`);
+              if (flaggedForReview.length) {
+                notes.push(`Citations flagged for human review (not rewritten): ${flaggedForReview.join("; ")}`);
                 status = "needs_review";
               }
-            } catch (e) {
-              notes.push(`Lint retry failed: ${(e as Error).message}`);
-              status = "needs_review";
             }
-          }
-          if (lint.violations.length) {
-            notes.push(`Lint: ${lint.violations.map((v) => v.code).join(", ")}`);
+
+            const referenceDate = new Date().toISOString();
+            let lint = lintReportText(cleaned, { checkDates: true, checkUnresolvedTokens: true, referenceDate });
+            if (lint.clean !== cleaned) cleaned = lint.clean;
+            if (hasHardViolations(lint)) {
+              try {
+                const details = lint.violations.filter((v) => v.severity === "hard")
+                  .map((v) => `${v.code}: ${v.detail}`).join("; ");
+                const retryRaw = await callClaude(
+                  SONNET_MODEL,
+                  registrationSystem,
+                  buildUserPrompt(docDef, r, orgSnapshot, [`lint: ${details}`]) +
+                  `\n\nPREVIOUS DRAFT REJECTED by automated lint for: ${details}. Reproduce the document correcting these defects silently. Do not mention this instruction.`,
+                );
+                const retryCleaned = stripMarkdown(retryRaw.text);
+                const retryLint = lintReportText(retryCleaned, { checkDates: true, checkUnresolvedTokens: true, referenceDate });
+                if (!hasHardViolations(retryLint)) {
+                  cleaned = retryLint.clean;
+                  lint = retryLint;
+                } else {
+                  notes.push(`Lint (post-retry): ${retryLint.violations.map((v) => v.code).join(", ")}`);
+                  status = "needs_review";
+                }
+              } catch (e) {
+                notes.push(`Lint retry failed: ${(e as Error).message}`);
+                status = "needs_review";
+              }
+            }
+            if (lint.violations.length) notes.push(`Lint: ${lint.violations.map((v) => v.code).join(", ")}`);
           }
 
-          return {
-            r, docDef,
-            cleaned,
-            model: SONNET_MODEL,
-            status,
-            validation_notes: notes.length ? notes.join(" | ") : null,
-          };
-        });
-
-        for (const { r, docDef, cleaned, model, status, validation_notes } of results) {
+          // Edit C — INSERT IMMEDIATELY (no post-loop batch).
           await supabase.from("registration_documents").insert({
             order_id,
             jurisdiction_code: r.jurisdiction_code,
@@ -528,52 +520,45 @@ Deno.serve(async (req) => {
             content_text: cleaned,
             generation_model: model,
             status,
-            validation_notes,
+            validation_notes: notes.length ? notes.join(" | ") : null,
           });
-          generated.push({ jurisdiction_code: r.jurisdiction_code, document_type: docDef.type });
-        }
+        });
 
-        await supabase
-          .from("registration_orders")
-          .update({
-            documents_generated_at: new Date().toISOString(),
+        // Optimistic finalize: if every jurisdiction has docs, flip terminal (guarded).
+        // Race with sibling workers is fine — the guard + scheduled finalizer cover us.
+        const { data: docs } = await supabase
+          .from("registration_documents")
+          .select("jurisdiction_code")
+          .eq("order_id", order_id);
+        const haveJur = new Set((docs ?? []).map((d: any) => d.jurisdiction_code));
+        if (haveJur.size >= (order.jurisdictions ?? []).length) {
+          const { data: flipped } = await supabase.from("registration_orders").update({
             fulfillment_status: order.tier === "diy" ? "documents_ready" : "ready_to_file",
-          })
-          .eq("id", order_id);
-
-        try {
-          await supabase.functions.invoke("schedule-registration-renewals", { body: { order_id } });
-        } catch (e) {
-          console.warn("schedule-registration-renewals failed:", (e as Error).message);
-        }
-
-        try {
-          await supabase.functions.invoke("send-registration-delivery-email", { body: { order_id } });
-        } catch (e) {
-          console.warn("send-registration-delivery-email failed:", (e as Error).message);
+            documents_generated_at: new Date().toISOString(),
+          }).eq("id", order_id).eq("fulfillment_status", "generating").select("id").maybeSingle();
+          if (flipped) {
+            try { await supabase.functions.invoke("schedule-registration-renewals", { body: { order_id } }); } catch (_) {}
+            try { await supabase.functions.invoke("send-registration-delivery-email", { body: { order_id } }); } catch (_) {}
+          }
         }
 
         await finishFunctionRun(supabase, fnRun, {
           status: "success",
           sourceTable: "registration_orders",
           sourceRowId: order_id,
-          metadata: { generated_count: generated.length },
+          metadata: { jurisdiction_code, role: "worker" },
         });
       } catch (e) {
-        console.error("generate-registration-docs background error", e);
-        // TERMINALISE the order so the customer is never stuck on a caught failure.
-        await supabase.from("registration_orders").update({
-          fulfillment_status: "generation_failed",
-          validation_notes: `generation_failed: ${(e as Error).message}`.slice(0, 2000),
-        }).eq("id", order_id).eq("fulfillment_status", "generating");
+        console.error(`[reg worker ${jurisdiction_code}]`, e);
         await failFunctionRun(supabase, fnRun, e);
+        // Do NOT fail the whole order here — the scheduled finalizer (retry-failed-generations)
+        // decides terminal state across all sibling workers.
       }
-    };
+    })());
 
-    // @ts-ignore — EdgeRuntime is a Deno Deploy/Supabase runtime global
-    EdgeRuntime.waitUntil(runGeneration());
-
-    return new Response(JSON.stringify({ order_id, status: "generating" }), {
+    return new Response(JSON.stringify({
+      order_id, jurisdiction_code, status: "generating",
+    }), {
       status: 202,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -585,3 +570,4 @@ Deno.serve(async (req) => {
     });
   }
 });
+
