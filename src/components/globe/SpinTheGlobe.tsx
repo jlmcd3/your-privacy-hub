@@ -225,7 +225,7 @@ export default function SpinTheGlobe({ compact = false }: { compact?: boolean } 
     sun.position.set(5, 2.5, 4);
     scene.add(sun);
     // Cool rim/fill from opposite side — reads as Earthshine, sells the sphere
-    const fill = new THREE.DirectionalLight(0x4a7bd6, 0.35);
+    const fill = new THREE.DirectionalLight(0x4a7bd6, 0.40);
     fill.position.set(-4, -1, -3);
     scene.add(fill);
 
