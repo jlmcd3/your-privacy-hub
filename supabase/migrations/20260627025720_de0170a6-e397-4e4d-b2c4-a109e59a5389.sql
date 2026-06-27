@@ -1,0 +1,1 @@
+ALTER TABLE public.registration_orders ADD COLUMN IF NOT EXISTS validation_notes text;
