@@ -1,4 +1,4 @@
-// src/components/admt/StatuteRail.tsx
+// src/components/intake/StatuteRail.tsx
 // Statute Rail — persistent right column showing exact regulation text,
 // plain-language summary, and FSOR context for the active field.
 // Desktop: sticky right column. Mobile: collapsible drawer at bottom.
@@ -6,37 +6,22 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, BookOpen, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import type { RailEntry } from "./RailEntry";
 
-export type RailEntry = {
-  fieldLabel: string;
-  citation: string;
-  citationUrl?: string;
-  plainSummary: string;
-  regulationText: string;
-  fscrContext?: string;
-  enforcementNote?: string;
-  goodAnswer?: string;
-  commonMistake?: string;
-  relatedCitations?: { citation: string; label: string }[];
-  templateGuidance?: {
-    sectionRef: string;
-    sectionTitle: string;
-    guidance: string;
-    paraRefs?: number[];
-    sourceLabel: string;
-    sourceUrl: string;
-  };
-};
+// Backward-compat re-export so legacy `import type { RailEntry } from ".../StatuteRail"` keeps working.
+export type { RailEntry } from "./RailEntry";
 
 interface StatuteRailProps {
   entry: RailEntry | null;
   className?: string;
+  /**
+   * Optional per-tool default source URL used when an entry has no `citationUrl`.
+   * When neither is provided, the citation renders as plain text (no link).
+   */
+  defaultSourceUrl?: string;
 }
 
-const OFFICIAL_URL =
-  "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
-
-export default function StatuteRail({ entry, className = "" }: StatuteRailProps) {
+export default function StatuteRail({ entry, className = "", defaultSourceUrl }: StatuteRailProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const content = entry ? (
@@ -48,15 +33,17 @@ export default function StatuteRail({ entry, className = "" }: StatuteRailProps)
           </span>
           <p className="text-[11px] text-muted-foreground mt-0.5">{entry.fieldLabel}</p>
         </div>
-        <a
-          href={entry.citationUrl ?? OFFICIAL_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Open official source"
-        >
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+        {(entry.citationUrl ?? defaultSourceUrl) ? (
+          <a
+            href={entry.citationUrl ?? defaultSourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Open official source"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        ) : null}
       </div>
 
       <div className="rounded-md bg-[hsl(var(--cobalt)/0.07)] border border-[hsl(var(--cobalt)/0.15)] p-3">
@@ -88,14 +75,14 @@ export default function StatuteRail({ entry, className = "" }: StatuteRailProps)
         <div className="rounded-md bg-[hsl(var(--brand-navy)/0.05)] border border-[hsl(var(--brand-navy)/0.12)] p-3">
           <div className="flex items-start justify-between gap-2 mb-1">
             <p className="text-[11px] font-semibold text-[hsl(var(--brand-navy))] uppercase tracking-wide">
-              EDPB DPIA template — completing this field
+              {entry.templateGuidance.sourceLabel ?? "Template guidance"}
             </p>
             <a
               href={entry.templateGuidance.sourceUrl}
               target="_blank"
               rel="noreferrer"
               className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="EDPB source"
+              aria-label="Template source"
             >
               <ExternalLink className="w-3 h-3" />
             </a>
