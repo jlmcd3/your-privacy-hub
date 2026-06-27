@@ -364,13 +364,23 @@ Deno.serve(async (req) => {
       const codes: string[] = order.jurisdictions || [];
       // @ts-ignore EdgeRuntime is a Deno Deploy/Supabase runtime global
       EdgeRuntime.waitUntil((async () => {
-        for (const code of codes) {
-          // Fire one worker per jurisdiction; do NOT await — each gets its own
-          // 400s wall-clock budget.
-          supabase.functions.invoke("generate-registration-docs", {
-            body: { order_id, jurisdiction_code: code },
-          }).catch((e) => console.error(`[reg] dispatch ${code} failed`, e));
-        }
+        // CRITICAL: await each invoke so the isolate stays alive until the
+        // Functions Gateway has accepted every worker request. Previously these
+        // were fire-and-forget, which let the runtime tear down before any
+        // worker fetch actually left the box — orders sat in `generating`
+        // forever with zero worker function_runs recorded.
+        const results = await Promise.allSettled(
+          codes.map((code) =>
+            supabase.functions.invoke("generate-registration-docs", {
+              body: { order_id, jurisdiction_code: code },
+            }),
+          ),
+        );
+        results.forEach((r, i) => {
+          if (r.status === "rejected") {
+            console.error(`[reg] dispatch ${codes[i]} failed`, r.reason);
+          }
+        });
       })());
 
       await finishFunctionRun(supabase, fnRun, {

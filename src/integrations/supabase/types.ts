@@ -4106,6 +4106,7 @@ export type Database = {
           tier: string
           updated_at: string
           user_id: string
+          validation_notes: string | null
         }
         Insert: {
           amount_cents: number
@@ -4131,6 +4132,7 @@ export type Database = {
           tier: string
           updated_at?: string
           user_id: string
+          validation_notes?: string | null
         }
         Update: {
           amount_cents?: number
@@ -4156,6 +4158,7 @@ export type Database = {
           tier?: string
           updated_at?: string
           user_id?: string
+          validation_notes?: string | null
         }
         Relationships: [
           {
