@@ -21,7 +21,10 @@ const RAIL_SETS: Record<string, string> = {
   // research sets are reference pages (no intake) — exempt from goodAnswer rules
 };
 
-const DIRECTIVE_RE = /\b(tick|select|choose|check|enter|pick)\b/i;
+// Directive sense: verb appears as an imperative (sentence-initial, or after
+// "to/should/must/please/just"), not embedded as a noun like "identity check".
+const DIRECTIVE_RE =
+  /(?:^|[.!?]\s+|["'`]\s*|\bto\s+|\bshould\s+|\bmust\s+|\bplease\s+|\bjust\s+)(tick|select|choose|check|enter|pick)\b/i;
 const TICK_NONE_RE = /tick\s+none/i;
 
 type Failure = { file: string; rule: string; entryKey?: string; detail: string };
