@@ -119,9 +119,9 @@ async function reapQualityRuns(): Promise<{ table: string; reaped: number; error
   const cutoff = new Date(Date.now() - QUALITY_STUCK_MINUTES * 60_000).toISOString();
   const { data: candidates, error: selErr } = await supabase
     .from("quality_runs")
-    .select("id, tool, run_number, status, progress_log, started_at, updated_at")
+    .select("id, tool, run_number, status, progress_log, started_at, last_heartbeat_at")
     .in("status", QUALITY_STUCK_STATUSES)
-    .lt("updated_at", cutoff);
+    .lt("last_heartbeat_at", cutoff);
 
   if (selErr) {
     console.error("[reap-stuck] quality_runs: select failed", selErr);
