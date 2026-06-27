@@ -631,6 +631,11 @@ export default function QualityLoop() {
           </div>
         )}
 
+        {/* B6 — four-team deliberation + per-tool auto-apply strip */}
+        <QualityLoopAugmentation runId={activeRun?.id ?? null} tool={tool} />
+
+
+
         {patches.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
             <h2 className="text-base font-semibold text-gray-800 mb-3">
