@@ -344,7 +344,12 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
   try {
-    const raw = await gpt4o(GPT_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2000)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 15000)}\nEvaluate this compliance document. Quote actual text as evidence for each finding.`, 3000);
+    // B3: editorial tools — append rubric override note so GPT ignores structured-field
+    // and formatting checks and focuses on accuracy + citation + no-adaptive-guidance.
+    const editorialNote = isEditorial(tool)
+      ? `\n\nEDITORIAL RUBRIC OVERRIDE: This is editorial copy (Q&A, brief, trend report, state-law check). Score "formatting" as 100 (N/A — no structured fields). Drop any check_id that targets structured-field shape, schema, or layout. Focus on (1) accuracy of facts and law, (2) citation fidelity (no invented sources/sections), (3) no_adaptive_guidance — i.e. the copy does not tell the reader what answer to give on a form.`
+      : "";
+    const raw = await gpt4o(GPT_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2000)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 15000)}${editorialNote}\nEvaluate this compliance document. Quote actual text as evidence for each finding.`, 3000);
     const parsed = tryParse(raw);
     if (!parsed?.dimension_scores) {
       return { eval: null, error: `GPT returned unexpected structure (first 120 chars: ${raw.slice(0, 120)})` };
