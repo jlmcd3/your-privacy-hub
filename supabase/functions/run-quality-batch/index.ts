@@ -887,7 +887,7 @@ async function runBatch(runId: string): Promise<void> {
     if (endIdx < intakes.length) {
       await log("info", `Chunk complete (${endIdx}/${intakes.length}). Self-reinvoking for next chunk…`);
       await persistState({ next_doc_index: endIdx });
-      selfReinvoke(runId);
+      await selfReinvoke(runId);
       clearInterval(heartbeat);
       return;
     }
