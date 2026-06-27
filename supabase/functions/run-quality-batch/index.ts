@@ -636,17 +636,25 @@ async function generateProposedFix(tool: string, checkId: string, dimension: str
 }
 
 async function selfReinvoke(runId: string): Promise<void> {
-  // Fire-and-forget self-call so the current invocation can return cleanly.
-  // Each new invocation gets its own fresh runtime budget.
-  fetch(`${SUPABASE_URL}/functions/v1/run-quality-batch`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${SERVICE_KEY}`,
-      "x-internal-resume": "1",
-    },
-    body: JSON.stringify({ resume_run_id: runId }),
-  }).catch(e => console.warn("[run-quality-batch] self-reinvoke failed:", (e as Error).message));
+  // Awaited self-call: the resume handler returns 202 fast (it kicks off the
+  // next runBatch in its own waitUntil), so awaiting only ensures the chained
+  // isolate has booted before this isolate retires. Without the await, the
+  // current isolate could be torn down before the chained request flushes.
+  try {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/run-quality-batch`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${SERVICE_KEY}`,
+        "x-internal-resume": "1",
+      },
+      body: JSON.stringify({ resume_run_id: runId }),
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!r.ok) console.warn(`[run-quality-batch] self-reinvoke HTTP ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  } catch (e) {
+    console.warn("[run-quality-batch] self-reinvoke failed:", (e as Error).message);
+  }
 }
 
 type PartialState = {
@@ -879,7 +887,7 @@ async function runBatch(runId: string): Promise<void> {
     if (endIdx < intakes.length) {
       await log("info", `Chunk complete (${endIdx}/${intakes.length}). Self-reinvoking for next chunk…`);
       await persistState({ next_doc_index: endIdx });
-      selfReinvoke(runId);
+      await selfReinvoke(runId);
       clearInterval(heartbeat);
       return;
     }
