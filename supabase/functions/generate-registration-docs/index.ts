@@ -521,13 +521,17 @@ Deno.serve(async (req) => {
             if (lint.violations.length) notes.push(`Lint: ${lint.violations.map((v) => v.code).join(", ")}`);
           }
 
+          // Append standard legal disclaimer to every generated document.
+          const DISCLAIMER = "\n\n---\n\nDISCLAIMER: This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance. End User Privacy makes no warranty as to the accuracy or legal sufficiency of this output, no attorney-client relationship is created, and End User Privacy accepts no liability for any action, inaction, or loss arising from use of or reliance on this document. Registration requirements, fees, and deadlines change frequently — verify with the relevant data protection authority before filing.";
+          const contentWithDisclaimer = cleaned + DISCLAIMER;
+
           // Edit C — INSERT IMMEDIATELY (no post-loop batch).
           await supabase.from("registration_documents").insert({
             order_id,
             jurisdiction_code: r.jurisdiction_code,
             document_type: docDef.type,
             language: "en",
-            content_text: cleaned,
+            content_text: contentWithDisclaimer,
             generation_model: model,
             status,
             validation_notes: notes.length ? notes.join(" | ") : null,
