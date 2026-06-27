@@ -895,7 +895,8 @@ async function runBatch(runId: string): Promise<void> {
       hallucination: avg(state.dimTotals.hallucination), analysis: avg(state.dimTotals.analysis),
       intelligence: avg(state.dimTotals.intelligence), formatting: avg(state.dimTotals.formatting),
     };
-    const overall = Math.round(scores.accuracy * 0.30 + scores.citation * 0.25 + scores.hallucination * 0.20 + scores.analysis * 0.15 + scores.intelligence * 0.05 + scores.formatting * 0.05);
+    const w = weightsFor(tool);
+    const overall = Math.round(scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting);
 
     const byCheck = new Map<string, any[]>();
     for (const f of state.allDocFindings) {
