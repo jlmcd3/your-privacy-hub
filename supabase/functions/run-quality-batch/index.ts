@@ -1027,9 +1027,9 @@ async function runBatch(runId: string): Promise<void> {
       gpt_score_intelligence:  gptAvg(state.gptTotals.intelligence),
       gpt_score_formatting:    gptAvg(state.gptTotals.formatting),
       gpt_score_overall: Math.round(
-        (gptAvg(state.gptTotals.accuracy) ?? 0) * 0.30 + (gptAvg(state.gptTotals.citation) ?? 0) * 0.25 +
-        (gptAvg(state.gptTotals.hallucination) ?? 0) * 0.20 + (gptAvg(state.gptTotals.analysis) ?? 0) * 0.15 +
-        (gptAvg(state.gptTotals.intelligence) ?? 0) * 0.05 + (gptAvg(state.gptTotals.formatting) ?? 0) * 0.05
+        (gptAvg(state.gptTotals.accuracy) ?? 0) * w.accuracy + (gptAvg(state.gptTotals.citation) ?? 0) * w.citation +
+        (gptAvg(state.gptTotals.hallucination) ?? 0) * w.hallucination + (gptAvg(state.gptTotals.analysis) ?? 0) * w.analysis +
+        (gptAvg(state.gptTotals.intelligence) ?? 0) * w.intelligence + (gptAvg(state.gptTotals.formatting) ?? 0) * w.formatting
       ),
     } : {};
 
