@@ -134,7 +134,7 @@ async function reapQualityRuns(): Promise<{ table: string; reaped: number; error
 
   let reaped = 0;
   for (const row of candidates as any[]) {
-    const stuckSince = row.updated_at ?? row.started_at;
+    const stuckSince = row.last_heartbeat_at ?? row.started_at;
     const minutesStuck = Math.round(
       (Date.now() - new Date(stuckSince).getTime()) / 60_000,
     );
