@@ -3421,6 +3421,36 @@ export type Database = {
           },
         ]
       }
+      quality_autoapply_tool_state: {
+        Row: {
+          cap: number
+          enabled: boolean
+          last_score_overall: number | null
+          runs_used: number
+          target_branch: string
+          tool: string
+          updated_at: string
+        }
+        Insert: {
+          cap?: number
+          enabled?: boolean
+          last_score_overall?: number | null
+          runs_used?: number
+          target_branch?: string
+          tool: string
+          updated_at?: string
+        }
+        Update: {
+          cap?: number
+          enabled?: boolean
+          last_score_overall?: number | null
+          runs_used?: number
+          target_branch?: string
+          tool?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quality_check_results: {
         Row: {
           check_id: string
@@ -3563,6 +3593,92 @@ export type Database = {
           },
           {
             foreignKeyName: "quality_findings_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "quality_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_fix_deliberations: {
+        Row: {
+          auto_applied: boolean
+          change_location: string | null
+          check_id: string
+          consensus: boolean
+          created_at: string
+          devils_advocate: Json | null
+          dimension: string | null
+          disagreements: Json | null
+          id: string
+          recommended_change: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          run_id: string
+          severity: string | null
+          status: string
+          team1_position: Json | null
+          team2_position: Json | null
+          team3_approve: boolean | null
+          team3_position: Json | null
+          team4_approve: boolean | null
+          team4_position: Json | null
+          tool: string
+          verdict: string
+        }
+        Insert: {
+          auto_applied?: boolean
+          change_location?: string | null
+          check_id: string
+          consensus?: boolean
+          created_at?: string
+          devils_advocate?: Json | null
+          dimension?: string | null
+          disagreements?: Json | null
+          id?: string
+          recommended_change?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id: string
+          severity?: string | null
+          status?: string
+          team1_position?: Json | null
+          team2_position?: Json | null
+          team3_approve?: boolean | null
+          team3_position?: Json | null
+          team4_approve?: boolean | null
+          team4_position?: Json | null
+          tool: string
+          verdict?: string
+        }
+        Update: {
+          auto_applied?: boolean
+          change_location?: string | null
+          check_id?: string
+          consensus?: boolean
+          created_at?: string
+          devils_advocate?: Json | null
+          dimension?: string | null
+          disagreements?: Json | null
+          id?: string
+          recommended_change?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string
+          severity?: string | null
+          status?: string
+          team1_position?: Json | null
+          team2_position?: Json | null
+          team3_approve?: boolean | null
+          team3_position?: Json | null
+          team4_approve?: boolean | null
+          team4_position?: Json | null
+          tool?: string
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_fix_deliberations_run_id_fkey"
             columns: ["run_id"]
             isOneToOne: false
             referencedRelation: "quality_runs"
