@@ -541,6 +541,61 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       }
       throw new Error("timeout polling biometric_assessments");
     }
+
+    // B3: Registration — fan-out filing generator. Poll registration_orders.
+    if (tool === "registration") {
+      const { data: rec, error } = await admin.from("registration_orders").insert({
+        user_id: userId,
+        status: "pending",
+        intake_data: intake,
+        organization_name: intake?.organizationName ?? "Test Org",
+        jurisdictions: intake?.jurisdictions ?? [],
+      }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("generate-registration-docs", { order_id: rec.id, user_id: userId }).catch(() => {});
+      // Generous poll budget — multi-jurisdiction filings can run long.
+      for (let i = 0; i < 240; i++) {
+        await new Promise(r => setTimeout(r, 5000));
+        const { data } = await admin.from("registration_orders").select("status").eq("id", rec.id).single();
+        const s = (data as any)?.status;
+        if (s === "complete" || s === "generated") {
+          const { data: docs } = await admin.from("registration_documents")
+            .select("jurisdiction, document_type, content_text").eq("order_id", rec.id);
+          return {
+            sourceTable: "registration_orders",
+            sourceRowId: rec.id,
+            reportData: { documents: docs ?? [], document_count: docs?.length ?? 0 },
+          };
+        }
+        if (["error", "failed", "cancelled"].includes(s ?? "")) throw new Error(`registration_orders status=${s}`);
+      }
+      throw new Error("timeout polling registration_orders");
+    }
+
+    // B3: editorial generators — call the edge function directly, capture the
+    // JSON response as the document body. These don't have a per-row "complete"
+    // status — the response IS the artifact.
+    if (tool === "ask-privacy") {
+      const resp = await invokeFn("ask-privacy", { ...intake, user_id: userId, stress_run: true });
+      return { sourceTable: "(transient)", sourceRowId: crypto.randomUUID(), reportData: resp };
+    }
+    if (tool === "weekly-brief") {
+      const resp = await invokeFn("generate-weekly-brief", { ...intake, user_id: userId, stress_run: true });
+      return { sourceTable: "(transient)", sourceRowId: crypto.randomUUID(), reportData: resp };
+    }
+    if (tool === "custom-brief") {
+      const resp = await invokeFn("generate-custom-brief", { ...intake, user_id: userId, stress_run: true });
+      return { sourceTable: "(transient)", sourceRowId: crypto.randomUUID(), reportData: resp };
+    }
+    if (tool === "trend-report") {
+      const resp = await invokeFn("generate-trend-report", { ...intake, user_id: userId, stress_run: true });
+      return { sourceTable: "(transient)", sourceRowId: crypto.randomUUID(), reportData: resp };
+    }
+    if (tool === "state-law") {
+      const resp = await invokeFn("check-state-privacy-laws", { ...intake, user_id: userId, stress_run: true });
+      return { sourceTable: "(transient)", sourceRowId: crypto.randomUUID(), reportData: resp };
+    }
+
     console.warn(`[run-quality-batch] no builder for tool: ${tool}`);
     return null;
   } catch (e) {
