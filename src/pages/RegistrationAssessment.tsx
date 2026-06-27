@@ -1,3 +1,4 @@
+// No statutory rail by design — see intakePolicy.ts. Use ChoiceWithOther + IntakeGuidance.
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
