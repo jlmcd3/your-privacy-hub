@@ -17,11 +17,24 @@ const cors = {
 };
 
 // Per-invocation chunk size: slow tools get 1 doc, fast tools get 2.
-const SLOW_TOOLS = new Set(["governance", "cppa-risk", "cppa-admt"]);
+const SLOW_TOOLS = new Set(["governance", "cppa-risk", "cppa-admt", "registration"]);
 const docsPerInvocation = (tool: string) => (SLOW_TOOLS.has(tool) ? 1 : 2);
 const EVALUATION_TIMEOUT_MS = 90_000;
 const CROSS_REVIEW_TIMEOUT_MS = 45_000;
 const HEARTBEAT_INTERVAL_MS = 10_000;
+
+// B3: editorial tools — score accuracy + citation + no-adaptive-guidance, drop
+// structured-field checks, zero `formatting` weight. The 5pp from formatting
+// rolls into `accuracy` so the overall score still sums to 100.
+const EDITORIAL_TOOLS = new Set([
+  "ask-privacy", "weekly-brief", "custom-brief", "trend-report", "state-law",
+]);
+const isEditorial = (tool: string) => EDITORIAL_TOOLS.has(tool);
+function weightsFor(tool: string) {
+  return isEditorial(tool)
+    ? { accuracy: 0.35, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0 }
+    : { accuracy: 0.30, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0.05 };
+}
 
 
 type Admin = ReturnType<typeof createClient>;
