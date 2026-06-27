@@ -522,8 +522,13 @@ Deno.serve(async (req) => {
           }
 
           // Append standard legal disclaimer to every generated document.
-          const DISCLAIMER = "\n\n---\n\nDISCLAIMER: This document is not legal advice and must be reviewed by qualified legal counsel before any operational use or reliance. End User Privacy makes no warranty as to the accuracy or legal sufficiency of this output, no attorney-client relationship is created, and End User Privacy accepts no liability for any action, inaction, or loss arising from use of or reliance on this document. Registration requirements, fees, and deadlines change frequently — verify with the relevant data protection authority before filing.";
+          const DISCLAIMER =
+            "\n\n---\n\nLEGAL DISCLAIMER: This document is generated for informational purposes only and " +
+            "does not constitute legal advice. Data-protection registration and record-keeping obligations " +
+            "vary by jurisdiction and change over time. Verify current requirements with the relevant " +
+            "supervisory authority and consult qualified legal counsel before filing or relying on this document.";
           const contentWithDisclaimer = cleaned + DISCLAIMER;
+
 
           // Edit C — INSERT IMMEDIATELY (no post-loop batch).
           await supabase.from("registration_documents").insert({
