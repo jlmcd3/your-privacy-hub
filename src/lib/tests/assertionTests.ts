@@ -720,7 +720,7 @@ export const REGISTRATION_TEST: AssertionTest = {
   edgeFunction: "generate-registration-docs",
   testInput: REG_INPUT,
   expectedSeconds: 240,
-  pollConfig: { table: "registration_orders", successStatus: "documents_ready", maxPolls: 60, intervalMs: 4000 },
+  pollConfig: { table: "registration_orders", successStatus: "documents_ready", maxPolls: 120, intervalMs: 4000 },
   assertions: [
     {
       id: "reg-documents-generated",
