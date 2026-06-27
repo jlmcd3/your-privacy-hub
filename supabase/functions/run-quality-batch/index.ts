@@ -611,6 +611,13 @@ async function generateProposedFix(tool: string, checkId: string, dimension: str
     "dpia": "run-dpia-framework", "governance": "run-governance-assessment",
     "dpa-generator": "generate-dpa", "ir-playbook": "generate-ir-playbook",
     "biometric-checker": "check-biometric-compliance",
+    // B3 — extended customer-facing Anthropic generators
+    "registration": "generate-registration-docs",
+    "ask-privacy": "ask-privacy",
+    "weekly-brief": "generate-weekly-brief",
+    "custom-brief": "generate-custom-brief",
+    "trend-report": "generate-trend-report",
+    "state-law": "check-state-privacy-laws",
   };
   const edgeFn = toolToEdgeFn[tool] ?? `run-${tool}`;
   const raw = await claude(
