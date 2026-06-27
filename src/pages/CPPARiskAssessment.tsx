@@ -30,9 +30,9 @@ import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
 import { useToolDraft } from "@/hooks/useToolDraft";
-import StatuteRail from "@/components/admt/StatuteRail";
+import StatuteRail from "@/components/intake/StatuteRail";
 import { CPPA_RISK_RAIL } from "@/components/cppa/CPPARiskRailEntries";
-import type { RailEntry } from "@/components/admt/StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useFscrCallouts } from "@/hooks/useFscrCallouts";
@@ -1075,7 +1075,7 @@ export default function CPPARiskAssessment() {
           </div>
         </div>
 
-        <StatuteRail entry={activeRiskRailEntry} />
+        <StatuteRail entry={activeRiskRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
         </div>
 
         <p className="text-xs text-muted-foreground italic">

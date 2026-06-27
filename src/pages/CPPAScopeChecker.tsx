@@ -19,7 +19,7 @@ import { PRICING_REGISTRY } from "@/config/pricing";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
-import StatuteRail, { type RailEntry } from "@/components/admt/StatuteRail";
+import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
 import { CPPA_SCOPE_RAIL } from "@/components/cppa/CPPAScopeRailEntries";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
@@ -381,7 +381,7 @@ export default function CPPAScopeChecker() {
           />
         )}
         </div>
-        <StatuteRail entry={scopeRailEntry} />
+        <StatuteRail entry={scopeRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
         </div>
       </main>
       <CPPAToolsCrossLinks current="scope" />

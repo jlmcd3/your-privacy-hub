@@ -22,9 +22,9 @@ import SampleReportLink from "@/components/SampleReportLink";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
-import StatuteRail from "@/components/admt/StatuteRail";
+import StatuteRail from "@/components/intake/StatuteRail";
 import { CPPA_CYBER_RAIL } from "@/components/cppa/CPPACyberRailEntries";
-import type { RailEntry } from "@/components/admt/StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useFscrCallouts } from "@/hooks/useFscrCallouts";
@@ -259,7 +259,7 @@ export default function CPPACybersecurity() {
           )}
         </div>
         </div>
-        <StatuteRail entry={activeCyberRailEntry} />
+        <StatuteRail entry={activeCyberRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
         </div>
 
         <p className="text-xs text-muted-foreground italic">

@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { RailEntry } from "@/components/admt/StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 
 export interface GdprRailEntryOpts {
   article: string;

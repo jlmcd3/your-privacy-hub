@@ -2,7 +2,7 @@
 // StatuteRail entries for the CPPA Cybersecurity Audit Readiness tool (Module 2).
 // Citations from the final 11 CCR § 7123(c)(1)–(18) cybersecurity program components.
 
-import type { RailEntry } from "@/components/admt/StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 
 const CPPA_URL = "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
 

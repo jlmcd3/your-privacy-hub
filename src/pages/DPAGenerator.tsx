@@ -1,3 +1,4 @@
+// No statutory rail by design — see intakePolicy.ts. Use ChoiceWithOther + IntakeGuidance.
 
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";

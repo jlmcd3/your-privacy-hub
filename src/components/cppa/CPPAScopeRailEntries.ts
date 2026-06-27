@@ -2,7 +2,7 @@
 // StatuteRail entries for the CPPA Scope Checker (free deterministic tool).
 // Citations verified against Cal. Civ. Code § 1798.140 and 11 CCR §§ 7120, 7150–7152.
 
-import type { RailEntry } from "@/components/admt/StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 
 const CCPA_URL = "https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?division=3.&part=4.&lawCode=CIV&title=1.81.5";
 const CPPA_REGS_URL = "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";

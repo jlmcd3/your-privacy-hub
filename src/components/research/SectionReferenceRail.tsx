@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, BookOpen, ExternalLink } from "lucide-react";
-import type { RailEntry } from "@/components/admt/StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 
 interface Props {
   /** Map of section id → RailEntry. Sections without an entry simply leave the rail showing the previous entry. */

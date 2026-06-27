@@ -23,7 +23,7 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
-import StatuteRail from "@/components/admt/StatuteRail";
+import StatuteRail from "@/components/intake/StatuteRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
 import { EDPB_DPIA_GUIDANCE, EDPB_DPIA_SOURCE } from "@/components/dpia/EdpbDpiaGuidance";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";

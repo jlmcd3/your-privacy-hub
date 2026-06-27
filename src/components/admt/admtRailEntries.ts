@@ -2,7 +2,7 @@
 // Verbatim regulation text, plain summaries, and FSOR context
 // for every field in the ADMT Compliance Assessment.
 
-import type { RailEntry } from "./StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 
 export const ADMT_RAIL: Record<string, RailEntry> = {
   scope_does_business_use_admt: {
@@ -28,7 +28,7 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
 
   scope_significant_decision_domain: {
     goodAnswer:
-      "Tick only the boxes the output actually gates. The loan engine → “Financial or lending services.” If the system merely ranks ads or segments audiences, tick none — that isn't a significant decision.",
+      "'Significant decision' is a closed list — financial/lending, housing, education, employment or contracting, healthcare (§ 7001(ddd)). Advertising, audience segmentation, and ordinary profiling are excluded, however consequential they feel. The relevant category is whichever one the ADMT output actually gates.",
     commonMistake:
       "Treating any high-stakes-feeling decision as “significant.” The list is closed: advertising, gaming/subscription eligibility, and ordinary profiling don't count, however consequential they feel.",
     fieldLabel: "What type of significant decision does your ADMT make?",
