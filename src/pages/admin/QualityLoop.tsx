@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { ExternalLink, RefreshCw, KeyRound } from "lucide-react";
 import QualityScoreLedger from "./QualityScoreLedger";
+import QualityLoopAugmentation from "./QualityLoopAugmentation";
 
 const TOOLS = [
   { id: "cppa-admt",         label: "CPPA ADMT Assessment",     edgeFn: "run-admt-checker" },
@@ -20,6 +21,13 @@ const TOOLS = [
   { id: "dpa-generator",     label: "DPA Generator",            edgeFn: "generate-dpa" },
   { id: "ir-playbook",       label: "IR Playbook",              edgeFn: "generate-ir-playbook" },
   { id: "biometric-checker", label: "Biometric Checker",        edgeFn: "check-biometric-compliance" },
+  // B3 — extended customer-facing Anthropic generators
+  { id: "registration",      label: "Registration Manager",     edgeFn: "generate-registration-docs" },
+  { id: "ask-privacy",       label: "Ask Privacy (editorial)",  edgeFn: "ask-privacy" },
+  { id: "weekly-brief",      label: "Weekly Brief (editorial)", edgeFn: "generate-weekly-brief" },
+  { id: "custom-brief",      label: "Custom Brief (editorial)", edgeFn: "generate-custom-brief" },
+  { id: "trend-report",      label: "Trend Report (editorial)", edgeFn: "generate-trend-report" },
+  { id: "state-law",         label: "State Privacy Law (editorial)", edgeFn: "check-state-privacy-laws" },
 ];
 
 const DIMS = [
@@ -622,6 +630,11 @@ export default function QualityLoop() {
             )}
           </div>
         )}
+
+        {/* B6 — four-team deliberation + per-tool auto-apply strip */}
+        <QualityLoopAugmentation runId={activeRun?.id ?? null} tool={tool} />
+
+
 
         {patches.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">

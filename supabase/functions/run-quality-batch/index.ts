@@ -17,11 +17,24 @@ const cors = {
 };
 
 // Per-invocation chunk size: slow tools get 1 doc, fast tools get 2.
-const SLOW_TOOLS = new Set(["governance", "cppa-risk", "cppa-admt"]);
+const SLOW_TOOLS = new Set(["governance", "cppa-risk", "cppa-admt", "registration"]);
 const docsPerInvocation = (tool: string) => (SLOW_TOOLS.has(tool) ? 1 : 2);
 const EVALUATION_TIMEOUT_MS = 90_000;
 const CROSS_REVIEW_TIMEOUT_MS = 45_000;
 const HEARTBEAT_INTERVAL_MS = 10_000;
+
+// B3: editorial tools — score accuracy + citation + no-adaptive-guidance, drop
+// structured-field checks, zero `formatting` weight. The 5pp from formatting
+// rolls into `accuracy` so the overall score still sums to 100.
+const EDITORIAL_TOOLS = new Set([
+  "ask-privacy", "weekly-brief", "custom-brief", "trend-report", "state-law",
+]);
+const isEditorial = (tool: string) => EDITORIAL_TOOLS.has(tool);
+function weightsFor(tool: string) {
+  return isEditorial(tool)
+    ? { accuracy: 0.35, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0 }
+    : { accuracy: 0.30, citation: 0.25, hallucination: 0.20, analysis: 0.15, intelligence: 0.05, formatting: 0.05 };
+}
 
 
 type Admin = ReturnType<typeof createClient>;
@@ -293,7 +306,8 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
       (scores as any)[f.dimension] = Math.max(0, (scores as any)[f.dimension] - penalty);
     }
   }
-  const overall = Math.round(scores.accuracy * 0.30 + scores.citation * 0.25 + scores.hallucination * 0.20 + scores.analysis * 0.15 + scores.intelligence * 0.05 + scores.formatting * 0.05);
+  const w = weightsFor(tool);
+  const overall = Math.round(scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting);
   return { dimension_scores: scores, overall_score: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [] };
 }
 
@@ -330,7 +344,12 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
   try {
-    const raw = await gpt4o(GPT_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2000)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 15000)}\nEvaluate this compliance document. Quote actual text as evidence for each finding.`, 3000);
+    // B3: editorial tools — append rubric override note so GPT ignores structured-field
+    // and formatting checks and focuses on accuracy + citation + no-adaptive-guidance.
+    const editorialNote = isEditorial(tool)
+      ? `\n\nEDITORIAL RUBRIC OVERRIDE: This is editorial copy (Q&A, brief, trend report, state-law check). Score "formatting" as 100 (N/A — no structured fields). Drop any check_id that targets structured-field shape, schema, or layout. Focus on (1) accuracy of facts and law, (2) citation fidelity (no invented sources/sections), (3) no_adaptive_guidance — i.e. the copy does not tell the reader what answer to give on a form.`
+      : "";
+    const raw = await gpt4o(GPT_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2000)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 15000)}${editorialNote}\nEvaluate this compliance document. Quote actual text as evidence for each finding.`, 3000);
     const parsed = tryParse(raw);
     if (!parsed?.dimension_scores) {
       return { eval: null, error: `GPT returned unexpected structure (first 120 chars: ${raw.slice(0, 120)})` };
@@ -414,6 +433,16 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
     "dpa-generator": `Data Processing Agreement (DPA) generator. Required camelCase fields exactly: controllerName (string), controllerJurisdiction (e.g. "UK","DE","US-CA","EU"), processorName (string), processorJurisdiction (string), services (one-line description of the processing services), dataCategories (array of strings, e.g. ["name","email","IP address","behavioral data"]), dataSubjectCount (string range like "1000-10000"), retention (string like "3 years"), hasSubProcessors (boolean), subProcessorList (string, only if hasSubProcessors is true), legalFramework (one of "GDPR","UK GDPR","CCPA","PIPEDA","Dual EU/US"), auditRights (string description), includeTransferClause (boolean), transferMechanism (string — "Standard Contractual Clauses","Adequacy decision","Binding Corporate Rules", or "N/A"), documentType (one of "gdpr","us-state","canada","dual-eu-us","dual-eu-ca"). Vary sectors (AdTech, Healthcare, FinTech, HR) and jurisdictions; include some intra-EU and some cross-border transfers.`,
     "ir-playbook": `Incident Response Playbook generator. Required camelCase fields exactly: organizationName (string), discoveryDateTime (ISO date-time within the last 7 days), cause (e.g. "Ransomware attack","Phishing-led credential theft","Misconfigured S3 bucket","Insider exfiltration","Third-party vendor breach"), dataTypes (array, e.g. ["PII","health information","financial records","credentials"]), affectedCount (string range like "1000-10000"), jurisdictions (array of ISO codes like ["US-CA","US-TX","UK","EU"]), processorInvolved (boolean), processorName (string, only if processorInvolved), contained (one of "Yes","Partially","No","Under investigation"), organisationType (sector string). Vary sectors (Healthcare, Retail, FinTech, EdTech) and severity.`,
     "biometric-checker": `Biometric compliance checker. Required camelCase fields exactly: orgName (string), orgType (sector string), biometricTypes (array — e.g. ["facial geometry"],["fingerprint","hand geometry"],["iris scan","fingerprint"]), purpose (string — e.g. "Loss prevention","Workforce time and attendance","Physical access control"), jurisdictions (array of US-state codes like ["US-IL"],["US-TX"],["US-WA"]), enrolledCount (string range like "500-5000"). Vary compliance posture: include some with no written policy, some without informed consent, some with third-party sharing, some with undefined retention.`,
+
+    // B3: editorial / customer-facing Anthropic generators below — score against
+    // the editorial rubric (accuracy + citation + no-adaptive-guidance; drop
+    // structured-field checks; formatting weight = 0).
+    "registration": `Registration Manager filing checklist. Required camelCase fields exactly: organizationName (string), organizationType (sector string), processingActivities (string, one-line description of the processing), dataCategories (array of strings, e.g. ["personal data","health data","biometric data","financial data","children's data"]), recordsProcessed (string range like "5000-50000"), jurisdictions (array of jurisdiction codes, e.g. ["FR","DE","UK","ES","IT"]), hasDPO (boolean), crossBorderTransfers (boolean), highRiskProcessing (boolean), aiActHighRisk (boolean), urgency ("Standard"|"Expedited"|"Audit-triggered"). Vary postures (well-prepared vs missing DPO appointment vs unclear cross-border transfer mechanism) and jurisdiction sets (single-state, multi-state, EEA+UK).`,
+    "ask-privacy": `Ask Privacy — natural-language privacy/regulatory Q&A. Required field: question (string, 30-280 chars, a SPECIFIC operational privacy question). Vary topics: GDPR Art. 6 lawful basis edge cases, CPRA opt-out scope, EU AI Act high-risk classification, breach notification timelines per jurisdiction, sensitive-data definitions, cross-border transfer mechanisms post-Schrems II, ADMT pre-use notice timing, biometric data under BIPA vs TX CUBI, DPA controller/processor distinctions, DPO appointment thresholds. Mix easy vs ambiguous; include a few that should produce a "consult counsel" disclaimer.`,
+    "weekly-brief": `Weekly Brief generator. Required camelCase fields: subscriberName (string), audience (one of "GC/CPO","Privacy Engineer","Compliance Analyst","Policy Researcher"), focusJurisdictions (array of region/state codes — e.g. ["EU","UK","US-CA","US-NY"]), focusTopics (array — e.g. ["enforcement","new legislation","DPA guidance","AI regulation","ad-tech"]), excludeTopics (array, may be empty), timeWindowDays (integer 7–14). Vary audience and breadth — some broad/multi-jurisdiction, some deep-niche (e.g. AdTech in California only).`,
+    "custom-brief": `Custom Brief generator. Required camelCase fields: subscriberName (string), briefTitle (string, descriptive), researchQuestion (string, 60–280 chars, a specific research/horizon-scan question), jurisdictions (array of region/state codes), topics (array of focus topics), timeWindowDays (integer 14–90), depth (one of "summary","comprehensive"). Vary topics (ADMT, BIPA enforcement, EU AI Act, dark patterns, children's privacy, biometric privacy in retail, employee monitoring) and depth.`,
+    "trend-report": `Trend Report generator. Required camelCase fields: theme (string, the trend theme — e.g. "AI Act high-risk classification convergence", "Biometric privacy enforcement trends 2026", "Cross-border transfer mechanism shifts post-Schrems II"), jurisdictions (array), industries (array, e.g. ["AdTech","HealthTech","FinTech","Retail","HR/EmpTech"]), timeWindowMonths (integer 3–24), audience (one of "Executive","Legal","Engineering"). Vary themes (some highly active, some quieter), audiences, and windows.`,
+    "state-law": `US State Privacy Law check. Required camelCase fields: state (one of "California","Colorado","Connecticut","Virginia","Texas","Utah","Oregon","Washington","Maryland","Tennessee","Indiana","Iowa","Montana","Delaware","New Jersey","New Hampshire","Kentucky","Minnesota","Rhode Island"), businessType (sector string), processingActivities (string description), dataCategories (array including some sensitive types), consumerVolume (string range like "10000-100000"), sellsSharesPI (boolean), hasOptOutMechanism (boolean), question (string — a specific compliance question about this state's law). Vary states and posture (some near-threshold, some clearly in-scope, some borderline).`,
   };
   const description = toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`;
   const intakeTimeoutMs = tool === "cppa-risk" ? 300_000 : 180_000;
@@ -518,6 +547,61 @@ async function buildDocument(admin: Admin, tool: string, intake: any, userId: st
       }
       throw new Error("timeout polling biometric_assessments");
     }
+
+    // B3: Registration — fan-out filing generator. Poll registration_orders.
+    if (tool === "registration") {
+      const { data: rec, error } = await admin.from("registration_orders").insert({
+        user_id: userId,
+        status: "pending",
+        intake_data: intake,
+        organization_name: intake?.organizationName ?? "Test Org",
+        jurisdictions: intake?.jurisdictions ?? [],
+      }).select("id").single();
+      if (error || !rec) throw new Error(`insert: ${error?.message}`);
+      invokeFn("generate-registration-docs", { order_id: rec.id, user_id: userId }).catch(() => {});
+      // Generous poll budget — multi-jurisdiction filings can run long.
+      for (let i = 0; i < 240; i++) {
+        await new Promise(r => setTimeout(r, 5000));
+        const { data } = await admin.from("registration_orders").select("status").eq("id", rec.id).single();
+        const s = (data as any)?.status;
+        if (s === "complete" || s === "generated") {
+          const { data: docs } = await admin.from("registration_documents")
+            .select("jurisdiction, document_type, content_text").eq("order_id", rec.id);
+          return {
+            sourceTable: "registration_orders",
+            sourceRowId: rec.id,
+            reportData: { documents: docs ?? [], document_count: docs?.length ?? 0 },
+          };
+        }
+        if (["error", "failed", "cancelled"].includes(s ?? "")) throw new Error(`registration_orders status=${s}`);
+      }
+      throw new Error("timeout polling registration_orders");
+    }
+
+    // B3: editorial generators — call the edge function directly, capture the
+    // JSON response as the document body. These don't have a per-row "complete"
+    // status — the response IS the artifact.
+    if (tool === "ask-privacy") {
+      const resp = await invokeFn("ask-privacy", { ...intake, user_id: userId, stress_run: true });
+      return { sourceTable: "(transient)", sourceRowId: crypto.randomUUID(), reportData: resp };
+    }
+    if (tool === "weekly-brief") {
+      const resp = await invokeFn("generate-weekly-brief", { ...intake, user_id: userId, stress_run: true });
+      return { sourceTable: "(transient)", sourceRowId: crypto.randomUUID(), reportData: resp };
+    }
+    if (tool === "custom-brief") {
+      const resp = await invokeFn("generate-custom-brief", { ...intake, user_id: userId, stress_run: true });
+      return { sourceTable: "(transient)", sourceRowId: crypto.randomUUID(), reportData: resp };
+    }
+    if (tool === "trend-report") {
+      const resp = await invokeFn("generate-trend-report", { ...intake, user_id: userId, stress_run: true });
+      return { sourceTable: "(transient)", sourceRowId: crypto.randomUUID(), reportData: resp };
+    }
+    if (tool === "state-law") {
+      const resp = await invokeFn("check-state-privacy-laws", { ...intake, user_id: userId, stress_run: true });
+      return { sourceTable: "(transient)", sourceRowId: crypto.randomUUID(), reportData: resp };
+    }
+
     console.warn(`[run-quality-batch] no builder for tool: ${tool}`);
     return null;
   } catch (e) {
@@ -533,6 +617,13 @@ async function generateProposedFix(tool: string, checkId: string, dimension: str
     "dpia": "run-dpia-framework", "governance": "run-governance-assessment",
     "dpa-generator": "generate-dpa", "ir-playbook": "generate-ir-playbook",
     "biometric-checker": "check-biometric-compliance",
+    // B3 — extended customer-facing Anthropic generators
+    "registration": "generate-registration-docs",
+    "ask-privacy": "ask-privacy",
+    "weekly-brief": "generate-weekly-brief",
+    "custom-brief": "generate-custom-brief",
+    "trend-report": "generate-trend-report",
+    "state-law": "check-state-privacy-laws",
   };
   const edgeFn = toolToEdgeFn[tool] ?? `run-${tool}`;
   const raw = await claude(
@@ -810,7 +901,8 @@ async function runBatch(runId: string): Promise<void> {
       hallucination: avg(state.dimTotals.hallucination), analysis: avg(state.dimTotals.analysis),
       intelligence: avg(state.dimTotals.intelligence), formatting: avg(state.dimTotals.formatting),
     };
-    const overall = Math.round(scores.accuracy * 0.30 + scores.citation * 0.25 + scores.hallucination * 0.20 + scores.analysis * 0.15 + scores.intelligence * 0.05 + scores.formatting * 0.05);
+    const w = weightsFor(tool);
+    const overall = Math.round(scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting);
 
     const byCheck = new Map<string, any[]>();
     for (const f of state.allDocFindings) {
@@ -941,9 +1033,9 @@ async function runBatch(runId: string): Promise<void> {
       gpt_score_intelligence:  gptAvg(state.gptTotals.intelligence),
       gpt_score_formatting:    gptAvg(state.gptTotals.formatting),
       gpt_score_overall: Math.round(
-        (gptAvg(state.gptTotals.accuracy) ?? 0) * 0.30 + (gptAvg(state.gptTotals.citation) ?? 0) * 0.25 +
-        (gptAvg(state.gptTotals.hallucination) ?? 0) * 0.20 + (gptAvg(state.gptTotals.analysis) ?? 0) * 0.15 +
-        (gptAvg(state.gptTotals.intelligence) ?? 0) * 0.05 + (gptAvg(state.gptTotals.formatting) ?? 0) * 0.05
+        (gptAvg(state.gptTotals.accuracy) ?? 0) * w.accuracy + (gptAvg(state.gptTotals.citation) ?? 0) * w.citation +
+        (gptAvg(state.gptTotals.hallucination) ?? 0) * w.hallucination + (gptAvg(state.gptTotals.analysis) ?? 0) * w.analysis +
+        (gptAvg(state.gptTotals.intelligence) ?? 0) * w.intelligence + (gptAvg(state.gptTotals.formatting) ?? 0) * w.formatting
       ),
     } : {};
 
