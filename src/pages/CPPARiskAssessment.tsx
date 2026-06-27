@@ -1075,7 +1075,7 @@ export default function CPPARiskAssessment() {
           </div>
         </div>
 
-        <StatuteRail entry={activeRiskRailEntry} />
+        <StatuteRail entry={activeRiskRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
         </div>
 
         <p className="text-xs text-muted-foreground italic">

@@ -381,7 +381,7 @@ export default function CPPAScopeChecker() {
           />
         )}
         </div>
-        <StatuteRail entry={scopeRailEntry} />
+        <StatuteRail entry={scopeRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
         </div>
       </main>
       <CPPAToolsCrossLinks current="scope" />
