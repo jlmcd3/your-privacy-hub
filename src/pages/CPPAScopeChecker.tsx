@@ -19,7 +19,7 @@ import { PRICING_REGISTRY } from "@/config/pricing";
 import ToolDisclaimer from "@/components/ToolDisclaimer";
 import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
-import StatuteRail, { type RailEntry } from "@/components/admt/StatuteRail";
+import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
 import { CPPA_SCOPE_RAIL } from "@/components/cppa/CPPAScopeRailEntries";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";

@@ -3,7 +3,7 @@
 // Citations: 740 ILCS 14/ (BIPA), Tex. Bus. & Com. Code § 503.001 (CUBI),
 // Wash. Rev. Code 19.373 / RCW 71.05 (Wash. biometric + MHMD), GDPR Arts. 4(14) & 9.
 
-import type { RailEntry } from "@/components/admt/StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 
 const BIPA_URL = "https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004";
 const CUBI_URL = "https://statutes.capitol.texas.gov/Docs/BC/htm/BC.503.htm";

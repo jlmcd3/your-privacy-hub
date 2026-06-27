@@ -28,11 +28,11 @@ import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import { useToolDraft } from "@/hooks/useToolDraft";
-import StatuteRail from "@/components/admt/StatuteRail";
-import { ChoiceRadio } from "@/components/admt/ChoiceRadio";
-import { ChoiceWithOther } from "@/components/admt/ChoiceWithOther";
+import StatuteRail from "@/components/intake/StatuteRail";
+import { ChoiceRadio } from "@/components/intake/ChoiceRadio";
+import { ChoiceWithOther } from "@/components/intake/ChoiceWithOther";
 import { ADMT_RAIL } from "@/components/admt/admtRailEntries";
-import type { RailEntry } from "@/components/admt/StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 
 const SIGNIFICANT_DECISION_DOMAINS = [
   "Financial or lending services (credit decisions, loans, accounts)",

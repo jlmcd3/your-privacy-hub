@@ -15,7 +15,7 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import DisclaimerCheckbox from "@/components/DisclaimerCheckbox";
 import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
-import StatuteRail from "@/components/admt/StatuteRail";
+import StatuteRail from "@/components/intake/StatuteRail";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";

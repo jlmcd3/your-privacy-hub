@@ -1,7 +1,7 @@
 // Section reference entries for /cross-border-transfers.
 // Section ids must match those declared in CrossBorderTransfers.tsx.
 
-import type { RailEntry } from "@/components/admt/StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 
 const GDPR_URL = "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32016R0679";
 const SCC_URL = "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32021D0914";

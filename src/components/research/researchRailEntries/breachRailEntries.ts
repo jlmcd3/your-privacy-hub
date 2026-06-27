@@ -1,7 +1,7 @@
 // Section reference entries for /breach-notification.
 // Section ids must match those declared in BreachNotification.tsx.
 
-import type { RailEntry } from "@/components/admt/StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 
 const GDPR_URL = "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32016R0679";
 const HHS_URL = "https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html";

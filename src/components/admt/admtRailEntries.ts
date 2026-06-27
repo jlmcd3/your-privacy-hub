@@ -2,7 +2,7 @@
 // Verbatim regulation text, plain summaries, and FSOR context
 // for every field in the ADMT Compliance Assessment.
 
-import type { RailEntry } from "./StatuteRail";
+import type { RailEntry } from "@/components/intake/StatuteRail";
 
 export const ADMT_RAIL: Record<string, RailEntry> = {
   scope_does_business_use_admt: {

@@ -24,7 +24,7 @@ import { DefPopover } from "@/components/DefPopover";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
-import StatuteRail, { type RailEntry } from "@/components/admt/StatuteRail";
+import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
 import { BIOMETRIC_RAIL } from "@/components/biometric/BiometricRailEntries";
 
 
