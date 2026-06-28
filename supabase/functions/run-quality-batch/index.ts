@@ -892,16 +892,18 @@ async function runBatch(runId: string): Promise<void> {
         await log("error", `${docLabel}: GPT-4o FAILED — ${gptResult.error ?? "unknown error"}`);
       }
 
-      // Cross-review (depends on both prior evals, so run after).
-      const crossReview = await withTimeout(
-        crossReviewEvaluations(tool, intake, result.reportData, claudeEval, gptEval),
-        CROSS_REVIEW_TIMEOUT_MS, "Cross-review",
-      ).catch(e => { console.warn("Cross-review failed:", e.message); return null; });
+      // F4: deterministic cross-review — no LLM call. Categorize each rubric finding
+      // by joining Claude and GPT verdicts on the SHARED check_id.
+      const gptFindings: any[] = gptEval?.findings ?? [];
+      const gptById = new Map<string, any>(gptFindings.map((f: any) => [f.check_id, f]));
+      const claudeRubricById = new Map<string, any>(
+        claudeEval.findings.filter((f: any) => f.check_type === "llm").map((f: any) => [f.check_id, f])
+      );
 
       await log("success", `${docLabel}: scored ${claudeEval.overall_score}/100${gptEval ? ` (GPT ${gptEval.overall_score}/100)` : ""}`);
 
-      const finalScores  = crossReview?.dimension_scores_reconciled ?? claudeEval.dimension_scores;
-      const finalOverall = crossReview?.overall_score_reconciled    ?? claudeEval.overall_score;
+      const finalScores  = claudeEval.dimension_scores;
+      const finalOverall = claudeEval.overall_score;
 
       for (const dim of Object.keys(state.dimTotals)) {
         const v = (finalScores as any)[dim] ?? 60;
@@ -919,7 +921,15 @@ async function runBatch(runId: string): Promise<void> {
       if (scenarioSet === "tuning")  state.tuningBuilt++;
       if (scenarioSet === "holdout") state.holdoutBuilt++;
 
-      const crossStatus = !gptEval ? "gpt_failed" : !crossReview ? "pending" : "complete";
+      const crossStatus = !gptEval ? "gpt_failed" : "complete";
+
+      // Persist a lightweight cross-review summary (deterministic, no LLM payload).
+      const crossSummary = gptEval ? {
+        method: "deterministic_join_v2",
+        claude_overall: claudeEval.overall_score,
+        gpt_overall: gptEval.overall_score,
+        rubric_findings_compared: claudeRubricById.size,
+      } : null;
 
       await admin.from("quality_run_documents").update({
         dimension_scores: { ...finalScores, overall: finalOverall },
@@ -927,7 +937,7 @@ async function runBatch(runId: string): Promise<void> {
         gpt_evaluation: gptEval ?? null,
         gpt_dimension_scores: gptEval?.dimension_scores ?? null,
         gpt_overall_score: gptEval?.overall_score ?? null,
-        cross_review: crossReview ?? null,
+        cross_review: crossSummary,
         cross_review_status: crossStatus,
         status: "complete",
       }).eq("id", docRow.id);
@@ -940,28 +950,50 @@ async function runBatch(runId: string): Promise<void> {
       }));
       if (findingRows.length) await admin.from("quality_findings").insert(findingRows);
 
-      const crossFindingsMap = new Map<string, any>(
-        (crossReview?.findings ?? []).map((f: any) => [f.check_id, f])
-      );
-      state.allDocFindings.push(...claudeEval.findings.map((f: any) => ({
-        ...f,
-        doc_id: docRow.id,
-        scenario_set: scenarioSet,
-        cross_category: crossFindingsMap.get(f.check_id)?.category ?? null,
-        cross_evidence_gpt: crossFindingsMap.get(f.check_id)?.evidence_gpt ?? null,
-        rubric_addition: crossFindingsMap.get(f.check_id)?.rubric_addition ?? null,
-      })));
+      // Push Claude findings with per-doc cross-category.
+      //  - Deterministic failures → "deterministic" (code-verified ground truth)
+      //  - Deterministic passes → no category (don't surface as defect)
+      //  - Rubric (llm) findings → categorized by joining with gpt verdict for the SAME check_id
+      for (const f of claudeEval.findings) {
+        let perDocCategory: string | null = null;
+        let gptEvidence: string | null = null;
+        if (f.check_type === "deterministic") {
+          perDocCategory = f.passed ? null : "deterministic";
+        } else {
+          // llm rubric finding
+          const gptF = gptEval ? gptById.get(f.check_id) : null;
+          if (gptEval) {
+            const gptFail = gptF ? !gptF.passed : false;
+            gptEvidence = gptF?.evidence ?? null;
+            perDocCategory = categorizePerDoc(!f.passed, gptFail);
+          } else {
+            perDocCategory = !f.passed ? "claude_only" : null;
+          }
+        }
+        state.allDocFindings.push({
+          ...f,
+          doc_id: docRow.id,
+          scenario_set: scenarioSet,
+          cross_category: perDocCategory,
+          cross_evidence_gpt: gptEvidence,
+          rubric_addition: null, // F6: obsolete — deterministic categorization replaces the LLM reconciler
+        });
+      }
 
-      const claudeCheckIds = new Set(claudeEval.findings.map((f: any) => f.check_id));
-      for (const gptFinding of (gptEval?.findings ?? []).filter((f: any) => !f.passed)) {
-        if (!claudeCheckIds.has(gptFinding.check_id)) {
+      // GPT-only failures: rubric findings the model flagged that Claude didn't (claude passed
+      // or didn't return that id at all).
+      for (const gptFinding of gptFindings.filter((f: any) => !f.passed)) {
+        const claudeF = claudeRubricById.get(gptFinding.check_id);
+        const claudeFail = claudeF ? !claudeF.passed : false;
+        if (!claudeFail) {
+          // Not already counted via the Claude loop above (which only records categories for Claude findings).
           state.allDocFindings.push({
             check_id: gptFinding.check_id, check_type: "gpt_only",
             dimension: gptFinding.dimension, severity: gptFinding.severity,
             passed: false, evidence: gptFinding.evidence ?? null, doc_id: docRow.id,
             scenario_set: scenarioSet,
             cross_category: "gpt_only", cross_evidence_gpt: gptFinding.evidence ?? null,
-            rubric_addition: crossFindingsMap.get(gptFinding.check_id)?.rubric_addition ?? null,
+            rubric_addition: null,
           });
         }
       }
