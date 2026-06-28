@@ -158,7 +158,7 @@ function ToolRow({ tool }: { tool: ToolDef }) {
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    setCycle((data as Cycle | null) ?? null);
+    setCycle((data as unknown as Cycle | null) ?? null);
   }, [tool.sampleSlug]);
 
   useEffect(() => { loadRate(); loadCycle(); }, [loadRate, loadCycle]);
