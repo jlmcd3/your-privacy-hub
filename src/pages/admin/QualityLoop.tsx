@@ -12,7 +12,124 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ExternalLink, RefreshCw, Sparkles } from "lucide-react";
+import { ExternalLink, RefreshCw, Sparkles, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
+
+const SMOKE_INDUSTRIES = [
+  { id: "web", label: "Online & Web Services" },
+  { id: "ai",  label: "AI & Machine Learning" },
+];
+const SMOKE_TOOL_IDS = [
+  "biometric-checker","cppa-admt","cppa-risk","cppa-cyber","lia","dpia",
+  "governance","dpa-generator","ir-playbook","registration",
+];
+
+type SmokeBatch = {
+  id: string;
+  status: string;
+  total_jobs: number;
+  completed_jobs: number;
+  failed_jobs: number;
+  setup_total: number;
+  setup_done: number;
+} | null;
+
+function SmokeBatchPanel() {
+  const [busy, setBusy] = useState(false);
+  const [batch, setBatch] = useState<SmokeBatch>(null);
+  const pollRef = useRef<number | null>(null);
+
+  const refresh = useCallback(async (id: string) => {
+    const { data } = await supabase
+      .from("static_stress_batches")
+      .select("id, status, total_jobs, completed_jobs, failed_jobs, setup_total, setup_done")
+      .eq("id", id)
+      .maybeSingle();
+    if (data) setBatch(data as SmokeBatch);
+  }, []);
+
+  useEffect(() => {
+    if (!batch) return;
+    const done = batch.status === "complete" || batch.status === "cancelled" || batch.status === "failed";
+    if (done) {
+      if (pollRef.current) { window.clearInterval(pollRef.current); pollRef.current = null; }
+      return;
+    }
+    if (pollRef.current) return;
+    pollRef.current = window.setInterval(() => { refresh(batch.id); }, 15_000);
+    return () => {
+      if (pollRef.current) { window.clearInterval(pollRef.current); pollRef.current = null; }
+    };
+  }, [batch, refresh]);
+
+  const start = async () => {
+    setBusy(true);
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      const uid = u?.user?.id;
+      if (!uid) { toast.error("Sign in first"); return; }
+      const { data, error } = await supabase.functions.invoke("start-stress-batch", {
+        body: {
+          run_by: uid,
+          industries: SMOKE_INDUSTRIES,
+          geo_filter: "us",
+          selected_tools: SMOKE_TOOL_IDS,
+        },
+      });
+      if (error || !data?.batch_id) throw new Error(error?.message ?? "no batch_id");
+      toast.success("Smoke batch started.");
+      await refresh(data.batch_id);
+    } catch (e: any) {
+      toast.error(`Start failed: ${e?.message ?? e}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const finished = batch ? (batch.completed_jobs + batch.failed_jobs) : 0;
+  const total = batch?.total_jobs ?? 0;
+  const cleanRate = total > 0 ? Math.round((batch!.completed_jobs / total) * 100) : null;
+  const setupPct = batch && batch.setup_total > 0
+    ? Math.round((batch.setup_done / batch.setup_total) * 100) : 0;
+
+  return (
+    <div className="border border-sky-200 rounded-xl bg-sky-50/50 px-5 py-4 mb-4">
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex-1 min-w-[220px]">
+          <div className="text-sm font-semibold text-[#0c2a44] flex items-center gap-1.5">
+            <Zap className="w-4 h-4 text-sky-700" />
+            Smoke batch (2 industries × US × all tools)
+          </div>
+          <div className="text-xs text-gray-600 mt-0.5">
+            Quickly validates clean-rate against the static-stress pipeline before kicking a full improvement cycle.
+          </div>
+        </div>
+        <Button onClick={start} disabled={busy} variant="outline" className="h-9 border-sky-300">
+          {busy ? <><RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />Starting…</> : "Run static-stress smoke batch"}
+        </Button>
+      </div>
+      {batch && (
+        <div className="mt-3 text-sm text-gray-700 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <span>Batch <code className="font-mono text-xs">{batch.id.slice(0, 8)}</code></span>
+          <span>Status: <strong>{batch.status}</strong></span>
+          {batch.setup_total > 0 && batch.setup_done < batch.setup_total && (
+            <span>Setup: {batch.setup_done}/{batch.setup_total} ({setupPct}%)</span>
+          )}
+          {total > 0 && (
+            <>
+              <span>Jobs: {finished}/{total}</span>
+              <span>Failed: <strong className={batch.failed_jobs ? "text-red-700" : ""}>{batch.failed_jobs}</strong></span>
+              <span>Clean rate: <strong className={cleanRate != null && cleanRate >= 95 ? "text-emerald-700" : "text-amber-700"}>{cleanRate}%</strong></span>
+            </>
+          )}
+          <Link to="/admin/static-stress" className="text-sky-700 underline inline-flex items-center gap-1">
+            Open static-stress <ExternalLink className="w-3 h-3" />
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
 
 type ToolDef = { id: string; label: string; sampleSlug: string };
 
@@ -314,6 +431,7 @@ export default function QualityLoop() {
             and iterates to ≥98%. Both stage edits to <code className="font-mono">quality-auto</code> for human merge.
           </p>
         </div>
+        <SmokeBatchPanel />
         <div className="space-y-3">
           {TOOLS.map(t => <ToolRow key={t.id} tool={t} />)}
         </div>
