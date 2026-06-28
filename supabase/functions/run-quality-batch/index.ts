@@ -446,16 +446,37 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   };
   const description = toolDescriptions[tool] ?? `${tool} compliance tool. Use realistic and varied scenarios.`;
   const intakeTimeoutMs = tool === "cppa-risk" ? 300_000 : 180_000;
-  const raw = await claude(
-    `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.`,
-    `Generate ${count} varied realistic intake objects for the "${tool}" compliance tool.\n\n${description}\n\nReturn a JSON array of exactly ${count} objects.`,
-    8000,
-    "claude-sonnet-4-6",
-    AbortSignal.timeout(intakeTimeoutMs)
-  );
-  const parsed = tryParse(raw);
-  if (!Array.isArray(parsed) || parsed.length === 0) throw new Error(`Intake generator returned invalid data for ${tool}`);
-  return parsed.slice(0, count);
+  // Verbose schemas (lia, dpia, governance, cppa-risk, cppa-admt) produce ~1.5-2k tokens per intake;
+  // 10 docs at 8k tokens reliably truncates. Chunk the generation so each call stays well under the cap,
+  // then concatenate.
+  const VERBOSE = new Set(["lia", "dpia", "governance", "cppa-risk", "cppa-admt"]);
+  const chunkSize = VERBOSE.has(tool) ? 3 : count;
+  const sys = `You generate realistic, varied test intake objects for privacy compliance tools. Use realistic company names and vary compliance posture — some nearly compliant, some with gaps, some edge cases. Never generate all-compliant inputs. Return ONLY a valid JSON array, no markdown.`;
+
+  const out: any[] = [];
+  let chunkIdx = 0;
+  while (out.length < count) {
+    const remaining = count - out.length;
+    const n = Math.min(chunkSize, remaining);
+    chunkIdx++;
+    const raw = await claude(
+      sys,
+      `Generate ${n} varied realistic intake objects for the "${tool}" compliance tool.\n\n${description}\n\nThis is chunk ${chunkIdx}; vary scenarios from any prior chunks. Return a JSON array of exactly ${n} objects.`,
+      16000,
+      "claude-sonnet-4-6",
+      AbortSignal.timeout(intakeTimeoutMs)
+    );
+    const parsed = tryParse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      const tail = (raw ?? "").slice(-400);
+      const head = (raw ?? "").slice(0, 200);
+      console.error(`[generateIntakes] parse failed for ${tool} chunk ${chunkIdx}. len=${raw?.length ?? 0} head=${JSON.stringify(head)} tail=${JSON.stringify(tail)}`);
+      throw new Error(`Intake generator returned invalid data for ${tool} (chunk ${chunkIdx}, len=${raw?.length ?? 0})`);
+    }
+    out.push(...parsed);
+    if (chunkIdx > 20) break; // safety
+  }
+  return out.slice(0, count);
 }
 
 async function buildDocument(admin: Admin, tool: string, intake: any, userId: string): Promise<{ sourceTable: string; sourceRowId: string; reportData: any } | null> {
