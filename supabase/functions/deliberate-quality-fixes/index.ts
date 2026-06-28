@@ -1,18 +1,20 @@
 // deliberate-quality-fixes — B2 of Workstream B (Phase 2 Quality Loop Augmentation).
 //
-// For every failing quality_check_results row in a run with a proposed_fix, runs:
-//   - 4 parallel Claude persona calls (Teams 1-4) — each returns
-//     { stance, approve, rationale, minimal_change? }
-//   - GPT-4o devil's-advocate challenge of the consensus
+// For every failing quality_check_results row in a run with a proposed_fix, runs
+// 4 parallel Claude persona calls (Teams 1-4). Each returns
+//   { stance, approve, rationale, minimal_change? }
 //
-// Upserts a row in quality_fix_deliberations with the verdict:
-//   verdict = "auto_eligible"  iff  T3.approve && T4.approve && devil's-advocate.agree
-//   verdict = "reject"         iff  all four teams say not_a_defect / withhold approval
+// Verdict gate (unanimity across ALL viewpoints — no free-roaming devil's-advocate):
+//   verdict = "auto_eligible"  iff
+//       Claude AND GPT cross-review concurred (candidate.cross_review_category === "agree")
+//       AND all four teams approved.
+//   verdict = "reject"         iff all four teams say not_a_defect / withhold approval
 //   verdict = "human_review"   otherwise (carry dissent reason)
 //
 // Never applies a patch from here — that is auto-apply-fixes (Workstream B5).
 // Chunked with self-reinvoke (CHUNK_SIZE candidates per invocation) so a large
 // run cannot exhaust the 400s edge wall-clock.
+
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -20,7 +22,7 @@ const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY    = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY       = Deno.env.get("SUPABASE_ANON_KEY")!;
 const ANTHROPIC_KEY  = Deno.env.get("ANTHROPIC_API_KEY")!;
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
+
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -51,22 +53,6 @@ async function claude(system: string, user: string, model = "claude-haiku-4-5-20
   return d.content?.[0]?.text ?? "";
 }
 
-async function gpt4o(system: string, user: string): Promise<string> {
-  if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not set");
-  const r = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "gpt-4o", max_tokens: 1200,
-      response_format: { type: "json_object" },
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
-    }),
-    signal: AbortSignal.timeout(60_000),
-  });
-  if (!r.ok) throw new Error(`GPT-4o ${r.status}: ${(await r.text()).slice(0, 200)}`);
-  const d = await r.json();
-  return d.choices?.[0]?.message?.content ?? "";
-}
 
 type TeamKey = "team1" | "team2" | "team3" | "team4";
 const TEAMS: { key: TeamKey; system: string }[] = [
