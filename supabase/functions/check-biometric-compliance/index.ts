@@ -101,6 +101,9 @@ interface Body {
   // (service-role / x-internal-resume bearer) AND this is provided, it FULLY replaces
   // the composed system prompt for this single invocation. Never honored for user calls.
   system_prompt_override?: string;
+  // Internal-only: when true (service-role) skip DB persistence + downstream side-effects.
+  // Used by improve-prompt A/B evaluation so candidate runs don't pollute biometric_assessments.
+  dry_run?: boolean;
 }
 
 const supabase = createClient(
