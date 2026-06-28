@@ -187,6 +187,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "no_7152_a_3_trade_secret", dimension: "citation", severity: "high",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       const s = JSON.stringify(report ?? "");
       if (s.includes("7152(a)(3)"))
