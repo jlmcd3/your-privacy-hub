@@ -93,7 +93,7 @@ function ToolRow({ tool }: { tool: ToolDef }) {
       .from("golden_results")
       .select("case_id, assertions_total, assertions_passed, created_at")
       .eq("tool", tool.id)
-      .eq("run_kind", "baseline")
+      .eq("variant", "baseline")
       .order("created_at", { ascending: false })
       .limit(200);
     if (!data?.length) { setRate(null); return; }
