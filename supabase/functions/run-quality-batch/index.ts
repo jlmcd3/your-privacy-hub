@@ -135,6 +135,7 @@ const CHECKS: Check[] = [
   {
     id: "adtech_not_significant_decision", dimension: "accuracy", severity: "critical",
     tools: ADMT_ONLY,
+    run: (intake, report) => {
       const domains: string[] = intake?.decision_domains ?? [];
       if (!domains.some(d => /advertising|adtech|audience/i.test(d))) return { passed: true };
       const triggers = report?.scope_analysis?.triggers_significant_decision;
