@@ -25,7 +25,7 @@ type Deliberation = {
   team2_position: any;
   team3_position: any;
   team4_position: any;
-  devils_advocate: any;
+  devils_advocate: any; // deprecated — no longer populated; kept for legacy rows
   team3_approve: boolean | null;
   team4_approve: boolean | null;
   consensus: boolean;
@@ -155,8 +155,9 @@ export default function QualityLoopAugmentation({
       });
       if (error) throw error;
       await supabase.from("quality_fix_deliberations").update({ status: "applied", reviewed_at: new Date().toISOString() }).eq("id", delib.id);
-      toast.success(`Pushed ${delib.check_id} to main.`);
+      toast.success(`Staged ${delib.check_id} to quality-auto.`);
       load();
+
     } catch (e: any) {
       toast.error(`Apply failed: ${e.message}`);
     }
@@ -195,7 +196,7 @@ export default function QualityLoopAugmentation({
         <div>
           <h2 className="text-base font-semibold text-gray-800">Four-Team Deliberation &amp; Auto-Apply</h2>
           <p className="text-xs text-gray-500 mt-0.5">
-            Phase 2 quality loop: Teams 1–4 + GPT-4o devil's-advocate must concur before auto-apply.
+            Phase 2 quality loop: Claude + GPT cross-review must agree AND all four teams must approve before auto-apply.
             Auto-apply targets the <span className="font-mono">{toolState?.target_branch ?? "quality-auto"}</span> branch — never main.
           </p>
         </div>
