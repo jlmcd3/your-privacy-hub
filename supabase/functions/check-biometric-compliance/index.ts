@@ -11,7 +11,7 @@ const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with 
 
 Your task: produce a structured compliance assessment for a described biometric data processing activity, calibrated to the jurisdictions in scope and recent enforcement precedents.`;
 
-const BIOMETRIC_RULEBOOK = `BIPA — STATUTORY UPDATE (Illinois P.A. 103-0769 (SB 2979), signed and effective 2 August 2024):
+
 // FORK-R1 R4: facts previously inline here (ICO figures, BIPA/Clay citations,
 // CUBI subsection map, FDBR applicability, private-right-of-action by statute)
 // are now sourced from _shared/registry/* via renderRegistryFor("biometric-checker")
