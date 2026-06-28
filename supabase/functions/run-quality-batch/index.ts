@@ -115,7 +115,7 @@ async function invokeFn(name: string, body: unknown): Promise<any> {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SERVICE_KEY}` },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(600_000),
+    signal: AbortSignal.timeout(240_000),
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`${name} ${r.status}: ${JSON.stringify(d).slice(0, 200)}`);
