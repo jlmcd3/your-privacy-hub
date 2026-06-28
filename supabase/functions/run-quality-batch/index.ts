@@ -1142,7 +1142,7 @@ async function runBatch(runId: string): Promise<void> {
     // overall failRate gate so behavior is non-regressive.
     const hasTuningData = state.tuningBuilt > 0;
     const aiCandidates = aggregates
-      .filter(a => !a.rubricAddition && a.evidence.length > 0 && a.crossCategory !== "conflict")
+      .filter(a => a.evidence.length > 0)
       .filter(a => hasTuningData ? a.tuningFailRate > 0.2 : a.failRate > 0.2)
       .filter(a => !alreadyFixedIds.has(a.checkId))
       .sort((x, y) => (y.severityRank - x.severityRank) || (y.failed * y.failRate - x.failed * x.failRate))
