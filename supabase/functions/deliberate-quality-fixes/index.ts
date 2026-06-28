@@ -1,18 +1,20 @@
 // deliberate-quality-fixes — B2 of Workstream B (Phase 2 Quality Loop Augmentation).
 //
-// For every failing quality_check_results row in a run with a proposed_fix, runs:
-//   - 4 parallel Claude persona calls (Teams 1-4) — each returns
-//     { stance, approve, rationale, minimal_change? }
-//   - GPT-4o devil's-advocate challenge of the consensus
+// For every failing quality_check_results row in a run with a proposed_fix, runs
+// 4 parallel Claude persona calls (Teams 1-4). Each returns
+//   { stance, approve, rationale, minimal_change? }
 //
-// Upserts a row in quality_fix_deliberations with the verdict:
-//   verdict = "auto_eligible"  iff  T3.approve && T4.approve && devil's-advocate.agree
-//   verdict = "reject"         iff  all four teams say not_a_defect / withhold approval
+// Verdict gate (unanimity across ALL viewpoints — no free-roaming devil's-advocate):
+//   verdict = "auto_eligible"  iff
+//       Claude AND GPT cross-review concurred (candidate.cross_review_category === "agree")
+//       AND all four teams approved.
+//   verdict = "reject"         iff all four teams say not_a_defect / withhold approval
 //   verdict = "human_review"   otherwise (carry dissent reason)
 //
 // Never applies a patch from here — that is auto-apply-fixes (Workstream B5).
 // Chunked with self-reinvoke (CHUNK_SIZE candidates per invocation) so a large
 // run cannot exhaust the 400s edge wall-clock.
+
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -20,7 +22,7 @@ const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY    = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY       = Deno.env.get("SUPABASE_ANON_KEY")!;
 const ANTHROPIC_KEY  = Deno.env.get("ANTHROPIC_API_KEY")!;
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
+
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -51,22 +53,6 @@ async function claude(system: string, user: string, model = "claude-haiku-4-5-20
   return d.content?.[0]?.text ?? "";
 }
 
-async function gpt4o(system: string, user: string): Promise<string> {
-  if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not set");
-  const r = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "gpt-4o", max_tokens: 1200,
-      response_format: { type: "json_object" },
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
-    }),
-    signal: AbortSignal.timeout(60_000),
-  });
-  if (!r.ok) throw new Error(`GPT-4o ${r.status}: ${(await r.text()).slice(0, 200)}`);
-  const d = await r.json();
-  return d.choices?.[0]?.message?.content ?? "";
-}
 
 type TeamKey = "team1" | "team2" | "team3" | "team4";
 const TEAMS: { key: TeamKey; system: string }[] = [
@@ -92,8 +78,6 @@ const TEAMS: { key: TeamKey; system: string }[] = [
   },
 ];
 
-const DEVILS_ADVOCATE_SYSTEM =
-  `You are a GPT-4o devil's-advocate reviewing the four team verdicts on a proposed AI prompt fix. Challenge the apparent consensus — would a reasonable senior privacy engineer object? Return ONLY JSON: { "agree": boolean, "objection": "1-2 sentences or empty string" }`;
 
 function userBlock(check: any): string {
   return [
@@ -121,25 +105,17 @@ async function deliberateOne(check: any) {
   }));
   const teams: Record<string, any> = Object.fromEntries(settled);
 
-  let devils: any = { agree: false, objection: "OPENAI_API_KEY not set — devil's-advocate skipped" };
-  if (OPENAI_API_KEY) {
-    try {
-      const raw = await gpt4o(DEVILS_ADVOCATE_SYSTEM, `Team verdicts:\n${JSON.stringify(teams)}\n\nProposed fix context:\n${user}`);
-      const parsed = tryParse(raw);
-      if (parsed) devils = { agree: !!parsed.agree, objection: String(parsed.objection ?? "") };
-    } catch (e) {
-      devils = { agree: false, objection: `error: ${(e as Error).message}` };
-    }
-  }
-
-  const t3Approve = !!teams.team3?.approve;
-  const t4Approve = !!teams.team4?.approve;
-  const allRejectAsNotDefect =
-    TEAMS.every(t => teams[t.key]?.stance === "not_a_defect" && !teams[t.key]?.approve);
+  const teamsApproveAll =
+    !!teams.team1?.approve && !!teams.team2?.approve &&
+    !!teams.team3?.approve && !!teams.team4?.approve;
+  const reviewersAgree = check.cross_review_category === "agree"; // Claude AND GPT concurred
+  const allNotDefect = TEAMS.every(
+    (t) => teams[t.key]?.stance === "not_a_defect" && !teams[t.key]?.approve,
+  );
 
   const verdict =
-    allRejectAsNotDefect ? "reject" :
-    (t3Approve && t4Approve && devils.agree) ? "auto_eligible" : "human_review";
+    allNotDefect ? "reject" :
+    (reviewersAgree && teamsApproveAll) ? "auto_eligible" : "human_review";
 
   const disagreements: any[] = [];
   for (const t of TEAMS) {
@@ -147,23 +123,29 @@ async function deliberateOne(check: any) {
       disagreements.push({ team: t.key, stance: teams[t.key]?.stance, rationale: teams[t.key]?.rationale });
     }
   }
-  if (!devils.agree) disagreements.push({ team: "devils_advocate", objection: devils.objection });
+  if (!reviewersAgree) {
+    disagreements.push({
+      source: "cross_review",
+      reason: `Claude/GPT did not agree (category=${check.cross_review_category ?? "unknown"})`,
+    });
+  }
 
   return {
     team1_position: teams.team1,
     team2_position: teams.team2,
     team3_position: teams.team3,
     team4_position: teams.team4,
-    devils_advocate: devils,
-    team3_approve: t3Approve,
-    team4_approve: t4Approve,
-    consensus: t3Approve && t4Approve && devils.agree,
+    devils_advocate: null,
+    team3_approve: !!teams.team3?.approve,
+    team4_approve: !!teams.team4?.approve,
+    consensus: reviewersAgree && teamsApproveAll,
     verdict,
     disagreements,
     recommended_change: teams.team1?.minimal_change ?? check.proposed_fix,
     change_location: check.fix_location,
   };
 }
+
 
 function selfReinvoke(runId: string, offset: number) {
   fetch(`${SUPABASE_URL}/functions/v1/deliberate-quality-fixes`, {
@@ -182,7 +164,7 @@ async function deliberateRun(runId: string, offset: number) {
 
   const { data: candidates, error } = await admin
     .from("quality_check_results")
-    .select("id, tool, run_id, check_id, dimension, severity, fail_count, fail_rate, sample_evidence, proposed_fix, fix_location")
+    .select("id, tool, run_id, check_id, dimension, severity, fail_count, fail_rate, sample_evidence, proposed_fix, fix_location, cross_review_category")
     .eq("run_id", runId)
     .gt("fail_count", 0)
     .not("proposed_fix", "is", null);

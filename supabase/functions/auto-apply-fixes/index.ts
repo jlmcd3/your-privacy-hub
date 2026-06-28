@@ -143,7 +143,7 @@ async function autoApplyRun(runId: string): Promise<Summary[]> {
         branch,
         commitMessage:
           `fix(quality-loop/auto): ${row.check_id} [tool=${tool}]\n\n` +
-          `Auto-applied via auto-apply-fixes — verdict=auto_eligible (Teams 3 + 4 + GPT-4o devil's-advocate all approved).`,
+          `Auto-applied via auto-apply-fixes — verdict=auto_eligible (Claude + GPT cross-review agreed; all four teams approved).`,
       });
 
       if ("commit_sha" in result) {
