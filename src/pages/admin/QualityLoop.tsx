@@ -243,7 +243,7 @@ export default function QualityLoop() {
       pollRef.current = setInterval(async () => {
         await loadRun(data.run_id);
         await loadChecks(data.run_id);
-      }, 3000);
+      }, 60000);
     } catch (e: any) {
       toast.error(`Run failed: ${e.message}`);
       setRunning(false);
