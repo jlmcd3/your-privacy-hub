@@ -108,7 +108,11 @@ async function deliberateOne(check: any) {
   const teamsApproveAll =
     !!teams.team1?.approve && !!teams.team2?.approve &&
     !!teams.team3?.approve && !!teams.team4?.approve;
-  const reviewersAgree = check.cross_review_category === "agree"; // Claude AND GPT concurred
+  // F5: "deterministic" (code-verified) and "agree" (both Claude + GPT failed on the same
+  // fixed-id check across the majority of docs) both qualify as reviewer concurrence.
+  // "deterministic" is the strongest signal — both code-verified and certain.
+  const cat = String(check.cross_review_category ?? "").toLowerCase();
+  const reviewersAgree = cat === "agree" || cat === "deterministic";
   const allNotDefect = TEAMS.every(
     (t) => teams[t.key]?.stance === "not_a_defect" && !teams[t.key]?.approve,
   );
