@@ -160,6 +160,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "art11_gate_enforced", dimension: "accuracy", severity: "critical",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       const triggers = report?.scope_analysis?.triggers_significant_decision;
       if (triggers === true || triggers === "true") return { passed: true };
