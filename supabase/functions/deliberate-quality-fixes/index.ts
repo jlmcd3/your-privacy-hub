@@ -204,6 +204,18 @@ async function deliberateRun(runId: string, offset: number) {
         ...result,
         status: "pending",
       }, { onConflict: "run_id,check_id" });
+
+      // R3: when Team 2 says "registry", capture the fact as a registry proposal.
+      // The candidate's prompt-fix verdict stays human_review (a registry-bound fact
+      // must not become a prose prompt rule) — that's enforced by team2.approve=false
+      // breaking teamsApproveAll in deliberateOne.
+      if (String(result.team2_position?.stance ?? "").toLowerCase() === "registry") {
+        try {
+          await captureRegistryProposal(admin, chk, result);
+        } catch (e) {
+          console.warn(`[deliberate] registry proposal capture failed for ${chk.check_id}:`, (e as Error).message);
+        }
+      }
     } catch (e) {
       console.warn(`[deliberate] check ${chk.check_id} failed:`, (e as Error).message);
     }
