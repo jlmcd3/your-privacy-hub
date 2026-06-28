@@ -95,7 +95,7 @@ const TEAMS: { key: TeamKey; provider: Provider; model: string; system: string }
     key: "team3",
     provider: "claude",
     model: "claude-sonnet-4-5-20250929",
-    system: `You are TEAM 3 (Legal Correctness Reviewer). Verify the proposed fix is correct at the cited subsection/paragraph level. You MUST name the exact statute and subsection you verified against in "verified_against" (e.g. "740 ILCS 14/15(b)"). If you cannot verify the cited text from training — do NOT guess. Instead set stance="unverifiable", approve=false, and explain what primary-source check is needed. Reject if the fix creates a legal conflict, mis-cites a section, or contradicts statutory text. Return ONLY JSON:
+    system: `You are TEAM 3 (Legal Correctness Reviewer) and you are DECISIVE for this workflow — your verdict governs whether the change is staged regardless of Teams 1/2/4. Verify the proposed fix is correct at the cited subsection/paragraph level. You MUST name the exact statute and subsection you verified against in "verified_against" (e.g. "740 ILCS 14/15(b)"). If you cannot verify the cited text from training — do NOT guess. Instead set stance="unverifiable", approve=false, and explain what primary-source check is needed. Reject if the fix creates a legal conflict, mis-cites a section, or contradicts statutory text. Return ONLY JSON:
 { "stance": "prompt" | "legal_conflict" | "unverifiable" | "not_a_defect", "approve": boolean, "verified_against": "statute + subsection or empty string", "rationale": "1-2 sentences" }`,
   },
   {
@@ -136,26 +136,26 @@ async function deliberateOne(check: any, abEvidence: { delta: number; regression
   }));
   const teams: Record<string, any> = Object.fromEntries(settled);
 
+  // P5 (Quality Loop v2) — TEAM 3 IS DECISIVE.
+  //   • team3.approve = true                              → eligible (staged to quality-auto)
+  //   • team3.stance ∈ {legal_conflict, unverifiable}     → reject (drop)
+  //   • otherwise                                          → human_review
+  // Teams 1/2/4 are recorded as colour but never block or override Team 3.
+  const t3 = teams.team3 ?? {};
+  const t3Stance = String(t3.stance ?? "").toLowerCase();
+  const t3Decisive = t3.approve === true;
+  const t3Reject = t3Stance === "legal_conflict" || t3Stance === "unverifiable";
+
+  const cat = String(check.cross_review_category ?? "").toLowerCase();
+  const reviewersAgree = cat === "agree" || cat === "deterministic";
+
+  const verdict = t3Decisive ? "auto_eligible"
+    : t3Reject ? "reject"
+    : "human_review";
+
   const teamsApproveAll =
     !!teams.team1?.approve && !!teams.team2?.approve &&
     !!teams.team3?.approve && !!teams.team4?.approve;
-  const cat = String(check.cross_review_category ?? "").toLowerCase();
-  const reviewersAgree = cat === "agree" || cat === "deterministic";
-  const allNotDefect = TEAMS.every(
-    (t) => teams[t.key]?.stance === "not_a_defect" && !teams[t.key]?.approve,
-  );
-
-  const OBJECTIVE_DIMENSIONS = new Set(["accuracy", "citation", "hallucination"]);
-  const dimensionIsObjective = OBJECTIVE_DIMENSIONS.has(String(check.dimension ?? "").toLowerCase());
-
-  // PHASE 3 / C2 — auto-eligibility additionally requires causal A/B evidence:
-  // a `validate-fix` run whose delta>0 and zero regressions. Unvalidated fixes
-  // never become auto_eligible, even with unanimity.
-  const abValidated = !!abEvidence && abEvidence.delta > 0 && abEvidence.regressions === 0;
-
-  const verdict =
-    allNotDefect ? "reject" :
-    (reviewersAgree && teamsApproveAll && dimensionIsObjective && abValidated) ? "auto_eligible" : "human_review";
 
   const disagreements: any[] = [];
   for (const t of TEAMS) {
@@ -163,24 +163,10 @@ async function deliberateOne(check: any, abEvidence: { delta: number; regression
       disagreements.push({ team: t.key, stance: teams[t.key]?.stance, rationale: teams[t.key]?.rationale });
     }
   }
-  if (!reviewersAgree) {
+  if (t3Reject) {
     disagreements.push({
-      source: "cross_review",
-      reason: `Claude/GPT did not agree (category=${check.cross_review_category ?? "unknown"})`,
-    });
-  }
-  if (!dimensionIsObjective && reviewersAgree && teamsApproveAll && !allNotDefect) {
-    disagreements.push({
-      source: "p-c_dimension_gate",
-      reason: `Dimension "${check.dimension}" is subjective — auto-apply restricted to accuracy/citation/hallucination; routed to human review.`,
-    });
-  }
-  if (!abValidated && !allNotDefect) {
-    disagreements.push({
-      source: "ab_validation_gate",
-      reason: abEvidence
-        ? `A/B record present but delta=${abEvidence.delta}, regressions=${abEvidence.regressions} — not validated.`
-        : "No validate-fix A/B record for this candidate — auto-apply requires causal evidence.",
+      source: "team3_decisive",
+      reason: `Team 3 (${t3Stance}) — change dropped. Verified against: ${t3.verified_against || "(none)"}`,
     });
   }
 

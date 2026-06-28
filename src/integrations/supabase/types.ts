@@ -3749,6 +3749,72 @@ export type Database = {
           },
         ]
       }
+      quality_reviews: {
+        Row: {
+          changes: Json
+          created_at: string
+          critical_failures: Json
+          cycle_id: string | null
+          error: string | null
+          id: string
+          iteration: number
+          model: string
+          overall_score: number | null
+          raw: string | null
+          sample_report_id: string
+          scores: Json
+          strengths: Json
+          tool_slug: string
+        }
+        Insert: {
+          changes?: Json
+          created_at?: string
+          critical_failures?: Json
+          cycle_id?: string | null
+          error?: string | null
+          id?: string
+          iteration?: number
+          model: string
+          overall_score?: number | null
+          raw?: string | null
+          sample_report_id: string
+          scores?: Json
+          strengths?: Json
+          tool_slug: string
+        }
+        Update: {
+          changes?: Json
+          created_at?: string
+          critical_failures?: Json
+          cycle_id?: string | null
+          error?: string | null
+          id?: string
+          iteration?: number
+          model?: string
+          overall_score?: number | null
+          raw?: string | null
+          sample_report_id?: string
+          scores?: Json
+          strengths?: Json
+          tool_slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_reviews_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "tool_improvement_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_reviews_sample_report_id_fkey"
+            columns: ["sample_report_id"]
+            isOneToOne: false
+            referencedRelation: "sample_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quality_run_documents: {
         Row: {
           created_at: string | null
@@ -6114,6 +6180,78 @@ export type Database = {
           session_id?: string | null
           tool_type?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      tool_improvement_cycles: {
+        Row: {
+          baseline_batch_id: string | null
+          baseline_score: number | null
+          completed_at: string | null
+          current_batch_id: string | null
+          current_score: number | null
+          excluded_rows: Json
+          id: string
+          iteration: number
+          last_error: string | null
+          log: Json
+          max_iterations: number
+          phase: string
+          quality_run_id: string | null
+          score_history: Json
+          started_at: string
+          started_by: string | null
+          status: string
+          target_score: number
+          tool_slug: string
+          top_changes: Json
+          updated_at: string
+        }
+        Insert: {
+          baseline_batch_id?: string | null
+          baseline_score?: number | null
+          completed_at?: string | null
+          current_batch_id?: string | null
+          current_score?: number | null
+          excluded_rows?: Json
+          id?: string
+          iteration?: number
+          last_error?: string | null
+          log?: Json
+          max_iterations?: number
+          phase?: string
+          quality_run_id?: string | null
+          score_history?: Json
+          started_at?: string
+          started_by?: string | null
+          status?: string
+          target_score?: number
+          tool_slug: string
+          top_changes?: Json
+          updated_at?: string
+        }
+        Update: {
+          baseline_batch_id?: string | null
+          baseline_score?: number | null
+          completed_at?: string | null
+          current_batch_id?: string | null
+          current_score?: number | null
+          excluded_rows?: Json
+          id?: string
+          iteration?: number
+          last_error?: string | null
+          log?: Json
+          max_iterations?: number
+          phase?: string
+          quality_run_id?: string | null
+          score_history?: Json
+          started_at?: string
+          started_by?: string | null
+          status?: string
+          target_score?: number
+          tool_slug?: string
+          top_changes?: Json
+          updated_at?: string
         }
         Relationships: []
       }
