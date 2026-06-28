@@ -538,6 +538,32 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
   return out.slice(0, count);
 }
 
+// Validate a generated batch; for each failing intake, attempt ONE single-item
+// regeneration. Drop persistent failures. Returns final accepted intakes plus
+// rejection metadata so the caller can enforce the >30% failure guard.
+async function generateValidatedIntakes(tool: string, count: number): Promise<{ intakes: any[]; rejected: { reason: string }[]; totalAttempted: number }> {
+  const initial = await generateIntakes(tool, count);
+  const accepted: any[] = [];
+  const rejected: { reason: string }[] = [];
+
+  for (const item of initial) {
+    const r = validateIntake(tool, item);
+    if (r.ok) { accepted.push(item); continue; }
+    console.warn(`[validateIntake] ${tool}: ${r.reason} — regenerating once`);
+    try {
+      const retry = await generateIntakes(tool, 1);
+      const r2 = retry[0] ? validateIntake(tool, retry[0]) : { ok: false, reason: "regeneration returned no item" };
+      if (r2.ok) { accepted.push(retry[0]); continue; }
+      console.warn(`intake rejected (${tool}): ${r2.reason}`);
+      rejected.push({ reason: r2.reason ?? "unknown" });
+    } catch (e) {
+      console.warn(`intake rejected (${tool}): regenerate failed — ${(e as Error).message}`);
+      rejected.push({ reason: (e as Error).message });
+    }
+  }
+  return { intakes: accepted, rejected, totalAttempted: initial.length };
+}
+
 async function buildDocument(admin: Admin, tool: string, intake: any, userId: string): Promise<{ sourceTable: string; sourceRowId: string; reportData: any } | null> {
   try {
     const poll = async (table: string, id: string) => {
