@@ -939,6 +939,10 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       variant: isStressRun ? "lean" : "full",
       currentDate: today,
       cache: true,
+      // FORK-R1 R4: facts (ICO figures, BIPA citations, CUBI map, FDBR, PRA-by-statute)
+      // come from the registry — never from inline prose. A one-line registry edit
+      // changes the biometric output on the next run.
+      injected: renderRegistryFor("biometric-checker"),
     });
     // Pilot override: service-role callers can fully replace the system prompt to
     // A/B-test a candidate fix on the held-out scenarios (see validate-fix function).
