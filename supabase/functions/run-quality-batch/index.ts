@@ -146,6 +146,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "gaming_not_significant_decision", dimension: "accuracy", severity: "critical",
+    tools: ADMT_ONLY,
     run: (intake, report) => {
       const domains: string[] = intake?.decision_domains ?? [];
       const desc: string = intake?.system_description ?? "";
