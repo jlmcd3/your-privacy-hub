@@ -54,26 +54,54 @@ async function claude(system: string, user: string, model = "claude-haiku-4-5-20
   return d.content?.[0]?.text ?? "";
 }
 
+async function openai(system: string, user: string, model = "gpt-4o", maxTokens = 1500): Promise<string> {
+  if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not set");
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model, max_tokens: maxTokens, temperature: 0,
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+    signal: AbortSignal.timeout(60_000),
+  });
+  if (!r.ok) throw new Error(`OpenAI ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content ?? "";
+}
 
+
+// PHASE 3 / C1 — diverse models per team. T1/T2 stay on Haiku (cheap minimalist
+// curation), T3 (Legal) uses Claude Sonnet and MUST name the verified subsection
+// or decline with stance="unverifiable", T4 (Root-cause) uses GPT-4o for model diversity.
 type TeamKey = "team1" | "team2" | "team3" | "team4";
-const TEAMS: { key: TeamKey; system: string }[] = [
+type Provider = "claude" | "openai";
+const TEAMS: { key: TeamKey; provider: Provider; model: string; system: string }[] = [
   {
     key: "team1",
+    provider: "claude",
+    model: "claude-haiku-4-5-20251001",
     system: `You are TEAM 1 (Prompt-Fixability Minimalist). Decide whether the proposed prompt patch is the MINIMAL change that would address the failing check. Return ONLY JSON:
 { "stance": "prompt" | "not_a_defect", "approve": boolean, "rationale": "1-2 sentences", "minimal_change": "a tighter alternative or null" }`,
   },
   {
     key: "team2",
+    provider: "claude",
+    model: "claude-haiku-4-5-20251001",
     system: `You are TEAM 2 (Prose-vs-Registry Curator). Decide whether the fix belongs in the AI system prompt (prose) or in a deterministic registry/data file (registry). If "registry", set approve=false and explain. Return ONLY JSON:
 { "stance": "prompt" | "registry", "approve": boolean, "rationale": "1-2 sentences" }`,
   },
   {
     key: "team3",
-    system: `You are TEAM 3 (Legal Correctness Reviewer). Verify the proposed fix is correct at the cited subsection/paragraph level. Reject if it creates a legal conflict, mis-cites a section, or contradicts statutory text. Return ONLY JSON:
-{ "stance": "prompt" | "legal_conflict" | "not_a_defect", "approve": boolean, "rationale": "1-2 sentences" }`,
+    provider: "claude",
+    model: "claude-sonnet-4-5-20250929",
+    system: `You are TEAM 3 (Legal Correctness Reviewer). Verify the proposed fix is correct at the cited subsection/paragraph level. You MUST name the exact statute and subsection you verified against in "verified_against" (e.g. "740 ILCS 14/15(b)"). If you cannot verify the cited text from training — do NOT guess. Instead set stance="unverifiable", approve=false, and explain what primary-source check is needed. Reject if the fix creates a legal conflict, mis-cites a section, or contradicts statutory text. Return ONLY JSON:
+{ "stance": "prompt" | "legal_conflict" | "unverifiable" | "not_a_defect", "approve": boolean, "verified_against": "statute + subsection or empty string", "rationale": "1-2 sentences" }`,
   },
   {
     key: "team4",
+    provider: "openai",
+    model: "gpt-4o",
     system: `You are TEAM 4 (Root-Cause Auditor). Decide whether the root cause is genuinely a prompt defect, OR something a prompt patch CANNOT fix (deploy lag, RLS, schema drift, runtime/parse failure, missing trigger). Approve ONLY if the root cause is a prompt defect. Return ONLY JSON:
 { "stance": "prompt" | "systems" | "not_a_defect", "approve": boolean, "rationale": "1-2 sentences" }`,
   },
