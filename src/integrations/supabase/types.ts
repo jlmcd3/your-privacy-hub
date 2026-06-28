@@ -4377,6 +4377,105 @@ export type Database = {
           },
         ]
       }
+      registry_proposals: {
+        Row: {
+          check_id: string | null
+          citation: string | null
+          created_at: string
+          fact_type: string
+          id: string
+          proposed_key: string | null
+          proposed_value: string | null
+          rationale: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          run_id: string | null
+          source_url: string | null
+          status: string
+          tool: string | null
+        }
+        Insert: {
+          check_id?: string | null
+          citation?: string | null
+          created_at?: string
+          fact_type?: string
+          id?: string
+          proposed_key?: string | null
+          proposed_value?: string | null
+          rationale?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          source_url?: string | null
+          status?: string
+          tool?: string | null
+        }
+        Update: {
+          check_id?: string | null
+          citation?: string | null
+          created_at?: string
+          fact_type?: string
+          id?: string
+          proposed_key?: string | null
+          proposed_value?: string | null
+          rationale?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          source_url?: string | null
+          status?: string
+          tool?: string | null
+        }
+        Relationships: []
+      }
+      registry_verification_log: {
+        Row: {
+          age_days: number | null
+          checked_at: string
+          created_at: string
+          entry_id: string
+          error: string | null
+          http_method: string | null
+          http_status: number | null
+          id: string
+          last_verified: string | null
+          ok: boolean
+          source: string
+          stale: boolean
+          verify_against: string
+        }
+        Insert: {
+          age_days?: number | null
+          checked_at?: string
+          created_at?: string
+          entry_id: string
+          error?: string | null
+          http_method?: string | null
+          http_status?: number | null
+          id?: string
+          last_verified?: string | null
+          ok?: boolean
+          source: string
+          stale?: boolean
+          verify_against: string
+        }
+        Update: {
+          age_days?: number | null
+          checked_at?: string
+          created_at?: string
+          entry_id?: string
+          error?: string | null
+          http_method?: string | null
+          http_status?: number | null
+          id?: string
+          last_verified?: string | null
+          ok?: boolean
+          source?: string
+          stale?: boolean
+          verify_against?: string
+        }
+        Relationships: []
+      }
       regulator_follows: {
         Row: {
           created_at: string | null
