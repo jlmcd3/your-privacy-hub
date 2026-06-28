@@ -134,7 +134,7 @@ const ADMT_ONLY = ["cppa-admt"];
 const CHECKS: Check[] = [
   {
     id: "adtech_not_significant_decision", dimension: "accuracy", severity: "critical",
-    run: (intake, report) => {
+    tools: ADMT_ONLY,
       const domains: string[] = intake?.decision_domains ?? [];
       if (!domains.some(d => /advertising|adtech|audience/i.test(d))) return { passed: true };
       const triggers = report?.scope_analysis?.triggers_significant_decision;
