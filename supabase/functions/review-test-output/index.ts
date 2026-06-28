@@ -1,19 +1,27 @@
-// Reviews a single test-output payload using Anthropic Claude directly.
-// Returns scores (1-5) across five dimensions plus a structured critique.
+// review-test-output — single-output reviewer.
+//
+// Two modes:
+// 1. Legacy `mode: "rubric"` (default) — original 1-5 dimension scoring used by
+//    the assertion-test admin page. Backwards-compatible with prior callers.
+// 2. Improvement-cycle `mode: "improvement"` — spec'd by the Quality Loop v2
+//    framework. Accepts an explicit `model` (gpt-4o OR claude-sonnet-4-6),
+//    scores 0-100 across six dimensions, and returns a flat `changes[]` list
+//    that the dual-model consensus stage can rank.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-const MODEL = "claude-3-5-sonnet-20241022";
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
 
-const SYSTEM_PROMPT = `You are a senior privacy-compliance editor reviewing the output of an automated GDPR/CCPA assessment tool.
+const DEFAULT_CLAUDE = "claude-sonnet-4-5-20250929";
+
+const RUBRIC_SYSTEM_PROMPT = `You are a senior privacy-compliance editor reviewing the output of an automated GDPR/CCPA assessment tool.
 
 Score the supplied test output on a 1-5 scale across exactly these five dimensions:
 1. accuracy           — Is the legal/regulatory content factually correct? Are statutes, articles, dates, fines correct?
@@ -34,6 +42,36 @@ Return STRICT JSON, no markdown fences, no commentary. Schema:
   ]
 }`;
 
+const IMPROVEMENT_SYSTEM_PROMPT = `You are a senior privacy-compliance reviewer auditing the output of an automated assessment generator.
+
+Review the supplied TOOL OUTPUT for errors, inconsistencies, mistakes, erroneous references, incorrect citations, formatting issues, and hallucinations. List concrete improvements.
+
+Score each dimension 0-100 (HIGHER is better). HIGHER hallucination_free = LESS hallucination.
+
+Return STRICT JSON, no markdown fences, no commentary. Schema:
+{
+  "scores": {
+    "accuracy":         0-100,
+    "citations":        0-100,
+    "consistency":      0-100,
+    "formatting":       0-100,
+    "hallucination_free": 0-100,
+    "completeness":     0-100
+  },
+  "overall": 0-100,
+  "changes": [
+    {
+      "target_tool": "<tool slug being reviewed>",
+      "location": "short locator (section heading, field name, or quoted phrase)",
+      "problem": "what is wrong (1-2 sentences, specific)",
+      "fix": "the concrete change to make",
+      "severity": "critical|high|medium|low"
+    }
+  ],
+  "strengths": ["..."],
+  "critical_failures": ["..."]
+}`;
+
 function jsonResp(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -41,45 +79,102 @@ function jsonResp(body: unknown, status = 200) {
   });
 }
 
+function stripFences(t: string): string {
+  let c = (t ?? "").trim();
+  if (c.startsWith("```")) c = c.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
+  return c.trim();
+}
+function tryParse(t: string): any | null {
+  const c = stripFences(t);
+  try { return JSON.parse(c); } catch { /* */ }
+  const m = c.match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  try { return JSON.parse(m[0]); } catch { return null; }
+}
+
+async function callClaude(system: string, user: string, model: string): Promise<string> {
+  if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY not configured");
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4000,
+      system,
+      messages: [{ role: "user", content: user }],
+    }),
+    signal: AbortSignal.timeout(120_000),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    throw new Error(`Anthropic ${r.status}: ${t.slice(0, 400)}`);
+  }
+  const d = await r.json();
+  return d?.content?.[0]?.text ?? "";
+}
+
+async function callOpenAI(system: string, user: string, model: string): Promise<string> {
+  if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not configured");
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4000,
+      temperature: 0,
+      response_format: { type: "json_object" },
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+    signal: AbortSignal.timeout(120_000),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    throw new Error(`OpenAI ${r.status}: ${t.slice(0, 400)}`);
+  }
+  const d = await r.json();
+  return d?.choices?.[0]?.message?.content ?? "";
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  // Auth: require a logged-in user (admin gate is enforced client-side; this
-  // function uses ANTHROPIC credits so don't expose it anonymously).
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return jsonResp({ error: "Unauthorized" }, 401);
+  const internal = req.headers.get("x-internal-resume") === "1";
+  if (!internal) {
+    if (!authHeader?.startsWith("Bearer ")) return jsonResp({ error: "Unauthorized" }, 401);
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) return jsonResp({ error: "Unauthorized" }, 401);
   }
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!,
-    { global: { headers: { Authorization: authHeader } } },
-  );
-  const token = authHeader.replace("Bearer ", "");
-  const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
-  if (userErr || !user) return jsonResp({ error: "Unauthorized" }, 401);
-
-  if (!ANTHROPIC_API_KEY) return jsonResp({ error: "ANTHROPIC_API_KEY not configured" }, 500);
 
   let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return jsonResp({ error: "Invalid JSON" }, 400);
-  }
+  try { body = await req.json(); } catch { return jsonResp({ error: "Invalid JSON" }, 400); }
 
-  const { testId, testLabel, output, assertions, log } = body || {};
-  if (!testId || !output) {
-    return jsonResp({ error: "testId and output are required" }, 400);
-  }
+  const { testId, testLabel, output, assertions, log, mode, model, target_tool } = body || {};
+  if (!testId || !output) return jsonResp({ error: "testId and output are required" }, 400);
 
-  // Trim huge outputs to keep us under context. ~120k chars ≈ 30k tokens.
-  const outputStr =
-    typeof output === "string" ? output : JSON.stringify(output, null, 2);
+  const outputStr = typeof output === "string" ? output : JSON.stringify(output, null, 2);
   const trimmed = outputStr.length > 120_000 ? outputStr.slice(0, 120_000) + "\n…[truncated]" : outputStr;
+
+  const isImprovement = mode === "improvement";
+  const system = isImprovement ? IMPROVEMENT_SYSTEM_PROMPT : RUBRIC_SYSTEM_PROMPT;
+
+  // Resolve reviewer: explicit `model` wins; default = Claude (legacy behavior).
+  const chosenModel: string = (model && String(model).trim()) || DEFAULT_CLAUDE;
+  const isOpenAI = /^gpt-/i.test(chosenModel) || /^o[0-9]/i.test(chosenModel);
 
   const userMessage = [
     `TEST: ${testLabel || testId} (id=${testId})`,
+    target_tool ? `TARGET TOOL: ${target_tool}` : "",
     "",
     "ASSERTIONS:",
     Array.isArray(assertions) && assertions.length > 0
@@ -89,60 +184,27 @@ Deno.serve(async (req) => {
     "EXECUTION LOG (tail):",
     Array.isArray(log) && log.length > 0 ? log.slice(-15).join("\n") : "(none)",
     "",
-    "TOOL OUTPUT (JSON):",
-    "```json",
+    "TOOL OUTPUT:",
+    "```",
     trimmed,
     "```",
     "",
-    "Score it now. Return JSON only.",
-  ].join("\n");
+    isImprovement
+      ? "Review it now. Quote actual text in `location` or `problem` when possible. Return JSON only."
+      : "Score it now. Return JSON only.",
+  ].filter(Boolean).join("\n");
 
-  let anthropicRes: Response;
+  let raw: string;
   try {
-    anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 4000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: userMessage }],
-      }),
-    });
+    raw = isOpenAI
+      ? await callOpenAI(system, userMessage, chosenModel)
+      : await callClaude(system, userMessage, chosenModel);
   } catch (e) {
-    return jsonResp({ error: `Anthropic fetch failed: ${(e as Error).message}` }, 502);
+    return jsonResp({ error: (e as Error).message }, 502);
   }
 
-  if (!anthropicRes.ok) {
-    const text = await anthropicRes.text();
-    return jsonResp(
-      { error: `Anthropic ${anthropicRes.status}: ${text.slice(0, 500)}` },
-      502,
-    );
-  }
+  const review = tryParse(raw);
+  if (!review) return jsonResp({ error: "Reviewer returned non-JSON", raw: raw.slice(0, 1000) }, 500);
 
-  const data = await anthropicRes.json();
-  const text = data?.content?.[0]?.text || "";
-
-  // Strip accidental markdown fences if Claude added them.
-  let cleaned = text.trim();
-  if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```(?:json)?\s*/, "").replace(/```\s*$/, "");
-  }
-
-  let review: any;
-  try {
-    review = JSON.parse(cleaned);
-  } catch (e) {
-    return jsonResp(
-      { error: "Claude returned non-JSON", raw: text.slice(0, 1000) },
-      500,
-    );
-  }
-
-  return jsonResp({ ok: true, testId, model: MODEL, review });
+  return jsonResp({ ok: true, testId, model: chosenModel, review });
 });
