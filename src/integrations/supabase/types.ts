@@ -2036,6 +2036,48 @@ export type Database = {
         }
         Relationships: []
       }
+      golden_results: {
+        Row: {
+          assertions_passed: number
+          assertions_total: number
+          case_id: string
+          created_at: string
+          failed_labels: Json
+          id: string
+          run_id: string | null
+          scenario_set: string
+          tool: string
+          validate_run_id: string | null
+          variant: string
+        }
+        Insert: {
+          assertions_passed?: number
+          assertions_total?: number
+          case_id: string
+          created_at?: string
+          failed_labels?: Json
+          id?: string
+          run_id?: string | null
+          scenario_set: string
+          tool: string
+          validate_run_id?: string | null
+          variant?: string
+        }
+        Update: {
+          assertions_passed?: number
+          assertions_total?: number
+          case_id?: string
+          created_at?: string
+          failed_labels?: Json
+          id?: string
+          run_id?: string | null
+          scenario_set?: string
+          tool?: string
+          validate_run_id?: string | null
+          variant?: string
+        }
+        Relationships: []
+      }
       governance_assessments: {
         Row: {
           client_id: string | null
