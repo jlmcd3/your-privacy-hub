@@ -349,6 +349,13 @@ export default function QualityLoopAugmentation({
                     >
                       Apply → main
                     </Button>
+                    <Button
+                      size="sm" variant="outline"
+                      onClick={() => rejectDeliberation(d)}
+                      className="h-7 text-xs border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      Reject
+                    </Button>
                   </div>
                 </div>
               </div>
