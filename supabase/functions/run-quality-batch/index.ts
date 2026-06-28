@@ -1094,17 +1094,23 @@ async function runBatch(runId: string): Promise<void> {
       const holdoutFailed   = holdoutFindings.filter(f => !f.passed).length;
       const holdoutFailRate = holdoutFindings.length ? holdoutFailed / holdoutFindings.length : 0;
 
-      const gptOnlyCount  = findings.filter(f => f.cross_category === "gpt_only").length;
-      const conflictCount = findings.filter(f => f.cross_category === "conflict").length;
-      const agreeCount    = findings.filter(f => f.cross_category === "agree").length;
+      // F5: aggregation. "deterministic" if any deterministic failure (code-verified, trusted).
+      // "agree" only if BOTH evaluators failed in >50% of applicable docs (not a single-doc override).
+      // Otherwise pick the dominant disagreement category.
+      const docCount        = findings.length;
+      const deterministicHits = findings.filter(f => f.cross_category === "deterministic").length;
+      const agreeFailDocs   = findings.filter(f => f.cross_category === "agree").length;
+      const gptOnlyCount    = findings.filter(f => f.cross_category === "gpt_only").length;
+      const claudeOnlyCount = findings.filter(f => f.cross_category === "claude_only").length;
       let crossCategory: string | null = null;
-      if (gptOnlyCount > 0)          crossCategory = "gpt_only";
-      else if (conflictCount > 0)    crossCategory = "conflict";
-      else if (agreeCount > 0)       crossCategory = "agree";
-      else if (findings.some(f => !f.passed)) crossCategory = "claude_only";
+      if (deterministicHits > 0)                         crossCategory = "deterministic";
+      else if (docCount > 0 && agreeFailDocs > docCount / 2) crossCategory = "agree";
+      else if (claudeOnlyCount >= gptOnlyCount && claudeOnlyCount > 0) crossCategory = "claude_only";
+      else if (gptOnlyCount > 0)                         crossCategory = "gpt_only";
+      else if (findings.some(f => !f.passed))            crossCategory = "claude_only";
 
       const gptEvidence    = findings.filter(f => f.cross_evidence_gpt).map(f => f.cross_evidence_gpt).slice(0, 3);
-      const rubricAddition = findings.filter(f => f.rubric_addition).map(f => f.rubric_addition)[0] ?? null;
+      const rubricAddition = null; // F6: rubric_addition removed
       const sev = String(first?.severity ?? "").toLowerCase();
       const severityRank = sev === "critical" ? 3 : sev === "high" ? 2 : sev === "medium" ? 1 : 0;
 
