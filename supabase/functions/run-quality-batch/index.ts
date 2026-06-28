@@ -227,6 +227,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "notice_gaps_when_inscope", dimension: "accuracy", severity: "high",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       const triggers = report?.scope_analysis?.triggers_significant_decision;
       if (triggers !== true && triggers !== "true") return { passed: true };
