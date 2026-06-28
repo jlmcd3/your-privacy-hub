@@ -290,7 +290,24 @@ async function deliberateRun(runId: string, offset: number) {
 
   for (const chk of slice) {
     try {
-      const result = await deliberateOne(chk);
+      // PHASE 3 / C2 — fetch the most recent validate-fix A/B record for this candidate.
+      const { data: abRow } = await admin
+        .from("quality_validate_fix_runs")
+        .select("status, delta, per_intake")
+        .eq("run_id", chk.run_id)
+        .eq("check_id", chk.check_id)
+        .order("completed_at", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      const abEvidence = abRow
+        ? {
+            delta: Number(abRow.delta ?? 0),
+            regressions: Array.isArray((abRow.per_intake as any)?.regressions)
+              ? (abRow.per_intake as any).regressions.length
+              : 0,
+          }
+        : null;
+      const result = await deliberateOne(chk, abEvidence);
       await admin.from("quality_fix_deliberations").upsert({
         run_id: chk.run_id,
         tool: chk.tool,
