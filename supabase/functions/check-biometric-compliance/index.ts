@@ -101,6 +101,9 @@ interface Body {
   // (service-role / x-internal-resume bearer) AND this is provided, it FULLY replaces
   // the composed system prompt for this single invocation. Never honored for user calls.
   system_prompt_override?: string;
+  // Internal-only: when true (service-role) skip DB persistence + downstream side-effects.
+  // Used by improve-prompt A/B evaluation so candidate runs don't pollute biometric_assessments.
+  dry_run?: boolean;
 }
 
 const supabase = createClient(
@@ -1106,6 +1109,8 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
 
 
     let savedId: string | null = null;
+    const isDryRun = caller.internal && body.dry_run === true;
+    if (!isDryRun) {
     try {
       if (body.assessment_id) {
         const { data, error } = await supabase
@@ -1145,16 +1150,17 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     } catch (persistErr) {
       console.error("biometric_assessments persist failed:", persistErr);
     }
+    }
 
     await finishFunctionRun(supabase, fnRun, {
-      status: savedId ? "success" : "partial",
+      status: isDryRun ? "success" : (savedId ? "success" : "partial"),
       sourceTable: "biometric_assessments",
       sourceRowId: savedId,
     });
     finished = true;
 
     // C4 RoPA accumulator: biometric processing is always RoPA-relevant & high-risk
-    if (savedId && body.client_id) {
+    if (!isDryRun && savedId && body.client_id) {
       const useCase = (body as any).use_case || (body as any).biometric_use_case || "Biometric processing";
       supabase.functions.invoke("accumulate-ropa-activity", {
         body: {
