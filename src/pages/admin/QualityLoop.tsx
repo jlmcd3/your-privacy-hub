@@ -362,7 +362,7 @@ export default function QualityLoop() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[#0c2a44]">Quality Refinement Loop</h1>
           <p className="text-gray-500 mt-1 text-sm">
-            Run tests → review findings → select fixes → push to main → run again to measure improvement.
+            Run tests → review findings → select fixes → stage to quality-auto → run again to measure improvement.
             GPT-4o reviews the same documents independently; Claude cross-reviews both evaluations.
           </p>
         </div>
@@ -499,16 +499,17 @@ export default function QualityLoop() {
                   <Button onClick={applyFixes} disabled={applying}
                     className="bg-[#2d9b90] hover:bg-[#237a70] text-white h-8 text-sm">
                     {applying
-                      ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Pushing to main…</>
-                      : `Apply ${selectedFixes.size} fix${selectedFixes.size > 1 ? "es" : ""} → push to main`}
+                      ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Staging to quality-auto…</>
+                      : `Apply ${selectedFixes.size} fix${selectedFixes.size > 1 ? "es" : ""} → stage to quality-auto`}
                   </Button>
                 )}
                 {selectedFixes.size === 0 && failingChecks.some(c => !!c.proposed_fix && c.cross_review_category !== "conflict") && (
                   <Button onClick={applyAllFixes} disabled={applying}
                     className="bg-[#0c2a44] hover:bg-[#1a3a5c] text-white h-8 text-sm">
                     {applying
-                      ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Pushing to main…</>
-                      : `Apply all fixes → push to main`}
+                      ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Staging to quality-auto…</>
+                      : `Apply all fixes → stage to quality-auto`}
+
                   </Button>
                 )}
               </div>

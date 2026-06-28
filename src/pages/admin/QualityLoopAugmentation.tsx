@@ -281,18 +281,31 @@ export default function QualityLoopAugmentation({
             const needsOverride = d.verdict === "human_review" || d.verdict === "reject";
             const overrideTicked = override.has(d.id);
             const canManualApply = !isApplied && (d.verdict === "auto_eligible" || overrideTicked);
+            const disagreements = Array.isArray(d.disagreements) ? d.disagreements : [];
+            const crossReviewDisagreed = disagreements.some(
+              (x: any) => x?.source === "cross_review",
+            );
+            const reviewersAgree = !crossReviewDisagreed;
+            const teamApprovals: Array<[string, any]> = [
+              ["T1", d.team1_position],
+              ["T2", d.team2_position],
+              ["T3", d.team3_position],
+              ["T4", d.team4_position],
+            ];
+            const verdictLabel =
+              d.verdict === "auto_eligible" ? "Passes all viewpoints"
+              : d.verdict === "human_review" ? "Human review"
+              : d.verdict === "reject" ? "Reject"
+              : "Pending";
             return (
               <div key={d.id} className="border border-gray-200 rounded-lg p-3 bg-white">
+                {/* (1) Verdict-first header */}
                 <div className="flex items-center gap-2 flex-wrap mb-2">
+                  <span className={`text-[11px] px-2 py-0.5 rounded border font-semibold ${verdictBadge[d.verdict] ?? verdictBadge.pending}`}>
+                    {verdictLabel}
+                  </span>
                   <span className="font-mono text-xs font-semibold text-gray-700">{d.check_id}</span>
                   <span className="text-xs text-gray-400">{d.dimension} · {d.severity}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded border font-semibold ${verdictBadge[d.verdict] ?? verdictBadge.pending}`}>
-                    {d.verdict.replace("_", " ")}
-                  </span>
-                  {d.team3_approve && <span className="text-[10px] text-emerald-700 font-semibold">T3 ✓</span>}
-                  {d.team4_approve && <span className="text-[10px] text-emerald-700 font-semibold">T4 ✓</span>}
-                  {d.devils_advocate?.agree && <span className="text-[10px] text-emerald-700 font-semibold">DA ✓</span>}
-                  {!d.devils_advocate?.agree && <span className="text-[10px] text-red-700 font-semibold">DA ✗</span>}
                   {isApplied && (
                     <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
                       applied
@@ -300,32 +313,52 @@ export default function QualityLoopAugmentation({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-1.5 mb-2">
-                  <TeamCell label="T1 minimal"   t={d.team1_position} />
-                  <TeamCell label="T2 registry"  t={d.team2_position} />
-                  <TeamCell label="T3 legal"     t={d.team3_position} />
-                  <TeamCell label="T4 root-cause" t={d.team4_position} />
+                {/* Four-team approve flags + cross-review status */}
+                <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                  {teamApprovals.map(([label, t]) => {
+                    const ok = !!t?.approve;
+                    return (
+                      <span key={label}
+                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
+                          ok
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : "bg-red-50 text-red-700 border-red-200"
+                        }`}>
+                        {label} {ok ? "✓" : "✗"}
+                      </span>
+                    );
+                  })}
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
+                    reviewersAgree
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-red-50 text-red-700 border-red-200"
+                  }`}>
+                    Claude+GPT {reviewersAgree ? "agree ✓" : "disagree ✗"}
+                  </span>
                 </div>
 
-                {d.devils_advocate && (
-                  <div className={`text-[11px] rounded px-2 py-1 mb-2 border
-                    ${d.devils_advocate.agree
-                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                      : "bg-red-50 text-red-800 border-red-200"}`}>
-                    <span className="font-semibold">GPT-4o devil's-advocate:</span>{" "}
-                    {d.devils_advocate.agree ? "agrees with consensus." : (d.devils_advocate.objection || "objects.")}
-                  </div>
-                )}
-
-                {Array.isArray(d.disagreements) && d.disagreements.length > 0 && (
+                {disagreements.length > 0 && (
                   <div className="text-[11px] bg-amber-50 border border-amber-200 rounded px-2 py-1 mb-2">
-                    <span className="font-semibold text-amber-900">Disagreements ({d.disagreements.length}):</span>{" "}
+                    <span className="font-semibold text-amber-900">Disagreements ({disagreements.length}):</span>{" "}
                     <span className="text-amber-800">
-                      {d.disagreements.slice(0, 3).map((x: any) => x.team ?? "?").join(", ")}
-                      {d.disagreements.length > 3 ? "…" : ""}
+                      {disagreements.slice(0, 3).map((x: any) => x.team ?? x.source ?? "?").join(", ")}
+                      {disagreements.length > 3 ? "…" : ""}
                     </span>
                   </div>
                 )}
+
+                {/* (2) Collapsible reviewer detail */}
+                <details className="mb-2">
+                  <summary className="cursor-pointer text-[11px] font-semibold text-gray-600 hover:text-gray-800">
+                    Reviewer detail (Claude + GPT cross-review)
+                  </summary>
+                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-1.5">
+                    <TeamCell label="T1 minimal"    t={d.team1_position} />
+                    <TeamCell label="T2 registry"   t={d.team2_position} />
+                    <TeamCell label="T3 legal"      t={d.team3_position} />
+                    <TeamCell label="T4 root-cause" t={d.team4_position} />
+                  </div>
+                </details>
 
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-[11px] text-gray-500 truncate">
@@ -350,7 +383,7 @@ export default function QualityLoopAugmentation({
                       onClick={() => manualApply(d)}
                       className="h-7 text-xs"
                     >
-                      Apply → main
+                      Stage to quality-auto
                     </Button>
                     <Button
                       size="sm" variant="outline"
@@ -363,6 +396,7 @@ export default function QualityLoopAugmentation({
                 </div>
               </div>
             );
+
           })}
         </div>
       )}
