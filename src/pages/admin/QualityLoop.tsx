@@ -431,6 +431,7 @@ export default function QualityLoop() {
             and iterates to ≥98%. Both stage edits to <code className="font-mono">quality-auto</code> for human merge.
           </p>
         </div>
+        <SmokeBatchPanel />
         <div className="space-y-3">
           {TOOLS.map(t => <ToolRow key={t.id} tool={t} />)}
         </div>
