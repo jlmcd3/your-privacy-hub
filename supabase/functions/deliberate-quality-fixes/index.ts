@@ -22,6 +22,7 @@ const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY    = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY       = Deno.env.get("SUPABASE_ANON_KEY")!;
 const ANTHROPIC_KEY  = Deno.env.get("ANTHROPIC_API_KEY")!;
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
 
 
 const cors = {
@@ -53,26 +54,54 @@ async function claude(system: string, user: string, model = "claude-haiku-4-5-20
   return d.content?.[0]?.text ?? "";
 }
 
+async function openai(system: string, user: string, model = "gpt-4o", maxTokens = 1500): Promise<string> {
+  if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not set");
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model, max_tokens: maxTokens, temperature: 0,
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+    signal: AbortSignal.timeout(60_000),
+  });
+  if (!r.ok) throw new Error(`OpenAI ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content ?? "";
+}
 
+
+// PHASE 3 / C1 — diverse models per team. T1/T2 stay on Haiku (cheap minimalist
+// curation), T3 (Legal) uses Claude Sonnet and MUST name the verified subsection
+// or decline with stance="unverifiable", T4 (Root-cause) uses GPT-4o for model diversity.
 type TeamKey = "team1" | "team2" | "team3" | "team4";
-const TEAMS: { key: TeamKey; system: string }[] = [
+type Provider = "claude" | "openai";
+const TEAMS: { key: TeamKey; provider: Provider; model: string; system: string }[] = [
   {
     key: "team1",
+    provider: "claude",
+    model: "claude-haiku-4-5-20251001",
     system: `You are TEAM 1 (Prompt-Fixability Minimalist). Decide whether the proposed prompt patch is the MINIMAL change that would address the failing check. Return ONLY JSON:
 { "stance": "prompt" | "not_a_defect", "approve": boolean, "rationale": "1-2 sentences", "minimal_change": "a tighter alternative or null" }`,
   },
   {
     key: "team2",
+    provider: "claude",
+    model: "claude-haiku-4-5-20251001",
     system: `You are TEAM 2 (Prose-vs-Registry Curator). Decide whether the fix belongs in the AI system prompt (prose) or in a deterministic registry/data file (registry). If "registry", set approve=false and explain. Return ONLY JSON:
 { "stance": "prompt" | "registry", "approve": boolean, "rationale": "1-2 sentences" }`,
   },
   {
     key: "team3",
-    system: `You are TEAM 3 (Legal Correctness Reviewer). Verify the proposed fix is correct at the cited subsection/paragraph level. Reject if it creates a legal conflict, mis-cites a section, or contradicts statutory text. Return ONLY JSON:
-{ "stance": "prompt" | "legal_conflict" | "not_a_defect", "approve": boolean, "rationale": "1-2 sentences" }`,
+    provider: "claude",
+    model: "claude-sonnet-4-5-20250929",
+    system: `You are TEAM 3 (Legal Correctness Reviewer). Verify the proposed fix is correct at the cited subsection/paragraph level. You MUST name the exact statute and subsection you verified against in "verified_against" (e.g. "740 ILCS 14/15(b)"). If you cannot verify the cited text from training — do NOT guess. Instead set stance="unverifiable", approve=false, and explain what primary-source check is needed. Reject if the fix creates a legal conflict, mis-cites a section, or contradicts statutory text. Return ONLY JSON:
+{ "stance": "prompt" | "legal_conflict" | "unverifiable" | "not_a_defect", "approve": boolean, "verified_against": "statute + subsection or empty string", "rationale": "1-2 sentences" }`,
   },
   {
     key: "team4",
+    provider: "openai",
+    model: "gpt-4o",
     system: `You are TEAM 4 (Root-Cause Auditor). Decide whether the root cause is genuinely a prompt defect, OR something a prompt patch CANNOT fix (deploy lag, RLS, schema drift, runtime/parse failure, missing trigger). Approve ONLY if the root cause is a prompt defect. Return ONLY JSON:
 { "stance": "prompt" | "systems" | "not_a_defect", "approve": boolean, "rationale": "1-2 sentences" }`,
   },
@@ -92,11 +121,13 @@ function userBlock(check: any): string {
   ].join("\n");
 }
 
-async function deliberateOne(check: any) {
+async function deliberateOne(check: any, abEvidence: { delta: number; regressions: number } | null) {
   const user = userBlock(check);
   const settled = await Promise.all(TEAMS.map(async (t) => {
     try {
-      const raw = await claude(t.system, user);
+      const raw = t.provider === "openai"
+        ? await openai(t.system, user, t.model)
+        : await claude(t.system, user, t.model);
       const parsed = tryParse(raw) ?? { stance: "not_a_defect", approve: false, rationale: "parse_failed" };
       return [t.key, parsed] as const;
     } catch (e) {
@@ -108,24 +139,23 @@ async function deliberateOne(check: any) {
   const teamsApproveAll =
     !!teams.team1?.approve && !!teams.team2?.approve &&
     !!teams.team3?.approve && !!teams.team4?.approve;
-  // F5: "deterministic" (code-verified) and "agree" (both Claude + GPT failed on the same
-  // fixed-id check across the majority of docs) both qualify as reviewer concurrence.
-  // "deterministic" is the strongest signal — both code-verified and certain.
   const cat = String(check.cross_review_category ?? "").toLowerCase();
   const reviewersAgree = cat === "agree" || cat === "deterministic";
   const allNotDefect = TEAMS.every(
     (t) => teams[t.key]?.stance === "not_a_defect" && !teams[t.key]?.approve,
   );
 
-  // P-C: subjective dimensions (analysis, intelligence, formatting) are where bad rules sneak in
-  // (the British-spelling case). Restrict auto-eligibility to verifiable defects so subjective
-  // fixes always pass through human review even when every viewpoint agrees.
   const OBJECTIVE_DIMENSIONS = new Set(["accuracy", "citation", "hallucination"]);
   const dimensionIsObjective = OBJECTIVE_DIMENSIONS.has(String(check.dimension ?? "").toLowerCase());
 
+  // PHASE 3 / C2 — auto-eligibility additionally requires causal A/B evidence:
+  // a `validate-fix` run whose delta>0 and zero regressions. Unvalidated fixes
+  // never become auto_eligible, even with unanimity.
+  const abValidated = !!abEvidence && abEvidence.delta > 0 && abEvidence.regressions === 0;
+
   const verdict =
     allNotDefect ? "reject" :
-    (reviewersAgree && teamsApproveAll && dimensionIsObjective) ? "auto_eligible" : "human_review";
+    (reviewersAgree && teamsApproveAll && dimensionIsObjective && abValidated) ? "auto_eligible" : "human_review";
 
   const disagreements: any[] = [];
   for (const t of TEAMS) {
@@ -145,6 +175,14 @@ async function deliberateOne(check: any) {
       reason: `Dimension "${check.dimension}" is subjective — auto-apply restricted to accuracy/citation/hallucination; routed to human review.`,
     });
   }
+  if (!abValidated && !allNotDefect) {
+    disagreements.push({
+      source: "ab_validation_gate",
+      reason: abEvidence
+        ? `A/B record present but delta=${abEvidence.delta}, regressions=${abEvidence.regressions} — not validated.`
+        : "No validate-fix A/B record for this candidate — auto-apply requires causal evidence.",
+    });
+  }
 
   return {
     team1_position: teams.team1,
@@ -159,6 +197,7 @@ async function deliberateOne(check: any) {
     disagreements,
     recommended_change: teams.team1?.minimal_change ?? check.proposed_fix,
     change_location: check.fix_location,
+    ab_evidence: abEvidence,
   };
 }
 
@@ -251,7 +290,24 @@ async function deliberateRun(runId: string, offset: number) {
 
   for (const chk of slice) {
     try {
-      const result = await deliberateOne(chk);
+      // PHASE 3 / C2 — fetch the most recent validate-fix A/B record for this candidate.
+      const { data: abRow } = await admin
+        .from("quality_validate_fix_runs")
+        .select("status, delta, per_intake")
+        .eq("run_id", chk.run_id)
+        .eq("check_id", chk.check_id)
+        .order("completed_at", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      const abEvidence = abRow
+        ? {
+            delta: Number(abRow.delta ?? 0),
+            regressions: Array.isArray((abRow.per_intake as any)?.regressions)
+              ? (abRow.per_intake as any).regressions.length
+              : 0,
+          }
+        : null;
+      const result = await deliberateOne(chk, abEvidence);
       await admin.from("quality_fix_deliberations").upsert({
         run_id: chk.run_id,
         tool: chk.tool,
