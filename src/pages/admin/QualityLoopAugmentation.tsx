@@ -160,6 +160,21 @@ export default function QualityLoopAugmentation({
     }
   };
 
+  const rejectDeliberation = async (delib: Deliberation) => {
+    if (!confirm(`Reject and delete deliberation for ${delib.check_id}?`)) return;
+    try {
+      const { error } = await supabase
+        .from("quality_fix_deliberations")
+        .delete()
+        .eq("id", delib.id);
+      if (error) throw error;
+      setDeliberations((prev) => prev.filter((x) => x.id !== delib.id));
+      toast.success(`Rejected ${delib.check_id}.`);
+    } catch (e: any) {
+      toast.error(`Reject failed: ${e.message}`);
+    }
+  };
+
   if (!runId) return null;
 
   const counts = {
@@ -333,6 +348,13 @@ export default function QualityLoopAugmentation({
                       className="h-7 text-xs"
                     >
                       Apply → main
+                    </Button>
+                    <Button
+                      size="sm" variant="outline"
+                      onClick={() => rejectDeliberation(d)}
+                      className="h-7 text-xs border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      Reject
                     </Button>
                   </div>
                 </div>
