@@ -362,144 +362,114 @@ export default function QualityLoopAugmentation({
               </div>
             )}
             {consensus.map((d) => {
-
-      {deliberations.length > 0 && (
-        <div className="space-y-2">
-          {deliberations.map((d) => {
-            const isApplied = d.auto_applied || d.status === "applied" || d.status === "auto_applied";
-            const needsOverride = d.verdict === "human_review" || d.verdict === "reject";
-            const overrideTicked = override.has(d.id);
-            const canManualApply = !isApplied && (d.verdict === "auto_eligible" || overrideTicked);
-            const disagreements = Array.isArray(d.disagreements) ? d.disagreements : [];
-            const crossReviewDisagreed = disagreements.some(
-              (x: any) => x?.source === "cross_review",
-            );
-            const reviewersAgree = !crossReviewDisagreed;
-            const teamApprovals: Array<[string, any]> = [
-              ["T1", d.team1_position],
-              ["T2", d.team2_position],
-              ["T3", d.team3_position],
-              ["T4", d.team4_position],
-            ];
-            const verdictLabel =
-              d.verdict === "auto_eligible" ? "Passes all viewpoints"
-              : d.verdict === "human_review" ? "Human review"
-              : d.verdict === "reject" ? "Reject"
-              : "Pending";
-            return (
-              <div key={d.id} className="border border-gray-200 rounded-lg p-3 bg-white">
-                {/* (1) Verdict-first header */}
-                <div className="flex items-center gap-2 flex-wrap mb-2">
-                  <span className={`text-[11px] px-2 py-0.5 rounded border font-semibold ${verdictBadge[d.verdict] ?? verdictBadge.pending}`}>
-                    {verdictLabel}
-                  </span>
-                  <span className="font-mono text-xs font-semibold text-gray-700">{d.check_id}</span>
-                  <span className="text-xs text-gray-400">{d.dimension} · {d.severity}</span>
-                  {isApplied && (
-                    <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
-                      applied
+              const isApplied = d.auto_applied || d.status === "applied" || d.status === "auto_applied";
+              const overrideTicked = override.has(d.id);
+              const canManualApply = !isApplied;
+              const disagreements = Array.isArray(d.disagreements) ? d.disagreements : [];
+              return (
+                <div key={d.id} className="border border-emerald-200 rounded-lg p-3 bg-emerald-50/30">
+                  <div className="flex items-center gap-2 flex-wrap mb-2">
+                    <span className="text-[11px] px-2 py-0.5 rounded border font-semibold bg-emerald-50 text-emerald-700 border-emerald-200">
+                      Everyone agrees — fix this
                     </span>
-                  )}
-                </div>
-
-                {/* Four-team approve flags + cross-review status */}
-                <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                  {teamApprovals.map(([label, t]) => {
-                    const ok = !!t?.approve;
-                    return (
-                      <span key={label}
-                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
-                          ok
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : "bg-red-50 text-red-700 border-red-200"
-                        }`}>
-                        {label} {ok ? "✓" : "✗"}
+                    <span className="font-mono text-xs font-semibold text-gray-700">{d.check_id}</span>
+                    <span className="text-xs text-gray-400">{d.dimension} · {d.severity}</span>
+                    {isApplied && (
+                      <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
+                        applied
                       </span>
-                    );
-                  })}
-                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
-                    reviewersAgree
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-red-50 text-red-700 border-red-200"
-                  }`}>
-                    Claude+GPT {reviewersAgree ? "agree ✓" : "disagree ✗"}
-                  </span>
-                </div>
-
-                {disagreements.length > 0 && (
-                  <div className="text-[11px] bg-amber-50 border border-amber-200 rounded px-2 py-1 mb-2">
-                    <span className="font-semibold text-amber-900">Disagreements ({disagreements.length}):</span>{" "}
-                    <span className="text-amber-800">
-                      {disagreements.slice(0, 3).map((x: any) => x.team ?? x.source ?? "?").join(", ")}
-                      {disagreements.length > 3 ? "…" : ""}
-                    </span>
-                  </div>
-                )}
-
-                {/* (2) Collapsible reviewer detail */}
-                <details className="mb-2">
-                  <summary className="cursor-pointer text-[11px] font-semibold text-gray-600 hover:text-gray-800">
-                    Reviewer detail (Claude + GPT cross-review)
-                  </summary>
-                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-1.5">
-                    <TeamCell label="T1 minimal"    t={d.team1_position} />
-                    <TeamCell label="T2 registry"   t={d.team2_position} />
-                    <TeamCell label="T3 legal"      t={d.team3_position} />
-                    <TeamCell label="T4 root-cause" t={d.team4_position} />
-                  </div>
-                </details>
-
-                <div className="flex items-center justify-between gap-2">
-                  <div className="text-[11px] text-gray-500 truncate">
-                    {d.change_location ?? "(no location)"}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {needsOverride && !isApplied && (
-                      <label className="flex items-center gap-1 text-[11px] text-amber-800">
-                        <input type="checkbox" className="w-3.5 h-3.5"
-                          checked={overrideTicked}
-                          onChange={(e) => {
-                            const next = new Set(override);
-                            e.target.checked ? next.add(d.id) : next.delete(d.id);
-                            setOverride(next);
-                          }} />
-                        override
-                      </label>
                     )}
-                    {tool === "biometric-checker" && !isApplied && d.recommended_change && (
+                  </div>
+
+                  {d.recommended_change && (
+                    <div className="text-[12px] text-gray-700 mb-2 line-clamp-3">
+                      {d.recommended_change}
+                    </div>
+                  )}
+
+                  <details className="mb-2">
+                    <summary className="cursor-pointer text-[11px] font-semibold text-gray-600 hover:text-gray-800">
+                      Reviewer detail (Claude + GPT cross-review)
+                    </summary>
+                    <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-1.5">
+                      <TeamCell label="T1 minimal"    t={d.team1_position} />
+                      <TeamCell label="T2 registry"   t={d.team2_position} />
+                      <TeamCell label="T3 legal"      t={d.team3_position} />
+                      <TeamCell label="T4 root-cause" t={d.team4_position} />
+                    </div>
+                    {disagreements.length > 0 && (
+                      <div className="mt-2 text-[11px] text-amber-800">
+                        Disagreements logged: {disagreements.length}
+                      </div>
+                    )}
+                  </details>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-[11px] text-gray-500 truncate">
+                      {d.change_location ?? "(no location)"}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {tool === "biometric-checker" && !isApplied && d.recommended_change && (
+                        <Button
+                          size="sm" variant="outline"
+                          disabled={validating.has(d.id)}
+                          onClick={() => runValidateFix(d)}
+                          className="h-7 text-xs border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                          title="Run held-out A/B (baseline vs candidate prompt) on fresh biometric intakes."
+                        >
+                          {validating.has(d.id) ? "Validating…" : "Validate on holdout"}
+                        </Button>
+                      )}
                       <Button
                         size="sm" variant="outline"
-                        disabled={validating.has(d.id)}
-                        onClick={() => runValidateFix(d)}
-                        className="h-7 text-xs border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-                        title="Run held-out A/B (baseline vs candidate prompt) on fresh biometric intakes."
+                        disabled={!canManualApply}
+                        onClick={() => manualApply(d)}
+                        className="h-7 text-xs"
                       >
-                        {validating.has(d.id) ? "Validating…" : "Validate on holdout"}
+                        Stage to quality-auto
                       </Button>
-                    )}
-                    <Button
-                      size="sm" variant="outline"
-                      disabled={!canManualApply}
-                      onClick={() => manualApply(d)}
-                      className="h-7 text-xs"
-                    >
-                      Stage to quality-auto
-                    </Button>
-                    <Button
-                      size="sm" variant="outline"
-                      onClick={() => rejectDeliberation(d)}
-                      className="h-7 text-xs border-red-300 text-red-700 hover:bg-red-50"
-                    >
-                      Reject
-                    </Button>
+                      <Button
+                        size="sm" variant="outline"
+                        onClick={() => rejectDeliberation(d)}
+                        className="h-7 text-xs border-red-300 text-red-700 hover:bg-red-50"
+                      >
+                        Reject
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
+              );
+            })}
 
-          })}
-        </div>
-      )}
+            {nonConsensus.length > 0 && (
+              <details className="border border-gray-200 rounded-lg bg-slate-50">
+                <summary className="cursor-pointer px-3 py-2 text-xs text-gray-600">
+                  {heldCount} held for human review · {rejectCount} rejected{pendingCount > 0 ? ` · ${pendingCount} pending` : ""}
+                </summary>
+                <div className="px-3 py-2 space-y-1 text-[11px] text-gray-600">
+                  {nonConsensus.map((d) => (
+                    <div key={d.id} className="flex items-center justify-between gap-2 border-t border-gray-200 pt-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded border font-semibold ${verdictBadge[d.verdict] ?? verdictBadge.pending}`}>
+                          {d.verdict}
+                        </span>
+                        <span className="font-mono truncate">{d.check_id}</span>
+                        <span className="text-gray-400 truncate">{d.dimension}</span>
+                      </div>
+                      <button
+                        onClick={() => rejectDeliberation(d)}
+                        className="text-[10px] text-red-700 hover:underline shrink-0"
+                      >
+                        reject
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
