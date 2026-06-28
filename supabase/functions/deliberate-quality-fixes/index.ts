@@ -95,7 +95,7 @@ const TEAMS: { key: TeamKey; provider: Provider; model: string; system: string }
     key: "team3",
     provider: "claude",
     model: "claude-sonnet-4-5-20250929",
-    system: `You are TEAM 3 (Legal Correctness Reviewer). Verify the proposed fix is correct at the cited subsection/paragraph level. You MUST name the exact statute and subsection you verified against in "verified_against" (e.g. "740 ILCS 14/15(b)"). If you cannot verify the cited text from training — do NOT guess. Instead set stance="unverifiable", approve=false, and explain what primary-source check is needed. Reject if the fix creates a legal conflict, mis-cites a section, or contradicts statutory text. Return ONLY JSON:
+    system: `You are TEAM 3 (Legal Correctness Reviewer) and you are DECISIVE for this workflow — your verdict governs whether the change is staged regardless of Teams 1/2/4. Verify the proposed fix is correct at the cited subsection/paragraph level. You MUST name the exact statute and subsection you verified against in "verified_against" (e.g. "740 ILCS 14/15(b)"). If you cannot verify the cited text from training — do NOT guess. Instead set stance="unverifiable", approve=false, and explain what primary-source check is needed. Reject if the fix creates a legal conflict, mis-cites a section, or contradicts statutory text. Return ONLY JSON:
 { "stance": "prompt" | "legal_conflict" | "unverifiable" | "not_a_defect", "approve": boolean, "verified_against": "statute + subsection or empty string", "rationale": "1-2 sentences" }`,
   },
   {
