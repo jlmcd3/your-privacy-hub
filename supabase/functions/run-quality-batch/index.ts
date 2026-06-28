@@ -440,6 +440,33 @@ function categorizePerDoc(claudeFail: boolean, gptFail: boolean): string {
   return "agree_pass";
 }
 
+// Per-tool intake validators. Mirrors the tool's own resolver semantics so the
+// quality loop never scores garbage. If validation fails twice for an item, it's
+// dropped; if >30% of intakes fail across a run, the caller aborts.
+const BIOMETRIC_JURISDICTION_SUBSTRINGS = [
+  "illinois","bipa","texas","cubi","washington","california","ccpa","cpra",
+  "virginia","eu","eea","gdpr","united kingdom","uk gdpr","france","cnil",
+  "ireland","dpc","germany","spain",
+];
+type IntakeValidator = (intake: any) => { ok: boolean; reason?: string };
+const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {
+  "biometric-checker": (intake: any) => {
+    const j = intake?.jurisdictions;
+    if (!Array.isArray(j) || j.length === 0) return { ok: false, reason: "jurisdictions[] missing or empty" };
+    for (const entry of j) {
+      const s = String(entry ?? "").toLowerCase();
+      if (!BIOMETRIC_JURISDICTION_SUBSTRINGS.some(sub => s.includes(sub))) {
+        return { ok: false, reason: `jurisdiction "${entry}" unresolvable (use selection labels like "Illinois, USA (BIPA)", not bare codes)` };
+      }
+    }
+    return { ok: true };
+  },
+};
+function validateIntake(tool: string, intake: any): { ok: boolean; reason?: string } {
+  const v = INTAKE_VALIDATORS[tool];
+  return v ? v(intake) : { ok: true };
+}
+
 async function generateIntakes(tool: string, count: number): Promise<any[]> {
   const toolDescriptions: Record<string, string> = {
     "cppa-admt": `CPPA ADMT compliance assessment. Required fields: system_name, system_type, system_description, decision_domains (array — use: employment, financial_services, healthcare, advertising, entertainment_personalization, service_eligibility), human_review, training_data_use, profiling_use, notice_delivery (array), notice_has_specific_purpose, notice_purpose_text, notice_has_opt_out_desc, notice_has_access_desc, notice_has_anti_retaliation, notice_has_how_it_works, notice_has_alternative_process, opt_out_exception, opt_out_methods (array), opt_out_link_title, opt_out_no_cookie_banner, opt_out_no_account_required, opt_out_confirmation_mechanism, opt_out_appeal_process, opt_out_fairness_doc, opt_out_15_day_process, access_submission_methods, access_verification_process, access_logic_disclosure, access_outcome_disclosure, access_response_timeline, access_trade_secret_policy, ca_consumer_count, prior_access_requests_12mo. Include a mix: 2 advertising/adtech (NOT significant decisions), 2 gaming (NOT significant decisions), 2 HR/employment (significant decisions), 2 fintech credit scoring (significant decisions), 1 healthcare AI (significant decision), 1 recommendation engine (NOT significant decision).`,
@@ -464,7 +491,7 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
     "governance": `Governance Assessment. Same fields as CPPA risk assessment.`,
     "dpa-generator": `Data Processing Agreement (DPA) generator. Required camelCase fields exactly: controllerName (string), controllerJurisdiction (e.g. "UK","DE","US-CA","EU"), processorName (string), processorJurisdiction (string), services (one-line description of the processing services), dataCategories (array of strings, e.g. ["name","email","IP address","behavioral data"]), dataSubjectCount (string range like "1000-10000"), retention (string like "3 years"), hasSubProcessors (boolean), subProcessorList (string, only if hasSubProcessors is true), legalFramework (one of "GDPR","UK GDPR","CCPA","PIPEDA","Dual EU/US"), auditRights (string description), includeTransferClause (boolean), transferMechanism (string — "Standard Contractual Clauses","Adequacy decision","Binding Corporate Rules", or "N/A"), documentType (one of "gdpr","us-state","canada","dual-eu-us","dual-eu-ca"). Vary sectors (AdTech, Healthcare, FinTech, HR) and jurisdictions; include some intra-EU and some cross-border transfers.`,
     "ir-playbook": `Incident Response Playbook generator. Required camelCase fields exactly: organizationName (string), discoveryDateTime (ISO date-time within the last 7 days), cause (e.g. "Ransomware attack","Phishing-led credential theft","Misconfigured S3 bucket","Insider exfiltration","Third-party vendor breach"), dataTypes (array, e.g. ["PII","health information","financial records","credentials"]), affectedCount (string range like "1000-10000"), jurisdictions (array of ISO codes like ["US-CA","US-TX","UK","EU"]), processorInvolved (boolean), processorName (string, only if processorInvolved), contained (one of "Yes","Partially","No","Under investigation"), organisationType (sector string). Vary sectors (Healthcare, Retail, FinTech, EdTech) and severity.`,
-    "biometric-checker": `Biometric compliance checker. Required camelCase fields exactly: orgName (string), orgType (sector string), biometricTypes (array — e.g. ["facial geometry"],["fingerprint","hand geometry"],["iris scan","fingerprint"]), purpose (string — e.g. "Loss prevention","Workforce time and attendance","Physical access control"), jurisdictions (array of US-state codes like ["US-IL"],["US-TX"],["US-WA"]), enrolledCount (string range like "500-5000"). Vary compliance posture: include some with no written policy, some without informed consent, some with third-party sharing, some with undefined retention.`,
+    "biometric-checker": `Biometric compliance checker. Required camelCase fields exactly: orgName (string), orgType (sector string), biometricTypes (array — e.g. ["facial geometry"],["fingerprint","hand geometry"],["iris scan","fingerprint"]), purpose (string — e.g. "Loss prevention","Workforce time and attendance","Physical access control"), jurisdictions (array — MUST use these exact selection labels and NEVER bare state codes: "Illinois, USA (BIPA)", "Texas, USA (CUBI)", "Washington, USA", "California, USA (CCPA)", "Virginia, USA", "EU (GDPR)", "United Kingdom (UK GDPR)". Vary across single-jurisdiction and multi-jurisdiction mixes — e.g. ["Illinois, USA (BIPA)"], ["Texas, USA (CUBI)","California, USA (CCPA)"], ["EU (GDPR)","United Kingdom (UK GDPR)"]), enrolledCount (string range like "500-5000"). Vary compliance posture: include some with no written policy, some without informed consent, some with third-party sharing, some with undefined retention.`,
 
     // B3: editorial / customer-facing Anthropic generators below — score against
     // the editorial rubric (accuracy + citation + no-adaptive-guidance; drop
@@ -509,6 +536,32 @@ Vary the scenarios: AdTech (multi-trigger, contested transient_use exception), H
     if (chunkIdx > 20) break; // safety
   }
   return out.slice(0, count);
+}
+
+// Validate a generated batch; for each failing intake, attempt ONE single-item
+// regeneration. Drop persistent failures. Returns final accepted intakes plus
+// rejection metadata so the caller can enforce the >30% failure guard.
+async function generateValidatedIntakes(tool: string, count: number): Promise<{ intakes: any[]; rejected: { reason: string }[]; totalAttempted: number }> {
+  const initial = await generateIntakes(tool, count);
+  const accepted: any[] = [];
+  const rejected: { reason: string }[] = [];
+
+  for (const item of initial) {
+    const r = validateIntake(tool, item);
+    if (r.ok) { accepted.push(item); continue; }
+    console.warn(`[validateIntake] ${tool}: ${r.reason} — regenerating once`);
+    try {
+      const retry = await generateIntakes(tool, 1);
+      const r2 = retry[0] ? validateIntake(tool, retry[0]) : { ok: false, reason: "regeneration returned no item" };
+      if (r2.ok) { accepted.push(retry[0]); continue; }
+      console.warn(`intake rejected (${tool}): ${r2.reason}`);
+      rejected.push({ reason: r2.reason ?? "unknown" });
+    } catch (e) {
+      console.warn(`intake rejected (${tool}): regenerate failed — ${(e as Error).message}`);
+      rejected.push({ reason: (e as Error).message });
+    }
+  }
+  return { intakes: accepted, rejected, totalAttempted: initial.length };
 }
 
 async function buildDocument(admin: Admin, tool: string, intake: any, userId: string): Promise<{ sourceTable: string; sourceRowId: string; reportData: any } | null> {
@@ -811,9 +864,26 @@ async function runBatch(runId: string): Promise<void> {
           : `OPENAI_API_KEY NOT detected — GPT-4o cross-review will be SKIPPED for every doc`);
       await upd({ status: "generating" });
       await log("info", `Generating ${batchSize} intake scenarios via Claude…`);
+      let intakeWarning: string | null = null;
       try {
-        intakes = await generateIntakes(tool, batchSize);
-        await log("success", `Generated ${intakes.length} intake scenarios`);
+        const gen = await generateValidatedIntakes(tool, batchSize);
+        intakes = gen.intakes;
+        if (gen.rejected.length > 0) {
+          await log("warn", `Intake validation: ${gen.rejected.length}/${gen.totalAttempted} rejected after retry (${tool}). Reasons: ${gen.rejected.slice(0, 3).map(r => r.reason).join(" | ")}`);
+        }
+        const failRate = gen.totalAttempted > 0 ? gen.rejected.length / gen.totalAttempted : 0;
+        if (failRate > 0.3) {
+          intakeWarning = `Intake spec doesn't match ${tool}'s expected input — fix the intake generator before trusting results. (${gen.rejected.length}/${gen.totalAttempted} intakes failed validation; aborting fix-generation.)`;
+          await log("error", intakeWarning);
+          await upd({
+            status: "error",
+            error: intakeWarning,
+            completed_at: new Date().toISOString(),
+          });
+          clearInterval(heartbeat);
+          return;
+        }
+        await log("success", `Generated ${intakes.length} intake scenarios (accepted) / ${gen.totalAttempted} attempted`);
       } catch (e) {
         await log("error", `Intake generation failed: ${(e as Error).message}`);
         await upd({ status: "error", error: `Intake generation failed: ${(e as Error).message}`, completed_at: new Date().toISOString() });
