@@ -1,10 +1,12 @@
 // QualityLoopAugmentation — B6 of Workstream B.
 // Embedded into /admin/quality-loop. Surfaces:
 //   1. "Run four-team deliberation" → invokes deliberate-quality-fixes
-//   2. Per-check deliberation panel (team stances + devil's-advocate + T3/T4 + verdict)
+//   2. Per-check deliberation panel (verdict + four team approve flags +
+//      Claude/GPT cross-review status, with collapsible reviewer detail)
 //   3. Per-tool auto-apply strip (runs_used/cap, enabled, target branch) with Halt
 //   4. "Auto-apply eligible → quality-auto" → invokes auto-apply-fixes
 //   5. "Promote quality-auto → main" → opens the GitHub compare/PR page
+
 
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
