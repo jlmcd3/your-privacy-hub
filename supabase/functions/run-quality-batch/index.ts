@@ -1165,12 +1165,10 @@ async function runBatch(runId: string): Promise<void> {
     }
 
     for (const a of aggregates) {
-      let proposedFix = a.rubricAddition ?? "";
-      let fixLocation = a.rubricAddition
-        ? "Evaluator rubric — add to CLAUDE_RUBRIC_SYSTEM in run-quality-batch/index.ts"
-        : "";
+      let proposedFix = "";
+      let fixLocation = "";
 
-      if (!proposedFix && fixResults.has(a.checkId)) {
+      if (fixResults.has(a.checkId)) {
         const fix = fixResults.get(a.checkId);
         proposedFix = fix?.fix ?? "";
         fixLocation = fix?.location ?? "";
@@ -1196,10 +1194,11 @@ async function runBatch(runId: string): Promise<void> {
         gpt_pass_count: gptPassed, gpt_fail_count: gptFailed, gpt_fail_rate: gptFailRate,
         gpt_sample_evidence: a.gptEvidence.length ? a.gptEvidence : null,
         cross_review_category: a.crossCategory,
-        cross_review_summary: a.rubricAddition
-          ? `GPT-only finding — Claude missed this. Proposed rubric addition: ${a.rubricAddition.slice(0, 120)}…`
-          : a.crossCategory === "agree" ? "Both evaluators agree on this finding."
-          : a.crossCategory === "conflict" ? "Evaluators disagree — requires manual legal review."
+        cross_review_summary:
+          a.crossCategory === "deterministic" ? "Code-verified failure (deterministic check) — ground truth."
+          : a.crossCategory === "agree"       ? "Both Claude and GPT failed this check in the majority of docs."
+          : a.crossCategory === "claude_only" ? "Claude flagged; GPT did not — possible Claude over-flagging or GPT blind spot."
+          : a.crossCategory === "gpt_only"    ? "GPT flagged; Claude did not — possible Claude blind spot."
           : null,
         proposed_fix: proposedFix || null,
         fix_location: fixLocation || null,
