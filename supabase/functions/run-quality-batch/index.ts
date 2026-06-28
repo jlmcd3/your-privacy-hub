@@ -864,9 +864,26 @@ async function runBatch(runId: string): Promise<void> {
           : `OPENAI_API_KEY NOT detected — GPT-4o cross-review will be SKIPPED for every doc`);
       await upd({ status: "generating" });
       await log("info", `Generating ${batchSize} intake scenarios via Claude…`);
+      let intakeWarning: string | null = null;
       try {
-        intakes = await generateIntakes(tool, batchSize);
-        await log("success", `Generated ${intakes.length} intake scenarios`);
+        const gen = await generateValidatedIntakes(tool, batchSize);
+        intakes = gen.intakes;
+        if (gen.rejected.length > 0) {
+          await log("warn", `Intake validation: ${gen.rejected.length}/${gen.totalAttempted} rejected after retry (${tool}). Reasons: ${gen.rejected.slice(0, 3).map(r => r.reason).join(" | ")}`);
+        }
+        const failRate = gen.totalAttempted > 0 ? gen.rejected.length / gen.totalAttempted : 0;
+        if (failRate > 0.3) {
+          intakeWarning = `Intake spec doesn't match ${tool}'s expected input — fix the intake generator before trusting results. (${gen.rejected.length}/${gen.totalAttempted} intakes failed validation; aborting fix-generation.)`;
+          await log("error", intakeWarning);
+          await upd({
+            status: "error",
+            error: intakeWarning,
+            completed_at: new Date().toISOString(),
+          });
+          clearInterval(heartbeat);
+          return;
+        }
+        await log("success", `Generated ${intakes.length} intake scenarios (accepted) / ${gen.totalAttempted} attempted`);
       } catch (e) {
         await log("error", `Intake generation failed: ${(e as Error).message}`);
         await upd({ status: "error", error: `Intake generation failed: ${(e as Error).message}`, completed_at: new Date().toISOString() });
