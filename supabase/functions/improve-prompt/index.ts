@@ -63,7 +63,7 @@ async function runGenerator(reg: ToolReg, body: any, overridePrompt: string | nu
   return reg.extractText(json);
 }
 
-async function evalAll(reg: ToolReg, cases: GoldenCase[], overridePrompt: string | null, runKind: "baseline" | "candidate") {
+async function evalAll(reg: ToolReg, cases: GoldenCase[], overridePrompt: string | null, variant: "baseline" | "candidate") {
   const perCase: Record<string, { passed: number; total: number; failed: string[]; output: string }> = {};
   let totalPassed = 0, totalTotal = 0;
   for (const c of cases) {
@@ -75,7 +75,7 @@ async function evalAll(reg: ToolReg, cases: GoldenCase[], overridePrompt: string
     totalPassed += r.passed;
     totalTotal  += r.total;
     await supabase.from("golden_results").insert({
-      tool: reg.tool, case_id: c.id, run_kind: runKind,
+      tool: reg.tool, case_id: c.id, variant, scenario_set: c.set,
       assertions_total: r.total, assertions_passed: r.passed, failed_labels: r.failed,
     });
   }
