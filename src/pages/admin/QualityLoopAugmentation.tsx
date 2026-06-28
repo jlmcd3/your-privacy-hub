@@ -343,6 +343,26 @@ export default function QualityLoopAugmentation({
         </div>
       )}
 
+      {deliberations.length > 0 && (() => {
+        const consensus = deliberations.filter(d => d.verdict === "auto_eligible");
+        const nonConsensus = deliberations.filter(d => d.verdict !== "auto_eligible");
+        const heldCount = nonConsensus.filter(d => d.verdict === "human_review").length;
+        const rejectCount = nonConsensus.filter(d => d.verdict === "reject").length;
+        const pendingCount = nonConsensus.filter(d => d.verdict === "pending").length;
+        return (
+          <div className="space-y-2">
+            {consensus.length === 0 && (
+              <div className="text-sm text-gray-500 border border-dashed border-gray-200 rounded p-4 text-center">
+                No consensus fixes from this run. Everything is held for human review or rejected.
+              </div>
+            )}
+            {consensus.length > 0 && (
+              <div className="text-xs font-semibold text-emerald-800 mb-1">
+                Everyone agrees — fix this ({consensus.length})
+              </div>
+            )}
+            {consensus.map((d) => {
+
       {deliberations.length > 0 && (
         <div className="space-y-2">
           {deliberations.map((d) => {
