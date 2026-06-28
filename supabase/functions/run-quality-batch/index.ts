@@ -238,6 +238,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "overall_status_present", dimension: "formatting", severity: "medium",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       if (!report?.overall_status)
         return { passed: false, evidence: "overall_status field missing or empty" };
