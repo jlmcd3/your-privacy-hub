@@ -224,7 +224,7 @@ export default function QualityLoop() {
       if (data) {
         setActiveRun(data as Run);
         setRunning(true);
-        pollRef.current = setInterval(() => { loadRun(data.id); loadChecks(data.id); }, 3000);
+        pollRef.current = setInterval(() => { loadRun(data.id); loadChecks(data.id); }, 60000);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
