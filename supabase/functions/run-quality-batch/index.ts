@@ -124,8 +124,12 @@ async function invokeFn(name: string, body: unknown): Promise<any> {
 
 interface Check {
   id: string; dimension: string; severity: string;
+  tools?: string[]; // F3: when set, the check ONLY runs for these tools; undefined = all tools
   run: (intake: any, report: any) => { passed: boolean; evidence?: string };
 }
+
+// ADMT/CPPA-specific check scope shorthand
+const ADMT_ONLY = ["cppa-admt"];
 
 const CHECKS: Check[] = [
   {
