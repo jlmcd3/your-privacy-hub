@@ -16,9 +16,13 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Per-invocation chunk size: slow tools get 1 doc, fast tools get 2.
+// Per-invocation chunk size: ALWAYS 1 doc per isolate. Each doc (real generation
+// + Claude eval + GPT-4o eval + cross-review) takes ~2.5–3 min; the edge runtime
+// hard-kills isolates at 400s, so >1 doc/isolate risks killing mid-doc-2 and
+// leaving the run stuck for the SQL watchdog. With 1/isolate, each doc gets a
+// fresh ~400s budget and the chunk-boundary `await selfReinvoke` continues.
 const SLOW_TOOLS = new Set(["governance", "cppa-risk", "cppa-admt", "registration"]);
-const docsPerInvocation = (tool: string) => (SLOW_TOOLS.has(tool) ? 1 : 2);
+const docsPerInvocation = (_tool: string) => 1;
 const EVALUATION_TIMEOUT_MS = 90_000;
 const CROSS_REVIEW_TIMEOUT_MS = 45_000;
 const HEARTBEAT_INTERVAL_MS = 10_000;
@@ -111,7 +115,7 @@ async function invokeFn(name: string, body: unknown): Promise<any> {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SERVICE_KEY}` },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(600_000),
+    signal: AbortSignal.timeout(240_000),
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`${name} ${r.status}: ${JSON.stringify(d).slice(0, 200)}`);
