@@ -247,6 +247,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "no_hallucinated_section_numbers", dimension: "citation", severity: "high",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       const s = JSON.stringify(report ?? "");
       const bad = [...s.matchAll(/§\s*(\d{4,5})(?:\([a-z0-9]+\))*/gi)]
