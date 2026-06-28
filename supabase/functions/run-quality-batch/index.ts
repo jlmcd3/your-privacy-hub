@@ -176,6 +176,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "no_7221_c_5", dimension: "citation", severity: "high",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       const s = JSON.stringify(report ?? "");
       const idx = s.indexOf("7221(c)(5)");
