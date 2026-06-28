@@ -171,6 +171,59 @@ function selfReinvoke(runId: string, offset: number) {
   }).catch((e) => console.warn("[deliberate] self-reinvoke failed:", (e as Error).message));
 }
 
+// R3: structure a Team-2 "registry" verdict into a registry_proposals row so a
+// human curator can stage / merge it into the actual registry. The structured
+// fact replaces the prose prompt-fix path entirely for this candidate.
+const REGISTRY_STRUCT_SYSTEM = `You convert a quality-loop finding (a fact that the Prose-vs-Registry Curator flagged as "belongs in registry") into a structured registry proposal. Return ONLY JSON:
+{
+  "fact_type": "enforcement_figure" | "statutory_citation" | "jurisdiction_rule" | "other",
+  "proposed_key": "stable snake_case key, e.g. ico_clearview_2022 or cubi_503_001_d",
+  "proposed_value": "the concrete fact text (figure, subsection map, threshold, etc.)",
+  "citation": "official citation (statute section, case docket, or regulator action id)",
+  "source_url": "primary-source URL the curator should verify against (regulator register, statutory text, court opinion)"
+}
+Do NOT include anything other than the JSON. If a field cannot be inferred from the inputs, return an empty string for it.`;
+
+async function captureRegistryProposal(admin: any, chk: any, result: any) {
+  const user = [
+    `TOOL: ${chk.tool}`,
+    `CHECK ID: ${chk.check_id}`,
+    `DIMENSION: ${chk.dimension}`,
+    `TEAM 2 RATIONALE: ${result.team2_position?.rationale ?? ""}`,
+    `SAMPLE EVIDENCE: ${JSON.stringify(chk.sample_evidence ?? []).slice(0, 1200)}`,
+    `PROPOSED PROMPT FIX (for context only — do not echo as prose):`,
+    String(chk.proposed_fix ?? "").slice(0, 1500),
+  ].join("\n");
+
+  let parsed: any = null;
+  try {
+    const raw = await claude(REGISTRY_STRUCT_SYSTEM, user);
+    parsed = tryParse(raw) ?? {};
+  } catch (e) {
+    console.warn(`[deliberate] structuring call failed for ${chk.check_id}:`, (e as Error).message);
+    parsed = {};
+  }
+
+  const row = {
+    run_id: chk.run_id,
+    tool: chk.tool,
+    check_id: chk.check_id,
+    fact_type: String(parsed.fact_type ?? "other").slice(0, 64),
+    proposed_key: String(parsed.proposed_key ?? "").slice(0, 200) || null,
+    proposed_value: String(parsed.proposed_value ?? "").slice(0, 4000) || null,
+    citation: String(parsed.citation ?? "").slice(0, 500) || null,
+    source_url: String(parsed.source_url ?? "").slice(0, 1000) || null,
+    rationale: String(result.team2_position?.rationale ?? "").slice(0, 2000) || null,
+    status: "proposed",
+  };
+  const { error } = await admin
+    .from("registry_proposals")
+    .upsert(row, { onConflict: "run_id,check_id" });
+  if (error) {
+    console.warn(`[deliberate] registry_proposals upsert failed for ${chk.check_id}:`, error.message);
+  }
+}
+
 async function deliberateRun(runId: string, offset: number) {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
