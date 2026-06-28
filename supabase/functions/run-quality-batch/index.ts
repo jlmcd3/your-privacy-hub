@@ -687,16 +687,28 @@ type PartialState = {
   gptTotals: Record<string, number>;
   built: number;
   gptBuilt: number;
+  // P-A: held-out diagnostics. Last ~30% of intakes are tagged "holdout" and are NEVER
+  // used to generate fix candidates. Both sets contribute to allDocFindings (each finding
+  // carries scenario_set) so per-check fail rates can be reported separately.
+  tuningDimTotals: Record<string, number>;
+  holdoutDimTotals: Record<string, number>;
+  tuningBuilt: number;
+  holdoutBuilt: number;
   allDocFindings: any[];
   logBuf: Array<{ t: string; level: string; msg: string }>;
 };
 
 function emptyState(): PartialState {
+  const zeroDims = () => ({ accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 });
   return {
-    dimTotals: { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 },
-    gptTotals: { accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 },
+    dimTotals: zeroDims(),
+    gptTotals: zeroDims(),
     built: 0,
     gptBuilt: 0,
+    tuningDimTotals: zeroDims(),
+    holdoutDimTotals: zeroDims(),
+    tuningBuilt: 0,
+    holdoutBuilt: 0,
     allDocFindings: [],
     logBuf: [],
   };
@@ -729,6 +741,12 @@ async function runBatch(runId: string): Promise<void> {
   const runNumber: number = run.run_number;
 
   const state: PartialState = run.partial_state ?? emptyState();
+  // Backfill held-out fields on resumed runs whose partial_state predates P-A.
+  const zeroDims = () => ({ accuracy: 0, citation: 0, hallucination: 0, analysis: 0, intelligence: 0, formatting: 0 });
+  if (!state.tuningDimTotals)  state.tuningDimTotals  = zeroDims();
+  if (!state.holdoutDimTotals) state.holdoutDimTotals = zeroDims();
+  if (typeof state.tuningBuilt  !== "number") state.tuningBuilt  = 0;
+  if (typeof state.holdoutBuilt !== "number") state.holdoutBuilt = 0;
   // Restore log buffer from saved state OR from progress_log so log keeps appending across invocations.
   const logBuf: Array<{ t: string; level: string; msg: string }> =
     Array.isArray(state.logBuf) && state.logBuf.length
@@ -784,6 +802,11 @@ async function runBatch(runId: string): Promise<void> {
     const startIdx = run.next_doc_index ?? 0;
     const chunkSize = docsPerInvocation(tool);
     const endIdx = Math.min(startIdx + chunkSize, intakes.length);
+    // P-A: split is positional and stable across resumes (no `_set` field is injected
+    // into the intake object, so buildDocument's schema-strict generators don't choke).
+    // The last ~30% of intakes are the held-out set; never used to gate fix candidates.
+    const holdoutStart = Math.floor(intakes.length * 0.7);
+    const scenarioSetFor = (idx: number) => idx >= holdoutStart ? "holdout" : "tuning";
 
     for (let i = startIdx; i < endIdx; i++) {
       // Cancel check
@@ -796,11 +819,13 @@ async function runBatch(runId: string): Promise<void> {
       }
 
       const intake = intakes[i];
-      const docLabel = `Doc ${i + 1}/${intakes.length}`;
+      const scenarioSet = scenarioSetFor(i);
+      const docLabel = `Doc ${i + 1}/${intakes.length} [${scenarioSet}]`;
       await log("info", `${docLabel}: building…`);
 
       const { data: docRow } = await admin.from("quality_run_documents").insert({
         run_id: runId, tool, doc_number: i + 1, intake_data: intake, status: "building",
+        scenario_set: scenarioSet,
       }).select("id").single();
       if (!docRow) { await log("warn", `${docLabel}: could not insert doc row`); continue; }
 
@@ -851,7 +876,10 @@ async function runBatch(runId: string): Promise<void> {
       const finalOverall = crossReview?.overall_score_reconciled    ?? claudeEval.overall_score;
 
       for (const dim of Object.keys(state.dimTotals)) {
-        state.dimTotals[dim] += (finalScores as any)[dim] ?? 60;
+        const v = (finalScores as any)[dim] ?? 60;
+        state.dimTotals[dim] += v;
+        if (scenarioSet === "tuning")  state.tuningDimTotals[dim]  += v;
+        if (scenarioSet === "holdout") state.holdoutDimTotals[dim] += v;
       }
       if (gptEval?.dimension_scores) {
         for (const dim of Object.keys(state.gptTotals)) {
@@ -860,6 +888,8 @@ async function runBatch(runId: string): Promise<void> {
         state.gptBuilt++;
       }
       state.built++;
+      if (scenarioSet === "tuning")  state.tuningBuilt++;
+      if (scenarioSet === "holdout") state.holdoutBuilt++;
 
       const crossStatus = !gptEval ? "gpt_failed" : !crossReview ? "pending" : "complete";
 
@@ -878,6 +908,7 @@ async function runBatch(runId: string): Promise<void> {
         run_id: runId, doc_id: docRow.id, tool, run_number: runNumber,
         check_id: f.check_id, check_type: f.check_type, dimension: f.dimension,
         severity: f.severity, passed: f.passed, evidence: f.evidence ?? null,
+        scenario_set: scenarioSet,
       }));
       if (findingRows.length) await admin.from("quality_findings").insert(findingRows);
 
@@ -887,6 +918,7 @@ async function runBatch(runId: string): Promise<void> {
       state.allDocFindings.push(...claudeEval.findings.map((f: any) => ({
         ...f,
         doc_id: docRow.id,
+        scenario_set: scenarioSet,
         cross_category: crossFindingsMap.get(f.check_id)?.category ?? null,
         cross_evidence_gpt: crossFindingsMap.get(f.check_id)?.evidence_gpt ?? null,
         rubric_addition: crossFindingsMap.get(f.check_id)?.rubric_addition ?? null,
@@ -899,6 +931,7 @@ async function runBatch(runId: string): Promise<void> {
             check_id: gptFinding.check_id, check_type: "gpt_only",
             dimension: gptFinding.dimension, severity: gptFinding.severity,
             passed: false, evidence: gptFinding.evidence ?? null, doc_id: docRow.id,
+            scenario_set: scenarioSet,
             cross_category: "gpt_only", cross_evidence_gpt: gptFinding.evidence ?? null,
             rubric_addition: crossFindingsMap.get(gptFinding.check_id)?.rubric_addition ?? null,
           });
@@ -937,6 +970,33 @@ async function runBatch(runId: string): Promise<void> {
     const w = weightsFor(tool);
     const overall = Math.round(scores.accuracy * w.accuracy + scores.citation * w.citation + scores.hallucination * w.hallucination + scores.analysis * w.analysis + scores.intelligence * w.intelligence + scores.formatting * w.formatting);
 
+    // P-A: tuning/holdout split — overfitting diagnostic. Both numbers are stored;
+    // tuning rises while holdout flat/down ⇒ the loop is teaching to the test.
+    const setAvg = (totals: Record<string, number>, n: number, k: string) => n > 0 ? Math.round((totals[k] ?? 0) / n) : null;
+    const tuningScores = state.tuningBuilt > 0 ? {
+      accuracy: setAvg(state.tuningDimTotals, state.tuningBuilt, "accuracy")!,
+      citation: setAvg(state.tuningDimTotals, state.tuningBuilt, "citation")!,
+      hallucination: setAvg(state.tuningDimTotals, state.tuningBuilt, "hallucination")!,
+      analysis: setAvg(state.tuningDimTotals, state.tuningBuilt, "analysis")!,
+      intelligence: setAvg(state.tuningDimTotals, state.tuningBuilt, "intelligence")!,
+      formatting: setAvg(state.tuningDimTotals, state.tuningBuilt, "formatting")!,
+    } : null;
+    const holdoutScores = state.holdoutBuilt > 0 ? {
+      accuracy: setAvg(state.holdoutDimTotals, state.holdoutBuilt, "accuracy")!,
+      citation: setAvg(state.holdoutDimTotals, state.holdoutBuilt, "citation")!,
+      hallucination: setAvg(state.holdoutDimTotals, state.holdoutBuilt, "hallucination")!,
+      analysis: setAvg(state.holdoutDimTotals, state.holdoutBuilt, "analysis")!,
+      intelligence: setAvg(state.holdoutDimTotals, state.holdoutBuilt, "intelligence")!,
+      formatting: setAvg(state.holdoutDimTotals, state.holdoutBuilt, "formatting")!,
+    } : null;
+    const overallFor = (s: typeof tuningScores) => s
+      ? Math.round(s.accuracy * w.accuracy + s.citation * w.citation + s.hallucination * w.hallucination +
+                   s.analysis * w.analysis + s.intelligence * w.intelligence + s.formatting * w.formatting)
+      : null;
+    const overallTuning  = overallFor(tuningScores);
+    const overallHoldout = overallFor(holdoutScores);
+    await log("info", `Held-out split: tuning=${state.tuningBuilt} (overall ${overallTuning ?? "n/a"}/100), holdout=${state.holdoutBuilt} (overall ${overallHoldout ?? "n/a"}/100)`);
+
     const byCheck = new Map<string, any[]>();
     for (const f of state.allDocFindings) {
       if (!byCheck.has(f.check_id)) byCheck.set(f.check_id, []);
@@ -951,6 +1011,9 @@ async function runBatch(runId: string): Promise<void> {
     type CheckAgg = {
       checkId: string; findings: any[]; first: any;
       passed: number; failed: number; failRate: number; evidence: string[];
+      // P-A: per-set diagnostics
+      tuningPassed: number; tuningFailed: number; tuningFailRate: number;
+      holdoutPassed: number; holdoutFailed: number; holdoutFailRate: number;
       crossCategory: string | null; gptEvidence: string[]; rubricAddition: string | null;
       severityRank: number;
     };
@@ -961,6 +1024,15 @@ async function runBatch(runId: string): Promise<void> {
       const failRate = findings.length ? failed / findings.length : 0;
       const evidence = findings.filter(f => !f.passed && f.evidence).map(f => f.evidence).slice(0, 3);
       const first    = findings[0];
+
+      const tuningFindings  = findings.filter(f => f.scenario_set === "tuning");
+      const holdoutFindings = findings.filter(f => f.scenario_set === "holdout");
+      const tuningPassed   = tuningFindings.filter(f => f.passed).length;
+      const tuningFailed   = tuningFindings.filter(f => !f.passed).length;
+      const tuningFailRate = tuningFindings.length ? tuningFailed / tuningFindings.length : 0;
+      const holdoutPassed   = holdoutFindings.filter(f => f.passed).length;
+      const holdoutFailed   = holdoutFindings.filter(f => !f.passed).length;
+      const holdoutFailRate = holdoutFindings.length ? holdoutFailed / holdoutFindings.length : 0;
 
       const gptOnlyCount  = findings.filter(f => f.cross_category === "gpt_only").length;
       const conflictCount = findings.filter(f => f.cross_category === "conflict").length;
@@ -976,7 +1048,12 @@ async function runBatch(runId: string): Promise<void> {
       const sev = String(first?.severity ?? "").toLowerCase();
       const severityRank = sev === "critical" ? 3 : sev === "high" ? 2 : sev === "medium" ? 1 : 0;
 
-      aggregates.push({ checkId, findings, first, passed, failed, failRate, evidence, crossCategory, gptEvidence, rubricAddition, severityRank });
+      aggregates.push({
+        checkId, findings, first, passed, failed, failRate, evidence,
+        tuningPassed, tuningFailed, tuningFailRate,
+        holdoutPassed, holdoutFailed, holdoutFailRate,
+        crossCategory, gptEvidence, rubricAddition, severityRank,
+      });
     }
 
     // Skip check_ids already successfully patched into this tool's file recently —
@@ -992,10 +1069,15 @@ async function runBatch(runId: string): Promise<void> {
     }
     const alreadyFixedIds = new Set((recentlyApplied ?? []).map((r: any) => r.check_id));
 
-    // Rank candidates for AI fix-generation: needs evidence, failRate>0.2, no rubric override,
-    // not a conflict (those require manual legal review). Sort by severity then impact (failed × failRate).
+    // P-A: candidates are generated ONLY from TUNING failures. A check that fails only
+    // on holdout intakes is a true generalization gap and is surfaced for reporting,
+    // but no fix is proposed for it (the loop must never see the holdout to "fix" it).
+    // Fallback: if no tuning data exists yet (older runs / empty split), keep the legacy
+    // overall failRate gate so behavior is non-regressive.
+    const hasTuningData = state.tuningBuilt > 0;
     const aiCandidates = aggregates
-      .filter(a => !a.rubricAddition && a.failRate > 0.2 && a.evidence.length > 0 && a.crossCategory !== "conflict")
+      .filter(a => !a.rubricAddition && a.evidence.length > 0 && a.crossCategory !== "conflict")
+      .filter(a => hasTuningData ? a.tuningFailRate > 0.2 : a.failRate > 0.2)
       .filter(a => !alreadyFixedIds.has(a.checkId))
       .sort((x, y) => (y.severityRank - x.severityRank) || (y.failed * y.failRate - x.failed * x.failRate))
       .slice(0, MAX_AI_FIXES);
@@ -1042,6 +1124,8 @@ async function runBatch(runId: string): Promise<void> {
         run_id: runId, tool, run_number: runNumber, check_id: a.checkId,
         check_type: a.first.check_type, dimension: a.first.dimension, severity: a.first.severity,
         pass_count: a.passed, fail_count: a.failed, fail_rate: a.failRate,
+        tuning_pass_count: a.tuningPassed, tuning_fail_count: a.tuningFailed, tuning_fail_rate: a.tuningFailRate,
+        holdout_pass_count: a.holdoutPassed, holdout_fail_count: a.holdoutFailed, holdout_fail_rate: a.holdoutFailRate,
         sample_evidence: a.evidence,
         gpt_pass_count: gptPassed, gpt_fail_count: gptFailed, gpt_fail_rate: gptFailRate,
         gpt_sample_evidence: a.gptEvidence.length ? a.gptEvidence : null,
@@ -1081,6 +1165,8 @@ async function runBatch(runId: string): Promise<void> {
       score_hallucination: scores.hallucination, score_analysis: scores.analysis,
       score_intelligence: scores.intelligence, score_formatting: scores.formatting,
       score_overall: overall,
+      score_overall_tuning: overallTuning,
+      score_overall_holdout: overallHoldout,
       checks_total: state.allDocFindings.length,
       checks_passed: state.allDocFindings.filter(f => f.passed).length,
       checks_failed: state.allDocFindings.filter(f => !f.passed).length,
@@ -1089,7 +1175,7 @@ async function runBatch(runId: string): Promise<void> {
       gpt_only_count: gptOnlyTotal,
       conflict_count: conflictTotal,
     });
-    await log("success", `Run complete — overall score ${overall}/100 (${state.allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks)`);
+    await log("success", `Run complete — overall ${overall}/100 (tuning ${overallTuning ?? "n/a"}/100, holdout ${overallHoldout ?? "n/a"}/100); ${state.allDocFindings.filter(f => !f.passed).length} failures across ${byCheck.size} checks`);
 
     // Aggregate snapshot
     try {

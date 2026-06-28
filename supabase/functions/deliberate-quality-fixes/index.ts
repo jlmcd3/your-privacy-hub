@@ -113,9 +113,15 @@ async function deliberateOne(check: any) {
     (t) => teams[t.key]?.stance === "not_a_defect" && !teams[t.key]?.approve,
   );
 
+  // P-C: subjective dimensions (analysis, intelligence, formatting) are where bad rules sneak in
+  // (the British-spelling case). Restrict auto-eligibility to verifiable defects so subjective
+  // fixes always pass through human review even when every viewpoint agrees.
+  const OBJECTIVE_DIMENSIONS = new Set(["accuracy", "citation", "hallucination"]);
+  const dimensionIsObjective = OBJECTIVE_DIMENSIONS.has(String(check.dimension ?? "").toLowerCase());
+
   const verdict =
     allNotDefect ? "reject" :
-    (reviewersAgree && teamsApproveAll) ? "auto_eligible" : "human_review";
+    (reviewersAgree && teamsApproveAll && dimensionIsObjective) ? "auto_eligible" : "human_review";
 
   const disagreements: any[] = [];
   for (const t of TEAMS) {
@@ -127,6 +133,12 @@ async function deliberateOne(check: any) {
     disagreements.push({
       source: "cross_review",
       reason: `Claude/GPT did not agree (category=${check.cross_review_category ?? "unknown"})`,
+    });
+  }
+  if (!dimensionIsObjective && reviewersAgree && teamsApproveAll && !allNotDefect) {
+    disagreements.push({
+      source: "p-c_dimension_gate",
+      reason: `Dimension "${check.dimension}" is subjective — auto-apply restricted to accuracy/citation/hallucination; routed to human review.`,
     });
   }
 

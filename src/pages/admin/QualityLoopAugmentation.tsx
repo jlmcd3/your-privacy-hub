@@ -47,6 +47,12 @@ type ToolState = {
   updated_at: string;
 };
 
+type RunScores = {
+  score_overall: number | null;
+  score_overall_tuning: number | null;
+  score_overall_holdout: number | null;
+};
+
 const GITHUB_OWNER = "jlmcd3";
 const GITHUB_REPO = "your-privacy-hub";
 
@@ -80,17 +86,21 @@ export default function QualityLoopAugmentation({
 }: { runId: string | null; tool: string }) {
   const [deliberations, setDeliberations] = useState<Deliberation[]>([]);
   const [toolState, setToolState] = useState<ToolState | null>(null);
-  const [busy, setBusy] = useState<"none" | "deliberate" | "auto" | "halt">("none");
+  const [runScores, setRunScores] = useState<RunScores | null>(null);
+  const [busy, setBusy] = useState<"none" | "deliberate" | "auto" | "halt" | "consolidate">("none");
   const [override, setOverride] = useState<Set<string>>(new Set());
+  const [validating, setValidating] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
-    if (!runId) { setDeliberations([]); return; }
-    const [{ data: d }, { data: s }] = await Promise.all([
+    if (!runId) { setDeliberations([]); setRunScores(null); return; }
+    const [{ data: d }, { data: s }, { data: r }] = await Promise.all([
       supabase.from("quality_fix_deliberations").select("*").eq("run_id", runId).order("created_at", { ascending: false }),
       supabase.from("quality_autoapply_tool_state").select("*").eq("tool", tool).maybeSingle(),
+      supabase.from("quality_runs").select("score_overall, score_overall_tuning, score_overall_holdout").eq("id", runId).maybeSingle(),
     ]);
     setDeliberations((d ?? []) as Deliberation[]);
     setToolState((s ?? null) as ToolState | null);
+    setRunScores((r ?? null) as RunScores | null);
   }, [runId, tool]);
 
   useEffect(() => { load(); }, [load]);
@@ -178,6 +188,48 @@ export default function QualityLoopAugmentation({
     }
   };
 
+  const runConsolidate = async () => {
+    if (!confirm(`Run consolidation pass on ${tool}? This merges duplicate rules and resolves contradictions, then stages the result to ${toolState?.target_branch ?? "quality-auto"} for human review.`)) return;
+    setBusy("consolidate");
+    try {
+      const { data, error } = await supabase.functions.invoke("consolidate-rulebook", { body: { tool } });
+      if (error) throw error;
+      toast.success(`Consolidation staged. ${data?.changelog ? "See PR diff." : ""}`);
+    } catch (e: any) {
+      toast.error(`Consolidation failed: ${e.message}`);
+    } finally {
+      setBusy("none");
+    }
+  };
+
+  const runValidateFix = async (delib: Deliberation) => {
+    if (tool !== "biometric-checker") {
+      toast.error("Validate-fix pilot is biometric-checker only.");
+      return;
+    }
+    if (!delib.recommended_change) {
+      toast.error("Deliberation has no recommended_change to validate.");
+      return;
+    }
+    setValidating((prev) => new Set(prev).add(delib.id));
+    try {
+      const { data, error } = await supabase.functions.invoke("validate-fix", {
+        body: {
+          tool,
+          check_id: delib.check_id,
+          system_prompt_override: delib.recommended_change,
+          run_id: delib.run_id,
+        },
+      });
+      if (error) throw error;
+      toast.success(`Validation started (id ${data?.validate_run_id?.slice(0, 8) ?? "?"}). Results appear in quality_validate_fix_runs.`);
+    } catch (e: any) {
+      toast.error(`Validate failed: ${e.message}`);
+    } finally {
+      setValidating((prev) => { const n = new Set(prev); n.delete(delib.id); return n; });
+    }
+  };
+
   if (!runId) return null;
 
   const counts = {
@@ -210,6 +262,10 @@ export default function QualityLoopAugmentation({
             {busy === "auto" ? <><RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />Applying…</>
               : `Auto-apply ${counts.auto_eligible} → ${toolState?.target_branch ?? "quality-auto"}`}
           </Button>
+          <Button onClick={runConsolidate} disabled={busy !== "none"} size="sm" variant="outline"
+            title="Merge duplicate rules and resolve contradictions in this tool's rulebook. Stages to quality-auto.">
+            {busy === "consolidate" ? <><RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />Consolidating…</> : "Consolidate rulebook"}
+          </Button>
         </div>
       </div>
 
@@ -233,6 +289,19 @@ export default function QualityLoopAugmentation({
         </div>
         {toolState?.last_score_overall != null && (
           <div className="text-gray-500">Last score: <span className="font-semibold">{toolState.last_score_overall}</span>/100</div>
+        )}
+        {runScores && (runScores.score_overall_tuning != null || runScores.score_overall_holdout != null) && (
+          <div className="text-gray-600" title="Tuning = first 70% of intakes (fixes generated from these). Holdout = last 30% (never used for fix generation). Tuning ↑ + Holdout flat = overfitting.">
+            This run:{" "}
+            <span className="font-semibold">tuning {runScores.score_overall_tuning ?? "n/a"}</span>
+            <span className="text-gray-400"> · </span>
+            <span className="font-semibold">holdout {runScores.score_overall_holdout ?? "n/a"}</span>
+            {runScores.score_overall_tuning != null && runScores.score_overall_holdout != null && (
+              <span className={`ml-1.5 font-semibold ${runScores.score_overall_tuning - runScores.score_overall_holdout > 10 ? "text-amber-700" : "text-gray-500"}`}>
+                (Δ {Math.round((runScores.score_overall_tuning - runScores.score_overall_holdout) * 10) / 10})
+              </span>
+            )}
+          </div>
         )}
         <div className="ml-auto flex items-center gap-2">
           <Button
@@ -376,6 +445,17 @@ export default function QualityLoopAugmentation({
                           }} />
                         override
                       </label>
+                    )}
+                    {tool === "biometric-checker" && !isApplied && d.recommended_change && (
+                      <Button
+                        size="sm" variant="outline"
+                        disabled={validating.has(d.id)}
+                        onClick={() => runValidateFix(d)}
+                        className="h-7 text-xs border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                        title="Run held-out A/B (baseline vs candidate prompt) on fresh biometric intakes."
+                      >
+                        {validating.has(d.id) ? "Validating…" : "Validate on holdout"}
+                      </Button>
                     )}
                     <Button
                       size="sm" variant="outline"
