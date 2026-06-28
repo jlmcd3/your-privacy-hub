@@ -440,6 +440,33 @@ function categorizePerDoc(claudeFail: boolean, gptFail: boolean): string {
   return "agree_pass";
 }
 
+// Per-tool intake validators. Mirrors the tool's own resolver semantics so the
+// quality loop never scores garbage. If validation fails twice for an item, it's
+// dropped; if >30% of intakes fail across a run, the caller aborts.
+const BIOMETRIC_JURISDICTION_SUBSTRINGS = [
+  "illinois","bipa","texas","cubi","washington","california","ccpa","cpra",
+  "virginia","eu","eea","gdpr","united kingdom","uk gdpr","france","cnil",
+  "ireland","dpc","germany","spain",
+];
+type IntakeValidator = (intake: any) => { ok: boolean; reason?: string };
+const INTAKE_VALIDATORS: Record<string, IntakeValidator> = {
+  "biometric-checker": (intake: any) => {
+    const j = intake?.jurisdictions;
+    if (!Array.isArray(j) || j.length === 0) return { ok: false, reason: "jurisdictions[] missing or empty" };
+    for (const entry of j) {
+      const s = String(entry ?? "").toLowerCase();
+      if (!BIOMETRIC_JURISDICTION_SUBSTRINGS.some(sub => s.includes(sub))) {
+        return { ok: false, reason: `jurisdiction "${entry}" unresolvable (use selection labels like "Illinois, USA (BIPA)", not bare codes)` };
+      }
+    }
+    return { ok: true };
+  },
+};
+function validateIntake(tool: string, intake: any): { ok: boolean; reason?: string } {
+  const v = INTAKE_VALIDATORS[tool];
+  return v ? v(intake) : { ok: true };
+}
+
 async function generateIntakes(tool: string, count: number): Promise<any[]> {
   const toolDescriptions: Record<string, string> = {
     "cppa-admt": `CPPA ADMT compliance assessment. Required fields: system_name, system_type, system_description, decision_domains (array — use: employment, financial_services, healthcare, advertising, entertainment_personalization, service_eligibility), human_review, training_data_use, profiling_use, notice_delivery (array), notice_has_specific_purpose, notice_purpose_text, notice_has_opt_out_desc, notice_has_access_desc, notice_has_anti_retaliation, notice_has_how_it_works, notice_has_alternative_process, opt_out_exception, opt_out_methods (array), opt_out_link_title, opt_out_no_cookie_banner, opt_out_no_account_required, opt_out_confirmation_mechanism, opt_out_appeal_process, opt_out_fairness_doc, opt_out_15_day_process, access_submission_methods, access_verification_process, access_logic_disclosure, access_outcome_disclosure, access_response_timeline, access_trade_secret_policy, ca_consumer_count, prior_access_requests_12mo. Include a mix: 2 advertising/adtech (NOT significant decisions), 2 gaming (NOT significant decisions), 2 HR/employment (significant decisions), 2 fintech credit scoring (significant decisions), 1 healthcare AI (significant decision), 1 recommendation engine (NOT significant decision).`,
