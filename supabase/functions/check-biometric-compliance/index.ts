@@ -74,8 +74,9 @@ Output ONLY the compliance assessment. No preamble.`;
 
 const BIOMETRIC_TOOL_MODULE: ToolModule = {
   outputMode: "document",
-  // Predominantly British in current text; pin to match the Biometric admin test (see acceptance test 7).
-  languageVariant: "british",
+  // Decision FIX_quality_loop_actually_improving (a): biometric now follows the house-style
+  // American variant like every other tool. The deterministic `no_british_spelling` check in
+  // run-quality-batch is the single source of truth for spelling, so no per-tool exemption.
   citationFramework:
     "Cite statutes by official identifier: BIPA = 740 ILCS 14 (section letters 15(a)/(b)/(d), 20); Texas CUBI = Tex. Bus. & Com. Code § 503.001; California = Cal. Civ. Code §§ 1798.x; EU/UK biometric special-category data = GDPR / UK GDPR Article 9. Cite enforcement actions and case law ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt; never assert a fine or settlement amount from training knowledge — direct the reader to the regulator's enforcement register.",
   identity: BIOMETRIC_IDENTITY,
@@ -100,6 +101,10 @@ interface Body {
   client_id?: string | null;
   is_free_tier?: boolean;
   stress_run?: boolean;
+  // OPTIONAL PILOT: per-fix held-out A/B validation. When `caller.internal` is true
+  // (service-role / x-internal-resume bearer) AND this is provided, it FULLY replaces
+  // the composed system prompt for this single invocation. Never honored for user calls.
+  system_prompt_override?: string;
 }
 
 const supabase = createClient(
@@ -933,12 +938,20 @@ Output ONLY the compliance assessment (then the ===ANNOTATIONS=== block). No pre
 STATIC-STRESS MODE: Produce the same required sections, but keep each section concise. Target 3-5 obligations, 3 priority actions, and no extended background discussion. Do not omit any selected jurisdiction.` : "";
 
     const today = new Date().toISOString().slice(0, 10);
-    const biometricSystem: SystemBlock[] = buildSystemContent({
+    const composedSystem: SystemBlock[] = buildSystemContent({
       toolModule: BIOMETRIC_TOOL_MODULE,
       variant: isStressRun ? "lean" : "full",
       currentDate: today,
       cache: true,
     });
+    // Pilot override: service-role callers can fully replace the system prompt to
+    // A/B-test a candidate fix on the held-out scenarios (see validate-fix function).
+    const overrideText = (caller.internal && typeof body.system_prompt_override === "string"
+      && body.system_prompt_override.trim().length > 0)
+      ? body.system_prompt_override : null;
+    const biometricSystem: SystemBlock[] = overrideText
+      ? [{ type: "text", text: overrideText }]
+      : composedSystem;
 
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

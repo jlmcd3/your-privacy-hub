@@ -3469,6 +3469,9 @@ export type Database = {
           gpt_fail_rate: number | null
           gpt_pass_count: number | null
           gpt_sample_evidence: string[] | null
+          holdout_fail_count: number | null
+          holdout_fail_rate: number | null
+          holdout_pass_count: number | null
           id: string
           pass_count: number
           proposed_fix: string | null
@@ -3477,6 +3480,9 @@ export type Database = {
           sample_evidence: string[] | null
           severity: string
           tool: string
+          tuning_fail_count: number | null
+          tuning_fail_rate: number | null
+          tuning_pass_count: number | null
         }
         Insert: {
           check_id: string
@@ -3495,6 +3501,9 @@ export type Database = {
           gpt_fail_rate?: number | null
           gpt_pass_count?: number | null
           gpt_sample_evidence?: string[] | null
+          holdout_fail_count?: number | null
+          holdout_fail_rate?: number | null
+          holdout_pass_count?: number | null
           id?: string
           pass_count?: number
           proposed_fix?: string | null
@@ -3503,6 +3512,9 @@ export type Database = {
           sample_evidence?: string[] | null
           severity: string
           tool: string
+          tuning_fail_count?: number | null
+          tuning_fail_rate?: number | null
+          tuning_pass_count?: number | null
         }
         Update: {
           check_id?: string
@@ -3521,6 +3533,9 @@ export type Database = {
           gpt_fail_rate?: number | null
           gpt_pass_count?: number | null
           gpt_sample_evidence?: string[] | null
+          holdout_fail_count?: number | null
+          holdout_fail_rate?: number | null
+          holdout_pass_count?: number | null
           id?: string
           pass_count?: number
           proposed_fix?: string | null
@@ -3529,6 +3544,9 @@ export type Database = {
           sample_evidence?: string[] | null
           severity?: string
           tool?: string
+          tuning_fail_count?: number | null
+          tuning_fail_rate?: number | null
+          tuning_pass_count?: number | null
         }
         Relationships: [
           {
@@ -3552,6 +3570,7 @@ export type Database = {
           passed: boolean
           run_id: string
           run_number: number
+          scenario_set: string | null
           severity: string
           tool: string
         }
@@ -3566,6 +3585,7 @@ export type Database = {
           passed: boolean
           run_id: string
           run_number: number
+          scenario_set?: string | null
           severity: string
           tool: string
         }
@@ -3580,6 +3600,7 @@ export type Database = {
           passed?: boolean
           run_id?: string
           run_number?: number
+          scenario_set?: string | null
           severity?: string
           tool?: string
         }
@@ -3702,6 +3723,7 @@ export type Database = {
           overall_score: number | null
           report_data: Json | null
           run_id: string
+          scenario_set: string | null
           source_row_id: string | null
           source_table: string | null
           status: string
@@ -3722,6 +3744,7 @@ export type Database = {
           overall_score?: number | null
           report_data?: Json | null
           run_id: string
+          scenario_set?: string | null
           source_row_id?: string | null
           source_table?: string | null
           status?: string
@@ -3742,6 +3765,7 @@ export type Database = {
           overall_score?: number | null
           report_data?: Json | null
           run_id?: string
+          scenario_set?: string | null
           source_row_id?: string | null
           source_table?: string | null
           status?: string
@@ -3791,6 +3815,8 @@ export type Database = {
           score_hallucination: number | null
           score_intelligence: number | null
           score_overall: number | null
+          score_overall_holdout: number | null
+          score_overall_tuning: number | null
           started_at: string | null
           status: string
           tool: string
@@ -3829,6 +3855,8 @@ export type Database = {
           score_hallucination?: number | null
           score_intelligence?: number | null
           score_overall?: number | null
+          score_overall_holdout?: number | null
+          score_overall_tuning?: number | null
           started_at?: string | null
           status?: string
           tool: string
@@ -3867,6 +3895,8 @@ export type Database = {
           score_hallucination?: number | null
           score_intelligence?: number | null
           score_overall?: number | null
+          score_overall_holdout?: number | null
+          score_overall_tuning?: number | null
           started_at?: string | null
           status?: string
           tool?: string
@@ -3950,6 +3980,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quality_validate_fix_runs: {
+        Row: {
+          baseline_score: number | null
+          check_id: string
+          completed_at: string | null
+          created_at: string
+          delta: number | null
+          error: string | null
+          id: string
+          intake_count: number
+          override_score: number | null
+          per_intake: Json | null
+          requested_by: string | null
+          run_id: string | null
+          status: string
+          system_prompt_override: string | null
+          tool: string
+        }
+        Insert: {
+          baseline_score?: number | null
+          check_id: string
+          completed_at?: string | null
+          created_at?: string
+          delta?: number | null
+          error?: string | null
+          id?: string
+          intake_count?: number
+          override_score?: number | null
+          per_intake?: Json | null
+          requested_by?: string | null
+          run_id?: string | null
+          status?: string
+          system_prompt_override?: string | null
+          tool: string
+        }
+        Update: {
+          baseline_score?: number | null
+          check_id?: string
+          completed_at?: string | null
+          created_at?: string
+          delta?: number | null
+          error?: string | null
+          id?: string
+          intake_count?: number
+          override_score?: number | null
+          per_intake?: Json | null
+          requested_by?: string | null
+          run_id?: string | null
+          status?: string
+          system_prompt_override?: string | null
+          tool?: string
+        }
+        Relationships: []
       }
       questionnaire_versions: {
         Row: {
