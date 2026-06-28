@@ -1,9 +1,10 @@
 // apply-quality-fix — admin-gated quality-loop applier.
 //
-// Default target = main (GITHUB_BRANCH env). Optional `body.branch` lets callers
-// (including the QualityLoop UI's "Promote quality-auto → main" flow) target an
-// alternate branch. GitHub plumbing is shared with auto-apply-fixes via
-// _shared/github-apply.ts.
+// Default target = quality-auto (QUALITY_APPLY_BRANCH env). No AI-written change
+// should reach main un-reviewed on a compliance product — main is reached only
+// via the "Promote quality-auto → main" PR. Optional `body.branch` lets callers
+// target an alternate branch explicitly. GitHub plumbing is shared with
+// auto-apply-fixes via _shared/github-apply.ts.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ghGet, ghPut, applyPatchWithClaude, ensureBranch } from "../_shared/github-apply.ts";
@@ -12,7 +13,9 @@ const SUPABASE_URL  = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY   = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY      = Deno.env.get("SUPABASE_ANON_KEY")!;
 const GITHUB_TOKEN  = Deno.env.get("GITHUB_TOKEN") ?? "";
-const GITHUB_BRANCH = Deno.env.get("GITHUB_BRANCH") ?? "main";
+const APPLY_BRANCH  = Deno.env.get("QUALITY_APPLY_BRANCH") ?? "quality-auto";
+const DEFAULT_MAIN  = Deno.env.get("GITHUB_BRANCH") ?? "main";
+
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -68,13 +71,13 @@ Deno.serve(async (req) => {
     : body.check_result_id ? [body.check_result_id] : [];
   if (!ids.length) return json({ error: "check_result_ids required" }, 400);
 
-  // B4: optional branch override. Defaults to GITHUB_BRANCH (main). For non-main
-  // branches we make sure the branch exists first.
-  const branch: string = typeof body.branch === "string" && body.branch ? body.branch : GITHUB_BRANCH;
-  if (branch !== GITHUB_BRANCH) {
+  // Default target = quality-auto. main reachable only via explicit body.branch.
+  const branch: string = typeof body.branch === "string" && body.branch ? body.branch : APPLY_BRANCH;
+  if (branch !== DEFAULT_MAIN) {
     try { await ensureBranch(branch); }
     catch (e) { return json({ error: `ensureBranch(${branch}) failed: ${(e as Error).message}` }, 500); }
   }
+
 
   const { data: checks, error: chkErr } = await admin.from("quality_check_results")
     .select("*, quality_runs(tool)").in("id", ids);
