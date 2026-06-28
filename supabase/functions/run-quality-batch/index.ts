@@ -124,12 +124,17 @@ async function invokeFn(name: string, body: unknown): Promise<any> {
 
 interface Check {
   id: string; dimension: string; severity: string;
+  tools?: string[]; // F3: when set, the check ONLY runs for these tools; undefined = all tools
   run: (intake: any, report: any) => { passed: boolean; evidence?: string };
 }
+
+// ADMT/CPPA-specific check scope shorthand
+const ADMT_ONLY = ["cppa-admt"];
 
 const CHECKS: Check[] = [
   {
     id: "adtech_not_significant_decision", dimension: "accuracy", severity: "critical",
+    tools: ADMT_ONLY,
     run: (intake, report) => {
       const domains: string[] = intake?.decision_domains ?? [];
       if (!domains.some(d => /advertising|adtech|audience/i.test(d))) return { passed: true };
@@ -141,6 +146,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "gaming_not_significant_decision", dimension: "accuracy", severity: "critical",
+    tools: ADMT_ONLY,
     run: (intake, report) => {
       const domains: string[] = intake?.decision_domains ?? [];
       const desc: string = intake?.system_description ?? "";
@@ -154,6 +160,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "art11_gate_enforced", dimension: "accuracy", severity: "critical",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       const triggers = report?.scope_analysis?.triggers_significant_decision;
       if (triggers === true || triggers === "true") return { passed: true };
@@ -169,6 +176,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "no_7221_c_5", dimension: "citation", severity: "high",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       const s = JSON.stringify(report ?? "");
       const idx = s.indexOf("7221(c)(5)");
@@ -179,6 +187,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "no_7152_a_3_trade_secret", dimension: "citation", severity: "high",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       const s = JSON.stringify(report ?? "");
       if (s.includes("7152(a)(3)"))
@@ -218,6 +227,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "notice_gaps_when_inscope", dimension: "accuracy", severity: "high",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       const triggers = report?.scope_analysis?.triggers_significant_decision;
       if (triggers !== true && triggers !== "true") return { passed: true };
@@ -228,6 +238,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "overall_status_present", dimension: "formatting", severity: "medium",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       if (!report?.overall_status)
         return { passed: false, evidence: "overall_status field missing or empty" };
@@ -236,6 +247,7 @@ const CHECKS: Check[] = [
   },
   {
     id: "no_hallucinated_section_numbers", dimension: "citation", severity: "high",
+    tools: ADMT_ONLY,
     run: (_intake, report) => {
       const s = JSON.stringify(report ?? "");
       const bad = [...s.matchAll(/§\s*(\d{4,5})(?:\([a-z0-9]+\))*/gi)]
@@ -248,37 +260,93 @@ const CHECKS: Check[] = [
   },
 ];
 
-const CLAUDE_RUBRIC_SYSTEM = `You are a quality assurance reviewer for an AI-generated legal compliance document platform. Evaluate the compliance report against this 6-dimension rubric and return structured JSON.
+// ===================================================================
+// F1 — Fixed per-tool LLM rubric checklist.
+// Both Claude and GPT score the SAME ids; "agree" becomes possible.
+// IDs MUST stay disjoint from deterministic CHECKS ids (asserted below).
+// ===================================================================
+type RubricCheck = { id: string; dimension: string; severity: string; description: string };
+
+const RUBRIC_GENERAL: RubricCheck[] = [
+  { id: "rubric_generic_boilerplate",       dimension: "analysis",      severity: "medium",
+    description: "Reasoning is generic boilerplate that could apply to any company; not tailored to THIS intake's facts." },
+  { id: "rubric_unsupported_business_claim", dimension: "hallucination", severity: "high",
+    description: "Document asserts facts about the business that are not in the intake (invented users, revenue, jurisdictions, etc.)." },
+  { id: "rubric_actionability",             dimension: "intelligence",  severity: "medium",
+    description: "Recommendations are not actionable for a real compliance professional (vague, no owner, no trigger)." },
+  { id: "rubric_internal_reasoning_leak",   dimension: "formatting",    severity: "high",
+    description: "Internal AI reasoning/meta-commentary visible in customer-facing text (\"as an AI\", \"based on the provided\", \"my analysis\")." },
+  { id: "rubric_citation_misapplied",       dimension: "citation",      severity: "high",
+    description: "A real cited section is applied to the wrong proposition (right citation, wrong claim)." },
+];
+
+const RUBRIC_ADMT: RubricCheck[] = [
+  { id: "rubric_advertising_significant_decision", dimension: "accuracy", severity: "critical",
+    description: "Advertising / adtech / audience targeting classified as a \"significant decision\" under CPPA § 7001(ddd). It is not." },
+  { id: "rubric_gaming_significant_decision",      dimension: "accuracy", severity: "critical",
+    description: "Gaming or entertainment service eligibility classified as a \"significant decision\". It is not." },
+  { id: "rubric_invented_admt_section",            dimension: "citation", severity: "critical",
+    description: "ADMT citation outside the real range (real sections: 7001, 7150–7157, 7200–7222)." },
+];
+
+const RUBRIC_CHECKS: Record<string, RubricCheck[]> = {
+  "cppa-admt": [...RUBRIC_GENERAL, ...RUBRIC_ADMT],
+  // All other tools use the general list. Add tool-specific entries here as they're identified.
+};
+
+function rubricFor(tool: string): RubricCheck[] {
+  return RUBRIC_CHECKS[tool] ?? RUBRIC_GENERAL;
+}
+
+// Startup assertion: rubric ids and deterministic ids must not collide
+(function assertIdsDisjoint() {
+  const detIds = new Set(CHECKS.map(c => c.id));
+  const allRubricIds = new Set<string>();
+  for (const list of Object.values(RUBRIC_CHECKS)) for (const r of list) allRubricIds.add(r.id);
+  for (const r of RUBRIC_GENERAL) allRubricIds.add(r.id);
+  const overlap = [...allRubricIds].filter(id => detIds.has(id));
+  if (overlap.length) {
+    throw new Error(`RUBRIC_CHECKS/CHECKS id overlap: ${overlap.join(", ")}`);
+  }
+})();
+
+function rubricChecklistText(checks: RubricCheck[]): string {
+  return checks.map(c => `- id: "${c.id}"  [${c.dimension}/${c.severity}] — ${c.description}`).join("\n");
+}
+
+function buildRubricSystemPrompt(role: "claude" | "gpt", tool: string): string {
+  const checks = rubricFor(tool);
+  return `You are a quality assurance reviewer (${role.toUpperCase()}) for an AI-generated legal compliance document platform.
+
+Evaluate the document against the FIXED checklist below. Score each dimension 0–100.
 
 DIMENSIONS:
-1. accuracy (0-100): Legal conclusions correct for the intake facts. Scope analysis right. Exceptions properly analyzed.
-2. citation (0-100): All cited sections are real, correctly numbered, and correctly applied to the proposition being cited.
-3. hallucination (0-100, higher = LESS hallucination): No invented facts, non-existent regulations, or unsupported claims about the business.
-4. analysis (0-100): Reasoning is specific to THIS business's facts — not generic boilerplate that could apply to anyone.
-5. intelligence (0-100): Output is genuinely useful and actionable for a real compliance professional.
-6. formatting (0-100): No double-numbered lists, no prompt artifacts, no British spelling in US documents, clean layout.
+1. accuracy       — Legal conclusions correct for the intake facts.
+2. citation       — Cited sections are real, correctly numbered, and correctly applied.
+3. hallucination  — HIGHER = LESS hallucination. No invented facts or non-existent regulations.
+4. analysis       — Reasoning is specific to THIS intake, not generic boilerplate.
+5. intelligence   — Output is actionable for a real compliance professional.
+6. formatting     — Clean output; no AI meta-commentary.
 
-ALWAYS flag as critical failures:
-- Advertising classified as a "significant decision" under CPPA § 7001(ddd)
-- Gaming service eligibility classified as a "significant decision"
-- § 7221(c)(5) cited for denied opt-out appeals
-- § 7152(a)(3) cited as ADMT trade-secret exception
-- Gap arrays populated when triggers_significant_decision is false
-- Any invented section numbers (real ADMT sections: 7001, 7150-7157, 7200-7222)
+CHECKLIST (evaluate ONLY these; use the EXACT id given; do not add, rename, or omit):
+${rubricChecklistText(checks)}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON of this exact shape:
 {
   "dimension_scores": { "accuracy": 0-100, "citation": 0-100, "hallucination": 0-100, "analysis": 0-100, "intelligence": 0-100, "formatting": 0-100 },
   "overall_score": 0-100,
-  "llm_findings": [
-    { "check_id": "snake_case_id", "dimension": "accuracy|citation|hallucination|analysis|intelligence|formatting", "severity": "critical|high|medium|low", "passed": true|false, "evidence": "specific quoted text or null", "proposed_fix": "exact prompt text change to prevent this, or null" }
+  "findings": [
+    { "check_id": "<EXACT id from the checklist above>", "dimension": "...", "severity": "...", "passed": true|false, "evidence": "quoted text or null" }
   ],
-  "strengths": ["what the document does well"],
-  "critical_failures": ["descriptions of critical failures, empty array if none"]
+  "strengths": ["..."],
+  "critical_failures": ["..."]
 }`;
+}
 
 async function evaluateDocumentClaude(tool: string, intake: any, report: any): Promise<any> {
-  const detFindings = CHECKS.map(c => {
+  // F3: deterministic checks scoped to this tool
+  const applicableChecks = CHECKS.filter(c => !c.tools || c.tools.includes(tool));
+  const detFindings = applicableChecks.map(c => {
     try {
       const r = c.run(intake ?? {}, report ?? {});
       return { check_id: c.id, check_type: "deterministic", dimension: c.dimension, severity: c.severity, passed: r.passed, evidence: r.evidence ?? null, proposed_fix: null };
@@ -287,15 +355,28 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
     }
   });
 
+  // Build a check_id → metadata map so we can backfill missing ids with their canonical
+  // dimension/severity if the model omits or invents them.
+  const rubricMeta = new Map(rubricFor(tool).map(r => [r.id, r]));
+
   let claudeResult: any = null;
   try {
-    const raw = await claude(CLAUDE_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2500)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`, 5000);
+    const sys = buildRubricSystemPrompt("claude", tool);
+    const raw = await claude(sys, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2500)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`, 5000);
     claudeResult = tryParse(raw);
   } catch (e) {
     console.warn("[run-quality-batch] Claude rubric eval failed:", (e as Error).message);
   }
 
-  const llmFindings = (claudeResult?.llm_findings ?? []).map((f: any) => ({ ...f, check_type: "llm" }));
+  // F2: unified `findings` (no more llm_findings); enforce fixed ids
+  const rawLlmFindings: any[] = claudeResult?.findings ?? claudeResult?.llm_findings ?? [];
+  const llmFindings = rawLlmFindings
+    .filter(f => rubricMeta.has(f.check_id))
+    .map(f => {
+      const meta = rubricMeta.get(f.check_id)!;
+      return { check_id: f.check_id, check_type: "llm", dimension: meta.dimension, severity: meta.severity, passed: !!f.passed, evidence: f.evidence ?? null, proposed_fix: null };
+    });
+
   const scores = {
     accuracy:      claudeResult?.dimension_scores?.accuracy      ?? 60,
     citation:      claudeResult?.dimension_scores?.citation      ?? 60,
@@ -315,101 +396,48 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   return { dimension_scores: scores, overall_score: overall, findings: [...detFindings, ...llmFindings], strengths: claudeResult?.strengths ?? [], critical_failures: claudeResult?.critical_failures ?? [] };
 }
 
-const GPT_RUBRIC_SYSTEM = `You are a quality assurance reviewer for an AI-generated legal compliance document platform. Evaluate the compliance document against a 6-dimension rubric and return structured JSON.
-
-EVALUATION DIMENSIONS (score each 0-100):
-1. accuracy: Are the legal conclusions correct for the described facts? Is the scope analysis right?
-2. citation: Are all cited sections real, correctly numbered, and correctly applied?
-3. hallucination: Score HIGHER for LESS hallucination. No invented facts or non-existent regulations.
-4. analysis: Is the reasoning specific to THIS business's facts, or generic boilerplate?
-5. intelligence: Is the output genuinely useful and actionable for a real compliance professional?
-6. formatting: Clean output — no double-numbered lists, no internal AI commentary, no British spelling in US documents.
-
-FLAG as critical failures:
-- Advertising classified as a "significant decision" under any privacy regulation
-- Gaming or entertainment service eligibility classified as a "significant decision"
-- Any section number that appears invented or outside the known range for this regulation
-- Internal AI reasoning visible in customer-facing text
-- Gap arrays populated when the scope analysis says obligations are not triggered
-
-Return ONLY valid JSON:
-{
-  "dimension_scores": { "accuracy": 0-100, "citation": 0-100, "hallucination": 0-100, "analysis": 0-100, "intelligence": 0-100, "formatting": 0-100 },
-  "overall_score": 0-100,
-  "findings": [
-    { "check_id": "descriptive_snake_case_id", "dimension": "accuracy|citation|hallucination|analysis|intelligence|formatting", "severity": "critical|high|medium|low", "passed": true|false, "evidence": "exact quoted text or null" }
-  ],
-  "strengths": ["what the document does well"],
-  "critical_failures": ["critical failures, empty array if none"]
-}`;
-
 async function evaluateDocumentGPT(tool: string, intake: any, report: any): Promise<{ eval: any | null; skipReason?: string; error?: string }> {
   if (!OPENAI_API_KEY) {
     return { eval: null, skipReason: "OPENAI_API_KEY not set in edge function env" };
   }
   try {
-    // B3: editorial tools — append rubric override note so GPT ignores structured-field
-    // and formatting checks and focuses on accuracy + citation + no-adaptive-guidance.
     const editorialNote = isEditorial(tool)
-      ? `\n\nEDITORIAL RUBRIC OVERRIDE: This is editorial copy (Q&A, brief, trend report, state-law check). Score "formatting" as 100 (N/A — no structured fields). Drop any check_id that targets structured-field shape, schema, or layout. Focus on (1) accuracy of facts and law, (2) citation fidelity (no invented sources/sections), (3) no_adaptive_guidance — i.e. the copy does not tell the reader what answer to give on a form.`
+      ? `\n\nEDITORIAL RUBRIC OVERRIDE: This is editorial copy. Score "formatting" as 100 (N/A). Focus on (1) accuracy of facts and law, (2) citation fidelity, (3) no_adaptive_guidance.`
       : "";
-    const raw = await gpt4o(GPT_RUBRIC_SYSTEM, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2000)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 15000)}${editorialNote}\nEvaluate this compliance document. Quote actual text as evidence for each finding.`, 3000);
+    const sys = buildRubricSystemPrompt("gpt", tool);
+    const raw = await gpt4o(sys, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2000)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 15000)}${editorialNote}\nEvaluate this document. Quote actual text as evidence for each finding.`, 3000);
     const parsed = tryParse(raw);
     if (!parsed?.dimension_scores) {
       return { eval: null, error: `GPT returned unexpected structure (first 120 chars: ${raw.slice(0, 120)})` };
     }
+    // Normalize findings to only the fixed checklist ids (drop invented ones)
+    const rubricMeta = new Map(rubricFor(tool).map(r => [r.id, r]));
+    parsed.findings = (parsed.findings ?? [])
+      .filter((f: any) => rubricMeta.has(f.check_id))
+      .map((f: any) => {
+        const meta = rubricMeta.get(f.check_id)!;
+        return { check_id: f.check_id, dimension: meta.dimension, severity: meta.severity, passed: !!f.passed, evidence: f.evidence ?? null };
+      });
     return { eval: parsed };
   } catch (e) {
     return { eval: null, error: (e as Error).message };
   }
 }
 
-const CROSS_REVIEW_SYSTEM = `You are a senior privacy compliance reviewer reconciling two independent AI evaluations of the same compliance document. Identify where the evaluators agree, disagree, and what disagreements reveal about the document generator's weaknesses.
-
-Categorise each finding as:
-- "agree": Both evaluators reached the same conclusion. High confidence.
-- "claude_only": Claude flagged it, GPT did not. Could be over-flagging or GPT missing it.
-- "gpt_only": GPT flagged it, Claude did not. HIGHEST PRIORITY — Claude has a blind spot. Propose a rubric addition to fix it.
-- "conflict": Both flagged it with substantially different evidence or conclusions. Needs manual legal review.
-
-Return ONLY valid JSON:
-{
-  "dimension_scores_reconciled": { "accuracy": 0-100, "citation": 0-100, "hallucination": 0-100, "analysis": 0-100, "intelligence": 0-100, "formatting": 0-100 },
-  "overall_score_reconciled": 0-100,
-  "findings": [
-    {
-      "check_id": "string",
-      "dimension": "accuracy|citation|hallucination|analysis|intelligence|formatting",
-      "severity": "critical|high|medium|low",
-      "category": "agree|claude_only|gpt_only|conflict",
-      "passed": true|false,
-      "evidence_claude": "Claude's evidence or null",
-      "evidence_gpt": "GPT's evidence or null",
-      "reconciled_conclusion": "One sentence conclusion for a human reviewer",
-      "rubric_addition": "If gpt_only: exact text to add to Claude's rubric to catch this in future. Otherwise null."
-    }
-  ],
-  "summary": "2-3 sentence plain-language cross-review summary",
-  "gpt_only_findings": ["check_ids where GPT caught something Claude missed"],
-  "conflict_findings": ["check_ids where evaluators disagreed"]
-}`;
-
-async function crossReviewEvaluations(tool: string, intake: any, report: any, claudeEval: any, gptEval: any): Promise<any | null> {
-  if (!gptEval) return null;
-  try {
-    const userMsg = `TOOL: ${tool}
-INTAKE: ${JSON.stringify(intake ?? {}).slice(0, 1500)}
-DOCUMENT: ${JSON.stringify(report ?? {}).slice(0, 5000)}
-CLAUDE'S EVALUATION: ${JSON.stringify({ dimension_scores: claudeEval?.dimension_scores, overall_score: claudeEval?.overall_score, findings: claudeEval?.findings?.filter((f: any) => !f.passed) ?? [], critical_failures: claudeEval?.critical_failures ?? [] })}
-GPT-4o'S EVALUATION: ${JSON.stringify({ dimension_scores: gptEval?.dimension_scores, overall_score: gptEval?.overall_score, findings: gptEval?.findings?.filter((f: any) => !f.passed) ?? [], critical_failures: gptEval?.critical_failures ?? [] })}
-Reconcile these evaluations. Identify all agreements, disagreements, and blind spots.`;
-    // Cross-review uses claude-haiku-4-5 — same instruction-following, ~10× faster than o3.
-    const raw = await claude(CROSS_REVIEW_SYSTEM, userMsg, 3000, "claude-haiku-4-5-20251001");
-    return tryParse(raw);
-  } catch (e) {
-    console.warn("[run-quality-batch] cross-review failed (non-fatal):", (e as Error).message);
-    return null;
-  }
+// ===================================================================
+// F4 — Deterministic categorization (replaces the LLM reconciler).
+// Categories:
+//   "deterministic"  — a code-verified (deterministic) failure (ground truth, trusted)
+//   "agree"          — both Claude and GPT failed the SAME rubric check
+//   "claude_only"    — Claude failed it, GPT did not
+//   "gpt_only"       — GPT failed it, Claude did not
+//   "agree_pass"     — both passed (not surfaced as a defect)
+// ===================================================================
+function categorizePerDoc(claudeFail: boolean, gptFail: boolean): string {
+  if (claudeFail && gptFail)  return "agree";
+  if (claudeFail && !gptFail) return "claude_only";
+  if (!claudeFail && gptFail) return "gpt_only";
+  return "agree_pass";
 }
 
 async function generateIntakes(tool: string, count: number): Promise<any[]> {
@@ -864,16 +892,18 @@ async function runBatch(runId: string): Promise<void> {
         await log("error", `${docLabel}: GPT-4o FAILED — ${gptResult.error ?? "unknown error"}`);
       }
 
-      // Cross-review (depends on both prior evals, so run after).
-      const crossReview = await withTimeout(
-        crossReviewEvaluations(tool, intake, result.reportData, claudeEval, gptEval),
-        CROSS_REVIEW_TIMEOUT_MS, "Cross-review",
-      ).catch(e => { console.warn("Cross-review failed:", e.message); return null; });
+      // F4: deterministic cross-review — no LLM call. Categorize each rubric finding
+      // by joining Claude and GPT verdicts on the SHARED check_id.
+      const gptFindings: any[] = gptEval?.findings ?? [];
+      const gptById = new Map<string, any>(gptFindings.map((f: any) => [f.check_id, f]));
+      const claudeRubricById = new Map<string, any>(
+        claudeEval.findings.filter((f: any) => f.check_type === "llm").map((f: any) => [f.check_id, f])
+      );
 
       await log("success", `${docLabel}: scored ${claudeEval.overall_score}/100${gptEval ? ` (GPT ${gptEval.overall_score}/100)` : ""}`);
 
-      const finalScores  = crossReview?.dimension_scores_reconciled ?? claudeEval.dimension_scores;
-      const finalOverall = crossReview?.overall_score_reconciled    ?? claudeEval.overall_score;
+      const finalScores  = claudeEval.dimension_scores;
+      const finalOverall = claudeEval.overall_score;
 
       for (const dim of Object.keys(state.dimTotals)) {
         const v = (finalScores as any)[dim] ?? 60;
@@ -891,7 +921,15 @@ async function runBatch(runId: string): Promise<void> {
       if (scenarioSet === "tuning")  state.tuningBuilt++;
       if (scenarioSet === "holdout") state.holdoutBuilt++;
 
-      const crossStatus = !gptEval ? "gpt_failed" : !crossReview ? "pending" : "complete";
+      const crossStatus = !gptEval ? "gpt_failed" : "complete";
+
+      // Persist a lightweight cross-review summary (deterministic, no LLM payload).
+      const crossSummary = gptEval ? {
+        method: "deterministic_join_v2",
+        claude_overall: claudeEval.overall_score,
+        gpt_overall: gptEval.overall_score,
+        rubric_findings_compared: claudeRubricById.size,
+      } : null;
 
       await admin.from("quality_run_documents").update({
         dimension_scores: { ...finalScores, overall: finalOverall },
@@ -899,7 +937,7 @@ async function runBatch(runId: string): Promise<void> {
         gpt_evaluation: gptEval ?? null,
         gpt_dimension_scores: gptEval?.dimension_scores ?? null,
         gpt_overall_score: gptEval?.overall_score ?? null,
-        cross_review: crossReview ?? null,
+        cross_review: crossSummary,
         cross_review_status: crossStatus,
         status: "complete",
       }).eq("id", docRow.id);
@@ -912,28 +950,50 @@ async function runBatch(runId: string): Promise<void> {
       }));
       if (findingRows.length) await admin.from("quality_findings").insert(findingRows);
 
-      const crossFindingsMap = new Map<string, any>(
-        (crossReview?.findings ?? []).map((f: any) => [f.check_id, f])
-      );
-      state.allDocFindings.push(...claudeEval.findings.map((f: any) => ({
-        ...f,
-        doc_id: docRow.id,
-        scenario_set: scenarioSet,
-        cross_category: crossFindingsMap.get(f.check_id)?.category ?? null,
-        cross_evidence_gpt: crossFindingsMap.get(f.check_id)?.evidence_gpt ?? null,
-        rubric_addition: crossFindingsMap.get(f.check_id)?.rubric_addition ?? null,
-      })));
+      // Push Claude findings with per-doc cross-category.
+      //  - Deterministic failures → "deterministic" (code-verified ground truth)
+      //  - Deterministic passes → no category (don't surface as defect)
+      //  - Rubric (llm) findings → categorized by joining with gpt verdict for the SAME check_id
+      for (const f of claudeEval.findings) {
+        let perDocCategory: string | null = null;
+        let gptEvidence: string | null = null;
+        if (f.check_type === "deterministic") {
+          perDocCategory = f.passed ? null : "deterministic";
+        } else {
+          // llm rubric finding
+          const gptF = gptEval ? gptById.get(f.check_id) : null;
+          if (gptEval) {
+            const gptFail = gptF ? !gptF.passed : false;
+            gptEvidence = gptF?.evidence ?? null;
+            perDocCategory = categorizePerDoc(!f.passed, gptFail);
+          } else {
+            perDocCategory = !f.passed ? "claude_only" : null;
+          }
+        }
+        state.allDocFindings.push({
+          ...f,
+          doc_id: docRow.id,
+          scenario_set: scenarioSet,
+          cross_category: perDocCategory,
+          cross_evidence_gpt: gptEvidence,
+          rubric_addition: null, // F6: obsolete — deterministic categorization replaces the LLM reconciler
+        });
+      }
 
-      const claudeCheckIds = new Set(claudeEval.findings.map((f: any) => f.check_id));
-      for (const gptFinding of (gptEval?.findings ?? []).filter((f: any) => !f.passed)) {
-        if (!claudeCheckIds.has(gptFinding.check_id)) {
+      // GPT-only failures: rubric findings the model flagged that Claude didn't (claude passed
+      // or didn't return that id at all).
+      for (const gptFinding of gptFindings.filter((f: any) => !f.passed)) {
+        const claudeF = claudeRubricById.get(gptFinding.check_id);
+        const claudeFail = claudeF ? !claudeF.passed : false;
+        if (!claudeFail) {
+          // Not already counted via the Claude loop above (which only records categories for Claude findings).
           state.allDocFindings.push({
             check_id: gptFinding.check_id, check_type: "gpt_only",
             dimension: gptFinding.dimension, severity: gptFinding.severity,
             passed: false, evidence: gptFinding.evidence ?? null, doc_id: docRow.id,
             scenario_set: scenarioSet,
             cross_category: "gpt_only", cross_evidence_gpt: gptFinding.evidence ?? null,
-            rubric_addition: crossFindingsMap.get(gptFinding.check_id)?.rubric_addition ?? null,
+            rubric_addition: null,
           });
         }
       }
@@ -1034,17 +1094,23 @@ async function runBatch(runId: string): Promise<void> {
       const holdoutFailed   = holdoutFindings.filter(f => !f.passed).length;
       const holdoutFailRate = holdoutFindings.length ? holdoutFailed / holdoutFindings.length : 0;
 
-      const gptOnlyCount  = findings.filter(f => f.cross_category === "gpt_only").length;
-      const conflictCount = findings.filter(f => f.cross_category === "conflict").length;
-      const agreeCount    = findings.filter(f => f.cross_category === "agree").length;
+      // F5: aggregation. "deterministic" if any deterministic failure (code-verified, trusted).
+      // "agree" only if BOTH evaluators failed in >50% of applicable docs (not a single-doc override).
+      // Otherwise pick the dominant disagreement category.
+      const docCount        = findings.length;
+      const deterministicHits = findings.filter(f => f.cross_category === "deterministic").length;
+      const agreeFailDocs   = findings.filter(f => f.cross_category === "agree").length;
+      const gptOnlyCount    = findings.filter(f => f.cross_category === "gpt_only").length;
+      const claudeOnlyCount = findings.filter(f => f.cross_category === "claude_only").length;
       let crossCategory: string | null = null;
-      if (gptOnlyCount > 0)          crossCategory = "gpt_only";
-      else if (conflictCount > 0)    crossCategory = "conflict";
-      else if (agreeCount > 0)       crossCategory = "agree";
-      else if (findings.some(f => !f.passed)) crossCategory = "claude_only";
+      if (deterministicHits > 0)                         crossCategory = "deterministic";
+      else if (docCount > 0 && agreeFailDocs > docCount / 2) crossCategory = "agree";
+      else if (claudeOnlyCount >= gptOnlyCount && claudeOnlyCount > 0) crossCategory = "claude_only";
+      else if (gptOnlyCount > 0)                         crossCategory = "gpt_only";
+      else if (findings.some(f => !f.passed))            crossCategory = "claude_only";
 
       const gptEvidence    = findings.filter(f => f.cross_evidence_gpt).map(f => f.cross_evidence_gpt).slice(0, 3);
-      const rubricAddition = findings.filter(f => f.rubric_addition).map(f => f.rubric_addition)[0] ?? null;
+      const rubricAddition = null; // F6: rubric_addition removed
       const sev = String(first?.severity ?? "").toLowerCase();
       const severityRank = sev === "critical" ? 3 : sev === "high" ? 2 : sev === "medium" ? 1 : 0;
 
@@ -1076,7 +1142,7 @@ async function runBatch(runId: string): Promise<void> {
     // overall failRate gate so behavior is non-regressive.
     const hasTuningData = state.tuningBuilt > 0;
     const aiCandidates = aggregates
-      .filter(a => !a.rubricAddition && a.evidence.length > 0 && a.crossCategory !== "conflict")
+      .filter(a => a.evidence.length > 0)
       .filter(a => hasTuningData ? a.tuningFailRate > 0.2 : a.failRate > 0.2)
       .filter(a => !alreadyFixedIds.has(a.checkId))
       .sort((x, y) => (y.severityRank - x.severityRank) || (y.failed * y.failRate - x.failed * x.failRate))
@@ -1099,12 +1165,10 @@ async function runBatch(runId: string): Promise<void> {
     }
 
     for (const a of aggregates) {
-      let proposedFix = a.rubricAddition ?? "";
-      let fixLocation = a.rubricAddition
-        ? "Evaluator rubric — add to CLAUDE_RUBRIC_SYSTEM in run-quality-batch/index.ts"
-        : "";
+      let proposedFix = "";
+      let fixLocation = "";
 
-      if (!proposedFix && fixResults.has(a.checkId)) {
+      if (fixResults.has(a.checkId)) {
         const fix = fixResults.get(a.checkId);
         proposedFix = fix?.fix ?? "";
         fixLocation = fix?.location ?? "";
@@ -1130,10 +1194,11 @@ async function runBatch(runId: string): Promise<void> {
         gpt_pass_count: gptPassed, gpt_fail_count: gptFailed, gpt_fail_rate: gptFailRate,
         gpt_sample_evidence: a.gptEvidence.length ? a.gptEvidence : null,
         cross_review_category: a.crossCategory,
-        cross_review_summary: a.rubricAddition
-          ? `GPT-only finding — Claude missed this. Proposed rubric addition: ${a.rubricAddition.slice(0, 120)}…`
-          : a.crossCategory === "agree" ? "Both evaluators agree on this finding."
-          : a.crossCategory === "conflict" ? "Evaluators disagree — requires manual legal review."
+        cross_review_summary:
+          a.crossCategory === "deterministic" ? "Code-verified failure (deterministic check) — ground truth."
+          : a.crossCategory === "agree"       ? "Both Claude and GPT failed this check in the majority of docs."
+          : a.crossCategory === "claude_only" ? "Claude flagged; GPT did not — possible Claude over-flagging or GPT blind spot."
+          : a.crossCategory === "gpt_only"    ? "GPT flagged; Claude did not — possible Claude blind spot."
           : null,
         proposed_fix: proposedFix || null,
         fix_location: fixLocation || null,
