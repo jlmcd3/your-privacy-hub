@@ -512,6 +512,9 @@ async function backfillAll(admin: ReturnType<typeof createClient>, body: any) {
     }
   }
   return json(summary);
+}
+
+
 
 
 Deno.serve(async (req) => {
