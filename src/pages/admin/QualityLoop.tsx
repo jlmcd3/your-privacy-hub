@@ -68,6 +68,37 @@ function fmtDuration(startIso: string, endIso?: string | null): string {
 }
 
 // ──────────────────────────────────────────────────────────────────
+// CycleLogViewer — scrollable log with show-all toggle
+
+function CycleLogViewer({ entries }: { entries: Array<{ ts: string; msg: string }> }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!entries || entries.length === 0) {
+    return <div className="text-[11px] text-gray-400 mt-1 italic">No log entries yet.</div>;
+  }
+  const visible = expanded ? entries : entries.slice(-8);
+  return (
+    <div className="mt-2 border border-gray-200 rounded bg-gray-900 text-gray-100 font-mono text-[11px] overflow-hidden">
+      <div className="max-h-64 overflow-y-auto p-2 space-y-0.5">
+        {visible.map((e, i) => (
+          <div key={i} className="whitespace-pre-wrap break-words">
+            <span className="text-gray-500">[{new Date(e.ts).toLocaleTimeString()}]</span>{" "}
+            <span>{e.msg}</span>
+          </div>
+        ))}
+      </div>
+      {entries.length > 8 && (
+        <button
+          onClick={() => setExpanded(x => !x)}
+          className="w-full text-[10px] uppercase tracking-wide text-gray-300 bg-gray-800 hover:bg-gray-700 py-1 border-t border-gray-700"
+        >
+          {expanded ? `Collapse (showing all ${entries.length})` : `Show all ${entries.length} entries (showing last 8)`}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────
 // Now Running
 
 type LiveCycle = {
@@ -154,7 +185,7 @@ function NowRunning() {
         <ul className="space-y-3">
           {cycles.map(c => {
             const score = c.current_score ?? c.baseline_score;
-            const lastLog = c.log && c.log.length > 0 ? c.log[c.log.length - 1] : null;
+            const logEntries = Array.isArray(c.log) ? c.log : [];
             return (
               <li key={c.id} className="border border-sky-100 bg-sky-50/40 rounded-lg p-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
@@ -174,12 +205,9 @@ function NowRunning() {
                 <div className="text-xs text-gray-700 mt-1.5">
                   iter {c.iteration ?? 0}/{c.max_iterations ?? 6} · phase <strong>{c.phase ?? "—"}</strong>
                   {score != null && <> · score <strong>{score}%</strong></>}
+                  {logEntries.length > 0 && <> · {logEntries.length} log line(s)</>}
                 </div>
-                {lastLog && (
-                  <div className="text-[11px] text-gray-500 mt-1 font-mono truncate">
-                    [{new Date(lastLog.ts).toLocaleTimeString()}] {lastLog.msg}
-                  </div>
-                )}
+                <CycleLogViewer entries={logEntries} />
               </li>
             );
           })}
