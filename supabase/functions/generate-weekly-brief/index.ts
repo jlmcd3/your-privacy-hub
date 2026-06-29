@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
 
     const { data: rawArticles, error: fetchError } = await supabase
       .from("updates")
-      .select("title, summary, source_name, category, topic_tags, published_at, url, attention_level, legal_weight, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date, product_ctas")
+      .select("title, summary, source_name, category, topic_tags, published_at, url, attention_level, affected_sectors, regulatory_theory, related_development, direct_jurisdictions, key_date, product_ctas")
       .gte("published_at", weekStart.toISOString())
       .order("published_at", { ascending: false })
       .limit(60);
@@ -148,11 +148,9 @@ Deno.serve(async (req) => {
       "Binding": 4, "Enforcement": 3, "Guidance": 2, "Proposal": 1, "Commentary": 0,
     };
     const ATTENTION_RANK: Record<string, number> = { "High": 2, "Medium": 1, "Low": 0 };
+    // `legal_weight` was removed from the `updates` schema; rank by attention only.
+    void LEGAL_WEIGHT_RANK;
     const articles = rawArticles.sort((a, b) => {
-      const lw =
-        (LEGAL_WEIGHT_RANK[b.legal_weight ?? ""] ?? 0) -
-        (LEGAL_WEIGHT_RANK[a.legal_weight ?? ""] ?? 0);
-      if (lw !== 0) return lw;
       return (
         (ATTENTION_RANK[b.attention_level ?? ""] ?? 0) -
         (ATTENTION_RANK[a.attention_level ?? ""] ?? 0)
