@@ -68,13 +68,18 @@ async function appendLog(admin: Admin, cycleId: string, msg: string) {
   console.log(`[improve-tool-quality][${cycleId}] ${msg}`);
 }
 
-function selfReinvoke(cycleId: string, phase?: string) {
-  fetch(`${SUPABASE_URL}/functions/v1/improve-tool-quality`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
-    body: JSON.stringify({ cycle_id: cycleId, phase }),
-  }).catch((e) => console.warn("[improve-tool-quality] self-reinvoke failed:", (e as Error).message));
+async function selfReinvoke(cycleId: string, phase?: string): Promise<void> {
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/improve-tool-quality`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
+      body: JSON.stringify({ cycle_id: cycleId, phase }),
+    });
+  } catch (e) {
+    console.warn("[improve-tool-quality] self-reinvoke failed:", (e as Error).message);
+  }
 }
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function invokeFn(name: string, body: unknown, timeoutMs = 240_000): Promise<any> {
   const r = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
