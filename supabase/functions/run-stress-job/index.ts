@@ -328,13 +328,14 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       }
       try {
         await admin.from("us_notice_answers").insert(
-          Object.entries(intake).map(([k, v]) => ({
+          Object.entries(withNames(intake)).map(([k, v]) => ({
             session_id: session.id, question_key: k, answer_value: v as any,
           })),
         );
       } catch (e) {
         console.warn("[run-stress-job] us_notice_answers insert failed:", e);
       }
+
       const gen = await invokeFn("generate-us-notice", { session_id: session.id });
       if (!gen?.documents?.length) throw new Error("us-notice: no documents");
       return { sourceTable: "us_notice_sessions", sourceRowId: session.id };
