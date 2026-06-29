@@ -738,16 +738,22 @@ Deno.serve(async (req) => {
 
   const auth = req.headers.get("Authorization") ?? "";
   const token = auth.replace("Bearer ", "");
-  const isInternal = req.headers.get("x-internal-resume") === "1" && token === SERVICE_KEY;
+  // Service-role bearer (used by internal orchestrators like auto-iterate-quality) bypasses user auth.
+  const isInternal = token === SERVICE_KEY && SERVICE_KEY.length > 0;
 
   let userId: string | null = null;
   if (!isInternal) {
     const { data: claims, error } = await createClient(SUPABASE_URL, ANON_KEY).auth.getClaims(token);
-    if (error || !claims?.claims?.sub) return json({ error: "Unauthorized" }, 401);
+    if (error || !claims?.claims?.sub) {
+      console.warn("[improve-tool-quality] auth failed", { hasToken: !!token, tokenLen: token.length, err: error?.message });
+      return json({ error: "Unauthorized" }, 401);
+    }
     userId = claims.claims.sub;
     const admin = await adminClient();
     const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
     if (!isAdmin) return json({ error: "Admin only" }, 403);
+  } else {
+    userId = (body?.started_by as string) ?? (req.headers.get("x-acting-user") ?? null);
   }
 
   // Resume an in-progress cycle.
