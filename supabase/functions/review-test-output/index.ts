@@ -92,9 +92,52 @@ function tryParse(t: string): any | null {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
+// ─── Retry with exponential backoff + jitter on 429/5xx ──────────────────────
+// Honors `Retry-After` (seconds or HTTP-date) when the provider sends one.
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+const MAX_RETRIES = 5;
+const BASE_DELAY_MS = 1_000;
+const MAX_DELAY_MS = 30_000;
+
+function parseRetryAfter(h: string | null): number | null {
+  if (!h) return null;
+  const secs = Number(h);
+  if (Number.isFinite(secs) && secs >= 0) return Math.min(secs * 1000, MAX_DELAY_MS);
+  const t = Date.parse(h);
+  if (!Number.isNaN(t)) return Math.max(0, Math.min(t - Date.now(), MAX_DELAY_MS));
+  return null;
+}
+
+async function fetchWithRetry(label: string, url: string, init: RequestInit): Promise<Response> {
+  let attempt = 0;
+  while (true) {
+    let r: Response;
+    try {
+      r = await fetch(url, init);
+    } catch (e) {
+      if (attempt >= MAX_RETRIES) throw e;
+      const backoff = Math.min(BASE_DELAY_MS * 2 ** attempt, MAX_DELAY_MS);
+      const jitter = Math.floor(Math.random() * 500);
+      console.warn(`[${label}] network error (attempt ${attempt + 1}/${MAX_RETRIES + 1}): ${(e as Error).message}; retrying in ${backoff + jitter}ms`);
+      await new Promise((res) => setTimeout(res, backoff + jitter));
+      attempt++;
+      continue;
+    }
+    if (r.ok || !RETRYABLE_STATUSES.has(r.status) || attempt >= MAX_RETRIES) return r;
+    const retryAfter = parseRetryAfter(r.headers.get("retry-after") ?? r.headers.get("x-ratelimit-reset"));
+    const expBackoff = Math.min(BASE_DELAY_MS * 2 ** attempt, MAX_DELAY_MS);
+    const jitter = Math.floor(Math.random() * 500);
+    const delay = (retryAfter ?? expBackoff) + jitter;
+    console.warn(`[${label}] ${r.status} (attempt ${attempt + 1}/${MAX_RETRIES + 1}); retrying in ${delay}ms${retryAfter != null ? " (Retry-After)" : ""}`);
+    try { await r.text(); } catch { /* drain */ }
+    await new Promise((res) => setTimeout(res, delay));
+    attempt++;
+  }
+}
+
 async function callClaude(system: string, user: string, model: string): Promise<string> {
   if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY not configured");
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
+  const r = await fetchWithRetry("anthropic", "https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "x-api-key": ANTHROPIC_API_KEY,
@@ -107,7 +150,7 @@ async function callClaude(system: string, user: string, model: string): Promise<
       system,
       messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(120_000),
+    signal: AbortSignal.timeout(180_000),
   });
   if (!r.ok) {
     const t = await r.text();
@@ -119,7 +162,7 @@ async function callClaude(system: string, user: string, model: string): Promise<
 
 async function callOpenAI(system: string, user: string, model: string): Promise<string> {
   if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not configured");
-  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+  const r = await fetchWithRetry("openai", "https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -129,7 +172,7 @@ async function callOpenAI(system: string, user: string, model: string): Promise<
       response_format: { type: "json_object" },
       messages: [{ role: "system", content: system }, { role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(120_000),
+    signal: AbortSignal.timeout(180_000),
   });
   if (!r.ok) {
     const t = await r.text();
