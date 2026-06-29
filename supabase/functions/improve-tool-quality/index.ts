@@ -68,13 +68,18 @@ async function appendLog(admin: Admin, cycleId: string, msg: string) {
   console.log(`[improve-tool-quality][${cycleId}] ${msg}`);
 }
 
-function selfReinvoke(cycleId: string, phase?: string) {
-  fetch(`${SUPABASE_URL}/functions/v1/improve-tool-quality`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
-    body: JSON.stringify({ cycle_id: cycleId, phase }),
-  }).catch((e) => console.warn("[improve-tool-quality] self-reinvoke failed:", (e as Error).message));
+async function selfReinvoke(cycleId: string, phase?: string): Promise<void> {
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/improve-tool-quality`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
+      body: JSON.stringify({ cycle_id: cycleId, phase }),
+    });
+  } catch (e) {
+    console.warn("[improve-tool-quality] self-reinvoke failed:", (e as Error).message);
+  }
 }
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function invokeFn(name: string, body: unknown, timeoutMs = 240_000): Promise<any> {
   const r = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
@@ -149,7 +154,7 @@ async function phaseInit(admin: Admin, cycleId: string) {
     baseline_batch_id: batchId, current_batch_id: batchId, phase: "reviewing", status: "running",
   }).eq("id", cycleId);
   await appendLog(admin, cycleId, `Phase 1 — using static-stress batch ${batchId.slice(0, 8)}`);
-  selfReinvoke(cycleId);
+  await selfReinvoke(cycleId);
 }
 
 async function phaseReviewing(admin: Admin, cycleId: string) {
@@ -238,7 +243,7 @@ async function phaseReviewing(admin: Admin, cycleId: string) {
     // All clean reports reviewed by both models — proceed.
     await appendLog(admin, cycleId, `Iteration ${iteration}: reviewed ${clean.length} clean report(s) with dual models. Excluded ${excluded.length}.`);
     await admin.from("tool_improvement_cycles").update({ phase: "ranking" }).eq("id", cycleId);
-    selfReinvoke(cycleId);
+    await selfReinvoke(cycleId);
     return;
   }
 
@@ -282,7 +287,7 @@ async function phaseReviewing(admin: Admin, cycleId: string) {
       await appendLog(admin, cycleId, `Reviewer ${r.model} failed on ${next.id.slice(0, 8)}: ${(e as Error).message.slice(0, 120)}`);
     }
   }
-  selfReinvoke(cycleId);
+  await selfReinvoke(cycleId);
 }
 
 function similarChange(a: any, b: any): boolean {
@@ -405,7 +410,7 @@ async function phaseRanking(admin: Admin, cycleId: string) {
     }).eq("id", cycleId);
     return;
   }
-  selfReinvoke(cycleId);
+  await selfReinvoke(cycleId);
 }
 
 async function phaseDeliberating(admin: Admin, cycleId: string) {
@@ -488,7 +493,7 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
 
   await admin.from("tool_improvement_cycles").update({ phase: "rerunning" }).eq("id", cycleId);
   // Give deliberation a head start; the rerunning phase will check verdicts.
-  setTimeout(() => selfReinvoke(cycleId), 30_000);
+  await sleep(30_000); await selfReinvoke(cycleId);
 }
 
 async function phaseRerunning(admin: Admin, cycleId: string) {
@@ -506,7 +511,7 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
     const done = delibs?.length ?? 0;
     if (total > 0 && done < total) {
       await appendLog(admin, cycleId, `Deliberation ${done}/${total} — waiting`);
-      setTimeout(() => selfReinvoke(cycleId), 30_000);
+      await sleep(30_000); await selfReinvoke(cycleId);
       return;
     }
     const staged = (delibs ?? []).filter((d: any) => d.verdict === "auto_eligible").length;
@@ -543,7 +548,7 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
       quality_run_id: null,
       phase: "awaiting_rerun",
     }).eq("id", cycleId);
-    setTimeout(() => selfReinvoke(cycleId), 60_000);
+    await sleep(60_000); await selfReinvoke(cycleId);
   } catch (e) {
     await admin.from("tool_improvement_cycles").update({
       status: "failed", last_error: (e as Error).message, completed_at: new Date().toISOString(),
@@ -560,11 +565,11 @@ async function phaseAwaitingRerun(admin: Admin, cycleId: string) {
   if (status === "complete" || status === "failed" || status === "cancelled") {
     await admin.from("tool_improvement_cycles").update({ phase: "reviewing" }).eq("id", cycleId);
     await appendLog(admin, cycleId, `Stress batch ${batchId.slice(0, 8)} → ${status}; re-reviewing`);
-    selfReinvoke(cycleId);
+    await selfReinvoke(cycleId);
     return;
   }
   // Still running — poll again in 60s.
-  setTimeout(() => selfReinvoke(cycleId), 60_000);
+  await sleep(60_000); await selfReinvoke(cycleId);
 }
 
 async function dispatch(cycleId: string, phaseOverride?: string) {
