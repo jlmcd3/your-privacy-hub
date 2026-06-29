@@ -448,6 +448,7 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
       run_id: runId,
       tool: sampleSlug,
       check_id: `cycle:${cycleId.slice(0, 8)}:${i + 1}`,
+      run_number: 1,
       check_type: "llm",
       dimension: "accuracy",
       severity: sevLabel,
