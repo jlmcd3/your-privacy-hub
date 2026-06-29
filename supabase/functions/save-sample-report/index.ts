@@ -20,10 +20,21 @@ function json(body: unknown, status = 200) {
   });
 }
 
-// Map source_table → { has report_data column?, primary text column (if any) }.
-// Not every source table has a JSON `report_data` column — RoPA versions and
-// the notice sessions are file-driven and would error if we selected it.
-const SOURCE_SHAPE: Record<string, { reportData: boolean; textCol: string | null }> = {
+// Map source_table → shape used by the single content-copy helper.
+//   reportData      → has a JSON column to copy verbatim
+//   reportDataCol   → column name (defaults to "report_data")
+//   textCol         → tool-specific primary text column (full document body)
+//   fileDriven      → rendered HTML/PDF lives outside this row; hydration
+//                     returns nulls and these are excluded from the
+//                     text-based quality loop (option (b) in P4).
+type SourceShape = {
+  reportData: boolean;
+  reportDataCol?: string;
+  textCol: string | null;
+  fileDriven?: boolean;
+};
+
+const SOURCE_SHAPE: Record<string, SourceShape> = {
   li_assessments: { reportData: true, textCol: null },
   dpia_frameworks: { reportData: true, textCol: null },
   governance_assessments: { reportData: true, textCol: null },
@@ -31,12 +42,39 @@ const SOURCE_SHAPE: Record<string, { reportData: boolean; textCol: string | null
   dpa_documents: { reportData: true, textCol: "document_text" },
   ir_playbooks: { reportData: true, textCol: "playbook_text" },
   biometric_assessments: { reportData: true, textCol: "analysis_text" },
-  // RoPA + notices are file-driven; no report_data, no canonical text column.
-  ropa_document_versions: { reportData: false, textCol: null },
-  us_notice_sessions: { reportData: false, textCol: null },
-  eu_notice_sessions: { reportData: false, textCol: null },
-  registration_assessments: { reportData: false, textCol: null },
+  // registration_assessments stores its JSON output under `result_summary`,
+  // not `report_data` — map it so the quality loop sees real content.
+  registration_assessments: { reportData: true, reportDataCol: "result_summary", textCol: null },
+  // File-driven; excluded from text-based dual-model review.
+  ropa_document_versions: { reportData: false, textCol: null, fileDriven: true },
+  us_notice_sessions: { reportData: false, textCol: null, fileDriven: true },
+  eu_notice_sessions: { reportData: false, textCol: null, fileDriven: true },
 };
+
+// Single source of truth for "copy a source row's content into a sample_report".
+// Used by BOTH the snapshot write and the generate_pdf write so they cannot drift.
+export async function hydrateContent(
+  admin: ReturnType<typeof createClient>,
+  source_table: string,
+  source_row_id: string,
+): Promise<{ report_data: unknown | null; document_text: string | null; file_driven: boolean }> {
+  const shape = SOURCE_SHAPE[source_table] ?? { reportData: true, textCol: null };
+  if (shape.fileDriven) return { report_data: null, document_text: null, file_driven: true };
+  const dataCol = shape.reportData ? (shape.reportDataCol ?? "report_data") : null;
+  const cols = [dataCol, shape.textCol].filter(Boolean) as string[];
+  if (cols.length === 0) return { report_data: null, document_text: null, file_driven: false };
+  const { data: src, error } = await admin
+    .from(source_table)
+    .select(cols.join(","))
+    .eq("id", source_row_id)
+    .maybeSingle();
+  if (error) throw new Error(`hydrateContent ${source_table}: ${error.message}`);
+  return {
+    report_data: dataCol ? ((src as any)?.[dataCol] ?? null) : null,
+    document_text: shape.textCol ? ((src as any)?.[shape.textCol] ?? null) : null,
+    file_driven: false,
+  };
+}
 
 async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
   const {
@@ -47,23 +85,8 @@ async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
     return json({ error: "missing required fields" }, 400);
   }
 
-  const shape = SOURCE_SHAPE[source_table] ?? { reportData: true, textCol: null };
-  const cols: string[] = [];
-  if (shape.reportData) cols.push("report_data");
-  if (shape.textCol) cols.push(shape.textCol);
-  let src: Record<string, unknown> | null = null;
-  if (cols.length > 0) {
-    const { data, error: srcErr } = await admin
-      .from(source_table)
-      .select(cols.join(","))
-      .eq("id", source_row_id)
-      .maybeSingle();
-    if (srcErr) return json({ error: `source: ${srcErr.message}` }, 400);
-    src = (data as Record<string, unknown>) ?? null;
-  }
-
-  const reportData = shape.reportData ? ((src as any)?.report_data ?? null) : null;
-  const documentText = shape.textCol ? ((src as any)?.[shape.textCol] ?? null) : null;
+  const { report_data: reportData, document_text: documentText } =
+    await hydrateContent(admin, source_table, source_row_id);
   const verification = (reportData as any)?.verification ?? null;
 
   const payload = {
@@ -78,6 +101,7 @@ async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
   };
 
   const { data: row, error } = await admin
+
     .from("sample_reports")
     .upsert(payload, { onConflict: "tool_slug,variant" })
     .select()
