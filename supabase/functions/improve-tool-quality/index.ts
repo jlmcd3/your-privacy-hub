@@ -154,7 +154,7 @@ async function phaseInit(admin: Admin, cycleId: string) {
     baseline_batch_id: batchId, current_batch_id: batchId, phase: "reviewing", status: "running",
   }).eq("id", cycleId);
   await appendLog(admin, cycleId, `Phase 1 — using static-stress batch ${batchId.slice(0, 8)}`);
-  selfReinvoke(cycleId);
+  await selfReinvoke(cycleId);
 }
 
 async function phaseReviewing(admin: Admin, cycleId: string) {
@@ -243,7 +243,7 @@ async function phaseReviewing(admin: Admin, cycleId: string) {
     // All clean reports reviewed by both models — proceed.
     await appendLog(admin, cycleId, `Iteration ${iteration}: reviewed ${clean.length} clean report(s) with dual models. Excluded ${excluded.length}.`);
     await admin.from("tool_improvement_cycles").update({ phase: "ranking" }).eq("id", cycleId);
-    selfReinvoke(cycleId);
+    await selfReinvoke(cycleId);
     return;
   }
 
@@ -287,7 +287,7 @@ async function phaseReviewing(admin: Admin, cycleId: string) {
       await appendLog(admin, cycleId, `Reviewer ${r.model} failed on ${next.id.slice(0, 8)}: ${(e as Error).message.slice(0, 120)}`);
     }
   }
-  selfReinvoke(cycleId);
+  await selfReinvoke(cycleId);
 }
 
 function similarChange(a: any, b: any): boolean {
@@ -410,7 +410,7 @@ async function phaseRanking(admin: Admin, cycleId: string) {
     }).eq("id", cycleId);
     return;
   }
-  selfReinvoke(cycleId);
+  await selfReinvoke(cycleId);
 }
 
 async function phaseDeliberating(admin: Admin, cycleId: string) {
