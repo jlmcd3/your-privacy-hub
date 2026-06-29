@@ -192,8 +192,8 @@ function NowRunning() {
                 .from("tool_improvement_cycles")
                 .update({ cancel_requested: true } as any)
                 .eq("id", c.id);
-              if (error) toast({ title: "Cancel failed", description: error.message, variant: "destructive" });
-              else { toast({ title: "Cancellation requested", description: "Cycle will stop within one phase." }); load(); }
+              if (error) toast.error("Cancel failed", { description: error.message });
+              else { toast.success("Cancellation requested", { description: "Cycle will stop within one phase." }); load(); }
             };
             return (
               <li key={c.id} className="border border-sky-100 bg-sky-50/40 rounded-lg p-3">
