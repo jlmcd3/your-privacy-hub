@@ -548,7 +548,7 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
       quality_run_id: null,
       phase: "awaiting_rerun",
     }).eq("id", cycleId);
-    setTimeout(() => selfReinvoke(cycleId), 60_000);
+    await sleep(60_000); await selfReinvoke(cycleId);
   } catch (e) {
     await admin.from("tool_improvement_cycles").update({
       status: "failed", last_error: (e as Error).message, completed_at: new Date().toISOString(),
