@@ -453,6 +453,7 @@ export default function QualityLoop() {
           </p>
         </div>
         <SmokeBatchPanel />
+        <ActiveCyclesTable />
         <div className="space-y-3">
           {TOOLS.map(t => <ToolRow key={t.id} tool={t} />)}
         </div>
