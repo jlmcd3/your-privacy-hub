@@ -207,7 +207,10 @@ async function callOpenAI(system: string, user: string, model: string): Promise<
     throw new Error(`OpenAI ${r.status}: ${t.slice(0, 400)}`);
   }
   const d = await r.json();
-  return d?.choices?.[0]?.message?.content ?? "";
+  if (d?.stop_reason && d.stop_reason !== "end_turn") {
+    console.warn(`[review-test-output] claude stop_reason=${d.stop_reason}`);
+  }
+  return d?.content?.[0]?.text ?? "";
 }
 
 Deno.serve(async (req) => {
