@@ -521,18 +521,42 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
 
   // P6: kick a fresh stress batch limited to THIS tool. Inherits all anti-fail
   // machinery (9-min/tool timeout, watchdog, EdgeRuntime.waitUntil, token ceilings).
+  //
+  // ROOT-CAUSE FIX (2026-06-29): generate-stress-fixtures only emits a non-null
+  // `biometric` payload when the industry label matches /healthcare|life science|
+  // clinical|medical|pharma|financial|security/i. A generic "Improvement cycle"
+  // label produced fixtures.biometric === null, so the biometric tool's job row
+  // was filtered out (.filter(j => j.payload)) leaving the batch with 0 jobs.
+  // The rerun cannot validate prompt changes if no fixture exists for the tool,
+  // so each tool must use a label the fixture generator will populate.
+  const TOOL_STRESS_INDUSTRY: Record<string, { id: string; label: string; geo: "us" | "eu" }> = {
+    biometric:    { id: "healthcare",  label: "Healthcare",                geo: "us" },
+    dpia:         { id: "healthcare",  label: "Healthcare",                geo: "eu" },
+    li_assessment:{ id: "adtech",      label: "AdTech / Marketing",        geo: "eu" },
+    ropa:         { id: "healthcare",  label: "Healthcare",                geo: "eu" },
+    eu_notice:    { id: "saas",        label: "SaaS",                      geo: "eu" },
+    us_notice:    { id: "saas",        label: "SaaS",                      geo: "us" },
+    cppa_risk:    { id: "adtech",      label: "AdTech / Marketing",        geo: "us" },
+    cppa_cyber:   { id: "financial",   label: "Financial services",        geo: "us" },
+    cppa_admt:    { id: "financial",   label: "Financial services",        geo: "us" },
+    dpa:          { id: "saas",        label: "SaaS",                      geo: "us" },
+    governance:   { id: "saas",        label: "SaaS",                      geo: "us" },
+    ir_playbook:  { id: "saas",        label: "SaaS",                      geo: "us" },
+    registration: { id: "saas",        label: "SaaS",                      geo: "us" },
+  };
   try {
     const stressId = toStressId(toolSlug);
+    const ind = TOOL_STRESS_INDUSTRY[toolSlug] ?? { id: "saas", label: "SaaS", geo: "us" as const };
     const { data: batch, error } = await admin.from("static_stress_batches").insert({
       run_by: (cycle as any).started_by,
       status: "pending",
-      industries: ["Improvement cycle"],
-      geo_filter: "us",
+      industries: [ind.label],
+      geo_filter: ind.geo,
       total_jobs: 0,
       setup_total: 1,
       setup_done: 0,
       selected_tools: [stressId],
-      companies: [{ industryId: "improve", industryLabel: "Improvement cycle", geo: "us", slot: 1 }],
+      companies: [{ industryId: ind.id, industryLabel: ind.label, geo: ind.geo, slot: 1 }],
     }).select("id").single();
     if (error || !batch) throw new Error(`batch insert: ${error?.message}`);
     const newBatchId = (batch as any).id;
@@ -541,7 +565,7 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
       body: JSON.stringify({ batch_id: newBatchId, company_index: 0 }),
     }).catch(() => {/* fire-and-forget */});
-    await appendLog(admin, cycleId, `Iteration ${iteration + 1}: kicked stress batch ${newBatchId.slice(0, 8)} for re-review`);
+    await appendLog(admin, cycleId, `Iteration ${iteration + 1}: kicked stress batch ${newBatchId.slice(0, 8)} for re-review (industry=${ind.label}, geo=${ind.geo})`);
     await admin.from("tool_improvement_cycles").update({
       iteration: iteration + 1,
       current_batch_id: newBatchId,
