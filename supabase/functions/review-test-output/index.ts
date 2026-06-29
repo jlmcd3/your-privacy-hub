@@ -84,12 +84,40 @@ function stripFences(t: string): string {
   if (c.startsWith("```")) c = c.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
   return c.trim();
 }
+function repairJson(s: string): string {
+  // Strip control chars (except \n \t \r) that break JSON.parse
+  let t = s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
+  let depthObj = 0, depthArr = 0;
+  let inStr = false, esc = false;
+  let lastSafe = -1;
+  for (let i = 0; i < t.length; i++) {
+    const ch = t[i];
+    if (esc) { esc = false; continue; }
+    if (ch === "\\") { esc = true; continue; }
+    if (ch === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (ch === "{") depthObj++;
+    else if (ch === "}") { depthObj--; if (depthObj === 0 && depthArr === 0) lastSafe = i; }
+    else if (ch === "[") depthArr++;
+    else if (ch === "]") { depthArr--; if (depthObj === 0 && depthArr === 0) lastSafe = i; }
+  }
+  if (lastSafe !== -1) return t.slice(0, lastSafe + 1);
+  // Truncated mid-document — close open string, drop dangling key/value, close arrays/objects.
+  if (inStr) t += '"';
+  t = t.replace(/,\s*$/g, "");
+  t = t.replace(/[,:]\s*("[^"]*)?$/g, "");
+  while (depthArr-- > 0) t += "]";
+  while (depthObj-- > 0) t += "}";
+  return t;
+}
 function tryParse(t: string): any | null {
   const c = stripFences(t);
   try { return JSON.parse(c); } catch { /* */ }
-  const m = c.match(/\{[\s\S]*\}/);
-  if (!m) return null;
-  try { return JSON.parse(m[0]); } catch { return null; }
+  const start = c.search(/[\{\[]/);
+  if (start < 0) return null;
+  const body = c.slice(start);
+  try { return JSON.parse(body); } catch { /* */ }
+  try { return JSON.parse(repairJson(body)); } catch { return null; }
 }
 
 // ─── Retry with exponential backoff + jitter on 429/5xx ──────────────────────
