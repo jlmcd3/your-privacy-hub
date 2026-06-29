@@ -255,7 +255,7 @@ async function phaseReviewing(admin: Admin, cycleId: string) {
   if (!next) {
     // All clean reports reviewed by both models — proceed.
     await appendLog(admin, cycleId, `Iteration ${iteration}: reviewed ${clean.length} clean report(s) with dual models. Excluded ${excluded.length}.`);
-    await admin.from("tool_improvement_cycles").update({ phase: "ranking" }).eq("id", cycleId);
+    await admin.from("tool_improvement_cycles").update({ phase: "ranking", phase_started_at: new Date().toISOString() }).eq("id", cycleId);
     await selfReinvoke(cycleId);
     return;
   }
