@@ -192,9 +192,18 @@ export default function QualityLoopAugmentation({
     if (!confirm(`Run consolidation pass on ${tool}? This merges duplicate rules and resolves contradictions, then stages the result to ${toolState?.target_branch ?? "quality-auto"} for human review.`)) return;
     setBusy("consolidate");
     try {
-      const { data, error } = await supabase.functions.invoke("consolidate-rulebook", { body: { tool } });
+      const { pollJob } = await import("@/lib/pollJob");
+      const { data: kickoff, error } = await supabase.functions.invoke("consolidate-rulebook", { body: { tool } });
       if (error) throw error;
-      toast.success(`Consolidation staged. ${data?.changelog ? "See PR diff." : ""}`);
+      if (kickoff?.job_id) {
+        toast.info("Consolidation queued — this can take a few minutes.");
+        const row = await pollJob("consolidate-rulebook", kickoff.job_id, { intervalMs: 5000, timeoutMs: 15 * 60_000 });
+        if (row.status === "error") throw new Error(row.error ?? "background_error");
+        const data = row.result ?? {};
+        toast.success(`Consolidation staged. ${data?.changelog ? "See PR diff." : ""}`);
+      } else {
+        toast.success(`Consolidation staged. ${kickoff?.changelog ? "See PR diff." : ""}`);
+      }
     } catch (e: any) {
       toast.error(`Consolidation failed: ${e.message}`);
     } finally {
