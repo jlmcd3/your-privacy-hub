@@ -511,7 +511,7 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
     const done = delibs?.length ?? 0;
     if (total > 0 && done < total) {
       await appendLog(admin, cycleId, `Deliberation ${done}/${total} — waiting`);
-      setTimeout(() => selfReinvoke(cycleId), 30_000);
+      await sleep(30_000); await selfReinvoke(cycleId);
       return;
     }
     const staged = (delibs ?? []).filter((d: any) => d.verdict === "auto_eligible").length;
