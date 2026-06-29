@@ -156,10 +156,26 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
 
   const intake: Record<string, any> = { ...(job.fixture_data ?? {}) };
 
+  // Some tools' shims read intake.entity_name / company_name (e.g. cppa-risk's
+  // legacy-flat → five-stage shim). Backfill them ONLY into inline-invoke bodies and
+  // intake_data jsonb — NEVER into raw column-spread inserts, whose tables have fixed columns.
+  // RULE: never spread synthesized/non-fixture fields into a raw `.insert()`;
+  // only into inline edge-function bodies or `intake_data` jsonb.
+  const withNames = (obj: Record<string, any>): Record<string, any> => {
+    const o = { ...obj };
+    if (job.company_name) {
+      if (o.entity_name === undefined)  o.entity_name  = job.company_name;
+      if (o.company_name === undefined) o.company_name = job.company_name;
+    }
+    return o;
+  };
+
   switch (job.tool_slug) {
     case "lia": {
+      // Raw column-spread insert — li_assessments has fixed columns (organization_name, not entity_name).
+      // Use the original fixture only; do NOT inject synthesized names here.
       const { data: rec, error } = await admin.from("li_assessments")
-        .insert({ ...intake, user_id: userId }).select("id").single();
+        .insert({ ...(job.fixture_data ?? {}), user_id: userId }).select("id").single();
       if (error || !rec) throw new Error(`lia insert: ${error?.message}`);
       await invokeFn("run-li-assessment", { assessment_id: rec.id })
         .catch((e) => console.warn("[run-stress-job] run-li-assessment trigger failed (will poll):", e));
@@ -168,7 +184,7 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
     }
     case "dpia": {
       const { data: rec, error } = await admin.from("dpia_frameworks").insert({
-        user_id: userId, status: "pending", intake_data: intake, is_subscriber_credit: true,
+        user_id: userId, status: "pending", intake_data: withNames(intake), is_subscriber_credit: true,
       }).select("id").single();
       if (error || !rec) throw new Error(`dpia insert: ${error?.message}`);
       await invokeFn("run-dpia-framework", { dpia_id: rec.id })
@@ -178,7 +194,7 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
     }
     case "governance": {
       const { data: rec, error } = await admin.from("governance_assessments")
-        .insert({ user_id: userId, status: "pending", intake_data: intake })
+        .insert({ user_id: userId, status: "pending", intake_data: withNames(intake) })
         .select("id").single();
       if (error || !rec) throw new Error(`governance insert: ${error?.message}`);
       await invokeFn("run-governance-assessment", { assessment_id: rec.id, stress_run: true })
@@ -187,24 +203,25 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       return { sourceTable: "governance_assessments", sourceRowId: rec.id };
     }
     case "biometric": {
-      const data = await invokeFn("check-biometric-compliance", { ...intake, user_id: userId, stress_run: true });
+      const data = await invokeFn("check-biometric-compliance", withNames({ ...intake, user_id: userId, stress_run: true }));
       if (!data?.id) throw new Error("biometric: no id");
       return { sourceTable: "biometric_assessments", sourceRowId: data.id };
     }
     case "dpa": {
-      const data = await invokeFn("generate-dpa", { ...intake, user_id: userId });
+      const data = await invokeFn("generate-dpa", withNames({ ...intake, user_id: userId }));
       if (!data?.id) throw new Error("dpa: no id");
       await pollStatus(admin, "dpa_documents", data.id, "complete");
       return { sourceTable: "dpa_documents", sourceRowId: data.id };
     }
     case "ir-playbook": {
-      const data = await invokeFn("generate-ir-playbook", {
+      const data = await invokeFn("generate-ir-playbook", withNames({
         ...intake, discoveryDateTime: new Date().toISOString(), user_id: userId,
-      });
+      }));
       if (!data?.id) throw new Error("ir-playbook: no id");
       await pollStatus(admin, "ir_playbooks", data.id, "complete");
       return { sourceTable: "ir_playbooks", sourceRowId: data.id };
     }
+
     case "ropa": {
       const persona = intake;
       const clientId = await getOrCreateClientId(admin, userId);
@@ -311,13 +328,14 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       }
       try {
         await admin.from("us_notice_answers").insert(
-          Object.entries(intake).map(([k, v]) => ({
+          Object.entries(withNames(intake)).map(([k, v]) => ({
             session_id: session.id, question_key: k, answer_value: v as any,
           })),
         );
       } catch (e) {
         console.warn("[run-stress-job] us_notice_answers insert failed:", e);
       }
+
       const gen = await invokeFn("generate-us-notice", { session_id: session.id });
       if (!gen?.documents?.length) throw new Error("us-notice: no documents");
       return { sourceTable: "us_notice_sessions", sourceRowId: session.id };
@@ -359,18 +377,9 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       return { sourceTable: "eu_notice_sessions", sourceRowId: session.id };
     }
     case "cppa-risk": {
-      // Scoped backfill: cppa-risk's legacy-flat shim validates `org_context.company_name`.
-      // Fixtures historically omit it, so backfill from the job row here only — never
-      // mutate the shared `intake` (LIA and others spread it directly into columns).
-      const cppaIntake: Record<string, any> = { ...intake };
-      if (job.company_name) {
-        cppaIntake.entity_name ??= job.company_name;
-        cppaIntake.company_name ??= job.company_name;
-      }
       const { data: rec, error } = await admin.from("cppa_assessments").insert({
-        user_id: userId, module: "risk_assessment", status: "pending", intake_data: cppaIntake,
+        user_id: userId, module: "risk_assessment", status: "pending", intake_data: withNames(intake),
       }).select("id").single();
-
       if (error || !rec) throw new Error(`cppa-risk insert: ${error?.message}`);
       await invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id })
         .catch((e) => console.warn("[run-stress-job] run-cppa-risk-assessment trigger failed (will poll):", e));
@@ -379,7 +388,7 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
     }
     case "cppa-cyber": {
       const { data: rec, error } = await admin.from("cppa_assessments").insert({
-        user_id: userId, module: "cybersecurity", status: "pending", intake_data: intake,
+        user_id: userId, module: "cybersecurity", status: "pending", intake_data: withNames(intake),
       }).select("id").single();
       if (error || !rec) throw new Error(`cppa-cyber insert: ${error?.message}`);
       await invokeFn("run-cppa-cybersecurity", { assessment_id: rec.id })
@@ -389,8 +398,9 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
     }
     case "cppa-admt": {
       const { data: rec, error } = await admin.from("cppa_assessments").insert({
-        user_id: userId, module: "admt", status: "pending", intake_data: intake,
+        user_id: userId, module: "admt", status: "pending", intake_data: withNames(intake),
       }).select("id").single();
+
       if (error || !rec) throw new Error(`cppa-admt insert: ${error?.message}`);
       await invokeFn("run-admt-checker", { assessment_id: rec.id })
         .catch((e) => console.warn("[run-stress-job] run-admt-checker trigger failed (will poll):", e));
