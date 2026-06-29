@@ -68,6 +68,37 @@ function fmtDuration(startIso: string, endIso?: string | null): string {
 }
 
 // ──────────────────────────────────────────────────────────────────
+// CycleLogViewer — scrollable log with show-all toggle
+
+function CycleLogViewer({ entries }: { entries: Array<{ ts: string; msg: string }> }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!entries || entries.length === 0) {
+    return <div className="text-[11px] text-gray-400 mt-1 italic">No log entries yet.</div>;
+  }
+  const visible = expanded ? entries : entries.slice(-8);
+  return (
+    <div className="mt-2 border border-gray-200 rounded bg-gray-900 text-gray-100 font-mono text-[11px] overflow-hidden">
+      <div className="max-h-64 overflow-y-auto p-2 space-y-0.5">
+        {visible.map((e, i) => (
+          <div key={i} className="whitespace-pre-wrap break-words">
+            <span className="text-gray-500">[{new Date(e.ts).toLocaleTimeString()}]</span>{" "}
+            <span>{e.msg}</span>
+          </div>
+        ))}
+      </div>
+      {entries.length > 8 && (
+        <button
+          onClick={() => setExpanded(x => !x)}
+          className="w-full text-[10px] uppercase tracking-wide text-gray-300 bg-gray-800 hover:bg-gray-700 py-1 border-t border-gray-700"
+        >
+          {expanded ? `Collapse (showing all ${entries.length})` : `Show all ${entries.length} entries (showing last 8)`}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────
 // Now Running
 
 type LiveCycle = {
