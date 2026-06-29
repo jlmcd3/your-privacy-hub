@@ -493,7 +493,7 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
 
   await admin.from("tool_improvement_cycles").update({ phase: "rerunning" }).eq("id", cycleId);
   // Give deliberation a head start; the rerunning phase will check verdicts.
-  setTimeout(() => selfReinvoke(cycleId), 30_000);
+  await sleep(30_000); await selfReinvoke(cycleId);
 }
 
 async function phaseRerunning(admin: Admin, cycleId: string) {
