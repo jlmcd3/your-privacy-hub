@@ -503,20 +503,30 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
   const iteration = (cycle as any).iteration as number;
   const runId = (cycle as any).quality_run_id as string;
 
-  // Wait until deliberations finish (poll up to 5 min from this invocation).
+  // Wait until deliberations finish. The target is the number of registry
+  // proposals (deliberate-quality-fixes writes one proposal per actionable
+  // check, then one deliberation per proposal). Comparing against
+  // quality_check_results count is wrong because some checks are non-actionable
+  // and never receive a proposal/deliberation, which caused infinite polling.
   if (runId) {
     const { data: checks } = await admin.from("quality_check_results").select("check_id").eq("run_id", runId);
+    const { data: proposals } = await admin.from("registry_proposals").select("check_id").eq("run_id", runId);
     const { data: delibs } = await admin.from("quality_fix_deliberations").select("check_id, verdict").eq("run_id", runId);
-    const total = checks?.length ?? 0;
+    const checksCount = checks?.length ?? 0;
+    const proposalsCount = proposals?.length ?? 0;
     const done = delibs?.length ?? 0;
-    if (total > 0 && done < total) {
-      await appendLog(admin, cycleId, `Deliberation ${done}/${total} — waiting`);
+    // Wall-clock guard: if proposals exist and match deliberations, advance even
+    // if some checks never produced proposals (non-actionable findings).
+    const target = proposalsCount > 0 ? proposalsCount : checksCount;
+    if (target > 0 && done < target) {
+      await appendLog(admin, cycleId, `Deliberation ${done}/${target} — waiting (checks=${checksCount}, proposals=${proposalsCount})`);
       await sleep(30_000); await selfReinvoke(cycleId);
       return;
     }
     const staged = (delibs ?? []).filter((d: any) => d.verdict === "auto_eligible").length;
     const dropped = (delibs ?? []).filter((d: any) => d.verdict === "reject").length;
-    await appendLog(admin, cycleId, `Team 3 ruled: ${staged} staged to quality-auto, ${dropped} dropped, ${done - staged - dropped} human-review.`);
+    const skipped = Math.max(0, checksCount - proposalsCount);
+    await appendLog(admin, cycleId, `Team 3 ruled: ${staged} staged to quality-auto, ${dropped} dropped, ${done - staged - dropped} human-review, ${skipped} non-actionable checks skipped.`);
   }
 
   // P6: kick a fresh stress batch limited to THIS tool. Inherits all anti-fail
