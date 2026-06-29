@@ -434,28 +434,20 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
     bytes: pdfBytes.byteLength,
   };
 
-  // Hydrate report_data + document_text from the source row so downstream
-  // consumers (quality-loop P2 fixture-drift gate, sample-report previews,
-  // verification audits) have the actual generator output, not just a PDF.
+  // Hydrate report_data + document_text from the source row via the SAME
+  // helper used by the snapshot path — the two write paths must never drift.
   let reportData: unknown = null;
   let documentText: string | null = null;
   if (source_table && source_row_id) {
-    const shape = SOURCE_SHAPE[source_table] ?? { reportData: true, textCol: null };
-    const cols: string[] = [];
-    if (shape.reportData) cols.push("report_data");
-    if (shape.textCol) cols.push(shape.textCol);
-    if (cols.length > 0) {
-      const { data: src } = await admin
-        .from(source_table)
-        .select(cols.join(","))
-        .eq("id", source_row_id)
-        .maybeSingle();
-      if (src) {
-        reportData = shape.reportData ? ((src as any).report_data ?? null) : null;
-        documentText = shape.textCol ? ((src as any)[shape.textCol] ?? null) : null;
-      }
+    try {
+      const h = await hydrateContent(admin, source_table, source_row_id);
+      reportData = h.report_data;
+      documentText = h.document_text;
+    } catch (e) {
+      console.warn(`[generate_pdf] hydrateContent failed: ${(e as Error).message}`);
     }
   }
+
 
   const payload = {
     tool_slug, variant, title,
