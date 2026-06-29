@@ -147,6 +147,29 @@ async function runConsolidation(tool: string, requestedBy: string | null) {
   return { result, changelog: parts.changelog, original_length: currentContent.length, consolidated_length: parts.file.length };
 }
 
+async function runConsolidationJob(jobId: string, tool: string, requestedBy: string | null) {
+  const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+  const upd = (patch: Record<string, unknown>) =>
+    admin.from("long_running_jobs").update(patch).eq("id", jobId);
+  try {
+    await upd({ status: "running", progress: "consolidating" });
+    const out = await runConsolidation(tool, requestedBy);
+    await upd({
+      status: "complete",
+      progress: null,
+      result: { ok: true, ...out } as any,
+      completed_at: new Date().toISOString(),
+    });
+  } catch (e) {
+    console.error("[consolidate-rulebook] background failed:", e);
+    await upd({
+      status: "error",
+      error: (e as Error).message?.slice(0, 1000) ?? "internal_error",
+      completed_at: new Date().toISOString(),
+    }).catch(() => {});
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
@@ -157,8 +180,6 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-  const tool = String(body?.tool ?? "");
-  if (!tool) return json({ error: "tool required" }, 400);
 
   const userClient = createClient(SUPABASE_URL, ANON_KEY);
   const { data: claims, error: claimsErr } = await userClient.auth.getClaims(token);
@@ -167,11 +188,37 @@ Deno.serve(async (req) => {
   const { data: isAdmin } = await admin.rpc("has_role", { _user_id: claims.claims.sub, _role: "admin" });
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
-  try {
-    const out = await runConsolidation(tool, claims.claims.sub as string);
-    return json({ ok: true, ...out });
-  } catch (e) {
-    console.error("[consolidate-rulebook] failed:", e);
-    return json({ ok: false, error: (e as Error).message }, 500);
+  // Poll path: { job_id }
+  const pollId = String(body?.job_id ?? "");
+  if (pollId) {
+    const { data, error } = await admin
+      .from("long_running_jobs")
+      .select("id, kind, tool, status, progress, result, error, started_at, completed_at")
+      .eq("id", pollId)
+      .maybeSingle();
+    if (error) return json({ error: error.message }, 500);
+    return json(data ?? { error: "not_found" }, data ? 200 : 404);
   }
+
+  const tool = String(body?.tool ?? "");
+  if (!tool) return json({ error: "tool required" }, 400);
+  if (!TOOL_FILE_PATH[tool]) return json({ error: `Unknown tool: ${tool}` }, 400);
+
+  const { data: job, error: insErr } = await admin
+    .from("long_running_jobs")
+    .insert({
+      kind: "consolidate-rulebook",
+      tool,
+      status: "pending",
+      requested_by: claims.claims.sub,
+      progress: "queued",
+    })
+    .select("id")
+    .single();
+  if (insErr || !job) return json({ error: `job_insert: ${insErr?.message}` }, 500);
+
+  // @ts-ignore EdgeRuntime is available in Supabase Edge runtime.
+  EdgeRuntime.waitUntil(runConsolidationJob(job.id, tool, claims.claims.sub as string));
+
+  return json({ accepted: true, job_id: job.id }, 202);
 });
