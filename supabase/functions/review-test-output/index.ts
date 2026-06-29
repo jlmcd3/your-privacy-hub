@@ -185,6 +185,9 @@ async function callClaude(system: string, user: string, model: string): Promise<
     throw new Error(`Anthropic ${r.status}: ${t.slice(0, 400)}`);
   }
   const d = await r.json();
+  if (d?.stop_reason && d.stop_reason !== "end_turn") {
+    console.warn(`[review-test-output] claude stop_reason=${d.stop_reason}`);
+  }
   return d?.content?.[0]?.text ?? "";
 }
 
@@ -195,7 +198,7 @@ async function callOpenAI(system: string, user: string, model: string): Promise<
     headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model,
-      max_tokens: 4000,
+      max_tokens: 8000,
       temperature: 0,
       response_format: { type: "json_object" },
       messages: [{ role: "system", content: system }, { role: "user", content: user }],
@@ -207,10 +210,11 @@ async function callOpenAI(system: string, user: string, model: string): Promise<
     throw new Error(`OpenAI ${r.status}: ${t.slice(0, 400)}`);
   }
   const d = await r.json();
-  if (d?.stop_reason && d.stop_reason !== "end_turn") {
-    console.warn(`[review-test-output] claude stop_reason=${d.stop_reason}`);
+  const finish = d?.choices?.[0]?.finish_reason;
+  if (finish && finish !== "stop") {
+    console.warn(`[review-test-output] openai finish_reason=${finish}`);
   }
-  return d?.content?.[0]?.text ?? "";
+  return d?.choices?.[0]?.message?.content ?? "";
 }
 
 Deno.serve(async (req) => {
