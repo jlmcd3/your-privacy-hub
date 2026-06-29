@@ -3710,6 +3710,7 @@ export type Database = {
       }
       quality_fix_deliberations: {
         Row: {
+          ab_evidence: Json | null
           auto_applied: boolean
           change_location: string | null
           check_id: string
@@ -3735,6 +3736,7 @@ export type Database = {
           verdict: string
         }
         Insert: {
+          ab_evidence?: Json | null
           auto_applied?: boolean
           change_location?: string | null
           check_id: string
@@ -3760,6 +3762,7 @@ export type Database = {
           verdict?: string
         }
         Update: {
+          ab_evidence?: Json | null
           auto_applied?: boolean
           change_location?: string | null
           check_id?: string

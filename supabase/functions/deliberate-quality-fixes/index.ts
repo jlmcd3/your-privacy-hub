@@ -294,7 +294,7 @@ async function deliberateRun(runId: string, offset: number) {
           }
         : null;
       const result = await deliberateOne(chk, abEvidence);
-      await admin.from("quality_fix_deliberations").upsert({
+      const { error: delibErr } = await admin.from("quality_fix_deliberations").upsert({
         run_id: chk.run_id,
         tool: chk.tool,
         check_id: chk.check_id,
@@ -303,6 +303,10 @@ async function deliberateRun(runId: string, offset: number) {
         ...result,
         status: "pending",
       }, { onConflict: "run_id,check_id" });
+      if (delibErr) {
+        console.error(`[deliberate] quality_fix_deliberations upsert FAILED for ${chk.check_id}:`, delibErr.message);
+        throw new Error(`deliberation upsert failed: ${delibErr.message}`);
+      }
 
       // R3: when Team 2 says "registry", capture the fact as a registry proposal.
       // The candidate's prompt-fix verdict stays human_review (a registry-bound fact
