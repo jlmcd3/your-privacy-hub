@@ -188,17 +188,23 @@ async function deliberateOne(check: any, abEvidence: { delta: number; regression
 }
 
 
-function selfReinvoke(runId: string, offset: number) {
-  fetch(`${SUPABASE_URL}/functions/v1/deliberate-quality-fixes`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${SERVICE_KEY}`,
-      "x-internal-resume": "1",
-    },
-    body: JSON.stringify({ run_id: runId, offset }),
-  }).catch((e) => console.warn("[deliberate] self-reinvoke failed:", (e as Error).message));
+async function selfReinvoke(runId: string, offset: number) {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/deliberate-quality-fixes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        "x-internal-resume": "1",
+      },
+      body: JSON.stringify({ run_id: runId, offset }),
+    });
+    if (!r.ok) console.warn(`[deliberate] reinvoke non-2xx ${r.status}`);
+  } catch (e) {
+    console.warn("[deliberate] self-reinvoke failed:", (e as Error).message);
+  }
 }
+
 
 // R3: structure a Team-2 "registry" verdict into a registry_proposals row so a
 // human curator can stage / merge it into the actual registry. The structured
