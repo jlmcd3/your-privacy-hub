@@ -472,6 +472,48 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
   return json({ row, bytes: pdfBytes.byteLength });
 }
 
+// P3 — Backfill every sample_report row in one pass via the shared hydrator.
+// Rows whose source_table is fileDriven (ropa/us_notice/eu_notice) are left
+// untouched and reported under `file_driven` so the caller knows they are
+// intentionally excluded from the text-based quality loop.
+async function backfillAll(admin: ReturnType<typeof createClient>, body: any) {
+  const onlyTool: string | null = typeof body?.tool_slug === "string" && body.tool_slug ? body.tool_slug : null;
+  let q = admin.from("sample_reports").select("id, tool_slug, source_table, source_row_id");
+  if (onlyTool) q = q.eq("tool_slug", onlyTool);
+  const { data: rows, error } = await q;
+  if (error) return json({ error: error.message }, 400);
+
+  const summary = {
+    scanned: rows?.length ?? 0,
+    updated: 0,
+    skipped_missing_source: 0,
+    file_driven: 0,
+    errors: [] as Array<{ id: string; message: string }>,
+  };
+
+  for (const r of (rows ?? []) as Array<{ id: string; tool_slug: string; source_table: string | null; source_row_id: string | null }>) {
+    if (!r.source_table || !r.source_row_id) { summary.skipped_missing_source++; continue; }
+    try {
+      const h = await hydrateContent(admin, r.source_table, r.source_row_id);
+      if (h.file_driven) { summary.file_driven++; continue; }
+      const patch: Record<string, unknown> = {
+        report_data: h.report_data,
+        document_text: h.document_text,
+        updated_at: new Date().toISOString(),
+      };
+      if (h.report_data && (h.report_data as any).verification) {
+        patch.verification = (h.report_data as any).verification;
+      }
+      const { error: upErr } = await admin.from("sample_reports").update(patch).eq("id", r.id);
+      if (upErr) { summary.errors.push({ id: r.id, message: upErr.message }); continue; }
+      summary.updated++;
+    } catch (e) {
+      summary.errors.push({ id: r.id, message: (e as Error).message });
+    }
+  }
+  return json(summary);
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
