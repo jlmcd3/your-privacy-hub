@@ -560,9 +560,25 @@ async function phaseAwaitingRerun(admin: Admin, cycleId: string) {
   const { data: cycle } = await admin.from("tool_improvement_cycles").select("*").eq("id", cycleId).single();
   if (!cycle) throw new Error("cycle not found");
   const batchId = (cycle as any).current_batch_id as string;
-  const { data: batch } = await admin.from("static_stress_batches").select("status").eq("id", batchId).single();
+  const { data: batch } = await admin
+    .from("static_stress_batches")
+    .select("status, total_jobs, completed_jobs, failed_jobs, error_log")
+    .eq("id", batchId)
+    .single();
   const status = (batch as any)?.status ?? "pending";
   if (status === "complete" || status === "failed" || status === "cancelled") {
+    const totalJobs = Number((batch as any)?.total_jobs ?? 0);
+    if (totalJobs === 0) {
+      const reason = `Stress batch ${batchId.slice(0, 8)} finished with 0 jobs; rerun cannot validate prompt changes.`;
+      await appendLog(admin, cycleId, reason);
+      await admin.from("tool_improvement_cycles").update({
+        status: "failed",
+        phase: "awaiting_rerun",
+        last_error: `${reason} Create or run a static-stress batch that generates jobs for this tool before starting an improvement cycle.`,
+        completed_at: new Date().toISOString(),
+      }).eq("id", cycleId);
+      return;
+    }
     await admin.from("tool_improvement_cycles").update({ phase: "reviewing" }).eq("id", cycleId);
     await appendLog(admin, cycleId, `Stress batch ${batchId.slice(0, 8)} → ${status}; re-reviewing`);
     await selfReinvoke(cycleId);
