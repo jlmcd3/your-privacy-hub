@@ -156,10 +156,26 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
 
   const intake: Record<string, any> = { ...(job.fixture_data ?? {}) };
 
+  // Some tools' shims read intake.entity_name / company_name (e.g. cppa-risk's
+  // legacy-flat → five-stage shim). Backfill them ONLY into inline-invoke bodies and
+  // intake_data jsonb — NEVER into raw column-spread inserts, whose tables have fixed columns.
+  // RULE: never spread synthesized/non-fixture fields into a raw `.insert()`;
+  // only into inline edge-function bodies or `intake_data` jsonb.
+  const withNames = (obj: Record<string, any>): Record<string, any> => {
+    const o = { ...obj };
+    if (job.company_name) {
+      if (o.entity_name === undefined)  o.entity_name  = job.company_name;
+      if (o.company_name === undefined) o.company_name = job.company_name;
+    }
+    return o;
+  };
+
   switch (job.tool_slug) {
     case "lia": {
+      // Raw column-spread insert — li_assessments has fixed columns (organization_name, not entity_name).
+      // Use the original fixture only; do NOT inject synthesized names here.
       const { data: rec, error } = await admin.from("li_assessments")
-        .insert({ ...intake, user_id: userId }).select("id").single();
+        .insert({ ...(job.fixture_data ?? {}), user_id: userId }).select("id").single();
       if (error || !rec) throw new Error(`lia insert: ${error?.message}`);
       await invokeFn("run-li-assessment", { assessment_id: rec.id })
         .catch((e) => console.warn("[run-stress-job] run-li-assessment trigger failed (will poll):", e));
@@ -168,7 +184,7 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
     }
     case "dpia": {
       const { data: rec, error } = await admin.from("dpia_frameworks").insert({
-        user_id: userId, status: "pending", intake_data: intake, is_subscriber_credit: true,
+        user_id: userId, status: "pending", intake_data: withNames(intake), is_subscriber_credit: true,
       }).select("id").single();
       if (error || !rec) throw new Error(`dpia insert: ${error?.message}`);
       await invokeFn("run-dpia-framework", { dpia_id: rec.id })
@@ -178,7 +194,7 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
     }
     case "governance": {
       const { data: rec, error } = await admin.from("governance_assessments")
-        .insert({ user_id: userId, status: "pending", intake_data: intake })
+        .insert({ user_id: userId, status: "pending", intake_data: withNames(intake) })
         .select("id").single();
       if (error || !rec) throw new Error(`governance insert: ${error?.message}`);
       await invokeFn("run-governance-assessment", { assessment_id: rec.id, stress_run: true })
@@ -187,24 +203,25 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       return { sourceTable: "governance_assessments", sourceRowId: rec.id };
     }
     case "biometric": {
-      const data = await invokeFn("check-biometric-compliance", { ...intake, user_id: userId, stress_run: true });
+      const data = await invokeFn("check-biometric-compliance", withNames({ ...intake, user_id: userId, stress_run: true }));
       if (!data?.id) throw new Error("biometric: no id");
       return { sourceTable: "biometric_assessments", sourceRowId: data.id };
     }
     case "dpa": {
-      const data = await invokeFn("generate-dpa", { ...intake, user_id: userId });
+      const data = await invokeFn("generate-dpa", withNames({ ...intake, user_id: userId }));
       if (!data?.id) throw new Error("dpa: no id");
       await pollStatus(admin, "dpa_documents", data.id, "complete");
       return { sourceTable: "dpa_documents", sourceRowId: data.id };
     }
     case "ir-playbook": {
-      const data = await invokeFn("generate-ir-playbook", {
+      const data = await invokeFn("generate-ir-playbook", withNames({
         ...intake, discoveryDateTime: new Date().toISOString(), user_id: userId,
-      });
+      }));
       if (!data?.id) throw new Error("ir-playbook: no id");
       await pollStatus(admin, "ir_playbooks", data.id, "complete");
       return { sourceTable: "ir_playbooks", sourceRowId: data.id };
     }
+
     case "ropa": {
       const persona = intake;
       const clientId = await getOrCreateClientId(admin, userId);
