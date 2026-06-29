@@ -556,33 +556,6 @@ function RunPanel() {
 // Advanced
 
 function Advanced() {
-  const [busy, setBusy] = useState(false);
-
-  const runSmoke = async () => {
-    setBusy(true);
-    try {
-      const { data: u } = await supabase.auth.getUser();
-      const uid = u?.user?.id;
-      if (!uid) { toast.error("Sign in first"); return; }
-      const { data, error } = await supabase.functions.invoke("start-stress-batch", {
-        body: {
-          run_by: uid,
-          industries: [
-            { id: "web", label: "Online & Web Services" },
-            { id: "ai",  label: "AI & Machine Learning" },
-          ],
-          geo_filter: "us",
-          selected_tools: TOOLS.map(t => t.id),
-        },
-      });
-      if (error || !data?.batch_id) throw new Error(error?.message ?? "no batch_id");
-      toast.success("Smoke batch started.");
-    } catch (e: any) {
-      toast.error(`Start failed: ${e?.message ?? e}`);
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const [autoBusy, setAutoBusy] = useState(false);
   const [autoJobId, setAutoJobId] = useState<string | null>(null);
