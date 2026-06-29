@@ -154,7 +154,7 @@ function NowRunning() {
         <ul className="space-y-3">
           {cycles.map(c => {
             const score = c.current_score ?? c.baseline_score;
-            const lastLog = c.log && c.log.length > 0 ? c.log[c.log.length - 1] : null;
+            const logEntries = Array.isArray(c.log) ? c.log : [];
             return (
               <li key={c.id} className="border border-sky-100 bg-sky-50/40 rounded-lg p-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
@@ -174,12 +174,9 @@ function NowRunning() {
                 <div className="text-xs text-gray-700 mt-1.5">
                   iter {c.iteration ?? 0}/{c.max_iterations ?? 6} · phase <strong>{c.phase ?? "—"}</strong>
                   {score != null && <> · score <strong>{score}%</strong></>}
+                  {logEntries.length > 0 && <> · {logEntries.length} log line(s)</>}
                 </div>
-                {lastLog && (
-                  <div className="text-[11px] text-gray-500 mt-1 font-mono truncate">
-                    [{new Date(lastLog.ts).toLocaleTimeString()}] {lastLog.msg}
-                  </div>
-                )}
+                <CycleLogViewer entries={logEntries} />
               </li>
             );
           })}
