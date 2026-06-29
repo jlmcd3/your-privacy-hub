@@ -164,6 +164,7 @@ async function phaseInit(admin: Admin, cycleId: string) {
   }
   await admin.from("tool_improvement_cycles").update({
     baseline_batch_id: batchId, current_batch_id: batchId, phase: "reviewing", status: "running",
+    phase_started_at: new Date().toISOString(),
   }).eq("id", cycleId);
   await appendLog(admin, cycleId, `Phase 1 — using static-stress batch ${batchId.slice(0, 8)}`);
   await selfReinvoke(cycleId);
