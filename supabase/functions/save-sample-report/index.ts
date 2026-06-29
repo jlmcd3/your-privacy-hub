@@ -20,10 +20,21 @@ function json(body: unknown, status = 200) {
   });
 }
 
-// Map source_table → { has report_data column?, primary text column (if any) }.
-// Not every source table has a JSON `report_data` column — RoPA versions and
-// the notice sessions are file-driven and would error if we selected it.
-const SOURCE_SHAPE: Record<string, { reportData: boolean; textCol: string | null }> = {
+// Map source_table → shape used by the single content-copy helper.
+//   reportData      → has a JSON column to copy verbatim
+//   reportDataCol   → column name (defaults to "report_data")
+//   textCol         → tool-specific primary text column (full document body)
+//   fileDriven      → rendered HTML/PDF lives outside this row; hydration
+//                     returns nulls and these are excluded from the
+//                     text-based quality loop (option (b) in P4).
+type SourceShape = {
+  reportData: boolean;
+  reportDataCol?: string;
+  textCol: string | null;
+  fileDriven?: boolean;
+};
+
+const SOURCE_SHAPE: Record<string, SourceShape> = {
   li_assessments: { reportData: true, textCol: null },
   dpia_frameworks: { reportData: true, textCol: null },
   governance_assessments: { reportData: true, textCol: null },
@@ -31,12 +42,39 @@ const SOURCE_SHAPE: Record<string, { reportData: boolean; textCol: string | null
   dpa_documents: { reportData: true, textCol: "document_text" },
   ir_playbooks: { reportData: true, textCol: "playbook_text" },
   biometric_assessments: { reportData: true, textCol: "analysis_text" },
-  // RoPA + notices are file-driven; no report_data, no canonical text column.
-  ropa_document_versions: { reportData: false, textCol: null },
-  us_notice_sessions: { reportData: false, textCol: null },
-  eu_notice_sessions: { reportData: false, textCol: null },
-  registration_assessments: { reportData: false, textCol: null },
+  // registration_assessments stores its JSON output under `result_summary`,
+  // not `report_data` — map it so the quality loop sees real content.
+  registration_assessments: { reportData: true, reportDataCol: "result_summary", textCol: null },
+  // File-driven; excluded from text-based dual-model review.
+  ropa_document_versions: { reportData: false, textCol: null, fileDriven: true },
+  us_notice_sessions: { reportData: false, textCol: null, fileDriven: true },
+  eu_notice_sessions: { reportData: false, textCol: null, fileDriven: true },
 };
+
+// Single source of truth for "copy a source row's content into a sample_report".
+// Used by BOTH the snapshot write and the generate_pdf write so they cannot drift.
+export async function hydrateContent(
+  admin: ReturnType<typeof createClient>,
+  source_table: string,
+  source_row_id: string,
+): Promise<{ report_data: unknown | null; document_text: string | null; file_driven: boolean }> {
+  const shape = SOURCE_SHAPE[source_table] ?? { reportData: true, textCol: null };
+  if (shape.fileDriven) return { report_data: null, document_text: null, file_driven: true };
+  const dataCol = shape.reportData ? (shape.reportDataCol ?? "report_data") : null;
+  const cols = [dataCol, shape.textCol].filter(Boolean) as string[];
+  if (cols.length === 0) return { report_data: null, document_text: null, file_driven: false };
+  const { data: src, error } = await admin
+    .from(source_table)
+    .select(cols.join(","))
+    .eq("id", source_row_id)
+    .maybeSingle();
+  if (error) throw new Error(`hydrateContent ${source_table}: ${error.message}`);
+  return {
+    report_data: dataCol ? ((src as any)?.[dataCol] ?? null) : null,
+    document_text: shape.textCol ? ((src as any)?.[shape.textCol] ?? null) : null,
+    file_driven: false,
+  };
+}
 
 async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
   const {
@@ -47,23 +85,8 @@ async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
     return json({ error: "missing required fields" }, 400);
   }
 
-  const shape = SOURCE_SHAPE[source_table] ?? { reportData: true, textCol: null };
-  const cols: string[] = [];
-  if (shape.reportData) cols.push("report_data");
-  if (shape.textCol) cols.push(shape.textCol);
-  let src: Record<string, unknown> | null = null;
-  if (cols.length > 0) {
-    const { data, error: srcErr } = await admin
-      .from(source_table)
-      .select(cols.join(","))
-      .eq("id", source_row_id)
-      .maybeSingle();
-    if (srcErr) return json({ error: `source: ${srcErr.message}` }, 400);
-    src = (data as Record<string, unknown>) ?? null;
-  }
-
-  const reportData = shape.reportData ? ((src as any)?.report_data ?? null) : null;
-  const documentText = shape.textCol ? ((src as any)?.[shape.textCol] ?? null) : null;
+  const { report_data: reportData, document_text: documentText } =
+    await hydrateContent(admin, source_table, source_row_id);
   const verification = (reportData as any)?.verification ?? null;
 
   const payload = {
@@ -78,6 +101,7 @@ async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
   };
 
   const { data: row, error } = await admin
+
     .from("sample_reports")
     .upsert(payload, { onConflict: "tool_slug,variant" })
     .select()
@@ -410,28 +434,20 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
     bytes: pdfBytes.byteLength,
   };
 
-  // Hydrate report_data + document_text from the source row so downstream
-  // consumers (quality-loop P2 fixture-drift gate, sample-report previews,
-  // verification audits) have the actual generator output, not just a PDF.
+  // Hydrate report_data + document_text from the source row via the SAME
+  // helper used by the snapshot path — the two write paths must never drift.
   let reportData: unknown = null;
   let documentText: string | null = null;
   if (source_table && source_row_id) {
-    const shape = SOURCE_SHAPE[source_table] ?? { reportData: true, textCol: null };
-    const cols: string[] = [];
-    if (shape.reportData) cols.push("report_data");
-    if (shape.textCol) cols.push(shape.textCol);
-    if (cols.length > 0) {
-      const { data: src } = await admin
-        .from(source_table)
-        .select(cols.join(","))
-        .eq("id", source_row_id)
-        .maybeSingle();
-      if (src) {
-        reportData = shape.reportData ? ((src as any).report_data ?? null) : null;
-        documentText = shape.textCol ? ((src as any)[shape.textCol] ?? null) : null;
-      }
+    try {
+      const h = await hydrateContent(admin, source_table, source_row_id);
+      reportData = h.report_data;
+      documentText = h.document_text;
+    } catch (e) {
+      console.warn(`[generate_pdf] hydrateContent failed: ${(e as Error).message}`);
     }
   }
+
 
   const payload = {
     tool_slug, variant, title,
@@ -455,6 +471,51 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
   if (error) return json({ error: `upsert: ${error.message}` }, 400);
   return json({ row, bytes: pdfBytes.byteLength });
 }
+
+// P3 — Backfill every sample_report row in one pass via the shared hydrator.
+// Rows whose source_table is fileDriven (ropa/us_notice/eu_notice) are left
+// untouched and reported under `file_driven` so the caller knows they are
+// intentionally excluded from the text-based quality loop.
+async function backfillAll(admin: ReturnType<typeof createClient>, body: any) {
+  const onlyTool: string | null = typeof body?.tool_slug === "string" && body.tool_slug ? body.tool_slug : null;
+  let q = admin.from("sample_reports").select("id, tool_slug, source_table, source_row_id");
+  if (onlyTool) q = q.eq("tool_slug", onlyTool);
+  const { data: rows, error } = await q;
+  if (error) return json({ error: error.message }, 400);
+
+  const summary = {
+    scanned: rows?.length ?? 0,
+    updated: 0,
+    skipped_missing_source: 0,
+    file_driven: 0,
+    errors: [] as Array<{ id: string; message: string }>,
+  };
+
+  for (const r of (rows ?? []) as Array<{ id: string; tool_slug: string; source_table: string | null; source_row_id: string | null }>) {
+    if (!r.source_table || !r.source_row_id) { summary.skipped_missing_source++; continue; }
+    try {
+      const h = await hydrateContent(admin, r.source_table, r.source_row_id);
+      if (h.file_driven) { summary.file_driven++; continue; }
+      const patch: Record<string, unknown> = {
+        report_data: h.report_data,
+        document_text: h.document_text,
+        updated_at: new Date().toISOString(),
+      };
+      if (h.report_data && (h.report_data as any).verification) {
+        patch.verification = (h.report_data as any).verification;
+      }
+      const { error: upErr } = await admin.from("sample_reports").update(patch).eq("id", r.id);
+      if (upErr) { summary.errors.push({ id: r.id, message: upErr.message }); continue; }
+      summary.updated++;
+    } catch (e) {
+      summary.errors.push({ id: r.id, message: (e as Error).message });
+    }
+  }
+  return json(summary);
+}
+
+
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -509,6 +570,8 @@ Deno.serve(async (req) => {
     if (action === "generate_pdf") return await generatePdf(admin, body);
     if (action === "delete") return await deleteSample(admin, body);
     if (action === "delete_many") return await deleteSamples(admin, body);
+    if (action === "backfill_all") return await backfillAll(admin, body);
+
     return json({ error: `unknown action ${action}` }, 400);
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
