@@ -331,7 +331,8 @@ async function deliberateRun(runId: string, offset: number) {
   }
 
   if (offset + CHUNK_SIZE < pending.length) {
-    selfReinvoke(runId, offset + CHUNK_SIZE);
+    await selfReinvoke(runId, offset + CHUNK_SIZE);
+
   } else {
     console.log(`[deliberate] run=${runId} complete (offset=${offset + slice.length}/${pending.length})`);
   }
