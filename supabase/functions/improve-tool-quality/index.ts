@@ -505,7 +505,7 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
     await appendLog(admin, cycleId, `deliberate-quality-fixes invoke failed: ${(e as Error).message}`);
   }
 
-  await admin.from("tool_improvement_cycles").update({ phase: "rerunning" }).eq("id", cycleId);
+  await admin.from("tool_improvement_cycles").update({ phase: "rerunning", phase_started_at: new Date().toISOString() }).eq("id", cycleId);
   // Give deliberation a head start; the rerunning phase will check verdicts.
   await sleep(30_000); await selfReinvoke(cycleId);
 }
