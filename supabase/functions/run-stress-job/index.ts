@@ -155,13 +155,7 @@ function normalizeRopaCategory(raw: string | null | undefined): string {
 async function runTool(admin: Admin, job: any, userId: string): Promise<RunResult> {
 
   const intake: Record<string, any> = { ...(job.fixture_data ?? {}) };
-  // Ensure entity/company name is present for tools (e.g. cppa-risk legacy-flat shim)
-  // that validate `org_context.company_name`. Fixtures historically omit this so
-  // backfill from the job row, which always has a synthesized company_name.
-  if (job.company_name) {
-    if (intake.entity_name === undefined) intake.entity_name = job.company_name;
-    if (intake.company_name === undefined) intake.company_name = job.company_name;
-  }
+
   switch (job.tool_slug) {
     case "lia": {
       const { data: rec, error } = await admin.from("li_assessments")
