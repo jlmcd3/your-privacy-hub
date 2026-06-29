@@ -590,10 +590,66 @@ function Advanced() {
     }
   };
 
+  const [autoBusy, setAutoBusy] = useState(false);
+  const [autoJobId, setAutoJobId] = useState<string | null>(null);
+  const [autoStatus, setAutoStatus] = useState<any>(null);
+
+  const startAutoIterate = async () => {
+    setAutoBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-iterate-quality", {
+        body: { max_iterations: 7, target_score: 98 },
+      });
+      if (error) throw error;
+      setAutoJobId(data?.job_id ?? null);
+      toast.success(`Auto-iterate started for ${data?.tools?.length ?? 0} tools.`);
+    } catch (e: any) {
+      toast.error(`Start failed: ${e?.message ?? e}`);
+    } finally {
+      setAutoBusy(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!autoJobId) return;
+    const tick = async () => {
+      const { data } = await supabase.from("long_running_jobs").select("*").eq("id", autoJobId).single();
+      setAutoStatus(data);
+    };
+    tick();
+    const id = setInterval(tick, 15_000);
+    return () => clearInterval(id);
+  }, [autoJobId]);
+
   return (
     <details className="border border-gray-200 rounded-xl bg-white p-5">
       <summary className="cursor-pointer text-sm font-semibold text-[#0c2a44]">Advanced</summary>
       <div className="mt-4 space-y-3 text-sm">
+        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-gray-100 pb-3">
+          <div>
+            <div className="font-medium text-[#0c2a44]">Auto-iterate all tools sequentially</div>
+            <div className="text-xs text-gray-500">Runs each tool until pass rate ≥ 98% or 7 iterations.</div>
+          </div>
+          <Button onClick={startAutoIterate} disabled={autoBusy} variant="default" size="sm" className="h-8 text-xs">
+            {autoBusy ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Starting…</> : "Start auto-iterate"}
+          </Button>
+        </div>
+        {autoStatus && (
+          <div className="text-xs bg-slate-50 rounded p-3 space-y-1">
+            <div><span className="text-gray-500">Status:</span> <span className="font-medium">{autoStatus.status}</span></div>
+            <div><span className="text-gray-500">Progress:</span> {autoStatus.progress ?? "—"}</div>
+            {Array.isArray(autoStatus.result?.history) && autoStatus.result.history.length > 0 && (
+              <details className="mt-2">
+                <summary className="cursor-pointer text-gray-600">History ({autoStatus.result.history.length})</summary>
+                <ul className="mt-1 space-y-0.5 font-mono text-[11px]">
+                  {autoStatus.result.history.map((h: any, i: number) => (
+                    <li key={i}>{h.tool} → {h.status} · score={h.current_score ?? "?"} · iter={h.iteration ?? "?"}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </div>
+        )}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <div className="font-medium text-[#0c2a44]">Smoke batch (2 industries × US × all tools)</div>
