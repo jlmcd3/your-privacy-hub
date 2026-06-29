@@ -636,6 +636,7 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
       current_batch_id: newBatchId,
       quality_run_id: null,
       phase: "awaiting_rerun",
+      phase_started_at: new Date().toISOString(),
     }).eq("id", cycleId);
     await sleep(60_000); await selfReinvoke(cycleId);
   } catch (e) {
