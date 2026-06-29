@@ -451,7 +451,7 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
       check_type: "llm",
       dimension: "accuracy",
       severity: sevLabel,
-      passed: false,
+      pass_count: 0,
       fail_count: c.frequency ?? 1,
       fail_rate: 1,
       sample_evidence: [{ location: c.location, problem: c.problem }],
