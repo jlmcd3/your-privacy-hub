@@ -634,22 +634,69 @@ function Advanced() {
             {autoBusy ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Starting…</> : "Start auto-iterate"}
           </Button>
         </div>
-        {autoStatus && (
-          <div className="text-xs bg-slate-50 rounded p-3 space-y-1">
-            <div><span className="text-gray-500">Status:</span> <span className="font-medium">{autoStatus.status}</span></div>
-            <div><span className="text-gray-500">Progress:</span> {autoStatus.progress ?? "—"}</div>
-            {Array.isArray(autoStatus.result?.history) && autoStatus.result.history.length > 0 && (
-              <details className="mt-2">
-                <summary className="cursor-pointer text-gray-600">History ({autoStatus.result.history.length})</summary>
-                <ul className="mt-1 space-y-0.5 font-mono text-[11px]">
-                  {autoStatus.result.history.map((h: any, i: number) => (
-                    <li key={i}>{h.tool} → {h.status} · score={h.current_score ?? "?"} · iter={h.iteration ?? "?"}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </div>
-        )}
+        {autoStatus && (() => {
+          const r = autoStatus.result ?? {};
+          const tools: string[] = r.tools ?? [];
+          const idx: number = r.idx ?? 0;
+          const history: any[] = Array.isArray(r.history) ? r.history : [];
+          const current = r.current;
+          // Group history by tool (multiple cycles possible)
+          const byTool: Record<string, any[]> = {};
+          for (const h of history) {
+            (byTool[h.tool] ||= []).push(h);
+          }
+          const rowState = (tool: string, i: number) => {
+            if (current?.tool === tool) return { label: "running", cls: "text-blue-700" };
+            if (byTool[tool]?.length) {
+              const last = byTool[tool][byTool[tool].length - 1];
+              const ok = ["passed", "succeeded", "completed"].includes(String(last.status).toLowerCase());
+              return { label: last.status, cls: ok ? "text-emerald-700" : "text-red-700" };
+            }
+            if (i < idx) return { label: "skipped", cls: "text-gray-500" };
+            return { label: "queued", cls: "text-gray-400" };
+          };
+          return (
+            <div className="text-xs bg-slate-50 rounded p-3 space-y-2">
+              <div className="flex justify-between">
+                <div><span className="text-gray-500">Status:</span> <span className="font-medium">{autoStatus.status}</span></div>
+                <div className="text-gray-500">{idx}/{tools.length} tools processed</div>
+              </div>
+              <div className="text-gray-600">{autoStatus.progress ?? "—"}</div>
+              <table className="w-full font-mono text-[11px] mt-1">
+                <thead>
+                  <tr className="text-left text-gray-500 border-b">
+                    <th className="py-1 pr-2">#</th>
+                    <th className="py-1 pr-2">Tool</th>
+                    <th className="py-1 pr-2">Status</th>
+                    <th className="py-1 pr-2">Score</th>
+                    <th className="py-1 pr-2">Iter</th>
+                    <th className="py-1">Cycle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tools.map((tool, i) => {
+                    const st = rowState(tool, i);
+                    const last = byTool[tool]?.[byTool[tool].length - 1];
+                    const isCurrent = current?.tool === tool;
+                    const score = isCurrent ? (current.current_score ?? "—") : (last?.current_score ?? "—");
+                    const iter = isCurrent ? (current.iteration ?? "—") : (last?.iteration ?? "—");
+                    const cyc = isCurrent ? current.cycle_id : last?.cycle_id;
+                    return (
+                      <tr key={tool} className="border-b border-slate-100">
+                        <td className="py-1 pr-2 text-gray-400">{i + 1}</td>
+                        <td className="py-1 pr-2">{tool}</td>
+                        <td className={`py-1 pr-2 font-medium ${st.cls}`}>{st.label}</td>
+                        <td className="py-1 pr-2">{score}</td>
+                        <td className="py-1 pr-2">{iter}</td>
+                        <td className="py-1 text-gray-500">{cyc ? String(cyc).slice(0, 8) : "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <div className="font-medium text-[#0c2a44]">Smoke batch (2 industries × US × all tools)</div>
