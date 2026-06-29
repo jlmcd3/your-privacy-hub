@@ -6238,6 +6238,7 @@ export type Database = {
         Row: {
           baseline_batch_id: string | null
           baseline_score: number | null
+          cancel_requested: boolean
           completed_at: string | null
           current_batch_id: string | null
           current_score: number | null
@@ -6245,9 +6246,11 @@ export type Database = {
           id: string
           iteration: number
           last_error: string | null
+          last_heartbeat_at: string | null
           log: Json
           max_iterations: number
           phase: string
+          phase_started_at: string | null
           quality_run_id: string | null
           score_history: Json
           started_at: string
@@ -6261,6 +6264,7 @@ export type Database = {
         Insert: {
           baseline_batch_id?: string | null
           baseline_score?: number | null
+          cancel_requested?: boolean
           completed_at?: string | null
           current_batch_id?: string | null
           current_score?: number | null
@@ -6268,9 +6272,11 @@ export type Database = {
           id?: string
           iteration?: number
           last_error?: string | null
+          last_heartbeat_at?: string | null
           log?: Json
           max_iterations?: number
           phase?: string
+          phase_started_at?: string | null
           quality_run_id?: string | null
           score_history?: Json
           started_at?: string
@@ -6284,6 +6290,7 @@ export type Database = {
         Update: {
           baseline_batch_id?: string | null
           baseline_score?: number | null
+          cancel_requested?: boolean
           completed_at?: string | null
           current_batch_id?: string | null
           current_score?: number | null
@@ -6291,9 +6298,11 @@ export type Database = {
           id?: string
           iteration?: number
           last_error?: string | null
+          last_heartbeat_at?: string | null
           log?: Json
           max_iterations?: number
           phase?: string
+          phase_started_at?: string | null
           quality_run_id?: string | null
           score_history?: Json
           started_at?: string
