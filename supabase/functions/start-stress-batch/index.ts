@@ -46,6 +46,16 @@ const TOOL_FIXTURE_KEY: Record<string, string> = {
   "cppa-risk": "cppaRisk", "cppa-cyber": "cppaCyber", "cppa-admt": "cppaAdmt", "registration": "registration",
 };
 
+// UI/productRegistry aliases → canonical stress id used by ALL_TOOLS / fixture map.
+// QualityLoop admin UI passes productRegistry slugs like "biometric-checker" /
+// "dpa-generator"; normalize them so the tool isn't silently dropped.
+const TOOL_ID_ALIASES: Record<string, string> = {
+  "biometric-checker": "biometric",
+  "dpa-generator":     "dpa",
+};
+function normalizeToolId(id: string): string { return TOOL_ID_ALIASES[id] ?? id; }
+
+
 async function invokeFn(name: string, body: unknown, timeoutMs = 360_000): Promise<any> {
   const r = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
     method: "POST",
@@ -127,7 +137,8 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
 
     const c = companies[companyIndex];
     const companyId = `${c.geo}-${c.industryId}-slot${c.slot}`;
-    const selectedTools: string[] = batch.selected_tools ?? ALL_TOOLS.map((t) => t.id);
+    const selectedTools: string[] = (batch.selected_tools ?? ALL_TOOLS.map((t) => t.id)).map(normalizeToolId);
+
 
     try {
       const fixtures = await generateFixtures(c, companyId);
@@ -243,7 +254,7 @@ async function repairFixtureFailures(batchId: string): Promise<{ repaired: numbe
     .limit(2);
 
   const companies: Array<{ industryId: string; industryLabel: string; geo: string; slot: number }> = batch.companies ?? [];
-  const selectedTools: string[] = batch.selected_tools ?? ALL_TOOLS.map((t) => t.id);
+  const selectedTools: string[] = (batch.selected_tools ?? ALL_TOOLS.map((t) => t.id)).map(normalizeToolId);
   let repaired = 0;
   let failed = 0;
 
@@ -391,7 +402,7 @@ Deno.serve(async (req) => {
     total_jobs: 0,
     setup_total: companies.length,
     setup_done: 0,
-    selected_tools: selected_tools ?? ALL_TOOLS.map((t) => t.id),
+    selected_tools: (selected_tools ?? ALL_TOOLS.map((t) => t.id)).map(normalizeToolId),
     companies,
   }).select("id").single();
 
