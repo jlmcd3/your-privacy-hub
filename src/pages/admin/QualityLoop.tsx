@@ -441,17 +441,63 @@ function RunPanel() {
 
   const improveGolden = async (toolId: string, label: string) => {
     setBusyGolden(toolId);
+    let jobId: string | null = null;
     try {
       const { data, error } = await supabase.functions.invoke("improve-prompt", { body: { tool: toolId } });
       if (error) throw error;
-      if (data?.job_id) toast.success(`${label} — prompt writing started`);
-      else if (data?.status === "no_golden_set") toast.message("No golden set for this tool.");
-      else toast.success("Done.");
+      if (data?.status === "no_golden_set") {
+        toast.message("No golden set for this tool.");
+        setBusyGolden(null);
+        return;
+      }
+      jobId = data?.job_id ?? null;
+      if (!jobId) {
+        toast.success("Done.");
+        setBusyGolden(null);
+        return;
+      }
+      toast.success(`${label} — prompt writing started`, { description: "You'll be notified when it finishes." });
     } catch (e: any) {
       toast.error(`Improve failed: ${e?.message ?? e}`);
-    } finally {
       setBusyGolden(null);
+      return;
     }
+
+    // Poll the long-running job and notify on completion / error.
+    const startedAt = Date.now();
+    const TIMEOUT_MS = 20 * 60_000; // 20 min
+    const poll = window.setInterval(async () => {
+      if (Date.now() - startedAt > TIMEOUT_MS) {
+        window.clearInterval(poll);
+        setBusyGolden(prev => (prev === toolId ? null : prev));
+        toast.error(`${label} — still running after 20 min. Check "Now running" / Activity.`);
+        return;
+      }
+      const { data: job, error: jerr } = await supabase
+        .from("long_running_jobs")
+        .select("status, result, error")
+        .eq("id", jobId!)
+        .maybeSingle();
+      if (jerr || !job) return;
+      if (job.status === "complete") {
+        window.clearInterval(poll);
+        setBusyGolden(prev => (prev === toolId ? null : prev));
+        const r: any = job.result ?? {};
+        if (r.improved) {
+          toast.success(`${label} — prompt updated`, {
+            description: `+${r.delta ?? 0} assertions. ${r.commit_url ? "Commit staged." : "Staged to quality-auto."}`,
+          });
+        } else {
+          toast.message(`${label} — no prompt change`, {
+            description: `Reason: ${r.reason ?? "no_improvement"}`,
+          });
+        }
+      } else if (job.status === "error") {
+        window.clearInterval(poll);
+        setBusyGolden(prev => (prev === toolId ? null : prev));
+        toast.error(`${label} — prompt writing failed`, { description: job.error ?? "(no detail)" });
+      }
+    }, 5_000);
   };
 
   return (
