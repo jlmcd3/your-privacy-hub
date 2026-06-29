@@ -154,6 +154,134 @@ async function gptAgreesBetter(beforeOutputs: string[], afterOutputs: string[], 
   } catch { return true; }
 }
 
+async function runImprovement(jobId: string, reg: ToolReg): Promise<void> {
+  const updateJob = (patch: Record<string, unknown>) =>
+    supabase.from("long_running_jobs").update(patch).eq("id", jobId);
+
+  const finish = (result: Record<string, unknown>) =>
+    updateJob({ status: "complete", result, completed_at: new Date().toISOString(), progress: null });
+
+  try {
+    await updateJob({ status: "running", progress: "baseline" });
+
+    // 1. Baseline on ALL cases
+    const baseline = await evalAll(reg, reg.golden, null, "baseline");
+    const basePassed = baseline.totalPassed;
+    const baseTotal  = baseline.totalTotal;
+
+    if (basePassed === baseTotal) {
+      await finish({ improved: false, reason: "already_passing", basePassed, baseTotal });
+      return;
+    }
+
+    const failingLabels = Array.from(new Set(
+      Object.values(baseline.perCase).flatMap(p => p.failed)
+    ));
+
+    // 2. Load current prompt file from main
+    await updateJob({ progress: "load_source" });
+    const fileJson: any = await ghGet(`contents/${reg.sourceFile}?ref=main`);
+    const currentContent = atob(String(fileJson.content).replace(/\n/g, ""));
+
+    // 3. Propose minimal edit
+    await updateJob({ progress: "propose_edit" });
+    const proposal = await proposeEditWithClaude(currentContent, failingLabels);
+    if (!proposal) { await finish({ improved: false, reason: "no_proposal", basePassed, baseTotal }); return; }
+
+    // 4. Build candidate prompt in memory
+    await updateJob({ progress: "apply_edit" });
+    const candidatePrompt = await applyEditInMemory(currentContent, proposal.edit);
+    if (!candidatePrompt || candidatePrompt.length < currentContent.length * 0.5) {
+      await finish({ improved: false, reason: "patch_too_short", basePassed, baseTotal });
+      return;
+    }
+
+    // 5. A/B — pick holdout if any exist, else all
+    await updateJob({ progress: "candidate_ab" });
+    const holdout = reg.golden.filter(c => c.set === "holdout");
+    const evalCases = holdout.length > 0 ? holdout : reg.golden;
+    const candidate = await evalAll(reg, evalCases, candidatePrompt, "candidate");
+
+    const regressions: string[] = [];
+    for (const c of evalCases) {
+      const b = baseline.perCase[c.id];
+      const cnd = candidate.perCase[c.id];
+      if (b && cnd && cnd.passed < b.passed) regressions.push(c.id);
+    }
+    const baseOnEval = evalCases.reduce((s, c) => s + (baseline.perCase[c.id]?.passed ?? 0), 0);
+    const delta = candidate.totalPassed - baseOnEval;
+
+    if (delta <= 0 || regressions.length > 0) {
+      await finish({
+        improved: false, reason: regressions.length > 0 ? "regression" : "no_improvement",
+        basePassed, baseTotal, candPassed: candidate.totalPassed,
+        regressions, proposed_edit: proposal.edit, rationale: proposal.rationale,
+      });
+      return;
+    }
+
+    // 6. GPT-4o cross-check on previously-failing cases
+    await updateJob({ progress: "gpt_review" });
+    const previouslyFailingIds = evalCases.filter(c => (baseline.perCase[c.id]?.failed.length ?? 0) > 0).map(c => c.id);
+    const beforeOutputs = previouslyFailingIds.map(id => baseline.perCase[id]?.output ?? "");
+    const afterOutputs  = previouslyFailingIds.map(id => candidate.perCase[id]?.output ?? "");
+    const gptOk = previouslyFailingIds.length === 0
+      ? true
+      : await gptAgreesBetter(beforeOutputs, afterOutputs, failingLabels);
+
+    if (!gptOk) {
+      await finish({
+        improved: false, reason: "gpt_disagrees",
+        basePassed, baseTotal, candPassed: candidate.totalPassed,
+        delta, proposed_edit: proposal.edit, rationale: proposal.rationale,
+      });
+      return;
+    }
+
+    // 7. Stage to quality-auto
+    await updateJob({ progress: "stage_commit" });
+    const stageResult = await applyPatchToBranch({
+      filePath: reg.sourceFile,
+      proposedFix: proposal.edit,
+      fixLocation: "(see edit description)",
+      checkId: `improve-prompt:${reg.tool}`,
+      branch: "quality-auto",
+      commitMessage: `improve-prompt(${reg.tool}): +${delta} golden assertions, 0 regressions\n\nFailing labels addressed:\n- ${failingLabels.join("\n- ")}\n\nRationale: ${proposal.rationale}`,
+    });
+    if ("error" in stageResult) {
+      await finish({
+        improved: false, reason: "stage_failed", error: stageResult.error,
+        basePassed, baseTotal, candPassed: candidate.totalPassed, delta,
+      });
+      return;
+    }
+    if ("skipped" in stageResult) {
+      await finish({ improved: false, reason: (stageResult as any).reason });
+      return;
+    }
+
+    const diff_url = `https://github.com/${GH_OWNER}/${GH_REPO}/compare/main...quality-auto?expand=1`;
+    await finish({
+      improved: true,
+      delta,
+      regressions: 0,
+      basePassed, baseTotal, candPassed: candidate.totalPassed,
+      proposed_edit: proposal.edit,
+      rationale: proposal.rationale,
+      commit_sha: (stageResult as any).commit_sha,
+      commit_url: (stageResult as any).commit_url,
+      diff_url,
+    });
+  } catch (e) {
+    console.error("[improve-prompt] background error:", e);
+    await updateJob({
+      status: "error",
+      error: (e as Error).message?.slice(0, 1000) ?? "internal_error",
+      completed_at: new Date().toISOString(),
+    }).catch(() => {});
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -166,129 +294,58 @@ Deno.serve(async (req) => {
     }
     const body = await req.json().catch(() => ({}));
     const toolId = String(body.tool ?? "");
+
+    // GET-style poll: { job_id }
+    const pollId = String(body.job_id ?? "");
+    if (pollId) {
+      const { data, error } = await supabase
+        .from("long_running_jobs")
+        .select("id, kind, tool, status, progress, result, error, started_at, completed_at")
+        .eq("id", pollId)
+        .maybeSingle();
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify(data ?? { error: "not_found" }), {
+        status: data ? 200 : 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const reg = REGISTRY[toolId];
-    if (!reg) {
-      return new Response(JSON.stringify({ status: "no_golden_set", tool: toolId }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (reg.golden.length === 0) {
+    if (!reg || reg.golden.length === 0) {
       return new Response(JSON.stringify({ status: "no_golden_set", tool: toolId }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 1. Baseline on ALL cases
-    const baseline = await evalAll(reg, reg.golden, null, "baseline");
-    const basePassed = baseline.totalPassed;
-    const baseTotal  = baseline.totalTotal;
-
-    if (basePassed === baseTotal) {
-      return new Response(JSON.stringify({
-        improved: false, reason: "already_passing", basePassed, baseTotal,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Create job row, dispatch in background, return 202.
+    const { data: job, error: insErr } = await supabase
+      .from("long_running_jobs")
+      .insert({
+        kind: "improve-prompt",
+        tool: reg.tool,
+        status: "pending",
+        requested_by: caller.userId,
+        progress: "queued",
+      })
+      .select("id")
+      .single();
+    if (insErr || !job) {
+      return new Response(JSON.stringify({ error: `job_insert: ${insErr?.message}` }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Collect failing assertion labels (deduped)
-    const failingLabels = Array.from(new Set(
-      Object.values(baseline.perCase).flatMap(p => p.failed)
-    ));
+    // @ts-ignore EdgeRuntime is available in Supabase Edge runtime.
+    EdgeRuntime.waitUntil(runImprovement(job.id, reg));
 
-    // 2. Load current prompt file from main
-    let fileJson: any;
-    try { fileJson = await ghGet(`contents/${reg.sourceFile}?ref=main`); }
-    catch (e) { throw new Error(`ghGet sourceFile: ${(e as Error).message}`); }
-    const currentContent = atob(String(fileJson.content).replace(/\n/g, ""));
-
-    // 3. Propose minimal edit
-    const proposal = await proposeEditWithClaude(currentContent, failingLabels);
-    if (!proposal) {
-      return new Response(JSON.stringify({
-        improved: false, reason: "no_proposal", basePassed, baseTotal,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // 4. Build candidate prompt in memory
-    const candidatePrompt = await applyEditInMemory(currentContent, proposal.edit);
-    if (!candidatePrompt || candidatePrompt.length < currentContent.length * 0.5) {
-      return new Response(JSON.stringify({
-        improved: false, reason: "patch_too_short", basePassed, baseTotal,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // 5. A/B — pick holdout if any exist, else all
-    const holdout = reg.golden.filter(c => c.set === "holdout");
-    const evalCases = holdout.length > 0 ? holdout : reg.golden;
-    const candidate = await evalAll(reg, evalCases, candidatePrompt, "candidate");
-
-    // Regressions: any case where candidate < baseline on the same case
-    const regressions: string[] = [];
-    for (const c of evalCases) {
-      const b = baseline.perCase[c.id];
-      const cnd = candidate.perCase[c.id];
-      if (b && cnd && cnd.passed < b.passed) regressions.push(c.id);
-    }
-    // Re-aggregate baseline restricted to evalCases for delta computation
-    const baseOnEval = evalCases.reduce((s, c) => s + (baseline.perCase[c.id]?.passed ?? 0), 0);
-    const delta = candidate.totalPassed - baseOnEval;
-
-    if (delta <= 0 || regressions.length > 0) {
-      return new Response(JSON.stringify({
-        improved: false, reason: regressions.length > 0 ? "regression" : "no_improvement",
-        basePassed, baseTotal, candPassed: candidate.totalPassed,
-        regressions, proposed_edit: proposal.edit, rationale: proposal.rationale,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // 6. GPT-4o cross-check on previously-failing cases
-    const previouslyFailingIds = evalCases.filter(c => (baseline.perCase[c.id]?.failed.length ?? 0) > 0).map(c => c.id);
-    const beforeOutputs = previouslyFailingIds.map(id => baseline.perCase[id]?.output ?? "");
-    const afterOutputs  = previouslyFailingIds.map(id => candidate.perCase[id]?.output ?? "");
-    const gptOk = previouslyFailingIds.length === 0
-      ? true
-      : await gptAgreesBetter(beforeOutputs, afterOutputs, failingLabels);
-
-    if (!gptOk) {
-      return new Response(JSON.stringify({
-        improved: false, reason: "gpt_disagrees",
-        basePassed, baseTotal, candPassed: candidate.totalPassed,
-        delta, proposed_edit: proposal.edit, rationale: proposal.rationale,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // 7. Stage to quality-auto
-    const stageResult = await applyPatchToBranch({
-      filePath: reg.sourceFile,
-      proposedFix: proposal.edit,
-      fixLocation: "(see edit description)",
-      checkId: `improve-prompt:${reg.tool}`,
-      branch: "quality-auto",
-      commitMessage: `improve-prompt(${reg.tool}): +${delta} golden assertions, 0 regressions\n\nFailing labels addressed:\n- ${failingLabels.join("\n- ")}\n\nRationale: ${proposal.rationale}`,
+    return new Response(JSON.stringify({ accepted: true, job_id: job.id }), {
+      status: 202,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-    if ("error" in stageResult) {
-      return new Response(JSON.stringify({
-        improved: false, reason: "stage_failed", error: stageResult.error,
-        basePassed, baseTotal, candPassed: candidate.totalPassed, delta,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    if ("skipped" in stageResult) {
-      return new Response(JSON.stringify({
-        improved: false, reason: stageResult.reason,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    const diff_url = `https://github.com/${GH_OWNER}/${GH_REPO}/compare/main...quality-auto?expand=1`;
-    return new Response(JSON.stringify({
-      improved: true,
-      delta,
-      regressions: 0,
-      basePassed, baseTotal, candPassed: candidate.totalPassed,
-      proposed_edit: proposal.edit,
-      rationale: proposal.rationale,
-      commit_sha: (stageResult as any).commit_sha,
-      commit_url: (stageResult as any).commit_url,
-      diff_url,
-    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error("[improve-prompt] error:", e);
     return new Response(JSON.stringify({ error: (e as Error).message ?? "internal_error" }), {

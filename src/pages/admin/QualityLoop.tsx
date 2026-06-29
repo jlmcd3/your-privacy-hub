@@ -297,17 +297,25 @@ function ToolRow({ tool }: { tool: ToolDef }) {
     setBusyGolden(true);
     setGoldenResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke("improve-prompt", { body: { tool: tool.id } });
-      if (error) throw error;
-      if (data?.status === "no_golden_set") {
-        setGoldenResult({ status: "no_golden_set", message: "no golden set" });
-      } else if (data?.improved) {
-        setGoldenResult({ status: "improved", message: "improved", delta: data.delta, commit_url: data.commit_url, proposed_edit: data.proposed_edit, rationale: data.rationale });
-        toast.success(`+${data.delta} staged to quality-auto.`);
-      } else if (data?.reason === "already_passing") {
-        setGoldenResult({ status: "already_passing", message: "already_passing" });
+      const { pollJob } = await import("@/lib/pollJob");
+      const { data: kickoff, error: kickErr } = await supabase.functions.invoke("improve-prompt", { body: { tool: tool.id } });
+      if (kickErr) throw kickErr;
+      // Backwards-compat: if function returned a final result synchronously (e.g. no_golden_set), handle it.
+      if (kickoff && !kickoff.job_id && (kickoff.status === "no_golden_set" || kickoff.improved !== undefined || kickoff.reason)) {
+        applyImproveResult(kickoff);
+      } else if (kickoff?.job_id) {
+        setGoldenResult({ status: "queued" as any, message: "running… this can take several minutes" });
+        const row = await pollJob("improve-prompt", kickoff.job_id, {
+          intervalMs: 5000,
+          timeoutMs: 25 * 60_000,
+          onProgress: (r) => {
+            if (r.progress) setGoldenResult({ status: "queued" as any, message: `step: ${r.progress}` });
+          },
+        });
+        if (row.status === "error") throw new Error(row.error ?? "background_error");
+        applyImproveResult(row.result ?? {});
       } else {
-        setGoldenResult({ status: (data?.reason as GoldenResult["status"]) ?? "no_improvement", message: data?.reason ?? "no_improvement", proposed_edit: data?.proposed_edit, rationale: data?.rationale });
+        applyImproveResult(kickoff ?? {});
       }
       await loadRate();
     } catch (e: any) {
@@ -315,6 +323,19 @@ function ToolRow({ tool }: { tool: ToolDef }) {
       toast.error(`Improve failed: ${e?.message ?? e}`);
     } finally {
       setBusyGolden(false);
+    }
+  };
+
+  const applyImproveResult = (data: any) => {
+    if (data?.status === "no_golden_set") {
+      setGoldenResult({ status: "no_golden_set", message: "no golden set" });
+    } else if (data?.improved) {
+      setGoldenResult({ status: "improved", message: "improved", delta: data.delta, commit_url: data.commit_url, proposed_edit: data.proposed_edit, rationale: data.rationale });
+      toast.success(`+${data.delta} staged to quality-auto.`);
+    } else if (data?.reason === "already_passing") {
+      setGoldenResult({ status: "already_passing", message: "already_passing" });
+    } else {
+      setGoldenResult({ status: (data?.reason as GoldenResult["status"]) ?? "no_improvement", message: data?.reason ?? "no_improvement", proposed_edit: data?.proposed_edit, rationale: data?.rationale });
     }
   };
 
