@@ -3957,6 +3957,7 @@ export type Database = {
           id: string
           intakes: Json | null
           last_heartbeat_at: string | null
+          mode: string | null
           next_doc_index: number
           partial_state: Json | null
           progress_log: Json
@@ -3997,6 +3998,7 @@ export type Database = {
           id?: string
           intakes?: Json | null
           last_heartbeat_at?: string | null
+          mode?: string | null
           next_doc_index?: number
           partial_state?: Json | null
           progress_log?: Json
@@ -4037,6 +4039,7 @@ export type Database = {
           id?: string
           intakes?: Json | null
           last_heartbeat_at?: string | null
+          mode?: string | null
           next_doc_index?: number
           partial_state?: Json | null
           progress_log?: Json

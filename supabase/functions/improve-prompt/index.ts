@@ -55,11 +55,38 @@ async function runGenerator(reg: ToolReg, body: any, overridePrompt: string | nu
   });
   if (!r.ok) throw new Error(`generator ${reg.edgeFn} ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const text = await r.text();
-  // Strip keep-alive whitespace prefix
-  const trimmed = text.replace(/^\s+/, "");
+  // The biometric generator streams keep-alive whitespace (single spaces every
+  // 10s) followed by the final JSON object. Whitespace can appear before AND
+  // after the JSON, and in pathological timing also between final-write and
+  // close. Extract the last balanced top-level JSON object defensively rather
+  // than relying on whole-string JSON.parse.
+  const extractLastJson = (s: string): string | null => {
+    // Find the last '}' and walk back to find a matching '{'
+    let end = s.lastIndexOf("}");
+    while (end >= 0) {
+      let depth = 0;
+      let inStr = false;
+      let esc = false;
+      for (let i = end; i >= 0; i--) {
+        const ch = s[i];
+        if (esc) { esc = false; continue; }
+        if (ch === "\\") { esc = true; continue; }
+        if (ch === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (ch === "}") depth++;
+        else if (ch === "{") {
+          depth--;
+          if (depth === 0) return s.slice(i, end + 1);
+        }
+      }
+      end = s.lastIndexOf("}", end - 1);
+    }
+    return null;
+  };
   let json: any;
-  try { json = JSON.parse(trimmed); }
-  catch (e) { throw new Error(`generator returned non-JSON: ${trimmed.slice(0, 200)}`); }
+  const candidate = extractLastJson(text) ?? text.replace(/^\s+/, "");
+  try { json = JSON.parse(candidate); }
+  catch (e) { throw new Error(`generator returned non-JSON: ${candidate.slice(0, 200)}`); }
   return reg.extractText(json);
 }
 

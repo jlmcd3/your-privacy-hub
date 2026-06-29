@@ -424,11 +424,16 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
       mode: "improvement_cycle",
     }).select("id").single();
     if (error) {
-      // schema mismatch fallback: just store JSON; UI will still show changes
-      await appendLog(admin, cycleId, `quality_runs insert failed (${error.message}) — skipping deliberation`);
-      await admin.from("tool_improvement_cycles").update({ phase: "rerunning" }).eq("id", cycleId);
-      selfReinvoke(cycleId);
-      return;
+      // Fail loud: a seed/handoff failure must stop the cycle, not silently spin.
+      const msg = `quality_runs insert failed (${error.message}) — cycle aborted`;
+      await appendLog(admin, cycleId, msg);
+      await admin.from("tool_improvement_cycles").update({
+        status: "failed",
+        phase: "complete",
+        last_error: msg,
+        completed_at: new Date().toISOString(),
+      }).eq("id", cycleId);
+      return; // do NOT self-reinvoke
     }
     runId = (qr as any).id;
     await admin.from("tool_improvement_cycles").update({ quality_run_id: runId }).eq("id", cycleId);
@@ -439,7 +444,7 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
   for (let i = 0; i < topChanges.length; i++) {
     const c = topChanges[i];
     const sevLabel = sevMap[Math.min(4, Math.max(1, c.severity_weight ?? 2))];
-    await admin.from("quality_check_results").upsert({
+    const { error: upsertErr } = await admin.from("quality_check_results").upsert({
       run_id: runId,
       tool: sampleSlug,
       check_id: `cycle:${cycleId.slice(0, 8)}:${i + 1}`,
@@ -454,6 +459,14 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
       fix_location: c.location,
       cross_review_category: "agree",
     }, { onConflict: "run_id,check_id" });
+    if (upsertErr) {
+      const msg = `quality_check_results upsert failed (${upsertErr.message}) — cycle aborted`;
+      await appendLog(admin, cycleId, msg);
+      await admin.from("tool_improvement_cycles").update({
+        status: "failed", phase: "complete", last_error: msg, completed_at: new Date().toISOString(),
+      }).eq("id", cycleId);
+      return;
+    }
   }
 
   // Fire deliberate-quality-fixes; it self-chains.
