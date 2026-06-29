@@ -385,6 +385,7 @@ async function phaseRanking(admin: Admin, cycleId: string) {
     top_changes: topChanges,
     score_history: history,
     phase: "deliberating",
+    phase_started_at: new Date().toISOString(),
   }).eq("id", cycleId);
   await appendLog(admin, cycleId, `Iteration ${iteration}: score=${score} · ${topChanges.length} agreed change(s)`);
 
