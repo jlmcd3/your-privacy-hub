@@ -723,6 +723,38 @@ function Advanced() {
 
 // ──────────────────────────────────────────────────────────────────
 
+function HowToRun() {
+  return (
+    <section className="border border-blue-200 bg-blue-50/50 rounded-xl p-5 mb-4">
+      <h2 className="text-base font-semibold text-[#0c2a44] mb-2">How to run tests</h2>
+      <ol className="list-decimal list-inside text-sm text-gray-800 space-y-1.5">
+        <li>
+          <strong>Pick a tool</strong> in <em>Run a cycle</em> below and click <em>Run cycle</em>.
+          The cycle will <strong>auto-create</strong> the stress batch it needs — you no longer
+          have to run a smoke batch first.
+        </li>
+        <li>
+          Watch progress under <em>Now running</em>. Each cycle goes through:
+          <span className="font-mono text-xs ml-1">init → awaiting_rerun → reviewing → ranking → deliberating → rerunning</span>,
+          looping until the target score is reached or the iteration cap (default 6) is hit.
+        </li>
+        <li>
+          To process every tool sequentially, open <em>Advanced</em> and click <em>Start auto-iterate</em>.
+          It runs one cycle per tool with target 98% and max 7 iterations.
+        </li>
+        <li>
+          When a cycle finishes, the entry moves to <em>Recent activity</em>. Successful prompt
+          changes show a <em>View commit</em> link to the <code>quality-auto</code> branch.
+        </li>
+        <li>
+          If a cycle stalls or errors, use the per-cycle <em>Cancel</em> button. The
+          watchdog also auto-fails cycles whose heartbeat is older than 12 minutes.
+        </li>
+      </ol>
+    </section>
+  );
+}
+
 export default function QualityLoop() {
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -733,6 +765,7 @@ export default function QualityLoop() {
             Start a cycle, watch it run, and see what changed.
           </p>
         </header>
+        <HowToRun />
         <NowRunning />
         <ActivityFeed />
         <RunPanel />
@@ -741,3 +774,4 @@ export default function QualityLoop() {
     </div>
   );
 }
+

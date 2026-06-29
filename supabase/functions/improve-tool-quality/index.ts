@@ -39,7 +39,7 @@ const REVIEWER_MODELS = [
   { provider: "anthropic", model: "claude-sonnet-4-5-20250929" },
 ];
 
-// Map UI/stress tool ids → sample_reports.tool_slug (mirrors run-stress-job).
+// Map sample_reports.tool_slug → stress id used in static_stress_batches.selected_tools.
 const TOOL_SLUG_MAP: Record<string, string> = {
   "lia": "li_assessment", "dpia": "dpia", "governance": "governance",
   "biometric": "biometric", "dpa": "dpa", "ir-playbook": "ir_playbook",
@@ -52,6 +52,17 @@ function toStressId(slug: string): string {
   const entry = Object.entries(TOOL_SLUG_MAP).find(([, v]) => v === slug);
   return entry?.[0] ?? slug;
 }
+// UI-alias stress ids (productRegistry slugs) that the QualityLoop smoke
+// batch passes through. We accept either form when scanning batches.
+const STRESS_ID_ALIASES: Record<string, string[]> = {
+  "biometric":  ["biometric", "biometric-checker"],
+  "dpa":        ["dpa", "dpa-generator"],
+};
+function stressIdAliases(slug: string): string[] {
+  const canonical = toStressId(slug);
+  return STRESS_ID_ALIASES[canonical] ?? [canonical, slug];
+}
+
 
 type Admin = ReturnType<typeof createClient>;
 
@@ -136,12 +147,72 @@ function avgScores(reviews: any[]): number {
 
 // ─── Phases ───────────────────────────────────────────────────────────────────
 
+// Industry/geo each tool needs for generate-stress-fixtures to emit a non-null
+// payload. Used by both phaseInit (self-heal) and phaseRerunning.
+const TOOL_STRESS_INDUSTRY: Record<string, { id: string; label: string; geo: "us" | "eu" }> = {
+  biometric:    { id: "healthcare",  label: "Healthcare",                geo: "us" },
+  dpia:         { id: "healthcare",  label: "Healthcare",                geo: "eu" },
+  li_assessment:{ id: "adtech",      label: "AdTech / Marketing",        geo: "eu" },
+  ropa:         { id: "healthcare",  label: "Healthcare",                geo: "eu" },
+  eu_notice:    { id: "saas",        label: "SaaS",                      geo: "eu" },
+  us_notice:    { id: "saas",        label: "SaaS",                      geo: "us" },
+  cppa_risk:    { id: "adtech",      label: "AdTech / Marketing",        geo: "us" },
+  cppa_cyber:   { id: "financial",   label: "Financial services",        geo: "us" },
+  cppa_admt:    { id: "financial",   label: "Financial services",        geo: "us" },
+  dpa:          { id: "saas",        label: "SaaS",                      geo: "us" },
+  governance:   { id: "saas",        label: "SaaS",                      geo: "us" },
+  ir_playbook:  { id: "saas",        label: "SaaS",                      geo: "us" },
+  registration: { id: "saas",        label: "SaaS",                      geo: "us" },
+};
+
+async function kickPerToolStressBatch(admin: Admin, cycleId: string, toolSlug: string, iteration: number) {
+  const { data: cycle } = await admin.from("tool_improvement_cycles").select("started_by, baseline_batch_id").eq("id", cycleId).single();
+  const stressId = toStressId(toolSlug);
+  const ind = TOOL_STRESS_INDUSTRY[toolSlug] ?? { id: "saas", label: "SaaS", geo: "us" as const };
+  const { data: batch, error } = await admin.from("static_stress_batches").insert({
+    run_by: (cycle as any)?.started_by,
+    status: "pending",
+    industries: [ind.label],
+    geo_filter: ind.geo,
+    total_jobs: 0,
+    setup_total: 1,
+    setup_done: 0,
+    selected_tools: [stressId],
+    companies: [{ industryId: ind.id, industryLabel: ind.label, geo: ind.geo, slot: 1 }],
+  }).select("id").single();
+  if (error || !batch) throw new Error(`batch insert: ${error?.message}`);
+  const newBatchId = (batch as any).id;
+  const r = await fetch(`${SUPABASE_URL}/functions/v1/start-stress-batch`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
+    body: JSON.stringify({ batch_id: newBatchId, company_index: 0 }),
+  });
+  if (!r.ok) throw new Error(`start-stress-batch ${r.status}: ${(await r.text().catch(()=>"")).slice(0,200)}`);
+  const updates: Record<string, unknown> = {
+    current_batch_id: newBatchId,
+    quality_run_id: null,
+    phase: "awaiting_rerun",
+    phase_started_at: new Date().toISOString(),
+  };
+  if (iteration > 0) updates.iteration = iteration;
+  // First batch (iteration 0) also becomes the baseline.
+  if (!((cycle as any)?.baseline_batch_id)) updates.baseline_batch_id = newBatchId;
+  await admin.from("tool_improvement_cycles").update(updates).eq("id", cycleId);
+  await appendLog(admin, cycleId, `Kicked stress batch ${newBatchId.slice(0, 8)} (industry=${ind.label}, geo=${ind.geo})`);
+  await sleep(60_000);
+  await selfReinvoke(cycleId);
+}
+
 async function phaseInit(admin: Admin, cycleId: string) {
   const { data: cycle } = await admin.from("tool_improvement_cycles").select("*").eq("id", cycleId).single();
+
   if (!cycle) throw new Error("cycle not found");
   const toolSlug = (cycle as any).tool_slug as string;
 
-  // P1: most recent static_stress_batches batch that produced sample_reports for this tool.
+  // P1: most recent static_stress_batches batch that produced jobs for this tool.
+  // Accepts both canonical stress ids ("biometric") and productRegistry aliases
+  // ("biometric-checker") that the QualityLoop smoke batch may have written.
+  const aliases = stressIdAliases(toolSlug);
   const { data: latestBatch } = await admin
     .from("static_stress_batches")
     .select("id, created_at, completed_at, status, selected_tools")
@@ -150,16 +221,22 @@ async function phaseInit(admin: Admin, cycleId: string) {
   let batchId: string | null = null;
   for (const b of latestBatch ?? []) {
     const tools: string[] = (b as any).selected_tools ?? [];
-    if (tools.includes(toStressId(toolSlug)) || tools.includes(toolSlug)) {
-      batchId = (b as any).id;
-      break;
+    if (tools.some((t) => aliases.includes(t))) {
+      // Verify at least one stress job actually exists for this tool in that batch.
+      const { count } = await admin
+        .from("static_stress_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("batch_id", (b as any).id)
+        .in("tool_slug", aliases);
+      if ((count ?? 0) > 0) { batchId = (b as any).id; break; }
     }
   }
   if (!batchId) {
-    await admin.from("tool_improvement_cycles").update({
-      status: "failed", phase: "init", last_error: "no recent static_stress_batch for this tool — run static-stress first",
-      completed_at: new Date().toISOString(),
-    }).eq("id", cycleId);
+    // SELF-HEAL: no usable batch → auto-create one for this tool instead of
+    // failing the cycle. Re-uses the same per-tool stress-batch path as the
+    // rerun phase so callers never have to "run static-stress first".
+    await appendLog(admin, cycleId, "No usable stress batch found — auto-creating one for this tool.");
+    await kickPerToolStressBatch(admin, cycleId, toolSlug, /*iteration*/ 0);
     return;
   }
   await admin.from("tool_improvement_cycles").update({
@@ -177,12 +254,13 @@ async function phaseReviewing(admin: Admin, cycleId: string) {
   const batchId = (cycle as any).current_batch_id as string;
   const iteration = (cycle as any).iteration as number;
 
-  // Pull all sample_reports tied to this batch's jobs.
+  // Pull all sample_reports tied to this batch's jobs (accept either alias).
   const { data: jobs } = await admin
     .from("static_stress_jobs")
     .select("source_table, source_row_id, status, tool_slug, company_name")
     .eq("batch_id", batchId)
-    .eq("tool_slug", toStressId(toolSlug));
+    .in("tool_slug", stressIdAliases(toolSlug));
+
 
   const sampleSlug = toSampleSlug(toolSlug);
   // sample_reports link via source_row_id which is uuid; jobs.source_row_id is text.
@@ -584,77 +662,17 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
   }
 
 
-  // P6: kick a fresh stress batch limited to THIS tool. Inherits all anti-fail
-  // machinery (9-min/tool timeout, watchdog, EdgeRuntime.waitUntil, token ceilings).
-  //
-  // ROOT-CAUSE FIX (2026-06-29): generate-stress-fixtures only emits a non-null
-  // `biometric` payload when the industry label matches /healthcare|life science|
-  // clinical|medical|pharma|financial|security/i. A generic "Improvement cycle"
-  // label produced fixtures.biometric === null, so the biometric tool's job row
-  // was filtered out (.filter(j => j.payload)) leaving the batch with 0 jobs.
-  // The rerun cannot validate prompt changes if no fixture exists for the tool,
-  // so each tool must use a label the fixture generator will populate.
-  const TOOL_STRESS_INDUSTRY: Record<string, { id: string; label: string; geo: "us" | "eu" }> = {
-    biometric:    { id: "healthcare",  label: "Healthcare",                geo: "us" },
-    dpia:         { id: "healthcare",  label: "Healthcare",                geo: "eu" },
-    li_assessment:{ id: "adtech",      label: "AdTech / Marketing",        geo: "eu" },
-    ropa:         { id: "healthcare",  label: "Healthcare",                geo: "eu" },
-    eu_notice:    { id: "saas",        label: "SaaS",                      geo: "eu" },
-    us_notice:    { id: "saas",        label: "SaaS",                      geo: "us" },
-    cppa_risk:    { id: "adtech",      label: "AdTech / Marketing",        geo: "us" },
-    cppa_cyber:   { id: "financial",   label: "Financial services",        geo: "us" },
-    cppa_admt:    { id: "financial",   label: "Financial services",        geo: "us" },
-    dpa:          { id: "saas",        label: "SaaS",                      geo: "us" },
-    governance:   { id: "saas",        label: "SaaS",                      geo: "us" },
-    ir_playbook:  { id: "saas",        label: "SaaS",                      geo: "us" },
-    registration: { id: "saas",        label: "SaaS",                      geo: "us" },
-  };
+  // P6: kick a fresh per-tool stress batch (shared with phaseInit self-heal).
   try {
-    const stressId = toStressId(toolSlug);
-    const ind = TOOL_STRESS_INDUSTRY[toolSlug] ?? { id: "saas", label: "SaaS", geo: "us" as const };
-    const { data: batch, error } = await admin.from("static_stress_batches").insert({
-      run_by: (cycle as any).started_by,
-      status: "pending",
-      industries: [ind.label],
-      geo_filter: ind.geo,
-      total_jobs: 0,
-      setup_total: 1,
-      setup_done: 0,
-      selected_tools: [stressId],
-      companies: [{ industryId: ind.id, industryLabel: ind.label, geo: ind.geo, slot: 1 }],
-    }).select("id").single();
-    if (error || !batch) throw new Error(`batch insert: ${error?.message}`);
-    const newBatchId = (batch as any).id;
-    try {
-      const r = await fetch(`${SUPABASE_URL}/functions/v1/start-stress-batch`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
-        body: JSON.stringify({ batch_id: newBatchId, company_index: 0 }),
-      });
-      if (!r.ok) throw new Error(`start-stress-batch ${r.status}`);
-    } catch (e) {
-      await admin.from("tool_improvement_cycles").update({
-        status: "failed",
-        last_error: `rerun kick failed: ${(e as Error).message}`,
-        completed_at: new Date().toISOString(),
-      }).eq("id", cycleId);
-      return;
-    }
-    await appendLog(admin, cycleId, `Iteration ${iteration + 1}: kicked stress batch ${newBatchId.slice(0, 8)} for re-review (industry=${ind.label}, geo=${ind.geo})`);
-    await admin.from("tool_improvement_cycles").update({
-      iteration: iteration + 1,
-      current_batch_id: newBatchId,
-      quality_run_id: null,
-      phase: "awaiting_rerun",
-      phase_started_at: new Date().toISOString(),
-    }).eq("id", cycleId);
-    await sleep(60_000); await selfReinvoke(cycleId);
+    await kickPerToolStressBatch(admin, cycleId, toolSlug, iteration + 1);
   } catch (e) {
     await admin.from("tool_improvement_cycles").update({
-      status: "failed", last_error: (e as Error).message, completed_at: new Date().toISOString(),
+      status: "failed", last_error: `rerun kick failed: ${(e as Error).message}`,
+      completed_at: new Date().toISOString(),
     }).eq("id", cycleId);
   }
 }
+
 
 async function phaseAwaitingRerun(admin: Admin, cycleId: string) {
   const { data: cycle } = await admin.from("tool_improvement_cycles").select("*").eq("id", cycleId).single();
