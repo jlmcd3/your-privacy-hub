@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ExternalLink, RefreshCw, Sparkles, Zap } from "lucide-react";
+import { ExternalLink, Play, RefreshCw, Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const SMOKE_INDUSTRIES = [
