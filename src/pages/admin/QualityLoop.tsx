@@ -171,10 +171,7 @@ function NowRunning() {
             {isEmpty ? "Nothing is running. Everything is idle." : `${cycles.length + jobs.length} active`}
           </p>
         </div>
-        <Button onClick={load} variant="outline" size="sm" className="h-8 text-xs">
-          <RefreshCw className={`w-3 h-3 mr-1 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        {loading && <RefreshCw className="w-3 h-3 text-gray-400 animate-spin" aria-label="loading" />}
       </header>
 
       {isEmpty ? (
@@ -393,10 +390,7 @@ function ActivityFeed() {
             Completions, prompt updates, and failures — newest first.
           </p>
         </div>
-        <Button onClick={load} variant="outline" size="sm" className="h-8 text-xs">
-          <RefreshCw className={`w-3 h-3 mr-1 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        {loading && <RefreshCw className="w-3 h-3 text-gray-400 animate-spin" aria-label="loading" />}
       </header>
 
       {items.length === 0 ? (
@@ -562,33 +556,6 @@ function RunPanel() {
 // Advanced
 
 function Advanced() {
-  const [busy, setBusy] = useState(false);
-
-  const runSmoke = async () => {
-    setBusy(true);
-    try {
-      const { data: u } = await supabase.auth.getUser();
-      const uid = u?.user?.id;
-      if (!uid) { toast.error("Sign in first"); return; }
-      const { data, error } = await supabase.functions.invoke("start-stress-batch", {
-        body: {
-          run_by: uid,
-          industries: [
-            { id: "web", label: "Online & Web Services" },
-            { id: "ai",  label: "AI & Machine Learning" },
-          ],
-          geo_filter: "us",
-          selected_tools: TOOLS.map(t => t.id),
-        },
-      });
-      if (error || !data?.batch_id) throw new Error(error?.message ?? "no batch_id");
-      toast.success("Smoke batch started.");
-    } catch (e: any) {
-      toast.error(`Start failed: ${e?.message ?? e}`);
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const [autoBusy, setAutoBusy] = useState(false);
   const [autoJobId, setAutoJobId] = useState<string | null>(null);
@@ -697,25 +664,23 @@ function Advanced() {
             </div>
           );
         })()}
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <div className="font-medium text-[#0c2a44]">Smoke batch (2 industries × US × all tools)</div>
-            <div className="text-xs text-gray-500">Validates clean-rate against the static-stress pipeline.</div>
+        <details className="border-t border-gray-100 pt-3">
+          <summary className="cursor-pointer text-xs font-medium text-gray-600 hover:text-[#0c2a44]">
+            Engineering links
+          </summary>
+          <div className="mt-2 space-y-2 pl-2">
+            <div className="text-xs text-gray-600">
+              <Link to="/admin/static-stress" className="text-blue-700 underline inline-flex items-center gap-1">
+                Open static-stress dashboard <ExternalLink className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="text-xs text-gray-600">
+              <a href={DIFF_URL} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline inline-flex items-center gap-1">
+                Open <code>quality-auto → main</code> compare <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
           </div>
-          <Button onClick={runSmoke} disabled={busy} variant="outline" size="sm" className="h-8 text-xs">
-            {busy ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Starting…</> : "Run smoke batch"}
-          </Button>
-        </div>
-        <div className="text-xs text-gray-600">
-          <Link to="/admin/static-stress" className="text-blue-700 underline inline-flex items-center gap-1">
-            Open static-stress dashboard <ExternalLink className="w-3 h-3" />
-          </Link>
-        </div>
-        <div className="text-xs text-gray-600">
-          <a href={DIFF_URL} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline inline-flex items-center gap-1">
-            Open <code>quality-auto → main</code> compare <ExternalLink className="w-3 h-3" />
-          </a>
-        </div>
+        </details>
       </div>
     </details>
   );
