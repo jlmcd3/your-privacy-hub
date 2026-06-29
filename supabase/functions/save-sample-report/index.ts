@@ -567,6 +567,8 @@ Deno.serve(async (req) => {
     if (action === "generate_pdf") return await generatePdf(admin, body);
     if (action === "delete") return await deleteSample(admin, body);
     if (action === "delete_many") return await deleteSamples(admin, body);
+    if (action === "backfill_all") return await backfillAll(admin, body);
+
     return json({ error: `unknown action ${action}` }, 400);
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
