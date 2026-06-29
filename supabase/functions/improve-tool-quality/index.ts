@@ -625,11 +625,21 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
     }).select("id").single();
     if (error || !batch) throw new Error(`batch insert: ${error?.message}`);
     const newBatchId = (batch as any).id;
-    fetch(`${SUPABASE_URL}/functions/v1/start-stress-batch`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
-      body: JSON.stringify({ batch_id: newBatchId, company_index: 0 }),
-    }).catch(() => {/* fire-and-forget */});
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/start-stress-batch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
+        body: JSON.stringify({ batch_id: newBatchId, company_index: 0 }),
+      });
+      if (!r.ok) throw new Error(`start-stress-batch ${r.status}`);
+    } catch (e) {
+      await admin.from("tool_improvement_cycles").update({
+        status: "failed",
+        last_error: `rerun kick failed: ${(e as Error).message}`,
+        completed_at: new Date().toISOString(),
+      }).eq("id", cycleId);
+      return;
+    }
     await appendLog(admin, cycleId, `Iteration ${iteration + 1}: kicked stress batch ${newBatchId.slice(0, 8)} for re-review (industry=${ind.label}, geo=${ind.geo})`);
     await admin.from("tool_improvement_cycles").update({
       iteration: iteration + 1,
