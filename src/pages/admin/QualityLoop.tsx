@@ -171,10 +171,7 @@ function NowRunning() {
             {isEmpty ? "Nothing is running. Everything is idle." : `${cycles.length + jobs.length} active`}
           </p>
         </div>
-        <Button onClick={load} variant="outline" size="sm" className="h-8 text-xs">
-          <RefreshCw className={`w-3 h-3 mr-1 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        {loading && <RefreshCw className="w-3 h-3 text-gray-400 animate-spin" aria-label="loading" />}
       </header>
 
       {isEmpty ? (
