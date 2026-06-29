@@ -669,7 +669,7 @@ async function phaseAwaitingRerun(admin: Admin, cycleId: string) {
       }).eq("id", cycleId);
       return;
     }
-    await admin.from("tool_improvement_cycles").update({ phase: "reviewing" }).eq("id", cycleId);
+    await admin.from("tool_improvement_cycles").update({ phase: "reviewing", phase_started_at: new Date().toISOString() }).eq("id", cycleId);
     await appendLog(admin, cycleId, `Stress batch ${batchId.slice(0, 8)} → ${status}; re-reviewing`);
     await selfReinvoke(cycleId);
     return;
