@@ -390,10 +390,7 @@ function ActivityFeed() {
             Completions, prompt updates, and failures — newest first.
           </p>
         </div>
-        <Button onClick={load} variant="outline" size="sm" className="h-8 text-xs">
-          <RefreshCw className={`w-3 h-3 mr-1 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        {loading && <RefreshCw className="w-3 h-3 text-gray-400 animate-spin" aria-label="loading" />}
       </header>
 
       {items.length === 0 ? (
