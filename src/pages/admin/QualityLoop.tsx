@@ -438,6 +438,142 @@ function ToolRow({ tool }: { tool: ToolDef }) {
   );
 }
 
+type CycleRow = {
+  id: string;
+  tool_slug: string;
+  status: string;
+  phase: string | null;
+  iteration: number | null;
+  current_score: number | null;
+  baseline_score: number | null;
+  started_at: string;
+  updated_at: string | null;
+  completed_at: string | null;
+};
+
+function fmtDuration(ms: number): string {
+  if (ms < 0 || !Number.isFinite(ms)) return "—";
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ${s % 60}s`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
+}
+
+function fmtRelative(iso: string | null): string {
+  if (!iso) return "—";
+  const ms = Date.now() - new Date(iso).getTime();
+  if (ms < 0) return "just now";
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+function statusPillClasses(status: string): string {
+  switch (status) {
+    case "running":   return "bg-blue-50 text-blue-700 border-blue-200";
+    case "complete":  return "bg-green-50 text-green-700 border-green-200";
+    case "failed":    return "bg-red-50 text-red-700 border-red-200";
+    case "cancelled": return "bg-gray-100 text-gray-600 border-gray-200";
+    default:          return "bg-slate-50 text-slate-700 border-slate-200";
+  }
+}
+
+function ActiveCyclesTable() {
+  const [rows, setRows] = useState<CycleRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [, force] = useState(0);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from("tool_improvement_cycles")
+        .select("id, tool_slug, status, phase, iteration, current_score, baseline_score, started_at, updated_at, completed_at")
+        .order("started_at", { ascending: false })
+        .limit(25);
+      setRows((data as CycleRow[] | null) ?? []);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Refresh data every 30s; tick clock every 15s for relative times.
+  useEffect(() => {
+    const reload = window.setInterval(load, 30_000);
+    const tick = window.setInterval(() => force(x => x + 1), 15_000);
+    return () => { window.clearInterval(reload); window.clearInterval(tick); };
+  }, [load]);
+
+  const activeCount = rows.filter(r => r.status === "running").length;
+
+  return (
+    <div className="border border-gray-200 rounded-xl bg-white px-5 py-4 my-4">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="text-sm font-semibold text-[#0c2a44]">Improvement cycles</div>
+          <div className="text-xs text-gray-500">
+            {activeCount} active · {rows.length} recent
+          </div>
+        </div>
+        <Button onClick={load} disabled={loading} variant="outline" className="h-8 text-xs">
+          {loading ? <><RefreshCw className="w-3 h-3 mr-1 animate-spin" />Loading</> : <><RefreshCw className="w-3 h-3 mr-1" />Refresh</>}
+        </Button>
+      </div>
+      {rows.length === 0 ? (
+        <div className="text-xs text-gray-500 py-4 text-center">No cycles yet.</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-gray-500 border-b border-gray-100">
+                <th className="py-2 pr-3 font-medium">Tool</th>
+                <th className="py-2 pr-3 font-medium">Status</th>
+                <th className="py-2 pr-3 font-medium">Phase</th>
+                <th className="py-2 pr-3 font-medium">Iter</th>
+                <th className="py-2 pr-3 font-medium">Score</th>
+                <th className="py-2 pr-3 font-medium">Started</th>
+                <th className="py-2 pr-3 font-medium">Duration</th>
+                <th className="py-2 pr-3 font-medium">Last activity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => {
+                const start = new Date(r.started_at).getTime();
+                const end = r.completed_at ? new Date(r.completed_at).getTime() : Date.now();
+                const score = r.current_score ?? r.baseline_score;
+                return (
+                  <tr key={r.id} className="border-b border-gray-50 last:border-0">
+                    <td className="py-2 pr-3 font-mono text-[11px] text-[#0c2a44]">{r.tool_slug}</td>
+                    <td className="py-2 pr-3">
+                      <span className={`inline-block px-2 py-0.5 rounded border text-[10px] uppercase tracking-wide ${statusPillClasses(r.status)}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3 text-gray-700">{r.phase ?? "—"}</td>
+                    <td className="py-2 pr-3 text-gray-700">{r.iteration ?? 0}</td>
+                    <td className="py-2 pr-3 text-gray-700">{score != null ? `${score}%` : "—"}</td>
+                    <td className="py-2 pr-3 text-gray-600" title={r.started_at}>{fmtRelative(r.started_at)}</td>
+                    <td className="py-2 pr-3 text-gray-600">{fmtDuration(end - start)}</td>
+                    <td className="py-2 pr-3 text-gray-600" title={r.updated_at ?? ""}>{fmtRelative(r.updated_at)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function QualityLoop() {
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
