@@ -424,11 +424,16 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
       mode: "improvement_cycle",
     }).select("id").single();
     if (error) {
-      // schema mismatch fallback: just store JSON; UI will still show changes
-      await appendLog(admin, cycleId, `quality_runs insert failed (${error.message}) — skipping deliberation`);
-      await admin.from("tool_improvement_cycles").update({ phase: "rerunning" }).eq("id", cycleId);
-      selfReinvoke(cycleId);
-      return;
+      // Fail loud: a seed/handoff failure must stop the cycle, not silently spin.
+      const msg = `quality_runs insert failed (${error.message}) — cycle aborted`;
+      await appendLog(admin, cycleId, msg);
+      await admin.from("tool_improvement_cycles").update({
+        status: "failed",
+        phase: "complete",
+        last_error: msg,
+        completed_at: new Date().toISOString(),
+      }).eq("id", cycleId);
+      return; // do NOT self-reinvoke
     }
     runId = (qr as any).id;
     await admin.from("tool_improvement_cycles").update({ quality_run_id: runId }).eq("id", cycleId);
