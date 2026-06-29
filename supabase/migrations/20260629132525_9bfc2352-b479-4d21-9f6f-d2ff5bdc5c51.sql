@@ -1,0 +1,2 @@
+UPDATE long_running_jobs SET status='cancelled', completed_at=now(), error='cancelled by user' WHERE id='f9664a34-5744-49dc-9c3d-dc9c305592f6';
+UPDATE tool_improvement_cycles SET status='cancelled', last_error='cancelled by user', updated_at=now() WHERE status NOT IN ('completed','failed','error','cancelled') AND started_by IS NOT NULL AND started_at >= now() - interval '30 minutes';
