@@ -565,11 +565,11 @@ async function phaseAwaitingRerun(admin: Admin, cycleId: string) {
   if (status === "complete" || status === "failed" || status === "cancelled") {
     await admin.from("tool_improvement_cycles").update({ phase: "reviewing" }).eq("id", cycleId);
     await appendLog(admin, cycleId, `Stress batch ${batchId.slice(0, 8)} → ${status}; re-reviewing`);
-    selfReinvoke(cycleId);
+    await selfReinvoke(cycleId);
     return;
   }
   // Still running — poll again in 60s.
-  setTimeout(() => selfReinvoke(cycleId), 60_000);
+  await sleep(60_000); await selfReinvoke(cycleId);
 }
 
 async function dispatch(cycleId: string, phaseOverride?: string) {
