@@ -517,6 +517,25 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
   const iteration = (cycle as any).iteration as number;
   const runId = (cycle as any).quality_run_id as string;
 
+  // G4 — hard 15-minute deadline on the deliberation wait so the 30s self-poll
+  // can never run forever. phase_started_at is stamped on every phase transition.
+  const phaseStartedAt = (cycle as any).phase_started_at as string | null;
+  if (phaseStartedAt && Date.now() - new Date(phaseStartedAt).getTime() > 15 * 60_000) {
+    let done = 0, target = 0;
+    if (runId) {
+      const { data: cands } = await admin.from("quality_check_results")
+        .select("check_id").eq("run_id", runId).gt("fail_count", 0).not("proposed_fix", "is", null);
+      const { data: dlb } = await admin.from("quality_fix_deliberations").select("check_id").eq("run_id", runId);
+      target = cands?.length ?? 0; done = dlb?.length ?? 0;
+    }
+    const msg = `deliberation did not finish in 15m (${done}/${target})`;
+    await appendLog(admin, cycleId, msg);
+    await admin.from("tool_improvement_cycles").update({
+      status: "failed", last_error: msg, completed_at: new Date().toISOString(),
+    }).eq("id", cycleId);
+    return;
+  }
+
   // Wait until deliberations finish. The correct target is the count of
   // ACTIONABLE candidates (fail_count>0 AND proposed_fix IS NOT NULL) — every
   // such candidate yields a quality_fix_deliberations row. registry_proposals
