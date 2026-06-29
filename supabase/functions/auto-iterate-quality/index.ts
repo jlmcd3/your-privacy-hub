@@ -36,7 +36,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-const TERMINAL = new Set(["completed", "failed", "error", "cancelled"]);
+const TERMINAL = new Set(["complete", "completed", "failed", "error", "cancelled", "canceled"]);
 
 async function startCycle(tool: string, max_iterations: number, target_score: number, userId: string | null) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/improve-tool-quality`, {
