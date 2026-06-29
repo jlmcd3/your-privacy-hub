@@ -68,15 +68,27 @@ async function appendLog(admin: Admin, cycleId: string, msg: string) {
   console.log(`[improve-tool-quality][${cycleId}] ${msg}`);
 }
 
+// G3 — fail loud on self-reinvoke. A broken chain must mark the cycle failed
+// instead of silently dropping it into an indefinite "running" state.
 async function selfReinvoke(cycleId: string, phase?: string): Promise<void> {
+  const admin = await adminClient();
   try {
-    await fetch(`${SUPABASE_URL}/functions/v1/improve-tool-quality`, {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/improve-tool-quality`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
       body: JSON.stringify({ cycle_id: cycleId, phase }),
     });
+    if (!r.ok) {
+      const detail = (await r.text().catch(() => "")).slice(0, 200);
+      throw new Error(`self-reinvoke HTTP ${r.status}: ${detail}`);
+    }
   } catch (e) {
-    console.warn("[improve-tool-quality] self-reinvoke failed:", (e as Error).message);
+    await admin.from("tool_improvement_cycles").update({
+      status: "failed",
+      last_error: `self-reinvoke failed: ${(e as Error).message}`,
+      completed_at: new Date().toISOString(),
+    }).eq("id", cycleId);
+    throw e;
   }
 }
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
