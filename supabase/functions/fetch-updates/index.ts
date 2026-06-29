@@ -1292,7 +1292,7 @@ Generate 0-3 action_items. Return [] if the source text does not support specifi
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 2500,
+        max_tokens: 5000,
         system: systemPrompt,
         messages: [{ role: "user", content: buildUserContent(correction) }],
       }),
@@ -1560,7 +1560,7 @@ async function translateIfNeeded(
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 800,
+        max_tokens: 1600,
         messages: [{
           role: "user",
           content: `Translate this privacy/data protection article from ${language} to English.

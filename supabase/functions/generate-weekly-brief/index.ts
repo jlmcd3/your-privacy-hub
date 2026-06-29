@@ -521,7 +521,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
       },
       body: JSON.stringify({
         model: "claude-opus-4-7",
-        max_tokens: 8000,
+        max_tokens: 16000,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
       }),
@@ -568,7 +568,7 @@ Return: {"verified": true/false, "issues": ["list any unverified amounts or fabr
       headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1000,
+        max_tokens: 2000,
         system: `You are a fact-checker for a regulatory intelligence publication. Your task: verify that specific factual claims in a regulatory enforcement table are traceable to the cited source articles.
 
 Return ONLY valid JSON. No preamble, no explanation.

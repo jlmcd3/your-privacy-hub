@@ -160,7 +160,7 @@ Return ONLY a valid JSON object. Your entire response must start with { and end 
     },
     body: JSON.stringify({
       model: "claude-opus-4-7",
-      max_tokens: 2500,
+      max_tokens: 5000,
       system: `You are a senior privacy regulatory analyst at a leading intelligence firm. You conduct multi-month longitudinal analysis of regulatory developments for DPOs and privacy counsel who rely on your synthesis to understand where enforcement is heading — not just what happened last week.
 
 VOICE:

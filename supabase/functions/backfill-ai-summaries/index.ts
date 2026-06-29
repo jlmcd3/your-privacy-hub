@@ -172,7 +172,7 @@ async function _enrichAttempt(
         model: "claude-sonnet-4-6",
         // 2500 is comfortably above the ~1.5–2k tokens our enrichment JSON actually uses,
         // and keeps reserved OTPM low so we don't trip Anthropic's per-minute output ceiling.
-        max_tokens: 2500,
+        max_tokens: 4000,
         system: `You are a privacy regulatory intelligence analyst processing articles retrospectively for a professional-grade compliance platform serving Data Protection Officers, General Counsel, and privacy lawyers at multinational organizations.
 
 Your task: analyze each article and return a single valid JSON object. Return ONLY the JSON — no preamble, no markdown, no explanation.

@@ -121,7 +121,7 @@ async function proposeEditWithClaude(currentPrompt: string, failingLabels: strin
     headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
       model: "claude-sonnet-4-5",
-      max_tokens: 2000,
+      max_tokens: 4000,
       system: sys,
       messages: [{ role: "user", content: user }],
     }),
@@ -169,7 +169,7 @@ async function gptAgreesBetter(beforeOutputs: string[], afterOutputs: string[], 
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
-      max_tokens: 400,
+      max_tokens: 800,
     }),
     signal: AbortSignal.timeout(60_000),
   });
