@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ExternalLink, RefreshCw, Sparkles, Zap } from "lucide-react";
+import { ExternalLink, Play, RefreshCw, Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const SMOKE_INDUSTRIES = [
@@ -484,6 +484,209 @@ function statusPillClasses(status: string): string {
   }
 }
 
+type QueueItem = { id: string; slug: string; label: string; state: "pending" | "running" | "done" | "failed"; cycleId?: string; error?: string };
+
+function BatchRunnerPanel() {
+  const ACTIVE_STATUSES = new Set(["running", "queued", "pending"]);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(TOOLS.map(t => t.id)));
+  const [concurrency, setConcurrency] = useState<number>(2);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [running, setRunning] = useState(false);
+  const runningRef = useRef(false);
+  const queueRef = useRef<QueueItem[]>([]);
+  useEffect(() => { queueRef.current = queue; }, [queue]);
+
+  const toggle = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const updateItem = (id: string, patch: Partial<QueueItem>) => {
+    setQueue(q => q.map(it => it.id === id ? { ...it, ...patch } : it));
+  };
+
+  const fetchActiveSlugs = async (): Promise<Set<string>> => {
+    const { data } = await supabase
+      .from("tool_improvement_cycles")
+      .select("tool_slug, status")
+      .in("status", Array.from(ACTIVE_STATUSES))
+      .limit(100);
+    return new Set((data ?? []).map((r: any) => r.tool_slug as string));
+  };
+
+  const isCycleDone = async (cycleId: string): Promise<{ done: boolean; status: string; error?: string }> => {
+    const { data } = await supabase
+      .from("tool_improvement_cycles")
+      .select("status, last_error")
+      .eq("id", cycleId)
+      .maybeSingle();
+    const status = (data as any)?.status ?? "unknown";
+    const done = status === "complete" || status === "failed" || status === "cancelled";
+    return { done, status, error: (data as any)?.last_error };
+  };
+
+  const startNext = async (): Promise<boolean> => {
+    const next = queueRef.current.find(it => it.state === "pending");
+    if (!next) return false;
+    // Per-slug guard: don't start if another cycle for the same slug is already active.
+    const active = await fetchActiveSlugs();
+    if (active.has(next.slug)) {
+      updateItem(next.id, { state: "failed", error: "slug already running" });
+      return true; // count this as 'handled' so loop continues
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke("improve-tool-quality", { body: { tool_slug: next.slug } });
+      if (error) throw error;
+      const cycleId = data?.cycle_id;
+      if (!cycleId) throw new Error("no cycle_id returned");
+      updateItem(next.id, { state: "running", cycleId });
+      return true;
+    } catch (e: any) {
+      updateItem(next.id, { state: "failed", error: e?.message ?? String(e) });
+      return true;
+    }
+  };
+
+  const runLoop = async () => {
+    if (runningRef.current) return;
+    runningRef.current = true;
+    setRunning(true);
+    try {
+      // Fill up to concurrency
+      while (true) {
+        const q = queueRef.current;
+        if (!q.some(it => it.state === "pending" || it.state === "running")) break;
+        const runningCount = q.filter(it => it.state === "running").length;
+        if (runningCount < concurrency) {
+          const started = await startNext();
+          if (started) continue;
+        }
+        // Poll currently running for completion
+        const running = queueRef.current.filter(it => it.state === "running" && it.cycleId);
+        if (running.length === 0) {
+          // Nothing running and nothing to start (failed-only remaining) — exit
+          if (!queueRef.current.some(it => it.state === "pending")) break;
+        }
+        await Promise.all(running.map(async (it) => {
+          const { done, status, error } = await isCycleDone(it.cycleId!);
+          if (done) {
+            updateItem(it.id, { state: status === "complete" ? "done" : "failed", error });
+          }
+        }));
+        await new Promise(r => setTimeout(r, 15_000));
+      }
+      toast.success("Batch finished.");
+    } finally {
+      runningRef.current = false;
+      setRunning(false);
+    }
+  };
+
+  const startBatch = () => {
+    if (running) { toast.message("Batch already running."); return; }
+    const items: QueueItem[] = TOOLS
+      .filter(t => selected.has(t.id))
+      .map(t => ({ id: `${t.id}-${Math.random().toString(36).slice(2, 8)}`, slug: t.sampleSlug, label: t.label, state: "pending" }));
+    if (items.length === 0) { toast.error("Select at least one tool."); return; }
+    setQueue(items);
+    // give state a tick to propagate
+    setTimeout(() => { runLoop(); }, 0);
+  };
+
+  const cancelPending = () => {
+    setQueue(q => q.map(it => it.state === "pending" ? { ...it, state: "failed", error: "cancelled" } : it));
+  };
+
+  const counts = {
+    pending: queue.filter(it => it.state === "pending").length,
+    running: queue.filter(it => it.state === "running").length,
+    done: queue.filter(it => it.state === "done").length,
+    failed: queue.filter(it => it.state === "failed").length,
+  };
+
+  return (
+    <div className="border border-amber-200 rounded-xl bg-amber-50/40 px-5 py-4 mb-4">
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex-1 min-w-[220px]">
+          <div className="text-sm font-semibold text-[#0c2a44] flex items-center gap-1.5">
+            <Play className="w-4 h-4 text-amber-700" />
+            Run next batch
+          </div>
+          <div className="text-xs text-gray-600 mt-0.5">
+            Starts improvement cycles across the selected tools, capping the number running at the same time to avoid AI Gateway rate limits.
+          </div>
+        </div>
+        <label className="text-xs text-gray-700 flex items-center gap-2">
+          Concurrency
+          <select
+            value={concurrency}
+            onChange={(e) => setConcurrency(parseInt(e.target.value, 10))}
+            disabled={running}
+            className="border border-amber-300 rounded px-2 py-1 bg-white text-xs"
+          >
+            {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </label>
+        <Button onClick={startBatch} disabled={running || selected.size === 0} className="bg-amber-700 hover:bg-amber-800 text-white h-9">
+          {running ? <><RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />Running…</> : <><Play className="w-3.5 h-3.5 mr-1.5" />Start batch ({selected.size})</>}
+        </Button>
+        {running && counts.pending > 0 && (
+          <Button onClick={cancelPending} variant="outline" className="h-9 text-xs">Cancel pending</Button>
+        )}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {TOOLS.map(t => {
+          const on = selected.has(t.id);
+          return (
+            <button
+              key={t.id}
+              type="button"
+              disabled={running}
+              onClick={() => toggle(t.id)}
+              className={`px-2.5 py-1 rounded-full border text-[11px] transition ${
+                on
+                  ? "bg-[#0c2a44] text-white border-[#0c2a44]"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
+              } ${running ? "opacity-60 cursor-not-allowed" : ""}`}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {queue.length > 0 && (
+        <div className="mt-3 text-xs text-gray-700">
+          <div className="mb-1">
+            Queue: {counts.running} running · {counts.pending} pending · {counts.done} done · {counts.failed} failed
+          </div>
+          <ul className="space-y-1">
+            {queue.map(it => (
+              <li key={it.id} className="flex items-center justify-between border border-amber-100 rounded bg-white px-2 py-1">
+                <span className="font-mono text-[11px] text-[#0c2a44]">{it.slug}</span>
+                <span className="flex items-center gap-2">
+                  {it.state === "running" && <RefreshCw className="w-3 h-3 animate-spin text-sky-700" />}
+                  <span className={`text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border ${
+                    it.state === "done" ? "bg-green-50 text-green-700 border-green-200"
+                    : it.state === "failed" ? "bg-red-50 text-red-700 border-red-200"
+                    : it.state === "running" ? "bg-blue-50 text-blue-700 border-blue-200"
+                    : "bg-slate-50 text-slate-600 border-slate-200"
+                  }`}>{it.state}</span>
+                  {it.error && <span className="text-[10px] text-red-600 truncate max-w-[200px]" title={it.error}>{it.error}</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ActiveCyclesTable() {
   const [rows, setRows] = useState<CycleRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -589,6 +792,7 @@ export default function QualityLoop() {
           </p>
         </div>
         <SmokeBatchPanel />
+        <BatchRunnerPanel />
         <ActiveCyclesTable />
         <div className="space-y-3">
           {TOOLS.map(t => <ToolRow key={t.id} tool={t} />)}
