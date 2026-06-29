@@ -681,9 +681,23 @@ async function phaseAwaitingRerun(admin: Admin, cycleId: string) {
 async function dispatch(cycleId: string, phaseOverride?: string) {
   const admin = await adminClient();
   try {
-    const { data: cycle } = await admin.from("tool_improvement_cycles").select("phase, status").eq("id", cycleId).single();
+    // G1 — heartbeat at every phase entry (universal liveness signal for the watchdog).
+    await admin.from("tool_improvement_cycles")
+      .update({ last_heartbeat_at: new Date().toISOString() }).eq("id", cycleId);
+
+    const { data: cycle } = await admin.from("tool_improvement_cycles")
+      .select("phase, status, cancel_requested").eq("id", cycleId).single();
     if (!cycle) return;
     if ((cycle as any).status === "complete" || (cycle as any).status === "failed" || (cycle as any).status === "cancelled") return;
+
+    // G6 — honor cancel_requested at every phase boundary.
+    if ((cycle as any).cancel_requested) {
+      await admin.from("tool_improvement_cycles").update({
+        status: "failed", last_error: "cancelled by user", completed_at: new Date().toISOString(),
+      }).eq("id", cycleId);
+      return;
+    }
+
     const phase = phaseOverride ?? (cycle as any).phase;
     switch (phase) {
       case "init":            await phaseInit(admin, cycleId); break;
@@ -695,6 +709,7 @@ async function dispatch(cycleId: string, phaseOverride?: string) {
       default:                console.warn(`[improve-tool-quality] unknown phase: ${phase}`);
     }
   } catch (e) {
+    // G7 — any throw anywhere inside a phase marks the cycle failed loudly.
     console.error("[improve-tool-quality] dispatch error:", (e as Error).message);
     try {
       await admin.from("tool_improvement_cycles").update({
