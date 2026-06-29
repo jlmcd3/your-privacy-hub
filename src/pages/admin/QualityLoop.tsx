@@ -186,6 +186,15 @@ function NowRunning() {
           {cycles.map(c => {
             const score = c.current_score ?? c.baseline_score;
             const logEntries = Array.isArray(c.log) ? c.log : [];
+            const cancel = async () => {
+              if (!confirm("Cancel this improvement cycle? It will stop at the next phase boundary.")) return;
+              const { error } = await supabase
+                .from("tool_improvement_cycles")
+                .update({ cancel_requested: true } as any)
+                .eq("id", c.id);
+              if (error) toast.error("Cancel failed", { description: error.message });
+              else { toast.success("Cancellation requested", { description: "Cycle will stop within one phase." }); load(); }
+            };
             return (
               <li key={c.id} className="border border-sky-100 bg-sky-50/40 rounded-lg p-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
@@ -198,8 +207,13 @@ function NowRunning() {
                       assessment cycle
                     </span>
                   </div>
-                  <div className="text-xs text-gray-600">
-                    started {fmtRelative(c.started_at)} · {fmtDuration(c.started_at)} elapsed
+                  <div className="flex items-center gap-3">
+                    <div className="text-xs text-gray-600">
+                      started {fmtRelative(c.started_at)} · {fmtDuration(c.started_at)} elapsed
+                    </div>
+                    <Button onClick={cancel} variant="outline" size="sm" className="h-7 text-xs text-red-700 border-red-200 hover:bg-red-50">
+                      Cancel
+                    </Button>
                   </div>
                 </div>
                 <div className="text-xs text-gray-700 mt-1.5">

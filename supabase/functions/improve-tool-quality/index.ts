@@ -68,15 +68,27 @@ async function appendLog(admin: Admin, cycleId: string, msg: string) {
   console.log(`[improve-tool-quality][${cycleId}] ${msg}`);
 }
 
+// G3 — fail loud on self-reinvoke. A broken chain must mark the cycle failed
+// instead of silently dropping it into an indefinite "running" state.
 async function selfReinvoke(cycleId: string, phase?: string): Promise<void> {
+  const admin = await adminClient();
   try {
-    await fetch(`${SUPABASE_URL}/functions/v1/improve-tool-quality`, {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/improve-tool-quality`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}`, "x-internal-resume": "1" },
       body: JSON.stringify({ cycle_id: cycleId, phase }),
     });
+    if (!r.ok) {
+      const detail = (await r.text().catch(() => "")).slice(0, 200);
+      throw new Error(`self-reinvoke HTTP ${r.status}: ${detail}`);
+    }
   } catch (e) {
-    console.warn("[improve-tool-quality] self-reinvoke failed:", (e as Error).message);
+    await admin.from("tool_improvement_cycles").update({
+      status: "failed",
+      last_error: `self-reinvoke failed: ${(e as Error).message}`,
+      completed_at: new Date().toISOString(),
+    }).eq("id", cycleId);
+    throw e;
   }
 }
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -152,6 +164,7 @@ async function phaseInit(admin: Admin, cycleId: string) {
   }
   await admin.from("tool_improvement_cycles").update({
     baseline_batch_id: batchId, current_batch_id: batchId, phase: "reviewing", status: "running",
+    phase_started_at: new Date().toISOString(),
   }).eq("id", cycleId);
   await appendLog(admin, cycleId, `Phase 1 — using static-stress batch ${batchId.slice(0, 8)}`);
   await selfReinvoke(cycleId);
@@ -242,7 +255,7 @@ async function phaseReviewing(admin: Admin, cycleId: string) {
   if (!next) {
     // All clean reports reviewed by both models — proceed.
     await appendLog(admin, cycleId, `Iteration ${iteration}: reviewed ${clean.length} clean report(s) with dual models. Excluded ${excluded.length}.`);
-    await admin.from("tool_improvement_cycles").update({ phase: "ranking" }).eq("id", cycleId);
+    await admin.from("tool_improvement_cycles").update({ phase: "ranking", phase_started_at: new Date().toISOString() }).eq("id", cycleId);
     await selfReinvoke(cycleId);
     return;
   }
@@ -372,6 +385,7 @@ async function phaseRanking(admin: Admin, cycleId: string) {
     top_changes: topChanges,
     score_history: history,
     phase: "deliberating",
+    phase_started_at: new Date().toISOString(),
   }).eq("id", cycleId);
   await appendLog(admin, cycleId, `Iteration ${iteration}: score=${score} · ${topChanges.length} agreed change(s)`);
 
@@ -491,7 +505,7 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
     await appendLog(admin, cycleId, `deliberate-quality-fixes invoke failed: ${(e as Error).message}`);
   }
 
-  await admin.from("tool_improvement_cycles").update({ phase: "rerunning" }).eq("id", cycleId);
+  await admin.from("tool_improvement_cycles").update({ phase: "rerunning", phase_started_at: new Date().toISOString() }).eq("id", cycleId);
   // Give deliberation a head start; the rerunning phase will check verdicts.
   await sleep(30_000); await selfReinvoke(cycleId);
 }
@@ -502,6 +516,25 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
   const toolSlug = (cycle as any).tool_slug as string;
   const iteration = (cycle as any).iteration as number;
   const runId = (cycle as any).quality_run_id as string;
+
+  // G4 — hard 15-minute deadline on the deliberation wait so the 30s self-poll
+  // can never run forever. phase_started_at is stamped on every phase transition.
+  const phaseStartedAt = (cycle as any).phase_started_at as string | null;
+  if (phaseStartedAt && Date.now() - new Date(phaseStartedAt).getTime() > 15 * 60_000) {
+    let done = 0, target = 0;
+    if (runId) {
+      const { data: cands } = await admin.from("quality_check_results")
+        .select("check_id").eq("run_id", runId).gt("fail_count", 0).not("proposed_fix", "is", null);
+      const { data: dlb } = await admin.from("quality_fix_deliberations").select("check_id").eq("run_id", runId);
+      target = cands?.length ?? 0; done = dlb?.length ?? 0;
+    }
+    const msg = `deliberation did not finish in 15m (${done}/${target})`;
+    await appendLog(admin, cycleId, msg);
+    await admin.from("tool_improvement_cycles").update({
+      status: "failed", last_error: msg, completed_at: new Date().toISOString(),
+    }).eq("id", cycleId);
+    return;
+  }
 
   // Wait until deliberations finish. The correct target is the count of
   // ACTIONABLE candidates (fail_count>0 AND proposed_fix IS NOT NULL) — every
@@ -603,6 +636,7 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
       current_batch_id: newBatchId,
       quality_run_id: null,
       phase: "awaiting_rerun",
+      phase_started_at: new Date().toISOString(),
     }).eq("id", cycleId);
     await sleep(60_000); await selfReinvoke(cycleId);
   } catch (e) {
@@ -635,7 +669,7 @@ async function phaseAwaitingRerun(admin: Admin, cycleId: string) {
       }).eq("id", cycleId);
       return;
     }
-    await admin.from("tool_improvement_cycles").update({ phase: "reviewing" }).eq("id", cycleId);
+    await admin.from("tool_improvement_cycles").update({ phase: "reviewing", phase_started_at: new Date().toISOString() }).eq("id", cycleId);
     await appendLog(admin, cycleId, `Stress batch ${batchId.slice(0, 8)} → ${status}; re-reviewing`);
     await selfReinvoke(cycleId);
     return;
@@ -647,9 +681,23 @@ async function phaseAwaitingRerun(admin: Admin, cycleId: string) {
 async function dispatch(cycleId: string, phaseOverride?: string) {
   const admin = await adminClient();
   try {
-    const { data: cycle } = await admin.from("tool_improvement_cycles").select("phase, status").eq("id", cycleId).single();
+    // G1 — heartbeat at every phase entry (universal liveness signal for the watchdog).
+    await admin.from("tool_improvement_cycles")
+      .update({ last_heartbeat_at: new Date().toISOString() }).eq("id", cycleId);
+
+    const { data: cycle } = await admin.from("tool_improvement_cycles")
+      .select("phase, status, cancel_requested").eq("id", cycleId).single();
     if (!cycle) return;
     if ((cycle as any).status === "complete" || (cycle as any).status === "failed" || (cycle as any).status === "cancelled") return;
+
+    // G6 — honor cancel_requested at every phase boundary.
+    if ((cycle as any).cancel_requested) {
+      await admin.from("tool_improvement_cycles").update({
+        status: "failed", last_error: "cancelled by user", completed_at: new Date().toISOString(),
+      }).eq("id", cycleId);
+      return;
+    }
+
     const phase = phaseOverride ?? (cycle as any).phase;
     switch (phase) {
       case "init":            await phaseInit(admin, cycleId); break;
@@ -661,6 +709,7 @@ async function dispatch(cycleId: string, phaseOverride?: string) {
       default:                console.warn(`[improve-tool-quality] unknown phase: ${phase}`);
     }
   } catch (e) {
+    // G7 — any throw anywhere inside a phase marks the cycle failed loudly.
     console.error("[improve-tool-quality] dispatch error:", (e as Error).message);
     try {
       await admin.from("tool_improvement_cycles").update({

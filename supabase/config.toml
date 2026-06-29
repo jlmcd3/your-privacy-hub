@@ -215,3 +215,6 @@ verify_jwt = false
 
 [functions.backfill-fsor-summaries]
 verify_jwt = false
+
+[functions.improvement-cycle-watchdog]
+verify_jwt = false
