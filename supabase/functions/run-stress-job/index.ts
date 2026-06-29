@@ -155,13 +155,7 @@ function normalizeRopaCategory(raw: string | null | undefined): string {
 async function runTool(admin: Admin, job: any, userId: string): Promise<RunResult> {
 
   const intake: Record<string, any> = { ...(job.fixture_data ?? {}) };
-  // Ensure entity/company name is present for tools (e.g. cppa-risk legacy-flat shim)
-  // that validate `org_context.company_name`. Fixtures historically omit this so
-  // backfill from the job row, which always has a synthesized company_name.
-  if (job.company_name) {
-    if (intake.entity_name === undefined) intake.entity_name = job.company_name;
-    if (intake.company_name === undefined) intake.company_name = job.company_name;
-  }
+
   switch (job.tool_slug) {
     case "lia": {
       const { data: rec, error } = await admin.from("li_assessments")
@@ -365,9 +359,18 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
       return { sourceTable: "eu_notice_sessions", sourceRowId: session.id };
     }
     case "cppa-risk": {
+      // Scoped backfill: cppa-risk's legacy-flat shim validates `org_context.company_name`.
+      // Fixtures historically omit it, so backfill from the job row here only — never
+      // mutate the shared `intake` (LIA and others spread it directly into columns).
+      const cppaIntake: Record<string, any> = { ...intake };
+      if (job.company_name) {
+        cppaIntake.entity_name ??= job.company_name;
+        cppaIntake.company_name ??= job.company_name;
+      }
       const { data: rec, error } = await admin.from("cppa_assessments").insert({
-        user_id: userId, module: "risk_assessment", status: "pending", intake_data: intake,
+        user_id: userId, module: "risk_assessment", status: "pending", intake_data: cppaIntake,
       }).select("id").single();
+
       if (error || !rec) throw new Error(`cppa-risk insert: ${error?.message}`);
       await invokeFn("run-cppa-risk-assessment", { assessment_id: rec.id })
         .catch((e) => console.warn("[run-stress-job] run-cppa-risk-assessment trigger failed (will poll):", e));
