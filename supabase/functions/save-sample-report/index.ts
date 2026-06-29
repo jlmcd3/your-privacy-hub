@@ -410,15 +410,38 @@ async function generatePdf(admin: ReturnType<typeof createClient>, body: any) {
     bytes: pdfBytes.byteLength,
   };
 
+  // Hydrate report_data + document_text from the source row so downstream
+  // consumers (quality-loop P2 fixture-drift gate, sample-report previews,
+  // verification audits) have the actual generator output, not just a PDF.
+  let reportData: unknown = null;
+  let documentText: string | null = null;
+  if (source_table && source_row_id) {
+    const shape = SOURCE_SHAPE[source_table] ?? { reportData: true, textCol: null };
+    const cols: string[] = [];
+    if (shape.reportData) cols.push("report_data");
+    if (shape.textCol) cols.push(shape.textCol);
+    if (cols.length > 0) {
+      const { data: src } = await admin
+        .from(source_table)
+        .select(cols.join(","))
+        .eq("id", source_row_id)
+        .maybeSingle();
+      if (src) {
+        reportData = shape.reportData ? ((src as any).report_data ?? null) : null;
+        documentText = shape.textCol ? ((src as any)[shape.textCol] ?? null) : null;
+      }
+    }
+  }
+
   const payload = {
     tool_slug, variant, title,
     scenario_summary: scenario_summary ?? "",
     fixture: fixture ?? {},
     source_table: source_table ?? null,
     source_row_id: source_row_id ?? null,
-    report_data: null,
-    document_text: null,
-    verification,
+    report_data: reportData,
+    document_text: documentText,
+    verification: (reportData as any)?.verification ?? verification,
     pdf_path: path,
     status: "draft",
     updated_at: new Date().toISOString(),
