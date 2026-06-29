@@ -3106,6 +3106,51 @@ export type Database = {
         }
         Relationships: []
       }
+      long_running_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          progress: string | null
+          requested_by: string | null
+          result: Json | null
+          started_at: string
+          status: string
+          tool: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          progress?: string | null
+          requested_by?: string | null
+          result?: Json | null
+          started_at?: string
+          status?: string
+          tool?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          progress?: string | null
+          requested_by?: string | null
+          result?: Json | null
+          started_at?: string
+          status?: string
+          tool?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       longitudinal_signals: {
         Row: {
           article_count: number | null
