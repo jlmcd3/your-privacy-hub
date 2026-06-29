@@ -444,7 +444,7 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
   for (let i = 0; i < topChanges.length; i++) {
     const c = topChanges[i];
     const sevLabel = sevMap[Math.min(4, Math.max(1, c.severity_weight ?? 2))];
-    await admin.from("quality_check_results").upsert({
+    const { error: upsertErr } = await admin.from("quality_check_results").upsert({
       run_id: runId,
       tool: sampleSlug,
       check_id: `cycle:${cycleId.slice(0, 8)}:${i + 1}`,
@@ -459,6 +459,14 @@ async function phaseDeliberating(admin: Admin, cycleId: string) {
       fix_location: c.location,
       cross_review_category: "agree",
     }, { onConflict: "run_id,check_id" });
+    if (upsertErr) {
+      const msg = `quality_check_results upsert failed (${upsertErr.message}) — cycle aborted`;
+      await appendLog(admin, cycleId, msg);
+      await admin.from("tool_improvement_cycles").update({
+        status: "failed", phase: "complete", last_error: msg, completed_at: new Date().toISOString(),
+      }).eq("id", cycleId);
+      return;
+    }
   }
 
   // Fire deliberate-quality-fixes; it self-chains.
