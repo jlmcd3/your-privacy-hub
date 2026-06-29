@@ -111,7 +111,7 @@ Return JSON array of objects: [{"index": 0, "score": 7}, ...]. Only the JSON arr
       headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 3000,
+        max_tokens: 6000,
         system: `You are a precision relevance scoring engine for a personalized privacy intelligence brief. Each subscriber has an industry, jurisdiction, and topic profile. Your job is to score how directly each candidate article should appear in their personalized brief.
 
 Return ONLY a valid JSON array of score objects. No preamble, no explanation.
@@ -596,7 +596,7 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
           headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
           body: JSON.stringify({
             model: "claude-sonnet-4-6",
-            max_tokens: 6000,
+            max_tokens: 12000,
             system: systemPrompt,
             messages: [{ role: "user", content: userPrompt }],
           }),
@@ -636,7 +636,7 @@ Return ONLY the JSON object. 3-5 action items. 3-8 issue tags. No preamble.`;
           headers: { "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
           body: JSON.stringify({
             model: "claude-haiku-4-5-20251001",
-            max_tokens: 800,
+            max_tokens: 2000,
             system: `You are a quality reviewer for personalized compliance action items. Your task: rate each action item for specificity and compliance value.
 
 Return ONLY valid JSON. No preamble, no explanation.

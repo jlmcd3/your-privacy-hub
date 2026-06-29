@@ -292,7 +292,7 @@ async function generateUpdateSummary(
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 2500,
+        max_tokens: 5000,
         system: `You are a senior privacy regulatory analyst at a leading intelligence firm.
 Analyse this enforcement action or regulatory announcement and return a single valid JSON object.
 Return ONLY the JSON — no preamble, no markdown, no explanation.

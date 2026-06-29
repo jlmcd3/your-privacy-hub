@@ -222,7 +222,7 @@ The first character of your response must be { and the last must be }.`;
     const sys = attempt === 1 ? SYSTEM_PROMPT : SYSTEM_PROMPT + STRICTER_SUFFIX;
     const { res, text } = await callAnthropic(apiKey, {
       model: HAIKU_MODEL,
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: sys,
       messages: [{ role: "user", content: userPrompt }],
     });

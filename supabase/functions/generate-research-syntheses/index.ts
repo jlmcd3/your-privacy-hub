@@ -116,7 +116,7 @@ Return the JSON object now.`;
     },
     body: JSON.stringify({
       model,
-      max_tokens: 1600,
+      max_tokens: 3200,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),

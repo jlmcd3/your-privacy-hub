@@ -212,7 +212,7 @@ Requirements:
       },
       body: JSON.stringify({
         model: ANTHROPIC_MODEL,
-        max_tokens: 8000,
+        max_tokens: 16000,
         system: systemPrompt,
         messages: [{ role: "user", content: JSON.stringify(payload) }],
       }),
