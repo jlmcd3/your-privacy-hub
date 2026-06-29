@@ -45,10 +45,11 @@ async function startCycle(tool: string, max_iterations: number, target_score: nu
       "Content-Type": "application/json",
       Authorization: `Bearer ${SERVICE_ROLE}`,
       apikey: SERVICE_ROLE,
+      "x-internal-resume": "1",
       "x-internal-caller": "auto-iterate-quality",
       ...(userId ? { "x-acting-user": userId } : {}),
     },
-    body: JSON.stringify({ tool_slug: tool, max_iterations, target_score }),
+    body: JSON.stringify({ tool_slug: tool, max_iterations, target_score, started_by: userId }),
   });
   const text = await res.text();
   let body: any = null;
