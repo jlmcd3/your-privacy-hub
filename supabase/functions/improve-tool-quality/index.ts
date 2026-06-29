@@ -503,31 +503,53 @@ async function phaseRerunning(admin: Admin, cycleId: string) {
   const iteration = (cycle as any).iteration as number;
   const runId = (cycle as any).quality_run_id as string;
 
-  // Wait until deliberations finish. The target is the number of registry
-  // proposals (deliberate-quality-fixes writes one proposal per actionable
-  // check, then one deliberation per proposal). Comparing against
-  // quality_check_results count is wrong because some checks are non-actionable
-  // and never receive a proposal/deliberation, which caused infinite polling.
+  // Wait until deliberations finish. The correct target is the count of
+  // ACTIONABLE candidates (fail_count>0 AND proposed_fix IS NOT NULL) — every
+  // such candidate yields a quality_fix_deliberations row. registry_proposals
+  // are only written when Team 2's stance is "registry", so using that as the
+  // target undercounts and causes premature advance.
+  //
+  // Self-healing: deliberate-quality-fixes chunks candidates and chains via
+  // fire-and-forget fetch. If the edge runtime kills it mid-chain, the next
+  // chunk never starts and we'd poll forever. Re-kick on every wait tick —
+  // the function is idempotent (upsert with onConflict) and skips already-
+  // processed checks.
   if (runId) {
-    const { data: checks } = await admin.from("quality_check_results").select("check_id").eq("run_id", runId);
-    const { data: proposals } = await admin.from("registry_proposals").select("check_id").eq("run_id", runId);
+    const { data: candidates } = await admin
+      .from("quality_check_results")
+      .select("check_id")
+      .eq("run_id", runId)
+      .gt("fail_count", 0)
+      .not("proposed_fix", "is", null);
     const { data: delibs } = await admin.from("quality_fix_deliberations").select("check_id, verdict").eq("run_id", runId);
-    const checksCount = checks?.length ?? 0;
-    const proposalsCount = proposals?.length ?? 0;
+    const { data: proposals } = await admin.from("registry_proposals").select("check_id").eq("run_id", runId);
+    const target = candidates?.length ?? 0;
     const done = delibs?.length ?? 0;
-    // Wall-clock guard: if proposals exist and match deliberations, advance even
-    // if some checks never produced proposals (non-actionable findings).
-    const target = proposalsCount > 0 ? proposalsCount : checksCount;
+    const proposalsCount = proposals?.length ?? 0;
     if (target > 0 && done < target) {
-      await appendLog(admin, cycleId, `Deliberation ${done}/${target} — waiting (checks=${checksCount}, proposals=${proposalsCount})`);
+      await appendLog(admin, cycleId, `Deliberation ${done}/${target} — waiting (re-kicking chain; registry_proposals=${proposalsCount})`);
+      // Re-kick deliberate-quality-fixes (idempotent). Resumes any dropped chain.
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/deliberate-quality-fixes`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SERVICE_KEY}`,
+            "x-internal-resume": "1",
+          },
+          body: JSON.stringify({ run_id: runId, offset: 0 }),
+        });
+      } catch (e) {
+        await appendLog(admin, cycleId, `deliberate-quality-fixes re-kick failed: ${(e as Error).message}`);
+      }
       await sleep(30_000); await selfReinvoke(cycleId);
       return;
     }
     const staged = (delibs ?? []).filter((d: any) => d.verdict === "auto_eligible").length;
     const dropped = (delibs ?? []).filter((d: any) => d.verdict === "reject").length;
-    const skipped = Math.max(0, checksCount - proposalsCount);
-    await appendLog(admin, cycleId, `Team 3 ruled: ${staged} staged to quality-auto, ${dropped} dropped, ${done - staged - dropped} human-review, ${skipped} non-actionable checks skipped.`);
+    await appendLog(admin, cycleId, `Team 3 ruled: ${staged} staged to quality-auto, ${dropped} dropped, ${done - staged - dropped} human-review (proposals=${proposalsCount}/${target}).`);
   }
+
 
   // P6: kick a fresh stress batch limited to THIS tool. Inherits all anti-fail
   // machinery (9-min/tool timeout, watchdog, EdgeRuntime.waitUntil, token ceilings).
