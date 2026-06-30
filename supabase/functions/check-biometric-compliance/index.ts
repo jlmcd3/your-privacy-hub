@@ -569,7 +569,7 @@ Sale and sharing restrictions:
 § 26 BDSG limits employee data use to employment purposes. GDPR Article 5(1)(b) purpose limitation and Article 28 processor controls govern all sharing. Non-EEA transfers require an Article 46 safeguard.
 
 Current enforcement posture:
-German state DPAs are among the most active in Europe on special-category data. Refer to the BfDI and individual state DPA enforcement registers for current actions and penalties.
+German state DPAs actively enforce special-category-data obligations. Refer to the BfDI and individual state DPA enforcement registers for current actions and penalties.
 
 Priority actions:
 1. Obtain works council agreement (Betriebsvereinbarung) before deploying any employee biometric system — this is a legal pre-condition, not a best practice.
