@@ -269,6 +269,10 @@ export default function QualityLoop2() {
           product once → produces a recommended prompt update you can stage to <code>quality-auto</code> or commit
           directly to <code>main</code>.
         </p>
+        </div>
+        <Button variant="outline" onClick={onExportMarkdown} disabled={!hasAnyRecommendation}>
+          Export recommendations (.md)
+        </Button>
       </div>
 
       {/* Panel A — Run */}
