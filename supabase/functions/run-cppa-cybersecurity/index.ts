@@ -872,16 +872,6 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           .replace(/\s+([.,;:)])/g, "$1");
       };
       const scrub = (s: string | undefined | null) => stripEnforcementTags(stripSlugs(stripComponentCite(s)));
-      // Slug hygiene: strip raw intake control slugs (c14_third_party, c16_training…).
-      const stripSlugs = (s: string | undefined | null): string => {
-        if (!s) return s ?? "";
-        return s
-          .replace(/\bmapped to c\d{1,2}_[a-z_]+\b/gi, "")
-          .replace(/\bc\d{1,2}_[a-z_]+\b/g, "")
-          .replace(/[ \t]{2,}/g, " ")
-          .replace(/\s+([.,;:)])/g, "$1");
-      };
-      const scrub = (s: string | undefined | null) => stripEnforcementTags(stripSlugs(stripComponentCite(s)));
 
       controlsOut.push({
         ...c,
