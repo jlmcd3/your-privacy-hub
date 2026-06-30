@@ -137,7 +137,7 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     board_level_oversight: false,
     existing_privacy_programme: "Not specified",
     cppa_audit_notification_received: false,
-    additional_context: "Generated from legacy flat intake schema via compatibility shim.",
+    additional_context: "",
   };
 
   // Map the user's claimed § 7152 exceptions over the empty baseline.
@@ -286,7 +286,7 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
         topic: `CPPA enforcement patterns ${sector} sector risk assessment`,
         jurisdiction: "US-CA",
         regulation: "CPPA",
-        focus_areas: [primaryActivity, "audit division enforcement priorities", "§ 7153 documentation requirements"],
+        focus_areas: [primaryActivity, "audit division enforcement priorities", "§ 7152 documentation requirements"],
       },
     }),
     supabase.functions.invoke("cppa-retrieve-context", {
@@ -344,13 +344,13 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
 // ---------------------------------------------------------------------------
 export const CPPA_RISK_TOOL_MODULE: ToolModule = {
   identity:
-    "You are a CPPA risk assessment specialist with deep expertise in Cal. Code Regs. tit. 11 §§ 7150–7158 and the California Privacy Rights Act. You produce a formal risk assessment that must meet the § 7153 content requirements and withstand scrutiny from the CPPA Audits Division (operational since February 2026; existing-activity compliance deadline December 31, 2027).",
+    "You are a CPPA risk assessment specialist with deep expertise in Cal. Code Regs. tit. 11 §§ 7150–7158 and the California Privacy Rights Act. You produce a formal risk assessment that must meet the § 7152 content requirements and withstand scrutiny from the CPPA Audits Division (operational since February 2026; existing-activity compliance deadline December 31, 2027).",
   citationFramework:
     "Cite only Cal. Code Regs. tit. 11 (format \"§ 7150(b)(1)\") or Cal. Civ. Code § 1798 (format \"§ 1798.185\"). Never cite § 7221(c)(5) for any purpose. Exception citations are § 7152(a)(1)–(8) only — verify each exists in the provided regulation text before use. § 7150(b) trigger→subsection mappings are provided to you explicitly below and in the regulation text; use those exact subsections — never assign a § 7150(b) subsection from memory.",
   outputMode: "strict-JSON",
   languageVariant: "american",
   extraRules: [
-    "§ 7153 MAPPING: every output section maps to a § 7153 required content element; generate nothing not required by statute.",
+    "§ 7152 MAPPING: every output section maps to a § 7152 required content element; generate nothing not required by statute.",
     "§ 7152(a)(4) BENEFITS-OUTWEIGH: ground the balancing in the specific benefits and harms in the intake; no generic balancing language.",
     "EXCEPTION ELEMENT-TEST: for each § 7152 exception claimed, test every element; conclude the exception is sustained only if all elements are documented, otherwise list the missing elements and set the status to insufficient basis.",
     "CYBERSECURITY-AUDIT LINKAGE: if the intake reveals cybersecurity gaps or revenue exceeds $100M, flag the § 7158 cybersecurity-audit obligation with the April 1, 2028 certification deadline (a prospective obligation).",
@@ -361,6 +361,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "§ 1798.140(d)(1) THRESHOLDS: § 1798.140(d)(1) defines a covered \"business\" by THREE ALTERNATIVE thresholds — (A) annual gross revenue over $25M, (B) buying/selling/sharing PI of 100,000+ consumers or households, or (C) deriving 50%+ of annual revenue from selling or sharing PI. Subsection (C) is the selling/sharing-revenue prong — NEVER describe (C) as a general \"revenue floor\" or imply a dollar revenue range straddles (C). When discussing the § 7158 cyber-audit linkage, state all three thresholds and which the intake figures bear on; do not collapse them into a single revenue test.",
     "VOLUME IS NOT A § 7150(b) TRIGGER: high consumer volume alone does not trigger a § 7150(b) risk assessment (it is a § 7120 cyber-audit signal). If the intake or an activity asserts volume as the basis for the assessment, do NOT search for or speculate about which § 7150(b) subsection it maps to, and do NOT emit a \"NOTE FOR COUNSEL\" asking which subsection applies. State it plainly as a user-asserted gap: \"The intake characterises this activity as high-volume processing. Volume alone is not an enumerated § 7150(b) trigger; the user must confirm which enumerated trigger (selling/sharing, targeted advertising, profiling with significant effects, sensitive PI, or ADMT/training) applies to the processing as described.\" Flag the gap; do not resolve it.",
     "ORG-CONTEXT DEFAULTS ARE NOT FINDINGS OF ABSENCE: org_context booleans that arrive false from the compatibility shim — privacy_counsel_engaged, dpo_or_privacy_officer, board_level_oversight, cppa_audit_notification_received — mean \"not captured in the intake,\" NOT \"confirmed absent.\" NEVER assert in safeguard_gaps, adverse-effect, or any narrative that the organisation has \"no privacy counsel,\" \"no DPO/privacy officer,\" or \"no board oversight\" on the basis of these defaults; at most state the item is \"not documented in the intake.\" Where another field contradicts the default (e.g. external consultees name outside privacy counsel, or a certifying executive holds a Chief Privacy Officer title), do NOT assert absence at all — defer to the inconsistency flag, which records the contradiction for the user to resolve.",
+    "THIRD PARTY ≠ SALE/SHARE: classifying a recipient as a third party (rather than a service provider/contractor) does NOT by itself make a disclosure a \"sale\" or \"share.\" Under the § 1798.140 definitions of \"sell\" and \"share,\" a sale/share additionally requires monetary or other valuable consideration, or that the disclosure is for cross-context behavioural advertising. When the intake shows a vendor (e.g. a support/ticketing tool) that may not be under a compliant service-provider contract, state the two determinations SEPARATELY: (1) recipient classification (service provider/contractor vs third party), and (2) whether any transfer is a sale/share (which turns on consideration or cross-context advertising and, if present, triggers a separate § 7150(b)(1) assessment). Never write that non-service-provider status \"is\" or \"constitutes\" a sale/share — flag both as items the user must confirm.",
   ].join("\n"),
   schema: `OUTPUT FORMAT — Return a single JSON object with this exact structure. No markdown fences, no preamble:
 
@@ -391,7 +392,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
       "adverse_effects": [ { "harm_type": string, "likelihood": string, "severity": string, "description": string } ],
       "current_safeguards": string, "safeguard_gaps": string,
       "benefits_outweigh_risks_conclusion": "Yes" | "No" | "Uncertain" | "Insufficient basis", "benefits_outweigh_risks_rationale": string,
-      "section_7153_mapping": string }
+      "section_7152_mapping": string }
   ],
   "inconsistency_flags": [
     { "description": string, "intake_field_1": string, "intake_field_2": string, "regulatory_citation": string, "resolution_required": string }

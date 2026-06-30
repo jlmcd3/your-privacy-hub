@@ -55,7 +55,7 @@ type ActivityRisk = {
   safeguard_gaps?: string;
   benefits_outweigh_risks_conclusion?: string;
   benefits_outweigh_risks_rationale?: string;
-  section_7153_mapping?: string;
+  section_7152_mapping?: string;
 };
 
 type Inconsistency = {
@@ -305,8 +305,8 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                       )}
                     </div>
                   )}
-                  {a.section_7153_mapping && (
-                    <p className="text-xs text-muted-foreground"><strong>§ 7153 mapping:</strong> {a.section_7153_mapping}</p>
+                  {a.section_7152_mapping && (
+                    <p className="text-xs text-muted-foreground"><strong>§ 7152 mapping:</strong> {a.section_7152_mapping}</p>
                   )}
                 </AccordionContent>
               </AccordionItem>
