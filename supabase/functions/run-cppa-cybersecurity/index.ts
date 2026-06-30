@@ -562,6 +562,16 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           rep.executive_summary = note;
         }
       }
+      // Transparency: state the score basis (mean excludes "Insufficient information").
+      const _assessed = controls.filter(
+        (c: any) => String(c?.status ?? "").trim().toLowerCase() !== "insufficient information",
+      );
+      const _excluded = controls.length - _assessed.length;
+      rep.methodology_note =
+        `Overall score is the mean of the ${_assessed.length} assessed control${_assessed.length === 1 ? "" : "s"}, rounded.` +
+        (_excluded > 0
+          ? ` ${_excluded} control${_excluded === 1 ? "" : "s"} with status "Insufficient information" (no intake data bearing on the control) ${_excluded === 1 ? "was" : "were"} excluded from the mean; the listed remediation reflects the need to supply that information.`
+          : "");
     }
 
 
