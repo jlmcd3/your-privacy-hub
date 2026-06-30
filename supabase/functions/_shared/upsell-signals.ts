@@ -15,9 +15,7 @@ const SUBSCRIBER_FREE = new Set(['ir_playbook', 'biometric_checker']);
 
 function isEuUk(jurs: string[]): boolean {
   return jurs.some(j =>
-    /\b(eu|gdpr|european|united.kingdom|\buk\b|\bgb\b|ireland|france|germany|
-      spain|italy|netherlands|belgium|sweden|denmark|norway|poland|austria|
-      finland|luxembourg|greece|switzerland|portugal)/i.test(String(j)));
+    /\b(eu|gdpr|european|united.kingdom|\buk\b|\bgb\b|ireland|france|germany|spain|italy|netherlands|belgium|sweden|denmark|norway|poland|austria|finland|luxembourg|greece|switzerland|portugal)/i.test(String(j)));
 }
 function isCalifornia(jurs: string[]): boolean {
   return jurs.some(j => /california|cppa|ccpa|cpra/i.test(String(j)));
