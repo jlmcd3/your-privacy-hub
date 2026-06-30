@@ -144,6 +144,7 @@ export function containsSPI(intake: any): boolean {
 export type ElementId =
   // scope
   | "qualifies_admt" | "significant_decision" | "compliance_deadline" | "human_involvement"
+  | "admt_use_frequency_log"
   // RA
   | "ra_program"
   // Pre-use Notice
@@ -253,6 +254,8 @@ export function resolveCitations(elementId: ElementId, raw: any): ResolverResult
   switch (elementId) {
     case "qualifies_admt":
       return pack(n.profilingUse ? ["admt_def", "admt_def_profiling"] : ["admt_def"]);
+    case "admt_use_frequency_log":
+      return pack(["access_aggregate"]); // 11 CCR § 7222(j) — supports the aggregate-response option
     case "significant_decision": {
       const ids: CitationId[] = ["scope_apply"];
       const map: Record<string, CitationId> = {
