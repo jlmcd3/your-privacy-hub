@@ -209,12 +209,12 @@ async function callClaude(system: string, user: string, model: string): Promise<
     },
     body: JSON.stringify({
       model,
-      max_tokens: 16000,
+      max_tokens: 32000,
       stream: true,
       system,
       messages: [{ role: "user", content: user }],
     }),
-    signal: AbortSignal.timeout(180_000),
+    signal: AbortSignal.timeout(170_000),
   });
   if (!r.ok) {
     const t = await r.text();
@@ -225,31 +225,43 @@ async function callClaude(system: string, user: string, model: string): Promise<
   let buf = "";
   let out = "";
   let stopReason: string | null = null;
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-    const lines = buf.split("\n");
-    buf = lines.pop() ?? "";
-    for (const line of lines) {
-      if (!line.startsWith("data:")) continue;
-      const payload = line.slice(5).trim();
-      if (!payload || payload === "[DONE]") continue;
-      try {
-        const evt = JSON.parse(payload);
-        if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
-          out += evt.delta.text ?? "";
-        } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
-          stopReason = evt.delta.stop_reason;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(payload);
+          if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+            out += evt.delta.text ?? "";
+          } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
+            stopReason = evt.delta.stop_reason;
+          } else if (evt.type === "error") {
+            throw new Error(`Anthropic stream error: ${JSON.stringify(evt).slice(0, 300)}`);
+          }
+        } catch (e) {
+          // Re-throw stream error events; ignore malformed SSE fragments.
+          if ((e as Error).message?.startsWith("Anthropic stream error")) throw e;
         }
-      } catch { /* ignore malformed SSE lines */ }
+      }
     }
+  } catch (e) {
+    console.warn(`[review-test-output] stream aborted after ${out.length} chars: ${(e as Error).message}`);
+    if (!out.length) throw e;
+    // Continue with partial output; parse attempt may still succeed or trigger retry.
   }
   if (stopReason && stopReason !== "end_turn") {
-    console.warn(`[review-test-output] claude stop_reason=${stopReason}`);
+    console.warn(`[review-test-output] claude stop_reason=${stopReason} chars=${out.length}`);
   }
   return out;
 }
+
 
 async function callOpenAI(system: string, user: string, model: string): Promise<string> {
   if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not configured");
