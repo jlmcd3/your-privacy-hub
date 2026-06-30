@@ -850,17 +850,16 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       // to components by name; the authoritative per-control subsection is carried
       // deterministically in regulatory_basis and fsor_citation below. Procedural
       // cites (§§ 7120–7124, § 7122, § 7123(e), § 7124) are preserved.
-      const stripComponentCite = (s: string | undefined | null): string => {
+      // Slug hygiene: strip raw intake control slugs (c14_third_party, c16_training…).
+      const stripSlugs = (s: string | undefined | null): string => {
         if (!s) return s ?? "";
-        const CITE = String.raw`(?:11\s*CCR\s*)?§+\s*7123\s*\(\s*c\s*\)\s*\(\s*\d+\s*\)`;
         return s
-          .replace(new RegExp(String.raw`\s*\(\s*${CITE}\s*\)`, "gi"), "")
-          .replace(new RegExp(String.raw`[,;]?\s*(?:consistent with|in line with|under|per|pursuant to|as required by|as enumerated(?:\s+(?:in|under))?|which maps? to|mapped to|maps? to)\s+${CITE}`, "gi"), "")
-          .replace(new RegExp(CITE, "gi"), "")
-          .replace(/\(\s*\)/g, "")
+          .replace(/\bmapped to c\d{1,2}_[a-z_]+\b/gi, "")
+          .replace(/\bc\d{1,2}_[a-z_]+\b/g, "")
           .replace(/[ \t]{2,}/g, " ")
           .replace(/\s+([.,;:)])/g, "$1");
       };
+      const scrub = (s: string | undefined | null) => stripEnforcementTags(stripSlugs(stripComponentCite(s)));
       // Slug hygiene: strip raw intake control slugs (c14_third_party, c16_training…).
       const stripSlugs = (s: string | undefined | null): string => {
         if (!s) return s ?? "";
