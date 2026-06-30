@@ -96,7 +96,39 @@ export default function QualityLoop2() {
     return () => { cancelled = true; clearInterval(t); };
   }, []);
 
+  // Load baselines once.
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("quality_loop2_baselines" as any).select("*");
+      if (data) {
+        const m = new Map<string, Baseline>();
+        for (const b of data as any[]) m.set(b.product, b as Baseline);
+        setBaselines(m);
+      }
+    })();
+  }, []);
+
   const isRunning = activeRun?.status === "running";
+
+  // Per-run avg per product, with runs ordered oldest → newest by first result timestamp.
+  const runColumns = useMemo(() => {
+    const byRun = new Map<string, { first: string; perProduct: Map<string, { sum: number; n: number }> }>();
+    for (const r of results) {
+      if (typeof r.avg_score !== "number") continue;
+      const ts = r.created_at ?? "";
+      let entry = byRun.get(r.run_id);
+      if (!entry) { entry = { first: ts, perProduct: new Map() }; byRun.set(r.run_id, entry); }
+      if (ts && ts < entry.first) entry.first = ts;
+      const pp = entry.perProduct.get(r.product) ?? { sum: 0, n: 0 };
+      pp.sum += r.avg_score; pp.n += 1;
+      entry.perProduct.set(r.product, pp);
+    }
+    const runs = Array.from(byRun.entries())
+      .map(([run_id, v]) => ({ run_id, first: v.first, perProduct: v.perProduct }))
+      .sort((a, b) => (a.first < b.first ? -1 : 1));
+    return runs;
+  }, [results]);
+
 
   const productAgg = useMemo(() => {
     const m = new Map<string, { count: number; avg: number | null; latest: ResultRow | null }>();
