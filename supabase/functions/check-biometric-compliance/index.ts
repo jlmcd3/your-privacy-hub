@@ -225,7 +225,7 @@ Sale and sharing restrictions:
 UK GDPR purpose limitation (Article 5(1)(b)) and processor contract requirements (Article 28) govern sharing. Use UK IDTA for any transfers to third countries outside the UK adequacy framework.
 
 Current enforcement posture:
-The ICO actively enforces UK GDPR biometric obligations. The ICO has issued enforcement notices and monetary penalties for unlawful biometric data processing — refer to ico.org.uk/action-weve-taken/ for current enforcement figures.
+The ICO actively enforces UK GDPR biometric obligations. Consult the ICO's published enforcement register for current cases and penalties.
 
 Priority actions:
 1. Identify and document the Article 9(2) condition AND the applicable DPA 2018 Schedule 1 condition before any biometric processing begins.
