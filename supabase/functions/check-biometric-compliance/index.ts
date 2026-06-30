@@ -177,9 +177,9 @@ Applies to this organisation: Conditional — ${body.orgType} uses ${body.biomet
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Lawful basis under Article 6 AND a separate Article 9(2) condition — these must both be identified and documented. Do not conflate them into a single "lawful basis" entry.
 2. Most likely Article 9(2) condition: Article 9(2)(a) explicit consent, or Article 9(2)(b) if required by employment law, or Article 9(2)(h) for health/care providers.
-3. Conduct a Data Protection Impact Assessment (GDPR Article 35) before deployment — biometric processing for identification is on supervisory authority high-risk lists.
+3. Conduct a Data Protection Impact Assessment (GDPR Article 35) before deployment — biometric processing for identification is widely treated as high-risk requiring a DPIA; confirm against the lead supervisory authority's published Article 35(4) DPIA criteria.
 4. Provide pre-collection notice under Articles 13/14 covering biometric modalities, Article 9(2) condition relied upon, retention periods, and data subject rights.
-5. Any processor receiving biometric data must have a written DPA under Article 28. Any transfer outside the EEA requires an Article 46 safeguard (adequacy decision, SCCs, or BCRs).
+5. Any processor receiving biometric data must have a written DPA under Article 28. Any transfer outside the EEA requires a Chapter V transfer mechanism — either an Article 45 adequacy decision (including the EU–US Data Privacy Framework where the importer is certified) or, absent adequacy, Article 46 appropriate safeguards (SCCs or BCRs).
 
 Consent and notice:
 Explicit consent (Article 9(2)(a)) must be freely given, specific, informed, and unambiguous — and genuinely free. In employment contexts, employee consent is unlikely to be "freely given" due to power imbalance (EDPB Guidelines 05/2020); use Article 9(2)(b) employment law basis instead where national law permits.
