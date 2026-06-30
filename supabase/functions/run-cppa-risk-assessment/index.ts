@@ -122,7 +122,7 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     harm_types: Array.isArray(im.harmTypes) ? im.harmTypes : [],
     vulnerable_populations_detail: String(im.vulnerable ?? ""),
     benefits_outweigh_risks: String(im.benefitsOutweigh || "Uncertain"),
-    benefits_outweigh_risks_rationale: String(im.benefitsRationale || "Not captured in intake — flag as a required fill-in."),
+    benefits_outweigh_risks_rationale: String(im.benefitsRationale || "[Not provided in intake]"),
     cybersecurity_gaps_identified: im.cyberGaps === "Yes",
     prior_assessments_conducted: hasDpia,
     prior_assessment_date: "",
