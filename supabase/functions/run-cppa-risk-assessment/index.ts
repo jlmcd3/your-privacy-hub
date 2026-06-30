@@ -76,7 +76,7 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
   // Heuristic trigger mapping from legacy fields.
   const triggers = { ...EMPTY_TRIGGERS };
   const sells = typeof intake.q5_sell_share === "string"
-    && /sell|share|both/i.test(intake.q5_sell_share)
+    && /sell|share|both|^yes/i.test(intake.q5_sell_share)
     && !/^no/i.test(intake.q5_sell_share);
   if (sells) triggers.sells_or_shares_pi = true;
   if (intake.q15_sensitive_pi === "Yes") triggers.sensitive_pi_beyond_enumerated = true;
