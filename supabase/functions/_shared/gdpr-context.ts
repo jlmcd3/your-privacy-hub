@@ -243,7 +243,9 @@ export async function getGdprContext(
     const heading = g.section_heading || g.title || g.guideline_ref;
     gdprCites.push(`EDPB ${g.guideline_ref} — ${heading}`);
   }
-  meta.gdprCites = gdprCites;
+  // De-duplicate: identical Art./Recital/EDPB entries (e.g. WP248 matched by
+  // several articles) must appear once. Order preserved (first occurrence wins).
+  meta.gdprCites = [...new Set(gdprCites)];
 
   return { block: body, meta };
 }
