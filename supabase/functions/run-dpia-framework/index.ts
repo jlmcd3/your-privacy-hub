@@ -536,7 +536,7 @@ Generate substantive draft rows for every table for the controller to verify; us
   "section_6_conclusion": {
     "title": "Conclusion and Decision",
     "guidance_note": "EDPB Section 6 — the decision on processing viability, based on the residual-risk assessment.",
-    "decision": "REJECTED | CONSULTATION (SA) | APPROVED | CONDITIONALLY APPROVED — with a one-line explanation tied to the residual-risk outcome",
+    "decision": "DRAFT — INCOMPLETE | REJECTED | CONSULTATION (SA) | APPROVED | CONDITIONALLY APPROVED — with a one-line explanation tied to the residual-risk outcome (use DRAFT — INCOMPLETE whenever foundational inputs are missing or still [TO COMPLETE]; see DECISION STATUS RULE)",
     "conditions": ["if CONDITIONALLY APPROVED, the specific conditions to meet before proceeding (link to the section_4 measures)"],
     "supervisory_authority_consultation_required": "conditional guidance — Art. 36 prior consultation is required where residual risk remains High after all measures; name the lead supervisory authority",
     "sign_off_template": "Controller sign-off template (the controller, not the DPO, owns this decision): Processing activity: [name] | DPIA version: [TO COMPLETE] | DPIA completion date: [TO COMPLETE] | DPO advice received and considered: Yes / No / N/A (no DPO designated) | Overall residual risk level (post-measures): [TO BE RE-SCORED by organisation] | Supervisory authority consultation required: Yes / No / Conditional | Controller representative name and title: [TO COMPLETE] | Signature: [TO COMPLETE] | Date: [TO COMPLETE]",
