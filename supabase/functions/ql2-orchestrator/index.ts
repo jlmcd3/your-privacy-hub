@@ -131,6 +131,37 @@ async function runUnit(runId: string) {
       await log(runId, "No stress_batch_id — failing", { level: "error" });
       return;
     }
+
+    // Tool-by-tool progress: emit one log line per (tool, status) transition.
+    const { data: jobs } = await db.from("static_stress_jobs")
+      .select("tool_slug, status, error_message")
+      .eq("batch_id", run.stress_batch_id);
+    const jobList = jobs ?? [];
+    if (jobList.length) {
+      const { data: priorLogs } = await db.from("quality_loop2_log")
+        .select("message").eq("run_id", runId).like("message", "dummy:%");
+      const seen = new Set((priorLogs ?? []).map((r: any) => r.message as string));
+      const counts: Record<string, number> = {};
+      for (const j of jobList) {
+        const slug = (j as any).tool_slug as string;
+        const st = (j as any).status as string;
+        counts[st] = (counts[st] ?? 0) + 1;
+        const marker = `dummy:${slug}:${st}`;
+        if (!seen.has(marker)) {
+          const reg = Object.entries(REGISTRY).find(([, v]) => v.sampleSlug === slug || v.applyKey === slug);
+          const label = reg?.[1].label ?? slug;
+          const isErr = st === "failed" || st === "error";
+          await log(runId,
+            `${marker} — Dummy data for ${label}: ${st}${(j as any).error_message ? ` (${(j as any).error_message})` : ""}`,
+            { level: isErr ? "warn" : "info", product: reg?.[0] ?? null });
+        }
+      }
+      const summary = `dummy:summary:${Object.entries(counts).sort().map(([k, v]) => `${k}=${v}`).join(",")}`;
+      if (!seen.has(summary)) {
+        await log(runId, `${summary} — Dummy batch progress: ${jobList.length} job(s)`);
+      }
+    }
+
     const { data: batch } = await db.from("static_stress_batches").select("status").eq("id", run.stress_batch_id).maybeSingle();
     const st = batch?.status;
     if (st && ["complete", "failed", "cancelled"].includes(st)) {
