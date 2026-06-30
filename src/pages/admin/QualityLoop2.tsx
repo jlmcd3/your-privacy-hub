@@ -44,15 +44,19 @@ type ResultRow = {
   created_at?: string | null;
 };
 
+type Baseline = { product: string; avg_score: number | null; captured_at: string };
+
 export default function QualityLoop2() {
   const [selected, setSelected] = useState<Set<string>>(new Set(QL2_PRODUCTS.map((p) => p.product)));
   const [activeRun, setActiveRun] = useState<Run | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [results, setResults] = useState<ResultRow[]>([]);
+  const [baselines, setBaselines] = useState<Map<string, Baseline>>(new Map());
   const [starting, setStarting] = useState(false);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [target, setTarget] = useState<Record<string, "quality-auto" | "main">>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [snapshotting, setSnapshotting] = useState(false);
 
   // Load latest run on mount.
   useEffect(() => {
