@@ -596,6 +596,18 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/quality-loop2"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
+                      <QualityLoop2 />
+                    </Suspense>
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/function-health"
               element={
                 <ProtectedRoute>
