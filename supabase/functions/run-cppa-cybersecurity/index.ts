@@ -15,6 +15,7 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
     "PROSE CITATION HYGIENE: In finding, remediation, top_risks, next_steps, and executive_summary, refer to each cybersecurity component by its NAME only. NEVER write a component subsection number — no \"11 CCR § 7123(c)(N)\", \"§ 7123(c)(N)\", or \"(c)(N)\" — in any of these prose fields; the correct per-control citation is supplied by the system in the fsor_citation and regulatory_basis fields. In prose you may cite only the procedural range 11 CCR §§ 7120–7124 (e.g. § 7122, § 7123(e), § 7124) where unavoidable. Writing a § 7123(c)(N) subsection in prose is a defect.",
     "PHASE-IN: first audit certifications are due April 1, 2028 (>$100M 2026 gross revenue), April 1, 2029 ($50–100M), April 1, 2030 (<$50M), under 11 CCR § 7121(a). Never present a readiness deadline earlier than the business's applicable phase-in date (a prospective obligation).",
     "FRAMEWORK: when the intake specifies a primary framework (SOC 2, ISO 27001, NIST CSF 2.0, CIS Controls), frame remediation and control-mapping in THAT framework; default to NIST CSF 2.0 only when none is given. Under § 7123(f) a business may leverage an existing aligned audit only if all Article 9 requirements are met independently or by supplementation — test each element.",
+    "NIST CSF 2.0 CITATION LEVEL: In remediation and all prose, cite NIST CSF 2.0 at the FUNCTION level by name (Govern, Identify, Protect, Detect, Respond, Recover) and, where useful, name the relevant category in plain words (e.g. \"the Protect function's technology-infrastructure-resilience controls\"). Do NOT emit specific alphanumeric subcategory identifiers (e.g. \"PR.IR-01\", \"PR.AA-05\", \"PR.AT-02\", \"PR.DS-6\") — model-recalled subcategory codes are frequently mis-assigned, and a wrong code is a citation defect. Use a subcategory code ONLY if it is explicitly supplied in the intake's chosen framework mapping.",
     "SECTOR OVERLAYS (note where relevant): GLBA Safeguards Rule (16 CFR Part 314) for financial services; NERC CIP (CIP-002–CIP-014) for bulk-power operators; CPNI (47 CFR Part 64) for telecom; California IoT Security Law (Cal. Civ. Code §§ 1798.91.04–.06) for connected devices; FDA 21 CFR Part 11 for clinical-records systems.",
     "APPLICABILITY: CPPA cybersecurity audit obligations apply only to 'businesses' (Cal. Civ. Code § 1798.140(ag)); state/local government agencies are excluded, and nonprofits/others must meet a CCPA business threshold. Where the intake indicates a government or nonprofit entity, add the applicability caveat and instruct the entity to confirm covered-business status before relying on the report.",
     "AUDIT vs CERTIFICATION: the independent auditor documents any gaps with remediation in the audit report under § 7123(e); the business's executive then submits the certification under § 7124. Keep these two documents/parties distinct — never collapse them into one step, and the audit's gap list does not excuse the executive certification.",
@@ -48,6 +49,20 @@ function stripMd(s: string | undefined | null): string {
     .replace(/^\s*-\s+/gm, '• ')
     .replace(/`([^`]+)`/g, '$1')
     .replace(/^\s*[-_]{3,}\s*$/gm, '');
+}
+
+// Remove model-authored "11 CCR § 7123(c)(N)" component-subsection numbers from
+// prose. Procedural cites (§§ 7120–7124, § 7122, § 7123(e), § 7124) are preserved.
+function stripComponentCite(s: string | undefined | null): string {
+  if (!s) return s ?? "";
+  const CITE = String.raw`(?:11\s*CCR\s*)?§+\s*7123\s*\(\s*c\s*\)\s*\(\s*\d+\s*\)`;
+  return s
+    .replace(new RegExp(String.raw`\s*\(\s*${CITE}\s*\)`, "gi"), "")
+    .replace(new RegExp(String.raw`[,;]?\s*(?:consistent with|in line with|under|per|pursuant to|as required by|as enumerated(?:\s+(?:in|under))?|which maps? to|mapped to|maps? to)\s+${CITE}`, "gi"), "")
+    .replace(new RegExp(CITE, "gi"), "")
+    .replace(/\(\s*\)/g, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\s+([.,;:)])/g, "$1");
 }
 
 async function callAnthropic(system: string | SystemBlock[], user: string, maxTokens: number): Promise<{ text: string; stopReason: string | null }> {
@@ -415,8 +430,9 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     }
 
     function normaliseReport(r: any): void {
+      const cleanSection = (x: any) => stripEnforcementTags(stripComponentCite(stripMd(x)));
       r.annotations = Array.isArray(r?.annotations) ? r.annotations : [];
-      r.executive_summary = stripMd(r.executive_summary);
+      r.executive_summary = cleanSection(r.executive_summary);
       r.enforcement_context = stripMd(r.enforcement_context);
       r.controls = (Array.isArray(r.controls) ? r.controls : []).map((c: any) => ({
         ...c,
@@ -427,11 +443,11 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       r.top_risks = (Array.isArray(r.top_risks) ? r.top_risks : []).map((t: any) => ({
         ...t,
         title: stripMd(t?.title),
-        description: stripMd(t?.description),
-        consequence: stripMd(t?.consequence),
+        description: cleanSection(t?.description),
+        consequence: cleanSection(t?.consequence),
       }));
       r.next_steps = (Array.isArray(r.next_steps) ? r.next_steps : []).map((s: any) =>
-        typeof s === "string" ? stripMd(s) : s
+        typeof s === "string" ? cleanSection(s) : s
       );
     }
 
@@ -546,6 +562,16 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           rep.executive_summary = note;
         }
       }
+      // Transparency: state the score basis (mean excludes "Insufficient information").
+      const _assessed = controls.filter(
+        (c: any) => String(c?.status ?? "").trim().toLowerCase() !== "insufficient information",
+      );
+      const _excluded = controls.length - _assessed.length;
+      rep.methodology_note =
+        `Overall score is the mean of the ${_assessed.length} assessed control${_assessed.length === 1 ? "" : "s"}, rounded.` +
+        (_excluded > 0
+          ? ` ${_excluded} control${_excluded === 1 ? "" : "s"} with status "Insufficient information" (no intake data bearing on the control) ${_excluded === 1 ? "was" : "were"} excluded from the mean; the listed remediation reflects the need to supply that information.`
+          : "");
     }
 
 
@@ -836,17 +862,6 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       // to components by name; the authoritative per-control subsection is carried
       // deterministically in regulatory_basis and fsor_citation below. Procedural
       // cites (§§ 7120–7124, § 7122, § 7123(e), § 7124) are preserved.
-      const stripComponentCite = (s: string | undefined | null): string => {
-        if (!s) return s ?? "";
-        const CITE = String.raw`(?:11\s*CCR\s*)?§+\s*7123\s*\(\s*c\s*\)\s*\(\s*\d+\s*\)`;
-        return s
-          .replace(new RegExp(String.raw`\s*\(\s*${CITE}\s*\)`, "gi"), "")
-          .replace(new RegExp(String.raw`[,;]?\s*(?:consistent with|in line with|under|per|pursuant to|as required by|as enumerated(?:\s+(?:in|under))?|which maps? to|mapped to|maps? to)\s+${CITE}`, "gi"), "")
-          .replace(new RegExp(CITE, "gi"), "")
-          .replace(/\(\s*\)/g, "")
-          .replace(/[ \t]{2,}/g, " ")
-          .replace(/\s+([.,;:)])/g, "$1");
-      };
       // Slug hygiene: strip raw intake control slugs (c14_third_party, c16_training…).
       const stripSlugs = (s: string | undefined | null): string => {
         if (!s) return s ?? "";
