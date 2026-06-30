@@ -171,7 +171,7 @@ ORTHOGRAPHY IS NOT A COMPLIANCE GAP: British-versus-American spelling is never a
       • notice_gaps:    notice_purpose | notice_optout | notice_access | notice_antiretaliation | notice_howworks | notice_alternative_process | notice_trade_secret
       • opt_out_gaps:   optout_offer | optout_designated_methods | optout_account_barrier | optout_confirmation | optout_processing
       • access_gaps:    access_specific_purpose | access_logic | access_outcome_sole_factor | access_antiretaliation | access_trade_secret | access_timeline | access_secure_transmission | access_denial_basis | access_aggregate_log | access_verification
-      • documentation_to_maintain: sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline
+      • documentation_to_maintain: sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline | admt_use_frequency_log
     Always set \`citation\` to the empty string "" — the template fills it from the registry. Do not omit the field; leave it as "".`;
 
 export const ADMT_TOOL_MODULE: ToolModule = {
@@ -490,7 +490,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
 
   "documentation_to_maintain": [
     {
-      "element_id": "sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline",
+      "element_id": "sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline | admt_use_frequency_log",
       "document": "Name of document or record",
       "purpose": "What it demonstrates to the CPPA",
       "citation": ""
@@ -503,7 +503,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "threshold": "Business used the ADMT with respect to the consumer more than four times within a 12-month period (§ 7222(j))",
     "explanation": "If the business has used the ADMT with respect to the consumer more than four times in a 12-month period, it may respond with aggregate-level logic and output summaries instead of individualized responses. The threshold measures ADMT decisions/uses with respect to the consumer — NOT the count of inbound access requests. If the intake does not track this, recommend the business begin logging per-consumer ADMT use frequency.",
     "what_aggregate_response_may_include": "If applicable, note that the aggregate response may include aggregate-level summaries of the ADMT's logic and outputs, but must still include the specific purpose (§ 7222(b)(1)), and the business must still respond to the other required elements of § 7222. The aggregate option is specifically for the logic and output disclosures under § 7222(b)(2)-(3), not a complete exemption from responding.",
-    "operational_note": "If applicable, recommend the business document which consumers have crossed the four-use threshold and maintain a per-consumer ADMT-use log to support the aggregate-response decision."
+    "operational_note": "If applicable, recommend the business document which consumers have crossed the four-use threshold and maintain a per-consumer ADMT-use log to support the aggregate-response decision. If you list this log as a documentation_to_maintain item, set its element_id to \"admt_use_frequency_log\" (NOT \"qualifies_admt\") so it resolves to the aggregate-response provision."
   },
 
   "priority_actions": [
