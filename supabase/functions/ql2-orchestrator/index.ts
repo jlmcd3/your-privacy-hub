@@ -289,18 +289,20 @@ async function runUnit(runId: string) {
       mode: "improvement",
       target_tool: next,
     };
-    const [openaiRes, claudeRes] = await Promise.all([
+    const [openaiOut, claudeOut] = await Promise.all([
       callReviewer("gpt-4o", reviewerBody),
       callReviewer("claude-sonnet-4-5-20250929", reviewerBody),
     ]);
+    const openaiRes = openaiOut.data;
+    const claudeRes = claudeOut.data;
 
     const openaiScore = openaiRes ? meanScore(openaiRes) : null;
     const claudeScore = claudeRes ? meanScore(claudeRes) : null;
     const present = [openaiScore, claudeScore].filter((v): v is number => typeof v === "number");
     const avgScore = present.length ? present.reduce((a, b) => a + b, 0) / present.length : null;
 
-    if (!openaiRes) await log(runId, `${reg.label}: OpenAI review failed`, { level: "warn", product: next });
-    if (!claudeRes) await log(runId, `${reg.label}: Claude review failed`, { level: "warn", product: next });
+    if (!openaiRes) await log(runId, `${reg.label}: OpenAI review failed${openaiOut.lastError ? ` (${openaiOut.lastError.slice(0, 200)})` : ""}`, { level: "warn", product: next });
+    if (!claudeRes) await log(runId, `${reg.label}: Claude review failed${claudeOut.lastError ? ` (${claudeOut.lastError.slice(0, 200)})` : ""}`, { level: "warn", product: next });
 
     // Union changes from both models, dedupe.
     const changes = [...extractChanges(openaiRes), ...extractChanges(claudeRes)];
