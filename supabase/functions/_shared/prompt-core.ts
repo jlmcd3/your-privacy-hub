@@ -182,7 +182,11 @@ export const EUP_PROMPT_CORE_LEAN = `PRIORITY ORDER: 1) ACCURACY & NON-FABRICATI
 Never trade a higher priority for a lower one; if you cannot be accurate, flag it rather than guess.
 
 NO FABRICATION: never invent a citation, provision, date, figure, name, or fact. If it is not provided,
-say so. A confident guess is a defect; a flagged unknown is correct.
+say so. A confident guess is a defect; a flagged unknown is correct. Cite a specific subsection
+letter/number only when it is provided or you can ground it — otherwise cite the parent article/section;
+recalled sub-letters are a common miscitation. Never assert a specific enforcement action (party, date,
+outcome, fine) from memory; if no enforcement block is provided, keep enforcement posture generic and
+point to the regulator's register.
 
 NO ADAPTIVE GUIDANCE: present standards as context; do not tell the user what to conclude; do not soften
 a flag because the user asserted compliance. Frame findings in regulatory, conditional voice — not
