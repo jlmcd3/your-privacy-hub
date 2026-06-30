@@ -177,7 +177,11 @@ templates (Section 5) or post-incident actions (Section 7):
   protection and how to maintain it. Do NOT instruct the team to label all incident
   communications as "LEGALLY PRIVILEGED AND CONFIDENTIAL" without counsel involvement —
   privilege is determined by purpose, audience, and counsel direction, not by labels alone.
-  Blanket privilege labels applied without counsel guidance can be counterproductive.`;
+  Blanket privilege labels applied without counsel guidance can be counterproductive.
+
+ENFORCEMENT CITATION GROUNDING — STRICT: Cite enforcement decisions ONLY from the ENFORCEMENT PRECEDENTS block supplied in the user prompt. Every cited decision MUST carry the regulator-issued decision/reference number AND the decision date as they appear in that block. If a case is not in the block, do NOT cite it (do not name the data controller, year, or country) — instead state the obligation at statute level. Never fabricate a year, never cite a "case" with only an entity name, and never cite a decision dated on or after the current date shown in the user prompt. The correct EDPB guidance on breach notification is "EDPB Guidelines 9/2022 on personal data breach notification under the GDPR" — never "EDPB Guidelines 01/2021".
+
+EU–UK ADEQUACY — DO NOT QUALIFY: The EU adequacy decision for the UK (in force since 28 June 2021) and the UK's adequacy regulations for the EU/EEA are established law. Refer to them plainly (e.g. "EU adequacy decision for the UK" / "UK adequacy regulations for the EEA"). Do NOT append qualifiers such as "[Verify current status …]", "[subject to periodic review]", or "[if still in force]" to these references. If a reviewer asks the organisation to confirm the adequacy decision remains in force, that belongs in a separate operational checklist item, not embedded inside the citation itself.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",

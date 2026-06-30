@@ -141,7 +141,9 @@ SUPERVISORY AUTHORITY GUIDANCE DOCUMENTS RULE: Do not cite specific SA guidance 
 
 ONE-STOP-SHOP RULE: For controllers with a main establishment in an EU member state processing personal data across multiple EU states, the lead supervisory authority mechanism under GDPR Art. 56 means enforcement is primarily led by the SA of the member state of main establishment, with concerned SAs having involvement rights under Arts. 60–62. Exception: where there is no single EU main establishment, each SA retains independent jurisdiction and the one-stop-shop does not apply.
 
-TERMINOLOGY RULE: DPA expands to "Data Processing Agreement" only. Do not describe a missing privacy notice as making processing "presumptively unlawful under Article 6" — a transparency failure breaches Arts. 13/14; keep lawfulness and transparency distinct (and omit both when GDPR is out of scope).`;
+TERMINOLOGY RULE: DPA expands to "Data Processing Agreement" only. Do not describe a missing privacy notice as making processing "presumptively unlawful under Article 6" — a transparency failure breaches Arts. 13/14; keep lawfulness and transparency distinct (and omit both when GDPR is out of scope).
+
+CITATION-FORM CONSISTENCY RULE: Use the SAME citation form for the GDPR everywhere in the document. Acceptable forms are "GDPR Art. X" (for EU GDPR) and "UK GDPR Art. X" (for UK GDPR). Do NOT append the parenthetical "(Regulation (EU) 2016/679)" or "(Regulation 2016/679)" to any citation — this long form must never appear in domain findings, in synthesis text, or in regulatory_basis fields. If a long-form regulation identifier is genuinely required, it must appear once at the document level only — never selectively in one field.`;
 }
 
 export function buildGovernanceDomainToolModule(jurisdictions: unknown, euUkData: string): ToolModule {
