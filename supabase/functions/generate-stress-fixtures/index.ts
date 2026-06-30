@@ -999,7 +999,7 @@ Deno.serve(async (req) => {
 
     if (part === "geo") {
       const name = company_name || company_id;
-      if (!use_claude) return json(buildDeterministicGeo(industry, geo, company_slot, company_id, name), 200);
+      if (!use_claude) return json(normalizeCppaRiskTriggers(buildDeterministicGeo(industry, geo, company_slot, company_id, name)), 200);
       return streamJsonWork(async () => {
         const callBText = await callClaude(
           SYSTEM_PROMPT,
@@ -1008,7 +1008,7 @@ Deno.serve(async (req) => {
             : buildCallBUSPrompt(industry, company_slot, name),
           4500,
         );
-        return extractJson(callBText);
+        return normalizeCppaRiskTriggers(extractJson(callBText));
       });
     }
   } catch (e) {
