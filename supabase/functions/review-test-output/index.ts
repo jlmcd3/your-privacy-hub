@@ -342,7 +342,20 @@ Deno.serve(async (req) => {
     return jsonResp({ error: (e as Error).message }, 502);
   }
 
-  const review = tryParse(raw);
+  let review = tryParse(raw);
+  if (!review) {
+    // One retry with a stricter JSON-only reminder before failing the reviewer.
+    console.warn(`[review-test-output] parse failed (model=${chosenModel}, len=${raw.length}); retrying with JSON-only reminder. head=${raw.slice(0, 300)}`);
+    const retryUser = userMessage + "\n\nREMINDER: Respond with the JSON object ONLY. No preamble, no commentary, no markdown fences.";
+    try {
+      raw = isOpenAI
+        ? await callOpenAI(system, retryUser, chosenModel)
+        : await callClaude(system, retryUser, chosenModel);
+    } catch (e) {
+      return jsonResp({ error: `retry: ${(e as Error).message}` }, 502);
+    }
+    review = tryParse(raw);
+  }
   if (!review) return jsonResp({ error: "Reviewer returned non-JSON", raw: raw.slice(0, 1000) }, 500);
 
   return jsonResp({ ok: true, testId, model: chosenModel, review });
