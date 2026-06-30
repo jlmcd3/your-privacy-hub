@@ -221,13 +221,15 @@ async function runUnit(runId: string) {
     await log(runId, `Reviewing ${reg.label} (${idx}/${products.length})`, { product: next });
     await heartbeat(runId);
 
-    // Load newest report by sample slug.
-    const { data: report } = await db.from("sample_reports")
+    // Load newest USABLE report by sample slug (skip rows with no content).
+    const { data: reportRows } = await db.from("sample_reports")
       .select("id, document_text, report_data, status, created_at")
       .eq("tool_slug", reg.sampleSlug)
+      .or("document_text.not.is.null,report_data.not.is.null")
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
+    const report = reportRows?.[0] ?? null;
+
     const text = (report?.document_text as string | null) ?? (report?.report_data ? JSON.stringify(report.report_data) : null);
     if (!text) {
       await db.from("quality_loop2_results").insert({
