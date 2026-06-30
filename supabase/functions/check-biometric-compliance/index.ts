@@ -501,7 +501,7 @@ Sale and sharing restrictions:
 GDPR purpose limitation (Article 5(1)(b)) prohibits secondary use of biometric data. Processor agreements (Article 28) must prohibit vendor use for any purpose other than the contracted service.
 
 Current enforcement posture:
-The CNIL is one of Europe's most active supervisory authorities. It has issued enforcement actions for biometric systems deployed without a valid DPIA, without a proper Article 9(2) condition, and for workplace biometrics deployed without works council consultation. Refer to cnil.fr/fr/les-sanctions for current enforcement figures — do not rely on training-knowledge fine amounts.
+The CNIL is one of Europe's most active supervisory authorities. It has issued enforcement actions for biometric systems deployed without a valid DPIA, without a proper Article 9(2) condition, and for workplace biometrics deployed without works council consultation. Refer to cnil.fr/fr/les-sanctions for current enforcement figures.
 
 Priority actions:
 1. Complete a DPIA before deployment and submit to the CNIL for prior consultation if residual risk remains high after mitigation.
@@ -535,7 +535,7 @@ Sale and sharing restrictions:
 GDPR purpose limitation (Article 5(1)(b)) and Article 28 processor controls govern sharing. Any transfer to the US or other third countries requires an adequacy decision, SCCs, or BCRs under Chapter V.
 
 Current enforcement posture:
-The DPC is active in cross-border enforcement and has handled major Article 9 cases. Refer to dataprotection.ie/en/dpc-guidance/enforcement for current enforcement actions — do not rely on training-knowledge fine amounts.
+The DPC is active in cross-border enforcement and has handled major Article 9 cases. Refer to dataprotection.ie/en/dpc-guidance/enforcement for current enforcement actions.
 
 Priority actions:
 1. Complete a DPIA and submit for DPC prior consultation under Article 36 if residual high risk remains after mitigation.
@@ -569,7 +569,7 @@ Sale and sharing restrictions:
 § 26 BDSG limits employee data use to employment purposes. GDPR Article 5(1)(b) purpose limitation and Article 28 processor controls govern all sharing. Non-EEA transfers require an Article 46 safeguard.
 
 Current enforcement posture:
-German state DPAs are among the most active in Europe. Enforcement actions have targeted biometric systems deployed without Betriebsrat agreement, without a valid DPIA, and without adequate Article 9(2) documentation. Refer to the BfDI and individual state DPA enforcement registers — do not rely on training-knowledge fine amounts.
+German state DPAs are among the most active in Europe. Enforcement actions have targeted biometric systems deployed without Betriebsrat agreement, without a valid DPIA, and without adequate Article 9(2) documentation. Refer to the BfDI and individual state DPA enforcement registers.
 
 Priority actions:
 1. Obtain works council agreement (Betriebsvereinbarung) before deploying any employee biometric system — this is a legal pre-condition, not a best practice.
@@ -603,7 +603,7 @@ Sale and sharing restrictions:
 LOPDGDD Article 9 and GDPR Article 5(1)(b) purpose limitation prohibit secondary use. Processor agreements (Article 28 DPA) must restrict vendor use to contracted services only.
 
 Current enforcement posture:
-The AEPD has issued some of the highest biometric-specific fines in the EU, targeting organisations for deploying biometric time-and-attendance without a valid legal basis, without a DPIA, and without proportionality analysis. Refer to aepd.es/es/resoluciones for current enforcement figures — do not rely on training-knowledge fine amounts.
+The AEPD has issued some of the highest biometric-specific fines in the EU, targeting organisations for deploying biometric time-and-attendance without a valid legal basis, without a DPIA, and without proportionality analysis. Refer to aepd.es/es/resoluciones for current enforcement figures.
 
 Priority actions:
 1. Complete a proportionality analysis before deploying any biometric system — demonstrate why less invasive alternatives (PIN, card, mobile) are insufficient for the stated purpose.
