@@ -3797,6 +3797,145 @@ export type Database = {
           },
         ]
       }
+      quality_loop2_log: {
+        Row: {
+          id: string
+          level: string
+          message: string
+          product: string | null
+          run_id: string
+          ts: string
+        }
+        Insert: {
+          id?: string
+          level?: string
+          message: string
+          product?: string | null
+          run_id: string
+          ts?: string
+        }
+        Update: {
+          id?: string
+          level?: string
+          message?: string
+          product?: string | null
+          run_id?: string
+          ts?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_loop2_log_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "quality_loop2_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_loop2_results: {
+        Row: {
+          applied: boolean
+          applied_branch: string | null
+          avg_score: number | null
+          check_result_id: string | null
+          claude_score: number | null
+          commit_url: string | null
+          created_at: string
+          fix_location: string | null
+          id: string
+          openai_score: number | null
+          product: string
+          quality_run_id: string | null
+          recommendation: string | null
+          run_id: string
+          updatable: boolean
+        }
+        Insert: {
+          applied?: boolean
+          applied_branch?: string | null
+          avg_score?: number | null
+          check_result_id?: string | null
+          claude_score?: number | null
+          commit_url?: string | null
+          created_at?: string
+          fix_location?: string | null
+          id?: string
+          openai_score?: number | null
+          product: string
+          quality_run_id?: string | null
+          recommendation?: string | null
+          run_id: string
+          updatable?: boolean
+        }
+        Update: {
+          applied?: boolean
+          applied_branch?: string | null
+          avg_score?: number | null
+          check_result_id?: string | null
+          claude_score?: number | null
+          commit_url?: string | null
+          created_at?: string
+          fix_location?: string | null
+          id?: string
+          openai_score?: number | null
+          product?: string
+          quality_run_id?: string | null
+          recommendation?: string | null
+          run_id?: string
+          updatable?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_loop2_results_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "quality_loop2_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_loop2_runs: {
+        Row: {
+          cancel_requested: boolean
+          completed_at: string | null
+          id: string
+          last_error: string | null
+          last_heartbeat_at: string
+          phase: string
+          products: Json
+          run_by: string | null
+          started_at: string
+          status: string
+          stress_batch_id: string | null
+        }
+        Insert: {
+          cancel_requested?: boolean
+          completed_at?: string | null
+          id?: string
+          last_error?: string | null
+          last_heartbeat_at?: string
+          phase?: string
+          products?: Json
+          run_by?: string | null
+          started_at?: string
+          status?: string
+          stress_batch_id?: string | null
+        }
+        Update: {
+          cancel_requested?: boolean
+          completed_at?: string | null
+          id?: string
+          last_error?: string | null
+          last_heartbeat_at?: string
+          phase?: string
+          products?: Json
+          run_by?: string | null
+          started_at?: string
+          status?: string
+          stress_batch_id?: string | null
+        }
+        Relationships: []
+      }
       quality_reviews: {
         Row: {
           changes: Json
