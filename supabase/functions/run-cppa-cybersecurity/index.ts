@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
@@ -11,6 +12,7 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
     "Per-control citations are supplied deterministically from the CONTROL_CITATIONS map (11 CCR § 7123(c)(1)–(18)); never invent, alter, or reorder a control citation. Cite procedural provisions only as 11 CCR §§ 7120–7124. Never describe the regulations as proposed.",
   outputMode: "strict-JSON",
   extraRules: [
+    "PROSE CITATION HYGIENE: In finding, remediation, top_risks, next_steps, and executive_summary, refer to each cybersecurity component by its NAME only. NEVER write a component subsection number — no \"11 CCR § 7123(c)(N)\", \"§ 7123(c)(N)\", or \"(c)(N)\" — in any of these prose fields; the correct per-control citation is supplied by the system in the fsor_citation and regulatory_basis fields. In prose you may cite only the procedural range 11 CCR §§ 7120–7124 (e.g. § 7122, § 7123(e), § 7124) where unavoidable. Writing a § 7123(c)(N) subsection in prose is a defect.",
     "PHASE-IN: first audit certifications are due April 1, 2028 (>$100M 2026 gross revenue), April 1, 2029 ($50–100M), April 1, 2030 (<$50M), under 11 CCR § 7121(a). Never present a readiness deadline earlier than the business's applicable phase-in date (a prospective obligation).",
     "FRAMEWORK: when the intake specifies a primary framework (SOC 2, ISO 27001, NIST CSF 2.0, CIS Controls), frame remediation and control-mapping in THAT framework; default to NIST CSF 2.0 only when none is given. Under § 7123(f) a business may leverage an existing aligned audit only if all Article 9 requirements are met independently or by supplementation — test each element.",
     "SECTOR OVERLAYS (note where relevant): GLBA Safeguards Rule (16 CFR Part 314) for financial services; NERC CIP (CIP-002–CIP-014) for bulk-power operators; CPNI (47 CFR Part 64) for telecom; California IoT Security Law (Cal. Civ. Code §§ 1798.91.04–.06) for connected devices; FDA 21 CFR Part 11 for clinical-records systems.",
@@ -826,20 +828,26 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
         return s;
       })();
 
-      // R4 (citation consistency): any "11 CCR § 7123(c)(N)" subsection reference
-      // in narrative prose MUST match the authoritative `citation` for this control.
-      // The model sometimes increments the subsection by 1 (e.g. text says (c)(5)
-      // when the control is (c)(4)). Rewrite any divergent subsection in prose
-      // fields to the authoritative one. Only acts when the citation includes a
-      // numeric subsection like "(c)(N)".
-      const subsectionMatch = citation.match(/\(c\)\(\d+\)/);
-      const fixSubsection = (s: string | undefined | null): string => {
-        if (!s || !subsectionMatch) return s ?? "";
-        return s.replace(/11\s*CCR\s*§\s*7123\(c\)\(\d+\)/g, `11 CCR § 7123${subsectionMatch[0]}`);
+      // Citation hygiene: REMOVE any "11 CCR § 7123(c)(N)" component-subsection
+      // reference from narrative prose. The model both (a) increments the control's
+      // own subsection by 1 and (b) writes cross-references to OTHER components; a
+      // rewrite-to-own-subsection approach corrupts the latter (e.g. an incident-
+      // response cross-reference (c)(17) wrongly rewritten to (c)(8)). Prose refers
+      // to components by name; the authoritative per-control subsection is carried
+      // deterministically in regulatory_basis and fsor_citation below. Procedural
+      // cites (§§ 7120–7124, § 7122, § 7123(e), § 7124) are preserved.
+      const stripComponentCite = (s: string | undefined | null): string => {
+        if (!s) return s ?? "";
+        const CITE = String.raw`(?:11\s*CCR\s*)?§+\s*7123\s*\(\s*c\s*\)\s*\(\s*\d+\s*\)`;
+        return s
+          .replace(new RegExp(String.raw`\s*\(\s*${CITE}\s*\)`, "gi"), "")
+          .replace(new RegExp(String.raw`[,;]?\s*(?:consistent with|in line with|under|per|pursuant to|as required by|as enumerated(?:\s+(?:in|under))?|which maps? to|mapped to|maps? to)\s+${CITE}`, "gi"), "")
+          .replace(new RegExp(CITE, "gi"), "")
+          .replace(/\(\s*\)/g, "")
+          .replace(/[ \t]{2,}/g, " ")
+          .replace(/\s+([.,;:)])/g, "$1");
       };
-      // R5 (slug hygiene): strip raw intake control slugs like c14_third_party,
-      // c16_training, c17_incident, c18_continuity from user-facing prose fields.
-      // The slug pattern is the lowercase letter "c" + digits + underscore + word.
+      // Slug hygiene: strip raw intake control slugs (c14_third_party, c16_training…).
       const stripSlugs = (s: string | undefined | null): string => {
         if (!s) return s ?? "";
         return s
@@ -848,7 +856,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           .replace(/[ \t]{2,}/g, " ")
           .replace(/\s+([.,;:)])/g, "$1");
       };
-      const scrub = (s: string | undefined | null) => stripSlugs(fixSubsection(s));
+      const scrub = (s: string | undefined | null) => stripEnforcementTags(stripSlugs(stripComponentCite(s)));
 
       controlsOut.push({
         ...c,
