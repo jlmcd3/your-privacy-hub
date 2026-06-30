@@ -193,6 +193,9 @@ async function fetchWithRetry(label: string, url: string, init: RequestInit): Pr
 
 async function callClaude(system: string, user: string, model: string): Promise<string> {
   if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY not configured");
+  // Stream the response. Non-streaming Anthropic calls return HTTP 500 on
+  // long completions for large products (DPA, IR Playbook, DPIA). Streaming
+  // avoids the gateway-side timeout that triggers those 500s.
   const r = await fetchWithRetry("anthropic", "https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -202,9 +205,8 @@ async function callClaude(system: string, user: string, model: string): Promise<
     },
     body: JSON.stringify({
       model,
-      // Reviewer returns a compact JSON verdict; keep below Anthropic's
-      // non-streaming ceiling (~21k for Sonnet 4/4.5) to avoid HTTP 500.
-      max_tokens: 16000,
+      max_tokens: 8000,
+      stream: true,
       system,
       messages: [{ role: "user", content: user }],
     }),
@@ -214,11 +216,35 @@ async function callClaude(system: string, user: string, model: string): Promise<
     const t = await r.text();
     throw new Error(`Anthropic ${r.status}: ${t.slice(0, 400)}`);
   }
-  const d = await r.json();
-  if (d?.stop_reason && d.stop_reason !== "end_turn") {
-    console.warn(`[review-test-output] claude stop_reason=${d.stop_reason}`);
+  const reader = r.body!.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  let out = "";
+  let stopReason: string | null = null;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data:")) continue;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const evt = JSON.parse(payload);
+        if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+          out += evt.delta.text ?? "";
+        } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
+          stopReason = evt.delta.stop_reason;
+        }
+      } catch { /* ignore malformed SSE lines */ }
+    }
   }
-  return d?.content?.[0]?.text ?? "";
+  if (stopReason && stopReason !== "end_turn") {
+    console.warn(`[review-test-output] claude stop_reason=${stopReason}`);
+  }
+  return out;
 }
 
 async function callOpenAI(system: string, user: string, model: string): Promise<string> {
