@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
   if (!testId || !output) return jsonResp({ error: "testId and output are required" }, 400);
 
   const outputStr = typeof output === "string" ? output : JSON.stringify(output, null, 2);
-  const trimmed = outputStr.length > 120_000 ? outputStr.slice(0, 120_000) + "\n…[truncated]" : outputStr;
+  const trimmed = outputStr.length > 80_000 ? outputStr.slice(0, 80_000) + "\n…[truncated]" : outputStr;
 
   const isImprovement = mode === "improvement";
   const system = isImprovement ? IMPROVEMENT_SYSTEM_PROMPT : RUBRIC_SYSTEM_PROMPT;
