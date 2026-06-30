@@ -468,19 +468,19 @@ Generate the first half of an EDPB-format DPIA (Overview, Systematic Description
       { "data_item": "data item", "metrics": "quality metrics, requirements or thresholds", "justification": "why" }
     ],
     "measures_article5": [
-      { "principle": "Fairness | Transparency | Purpose limitation | Data minimisation | Accuracy | Storage limitation | Integrity and confidentiality | Accountability", "measures": "supporting measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+      { "principle": "Fairness | Transparency | Purpose limitation | Data minimisation | Accuracy | Storage limitation | Integrity and confidentiality | Accountability", "measures": "supporting measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented | Requires scoping" }
     ],
     "measures_rights": [
-      { "right": "Information (Arts. 12–14) | Access & portability (Arts. 15, 20) | Rectification & erasure (Arts. 16, 17, 19) | Object & restriction (Arts. 18, 19, 21) | No solely-automated decision (Art. 22)", "measures": "supporting measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+      { "right": "Information (Arts. 12–14) | Access & portability (Arts. 15, 20) | Rectification & erasure (Arts. 16, 17, 19) | Object & restriction (Arts. 18, 19, 21) | No solely-automated decision (Art. 22)", "measures": "supporting measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented | Requires scoping" }
     ],
     "measures_other": [
-      { "requirement": "Consent (Art. 7) | Processors (Art. 28) | International transfers (Chapter V)", "measures": "supporting measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+      { "requirement": "Consent (Art. 7) | Processors (Art. 28) | International transfers (Chapter V)", "measures": "supporting measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented | Requires scoping" }
     ],
     "measures_dpbd": [
-      { "measures": "data protection by design and by default (Art. 25) measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+      { "measures": "data protection by design and by default (Art. 25) measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented | Requires scoping" }
     ],
     "measures_security": [
-      { "measures": "security of processing (Art. 32) measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+      { "measures": "security of processing (Art. 32) measures", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented | Requires scoping" }
     ],
     "completion_guidance": "What the organisation must complete or verify in Section 2"
   }
@@ -517,7 +517,7 @@ Generate substantive draft rows for every table for the controller to verify; us
       { "risk": "risk scenario (drawn from design_risk_impacts and incident_risk_impacts)", "likelihood": "Low | Medium | High", "severity": "Low | Medium | High", "modulating_factors": "aggravating / mitigating factors (scale, sensitivity, vulnerability, exposure)", "risk_level": "Low | Medium | High", "acceptable": "Acceptable | Not acceptable — requires additional mitigation" }
     ],
     "additional_mitigating_measures": [
-      { "measure": "additional technical / legal / organisational measure", "mitigated_risks": "which inherent risks it addresses", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented" }
+      { "measure": "additional technical / legal / organisational measure", "mitigated_risks": "which inherent risks it addresses", "appropriateness": "appropriateness and effectiveness", "implementation_status": "Planned | Partially implemented | Implemented | Requires scoping" }
     ],
     "residual_risk_assessment": [
       { "risk": "reassessed risk", "additional_measures": "measures applied", "residual_likelihood": "Low | Medium | High", "residual_severity": "Low | Medium | High", "residual_risk_level": "Low | Medium | High — proposed, subject to the organisation's re-scoring", "acceptable": "Acceptable | Not acceptable" }
