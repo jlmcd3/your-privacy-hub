@@ -611,7 +611,7 @@ Priority actions:
 3. Conduct works committee consultation before deploying employee biometrics under Article 64 Estatuto de los Trabajadores and document the outcome.
 
 Compliance risk rating: HIGH
-AEPD enforcement of biometric obligations is among the most active in Europe; the proportionality requirement creates an additional substantive hurdle that many deployments fail without documented analysis.
+The AEPD actively enforces biometric obligations, and its proportionality requirement creates an additional substantive hurdle that many deployments fail without documented analysis.
 ---`;
     }
 
