@@ -211,9 +211,58 @@ export default function QualityLoop2() {
     }
   }
 
+  function onExportMarkdown() {
+    const lines: string[] = [];
+    lines.push(`# Quality Loop 2 — Recommendations`);
+    lines.push("");
+    lines.push(`_Exported ${new Date().toISOString()}_`);
+    lines.push("");
+    for (const p of QL2_PRODUCTS) {
+      const rows = results
+        .filter((r) => r.product === p.product && r.recommendation && r.recommendation.trim())
+        .sort((a, b) => (a.id < b.id ? 1 : -1));
+      lines.push(`## ${p.label}`);
+      lines.push("");
+      if (rows.length === 0) {
+        lines.push("_No recommendations._");
+        lines.push("");
+        continue;
+      }
+      for (const r of rows) {
+        const scoreBits = [
+          r.avg_score != null ? `avg ${r.avg_score.toFixed(1)}` : null,
+          r.claude_score != null ? `claude ${r.claude_score}` : null,
+          r.openai_score != null ? `openai ${r.openai_score}` : null,
+          r.fix_location ? `location: ${r.fix_location}` : null,
+          r.applied ? `applied → ${r.applied_branch ?? "?"}` : null,
+        ].filter(Boolean).join(" · ");
+        lines.push(`### Run ${r.run_id.slice(0, 8)}${scoreBits ? ` — ${scoreBits}` : ""}`);
+        if (r.commit_url) lines.push(`Commit: ${r.commit_url}`);
+        lines.push("");
+        lines.push("```");
+        lines.push(r.recommendation!.trim());
+        lines.push("```");
+        lines.push("");
+      }
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `quality-loop2-recommendations-${new Date().toISOString().slice(0, 10)}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Markdown exported");
+  }
+
+  const hasAnyRecommendation = results.some((r) => r.recommendation && r.recommendation.trim());
+
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <div>
+      <div className="flex items-start justify-between gap-4">
+        <div>
         <h1 className="text-3xl font-serif">Quality Loop 2</h1>
         <p className="text-muted-foreground mt-1 max-w-3xl">
           Deliberately slow, one-product-at-a-time loop. Generates dummy data → OpenAI and Claude review each
