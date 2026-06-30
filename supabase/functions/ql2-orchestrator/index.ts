@@ -114,6 +114,24 @@ function extractChanges(review: any): Array<{ description?: string; location?: s
   });
 }
 
+function hasText(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function hasUsableReportData(value: unknown): boolean {
+  if (value == null) return false;
+  if (typeof value === "string") return value.trim().length > 0 && value.trim() !== "null";
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value as Record<string, unknown>).length > 0;
+  return true;
+}
+
+function reportToText(report: any): string | null {
+  if (hasText(report?.document_text)) return report.document_text.trim();
+  if (hasUsableReportData(report?.report_data)) return JSON.stringify(report.report_data);
+  return null;
+}
+
 async function runUnit(runId: string) {
   const db = admin();
   const { data: run } = await db.from("quality_loop2_runs").select("*").eq("id", runId).maybeSingle();
@@ -221,16 +239,15 @@ async function runUnit(runId: string) {
     await log(runId, `Reviewing ${reg.label} (${idx}/${products.length})`, { product: next });
     await heartbeat(runId);
 
-    // Load newest USABLE report by sample slug (skip rows with no content).
+    // Load newest USABLE report by sample slug (skip null/empty-string document_text rows).
     const { data: reportRows } = await db.from("sample_reports")
       .select("id, document_text, report_data, status, created_at")
       .eq("tool_slug", reg.sampleSlug)
-      .or("document_text.not.is.null,report_data.not.is.null")
       .order("created_at", { ascending: false })
-      .limit(1);
-    const report = reportRows?.[0] ?? null;
+      .limit(25);
+    const report = (reportRows ?? []).find((row: any) => reportToText(row)) ?? null;
 
-    const text = (report?.document_text as string | null) ?? (report?.report_data ? JSON.stringify(report.report_data) : null);
+    const text = reportToText(report);
     if (!text) {
       await db.from("quality_loop2_results").insert({
         run_id: runId, product: next,
