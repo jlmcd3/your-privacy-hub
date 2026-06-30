@@ -828,20 +828,26 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
         return s;
       })();
 
-      // R4 (citation consistency): any "11 CCR § 7123(c)(N)" subsection reference
-      // in narrative prose MUST match the authoritative `citation` for this control.
-      // The model sometimes increments the subsection by 1 (e.g. text says (c)(5)
-      // when the control is (c)(4)). Rewrite any divergent subsection in prose
-      // fields to the authoritative one. Only acts when the citation includes a
-      // numeric subsection like "(c)(N)".
-      const subsectionMatch = citation.match(/\(c\)\(\d+\)/);
-      const fixSubsection = (s: string | undefined | null): string => {
-        if (!s || !subsectionMatch) return s ?? "";
-        return s.replace(/11\s*CCR\s*§\s*7123\(c\)\(\d+\)/g, `11 CCR § 7123${subsectionMatch[0]}`);
+      // Citation hygiene: REMOVE any "11 CCR § 7123(c)(N)" component-subsection
+      // reference from narrative prose. The model both (a) increments the control's
+      // own subsection by 1 and (b) writes cross-references to OTHER components; a
+      // rewrite-to-own-subsection approach corrupts the latter (e.g. an incident-
+      // response cross-reference (c)(17) wrongly rewritten to (c)(8)). Prose refers
+      // to components by name; the authoritative per-control subsection is carried
+      // deterministically in regulatory_basis and fsor_citation below. Procedural
+      // cites (§§ 7120–7124, § 7122, § 7123(e), § 7124) are preserved.
+      const stripComponentCite = (s: string | undefined | null): string => {
+        if (!s) return s ?? "";
+        const CITE = String.raw`(?:11\s*CCR\s*)?§+\s*7123\s*\(\s*c\s*\)\s*\(\s*\d+\s*\)`;
+        return s
+          .replace(new RegExp(String.raw`\s*\(\s*${CITE}\s*\)`, "gi"), "")
+          .replace(new RegExp(String.raw`[,;]?\s*(?:consistent with|in line with|under|per|pursuant to|as required by|as enumerated(?:\s+(?:in|under))?|which maps? to|mapped to|maps? to)\s+${CITE}`, "gi"), "")
+          .replace(new RegExp(CITE, "gi"), "")
+          .replace(/\(\s*\)/g, "")
+          .replace(/[ \t]{2,}/g, " ")
+          .replace(/\s+([.,;:)])/g, "$1");
       };
-      // R5 (slug hygiene): strip raw intake control slugs like c14_third_party,
-      // c16_training, c17_incident, c18_continuity from user-facing prose fields.
-      // The slug pattern is the lowercase letter "c" + digits + underscore + word.
+      // Slug hygiene: strip raw intake control slugs (c14_third_party, c16_training…).
       const stripSlugs = (s: string | undefined | null): string => {
         if (!s) return s ?? "";
         return s
@@ -850,7 +856,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           .replace(/[ \t]{2,}/g, " ")
           .replace(/\s+([.,;:)])/g, "$1");
       };
-      const scrub = (s: string | undefined | null) => stripSlugs(fixSubsection(s));
+      const scrub = (s: string | undefined | null) => stripEnforcementTags(stripSlugs(stripComponentCite(s)));
 
       controlsOut.push({
         ...c,
