@@ -382,7 +382,7 @@ Generate the first half of an EDPB-format DPIA (Overview, Systematic Description
   "dpia_metadata": {
     "processing_activity_name": "brief name for this processing activity",
     "framework_version": "1.0",
-    "template_basis": "EDPB DPIA template v1.0 (10 Mar 2026, public-consultation draft)",
+    "template_basis": "EDPB (endorsed) Guidelines on DPIA (WP248 rev.01)",
     "applicable_frameworks": ["list of applicable frameworks — GDPR Art. 35, UK GDPR, etc."],
     "article_35_3_trigger": "Identify which Article 35(3) subparagraph mandates this DPIA, or state that this DPIA is precautionary. Options: Art. 35(3)(a) — systematic evaluation of personal aspects including profiling with significant effects; Art. 35(3)(b) — large-scale processing of special category or criminal offence data; Art. 35(3)(c) — systematic monitoring of publicly accessible area at large scale; Precautionary — processing does not meet Art. 35(3) thresholds but DPIA is conducted as best practice or because supervisory authority list applies.",
     "consultation_requirement": "State whether DPO consultation is required under GDPR Article 35(2) (applies only if a DPO is designated per Article 37). If no DPO is designated, state this and document whether an Article 37 appointment obligation is triggered. DPO CONSULTATION REQUIRED: [Required under Art. 35(2) — DPO designated / Not required — no DPO designated, Article 37 assessment: [TO COMPLETE] / Not confirmed — confirm DPO designation status]",
