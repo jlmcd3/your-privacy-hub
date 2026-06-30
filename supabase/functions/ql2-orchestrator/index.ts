@@ -98,9 +98,20 @@ function meanScore(review: any): number | null {
   if (!vals.length) return null;
   return vals.reduce((a, b) => a + b, 0) / vals.length;
 }
-function extractChanges(review: any): Array<{ description?: string; location?: string }> {
+function extractChanges(review: any): Array<{ description?: string; location?: string; severity?: string }> {
   const c = review?.review?.changes ?? review?.changes;
-  return Array.isArray(c) ? c : [];
+  if (!Array.isArray(c)) return [];
+  return c.map((ch: any) => {
+    if (!ch || typeof ch !== "object") return {};
+    // Reviewer schema is {location, problem, fix, severity}. Normalize to description.
+    const problem = (ch.problem ?? "").toString().trim();
+    const fix = (ch.fix ?? "").toString().trim();
+    const desc = (ch.description ?? "").toString().trim()
+      || [problem, fix].filter(Boolean).join(" → ")
+      || problem
+      || fix;
+    return { description: desc, location: ch.location, severity: ch.severity };
+  });
 }
 
 async function runUnit(runId: string) {
