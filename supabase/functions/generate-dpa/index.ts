@@ -4,6 +4,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
