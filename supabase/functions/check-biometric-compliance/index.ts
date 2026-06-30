@@ -535,7 +535,7 @@ Sale and sharing restrictions:
 GDPR purpose limitation (Article 5(1)(b)) and Article 28 processor controls govern sharing. Any transfer to the US or other third countries requires an adequacy decision, SCCs, or BCRs under Chapter V.
 
 Current enforcement posture:
-The DPC is active in cross-border enforcement and has handled major Article 9 cases. Refer to dataprotection.ie/en/dpc-guidance/enforcement for current enforcement actions.
+The DPC is active in cross-border special-category enforcement. Refer to dataprotection.ie/en/dpc-guidance/enforcement for current enforcement actions.
 
 Priority actions:
 1. Complete a DPIA and submit for DPC prior consultation under Article 36 if residual high risk remains after mitigation.
