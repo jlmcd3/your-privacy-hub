@@ -3797,6 +3797,24 @@ export type Database = {
           },
         ]
       }
+      quality_loop2_baselines: {
+        Row: {
+          avg_score: number | null
+          captured_at: string
+          product: string
+        }
+        Insert: {
+          avg_score?: number | null
+          captured_at?: string
+          product: string
+        }
+        Update: {
+          avg_score?: number | null
+          captured_at?: string
+          product?: string
+        }
+        Relationships: []
+      }
       quality_loop2_log: {
         Row: {
           id: string
