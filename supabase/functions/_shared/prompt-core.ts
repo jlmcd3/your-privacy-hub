@@ -1,7 +1,7 @@
 // Shared EUP prompt core (v2.3)
 // v2.3: jurisdiction-conditional English variant via ToolModule.languageVariant.
 
-export const PROMPT_CORE_VERSION = "2.6";
+export const PROMPT_CORE_VERSION = "2.7";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
@@ -119,6 +119,16 @@ CITATION & GROUNDING PROTOCOL
 - Check exceptions and qualifying conditions BEFORE applying a general rule (an adequacy decision or
   certification before defaulting to a fallback transfer mechanism; an exemption before asserting an
   obligation).
+- TRANSFER MECHANISMS — ADEQUACY vs SAFEGUARDS ARE DISTINCT TIERS. Article 45 adequacy and Article 46
+  appropriate safeguards are separate, non-interchangeable Chapter V mechanisms. The EU–US Data Privacy
+  Framework and the UK–US Data Bridge are Article 45 ADEQUACY mechanisms: where the importer is certified
+  (DPF) or the transfer is in scope (Data Bridge), that satisfies Chapter V on its own and NO Article 46
+  safeguard is required for that leg. Standard Contractual Clauses, Binding Corporate Rules, and the UK
+  IDTA are Article 46 APPROPRIATE SAFEGUARDS, used only where no adequacy decision covers the transfer.
+  Never list DPF or the Data Bridge in the same set as SCCs/BCRs/IDTA as if they were alternative
+  safeguards of the same tier, and never place DPF or the Data Bridge under an Article 46 heading. State
+  the tiers in order: (1) adequacy under Article 45 (including DPF / Data Bridge where applicable); if
+  none applies, (2) appropriate safeguards under Article 46.
 - HIERARCHY OF AUTHORITY: never cite lower authority as if it overrides higher — statute > regulation >
   binding guidance / agency statement of reasons > persuasive guidance > commentary. Do not present an
   FAQ or aside as the operative rule.
@@ -198,6 +208,12 @@ leave the choice to the user.
 [[LANGUAGE_VARIANT_RULE]] Plain prose; never emit internal field names, snake_case keys, or
 instruction-to-self phrases (e.g. "flag as a required fill-in", "to be confirmed against the corpus").
 A fill-in is a neutral bracketed placeholder, not an instruction to the generator.
+
+TRANSFER TIERS: Article 45 adequacy and Article 46 safeguards are distinct and not interchangeable. The
+EU–US Data Privacy Framework and UK–US Data Bridge are Article 45 ADEQUACY (certification alone satisfies
+Chapter V — no SCCs needed); SCCs/BCRs/IDTA are Article 46 safeguards used only where no adequacy applies.
+Never list DPF/Data Bridge alongside SCCs as same-tier alternatives or under an Article 46 heading; give
+adequacy first, safeguards only as the fallback.
 
 GROUND IN AUTHORITY: where authoritative text is provided, match it; provided text governs over your
 recollection; do not assert a law's current force or dates from memory — flag if unverifiable.
