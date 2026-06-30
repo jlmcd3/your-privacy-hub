@@ -90,10 +90,10 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
   if (intake.q18_admt_use === "Yes" || intake.q18_admt_use === "In evaluation") triggers.admt_involved = true;
   // Training ADMT / facial / emotion / biometric (§ 7150(b)(6)).
   if (typeof intake.q18b_admt_training === "string" && /^yes/i.test(intake.q18b_admt_training)) triggers.admt_involved = true;
-  const consumerBand = String(intake.q2_consumers ?? intake.i3_ca_consumer_band ?? "");
-  if (/100[,\s]?000|million|m\+|>=?\s*100k/i.test(consumerBand)) triggers.high_volume_processing = true;
-  // If nothing matched, mark sells_or_shares_pi so generation still runs.
-  if (!Object.values(triggers).some(Boolean)) triggers.sells_or_shares_pi = true;
+  // NOTE: high consumer volume is NOT a § 7150(b) Risk-Assessment trigger.
+  // It is a § 7120 cyber-audit trigger — handled by the CPPA Cybersecurity tool.
+  // Do not auto-set any § 7150(b) trigger from volume alone.
+  // If no § 7150(b) trigger matches, validation below will surface a clear error.
 
   const piCats = Array.isArray(intake.q4_pi_categories) ? intake.q4_pi_categories : [];
   const activity_details = [{
@@ -226,7 +226,12 @@ function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimm
 // ---------------------------------------------------------------------------
 function validateFiveStage(intake: FiveStageIntake, lenient: boolean): { ok: true } | { ok: false; message: string; field: string } {
   if (!Object.values(intake.triggers).some((v) => v === true)) {
-    return { ok: false, message: "At least one § 7150(b) triggering activity must be selected.", field: "triggers" };
+    return {
+      ok: false,
+      message:
+        "No § 7150(b) triggering activity is selected. The CPPA Risk Assessment is only required when one of the § 7150(b) triggers applies (sell/share, targeted advertising, profiling with significant effects, sensitive PI beyond enumerated, ADMT, or training ADMT). If your only trigger is high consumer volume, the applicable obligation is the § 7120 cybersecurity audit — please run the CPPA Cybersecurity tool instead.",
+      field: "triggers",
+    };
   }
   // Runs in BOTH modes: a blank/placeholder company name produced
   // "[FILL IN — business legal name]" in finished reports. Block it.
@@ -424,7 +429,7 @@ function buildUserPrompt(intake: FiveStageIntake): string {
     targeted_advertising: "Cross-context behavioural / targeted advertising",
     profiling_significant_effects: "Profiling via systematic observation or sensitive-location presence",
     sensitive_pi_beyond_enumerated: "Processing sensitive personal information",
-    high_volume_processing: "High-volume processing",
+    high_volume_processing: "High consumer volume (NOTE: not a § 7150(b) trigger — applicable § 7120 cyber-audit obligation only)",
     admt_involved: "Automated decisionmaking technology (use and/or training)",
   };
   const EXCEPTION_LABELS: Record<string, string> = {
