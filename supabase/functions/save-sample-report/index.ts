@@ -89,16 +89,34 @@ async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
     await hydrateContent(admin, source_table, source_row_id);
   const verification = (reportData as any)?.verification ?? null;
 
-  const payload = {
+  // Guard: if hydration produced no content (source row not yet populated),
+  // do NOT overwrite an existing populated sample_reports row with NULLs.
+  const bothEmpty = reportData == null && (documentText == null || documentText === "");
+  let preserveContent = false;
+  if (bothEmpty) {
+    const { data: existing } = await admin
+      .from("sample_reports")
+      .select("report_data, document_text")
+      .eq("tool_slug", tool_slug)
+      .eq("variant", variant)
+      .maybeSingle();
+    if (existing && (existing.report_data != null || (existing.document_text != null && existing.document_text !== ""))) {
+      preserveContent = true;
+    }
+  }
+
+  const payload: Record<string, unknown> = {
     tool_slug, variant, title, scenario_summary,
     fixture: fixture ?? {},
     source_table, source_row_id,
-    report_data: reportData,
-    document_text: documentText,
-    verification,
     status: "draft",
     updated_at: new Date().toISOString(),
   };
+  if (!preserveContent) {
+    payload.report_data = reportData;
+    payload.document_text = documentText;
+    payload.verification = verification;
+  }
 
   const { data: row, error } = await admin
 
@@ -107,7 +125,7 @@ async function snapshot(admin: ReturnType<typeof createClient>, body: any) {
     .select()
     .single();
   if (error) return json({ error: `upsert: ${error.message}` }, 400);
-  return json({ row });
+  return json({ row, preserved_existing_content: preserveContent });
 }
 
 async function setStatus(admin: ReturnType<typeof createClient>, body: any) {
