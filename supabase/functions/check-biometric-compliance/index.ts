@@ -191,7 +191,7 @@ Sale and sharing restrictions:
 Purpose limitation (Article 5(1)(b)) prohibits using biometric data for purposes incompatible with original collection. Processor agreements (Article 28) must restrict vendor use. Chapter V transfer safeguards required for any third-country transfers.
 
 Current enforcement posture:
-EU supervisory authorities actively enforce Article 9 biometric obligations. The ICO (UK), CNIL (France), and Garante (Italy) have all issued enforcement actions for unlawful biometric processing. Refer to each national DPA's enforcement register for current figures.
+EU supervisory authorities actively enforce Article 9 biometric obligations. The CNIL (France) and Garante (Italy) have issued enforcement actions for unlawful biometric processing. Refer to each national DPA's enforcement register for current figures.
 
 Priority actions:
 1. Document both the Article 6 lawful basis and the Article 9(2) condition separately in a processing record before any biometric data is collected.
