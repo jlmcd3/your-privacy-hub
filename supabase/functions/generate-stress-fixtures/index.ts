@@ -999,7 +999,7 @@ Deno.serve(async (req) => {
 
     if (part === "geo") {
       const name = company_name || company_id;
-      if (!use_claude) return json(buildDeterministicGeo(industry, geo, company_slot, company_id, name), 200);
+      if (!use_claude) return json(normalizeCppaRiskTriggers(buildDeterministicGeo(industry, geo, company_slot, company_id, name)), 200);
       return streamJsonWork(async () => {
         const callBText = await callClaude(
           SYSTEM_PROMPT,
@@ -1008,7 +1008,7 @@ Deno.serve(async (req) => {
             : buildCallBUSPrompt(industry, company_slot, name),
           4500,
         );
-        return extractJson(callBText);
+        return normalizeCppaRiskTriggers(extractJson(callBText));
       });
     }
   } catch (e) {
@@ -1016,20 +1016,17 @@ Deno.serve(async (req) => {
   }
 
   if (!use_claude) {
-    return json({
+    return json(normalizeCppaRiskTriggers({
       ...buildDeterministicProfile(industry, geo, company_slot, company_id),
       ...buildDeterministicGeo(industry, geo, company_slot, company_id),
-    }, 200);
+    }), 200);
   }
 
   return streamJsonWork(async () => {
-
-    // Call A: company profile + shared tools (governance, dpa, irPlaybook, biometric, registration)
     const callAText = await callClaude(SYSTEM_PROMPT, buildCallAPrompt(industry, geo, company_slot, company_id), 6000);
     const profileData = extractJson(callAText);
     const companyName: string = profileData.companyName ?? company_id;
 
-    // Call B: geo-specific tools
     const callBText = await callClaude(
       SYSTEM_PROMPT,
       geo === "eu"
@@ -1039,7 +1036,24 @@ Deno.serve(async (req) => {
     );
     const geoData = extractJson(callBText);
 
-    // Merge: geoData fields overwrite profileData where both exist (shouldn't overlap)
-    return { ...profileData, ...geoData };
+    return normalizeCppaRiskTriggers({ ...profileData, ...geoData });
   });
 });
+
+// Ensure CPPA Risk fixture always has at least one § 7150(b) trigger so the
+// stress run actually exercises the generator instead of hitting the
+// "no triggering activity" validation. Forces q5_sell_share = "Yes" on the
+// cppaRisk slice when present; non-destructive for other tools.
+function normalizeCppaRiskTriggers<T extends Record<string, any>>(data: T): T {
+  const r = (data as any)?.cppaRisk;
+  if (r && typeof r === "object") {
+    const triggerYes = (v: any) => typeof v === "string" && /^yes/i.test(v);
+    const hasTrigger =
+      triggerYes(r.q5_sell_share) ||
+      triggerYes(r.q15_sensitive_pi) ||
+      triggerYes(r.q18_admt_use) ||
+      triggerYes(r.q15b_under16_knowledge);
+    if (!hasTrigger) r.q5_sell_share = "Yes";
+  }
+  return data;
+}
