@@ -90,10 +90,10 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
   if (intake.q18_admt_use === "Yes" || intake.q18_admt_use === "In evaluation") triggers.admt_involved = true;
   // Training ADMT / facial / emotion / biometric (§ 7150(b)(6)).
   if (typeof intake.q18b_admt_training === "string" && /^yes/i.test(intake.q18b_admt_training)) triggers.admt_involved = true;
-  const consumerBand = String(intake.q2_consumers ?? intake.i3_ca_consumer_band ?? "");
-  if (/100[,\s]?000|million|m\+|>=?\s*100k/i.test(consumerBand)) triggers.high_volume_processing = true;
-  // If nothing matched, mark sells_or_shares_pi so generation still runs.
-  if (!Object.values(triggers).some(Boolean)) triggers.sells_or_shares_pi = true;
+  // NOTE: high consumer volume is NOT a § 7150(b) Risk-Assessment trigger.
+  // It is a § 7120 cyber-audit trigger — handled by the CPPA Cybersecurity tool.
+  // Do not auto-set any § 7150(b) trigger from volume alone.
+  // If no § 7150(b) trigger matches, validation below will surface a clear error.
 
   const piCats = Array.isArray(intake.q4_pi_categories) ? intake.q4_pi_categories : [];
   const activity_details = [{
