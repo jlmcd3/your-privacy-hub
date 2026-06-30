@@ -226,7 +226,12 @@ function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimm
 // ---------------------------------------------------------------------------
 function validateFiveStage(intake: FiveStageIntake, lenient: boolean): { ok: true } | { ok: false; message: string; field: string } {
   if (!Object.values(intake.triggers).some((v) => v === true)) {
-    return { ok: false, message: "At least one § 7150(b) triggering activity must be selected.", field: "triggers" };
+    return {
+      ok: false,
+      message:
+        "No § 7150(b) triggering activity is selected. The CPPA Risk Assessment is only required when one of the § 7150(b) triggers applies (sell/share, targeted advertising, profiling with significant effects, sensitive PI beyond enumerated, ADMT, or training ADMT). If your only trigger is high consumer volume, the applicable obligation is the § 7120 cybersecurity audit — please run the CPPA Cybersecurity tool instead.",
+      field: "triggers",
+    };
   }
   // Runs in BOTH modes: a blank/placeholder company name produced
   // "[FILL IN — business legal name]" in finished reports. Block it.
