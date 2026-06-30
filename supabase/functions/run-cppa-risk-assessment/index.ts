@@ -390,7 +390,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "relevant_precedents": string, "sector_specific_patterns": string, "audit_division_priorities": string
   },
   "priority_actions": [
-    { "action": string, "statutory_basis": string, "deadline": string, "priority": "Immediate" | "Within 30 days" | "Before December 31 2027" | "Before April 1 2028" }
+    { "action": string, "statutory_basis": string, "severity": "Immediate" | "High" | "Medium" | "Low", "deadline": string, "deadline_basis": string }
   ],
   "cross_tool_recommendations": {
     "cybersecurity_audit": boolean, "cybersecurity_audit_rationale": string,
