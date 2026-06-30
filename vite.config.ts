@@ -28,6 +28,15 @@ export default defineConfig(({ mode }) => {
       },
     },
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+    build: {
+      rollupOptions: {
+        // Lovable's build sandbox can intermittently fail in Vite/Rollup's async
+        // file loader when too many module files are read in parallel. Lowering
+        // Rollup's file-operation concurrency keeps builds deterministic without
+        // changing application behavior.
+        maxParallelFileOps: 8,
+      },
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
