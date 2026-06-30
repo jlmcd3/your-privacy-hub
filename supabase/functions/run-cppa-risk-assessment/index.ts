@@ -444,7 +444,11 @@ function buildUserPrompt(intake: FiveStageIntake): string {
   };
   const yn = (b: any) => (b ? "yes" : "no");
 
-  const activeTriggers = Object.entries(triggers).filter(([, v]) => v).map(([k]) => TRIGGER_LABELS[k] ?? k);
+  // high_volume_processing is never a § 7150(b) trigger (it is a § 7120 cyber-audit
+  // signal). Detection no longer sets it; this guard also drops any stray supplied value.
+  const activeTriggers = Object.entries(triggers)
+    .filter(([k, v]) => v && k !== "high_volume_processing")
+    .map(([k]) => TRIGGER_LABELS[k] ?? k);
   const claimedList = Object.entries(exceptions)
     .filter(([, v]: any) => v?.claimed)
     .map(([k, v]: any) => `- ${EXCEPTION_LABELS[k] ?? k}: scope — ${String(v.scope || "not described")}; safeguards — ${String(v.safeguards || "not described")}`);
