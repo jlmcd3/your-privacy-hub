@@ -289,7 +289,7 @@ async function callOpenAI(system: string, user: string, model: string): Promise<
   return d?.choices?.[0]?.message?.content ?? "";
 }
 
-Deno.serve(async (req) => {
+async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const authHeader = req.headers.get("Authorization");
@@ -371,4 +371,14 @@ Deno.serve(async (req) => {
   if (!review) return jsonResp({ error: "Reviewer returned non-JSON", raw: raw.slice(0, 1000) }, 500);
 
   return jsonResp({ ok: true, testId, model: chosenModel, review });
+}
+
+Deno.serve(async (req) => {
+  try {
+    return await handle(req);
+  } catch (e) {
+    const err = e as Error;
+    console.error(`[review-test-output] unhandled error: ${err.message}\n${err.stack ?? ""}`);
+    return jsonResp({ error: `unhandled: ${err.message}` }, 500);
+  }
 });
