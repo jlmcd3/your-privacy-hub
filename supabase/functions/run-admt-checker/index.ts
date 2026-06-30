@@ -159,13 +159,19 @@ When a trade-secret carve-out finding is generated:
 
 17. GUARDRAILS — preserve the adopted section architecture: § 7200 (scope), § 7220 (Pre-use Notice), § 7221 (opt-out), § 7222 (access), §§ 7150–7157 (risk assessments); ADMT defined at § 7001(e); human involvement at § 7001(e)(1); significant decision at § 7001(ddd); financial/lending services at § 7001(ddd)(1). Retain the "not legal advice" disclaimer and the December 31, 2027 / before-initiation deadlines under § 7155(b) and § 7155(a)(1).
 
+SIGNIFICANT-DECISION DETERMINATION IS DEFINITIVE: triggers_significant_decision is a definitive true/false determination, not a hedged one. Do not emit the boolean as true while also describing the finding as "conditional," "must be confirmed," or "assumed." If in-scope status genuinely depends on a service characteristic the intake does not specify, make the conservative determination, record the assumption ONCE in scope_analysis.summary (e.g. "This assessment assumes the service falls within an enumerated significant-decision category; if it does not, Article 11 obligations do not attach and these findings should be disregarded"), and keep every downstream finding consistent with the boolean. Never scatter a per-finding "this is conditional" caveat through an output whose boolean asserts true.
+
+FLAG ABSENCE, DO NOT ASSERT AN UNCONFIRMED PRACTICE: when the intake does not describe how an element is handled, flag the ABSENCE of documented information — do NOT assert that the business follows a specific non-compliant practice the intake never stated. For example, where the intake is silent on whether the access response links to the CCPA rights section, write "the intake does not document whether the response includes instructions and a direct link to the relevant rights section; this element cannot be assessed as compliant," NOT "the business directs consumers to the beginning of the policy without a direct link." Absence of confirmation is not evidence of a defective practice.
+
+ORTHOGRAPHY IS NOT A COMPLIANCE GAP: British-versus-American spelling is never a compliance deficiency and must never appear as a gap, finding, or remediation item. Separately, write all generated notice and sample-language text in American English (e.g. "personalize," not "personalise").
+
 18. CITATION ENGINE — DETERMINISTIC, NOT MODEL-AUTHORED (HARD RULE):
     The system now owns all "§"-formatted citations. You MUST NOT write any section number, any "§" symbol, any "11 CCR § 7xxx", or any subsection like "(b)(1)" in any output field — not in \`finding\`, not in \`remediation\`, not in \`enforcement_exposure\`, not in \`citation\`, not in \`summary\`, not anywhere. Refer to the provision only as "the cited provision" or by its plain-English element name. The template injects the canonical section string post-generation from a registry; any "§ 7xxx" you author will be stripped.
     Each item in \`notice_gaps\`, \`opt_out_gaps\`, \`access_gaps\`, and \`documentation_to_maintain\` MUST include an \`element_id\` chosen from this fixed checklist (no other ids are valid):
       • notice_gaps:    notice_purpose | notice_optout | notice_access | notice_antiretaliation | notice_howworks | notice_alternative_process | notice_trade_secret
       • opt_out_gaps:   optout_offer | optout_designated_methods | optout_account_barrier | optout_confirmation | optout_processing
       • access_gaps:    access_specific_purpose | access_logic | access_outcome_sole_factor | access_antiretaliation | access_trade_secret | access_timeline | access_secure_transmission | access_denial_basis | access_aggregate_log | access_verification
-      • documentation_to_maintain: sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline
+      • documentation_to_maintain: sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline | admt_use_frequency_log
     Always set \`citation\` to the empty string "" — the template fills it from the registry. Do not omit the field; leave it as "".`;
 
 export const ADMT_TOOL_MODULE: ToolModule = {
@@ -434,7 +440,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "penalty_per_violation_intentional": 7988,
     "penalty_statutory_basis": "Cal. Civ. Code § 1798.155(a) (2025-2026 CPI-adjusted figures)",
     "ca_consumer_count_provided": "${intake.ca_consumer_count || 'not provided'}",
-    "aggregate_exposure_note": "Based on the gaps identified and the consumer volume provided (or noted as not provided), briefly describe the scale of potential exposure. Note that the CPPA may count each affected consumer as a separate violation. Do not cite specific enforcement actions or settlements unless they appear in the REGULATION AUTHORITIES block provided — if none do, omit that reference."
+    "aggregate_exposure_note": "Based on the gaps identified and the consumer volume provided (or noted as not provided), briefly describe the scale of potential exposure. Note that the CPPA may count each affected consumer as a separate violation. Do not cite specific enforcement actions or settlements unless they appear in the REGULATION AUTHORITIES block provided — if none do, omit that reference. Do NOT characterise historical settlement levels or enforcement outcomes (e.g. that matters 'typically settle below the statutory maximum') — that is uncited memory; state only the statutory per-violation exposure and that actual outcomes depend on the facts."
   },
 
   "notice_gaps": [
@@ -484,7 +490,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
 
   "documentation_to_maintain": [
     {
-      "element_id": "sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline",
+      "element_id": "sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline | admt_use_frequency_log",
       "document": "Name of document or record",
       "purpose": "What it demonstrates to the CPPA",
       "citation": ""
@@ -497,7 +503,7 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "threshold": "Business used the ADMT with respect to the consumer more than four times within a 12-month period (§ 7222(j))",
     "explanation": "If the business has used the ADMT with respect to the consumer more than four times in a 12-month period, it may respond with aggregate-level logic and output summaries instead of individualized responses. The threshold measures ADMT decisions/uses with respect to the consumer — NOT the count of inbound access requests. If the intake does not track this, recommend the business begin logging per-consumer ADMT use frequency.",
     "what_aggregate_response_may_include": "If applicable, note that the aggregate response may include aggregate-level summaries of the ADMT's logic and outputs, but must still include the specific purpose (§ 7222(b)(1)), and the business must still respond to the other required elements of § 7222. The aggregate option is specifically for the logic and output disclosures under § 7222(b)(2)-(3), not a complete exemption from responding.",
-    "operational_note": "If applicable, recommend the business document which consumers have crossed the four-use threshold and maintain a per-consumer ADMT-use log to support the aggregate-response decision."
+    "operational_note": "If applicable, recommend the business document which consumers have crossed the four-use threshold and maintain a per-consumer ADMT-use log to support the aggregate-response decision. If you list this log as a documentation_to_maintain item, set its element_id to \"admt_use_frequency_log\" (NOT \"qualifies_admt\") so it resolves to the aggregate-response provision."
   },
 
   "priority_actions": [
