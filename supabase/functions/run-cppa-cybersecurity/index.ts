@@ -824,8 +824,34 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
         return s;
       })();
 
+      // R4 (citation consistency): any "11 CCR § 7123(c)(N)" subsection reference
+      // in narrative prose MUST match the authoritative `citation` for this control.
+      // The model sometimes increments the subsection by 1 (e.g. text says (c)(5)
+      // when the control is (c)(4)). Rewrite any divergent subsection in prose
+      // fields to the authoritative one. Only acts when the citation includes a
+      // numeric subsection like "(c)(N)".
+      const subsectionMatch = citation.match(/\(c\)\(\d+\)/);
+      const fixSubsection = (s: string | undefined | null): string => {
+        if (!s || !subsectionMatch) return s ?? "";
+        return s.replace(/11\s*CCR\s*§\s*7123\(c\)\(\d+\)/g, `11 CCR § 7123${subsectionMatch[0]}`);
+      };
+      // R5 (slug hygiene): strip raw intake control slugs like c14_third_party,
+      // c16_training, c17_incident, c18_continuity from user-facing prose fields.
+      // The slug pattern is the lowercase letter "c" + digits + underscore + word.
+      const stripSlugs = (s: string | undefined | null): string => {
+        if (!s) return s ?? "";
+        return s
+          .replace(/\bmapped to c\d{1,2}_[a-z_]+\b/gi, "")
+          .replace(/\bc\d{1,2}_[a-z_]+\b/g, "")
+          .replace(/[ \t]{2,}/g, " ")
+          .replace(/\s+([.,;:)])/g, "$1");
+      };
+      const scrub = (s: string | undefined | null) => stripSlugs(fixSubsection(s));
+
       controlsOut.push({
         ...c,
+        finding: scrub(c?.finding),
+        remediation: scrub(c?.remediation),
         regulatory_basis: `Assessed under ${citation}: the annual cybersecurity audit must assess ${cleanedRegBasis}, as applicable to the business.`,
         fsor_citation: citation,
         fsor_commentary: merged.slice(0, 2).map(shapeFsorItem),
