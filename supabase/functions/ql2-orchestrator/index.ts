@@ -183,7 +183,6 @@ async function runUnit(runId: string) {
     const { data: report } = await db.from("sample_reports")
       .select("id, document_text, report_data, status, created_at")
       .eq("tool_slug", reg.sampleSlug)
-      .neq("status", "draft")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
