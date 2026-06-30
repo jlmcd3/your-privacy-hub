@@ -50,6 +50,20 @@ function stripMd(s: string | undefined | null): string {
     .replace(/^\s*[-_]{3,}\s*$/gm, '');
 }
 
+// Remove model-authored "11 CCR § 7123(c)(N)" component-subsection numbers from
+// prose. Procedural cites (§§ 7120–7124, § 7122, § 7123(e), § 7124) are preserved.
+function stripComponentCite(s: string | undefined | null): string {
+  if (!s) return s ?? "";
+  const CITE = String.raw`(?:11\s*CCR\s*)?§+\s*7123\s*\(\s*c\s*\)\s*\(\s*\d+\s*\)`;
+  return s
+    .replace(new RegExp(String.raw`\s*\(\s*${CITE}\s*\)`, "gi"), "")
+    .replace(new RegExp(String.raw`[,;]?\s*(?:consistent with|in line with|under|per|pursuant to|as required by|as enumerated(?:\s+(?:in|under))?|which maps? to|mapped to|maps? to)\s+${CITE}`, "gi"), "")
+    .replace(new RegExp(CITE, "gi"), "")
+    .replace(/\(\s*\)/g, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\s+([.,;:)])/g, "$1");
+}
+
 async function callAnthropic(system: string | SystemBlock[], user: string, maxTokens: number): Promise<{ text: string; stopReason: string | null }> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
