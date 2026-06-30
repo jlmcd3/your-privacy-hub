@@ -353,8 +353,11 @@ export const REQUIRES_SUBSECTION: Record<string, RegExp[]> = {
   access_timeline:           [/^11 CCR § 7222(\(a\))?$/, /^11 CCR § 7222$/],
   access_secure_transmission:[/^11 CCR § 7222(\(a\))?$/, /^11 CCR § 7222$/],
   access_denial_basis:       [/^11 CCR § 7222(\(a\))?$/, /^11 CCR § 7222$/],
+  access_aggregate_log:      [/^11 CCR § 7222(\(a\))?$/, /^11 CCR § 7222$/],
   optout_account_barrier:    [/^11 CCR § 7221(\(c\))?$/, /^11 CCR § 7221$/],
   optout_confirmation:       [/^11 CCR § 7221(\(c\))?$/, /^11 CCR § 7221$/],
+  optout_processing:         [/^11 CCR § 7221(\(n\))?$/, /^11 CCR § 7221$/],
+  ra_program:                [/^11 CCR § 7155$/, /^11 CCR § 7150$/, /^11 CCR § 7150\(b\)$/],
 };
 
 const REGISTRY_SECTIONS: Set<string> = new Set(

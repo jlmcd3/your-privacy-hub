@@ -71,6 +71,21 @@ Deno.serve(async (req) => {
       obligations_summary: engineOutput.obligations_summary,
       jurisdictions: engineOutput.jurisdictions.map((j) => {
         const r = reqByCode.get(j.code);
+        const regRequired = r?.registration_required ?? null;
+        // Reconcile: the engine's per-jurisdiction `obligations` array and the
+        // DB-row `registration_required` flag must agree. The DB row is the
+        // authoritative source for whether GENERAL controller registration is
+        // required in that jurisdiction (e.g., France/CNIL abolished general
+        // registration in 2018). Strip "registration" from obligations when
+        // the flag is false/null; add it when the flag is true and it's
+        // missing. Sector-specific authorizations (health/biometric, etc.)
+        // belong in `notes`, not in the `registration` obligation slot.
+        let obligations = Array.isArray(j.obligations) ? [...j.obligations] : [];
+        if (regRequired === true && !obligations.includes("registration")) {
+          obligations.push("registration");
+        } else if (regRequired !== true && obligations.includes("registration")) {
+          obligations = obligations.filter((o: string) => o !== "registration");
+        }
         return {
           code: j.code,
           name: r?.jurisdiction_name || j.code,
@@ -78,22 +93,22 @@ Deno.serve(async (req) => {
           law: r?.law_name || null,
           authority: r?.authority_name || null,
           authority_url: r?.authority_url || null,
-          registration_required: r?.registration_required ?? null,
+          registration_required: regRequired,
           // Use engine-computed values rather than the generic DB row defaults.
           // The DB row encodes a jurisdiction's rules; the engine applies them
           // to the entity's actual data (size, processing scope, establishment).
           dpo_required: engineOutput.obligations_summary.dpo_required,
           ai_registration_required: engineOutput.obligations_summary.ai_act_provider_obligations,
-          representative_required: j.obligations.includes("eu_representative")
+          representative_required: obligations.includes("eu_representative")
             ? true
-            : (j.obligations.includes("uk_representative") ? true : false),
+            : (obligations.includes("uk_representative") ? true : false),
           filing_fee_cents: r?.filing_fee_cents ?? null,
           filing_currency: r?.filing_currency ?? null,
           renewal_period_months: r?.renewal_period_months ?? null,
           notes: r?.notes ?? null,
           why: j.why,
           rule_id: j.rule_id,
-          obligations: j.obligations,
+          obligations,
         };
       }),
     };

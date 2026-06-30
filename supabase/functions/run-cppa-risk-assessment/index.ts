@@ -351,6 +351,8 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "CYBERSECURITY-AUDIT LINKAGE: if the intake reveals cybersecurity gaps or revenue exceeds $100M, flag the § 7158 cybersecurity-audit obligation with the April 1, 2028 certification deadline (a prospective obligation).",
     "ADMT LINKAGE: if ADMT is involved in any triggered activity, flag the January 1, 2027 ADMT disclosure deadline under § 7221 and route the user to the ADMT Assessment tool (prospective).",
     "TRIGGER ROUTING: a sensitive-PI trigger applies only where a genuine § 7001(bbb) SPI element is present — income, debt-to-income, or credit history are not per se SPI.",
+    "CONSUMER CATEGORIES: every `consumer_categories` value must be a human-readable label (e.g., \"California residents\", \"Employees\", \"Job applicants\", \"Minors under 16\", \"Website visitors\"). Never emit raw intake keys (no snake_case, no field IDs) and never leave the array empty — if unknown, use [\"Not specified in intake\"].",
+    "PRIORITY ACTIONS: split severity from deadline. `severity` is one of Immediate | High | Medium | Low (operational urgency). `deadline` is an ISO-style date (YYYY-MM-DD) or a known statutory deadline (\"December 31, 2027\" for existing-activity § 7155(b); \"April 1, 2028\" for § 7158 cyber-audit certification; \"January 1, 2027\" for § 7220 ADMT pre-use notice). `deadline_basis` cites the statutory or operational source for the date. Do not encode the deadline inside the severity enum.",
   ].join("\n"),
   schema: `OUTPUT FORMAT — Return a single JSON object with this exact structure. No markdown fences, no preamble:
 
@@ -390,7 +392,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "relevant_precedents": string, "sector_specific_patterns": string, "audit_division_priorities": string
   },
   "priority_actions": [
-    { "action": string, "statutory_basis": string, "deadline": string, "priority": "Immediate" | "Within 30 days" | "Before December 31 2027" | "Before April 1 2028" }
+    { "action": string, "statutory_basis": string, "severity": "Immediate" | "High" | "Medium" | "Low", "deadline": string, "deadline_basis": string }
   ],
   "cross_tool_recommendations": {
     "cybersecurity_audit": boolean, "cybersecurity_audit_rationale": string,
