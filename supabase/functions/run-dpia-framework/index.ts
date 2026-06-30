@@ -541,7 +541,7 @@ Generate substantive draft rows for every table for the controller to verify; us
     "review_schedule": "review triggers — (1) legal requirement: whenever the risk represented by the processing changes (GDPR Art. 35(11)); (2) recommended practice: at least annually as an internal governance measure",
     "justification": "optional explanation / justification of the decision"
   },
-  "framework_disclaimer": "This document helps your organisation structure its Data Protection Impact Assessment using the EDPB DPIA template (v1.0, public-consultation draft). It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. Your qualified Data Protection Officer or legal counsel must review, complete, and own it. It does not constitute legal advice."
+  "framework_disclaimer": "This document helps your organisation structure its Data Protection Impact Assessment using the EDPB-endorsed Guidelines on DPIA (WP248 rev.01). It is not a completed DPIA and does not satisfy the requirements of GDPR Article 35 on its own. Your qualified Data Protection Officer or legal counsel must review, complete, and own it. It does not constitute legal advice."
 }`;
 
     function parseJsonish(text: string): any {
