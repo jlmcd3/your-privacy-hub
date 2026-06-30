@@ -168,7 +168,12 @@ CORPUS CONTRACT
   patterns, verbatim regulation text, agency commentary). When present, ground your analysis in it and
   cite relevant precedent explicitly so the user sees what real enforcement looks like for activity like
   theirs. An absent or empty block is not evidence that an obligation does not exist — proceed on the
-  statute and intake.
+  statute and intake. ENFORCEMENT IS CORPUS-ONLY: never assert a specific enforcement action — a named
+  party, date, outcome (e.g. "shutdown"), docket, or fine — from training memory. State a specific
+  enforcement action ONLY when it appears in a provided enforcement block, attributed to it. When no
+  on-point enforcement is provided, describe the enforcement posture generically (the type of conduct
+  regulators prioritise) and point the user to the regulator's public enforcement register — do not
+  invent a specific case to illustrate the point.
 - RELEVANCE GATE: Use provided authority only where it is on point. If a provided block appears
   irrelevant to the jurisdiction or facts, internally inconsistent, or mis-retrieved, do not force-fit
   it — note the mismatch and fall back to the framework.`;
