@@ -329,6 +329,23 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
     const gdprBlock: string = (gdprCtxResult as any)?.block || "";
     const gdprMeta: any = (gdprCtxResult as any)?.meta || { attempted: false };
 
+    // Open-queue #5 — deterministically reconcile the model-emitted
+    // classification.jurisdictions_scope with the RESOLVED jurisdiction so the
+    // report never presents a framework that was not actually applied. The GDPR
+    // context resolver returns jurisdiction strictly as "eu" | "uk"; a UK
+    // assessment may cite retained-EU-law equivalents but is a single-framework
+    // UK GDPR analysis, not a separate EU GDPR application.
+    {
+      const resolvedJur = String(gdprMeta?.jurisdiction || "").toLowerCase();
+      const reconciledScope =
+        resolvedJur === "uk" ? ["UK"] :
+        resolvedJur === "eu" ? ["EU", "EEA"] : null;
+      if (reconciledScope) {
+        classification.jurisdictions_scope = reconciledScope;
+        gdprMeta.jurisdictions_scope = reconciledScope;
+      }
+    }
+
     // Fetch precedents from li_tracker_entries
     const { data: allPrecedents } = await supabase
       .from("li_tracker_entries")
