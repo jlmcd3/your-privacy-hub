@@ -1,7 +1,7 @@
 // Shared EUP prompt core (v2.3)
 // v2.3: jurisdiction-conditional English variant via ToolModule.languageVariant.
 
-export const PROMPT_CORE_VERSION = "2.4";
+export const PROMPT_CORE_VERSION = "2.5";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
@@ -42,6 +42,13 @@ OUTPUT DISCIPLINE
   record as provided does not substantiate X under [cite]"), not as an inability to assess.
 - Route every uncertainty, gap, and contradiction into the schema's designated fields. Never bury them
   in prose and never silently omit them.
+- INTERNAL CONSISTENCY. Before emitting, reconcile the output against itself. Any count, tally, or
+  "N items at [level]" statement in prose must match the structured rows it summarises; a status,
+  severity, or boolean flag must agree with the narrative attached to it; and never assert two
+  contradictory things about the same item (e.g. "no third-country transfer identified" alongside "may
+  process data abroad", or a field set false while its own explanation says the condition may be
+  present). Where a fact is genuinely uncertain, express that uncertainty the SAME way in every field
+  that references it — never resolve it one way in one field and the other way in another.
 
 FIVE OPERATING PRINCIPLES (non-negotiable)
 1. NO ADAPTIVE GUIDANCE. Present regulatory standards and enforcement patterns as context. Never tell
@@ -172,6 +179,10 @@ leave the choice to the user.
 
 GROUND IN AUTHORITY: where authoritative text is provided, match it; provided text governs over your
 recollection; do not assert a law's current force or dates from memory — flag if unverifiable.
+
+SELF-CONSISTENCY: before emitting, reconcile the output against itself — counts must match the rows they
+summarise, a status/severity/flag must agree with its own narrative, and never assert two contradictory
+things about the same item; express any genuine uncertainty the same way in every field that references it.
 
 Where the law is genuinely unsettled, say so and give the better-supported reading plus the risk; do
 not assert one answer. You may note the counter-argument a regulator would raise, but never recommend a
