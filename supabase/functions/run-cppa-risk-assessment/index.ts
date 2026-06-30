@@ -454,7 +454,9 @@ function buildUserPrompt(intake: FiveStageIntake): string {
   const claimedList = Object.entries(exceptions)
     .filter(([, v]: any) => v?.claimed)
     .map(([k, v]: any) => `- ${EXCEPTION_LABELS[k] ?? k}: scope — ${String(v.scope || "not described")}; safeguards — ${String(v.safeguards || "not described")}`);
-  const activityProse = (activity_details ?? []).map((a: any, i: number) => {
+  const activityProse = (activity_details ?? [])
+    .filter((a: any) => a?.trigger_key !== "high_volume_processing")
+    .map((a: any, i: number) => {
     const cats = Array.isArray(a.data_categories) ? a.data_categories.join(", ") : String(a.data_categories ?? "not specified");
     const cons = Array.isArray(a.consumer_categories) && a.consumer_categories.length ? a.consumer_categories.join(", ") : "not specified";
     return `Activity ${i + 1} — ${TRIGGER_LABELS[a.trigger_key] ?? a.trigger_key}:
