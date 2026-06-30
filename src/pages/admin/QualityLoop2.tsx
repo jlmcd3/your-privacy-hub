@@ -44,15 +44,19 @@ type ResultRow = {
   created_at?: string | null;
 };
 
+type Baseline = { product: string; avg_score: number | null; captured_at: string };
+
 export default function QualityLoop2() {
   const [selected, setSelected] = useState<Set<string>>(new Set(QL2_PRODUCTS.map((p) => p.product)));
   const [activeRun, setActiveRun] = useState<Run | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [results, setResults] = useState<ResultRow[]>([]);
+  const [baselines, setBaselines] = useState<Map<string, Baseline>>(new Map());
   const [starting, setStarting] = useState(false);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [target, setTarget] = useState<Record<string, "quality-auto" | "main">>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [snapshotting, setSnapshotting] = useState(false);
 
   // Load latest run on mount.
   useEffect(() => {
@@ -92,7 +96,39 @@ export default function QualityLoop2() {
     return () => { cancelled = true; clearInterval(t); };
   }, []);
 
+  // Load baselines once.
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("quality_loop2_baselines" as any).select("*");
+      if (data) {
+        const m = new Map<string, Baseline>();
+        for (const b of data as any[]) m.set(b.product, b as Baseline);
+        setBaselines(m);
+      }
+    })();
+  }, []);
+
   const isRunning = activeRun?.status === "running";
+
+  // Per-run avg per product, with runs ordered oldest → newest by first result timestamp.
+  const runColumns = useMemo(() => {
+    const byRun = new Map<string, { first: string; perProduct: Map<string, { sum: number; n: number }> }>();
+    for (const r of results) {
+      if (typeof r.avg_score !== "number") continue;
+      const ts = r.created_at ?? "";
+      let entry = byRun.get(r.run_id);
+      if (!entry) { entry = { first: ts, perProduct: new Map() }; byRun.set(r.run_id, entry); }
+      if (ts && ts < entry.first) entry.first = ts;
+      const pp = entry.perProduct.get(r.product) ?? { sum: 0, n: 0 };
+      pp.sum += r.avg_score; pp.n += 1;
+      entry.perProduct.set(r.product, pp);
+    }
+    const runs = Array.from(byRun.entries())
+      .map(([run_id, v]) => ({ run_id, first: v.first, perProduct: v.perProduct }))
+      .sort((a, b) => (a.first < b.first ? -1 : 1));
+    return runs;
+  }, [results]);
+
 
   const productAgg = useMemo(() => {
     const m = new Map<string, { count: number; avg: number | null; latest: ResultRow | null }>();
@@ -341,7 +377,43 @@ export default function QualityLoop2() {
 
       {/* Panel C — Products & average score */}
       <Card>
-        <CardHeader><CardTitle>Products & average score</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Products & average score</CardTitle>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={snapshotting}
+            onClick={async () => {
+              if (!window.confirm("Replace the baseline column with the current average of all stored run results?")) return;
+              setSnapshotting(true);
+              try {
+                const perProduct = new Map<string, { sum: number; n: number }>();
+                for (const r of results) {
+                  if (typeof r.avg_score !== "number") continue;
+                  const e = perProduct.get(r.product) ?? { sum: 0, n: 0 };
+                  e.sum += r.avg_score; e.n += 1;
+                  perProduct.set(r.product, e);
+                }
+                const rows = Array.from(perProduct.entries()).map(([product, v]) => ({
+                  product, avg_score: v.n ? v.sum / v.n : null, captured_at: new Date().toISOString(),
+                }));
+                if (rows.length === 0) { toast.message("No results to snapshot."); return; }
+                const { error } = await supabase.from("quality_loop2_baselines" as any).upsert(rows, { onConflict: "product" });
+                if (error) throw error;
+                const m = new Map<string, Baseline>();
+                for (const r of rows) m.set(r.product, r as Baseline);
+                setBaselines(m);
+                toast.success("Baseline re-snapshotted.");
+              } catch (e: any) {
+                toast.error(`Snapshot failed: ${e.message ?? e}`);
+              } finally {
+                setSnapshotting(false);
+              }
+            }}
+          >
+            {snapshotting ? "Snapshotting…" : "Re-snapshot baseline"}
+          </Button>
+        </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -349,7 +421,13 @@ export default function QualityLoop2() {
                 <tr className="border-b text-left">
                   <th className="py-2 pr-3">Product</th>
                   <th className="py-2 pr-3">Tests</th>
-                  <th className="py-2 pr-3">Avg score</th>
+                  <th className="py-2 pr-3 bg-muted/40">Baseline</th>
+                  {runColumns.map((rc, i) => (
+                    <th key={rc.run_id} className="py-2 pr-3 whitespace-nowrap" title={`${rc.run_id} · ${new Date(rc.first).toLocaleString()}`}>
+                      Run {i + 1}
+                      <div className="text-[10px] font-normal text-muted-foreground">{new Date(rc.first).toLocaleDateString()}</div>
+                    </th>
+                  ))}
                   <th className="py-2 pr-3">Latest recommendation</th>
                   <th className="py-2 pr-3">Action</th>
                 </tr>
@@ -360,11 +438,31 @@ export default function QualityLoop2() {
                   const latest = latestForActive.get(p.product) ?? agg.latest;
                   const isApplied = latest?.applied;
                   const exp = expanded[p.product];
+                  const baseline = baselines.get(p.product);
                   return (
                     <tr key={p.product} className="border-b align-top">
                       <td className="py-2 pr-3 font-medium">{p.label}</td>
                       <td className="py-2 pr-3">{agg.count}</td>
-                      <td className="py-2 pr-3">{agg.avg == null ? "—" : agg.avg.toFixed(1)}</td>
+                      <td className="py-2 pr-3 bg-muted/40 font-mono">
+                        {baseline?.avg_score == null ? "—" : Number(baseline.avg_score).toFixed(1)}
+                      </td>
+                      {runColumns.map((rc) => {
+                        const pp = rc.perProduct.get(p.product);
+                        const v = pp && pp.n ? pp.sum / pp.n : null;
+                        const base = baseline?.avg_score != null ? Number(baseline.avg_score) : null;
+                        const delta = v != null && base != null ? v - base : null;
+                        const color = delta == null ? "" : delta > 0.05 ? "text-emerald-600" : delta < -0.05 ? "text-destructive" : "text-muted-foreground";
+                        return (
+                          <td key={rc.run_id} className="py-2 pr-3 font-mono whitespace-nowrap">
+                            {v == null ? <span className="text-muted-foreground">—</span> : (
+                              <>
+                                {v.toFixed(1)}
+                                {delta != null && <span className={`ml-1 text-[10px] ${color}`}>{delta >= 0 ? "+" : ""}{delta.toFixed(1)}</span>}
+                              </>
+                            )}
+                          </td>
+                        );
+                      })}
                       <td className="py-2 pr-3 max-w-md">
                         {latest?.recommendation ? (
                           <>
