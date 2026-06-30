@@ -429,8 +429,9 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     }
 
     function normaliseReport(r: any): void {
+      const cleanSection = (x: any) => stripEnforcementTags(stripComponentCite(stripMd(x)));
       r.annotations = Array.isArray(r?.annotations) ? r.annotations : [];
-      r.executive_summary = stripMd(r.executive_summary);
+      r.executive_summary = cleanSection(r.executive_summary);
       r.enforcement_context = stripMd(r.enforcement_context);
       r.controls = (Array.isArray(r.controls) ? r.controls : []).map((c: any) => ({
         ...c,
@@ -441,11 +442,11 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       r.top_risks = (Array.isArray(r.top_risks) ? r.top_risks : []).map((t: any) => ({
         ...t,
         title: stripMd(t?.title),
-        description: stripMd(t?.description),
-        consequence: stripMd(t?.consequence),
+        description: cleanSection(t?.description),
+        consequence: cleanSection(t?.consequence),
       }));
       r.next_steps = (Array.isArray(r.next_steps) ? r.next_steps : []).map((s: any) =>
-        typeof s === "string" ? stripMd(s) : s
+        typeof s === "string" ? cleanSection(s) : s
       );
     }
 
