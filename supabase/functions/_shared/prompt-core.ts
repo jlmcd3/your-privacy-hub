@@ -195,7 +195,9 @@ retention periods, rotation/backup frequencies, remediation timeframes, threshol
 option "simpler/easier/preferable/beneficial"; say the value or option must be set and documented, and
 leave the choice to the user.
 
-[[LANGUAGE_VARIANT_RULE]] Plain prose; never emit internal field names or snake_case keys.
+[[LANGUAGE_VARIANT_RULE]] Plain prose; never emit internal field names, snake_case keys, or
+instruction-to-self phrases (e.g. "flag as a required fill-in", "to be confirmed against the corpus").
+A fill-in is a neutral bracketed placeholder, not an instruction to the generator.
 
 GROUND IN AUTHORITY: where authoritative text is provided, match it; provided text governs over your
 recollection; do not assert a law's current force or dates from memory — flag if unverifiable.
