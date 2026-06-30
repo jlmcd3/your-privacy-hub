@@ -487,7 +487,7 @@ Contained: ${body.contained}
 Organisation type: ${body.organisationType}
 
 DPA NOTIFICATION PORTALS FOR RELEVANT JURISDICTIONS
-${relevantPortals || "(No portal URLs available for the selected jurisdictions — direct the team to consult the relevant DPA's website.)"}
+${relevantPortals || "(For notification submission, consult each relevant regulator's official website for the current portal or contact channel.)"}
 
 ENFORCEMENT CONTEXT — BREACH NOTIFICATION FAILURES
 The following cases show where organisations were penalised for breach notification failures. Use this to calibrate your timeline and content recommendations.
