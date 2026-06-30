@@ -807,7 +807,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         console.warn("[DPA] lint retry failed (non-fatal):", e);
       }
     }
-    const dpa_text = lint.clean;
+    const dpa_text = stripEnforcementTags(lint.clean);
     const parsedAnnotations = parsed.annotations;
 
     if (!dpa_text.trim()) {
