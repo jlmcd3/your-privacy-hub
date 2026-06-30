@@ -429,7 +429,7 @@ function buildUserPrompt(intake: FiveStageIntake): string {
     targeted_advertising: "Cross-context behavioural / targeted advertising",
     profiling_significant_effects: "Profiling via systematic observation or sensitive-location presence",
     sensitive_pi_beyond_enumerated: "Processing sensitive personal information",
-    high_volume_processing: "High-volume processing",
+    high_volume_processing: "High consumer volume (NOTE: not a § 7150(b) trigger — applicable § 7120 cyber-audit obligation only)",
     admt_involved: "Automated decisionmaking technology (use and/or training)",
   };
   const EXCEPTION_LABELS: Record<string, string> = {
