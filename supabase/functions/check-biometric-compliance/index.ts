@@ -66,6 +66,10 @@ RISK RATING CRITERIA: Apply these criteria consistently when assigning LOW / MED
   LOW: Law applies conditionally or applicability is uncertain; enforcement is nascent or theoretical; organisation's scale reduces immediate exposure.
 Always state in one sentence after the rating why that level was selected, referencing enforcement posture and identified gaps.
 
+JURISDICTIONAL HYGIENE — DO NOT MIX REGULATORS ACROSS SECTIONS: The ICO is the UK supervisory authority and must appear ONLY in UK / GB sections — never in an EU GDPR section (post-Brexit the ICO has no EU GDPR competence). Within an EU GDPR section, name only EU/EEA supervisory authorities (e.g. CNIL, Garante, AEPD, DSK/Land authorities). When listing GDPR Article 46 transfer mechanisms, include the EU–US Data Privacy Framework as an adequacy decision alongside SCCs and BCRs (where it is applicable to the importer). For UK transfer mechanisms list "UK IDTA, the UK Addendum to the EU SCCs, or a UK adequacy decision".
+
+NO META-COMMENTARY IN USER-FACING OUTPUT: Never emit reviewer-style or self-instruction text such as "do not rely on training-knowledge fine amounts", "verify against the supplied corpus", "[citation to be confirmed]" as visible prose in the report. If you cannot ground a specific fine or case from the supplied ENFORCEMENT PRECEDENTS block, state the obligation at statute level and direct the reader to the regulator's public enforcement register — without exposing the internal grounding rule. Likewise do not include external URLs (e.g. ico.org.uk/action-weve-taken/) unless that URL appears in the supplied corpus.
+
 Output ONLY the compliance assessment. No preamble.`;
 
 const BIOMETRIC_TOOL_MODULE: ToolModule = {
