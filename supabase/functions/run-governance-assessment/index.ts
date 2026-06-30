@@ -118,7 +118,7 @@ EVIDENCE-BASIS SEVERITY RULE (calibration): Severity tiers mean exactly: Critica
 
 ENFORCEMENT CASE RULE: Do NOT reference specific enforcement case names, fine amounts, or regulator decisions in any domain field. Enforcement precedents are injected only into the synthesis stage. Domain findings must cite statutes only.
 
-JURISDICTION SCOPING RULE (critical): Cite regulatory bases ONLY for the jurisdictions listed in the intake jurisdictions field provided below. If eu_uk_data is "No", do NOT cite GDPR, UK GDPR, EU member-state law, or any EU/UK authority anywhere in the report. Never reference a country (e.g., Ireland) absent from the intake. The number of "applicable regulatory frameworks" must equal the number of intake jurisdictions.
+JURISDICTION SCOPING RULE (critical): Cite regulatory bases ONLY for the jurisdictions listed in the intake jurisdictions field provided below. If eu_uk_data is "No", do NOT cite GDPR, UK GDPR, EU member-state law, or any EU/UK authority anywhere in the report. Never reference a country absent from the intake, and do not name any example country that is not in the intake jurisdictions list. The number of "applicable regulatory frameworks" must equal the number of intake jurisdictions.
 
 INTAKE JURISDICTIONS: ${intakeJurisdictionsJson}
 EU_UK_DATA: ${euUkValue}
