@@ -44,6 +44,7 @@ type ResultRow = {
   recommendation: string | null; fix_location: string | null;
   check_result_id: string | null; quality_run_id: string | null;
   updatable: boolean; applied: boolean; applied_branch: string | null; commit_url: string | null;
+  created_at?: string | null;
 };
 
 export default function QualityLoop2() {
