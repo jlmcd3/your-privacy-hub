@@ -501,7 +501,7 @@ Sale and sharing restrictions:
 GDPR purpose limitation (Article 5(1)(b)) prohibits secondary use of biometric data. Processor agreements (Article 28) must prohibit vendor use for any purpose other than the contracted service.
 
 Current enforcement posture:
-The CNIL is one of Europe's most active supervisory authorities. It has issued enforcement actions for biometric systems deployed without a valid DPIA, without a proper Article 9(2) condition, and for workplace biometrics deployed without works council consultation. Refer to cnil.fr/fr/les-sanctions for current enforcement figures.
+The CNIL is one of Europe's most active supervisory authorities on biometric processing. Refer to cnil.fr/fr/les-sanctions for current enforcement actions and figures.
 
 Priority actions:
 1. Complete a DPIA before deployment and submit to the CNIL for prior consultation if residual risk remains high after mitigation.
