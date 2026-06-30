@@ -211,7 +211,7 @@ Applies to this organisation: Conditional — ${body.orgType} uses ${body.biomet
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. UK GDPR Article 9(2) condition must be identified in addition to an Article 6 lawful basis. Common conditions: Article 9(2)(a) explicit consent; Article 9(2)(b) employment law; Article 9(2)(h) health/care.
 2. DPA 2018 Schedule 1 condition must also be satisfied — the applicable Schedule 1 paragraph must be documented.
-3. Conduct a DPIA under UK GDPR Article 35 — biometric processing for identification is on the ICO's mandatory DPIA list.
+3. Conduct a DPIA under UK GDPR Article 35 — biometric processing for identification typically requires a DPIA; verify against the ICO's current DPIA guidance and examples lists.
 4. Article 13/14 transparency notices must cover the Article 9(2) condition and DPA 2018 Schedule 1 condition relied upon.
 5. UK-to-third-country transfers require a UK IDTA or UK-approved SCCs (not EU SCCs).
 
