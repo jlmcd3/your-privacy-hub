@@ -87,6 +87,8 @@ export const GOVERNANCE_CITATION_FRAMEWORK = "Cite regulatory bases ONLY for the
 export function buildGovernanceSharedRules(jurisdictions: unknown, euUkData: string): string {
   const intakeJurisdictionsJson = JSON.stringify(Array.isArray(jurisdictions) ? jurisdictions : []);
   const euUkValue = euUkData || "not specified";
+  const jurisdictionList = (Array.isArray(jurisdictions) ? jurisdictions : []).map((j) => String(j).toLowerCase());
+  const hasIreland = jurisdictionList.some((j) => j.includes("ireland") || j === "ie" || j === "irl");
   return `LANGUAGE: use the English variant matching the intake's jurisdictions — American English when no EU/UK jurisdiction is present; British English when any EU/UK jurisdiction is present. Never mix variants within one report. (This overrides the core's default American-English rule for this jurisdiction-aware tool.)
 
 CITATION INTEGRITY: Cite provisions ONLY in the exact forms below. If you cannot match a citation to one of these patterns with certainty, name the law and obligation in plain language instead (e.g. 'CCPA — service provider contract requirement') rather than fabricate.
