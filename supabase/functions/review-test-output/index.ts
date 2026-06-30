@@ -289,7 +289,7 @@ async function callOpenAI(system: string, user: string, model: string): Promise<
   return d?.choices?.[0]?.message?.content ?? "";
 }
 
-Deno.serve(async (req) => {
+async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const authHeader = req.headers.get("Authorization");
