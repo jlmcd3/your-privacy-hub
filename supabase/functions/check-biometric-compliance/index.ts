@@ -603,7 +603,7 @@ Sale and sharing restrictions:
 LOPDGDD Article 9 and GDPR Article 5(1)(b) purpose limitation prohibit secondary use. Processor agreements (Article 28 DPA) must restrict vendor use to contracted services only.
 
 Current enforcement posture:
-The AEPD has issued some of the highest biometric-specific fines in the EU, targeting organisations for deploying biometric time-and-attendance without a valid legal basis, without a DPIA, and without proportionality analysis. Refer to aepd.es/es/resoluciones for current enforcement figures.
+The AEPD is among the most active EU authorities on biometric enforcement. Refer to aepd.es/es/resoluciones for current enforcement actions and figures.
 
 Priority actions:
 1. Complete a proportionality analysis before deploying any biometric system — demonstrate why less invasive alternatives (PIN, card, mobile) are insufficient for the stated purpose.
