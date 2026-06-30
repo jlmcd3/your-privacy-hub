@@ -79,7 +79,8 @@ async function callReviewer(model: "gpt-4o" | "claude-sonnet-4-5-20250929", body
       signal: ctrl.signal,
     });
     if (!res.ok) {
-      console.warn(`[ql2] reviewer ${model} HTTP ${res.status}`);
+      const errBody = await res.text().catch(() => "");
+      console.warn(`[ql2] reviewer ${model} HTTP ${res.status}: ${errBody.slice(0, 300)}`);
       return null;
     }
     return await res.json();
