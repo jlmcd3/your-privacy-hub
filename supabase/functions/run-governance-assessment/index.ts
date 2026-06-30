@@ -87,6 +87,8 @@ export const GOVERNANCE_CITATION_FRAMEWORK = "Cite regulatory bases ONLY for the
 export function buildGovernanceSharedRules(jurisdictions: unknown, euUkData: string): string {
   const intakeJurisdictionsJson = JSON.stringify(Array.isArray(jurisdictions) ? jurisdictions : []);
   const euUkValue = euUkData || "not specified";
+  const jurisdictionList = (Array.isArray(jurisdictions) ? jurisdictions : []).map((j) => String(j).toLowerCase());
+  const hasIreland = jurisdictionList.some((j) => j.includes("ireland") || j === "ie" || j === "irl");
   return `LANGUAGE: use the English variant matching the intake's jurisdictions — American English when no EU/UK jurisdiction is present; British English when any EU/UK jurisdiction is present. Never mix variants within one report. (This overrides the core's default American-English rule for this jurisdiction-aware tool.)
 
 CITATION INTEGRITY: Cite provisions ONLY in the exact forms below. If you cannot match a citation to one of these patterns with certainty, name the law and obligation in plain language instead (e.g. 'CCPA — service provider contract requirement') rather than fabricate.
@@ -97,12 +99,15 @@ CITATION INTEGRITY: Cite provisions ONLY in the exact forms below. If you cannot
 - §1798.150 is ONLY the data-breach private right of action. Do not cite §1798.150 for any other proposition.
 - The CPRA service provider definition is §1798.140(ag).
 - UK DPA 2018 Schedule 1 contains special-category processing conditions ONLY. Never cite Schedule 1 for general processing principles. The UK GDPR has NO Schedules — do not invent any.
-- Ireland: NEVER cite specific Irish Data Protection Act 2018 section numbers. Cite the GDPR article directly and refer to "the Data Protection Act 2018 (Ireland)" generally. There is NO general registration or notification requirement with the Irish DPC.
+- There is NO French "Data Protection Act 2018". NEVER write "Data Protection Act 2018 (France …)", "(France and UK implementation)", or otherwise attach the DPA 2018 to France. France's implementing statute is the Loi Informatique et Libertés (as amended); cite the GDPR article directly and name the CNIL as supervisory authority. A "Data Protection Act 2018" exists only for the UK and Ireland, and may be referenced only when that jurisdiction is in the intake.
+${hasIreland ? `- Ireland: NEVER cite specific Irish Data Protection Act 2018 section numbers. Cite the GDPR article directly and refer to "the Data Protection Act 2018 (Ireland)" generally. There is NO general registration or notification requirement with the Irish DPC.` : ``}
 - GDPR Recital 47 concerns legitimate interests only. Recital 39 concerns transparency and awareness. Do not swap them.
 - DPO awareness-raising and training tasks are Article 39(1)(b), NOT Article 37(5). Article 37 has no SME or sector exemption — do not assert one.
 - DEFINITIONAL-ARTICLE RULE: GDPR Article 4 contains definitions only and must NEVER be cited as the legal basis of an obligation. For duties concerning staff acting under the controller's or processor's authority, cite Article 29 and/or Article 32(4). For consent requirements, cite Article 6(1)(a) and Article 7 (Article 4(11) merely defines consent).
 
 VENDOR NAMING RULE: Name ONLY vendors that are explicitly provided in the intake. Never introduce additional vendor or company names that the organisation did not list.
+
+OUTPUT HYGIENE RULE: Emit only clean, final report prose. NEVER include self-correction notes, editorial asides, meta-commentary, reviewer-style remarks, or bracketed notes such as "[CORRECTION: …]", "[disregard sentence …]", "[Note: …]", or "(based on …)" in the output. If any rule causes you to begin a sentence or recommendation that turns out not to apply to this intake, OMIT it entirely — do not write it and then retract, annotate, or correct it. The reader must see only the finished assessment.
 
 AI VENDOR DATA-HANDLING RULE: This rule applies ONLY to generative-AI / LLM tools explicitly named in the intake technology tools list (e.g. Microsoft 365 Copilot, Google Workspace / Gemini, ChatGPT Enterprise, Anthropic Claude). For such a tool, never assert as fact that it uses tenant data for AI model training. Frame any such concern as "verify [AI vendor]'s data-handling and model-training commitments for the tenant", substituting the actual vendor named in the intake. If the intake lists NO generative-AI / LLM tool, do not emit any such verification instruction, and never introduce an AI vendor that the organisation did not list — this is subordinate to the VENDOR NAMING RULE above.
 
@@ -113,7 +118,7 @@ EVIDENCE-BASIS SEVERITY RULE (calibration): Severity tiers mean exactly: Critica
 
 ENFORCEMENT CASE RULE: Do NOT reference specific enforcement case names, fine amounts, or regulator decisions in any domain field. Enforcement precedents are injected only into the synthesis stage. Domain findings must cite statutes only.
 
-JURISDICTION SCOPING RULE (critical): Cite regulatory bases ONLY for the jurisdictions listed in the intake jurisdictions field provided below. If eu_uk_data is "No", do NOT cite GDPR, UK GDPR, EU member-state law, or any EU/UK authority anywhere in the report. Never reference a country (e.g., Ireland) absent from the intake. The number of "applicable regulatory frameworks" must equal the number of intake jurisdictions.
+JURISDICTION SCOPING RULE (critical): Cite regulatory bases ONLY for the jurisdictions listed in the intake jurisdictions field provided below. If eu_uk_data is "No", do NOT cite GDPR, UK GDPR, EU member-state law, or any EU/UK authority anywhere in the report. Never reference a country absent from the intake, and do not name any example country that is not in the intake jurisdictions list. The number of "applicable regulatory frameworks" must equal the number of intake jurisdictions.
 
 INTAKE JURISDICTIONS: ${intakeJurisdictionsJson}
 EU_UK_DATA: ${euUkValue}
