@@ -247,7 +247,7 @@ function validateFiveStage(intake: FiveStageIntake, lenient: boolean): { ok: tru
     if (p.length < 50 || generic.some((g) => p.includes(g))) {
       return {
         ok: false,
-        message: `Processing purpose for "${a.trigger_key}" is too generic. Describe the specific purpose as required by § 7153(b).`,
+        message: `Processing purpose for "${a.trigger_key}" is too generic. Describe the specific purpose as required by § 7152(a)(1).`,
         field: `activity_details.${a.trigger_key}.purpose_description`,
       };
     }
@@ -255,7 +255,7 @@ function validateFiveStage(intake: FiveStageIntake, lenient: boolean): { ok: tru
   if (String(intake.impact?.benefits_outweigh_risks_rationale ?? "").length < 100) {
     return {
       ok: false,
-      message: "The benefits-outweigh-risks rationale is too brief. § 7153(e) requires a substantive analysis.",
+      message: "The benefits-outweigh-risks rationale is too brief. § 7152(a)(4) (benefits) and the § 7154 balancing goal require a substantive analysis.",
       field: "impact.benefits_outweigh_risks_rationale",
     };
   }
@@ -362,6 +362,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "VOLUME IS NOT A § 7150(b) TRIGGER: high consumer volume alone does not trigger a § 7150(b) risk assessment (it is a § 7120 cyber-audit signal). If the intake or an activity asserts volume as the basis for the assessment, do NOT search for or speculate about which § 7150(b) subsection it maps to, and do NOT emit a \"NOTE FOR COUNSEL\" asking which subsection applies. State it plainly as a user-asserted gap: \"The intake characterises this activity as high-volume processing. Volume alone is not an enumerated § 7150(b) trigger; the user must confirm which enumerated trigger (selling/sharing, targeted advertising, profiling with significant effects, sensitive PI, or ADMT/training) applies to the processing as described.\" Flag the gap; do not resolve it.",
     "ORG-CONTEXT DEFAULTS ARE NOT FINDINGS OF ABSENCE: org_context booleans that arrive false from the compatibility shim — privacy_counsel_engaged, dpo_or_privacy_officer, board_level_oversight, cppa_audit_notification_received — mean \"not captured in the intake,\" NOT \"confirmed absent.\" NEVER assert in safeguard_gaps, adverse-effect, or any narrative that the organisation has \"no privacy counsel,\" \"no DPO/privacy officer,\" or \"no board oversight\" on the basis of these defaults; at most state the item is \"not documented in the intake.\" Where another field contradicts the default (e.g. external consultees name outside privacy counsel, or a certifying executive holds a Chief Privacy Officer title), do NOT assert absence at all — defer to the inconsistency flag, which records the contradiction for the user to resolve.",
     "THIRD PARTY ≠ SALE/SHARE: classifying a recipient as a third party (rather than a service provider/contractor) does NOT by itself make a disclosure a \"sale\" or \"share.\" Under the § 1798.140 definitions of \"sell\" and \"share,\" a sale/share additionally requires monetary or other valuable consideration, or that the disclosure is for cross-context behavioural advertising. When the intake shows a vendor (e.g. a support/ticketing tool) that may not be under a compliant service-provider contract, state the two determinations SEPARATELY: (1) recipient classification (service provider/contractor vs third party), and (2) whether any transfer is a sale/share (which turns on consideration or cross-context advertising and, if present, triggers a separate § 7150(b)(1) assessment). Never write that non-service-provider status \"is\" or \"constitutes\" a sale/share — flag both as items the user must confirm.",
+    "§ 7152(a) SUBSECTION DISCIPLINE: cite each element to its own subsection and never reuse (a)(2) as a catch-all. (a)(1) = processing summary and specific (non-generic) purpose; (a)(2) = categories of PI and whether they include sensitive PI (NOT minimum-PI, NOT consumer categories); (a)(3) = the processing-operation details; (a)(4) = benefits; (a)(5) = negative impacts; (a)(6) = safeguards; (a)(8)–(a)(9) = the individuals involved and the decisionmaker with authority to proceed. The benefits-outweigh-risks balancing itself is the § 7154 goal, not a content element. Consumer categories belong to the (a)(1) processing summary, never (a)(2).",
   ].join("\n"),
   schema: `OUTPUT FORMAT — Return a single JSON object with this exact structure. No markdown fences, no preamble:
 
@@ -465,13 +466,13 @@ function buildUserPrompt(intake: FiveStageIntake): string {
   Data categories: ${cats}
   Consumer categories: ${cons}
   Specific purpose: ${String(a.purpose_description ?? "not provided")}
-  Minimum PI necessary (§ 7152(a)(2)): ${String(a.minimum_pi_necessary ?? "Not provided.")}
+  Minimum PI necessary (§ 7152(a)(3)): ${String(a.minimum_pi_necessary ?? "Not provided.")}
   Sources of the PI (§ 7152(a)(3)): ${String(a.pi_sources ?? "Not provided.")}
   Recipients / third parties: ${String(a.third_party_recipients || "none stated")}
   Benefit to the business (§ 7152(a)(4)): ${String(a.business_benefits ?? "Not provided.")}
   Benefit to the consumer (§ 7152(a)(4)): ${String(a.consumer_benefits ?? "Not provided.")}
   Benefit to other stakeholders / the public: ${String(a.stakeholder_public_benefits ?? "Not provided.")}
-  Planned safeguards (§ 7152(a)): ${String(a.current_safeguards ?? "Not provided.")}
+  Planned safeguards (§ 7152(a)(6)): ${String(a.current_safeguards ?? "Not provided.")}
   Cross-context tracking: ${yn(a.cross_context_tracking)}; profiling/inferences: ${yn(a.profiling_inferences)}; children in scope: ${yn(a.children_in_scope)}`;
   }).join("\n\n");
 
@@ -526,7 +527,7 @@ Sensitive-PI use-limitation offered: ${intake.content_detail.sensitive_pi_limit_
 Sensitive-PI processing basis: ${intake.content_detail.sensitive_pi_basis || "n/a"}
 "Do Not Sell/Share" opt-out link: ${intake.content_detail.opt_out_link || "n/a"}
 Notice at collection: ${intake.content_detail.notice_at_collection || "n/a"}
-Minimum PI necessary (§ 7152(a)(2)): ${intake.content_detail.minimum_pi_necessary || "not provided"}
+Minimum PI necessary (§ 7152(a)(3)): ${intake.content_detail.minimum_pi_necessary || "not provided"}
 Sources of the PI (§ 7152(a)(3)): ${intake.content_detail.pi_sources || "not provided"}
 Under-16 actual knowledge (§ 7001(bbb)): ${intake.content_detail.under16_actual_knowledge || "not stated"}
 Systematic-observation profiling trigger (${SEC_OBSERVE}): ${intake.content_detail.profiling_observation_trigger || "no"}
