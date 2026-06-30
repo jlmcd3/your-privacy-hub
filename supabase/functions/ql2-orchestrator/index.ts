@@ -63,7 +63,10 @@ function selfInvoke(runId: string) {
   }).catch((e) => console.error("[ql2] self-invoke failed", e));
 }
 
-async function callReviewer(model: "gpt-4o" | "claude-sonnet-4-5-20250929", body: any): Promise<any | null> {
+async function callReviewerOnce(
+  model: "gpt-4o" | "claude-sonnet-4-5-20250929",
+  body: any,
+): Promise<{ ok: true; data: any } | { ok: false; status: number; err: string }> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 180_000);
   try {
@@ -80,16 +83,34 @@ async function callReviewer(model: "gpt-4o" | "claude-sonnet-4-5-20250929", body
     });
     if (!res.ok) {
       const errBody = await res.text().catch(() => "");
-      console.warn(`[ql2] reviewer ${model} HTTP ${res.status}: ${errBody.slice(0, 300)}`);
-      return null;
+      return { ok: false, status: res.status, err: errBody.slice(0, 500) };
     }
-    return await res.json();
+    return { ok: true, data: await res.json() };
   } catch (e) {
-    console.warn(`[ql2] reviewer ${model} threw`, (e as Error).message);
-    return null;
+    return { ok: false, status: 0, err: (e as Error).message };
   } finally {
     clearTimeout(t);
   }
+}
+
+async function callReviewer(
+  model: "gpt-4o" | "claude-sonnet-4-5-20250929",
+  body: any,
+): Promise<{ data: any | null; lastError?: string }> {
+  // One immediate retry on transient failure (5xx, network, parse). Reviewer
+  // occasionally returns 500 when Claude streams a malformed JSON token or
+  // the worker is recycled mid-request; a single retry recovers most cases.
+  let lastError: string | undefined;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const r = await callReviewerOnce(model, body);
+    if (r.ok) return { data: r.data };
+    lastError = `HTTP ${r.status}: ${r.err}`;
+    console.warn(`[ql2] reviewer ${model} attempt ${attempt + 1} ${lastError.slice(0, 300)}`);
+    // Only retry on transient: 0 (network/timeout), 500/502/503/504.
+    if (![0, 500, 502, 503, 504].includes(r.status)) break;
+    if (attempt === 0) await new Promise((res) => setTimeout(res, 1500));
+  }
+  return { data: null, lastError };
 }
 
 function meanScore(review: any): number | null {
