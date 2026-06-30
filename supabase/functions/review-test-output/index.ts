@@ -146,7 +146,9 @@ function tryParse(t: string): any | null {
 
 // ─── Retry with exponential backoff + jitter on 429/5xx ──────────────────────
 // Honors `Retry-After` (seconds or HTTP-date) when the provider sends one.
-const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+// Anthropic occasionally returns HTTP 500 on long non-streaming completions
+// (notably for large product outputs like DPIA/IR Playbook). Treat as transient.
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
 const MAX_RETRIES = 5;
 const BASE_DELAY_MS = 1_000;
 const MAX_DELAY_MS = 30_000;
@@ -267,7 +269,7 @@ Deno.serve(async (req) => {
   if (!testId || !output) return jsonResp({ error: "testId and output are required" }, 400);
 
   const outputStr = typeof output === "string" ? output : JSON.stringify(output, null, 2);
-  const trimmed = outputStr.length > 120_000 ? outputStr.slice(0, 120_000) + "\n…[truncated]" : outputStr;
+  const trimmed = outputStr.length > 80_000 ? outputStr.slice(0, 80_000) + "\n…[truncated]" : outputStr;
 
   const isImprovement = mode === "improvement";
   const system = isImprovement ? IMPROVEMENT_SYSTEM_PROMPT : RUBRIC_SYSTEM_PROMPT;
