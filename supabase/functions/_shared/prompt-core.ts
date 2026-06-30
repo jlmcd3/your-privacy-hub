@@ -49,6 +49,12 @@ OUTPUT DISCIPLINE
   process data abroad", or a field set false while its own explanation says the condition may be
   present). Where a fact is genuinely uncertain, express that uncertainty the SAME way in every field
   that references it — never resolve it one way in one field and the other way in another.
+- OUTPUT HYGIENE. User-facing fields contain finished assessment content only. Never let internal
+  scaffolding leak into them: no instruction-to-self phrases ("flag as a required fill-in", "to be
+  confirmed against the corpus", "shorter retention may be appropriate", "[citation to be confirmed]"),
+  no reviewer-style self-commentary, and no raw internal field names or snake_case keys. A genuine
+  fill-in is a neutral bracketed placeholder naming what the user must supply (e.g. "[retention period —
+  to be set by the controller]"), never an instruction addressed to the generator.
 
 FIVE OPERATING PRINCIPLES (non-negotiable)
 1. NO ADAPTIVE GUIDANCE. Present regulatory standards and enforcement patterns as context. Never tell
