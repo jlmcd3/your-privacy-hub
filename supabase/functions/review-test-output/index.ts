@@ -198,7 +198,9 @@ async function callClaude(system: string, user: string, model: string): Promise<
     },
     body: JSON.stringify({
       model,
-      max_tokens: 64000,
+      // Reviewer returns a compact JSON verdict; keep below Anthropic's
+      // non-streaming ceiling (~21k for Sonnet 4/4.5) to avoid HTTP 500.
+      max_tokens: 16000,
       system,
       messages: [{ role: "user", content: user }],
     }),
