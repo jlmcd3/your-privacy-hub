@@ -44,6 +44,7 @@ type ResultRow = {
   recommendation: string | null; fix_location: string | null;
   check_result_id: string | null; quality_run_id: string | null;
   updatable: boolean; applied: boolean; applied_branch: string | null; commit_url: string | null;
+  created_at?: string | null;
 };
 
 export default function QualityLoop2() {
@@ -212,13 +213,20 @@ export default function QualityLoop2() {
   }
 
   function onExportMarkdown() {
+    // Scope to the latest run only (by created_at on quality_loop2_results).
+    const latestRunId = results.reduce<{ id: string | null; ts: string }>(
+      (acc, r) => (r.created_at && r.created_at > acc.ts ? { id: r.run_id, ts: r.created_at } : acc),
+      { id: null, ts: "" },
+    ).id;
+    const scoped = latestRunId ? results.filter((r) => r.run_id === latestRunId) : [];
     const lines: string[] = [];
     lines.push(`# Quality Loop 2 — Recommendations`);
     lines.push("");
     lines.push(`_Exported ${new Date().toISOString()}_`);
+    if (latestRunId) lines.push(`_Run: ${latestRunId}_`);
     lines.push("");
     for (const p of QL2_PRODUCTS) {
-      const rows = results
+      const rows = scoped
         .filter((r) => r.product === p.product && r.recommendation && r.recommendation.trim())
         .sort((a, b) => (a.id < b.id ? 1 : -1));
       lines.push(`## ${p.label}`);
