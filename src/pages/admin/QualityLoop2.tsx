@@ -20,9 +20,6 @@ const QL2_PRODUCTS: Reg[] = [
   { product: "cppa-risk",    label: "CPPA Risk",    sampleSlug: "cppa_risk",     applyKey: "cppa-risk" },
   { product: "cppa-cyber",   label: "CPPA Cyber",   sampleSlug: "cppa_cyber",    applyKey: "cppa-cyber" },
   { product: "cppa-admt",    label: "CPPA ADMT",    sampleSlug: "cppa_admt",     applyKey: "cppa-admt" },
-  { product: "ropa",         label: "RoPA",         sampleSlug: "ropa",          applyKey: "ropa" },
-  { product: "eu-notice",    label: "EU Notice",    sampleSlug: "eu_notice",     applyKey: "global-privacy-notice" },
-  { product: "us-notice",    label: "US Notice",    sampleSlug: "us_notice",     applyKey: "privacy-notice-us" },
 ];
 
 type Run = {
