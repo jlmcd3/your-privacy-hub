@@ -239,9 +239,15 @@ export async function getGdprContext(
   for (const r of recitals) {
     gdprCites.push(`Recital ${r.recital_number}`);
   }
+  const seenGuides = new Set<string>();
   for (const g of guidelineHits) {
-    const heading = g.section_heading || g.title || g.guideline_ref;
-    gdprCites.push(`EDPB ${g.guideline_ref} — ${heading}`);
+    const ref = String(g.guideline_ref || "").trim();
+    const key = ref.toLowerCase();
+    if (!ref || seenGuides.has(key)) continue;   // one entry per guideline ref
+    seenGuides.add(key);
+    const label = /^edpb\b/i.test(ref) ? ref : `EDPB ${ref}`;  // don't double "EDPB"
+    const heading = g.section_heading || g.title || ref;
+    gdprCites.push(`${label} — ${heading}`);
   }
   // De-duplicate: identical Art./Recital/EDPB entries (e.g. WP248 matched by
   // several articles) must appear once. Order preserved (first occurrence wins).
