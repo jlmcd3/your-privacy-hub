@@ -66,7 +66,7 @@ RISK RATING CRITERIA: Apply these criteria consistently when assigning LOW / MED
   LOW: Law applies conditionally or applicability is uncertain; enforcement is nascent or theoretical; organisation's scale reduces immediate exposure.
 Always state in one sentence after the rating why that level was selected, referencing enforcement posture and identified gaps.
 
-JURISDICTIONAL HYGIENE — DO NOT MIX REGULATORS ACROSS SECTIONS: The ICO is the UK supervisory authority and must appear ONLY in UK / GB sections — never in an EU GDPR section (post-Brexit the ICO has no EU GDPR competence). Within an EU GDPR section, name only EU/EEA supervisory authorities (e.g. CNIL, Garante, AEPD, DSK/Land authorities). When listing GDPR Article 46 transfer mechanisms, include the EU–US Data Privacy Framework as an adequacy decision alongside SCCs and BCRs (where it is applicable to the importer). For UK transfer mechanisms list "UK IDTA, the UK Addendum to the EU SCCs, or a UK adequacy decision".
+JURISDICTIONAL HYGIENE — DO NOT MIX REGULATORS ACROSS SECTIONS: The ICO is the UK supervisory authority and must appear ONLY in UK / GB sections — never in an EU GDPR section (post-Brexit the ICO has no EU GDPR competence). Within an EU GDPR section, name only EU/EEA supervisory authorities (e.g. CNIL, Garante, AEPD, DSK/Land authorities). When listing GDPR Chapter V transfer mechanisms, distinguish Article 45 adequacy decisions from Article 46 appropriate safeguards: an Article 45 adequacy decision (including the EU–US Data Privacy Framework, where the importer is certified under it) removes the need for Article 46 safeguards; absent adequacy, the transfer needs Article 46 safeguards (SCCs or BCRs). The Data Privacy Framework is an Article 45 adequacy decision — NEVER list it (or "adequacy") as an Article 46 safeguard. For UK transfer mechanisms list "a UK adequacy decision (Article 45 equivalent), or absent that, a UK IDTA or the UK Addendum to the EU SCCs".
 
 NO META-COMMENTARY IN USER-FACING OUTPUT: Never emit reviewer-style or self-instruction text such as "do not rely on training-knowledge fine amounts", "verify against the supplied corpus", "[citation to be confirmed]" as visible prose in the report. If you cannot ground a specific fine or case from the supplied ENFORCEMENT PRECEDENTS block, state the obligation at statute level and direct the reader to the regulator's public enforcement register — without exposing the internal grounding rule. Likewise do not include external URLs (e.g. ico.org.uk/action-weve-taken/) unless that URL appears in the supplied corpus.
 
@@ -177,9 +177,9 @@ Applies to this organisation: Conditional — ${body.orgType} uses ${body.biomet
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Lawful basis under Article 6 AND a separate Article 9(2) condition — these must both be identified and documented. Do not conflate them into a single "lawful basis" entry.
 2. Most likely Article 9(2) condition: Article 9(2)(a) explicit consent, or Article 9(2)(b) if required by employment law, or Article 9(2)(h) for health/care providers.
-3. Conduct a Data Protection Impact Assessment (GDPR Article 35) before deployment — biometric processing for identification is on supervisory authority high-risk lists.
+3. Conduct a Data Protection Impact Assessment (GDPR Article 35) before deployment — biometric processing for identification is widely treated as high-risk requiring a DPIA; confirm against the lead supervisory authority's published Article 35(4) DPIA criteria.
 4. Provide pre-collection notice under Articles 13/14 covering biometric modalities, Article 9(2) condition relied upon, retention periods, and data subject rights.
-5. Any processor receiving biometric data must have a written DPA under Article 28. Any transfer outside the EEA requires an Article 46 safeguard (adequacy decision, SCCs, or BCRs).
+5. Any processor receiving biometric data must have a written DPA under Article 28. Any transfer outside the EEA requires a Chapter V transfer mechanism — either an Article 45 adequacy decision (including the EU–US Data Privacy Framework where the importer is certified) or, absent adequacy, Article 46 appropriate safeguards (SCCs or BCRs).
 
 Consent and notice:
 Explicit consent (Article 9(2)(a)) must be freely given, specific, informed, and unambiguous — and genuinely free. In employment contexts, employee consent is unlikely to be "freely given" due to power imbalance (EDPB Guidelines 05/2020); use Article 9(2)(b) employment law basis instead where national law permits.
@@ -211,7 +211,7 @@ Applies to this organisation: Conditional — ${body.orgType} uses ${body.biomet
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. UK GDPR Article 9(2) condition must be identified in addition to an Article 6 lawful basis. Common conditions: Article 9(2)(a) explicit consent; Article 9(2)(b) employment law; Article 9(2)(h) health/care.
 2. DPA 2018 Schedule 1 condition must also be satisfied — the applicable Schedule 1 paragraph must be documented.
-3. Conduct a DPIA under UK GDPR Article 35 — biometric processing for identification is on the ICO's mandatory DPIA list.
+3. Conduct a DPIA under UK GDPR Article 35 — biometric processing for identification typically requires a DPIA; verify against the ICO's current DPIA guidance and examples lists.
 4. Article 13/14 transparency notices must cover the Article 9(2) condition and DPA 2018 Schedule 1 condition relied upon.
 5. UK-to-third-country transfers require a UK IDTA or UK-approved SCCs (not EU SCCs).
 
@@ -554,7 +554,7 @@ Applies to this organisation: In scope — ${body.orgType} using ${body.biometri
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Article 6 GDPR lawful basis AND a separate Article 9(2) condition — both documented. In employment contexts, § 26 BDSG (processing for employment purposes) may provide a basis alongside Article 9(2)(b), but requires necessity and proportionality assessment.
-2. Mandatory DPIA under Article 35 — the DSK publishes a blacklist of processing operations requiring DPIAs; biometric identification systems are included.
+2. Mandatory DPIA under Article 35 — biometric identification systems generally require a DPIA; verify against the DSK's coordinated DPIA must-list and the competent state DPA's published criteria.
 3. Works council (Betriebsrat) codetermination rights: under § 87(1) no. 6 Betriebsverfassungsgesetz (BetrVG), the introduction of technical systems capable of monitoring employee conduct or performance — which includes biometric time-and-attendance or access systems — requires works council agreement before deployment. Proceeding without Betriebsrat consent exposes the employer to injunctive relief.
 4. Article 13/14 transparency notices in German identifying the Article 9(2) condition, biometric modalities, and data subject rights.
 5. Article 28 DPA for all processors; Article 46 safeguard for any non-EEA transfer.
@@ -569,7 +569,7 @@ Sale and sharing restrictions:
 § 26 BDSG limits employee data use to employment purposes. GDPR Article 5(1)(b) purpose limitation and Article 28 processor controls govern all sharing. Non-EEA transfers require an Article 46 safeguard.
 
 Current enforcement posture:
-German state DPAs are among the most active in Europe on special-category data. Refer to the BfDI and individual state DPA enforcement registers for current actions and penalties.
+German state DPAs actively enforce special-category-data obligations. Refer to the BfDI and individual state DPA enforcement registers for current actions and penalties.
 
 Priority actions:
 1. Obtain works council agreement (Betriebsvereinbarung) before deploying any employee biometric system — this is a legal pre-condition, not a best practice.
@@ -611,7 +611,7 @@ Priority actions:
 3. Conduct works committee consultation before deploying employee biometrics under Article 64 Estatuto de los Trabajadores and document the outcome.
 
 Compliance risk rating: HIGH
-AEPD enforcement of biometric obligations is among the most active in Europe; the proportionality requirement creates an additional substantive hurdle that many deployments fail without documented analysis.
+The AEPD actively enforces biometric obligations, and its proportionality requirement creates an additional substantive hurdle that many deployments fail without documented analysis.
 ---`;
     }
 
