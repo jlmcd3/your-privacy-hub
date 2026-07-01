@@ -4,6 +4,7 @@ import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
   identity:
