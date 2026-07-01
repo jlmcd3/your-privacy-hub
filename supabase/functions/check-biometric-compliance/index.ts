@@ -506,7 +506,7 @@ The CNIL is one of Europe's most active supervisory authorities on biometric pro
 Priority actions:
 1. Complete a DPIA before deployment and submit to the CNIL for prior consultation if residual risk remains high after mitigation.
 2. Obtain works council (CSE) consultation prior to any employee biometric deployment under French employment law (Code du travail L.2312-38).
-3. Execute Article 28 DPAs with all biometric data processors and confirm any non-EEA transfers use approved Article 46 safeguards.
+3. Execute Article 28 DPAs with all biometric data processors and confirm any non-EEA transfers either rely on an Article 45 adequacy decision or use an approved Article 46 safeguard.
 
 Compliance risk rating: HIGH
 CNIL enforcement is active and has targeted biometric workplace systems specifically; the mandatory DPIA and works council consultation requirements create clear procedural gaps for organisations that skip them.
