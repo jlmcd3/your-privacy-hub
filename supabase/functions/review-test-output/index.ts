@@ -389,7 +389,7 @@ async function handle(req: Request): Promise<Response> {
     });
     const removedSelfRetract = before1 - review.changes.length;
     if (removedSelfRetract > 0) {
-      console.log(`[review-test-output] stripped ${removedSelfRetract} self-retracting change item(s) (Rule 13 backstop, model=${chosenModel})`);
+      console.log(`[review-test-output] stripped ${removedSelfRetract} self-retracting change item(s) (Rule 14 backstop, model=${chosenModel})`);
     }
 
     // DETERMINISTIC RULE-1 BACKSTOP: strip any change item whose entire complaint
