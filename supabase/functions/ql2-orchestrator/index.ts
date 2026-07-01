@@ -113,10 +113,37 @@ async function callReviewer(
   return { data: null, lastError };
 }
 
+// Weighted toward legal correctness: accuracy + citations + hallucination_free
+// dominate; consistency and completeness contribute modestly; formatting is
+// excluded from the headline entirely (it is still returned in the per-dimension
+// scores object and visible in the raw review, it just does not move the score).
+// Mirrors the weighting philosophy already used by run-quality-batch's weightsFor().
+const SCORE_WEIGHTS: Record<string, number> = {
+  accuracy: 0.30,
+  citations: 0.28,
+  hallucination_free: 0.22,
+  consistency: 0.12,
+  completeness: 0.08,
+  formatting: 0,
+};
 function meanScore(review: any): number | null {
   const scores = review?.review?.scores ?? review?.scores;
   if (!scores || typeof scores !== "object") return null;
-  const vals = Object.values(scores).filter((v) => typeof v === "number") as number[];
+  let weightedSum = 0;
+  let weightUsed = 0;
+  for (const [dim, weight] of Object.entries(SCORE_WEIGHTS)) {
+    const v = (scores as any)[dim];
+    if (typeof v === "number" && weight > 0) {
+      weightedSum += v * weight;
+      weightUsed += weight;
+    }
+  }
+  if (weightUsed > 0) return weightedSum / weightUsed;
+  // Fallback: if the expected dimension names aren't present, revert to a flat
+  // mean of whatever numeric scores exist (excluding a `formatting` key if seen).
+  const vals = Object.entries(scores)
+    .filter(([k, v]) => typeof v === "number" && k !== "formatting")
+    .map(([, v]) => v as number);
   if (!vals.length) return null;
   return vals.reduce((a, b) => a + b, 0) / vals.length;
 }
