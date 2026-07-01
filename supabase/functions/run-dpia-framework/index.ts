@@ -415,7 +415,7 @@ Generate the first half of an EDPB-format DPIA (Overview, Systematic Description
       { "name": "processor / sub-processor (from intake), or 'None identified'", "obligations_and_tasks": "their obligations & tasks, or [TO COMPLETE — define obligations]" }
     ],
     "processing_name": "internal name from the record of processing activities",
-    "processing_version": "current version / change history (from intake), or [TO COMPLETE — version / change history]",
+    "processing_version": "initialise to the value used in technical_sheet.dpia_version (e.g. '1.0') with ' [update as processing changes]' appended; do not leave as a bare [TO COMPLETE] placeholder when the DPIA's own version number is already known",
     "planning": { "estimated_launch_date": "from intake or [TO COMPLETE — launch date]", "estimated_end_date": "from intake or 'Ongoing'" },
     "technical_sheet": {
       "dpia_version": "1.0",
