@@ -857,6 +857,16 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       throw updateErr;
     }
 
+    // Stage 1: metering + version retention.
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "dpa_generator",
+      assessmentId: rowId,
+      userId: resolvedUserId ?? null,
+      intake: (body as unknown) as Record<string, unknown>,
+      reportData: report_data,
+      documentText: dpa_text,
+    });
+
     // C4 RoPA accumulator: third-party processor onboarding is a RoPA event
     const dpaClientId = (body as any).client_id as string | null | undefined;
     if (dpaClientId) {
