@@ -601,6 +601,20 @@ export default function CPPARiskAssessment() {
                   autoComplete="organization"
                 />
               </div>
+              <div onFocus={() => focusRail('subject_anchor')}>
+                <Label htmlFor="subject_anchor">In one line — what processing does this assessment cover? <Req /></Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Set when you first generate; fixed across your revision runs. The detailed purpose (Step 6) remains editable.
+                </p>
+                <input
+                  id="subject_anchor"
+                  type="text"
+                  value={subjectAnchor}
+                  onChange={(e) => setSubjectAnchor(e.target.value)}
+                  placeholder="e.g., Fraud screening of new account signups"
+                  className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
+                />
+              </div>
               <div onFocus={() => focusRail('q1_revenue')}><Label>Q1: What is your business's annual gross revenue? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>
               <div onFocus={() => focusRail('q2_consumers')}><Label>Q2: How many California consumers' personal information do you process in a year? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(2)(A))</span></Label><p className="text-xs text-muted-foreground mt-1">Your best estimate of distinct California residents across all processing.</p><div className="mt-2"><Radio name="q2" options={CONSUMER_OPTS} value={q2} onChange={setQ2} /></div></div>
               <div onFocus={() => focusRail('q3_sector')}><Label>Q3: What is your primary business sector? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(a))</span></Label>
