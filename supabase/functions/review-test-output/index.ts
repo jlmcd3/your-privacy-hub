@@ -398,7 +398,7 @@ async function handle(req: Request): Promise<Response> {
     // observed to fail — see run20 DPA section (~20 such items in one run).
     const before2 = review.changes.length;
     const PLACEHOLDER_PROBLEM = /\bplaceholder(s)?\b/i;
-    const PLACEHOLDER_FIX = /\bensure\b[^.]*\b(is|are)\b[^.]*\bspecified\b/i;
+    const PLACEHOLDER_FIX = /\bensure\b[^.]*\bbefore execution\b|\bensure\b[^.]*\b(filled in|completed|specified|provided)\b/i;
     review.changes = review.changes.filter((c: any) => {
       const problem = String(c?.problem ?? "");
       const fix = String(c?.fix ?? "");
@@ -408,6 +408,19 @@ async function handle(req: Request): Promise<Response> {
     const removedPlaceholder = before2 - review.changes.length;
     if (removedPlaceholder > 0) {
       console.log(`[review-test-output] stripped ${removedPlaceholder} placeholder-fill-in change item(s) (Rule 1 backstop, model=${chosenModel})`);
+    }
+
+    const before3 = review.changes.length;
+    const FORMATTING_KEYWORDS = /\b(nested[- ]bracket|bracket format|visually inconsistent|em-dash|en-dash|paragraph break|readability|scannability|redundant phrasing|repeated in immediate succession|British spelling|American spelling|casing convention|capitali[sz]ation)\b/i;
+    review.changes = review.changes.filter((c: any) => {
+      const problem = String(c?.problem ?? "");
+      const severity = String(c?.severity ?? "").toLowerCase();
+      const isFormattingFlagged = FORMATTING_KEYWORDS.test(problem) && (severity === "low" || severity === "");
+      return !isFormattingFlagged;
+    });
+    const removedFormatting = before3 - review.changes.length;
+    if (removedFormatting > 0) {
+      console.log(`[review-test-output] stripped ${removedFormatting} formatting/cosmetic change item(s) (Rule 7 backstop, model=${chosenModel})`);
     }
   }
 
