@@ -144,7 +144,7 @@ const LIAssessmentIntake = () => {
     (async () => {
       const { data, error } = await supabase
         .from("li_assessments")
-        .select("id, user_id, organization_name, processing_description, data_categories, relationship_type, jurisdictions, preview_signal")
+        .select("id, user_id, organization_name, subject_anchor, processing_description, data_categories, relationship_type, jurisdictions, preview_signal")
         .eq("id", id)
         .single();
       if (error || !data) {
