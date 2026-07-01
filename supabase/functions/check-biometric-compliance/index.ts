@@ -1,3 +1,4 @@
+// run-meter deploy-check v1
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";

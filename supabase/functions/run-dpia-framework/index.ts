@@ -1,3 +1,4 @@
+// run-meter deploy-check v1
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";

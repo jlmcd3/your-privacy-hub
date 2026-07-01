@@ -1,3 +1,4 @@
+// run-meter deploy-check v1
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
@@ -654,7 +655,6 @@ Return JSON:
 
     const dpiaScope = synthesis.dpia_scope || [];
 
-    await supabase.from("governance_assessments").update({
     await supabase.from("governance_assessments").update({
       status: "complete",
       report_data: reportData,

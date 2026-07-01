@@ -48,6 +48,7 @@ export async function recordRunMeterAndVersion(
         .eq("id", meter.id);
       nextVersion = (meter.runs_used ?? 0) + 1;
     }
+    console.log(JSON.stringify({ evt: "run_meter_recorded", tool: toolType, assessment: assessmentId, version: nextVersion }));
 
     await supabase.from("tool_run_versions").insert({
       user_id: userId,
