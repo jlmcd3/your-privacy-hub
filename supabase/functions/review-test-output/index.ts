@@ -320,11 +320,18 @@ async function handle(req: Request): Promise<Response> {
   const trimmed = outputStr.length > 80_000 ? outputStr.slice(0, 80_000) + "\n…[truncated]" : outputStr;
 
   const isImprovement = mode === "improvement";
-  const system = isImprovement ? IMPROVEMENT_SYSTEM_PROMPT : RUBRIC_SYSTEM_PROMPT;
+  const baseSystem = isImprovement ? IMPROVEMENT_SYSTEM_PROMPT : RUBRIC_SYSTEM_PROMPT;
 
   // Resolve reviewer: explicit `model` wins; default = Claude (legacy behavior).
   const chosenModel: string = (model && String(model).trim()) || DEFAULT_CLAUDE;
   const isOpenAI = /^gpt-/i.test(chosenModel) || /^o[0-9]/i.test(chosenModel);
+
+  // gpt-4o-specific range calibration. Use the full 0-100 scale and reserve
+  // deductions for genuine defects — do not cluster scores in a narrow band.
+  const OPENAI_CALIBRATION = `
+
+SCORE-RANGE CALIBRATION: Use the FULL 0-100 range and treat 100 as genuinely attainable. An output with no substantive defect — no factual/legal error, no fabrication, no internal contradiction, no structural break — should score in the 97-100 band, not parked at 95. Do NOT default to ~95 as a generic "very good" ceiling. Reserve every deduction for a specific, substantive defect you can name in the changes[] list: if you cannot point to a concrete defect that justifies a point off a dimension, do not take that point off. Score each dimension independently on its own merits — do not compress all dimensions toward a single middle value. A dimension with zero defects found is a 98-100, not a 95. Only descend below 95 on a dimension when you have listed at least one genuine (non-cosmetic, non-placeholder, non-"verify") defect bearing on that dimension.`;
+  const system = isOpenAI ? baseSystem + OPENAI_CALIBRATION : baseSystem;
 
   const userMessage = [
     `CURRENT DATE (authoritative; later than your training cutoff): ${new Date().toISOString().slice(0, 10)}`,
