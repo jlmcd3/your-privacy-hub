@@ -86,6 +86,20 @@ const EDITABLE_COLUMNS: Record<string, string[]> = {
   cppa_cybersecurity: [],
 };
 
+// li_assessments has NO intake_data column — its intake lives in dedicated columns only.
+// Including a non-existent column causes PostgREST to reject the ENTIRE update.
+const HAS_INTAKE_DATA: Record<string, boolean> = {
+  li_assessment: false,
+  governance_assessment: true,
+  dpia_framework: true,
+  dpa_generator: true,
+  ir_playbook: true,
+  biometric_checker: true,
+  cppa_admt: true,
+  cppa_risk_assessment: true,
+  cppa_cybersecurity: true,
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
@@ -134,13 +148,17 @@ Deno.serve(async (req) => {
   const table = TABLE_MAP[tool_type];
   if (!table) return json({ error: "unknown_tool" }, 400);
 
-  const { data: row } = await supabase
-    .from(table)
-    .select("intake_data")
-    .eq("id", assessment_id)
-    .single();
+  const hasIntake = HAS_INTAKE_DATA[tool_type] ?? true;
+  let mergedIntake: Record<string, unknown> | undefined;
+  if (hasIntake) {
+    const { data: row } = await supabase
+      .from(table)
+      .select("intake_data")
+      .eq("id", assessment_id)
+      .single();
 
-  const mergedIntake = { ...((row?.intake_data as Record<string, unknown>) ?? {}), ...edits };
+    mergedIntake = { ...((row?.intake_data as Record<string, unknown>) ?? {}), ...edits };
+  }
 
   // Filter edits down to keys that exist as dedicated columns on this tool's
   // table so generators reading columns directly (e.g. LIA reads
@@ -152,10 +170,16 @@ Deno.serve(async (req) => {
     if (k in edits) columnEdits[k] = edits[k];
   }
 
-  await supabase
+  const updateObj = { ...(hasIntake ? { intake_data: mergedIntake } : {}), ...columnEdits };
+  const { error: updErr } = await supabase
     .from(table)
-    .update({ intake_data: mergedIntake, ...columnEdits })
+    .update(updateObj)
     .eq("id", assessment_id);
+
+  if (updErr) {
+    console.error("regen intake update failed:", updErr.message);
+    return json({ error: "intake_update_failed", detail: updErr.message }, 500);
+  }
 
   const bodyKey = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
   // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime.
