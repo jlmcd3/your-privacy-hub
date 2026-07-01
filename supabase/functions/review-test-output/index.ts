@@ -465,6 +465,23 @@ SCORE-RANGE CALIBRATION: Use the FULL 0-100 range and let the score MOVE with th
     if (removedIntake > 0) {
       console.log(`[review-test-output] stripped ${removedIntake} unseen-intake-absence item(s) (Rule 5 backstop, model=${chosenModel})`);
     }
+
+    // DETERMINISTIC RULE-5 BACKSTOP (self-cancelling variant): strip items whose
+    // own fix text concedes the output is actually fine — e.g. "change status to
+    // compliant", "no gap in the output", "the output already provides […]
+    // satisfying the provision". This is the reliable signature of the reviewer
+    // treating an intake placeholder value ("(not specified)", "(not tracked)")
+    // as an output defect and then retracting it in the same item.
+    const before5b = review.changes.length;
+    const SELF_CANCEL_FIX = /change (the )?status to ['"]?compliant|no gap in the output|not a (missing|gap)[^.]{0,30}(element|in the output)|the output (has|provides|includes|already contains)[^.]{0,60}(satisfying|satisfies|complete)/i;
+    review.changes = review.changes.filter((c: any) => {
+      const fix = String(c?.fix ?? "");
+      return !SELF_CANCEL_FIX.test(fix);
+    });
+    const removedSelfCancel = before5b - review.changes.length;
+    if (removedSelfCancel > 0) {
+      console.log(`[review-test-output] stripped ${removedSelfCancel} self-cancelling item(s) (Rule 5 backstop, model=${chosenModel})`);
+    }
   }
 
   return jsonResp({ ok: true, testId, model: chosenModel, review });
