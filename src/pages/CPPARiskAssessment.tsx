@@ -420,7 +420,7 @@ export default function CPPARiskAssessment() {
     exceptions_intake: exceptionClaims,
     impact_intake: impactData,
   }), [
-    entityName,
+    entityName, subjectAnchor,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
