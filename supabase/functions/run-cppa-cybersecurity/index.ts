@@ -828,7 +828,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
 
       const gapContext = [c?.finding, c?.remediation, c?.regulatory_basis]
         .filter(Boolean).join(" ").slice(0, 1500);
-      const semantic = await semanticFsorForControl(c?.control ?? "", gapContext);
+      const semantic = await semanticFsorForControl(c?.control ?? "", gapContext, citation);
 
       let merged = exact.slice();
       if (exact.length === 0) {
