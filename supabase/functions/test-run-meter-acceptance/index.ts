@@ -346,7 +346,7 @@ async function runAcceptance(
         edited_fields: {
           processing_description: `${SETUP_DESC} Iteration ${i}.`,
         },
-      });
+      }, makeProbe(i - 1));
       if (r.status !== 200 || r.body?.ok !== true) {
         await push(
           `D-await ${tag} regen HTTP ok`,
@@ -397,13 +397,15 @@ async function runAcceptance(
       })
       .eq("tool_type", TOOL_TYPE)
       .eq("assessment_id", assessmentId);
+    // 15s spacing between the D-loop's final generation and the E regen.
+    await new Promise((r) => setTimeout(r, 15_000));
     const rE = await callRegen(authHeader, {
       tool_type: TOOL_TYPE,
       assessment_id: assessmentId,
       edited_fields: {
         processing_description: `${SETUP_DESC} Extension iteration.`,
       },
-    });
+    }, makeProbe(4));
     if (rE.status !== 200 || rE.body?.ok !== true) {
       await push(
         "E1 post-extension regen ok + meter 5/8/ext=1",
@@ -411,12 +413,12 @@ async function runAcceptance(
         `HTTP ${rE.status} body=${JSON.stringify(rE.body)}`,
       );
     } else {
-      const s = await pollLIA(svc, assessmentId);
-      if (s !== "complete") {
+      const gE = await awaitGeneration(svc, assessmentId);
+      if (gE.status !== "complete") {
         await push(
           "E1 post-extension regen ok + meter 5/8/ext=1",
           false,
-          `run status=${s}`,
+          gE.detail,
         );
       } else {
         const { value: mE, waitedMs: waitE1 } = await settlePoll(
