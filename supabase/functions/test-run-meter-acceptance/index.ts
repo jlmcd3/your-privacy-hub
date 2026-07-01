@@ -235,8 +235,12 @@ async function runAcceptance(
       bRes.status === 200 && bRes.body?.ok === true,
       `HTTP ${bRes.status} body=${JSON.stringify(bRes.body)}`,
     );
-    const s2 = await pollLIA(svc, assessmentId);
-    if (s2 !== "complete") throw new Error(`run 2 status=${s2}`);
+    const g2 = await awaitGeneration(svc, assessmentId);
+    if (g2.status !== "complete") {
+      await push(`B-await run 2 generation completed`, false, g2.detail);
+      return;
+    }
+
     const { value: b2, waitedMs: waitB2 } = await settlePoll(
       async () => ({ meter: await readMeter(), versions: await readVersions() }),
       (x: any) => x.meter?.runs_used === 2 && x.versions.includes(2),
