@@ -256,6 +256,16 @@ export default function CPPARiskAssessmentResult() {
               </section>
             )}
 
+            {(() => {
+              const { meter } = useRunMeter("cppa_risk_assessment", id);
+              return meter ? (
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/cppa-risk-assessment?refine=${id}`}
+                  onExtend={() => startMeterExtension("cppa_risk_assessment", id!)}
+                />
+              ) : null;
+            })()}
             {isV3 && <RiskAssessmentReportV3 report={report as any} />}
             {isV4 && <RiskAssessmentReportV4 report={report as any} />}
 
