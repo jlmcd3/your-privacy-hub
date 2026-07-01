@@ -158,6 +158,7 @@ const SampleReport = lazy(() => import("./pages/SampleReport.tsx"));
 const SampleReportOutput = lazy(() => import("./pages/SampleReportOutput.tsx"));
 const TestsGdprDocs = lazy(() => import("./pages/admin/TestsGdprDocs"));
 const AdminAssertionTests = lazy(() => import("./pages/admin/AdminAssertionTests"));
+const AdminTestRunMeter = lazy(() => import("./pages/admin/AdminTestRunMeter"));
 const queryClient = new QueryClient();
 
 function CategoryRedirect() {
@@ -647,6 +648,17 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/test-run-meter"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <AdminTestRunMeter />
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="/li-assessment" element={<LIAssessment />} />
             <Route path="/li-assessment/intake/:id" element={<LIAssessmentIntake />} />
             <Route
