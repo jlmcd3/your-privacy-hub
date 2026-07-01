@@ -1,3 +1,4 @@
+// deploy-check v2 — editable-columns merge
 // regenerate-assessment: single client-initiated path for every run after the first.
 // Stage 1 Prompt 1.6 — gated entry that enforces meter budget + locked-field policy,
 // merges non-locked edits into intake_data, and re-invokes the generator.
