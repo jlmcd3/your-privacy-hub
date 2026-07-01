@@ -729,6 +729,28 @@ async function runPipeline(assessment_id: string) {
     }
 
 
+    // DETERMINISTIC § 7157 DEADLINE NORMALISATION: the model has twice produced a
+    // specific "2028-01-01" deadline for the § 7157 annual attestation despite an
+    // explicit prompt rule against it (deadline_basis correctly says the exact
+    // date within 2028 is unconfirmed). Rather than a third prompt-only attempt,
+    // correct it deterministically: any priority_action referencing § 7157 with a
+    // deadline matching a specific 2028 ISO date gets rewritten to the bracketed
+    // placeholder form, regardless of what the model produced.
+    if (parsed && Array.isArray(parsed.priority_actions)) {
+      const SEVEN_157_PATTERN = /§\s*7157|section\s*7157/i;
+      const SPECIFIC_2028_DATE = /^2028-\d{2}-\d{2}$/;
+      for (const action of parsed.priority_actions) {
+        const referencesSeven157 =
+          SEVEN_157_PATTERN.test(String(action?.action ?? "")) ||
+          SEVEN_157_PATTERN.test(String(action?.statutory_basis ?? "")) ||
+          SEVEN_157_PATTERN.test(String(action?.deadline_basis ?? ""));
+        if (referencesSeven157 && SPECIFIC_2028_DATE.test(String(action?.deadline ?? ""))) {
+          console.warn(`[cppa-risk] normalised § 7157 deadline from "${action.deadline}" to bracketed placeholder (deterministic backstop)`);
+          action.deadline = "[2028 — exact date to be confirmed per § 7157 and regulatory guidance]";
+        }
+      }
+    }
+
     const report_data = {
       schema_version: "v4-five-stage",
       generated_at: new Date().toISOString(),
