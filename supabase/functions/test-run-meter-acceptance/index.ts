@@ -296,6 +296,12 @@ async function runAcceptance(
 
     // ── (d) EXHAUSTION ────────────────────────────────────────────────────────
     for (const [i, tag] of [[3, "run3"], [4, "run4"]] as const) {
+      // Space back-to-back regens to avoid hammering the model API — 15s
+      // between the two D-step generations. First iteration has no prior
+      // D-step call to space from.
+      if (i === 4) {
+        await new Promise((r) => setTimeout(r, 15_000));
+      }
       const r = await callRegen(authHeader, {
         tool_type: TOOL_TYPE,
         assessment_id: assessmentId,
@@ -304,11 +310,20 @@ async function runAcceptance(
         },
       });
       if (r.status !== 200 || r.body?.ok !== true) {
-        throw new Error(`${tag} regen HTTP ${r.status} body=${JSON.stringify(r.body)}`);
+        await push(
+          `D-await ${tag} regen HTTP ok`,
+          false,
+          `HTTP ${r.status} body=${JSON.stringify(r.body)}`,
+        );
+        return;
       }
-      const s = await pollLIA(svc, assessmentId);
-      if (s !== "complete") throw new Error(`${tag} status=${s}`);
+      const g = await awaitGeneration(svc, assessmentId);
+      if (g.status !== "complete") {
+        await push(`D-await ${tag} generation completed`, false, g.detail);
+        return;
+      }
     }
+
     const r5 = await callRegen(authHeader, {
       tool_type: TOOL_TYPE,
       assessment_id: assessmentId,
