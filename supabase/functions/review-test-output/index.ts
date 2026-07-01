@@ -48,7 +48,7 @@ Review the supplied TOOL OUTPUT for errors, inconsistencies, mistakes, erroneous
 
 REVIEW DISCIPLINE — the generators under review produce DRAFT privacy-compliance documents and assessments. Apply these rules exactly; getting them wrong has produced real false positives:
 
-1. TEMPLATE PLACEHOLDERS ARE NOT ERRORS. Square-bracket fill-in fields meant for the end-user or their counsel to complete — e.g. "[TO BE COMPLETED]", "[TO COMPLETE — …]", "[Owner: …]", "[X] days", "[verify …]", "[Generation Date]" — are intentional. Do NOT list them as changes, do NOT lower ANY score for their presence, and do NOT recommend "provide/fill in the value." Only flag a placeholder if a deterministic value the generator clearly should have computed itself is missing; when in doubt, treat it as intended. In legal instruments (DPAs, contracts, notices) the parties' negotiated terms — retention periods, RTO/RPO, patch/backup windows, sub-processor locations, transfer mechanisms, authorisation dates — are deliberately left for the customer and their counsel to choose. NEVER recommend that the generator insert a specific recommended value for these (no "add a recommended retention period such as '12 months'", no "set RTO to 4 hours"); doing so is adaptive legal advice the product is designed not to give. A blank or bracketed term in a contract is correct-by-design.
+1. TEMPLATE PLACEHOLDERS ARE NOT ERRORS. Square-bracket fill-in fields meant for the end-user or their counsel to complete — e.g. "[TO BE COMPLETED]", "[TO COMPLETE — …]", "[Owner: …]", "[X] days", "[verify …]", "[Generation Date]" — are intentional. Do NOT list them as changes, do NOT lower ANY score for their presence, and do NOT recommend "provide/fill in the value." Only flag a placeholder if a deterministic value the generator clearly should have computed itself is missing; when in doubt, treat it as intended. In legal instruments (DPAs, contracts, notices) the parties' negotiated terms — retention periods, RTO/RPO, patch/backup windows, sub-processor locations, transfer mechanisms, authorisation dates — are deliberately left for the customer and their counsel to choose. NEVER recommend that the generator insert a specific recommended value for these (no "add a recommended retention period such as '12 months'", no "set RTO to 4 hours"); doing so is adaptive legal advice the product is designed not to give. A blank or bracketed term in a contract is correct-by-design. DO NOT ENUMERATE EACH PLACEHOLDER SEPARATELY: a document with 20 negotiable placeholders is not 20 defects — it is zero defects. Do not produce one changes[] item per blank field ("X is a placeholder and needs to be specified... Ensure X is specified before execution" is exactly the banned pattern, no matter how many different field names you substitute for X). If you find yourself about to list more than one placeholder-related item for the same document, stop — you are violating this rule, not documenting distinct issues.
 
 2. THE CURRENT DATE (supplied in the user message) IS AUTHORITATIVE AND IS LATER THAN YOUR TRAINING CUTOFF. NEVER flag a date, timestamp, deadline, or cited event as "in the future", "future-dated", "temporally impossible", or "should be a past date" when it is at or before the current date. Generated documents are produced on the current date, so a generation timestamp at or near it is correct. Do NOT treat a regulation, guidance, or enforcement action as impossible merely because it post-dates your training.
 
@@ -373,19 +373,39 @@ async function handle(req: Request): Promise<Response> {
   if (!review) return jsonResp({ error: "Reviewer returned non-JSON", raw: raw.slice(0, 1000) }, 500);
 
   // DETERMINISTIC RULE-13 BACKSTOP: strip any change item whose own `fix` text
-  // self-retracts (e.g. "no change required / correct by design"). The model is
-  // already instructed not to list such items, but this has been observed to fail
-  // within a single generation. This does not touch scores.
+  // self-retracts (e.g. "no change required / correct by design"). Broadened from
+  // the original version, which only matched one exact phrasing and missed
+  // variants like "this is not a substantive defect" / "this is not a defect".
+  // The model is already instructed not to list such items, but this has been
+  // observed to fail within a single generation. This does not touch scores.
   if (review && Array.isArray(review.changes)) {
-    const SELF_RETRACT_PATTERN = /no change required|correct by design|correct-by-design/i;
-    const before = review.changes.length;
+    const SELF_RETRACT_PATTERN = /no change required|correct by design|correct-by-design|not a substantive defect|not a defect\b|not an? (actual |genuine )?(error|issue|problem)/i;
+    const before1 = review.changes.length;
     review.changes = review.changes.filter((c: any) => {
-      const fixText = String(c?.fix ?? "");
-      return !SELF_RETRACT_PATTERN.test(fixText);
+      const text = `${c?.problem ?? ""} ${c?.fix ?? ""}`;
+      return !SELF_RETRACT_PATTERN.test(text);
     });
-    const removed = before - review.changes.length;
-    if (removed > 0) {
-      console.log(`[review-test-output] stripped ${removed} self-retracting change item(s) (Rule 13 backstop, model=${chosenModel})`);
+    const removedSelfRetract = before1 - review.changes.length;
+    if (removedSelfRetract > 0) {
+      console.log(`[review-test-output] stripped ${removedSelfRetract} self-retracting change item(s) (Rule 13 backstop, model=${chosenModel})`);
+    }
+
+    // DETERMINISTIC RULE-1 BACKSTOP: strip any change item whose entire complaint
+    // is "this field is a placeholder and needs a value" for a legal-instrument
+    // negotiable term. Rule 1 already forbids this explicitly, but has been
+    // observed to fail — see run20 DPA section (~20 such items in one run).
+    const before2 = review.changes.length;
+    const PLACEHOLDER_PROBLEM = /\bplaceholder(s)?\b/i;
+    const PLACEHOLDER_FIX = /\bensure\b[^.]*\b(is|are)\b[^.]*\bspecified\b/i;
+    review.changes = review.changes.filter((c: any) => {
+      const problem = String(c?.problem ?? "");
+      const fix = String(c?.fix ?? "");
+      const looksLikePlaceholderFlag = PLACEHOLDER_PROBLEM.test(problem) && PLACEHOLDER_FIX.test(fix);
+      return !looksLikePlaceholderFlag;
+    });
+    const removedPlaceholder = before2 - review.changes.length;
+    if (removedPlaceholder > 0) {
+      console.log(`[review-test-output] stripped ${removedPlaceholder} placeholder-fill-in change item(s) (Rule 1 backstop, model=${chosenModel})`);
     }
   }
 
