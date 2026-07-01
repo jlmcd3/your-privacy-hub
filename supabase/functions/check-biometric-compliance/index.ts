@@ -566,7 +566,7 @@ Retention and destruction:
 Delete biometric templates when the employment relationship ends or the stated purpose expires — define the destruction trigger in the Betriebsvereinbarung or retention policy.
 
 Sale and sharing restrictions:
-§ 26 BDSG limits employee data use to employment purposes. GDPR Article 5(1)(b) purpose limitation and Article 28 processor controls govern all sharing. Non-EEA transfers require an Article 46 safeguard.
+§ 26 BDSG limits employee data use to employment purposes. GDPR Article 5(1)(b) purpose limitation and Article 28 processor controls govern all sharing. Non-EEA transfers require an Article 45 adequacy decision or, absent one, an Article 46 safeguard.
 
 Current enforcement posture:
 German state DPAs actively enforce special-category-data obligations. Refer to the BfDI and individual state DPA enforcement registers for current actions and penalties.
