@@ -828,13 +828,9 @@ Return JSON:
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`
     };
 
-    await supabase.from("li_assessments").update({
-      status: "complete",
-      report_data: reportData,
-      updated_at: new Date().toISOString(),
-    }).eq("id", assessment_id);
-
     // Stage 1: metering + version retention (successful runs only).
+    // Written BEFORE status:complete so that any client observing "complete"
+    // will also see the meter/version rows.
     await recordRunMeterAndVersion(supabase, {
       toolType: "li_assessment",
       assessmentId: assessment_id,
@@ -848,6 +844,13 @@ Return JSON:
       },
       reportData,
     });
+
+    await supabase.from("li_assessments").update({
+      status: "complete",
+      report_data: reportData,
+      updated_at: new Date().toISOString(),
+    }).eq("id", assessment_id);
+
 
     // C4 RoPA accumulator: draft a suggested processing activity into the
     // client's active RoPA session (fire-and-forget, non-fatal).

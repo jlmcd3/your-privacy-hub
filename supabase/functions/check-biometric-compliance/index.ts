@@ -1120,6 +1120,16 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     if (!isDryRun) {
     try {
       if (body.assessment_id) {
+        // Stage 1: metering + version retention BEFORE status:complete so a
+        // client observing "complete" also sees the meter/version rows.
+        await recordRunMeterAndVersion(supabase, {
+          toolType: "biometric_checker",
+          assessmentId: body.assessment_id,
+          userId: resolvedUserId ?? null,
+          intake: (body as unknown) as Record<string, unknown>,
+          reportData: report_data,
+          documentText: assessment_text,
+        });
         const { data, error } = await supabase
           .from("biometric_assessments")
           .update({
@@ -1137,6 +1147,8 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
         if (error) throw error;
         savedId = data?.id ?? body.assessment_id;
       } else {
+        // Insert path: row id is not known until after insert, so meter is
+        // written immediately after. Status is set inside the insert.
         const { data, error } = await supabase
           .from("biometric_assessments")
           .insert({
@@ -1153,22 +1165,20 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
           .single();
         if (error) throw error;
         savedId = data.id;
+        await recordRunMeterAndVersion(supabase, {
+          toolType: "biometric_checker",
+          assessmentId: savedId!,
+          userId: resolvedUserId ?? null,
+          intake: (body as unknown) as Record<string, unknown>,
+          reportData: report_data,
+          documentText: assessment_text,
+        });
       }
     } catch (persistErr) {
       console.error("biometric_assessments persist failed:", persistErr);
     }
-    if (savedId) {
-      // Stage 1: metering + version retention.
-      await recordRunMeterAndVersion(supabase, {
-        toolType: "biometric_checker",
-        assessmentId: savedId,
-        userId: resolvedUserId ?? null,
-        intake: (body as unknown) as Record<string, unknown>,
-        reportData: report_data,
-        documentText: assessment_text,
-      });
     }
-    }
+
 
     await finishFunctionRun(supabase, fnRun, {
       status: isDryRun ? "success" : (savedId ? "success" : "partial"),

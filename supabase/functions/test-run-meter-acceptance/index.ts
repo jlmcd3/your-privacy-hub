@@ -30,7 +30,27 @@ function j(body: unknown, status = 200) {
   });
 }
 
+// Settle-poll for meter/version reads. The generator writes meter+versions
+// immediately before status:complete, but PostgREST cache/eventual-consistency
+// can lag by a beat — poll every 2s up to 30s until the expected condition
+// holds (or return the final observation). Returns { value, waitedMs }.
+async function settlePoll<T>(
+  read: () => Promise<T>,
+  ok: (v: T) => boolean,
+  maxMs = 30_000,
+  stepMs = 2_000,
+): Promise<{ value: T; waitedMs: number }> {
+  const start = Date.now();
+  let value = await read();
+  while (!ok(value) && Date.now() - start < maxMs) {
+    await new Promise((r) => setTimeout(r, stepMs));
+    value = await read();
+  }
+  return { value, waitedMs: Date.now() - start };
+}
+
 async function pollLIA(
+
   svc: ReturnType<typeof createClient>,
   id: string,
   maxSec = 180,
@@ -128,17 +148,32 @@ async function runAcceptance(
     const s1 = await pollLIA(svc, assessmentId);
     if (s1 !== "complete") throw new Error(`run 1 status=${s1}`);
 
-    const { data: m1 } = await svc
-      .from("tool_run_meter")
-      .select("*")
-      .eq("tool_type", TOOL_TYPE)
-      .eq("assessment_id", assessmentId)
-      .maybeSingle();
-    const meter1 = m1 as any;
+    const readMeter = () =>
+      svc
+        .from("tool_run_meter")
+        .select("*")
+        .eq("tool_type", TOOL_TYPE)
+        .eq("assessment_id", assessmentId)
+        .maybeSingle()
+        .then((r: any) => r.data);
+    const readVersions = () =>
+      svc
+        .from("tool_run_versions")
+        .select("version")
+        .eq("tool_type", TOOL_TYPE)
+        .eq("assessment_id", assessmentId)
+        .then((r: any) => ((r.data as any[]) ?? []).map((v) => v.version).sort());
+
+    const { value: meter1, waitedMs: waitA1 } = await settlePoll(
+      readMeter,
+      (m: any) => !!m && m.runs_used === 1 && m.runs_allowed === 4,
+    );
     await push(
       "A1 meter created with runs_used=1, runs_allowed=4",
       !!meter1 && meter1.runs_used === 1 && meter1.runs_allowed === 4,
-      meter1 ? `runs_used=${meter1.runs_used} runs_allowed=${meter1.runs_allowed}` : "no meter row",
+      meter1
+        ? `runs_used=${meter1.runs_used} runs_allowed=${meter1.runs_allowed} (waited ${waitA1}ms)`
+        : `no meter row (waited ${waitA1}ms)`,
     );
     const lockedAnchor = meter1?.locked_fields?.subject_anchor;
     await push(
@@ -146,16 +181,14 @@ async function runAcceptance(
       lockedAnchor === intake.subject_anchor,
       `locked_fields.subject_anchor=${JSON.stringify(lockedAnchor)}`,
     );
-    const { data: v1rows } = await svc
-      .from("tool_run_versions")
-      .select("version")
-      .eq("tool_type", TOOL_TYPE)
-      .eq("assessment_id", assessmentId);
-    const versions1 = (v1rows as any[]) ?? [];
+    const { value: versions1, waitedMs: waitA3 } = await settlePoll(
+      readVersions,
+      (vs) => vs.length === 1 && vs[0] === 1,
+    );
     await push(
       "A3 tool_run_versions has exactly one row, version=1",
-      versions1.length === 1 && versions1[0].version === 1,
-      `versions=${JSON.stringify(versions1.map((v: any) => v.version))}`,
+      versions1.length === 1 && versions1[0] === 1,
+      `versions=${JSON.stringify(versions1)} (waited ${waitA3}ms)`,
     );
 
     // ── (b) OPEN-FIELD REGEN ──────────────────────────────────────────────────
@@ -172,23 +205,16 @@ async function runAcceptance(
     );
     const s2 = await pollLIA(svc, assessmentId);
     if (s2 !== "complete") throw new Error(`run 2 status=${s2}`);
-    const { data: m2 } = await svc
-      .from("tool_run_meter")
-      .select("runs_used")
-      .eq("tool_type", TOOL_TYPE)
-      .eq("assessment_id", assessmentId)
-      .maybeSingle();
-    const { data: v2rows } = await svc
-      .from("tool_run_versions")
-      .select("version")
-      .eq("tool_type", TOOL_TYPE)
-      .eq("assessment_id", assessmentId);
-    const versions2 = ((v2rows as any[]) ?? []).map((v) => v.version).sort();
+    const { value: b2, waitedMs: waitB2 } = await settlePoll(
+      async () => ({ meter: await readMeter(), versions: await readVersions() }),
+      (x: any) => x.meter?.runs_used === 2 && x.versions.includes(2),
+    );
     await push(
       "B2 meter runs_used=2 and version 2 exists",
-      (m2 as any)?.runs_used === 2 && versions2.includes(2),
-      `runs_used=${(m2 as any)?.runs_used} versions=${JSON.stringify(versions2)}`,
+      b2.meter?.runs_used === 2 && b2.versions.includes(2),
+      `runs_used=${b2.meter?.runs_used} versions=${JSON.stringify(b2.versions)} (waited ${waitB2}ms)`,
     );
+
     // Read persisted intake — LIA stores it in top-level columns; also check
     // intake_data JSON if the column exists on this row (some generators use it).
     const { data: liRow } = await svc
@@ -261,17 +287,16 @@ async function runAcceptance(
         r5.body?.can_extend === true,
       `HTTP ${r5.status} body=${JSON.stringify(r5.body)}`,
     );
-    const { data: mD } = await svc
-      .from("tool_run_meter")
-      .select("runs_used, runs_allowed")
-      .eq("tool_type", TOOL_TYPE)
-      .eq("assessment_id", assessmentId)
-      .maybeSingle();
+    const { value: mD, waitedMs: waitD2 } = await settlePoll(
+      readMeter,
+      (m: any) => m?.runs_used === 4 && m?.runs_allowed === 4,
+    );
     await push(
       "D2 meter shows runs_used=4, runs_allowed=4",
       (mD as any)?.runs_used === 4 && (mD as any)?.runs_allowed === 4,
-      `runs_used=${(mD as any)?.runs_used} runs_allowed=${(mD as any)?.runs_allowed}`,
+      `runs_used=${(mD as any)?.runs_used} runs_allowed=${(mD as any)?.runs_allowed} (waited ${waitD2}ms)`,
     );
+
 
     // ── (e) EXTENSION GRANT (simulated webhook) ───────────────────────────────
     await svc
@@ -305,18 +330,18 @@ async function runAcceptance(
           `run status=${s}`,
         );
       } else {
-        const { data: mE } = await svc
-          .from("tool_run_meter")
-          .select("runs_used, runs_allowed, extension_count")
-          .eq("tool_type", TOOL_TYPE)
-          .eq("assessment_id", assessmentId)
-          .maybeSingle();
+        const { value: mE, waitedMs: waitE1 } = await settlePoll(
+          readMeter,
+          (m: any) =>
+            m?.runs_used === 5 && m?.runs_allowed === 8 && m?.extension_count === 1,
+        );
         const mEa = mE as any;
         await push(
           "E1 post-extension regen ok + meter 5/8/ext=1",
           mEa?.runs_used === 5 && mEa?.runs_allowed === 8 && mEa?.extension_count === 1,
-          `runs_used=${mEa?.runs_used} runs_allowed=${mEa?.runs_allowed} extension_count=${mEa?.extension_count}`,
+          `runs_used=${mEa?.runs_used} runs_allowed=${mEa?.runs_allowed} extension_count=${mEa?.extension_count} (waited ${waitE1}ms)`,
         );
+
       }
     }
 

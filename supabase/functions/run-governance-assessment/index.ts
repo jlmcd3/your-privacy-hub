@@ -655,14 +655,7 @@ Return JSON:
 
     const dpiaScope = synthesis.dpia_scope || [];
 
-    await supabase.from("governance_assessments").update({
-      status: "complete",
-      report_data: reportData,
-      dpia_scope: dpiaScope,
-      updated_at: new Date().toISOString(),
-    }).eq("id", assessment_id);
-
-    // Stage 1: metering + version retention.
+    // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "governance_assessment",
       assessmentId: assessment_id,
@@ -673,6 +666,14 @@ Return JSON:
       },
       reportData,
     });
+
+    await supabase.from("governance_assessments").update({
+      status: "complete",
+      report_data: reportData,
+      dpia_scope: dpiaScope,
+      updated_at: new Date().toISOString(),
+    }).eq("id", assessment_id);
+
 
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "governance_assessments", sourceRowId: assessment_id });
 

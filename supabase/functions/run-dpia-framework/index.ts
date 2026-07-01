@@ -754,13 +754,7 @@ Generate substantive draft rows for every table for the controller to verify; us
         : [];
     } catch { reportData.annotations = []; }
 
-    await supabase.from("dpia_frameworks").update({
-      status: "complete",
-      report_data: reportData,
-      updated_at: new Date().toISOString(),
-    }).eq("id", dpia_id);
-
-    // Stage 1: metering + version retention.
+    // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "dpia_framework",
       assessmentId: dpia_id,
@@ -768,6 +762,13 @@ Generate substantive draft rows for every table for the controller to verify; us
       intake: (dpia.intake_data as Record<string, unknown>) ?? {},
       reportData,
     });
+
+    await supabase.from("dpia_frameworks").update({
+      status: "complete",
+      report_data: reportData,
+      updated_at: new Date().toISOString(),
+    }).eq("id", dpia_id);
+
 
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id });
 
