@@ -752,7 +752,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       "ccpa-2023-original": 2,
     };
 
-    async function semanticFsorForControl(controlName: string, gapContext: string): Promise<any[]> {
+    async function semanticFsorForControl(controlName: string, gapContext: string, citationFilter: string): Promise<any[]> {
       if (!LOVABLE_API_KEY) return [];
       try {
         const queryText =
