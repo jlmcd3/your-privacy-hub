@@ -89,6 +89,7 @@ const LIAssessment = () => {
   const pricing = useToolPrice("li_assessment");
 
   const [organizationName, setOrganizationName] = useState("");
+  const [subjectAnchor, setSubjectAnchor] = useState("");
   const [processingDescription, setProcessingDescription] = useState("");
   const [dataCategories, setDataCategories] = useState<string[]>([]);
   const [relationship, setRelationship] = useState("");
