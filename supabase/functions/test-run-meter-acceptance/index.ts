@@ -287,17 +287,16 @@ async function runAcceptance(
         r5.body?.can_extend === true,
       `HTTP ${r5.status} body=${JSON.stringify(r5.body)}`,
     );
-    const { data: mD } = await svc
-      .from("tool_run_meter")
-      .select("runs_used, runs_allowed")
-      .eq("tool_type", TOOL_TYPE)
-      .eq("assessment_id", assessmentId)
-      .maybeSingle();
+    const { value: mD, waitedMs: waitD2 } = await settlePoll(
+      readMeter,
+      (m: any) => m?.runs_used === 4 && m?.runs_allowed === 4,
+    );
     await push(
       "D2 meter shows runs_used=4, runs_allowed=4",
       (mD as any)?.runs_used === 4 && (mD as any)?.runs_allowed === 4,
-      `runs_used=${(mD as any)?.runs_used} runs_allowed=${(mD as any)?.runs_allowed}`,
+      `runs_used=${(mD as any)?.runs_used} runs_allowed=${(mD as any)?.runs_allowed} (waited ${waitD2}ms)`,
     );
+
 
     // ── (e) EXTENSION GRANT (simulated webhook) ───────────────────────────────
     await svc
