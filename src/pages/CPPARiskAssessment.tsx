@@ -219,6 +219,7 @@ export default function CPPARiskAssessment() {
 
   // Step 1 — Business Profile
   const [entityName, setEntityName] = useState("");
+  const [subjectAnchor, setSubjectAnchor] = useState("");
   const [q1, setQ1] = useState(""); const [q2, setQ2] = useState(""); const [q3, setQ3] = useState("");
   const [q4, setQ4] = useState<string[]>([]); const [q5, setQ5] = useState("");
   // Step 2 — Consumer Rights
