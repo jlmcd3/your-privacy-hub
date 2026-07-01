@@ -570,15 +570,21 @@ Generate substantive draft rows for every table for the controller to verify; us
     async function genHalf(prompt: string, extraUser: string): Promise<any> {
       const finalUser = extraUser ? `${prompt}\n\n${extraUser}` : prompt;
       let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
+      console.log(`[DPIA] genHalf stopReason=${r.stopReason} chars=${r.text.length} tail=${JSON.stringify(r.text.slice(-120))}`);
       if (r.stopReason === "max_tokens") {
         console.warn(`[DPIA] genHalf truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
         r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
+        console.log(`[DPIA] genHalf retry stopReason=${r.stopReason} chars=${r.text.length}`);
         if (r.stopReason === "max_tokens") {
           console.error("[DPIA] genHalf truncated_output after retry — returning empty half");
           return {};
         }
       }
-      return parseJsonish(r.text);
+      const parsed = parseJsonish(r.text);
+      if (parsed && typeof parsed === "object" && Object.keys(parsed).length === 0 && r.text.length > 200) {
+        console.error(`[DPIA] genHalf parsed to EMPTY object despite ${r.text.length} chars of response — likely malformed JSON, not empty content. Tail: ${JSON.stringify(r.text.slice(-200))}`);
+      }
+      return parsed;
     }
 
     let [partA, partB] = await Promise.all([genHalf(promptA, ""), genHalf(promptB, "")]);
