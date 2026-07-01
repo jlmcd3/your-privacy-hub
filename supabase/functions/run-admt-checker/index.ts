@@ -837,13 +837,7 @@ Return this JSON structure exactly:
       }
     }
 
-    await supabase.from("cppa_assessments").update({
-      status: "complete",
-      report_data: report,
-      updated_at: new Date().toISOString(),
-    }).eq("id", assessment_id);
-
-    // Stage 1: metering + version retention.
+    // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "cppa_admt",
       assessmentId: assessment_id,
@@ -851,6 +845,13 @@ Return this JSON structure exactly:
       intake: ((assessment as any).intake_data as Record<string, unknown>) ?? {},
       reportData: report,
     });
+
+    await supabase.from("cppa_assessments").update({
+      status: "complete",
+      report_data: report,
+      updated_at: new Date().toISOString(),
+    }).eq("id", assessment_id);
+
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
    } catch (e) {
     console.error("[run-admt-checker] pipeline error:", e);
