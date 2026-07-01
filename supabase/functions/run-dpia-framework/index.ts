@@ -759,6 +759,15 @@ Generate substantive draft rows for every table for the controller to verify; us
       updated_at: new Date().toISOString(),
     }).eq("id", dpia_id);
 
+    // Stage 1: metering + version retention.
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "dpia_framework",
+      assessmentId: dpia_id,
+      userId: dpia.user_id ?? null,
+      intake: (dpia.intake_data as Record<string, unknown>) ?? {},
+      reportData,
+    });
+
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id });
 
 
