@@ -86,6 +86,20 @@ const EDITABLE_COLUMNS: Record<string, string[]> = {
   cppa_cybersecurity: [],
 };
 
+// li_assessments has NO intake_data column — its intake lives in dedicated columns only.
+// Including a non-existent column causes PostgREST to reject the ENTIRE update.
+const HAS_INTAKE_DATA: Record<string, boolean> = {
+  li_assessment: false,
+  governance_assessment: true,
+  dpia_framework: true,
+  dpa_generator: true,
+  ir_playbook: true,
+  biometric_checker: true,
+  cppa_admt: true,
+  cppa_risk_assessment: true,
+  cppa_cybersecurity: true,
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
