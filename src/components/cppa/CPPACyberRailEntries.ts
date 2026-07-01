@@ -1,3 +1,11 @@
+// COACHING CONTENT RULE — coaching describes the SHAPE of a complete answer
+// (dimensions, specificity, separateness). It NEVER describes the CONTENT of a
+// compliant answer (what facts satisfy the law, what answer "passes").
+// goodAnswer examples are clearly fictional and illustrate FORM, never a template.
+// Voice: imperative, active, plain subject-verb-object, one idea per sentence,
+// specific over vague, no ornamental legalese. Layered: coachLead = one line an
+// expert acts on instantly; goodAnswer/commonMistake = the expansion for newer users.
+
 // src/components/cppa/CPPACyberRailEntries.ts
 // StatuteRail entries for the CPPA Cybersecurity Audit Readiness tool (Module 2).
 // Citations from the final 11 CCR § 7123(c)(1)–(18) cybersecurity program components.
@@ -29,6 +37,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     plainSummary: "Authentication of users seeking access to personal information, including multi-factor authentication, phishing-resistant MFA for employees and contractors, and strong password practices. The password element applies only if the business actually uses passwords.",
     regulationText: "The audit must assess the business's authentication and password practices for persons who access personal information, to the extent applicable to the business's information systems.",
     enforcementNote: "Authentication failures — weak or missing MFA, shared credentials, excessive access — appear in the majority of breach enforcement actions in the corpus.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c2_encryption: {
     fieldLabel: "C2: Encryption of personal information",
@@ -36,6 +51,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Encryption of personal information both at rest and in transit. The Agency declined to mandate a specific encryption standard, preserving flexibility across business types and scenarios.",
     regulationText: "The audit must assess the business's use of encryption to protect personal information at rest and in transit, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c3_account_access: {
     fieldLabel: "C3: Account management and access controls",
@@ -43,6 +65,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Least-privilege access, limiting and monitoring privileged accounts, restricting access to personal information to those who need it, and restricting physical access to personal information. The final regulations expanded scope to account- and application-level configuration.",
     regulationText: "The audit must assess the business's account management and access controls, including privileged-account limits and restrictions on physical access to personal information, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c4_inventory: {
     fieldLabel: "C4: Inventory and management of personal information and systems",
@@ -50,6 +79,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "A current inventory of personal information, data flows, hardware, and software. Scope extends to every system through which personal information is processed or accessible, including cloud and third-party systems the business does not own or operate.",
     regulationText: "The audit must assess the business's inventory and management of personal information and of the systems that process or can access it, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c5_secure_config: {
     fieldLabel: "C5: Secure configuration of hardware and software",
@@ -57,6 +93,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Hardening of systems, patch management, change management, and masking of sensitive personal information where appropriate, for both on-premises and cloud environments.",
     regulationText: "The audit must assess the business's secure configuration of hardware and software, including patch and change management, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c6_vuln_mgmt: {
     fieldLabel: "C6: Vulnerability scanning and penetration testing",
@@ -65,6 +108,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     plainSummary: "Internal and external vulnerability scans, penetration testing, and processes for vulnerability disclosure and reporting — such as bug-bounty and ethical-hacking programs.",
     regulationText: "The audit must assess the business's vulnerability scanning, penetration testing, and vulnerability disclosure and reporting processes, to the extent applicable.",
     enforcementNote: "Unpatched known vulnerabilities are cited in a significant share of breach enforcement actions, including major fines for failure to remediate known CVEs within reasonable timeframes.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c7_audit_logs: {
     fieldLabel: "C7: Audit-log management",
@@ -72,6 +122,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Centralized storage, retention, and monitoring of audit logs to support detection of unauthorized activity and post-incident analysis.",
     regulationText: "The audit must assess the business's collection, retention, protection, and review of audit logs, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c8_network_mon: {
     fieldLabel: "C8: Network monitoring and defenses",
@@ -79,6 +136,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Defenses to detect unauthorized access, use, modification, destruction, or disclosure of personal information. Bot-, intrusion-detection and intrusion-prevention tools are examples, not mandates — the component evaluates whether detection and defense are present and effective.",
     regulationText: "The audit must assess the business's monitoring of networks and systems to detect threats and anomalous activity, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c9_anti_malware: {
     fieldLabel: "C9: Antivirus and anti-malware protections",
@@ -86,6 +150,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Deployment and maintenance of antivirus and anti-malware solutions across endpoints and servers that process personal information.",
     regulationText: "The audit must assess the business's deployment and maintenance of antivirus and anti-malware protections, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c10_segmentation: {
     fieldLabel: "C10: Segmentation of an information system",
@@ -93,6 +164,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Segmentation of information systems — for example via properly configured firewalls, routers, and switches — to isolate systems processing personal information and limit the blast radius of a compromise.",
     regulationText: "The audit must assess segmentation of the business's information systems, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c11_port_protocol: {
     fieldLabel: "C11: Port and protocol management and protection",
@@ -100,6 +178,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Limitation and control of ports, services, and protocols to reduce attack surface. Added as a distinct component in the final regulations.",
     regulationText: "The audit must assess the business's management and protection of ports, services, and protocols, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c12_awareness: {
     fieldLabel: "C12: Cybersecurity awareness",
@@ -107,6 +192,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "How the business maintains current knowledge of evolving cybersecurity threats and appropriate countermeasures. The final regulations split awareness from training — a robust training program may not satisfy this component on its own.",
     regulationText: "The audit must assess how the business maintains awareness of evolving cybersecurity threats and countermeasures, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c13_training: {
     fieldLabel: "C13: Cybersecurity education and training",
@@ -114,6 +206,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Training for employees, independent contractors, and anyone granted access to the business's information systems — at onboarding, annually, and/or following a personal-information security breach.",
     regulationText: "The audit must assess the business's cybersecurity education and training for personnel with access to personal information or systems, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c14_secure_dev: {
     fieldLabel: "C14: Secure development and coding practices",
@@ -121,6 +220,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Secure coding standards, code reviews, and security testing as part of the software development lifecycle.",
     regulationText: "The audit must assess the business's secure development and coding practices across the software development lifecycle, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c15_third_party: {
     fieldLabel: "C15: Oversight of service providers, contractors, and third parties",
@@ -129,6 +235,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     plainSummary: "Oversight of vendors and contractors to ensure they meet the business's cybersecurity program obligations. Because scope expressly reaches third-party environments, this intersects with nearly every technical component.",
     regulationText: "The audit must assess the business's oversight of service providers, contractors, and third parties that access or process personal information, to the extent applicable.",
     enforcementNote: "Third-party vendor breaches are a leading source of PI exposure; regulators have held businesses liable for incidents caused by inadequately vetted service providers.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c16_retention: {
     fieldLabel: "C16: Retention schedules and proper disposal of personal information",
@@ -136,6 +249,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Retention schedules and secure disposal of personal information no longer needed — by shredding, erasing, or otherwise rendering it unreadable. Schedules should be scoped to California personal information and sensitive personal information, not just general records.",
     regulationText: "The audit must assess the business's retention schedules and secure disposal of personal information when it is no longer needed, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c17_incident: {
     fieldLabel: "C17: Security-incident response management",
@@ -144,6 +264,13 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     plainSummary: "The incident response program — documented procedures, response capabilities, and testing — plus a review of actual security incidents during the audit period, including breach notifications sent to California consumers or agencies.",
     regulationText: "The audit must assess the business's security-incident response management, including documented procedures, testing, and review of incidents during the period, to the extent applicable.",
     enforcementNote: "Absence of an incident response plan, or failure to follow one, is cited as an aggravating factor in enforcement across multiple jurisdictions.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
   c18_continuity: {
     fieldLabel: "C18: Business-continuity and disaster-recovery planning",
@@ -151,5 +278,12 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Business-continuity and disaster-recovery plans, data-recovery capabilities, and backups, plus testing of those capabilities to ensure availability of personal information during disruptions.",
     regulationText: "The audit must assess the business's business-continuity and disaster-recovery planning, including backups and testing, to the extent applicable.",
+    coachLead: "Name the tool, the scope it covers, and the exceptions.",
+    coachBody:
+      "For this control: the specific product or process in place, what it covers (systems, population, environments), and any gaps or exclusions — stated separately and concretely. \u201CIn place\u201D with a vague note produces a weaker gap analysis than a precise description of partial coverage.",
+    goodAnswer:
+      "\u201CCrowdStrike Falcon on all corporate endpoints; not yet deployed to the 14 warehouse kiosks; contractors' devices out of scope.\u201D — the tool, the covered estate, the exceptions, each named.",
+    commonMistake:
+      "Marking a control \u2018in place\u2019 because a policy exists. The audit regulation asks what is implemented and where — a policy without deployment scope is an aspiration, not a control.",
   },
 };
