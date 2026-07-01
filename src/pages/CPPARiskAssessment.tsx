@@ -444,7 +444,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
-    entityName, q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
+    entityName, subjectAnchor, q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
     exceptionClaims, impactData,
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
