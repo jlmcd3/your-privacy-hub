@@ -1,0 +1,1 @@
+UPDATE public.long_running_jobs SET status='failed', error='Cancelled by user', completed_at=now(), updated_at=now() WHERE kind='run_meter_acceptance' AND status='running';
