@@ -2945,6 +2945,7 @@ export type Database = {
           stated_purpose: string | null
           status: string
           stripe_payment_intent_id: string | null
+          subject_anchor: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -2976,6 +2977,7 @@ export type Database = {
           stated_purpose?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
+          subject_anchor?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -3007,6 +3009,7 @@ export type Database = {
           stated_purpose?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
+          subject_anchor?: string | null
           updated_at?: string | null
           user_id?: string | null
         }

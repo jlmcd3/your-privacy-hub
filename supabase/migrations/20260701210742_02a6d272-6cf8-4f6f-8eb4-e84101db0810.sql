@@ -1,0 +1,1 @@
+alter table public.li_assessments add column if not exists subject_anchor text;
