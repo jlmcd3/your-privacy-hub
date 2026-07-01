@@ -1,3 +1,11 @@
+// COACHING CONTENT RULE — coaching describes the SHAPE of a complete answer
+// (dimensions, specificity, separateness). It NEVER describes the CONTENT of a
+// compliant answer (what facts satisfy the law, what answer "passes").
+// goodAnswer examples are clearly fictional and illustrate FORM, never a template.
+// Voice: imperative, active, plain subject-verb-object, one idea per sentence,
+// specific over vague, no ornamental legalese. Layered: coachLead = one line an
+// expert acts on instantly; goodAnswer/commonMistake = the expansion for newer users.
+
 // src/components/admt/admtRailEntries.ts
 // Verbatim regulation text, plain summaries, and FSOR context
 // for every field in the ADMT Compliance Assessment.
@@ -6,6 +14,8 @@ import type { RailEntry } from "@/components/intake/StatuteRail";
 
 export const ADMT_RAIL: Record<string, RailEntry> = {
   scope_does_business_use_admt: {
+    coachLead: "Name the technology, its inputs, its output, and where it makes the call unaided.",
+    coachBody: "Describe the specific system, the categories of PI it consumes, the type of output it produces, and the point at which that output drives a decision without meaningful human authority to change it.",
     fieldLabel: "Does your business use ADMT?",
     citation: "11 CCR § 7001(e)",
     plainSummary:
@@ -27,6 +37,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   scope_significant_decision_domain: {
+    coachLead: "Pick from the closed § 7001(ddd) list, and name what the ADMT output actually gates.",
+    coachBody: "State which of the five statutory categories applies — financial/lending, housing, education, employment or contracting, healthcare — and identify the specific access the output governs.",
     goodAnswer:
       "'Significant decision' is a closed list — financial/lending, housing, education, employment or contracting, healthcare (§ 7001(ddd)). Advertising, audience segmentation, and ordinary profiling are excluded, however consequential they feel. The relevant category is whichever one the ADMT output actually gates.",
     commonMistake:
@@ -46,6 +58,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   scope_human_involvement: {
+    coachLead: "Say who reviews, what they see, and whether they can — and do — overturn the output before the fact.",
+    coachBody: "Name the reviewer role, the information they weigh alongside the ADMT output, their authority to change the outcome, and whether review happens before the decision issues.",
     goodAnswer:
       "“A senior underwriter reviews every sub-40 score against the file and tax returns and overturns ~8% before any denial issues.” — interprets, reviews-plus-other-info, and can change the outcome, before the fact.",
     commonMistake:
@@ -63,6 +77,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_timing: {
+    coachLead: "Place the notice at or before the point of collection, on the surface the consumer is using.",
+    coachBody: "Identify the moment ADMT-relevant PI is collected (or when previously collected PI is first subjected to ADMT) and put the notice on that surface, not in a downstream policy link.",
     goodAnswer:
       "The notice appears at or before the point you use ADMT — e.g., on the application page itself, before the applicant submits.",
     commonMistake:
@@ -82,6 +98,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_specific_purpose: {
+    coachLead: "Name the actual decision the ADMT drives — not a category, not a benefit, not boilerplate.",
+    coachBody: "Describe the specific significant decision being made about this consumer using plain language a reader can act on. Generic phrasing (“to improve services”, “to make a significant decision”) is expressly insufficient.",
     goodAnswer:
       "“We use an automated model to score your loan application and decide approval.” — names the actual decision and that it's automated.",
     commonMistake:
@@ -102,6 +120,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_opt_out_description: {
+    coachLead: "State the opt-out right in a sentence and put the working mechanism next to it.",
+    coachBody: "Describe the right in plain language and provide the submission mechanism (link, form, phone). If relying on an exception, name it (§ 7221(b)) and — for the human-appeal exception — describe the appeal path instead.",
     goodAnswer:
       "States the right plainly and links the mechanism: “You can opt out of automated scoring — submit a request here [link] or call [number].”",
     commonMistake:
@@ -119,6 +139,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_access_right_description: {
+    coachLead: "Tell consumers they can ask how ADMT was used on them, and give them a working way to ask.",
+    coachBody: "State the access right in plain language and provide the submission method. Do not bury it inside a general privacy right paragraph.",
     goodAnswer:
       "Tells consumers they can ask how the ADMT was used on them, and gives a working method to request it.",
     commonMistake:
@@ -133,6 +155,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_how_admt_works: {
+    coachLead: "Explain inputs, output, and how the output drives the decision — in consumer language.",
+    coachBody: "Name the PI categories that affect the output, describe the type of output, explain how it is used to make the decision, and say what happens for consumers who opt out. Aim for a plain explanation, not a spec sheet.",
     goodAnswer:
       "A plain summary of inputs and output: “a model weighs your credit history, income, and debt ratio to produce a 0–100 score used to approve or decline.”",
     commonMistake:
@@ -152,6 +176,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   notice_anti_retaliation: {
+    coachLead: "Include an explicit non-retaliation line — do not leave it implied.",
+    coachBody: "State plainly that the business will not retaliate for exercising CCPA rights. Implication and cross-reference do not satisfy § 7220(c)(4).",
     goodAnswer:
       "An explicit line that you won't deny service, change prices, or lower quality because someone exercised a CCPA right.",
     commonMistake:
@@ -168,6 +194,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_methods: {
+    coachLead: "Offer two methods, one matching your primary channel, without account creation or cookie-only routing.",
+    coachBody: "Name the two designated methods and confirm at least one matches how you primarily interact with consumers. If you operate online, the interactive form must be linked from the Pre-use Notice with an ADMT-specific link title.",
     goodAnswer:
       "At least two easy methods — e.g., an online form linked from the notice and a toll-free number — with no account required and not routed through a cookie banner.",
     commonMistake:
@@ -187,6 +215,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_exception_human_appeal: {
+    coachLead: "Name the reviewer, their authority, and the mechanism the consumer uses to appeal.",
+    coachBody: "Identify the designated human reviewer, confirm they can interpret the output and change the decision, and describe an easy-to-use, minimal-steps appeal path that lets the consumer submit their own information.",
     goodAnswer:
       "A named, trained reviewer (e.g., “Adverse Action Review Officer”) who reviews the consumer's submission plus other information and can overturn the decision — documented end to end.",
     commonMistake:
@@ -206,6 +236,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_exception_hiring: {
+    coachLead: "State the sole assessment purpose and the documented non-discrimination evidence.",
+    coachBody: "Confirm the ADMT is used only to assess ability to perform in the work or program at issue, and point to the fairness testing that supports the claim it does not unlawfully discriminate across protected characteristics.",
     goodAnswer:
       "ADMT used solely to assess for a hiring/admission decision, with documented bias testing showing no unlawful discrimination.",
     commonMistake:
@@ -224,6 +256,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   optout_timing_response: {
+    coachLead: "Commit to ceasing ADMT processing within 15 business days, and to notifying downstream recipients on the same clock.",
+    coachBody: "Describe the intake and cessation flow (with the 15-business-day ceiling), the mechanism for stopping ADMT use for that consumer, and the notification path to service providers, contractors, and any third parties to whom the PI was disclosed.",
     goodAnswer:
       "A documented process that honors an opt-out within 15 business days and stops ADMT processing for that consumer from then on.",
     commonMistake:
@@ -241,6 +275,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   access_logic_disclosure: {
+    coachLead: "Explain, in plain language, how the ADMT processed THIS consumer's PI to produce THEIR output.",
+    coachBody: "Describe the parameters and reasoning that produced the specific output for the requester. Protect genuine trade secrets under § 7222(c), but a bare trade-secret refusal is not a compliant response.",
     goodAnswer:
       "Plain-language logic: “your score reflected a high debt-to-income ratio and a short credit history; these pushed it below the approval threshold.”",
     commonMistake:
@@ -260,6 +296,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   access_outcome_disclosure: {
+    coachLead: "State the output, the threshold, and how the output drove this consumer's specific decision.",
+    coachBody: "Give the actual output, explain whether it was the sole factor and — if not — which other factors mattered, describe any human role that did not meet § 7001(e)(1), and disclose planned future use of the same output.",
     goodAnswer:
       "States the output and how it was used: “score 32/100; below the 40 threshold, so the application was automatically declined.”",
     commonMistake:
@@ -277,6 +315,8 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
   },
 
   access_verification: {
+    coachLead: "Verify identity proportionately under Article 5 — and if you cannot, tell the requester so.",
+    coachBody: "Match the request to the account holder with a proportionate check; do not over-collect new sensitive PI. If verification fails, respond that identity could not be verified rather than declining without explanation.",
     goodAnswer:
       "A proportionate identity check that matches the request to the account holder — without demanding excessive new personal information.",
     commonMistake:

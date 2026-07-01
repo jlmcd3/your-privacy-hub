@@ -1,3 +1,11 @@
+// COACHING CONTENT RULE — coaching describes the SHAPE of a complete answer
+// (dimensions, specificity, separateness). It NEVER describes the CONTENT of a
+// compliant answer (what facts satisfy the law, what answer "passes").
+// goodAnswer examples are clearly fictional and illustrate FORM, never a template.
+// Voice: imperative, active, plain subject-verb-object, one idea per sentence,
+// specific over vague, no ornamental legalese. Layered: coachLead = one line an
+// expert acts on instantly; goodAnswer/commonMistake = the expansion for newer users.
+
 // src/components/cppa/CPPARiskRailEntries.ts
 // StatuteRail entries for the CPPA Risk Assessment (Module 1).
 // Citations verified against the codebase. Plain summaries written for compliance professionals.
@@ -8,6 +16,22 @@ import type { RailEntry } from "@/components/intake/StatuteRail";
 const CPPA_URL = "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
 
 export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
+  subject_anchor: {
+    fieldLabel: "In one line — what processing does this assessment cover?",
+    citation: "11 CCR § 7150(b)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "One assessment covers one processing activity. This line names it and fixes it across your runs.",
+    regulationText: "…",
+    coachLead: "Name the one processing activity being assessed.",
+    coachBody:
+      "One line, one activity. The detailed purpose in Step 6 stays editable; this is the record's fixed subject.",
+    goodAnswer:
+      "\u201CAutomated resume-screening for hiring.\u201D — the activity, not the department or the vendor.",
+    commonMistake:
+      "Naming the tool (\u201Cthe HireSmart platform\u201D) instead of the processing. Vendors change; the assessed activity is the record.",
+  },
+
   q1_revenue: {
     fieldLabel: "Q1: Annual gross revenue",
     citation: "Cal. Civ. Code § 1798.140(ag)(1)",
@@ -123,6 +147,13 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     plainSummary: "The risk assessment must state the specific purpose of the processing. Generic descriptions — 'to improve services', 'for security', 'analytics' — are explicitly insufficient. You must describe what the processing does, who it affects, and what business outcome it achieves.",
     regulationText: "The specific purpose or purposes of the processing.",
     fscrContext: "During rulemaking, many commenters argued that generic purpose statements should be acceptable to reduce compliance burden. The CPPA rejected this position, stating in the Final Statement of Reasons that a vague purpose prevents consumers from meaningfully exercising their rights and prevents the Agency from evaluating proportionality. Specificity is required because the purpose statement anchors all subsequent harm analysis in the assessment.",
+    coachLead: "State the concrete operation and its business outcome.",
+    coachBody:
+      "Name the specific system, its inputs, what it produces, and who acts on it. The validator flags umbrella phrases — they also weaken every downstream section.",
+    goodAnswer:
+      "\u201CA gradient-boosted model scores applicants 0\u2013100 on four years of hiring-outcome data; scores order the shortlist recruiters review.\u201D — mechanism, inputs, output, and where automation makes the call.",
+    commonMistake:
+      "\u201CImprove hiring\u201D / \u201Canalytics\u201D / \u201Cas described in our privacy policy.\u201D These state a goal, not a processing purpose — § 7152(a)(2) needs a purpose specific enough to test necessity against.",
     relatedCitations: [
       { citation: "11 CCR § 7152(a)(2)", label: "PI categories — must align with stated purpose" },
     ],
@@ -283,6 +314,13 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "The risk assessment must identify the minimum personal information necessary to achieve the processing purpose. This reflects the CCPA's data-minimisation requirement: a business may only collect and process what is reasonably necessary and proportionate to the disclosed purpose.",
     regulationText: "The categories of personal information processed, including… the minimum personal information that is necessary to achieve the purpose identified in subsection (a)(1).",
+    coachLead: "List the categories this purpose actually requires — and stop there.",
+    coachBody:
+      "Name each category of personal information the stated purpose needs. If a category is collected but not needed for THIS purpose, it belongs in a different assessment, not this list.",
+    goodAnswer:
+      "\u201CR\u00E9sum\u00E9 text, work history, education records. Not collected for this purpose: references, social profiles.\u201D — what's in, and explicitly what's out.",
+    commonMistake:
+      "Listing everything the company collects. Minimum necessary is tested against the single stated purpose, not the whole data estate.",
     relatedCitations: [
       { citation: "Cal. Civ. Code § 1798.100(c)", label: "Reasonably necessary & proportionate" },
       { citation: "11 CCR § 7002", label: "Restrictions on collection and use" },
