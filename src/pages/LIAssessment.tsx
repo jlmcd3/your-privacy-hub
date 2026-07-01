@@ -103,6 +103,7 @@ const LIAssessment = () => {
 
   const validate = () => {
     if (!organizationName.trim()) return "Tell us the name of the organisation being assessed.";
+    if (!subjectAnchor.trim()) return "Name the single interest this assessment covers.";
     if (!processingDescription.trim()) return "Briefly describe what you're doing.";
     if (!dataCategories.length) return "Select at least one data category.";
     if (!relationship) return "Select your relationship with data subjects.";
