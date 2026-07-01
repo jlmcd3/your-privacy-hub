@@ -1,3 +1,4 @@
+// run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See
 // EUP_CPPA_Risk_Assessment_Redesign.md (CR-2) for the spec.
