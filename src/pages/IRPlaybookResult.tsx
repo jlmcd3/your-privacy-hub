@@ -106,6 +106,16 @@ export default function IRPlaybookResult() {
               </p>
             }
           >
+            {(() => {
+              const { meter } = useRunMeter("ir_playbook", id!);
+              return meter ? (
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/ir-playbook?refine=${id}`}
+                  onExtend={() => startMeterExtension("ir_playbook", id!)}
+                />
+              ) : null;
+            })()}
             <div dir={dir} style={{ display: "contents" }}>
             <AssessmentReport text={(translated?.playbook_text ?? row.playbook_text) || ""} sectionChipLabel={null} />
             <EnforcementPrecedents

@@ -15,6 +15,9 @@ import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
 import RiskAssessmentReportV4, { isV4Report } from "@/components/cppa/RiskAssessmentReportV4";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
+import RunMeterBar from "@/components/RunMeterBar";
+import { useRunMeter } from "@/hooks/useRunMeter";
+import { startMeterExtension } from "@/lib/meterExtension";
 
 // Truncate to first sentence (or 200 chars if no sentence boundary).
 const firstSentence = (text: string): string => {
