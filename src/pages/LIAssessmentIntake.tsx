@@ -208,6 +208,7 @@ const LIAssessmentIntake = () => {
     const intake_data: Record<string, unknown> = {
       // Stage A (re-sent so checkout has full picture)
       organization_name: row.organization_name,
+      subject_anchor: (row as any).subject_anchor ?? null,
       processing_description: row.processing_description,
       data_categories: row.data_categories,
       relationship_type: row.relationship_type,
