@@ -1,4 +1,4 @@
-// deploy-check v3 — entry/exit logs + status:processing reset for idempotency
+// deploy-check v4 — status reset after all gates; regen_enter is first statement
 // regenerate-assessment: single client-initiated path for every run after the first.
 // Stage 1 Prompt 1.6 — gated entry that enforces meter budget + locked-field policy,
 // merges non-locked edits into intake_data, and re-invokes the generator.
