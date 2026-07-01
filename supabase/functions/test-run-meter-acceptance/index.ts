@@ -330,18 +330,18 @@ async function runAcceptance(
           `run status=${s}`,
         );
       } else {
-        const { data: mE } = await svc
-          .from("tool_run_meter")
-          .select("runs_used, runs_allowed, extension_count")
-          .eq("tool_type", TOOL_TYPE)
-          .eq("assessment_id", assessmentId)
-          .maybeSingle();
+        const { value: mE, waitedMs: waitE1 } = await settlePoll(
+          readMeter,
+          (m: any) =>
+            m?.runs_used === 5 && m?.runs_allowed === 8 && m?.extension_count === 1,
+        );
         const mEa = mE as any;
         await push(
           "E1 post-extension regen ok + meter 5/8/ext=1",
           mEa?.runs_used === 5 && mEa?.runs_allowed === 8 && mEa?.extension_count === 1,
-          `runs_used=${mEa?.runs_used} runs_allowed=${mEa?.runs_allowed} extension_count=${mEa?.extension_count}`,
+          `runs_used=${mEa?.runs_used} runs_allowed=${mEa?.runs_allowed} extension_count=${mEa?.extension_count} (waited ${waitE1}ms)`,
         );
+
       }
     }
 
