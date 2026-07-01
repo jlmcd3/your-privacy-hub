@@ -222,7 +222,7 @@ Retention and destruction:
 Apply UK GDPR storage limitation principle: define retention period per purpose; delete biometric templates promptly when purpose expires; document the retention schedule.
 
 Sale and sharing restrictions:
-UK GDPR purpose limitation (Article 5(1)(b)) and processor contract requirements (Article 28) govern sharing. Use UK IDTA for any transfers to third countries outside the UK adequacy framework.
+UK GDPR purpose limitation (Article 5(1)(b)) and processor contract requirements (Article 28) govern sharing. For transfers to third countries outside the UK adequacy framework, use a UK IDTA or UK-approved SCCs.
 
 Current enforcement posture:
 The ICO actively enforces UK GDPR biometric obligations. Consult the ICO's published enforcement register for current cases and penalties.
