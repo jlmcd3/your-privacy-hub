@@ -372,6 +372,23 @@ async function handle(req: Request): Promise<Response> {
   }
   if (!review) return jsonResp({ error: "Reviewer returned non-JSON", raw: raw.slice(0, 1000) }, 500);
 
+  // DETERMINISTIC RULE-13 BACKSTOP: strip any change item whose own `fix` text
+  // self-retracts (e.g. "no change required / correct by design"). The model is
+  // already instructed not to list such items, but this has been observed to fail
+  // within a single generation. This does not touch scores.
+  if (review && Array.isArray(review.changes)) {
+    const SELF_RETRACT_PATTERN = /no change required|correct by design|correct-by-design/i;
+    const before = review.changes.length;
+    review.changes = review.changes.filter((c: any) => {
+      const fixText = String(c?.fix ?? "");
+      return !SELF_RETRACT_PATTERN.test(fixText);
+    });
+    const removed = before - review.changes.length;
+    if (removed > 0) {
+      console.log(`[review-test-output] stripped ${removed} self-retracting change item(s) (Rule 13 backstop, model=${chosenModel})`);
+    }
+  }
+
   return jsonResp({ ok: true, testId, model: chosenModel, review });
 }
 
