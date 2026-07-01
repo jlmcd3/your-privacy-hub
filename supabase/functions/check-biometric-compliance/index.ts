@@ -591,7 +591,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 2. Mandatory DPIA under Article 35 — the AEPD's list of processing operations requiring a DPIA includes biometric systems for employee monitoring and identification.
 3. Transparency notice under Articles 13/14 in Spanish identifying the Article 9(2) condition, biometric modalities, and rights.
 4. AEPD guidance on biometric access control systems (2020) states that facial recognition for access control of employees is not proportionate where less invasive alternatives exist — proportionality is a hard requirement, not a best practice.
-5. Article 28 DPA for all processors; Article 46 safeguard for any non-EEA transfer.
+5. Article 28 DPA for all processors; any non-EEA transfer requires an Article 45 adequacy decision or, absent one, an Article 46 safeguard.
 
 Consent and notice:
 AEPD guidance aligns with EDPB: employee consent is not valid as an Article 9(2) condition due to power imbalance. Use Article 9(2)(b) with Spanish employment law authorisation. Works committee consultation (comité de empresa or delegados de personal) is required for technical monitoring systems under Article 64 Estatuto de los Trabajadores.
