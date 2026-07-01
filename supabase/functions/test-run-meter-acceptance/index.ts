@@ -267,7 +267,7 @@ async function runAcceptance(
       tool_type: TOOL_TYPE,
       assessment_id: assessmentId,
       edited_fields: { processing_description: bDesc },
-    });
+    }, makeProbe(1));
     await push(
       "B1 regen (open field) returned HTTP ok",
       bRes.status === 200 && bRes.body?.ok === true,
