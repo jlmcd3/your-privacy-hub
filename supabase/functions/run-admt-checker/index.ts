@@ -172,7 +172,13 @@ ORTHOGRAPHY IS NOT A COMPLIANCE GAP: British-versus-American spelling is never a
       • opt_out_gaps:   optout_offer | optout_designated_methods | optout_account_barrier | optout_confirmation | optout_processing
       • access_gaps:    access_specific_purpose | access_logic | access_outcome_sole_factor | access_antiretaliation | access_trade_secret | access_timeline | access_secure_transmission | access_denial_basis | access_aggregate_log | access_verification
       • documentation_to_maintain: sp_contract_terms | ra_program | human_involvement | qualifies_admt | significant_decision | compliance_deadline | admt_use_frequency_log
-    Always set \`citation\` to the empty string "" — the template fills it from the registry. Do not omit the field; leave it as "".`;
+    Always set \`citation\` to the empty string "" — the template fills it from the registry. Do not omit the field; leave it as "".
+
+STATUS MUST MATCH REMEDIATION LANGUAGE: if an element's status is 'compliant', its remediation field must not use gap-implying language ('ensure X', 'must state', 'should include') as if the requirement is currently unmet — use either an empty/null remediation, or affirmative language ('maintain the specific-purpose disclosure at the current level of specificity'). If the finding text includes a hedge or reservation suggesting the element might not fully satisfy the requirement, the status must be 'gap', not 'compliant' — do not mark an element compliant while its own finding text expresses a reservation about it.
+
+SELECT-ONE INSTRUCTION COUNT MUST MATCH OPTION COUNT: when a sample_language block includes a 'SELECT ONE AND DELETE THE OTHER(S)' instruction, the instruction's wording must match the actual number of options presented — 'DELETE THE OTHER' implies exactly two options; if three or more Option blocks (A, B, C...) are provided, the instruction must read 'SELECT ONE OF THE [N] OPTIONS BELOW AND DELETE THE OTHERS.' Count the actual option blocks before writing the instruction.
+
+MIRROR THE STATED THRESHOLD LANGUAGE: where the § 7222(j) aggregate-response threshold is cited as 'more than four times,' the corresponding routing branches must use '4 or fewer' and '5 or more' — not 'fewer than 5', which requires the reader to do an extra mental step to connect it back to the cited 'more than four' threshold. Mirror the exact cited number in both branches.`;
 
 export const ADMT_TOOL_MODULE: ToolModule = {
   identity:
