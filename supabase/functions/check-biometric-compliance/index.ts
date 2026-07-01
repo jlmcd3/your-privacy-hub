@@ -540,7 +540,7 @@ The DPC is active in cross-border special-category enforcement. Refer to datapro
 Priority actions:
 1. Complete a DPIA and submit for DPC prior consultation under Article 36 if residual high risk remains after mitigation.
 2. Establish which jurisdiction is the DPC's lead supervisory authority remit for this organisation's cross-border processing, and document it.
-3. Audit processor agreements to confirm Article 28 DPAs are executed for all biometric data processors, with appropriate Article 46 transfer mechanisms for any US-hosted processors.
+3. Audit processor agreements to confirm Article 28 DPAs are executed for all biometric data processors, and that any US-hosted processors are covered by the EU–US Data Privacy Framework (Article 45 adequacy, where certified) or an appropriate Article 46 safeguard.
 
 Compliance risk rating: HIGH
 DPC active enforcement and its role as lead supervisory authority for multinational tech processing creates elevated cross-border regulatory exposure for organisations without completed DPIAs and documented Article 9(2) conditions.
