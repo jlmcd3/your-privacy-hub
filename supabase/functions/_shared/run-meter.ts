@@ -26,7 +26,7 @@ export async function recordRunMeterAndVersion(
 
     let nextVersion: number;
     if (!meter) {
-      await supabase.from("tool_run_meter").insert({
+      const { error: meterErr } = await supabase.from("tool_run_meter").insert({
         user_id: userId,
         tool_type: toolType,
         assessment_id: assessmentId,
@@ -34,9 +34,12 @@ export async function recordRunMeterAndVersion(
         runs_used: 1,
         locked_fields: lockedSnapshot(toolType, intake ?? {}),
       });
+      if (meterErr) {
+        console.error(JSON.stringify({ evt: "run_meter_write_failed", tool: toolType, detail: meterErr.message }));
+      }
       nextVersion = 1;
     } else {
-      await supabase
+      const { error: meterErr } = await supabase
         .from("tool_run_meter")
         .update({
           runs_used: (meter.runs_used ?? 0) + 1,
@@ -46,11 +49,14 @@ export async function recordRunMeterAndVersion(
           updated_at: new Date().toISOString(),
         })
         .eq("id", meter.id);
+      if (meterErr) {
+        console.error(JSON.stringify({ evt: "run_meter_write_failed", tool: toolType, detail: meterErr.message }));
+      }
       nextVersion = (meter.runs_used ?? 0) + 1;
     }
     console.log(JSON.stringify({ evt: "run_meter_recorded", tool: toolType, assessment: assessmentId, version: nextVersion }));
 
-    await supabase.from("tool_run_versions").insert({
+    const { error: verErr } = await supabase.from("tool_run_versions").insert({
       user_id: userId,
       tool_type: toolType,
       assessment_id: assessmentId,
@@ -59,6 +65,10 @@ export async function recordRunMeterAndVersion(
       report_data: reportData ?? null,
       document_text: documentText ?? null,
     });
+    if (verErr) {
+      console.error(JSON.stringify({ evt: "run_version_insert_failed", tool: toolType, version: nextVersion, detail: verErr.message }));
+    }
+
   } catch (err) {
     console.error(`[run-meter] failed for ${toolType}/${assessmentId}:`, err);
   }
