@@ -50,7 +50,6 @@ async function settlePoll<T>(
 }
 
 async function pollLIA(
-
   svc: ReturnType<typeof createClient>,
   id: string,
   maxSec = 180,
@@ -68,6 +67,38 @@ async function pollLIA(
   }
   return "timeout";
 }
+
+// Hardened generation-await for B/D steps. Terminates on complete OR failed,
+// hard-caps at 4 minutes, and returns { status, detail } so the harness can
+// record a FAIL with the row's error detail instead of throwing.
+async function awaitGeneration(
+  svc: ReturnType<typeof createClient>,
+  id: string,
+  maxSec = 240,
+): Promise<{ status: "complete" | "failed" | "timeout"; detail: string }> {
+  const start = Date.now();
+  while (Date.now() - start < maxSec * 1000) {
+    await new Promise((r) => setTimeout(r, 3000));
+    const { data } = await svc
+      .from("li_assessments")
+      .select("status, error_message, updated_at")
+      .eq("id", id)
+      .maybeSingle();
+    const row = (data as any) ?? {};
+    const status = row.status ?? "unknown";
+    if (status === "complete") {
+      return { status: "complete", detail: `complete after ${Date.now() - start}ms` };
+    }
+    if (status === "failed") {
+      return {
+        status: "failed",
+        detail: `failed after ${Date.now() - start}ms; error_message=${JSON.stringify(row.error_message ?? null)}`,
+      };
+    }
+  }
+  return { status: "timeout", detail: `generation timed out after ${maxSec}s (cap=4min)` };
+}
+
 
 async function callRegen(
   authHeader: string,
