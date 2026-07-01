@@ -238,6 +238,19 @@ async function runAcceptance(
       lockedAnchor === intake.subject_anchor,
       `locked_fields.subject_anchor=${JSON.stringify(lockedAnchor)}`,
     );
+    // Build an idempotency probe for callRegen: a timed-out request may still
+    // have been processed server-side; the probe checks whether the meter or
+    // the assessment status advanced past the pre-call baseline.
+    const makeProbe = (baselineRuns: number) => async () => {
+      const m = await readMeter();
+      const { data: row } = await svc
+        .from("li_assessments").select("status").eq("id", assessmentId!).maybeSingle();
+      const status = (row as any)?.status ?? "unknown";
+      const runsNow = (m as any)?.runs_used ?? baselineRuns;
+      const accepted = runsNow > baselineRuns || status === "processing" || status === "complete";
+      return { accepted, detail: `runs_used ${baselineRuns}→${runsNow}, status=${status}` };
+    };
+
     const { value: versions1, waitedMs: waitA3 } = await settlePoll(
       readVersions,
       (vs) => vs.length === 1 && vs[0] === 1,
