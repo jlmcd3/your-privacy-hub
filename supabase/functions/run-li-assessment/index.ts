@@ -7,6 +7,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun, type FnRunHandle 
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 
 
