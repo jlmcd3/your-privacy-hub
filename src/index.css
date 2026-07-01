@@ -9,6 +9,16 @@
        Raw brand palette (HSL space-separated for shadcn / opacity modifiers)
        ============================================================ */
     --brand-navy: 209 68% 16%;          /* #0d2a45 */
+    /* ── Refined institutional ramp (Stage 0) — additive; consumed by the intake shell & reports ── */
+    --teal-action: 172 58% 32%;          /* #238276 — interactive/primary action (deepened brand teal) */
+    --teal-action-hover: 172 58% 27%;    /* #1d6e64 */
+    --teal-wash: 165 31% 95%;            /* #eef6f4 — coaching background */
+    --teal-ink: 169 60% 23%;             /* #175d54 — coaching text */
+    --paper: 60 20% 98%;                 /* #fbfbf9 — warm page ground (replaces stark white on tool surfaces) */
+    --rule: 200 13% 87%;                 /* #d9dfe2 — navy-tinted hairline */
+    --rule-strong: 200 12% 76%;          /* #b9c6cc */
+    --ink: 209 50% 17%;                  /* #152b3f — body ink on paper */
+    --ink-soft: 210 25% 31%;             /* #3c5164 */
     --brand-ocean: 206 62% 27%;          /* #1a4a6e */
     --brand-slate-teal: 190 51% 36%;     /* #2d7a8a */
     --brand-teal: 173 58% 39%;           /* #2a9d8f — primary accent */
