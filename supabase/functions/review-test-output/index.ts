@@ -381,7 +381,7 @@ async function handle(req: Request): Promise<Response> {
   // The model is already instructed not to list such items, but this has been
   // observed to fail within a single generation. This does not touch scores.
   if (review && Array.isArray(review.changes)) {
-    const SELF_RETRACT_PATTERN = /no change required|correct by design|correct-by-design|not a substantive defect|not a defect\b|not an? (actual |genuine )?(error|issue|problem)/i;
+    const SELF_RETRACT_PATTERN = /no change[\w\s]{0,20}required|correct.by.design|not a substantive defect|not a defect\b|not an? (actual |genuine )?(error|issue|problem)|already (acceptable|correct|current)/i;
     const before1 = review.changes.length;
     review.changes = review.changes.filter((c: any) => {
       const text = `${c?.problem ?? ""} ${c?.fix ?? ""}`;
