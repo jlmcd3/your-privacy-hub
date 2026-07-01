@@ -6516,6 +6516,81 @@ export type Database = {
           },
         ]
       }
+      tool_run_meter: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          extension_count: number
+          id: string
+          locked_fields: Json | null
+          runs_allowed: number
+          runs_used: number
+          tool_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          extension_count?: number
+          id?: string
+          locked_fields?: Json | null
+          runs_allowed?: number
+          runs_used?: number
+          tool_type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          extension_count?: number
+          id?: string
+          locked_fields?: Json | null
+          runs_allowed?: number
+          runs_used?: number
+          tool_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      tool_run_versions: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          document_text: string | null
+          id: string
+          intake_snapshot: Json | null
+          report_data: Json | null
+          tool_type: string
+          user_id: string | null
+          version: number
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          document_text?: string | null
+          id?: string
+          intake_snapshot?: Json | null
+          report_data?: Json | null
+          tool_type: string
+          user_id?: string | null
+          version: number
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          document_text?: string | null
+          id?: string
+          intake_snapshot?: Json | null
+          report_data?: Json | null
+          tool_type?: string
+          user_id?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       tool_sessions: {
         Row: {
           client_id: string | null
