@@ -13,6 +13,9 @@ import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
+import RunMeterBar from "@/components/RunMeterBar";
+import { useRunMeter } from "@/hooks/useRunMeter";
+import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 
@@ -95,6 +98,16 @@ export default function DPAResult() {
               </>
             }
           >
+            {(() => {
+              const { meter } = useRunMeter("dpa_generator", row.id);
+              return meter ? (
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/dpa-generator?refine=${row.id}`}
+                  onExtend={() => startMeterExtension("dpa_generator", row.id)}
+                />
+              ) : null;
+            })()}
             <div dir={dir} style={{ display: "contents" }}>
             <AssessmentReport text={(translated?.document_text ?? row.document_text) || ""} sectionChipLabel={null} />
             <EnforcementPrecedents

@@ -14,6 +14,9 @@ import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
+import RunMeterBar from "@/components/RunMeterBar";
+import { useRunMeter } from "@/hooks/useRunMeter";
+import { startMeterExtension } from "@/lib/meterExtension";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 import { AnnotationCallout } from "@/components/AnnotationCallout";
@@ -130,6 +133,16 @@ export default function BiometricCheckerResult() {
             actions={actions}
             topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
           >
+            {(() => {
+              const { meter } = useRunMeter("biometric_checker", row.id);
+              return meter ? (
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/biometric-checker?refine=${row.id}`}
+                  onExtend={() => startMeterExtension("biometric_checker", row.id)}
+                />
+              ) : null;
+            })()}
             <div dir={dir} style={{ display: "contents" }}>
             {(orgName || orgType) && (
               <div className="mb-6 px-4 py-3 bg-slate-50 border border-border rounded-lg text-sm text-foreground">

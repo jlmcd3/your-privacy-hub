@@ -8,6 +8,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
+import RunMeterBar from "@/components/RunMeterBar";
+import { useRunMeter } from "@/hooks/useRunMeter";
+import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -153,6 +156,16 @@ const GovernanceAssessmentResult = () => {
           actions={status === "complete" || status === "failed" ? actions : undefined}
           topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
         >
+          {(() => {
+            const { meter } = useRunMeter("governance_assessment", id);
+            return meter ? (
+              <RunMeterBar
+                meter={meter}
+                refineHref={`/governance-assessment?refine=${id}`}
+                onExtend={() => startMeterExtension("governance_assessment", id!)}
+              />
+            ) : null;
+          })()}
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 

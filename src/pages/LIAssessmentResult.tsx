@@ -11,6 +11,9 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
+import RunMeterBar from "@/components/RunMeterBar";
+import { useRunMeter } from "@/hooks/useRunMeter";
+import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
@@ -207,6 +210,16 @@ const LIAssessmentResult = () => {
           actions={status === "complete" || status === "failed" ? actions : undefined}
           topDisclaimer={report.framework_disclaimer ?? report.disclaimer}
         >
+          {(() => {
+            const { meter } = useRunMeter("li_assessment", id);
+            return meter ? (
+              <RunMeterBar
+                meter={meter}
+                refineHref={`/li-assessment?refine=${id}`}
+                onExtend={() => startMeterExtension("li_assessment", id!)}
+              />
+            ) : null;
+          })()}
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 
