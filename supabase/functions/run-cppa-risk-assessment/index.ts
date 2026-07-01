@@ -367,6 +367,9 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "OVERALL_RISK_LEVEL IS NOT THE SAME AXIS AS benefits_outweigh_risks_conclusion: the balancing conclusion (Yes/No/Uncertain/Insufficient basis, § 7152(a)) answers whether benefits outweigh risks on the record provided. overall_risk_level answers a broader question — the combined severity of identified harms, safeguard gaps, and compliance-record completeness. These can diverge: a record with 'Insufficient basis' for balancing (missing benefit/purpose inputs) can still carry a High or Critical overall_risk_level if the underlying safeguard gaps and incomplete § 7152 record create material compliance/enforcement exposure, even though the harm-severity component alone might be Moderate. When overall_risk_level does not obviously follow from the balancing conclusion alone, add one explanatory sentence to benefits_outweigh_risks_rationale or the assessment summary stating what overall_risk_level reflects — e.g. whether it is driven by identified-harm severity, by safeguard/documentation gaps, by compliance-deadline proximity, or some combination — so a reader is not left inferring the basis for the rating.",
     "DEADLINE FIELD PRECISION MUST MATCH CERTAINTY: do not populate `deadline` with a specific ISO date (YYYY-MM-DD) when the regulation only specifies a year and the exact date is unconfirmed (e.g. § 7157 annual attestation, due 'in 2028' with the specific date to be confirmed against CPPA guidance). In that case, either (a) set `deadline` to a bracketed placeholder such as '[2028 — exact date TBD per § 7157 guidance]', or (b) if a specific date is used as a working assumption, say so explicitly in `deadline_basis` (e.g. 'January 1, 2028 is used as a placeholder for the 2028 submission year pending confirmed CPPA guidance') rather than presenting it as the confirmed deadline.",
     "ACTIONABLE FILL-IN GUIDANCE: where a priority_action requires the user to supply a judgment call the tool cannot make (e.g. 'document specific, non-generic purposes', 'confirm recipient classification', 'document minimum PI necessary'), append one clause of concrete guidance rather than leaving the standard bare unqualified instead. Examples: for a non-generic purpose requirement, add '(a specific purpose names the concrete business function and outcome — e.g. \"fraud-scoring at checkout\" — not \"business operations\" or \"improve services\")'. For recipient classification, add '(a service provider/contractor processes PI only on the business's behalf under a compliant contract per § 1798.140(ag)/(j); a third party does not)'. For minimum-necessary determinations, add '(document, per data element, why it is required for the stated purpose; remove elements collected but not used for that purpose).' Keep each addition to one parenthetical clause — do not turn priority_actions into an instructional essay.",
+    "INCONSISTENCY FLAGS MUST CITE, NEVER RESOLVE: when flagging an inconsistency (e.g. ADMT disclosure vs. negated profiling field), resolution_required must name the controlling provision(s) and instruct the controller to resolve the conflict with counsel — it must NEVER state what the controller should conclude, NEVER assert 'if [condition] applies, [consequence] is required,' and NEVER direct a specific follow-on action contingent on an unresolved determination. Correct form: 'The controller must resolve, with reference to § 7001(ddd) and § 7150(b)(3)–(4), whether the rules-based scoring system triggers either provision, and consult privacy counsel on the applicable § 7150(b) trigger scope.' Incorrect form: 'The controller must confirm whether X applies; if X applies, Y is required' — the second clause tells the user the consequence of a determination the tool has not made and is not entitled to make. Strip any 'if [X], then [Y] is required' construction from resolution_required and replace it with 'consult privacy counsel to determine the applicable trigger scope and any resulting assessment obligations.'",
+    "EXCEPTIONS_STATUS MUST AGREE WITH THE RECORD: do not set assessment_summary.exceptions_status to 'All well-documented' when the same assessment identifies missing required fields (e.g. § 7152(a)(4) benefits documentation, sources of PI, minimum-necessary determinations) elsewhere in the output. If required fill-ins remain open anywhere in the document, exceptions_status must reflect that — e.g. 'No exceptions claimed; § 7152(a)(4) benefits documentation incomplete' — not an unqualified 'All well-documented.'",
+    "STATUTORY_BASIS MUST COVER BOTH DETERMINATIONS: where an action item states two separate determinations are required (recipient classification vs. sale/share characterisation — see the THIRD PARTY ≠ SALE/SHARE rule), statutory_basis must cite provisions for BOTH: § 1798.140(ag) (service provider) and § 1798.140(j) (contractor) for the classification determination, alongside § 7150(b)(1) and the relevant § 1798.140 sale/share definitions for the second. Do not cite only the sale/share provision when the action also asks the user to make a classification determination.",
   ].join("\n"),
   schema: `OUTPUT FORMAT — Return a single JSON object with this exact structure. No markdown fences, no preamble:
 
@@ -728,6 +731,28 @@ async function runPipeline(assessment_id: string) {
       console.warn("[cppa-risk v4] post-gen verification error:", e);
     }
 
+
+    // DETERMINISTIC § 7157 DEADLINE NORMALISATION: the model has twice produced a
+    // specific "2028-01-01" deadline for the § 7157 annual attestation despite an
+    // explicit prompt rule against it (deadline_basis correctly says the exact
+    // date within 2028 is unconfirmed). Rather than a third prompt-only attempt,
+    // correct it deterministically: any priority_action referencing § 7157 with a
+    // deadline matching a specific 2028 ISO date gets rewritten to the bracketed
+    // placeholder form, regardless of what the model produced.
+    if (parsed && Array.isArray(parsed.priority_actions)) {
+      const SEVEN_157_PATTERN = /§\s*7157|section\s*7157/i;
+      const SPECIFIC_2028_DATE = /^2028-\d{2}-\d{2}$/;
+      for (const action of parsed.priority_actions) {
+        const referencesSeven157 =
+          SEVEN_157_PATTERN.test(String(action?.action ?? "")) ||
+          SEVEN_157_PATTERN.test(String(action?.statutory_basis ?? "")) ||
+          SEVEN_157_PATTERN.test(String(action?.deadline_basis ?? ""));
+        if (referencesSeven157 && SPECIFIC_2028_DATE.test(String(action?.deadline ?? ""))) {
+          console.warn(`[cppa-risk] normalised § 7157 deadline from "${action.deadline}" to bracketed placeholder (deterministic backstop)`);
+          action.deadline = "[2028 — exact date to be confirmed per § 7157 and regulatory guidance]";
+        }
+      }
+    }
 
     const report_data = {
       schema_version: "v4-five-stage",
