@@ -1156,6 +1156,17 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
     } catch (persistErr) {
       console.error("biometric_assessments persist failed:", persistErr);
     }
+    if (savedId) {
+      // Stage 1: metering + version retention.
+      await recordRunMeterAndVersion(supabase, {
+        toolType: "biometric_checker",
+        assessmentId: savedId,
+        userId: resolvedUserId ?? null,
+        intake: (body as unknown) as Record<string, unknown>,
+        reportData: report_data,
+        documentText: assessment_text,
+      });
+    }
     }
 
     await finishFunctionRun(supabase, fnRun, {
