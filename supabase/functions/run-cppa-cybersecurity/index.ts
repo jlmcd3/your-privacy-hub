@@ -785,7 +785,14 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
           console.warn(`[cppa-cyber fsor-semantic] rpc error: ${error.message}`);
           return [];
         }
-        const rowsArr = Array.isArray(data) ? data : [];
+        const rowsArr = (Array.isArray(data) ? data : []).filter((r: any) => {
+          const cite = String(r?.regulation_citation ?? "").trim();
+          // Keep bare-section commentary (applies to all controls) and commentary
+          // matching this control's own subsection; drop commentary tied to a
+          // DIFFERENT subsection letter (e.g. (d) attached to a (c)(N) control).
+          if (/^11 CCR § 712[0-4]$/.test(cite)) return true;
+          return cite === citationFilter;
+        });
         const indexed = rowsArr.map((r: any, i: number) => ({ r, i }));
         indexed.sort((a, b) => {
           const pa = PKG_PRIORITY[a.r?.fsor_package] ?? 99;
