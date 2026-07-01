@@ -81,7 +81,7 @@ async function awaitGeneration(
     await new Promise((r) => setTimeout(r, 3000));
     const { data } = await svc
       .from("li_assessments")
-      .select("status, error_message, updated_at")
+      .select("status, updated_at")
       .eq("id", id)
       .maybeSingle();
     const row = (data as any) ?? {};
@@ -92,9 +92,10 @@ async function awaitGeneration(
     if (status === "failed") {
       return {
         status: "failed",
-        detail: `failed after ${Date.now() - start}ms; error_message=${JSON.stringify(row.error_message ?? null)}`,
+        detail: `failed after ${Date.now() - start}ms; last updated_at=${row.updated_at ?? "n/a"}`,
       };
     }
+
   }
   return { status: "timeout", detail: `generation timed out after ${maxSec}s (cap=4min)` };
 }
