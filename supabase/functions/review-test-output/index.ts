@@ -429,6 +429,42 @@ SCORE-RANGE CALIBRATION: Use the FULL 0-100 range and treat 100 as genuinely att
     if (removedFormatting > 0) {
       console.log(`[review-test-output] stripped ${removedFormatting} formatting/cosmetic change item(s) (Rule 7 backstop, model=${chosenModel})`);
     }
+
+    // DETERMINISTIC RULE-10 BACKSTOP: strip bare "verify this citation against
+    // current law" items that name a citation the project has already confirmed
+    // current, and generic verify-currency notes with no stated reason to doubt.
+    // These recur every run despite Rule 10 naming several of them explicitly.
+    const before4 = review.changes.length;
+    const CONFIRMED_CURRENT = /(article|art\.?)\s*6\(11\)|art\.?\s*6\(1\)\(ea\)|EDPB Guidelines?\s*1\/2024|EDPB Guidelines?\s*9\/2022|adequacy decisions?[^.]*(19 December 2025|27 December 2031)|Data \(Use and Access\) Act 2025/i;
+    const BARE_VERIFY = /\bverify\b[^.]*\b(against|current)\b|may (post-?date|not be (widely )?recognized)/i;
+    review.changes = review.changes.filter((c: any) => {
+      const text = `${c?.problem ?? ""} ${c?.fix ?? ""}`;
+      // Strip only when it is BOTH a confirmed-current citation AND framed as a bare verify/currency note.
+      const isConfirmedCurrentVerify = CONFIRMED_CURRENT.test(text) && BARE_VERIFY.test(text);
+      return !isConfirmedCurrentVerify;
+    });
+    const removedVerify = before4 - review.changes.length;
+    if (removedVerify > 0) {
+      console.log(`[review-test-output] stripped ${removedVerify} confirmed-current verify note(s) (Rule 10 backstop, model=${chosenModel})`);
+    }
+
+    // DETERMINISTIC RULE-5 BACKSTOP: strip items whose complaint is that the
+    // (unseen) intake is missing / does not state / does not confirm something —
+    // the reviewer is not shown the intake and must not assert its contents.
+    // Narrow: matches intake/record-absence phrasing and the recurring
+    // "not stated/articulated in the controller's own words" pattern, while
+    // sparing OUTPUT-completeness and OUTPUT-contradiction findings (which
+    // reference the output, e.g. "the output does not include a clause…").
+    const before5 = review.changes.length;
+    const INTAKE_ABSENCE = /\b(intake|record provided|underlying record)\b[^.]*\b(does not|doesn'?t|fails to|has not)\b[^.]*\b(state|confirm|provide|include|specify|articulate|address|mention)\b|\b(has not been|is not|was not)\s+(stated|provided|confirmed|articulated|described)\b[^.]*\b(controller'?s own words|in the (intake|record))\b|\bclaim about missing intake\b/i;
+    review.changes = review.changes.filter((c: any) => {
+      const problem = String(c?.problem ?? "");
+      return !INTAKE_ABSENCE.test(problem);
+    });
+    const removedIntake = before5 - review.changes.length;
+    if (removedIntake > 0) {
+      console.log(`[review-test-output] stripped ${removedIntake} unseen-intake-absence item(s) (Rule 5 backstop, model=${chosenModel})`);
+    }
   }
 
   return jsonResp({ ok: true, testId, model: chosenModel, review });
