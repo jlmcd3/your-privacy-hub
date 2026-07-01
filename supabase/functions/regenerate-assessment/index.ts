@@ -105,6 +105,8 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
   const reqId = crypto.randomUUID();
+  console.log(JSON.stringify({ evt: "regen_enter", req_id: reqId, method: req.method }));
+
   const logExit = (status: number, extra: Record<string, unknown> = {}) => {
     console.log(JSON.stringify({ evt: "regen_exit", req_id: reqId, status, ...extra }));
   };
@@ -113,12 +115,10 @@ Deno.serve(async (req) => {
   try {
     payload = await req.json();
   } catch {
-    console.log(JSON.stringify({ evt: "regen_enter", req_id: reqId, tool_type: null, assessment_id: null, parse_error: true }));
     logExit(400, { error: "invalid_json" });
     return json({ error: "invalid_json" }, 400);
   }
   const { tool_type, assessment_id, edited_fields } = payload;
-  console.log(JSON.stringify({ evt: "regen_enter", req_id: reqId, tool_type, assessment_id }));
 
   if (!tool_type || !assessment_id) {
     logExit(400, { error: "missing_params" });
