@@ -557,7 +557,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 2. Mandatory DPIA under Article 35 — biometric identification systems generally require a DPIA; verify against the DSK's coordinated DPIA must-list and the competent state DPA's published criteria.
 3. Works council (Betriebsrat) codetermination rights: under § 87(1) no. 6 Betriebsverfassungsgesetz (BetrVG), the introduction of technical systems capable of monitoring employee conduct or performance — which includes biometric time-and-attendance or access systems — requires works council agreement before deployment. Proceeding without Betriebsrat consent exposes the employer to injunctive relief.
 4. Article 13/14 transparency notices in German identifying the Article 9(2) condition, biometric modalities, and data subject rights.
-5. Article 28 DPA for all processors; Article 46 safeguard for any non-EEA transfer.
+5. Article 28 DPA for all processors; any non-EEA transfer requires an Article 45 adequacy decision or, absent one, an Article 46 safeguard.
 
 Consent and notice:
 Employee consent is generally not valid as an Article 9(2) condition in the German employment context (DSK and EDPB alignment on power imbalance). Rely on § 26 BDSG with Article 9(2)(b) basis. Works council agreement (Betriebsvereinbarung) is typically the pre-condition for lawful employee biometric processing.
