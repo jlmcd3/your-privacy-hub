@@ -20,6 +20,15 @@ export type RailEntry = {
   enforcementNote?: string;
   goodAnswer?: string;
   commonMistake?: string;
+  /**
+   * coachLead — ONE imperative line a seasoned professional can act on instantly
+   * (serif, shown always). coachBody — 1–2 sentences of elaboration (shown always).
+   * Both obey the same discipline as goodAnswer: they describe the SHAPE of a
+   * complete answer (dimensions, specificity, separateness), never the content
+   * of a compliant one.
+   */
+  coachLead?: string;
+  coachBody?: string;
   relatedCitations?: { citation: string; label: string }[];
   templateGuidance?: {
     sectionRef: string;
