@@ -1,0 +1,1 @@
+UPDATE public.long_running_jobs SET status = 'failed', error = 'Cancelled by user before testing regenerate-assessment v4 fix', completed_at = now(), updated_at = now() WHERE id = '6057d982-4d6c-41c9-aba5-a00fef84fc5b' AND status = 'running';
