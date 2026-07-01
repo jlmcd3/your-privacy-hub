@@ -330,7 +330,7 @@ async function handle(req: Request): Promise<Response> {
   // deductions for genuine defects — do not cluster scores in a narrow band.
   const OPENAI_CALIBRATION = `
 
-SCORE-RANGE CALIBRATION: Use the FULL 0-100 range and treat 100 as genuinely attainable. An output with no substantive defect — no factual/legal error, no fabrication, no internal contradiction, no structural break — should score in the 97-100 band, not parked at 95. Do NOT default to ~95 as a generic "very good" ceiling. Reserve every deduction for a specific, substantive defect you can name in the changes[] list: if you cannot point to a concrete defect that justifies a point off a dimension, do not take that point off. Score each dimension independently on its own merits — do not compress all dimensions toward a single middle value. A dimension with zero defects found is a 98-100, not a 95. Only descend below 95 on a dimension when you have listed at least one genuine (non-cosmetic, non-placeholder, non-"verify") defect bearing on that dimension.`;
+SCORE-RANGE CALIBRATION: Use the FULL 0-100 range and let the score MOVE with the number of genuine defects you actually list — do not park every output at one number near the top. Method: start each dimension at 100 and deduct for each specific, substantive defect you can name in the changes[] list (a factual/legal error, a fabrication, an internal contradiction, a genuine miscitation, a structural break). A tool output with zero genuine defects belongs at 98-100; one with a single minor genuine defect in the high 90s; one with several genuine defects in the low-to-mid 90s; more than that, below 90. Two different tool outputs with different numbers of genuine defects must NOT receive the same score — if you find yourself assigning the same overall to most tools, you are anchoring, not scoring. Do NOT deduct for cosmetics, template placeholders, correctly-flagged-but-unresolved inconsistencies, or "verify against current law" notes on facts you cannot show are wrong; those are not genuine defects. Score each dimension independently on its own merits.`;
   const system = isOpenAI ? baseSystem + OPENAI_CALIBRATION : baseSystem;
 
   const userMessage = [
@@ -464,6 +464,23 @@ SCORE-RANGE CALIBRATION: Use the FULL 0-100 range and treat 100 as genuinely att
     const removedIntake = before5 - review.changes.length;
     if (removedIntake > 0) {
       console.log(`[review-test-output] stripped ${removedIntake} unseen-intake-absence item(s) (Rule 5 backstop, model=${chosenModel})`);
+    }
+
+    // DETERMINISTIC RULE-5 BACKSTOP (self-cancelling variant): strip items whose
+    // own fix text concedes the output is actually fine — e.g. "change status to
+    // compliant", "no gap in the output", "the output already provides […]
+    // satisfying the provision". This is the reliable signature of the reviewer
+    // treating an intake placeholder value ("(not specified)", "(not tracked)")
+    // as an output defect and then retracting it in the same item.
+    const before5b = review.changes.length;
+    const SELF_CANCEL_FIX = /change (the )?status to ['"]?compliant|no gap in the output|not a (missing|gap)[^.]{0,30}(element|in the output)|the output (has|provides|includes|already contains)[^.]{0,60}(satisfying|satisfies|complete)/i;
+    review.changes = review.changes.filter((c: any) => {
+      const fix = String(c?.fix ?? "");
+      return !SELF_CANCEL_FIX.test(fix);
+    });
+    const removedSelfCancel = before5b - review.changes.length;
+    if (removedSelfCancel > 0) {
+      console.log(`[review-test-output] stripped ${removedSelfCancel} self-cancelling item(s) (Rule 5 backstop, model=${chosenModel})`);
     }
   }
 
