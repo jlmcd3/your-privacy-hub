@@ -511,11 +511,32 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
 
     function applyConsistencyFixes(rep: any): void {
       const controls: any[] = Array.isArray(rep?.controls) ? rep.controls : [];
+      // FINDING-VS-SCORE GUARD: a finding that describes absence / no discrete
+      // intake evidence must not carry a scored "Implemented"/"Mature" rating.
+      // This catches the case where a non-satisfying adjacent entry (e.g. a
+      // zero-trust entry mapped onto the segmentation control) was scored ≥60
+      // despite the finding stating no discrete evidence exists. Force it to
+      // "Insufficient information" / 0, consistent with the ABSENT-CONTROL and
+      // ZERO-TRUST rules and with how genuinely-evidenced controls are treated.
+      const ABSENCE_FINDING = /\b(no discrete|not separately identified|not separately distinguished|no dedicated|no discrete entry|does not (include|contain) a discrete|is not (separately )?identified|lacks? (a )?discrete|no (documented )?evidence (of|is provided)|merely inferred|only inferred|inferred from adjacent)\b/i;
       for (const c of controls) {
         const status = String(c?.status ?? "").trim();
         if (status.toLowerCase() === "insufficient information") continue;
         const score = Number(c?.score);
         if (!Number.isFinite(score)) continue;
+        const finding = String(c?.finding ?? "");
+        if (score >= 60 && ABSENCE_FINDING.test(finding)) {
+          console.log(JSON.stringify({
+            evt: "consistency_fix",
+            fn: "run-cppa-cybersecurity",
+            field: `controls[${c?.control ?? "?"}].finding_vs_score`,
+            was: `${status}/${score}`,
+            now: "Insufficient information/0",
+          }));
+          c.status = "Insufficient information";
+          c.score = 0;
+          continue;
+        }
         const expected = statusForScore(score);
         // Allow "Gap" as an alias for "Critical Gap"/"Partial" only when it matches the band.
         const ok =
