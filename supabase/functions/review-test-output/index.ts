@@ -66,7 +66,7 @@ REVIEW DISCIPLINE — the generators under review produce DRAFT privacy-complian
 
 9. DO NOT DECLARE A PROVISION, SUBSECTION, OR FRAMEWORK CATEGORY NON-EXISTENT FROM MEMORY. Standards and statutes are renumbered and reorganised between versions, and the current version may post-date your training. Do NOT state that a specific subsection, paragraph, or control category "does not exist", "is not valid", or "is not a real category", and do NOT direct replacement with a different identifier you recall — record any doubt at most as a LOW-severity "verify against the current text of [standard/statute]". Items that ARE current and must NOT be flagged as non-existent or "corrected" from memory: NIST CSF 2.0 includes the Protect category PR.IR — Technology Infrastructure Resilience (subcategories PR.IR-01…04; PR.IR-01 = networks/environments protected from unauthorised logical access, i.e. segmentation), and PR.PT was a CSF 1.1 category REMOVED in 2.0, so never "correct" PR.IR to PR.PT. In CSF 2.0 the Identify function has exactly three categories — ID.AM (Asset Management), ID.RA (Risk Assessment), and ID.IM (Improvement); "Improvement" belongs to Identify (ID.IM), NOT to Govern, and there is no "GV.IM" — never assert that Identify lacks an improvement category. CSF 2.0 renamed CSF 1.1's PR.AC (Identity Management and Access Control) to PR.AA (Identity Management, Authentication, and Access Control); never "correct" a 2.0 access-control reference back to "PR.AC". You must never propose a function→category attribution or a specific subcategory code from your own memory. Cal. Civ. Code § 1798.140(d)(1) defines "business" with three thresholds — (A) $25M gross revenue, (B) 100,000 consumers/households, and (C) 50%+ revenue from selling/sharing PI — subsection (C) exists. The 2025 CPPA cybersecurity-audit regulation renumbered the 11 CCR § 7123(c) component list, so a (c)(N) that differs from your recollection is not necessarily wrong. 11 CCR § 7152(a) (risk-assessment content requirements) has AT LEAST NINE enumerated subsections in the final enacted regulation — the § 7001 definition of "Risk assessment report" expressly references "section 7152, subsections (a)(1)–(3), (6)–(9)." NEVER assert that "§ 7152(a) has only eight subsections" or that "there is no § 7152(a)(9)"; § 7152(a)(9) exists (it concerns the individuals/decisionmaker involved in the assessment). The § 7001(e) definition of ADMT reads "uses computation to replace human decisionmaking or substantially replace human decisionmaking" — the phrase "substantially replace human decisionmaking" IS the enacted standard; do NOT "correct" a generator that uses it toward "substantially facilitate a decision," which is superseded draft language, and do NOT flag "substantially replaces human decisionmaking" as a misstatement of § 7001(e). The certifying-executive requirement is at § 7157 and the assessment-contributors element is at § 7152(a)(8); a generator that cites these correctly must not be "corrected." This prohibition extends to STATUTE SUB-ARTICLE LETTERS: when a parenthetical gloss appears not to match its cited subsection (e.g. an Art 13(2)/Art 28(3) point cited at the wrong letter), do NOT assert a specific replacement letter from memory. Name the provision in general terms, say the subsection letter "appears misattributed", and recommend verifying the exact subsection against the primary text — never "the correct citation is Art X(y)(z)" unless you are certain. Verified anchors you MAY rely on: GDPR Art 28(3)(f) = processor assists the controller with the obligations under Articles 32–36, which INCLUDES breach-notification assistance (Arts 33–34); Art 28(3)(g) = delete or return data at end of services; Art 28(3)(h) = audits/information. GDPR Art 13(2)(b) = the data-subject rights enumeration (access, rectification, erasure, restriction, object, portability); Art 13(2)(d) = right to lodge a complaint with a supervisory authority; Art 13(2)(e) = whether providing the data is a statutory/contractual requirement. Do NOT "correct" a generator that already cites these correctly.
 
-10. DO NOT EMIT BARE "VERIFY THIS CITATION" CHANGES, AND DO NOT CAVEAT CORRECT FACTS. A change item that merely says "verify citation X against current primary law" with no concrete, stated reason to doubt X is noise, not a defect — do NOT generate one per citation. Only flag a citation when you can state a specific reason it appears wrong (and even then, per Rules 3, 6 and 9, never substitute a citation or framework code from memory). General citation-currency caution belongs in at most ONE low-severity note for the whole document, not one item per citation. Likewise, do NOT append "verify against primary sources" to a specific date, figure, or fact merely because it is precise or post-dates your training; a plausibly-current fact is not a defect (e.g. the EU's renewed UK adequacy decisions adopted 19 December 2025 and valid until 27 December 2031 are correct — do not flag them; likewise UK GDPR Article 6(11) and Article 6(1)(ea) / Annex 1 — the recognised-legitimate-interests provisions added by the Data (Use and Access) Act 2025, in force 5 February 2026 — are current and correct, so never flag "Article 6(11) UK GDPR" as unrecognised, non-standard, or post-dating your training). Such caveats, if any, are a single low-severity note, never a per-fact change.
+10. DO NOT EMIT BARE "VERIFY THIS CITATION" CHANGES, AND DO NOT CAVEAT CORRECT FACTS. A change item that merely says "verify citation X against current primary law" with no concrete, stated reason to doubt X is noise, not a defect — do NOT generate one per citation. Only flag a citation when you can state a specific reason it appears wrong (and even then, per Rules 3, 6 and 9, never substitute a citation or framework code from memory). General citation-currency caution belongs in at most ONE low-severity note for the whole document, not one item per citation. Likewise, do NOT append "verify against primary sources" to a specific date, figure, or fact merely because it is precise or post-dates your training; a plausibly-current fact is not a defect (e.g. the EU's renewed UK adequacy decisions adopted 19 December 2025 and valid until 27 December 2031 are correct — do not flag them; likewise UK GDPR Article 6(11) and Article 6(1)(ea) / Annex 1 — the recognised-legitimate-interests provisions added by the Data (Use and Access) Act 2025, in force 5 February 2026 — are current and correct, so never flag "Article 6(11) UK GDPR" as unrecognised, non-standard, or post-dating your training; EDPB Guidelines 1/2024 (on legitimate interests) and EDPB Guidelines 9/2022 (on breach notification) are both real and current — never flag either as possibly non-existent or post-dating your training). Such caveats, if any, are a single low-severity note, never a per-fact change.
 
 11. FLAGGING AN INCONSISTENCY WITHOUT RESOLVING IT IS CORRECT-BY-DESIGN. These generators are built to FLAG contradictions and inconsistencies with a regulatory citation and leave RESOLUTION to the user — they intentionally do not tell the user which contradictory value is correct, how to resolve it, or what answer to give (no adaptive guidance). A contradiction that the output has already flagged with a citation is COMPLETE; do NOT score it as a defect, and do NOT recommend that the generator "resolve", "decide", "provide a resolution path", "provide decision criteria", or "assert which field is correct". The acceptable observation, if any, is that the flag should cite the controlling provision — never that the generator should make the determination for the user.
 
@@ -320,11 +320,18 @@ async function handle(req: Request): Promise<Response> {
   const trimmed = outputStr.length > 80_000 ? outputStr.slice(0, 80_000) + "\n…[truncated]" : outputStr;
 
   const isImprovement = mode === "improvement";
-  const system = isImprovement ? IMPROVEMENT_SYSTEM_PROMPT : RUBRIC_SYSTEM_PROMPT;
+  const baseSystem = isImprovement ? IMPROVEMENT_SYSTEM_PROMPT : RUBRIC_SYSTEM_PROMPT;
 
   // Resolve reviewer: explicit `model` wins; default = Claude (legacy behavior).
   const chosenModel: string = (model && String(model).trim()) || DEFAULT_CLAUDE;
   const isOpenAI = /^gpt-/i.test(chosenModel) || /^o[0-9]/i.test(chosenModel);
+
+  // gpt-4o-specific range calibration. Use the full 0-100 scale and reserve
+  // deductions for genuine defects — do not cluster scores in a narrow band.
+  const OPENAI_CALIBRATION = `
+
+SCORE-RANGE CALIBRATION: Use the FULL 0-100 range and treat 100 as genuinely attainable. An output with no substantive defect — no factual/legal error, no fabrication, no internal contradiction, no structural break — should score in the 97-100 band, not parked at 95. Do NOT default to ~95 as a generic "very good" ceiling. Reserve every deduction for a specific, substantive defect you can name in the changes[] list: if you cannot point to a concrete defect that justifies a point off a dimension, do not take that point off. Score each dimension independently on its own merits — do not compress all dimensions toward a single middle value. A dimension with zero defects found is a 98-100, not a 95. Only descend below 95 on a dimension when you have listed at least one genuine (non-cosmetic, non-placeholder, non-"verify") defect bearing on that dimension.`;
+  const system = isOpenAI ? baseSystem + OPENAI_CALIBRATION : baseSystem;
 
   const userMessage = [
     `CURRENT DATE (authoritative; later than your training cutoff): ${new Date().toISOString().slice(0, 10)}`,
@@ -421,6 +428,42 @@ async function handle(req: Request): Promise<Response> {
     const removedFormatting = before3 - review.changes.length;
     if (removedFormatting > 0) {
       console.log(`[review-test-output] stripped ${removedFormatting} formatting/cosmetic change item(s) (Rule 7 backstop, model=${chosenModel})`);
+    }
+
+    // DETERMINISTIC RULE-10 BACKSTOP: strip bare "verify this citation against
+    // current law" items that name a citation the project has already confirmed
+    // current, and generic verify-currency notes with no stated reason to doubt.
+    // These recur every run despite Rule 10 naming several of them explicitly.
+    const before4 = review.changes.length;
+    const CONFIRMED_CURRENT = /(article|art\.?)\s*6\(11\)|art\.?\s*6\(1\)\(ea\)|EDPB Guidelines?\s*1\/2024|EDPB Guidelines?\s*9\/2022|adequacy decisions?[^.]*(19 December 2025|27 December 2031)|Data \(Use and Access\) Act 2025/i;
+    const BARE_VERIFY = /\bverify\b[^.]*\b(against|current)\b|may (post-?date|not be (widely )?recognized)/i;
+    review.changes = review.changes.filter((c: any) => {
+      const text = `${c?.problem ?? ""} ${c?.fix ?? ""}`;
+      // Strip only when it is BOTH a confirmed-current citation AND framed as a bare verify/currency note.
+      const isConfirmedCurrentVerify = CONFIRMED_CURRENT.test(text) && BARE_VERIFY.test(text);
+      return !isConfirmedCurrentVerify;
+    });
+    const removedVerify = before4 - review.changes.length;
+    if (removedVerify > 0) {
+      console.log(`[review-test-output] stripped ${removedVerify} confirmed-current verify note(s) (Rule 10 backstop, model=${chosenModel})`);
+    }
+
+    // DETERMINISTIC RULE-5 BACKSTOP: strip items whose complaint is that the
+    // (unseen) intake is missing / does not state / does not confirm something —
+    // the reviewer is not shown the intake and must not assert its contents.
+    // Narrow: matches intake/record-absence phrasing and the recurring
+    // "not stated/articulated in the controller's own words" pattern, while
+    // sparing OUTPUT-completeness and OUTPUT-contradiction findings (which
+    // reference the output, e.g. "the output does not include a clause…").
+    const before5 = review.changes.length;
+    const INTAKE_ABSENCE = /\b(intake|record provided|underlying record)\b[^.]*\b(does not|doesn'?t|fails to|has not)\b[^.]*\b(state|confirm|provide|include|specify|articulate|address|mention)\b|\b(has not been|is not|was not)\s+(stated|provided|confirmed|articulated|described)\b[^.]*\b(controller'?s own words|in the (intake|record))\b|\bclaim about missing intake\b/i;
+    review.changes = review.changes.filter((c: any) => {
+      const problem = String(c?.problem ?? "");
+      return !INTAKE_ABSENCE.test(problem);
+    });
+    const removedIntake = before5 - review.changes.length;
+    if (removedIntake > 0) {
+      console.log(`[review-test-output] stripped ${removedIntake} unseen-intake-absence item(s) (Rule 5 backstop, model=${chosenModel})`);
     }
   }
 
