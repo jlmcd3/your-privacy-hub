@@ -101,26 +101,51 @@ async function awaitGeneration(
 }
 
 
+// callRegen with a 60s AbortController timeout. On timeout, the request MAY
+// still have been processed server-side (merge applied, generator queued,
+// meter incremented). Rather than blindly retry — which would burn a second
+// run — the caller checks the meter+status; if runs_used advanced or status
+// went to 'processing'/'complete', treat the call as accepted and return a
+// synthetic 200 { ok: true, accepted_via: "idempotency_probe" }.
 async function callRegen(
   authHeader: string,
   body: Record<string, unknown>,
+  probeAcceptance?: () => Promise<{ accepted: boolean; detail: string }>,
 ): Promise<{ status: number; body: any }> {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/regenerate-assessment`, {
-    method: "POST",
-    headers: {
-      Authorization: authHeader,
-      apikey: ANON_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  let parsed: any = null;
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 60_000);
   try {
-    parsed = await res.json();
-  } catch {
-    parsed = null;
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/regenerate-assessment`, {
+      method: "POST",
+      headers: {
+        Authorization: authHeader,
+        apikey: ANON_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: ac.signal,
+    });
+    let parsed: any = null;
+    try {
+      parsed = await res.json();
+    } catch {
+      parsed = null;
+    }
+    return { status: res.status, body: parsed };
+  } catch (err) {
+    const isAbort = (err as any)?.name === "AbortError";
+    if (!isAbort) return { status: 0, body: { error: "fetch_error", detail: String(err) } };
+    if (!probeAcceptance) {
+      return { status: 0, body: { error: "timeout", detail: "callRegen aborted after 60s" } };
+    }
+    const probe = await probeAcceptance();
+    if (probe.accepted) {
+      return { status: 200, body: { ok: true, accepted_via: "idempotency_probe", detail: probe.detail } };
+    }
+    return { status: 0, body: { error: "timeout_not_accepted", detail: probe.detail } };
+  } finally {
+    clearTimeout(timer);
   }
-  return { status: res.status, body: parsed };
 }
 
 async function runAcceptance(
