@@ -4,6 +4,7 @@ import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
   identity:
@@ -999,6 +1000,15 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       .from("cppa_assessments")
       .update({ status: "complete", report_data: report, obligation_snapshot })
       .eq("id", assessment_id);
+
+    // Stage 1: metering + version retention.
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "cppa_cybersecurity",
+      assessmentId: assessment_id,
+      userId: (row as any).user_id ?? null,
+      intake: ((row as any).intake_data as Record<string, unknown>) ?? {},
+      reportData: report,
+    });
 
     // C4 RoPA accumulator: cybersecurity controls map to a Security activity
     if ((row as any).client_id) {

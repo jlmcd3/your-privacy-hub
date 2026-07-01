@@ -5,6 +5,7 @@ import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -654,11 +655,24 @@ Return JSON:
     const dpiaScope = synthesis.dpia_scope || [];
 
     await supabase.from("governance_assessments").update({
+    await supabase.from("governance_assessments").update({
       status: "complete",
       report_data: reportData,
       dpia_scope: dpiaScope,
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
+
+    // Stage 1: metering + version retention.
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "governance_assessment",
+      assessmentId: assessment_id,
+      userId: assessment.user_id ?? null,
+      intake: {
+        organization_name: (assessment as any).organization_name ?? (assessment as any).intake_data?.organization_name ?? null,
+        jurisdiction: (assessment as any).jurisdiction ?? (assessment as any).intake_data?.jurisdiction ?? null,
+      },
+      reportData,
+    });
 
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "governance_assessments", sourceRowId: assessment_id });
 

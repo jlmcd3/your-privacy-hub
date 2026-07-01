@@ -7,6 +7,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun, type FnRunHandle 
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 
 
@@ -831,6 +832,21 @@ Return JSON:
       report_data: reportData,
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
+
+    // Stage 1: metering + version retention (successful runs only).
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "li_assessment",
+      assessmentId: assessment_id,
+      userId: assessment.user_id ?? null,
+      intake: {
+        organization_name: assessment.organization_name,
+        subject_anchor: (assessment as any).subject_anchor ?? null,
+        relationship_type: assessment.relationship_type,
+        jurisdictions: assessment.jurisdictions,
+        data_categories: assessment.data_categories,
+      },
+      reportData,
+    });
 
     // C4 RoPA accumulator: draft a suggested processing activity into the
     // client's active RoPA session (fire-and-forget, non-fatal).

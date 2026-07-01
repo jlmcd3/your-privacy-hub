@@ -6,6 +6,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
 import { renderRegistryFor } from "../_shared/registry/product-manifest.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 
@@ -1154,6 +1155,17 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       }
     } catch (persistErr) {
       console.error("biometric_assessments persist failed:", persistErr);
+    }
+    if (savedId) {
+      // Stage 1: metering + version retention.
+      await recordRunMeterAndVersion(supabase, {
+        toolType: "biometric_checker",
+        assessmentId: savedId,
+        userId: resolvedUserId ?? null,
+        intake: (body as unknown) as Record<string, unknown>,
+        reportData: report_data,
+        documentText: assessment_text,
+      });
     }
     }
 

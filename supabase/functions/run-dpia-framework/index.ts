@@ -6,6 +6,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, type DpiaIntakeFacts, type TransferFlow } from "../_shared/dpia-jurisdiction-registry.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -757,6 +758,15 @@ Generate substantive draft rows for every table for the controller to verify; us
       report_data: reportData,
       updated_at: new Date().toISOString(),
     }).eq("id", dpia_id);
+
+    // Stage 1: metering + version retention.
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "dpia_framework",
+      assessmentId: dpia_id,
+      userId: dpia.user_id ?? null,
+      intake: (dpia.intake_data as Record<string, unknown>) ?? {},
+      reportData,
+    });
 
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id });
 

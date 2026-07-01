@@ -219,6 +219,7 @@ export default function CPPARiskAssessment() {
 
   // Step 1 — Business Profile
   const [entityName, setEntityName] = useState("");
+  const [subjectAnchor, setSubjectAnchor] = useState("");
   const [q1, setQ1] = useState(""); const [q2, setQ2] = useState(""); const [q3, setQ3] = useState("");
   const [q4, setQ4] = useState<string[]>([]); const [q5, setQ5] = useState("");
   // Step 2 — Consumer Rights
@@ -343,7 +344,7 @@ export default function CPPARiskAssessment() {
   }, [q1, q4, q5, q15, q18]);
 
   const stepValid = (): string | null => {
-    if (step === 1 && (!entityName.trim() || !q1 || !q2 || !q3 || !q4.length || !q5 || !q5bProfiling)) return "Please complete the business profile, including the entity name and the profiling question.";
+    if (step === 1 && (!entityName.trim() || !subjectAnchor.trim() || !q1 || !q2 || !q3 || !q4.length || !q5 || !q5bProfiling)) return "Please complete the business profile, including the entity name, subject anchor, and profiling question.";
     if (step === 2 && (!q6Multi.length || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
     if (step === 3 && (!q11 || !q12 || !q13 || !q14)) return "Please complete privacy notice questions.";
     if (step === 4) {
@@ -383,6 +384,7 @@ export default function CPPARiskAssessment() {
 
   const intake = useMemo(() => ({
     entity_name: entityName.trim(),
+    subject_anchor: subjectAnchor.trim(),
     // legacy keys preserved
     q1_revenue: q1, q2_consumers: q2, q3_sector: q3, q4_pi_categories: q4, q5_sell_share: q5,
     q6_right_know: q6Multi.join("; "), q6_right_know_multi: q6Multi, q7_right_delete: q7, q8_right_correct: q8, q9_opt_out: q9, q10_id_verification: q10,
@@ -418,7 +420,7 @@ export default function CPPARiskAssessment() {
     exceptions_intake: exceptionClaims,
     impact_intake: impactData,
   }), [
-    entityName,
+    entityName, subjectAnchor,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
     q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
     i1Purpose, i2RetentionPeriod, i2RetentionCriteria, i2RetentionDetail, i3CaConsumerBand,
@@ -434,7 +436,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
-    entityName, q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
+    entityName, subjectAnchor, q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
     exceptionClaims, impactData,
   }), [
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
@@ -442,7 +444,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary,
-    entityName, q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
+    entityName, subjectAnchor, q5bProfiling, q15bUnder16, q18bTraining, i1bMinPi, i4bSources,
     exceptionClaims, impactData,
   ]);
   const INITIAL_DRAFT_JSON = useMemo(() => JSON.stringify({
@@ -452,7 +454,7 @@ export default function CPPARiskAssessment() {
     i3CaConsumerBand: "", i4Disclosures: [] as string[], i5AdmtLogic: "", i5AdmtTrainingSource: "",
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "",
-    entityName: "", q5bProfiling: "", q15bUnder16: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
+    entityName: "", subjectAnchor: "", q5bProfiling: "", q15bUnder16: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     exceptionClaims: {} as Record<string, { claimed: boolean; scope: string; safeguards: string }>,
     impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
   }), []);
@@ -511,6 +513,7 @@ export default function CPPARiskAssessment() {
     if (typeof d.i9HasDpia === "string") setI9HasDpia(d.i9HasDpia);
     if (typeof d.i9DpiaSummary === "string") setI9DpiaSummary(d.i9DpiaSummary);
     if (typeof d.entityName === "string") setEntityName(d.entityName);
+    if (typeof d.subjectAnchor === "string") setSubjectAnchor(d.subjectAnchor);
     if (typeof d.q5bProfiling === "string") setQ5bProfiling(d.q5bProfiling);
     if (typeof d.q15bUnder16 === "string") setQ15bUnder16(d.q15bUnder16);
     if (typeof d.q18bTraining === "string") setQ18bTraining(d.q18bTraining);
@@ -596,6 +599,20 @@ export default function CPPARiskAssessment() {
                   placeholder="e.g., Acme Retail, Inc."
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                   autoComplete="organization"
+                />
+              </div>
+              <div onFocus={() => focusRail('subject_anchor')}>
+                <Label htmlFor="subject_anchor">In one line — what processing does this assessment cover? <Req /></Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Set when you first generate; fixed across your revision runs. The detailed purpose (Step 6) remains editable.
+                </p>
+                <input
+                  id="subject_anchor"
+                  type="text"
+                  value={subjectAnchor}
+                  onChange={(e) => setSubjectAnchor(e.target.value)}
+                  placeholder="e.g., Fraud screening of new account signups"
+                  className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                 />
               </div>
               <div onFocus={() => focusRail('q1_revenue')}><Label>Q1: What is your business's annual gross revenue? <Req /> <span className="text-xs text-muted-foreground font-mono">(§ 1798.140(ag)(1))</span></Label><p className="text-xs text-muted-foreground mt-1">Total worldwide gross revenue from all sources — not just California.</p><div className="mt-2"><Radio name="q1" options={REVENUE_OPTS} value={q1} onChange={setQ1} /></div></div>

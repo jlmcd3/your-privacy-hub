@@ -26,6 +26,7 @@ interface PreviewRow {
   id: string;
   user_id: string | null;
   organization_name: string | null;
+  subject_anchor?: string | null;
   processing_description: string;
   data_categories: string[] | null;
   relationship_type: string | null;
@@ -144,7 +145,7 @@ const LIAssessmentIntake = () => {
     (async () => {
       const { data, error } = await supabase
         .from("li_assessments")
-        .select("id, user_id, organization_name, processing_description, data_categories, relationship_type, jurisdictions, preview_signal")
+        .select("id, user_id, organization_name, subject_anchor, processing_description, data_categories, relationship_type, jurisdictions, preview_signal")
         .eq("id", id)
         .single();
       if (error || !data) {
@@ -208,6 +209,7 @@ const LIAssessmentIntake = () => {
     const intake_data: Record<string, unknown> = {
       // Stage A (re-sent so checkout has full picture)
       organization_name: row.organization_name,
+      subject_anchor: (row as any).subject_anchor ?? null,
       processing_description: row.processing_description,
       data_categories: row.data_categories,
       relationship_type: row.relationship_type,

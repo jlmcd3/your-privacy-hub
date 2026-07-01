@@ -14,6 +14,7 @@ import {
 } from "../_shared/admt-citation-registry.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -840,6 +841,15 @@ Return this JSON structure exactly:
       report_data: report,
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
+
+    // Stage 1: metering + version retention.
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "cppa_admt",
+      assessmentId: assessment_id,
+      userId: (assessment as any).user_id ?? null,
+      intake: ((assessment as any).intake_data as Record<string, unknown>) ?? {},
+      reportData: report,
+    });
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
    } catch (e) {
     console.error("[run-admt-checker] pipeline error:", e);

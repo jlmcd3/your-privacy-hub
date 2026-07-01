@@ -23,6 +23,7 @@ import { BANNED_PHRASES } from "../_shared/citation-verifier.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 // [REVISED] authoritative § 7150(b) section strings — single source of truth
 import { CITATION_REGISTRY } from "../_shared/admt-citation-registry.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -769,6 +770,15 @@ async function runPipeline(assessment_id: string) {
     await supabase.from("cppa_assessments")
       .update({ status: "complete", report_data })
       .eq("id", assessment_id);
+
+    // Stage 1: metering + version retention.
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "cppa_risk_assessment",
+      assessmentId: assessment_id,
+      userId: (row as any).user_id ?? null,
+      intake: ((row as any).intake_data as Record<string, unknown>) ?? {},
+      reportData: report_data,
+    });
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);
     try {

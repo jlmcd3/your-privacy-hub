@@ -89,6 +89,7 @@ const LIAssessment = () => {
   const pricing = useToolPrice("li_assessment");
 
   const [organizationName, setOrganizationName] = useState("");
+  const [subjectAnchor, setSubjectAnchor] = useState("");
   const [processingDescription, setProcessingDescription] = useState("");
   const [dataCategories, setDataCategories] = useState<string[]>([]);
   const [relationship, setRelationship] = useState("");
@@ -102,6 +103,7 @@ const LIAssessment = () => {
 
   const validate = () => {
     if (!organizationName.trim()) return "Tell us the name of the organisation being assessed.";
+    if (!subjectAnchor.trim()) return "Name the single interest this assessment covers.";
     if (!processingDescription.trim()) return "Briefly describe what you're doing.";
     if (!dataCategories.length) return "Select at least one data category.";
     if (!relationship) return "Select your relationship with data subjects.";
@@ -123,6 +125,7 @@ const LIAssessment = () => {
       // Call free preview function
       const { data: previewData, error: fnErr } = await supabase.functions.invoke("preview-li-assessment", {
         body: {
+          subject_anchor: subjectAnchor.trim(),
           processing_description: processingDescription,
           data_categories: dataCategoriesOut,
           relationship_type: relationshipOut,
@@ -140,6 +143,7 @@ const LIAssessment = () => {
           status: "pending",
           stage: "preview",
           organization_name: organizationName,
+          subject_anchor: subjectAnchor.trim(),
           processing_description: processingDescription,
           data_categories: dataCategoriesOut,
           relationship_type: relationshipOut,
@@ -288,6 +292,22 @@ const LIAssessment = () => {
                 className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm"
               />
               <p className="text-meta text-muted-foreground mt-1">The controller/entity whose processing this LIA documents.</p>
+            </div>
+            <div>
+              <Label htmlFor="subject-anchor" className="text-sm font-semibold text-brand-navy">
+                In one line — what does this assessment cover?<Req />
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                This names the single interest being assessed. It is set when you first generate and stays fixed
+                across all your revision runs — everything below it can be refined.
+              </p>
+              <input
+                id="subject-anchor"
+                value={subjectAnchor}
+                onChange={(e) => setSubjectAnchor(e.target.value)}
+                placeholder="e.g., Fraud screening of new account signups"
+                className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm"
+              />
             </div>
             <div>
               <Label htmlFor="desc" className="text-sm font-semibold text-brand-navy">What processing are you considering?<Req /> <DefPopover termKey="gdpr_legitimate_interests" /></Label>
