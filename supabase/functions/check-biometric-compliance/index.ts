@@ -489,7 +489,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 2. CNIL authorisation is no longer required for most biometric systems post-GDPR, but a mandatory DPIA under Article 35 applies — biometric processing for identification is on the CNIL's published list of processing operations requiring a DPIA.
 3. In the employment context: CNIL guidance holds that employee consent is generally not valid as an Article 9(2) condition due to power imbalance. Rely on Article 9(2)(b) (employment law basis) supported by a collective agreement or works council consultation (comité social et économique) where applicable.
 4. Pre-collection notice under Articles 13/14 must identify the Article 9(2) condition, biometric modalities, retention periods, and data subject rights in French.
-5. Article 28 DPA required for all processors receiving biometric data; Article 46 transfer safeguard required for any transfer outside the EEA.
+5. Article 28 DPA required for all processors receiving biometric data; any transfer outside the EEA requires an Article 45 adequacy decision (including the EU–US Data Privacy Framework where the importer is certified) or, absent adequacy, an Article 46 safeguard (SCCs or BCRs).
 
 Consent and notice:
 A standalone, biometric-specific notice must be provided before any collection. In workplace contexts, use Article 9(2)(b) basis and consult the comité social et économique before deployment.
