@@ -373,19 +373,39 @@ async function handle(req: Request): Promise<Response> {
   if (!review) return jsonResp({ error: "Reviewer returned non-JSON", raw: raw.slice(0, 1000) }, 500);
 
   // DETERMINISTIC RULE-13 BACKSTOP: strip any change item whose own `fix` text
-  // self-retracts (e.g. "no change required / correct by design"). The model is
-  // already instructed not to list such items, but this has been observed to fail
-  // within a single generation. This does not touch scores.
+  // self-retracts (e.g. "no change required / correct by design"). Broadened from
+  // the original version, which only matched one exact phrasing and missed
+  // variants like "this is not a substantive defect" / "this is not a defect".
+  // The model is already instructed not to list such items, but this has been
+  // observed to fail within a single generation. This does not touch scores.
   if (review && Array.isArray(review.changes)) {
-    const SELF_RETRACT_PATTERN = /no change required|correct by design|correct-by-design/i;
-    const before = review.changes.length;
+    const SELF_RETRACT_PATTERN = /no change required|correct by design|correct-by-design|not a substantive defect|not a defect\b|not an? (actual |genuine )?(error|issue|problem)/i;
+    const before1 = review.changes.length;
     review.changes = review.changes.filter((c: any) => {
-      const fixText = String(c?.fix ?? "");
-      return !SELF_RETRACT_PATTERN.test(fixText);
+      const text = `${c?.problem ?? ""} ${c?.fix ?? ""}`;
+      return !SELF_RETRACT_PATTERN.test(text);
     });
-    const removed = before - review.changes.length;
-    if (removed > 0) {
-      console.log(`[review-test-output] stripped ${removed} self-retracting change item(s) (Rule 13 backstop, model=${chosenModel})`);
+    const removedSelfRetract = before1 - review.changes.length;
+    if (removedSelfRetract > 0) {
+      console.log(`[review-test-output] stripped ${removedSelfRetract} self-retracting change item(s) (Rule 13 backstop, model=${chosenModel})`);
+    }
+
+    // DETERMINISTIC RULE-1 BACKSTOP: strip any change item whose entire complaint
+    // is "this field is a placeholder and needs a value" for a legal-instrument
+    // negotiable term. Rule 1 already forbids this explicitly, but has been
+    // observed to fail — see run20 DPA section (~20 such items in one run).
+    const before2 = review.changes.length;
+    const PLACEHOLDER_PROBLEM = /\bplaceholder(s)?\b/i;
+    const PLACEHOLDER_FIX = /\bensure\b[^.]*\b(is|are)\b[^.]*\bspecified\b/i;
+    review.changes = review.changes.filter((c: any) => {
+      const problem = String(c?.problem ?? "");
+      const fix = String(c?.fix ?? "");
+      const looksLikePlaceholderFlag = PLACEHOLDER_PROBLEM.test(problem) && PLACEHOLDER_FIX.test(fix);
+      return !looksLikePlaceholderFlag;
+    });
+    const removedPlaceholder = before2 - review.changes.length;
+    if (removedPlaceholder > 0) {
+      console.log(`[review-test-output] stripped ${removedPlaceholder} placeholder-fill-in change item(s) (Rule 1 backstop, model=${chosenModel})`);
     }
   }
 
