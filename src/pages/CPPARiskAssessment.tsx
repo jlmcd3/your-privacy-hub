@@ -344,7 +344,7 @@ export default function CPPARiskAssessment() {
   }, [q1, q4, q5, q15, q18]);
 
   const stepValid = (): string | null => {
-    if (step === 1 && (!entityName.trim() || !q1 || !q2 || !q3 || !q4.length || !q5 || !q5bProfiling)) return "Please complete the business profile, including the entity name and the profiling question.";
+    if (step === 1 && (!entityName.trim() || !subjectAnchor.trim() || !q1 || !q2 || !q3 || !q4.length || !q5 || !q5bProfiling)) return "Please complete the business profile, including the entity name, subject anchor, and profiling question.";
     if (step === 2 && (!q6Multi.length || !q7 || !q8 || !q9 || !q10)) return "Please complete consumer rights questions.";
     if (step === 3 && (!q11 || !q12 || !q13 || !q14)) return "Please complete privacy notice questions.";
     if (step === 4) {
