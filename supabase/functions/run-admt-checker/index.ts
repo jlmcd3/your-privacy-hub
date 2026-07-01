@@ -14,6 +14,7 @@ import {
 } from "../_shared/admt-citation-registry.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
