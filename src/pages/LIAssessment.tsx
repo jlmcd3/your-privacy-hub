@@ -125,6 +125,7 @@ const LIAssessment = () => {
       // Call free preview function
       const { data: previewData, error: fnErr } = await supabase.functions.invoke("preview-li-assessment", {
         body: {
+          subject_anchor: subjectAnchor.trim(),
           processing_description: processingDescription,
           data_categories: dataCategoriesOut,
           relationship_type: relationshipOut,
