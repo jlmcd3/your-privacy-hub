@@ -30,7 +30,27 @@ function j(body: unknown, status = 200) {
   });
 }
 
+// Settle-poll for meter/version reads. The generator writes meter+versions
+// immediately before status:complete, but PostgREST cache/eventual-consistency
+// can lag by a beat — poll every 2s up to 30s until the expected condition
+// holds (or return the final observation). Returns { value, waitedMs }.
+async function settlePoll<T>(
+  read: () => Promise<T>,
+  ok: (v: T) => boolean,
+  maxMs = 30_000,
+  stepMs = 2_000,
+): Promise<{ value: T; waitedMs: number }> {
+  const start = Date.now();
+  let value = await read();
+  while (!ok(value) && Date.now() - start < maxMs) {
+    await new Promise((r) => setTimeout(r, stepMs));
+    value = await read();
+  }
+  return { value, waitedMs: Date.now() - start };
+}
+
 async function pollLIA(
+
   svc: ReturnType<typeof createClient>,
   id: string,
   maxSec = 180,
