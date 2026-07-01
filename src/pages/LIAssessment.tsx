@@ -294,6 +294,22 @@ const LIAssessment = () => {
               <p className="text-meta text-muted-foreground mt-1">The controller/entity whose processing this LIA documents.</p>
             </div>
             <div>
+              <Label htmlFor="subject-anchor" className="text-sm font-semibold text-brand-navy">
+                In one line — what does this assessment cover?<Req />
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                This names the single interest being assessed. It is set when you first generate and stays fixed
+                across all your revision runs — everything below it can be refined.
+              </p>
+              <input
+                id="subject-anchor"
+                value={subjectAnchor}
+                onChange={(e) => setSubjectAnchor(e.target.value)}
+                placeholder="e.g., Fraud screening of new account signups"
+                className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm"
+              />
+            </div>
+            <div>
               <Label htmlFor="desc" className="text-sm font-semibold text-brand-navy">What processing are you considering?<Req /> <DefPopover termKey="gdpr_legitimate_interests" /></Label>
               <Textarea
                 id="desc"
