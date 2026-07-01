@@ -104,17 +104,32 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
+  const reqId = crypto.randomUUID();
+  const logExit = (status: number, extra: Record<string, unknown> = {}) => {
+    console.log(JSON.stringify({ evt: "regen_exit", req_id: reqId, status, ...extra }));
+  };
+
   let payload: { tool_type?: string; assessment_id?: string; edited_fields?: Record<string, unknown> };
   try {
     payload = await req.json();
   } catch {
+    console.log(JSON.stringify({ evt: "regen_enter", req_id: reqId, tool_type: null, assessment_id: null, parse_error: true }));
+    logExit(400, { error: "invalid_json" });
     return json({ error: "invalid_json" }, 400);
   }
   const { tool_type, assessment_id, edited_fields } = payload;
-  if (!tool_type || !assessment_id) return json({ error: "missing_params" }, 400);
+  console.log(JSON.stringify({ evt: "regen_enter", req_id: reqId, tool_type, assessment_id }));
+
+  if (!tool_type || !assessment_id) {
+    logExit(400, { error: "missing_params" });
+    return json({ error: "missing_params" }, 400);
+  }
 
   const authedUser = await getUserFromAuthHeader(req);
-  if (!authedUser) return json({ error: "unauthenticated" }, 401);
+  if (!authedUser) {
+    logExit(401, { error: "unauthenticated" });
+    return json({ error: "unauthenticated" }, 401);
+  }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
@@ -126,9 +141,11 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (!meter || meter.user_id !== authedUser.id) {
+    logExit(403, { error: "not_found_or_forbidden" });
     return json({ error: "not_found_or_forbidden" }, 403);
   }
   if (meter.runs_used >= meter.runs_allowed) {
+    logExit(402, { error: "budget_exhausted", runs_used: meter.runs_used, runs_allowed: meter.runs_allowed });
     return json({
       error: "budget_exhausted",
       can_extend: true,
@@ -141,12 +158,16 @@ Deno.serve(async (req) => {
   const edits = (edited_fields ?? {}) as Record<string, unknown>;
   for (const k of Object.keys(locked)) {
     if (k in edits && JSON.stringify(edits[k]) !== JSON.stringify(locked[k])) {
+      logExit(409, { error: "locked_field_changed", field: k });
       return json({ error: "locked_field_changed", field: k }, 409);
     }
   }
 
   const table = TABLE_MAP[tool_type];
-  if (!table) return json({ error: "unknown_tool" }, 400);
+  if (!table) {
+    logExit(400, { error: "unknown_tool" });
+    return json({ error: "unknown_tool" }, 400);
+  }
 
   const hasIntake = HAS_INTAKE_DATA[tool_type] ?? true;
   let mergedIntake: Record<string, unknown> | undefined;
@@ -170,7 +191,15 @@ Deno.serve(async (req) => {
     if (k in edits) columnEdits[k] = edits[k];
   }
 
-  const updateObj = { ...(hasIntake ? { intake_data: mergedIntake } : {}), ...columnEdits };
+  // Reset status to 'processing' so pollers don't observe stale 'complete' from
+  // the prior run while the generator is running. This also serves as the
+  // idempotency marker the harness reads on a callRegen timeout retry.
+  const updateObj = {
+    ...(hasIntake ? { intake_data: mergedIntake } : {}),
+    ...columnEdits,
+    status: "processing",
+    updated_at: new Date().toISOString(),
+  };
   const { error: updErr } = await supabase
     .from(table)
     .update(updateObj)
@@ -178,6 +207,7 @@ Deno.serve(async (req) => {
 
   if (updErr) {
     console.error("regen intake update failed:", updErr.message);
+    logExit(500, { error: "intake_update_failed", detail: updErr.message });
     return json({ error: "intake_update_failed", detail: updErr.message }, 500);
   }
 
@@ -189,5 +219,6 @@ Deno.serve(async (req) => {
     }),
   );
 
+  logExit(200, { ok: true, runs_remaining: meter.runs_allowed - meter.runs_used - 1 });
   return json({ ok: true, runs_remaining: meter.runs_allowed - meter.runs_used - 1 });
 });
