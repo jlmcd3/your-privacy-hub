@@ -143,6 +143,7 @@ const LIAssessment = () => {
           status: "pending",
           stage: "preview",
           organization_name: organizationName,
+          subject_anchor: subjectAnchor.trim(),
           processing_description: processingDescription,
           data_categories: dataCategoriesOut,
           relationship_type: relationshipOut,
