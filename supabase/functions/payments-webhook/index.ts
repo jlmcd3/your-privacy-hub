@@ -214,6 +214,27 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
     return;
   }
 
+  // Stage 1 Prompt 1.7: half-price top-up grants +4 generations on the
+  // existing meter. Handled BEFORE the standard tool-purchase block so we
+  // don't double-insert an assessment_purchases row.
+  if (session.metadata?.topup === "true") {
+    const { tool_type, assessment_id } = session.metadata;
+    const { data: m } = await supabase
+      .from("tool_run_meter")
+      .select("id, runs_allowed, extension_count")
+      .eq("tool_type", tool_type)
+      .eq("assessment_id", assessment_id)
+      .maybeSingle();
+    if (m) {
+      await supabase.from("tool_run_meter").update({
+        runs_allowed: (m.runs_allowed as number) + 4,
+        extension_count: (m.extension_count as number) + 1,
+        updated_at: new Date().toISOString(),
+      }).eq("id", m.id as string);
+    }
+    return; // a top-up grants budget only; user initiates runs via regenerate-assessment
+  }
+
   // Tool purchase
   if (session.metadata?.tool_type && session.metadata?.assessment_id) {
     const { tool_type, assessment_id } = session.metadata;
