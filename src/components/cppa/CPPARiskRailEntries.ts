@@ -1,3 +1,11 @@
+// COACHING CONTENT RULE — coaching describes the SHAPE of a complete answer
+// (dimensions, specificity, separateness). It NEVER describes the CONTENT of a
+// compliant answer (what facts satisfy the law, what answer "passes").
+// goodAnswer examples are clearly fictional and illustrate FORM, never a template.
+// Voice: imperative, active, plain subject-verb-object, one idea per sentence,
+// specific over vague, no ornamental legalese. Layered: coachLead = one line an
+// expert acts on instantly; goodAnswer/commonMistake = the expansion for newer users.
+
 // src/components/cppa/CPPARiskRailEntries.ts
 // StatuteRail entries for the CPPA Risk Assessment (Module 1).
 // Citations verified against the codebase. Plain summaries written for compliance professionals.
@@ -8,6 +16,22 @@ import type { RailEntry } from "@/components/intake/StatuteRail";
 const CPPA_URL = "https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf";
 
 export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
+  subject_anchor: {
+    fieldLabel: "In one line — what processing does this assessment cover?",
+    citation: "11 CCR § 7150(b)",
+    citationUrl: CPPA_URL,
+    plainSummary:
+      "One assessment covers one processing activity. This line names it and fixes it across your runs.",
+    regulationText: "…",
+    coachLead: "Name the one processing activity being assessed.",
+    coachBody:
+      "One line, one activity. The detailed purpose in Step 6 stays editable; this is the record's fixed subject.",
+    goodAnswer:
+      "\u201CAutomated resume-screening for hiring.\u201D — the activity, not the department or the vendor.",
+    commonMistake:
+      "Naming the tool (\u201Cthe HireSmart platform\u201D) instead of the processing. Vendors change; the assessed activity is the record.",
+  },
+
   q1_revenue: {
     fieldLabel: "Q1: Annual gross revenue",
     citation: "Cal. Civ. Code § 1798.140(ag)(1)",
