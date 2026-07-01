@@ -1,0 +1,1 @@
+UPDATE public.long_running_jobs SET status='failed', error='Cancelled by user', completed_at=now(), updated_at=now() WHERE id='0b6498e5-bcef-4977-8390-7fe4ebd3c08e'; DELETE FROM public.long_running_jobs WHERE kind='cancel_marker';
