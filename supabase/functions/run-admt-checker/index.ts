@@ -841,6 +841,15 @@ Return this JSON structure exactly:
       report_data: report,
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
+
+    // Stage 1: metering + version retention.
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "cppa_admt",
+      assessmentId: assessment_id,
+      userId: (assessment as any).user_id ?? null,
+      intake: ((assessment as any).intake_data as Record<string, unknown>) ?? {},
+      reportData: report,
+    });
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
    } catch (e) {
     console.error("[run-admt-checker] pipeline error:", e);
