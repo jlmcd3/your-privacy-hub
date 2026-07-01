@@ -56,6 +56,35 @@ const FN_MAP: Record<string, string> = {
   cppa_cybersecurity: "run-cppa-cybersecurity",
 };
 
+// Per-tool allow-list of intake keys that also exist as dedicated columns on the
+// assessment row. Audit summary (generators reading dedicated columns vs. intake_data):
+//   li_assessment           → dedicated: processing_description, data_categories,
+//                             relationship_type, jurisdictions, sector, stated_purpose,
+//                             alternatives_considered, purpose_details, necessity_details,
+//                             balancing_details, organization_name, subject_anchor
+//   governance_assessment   → dedicated: organization_name (rest via intake_data)
+//   dpia_framework          → dedicated: organization_name (rest via intake_data)
+//   ir_playbook             → dedicated: organization_name (rest via intake_data)
+//   biometric_checker       → dedicated: jurisdictions (rest via intake_data)
+//   dpa_generator           → intake_data only
+//   cppa_admt / cppa_risk_assessment / cppa_cybersecurity → intake_data only
+const EDITABLE_COLUMNS: Record<string, string[]> = {
+  li_assessment: [
+    "processing_description", "data_categories", "relationship_type",
+    "jurisdictions", "sector", "stated_purpose", "alternatives_considered",
+    "purpose_details", "necessity_details", "balancing_details",
+    "organization_name", "subject_anchor",
+  ],
+  governance_assessment: ["organization_name"],
+  dpia_framework: ["organization_name"],
+  dpa_generator: [],
+  ir_playbook: ["organization_name"],
+  biometric_checker: ["jurisdictions"],
+  cppa_admt: [],
+  cppa_risk_assessment: [],
+  cppa_cybersecurity: [],
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
