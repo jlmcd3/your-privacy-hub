@@ -384,6 +384,7 @@ export default function CPPARiskAssessment() {
 
   const intake = useMemo(() => ({
     entity_name: entityName.trim(),
+    subject_anchor: subjectAnchor.trim(),
     // legacy keys preserved
     q1_revenue: q1, q2_consumers: q2, q3_sector: q3, q4_pi_categories: q4, q5_sell_share: q5,
     q6_right_know: q6Multi.join("; "), q6_right_know_multi: q6Multi, q7_right_delete: q7, q8_right_correct: q8, q9_opt_out: q9, q10_id_verification: q10,
