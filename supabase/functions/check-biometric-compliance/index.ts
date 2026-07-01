@@ -523,7 +523,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 2. Mandatory DPIA under Article 35 before deployment — the DPC has confirmed biometric processing for identification is high risk and requires prior assessment.
 3. If the organisation is subject to the DPC's oversight as a lead supervisory authority under Article 56, cross-border processing complaints from any EU member state may be routed through the DPC.
 4. Article 13/14 transparency notices required before collection, identifying the Article 9(2) condition, biometric modalities, and data subject rights.
-5. Article 28 DPA for all processors; Article 46 safeguard for non-EEA transfers.
+5. Article 28 DPA for all processors; non-EEA transfers require an Article 45 adequacy decision or, absent one, an Article 46 safeguard.
 
 Consent and notice:
 Explicit consent under Article 9(2)(a) must be freely given. In employment contexts, the DPC's guidance aligns with EDPB position: employee consent is generally not valid due to power imbalance. Use Article 9(2)(b) with Irish employment law basis instead.
