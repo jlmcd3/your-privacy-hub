@@ -888,6 +888,19 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
             updated_at: new Date().toISOString(),
           })
           .eq("id", rowId);
+
+        // Stage 1: metering + version retention.
+        await recordRunMeterAndVersion(supabase, {
+          toolType: "ir_playbook",
+          assessmentId: rowId,
+          userId: resolvedUserId ?? null,
+          intake: {
+            organization_name: (body as any).organizationName ?? null,
+            jurisdictions: (body as any).jurisdictions ?? null,
+          },
+          reportData: report_data,
+          documentText: playbook_text,
+        });
         await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "ir_playbooks", sourceRowId: rowId });
       } catch (bgErr) {
         console.error("[generate-ir-playbook] background error:", bgErr);
