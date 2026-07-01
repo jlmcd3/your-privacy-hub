@@ -6,6 +6,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, type DpiaIntakeFacts, type TransferFlow } from "../_shared/dpia-jurisdiction-registry.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
+import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
