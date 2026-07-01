@@ -1,4 +1,4 @@
-// deploy-check v3 — entry/exit logs + status:processing reset for idempotency
+// deploy-check v4 — status reset after all gates; regen_enter is first statement
 // regenerate-assessment: single client-initiated path for every run after the first.
 // Stage 1 Prompt 1.6 — gated entry that enforces meter budget + locked-field policy,
 // merges non-locked edits into intake_data, and re-invokes the generator.
@@ -105,6 +105,8 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
   const reqId = crypto.randomUUID();
+  console.log(JSON.stringify({ evt: "regen_enter", req_id: reqId, method: req.method }));
+
   const logExit = (status: number, extra: Record<string, unknown> = {}) => {
     console.log(JSON.stringify({ evt: "regen_exit", req_id: reqId, status, ...extra }));
   };
@@ -113,12 +115,10 @@ Deno.serve(async (req) => {
   try {
     payload = await req.json();
   } catch {
-    console.log(JSON.stringify({ evt: "regen_enter", req_id: reqId, tool_type: null, assessment_id: null, parse_error: true }));
     logExit(400, { error: "invalid_json" });
     return json({ error: "invalid_json" }, 400);
   }
   const { tool_type, assessment_id, edited_fields } = payload;
-  console.log(JSON.stringify({ evt: "regen_enter", req_id: reqId, tool_type, assessment_id }));
 
   if (!tool_type || !assessment_id) {
     logExit(400, { error: "missing_params" });
@@ -191,9 +191,10 @@ Deno.serve(async (req) => {
     if (k in edits) columnEdits[k] = edits[k];
   }
 
-  // Reset status to 'processing' so pollers don't observe stale 'complete' from
-  // the prior run while the generator is running. This also serves as the
-  // idempotency marker the harness reads on a callRegen timeout retry.
+  // First mutation of the assessment row — only after ownership, budget, and
+  // locked-field gates have passed. Reset status to 'processing' so pollers
+  // don't observe stale 'complete' from the prior run and so the harness can
+  // detect an accepted-but-timed-out callRegen via its idempotency probe.
   const updateObj = {
     ...(hasIntake ? { intake_data: mergedIntake } : {}),
     ...columnEdits,
