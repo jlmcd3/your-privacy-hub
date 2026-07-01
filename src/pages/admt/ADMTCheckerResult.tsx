@@ -11,6 +11,9 @@ import { Helmet } from "react-helmet-async";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ReportShell from "@/components/ReportShell";
+import RunMeterBar from "@/components/RunMeterBar";
+import { useRunMeter } from "@/hooks/useRunMeter";
+import { startMeterExtension } from "@/lib/meterExtension";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -332,6 +335,16 @@ export default function ADMTCheckerResult() {
           ) : undefined
         }
       >
+        {(() => {
+          const { meter } = useRunMeter("cppa_admt", id);
+          return meter ? (
+            <RunMeterBar
+              meter={meter}
+              refineHref={`/cppa-admt-checker?refine=${id}`}
+              onExtend={() => startMeterExtension("cppa_admt", id!)}
+            />
+          ) : null;
+        })()}
         {purchased && (
           <div className="p-3 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm mb-2">
             ✅ Purchase confirmed.

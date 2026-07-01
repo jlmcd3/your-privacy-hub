@@ -15,6 +15,9 @@ import RiskAssessmentReportV3 from "@/components/cppa/RiskAssessmentReportV3";
 import RiskAssessmentReportV4, { isV4Report } from "@/components/cppa/RiskAssessmentReportV4";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
+import RunMeterBar from "@/components/RunMeterBar";
+import { useRunMeter } from "@/hooks/useRunMeter";
+import { startMeterExtension } from "@/lib/meterExtension";
 
 // Truncate to first sentence (or 200 chars if no sentence boundary).
 const firstSentence = (text: string): string => {
@@ -253,6 +256,16 @@ export default function CPPARiskAssessmentResult() {
               </section>
             )}
 
+            {(() => {
+              const { meter } = useRunMeter("cppa_risk_assessment", id);
+              return meter ? (
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/cppa-risk-assessment?refine=${id}`}
+                  onExtend={() => startMeterExtension("cppa_risk_assessment", id!)}
+                />
+              ) : null;
+            })()}
             {isV3 && <RiskAssessmentReportV3 report={report as any} />}
             {isV4 && <RiskAssessmentReportV4 report={report as any} />}
 

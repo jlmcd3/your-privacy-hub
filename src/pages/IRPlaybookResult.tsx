@@ -13,6 +13,9 @@ import BackLink from "@/components/dashboard/BackLink";
 import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
+import RunMeterBar from "@/components/RunMeterBar";
+import { useRunMeter } from "@/hooks/useRunMeter";
+import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 
@@ -103,6 +106,16 @@ export default function IRPlaybookResult() {
               </p>
             }
           >
+            {(() => {
+              const { meter } = useRunMeter("ir_playbook", id!);
+              return meter ? (
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/ir-playbook?refine=${id}`}
+                  onExtend={() => startMeterExtension("ir_playbook", id!)}
+                />
+              ) : null;
+            })()}
             <div dir={dir} style={{ display: "contents" }}>
             <AssessmentReport text={(translated?.playbook_text ?? row.playbook_text) || ""} sectionChipLabel={null} />
             <EnforcementPrecedents

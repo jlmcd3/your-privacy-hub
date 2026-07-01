@@ -12,6 +12,9 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
+import RunMeterBar from "@/components/RunMeterBar";
+import { useRunMeter } from "@/hooks/useRunMeter";
+import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 
@@ -529,6 +532,16 @@ export default function CPPACybersecurityResult() {
           actions={actions}
           topDisclaimer={(row?.report_data as any)?.framework_disclaimer ?? (row?.report_data as any)?.disclaimer}
         >
+          {(() => {
+            const { meter } = useRunMeter("cppa_cybersecurity", id);
+            return meter ? (
+              <RunMeterBar
+                meter={meter}
+                refineHref={`/cppa-cybersecurity?refine=${id}`}
+                onExtend={() => startMeterExtension("cppa_cybersecurity", id!)}
+              />
+            ) : null;
+          })()}
           {loading && <p>Loading…</p>}
 
           {showRunning && (
