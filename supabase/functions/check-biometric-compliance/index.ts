@@ -1147,24 +1147,24 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
         if (error) throw error;
         savedId = data?.id ?? body.assessment_id;
       } else {
-        // Insert path: row id is not known until after insert, so meter is
-        // written immediately after. Status is set inside the insert.
-        const { data, error } = await supabase
+        // Insert path: create the row as 'pending' first so we have an id,
+        // then write the meter+version row, then flip to 'complete'. This
+        // preserves the invariant that a caller observing status='complete'
+        // will also see the meter/version rows.
+        const { data: insData, error: insErr } = await supabase
           .from("biometric_assessments")
           .insert({
             user_id: resolvedUserId,
             client_id: body.client_id ?? null,
-            status: "complete",
+            status: "pending",
             intake_data: body,
             jurisdictions: body.jurisdictions,
-            analysis_text: assessment_text,
-            report_data,
             is_free_tier: !!body.is_free_tier,
           })
           .select("id")
           .single();
-        if (error) throw error;
-        savedId = data.id;
+        if (insErr) throw insErr;
+        savedId = insData.id;
         await recordRunMeterAndVersion(supabase, {
           toolType: "biometric_checker",
           assessmentId: savedId!,
@@ -1173,7 +1173,18 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
           reportData: report_data,
           documentText: assessment_text,
         });
+        const { error: updErr } = await supabase
+          .from("biometric_assessments")
+          .update({
+            status: "complete",
+            analysis_text: assessment_text,
+            report_data,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", savedId!);
+        if (updErr) throw updErr;
       }
+
     } catch (persistErr) {
       console.error("biometric_assessments persist failed:", persistErr);
     }

@@ -50,7 +50,6 @@ async function settlePoll<T>(
 }
 
 async function pollLIA(
-
   svc: ReturnType<typeof createClient>,
   id: string,
   maxSec = 180,
@@ -68,6 +67,39 @@ async function pollLIA(
   }
   return "timeout";
 }
+
+// Hardened generation-await for B/D steps. Terminates on complete OR failed,
+// hard-caps at 4 minutes, and returns { status, detail } so the harness can
+// record a FAIL with the row's error detail instead of throwing.
+async function awaitGeneration(
+  svc: ReturnType<typeof createClient>,
+  id: string,
+  maxSec = 240,
+): Promise<{ status: "complete" | "failed" | "timeout"; detail: string }> {
+  const start = Date.now();
+  while (Date.now() - start < maxSec * 1000) {
+    await new Promise((r) => setTimeout(r, 3000));
+    const { data } = await svc
+      .from("li_assessments")
+      .select("status, updated_at")
+      .eq("id", id)
+      .maybeSingle();
+    const row = (data as any) ?? {};
+    const status = row.status ?? "unknown";
+    if (status === "complete") {
+      return { status: "complete", detail: `complete after ${Date.now() - start}ms` };
+    }
+    if (status === "failed") {
+      return {
+        status: "failed",
+        detail: `failed after ${Date.now() - start}ms; last updated_at=${row.updated_at ?? "n/a"}`,
+      };
+    }
+
+  }
+  return { status: "timeout", detail: `generation timed out after ${maxSec}s (cap=4min)` };
+}
+
 
 async function callRegen(
   authHeader: string,
@@ -203,8 +235,12 @@ async function runAcceptance(
       bRes.status === 200 && bRes.body?.ok === true,
       `HTTP ${bRes.status} body=${JSON.stringify(bRes.body)}`,
     );
-    const s2 = await pollLIA(svc, assessmentId);
-    if (s2 !== "complete") throw new Error(`run 2 status=${s2}`);
+    const g2 = await awaitGeneration(svc, assessmentId);
+    if (g2.status !== "complete") {
+      await push(`B-await run 2 generation completed`, false, g2.detail);
+      return;
+    }
+
     const { value: b2, waitedMs: waitB2 } = await settlePoll(
       async () => ({ meter: await readMeter(), versions: await readVersions() }),
       (x: any) => x.meter?.runs_used === 2 && x.versions.includes(2),
@@ -260,6 +296,12 @@ async function runAcceptance(
 
     // ── (d) EXHAUSTION ────────────────────────────────────────────────────────
     for (const [i, tag] of [[3, "run3"], [4, "run4"]] as const) {
+      // Space back-to-back regens to avoid hammering the model API — 15s
+      // between the two D-step generations. First iteration has no prior
+      // D-step call to space from.
+      if (i === 4) {
+        await new Promise((r) => setTimeout(r, 15_000));
+      }
       const r = await callRegen(authHeader, {
         tool_type: TOOL_TYPE,
         assessment_id: assessmentId,
@@ -268,11 +310,20 @@ async function runAcceptance(
         },
       });
       if (r.status !== 200 || r.body?.ok !== true) {
-        throw new Error(`${tag} regen HTTP ${r.status} body=${JSON.stringify(r.body)}`);
+        await push(
+          `D-await ${tag} regen HTTP ok`,
+          false,
+          `HTTP ${r.status} body=${JSON.stringify(r.body)}`,
+        );
+        return;
       }
-      const s = await pollLIA(svc, assessmentId);
-      if (s !== "complete") throw new Error(`${tag} status=${s}`);
+      const g = await awaitGeneration(svc, assessmentId);
+      if (g.status !== "complete") {
+        await push(`D-await ${tag} generation completed`, false, g.detail);
+        return;
+      }
     }
+
     const r5 = await callRegen(authHeader, {
       tool_type: TOOL_TYPE,
       assessment_id: assessmentId,
