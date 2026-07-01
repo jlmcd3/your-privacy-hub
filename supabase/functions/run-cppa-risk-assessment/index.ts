@@ -770,6 +770,15 @@ async function runPipeline(assessment_id: string) {
     await supabase.from("cppa_assessments")
       .update({ status: "complete", report_data })
       .eq("id", assessment_id);
+
+    // Stage 1: metering + version retention.
+    await recordRunMeterAndVersion(supabase, {
+      toolType: "cppa_risk_assessment",
+      assessmentId: assessment_id,
+      userId: (row as any).user_id ?? null,
+      intake: ((row as any).intake_data as Record<string, unknown>) ?? {},
+      reportData: report_data,
+    });
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);
     try {
