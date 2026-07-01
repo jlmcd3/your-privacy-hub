@@ -191,9 +191,10 @@ Deno.serve(async (req) => {
     if (k in edits) columnEdits[k] = edits[k];
   }
 
-  // Reset status to 'processing' so pollers don't observe stale 'complete' from
-  // the prior run while the generator is running. This also serves as the
-  // idempotency marker the harness reads on a callRegen timeout retry.
+  // First mutation of the assessment row — only after ownership, budget, and
+  // locked-field gates have passed. Reset status to 'processing' so pollers
+  // don't observe stale 'complete' from the prior run and so the harness can
+  // detect an accepted-but-timed-out callRegen via its idempotency probe.
   const updateObj = {
     ...(hasIntake ? { intake_data: mergedIntake } : {}),
     ...columnEdits,
