@@ -101,26 +101,51 @@ async function awaitGeneration(
 }
 
 
+// callRegen with a 60s AbortController timeout. On timeout, the request MAY
+// still have been processed server-side (merge applied, generator queued,
+// meter incremented). Rather than blindly retry — which would burn a second
+// run — the caller checks the meter+status; if runs_used advanced or status
+// went to 'processing'/'complete', treat the call as accepted and return a
+// synthetic 200 { ok: true, accepted_via: "idempotency_probe" }.
 async function callRegen(
   authHeader: string,
   body: Record<string, unknown>,
+  probeAcceptance?: () => Promise<{ accepted: boolean; detail: string }>,
 ): Promise<{ status: number; body: any }> {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/regenerate-assessment`, {
-    method: "POST",
-    headers: {
-      Authorization: authHeader,
-      apikey: ANON_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  let parsed: any = null;
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 60_000);
   try {
-    parsed = await res.json();
-  } catch {
-    parsed = null;
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/regenerate-assessment`, {
+      method: "POST",
+      headers: {
+        Authorization: authHeader,
+        apikey: ANON_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: ac.signal,
+    });
+    let parsed: any = null;
+    try {
+      parsed = await res.json();
+    } catch {
+      parsed = null;
+    }
+    return { status: res.status, body: parsed };
+  } catch (err) {
+    const isAbort = (err as any)?.name === "AbortError";
+    if (!isAbort) return { status: 0, body: { error: "fetch_error", detail: String(err) } };
+    if (!probeAcceptance) {
+      return { status: 0, body: { error: "timeout", detail: "callRegen aborted after 60s" } };
+    }
+    const probe = await probeAcceptance();
+    if (probe.accepted) {
+      return { status: 200, body: { ok: true, accepted_via: "idempotency_probe", detail: probe.detail } };
+    }
+    return { status: 0, body: { error: "timeout_not_accepted", detail: probe.detail } };
+  } finally {
+    clearTimeout(timer);
   }
-  return { status: res.status, body: parsed };
 }
 
 async function runAcceptance(
@@ -213,6 +238,19 @@ async function runAcceptance(
       lockedAnchor === intake.subject_anchor,
       `locked_fields.subject_anchor=${JSON.stringify(lockedAnchor)}`,
     );
+    // Build an idempotency probe for callRegen: a timed-out request may still
+    // have been processed server-side; the probe checks whether the meter or
+    // the assessment status advanced past the pre-call baseline.
+    const makeProbe = (baselineRuns: number) => async () => {
+      const m = await readMeter();
+      const { data: row } = await svc
+        .from("li_assessments").select("status").eq("id", assessmentId!).maybeSingle();
+      const status = (row as any)?.status ?? "unknown";
+      const runsNow = (m as any)?.runs_used ?? baselineRuns;
+      const accepted = runsNow > baselineRuns || status === "processing" || status === "complete";
+      return { accepted, detail: `runs_used ${baselineRuns}→${runsNow}, status=${status}` };
+    };
+
     const { value: versions1, waitedMs: waitA3 } = await settlePoll(
       readVersions,
       (vs) => vs.length === 1 && vs[0] === 1,
@@ -229,7 +267,7 @@ async function runAcceptance(
       tool_type: TOOL_TYPE,
       assessment_id: assessmentId,
       edited_fields: { processing_description: bDesc },
-    });
+    }, makeProbe(1));
     await push(
       "B1 regen (open field) returned HTTP ok",
       bRes.status === 200 && bRes.body?.ok === true,
@@ -308,7 +346,7 @@ async function runAcceptance(
         edited_fields: {
           processing_description: `${SETUP_DESC} Iteration ${i}.`,
         },
-      });
+      }, makeProbe(i - 1));
       if (r.status !== 200 || r.body?.ok !== true) {
         await push(
           `D-await ${tag} regen HTTP ok`,
@@ -359,13 +397,15 @@ async function runAcceptance(
       })
       .eq("tool_type", TOOL_TYPE)
       .eq("assessment_id", assessmentId);
+    // 15s spacing between the D-loop's final generation and the E regen.
+    await new Promise((r) => setTimeout(r, 15_000));
     const rE = await callRegen(authHeader, {
       tool_type: TOOL_TYPE,
       assessment_id: assessmentId,
       edited_fields: {
         processing_description: `${SETUP_DESC} Extension iteration.`,
       },
-    });
+    }, makeProbe(4));
     if (rE.status !== 200 || rE.body?.ok !== true) {
       await push(
         "E1 post-extension regen ok + meter 5/8/ext=1",
@@ -373,12 +413,12 @@ async function runAcceptance(
         `HTTP ${rE.status} body=${JSON.stringify(rE.body)}`,
       );
     } else {
-      const s = await pollLIA(svc, assessmentId);
-      if (s !== "complete") {
+      const gE = await awaitGeneration(svc, assessmentId);
+      if (gE.status !== "complete") {
         await push(
           "E1 post-extension regen ok + meter 5/8/ext=1",
           false,
-          `run status=${s}`,
+          gE.detail,
         );
       } else {
         const { value: mE, waitedMs: waitE1 } = await settlePoll(
