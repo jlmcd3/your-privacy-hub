@@ -140,9 +140,20 @@ Deno.serve(async (req) => {
     .single();
 
   const mergedIntake = { ...((row?.intake_data as Record<string, unknown>) ?? {}), ...edits };
+
+  // Filter edits down to keys that exist as dedicated columns on this tool's
+  // table so generators reading columns directly (e.g. LIA reads
+  // processing_description, data_categories, jurisdictions from row columns)
+  // see the updated values. Unknown keys are dropped to avoid Postgres errors.
+  const allowedCols = EDITABLE_COLUMNS[tool_type] ?? [];
+  const columnEdits: Record<string, unknown> = {};
+  for (const k of allowedCols) {
+    if (k in edits) columnEdits[k] = edits[k];
+  }
+
   await supabase
     .from(table)
-    .update({ intake_data: mergedIntake })
+    .update({ intake_data: mergedIntake, ...columnEdits })
     .eq("id", assessment_id);
 
   const bodyKey = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
