@@ -997,12 +997,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     ];
 
 
-    await supabase
-      .from("cppa_assessments")
-      .update({ status: "complete", report_data: report, obligation_snapshot })
-      .eq("id", assessment_id);
-
-    // Stage 1: metering + version retention.
+    // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "cppa_cybersecurity",
       assessmentId: assessment_id,
@@ -1010,6 +1005,12 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       intake: ((row as any).intake_data as Record<string, unknown>) ?? {},
       reportData: report,
     });
+
+    await supabase
+      .from("cppa_assessments")
+      .update({ status: "complete", report_data: report, obligation_snapshot })
+      .eq("id", assessment_id);
+
 
     // C4 RoPA accumulator: cybersecurity controls map to a Security activity
     if ((row as any).client_id) {
