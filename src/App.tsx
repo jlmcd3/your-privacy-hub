@@ -152,7 +152,6 @@ const AdminSampleReports = lazy(() => import("./pages/admin/AdminSampleReports")
 const AdminStaticStress = lazy(() => import("./pages/admin/AdminStaticStress"));
 const QualityLoop = lazy(() => import("./pages/admin/QualityLoop"));
 const QualityLoop2 = lazy(() => import("./pages/admin/QualityLoop2"));
-const CoverageMatrix = lazy(() => import("./pages/admin/CoverageMatrix"));
 const FunctionHealth = lazy(() => import("./pages/admin/FunctionHealth"));
 const AdminQAExport = lazy(() => import("./pages/admin/AdminQAExport"));
 const SampleReport = lazy(() => import("./pages/SampleReport.tsx"));
