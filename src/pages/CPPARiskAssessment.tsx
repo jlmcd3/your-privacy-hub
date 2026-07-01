@@ -513,6 +513,7 @@ export default function CPPARiskAssessment() {
     if (typeof d.i9HasDpia === "string") setI9HasDpia(d.i9HasDpia);
     if (typeof d.i9DpiaSummary === "string") setI9DpiaSummary(d.i9DpiaSummary);
     if (typeof d.entityName === "string") setEntityName(d.entityName);
+    if (typeof d.subjectAnchor === "string") setSubjectAnchor(d.subjectAnchor);
     if (typeof d.q5bProfiling === "string") setQ5bProfiling(d.q5bProfiling);
     if (typeof d.q15bUnder16 === "string") setQ15bUnder16(d.q15bUnder16);
     if (typeof d.q18bTraining === "string") setQ18bTraining(d.q18bTraining);
