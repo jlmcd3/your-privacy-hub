@@ -241,7 +241,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { tool_type, user_id, client_id, intake_data, return_url, environment, embedded, success_path, redeem_annual_credit } = await req.json();
+    const { tool_type, user_id, client_id, intake_data, return_url, environment, embedded, success_path, redeem_annual_credit, topup, assessment_id } = await req.json();
     const tool = TOOLS[tool_type];
     if (!tool) {
       return new Response(JSON.stringify({ error: "Invalid tool type" }), {
@@ -249,6 +249,47 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Stage 1 Prompt 1.7: half-price "top-up" — grants +4 generations on an
+    // existing assessment's meter. Handled BEFORE the standard purchase flow
+    // because it uses inline price_data (no lookup key, no subscriber tiering)
+    // and returns immediately with a hosted checkout URL.
+    if (topup === true && assessment_id) {
+      const halfPrice = Math.round(tool.fallback_standalone_cents / 2);
+      const topupEnv = detectEnv(environment);
+      const topupStripe = createStripeClient(topupEnv);
+      const rawOriginTop =
+        return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
+      const originTop = /^https?:\/\//i.test(rawOriginTop)
+        ? rawOriginTop.replace(/\/$/, "")
+        : "https://www.enduserprivacy.com";
+      const defaultPathTop = DEFAULT_REVIEW_PATHS[tool.table] || "/account";
+      const returnPathTop = success_path || `${defaultPathTop}?topup_success=true`;
+      const session = await topupStripe.checkout.sessions.create({
+        mode: "payment",
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            product_data: { name: `${tool.name} — 4 additional generations` },
+            unit_amount: halfPrice,
+          },
+          quantity: 1,
+        }],
+        metadata: {
+          tool_type,
+          assessment_id,
+          topup: "true",
+          user_id: user_id ?? "",
+        },
+        success_url: `${originTop}${returnPathTop}`,
+        cancel_url: `${originTop}${defaultPathTop}`,
+      } as any);
+      return new Response(JSON.stringify({ url: session.url }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
 
     // v8 gating:
     //   - Every tool is per-use (no "included free" tier).
