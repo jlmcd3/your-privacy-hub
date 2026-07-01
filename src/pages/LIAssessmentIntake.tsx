@@ -26,6 +26,7 @@ interface PreviewRow {
   id: string;
   user_id: string | null;
   organization_name: string | null;
+  subject_anchor?: string | null;
   processing_description: string;
   data_categories: string[] | null;
   relationship_type: string | null;
