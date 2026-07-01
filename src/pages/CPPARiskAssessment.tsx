@@ -454,7 +454,7 @@ export default function CPPARiskAssessment() {
     i3CaConsumerBand: "", i4Disclosures: [] as string[], i5AdmtLogic: "", i5AdmtTrainingSource: "",
     i5AdmtFairnessTesting: "", i5AdmtHumanReview: "", i6Vendors: "", i7InternalContributors: "",
     i7ExternalConsultees: "", i8ExecName: "", i8ExecTitle: "", i8ContactPhone: "", i8ContactEmail: "", i9HasDpia: "", i9DpiaSummary: "",
-    entityName: "", q5bProfiling: "", q15bUnder16: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
+    entityName: "", subjectAnchor: "", q5bProfiling: "", q15bUnder16: "", q18bTraining: "", i1bMinPi: "", i4bSources: "",
     exceptionClaims: {} as Record<string, { claimed: boolean; scope: string; safeguards: string }>,
     impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
   }), []);
