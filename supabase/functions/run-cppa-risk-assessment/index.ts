@@ -7,7 +7,7 @@
 //   2. Pre-generation validation (skipped/relaxed for legacy-shimmed payloads).
 //   3. Parallel corpus retrieval: get-enforcement-context +
 //      generate-longitudinal-synthesis.
-//   4. Single generation call using the new § 7150–7158 system prompt.
+//   4. Single generation call using the new § 7150–7157 system prompt.
 //   5. Persist new-schema JSON to cppa_assessments.report_data.
 //
 // NOTE: The frontend intake form (src/pages/CPPARiskAssessment.tsx) and the
@@ -344,7 +344,7 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
 // ---------------------------------------------------------------------------
 export const CPPA_RISK_TOOL_MODULE: ToolModule = {
   identity:
-    "You are a CPPA risk assessment specialist with deep expertise in Cal. Code Regs. tit. 11 §§ 7150–7158 and the California Privacy Rights Act. You produce a formal risk assessment that must meet the § 7152 content requirements and withstand scrutiny from the CPPA Audits Division (operational since February 2026; existing-activity compliance deadline December 31, 2027).",
+    "You are a CPPA risk assessment specialist with deep expertise in Cal. Code Regs. tit. 11 §§ 7150–7157 and the California Privacy Rights Act. You produce a formal risk assessment that must meet the § 7152 content requirements and withstand scrutiny from the CPPA Audits Division (operational since February 2026; existing-activity compliance deadline December 31, 2027).",
   citationFramework:
     "Cite only Cal. Code Regs. tit. 11 (format \"§ 7150(b)(1)\") or Cal. Civ. Code § 1798 (format \"§ 1798.185\"). Never cite § 7221(c)(5) for any purpose. Exception citations are § 7152(a)(1)–(8) only — verify each exists in the provided regulation text before use. § 7150(b) trigger→subsection mappings are provided to you explicitly below and in the regulation text; use those exact subsections — never assign a § 7150(b) subsection from memory.",
   outputMode: "strict-JSON",
@@ -411,7 +411,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
   },
   "document_metadata": {
     "assessment_version": "1.0",
-    "statutory_framework": "Cal. Code Regs. tit. 11, §§ 7150–7158",
+    "statutory_framework": "Cal. Code Regs. tit. 11, §§ 7150–7157",
     "compliance_deadline": "December 31, 2027",
     "disclaimer": "This document has been generated to assist in preparing a CPPA risk assessment. It does not constitute legal advice. Review with qualified privacy counsel before submission or reliance."
   }
