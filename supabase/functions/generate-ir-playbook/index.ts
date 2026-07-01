@@ -188,7 +188,7 @@ const IR_TOOL_MODULE: ToolModule = {
   // The tool's LOCALE rule inside IR_RULEBOOK governs per-output language.
   languageVariant: "jurisdiction-conditional",
   citationFramework:
-    "Cite US state breach-notification statutes by code section (e.g. Cal. Civ. Code §1798.82; Tex. Bus. & Com. Code §521.053; N.Y. Gen. Bus. Law §899-aa); GDPR/UK GDPR breach duties as Articles 33–34; HIPAA by 45 C.F.R. section per the anchors in the rules below. Cite enforcement actions and fines ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt; use only regulator-portal URLs provided in the prompt; never assert a fine amount or fabricate a URL from training knowledge.",
+    "Cite US state breach-notification statutes by code section (e.g. Cal. Civ. Code §1798.82; Tex. Bus. & Com. Code §521.053; N.Y. Gen. Bus. Law §899-aa); GDPR/UK GDPR breach duties as Articles 33–34; HIPAA by 45 C.F.R. section per the anchors in the rules below. Cite enforcement actions and fines ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt; use only regulator-portal URLs provided in the prompt; never assert a fine amount or fabricate a URL from training knowledge. PORTAL URL EXACT-MATCH: when a regulator-portal URL is supplied in the prompt (e.g. the CNIL notification portal), reproduce that exact string everywhere the portal is referenced in the document — do not paraphrase the hostname, shorten it to the bare domain, or substitute a remembered alternate hostname (e.g. do not write \"cnil.fr\" or \"teleservice.cnil.fr\" if the supplied URL is \"notifications.cnil.fr\"). If the same portal is referenced in more than one section, copy the identical string each time.",
   identity: IR_IDENTITY,
   extraRules: IR_RULEBOOK,
 };
