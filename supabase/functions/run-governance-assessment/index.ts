@@ -656,7 +656,6 @@ Return JSON:
     const dpiaScope = synthesis.dpia_scope || [];
 
     await supabase.from("governance_assessments").update({
-    await supabase.from("governance_assessments").update({
       status: "complete",
       report_data: reportData,
       dpia_scope: dpiaScope,
