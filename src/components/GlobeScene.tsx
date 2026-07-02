@@ -146,10 +146,14 @@ const GlobeScene = () => {
     globeGroup.rotation.x = 0.18;
     scene.add(globeGroup);
 
-    const sphereGeo = new THREE.SphereGeometry(R, 64, 64);
+    const sphereGeo = new THREE.SphereGeometry(R, 128, 128);
     const globeMesh = new THREE.Mesh(
       sphereGeo,
-      new THREE.MeshBasicMaterial({ color: new THREE.Color("#0d2545") })
+      new THREE.MeshPhongMaterial({
+        color: new THREE.Color("#0d2545"),
+        shininess: 18,
+        specular: new THREE.Color("#22405e"),
+      })
     );
     globeGroup.add(globeMesh);
 
@@ -169,7 +173,13 @@ const GlobeScene = () => {
       new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.07 })
     ));
 
-    scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+    scene.add(new THREE.AmbientLight(0xb8ccdd, 0.35));
+    const keyLight = new THREE.DirectionalLight(0xfff1dc, 1.35);
+    keyLight.position.set(-3, 2.2, 4);
+    scene.add(keyLight);
+    const rimLight = new THREE.DirectionalLight(0x4a7fb0, 0.55);
+    rimLight.position.set(4, -1, -3);
+    scene.add(rimLight);
 
     const loadGlobe = async () => {
       try {
@@ -180,8 +190,10 @@ const GlobeScene = () => {
         const topo    = await topoRes.json();
         const geojson = topojs.feature(topo, topo.objects.countries);
         const canvas  = buildEarthCanvas(geojson);
-        globeMesh.material = new THREE.MeshBasicMaterial({
+        globeMesh.material = new THREE.MeshPhongMaterial({
           map: new THREE.CanvasTexture(canvas),
+          shininess: 22,
+          specular: new THREE.Color("#2b4d70"),
         });
       } catch (e) {
         console.warn("Globe texture failed to load", e);
