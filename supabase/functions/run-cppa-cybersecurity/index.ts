@@ -6,6 +6,8 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+
 
 export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
   identity:
@@ -320,8 +322,13 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     { "title": "string", "description": "string", "deadline": "string", "consequence": "string" }
   ],
   "enforcement_context": "string (2-3 sentences: (1) cite phase-in deadlines under 11 CCR § 7121(a): April 1, 2028 for businesses whose 2026 annual gross revenue exceeded $100 million; April 1, 2029 for $50–100 million; April 1, 2030 for under $50 million. (2) State one sector-relevant enforcement observation using hedged language — 'this sector may attract scrutiny because [specific reason]' — do not assert CPPA has made specific sector-priority announcements without a source. (3) Note that the audit must be performed by a qualified, independent professional and the executive then submits the certification.)",
-  "next_steps": ["string"]
-}`;
+  "next_steps": ["string"],
+  "information_needed": [
+    { "field": "<intake key that exists in the intake — for a per-control gap use that control's intake entry key, e.g. c14_third_party>", "dimensions": "<what specifically to add, as dimensions — never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>" }
+  ]
+}
+Every insufficient-basis or "Insufficient information" finding elsewhere in this output (including any per-control status of "Insufficient information") MUST have a corresponding information_needed entry; otherwise return an empty array.`;
+
     }
 
     function tryParseJson(text: string, label: string): any | null {
@@ -997,6 +1004,10 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
     ];
 
 
+    // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
+    const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {});
+    report = guarded.report;
+
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "cppa_cybersecurity",
@@ -1005,6 +1016,7 @@ ${enforcementBlock}Respond with ONLY this exact JSON structure:
       intake: ((row as any).intake_data as Record<string, unknown>) ?? {},
       reportData: report,
     });
+
 
     await supabase
       .from("cppa_assessments")
