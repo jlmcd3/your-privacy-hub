@@ -534,14 +534,20 @@ export default function CPPACybersecurityResult() {
         >
           {(() => {
             const { meter } = useRunMeter("cppa_cybersecurity", id);
+            const infoNeeded = (row?.report_data as any)?.information_needed;
             return meter ? (
-              <RunMeterBar
-                meter={meter}
-                refineHref={`/cppa-cybersecurity?refine=${id}`}
-                onExtend={() => startMeterExtension("cppa_cybersecurity", id!)}
-              />
+              <>
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/cppa-cybersecurity?refine=${id}`}
+                  onExtend={() => startMeterExtension("cppa_cybersecurity", id!)}
+                  infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+                />
+                <InformationNeededBlock items={infoNeeded} />
+              </>
             ) : null;
           })()}
+
           {loading && <p>Loading…</p>}
 
           {showRunning && (
