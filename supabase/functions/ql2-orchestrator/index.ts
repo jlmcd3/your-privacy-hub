@@ -288,40 +288,45 @@ async function runUnit(runId: string) {
     await log(runId, `Reviewing ${reg.label} (${idx}/${products.length})`, { product: next });
     await heartbeat(runId);
 
-    // Load newest USABLE report by sample slug (skip null/empty-string document_text rows).
+    // Load newest USABLE report by sample slug, SCOPED to this run.
+    // A review that grades an artifact produced before this run's started_at
+    // is worthless: it doesn't reflect the current prompt/rule state and it
+    // pollutes the score column with noise. Enforce freshness at the query,
+    // not with a soft warning. Applied uniformly to every product.
+    const runStartIso = run.started_at ?? new Date(0).toISOString();
     const { data: reportRows } = await db.from("sample_reports")
       .select("id, document_text, report_data, status, created_at")
       .eq("tool_slug", reg.sampleSlug)
+      .gte("created_at", runStartIso)
       .order("created_at", { ascending: false })
       .limit(25);
     const report = (reportRows ?? []).find((row: any) => reportToText(row)) ?? null;
 
-    // Stale-artifact guard: warn when the newest usable sample_report predates this run.
-    // Stale grading must never be silent.
-    if (report?.created_at && run.started_at) {
-      const reportMs = new Date(report.created_at).getTime();
-      const runStartMs = new Date(run.started_at).getTime();
-      if (Number.isFinite(reportMs) && Number.isFinite(runStartMs) && reportMs < runStartMs) {
-        await log(
-          runId,
-          `${reg.label}: STALE ARTIFACT — no fresh dummy job in this run for product "${next}" (slug ${reg.sampleSlug}). Reviewing artifact created_at=${report.created_at} which predates run started_at=${run.started_at}.`,
-          { level: "warn", product: next },
-        );
-      }
-    }
-
     const text = reportToText(report);
     if (!text) {
+      // No fresh usable artifact for this product in this run. Distinguish
+      // "dummy job never produced a row" from "row exists but stale" for the
+      // operator, but in both cases skip the review — never grade stale.
+      const { data: anyRows } = await db.from("sample_reports")
+        .select("id, created_at")
+        .eq("tool_slug", reg.sampleSlug)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const staleCreatedAt = anyRows?.[0]?.created_at ?? null;
+      const reason = staleCreatedAt
+        ? `no fresh sample_report for slug ${reg.sampleSlug} in this run (newest is stale: created_at=${staleCreatedAt}, run started_at=${runStartIso}) — review skipped`
+        : `no sample_report ever produced for slug ${reg.sampleSlug} — review skipped`;
       await db.from("quality_loop2_results").insert({
         run_id: runId, product: next,
-        recommendation: "(no sample report)",
+        recommendation: `(${reason})`,
         updatable: false,
       });
-      await log(runId, `${reg.label}: no sample report found for slug ${reg.sampleSlug}`, { level: "warn", product: next });
+      await log(runId, `${reg.label}: ${reason}`, { level: "warn", product: next });
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
     }
+
 
     const reviewerBody = {
       testId: `${runId}:${next}`,
