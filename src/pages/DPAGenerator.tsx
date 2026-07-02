@@ -48,6 +48,7 @@ export default function DPAGenerator() {
   const pricing = useToolPrice("dpa_generator");
   const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: pricing.subscriberPrice });
   const { clientId } = useActiveClient();
+  const refine = useRefineMode("dpa_generator");
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     entityName: "",
