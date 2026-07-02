@@ -198,7 +198,11 @@ PRECAUTIONARY PASSWORD-CHANGE FRAMING: When recommending users change their pass
 
 PROCESSOR NOTIFICATION LABEL — DIRECTIONAL CLARITY: Do NOT use the ambiguous label "Processor notification timestamp" alone. Use "Processor-to-controller notification timestamp" or "Date and time processor notified the controller" (whichever fits the context) so the direction of notification is unambiguous.
 
-CROSS-JURISDICTIONAL PRECEDENT CAVEAT — FIRST MENTION ONLY: Where a case from another jurisdiction is cited as persuasive (e.g. Garante (2024) referenced within a non-Italian section), attach the full "cross-jurisdictional precedent — not binding in [target jurisdiction], cited for the underlying principle only" caveat on the FIRST mention. On subsequent mentions of the same case within the same document, use a shortened cross-reference (e.g. "the Garante (2024) case referenced above") rather than repeating the full caveat verbatim.`;
+CROSS-JURISDICTIONAL PRECEDENT CAVEAT — FIRST MENTION ONLY: Where a case from another jurisdiction is cited as persuasive (e.g. Garante (2024) referenced within a non-Italian section), attach the full "cross-jurisdictional precedent — not binding in [target jurisdiction], cited for the underlying principle only" caveat on the FIRST mention. On subsequent mentions of the same case within the same document, use a shortened cross-reference (e.g. "the Garante (2024) case referenced above") rather than repeating the full caveat verbatim.
+
+NATIONAL-AUTHORITY GDPR ANCHOR (2.5a): Where a national supervisory authority's breach-notification obligation is referenced, anchor it to the GDPR provisions it enforces (Arts. 33–34) rather than an unspecified "under [national] law". Name specific national provisions only when the corpus context in the user prompt supplies them.
+
+TEMPLATE CROSS-REFERENCE PRECISION (2.5d): Template cross-references MUST name the playbook section explicitly (e.g. "see Section 4, STEP 1 of this playbook"). NEVER use the ambiguous phrase "this notification" as a cross-reference — it collapses the distinction between the current template and the playbook's decision steps.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
