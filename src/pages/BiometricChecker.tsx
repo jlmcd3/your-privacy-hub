@@ -171,8 +171,24 @@ export default function BiometricChecker() {
             <p className="text-sm font-semibold text-brand-navy">Analysing biometric obligations across {form.jurisdictions.join(", ")}…</p>
           </div>
         ) : (
-          <div className="flex gap-6 items-start">
-          <div className="flex-1 min-w-0 bg-card border border-border rounded-2xl p-6 space-y-5">
+          <>
+          <IntakeMasthead
+            kicker="Biometric Privacy · BIPA · CUBI · MHMD · GDPR Art. 9"
+            title="Biometric Privacy Compliance Assessment"
+            subjectLabel={meter ? "Assessment subject · locked" : undefined}
+            subjectValue={
+              meter && typeof meter.lockedFields?.orgName === "string"
+                ? (meter.lockedFields!.orgName as string)
+                : undefined
+            }
+            meter={meter ?? null}
+            preRunHint="The entity name you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+          />
+          <BenchLayout
+            toolType="biometric"
+            railEntry={bioRailEntry}
+          >
+          <div className="flex-1 min-w-0 space-y-5">
             <RequiredLegend />
             <div onFocus={() => focusBioRail("orgName")}>
               <label className="text-sm font-semibold text-brand-navy">Entity name<Req /> <span className="text-xs text-muted-foreground">(legal organisation name; printed on the report header)</span></label>
