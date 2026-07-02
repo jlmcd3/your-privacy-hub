@@ -86,6 +86,7 @@ export default function CPPACybersecurity() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const refine = useRefineMode("cppa_cybersecurity");
+  const { meter } = useRunMeter("cppa_cybersecurity", refine.assessmentId);
   const [maturity, setMaturity] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [profile, setProfile] = useState({ entity_name: "", industry: "", incidents_12mo: "", framework: "", last_audit: "" });
