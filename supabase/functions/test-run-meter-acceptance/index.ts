@@ -501,6 +501,193 @@ async function runAcceptance(
   }
 }
 
+// ─── Single-step handler ──────────────────────────────────────────────────
+// Each step is one Edge Function invocation so we never approach the wall-time
+// limit. Steps mutate the caller-provided existing assessment; no setup/teardown
+// except explicit TEARDOWN.
+async function runStep(
+  svc: ReturnType<typeof createClient>,
+  authHeader: string,
+  step: string,
+  assessmentId: string,
+): Promise<Response> {
+  const readMeter = () =>
+    svc.from("tool_run_meter").select("*")
+      .eq("tool_type", TOOL_TYPE).eq("assessment_id", assessmentId).maybeSingle()
+      .then((r: any) => r.data);
+  const readVersions = () =>
+    svc.from("tool_run_versions").select("version")
+      .eq("tool_type", TOOL_TYPE).eq("assessment_id", assessmentId)
+      .then((r: any) => ((r.data as any[]) ?? []).map((v) => v.version).sort((a, b) => a - b));
+
+  const note =
+    "regen_enter/regen_exit are emitted inside regenerate-assessment. If callRegen " +
+    "returned a synchronous JSON body (HTTP != 0 and body.accepted_via is NOT " +
+    "'idempotency_probe'), both fired in this invocation. If accepted_via === " +
+    "'idempotency_probe', the fetch aborted at 60s but the meter advanced — the " +
+    "regen_exit will appear in edge logs slightly later. Grep edge-function logs " +
+    "for evt=regen_enter/regen_exit to confirm.";
+
+  try {
+    if (step === "D1") {
+      const desc = `${SETUP_DESC} Iteration D1-${Date.now()}.`;
+      const baseline = (await readMeter())?.runs_used ?? 0;
+      const probe = async () => {
+        const m = await readMeter();
+        const runsNow = (m as any)?.runs_used ?? baseline;
+        return { accepted: runsNow > baseline, detail: `runs_used ${baseline}→${runsNow}` };
+      };
+      const r = await callRegen(authHeader, {
+        tool_type: TOOL_TYPE, assessment_id: assessmentId,
+        edited_fields: { processing_description: desc },
+      }, probe);
+      if (r.status !== 200 || r.body?.ok !== true) {
+        return j({ step, pass: false, detail: `regen HTTP ${r.status}`, response: r, note });
+      }
+      const g = await awaitGeneration(svc, assessmentId);
+      const meter = await readMeter();
+      const versions = await readVersions();
+      const { data: row } = await svc.from("li_assessments")
+        .select("processing_description").eq("id", assessmentId).maybeSingle();
+      const persisted = (row as any)?.processing_description ?? "";
+      const pass = g.status === "complete"
+        && (meter as any)?.runs_used === 4
+        && versions.includes(4)
+        && persisted === desc;
+      return j({
+        step, pass,
+        observed: {
+          generation: g,
+          runs_used: (meter as any)?.runs_used,
+          versions,
+          processing_description: persisted,
+          expected_description: desc,
+          regen_response: r,
+        },
+        note,
+      });
+    }
+
+    if (step === "D2") {
+      const r = await callRegen(authHeader, {
+        tool_type: TOOL_TYPE, assessment_id: assessmentId,
+        edited_fields: { processing_description: `${SETUP_DESC} D2 exhaustion.` },
+      });
+      const meter = await readMeter();
+      const pass = r.status === 402
+        && r.body?.error === "budget_exhausted"
+        && r.body?.can_extend === true
+        && (meter as any)?.runs_used === 4;
+      return j({
+        step, pass,
+        observed: {
+          http: r.status, body: r.body,
+          runs_used: (meter as any)?.runs_used,
+          runs_allowed: (meter as any)?.runs_allowed,
+        },
+        note,
+      });
+    }
+
+    if (step === "E1") {
+      const { error: upErr } = await svc.from("tool_run_meter")
+        .update({ runs_allowed: 8, extension_count: 1, updated_at: new Date().toISOString() })
+        .eq("tool_type", TOOL_TYPE).eq("assessment_id", assessmentId);
+      const meter = await readMeter();
+      return j({
+        step,
+        pass: !upErr && (meter as any)?.runs_allowed === 8 && (meter as any)?.extension_count === 1,
+        observed: { update_error: upErr?.message ?? null, meter },
+        note: "No callRegen in this step; no regen logs expected.",
+      });
+    }
+
+    if (step === "E2") {
+      const desc = `${SETUP_DESC} Iteration E2-${Date.now()}.`;
+      const baseline = (await readMeter())?.runs_used ?? 0;
+      const probe = async () => {
+        const m = await readMeter();
+        const runsNow = (m as any)?.runs_used ?? baseline;
+        return { accepted: runsNow > baseline, detail: `runs_used ${baseline}→${runsNow}` };
+      };
+      const r = await callRegen(authHeader, {
+        tool_type: TOOL_TYPE, assessment_id: assessmentId,
+        edited_fields: { processing_description: desc },
+      }, probe);
+      if (r.status !== 200 || r.body?.ok !== true) {
+        return j({ step, pass: false, detail: `regen HTTP ${r.status}`, response: r, note });
+      }
+      const runsRemainingOk =
+        r.body?.runs_remaining === 3 || r.body?.accepted_via === "idempotency_probe";
+      const g = await awaitGeneration(svc, assessmentId);
+      const meter = await readMeter();
+      const versions = await readVersions();
+      const pass = g.status === "complete"
+        && (meter as any)?.runs_used === 5
+        && versions.includes(5)
+        && runsRemainingOk;
+      return j({
+        step, pass,
+        observed: {
+          regen_response: r,
+          generation: g,
+          runs_used: (meter as any)?.runs_used,
+          runs_allowed: (meter as any)?.runs_allowed,
+          extension_count: (meter as any)?.extension_count,
+          versions,
+        },
+        note,
+      });
+    }
+
+    if (step === "F") {
+      const inv = await svc.functions.invoke("run-li-assessment", {
+        body: { assessment_id: ZERO_UUID },
+      });
+      await new Promise((r) => setTimeout(r, 2500));
+      const { data: mZ } = await svc.from("tool_run_meter").select("id")
+        .eq("tool_type", TOOL_TYPE).eq("assessment_id", ZERO_UUID).maybeSingle();
+      const meter = await readMeter();
+      const pass = !mZ && (meter as any)?.runs_used === 5;
+      return j({
+        step, pass,
+        observed: {
+          invoke_error: inv.error?.message ?? null,
+          invoke_data: inv.data ?? null,
+          zero_uuid_meter: mZ,
+          test_meter_runs_used: (meter as any)?.runs_used,
+        },
+        note: "No callRegen; run-li-assessment invoked directly.",
+      });
+    }
+
+    if (step === "TEARDOWN") {
+      const { data: rows } = await svc.from("li_assessments")
+        .select("id").eq("organization_name", "Meter Acceptance Test Co");
+      const ids = ((rows as any[]) ?? []).map((r) => r.id);
+      let versionsDel = 0, metersDel = 0, assessDel = 0;
+      if (ids.length) {
+        const v = await svc.from("tool_run_versions").delete({ count: "exact" })
+          .eq("tool_type", TOOL_TYPE).in("assessment_id", ids);
+        versionsDel = (v as any).count ?? 0;
+        const m = await svc.from("tool_run_meter").delete({ count: "exact" })
+          .eq("tool_type", TOOL_TYPE).in("assessment_id", ids);
+        metersDel = (m as any).count ?? 0;
+        const a = await svc.from("li_assessments").delete({ count: "exact" }).in("id", ids);
+        assessDel = (a as any).count ?? 0;
+      }
+      return j({
+        step, pass: true,
+        observed: { assessment_ids: ids, versionsDel, metersDel, assessDel },
+      });
+    }
+
+    return j({ step, pass: false, detail: "unknown_step" }, 400);
+  } catch (err) {
+    return j({ step, pass: false, detail: (err as Error)?.message ?? String(err) }, 500);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return j({ error: "method_not_allowed" }, 405);
@@ -519,7 +706,6 @@ Deno.serve(async (req) => {
 
   const svc = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-  // Admin gate: user_roles must have admin or moderator.
   const { data: roles } = await svc
     .from("user_roles")
     .select("role")
@@ -527,7 +713,18 @@ Deno.serve(async (req) => {
     .in("role", ["admin", "moderator"]);
   if (!roles || roles.length === 0) return j({ error: "forbidden" }, 403);
 
-  // Create job row.
+  let payload: any = {};
+  try { payload = await req.json(); } catch { payload = {}; }
+  const action = payload?.action ?? "start";
+
+  if (action === "step") {
+    const step = String(payload?.step ?? "");
+    const assessmentId = String(payload?.assessment_id ?? "");
+    if (!step || !assessmentId) return j({ error: "missing_params" }, 400);
+    return await runStep(svc, authHeader, step, assessmentId);
+  }
+
+  // Legacy full-suite path.
   const { data: job, error: jobErr } = await svc
     .from("long_running_jobs")
     .insert({

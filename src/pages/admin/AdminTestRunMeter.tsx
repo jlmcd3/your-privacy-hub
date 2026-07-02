@@ -74,6 +74,40 @@ export default function AdminTestRunMeter() {
     }
   }, [user]);
 
+  // ─── Per-step runner ───────────────────────────────────────────────────
+  const [assessmentId, setAssessmentId] = useState<string>(
+    "9c27c5fe-cb6a-470e-8253-404f00c8cff0",
+  );
+  const [stepBusy, setStepBusy] = useState<string | null>(null);
+  const [stepResults, setStepResults] = useState<
+    { step: string; at: string; pass: boolean; body: any }[]
+  >([]);
+
+  const runStep = useCallback(
+    async (step: string) => {
+      setStepBusy(step);
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "test-run-meter-acceptance",
+          { body: { action: "step", step, assessment_id: assessmentId } },
+        );
+        const body = error ? { error: error.message } : data;
+        setStepResults((prev) => [
+          {
+            step,
+            at: new Date().toISOString(),
+            pass: !!(body as any)?.pass,
+            body,
+          },
+          ...prev,
+        ]);
+      } finally {
+        setStepBusy(null);
+      }
+    },
+    [assessmentId],
+  );
+
   const assertions: Assertion[] = job?.result?.assertions ?? [];
   const summary =
     job?.result?.summary ??
@@ -83,13 +117,13 @@ export default function AdminTestRunMeter() {
         ? `Failed: ${job.error ?? "unknown error"}`
         : "");
 
-  // Plain-text block that document.body.textContent picks up cleanly, matching
-  // the existing test battery pattern.
   const textLines: string[] = [];
   for (const a of assertions) {
     textLines.push(`${a.pass ? "PASS" : "FAIL"} — ${a.name} — ${a.detail}`);
   }
   if (summary) textLines.push(summary);
+
+  const STEPS = ["D1", "D2", "E1", "E2", "F", "TEARDOWN"];
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -100,24 +134,76 @@ export default function AdminTestRunMeter() {
             Stage 1 — Run-Meter Acceptance Harness
           </h1>
           <p className="text-sm text-slate-500">
-            End-to-end check of tool_run_meter, tool_run_versions, locked-field
-            enforcement, budget exhaustion, and extension grant against LIA.
-            Creates and tears down a dedicated test assessment (no Stripe).
+            Per-step runner (one Edge Function invocation per step) plus the
+            legacy full-suite background job.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Per-step controls */}
+        <div className="rounded-lg border border-slate-200 bg-white px-5 py-4 space-y-3">
+          <div className="text-sm font-semibold text-slate-800">
+            Per-step runner
+          </div>
+          <label className="block text-xs text-slate-500">
+            Assessment ID
+            <input
+              value={assessmentId}
+              onChange={(e) => setAssessmentId(e.target.value.trim())}
+              className="mt-1 block w-full font-mono text-xs border border-slate-300 rounded px-2 py-1"
+            />
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {STEPS.map((s) => (
+              <button
+                key={s}
+                onClick={() => runStep(s)}
+                disabled={!user || !!stepBusy}
+                className="px-3 py-1.5 rounded bg-slate-800 text-white text-xs font-medium disabled:opacity-40"
+              >
+                {stepBusy === s ? `${s}…` : `▶ ${s}`}
+              </button>
+            ))}
+          </div>
+          {stepResults.length > 0 && (
+            <div className="space-y-2 max-h-[600px] overflow-auto">
+              {stepResults.map((r, i) => (
+                <details
+                  key={i}
+                  open={i === 0}
+                  className="border border-slate-200 rounded bg-slate-50"
+                >
+                  <summary className="cursor-pointer px-3 py-2 text-xs font-mono">
+                    <span
+                      className={
+                        r.pass ? "text-emerald-700" : "text-red-700"
+                      }
+                    >
+                      {r.pass ? "PASS" : "FAIL"}
+                    </span>{" "}
+                    — {r.step} — {r.at.slice(11, 19)}
+                  </summary>
+                  <pre className="whitespace-pre-wrap font-mono text-[11px] p-3 border-t border-slate-200">
+                    {JSON.stringify(r.body, null, 2)}
+                  </pre>
+                </details>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Legacy full-suite */}
+        <div className="flex items-center gap-3 pt-4 border-t border-slate-200">
           <button
             onClick={runAcceptance}
             disabled={!user || starting || job?.status === "running"}
             className="px-4 py-2 rounded bg-brand-navy text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
           >
-            {starting || job?.status === "running" ? "Running…" : "▶ Run acceptance"}
+            {starting || job?.status === "running"
+              ? "Running…"
+              : "▶ Run full suite (legacy)"}
           </button>
           {!user && (
-            <span className="text-xs text-red-600">
-              Sign in as admin to run.
-            </span>
+            <span className="text-xs text-red-600">Sign in as admin.</span>
           )}
           {startError && (
             <span className="text-xs text-red-600">Error: {startError}</span>
@@ -146,11 +232,6 @@ export default function AdminTestRunMeter() {
             </pre>
           </div>
         )}
-
-        <div className="text-xs text-slate-400 pb-8">
-          Stage 1 acceptance — dev/admin tool. 6 LIA generations run
-          sequentially; expect roughly 2–3 minutes end-to-end.
-        </div>
       </div>
     </div>
   );
