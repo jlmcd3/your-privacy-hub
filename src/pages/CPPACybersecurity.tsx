@@ -195,7 +195,23 @@ export default function CPPACybersecurity() {
         {!refine.isRefine && (<></>)}
         {!refine.isRefine && (<>
 
-        <div className="flex gap-6 items-start">
+        <IntakeMasthead
+          kicker="CPPA Cybersecurity Audit Readiness · 11 CCR § 7123"
+          title="Cybersecurity Programme Assessment"
+          subjectLabel={meter ? "Assessment subject · locked" : undefined}
+          subjectValue={
+            meter && typeof meter.lockedFields?.entity_name === "string"
+              ? (meter.lockedFields!.entity_name as string)
+              : undefined
+          }
+          meter={meter ?? null}
+          preRunHint="The entity name you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+        />
+        <BenchLayout
+          toolType="cppa_cyber"
+          railEntry={activeCyberRailEntry}
+          defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf"
+        >
         <div className="flex-1 min-w-0 space-y-6">
         <section className="bg-card border rounded-lg p-6 space-y-4">
           <h2 className="">Organisation Profile</h2>
