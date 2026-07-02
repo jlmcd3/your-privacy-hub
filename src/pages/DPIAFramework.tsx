@@ -739,6 +739,7 @@ const DPIAFramework = () => {
           purchasing={purchasing}
         />
       </main>
+      </>)}
     <Footer />
     </div>
   );
