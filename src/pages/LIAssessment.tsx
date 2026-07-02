@@ -389,6 +389,9 @@ const LIAssessment = () => {
             </div>
           </form>
         </section>
+        )}
+
+
 
         {/* PREVIEW SIGNAL */}
         {preview && (
