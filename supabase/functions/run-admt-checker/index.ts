@@ -838,6 +838,42 @@ Return this JSON structure exactly:
       }
     }
 
+    // 2.8a — deterministic critical_failures mirror. Every gap with status
+    // "missing" AND HIGH enforcement-exposure band is mirrored into
+    // critical_failures[] using the gap's own title and exposure text. Mirror
+    // only from existing gap items; never invent entries.
+    try {
+      const HIGH_BAND = /\bHIGH\b/i;
+      const gapBuckets: any[][] = [
+        Array.isArray(report?.notice_gaps) ? report.notice_gaps : [],
+        Array.isArray(report?.opt_out_gaps) ? report.opt_out_gaps : [],
+        Array.isArray(report?.access_gaps) ? report.access_gaps : [],
+      ];
+      const mirrored: any[] = [];
+      for (const bucket of gapBuckets) {
+        for (const g of bucket) {
+          if (g?.status === "missing" && typeof g?.enforcement_exposure === "string" && HIGH_BAND.test(g.enforcement_exposure)) {
+            mirrored.push({
+              element: g.element,
+              element_id: g.element_id,
+              enforcement_exposure: g.enforcement_exposure,
+            });
+          }
+        }
+      }
+      report.critical_failures = mirrored;
+    } catch (e) {
+      console.warn("[run-admt-checker] critical_failures mirror failed (non-fatal):", e);
+    }
+
+    // 2.8 S2 — forward-path guard.
+    try {
+      const guarded = guardInformationNeeded(report, ((assessment as any).intake_data as Record<string, unknown>) ?? {});
+      report = guarded.report;
+    } catch (e) {
+      console.warn("[run-admt-checker] guardInformationNeeded failed (non-fatal):", e);
+    }
+
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "cppa_admt",
