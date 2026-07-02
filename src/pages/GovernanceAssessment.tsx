@@ -662,6 +662,7 @@ const GovernanceAssessment = () => {
           purchasing={purchasing}
         />
       </main>
+      </>)}
     </WorkspaceLayout>
   );
 };
