@@ -1433,6 +1433,7 @@ export default function ADMTChecker() {
 
           <StatuteRail entry={activeRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
         </div>
+        </>)}
       </main>
 
       <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/cppa-admt-checker" />
