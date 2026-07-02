@@ -742,6 +742,27 @@ async function runPipeline(assessment_id: string) {
       console.warn("[cppa-risk v4] post-gen verification error:", e);
     }
 
+    // 2.2.a — FORWARD PATH retry trigger: if the guard detects a dead-end
+    // insufficient-basis passage without a paired information_needed entry,
+    // one regeneration with the appended instruction.
+    try {
+      const intakeForGuard = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const preview = guardInformationNeeded({ ...parsed }, intakeForGuard);
+      if (preview.deadEndWithoutPath) {
+        console.warn(JSON.stringify({ evt: "forward_path_retry", fn: "run-cppa-risk-assessment" }));
+        const appended = userPrompt + "\n\nYour previous output contained an insufficient-basis finding with no information_needed entry. Re-emit with the required entry per the FORWARD PATH rule.";
+        const retry = await callModel(system, appended, "generate-v4-fwdpath-retry");
+        const retryParsed = tryParseJson(retry.text);
+        if (retryParsed && retryParsed.assessment_summary) {
+          parsed = retryParsed;
+          lastStopReason = retry.stopReason;
+          debugRaw = retry.text;
+        }
+      }
+    } catch (e) {
+      console.warn("[cppa-risk v4] forward-path guard preview error:", e);
+    }
+
 
     // DETERMINISTIC § 7157 DEADLINE NORMALISATION: the model has twice produced a
     // specific "2028-01-01" deadline for the § 7157 annual attestation despite an
