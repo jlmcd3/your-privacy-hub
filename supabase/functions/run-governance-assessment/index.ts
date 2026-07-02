@@ -546,8 +546,13 @@ Return JSON:
       "outcome": "rejected | accepted | penalised | required",
       "relevance": "one sentence why this case is relevant to this synthesis"
     }
+  ],
+  "information_needed": [
+    { "field": "<intake field key that exists in the intake>", "dimensions": "<what specifically to add — dimensions, never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>" }
   ]
-}`;
+}
+
+Every insufficient-basis or "Insufficient information" finding elsewhere in this output MUST have a corresponding information_needed entry; otherwise return an empty array.`;
 
     const synthesisSystem = buildSystemContent({
       toolModule: GOVERNANCE_SYNTHESIS_TOOL_MODULE,
