@@ -37,6 +37,14 @@ export const INTAKE_READ_MAP: Record<string, string[]> = {
   cppa_cybersecurity: [],
 };
 
+export interface InfoNeededEntry {
+  field: string;
+  dimensions?: string;
+  provision?: string;
+  enables?: string;
+  [k: string]: unknown;
+}
+
 export interface RefineMode {
   isRefine: boolean;
   assessmentId: string | undefined;
@@ -46,12 +54,15 @@ export interface RefineMode {
   runsAllowed: number;
   runsUsed: number;
   loading: boolean;
+  infoNeeded: InfoNeededEntry[];
+  infoNeededKeys: string[];
 }
 
 export function useRefineMode(toolType: string): RefineMode {
   const [params] = useSearchParams();
   const assessmentId = params.get("refine") || undefined;
   const [intake, setIntake] = useState<Record<string, unknown> | null>(null);
+  const [infoNeeded, setInfoNeeded] = useState<InfoNeededEntry[]>([]);
   const [loading, setLoading] = useState(!!assessmentId);
   const { meter } = useRunMeter(toolType, assessmentId);
 
@@ -63,7 +74,8 @@ export function useRefineMode(toolType: string): RefineMode {
       return;
     }
     const cols = INTAKE_READ_MAP[toolType] ?? [];
-    const selectExpr = cols.length ? cols.join(",") : "intake_data";
+    // Always fetch report_data too so we can extract information_needed.
+    const selectExpr = (cols.length ? cols.join(",") : "intake_data") + ",report_data";
     (async () => {
       const { data } = await (supabase as any)
         .from(table)
@@ -80,6 +92,9 @@ export function useRefineMode(toolType: string): RefineMode {
       } else {
         setIntake(((data as any).intake_data as Record<string, unknown>) ?? null);
       }
+      const rd = (data as any)?.report_data;
+      const arr = Array.isArray(rd?.information_needed) ? rd.information_needed : [];
+      setInfoNeeded(arr as InfoNeededEntry[]);
       setLoading(false);
     })();
   }, [assessmentId, toolType]);
@@ -93,5 +108,7 @@ export function useRefineMode(toolType: string): RefineMode {
     runsAllowed: meter?.runsAllowed ?? 0,
     runsUsed: meter?.runsUsed ?? 0,
     loading,
+    infoNeeded,
+    infoNeededKeys: infoNeeded.map((e) => (e as any).field).filter(Boolean),
   };
 }
