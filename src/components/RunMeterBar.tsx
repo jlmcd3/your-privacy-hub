@@ -35,10 +35,13 @@ export default function RunMeterBar({
       <div className="text-body-small text-ink-soft max-w-sm">
         {exhausted
           ? "You've used your included generations. Extend with 4 more to keep refining this report."
+          : infoNeededCount && infoNeededCount > 0
+          ? `This report names ${infoNeededCount} item${infoNeededCount === 1 ? "" : "s"} that would sharpen it — refine those answers and regenerate.`
           : last
           ? "One generation left — refine your inputs before running it."
           : "Refine your answers and regenerate. Edits are free; a generation is spent only when you regenerate."}
       </div>
+
       <div className="ml-auto flex gap-2">
         {!exhausted && (
           <Link
