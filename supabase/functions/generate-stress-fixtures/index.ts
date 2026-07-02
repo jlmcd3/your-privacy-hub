@@ -852,6 +852,7 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
     return {
       lia: {
         organization_name: c.companyName,
+        subject_anchor: `${industry} — fraud screening and security monitoring of authenticated users`,
         processing_description: `${industry} service analytics and fraud prevention`,
         sector: industry,
         stated_purpose: "Improve reliability, prevent fraud, and support users",
