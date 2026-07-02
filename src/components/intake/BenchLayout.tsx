@@ -31,12 +31,14 @@ export default function BenchLayout({
   railEntry = null,
   defaultSourceUrl,
   corpusBlock,
+  coachingOpenByDefault = false,
   children,
 }: {
   toolType: keyof typeof INTAKE_POLICY | string;
   railEntry?: RailEntry | null;
   defaultSourceUrl?: string;
   corpusBlock?: ReactNode; // descriptive enforcement-corpus context (optional)
+  coachingOpenByDefault?: boolean;
   children: ReactNode;
 }) {
   const policy = INTAKE_POLICY[toolType as string];
@@ -57,7 +59,7 @@ export default function BenchLayout({
       {showCoach && (
         <div className="border-b border-rule p-6 md:border-b-0 md:border-r">
           <ColHeader tone="coach">How to answer well</ColHeader>
-          <CoachingPanel entry={railEntry} />
+          <CoachingPanel entry={railEntry} openByDefault={coachingOpenByDefault} />
         </div>
       )}
       <div className="p-6">

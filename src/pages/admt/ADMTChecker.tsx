@@ -4,7 +4,7 @@
 // Signature feature: StatuteRail — persistent right column showing verbatim
 // regulation text, plain summary, and FSOR context for every field.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentProps } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
@@ -13,8 +13,12 @@ import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Label as UILabel } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import IntakeMasthead from "@/components/intake/IntakeMasthead";
+import BenchLayout from "@/components/intake/BenchLayout";
+import { useRunMeter } from "@/hooks/useRunMeter";
 import { ExhibitTextarea, isExhibit } from "@/components/ExhibitTextarea";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -89,6 +93,23 @@ function formatRelativeTime(d: Date) {
 // The legacy `name` prop is accepted and ignored.
 const Radio = ChoiceRadio;
 
+// Serif-styled field label (Prompt 4.1c). Tiny sub-labels pass their own
+// `text-[12px]` etc., which override the base via cn's later-wins merge.
+const Label = ({ className, ...props }: ComponentProps<typeof UILabel>) => (
+  <UILabel
+    className={cn("font-serif-text font-semibold text-[16.5px] text-brand-navy", className)}
+    {...props}
+  />
+);
+
+const STEP_TITLES: Record<number, string> = {
+  1: "Does the ADMT law apply to you?",
+  2: "Do people get the right heads-up?",
+  3: "Can people say no?",
+  4: "Can people see how it worked?",
+  5: "Review your answers",
+};
+
 const Pills = ({
   options, value, onChange, onFocus,
 }: {
@@ -124,6 +145,7 @@ export default function ADMTChecker() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const refine = useRefineMode("cppa_admt");
+  const { meter } = useRunMeter("cppa_admt", refine.assessmentId);
   const [step, setStep] = useState(1);
   const totalSteps = 5;
 
@@ -435,7 +457,7 @@ export default function ADMTChecker() {
   const isReview = step === totalSteps;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-paper">
       <Navbar />
       <DashboardSubnav />
       <Helmet>
@@ -495,11 +517,44 @@ export default function ADMTChecker() {
           </div>
         )}
 
-        <div className="text-sm text-muted-foreground mb-4">Step {step} of {totalSteps}</div>
+        <IntakeMasthead
+          kicker="CPPA ADMT Checker · 11 CCR Article 11 (§§ 7200–7222)"
+          title={STEP_TITLES[step] ?? `Step ${step}`}
+          subjectLabel={meter ? "Assessment subject · locked" : undefined}
+          subjectValue={
+            meter
+              ? (typeof meter.lockedFields?.system_name === "string"
+                  ? (meter.lockedFields!.system_name as string)
+                  : (typeof meter.lockedFields?.organization_name === "string"
+                      ? (meter.lockedFields!.organization_name as string)
+                      : undefined))
+              : undefined
+          }
+          meter={meter ?? null}
+          preRunHint="The subject you set below is fixed once you first generate — everything else stays editable across your 4 included generations."
+        />
 
-        <div className="flex gap-6 items-start">
-          <div className="flex-1 min-w-0">
-            <div className="bg-card border rounded-lg p-6 space-y-6">
+        <div className="text-sm text-muted-foreground my-4">Step {step} of {totalSteps}</div>
+
+        <BenchLayout
+          toolType="admt"
+          railEntry={activeRailEntry}
+          defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf"
+          corpusBlock={
+            activeRailEntry?.enforcementNote ? (
+              <p className="text-body-small text-ink-soft leading-relaxed">
+                {activeRailEntry.enforcementNote}
+              </p>
+            ) : undefined
+          }
+          coachingOpenByDefault={
+            !!activeRailKey &&
+            refine.infoNeededKeys.some(
+              (k) => activeRailKey === k || activeRailKey.includes(k) || k.includes(activeRailKey),
+            )
+          }
+        >
+          <div className="space-y-6">
 
               {step === 1 && (
                 <>
@@ -1419,9 +1474,18 @@ export default function ADMTChecker() {
                       </span>
                     ) : null)}
                   {!isReview ? (
-                    <Button onClick={next}>Next</Button>
+                    <Button
+                      onClick={next}
+                      className="bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white"
+                    >
+                      Next
+                    </Button>
                   ) : (
-                    <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
+                    <Button
+                      onClick={handlePurchase}
+                      disabled={!pricing.stripeConfigured}
+                      className="bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white"
+                    >
                       {!pricing.stripeConfigured
                         ? `Payments Coming Soon — $${pricing.price}`
                         : `Run ADMT Compliance Assessment — $${pricing.price}`}
@@ -1429,12 +1493,10 @@ export default function ADMTChecker() {
                   )}
                 </div>
               </div>
-            </div>
           </div>
-
-          <StatuteRail entry={activeRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
-        </div>
+        </BenchLayout>
         </>)}
+
       </main>
 
       <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/cppa-admt-checker" />

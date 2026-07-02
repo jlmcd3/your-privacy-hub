@@ -1,6 +1,12 @@
 import type { RailEntry } from "@/components/intake/RailEntry";
 
-export default function CoachingPanel({ entry }: { entry: RailEntry | null }) {
+export default function CoachingPanel({
+  entry,
+  openByDefault = false,
+}: {
+  entry: RailEntry | null;
+  openByDefault?: boolean;
+}) {
   if (!entry || (!entry.coachLead && !entry.goodAnswer)) return null;
   return (
     <div>
@@ -15,7 +21,7 @@ export default function CoachingPanel({ entry }: { entry: RailEntry | null }) {
         </p>
       )}
       {(entry.goodAnswer || entry.commonMistake) && (
-        <details className="mt-3.5 border-t border-rule pt-3" open>
+        <details className="mt-3.5 border-t border-rule pt-3" open={openByDefault || undefined}>
           <summary className="cursor-pointer list-none text-body-small font-semibold text-teal-action">
             ▸ Show me what strong looks like
           </summary>
