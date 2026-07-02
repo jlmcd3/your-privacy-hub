@@ -1,0 +1,1 @@
+ALTER TABLE public.assessment_purchases DROP CONSTRAINT IF EXISTS assessment_purchases_tool_type_check;
