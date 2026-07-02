@@ -138,6 +138,16 @@ const supabase = createClient(
 );
 
 // BIPA statutory damages: $1,000/negligent, $5,000/intentional. Mathematical illustration only.
+function scrubVoiceLeaks(text: string): string {
+  if (typeof text !== "string" || !text) return text;
+  const pattern = /[^.!?\n]*\b(training-knowledge fine amounts|training-data figures)\b[^.!?\n]*[.!?]?/gi;
+  const cleaned = text.replace(pattern, "").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n");
+  if (cleaned !== text) {
+    console.log(JSON.stringify({ evt: "voice_leak_scrubbed", fn: "check-biometric-compliance" }));
+  }
+  return cleaned;
+}
+
 function estimateBIPARisk(enrolledCount: string): { lowEnd: number; highEnd: number; note: string } {
   const countMap: Record<string, number> = {
     "Fewer than 500": 250,
