@@ -435,6 +435,14 @@ async function runTool(admin: Admin, job: any, userId: string): Promise<RunResul
 // ─── Orchestrator ─────────────────────────────────────────────────────────────
 
 async function finaliseBatch(admin: Admin, batchId: string) {
+  // A batch is final only when NO job is pending or running. Callers only
+  // check "no pending" — a claimed job is 'running' and still in flight.
+  const { count: active } = await admin.from("static_stress_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("batch_id", batchId)
+    .in("status", ["pending", "running"]);
+  if ((active ?? 0) > 0) return;
+
   // Check first — multiple workers may reach here simultaneously when the
   // last few jobs complete. The update is idempotent but we log it cleanly.
   const { data: batch } = await admin.from("static_stress_batches")
