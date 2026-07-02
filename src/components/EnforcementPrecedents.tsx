@@ -41,11 +41,21 @@ const EnforcementPrecedents = ({
   variant?: "standard" | "cppa";
   attempted?: boolean;
 }) => {
-  const list = Array.isArray(precedents) ? precedents : [];
+  const raw = Array.isArray(precedents) ? precedents : [];
+  // Suppress unnamed actions and low-relevance (<2 stars) matches. If fewer than
+  // 2 qualifying matches remain, we render a single explanatory line below.
+  const list = raw.filter(
+    (p) =>
+      typeof p.subject === "string" &&
+      p.subject.trim().length > 0 &&
+      (p.precedent_significance ?? 0) >= 2,
+  );
+  const insufficient = list.length < 2;
   const isEmpty = list.length === 0;
 
-  // Legacy behavior: empty + not attempted -> render nothing
+  // Legacy behavior: nothing at all + not attempted -> render nothing
   if (isEmpty && !attempted) return null;
+
 
   let calibration: string;
   if (variant === "cppa") {
