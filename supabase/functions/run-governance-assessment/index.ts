@@ -168,7 +168,16 @@ INTERACTION_EFFECTS LENGTH: if interaction_effects would otherwise exceed roughl
 
 ART 33(1) CLOCK TRIGGER: when describing the 72-hour breach-notification clock, state explicitly that it begins when the CONTROLLER becomes aware of the breach (typically upon receipt of the processor's Art. 33(2) notice), not from the processor's notification itself — avoid phrasing that could be read as the clock starting at the moment of processor notice.
 
-IMPLEMENT-OR-VERIFY DISAMBIGUATION: Avoid the ambiguous phrase 'implement or verify' when directing the user to secure a control. Split it into two explicit steps: 'Then, either implement technical controls... if none exist, or verify and document existing controls, ensuring the controls enforce the policy across all named platforms.'`;
+IMPLEMENT-OR-VERIFY DISAMBIGUATION: Avoid the ambiguous phrase 'implement or verify' when directing the user to secure a control. Split it into two explicit steps: 'Then, either implement technical controls... if none exist, or verify and document existing controls, ensuring the controls enforce the policy across all named platforms.'
+
+ARTICLE-GLOSS CORRECTIONS (2.3):
+- Art. 24: "GDPR Art. 24 (controller must implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation)".
+- Art. 29: "GDPR Art. 29 (persons acting under the authority of the controller or processor may process personal data only on the controller's instructions, unless required by Union or Member State law)". Do not mention confidentiality here — that is Art. 28(3)(b).
+- Art. 14: "(information to be provided where personal data have not been obtained from the data subject)".
+- Art. 12: "(transparent information, communication and modalities for the exercise of the rights of the data subject)" — replace "consumer-rights"; the GDPR term is data subject rights.
+- DPF sentence, user-facing voice: "including the EU–US Data Privacy Framework (Commission Implementing Decision (EU) 2023/1795) for US-established importers certified under the Framework — verify current certification status at dataprivacyframework.gov".
+- DPIA-trigger gloss addition: "Art. 35(3) provides examples and is not exhaustive — any processing likely to result in a high risk under Art. 35(1) requires a DPIA even if not listed in Art. 35(3)."
+- REGULATORY-BASIS SCOPE RULE: a provision appears in a domain's regulatory_basis only if it grounds a gap or recommended action in that domain (e.g. drop Art. 37(1) where the DPO is already appointed and no 37(1) gap exists).`;
 }
 
 export function buildGovernanceDomainToolModule(jurisdictions: unknown, euUkData: string): ToolModule {
