@@ -833,6 +833,7 @@ Return JSON:
       three_part_test: analysis,
       lint_warnings: lintViolations,
       annotations: (() => { try { return Array.isArray(analysis?.annotations) ? analysis.annotations : []; } catch { return []; } })(),
+      information_needed: Array.isArray((analysis as any)?.information_needed) ? (analysis as any).information_needed : [],
       documentation_recommendations: docRecs,
       disclaimer: "This report helps your organisation identify areas for legal review. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel before relying on legitimate interest as a processing legal basis under UK GDPR, EU GDPR, or equivalent provisions.",
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`
