@@ -198,7 +198,7 @@ Return a JSON object with EXACTLY these top-level fields:
 }
 
 Only set biometric to a non-null object if the ${industry} sector routinely uses biometric identification (e.g. healthcare, physical security, financial services). For all other sectors set biometric to null.
-The biometric object structure if used: { "biometricTypes": ["array"], "orgType": "string", "purpose": "string", "jurisdictions": ["array"], "enrolledCount": "string" }`;
+The biometric object structure if used: { "orgName": "string — the company name", "biometricTypes": ["array"], "orgType": "string", "purpose": "string", "jurisdictions": ["array"], "enrolledCount": "string" }`;
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
@@ -305,7 +305,7 @@ Use the same company name, domain, DPO details, and country as already establish
 Return a JSON object with EXACTLY these fields:
 {
   "lia": {
-    "organization_name": "string", "processing_description": "string", "sector": "string",
+    "organization_name": "string", "subject_anchor": "string — one line naming the single interest, e.g. Fraud screening of new account signups", "processing_description": "string", "sector": "string",
     "stated_purpose": "string", "relationship_type": "string", "data_categories": ["array"],
     "jurisdictions": ["array"], "alternatives_considered": "string",
     "purpose_details": { "interest_holder": "string", "interest_type": "string", "purpose_text": "string" },
@@ -366,49 +366,107 @@ Return a JSON object with EXACTLY these fields:
     "sensitive_data_types": "string", "data_sources": "string"
   },
   "cppaRisk": {
+    "entity_name": "string", "subject_anchor": "string — one line naming the specific processing",
     "q1_revenue": "string", "q2_consumers": "string", "q3_sector": "string",
-    "q4_pi_categories": ["array"], "q5_sell_share": "string", "q6_right_know": "string",
+    "q4_pi_categories": ["array"], "q5_sell_share": "string",
+    "q5b_profiling_observation": "Yes or No",
+    "q6_right_know": "string", "q6_right_know_multi": ["array"],
     "q7_right_delete": "string", "q8_right_correct": "string", "q9_opt_out": "string",
     "q10_id_verification": "string", "q11_policy_review": "string",
     "q12_notice_at_collection": "string", "q13_notice_content": "string",
     "q14_employee_notice": "string", "q15_sensitive_pi": "string",
+    "q15b_under16_knowledge": "Yes or No",
     "q16_sensitive_limit": "string", "q17_sensitive_basis": "string",
-    "q18_admt_use": "string", "q19_admt_description": "string", "q20_admt_opt_out": "string",
-    "i1_processing_purpose": "string", "i2_retention_period": "string",
+    "q18_admt_use": "string", "q18b_admt_training": "Yes or No",
+    "q19_admt_description": "string", "q20_admt_opt_out": "string",
+    "i1_processing_purpose": "string", "i1b_min_pi": "string",
+    "i2_retention_period": "string",
     "i2_retention_criteria": "string", "i2_retention_detail": "string",
     "i3_ca_consumer_band": "string", "i4_disclosure_mechanisms": ["array"],
+    "i4b_sources": "string",
     "i5_admt_logic": "string", "i5_admt_training_source": "string",
     "i5_admt_fairness_testing": "string", "i5_admt_human_review": "string",
     "i6_vendors": "string", "i7_internal_contributors": "string",
     "i7_external_consultees": "string", "i8_certifying_exec_name": "string",
-    "i8_certifying_exec_title": "string", "i9_has_existing_dpia": "string",
-    "i9_existing_dpia_summary": "string"
+    "i8_certifying_exec_title": "string",
+    "i8_contact_email": "string", "i8_contact_phone": "string",
+    "i9_has_existing_dpia": "string",
+    "i9_existing_dpia_summary": "string",
+    "exceptions_intake": {
+      "fraud_detection":    { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" },
+      "security_integrity": { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" },
+      "debugging":          { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" },
+      "transient_use":      { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" },
+      "internal_research":  { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" },
+      "employment_context": { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" },
+      "legal_compliance":   { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" },
+      "consumer_request":   { "claimed": false, "scope": "string or empty", "safeguards": "string or empty" }
+    },
+    "impact_intake": {
+      "likelihood": "string", "severity": "string", "harmTypes": ["array"],
+      "vulnerable": "string", "benefitsOutweigh": "Yes | No | Uncertain",
+      "benefitsRationale": "string", "cyberGaps": "Yes or No",
+      "businessBenefits": "string", "consumerBenefits": "string",
+      "stakeholderBenefits": "string", "safeguards": "string", "harmCauses": "string"
+    }
   },
   "cppaCyber": {
-    "profile": { "industry": "string", "incidents_12mo": "string", "framework": "string", "last_audit": "string" },
+    "company_name": "string",
+    "profile_industry": "string",
+    "profile_audit": "string — e.g. Within 12 months",
     "industry_sector": "string",
     "controls": {
       "c1_auth": ["status string", "notes string"],
       "c2_encryption": ["status string", "notes string"],
-      "c3_zero_trust": ["status string", "notes string"],
-      "c4_account_mgmt": ["status string", "notes string"],
-      "c5_inventory": ["status string", "notes string"],
-      "c7_vuln_mgmt": ["status string", "notes string"],
-      "c8_audit_logs": ["status string", "notes string"],
-      "c9_network_mon": ["status string", "notes string"],
-      "c10_anti_malware": ["status string", "notes string"],
-      "c14_third_party": ["status string", "notes string"],
-      "c15_retention": ["status string", "notes string"],
-      "c16_training": ["status string", "notes string"],
+      "c3_account_access": ["status string", "notes string"],
+      "c4_inventory": ["status string", "notes string"],
+      "c5_secure_config": ["status string", "notes string"],
+      "c6_vuln_mgmt": ["status string", "notes string"],
+      "c7_audit_logs": ["status string", "notes string"],
+      "c8_network_mon": ["status string", "notes string"],
+      "c9_anti_malware": ["status string", "notes string"],
+      "c10_segmentation": ["status string", "notes string"],
+      "c11_port_protocol": ["status string", "notes string"],
+      "c12_awareness": ["status string", "notes string"],
+      "c13_training": ["status string", "notes string"],
+      "c14_secure_dev": ["status string", "notes string"],
+      "c15_third_party": ["status string", "notes string"],
+      "c16_retention": ["status string", "notes string"],
       "c17_incident": ["status string", "notes string"],
       "c18_continuity": ["status string", "notes string"]
     }
+  },
+  "cppaAdmt": {
+    "organization_name": "string",
+    "system_name": "string", "system_type": "string", "system_description": "string",
+    "decision_domains": ["array"], "human_review": "string",
+    "training_data_use": "Yes or No", "profiling_use": "Yes or No",
+    "notice_delivery": ["array"], "notice_has_specific_purpose": "Yes or No",
+    "notice_purpose_text": "string",
+    "notice_has_opt_out_desc": "Yes or No", "notice_has_access_desc": "Yes or No",
+    "notice_has_anti_retaliation": "Yes or No", "notice_has_how_it_works": "Yes or No",
+    "notice_has_alternative_process": "Yes or No",
+    "opt_out_exception": "string", "opt_out_methods": ["array"],
+    "opt_out_link_title": "string",
+    "opt_out_no_cookie_banner": "Yes or No", "opt_out_no_account_required": "Yes or No",
+    "opt_out_confirmation_mechanism": "string", "opt_out_appeal_process": "string",
+    "opt_out_fairness_doc": "string",
+    "opt_out_15_day_process": "string",
+    "opt_out_service_provider_notice": "string",
+    "access_submission_methods": "string", "access_verification_process": "string",
+    "access_logic_disclosure": "string", "access_outcome_disclosure": "string",
+    "access_response_timeline": "string", "access_trade_secret_policy": "string",
+    "ca_consumer_count": "string", "third_party_admt": "Yes or No",
+    "admt_system_count": "string", "prior_access_requests_12mo": "string",
+    "admt_detail": {}
   },
   "lia": null,
   "dpia": null,
   "ropa": null,
   "euNotice": null
-}`;
+}
+
+Notice/opt-out/access answers must be a realistic mix — not all "Yes", not all blank — so gap analysis has real material.`;
 }
 
 function fixtureSeed(companyId: string): number {
@@ -567,6 +625,7 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       organisationType: `${industry} operator`,
     },
     biometric: usesBiometric ? {
+      orgName: c.companyName,
       biometricTypes: ["facial template", "voiceprint"],
       orgType: `${industry} organisation`,
       purpose: "Identity verification and fraud prevention",
@@ -793,6 +852,7 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
     return {
       lia: {
         organization_name: c.companyName,
+        subject_anchor: `${industry} — fraud screening and security monitoring of authenticated users`,
         processing_description: `${industry} service analytics and fraud prevention`,
         sector: industry,
         stated_purpose: "Improve reliability, prevent fraud, and support users",
@@ -892,16 +952,89 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       data_sources: "Provided by users, generated during service use, and received from service providers",
     },
     cppaRisk: {
-      q1_revenue: slot === 1 ? "Over $25 million" : "$20M-$100M", q2_consumers: slot === 1 ? "Over 100,000" : "50,000-100,000", q3_sector: industry,
-      q4_pi_categories: ["identifiers", "internet activity", "commercial information"], q5_sell_share: "Yes", q6_right_know: "Yes", q7_right_delete: "Yes", q8_right_correct: "Yes", q9_opt_out: "Yes", q10_id_verification: "Documented", q11_policy_review: "Annual", q12_notice_at_collection: "Provided", q13_notice_content: "Complete", q14_employee_notice: "Provided", q15_sensitive_pi: /health|financial|hr/i.test(industry) ? "Yes" : "No", q16_sensitive_limit: "Available where required", q17_sensitive_basis: "Service delivery and security", q18_admt_use: /ai|financial|hr/i.test(industry) ? "Yes" : "No", q19_admt_description: "Risk scoring and service personalization", q20_admt_opt_out: "Available where required", i1_processing_purpose: "Service delivery, security, analytics, and support", i2_retention_period: "24 months", i2_retention_criteria: "Account lifecycle and legal requirements", i2_retention_detail: "Deleted or de-identified after retention window", i3_ca_consumer_band: slot === 1 ? "100k+" : "50k-100k", i4_disclosure_mechanisms: ["privacy notice", "preference centre", "DSAR portal"], i5_admt_logic: "Rules-based scoring with human review", i5_admt_training_source: "Internal operational data", i5_admt_fairness_testing: "Quarterly bias review", i5_admt_human_review: "Available on request", i6_vendors: "AWS, Snowflake, Zendesk", i7_internal_contributors: "Privacy, security, legal, product", i7_external_consultees: "Outside privacy counsel", i8_certifying_exec_name: "Jordan Lee", i8_certifying_exec_title: "Chief Privacy Officer", i9_has_existing_dpia: "Yes", i9_existing_dpia_summary: "Existing DPIA covers analytics and security monitoring",
+      entity_name: c.companyName,
+      subject_anchor:
+        /fintech|financial/i.test(industry) ? "Automated credit-risk scoring of California loan applicants" :
+        /hr|employment|workforce/i.test(industry) ? "Automated screening of California job applicants" :
+        /adtech|marketing|media/i.test(industry) ? "Behavioural audience segmentation of California consumers" :
+        /health|clinical|pharma|biotech/i.test(industry) ? "Care-management risk scoring of California patients" :
+        `Automated risk scoring of California customers in ${industry}`,
+      q1_revenue: slot === 1 ? "Over $25 million" : "$20M-$100M",
+      q2_consumers: slot === 1 ? "Over 100,000" : "50,000-100,000",
+      q3_sector: industry,
+      q4_pi_categories: ["identifiers", "internet activity", "commercial information"],
+      q5_sell_share: "Yes",
+      q5b_profiling_observation: /adtech|marketing|data.broker|ai|financial|hr/i.test(industry) ? "Yes" : "No",
+      q6_right_know: "Yes",
+      q6_right_know_multi: ["categories", "specific pieces", "sources", "purposes"],
+      q7_right_delete: "Yes", q8_right_correct: "Yes", q9_opt_out: "Yes",
+      q10_id_verification: "Documented", q11_policy_review: "Annual",
+      q12_notice_at_collection: "Provided", q13_notice_content: "Complete", q14_employee_notice: "Provided",
+      q15_sensitive_pi: /health|financial|hr/i.test(industry) ? "Yes" : "No",
+      q15b_under16_knowledge: /gaming|edtech|children|social/i.test(industry) ? "Yes" : "No",
+      q16_sensitive_limit: "Available where required", q17_sensitive_basis: "Service delivery and security",
+      q18_admt_use: /ai|financial|hr|adtech/i.test(industry) ? "Yes" : "No",
+      q18b_admt_training: /ai|adtech|financial|hr/i.test(industry) ? "Yes" : "No",
+      q19_admt_description: "Risk scoring and service personalization",
+      q20_admt_opt_out: "Available where required",
+      i1_processing_purpose: "Service delivery, security, analytics, and support",
+      i1b_min_pi: "Account identifier, contact email, and transaction history necessary to score risk and deliver service.",
+      i2_retention_period: "24 months",
+      i2_retention_criteria: "Account lifecycle and legal requirements",
+      i2_retention_detail: "Deleted or de-identified after retention window",
+      i3_ca_consumer_band: slot === 1 ? "100k+" : "50k-100k",
+      i4_disclosure_mechanisms: ["privacy notice", "preference centre", "DSAR portal"],
+      i4b_sources: "Directly from the consumer at signup; generated during service use; supplemented by service providers and public records.",
+      i5_admt_logic: "Rules-based scoring with human review",
+      i5_admt_training_source: "Internal operational data",
+      i5_admt_fairness_testing: "Quarterly bias review",
+      i5_admt_human_review: "Available on request",
+      i6_vendors: "AWS, Snowflake, Zendesk",
+      i7_internal_contributors: "Privacy, security, legal, product",
+      i7_external_consultees: "Outside privacy counsel",
+      i8_certifying_exec_name: "Jordan Lee",
+      i8_certifying_exec_title: "Chief Privacy Officer",
+      i8_contact_email: c.privacyEmail,
+      i8_contact_phone: "+1-415-555-0180",
+      i9_has_existing_dpia: "Yes",
+      i9_existing_dpia_summary: "Existing DPIA covers analytics and security monitoring",
+      exceptions_intake: {
+        fraud_detection:    { claimed: true,  scope: "Automated fraud signals on account access and payment events.", safeguards: "Reviewed quarterly; limited retention (90 days); RBAC." },
+        security_integrity: { claimed: true,  scope: "Anomaly detection across authentication and API traffic.",       safeguards: "SIEM alerts; least-privilege access; pseudonymised dashboards." },
+        debugging:          { claimed: false, scope: "", safeguards: "" },
+        transient_use:      { claimed: false, scope: "", safeguards: "" },
+        internal_research:  { claimed: false, scope: "", safeguards: "" },
+        employment_context: { claimed: /hr|employment|workforce/i.test(industry), scope: /hr|employment|workforce/i.test(industry) ? "Workforce-context data used only for HR administration." : "", safeguards: /hr|employment|workforce/i.test(industry) ? "Segregated HRIS; RBAC; retention aligned to statutory periods." : "" },
+        legal_compliance:   { claimed: true,  scope: "Retention for tax and regulatory reporting obligations.", safeguards: "Retention schedule enforced by system controls." },
+        consumer_request:   { claimed: false, scope: "", safeguards: "" },
+      },
+      impact_intake: {
+        likelihood: "Possible",
+        severity: /health|financial|hr/i.test(industry) ? "Significant" : "Moderate",
+        harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure", "Impairment of consumer control over personal information"],
+        vulnerable: /gaming|edtech|children|health/i.test(industry) ? "Minors may be affected; processing is limited to service delivery." : "No specific vulnerable population identified.",
+        benefitsOutweigh: "Yes",
+        benefitsRationale: "Fraud prevention and service reliability benefits materially exceed the limited privacy impact after safeguards.",
+        cyberGaps: "No",
+        businessBenefits: "Reduces fraud losses and supports service continuity.",
+        consumerBenefits: "Protects account integrity and service availability.",
+        stakeholderBenefits: "Reduces systemic fraud exposure across the ecosystem.",
+        safeguards: "RBAC; MFA; pseudonymisation in analytics; annual vendor DPA review; retention window enforced.",
+        harmCauses: "Any harm would arise from unauthorised access to processed data or misconfiguration of automated scoring.",
+      },
     },
     cppaCyber: {
-      profile: { industry, incidents_12mo: "1", framework: "NIST CSF 2.0", last_audit: "Within 12 months" },
+      profile_industry: industry,
+      profile_audit: "Within 12 months",
       industry_sector: industry,
       company_name: c.companyName,
-      controls: Object.fromEntries(["c1_auth", "c2_encryption", "c3_zero_trust", "c4_account_mgmt", "c5_inventory", "c7_vuln_mgmt", "c8_audit_logs", "c9_network_mon", "c10_anti_malware", "c14_third_party", "c15_retention", "c16_training", "c17_incident", "c18_continuity"].map((k) => [k, ["implemented", "Documented and reviewed"]])),
+      controls: Object.fromEntries(
+        ["c1_auth","c2_encryption","c3_account_access","c4_inventory","c5_secure_config","c6_vuln_mgmt","c7_audit_logs","c8_network_mon","c9_anti_malware","c10_segmentation","c11_port_protocol","c12_awareness","c13_training","c14_secure_dev","c15_third_party","c16_retention","c17_incident","c18_continuity"]
+          .map((k) => [k, ["implemented", "Documented and reviewed"]])
+      ),
     },
     cppaAdmt: /ai|fintech|hr|adtech|gaming|entertainment/i.test(industry) ? {
+      organization_name: c.companyName,
       system_name:
         /fintech/i.test(industry) ? "Credit Risk Scoring Model" :
         /hr/i.test(industry) ? "Candidate Screening System" :
@@ -939,7 +1072,7 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       notice_has_opt_out_desc: "Yes",
       notice_has_access_desc: "Yes",
       notice_has_anti_retaliation: "Yes",
-      notice_has_how_it_works: "Yes",
+      notice_has_how_it_works: /adtech|gaming/i.test(industry) ? "No" : "Yes",
       notice_has_alternative_process: /hr/i.test(industry) ? "Yes" : "No",
       opt_out_exception: "none",
       opt_out_methods: ["webform", "email"],
@@ -948,14 +1081,20 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       opt_out_no_account_required: "Yes",
       opt_out_confirmation_mechanism: "Email confirmation within 24 hours",
       opt_out_appeal_process: "Consumer may request human review within 30 days",
-      opt_out_fairness_doc: "",
-      opt_out_15_day_process: "",
+      opt_out_fairness_doc: /adtech|gaming/i.test(industry) ? "" : "Fairness testing documented in the model card and reviewed quarterly.",
+      opt_out_15_day_process: "Requests actioned within 15 business days; log maintained.",
+      opt_out_service_provider_notice: "Downstream service providers notified within 24 hours of an accepted opt-out.",
       access_submission_methods: "Webform at privacy.example.com/access-request",
       access_verification_process: "Email verification plus last-4 of account identifier",
-      access_logic_disclosure: "Yes — plain-language description of inputs and weightings provided",
+      access_logic_disclosure: /adtech/i.test(industry) ? "No — pending publication of a plain-language logic summary" : "Yes — plain-language description of inputs and weightings provided",
       access_outcome_disclosure: "Yes — score and tier communicated at point of decision",
       access_response_timeline: "45 days",
       access_trade_secret_policy: "Proprietary model weights withheld; all other factors disclosed",
+      ca_consumer_count: slot === 1 ? "500,000+" : "75,000",
+      third_party_admt: /adtech|marketing/i.test(industry) ? "Yes" : "No",
+      admt_system_count: slot === 1 ? "3" : "1",
+      prior_access_requests_12mo: slot === 1 ? "42" : "6",
+      admt_detail: {},
     } : null,
     lia: null,
     dpia: null,
