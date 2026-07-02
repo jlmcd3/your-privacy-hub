@@ -4,7 +4,7 @@
 // Signature feature: StatuteRail — persistent right column showing verbatim
 // regulation text, plain summary, and FSOR context for every field.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentProps } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
@@ -95,7 +95,7 @@ const Radio = ChoiceRadio;
 
 // Serif-styled field label (Prompt 4.1c). Tiny sub-labels pass their own
 // `text-[12px]` etc., which override the base via cn's later-wins merge.
-const Label = ({ className, ...props }: React.ComponentProps<typeof UILabel>) => (
+const Label = ({ className, ...props }: ComponentProps<typeof UILabel>) => (
   <UILabel
     className={cn("font-serif-text font-semibold text-[16.5px] text-brand-navy", className)}
     {...props}
