@@ -755,6 +755,15 @@ Generate substantive draft rows for every table for the controller to verify; us
         : [];
     } catch { reportData.annotations = []; }
 
+    // 2.7 S2 — forward-path guard. DPIA keeps its existing completion_guidance;
+    // information_needed is added alongside (not merged).
+    try {
+      const guarded = guardInformationNeeded(reportData, (dpia.intake_data as Record<string, unknown>) ?? {});
+      Object.assign(reportData, guarded.report);
+    } catch (e) {
+      console.warn("[run-dpia-framework] guardInformationNeeded failed (non-fatal):", e);
+    }
+
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "dpia_framework",
