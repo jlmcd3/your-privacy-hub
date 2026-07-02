@@ -7,6 +7,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
