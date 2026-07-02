@@ -21,6 +21,9 @@ import { logToolAcknowledgment } from "@/lib/toolAcknowledgment";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { useRefineMode } from "@/hooks/useRefineMode";
+import RefinePanel from "@/components/refine/RefinePanel";
+import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 
 import { JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER, detectDocumentType } from "@/lib/dpaDocumentType";
 
