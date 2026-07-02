@@ -829,6 +829,18 @@ Return JSON:
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`
     };
 
+    // 2.9 — LIA has no intake_data column; build the guard's intake object
+    // from the row's dedicated columns (never invent an intake_data field).
+    const liaIntakeObject: Record<string, unknown> = {
+      organization_name: assessment.organization_name,
+      subject_anchor: (assessment as any).subject_anchor ?? null,
+      relationship_type: assessment.relationship_type,
+      jurisdictions: assessment.jurisdictions,
+      data_categories: assessment.data_categories,
+    };
+    const guarded = guardInformationNeeded(reportData, liaIntakeObject);
+    Object.assign(reportData, guarded.report);
+
     // Stage 1: metering + version retention (successful runs only).
     // Written BEFORE status:complete so that any client observing "complete"
     // will also see the meter/version rows.
@@ -836,13 +848,7 @@ Return JSON:
       toolType: "li_assessment",
       assessmentId: assessment_id,
       userId: assessment.user_id ?? null,
-      intake: {
-        organization_name: assessment.organization_name,
-        subject_anchor: (assessment as any).subject_anchor ?? null,
-        relationship_type: assessment.relationship_type,
-        jurisdictions: assessment.jurisdictions,
-        data_categories: assessment.data_categories,
-      },
+      intake: liaIntakeObject,
       reportData,
     });
 
