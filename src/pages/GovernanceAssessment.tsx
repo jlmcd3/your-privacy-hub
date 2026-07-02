@@ -653,8 +653,7 @@ const GovernanceAssessment = () => {
             )}
           </div>
         </div>
-        <StatuteRail entry={govRailEntry} />
-        </div>
+        </BenchLayout>
 
 
 
