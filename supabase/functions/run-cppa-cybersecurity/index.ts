@@ -574,6 +574,16 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
           now: computed,
         }));
         rep.overall_score = computed;
+        // Sync any numeric score mentions in the executive summary to the computed score.
+        if (typeof rep?.executive_summary === "string") {
+          const fixed = rep.executive_summary
+            .replace(/\b\d{1,3}\s*(?:\/|out of)\s*100\b/g, `${computed} out of 100`)
+            .replace(/\b(readiness|overall)\s+score\s+of\s+\d{1,3}\b/gi, (m: string) => m.replace(/\d{1,3}$/, String(computed)));
+          if (fixed !== rep.executive_summary) {
+            console.log(JSON.stringify({ evt: "consistency_fix", fn: "run-cppa-cybersecurity", field: "executive_summary_score_mention", now: computed }));
+            rep.executive_summary = fixed;
+          }
+        }
       }
       const insufficientCount = controls.filter((c: any) =>
         String(c?.status ?? "").trim().toLowerCase() === "insufficient information"
