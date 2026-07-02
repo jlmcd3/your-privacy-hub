@@ -82,6 +82,10 @@ export function useGdprRailEntry(opts: GdprRailEntryOpts | null): GdprRailEntryS
             fscrContext,
             enforcementNote: opts.enforcementNote,
             relatedCitations: opts.relatedCitations,
+            coachLead: opts.coachLead,
+            coachBody: opts.coachBody,
+            goodAnswer: opts.goodAnswer,
+            commonMistake: opts.commonMistake,
           });
         }
       } catch {
