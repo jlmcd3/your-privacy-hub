@@ -16,6 +16,9 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import StatuteRail from "@/components/intake/StatuteRail";
+import IntakeMasthead from "@/components/intake/IntakeMasthead";
+import BenchLayout from "@/components/intake/BenchLayout";
+import { useRunMeter } from "@/hooks/useRunMeter";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
@@ -73,6 +76,7 @@ const GovernanceAssessment = () => {
   const { clientId } = useActiveClient();
 
   const refine = useRefineMode("governance_assessment");
+  const { meter } = useRunMeter("governance_assessment", refine.assessmentId);
   const [step, setStep] = useState(1);
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
   const [purchasing, setPurchasing] = useState(false);

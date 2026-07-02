@@ -21,6 +21,11 @@ import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
+import IntakeMasthead from "@/components/intake/IntakeMasthead";
+import BenchLayout from "@/components/intake/BenchLayout";
+import { useRunMeter } from "@/hooks/useRunMeter";
+import { LIA_RAIL } from "@/components/lia/LIARailEntries";
+import type { RailEntry } from "@/components/intake/RailEntry";
 
 
 
@@ -92,6 +97,10 @@ const LIAssessment = () => {
   const { toast } = useToast();
   const pricing = useToolPrice("li_assessment");
   const refine = useRefineMode("li_assessment");
+  const { meter } = useRunMeter("li_assessment", refine.assessmentId);
+  const [activeLiaRailKey, setActiveLiaRailKey] = useState<string>("subject_anchor");
+  const focusLia = (k: string) => setActiveLiaRailKey(k);
+  const activeLiaRailEntry: RailEntry | null = activeLiaRailKey ? (LIA_RAIL[activeLiaRailKey] ?? null) : null;
 
 
 
@@ -305,17 +314,41 @@ const LIAssessment = () => {
             />
           </section>
         ) : (
-        <section className="mb-10">
-
-          <div className="text-eyebrow text-brand-mist mb-2">Step 01 · Free intake</div>
-          <h2 className="font-display text-brand-navy mb-5 leading-snug">Tell us about the processing</h2>
+        <section className="mb-10 bg-paper">
+          <IntakeMasthead
+            kicker="Legitimate Interest Assessment · GDPR Art. 6(1)(f)"
+            title="Tell us about the processing"
+            subjectLabel={meter ? "Assessment subject · locked" : undefined}
+            subjectValue={
+              meter
+                ? (typeof meter.lockedFields?.organization_name === "string"
+                    ? (meter.lockedFields!.organization_name as string)
+                    : (typeof meter.lockedFields?.subject_anchor === "string"
+                        ? (meter.lockedFields!.subject_anchor as string)
+                        : undefined))
+                : undefined
+            }
+            meter={meter ?? null}
+            preRunHint="The subject line you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+          />
+          <BenchLayout
+            toolType="lia"
+            railEntry={activeLiaRailEntry}
+            defaultSourceUrl="https://eur-lex.europa.eu/eli/reg/2016/679/oj"
+            coachingOpenByDefault={
+              !!activeLiaRailKey &&
+              refine.infoNeededKeys.some(
+                (k) => activeLiaRailKey === k || activeLiaRailKey.includes(k) || k.includes(activeLiaRailKey),
+              )
+            }
+          >
           <form
             onSubmit={(e) => { e.preventDefault(); handlePreview(); }}
-            className="bg-card border border-brand-cloud rounded-2xl p-5 sm:p-6 md:p-8 shadow-eup-sm space-y-6"
+            className="space-y-6"
           >
             <RequiredLegend />
             <div>
-              <Label htmlFor="org" className="text-sm font-semibold text-brand-navy">Organisation being assessed<Req /></Label>
+              <Label htmlFor="org" className="font-serif-text font-semibold text-[16.5px] text-brand-navy">Organisation being assessed<Req /></Label>
               <input
                 id="org"
                 type="text"
@@ -326,8 +359,8 @@ const LIAssessment = () => {
               />
               <p className="text-meta text-muted-foreground mt-1">The controller/entity whose processing this LIA documents.</p>
             </div>
-            <div>
-              <Label htmlFor="subject-anchor" className="text-sm font-semibold text-brand-navy">
+            <div onFocus={() => focusLia("subject_anchor")}>
+              <Label htmlFor="subject-anchor" className="font-serif-text font-semibold text-[16.5px] text-brand-navy">
                 In one line — what does this assessment cover?<Req />
               </Label>
               <p className="text-xs text-muted-foreground mt-1">
@@ -342,8 +375,8 @@ const LIAssessment = () => {
                 className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm"
               />
             </div>
-            <div>
-              <Label htmlFor="desc" className="text-sm font-semibold text-brand-navy">What processing are you considering?<Req /> <DefPopover termKey="gdpr_legitimate_interests" /></Label>
+            <div onFocus={() => focusLia("processing_description")}>
+              <Label htmlFor="desc" className="font-serif-text font-semibold text-[16.5px] text-brand-navy">What processing are you considering?<Req /> <DefPopover termKey="gdpr_legitimate_interests" /></Label>
               <Textarea
                 id="desc"
                 value={processingDescription}
@@ -355,15 +388,15 @@ const LIAssessment = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-semibold text-brand-navy">Data categories involved<Req /> <DefPopover termKey="gdpr_special_categories" /></Label>
+              <Label className="font-serif-text font-semibold text-[16.5px] text-brand-navy">Data categories involved<Req /> <DefPopover termKey="gdpr_special_categories" /></Label>
               <div className="mt-2"><MultiPills options={DATA_CATEGORIES} value={dataCategories} onChange={setDataCategories} /></div>
               {dataCategories.includes("Other") && (
                 <input value={dataCategoriesOther} onChange={(e) => setDataCategoriesOther(e.target.value)} placeholder="Specify the other data categories" className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm" />
               )}
             </div>
 
-            <div>
-              <Label htmlFor="rel" className="text-sm font-semibold text-brand-navy">Your relationship with data subjects<Req /> <DefPopover termKey="gdpr_personal_data" /></Label>
+            <div onFocus={() => focusLia("relationship")}>
+              <Label htmlFor="rel" className="font-serif-text font-semibold text-[16.5px] text-brand-navy">Your relationship with data subjects<Req /> <DefPopover termKey="gdpr_personal_data" /></Label>
               <select id="rel" value={relationship} onChange={(e) => setRelationship(e.target.value)} className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm">
                 <option value="">Select…</option>
                 {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -374,7 +407,7 @@ const LIAssessment = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-semibold text-brand-navy">Jurisdictions where this processing applies<Req /></Label>
+              <Label className="font-serif-text font-semibold text-[16.5px] text-brand-navy">Jurisdictions where this processing applies<Req /></Label>
               <div className="mt-2"><MultiPills options={JURISDICTIONS} value={jurisdictions} onChange={setJurisdictions} /></div>
             </div>
 
@@ -382,13 +415,14 @@ const LIAssessment = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto px-6 py-3 rounded-md bg-brand-navy text-white font-semibold hover:bg-brand-ocean disabled:opacity-60 transition-colors"
+                className="w-full sm:w-auto px-6 py-3 rounded-md bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white font-semibold disabled:opacity-60 transition-colors"
               >
                 {loading ? "Analysing precedents…" : "Get my preliminary signal — Free"}
               </button>
               <p className="text-meta text-muted-foreground mt-2">Free, instant, no account or card required.</p>
             </div>
           </form>
+          </BenchLayout>
         </section>
         )}
 

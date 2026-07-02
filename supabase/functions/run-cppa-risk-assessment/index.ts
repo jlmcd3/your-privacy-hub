@@ -435,7 +435,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
 Every insufficient-basis or "Insufficient information" finding elsewhere in this output MUST have a corresponding information_needed entry; otherwise return an empty array.`,
 };
 
-function buildUserPrompt(intake: FiveStageIntake): string {
+function buildUserPrompt(intake: FiveStageIntake, subjectAnchor = ""): string {
   const { triggers, exceptions, activity_details, impact, org_context } = intake;
   const noExceptions = Object.values(exceptions).every((v: any) => !v?.claimed);
 
@@ -497,6 +497,11 @@ function buildUserPrompt(intake: FiveStageIntake): string {
   const today = new Date().toISOString().slice(0, 10);
 
   return `Generate a CPPA risk assessment for the following organisation. Map all output to the § 7152 required content elements. Use ${today} as the assessment_date — do not invent a different date.
+
+FIXED ASSESSMENT SUBJECT (locked across revision runs): ${subjectAnchor || "(not provided — legacy assessment)"}
+This assessment addresses this single processing activity. All findings, the § 7152(a)(1) purpose
+analysis, and every section of the report concern this subject only.
+
 
 STAGE 1 — TRIGGERED ACTIVITIES (§ 7150(b)):
 ${activeTriggers.length ? activeTriggers.map((t) => `- ${t}`).join("\n") : "- None explicitly indicated."}
@@ -640,7 +645,9 @@ async function runPipeline(assessment_id: string) {
       currentDate: today,
       injected,
     });
-    const userPrompt = buildUserPrompt(fiveStage);
+    const rawIntake = (row.intake_data ?? {}) as Record<string, unknown>;
+    const subjectAnchor = typeof rawIntake?.subject_anchor === "string" ? (rawIntake.subject_anchor as string).trim() : "";
+    const userPrompt = buildUserPrompt(fiveStage, subjectAnchor);
 
     const t0 = Date.now();
     let parsed: any = null;
