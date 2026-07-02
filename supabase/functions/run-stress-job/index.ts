@@ -738,6 +738,7 @@ function selfInvokeNext(batchId: string): void {
 
 
 Deno.serve(async (req) => {
+  console.log("[run-stress-job] build 2026-07-02-guard-v2");
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
