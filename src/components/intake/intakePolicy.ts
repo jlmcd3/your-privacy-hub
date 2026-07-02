@@ -14,9 +14,9 @@ export const INTAKE_POLICY: Record<string, IntakePolicy> = {
   dpia:       { rail: true,  goodAnswer: true  },
   lia:        { rail: true,  goodAnswer: true  },
   governance: { rail: true,  goodAnswer: true  },
-  cppa_risk:  { rail: true,  goodAnswer: true  }, // coaching authored on all free-text rail keys; enumerated steps collapse via BenchLayout's per-entry check
+  cppa_risk:  { rail: true,  goodAnswer: true  }, // free-text + enumerated coaching; BenchLayout collapses coaching column per-entry when a rail key has no coach content
   cppa_cyber: { rail: true,  goodAnswer: true  },
-  biometric:  { rail: true,  goodAnswer: false }, // all-enumerated intake — rail-only; no free-text fields to coach
+  biometric:  { rail: true,  goodAnswer: true  }, // enumerated intake — coaching explains what facts determine the accurate choice; no free-text fields
   us_notice:  { rail: true,  goodAnswer: true  },
   eu_notice:  { rail: true,  goodAnswer: true  },
   rofa:       { rail: true,  goodAnswer: true  },

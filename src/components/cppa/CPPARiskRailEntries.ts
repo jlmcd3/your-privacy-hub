@@ -5,6 +5,11 @@
 // Voice: imperative, active, plain subject-verb-object, one idea per sentence,
 // specific over vague, no ornamental legalese. Layered: coachLead = one line an
 // expert acts on instantly; goodAnswer/commonMistake = the expansion for newer users.
+// ENUMERATED-FIELD ADDENDUM — for selects, radios, and pills, coaching explains
+// WHAT FACTS DETERMINE the accurate choice and WHAT EVIDENCE to check. It never
+// recommends an option, never suggests claiming an exemption, and never implies
+// which selection is favourable. goodAnswer shows a FICTIONAL determination —
+// facts mapped to a selection — illustrating method, not a preferred outcome.
 
 // src/components/cppa/CPPARiskRailEntries.ts
 // StatuteRail entries for the CPPA Risk Assessment (Module 1).
@@ -42,6 +47,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "Cal. Civ. Code § 1798.140(ag)(2)", label: "Consumer volume threshold" },
       { citation: "Cal. Civ. Code § 1798.140(ag)(3)", label: "50% revenue threshold" },
     ],
+    coachLead: "Use last calendar year's gross revenue, worldwide.",
+    coachBody: "The threshold tests total gross revenue — worldwide, before costs. Not California-only revenue. Not profit. Pick the band your best audited figure falls in.",
+    goodAnswer: "A company took in $28M worldwide last year, only $4M of it in California. It selects the over-$25M band — the statute counts gross revenue, not in-state revenue.",
+    commonMistake: "Picking a band from California-only revenue or from net income. Both understate the number the law tests.",
   },
 
   q2_consumers: {
@@ -53,6 +62,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     relatedCitations: [
       { citation: "Cal. Civ. Code § 1798.140(ag)(1)", label: "Revenue threshold ($25M+)" },
     ],
+    coachLead: "Count every unique California consumer or household you process, per year.",
+    coachBody: "The count is not your customer list. It includes anyone whose personal information you buy, sell, share, or process — site visitors with logged identifiers included.",
+    goodAnswer: "A retailer has 40,000 buyers but logs device identifiers for 120,000 California visitors. It counts the 120,000 — an identifier is personal information, purchase or not.",
+    commonMistake: "Counting only paying customers. Device identifiers, loyalty members, and marketing lists all count.",
   },
 
   q3_sector: {
@@ -64,6 +77,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     relatedCitations: [
       { citation: "11 CCR § 7150(b)", label: "Categories of processing that present significant risk" },
     ],
+    coachLead: "Pick the sector of the processing being assessed — not the parent company.",
+    coachBody: "Sector decides which enforcement patterns the assessment weighs. If your organisation spans several, choose the one this activity belongs to.",
+    goodAnswer: "A conglomerate assessing its consumer-lending app selects financial services, not technology. The assessed activity is lending, whatever the parent does.",
+    commonMistake: "Selecting the corporate industry when the assessed processing sits in a different one. That pulls the wrong regulatory context into every later section.",
   },
 
   q4_pi_categories: {
@@ -76,6 +93,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "Cal. Civ. Code § 1798.140(ae)", label: "Sensitive PI definition" },
       { citation: "11 CCR § 7152(a)(5)", label: "Sensitive PI harm categories" },
     ],
+    coachLead: "Select every category this processing touches — including what it creates.",
+    coachBody: "The categories drive the minimum-necessary analysis. Check what the systems actually collect and what they produce. A score or segment is data too.",
+    goodAnswer: "A fraud-screening flow selects identifiers, commercial information, and inferences. It reads device IDs and purchase history, and it outputs a risk score — which is itself an inference.",
+    commonMistake: "Leaving out inferences. If the processing produces a score, segment, or prediction about a person, that output is its own category.",
   },
 
   q5_sell_share: {
@@ -89,6 +110,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7150(b)(1)", label: "Risk assessment trigger — sell/share" },
       { citation: "Cal. Civ. Code § 1798.140(k)", label: "Cross-context behavioural advertising definition" },
     ],
+    coachLead: "Answer from your data flows, not your contract labels.",
+    coachBody: "'Sell' includes disclosure for any valuable consideration, not just money. 'Share' covers disclosure for cross-context behavioural advertising with nothing paid at all. Trace where PI leaves the business and what comes back.",
+    goodAnswer: "A publisher gives hashed emails to an ad platform and gets audience insights back. That is a yes — insights are valuable consideration, even with no invoice.",
+    commonMistake: "Answering no because the agreements say 'service provider'. The label doesn't decide; the consideration and the advertising use do.",
   },
 
   q9_opt_out: {
@@ -101,6 +126,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     relatedCitations: [
       { citation: "11 CCR § 7004", label: "Ease-of-use requirements for privacy choices" },
     ],
+    coachLead: "Answer for what's live on the site today.",
+    coachBody: "The question tests whether the Do Not Sell or Share mechanism exists and works. Check the actual footer and click through it. Don't answer from the policy document.",
+    goodAnswer: "A team finds the footer link, submits a request, and confirms the disclosure actually stops — then answers yes.",
+    commonMistake: "Answering yes because the privacy policy describes an opt-out. The law requires a working mechanism, not a description of one.",
   },
 
   q10_verification: {
@@ -113,6 +142,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7023", label: "Methods of verification" },
       { citation: "11 CCR § 7025", label: "Verification for sensitive PI requests" },
     ],
+    coachLead: "Answer for the written procedure — and whether it scales with risk.",
+    coachBody: "§§ 7060–7062 require verification matched to the sensitivity of the request. Look for a documented method that treats deletion differently from access to specific pieces.",
+    goodAnswer: "An operations lead finds a written SOP: two data points to verify a deletion request, a signed declaration for specific-pieces access. Only then does she select 'documented procedure'.",
+    commonMistake: "Treating an ad-hoc email exchange as a procedure. The regulation tests a written, risk-scaled method.",
   },
 
   q15_sensitive_pi: {
@@ -125,6 +158,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "Cal. Civ. Code § 1798.121", label: "Right to limit use of sensitive PI" },
       { citation: "11 CCR § 7152(a)(5)", label: "Sensitive PI in risk assessment" },
     ],
+    coachLead: "Check the statutory list against what your systems actually hold.",
+    coachBody: "Sensitive PI is a defined list: precise geolocation, government IDs, account credentials, race or ethnicity, health, biometrics, and more. Answer from your inventory, not your intentions.",
+    goodAnswer: "A delivery app answers yes for one reason only: it stores precise geolocation. One listed category is enough.",
+    commonMistake: "Equating sensitive with secret. Precise location and login credentials count, however routine they feel.",
   },
 
   q18_admt: {
@@ -227,6 +264,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "Cal. Civ. Code § 1798.121(d)", label: "Sensitive PI limit-use carve-out" },
       { citation: "11 CCR § 7150", label: "Risk assessment triggers (not removed)" },
     ],
+    coachLead: "Claim this only for processing that fraud prevention actually needs.",
+    coachBody: "The purpose covers detecting security incidents and fraudulent or illegal activity. It attaches to specific operations, not the company. Name the operation it covers.",
+    goodAnswer: "'Device-velocity checks at checkout' qualifies. 'Our analytics program' doesn't — one is a fraud control, the other just contains some fraud-adjacent data.",
+    commonMistake: "Claiming a whole data flow because part of it serves fraud prevention. The claim covers the necessary processing only.",
   },
 
   exc_security_integrity: {
@@ -236,6 +277,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     plainSummary: "Maintaining the security and integrity of information and the systems that process it is an enumerated business purpose. Like fraud detection, it permits the use but does NOT exempt the activity from risk-assessment scope when a § 7150 trigger fires.",
     regulationText: "Helping to ensure security and integrity to the extent the use of the consumer's personal information is reasonably necessary and proportionate for these purposes. Resisting malicious, deceptive, fraudulent, or illegal actions directed at the business and helping to prosecute those responsible for those actions.",
     enforcementNote: "The \"reasonably necessary and proportionate\" qualifier is doing real work. Logging an entire session keystroke-by-keystroke for security purposes will not qualify; targeted, time-boxed retention will.",
+    coachLead: "Tie the claim to a named security function, not IT in general.",
+    coachBody: "This covers keeping systems and data secure — logging, intrusion detection, incident investigation. Say which function relies on it.",
+    goodAnswer: "'Authentication logs kept for intrusion investigation' — a specific function with a clear need for the data.",
+    commonMistake: "Claiming all server logs as security processing when some feed product analytics. Mixed flows need the security slice named separately.",
   },
 
   exc_debugging: {
@@ -244,6 +289,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
     plainSummary: "Debugging to identify and repair errors that impair existing intended functionality is a permitted business purpose. It does not authorize using debug data for product development, analytics, or model training, and it does not remove a § 7150 trigger when one applies.",
     regulationText: "Debugging to identify and repair errors that impair existing intended functionality.",
+    coachLead: "Debugging means finding and fixing errors — nothing more.",
+    coachBody: "The claim covers restoring intended functionality. Work that improves or develops features is a different purpose.",
+    goodAnswer: "'Crash reports kept 30 days to reproduce and fix defects' qualifies. 'Session replays reviewed for UX improvements' doesn't.",
+    commonMistake: "Stretching debugging to cover product improvement. Fixing errors and building features are different purposes.",
   },
 
   exc_transient_use: {
@@ -253,6 +302,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     plainSummary: "Short-term, transient use — including non-personalized advertising shown as part of a consumer's current interaction — where the personal information is not disclosed to another third party and is not used to build a profile or otherwise alter the consumer's experience outside that current interaction. Strict conditions; rarely satisfied for tracked sessions.",
     regulationText: "Short-term, transient use, including, but not limited to, nonpersonalized advertising shown as part of a consumer's current interaction with the business, provided that the consumer's personal information is not disclosed to another third party and is not used to build a profile about the consumer or otherwise alter the consumer's experience outside the current interaction with the business.",
     enforcementNote: "If any of (a) disclosure to a third party, (b) profile building, or (c) cross-session experience changes occurs, the transient-use carve-out is lost.",
+    coachLead: "Claim this only if the data is used once and kept nowhere.",
+    coachBody: "Transient use means no disclosure to third parties, no profiling, and no effect beyond the current interaction. If the data lands anywhere, the claim fails.",
+    goodAnswer: "'Real-time spell-check of a form entry, discarded on submit' — used in the moment, stored nowhere, profiles no one.",
+    commonMistake: "Claiming transient use for data that passes through briefly but lands in a log or a model. Persistence anywhere defeats the claim.",
   },
 
   exc_internal_research: {
@@ -261,6 +314,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
     plainSummary: "Undertaking internal research for technological development and demonstration is an enumerated business purpose. Note: training ADMT/AI systems on personal information almost always implicates § 7150(b) triggers regardless of this purpose — a risk assessment is still required.",
     regulationText: "Undertaking internal research for technological development and demonstration.",
+    coachLead: "The research must be internal, technological, and true to the collection context.",
+    coachBody: "This covers internal research for technological development and demonstration. Check that the use fits the context the consumer gave the data in.",
+    goodAnswer: "'De-identified transaction samples used to test a new fraud model' — internal, technological, and compatible with why the data was collected.",
+    commonMistake: "Calling marketing analysis internal research. Audience research serves promotion, not technology development.",
   },
 
   exc_employment_context: {
@@ -270,6 +327,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     plainSummary: "The CCPA's employee/applicant/contractor exemption expired January 1, 2023. HR and B2B data are now fully in scope. The original § 1798.145(m) carve-out remains only for emergency-contact and benefits-administration disclosures to third parties — it does NOT remove HR processing from risk-assessment scope.",
     regulationText: "This title shall not apply to personal information collected by a business about a natural person in the course of the natural person acting as a job applicant to, an employee of, owner of, director of, officer of, medical staff member of, or contractor of that business to the extent that the natural person's personal information is collected and used by the business solely within the context of having an emergency contact on file for the natural person, or administering specified benefits.",
     enforcementNote: "Common error: treating all HR data as exempt. Post-AB 1184 / AB 1281 sunset, employee and applicant data are subject to the full CCPA, including risk assessments where § 7150 triggers apply (e.g., ADMT in hiring).",
+    coachLead: "Check this exemption's current status before relying on it.",
+    coachBody: "The claim needs two things: processing genuinely inside the HR relationship, and an exemption still in force at its claimed scope. Say which employment processing it covers.",
+    goodAnswer: "'Payroll and benefits administration for California employees' — clearly employment-context, claimed after checking the current statutory scope.",
+    commonMistake: "Assuming everything touching employees is exempt. The exemption has narrowed over the years, and behaviour-profiling workplace monitoring tests its edge.",
   },
 
   exc_legal_compliance: {
@@ -278,6 +339,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.145.",
     plainSummary: "The CCPA does not restrict a business's ability to comply with federal, state, or local laws, or to comply with a court order or subpoena. This is a narrow carve-out for the specific compelled disclosure — it does NOT exempt the underlying processing activity (e.g., the AML monitoring program itself) from a risk assessment when a § 7150 trigger applies.",
     regulationText: "The obligations imposed on businesses by this title shall not restrict a business's ability to: (1) Comply with federal, state, or local laws or comply with a court order or subpoena to provide information.",
+    coachLead: "Name the law that requires the processing.",
+    coachBody: "The claim covers processing that a statute, regulation, or order requires. It needs an obligation you can cite — not general caution.",
+    goodAnswer: "'Transaction records kept seven years under federal tax rules' — a named obligation with a defined scope.",
+    commonMistake: "Citing 'compliance' in general, or industry best practice. Best practice is not a legal obligation.",
   },
 
   exc_consumer_request: {
@@ -286,6 +351,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.",
     plainSummary: "Auditing related to counting ad impressions, verifying positioning and quality of ad impressions, and auditing compliance with this and other specifications — together with performing services on behalf of the business or service provider — is an enumerated business purpose. It permits service-provider arrangements and supports primary-purpose use, but does not remove a § 7150 trigger.",
     regulationText: "Performing services on behalf of the business or service provider, including maintaining or servicing accounts, providing customer service, processing or fulfilling orders and transactions, verifying customer information, processing payments, providing financing, providing analytic services, providing storage, or providing similar services on behalf of the business or service provider.",
+    coachLead: "The consumer must have asked for the specific service.",
+    coachBody: "This covers performing what the consumer requested. Uses that serve your wider goals around that service — upsell, retention models — are different purposes.",
+    goodAnswer: "'Using a shipping address to deliver the order' qualifies. 'Using it to model neighbourhood affluence' doesn't — same field, different purpose.",
+    commonMistake: "Sweeping every use of order data under 'providing the service'. The consumer asked for delivery, not analytics.",
   },
 
   q5b_profiling: {
@@ -298,6 +367,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7001(ii)", label: "'Profiling' definition" },
       { citation: "11 CCR § 7001", label: "'Sensitive location' / 'systematic observation'" },
     ],
+    coachLead: "Answer from where and how you watch people — not what it's called.",
+    coachBody: "The trigger covers profiling through systematic observation of public places or sensitive locations. Check for cameras, sensors, wifi tracking, and location analytics.",
+    goodAnswer: "A mall operator runs footfall analytics from wifi pings. That is a yes — systematic observation of a public place, whatever the vendor calls it.",
+    commonMistake: "Answering no because the pipeline anonymises at the end. The trigger looks at the observation itself.",
   },
 
   q15b_under16: {
@@ -310,6 +383,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "Cal. Civ. Code § 1798.140(ae)", label: "Sensitive PI definition" },
       { citation: "11 CCR § 7070", label: "Consumers under 13" },
     ],
+    coachLead: "Actual knowledge includes what your own data shows.",
+    coachBody: "Check age fields, birthdates, school segments, and products aimed at minors. If the signal is in your systems, looking away doesn't erase it.",
+    goodAnswer: "A gaming platform's age field shows 14-year-olds registered. It answers yes even though it never markets to minors — the knowledge sits in its own database.",
+    commonMistake: "Answering no because the terms say users must be 16+. A terms clause is not knowledge of your actual users.",
   },
 
   q18b_admt_training: {
@@ -322,6 +399,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7150(b)(3)", label: "Using ADMT for significant decisions" },
       { citation: "11 CCR § 7001(e)", label: "'ADMT' definition" },
     ],
+    coachLead: "The trigger is training the technology — using it is a separate question.",
+    coachBody: "Check whether consumer data trains ADMT, facial recognition, emotion assessment, or biometric identification. Vendor training on your data counts.",
+    goodAnswer: "A retailer's vendor fine-tunes a detection model on the retailer's CCTV footage. That is a yes — the trigger fires on the data use, wherever the model lives.",
+    commonMistake: "Answering only for models you deploy. Feeding consumer data into anyone's training pipeline is the trigger.",
   },
 
   i1b_min_pi: {
@@ -369,6 +450,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "Cal. Civ. Code § 1798.140(ah)", label: "'Share' definition" },
       { citation: "11 CCR § 7051", label: "Service provider / contractor contracts" },
     ],
+    coachLead: "Name each recipient with its legal role.",
+    coachBody: "For every disclosure, say who gets the data and whether they are a service provider, contractor, or third party. The role decides whether the disclosure is a sale or share.",
+    goodAnswer: "'Cloud host (service provider); fraud-scoring vendor (service provider under contract); ad platform (third party)' — each recipient, each role.",
+    commonMistake: "Listing vendors without roles. 'A cloud host and some marketing partners' gives the sale-or-share analysis nothing to work with.",
   },
 
   impact_benefits: {
