@@ -1474,9 +1474,18 @@ export default function ADMTChecker() {
                       </span>
                     ) : null)}
                   {!isReview ? (
-                    <Button onClick={next}>Next</Button>
+                    <Button
+                      onClick={next}
+                      className="bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white"
+                    >
+                      Next
+                    </Button>
                   ) : (
-                    <Button onClick={handlePurchase} disabled={!pricing.stripeConfigured}>
+                    <Button
+                      onClick={handlePurchase}
+                      disabled={!pricing.stripeConfigured}
+                      className="bg-teal-action hover:bg-[hsl(var(--teal-action-hover))] text-white"
+                    >
                       {!pricing.stripeConfigured
                         ? `Payments Coming Soon — $${pricing.price}`
                         : `Run ADMT Compliance Assessment — $${pricing.price}`}
