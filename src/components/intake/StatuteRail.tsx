@@ -63,7 +63,7 @@ export default function StatuteRail({
         <p className="text-[12px] leading-relaxed text-foreground">{entry.plainSummary}</p>
       </div>
 
-      {entry.goodAnswer && (
+      {showCoachingFields && entry.goodAnswer && (
         <div className="rounded-md bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 p-3">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400 mb-1">
             What a good answer looks like
@@ -72,7 +72,7 @@ export default function StatuteRail({
         </div>
       )}
 
-      {entry.commonMistake && (
+      {showCoachingFields && entry.commonMistake && (
         <div className="rounded-md bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-3">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-400 mb-1">
             Common mistake
