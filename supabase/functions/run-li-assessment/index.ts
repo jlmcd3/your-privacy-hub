@@ -525,7 +525,7 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
   ],
   "information_needed": [
     // REQUIRED whenever any finding in this report is insufficient-basis / Insufficient information / "uncertain" verdict; otherwise an empty array. One entry per gap.
-    { "field": "<intake field key that exists in the intake — one of: organization_name, subject_anchor, relationship_type, jurisdictions, data_categories>",
+    { "field": "<intake field key that exists in the intake — one of: organization_name, subject_anchor, relationship_type, jurisdictions, data_categories, processing_description, stated_purpose, sector, alternatives_considered>",
       "dimensions": "<what specifically to add — dimensions, never suggested values>",
       "provision": "<already-cited provision making these dimensions relevant>",
       "enables": "<which section/determination completes with it>" }
@@ -847,6 +847,10 @@ Return JSON:
       relationship_type: assessment.relationship_type,
       jurisdictions: assessment.jurisdictions,
       data_categories: assessment.data_categories,
+      processing_description: (assessment as any).processing_description ?? null,
+      stated_purpose: (assessment as any).stated_purpose ?? null,
+      sector: (assessment as any).sector ?? null,
+      alternatives_considered: (assessment as any).alternatives_considered ?? null,
     };
     const guarded = guardInformationNeeded(reportData, liaIntakeObject);
     Object.assign(reportData, guarded.report);
