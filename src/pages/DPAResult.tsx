@@ -100,14 +100,20 @@ export default function DPAResult() {
           >
             {(() => {
               const { meter } = useRunMeter("dpa_generator", row.id);
+              const infoNeeded = (row?.report_data as any)?.information_needed;
               return meter ? (
-                <RunMeterBar
-                  meter={meter}
-                  refineHref={`/dpa-generator?refine=${row.id}`}
-                  onExtend={() => startMeterExtension("dpa_generator", row.id)}
-                />
+                <>
+                  <RunMeterBar
+                    meter={meter}
+                    refineHref={`/dpa-generator?refine=${row.id}`}
+                    onExtend={() => startMeterExtension("dpa_generator", row.id)}
+                    infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+                  />
+                  <InformationNeededBlock items={infoNeeded} />
+                </>
               ) : null;
             })()}
+
             <div dir={dir} style={{ display: "contents" }}>
             <AssessmentReport text={(translated?.document_text ?? row.document_text) || ""} sectionChipLabel={null} />
             <EnforcementPrecedents
