@@ -517,11 +517,44 @@ export default function ADMTChecker() {
           </div>
         )}
 
-        <div className="text-sm text-muted-foreground mb-4">Step {step} of {totalSteps}</div>
+        <IntakeMasthead
+          kicker="CPPA ADMT Checker · 11 CCR Article 11 (§§ 7200–7222)"
+          title={STEP_TITLES[step] ?? `Step ${step}`}
+          subjectLabel={meter ? "Assessment subject · locked" : undefined}
+          subjectValue={
+            meter
+              ? (typeof meter.lockedFields?.system_name === "string"
+                  ? (meter.lockedFields!.system_name as string)
+                  : (typeof meter.lockedFields?.organization_name === "string"
+                      ? (meter.lockedFields!.organization_name as string)
+                      : undefined))
+              : undefined
+          }
+          meter={meter ?? null}
+          preRunHint="The subject you set below is fixed once you first generate — everything else stays editable across your 4 included generations."
+        />
 
-        <div className="flex gap-6 items-start">
-          <div className="flex-1 min-w-0">
-            <div className="bg-card border rounded-lg p-6 space-y-6">
+        <div className="text-sm text-muted-foreground my-4">Step {step} of {totalSteps}</div>
+
+        <BenchLayout
+          toolType="admt"
+          railEntry={activeRailEntry}
+          defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf"
+          corpusBlock={
+            activeRailEntry?.enforcementNote ? (
+              <p className="text-body-small text-ink-soft leading-relaxed">
+                {activeRailEntry.enforcementNote}
+              </p>
+            ) : undefined
+          }
+          coachingOpenByDefault={
+            !!activeRailKey &&
+            refine.infoNeededKeys.some(
+              (k) => activeRailKey === k || activeRailKey.includes(k) || k.includes(activeRailKey),
+            )
+          }
+        >
+          <div className="space-y-6">
 
               {step === 1 && (
                 <>
