@@ -36,8 +36,10 @@ function renderLockedValue(v: unknown): string {
 
 export default function RefinePanel({
   toolType, assessmentId, intake, lockedFields, editable,
-  runsUsed, runsAllowed, runsRemaining, resultPath,
+  runsUsed, runsAllowed, runsRemaining, resultPath, infoNeededKeys,
 }: Props) {
+  const infoSet = new Set(infoNeededKeys ?? []);
+
   const nav = useNavigate();
   const { toast } = useToast();
   const { regenerate, busy } = useRegenerate();
