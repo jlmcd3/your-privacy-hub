@@ -40,28 +40,53 @@ export default function RefinePanel({
   const { toast } = useToast();
   const { regenerate, busy } = useRegenerate();
 
+  // Store form values as strings (arrays/objects are JSON-serialized for edit).
   const initial = useMemo(() => {
-    const o: Record<string, unknown> = {};
-    for (const f of editable) if (f.key in intake) o[f.key] = intake[f.key];
+    const o: Record<string, string> = {};
+    for (const f of editable) {
+      if (!(f.key in intake)) { o[f.key] = ""; continue; }
+      const v = intake[f.key];
+      if (v == null) o[f.key] = "";
+      else if (typeof v === "string") o[f.key] = v;
+      else if (typeof v === "number" || typeof v === "boolean") o[f.key] = String(v);
+      else o[f.key] = JSON.stringify(v, null, 2);
+    }
     return o;
   }, [editable, intake]);
-  const [values, setValues] = useState<Record<string, unknown>>(initial);
+  const [values, setValues] = useState<Record<string, string>>(initial);
 
   const lockedKeys = Object.keys(lockedFields ?? {});
   const exhausted = runsRemaining <= 0;
 
   async function onRegenerate() {
-    // Strip any locked keys defensively (should never be present in editable).
+    // Strip any locked keys defensively; coerce values back to their original
+    // JSON shape when the seed value was an array/object.
     const cleanEdits: Record<string, unknown> = {};
     for (const f of editable) {
       if (lockedKeys.includes(f.key)) continue;
-      if (f.key in values) cleanEdits[f.key] = values[f.key];
+      const raw = values[f.key] ?? "";
+      const seed = intake[f.key];
+      if (Array.isArray(seed) || (seed && typeof seed === "object")) {
+        try { cleanEdits[f.key] = raw.trim() ? JSON.parse(raw) : seed; }
+        catch {
+          toast({ title: "Invalid JSON", description: `Field "${f.label}" must be valid JSON.`, variant: "destructive" });
+          return;
+        }
+      } else if (typeof seed === "number") {
+        const n = Number(raw);
+        cleanEdits[f.key] = Number.isFinite(n) ? n : seed;
+      } else if (typeof seed === "boolean") {
+        cleanEdits[f.key] = raw === "true";
+      } else {
+        cleanEdits[f.key] = raw;
+      }
     }
     const outcome = await regenerate({
       toolType, assessmentId,
       editedFields: cleanEdits,
       priorRunsUsed: runsUsed,
     });
+
     if (outcome.kind === "accepted") {
       toast({ title: "Regenerating your report", description: "This can take a minute." });
       nav(resultPath.replace(":id", assessmentId));
