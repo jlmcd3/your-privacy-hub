@@ -491,6 +491,7 @@ async function startRun(runBy: string | null, requestedProducts: string[] | unde
 }
 
 Deno.serve(async (req) => {
+  console.log("[ql2-orchestrator] build 2026-07-02-guard-v2");
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
 
