@@ -14,6 +14,8 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
+import InformationNeededBlock from "@/components/InformationNeededBlock";
+
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
@@ -186,14 +188,20 @@ const DPIAFrameworkResult = () => {
         <ReportShell title={titleText} meta={metaBits.length ? metaBits.join(" · ") : undefined} actions={actions} topDisclaimer={report.framework_disclaimer ?? report.disclaimer}>
           {(() => {
             const { meter } = useRunMeter("dpia_framework", id);
+            const infoNeeded = (report as any)?.information_needed;
             return meter ? (
-              <RunMeterBar
-                meter={meter}
-                refineHref={`/dpia-framework?refine=${id}`}
-                onExtend={() => startMeterExtension("dpia_framework", id!)}
-              />
+              <>
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/dpia-framework?refine=${id}`}
+                  onExtend={() => startMeterExtension("dpia_framework", id!)}
+                  infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+                />
+                <InformationNeededBlock items={infoNeeded} />
+              </>
             ) : null;
           })()}
+
           <div dir={dir} style={{ display: "contents" }}>
           {status === "complete" && orgName && (
             <p className="text-sm text-muted-foreground mb-2">

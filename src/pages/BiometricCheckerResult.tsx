@@ -15,6 +15,8 @@ import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
+import InformationNeededBlock from "@/components/InformationNeededBlock";
+
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
@@ -135,14 +137,20 @@ export default function BiometricCheckerResult() {
           >
             {(() => {
               const { meter } = useRunMeter("biometric_checker", row.id);
+              const infoNeeded = (report as any)?.information_needed;
               return meter ? (
-                <RunMeterBar
-                  meter={meter}
-                  refineHref={`/biometric-checker?refine=${row.id}`}
-                  onExtend={() => startMeterExtension("biometric_checker", row.id)}
-                />
+                <>
+                  <RunMeterBar
+                    meter={meter}
+                    refineHref={`/biometric-checker?refine=${row.id}`}
+                    onExtend={() => startMeterExtension("biometric_checker", row.id)}
+                    infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+                  />
+                  <InformationNeededBlock items={infoNeeded} />
+                </>
               ) : null;
             })()}
+
             <div dir={dir} style={{ display: "contents" }}>
             {(orgName || orgType) && (
               <div className="mb-6 px-4 py-3 bg-slate-50 border border-border rounded-lg text-sm text-foreground">

@@ -16,6 +16,8 @@ import RiskAssessmentReportV4, { isV4Report } from "@/components/cppa/RiskAssess
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
 import RunMeterBar from "@/components/RunMeterBar";
+import InformationNeededBlock from "@/components/InformationNeededBlock";
+
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 
@@ -258,14 +260,20 @@ export default function CPPARiskAssessmentResult() {
 
             {(() => {
               const { meter } = useRunMeter("cppa_risk_assessment", id);
+              const infoNeeded = (report as any)?.information_needed;
               return meter ? (
-                <RunMeterBar
-                  meter={meter}
-                  refineHref={`/cppa-risk-assessment?refine=${id}`}
-                  onExtend={() => startMeterExtension("cppa_risk_assessment", id!)}
-                />
+                <>
+                  <RunMeterBar
+                    meter={meter}
+                    refineHref={`/cppa-risk-assessment?refine=${id}`}
+                    onExtend={() => startMeterExtension("cppa_risk_assessment", id!)}
+                    infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+                  />
+                  <InformationNeededBlock items={infoNeeded} />
+                </>
               ) : null;
             })()}
+
             {isV3 && <RiskAssessmentReportV3 report={report as any} />}
             {isV4 && <RiskAssessmentReportV4 report={report as any} />}
 

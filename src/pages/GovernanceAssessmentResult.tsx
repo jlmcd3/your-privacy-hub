@@ -9,6 +9,8 @@ import EnforcementPrecedents from "@/components/EnforcementPrecedents";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
+import InformationNeededBlock from "@/components/InformationNeededBlock";
+
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
@@ -158,14 +160,20 @@ const GovernanceAssessmentResult = () => {
         >
           {(() => {
             const { meter } = useRunMeter("governance_assessment", id);
+            const infoNeeded = (report as any)?.information_needed;
             return meter ? (
-              <RunMeterBar
-                meter={meter}
-                refineHref={`/governance-assessment?refine=${id}`}
-                onExtend={() => startMeterExtension("governance_assessment", id!)}
-              />
+              <>
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/governance-assessment?refine=${id}`}
+                  onExtend={() => startMeterExtension("governance_assessment", id!)}
+                  infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+                />
+                <InformationNeededBlock items={infoNeeded} />
+              </>
             ) : null;
           })()}
+
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 

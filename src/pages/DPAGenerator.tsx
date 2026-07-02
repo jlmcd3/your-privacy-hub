@@ -148,6 +148,7 @@ export default function DPAGenerator() {
             runsAllowed={refine.runsAllowed}
             runsRemaining={refine.runsRemaining}
             resultPath={`/dpa-generator/result/${refine.assessmentId}`}
+            infoNeededKeys={refine.infoNeededKeys}
           />
         ) : phase === "sample" && (() => {
           const sectionNames = ["Controller & Processor", "Services & Data", "Processing Specifics", "Review & Generate"];

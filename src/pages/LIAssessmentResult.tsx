@@ -12,6 +12,8 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import PDFDownloadButton from "@/components/PDFDownloadButton";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
+import InformationNeededBlock from "@/components/InformationNeededBlock";
+
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
@@ -212,14 +214,20 @@ const LIAssessmentResult = () => {
         >
           {(() => {
             const { meter } = useRunMeter("li_assessment", id);
+            const infoNeeded = (report as any)?.information_needed;
             return meter ? (
-              <RunMeterBar
-                meter={meter}
-                refineHref={`/li-assessment?refine=${id}`}
-                onExtend={() => startMeterExtension("li_assessment", id!)}
-              />
+              <>
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/li-assessment?refine=${id}`}
+                  onExtend={() => startMeterExtension("li_assessment", id!)}
+                  infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+                />
+                <InformationNeededBlock items={infoNeeded} />
+              </>
             ) : null;
           })()}
+
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 

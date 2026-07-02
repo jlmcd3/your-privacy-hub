@@ -23,7 +23,9 @@ interface Props {
   runsAllowed: number;
   runsRemaining: number;
   resultPath: string; // where to navigate after acceptance, e.g. "/li-assessment-result/:id"
+  infoNeededKeys?: string[]; // fields the report named as needed for a fuller determination
 }
+
 
 function renderLockedValue(v: unknown): string {
   if (v == null) return "—";
@@ -34,8 +36,10 @@ function renderLockedValue(v: unknown): string {
 
 export default function RefinePanel({
   toolType, assessmentId, intake, lockedFields, editable,
-  runsUsed, runsAllowed, runsRemaining, resultPath,
+  runsUsed, runsAllowed, runsRemaining, resultPath, infoNeededKeys,
 }: Props) {
+  const infoSet = new Set(infoNeededKeys ?? []);
+
   const nav = useNavigate();
   const { toast } = useToast();
   const { regenerate, busy } = useRegenerate();
@@ -146,9 +150,15 @@ export default function RefinePanel({
         <div className="space-y-5">
           {editable.map((f) => (
             <div key={f.key}>
-              <label htmlFor={`ref-${f.key}`} className="text-sm font-semibold text-brand-navy">
+              <label htmlFor={`ref-${f.key}`} className="text-sm font-semibold text-brand-navy inline-flex items-center gap-2">
                 {f.label}
+                {infoSet.has(f.key) && (
+                  <span className="text-body-tiny font-semibold text-teal-action bg-teal-wash rounded px-1.5 py-0.5">
+                    named in your report
+                  </span>
+                )}
               </label>
+
               {f.kind === "textarea" ? (
                 <textarea
                   id={`ref-${f.key}`}

@@ -14,6 +14,8 @@ import { Loader2 } from "lucide-react";
 import AssessmentReport from "@/components/AssessmentReport";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
+import InformationNeededBlock from "@/components/InformationNeededBlock";
+
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
@@ -108,14 +110,20 @@ export default function IRPlaybookResult() {
           >
             {(() => {
               const { meter } = useRunMeter("ir_playbook", id!);
+              const infoNeeded = (row?.report_data as any)?.information_needed;
               return meter ? (
-                <RunMeterBar
-                  meter={meter}
-                  refineHref={`/ir-playbook?refine=${id}`}
-                  onExtend={() => startMeterExtension("ir_playbook", id!)}
-                />
+                <>
+                  <RunMeterBar
+                    meter={meter}
+                    refineHref={`/ir-playbook?refine=${id}`}
+                    onExtend={() => startMeterExtension("ir_playbook", id!)}
+                    infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+                  />
+                  <InformationNeededBlock items={infoNeeded} />
+                </>
               ) : null;
             })()}
+
             <div dir={dir} style={{ display: "contents" }}>
             <AssessmentReport text={(translated?.playbook_text ?? row.playbook_text) || ""} sectionChipLabel={null} />
             <EnforcementPrecedents
