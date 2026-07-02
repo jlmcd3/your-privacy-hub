@@ -137,7 +137,19 @@ export default function DPAGenerator() {
       <main className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <ActiveClientLabel />
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpa-generator" />
-        {phase === "sample" && (() => {
+        {refine.isRefine && refine.intake && !refine.loading ? (
+          <RefinePanel
+            toolType="dpa_generator"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/dpa-generator/result/${refine.assessmentId}`}
+          />
+        ) : phase === "sample" && (() => {
           const sectionNames = ["Controller & Processor", "Services & Data", "Processing Specifics", "Review & Generate"];
           let currentStep = 1;
           if (form.controllerName.trim() && form.processorName.trim()) currentStep = 2;
