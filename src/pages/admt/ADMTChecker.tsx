@@ -93,6 +93,23 @@ function formatRelativeTime(d: Date) {
 // The legacy `name` prop is accepted and ignored.
 const Radio = ChoiceRadio;
 
+// Serif-styled field label (Prompt 4.1c). Tiny sub-labels pass their own
+// `text-[12px]` etc., which override the base via cn's later-wins merge.
+const Label = ({ className, ...props }: React.ComponentProps<typeof UILabel>) => (
+  <UILabel
+    className={cn("font-serif-text font-semibold text-[16.5px] text-brand-navy", className)}
+    {...props}
+  />
+);
+
+const STEP_TITLES: Record<number, string> = {
+  1: "Does the ADMT law apply to you?",
+  2: "Do people get the right heads-up?",
+  3: "Can people say no?",
+  4: "Can people see how it worked?",
+  5: "Review your answers",
+};
+
 const Pills = ({
   options, value, onChange, onFocus,
 }: {
