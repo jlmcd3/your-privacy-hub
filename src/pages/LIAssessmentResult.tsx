@@ -212,14 +212,20 @@ const LIAssessmentResult = () => {
         >
           {(() => {
             const { meter } = useRunMeter("li_assessment", id);
+            const infoNeeded = (report as any)?.information_needed;
             return meter ? (
-              <RunMeterBar
-                meter={meter}
-                refineHref={`/li-assessment?refine=${id}`}
-                onExtend={() => startMeterExtension("li_assessment", id!)}
-              />
+              <>
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/li-assessment?refine=${id}`}
+                  onExtend={() => startMeterExtension("li_assessment", id!)}
+                  infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+                />
+                <InformationNeededBlock items={infoNeeded} />
+              </>
             ) : null;
           })()}
+
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 
