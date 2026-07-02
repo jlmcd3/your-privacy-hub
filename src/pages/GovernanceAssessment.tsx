@@ -415,8 +415,24 @@ const GovernanceAssessment = () => {
 
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
-        <div className="flex gap-6 items-start">
-        <div className="flex-1 min-w-0 bg-card border rounded-lg p-6 space-y-6" onFocus={handleGovRailFocus}>
+        <IntakeMasthead
+          kicker="GDPR Governance Assessment · Art. 5(2) accountability"
+          title="GDPR Governance Assessment"
+          subjectLabel={meter ? "Assessment subject · locked" : undefined}
+          subjectValue={
+            meter && typeof meter.lockedFields?.organization_name === "string"
+              ? (meter.lockedFields!.organization_name as string)
+              : undefined
+          }
+          meter={meter ?? null}
+          preRunHint="The organisation name you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+        />
+        <BenchLayout
+          toolType="governance"
+          railEntry={govRailEntry}
+          defaultSourceUrl="https://eur-lex.europa.eu/eli/reg/2016/679/oj"
+        >
+        <div className="flex-1 min-w-0 space-y-6" onFocus={handleGovRailFocus}>
           <RequiredLegend />
           {step === 1 && (
             <>
