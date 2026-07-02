@@ -844,8 +844,21 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       enforcement_meta: enforcementMeta,
       gdpr_meta: gdprMeta,
       annotations: parsedAnnotations,
+      information_needed: Array.isArray((parsed as any)?.information_needed)
+        ? (parsed as any).information_needed
+        : [],
       generated_at: new Date().toISOString(),
     };
+
+    try {
+      const guarded = guardInformationNeeded(
+        { ...report_data, document_text: dpa_text } as Record<string, unknown>,
+        (body as unknown) as Record<string, unknown>,
+      );
+      (report_data as any).information_needed = (guarded as any).information_needed ?? report_data.information_needed;
+    } catch (e) {
+      console.warn("[generate-dpa] insufficient-info guard error:", e);
+    }
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
