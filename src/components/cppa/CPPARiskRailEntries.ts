@@ -134,6 +134,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     plainSummary: "ADMT means technology that processes PI and uses computation to replace or substantially replace human decision-making. It includes AI, ML, and profiling. It does NOT include infrastructure (firewalls, databases, spreadsheets) that doesn't replace human decisions. ADMT use triggers a mandatory risk assessment under §§ 7150(b)(3) and 7150(b)(6).",
     regulationText: "\"Automated decisionmaking technology\" or \"ADMT\" means any technology that processes personal information and uses computation to replace human decisionmaking or substantially replace human decisionmaking. (1) For purposes of this definition, to \"substantially replace human decisionmaking\" means a business uses the technology's output to make a decision without human involvement.",
     enforcementNote: "The CPPA has indicated it will look at whether a human reviewer genuinely has authority to change a decision, not just review it. A 'human in the loop' who cannot override the system's output does not satisfy the human involvement standard.",
+    coachLead: "If ADMT is in play, describe the system, not the vendor.",
+    coachBody: "The description that matters is what the technology does with whose data and which decision it touches — name the decision domain, the inputs, and where the output lands.",
+    goodAnswer: "\u201CA scoring model ranks rental applicants using credit and tenancy history; scores gate which applications an agent reviews.\u201D — the decision, the inputs, and the output's role.",
+    commonMistake: "Answering with a product name. \u2018We use VendorX\u2019 says who sold it; § 7001(e) turns on what it does to the decision.",
     relatedCitations: [
       { citation: "11 CCR § 7001(ddd)", label: "Significant decision definition" },
       { citation: "11 CCR § 7150(b)(3)", label: "Risk assessment trigger — ADMT" },
@@ -165,6 +169,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "The assessment must state how long each category of personal information will be retained, or the criteria used to determine the retention period. You must state a specific period or a specific determinable criterion — 'as long as necessary' is not sufficient.",
     regulationText: "The length of time the business intends to retain each category of personal information, or if that is not possible, the criteria used to determine that period.",
+    coachLead: "Give a number, a trigger, and what happens at the end.",
+    coachBody: "State the retention period per category as a defined duration or a computable criterion, the event that starts the clock, and the deletion or de-identification step at period end. § 7152(a)(3)(B) looks for the plan, not an intention.",
+    goodAnswer: "\u201CApplication records: 24 months from decision date, then automated deletion; access logs: 12 months rolling.\u201D — a duration, a start event, and an end-state for each category.",
+    commonMistake: "\u201CAs long as necessary\u201D restates the legal standard instead of applying it. A criterion must let a reader compute the date for a specific record.",
     relatedCitations: [
       { citation: "Cal. Civ. Code § 1798.100(a)(5)", label: "Retention disclosure requirement" },
     ],
@@ -177,6 +185,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     plainSummary: "When the processing involves ADMT for significant decisions, the risk assessment must describe: the logic of the ADMT system, the training data sources, fairness/bias testing, and the human review process. All four elements are required.",
     regulationText: "If the processing involves automated decisionmaking technology for a significant decision concerning a consumer: (i) A description of the logic involved in the automated decision and the training data used; (ii) An explanation of how the business tests for and corrects bias; (iii) A description of the human review process for outputs of the technology.",
     fscrContext: "The CPPA retained the detailed ADMT disclosure requirements over industry objections that they were too prescriptive and could expose trade secrets. The FSOR notes that § 7220 already provides trade secret protections, and that without specificity, the risk assessment cannot demonstrate proportionality or bias mitigation.",
+    coachLead: "Cover all four: the logic, the training data, the human's role, the testing.",
+    coachBody: "Describe what the system computes and from which inputs, where its training data came from, what a human can actually change before the decision takes effect, and any validity or fairness testing with its cadence.",
+    goodAnswer: "\u201CA gradient-boosted scorer trained on three years of outcome data; a reviewer can override any score before the decision issues; disparate-impact testing runs quarterly.\u201D — mechanism, data lineage, real human authority, and a test cadence.",
+    commonMistake: "Describing human review as \u2018a person sees the output.\u2019 § 7152(a)(3)(G) turns on whether the human can change the outcome, not whether they observe it.",
     relatedCitations: [
       { citation: "11 CCR § 7001(e)(1)", label: "Human involvement definition" },
       { citation: "11 CCR § 7156(b)", label: "Cross-referencing existing DPIA" },
@@ -190,6 +202,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     plainSummary: "A prior GDPR DPIA or other PIA can be cross-referenced in the CPPA risk assessment. It does not substitute — the CPPA requires § 7152(a)(1)–(9) elements whether or not a prior assessment exists. However, cross-referencing reduces duplication and speeds completion.",
     regulationText: "A business may satisfy the requirements of section 7152 by cross-referencing an existing risk assessment… provided that any such existing risk assessment addresses the requirements of this Article and the business identifies the portions of that risk assessment addressing each of the requirements of section 7152.",
     fscrContext: "Commenters argued that an existing GDPR DPIA should substitute entirely for the CPPA risk assessment. The Agency rejected full substitution but confirmed in the FSOR that cross-referencing is permitted under § 7156(b) where the prior assessment covers the required elements, reducing the compliance burden without compromising the assessment's integrity.",
+    coachLead: "Name the assessment, its date, and what it covered.",
+    coachBody: "If a GDPR DPIA or other risk assessment exists for this processing, identify it by title and date and state the scope it examined and where that scope ends; § 7156(b) lets a conforming existing assessment carry part of this work.",
+    goodAnswer: "\u201CDPIA \u2018Applicant scoring v2\u2019, completed November 2025, covering the EU hiring flow; the US expansion is out of its scope.\u201D — the record, its date, its coverage, and its edges.",
+    commonMistake: "Citing a privacy policy or a vendor certification as a prior assessment. § 7156(b) concerns your documented risk assessment of this processing.",
   },
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -333,6 +349,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "The operational elements of the processing must identify the sources of the personal information — for example collected directly from the consumer, passively observed, generated or inferred by the business, or obtained from third parties such as data brokers, advertising partners, or affiliates.",
     regulationText: "The operational elements of the processing, including… the sources of the personal information and the business's planned method for collecting, using, disclosing, retaining, or otherwise processing the personal information.",
+    coachLead: "Name each source and how the data arrives.",
+    coachBody: "For every category, say where it comes from — the consumer directly, a named class of third party, a public source, or your own systems — and the mechanism (form, SDK, purchase, inference).",
+    goodAnswer: "\u201CContact data from the signup form; device signals from our mobile SDK; prior-tenancy records purchased from a screening bureau.\u201D — each source named with its channel.",
+    commonMistake: "Listing the categories again instead of their origins. § 7152(a)(3) asks where the information comes from, not what it is.",
     relatedCitations: [
       { citation: "11 CCR § 7152(a)(3)(E)", label: "Disclosures to consumers" },
       { citation: "11 CCR § 7152(a)(3)(F)", label: "Recipients of the PI" },
@@ -357,6 +377,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "The assessment must identify the benefits of the processing to the business, the consumer, other stakeholders, and the public, as applicable. Benefits must be described specifically — generic descriptions are not permitted — and are weighed against the negative impacts to reach the risk/benefit determination.",
     regulationText: "The benefits resulting from the processing to the business, the consumer, other stakeholders, and the public, as applicable. A business shall not describe the benefits in generic terms.",
+    coachLead: "Separate who gains what — the business, the consumer, others.",
+    coachBody: "§ 7152(a)(4) weighs benefits by beneficiary. State each group's concrete gain separately, with the mechanism that produces it; a merged everyone-wins paragraph weighs nothing.",
+    goodAnswer: "\u201CBusiness: fewer fraudulent signups reach onboarding; consumers: legitimate applications clear same-day; other users: fewer scam listings surface.\u201D — one concrete gain per beneficiary, each with its mechanism.",
+    commonMistake: "Restating the purpose as the benefit. The purpose says what the processing does; this section says what good comes of it, and for whom.",
     relatedCitations: [
       { citation: "11 CCR § 7152(a)(5)", label: "Negative impacts" },
       { citation: "11 CCR § 7154", label: "Goal of a risk assessment" },
@@ -369,6 +393,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "The assessment must identify the safeguards the business plans to implement to address the negative impacts of the processing. The regulations give examples including encryption, access controls, network monitoring, privacy-enhancing technologies, de-identification, and policies and training.",
     regulationText: "The safeguards that the business plans to implement to address the negative impacts… Examples of safeguards include, but are not limited to, encryption; the segmentation of personal information; access controls; privacy-enhancing technologies; and policies, procedures, and training.",
+    coachLead: "Name each safeguard and the specific harm it blunts.",
+    coachBody: "List the concrete measures — technical, organisational, contractual — and pair each with the negative impact it addresses. An unpaired safeguard list reads as boilerplate and maps to nothing.",
+    goodAnswer: "\u201CScores expire after 90 days (limits stale-data decisions); a reviewer confirms every adverse outcome (catches model error); access is limited to three named analysts (limits exposure).\u201D — each control tied to the harm it reduces.",
+    commonMistake: "Citing company-level certifications as safeguards for this processing. The section asks what protects these consumers from these impacts, not how the company is audited.",
     relatedCitations: [
       { citation: "11 CCR § 7152(a)(5)", label: "Negative impacts addressed" },
       { citation: "11 CCR § 7123", label: "Cybersecurity audit safeguards" },
@@ -381,6 +409,10 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "The assessment must identify the negative impacts to consumers' privacy associated with the processing, including the sources and causes of those impacts. The regulations enumerate examples: unauthorised access, destruction, use, modification or disclosure; loss of availability; unlawful discrimination; impairment of control; coercion or dark patterns; and economic, physical, reputational, and psychological harms.",
     regulationText: "The negative impacts to consumers' privacy associated with the processing, including the sources and causes of the negative impacts. Negative impacts include, but are not limited to: unauthorized access, destruction, use, modification, or disclosure of personal information; unlawful discrimination; impairment of consumers' control over their personal information; economic, physical, psychological, or reputational harms; and coercion or the use of dark patterns.",
+    coachLead: "Trace each negative impact to its source in the processing.",
+    coachBody: "For every harm identified, state what in the processing could produce it — the data, the operation, or the failure mode — so the safeguard mapping has something to attach to.",
+    goodAnswer: "\u201CWrongful denial from stale bureau data; exposure of address history if the screening vendor is breached.\u201D — each harm with the mechanism that would cause it.",
+    commonMistake: "Listing harm categories without causes. The § 7152(a)(5) analysis runs cause → impact → safeguard; a bare category breaks the chain.",
     relatedCitations: [
       { citation: "11 CCR § 7152(a)(4)", label: "Benefits weighed against impacts" },
       { citation: "11 CCR § 7002", label: "Dark patterns / restrictions on use" },

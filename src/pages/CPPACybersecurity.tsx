@@ -26,6 +26,9 @@ import ToolTierNote from "@/components/tools/ToolTierNote";
 import CPPAToolsCrossLinks from "@/components/cppa/CPPAToolsCrossLinks";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import StatuteRail from "@/components/intake/StatuteRail";
+import IntakeMasthead from "@/components/intake/IntakeMasthead";
+import BenchLayout from "@/components/intake/BenchLayout";
+import { useRunMeter } from "@/hooks/useRunMeter";
 import { CPPA_CYBER_RAIL } from "@/components/cppa/CPPACyberRailEntries";
 import type { RailEntry } from "@/components/intake/StatuteRail";
 import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
@@ -83,6 +86,7 @@ export default function CPPACybersecurity() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const refine = useRefineMode("cppa_cybersecurity");
+  const { meter } = useRunMeter("cppa_cybersecurity", refine.assessmentId);
   const [maturity, setMaturity] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [profile, setProfile] = useState({ entity_name: "", industry: "", incidents_12mo: "", framework: "", last_audit: "" });
@@ -166,7 +170,7 @@ export default function CPPACybersecurity() {
         </div>
 
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6 bg-paper">
         <IntakeGuidance>For each control, note the specific tools in place, the scope they cover, and any exceptions — separately and concretely. A control marked "in place" with a vague note produces a weaker gap analysis than one described precisely.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7123(c). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
@@ -191,7 +195,23 @@ export default function CPPACybersecurity() {
         {!refine.isRefine && (<></>)}
         {!refine.isRefine && (<>
 
-        <div className="flex gap-6 items-start">
+        <IntakeMasthead
+          kicker="CPPA Cybersecurity Audit Readiness · 11 CCR § 7123"
+          title="Cybersecurity Programme Assessment"
+          subjectLabel={meter ? "Assessment subject · locked" : undefined}
+          subjectValue={
+            meter && typeof meter.lockedFields?.entity_name === "string"
+              ? (meter.lockedFields!.entity_name as string)
+              : undefined
+          }
+          meter={meter ?? null}
+          preRunHint="The entity name you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+        />
+        <BenchLayout
+          toolType="cppa_cyber"
+          railEntry={activeCyberRailEntry}
+          defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf"
+        >
         <div className="flex-1 min-w-0 space-y-6">
         <section className="bg-card border rounded-lg p-6 space-y-4">
           <h2 className="">Organisation Profile</h2>
@@ -284,8 +304,7 @@ export default function CPPACybersecurity() {
           )}
         </div>
         </div>
-        <StatuteRail entry={activeCyberRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
-        </div>
+        </BenchLayout>
 
         <p className="text-xs text-muted-foreground italic">
           This is a compliance framework tool mapped to CPPA cybersecurity audit regulations. It does not constitute legal or security advice. Output should be reviewed with qualified counsel and your security team.

@@ -43,7 +43,8 @@ export default function BenchLayout({
 }) {
   const policy = INTAKE_POLICY[toolType as string];
   const showRail = policy?.rail === true;
-  const showCoach = policy?.goodAnswer === true;
+  const entryHasCoaching = !!(railEntry?.coachLead || railEntry?.goodAnswer);
+  const showCoach = policy?.goodAnswer === true && entryHasCoaching;
   return (
     <div
       className="rounded-b-2xl border border-t-0 border-rule bg-card xl:grid"

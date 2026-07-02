@@ -25,6 +25,9 @@ import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
+import IntakeMasthead from "@/components/intake/IntakeMasthead";
+import BenchLayout from "@/components/intake/BenchLayout";
+import { useRunMeter } from "@/hooks/useRunMeter";
 import { BIOMETRIC_RAIL } from "@/components/biometric/BiometricRailEntries";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
@@ -45,6 +48,7 @@ export default function BiometricChecker() {
   const pricing = useToolPrice("biometric_checker");
   const { clientId } = useActiveClient();
   const refine = useRefineMode("biometric_checker");
+  const { meter } = useRunMeter("biometric_checker", refine.assessmentId);
   const [form, setForm] = useState({
     biometricTypes: [] as string[], orgType: ORG[0], orgName: "", purpose: PURPOSE[0],
     jurisdictions: [] as string[], enrolledCount: COUNTS[1],
@@ -113,7 +117,7 @@ export default function BiometricChecker() {
         : `Analyse — $${pricing.price}`;
 
   return (
-    <WorkspaceLayout>
+    <WorkspaceLayout className="bg-paper">
       <Helmet><title>Biometric Privacy Compliance Assessment | End User Privacy</title>
         <meta name="description" content="Per-jurisdiction biometric privacy compliance covering BIPA, CUBI, MHMD, GDPR Article 9 and other regimes — with cited enforcement decisions behind every priority action." /></Helmet>      <header className="bg-[#2d7a8a] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -167,8 +171,24 @@ export default function BiometricChecker() {
             <p className="text-sm font-semibold text-brand-navy">Analysing biometric obligations across {form.jurisdictions.join(", ")}…</p>
           </div>
         ) : (
-          <div className="flex gap-6 items-start">
-          <div className="flex-1 min-w-0 bg-card border border-border rounded-2xl p-6 space-y-5">
+          <>
+          <IntakeMasthead
+            kicker="Biometric Privacy · BIPA · CUBI · MHMD · GDPR Art. 9"
+            title="Biometric Privacy Compliance Assessment"
+            subjectLabel={meter ? "Assessment subject · locked" : undefined}
+            subjectValue={
+              meter && typeof meter.lockedFields?.orgName === "string"
+                ? (meter.lockedFields!.orgName as string)
+                : undefined
+            }
+            meter={meter ?? null}
+            preRunHint="The entity name you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+          />
+          <BenchLayout
+            toolType="biometric"
+            railEntry={bioRailEntry}
+          >
+          <div className="flex-1 min-w-0 space-y-5">
             <RequiredLegend />
             <div onFocus={() => focusBioRail("orgName")}>
               <label className="text-sm font-semibold text-brand-navy">Entity name<Req /> <span className="text-xs text-muted-foreground">(legal organisation name; printed on the report header)</span></label>
@@ -237,8 +257,8 @@ export default function BiometricChecker() {
               </div>
             </div>
           </div>
-          <StatuteRail entry={bioRailEntry} />
-          </div>
+          </BenchLayout>
+          </>
         )}
       </main>
       <AuthGateModal

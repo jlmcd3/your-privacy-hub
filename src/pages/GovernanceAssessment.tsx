@@ -16,6 +16,9 @@ import { useToolPrice } from "@/hooks/useToolPrice";
 import AuthGateModal from "@/components/AuthGateModal";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import StatuteRail from "@/components/intake/StatuteRail";
+import IntakeMasthead from "@/components/intake/IntakeMasthead";
+import BenchLayout from "@/components/intake/BenchLayout";
+import { useRunMeter } from "@/hooks/useRunMeter";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
@@ -73,6 +76,7 @@ const GovernanceAssessment = () => {
   const { clientId } = useActiveClient();
 
   const refine = useRefineMode("governance_assessment");
+  const { meter } = useRunMeter("governance_assessment", refine.assessmentId);
   const [step, setStep] = useState(1);
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
   const [purchasing, setPurchasing] = useState(false);
@@ -360,7 +364,7 @@ const GovernanceAssessment = () => {
 
 
   return (
-    <WorkspaceLayout className="bg-background">
+    <WorkspaceLayout className="bg-paper">
       <Helmet><title>GDPR Governance Assessment | End User Privacy</title>
         <meta name="description" content="Score your privacy programme against the GDPR framework — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>
       {refine.isRefine && refine.intake && !refine.loading ? (
@@ -411,8 +415,24 @@ const GovernanceAssessment = () => {
 
         <div className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
 
-        <div className="flex gap-6 items-start">
-        <div className="flex-1 min-w-0 bg-card border rounded-lg p-6 space-y-6" onFocus={handleGovRailFocus}>
+        <IntakeMasthead
+          kicker="GDPR Governance Assessment · Art. 5(2) accountability"
+          title="GDPR Governance Assessment"
+          subjectLabel={meter ? "Assessment subject · locked" : undefined}
+          subjectValue={
+            meter && typeof meter.lockedFields?.organization_name === "string"
+              ? (meter.lockedFields!.organization_name as string)
+              : undefined
+          }
+          meter={meter ?? null}
+          preRunHint="The organisation name you set below is fixed once you first generate — everything else stays editable across your included revision runs."
+        />
+        <BenchLayout
+          toolType="governance"
+          railEntry={govRailEntry}
+          defaultSourceUrl="https://eur-lex.europa.eu/eli/reg/2016/679/oj"
+        >
+        <div className="flex-1 min-w-0 space-y-6" onFocus={handleGovRailFocus}>
           <RequiredLegend />
           {step === 1 && (
             <>
@@ -633,8 +653,7 @@ const GovernanceAssessment = () => {
             )}
           </div>
         </div>
-        <StatuteRail entry={govRailEntry} />
-        </div>
+        </BenchLayout>
 
 
 

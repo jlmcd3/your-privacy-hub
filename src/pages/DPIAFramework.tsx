@@ -27,6 +27,9 @@ import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import StatuteRail from "@/components/intake/StatuteRail";
+import IntakeMasthead from "@/components/intake/IntakeMasthead";
+import BenchLayout from "@/components/intake/BenchLayout";
+import { useRunMeter } from "@/hooks/useRunMeter";
 import { useGdprRailEntry } from "@/hooks/useGdprRailEntry";
 import { EDPB_DPIA_GUIDANCE, EDPB_DPIA_SOURCE } from "@/components/dpia/EdpbDpiaGuidance";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
@@ -89,6 +92,7 @@ const DPIAFramework = () => {
   const pricing = useToolPrice("dpia_framework");
 
   const refine = useRefineMode("dpia_framework");
+  const { meter } = useRunMeter("dpia_framework", refine.assessmentId);
 
   const [organizationName, setOrganizationName] = useState("");
   const [name, setName] = useState("");
@@ -418,6 +422,7 @@ const DPIAFramework = () => {
         </div>
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6 bg-paper">
         <ActiveClientLabel />
         <div className="p-4 bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] border-l-4 border-brand-teal rounded text-sm">
           This tool produces an Impact Assessment document — a structured starting point for your organisation's Data Protection Officer or legal counsel to complete and own. It is not a finished Data Protection Impact Assessment (DPIA) and does not satisfy the requirements of GDPR Article 35 on its own. Qualified legal review is required before relying on this document.
@@ -429,8 +434,35 @@ const DPIAFramework = () => {
           </div>
         )}
 
-        <div className="flex gap-6 items-start">
-        <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="flex-1 min-w-0 bg-card border rounded-lg p-6 space-y-6">
+        <IntakeMasthead
+          kicker="Data Protection Impact Assessment · GDPR Art. 35"
+          title="Impact Assessment Builder"
+          subjectLabel={meter ? "Assessment subject · locked" : undefined}
+          subjectValue={
+            meter
+              ? (typeof meter.lockedFields?.name === "string"
+                  ? (meter.lockedFields!.name as string)
+                  : (typeof meter.lockedFields?.organization_name === "string"
+                      ? (meter.lockedFields!.organization_name as string)
+                      : undefined))
+              : undefined
+          }
+          meter={meter ?? null}
+          preRunHint="The processing activity you name below is fixed once you first generate — everything else stays editable across your included revision runs."
+        />
+
+        <BenchLayout
+          toolType="dpia"
+          railEntry={templateRailEntry ?? dpiaRailEntry}
+          defaultSourceUrl="https://eur-lex.europa.eu/eli/reg/2016/679/oj"
+          coachingOpenByDefault={
+            !!activeRailField &&
+            refine.infoNeededKeys.some(
+              (k) => activeRailField === k || (activeRailField ?? "").includes(k) || k.includes(activeRailField ?? ""),
+            )
+          }
+        >
+        <form onSubmit={(e) => { e.preventDefault(); handlePurchase(); }} className="flex-1 min-w-0 space-y-6">
           <RequiredLegend />
 
 
@@ -711,8 +743,7 @@ const DPIAFramework = () => {
             </div>
           </details>
         </form>
-        <StatuteRail entry={templateRailEntry ?? dpiaRailEntry} />
-        </div>
+        </BenchLayout>
 
 
         <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/dpia-framework" />
