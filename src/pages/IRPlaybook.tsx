@@ -153,7 +153,19 @@ export default function IRPlaybook() {
           <ToolTierNote />
         </div>
 
-        {phase === "result" ? (
+        {refine.isRefine && refine.intake && !refine.loading ? (
+          <RefinePanel
+            toolType="ir_playbook"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/ir-playbook/result/${refine.assessmentId}`}
+          />
+        ) : phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4"><h2 className="font-display text-brand-navy">Your Incident Response Playbook</h2><CopyButton text={result} /></div>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>
