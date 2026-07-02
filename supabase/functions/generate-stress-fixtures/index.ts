@@ -1032,7 +1032,7 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       usNotice: null,
       cppaRisk: null,
       cppaCyber: null,
-      cppaAdmt: null,
+      cppaAdmt: buildAdmtFallback(c.companyName, industry, slot),
     };
   }
   return {
