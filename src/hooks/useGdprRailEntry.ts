@@ -17,6 +17,10 @@ export interface GdprRailEntryOpts {
   fieldLabel: string;
   enforcementNote?: string;
   relatedCitations?: { citation: string; label: string }[];
+  coachLead?: string;
+  coachBody?: string;
+  goodAnswer?: string;
+  commonMistake?: string;
 }
 
 export interface GdprRailEntryState {
