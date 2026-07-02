@@ -170,6 +170,26 @@ export default function CPPACybersecurity() {
         <IntakeGuidance>For each control, note the specific tools in place, the scope they cover, and any exceptions — separately and concretely. A control marked "in place" with a vague note produces a weaker gap analysis than one described precisely.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7123(c). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />
+        {refine.isRefine && refine.intake && !refine.loading && (
+          <RefinePanel
+            toolType="cppa_cybersecurity"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/cppa-cybersecurity/result/${refine.assessmentId}`}
+          />
+        )}
+        {!refine.isRefine && (<></>)}
+        {!refine.isRefine && (<></>)}
+        {!refine.isRefine && (<></>)}
+        {!refine.isRefine && (<></>)}
+        {!refine.isRefine && (<></>)}
+        {!refine.isRefine && (<>
+
         <div className="flex gap-6 items-start">
         <div className="flex-1 min-w-0 space-y-6">
         <section className="bg-card border rounded-lg p-6 space-y-4">
