@@ -26,6 +26,9 @@ import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
 import { BIOMETRIC_RAIL } from "@/components/biometric/BiometricRailEntries";
+import { useRefineMode } from "@/hooks/useRefineMode";
+import RefinePanel from "@/components/refine/RefinePanel";
+import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
