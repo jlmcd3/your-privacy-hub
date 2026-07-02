@@ -427,8 +427,12 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "statutory_framework": "Cal. Code Regs. tit. 11, §§ 7150–7157",
     "compliance_deadline": "December 31, 2027",
     "disclaimer": "This document has been generated to assist in preparing a CPPA risk assessment. It does not constitute legal advice. Review with qualified privacy counsel before submission or reliance."
-  }
-}`,
+  },
+  "information_needed": [
+    { "field": "<intake field key that exists in the intake>", "dimensions": "<what specifically to add — dimensions, never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>" }
+  ]
+}
+Every insufficient-basis or "Insufficient information" finding elsewhere in this output MUST have a corresponding information_needed entry; otherwise return an empty array.`,
 };
 
 function buildUserPrompt(intake: FiveStageIntake): string {
