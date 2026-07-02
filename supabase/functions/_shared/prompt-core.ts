@@ -1,7 +1,7 @@
 // Shared EUP prompt core (v2.3)
 // v2.3: jurisdiction-conditional English variant via ToolModule.languageVariant.
 
-export const PROMPT_CORE_VERSION = "2.7";
+export const PROMPT_CORE_VERSION = "3.0";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
@@ -40,6 +40,19 @@ OUTPUT DISCIPLINE
   standard applied to the stated facts, with the derivation shown — never asserted. Where inputs are
   insufficient, return the designated "insufficient_basis" value framed as a substantive finding ("the
   record as provided does not substantiate X under [cite]"), not as an inability to assess.
+- FORWARD PATH ON INSUFFICIENT INPUT. Every insufficient-basis finding must be paired with an entry
+  in the output's "information_needed" array stating: which INTAKE FIELD needs more detail (never a
+  fact outside the intake schema), WHAT DIMENSIONS to add (e.g. "retention period and deletion
+  trigger"), the PROVISION that makes those dimensions relevant (from the authorities already cited
+  in this generation — never a fresh from-memory citation), and WHICH SECTION of the report a
+  complete answer enables. Canonical narrative form where prose is also needed: "The intake does not
+  describe [dimension] specifically enough for a full [section] determination. [Provision] looks to
+  [x, y, z]. Adding these — in [field] — enables a complete determination in a revision run." The
+  sentence ends at the assessment PROCESS. FORBIDDEN in any insufficient-input passage: (1) any
+  "would/should/could/likely" clause about the compliance OUTCOME on the missing facts; (2) any
+  example or suggested VALUE for the user's own facts; (3) any needed item not tied to a named
+  intake field. Dead-end phrasings ("a determination cannot be made", "unable to assess") without
+  the paired information_needed entry are prohibited.
 - Route every uncertainty, gap, and contradiction into the schema's designated fields. Never bury them
   in prose and never silently omit them.
 - INTERNAL CONSISTENCY. Before emitting, reconcile the output against itself. Any count, tally, or
