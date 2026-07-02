@@ -614,11 +614,36 @@ export default function CPPARiskAssessment() {
           </div>
         )}
         {!refine.isRefine && (<>
-        <div ref={topRef} className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
+        <IntakeMasthead
+          kicker="CPPA Privacy Risk Assessment · Cal. Code Regs. tit. 11 §§ 7150–7157"
+          title={CPPA_RISK_STEP_TITLES[step] ?? `Step ${step}`}
+          subjectLabel={meter ? "Assessment subject · locked" : undefined}
+          subjectValue={
+            meter
+              ? (typeof meter.lockedFields?.entity_name === "string"
+                  ? (meter.lockedFields!.entity_name as string)
+                  : (typeof meter.lockedFields?.subject_anchor === "string"
+                      ? (meter.lockedFields!.subject_anchor as string)
+                      : undefined))
+              : undefined
+          }
+          meter={meter ?? null}
+          preRunHint="The entity and subject line you set below are fixed once you first generate — everything else stays editable across your included generations."
+        />
+        <div ref={topRef} className="text-sm text-muted-foreground my-4">Step {step} of {totalSteps}</div>
 
-
-        <div className="flex gap-6 items-start">
-        <div className="flex-1 min-w-0 bg-card border rounded-lg p-6 space-y-6">
+        <BenchLayout
+          toolType="cppa_risk"
+          railEntry={activeRiskRailEntry}
+          defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf"
+          coachingOpenByDefault={
+            !!activeRiskRailKey &&
+            refine.infoNeededKeys.some(
+              (k) => activeRiskRailKey === k || activeRiskRailKey.includes(k) || k.includes(activeRiskRailKey),
+            )
+          }
+        >
+        <div className="space-y-6">
           {step === 1 && (
             <>
               <h2>Step 1 — Business Profile</h2>
