@@ -14,7 +14,7 @@ export const INTAKE_POLICY: Record<string, IntakePolicy> = {
   dpia:       { rail: true,  goodAnswer: true  },
   lia:        { rail: true,  goodAnswer: true  },
   governance: { rail: true,  goodAnswer: true  },
-  cppa_risk:  { rail: true,  goodAnswer: true  },
+  cppa_risk:  { rail: true,  goodAnswer: false }, // coaching authored on 3 of 31 rail entries — column disabled until fuller coverage lands
   cppa_cyber: { rail: true,  goodAnswer: true  },
   biometric:  { rail: true,  goodAnswer: true  }, // AI narrative + deterministic BIPA calc
   us_notice:  { rail: true,  goodAnswer: true  },
