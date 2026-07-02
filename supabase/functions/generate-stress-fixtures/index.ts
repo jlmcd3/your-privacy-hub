@@ -350,7 +350,28 @@ Return a JSON object with EXACTLY these fields:
   },
   "usNotice": null,
   "cppaRisk": null,
-  "cppaCyber": null
+  "cppaCyber": null,
+  "cppaAdmt": {
+    "organization_name": "string", "system_name": "string", "system_type": "string",
+    "system_description": "string", "decision_domains": ["array"], "human_review": "string",
+    "training_data_use": "Yes or No", "profiling_use": "Yes or No",
+    "notice_delivery": ["array"], "notice_has_specific_purpose": "Yes or No",
+    "notice_purpose_text": "string",
+    "notice_has_opt_out_desc": "Yes or No", "notice_has_access_desc": "Yes or No",
+    "notice_has_anti_retaliation": "Yes or No", "notice_has_how_it_works": "Yes or No",
+    "notice_has_alternative_process": "Yes or No",
+    "opt_out_exception": "string", "opt_out_methods": ["array"], "opt_out_link_title": "string",
+    "opt_out_no_cookie_banner": "Yes or No", "opt_out_no_account_required": "Yes or No",
+    "opt_out_confirmation_mechanism": "string", "opt_out_appeal_process": "string",
+    "opt_out_fairness_doc": "string",
+    "opt_out_15_day_process": "string", "opt_out_service_provider_notice": "string",
+    "access_submission_methods": "string", "access_verification_process": "string",
+    "access_logic_disclosure": "string", "access_outcome_disclosure": "string",
+    "access_response_timeline": "string", "access_trade_secret_policy": "string",
+    "ca_consumer_count": "string", "third_party_admt": "Yes or No",
+    "admt_system_count": "string", "prior_access_requests_12mo": "string",
+    "admt_detail": {}
+  }
 }
 
 Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.`;
