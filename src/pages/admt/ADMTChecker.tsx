@@ -123,6 +123,7 @@ export default function ADMTChecker() {
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const refine = useRefineMode("cppa_admt");
   const [step, setStep] = useState(1);
   const totalSteps = 5;
 
