@@ -23,7 +23,9 @@ interface Props {
   runsAllowed: number;
   runsRemaining: number;
   resultPath: string; // where to navigate after acceptance, e.g. "/li-assessment-result/:id"
+  infoNeededKeys?: string[]; // fields the report named as needed for a fuller determination
 }
+
 
 function renderLockedValue(v: unknown): string {
   if (v == null) return "—";
