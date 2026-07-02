@@ -36,6 +36,19 @@ import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/intake/StatuteRail";
 import { CPPA_RISK_RAIL } from "@/components/cppa/CPPARiskRailEntries";
 import type { RailEntry } from "@/components/intake/StatuteRail";
+import IntakeMasthead from "@/components/intake/IntakeMasthead";
+import BenchLayout from "@/components/intake/BenchLayout";
+import { useRunMeter } from "@/hooks/useRunMeter";
+
+const CPPA_RISK_STEP_TITLES: Record<number, string> = {
+  1: "Business profile",
+  2: "Consumer rights infrastructure",
+  3: "Privacy notices",
+  4: "Sensitive personal information",
+  5: "Automated decisionmaking",
+  6: "Risk assessment specifics",
+  7: "Review your answers",
+};
 import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useFscrCallouts } from "@/hooks/useFscrCallouts";
