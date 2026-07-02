@@ -257,8 +257,8 @@ export default function BiometricChecker() {
               </div>
             </div>
           </div>
-          <StatuteRail entry={bioRailEntry} />
-          </div>
+          </BenchLayout>
+          </>
         )}
       </main>
       <AuthGateModal
