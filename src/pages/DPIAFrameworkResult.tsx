@@ -14,6 +14,8 @@ import { ClientContextBadge } from "@/components/clients/ClientContextBadge";
 import { AnnotationCallout } from "@/components/AnnotationCallout";
 import ReportShell from "@/components/ReportShell";
 import RunMeterBar from "@/components/RunMeterBar";
+import InformationNeededBlock from "@/components/InformationNeededBlock";
+
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { startMeterExtension } from "@/lib/meterExtension";
 import ReportTranslateMenu from "@/components/ReportTranslateMenu";
