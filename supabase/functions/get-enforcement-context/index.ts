@@ -295,8 +295,14 @@ Deno.serve(async (req) => {
     .map((r) => ({ row: r, score: scoreRow(r) }))
     .sort((a, b) => b.score - a.score).slice(0, 2).map((x) => x.row);
 
-  const results = [...t1Sorted, ...t2Sorted, ...t3Sorted];
+  // Quality gate: drop rows without a subject/name or with precedent_significance < 2.
+  // These are low-signal matches that produce "Unnamed action" or weak analogies.
+  const qualityFilter = (r: any) =>
+    typeof r?.subject === "string" && r.subject.trim().length > 0 &&
+    (r?.precedent_significance ?? 0) >= 2;
+  const results = [...t1Sorted, ...t2Sorted, ...t3Sorted].filter(qualityFilter);
   const totalMatched = tier1.length + tier2.length + tier3.length;
+
 
   const note = results.length === 0
     ? "no_jurisdictional_precedent"
@@ -415,7 +421,10 @@ async function runUntiered(q: Query, limit: number, cacheKey: string): Promise<R
     if (r.fine_eur_equivalent) score += Math.min(3, Math.log10(r.fine_eur_equivalent) - 4);
     if (r.verified === false) score -= 100;
     return { row: r, score };
-  }).sort((a, b) => b.score - a.score).slice(0, limit).map((x) => x.row);
+  }).sort((a, b) => b.score - a.score).slice(0, limit).map((x) => x.row)
+    .filter((r: any) =>
+      typeof r?.subject === "string" && r.subject.trim().length > 0 &&
+      (r?.precedent_significance ?? 0) >= 2);
   const note = scored.length === 0
     ? (jurisdictionWhitelist || regimeCfg ? "no_jurisdictional_precedent" : "no_match")
     : fallbackUsed;
@@ -425,6 +434,7 @@ async function runUntiered(q: Query, limit: number, cacheKey: string): Promise<R
     jurisdiction_whitelist_size: jurisdictionWhitelist?.length ?? null,
     note, cached: false,
   };
+
   await supabase.from("enforcement_context_cache").upsert({
     cache_key: cacheKey, response, created_at: new Date().toISOString(),
   });

@@ -41,11 +41,21 @@ const EnforcementPrecedents = ({
   variant?: "standard" | "cppa";
   attempted?: boolean;
 }) => {
-  const list = Array.isArray(precedents) ? precedents : [];
+  const raw = Array.isArray(precedents) ? precedents : [];
+  // Suppress unnamed actions and low-relevance (<2 stars) matches. If fewer than
+  // 2 qualifying matches remain, we render a single explanatory line below.
+  const list = raw.filter(
+    (p) =>
+      typeof p.subject === "string" &&
+      p.subject.trim().length > 0 &&
+      (p.precedent_significance ?? 0) >= 2,
+  );
+  const insufficient = list.length < 2;
   const isEmpty = list.length === 0;
 
-  // Legacy behavior: empty + not attempted -> render nothing
+  // Legacy behavior: nothing at all + not attempted -> render nothing
   if (isEmpty && !attempted) return null;
+
 
   let calibration: string;
   if (variant === "cppa") {
@@ -69,11 +79,12 @@ const EnforcementPrecedents = ({
       </div>
       <p className="text-xs text-muted-foreground mb-4">{calibration}</p>
       {context && <p className="text-xs text-muted-foreground mb-4">{context}</p>}
-      {isEmpty ? (
+      {isEmpty || insufficient ? (
         <p className="text-sm text-foreground">
-          No directly comparable enforcement actions were found in the database for this processing profile. This does not indicate low risk — it may reflect novel processing or limited public enforcement in this area.
+          No sufficiently analogous enforcement actions were matched for this processing profile.
         </p>
       ) : (
+
         <ul className="space-y-3">
           {list.map((p) => (
             <li key={p.id} className="border rounded-md p-4 hover:bg-muted/30 transition-colors">
