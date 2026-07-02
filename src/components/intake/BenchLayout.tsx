@@ -70,7 +70,11 @@ export default function BenchLayout({
       {showRail && (
         <div className="border-t border-rule p-6 xl:border-l xl:border-t-0">
           <ColHeader tone="law">The law</ColHeader>
-          <StatuteRail entry={railEntry} defaultSourceUrl={defaultSourceUrl} />
+          <StatuteRail
+            entry={railEntry}
+            defaultSourceUrl={defaultSourceUrl}
+            showCoachingFields={false}
+          />
           {corpusBlock && (
             <div className="mt-5 border-t border-rule pt-4">
               <p className="mb-2.5 text-[10.5px] font-bold uppercase tracking-[0.13em] text-teal-action">

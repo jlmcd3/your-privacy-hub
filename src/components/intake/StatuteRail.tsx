@@ -19,9 +19,19 @@ interface StatuteRailProps {
    * When neither is provided, the citation renders as plain text (no link).
    */
   defaultSourceUrl?: string;
+  /**
+   * Whether to show the goodAnswer and commonMistake coaching blocks.
+   * Defaults to true so standalone rail surfaces keep current behavior.
+   */
+  showCoachingFields?: boolean;
 }
 
-export default function StatuteRail({ entry, className = "", defaultSourceUrl }: StatuteRailProps) {
+export default function StatuteRail({
+  entry,
+  className = "",
+  defaultSourceUrl,
+  showCoachingFields = true,
+}: StatuteRailProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const content = entry ? (
