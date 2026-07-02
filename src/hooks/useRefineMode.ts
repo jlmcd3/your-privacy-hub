@@ -3,8 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useRunMeter } from "./useRunMeter";
 
-// Maps a tool_type to the result table where its intake_data lives.
-const TABLE_MAP: Record<string, string> = {
+// Maps a tool_type to the result table where its intake lives.
+export const TABLE_MAP: Record<string, string> = {
   li_assessment: "li_assessments",
   governance_assessment: "governance_assessments",
   dpia_framework: "dpia_frameworks",
@@ -16,12 +16,35 @@ const TABLE_MAP: Record<string, string> = {
   cppa_cybersecurity: "cppa_assessments",
 };
 
+// Per-tool client-side read map. Mirrors HAS_INTAKE_DATA and EDITABLE_COLUMNS
+// in supabase/functions/regenerate-assessment/index.ts. Empty array = read the
+// intake_data JSON blob; non-empty = the tool has no intake_data column and
+// its "intake" is assembled from dedicated columns (li_assessment only, today).
+export const INTAKE_READ_MAP: Record<string, string[]> = {
+  li_assessment: [
+    "organization_name", "subject_anchor", "processing_description",
+    "data_categories", "relationship_type", "jurisdictions",
+    "sector", "stated_purpose", "alternatives_considered",
+    "purpose_details", "necessity_details", "balancing_details",
+  ],
+  governance_assessment: [],
+  dpia_framework: [],
+  dpa_generator: [],
+  ir_playbook: [],
+  biometric_checker: [],
+  cppa_admt: [],
+  cppa_risk_assessment: [],
+  cppa_cybersecurity: [],
+};
+
 export interface RefineMode {
   isRefine: boolean;
   assessmentId: string | undefined;
   intake: Record<string, unknown> | null;
   lockedFields: Record<string, unknown> | null;
   runsRemaining: number;
+  runsAllowed: number;
+  runsUsed: number;
   loading: boolean;
 }
 
@@ -39,13 +62,24 @@ export function useRefineMode(toolType: string): RefineMode {
       setLoading(false);
       return;
     }
+    const cols = INTAKE_READ_MAP[toolType] ?? [];
+    const selectExpr = cols.length ? cols.join(",") : "intake_data";
     (async () => {
       const { data } = await (supabase as any)
         .from(table)
-        .select("intake_data")
+        .select(selectExpr)
         .eq("id", assessmentId)
         .maybeSingle();
-      setIntake((data?.intake_data as Record<string, unknown>) ?? null);
+      if (!data) {
+        setIntake(null);
+      } else if (cols.length) {
+        // Assemble a virtual intake object from dedicated columns.
+        const assembled: Record<string, unknown> = {};
+        for (const k of cols) if (k in data) assembled[k] = (data as any)[k];
+        setIntake(assembled);
+      } else {
+        setIntake(((data as any).intake_data as Record<string, unknown>) ?? null);
+      }
       setLoading(false);
     })();
   }, [assessmentId, toolType]);
@@ -56,6 +90,8 @@ export function useRefineMode(toolType: string): RefineMode {
     intake,
     lockedFields: meter?.lockedFields ?? null,
     runsRemaining: meter?.runsRemaining ?? 0,
+    runsAllowed: meter?.runsAllowed ?? 0,
+    runsUsed: meter?.runsUsed ?? 0,
     loading,
   };
 }
