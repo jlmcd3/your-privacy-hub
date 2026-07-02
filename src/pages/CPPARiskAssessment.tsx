@@ -598,7 +598,11 @@ export default function CPPARiskAssessment() {
             </div>
           </div>
         )}
+        {!refine.isRefine && (<></>)}
+        {!refine.isRefine && (
         <div ref={topRef} className="text-sm text-muted-foreground">Step {step} of {totalSteps}</div>
+        )}
+        {!refine.isRefine && (
 
         <div className="flex gap-6 items-start">
         <div className="flex-1 min-w-0 bg-card border rounded-lg p-6 space-y-6">
