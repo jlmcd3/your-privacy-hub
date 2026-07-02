@@ -33,6 +33,9 @@ import { ChoiceRadio } from "@/components/intake/ChoiceRadio";
 import { ChoiceWithOther } from "@/components/intake/ChoiceWithOther";
 import { ADMT_RAIL } from "@/components/admt/admtRailEntries";
 import type { RailEntry } from "@/components/intake/StatuteRail";
+import { useRefineMode } from "@/hooks/useRefineMode";
+import RefinePanel from "@/components/refine/RefinePanel";
+import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 
 const SIGNIFICANT_DECISION_DOMAINS = [
   "Financial or lending services (credit decisions, loans, accounts)",
