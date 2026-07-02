@@ -242,12 +242,16 @@ async function runUnit(runId: string) {
 
     const { data: batch } = await db.from("static_stress_batches").select("status").eq("id", run.stress_batch_id).maybeSingle();
     const st = batch?.status;
-    if (st && ["complete", "failed", "cancelled"].includes(st)) {
+    const inFlight = jobList.some((j: any) => j.status === "pending" || j.status === "running");
+    if (st && ["complete", "failed", "cancelled"].includes(st) && !inFlight) {
       await db.from("quality_loop2_runs").update({ phase: "review" }).eq("id", runId);
       await log(runId, `Dummy batch ${st} — entering review`);
       // @ts-ignore
       EdgeRuntime.waitUntil(selfInvoke(runId));
       return;
+    } else if (st === "complete" && inFlight) {
+      const stillN = jobList.filter((j: any) => j.status === "pending" || j.status === "running").length;
+      await log(runId, `Batch marked complete but ${stillN} job(s) still in flight — waiting for them to finish`, { level: "warn" });
     }
     const startedMs = run.started_at ? new Date(run.started_at).getTime() : Date.now();
     if (Date.now() - startedMs > 90 * 60_000) {
