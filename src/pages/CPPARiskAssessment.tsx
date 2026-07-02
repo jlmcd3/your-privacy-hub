@@ -1151,9 +1151,7 @@ export default function CPPARiskAssessment() {
             </div>
           </div>
         </div>
-
-        <StatuteRail entry={activeRiskRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
-        </div>
+        </BenchLayout>
 
         <p className="text-xs text-muted-foreground italic">
           This is a compliance framework tool. It does not constitute legal advice and is not a substitute for review by qualified California privacy counsel.
