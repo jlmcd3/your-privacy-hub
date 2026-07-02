@@ -134,7 +134,19 @@ export default function BiometricChecker() {
           
         </div>
 
-        {phase === "result" && result ? (
+        {refine.isRefine && refine.intake && !refine.loading ? (
+          <RefinePanel
+            toolType="biometric_checker"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/biometric-checker/result/${refine.assessmentId}`}
+          />
+        ) : phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between"><h2 className="font-display text-brand-navy">Compliance assessment</h2><CopyButton text={result.assessment_text} /></div>
             {result.bipa_risk && (
