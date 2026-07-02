@@ -786,7 +786,7 @@ async function runPipeline(assessment_id: string) {
       }
     }
 
-    const report_data = {
+    let report_data: any = {
       schema_version: "v4-five-stage",
       generated_at: new Date().toISOString(),
       legacy_shim_applied: wasLegacyShimmed,
@@ -797,6 +797,10 @@ async function runPipeline(assessment_id: string) {
         longitudinal_synthesis_chars: longitudinalSynthesis.length,
       },
     };
+
+    // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
+    const guarded = guardInformationNeeded(report_data, ((row as any).intake_data as Record<string, unknown>) ?? {});
+    report_data = guarded.report;
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
