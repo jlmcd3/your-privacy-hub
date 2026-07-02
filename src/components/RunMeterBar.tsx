@@ -5,11 +5,14 @@ export default function RunMeterBar({
   meter,
   refineHref,
   onExtend,
+  infoNeededCount,
 }: {
   meter: RunMeter;
   refineHref: string;
   onExtend: () => void;
+  infoNeededCount?: number;
 }) {
+
   const exhausted = meter.runsRemaining <= 0;
   const last = meter.runsRemaining === 1;
   return (
