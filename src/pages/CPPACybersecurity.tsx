@@ -304,8 +304,7 @@ export default function CPPACybersecurity() {
           )}
         </div>
         </div>
-        <StatuteRail entry={activeCyberRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
-        </div>
+        </BenchLayout>
 
         <p className="text-xs text-muted-foreground italic">
           This is a compliance framework tool mapped to CPPA cybersecurity audit regulations. It does not constitute legal or security advice. Output should be reviewed with qualified counsel and your security team.
