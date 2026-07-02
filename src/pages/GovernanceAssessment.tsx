@@ -72,6 +72,7 @@ const GovernanceAssessment = () => {
   const { isPremium } = usePremiumStatus();
   const { clientId } = useActiveClient();
 
+  const refine = useRefineMode("governance_assessment");
   const [step, setStep] = useState(1);
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
   const [purchasing, setPurchasing] = useState(false);
