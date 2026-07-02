@@ -158,14 +158,20 @@ const GovernanceAssessmentResult = () => {
         >
           {(() => {
             const { meter } = useRunMeter("governance_assessment", id);
+            const infoNeeded = (report as any)?.information_needed;
             return meter ? (
-              <RunMeterBar
-                meter={meter}
-                refineHref={`/governance-assessment?refine=${id}`}
-                onExtend={() => startMeterExtension("governance_assessment", id!)}
-              />
+              <>
+                <RunMeterBar
+                  meter={meter}
+                  refineHref={`/governance-assessment?refine=${id}`}
+                  onExtend={() => startMeterExtension("governance_assessment", id!)}
+                  infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+                />
+                <InformationNeededBlock items={infoNeeded} />
+              </>
             ) : null;
           })()}
+
           <div dir={dir} style={{ display: "contents" }}>
           {loading && <p>Loading…</p>}
 
