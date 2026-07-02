@@ -138,6 +138,16 @@ const supabase = createClient(
 );
 
 // BIPA statutory damages: $1,000/negligent, $5,000/intentional. Mathematical illustration only.
+function scrubVoiceLeaks(text: string): string {
+  if (typeof text !== "string" || !text) return text;
+  const pattern = /[^.!?\n]*\b(training-knowledge fine amounts|training-data figures)\b[^.!?\n]*[.!?]?/gi;
+  const cleaned = text.replace(pattern, "").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n");
+  if (cleaned !== text) {
+    console.log(JSON.stringify({ evt: "voice_leak_scrubbed", fn: "check-biometric-compliance" }));
+  }
+  return cleaned;
+}
+
 function estimateBIPARisk(enrolledCount: string): { lowEnd: number; highEnd: number; note: string } {
   const countMap: Record<string, number> = {
     "Fewer than 500": 250,
@@ -674,7 +684,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
   const uniqueJurisdictions = [...new Set(body.jurisdictions)];
   const orgLabel = body.orgName ? `Prepared for: ${body.orgName} (${body.orgType})` : `Organisation type: ${body.orgType}`;
   const sectionTexts = uniqueJurisdictions.map(stressSection);
-  const assessment_text = `${orgLabel}\nGenerated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}\n\n---\n\n` + sectionTexts.join("\n\n");
+  const assessment_text = scrubVoiceLeaks(`${orgLabel}\nGenerated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}\n\n---\n\n` + sectionTexts.join("\n\n"));
 
   const report_data = {
     bipa_risk: bipaRisk,
@@ -1122,6 +1132,8 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       }
       for (const v of lint.violations) lintViolations.push(v);
     }
+    assessment_text = scrubVoiceLeaks(assessment_text);
+
 
     const report_data = {
       bipa_risk: bipaRisk,
