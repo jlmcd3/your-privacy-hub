@@ -77,6 +77,7 @@ export default function IRPlaybook() {
   const pricing = useToolPrice("ir_playbook");
   const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: null });
   const { clientId } = useActiveClient();
+  const refine = useRefineMode("ir_playbook");
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");
   const [form, setForm] = useState({
     organizationName: "",
