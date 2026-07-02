@@ -79,11 +79,12 @@ const EnforcementPrecedents = ({
       </div>
       <p className="text-xs text-muted-foreground mb-4">{calibration}</p>
       {context && <p className="text-xs text-muted-foreground mb-4">{context}</p>}
-      {isEmpty ? (
+      {isEmpty || insufficient ? (
         <p className="text-sm text-foreground">
-          No directly comparable enforcement actions were found in the database for this processing profile. This does not indicate low risk — it may reflect novel processing or limited public enforcement in this area.
+          No sufficiently analogous enforcement actions were matched for this processing profile.
         </p>
       ) : (
+
         <ul className="space-y-3">
           {list.map((p) => (
             <li key={p.id} className="border rounded-md p-4 hover:bg-muted/30 transition-colors">
