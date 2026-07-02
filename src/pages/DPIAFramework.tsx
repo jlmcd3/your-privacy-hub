@@ -387,7 +387,23 @@ const DPIAFramework = () => {
       <Navbar />
       <DashboardSubnav />
       <Helmet><title>{`Impact Assessment Builder — from $${pricing.subscriberPrice ?? ""} | End User Privacy`}</title></Helmet>
+      {refine.isRefine && refine.intake && !refine.loading ? (
+        <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <RefinePanel
+            toolType="dpia_framework"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/dpia-framework/result/${refine.assessmentId}`}
+          />
+        </main>
+      ) : (<>
       <header className="bg-[#0d2a45] text-white py-12">
+
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">📋 Data Protection Impact Assessment · ${pricing.price}</span>
           <h1 className="font-serif text-white mb-3">Impact Assessment Builder <DefPopover termKey="gdpr_dpia" /></h1>
