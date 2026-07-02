@@ -519,8 +519,23 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "Numbered action item with specific deadline where known. Based only on gaps identified above."
   ],
 
-  "compliant_elements": ["List of elements assessed as compliant, with brief explanation."]
-}`;
+  "compliant_elements": ["List of elements assessed as compliant, with brief explanation."],
+
+  "information_needed": [
+    // REQUIRED whenever any finding in this report is insufficient-basis / Insufficient information; otherwise an empty array. One entry per gap.
+    { "field": "<intake field key that exists in the intake>",
+      "dimensions": "<what specifically to add — dimensions, never suggested values>",
+      "provision": "<already-cited provision making these dimensions relevant>",
+      "enables": "<which section/determination completes with it>" }
+  ]
+}
+
+Every insufficient-basis or Insufficient-information finding elsewhere in this output MUST have a corresponding information_needed entry.
+
+ADDITIONAL DISCIPLINES:
+- 2.8b DISTINCT-SCOPE PHRASING FOR § 7220(c)(5): Where notice_howworks and notice_alternative_process both cite § 7220(c)(5), each entry states its distinct scope in one sentence — how-the-ADMT-works explanation vs. the alternative-process disclosure — so the user does not remediate the same gap twice.
+- 2.8c SIGNIFICANT-DECISION PHRASING: When explaining that a subscription product does not itself trigger the significant-decision test, use: "…or another subscription product that does not involve financial services, lending, housing, education, employment, or healthcare, the trigger is NOT satisfied."
+- 2.8d INTAKE-GAP PHRASING: When flagging missing appeal-mechanics data, use: "the appeal-mechanics fields are not populated or are marked not applicable in the available intake data" (replaces "all marked not applicable").`;
 
     let rawText: string;
     {
