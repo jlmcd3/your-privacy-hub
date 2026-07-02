@@ -1,0 +1,1 @@
+update long_running_jobs set status='failed', error='Cancelled by user — investigating post-C2 D-loop hang', completed_at=now(), updated_at=now() where id='61c516be-828b-4d7f-8013-2a8b78542790' and status='running';
