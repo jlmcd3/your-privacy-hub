@@ -19,6 +19,10 @@ import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { useRefineMode } from "@/hooks/useRefineMode";
+import RefinePanel from "@/components/refine/RefinePanel";
+
+
 
 
 const DATA_CATEGORIES = [
@@ -87,6 +91,9 @@ const LIAssessment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("li_assessment");
+  const refine = useRefineMode("li_assessment");
+
+
 
   const [organizationName, setOrganizationName] = useState("");
   const [subjectAnchor, setSubjectAnchor] = useState("");
@@ -272,8 +279,33 @@ const LIAssessment = () => {
           </div>
         </section>
 
-        {/* INTAKE FORM */}
+        {/* INTAKE FORM / REFINE PANEL */}
+        {refine.isRefine && refine.assessmentId && !refine.loading && refine.intake ? (
+          <section className="mb-10">
+            <div className="text-eyebrow text-brand-mist mb-2">Refine mode</div>
+            <RefinePanel
+              toolType="li_assessment"
+              assessmentId={refine.assessmentId}
+              intake={refine.intake}
+              lockedFields={refine.lockedFields ?? {}}
+              editable={[
+                { key: "processing_description", label: "What processing are you considering?", kind: "textarea", placeholder: "Describe the processing being assessed." },
+                { key: "stated_purpose", label: "Stated purpose", kind: "textarea" },
+                { key: "purpose_details", label: "Purpose test — details", kind: "textarea", help: "Why the processing serves a legitimate interest." },
+                { key: "necessity_details", label: "Necessity test — details", kind: "textarea", help: "Why the processing is necessary and proportionate." },
+                { key: "balancing_details", label: "Balancing test — details", kind: "textarea", help: "How data-subject rights and expectations were weighed." },
+                { key: "alternatives_considered", label: "Alternatives considered", kind: "textarea" },
+                { key: "sector", label: "Sector", kind: "text" },
+              ]}
+              runsUsed={refine.runsUsed}
+              runsAllowed={refine.runsAllowed}
+              runsRemaining={refine.runsRemaining}
+              resultPath={`/li-assessment-result/${refine.assessmentId}`}
+            />
+          </section>
+        ) : (
         <section className="mb-10">
+
           <div className="text-eyebrow text-brand-mist mb-2">Step 01 · Free intake</div>
           <h2 className="font-display text-brand-navy mb-5 leading-snug">Tell us about the processing</h2>
           <form
@@ -357,6 +389,9 @@ const LIAssessment = () => {
             </div>
           </form>
         </section>
+        )}
+
+
 
         {/* PREVIEW SIGNAL */}
         {preview && (
