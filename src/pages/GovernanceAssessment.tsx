@@ -26,6 +26,9 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { useRefineMode } from "@/hooks/useRefineMode";
+import RefinePanel from "@/components/refine/RefinePanel";
+import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
