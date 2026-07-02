@@ -182,7 +182,14 @@ Return a JSON object with EXACTLY these top-level fields:
     "jurisdictions": ["array"], "processorInvolved": boolean,
     "contained": "string", "organisationType": "string"
   },
-  "biometric": null,
+  "biometric": {
+    "orgName": "string — the company name",
+    "biometricTypes": ["array"],
+    "orgType": "string",
+    "purpose": "string",
+    "jurisdictions": ["array"],
+    "enrolledCount": "string"
+  },
   "registration": {
     "organization_name": "string", "organization_country": "string",
     "organization_size": "string", "industry": "string", "email": "string",
