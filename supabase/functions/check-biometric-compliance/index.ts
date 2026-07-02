@@ -1132,6 +1132,8 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       }
       for (const v of lint.violations) lintViolations.push(v);
     }
+    assessment_text = scrubVoiceLeaks(assessment_text);
+
 
     const report_data = {
       bipa_risk: bipaRisk,
