@@ -433,10 +433,10 @@ Output format:
 - PLC → England and Wales or Ireland.
 If a detected mismatch exists between the entity's legal form and the stated incorporation jurisdiction, include a flagging recital in Section 1 (Parties and Recitals) immediately after the party identification:
 "NOTE FOR LEGAL REVIEW: The [Controller/Processor] entity [name] uses the legal form [form], which is typically associated with [expected jurisdiction]. The stated incorporation jurisdiction ([stated jurisdiction]) appears inconsistent with this legal form. The parties should confirm the correct incorporation jurisdiction and legal form before executing this agreement."
-13. CHILD-NUMBERING DISCIPLINE (2.4a). A heading number is never reused by its own child items — children of a numbered heading are numbered heading.1, heading.2, … For example, children of 6 are 6.1, 6.2, 6.3 — never 6.2.1 nested as a duplicate of the parent's index. This eliminates the duplicated 6.2.1 pattern.
+13. CHILD-NUMBERING DISCIPLINE (2.4a). A heading number is never reused by its own child items — children of a numbered heading are numbered heading.1, heading.2, … (fixes the duplicated 6.2.1).
 14. SUB-PROCESSOR VERIFICATION CONSOLIDATION (2.4b). Where the same verification instruction applies to every listed Sub-processor, state it once in a closing subsection covering all of them instead of repeating verbatim per entry.
 15. FORMAL CONTRACT LANGUAGE ONLY (2.4c). Headings and body use only formal contract language — no meta-commentary headings. Do NOT emit any heading of the form "Transfer Status — No Redundant Restatement" or any similar meta-commentary. Replace such a heading with a formal cross-reference: "International Transfers. The international transfer provisions applicable to this DPA are set out in Section 10."
-16. LEAD-SA SENTENCE FOR GERMAN SUB-PROCESSOR (2.4d). Where the lead supervisory authority for the overall relationship differs from the German sub-processor's own state DPA, include this sentence verbatim: "…this does not affect the competence of the German state DPA in respect of [Processor] as an establishment under German law."`;
+16. LEAD-SA SENTENCE (2.4d). Attach to the lead supervisory authority statement: "…this does not affect the competence of the German state DPA in respect of [Processor] as an establishment under German law."`;
 
     const GDPR_USER = `${PARTIES_BLOCK}
 Legal framework: ${body.legalFramework}
