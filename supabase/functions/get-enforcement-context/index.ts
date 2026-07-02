@@ -295,8 +295,14 @@ Deno.serve(async (req) => {
     .map((r) => ({ row: r, score: scoreRow(r) }))
     .sort((a, b) => b.score - a.score).slice(0, 2).map((x) => x.row);
 
-  const results = [...t1Sorted, ...t2Sorted, ...t3Sorted];
+  // Quality gate: drop rows without a subject/name or with precedent_significance < 2.
+  // These are low-signal matches that produce "Unnamed action" or weak analogies.
+  const qualityFilter = (r: any) =>
+    typeof r?.subject === "string" && r.subject.trim().length > 0 &&
+    (r?.precedent_significance ?? 0) >= 2;
+  const results = [...t1Sorted, ...t2Sorted, ...t3Sorted].filter(qualityFilter);
   const totalMatched = tier1.length + tier2.length + tier3.length;
+
 
   const note = results.length === 0
     ? "no_jurisdictional_precedent"
