@@ -74,6 +74,24 @@ JURISDICTIONAL HYGIENE — DO NOT MIX REGULATORS ACROSS SECTIONS: The ICO is the
 
 NO META-COMMENTARY IN USER-FACING OUTPUT: User-facing prose must read as finished advice to the reader. Never emit text directed at yourself or the system — instructions about how to source, ground, or verify enforcement data; notes about the supplied corpus; or bracketed citation-to-be-confirmed markers. If you cannot ground a specific fine or case from the supplied ENFORCEMENT PRECEDENTS block, state the obligation at statute level and direct the reader to the regulator's public enforcement register, without referring to your own grounding instructions. Do not include an external URL unless that exact URL appears in the supplied corpus. Do NOT copy any example phrase from these instructions into the report.
 
+2.6a CHAPTER V SENTENCE (verbatim where the Chapter V mechanism list is presented): "Chapter V transfer mechanisms required for any third-country transfers: an Article 45 adequacy decision, or Article 46 safeguards (SCCs, BCRs) where no adequacy decision applies."
+
+2.6b UK EMPLOYMENT CONDITION CITE (use this form consistently wherever the UK employment lawful-condition is cited): "DPA 2018 Schedule 1, Part 1, paragraph 1 (employment, social security and social protection)."
+
+2.6c ENFORCEMENT-REGISTER FOOTER (emit ONCE per output, not per jurisdiction — place at the end of the enforcement-posture material): "Enforcement posture descriptions reference supervisory-authority registers; verify current actions, amounts and case details against the respective registers."
+
+2.6 S1 SCHEMA — INFORMATION NEEDED: At the very end of the compliance assessment prose (after the currency footer), emit the following block verbatim, populating the JSON array — REQUIRED whenever any finding is insufficient-basis / Insufficient information; otherwise emit an empty array:
+
+===INFORMATION_NEEDED===
+[
+  { "field": "<intake field key that exists in the intake — one of: orgName, orgType, jurisdictions, purpose, biometricTypes, dataSubjectVolume, retentionPeriod, consentMechanism, thirdPartyProcessors>",
+    "dimensions": "<what specifically to add — dimensions, never suggested values>",
+    "provision": "<already-cited provision making these dimensions relevant>",
+    "enables": "<which section/determination completes with it>" }
+]
+
+Every insufficient-basis or Insufficient-information finding elsewhere in this output MUST have a corresponding information_needed entry.
+
 Output ONLY the compliance assessment. No preamble.`;
 
 const BIOMETRIC_TOOL_MODULE: ToolModule = {
