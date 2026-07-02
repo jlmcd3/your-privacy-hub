@@ -269,8 +269,13 @@ async function runUnit(runId: string) {
     const doneSet = new Set((done ?? []).map((r: any) => r.product));
     const next = products.find((p) => !doneSet.has(p));
     if (!next) {
+      // Count reviewed vs skipped so an all-skip run is never reported as success.
+      const { data: allResults } = await db.from("quality_loop2_results")
+        .select("updatable").eq("run_id", runId);
+      const reviewed = (allResults ?? []).filter((r: any) => r.updatable).length;
+      const skipped = (allResults ?? []).length - reviewed;
       await db.from("quality_loop2_runs").update({ phase: "done", status: "complete", completed_at: new Date().toISOString() }).eq("id", runId);
-      await log(runId, `Run complete — ${products.length} products reviewed`);
+      await log(runId, `Run complete — ${reviewed} reviewed, ${skipped} skipped (of ${products.length} products)`);
       return;
     }
     const idx = (doneSet.size) + 1;

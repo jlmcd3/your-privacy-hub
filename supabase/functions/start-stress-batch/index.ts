@@ -394,6 +394,19 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Log synthesized companies for post-mortem debugging (all-skip runs) and
+  // assert setup_total matches. If geo "both" yielded no EU (or no US) wave,
+  // fail fast rather than silently produce a half-covered batch.
+  console.log(`[start-stress-batch] synthesized ${companies.length} companies for geo_filter=${geo_filter}:`,
+    JSON.stringify(companies.map((c) => `${c.geo}-${c.industryId}-slot${c.slot}`)));
+  if (geo_filter === "both") {
+    const hasUs = companies.some((c) => c.geo === "us");
+    const hasEu = companies.some((c) => c.geo === "eu");
+    if (!hasUs || !hasEu) {
+      return json({ error: `geo_filter=both but companies missing wave(s): us=${hasUs} eu=${hasEu}` }, 500);
+    }
+  }
+
   const { data: batch, error: bErr } = await admin.from("static_stress_batches").insert({
     run_by,
     status: "pending",
