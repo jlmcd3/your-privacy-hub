@@ -204,7 +204,7 @@ Return a JSON object with EXACTLY these top-level fields:
   }
 }
 
-Always emit a biometric object for every company (tool selection is handled at the job level). For sectors that do not routinely use biometric identification, still emit the object but choose realistic minimal values (e.g. biometricTypes may contain a single placeholder such as "none currently deployed" and enrolledCount may be "0"). Never emit null.
+Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values (e.g. biometricTypes may be ["none currently deployed"] and enrolledCount may be "0"). Never emit null.`;
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
