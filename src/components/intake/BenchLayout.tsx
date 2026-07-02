@@ -46,18 +46,18 @@ export default function BenchLayout({
   const showCoach = policy?.goodAnswer === true;
   return (
     <div
-      className="rounded-b-2xl border border-t-0 border-rule bg-card md:grid"
+      className="rounded-b-2xl border border-t-0 border-rule bg-card xl:grid"
       style={{
         gridTemplateColumns:
           showCoach && showRail
-            ? "290px 1fr 300px"
+            ? "minmax(240px, 290px) minmax(0, 1fr) minmax(250px, 300px)"
             : showRail
-            ? "1fr 300px"
+            ? "minmax(0, 1fr) minmax(250px, 300px)"
             : "1fr",
       }}
     >
       {showCoach && (
-        <div className="border-b border-rule p-6 md:border-b-0 md:border-r">
+        <div className="border-b border-rule p-6 xl:border-b-0 xl:border-r">
           <ColHeader tone="coach">How to answer well</ColHeader>
           <CoachingPanel entry={railEntry} openByDefault={coachingOpenByDefault} />
         </div>
@@ -67,7 +67,7 @@ export default function BenchLayout({
         {children}
       </div>
       {showRail && (
-        <div className="border-t border-rule p-6 md:border-l md:border-t-0">
+        <div className="border-t border-rule p-6 xl:border-l xl:border-t-0">
           <ColHeader tone="law">The law</ColHeader>
           <StatuteRail entry={railEntry} defaultSourceUrl={defaultSourceUrl} />
           {corpusBlock && (
