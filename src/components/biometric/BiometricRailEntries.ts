@@ -22,6 +22,10 @@ export const BIOMETRIC_RAIL: Record<string, RailEntry> = {
       '"Biometric identifier" means a retina or iris scan, fingerprint, voiceprint, or scan of hand or face geometry. Biometric identifiers do not include writing samples, written signatures, photographs, human biological samples used for valid scientific testing or screening, demographic data, tattoo descriptions, or physical descriptions such as height, weight, hair color, or eye color.',
     enforcementNote:
       "Illinois courts have construed BIPA's 'scan of face geometry' broadly enough to cover facial-recognition-derived templates extracted from uploaded photographs (Rosenbach, Cothron). Facebook (Meta) and TikTok have each settled BIPA class actions for north of $650M each.",
+    coachLead: "Select what the system captures and computes — templates count.",
+    coachBody: "BIPA's list is specific: retina or iris, fingerprint, voiceprint, hand and face geometry. Templates computed from them are covered too. Read the vendor's technical docs, not the product name.",
+    goodAnswer: "A 'photo-based clock-in' product computes face-geometry templates. Select facial geometry — the template is the biometric identifier, kept photos or not.",
+    commonMistake: "Treating template systems as 'not biometric' because raw images are deleted. The template is the regulated identifier.",
   },
 
   orgName: {
@@ -32,6 +36,10 @@ export const BIOMETRIC_RAIL: Record<string, RailEntry> = {
       "The organisation name is used only in the report header. BIPA § 15(a) requires every private entity in possession of biometric identifiers to maintain a publicly-available written retention-and-destruction policy naming the entity responsible — using the correct legal entity name in your policy is mandatory.",
     regulationText:
       "A private entity in possession of biometric identifiers or biometric information must develop a written policy, made available to the public, establishing a retention schedule and guidelines for permanently destroying biometric identifiers and biometric information when the initial purpose for collecting or obtaining such identifiers or information has been satisfied or within 3 years of the individual's last interaction with the private entity, whichever occurs first.",
+    coachLead: "Use the legal entity that runs the biometric system.",
+    coachBody: "This name heads the report and frames whose duties are assessed. Use the operating entity — not a brand, not the parent.",
+    goodAnswer: "'Acme Staffing LLC', the employer running the timeclock — not 'Acme Group', the holding company.",
+    commonMistake: "Entering the vendor's name. The assessment is about the collecting organisation's duties, not the vendor's.",
   },
 
   orgType: {
@@ -44,6 +52,10 @@ export const BIOMETRIC_RAIL: Record<string, RailEntry> = {
       'BIPA does not apply to "information captured from a patient in a health care setting or information collected, used, or stored for health care treatment, payment, or operations under the Health Insurance Portability and Accountability Act of 1996."',
     enforcementNote:
       "The 'health care setting' exemption is read narrowly: vendor-provided fingerprint timeclocks used by hospital staff have been held outside the exemption because the data was collected for workforce management, not treatment (Marquez v. Weinstein Funeral Home; Heard v. Becton).",
+    coachLead: "Pick the type that matches your relationship to the people enrolled.",
+    coachBody: "Employees, customers, and the public each change which legal bases and consent mechanics are realistic. The report calibrates on this.",
+    goodAnswer: "A gym with fingerprint entry for members selects consumer-facing, even though staff also enrol. The main population drives the analysis; staff get noted separately.",
+    commonMistake: "Selecting by industry instead of by relationship to the data subjects.",
   },
 
   purpose: {
@@ -54,6 +66,10 @@ export const BIOMETRIC_RAIL: Record<string, RailEntry> = {
       "BIPA § 15(b)(1) requires the purpose of collection to be disclosed in writing before collection — and that purpose binds the entity. Subsequent reuse for an incompatible purpose violates both BIPA's purpose-specification requirement and GDPR's Article 5(1)(b) purpose-limitation principle. 'Surveillance / monitoring' purposes face the highest scrutiny.",
     regulationText:
       "No private entity may collect, capture, purchase, receive through trade, or otherwise obtain a person's or a customer's biometric identifier or biometric information, unless it first: (1) informs the subject or the subject's legally authorized representative in writing that a biometric identifier or biometric information is being collected or stored; (2) informs the subject or the subject's legally authorized representative in writing of the specific purpose and length of term for which a biometric identifier or biometric information is being collected, stored, and used; and (3) receives a written release executed by the subject of the biometric identifier or biometric information or the subject's legally authorized representative.",
+    coachLead: "Choose the purpose your disclosure and consent will actually name.",
+    coachBody: "BIPA requires the specific purpose to be disclosed before collection. Match the option to what people will be told. Any second use is a new purpose and needs its own disclosure.",
+    goodAnswer: "A warehouse selects timekeeping — prints are used for clock-in only. When a security use is added later, that is a new purpose and a fresh disclosure.",
+    commonMistake: "Selecting the broadest option to cover everything. Undisclosed second purposes are the classic BIPA claim.",
   },
 
   jurisdictions: {
@@ -66,6 +82,10 @@ export const BIOMETRIC_RAIL: Record<string, RailEntry> = {
       "Any person aggrieved by a violation of this Act shall have a right of action in a State circuit court or as a supplemental claim in federal district court against an offending party. A prevailing party may recover for each violation: (1) against a private entity that negligently violates a provision of this Act, liquidated damages of $1,000 or actual damages, whichever is greater; (2) against a private entity that intentionally or recklessly violates a provision of this Act, liquidated damages of $5,000 or actual damages, whichever is greater… (3) reasonable attorneys' fees and costs… (4) other relief, including an injunction, as the State or federal court may deem appropriate.",
     enforcementNote:
       "BIPA's per-violation calculation (Cothron v. White Castle, 2023) means a single employee fingerprinted 100 times can ground 100 separate statutory damages claims — the underlying driver of $650M+ BIPA settlements. Washington's MHMD enforcement began March 31, 2024.",
+    coachLead: "Select where the enrolled people are — not where the company sits.",
+    coachBody: "Each biometric law protects its own residents. Include every state or region with enrolled individuals, remote workers included.",
+    goodAnswer: "A Texas company has 12 Illinois remote employees on the biometric timeclock. It selects Illinois too — BIPA follows the Illinois individuals.",
+    commonMistake: "Selecting only headquarters. BIPA claims attach per Illinois individual, wherever the employer is based.",
   },
 
   enrolledCount: {
@@ -76,5 +96,9 @@ export const BIOMETRIC_RAIL: Record<string, RailEntry> = {
       "Enrolment volume drives two things. Under GDPR, processing biometric data on a 'large scale' triggers mandatory DPIAs under Article 35(3)(b) and may require DPO designation. Under BIPA, enrolment count is a direct proxy for class-action exposure: at $1,000–$5,000 per violation, even modest enrolment populations can generate eight- to nine-figure liability ranges.",
     regulationText:
       "A data protection impact assessment referred to in paragraph 1 shall in particular be required in the case of: … (b) processing on a large scale of special categories of data referred to in Article 9(1)…",
+    coachLead: "Count every stored template — active, inactive, and departed.",
+    coachBody: "Exposure scales with stored templates, not active users. Check the vendor database for the true total, including leavers never purged.",
+    goodAnswer: "A firm has 300 staff but 1,100 stored templates. It selects the higher band — the retained templates are the exposure.",
+    commonMistake: "Counting current headcount. Unpurged templates from departed staff are exactly the retention exposure.",
   },
 };

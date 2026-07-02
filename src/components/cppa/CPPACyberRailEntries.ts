@@ -5,6 +5,11 @@
 // Voice: imperative, active, plain subject-verb-object, one idea per sentence,
 // specific over vague, no ornamental legalese. Layered: coachLead = one line an
 // expert acts on instantly; goodAnswer/commonMistake = the expansion for newer users.
+// ENUMERATED-FIELD ADDENDUM — for selects, radios, and pills, coaching explains
+// WHAT FACTS DETERMINE the accurate choice and WHAT EVIDENCE to check. It never
+// recommends an option, never suggests claiming an exemption, and never implies
+// which selection is favourable. goodAnswer shows a FICTIONAL determination —
+// facts mapped to a selection — illustrating method, not a preferred outcome.
 
 // src/components/cppa/CPPACyberRailEntries.ts
 // StatuteRail entries for the CPPA Cybersecurity Audit Readiness tool (Module 2).
@@ -21,6 +26,10 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "The cybersecurity audit must assess controls in the context of the business's specific processing activities and risk environment. Industry sector shapes the threat landscape and which components are most material.",
     regulationText: "The audit must evaluate the cybersecurity program in light of the business's size, complexity, and the nature and scope of its processing activities.",
+    coachLead: "Select the sector whose systems this audit covers.",
+    coachBody: "Sector shapes the threats and expectations the gap analysis weighs. In a multi-line business, pick the line whose systems are in scope.",
+    goodAnswer: "A healthcare-services subsidiary under audit selects healthcare — even though the parent is a private-equity firm.",
+    commonMistake: "Selecting the parent's sector. That pulls the wrong enforcement context into all eighteen control findings.",
   },
   profile_audit: {
     fieldLabel: "Last independent security audit",
@@ -29,6 +38,10 @@ export const CPPA_CYBER_RAIL: Record<string, RailEntry> = {
     plainSummary: "Covered businesses must certify completion of a cybersecurity audit to the CPPA by April 1 following each year an audit is required (first deadlines April 1, 2028 / 2029 / 2030 by 2026 revenue tier). The audit must be performed by a qualified, objective, independent professional.",
     regulationText: "Each year a business is required to complete a cybersecurity audit, a member of its executive management must submit a written certification of completion to the Agency.",
     enforcementNote: "The certification is signed under penalty of perjury by an executive with direct responsibility for cybersecurity audit compliance. A prior audit aligned to a recognized framework (e.g., NIST CSF 2.0) may be leveraged toward the requirement under § 7123(f) if all Article 9 elements are met, alone or with supplementation.",
+    coachLead: "Count independent audits only — internal reviews don't qualify.",
+    coachBody: "§ 7124 means audits by qualified, independent professionals. Select the most recent one that meets that bar. A self-assessment counts as none.",
+    goodAnswer: "A company runs annual internal reviews, but its last external audit was 2023. It selects 2023 — the internal reviews don't count.",
+    commonMistake: "Counting a SOC 2 readiness self-assessment as an audit. Independence is what qualifies it.",
   },
   c1_auth: {
     fieldLabel: "C1: Authentication",
