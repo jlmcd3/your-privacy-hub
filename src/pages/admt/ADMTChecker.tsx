@@ -469,6 +469,21 @@ export default function ADMTChecker() {
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a compliance gap analysis for your ADMT systems under 11 CCR Article 11 (§§ 7200–7222). It is an analytical aid, not legal advice. Review all output with qualified California privacy counsel before relying on it for regulatory submissions." />
 
+        {refine.isRefine && refine.intake && !refine.loading && (
+          <RefinePanel
+            toolType="cppa_admt"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/cppa-admt-checker/result/${refine.assessmentId}`}
+          />
+        )}
+        {!refine.isRefine && (<>
+
         {draftFound && !touched && (
           <div className="flex items-start justify-between gap-3 p-3 rounded-md border border-brand-teal/40 bg-[hsl(var(--cobalt)/0.06)] text-sm mb-4">
             <div>You have a saved draft{draftUpdatedAt ? ` from ${formatRelativeTime(draftUpdatedAt)}` : ""}.</div>
