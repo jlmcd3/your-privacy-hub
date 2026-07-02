@@ -198,7 +198,7 @@ Return a JSON object with EXACTLY these top-level fields:
 }
 
 Only set biometric to a non-null object if the ${industry} sector routinely uses biometric identification (e.g. healthcare, physical security, financial services). For all other sectors set biometric to null.
-The biometric object structure if used: { "biometricTypes": ["array"], "orgType": "string", "purpose": "string", "jurisdictions": ["array"], "enrolledCount": "string" }`;
+The biometric object structure if used: { "orgName": "string — the company name", "biometricTypes": ["array"], "orgType": "string", "purpose": "string", "jurisdictions": ["array"], "enrolledCount": "string" }`;
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
