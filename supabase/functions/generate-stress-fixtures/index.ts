@@ -651,14 +651,16 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       contained: "Credentials revoked, sessions invalidated, logs preserved, vendor access restricted",
       organisationType: `${industry} operator`,
     },
-    biometric: usesBiometric ? {
+    biometric: {
       orgName: c.companyName,
-      biometricTypes: ["facial template", "voiceprint"],
+      biometricTypes: usesBiometric ? ["facial template", "voiceprint"] : ["none currently deployed"],
       orgType: `${industry} organisation`,
-      purpose: "Identity verification and fraud prevention",
+      purpose: usesBiometric
+        ? "Identity verification and fraud prevention"
+        : "No active biometric processing; placeholder profile so Biometric tool can produce a proper insufficient-input analysis",
       jurisdictions,
-      enrolledCount: slot === 1 ? "120,000" : "18,000",
-    } : null,
+      enrolledCount: usesBiometric ? (slot === 1 ? "120,000" : "18,000") : "0",
+    },
     registration: {
       organization_name: c.companyName,
       organization_country: c.countryCode,
