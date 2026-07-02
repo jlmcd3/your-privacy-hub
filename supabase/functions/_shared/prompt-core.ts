@@ -1,7 +1,7 @@
 // Shared EUP prompt core (v2.3)
 // v2.3: jurisdiction-conditional English variant via ToolModule.languageVariant.
 
-export const PROMPT_CORE_VERSION = "2.7";
+export const PROMPT_CORE_VERSION = "3.0";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
