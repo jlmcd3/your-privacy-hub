@@ -25,6 +25,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 // [REVISED] authoritative § 7150(b) section strings — single source of truth
 import { CITATION_REGISTRY } from "../_shared/admt-citation-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -372,6 +373,10 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "INCONSISTENCY FLAGS MUST CITE, NEVER RESOLVE: when flagging an inconsistency (e.g. ADMT disclosure vs. negated profiling field), resolution_required must name the controlling provision(s) and instruct the controller to resolve the conflict with counsel — it must NEVER state what the controller should conclude, NEVER assert 'if [condition] applies, [consequence] is required,' and NEVER direct a specific follow-on action contingent on an unresolved determination. Correct form: 'The controller must resolve, with reference to § 7001(ddd) and § 7150(b)(3)–(4), whether the rules-based scoring system triggers either provision, and consult privacy counsel on the applicable § 7150(b) trigger scope.' Incorrect form: 'The controller must confirm whether X applies; if X applies, Y is required' — the second clause tells the user the consequence of a determination the tool has not made and is not entitled to make. Strip any 'if [X], then [Y] is required' construction from resolution_required and replace it with 'consult privacy counsel to determine the applicable trigger scope and any resulting assessment obligations.'",
     "EXCEPTIONS_STATUS MUST AGREE WITH THE RECORD: do not set assessment_summary.exceptions_status to 'All well-documented' when the same assessment identifies missing required fields (e.g. § 7152(a)(4) benefits documentation, sources of PI, minimum-necessary determinations) elsewhere in the output. If required fill-ins remain open anywhere in the document, exceptions_status must reflect that — e.g. 'No exceptions claimed; § 7152(a)(4) benefits documentation incomplete' — not an unqualified 'All well-documented.'",
     "STATUTORY_BASIS MUST COVER BOTH DETERMINATIONS: where an action item states two separate determinations are required (recipient classification vs. sale/share characterisation — see the THIRD PARTY ≠ SALE/SHARE rule), statutory_basis must cite provisions for BOTH: § 1798.140(ag) (service provider) and § 1798.140(j) (contractor) for the classification determination, alongside § 7150(b)(1) and the relevant § 1798.140 sale/share definitions for the second. Do not cite only the sale/share provision when the action also asks the user to make a classification determination.",
+    "PRECISE DEFINITION CITES: when definitions of sell/share/service-provider/contractor are invoked, cite in this precise form — \"§ 1798.140(ad) ('sell'); § 1798.140(ah) ('share'); § 1798.140(ag) (service provider); § 1798.140(j) (contractor); 11 CCR § 7150(b)(1)\". Do not paraphrase these subsection labels.",
+    "§ 7001(ddd) GLOSS: when referencing the significant-decision categories, use the phrase \"decisions enumerated in § 7001(ddd)\" rather than a partial illustrative list. Never truncate the enumeration to a subset (e.g. financial services and lending only) as though those were exhaustive.",
+    "PURPOSE-DOCUMENTATION IMMEDIATE RATIONALE: where a priority_action for purpose documentation is marked Immediate against a 2027 statutory deadline, append the rationale verbatim: \"marked Immediate because generic purpose statements are flagged by the § 7152(a)(1) validator and must be remediated before the assessment can be relied on.\"",
+    "REQUIRED-DOCUMENTATION VOICE: do NOT emit the internal-voice phrase \"This is a required fill-in:\" anywhere in the output. Frame such items as \"Required documentation: [specific, non-generic purpose … per § 7152(a)(1)].\"",
   ].join("\n"),
   schema: `OUTPUT FORMAT — Return a single JSON object with this exact structure. No markdown fences, no preamble:
 
@@ -422,8 +427,12 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "statutory_framework": "Cal. Code Regs. tit. 11, §§ 7150–7157",
     "compliance_deadline": "December 31, 2027",
     "disclaimer": "This document has been generated to assist in preparing a CPPA risk assessment. It does not constitute legal advice. Review with qualified privacy counsel before submission or reliance."
-  }
-}`,
+  },
+  "information_needed": [
+    { "field": "<intake field key that exists in the intake>", "dimensions": "<what specifically to add — dimensions, never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>" }
+  ]
+}
+Every insufficient-basis or "Insufficient information" finding elsewhere in this output MUST have a corresponding information_needed entry; otherwise return an empty array.`,
 };
 
 function buildUserPrompt(intake: FiveStageIntake): string {
@@ -733,6 +742,27 @@ async function runPipeline(assessment_id: string) {
       console.warn("[cppa-risk v4] post-gen verification error:", e);
     }
 
+    // 2.2.a — FORWARD PATH retry trigger: if the guard detects a dead-end
+    // insufficient-basis passage without a paired information_needed entry,
+    // one regeneration with the appended instruction.
+    try {
+      const intakeForGuard = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const preview = guardInformationNeeded({ ...parsed }, intakeForGuard);
+      if (preview.deadEndWithoutPath) {
+        console.warn(JSON.stringify({ evt: "forward_path_retry", fn: "run-cppa-risk-assessment" }));
+        const appended = userPrompt + "\n\nYour previous output contained an insufficient-basis finding with no information_needed entry. Re-emit with the required entry per the FORWARD PATH rule.";
+        const retry = await callModel(system, appended, "generate-v4-fwdpath-retry");
+        const retryParsed = tryParseJson(retry.text);
+        if (retryParsed && retryParsed.assessment_summary) {
+          parsed = retryParsed;
+          lastStopReason = retry.stopReason;
+          debugRaw = retry.text;
+        }
+      }
+    } catch (e) {
+      console.warn("[cppa-risk v4] forward-path guard preview error:", e);
+    }
+
 
     // DETERMINISTIC § 7157 DEADLINE NORMALISATION: the model has twice produced a
     // specific "2028-01-01" deadline for the § 7157 annual attestation despite an
@@ -756,7 +786,7 @@ async function runPipeline(assessment_id: string) {
       }
     }
 
-    const report_data = {
+    let report_data: any = {
       schema_version: "v4-five-stage",
       generated_at: new Date().toISOString(),
       legacy_shim_applied: wasLegacyShimmed,
@@ -767,6 +797,10 @@ async function runPipeline(assessment_id: string) {
         longitudinal_synthesis_chars: longitudinalSynthesis.length,
       },
     };
+
+    // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
+    const guarded = guardInformationNeeded(report_data, ((row as any).intake_data as Record<string, unknown>) ?? {});
+    report_data = guarded.report;
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

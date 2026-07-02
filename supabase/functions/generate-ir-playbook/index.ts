@@ -12,6 +12,7 @@ import {
 } from "../_shared/gdpr-registry.ts";
 import { renderIcoPenaltyFigures } from "../_shared/enforcement-figures-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
@@ -868,14 +869,26 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           .filter((j) => DPA_PORTALS[j])
           .map((j) => ({ jurisdiction: j, portal: DPA_PORTALS[j] }));
 
-        const report_data = {
+        const report_data: Record<string, any> = {
           portals,
           enforcement_precedents: enforcement_context.slice(0, 5),
           enforcement_meta: enforcementMeta,
           annotations: parsedAnnotations,
           lint_warnings: lintWarnings,
+          information_needed: Array.isArray((assembled as any)?.information_needed)
+            ? (assembled as any).information_needed
+            : [],
           generated_at: new Date().toISOString(),
         };
+        try {
+          const guarded = guardInformationNeeded(
+            { ...report_data, playbook_text } as Record<string, unknown>,
+            (body as unknown) as Record<string, unknown>,
+          );
+          report_data.information_needed = (guarded as any).information_needed ?? report_data.information_needed;
+        } catch (e) {
+          console.warn("[generate-ir-playbook] insufficient-info guard error:", e);
+        }
 
         // Stage 1: metering + version retention (written BEFORE status:complete).
         await recordRunMeterAndVersion(supabase, {

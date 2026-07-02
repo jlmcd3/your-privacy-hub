@@ -7,6 +7,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -167,7 +168,16 @@ INTERACTION_EFFECTS LENGTH: if interaction_effects would otherwise exceed roughl
 
 ART 33(1) CLOCK TRIGGER: when describing the 72-hour breach-notification clock, state explicitly that it begins when the CONTROLLER becomes aware of the breach (typically upon receipt of the processor's Art. 33(2) notice), not from the processor's notification itself — avoid phrasing that could be read as the clock starting at the moment of processor notice.
 
-IMPLEMENT-OR-VERIFY DISAMBIGUATION: Avoid the ambiguous phrase 'implement or verify' when directing the user to secure a control. Split it into two explicit steps: 'Then, either implement technical controls... if none exist, or verify and document existing controls, ensuring the controls enforce the policy across all named platforms.'`;
+IMPLEMENT-OR-VERIFY DISAMBIGUATION: Avoid the ambiguous phrase 'implement or verify' when directing the user to secure a control. Split it into two explicit steps: 'Then, either implement technical controls... if none exist, or verify and document existing controls, ensuring the controls enforce the policy across all named platforms.'
+
+ARTICLE-GLOSS CORRECTIONS (2.3):
+- Art. 24: "GDPR Art. 24 (controller must implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation)".
+- Art. 29: "GDPR Art. 29 (persons acting under the authority of the controller or processor may process personal data only on the controller's instructions, unless required by Union or Member State law)". Do not mention confidentiality here — that is Art. 28(3)(b).
+- Art. 14: "(information to be provided where personal data have not been obtained from the data subject)".
+- Art. 12: "(transparent information, communication and modalities for the exercise of the rights of the data subject)" — replace "consumer-rights"; the GDPR term is data subject rights.
+- DPF sentence, user-facing voice: "including the EU–US Data Privacy Framework (Commission Implementing Decision (EU) 2023/1795) for US-established importers certified under the Framework — verify current certification status at dataprivacyframework.gov".
+- DPIA-trigger gloss addition: "Art. 35(3) provides examples and is not exhaustive — any processing likely to result in a high risk under Art. 35(1) requires a DPIA even if not listed in Art. 35(3)."
+- REGULATORY-BASIS SCOPE RULE: a provision appears in a domain's regulatory_basis only if it grounds a gap or recommended action in that domain (e.g. drop Art. 37(1) where the DPO is already appointed and no 37(1) gap exists).`;
 }
 
 export function buildGovernanceDomainToolModule(jurisdictions: unknown, euUkData: string): ToolModule {
@@ -536,8 +546,13 @@ Return JSON:
       "outcome": "rejected | accepted | penalised | required",
       "relevance": "one sentence why this case is relevant to this synthesis"
     }
+  ],
+  "information_needed": [
+    { "field": "<intake field key that exists in the intake>", "dimensions": "<what specifically to add — dimensions, never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>" }
   ]
-}`;
+}
+
+Every insufficient-basis or "Insufficient information" finding elsewhere in this output MUST have a corresponding information_needed entry; otherwise return an empty array.`;
 
     const synthesisSystem = buildSystemContent({
       toolModule: GOVERNANCE_SYNTHESIS_TOOL_MODULE,
@@ -619,7 +634,7 @@ Return JSON:
       };
     }
 
-    const reportData = {
+    let reportData: any = {
       generated_at: new Date().toISOString(),
       assessment_id,
       organisation_profile: intake,
@@ -642,6 +657,7 @@ Return JSON:
       enforcement_precedents: enforcementPrecedents,
       enforcement_meta: enforcementMeta,
       annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
+      information_needed: Array.isArray((synthesis as any)?.information_needed) ? (synthesis as any).information_needed : [],
       lint_warnings: [
         ...failedDomains.map((d) => ({
           code: "domain_assessment_failed",
@@ -652,6 +668,10 @@ Return JSON:
       ],
       disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
+
+    // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
+    const guarded = guardInformationNeeded(reportData, ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {});
+    reportData = guarded.report;
 
     const dpiaScope = synthesis.dpia_scope || [];
 
