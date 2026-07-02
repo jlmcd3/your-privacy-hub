@@ -573,6 +573,20 @@ export default function CPPARiskAssessment() {
         <IntakeGuidance>Where a field asks you to describe something, be specific and complete — name the systems, the data, and the steps. Where several items apply, list each one separately. The report is only as precise as what you put in.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid, not legal advice, and does not constitute a certified audit or regulatory submission. Review all output with qualified counsel before relying on it." />
+        {refine.isRefine && refine.intake && !refine.loading && (
+          <RefinePanel
+            toolType="cppa_risk_assessment"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/cppa-risk-assessment/result/${refine.assessmentId}`}
+          />
+        )}
+        {!refine.isRefine && (<></>)}
         {draftFound && !touched && (
           <div className="flex items-start justify-between gap-3 p-3 rounded-md border border-brand-teal/40 bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] text-sm">
             <div className="text-foreground">
