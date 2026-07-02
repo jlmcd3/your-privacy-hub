@@ -19,6 +19,10 @@ import { stripeFor, accentFor } from "@/lib/li-outcome-palette";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { useRefineMode } from "@/hooks/useRefineMode";
+import RefinePanel from "@/components/refine/RefinePanel";
+
+
 
 
 const DATA_CATEGORIES = [
