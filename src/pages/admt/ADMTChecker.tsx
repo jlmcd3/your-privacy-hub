@@ -145,6 +145,7 @@ export default function ADMTChecker() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const refine = useRefineMode("cppa_admt");
+  const { meter } = useRunMeter("cppa_admt", refine.assessmentId);
   const [step, setStep] = useState(1);
   const totalSteps = 5;
 
@@ -456,7 +457,7 @@ export default function ADMTChecker() {
   const isReview = step === totalSteps;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-paper">
       <Navbar />
       <DashboardSubnav />
       <Helmet>
