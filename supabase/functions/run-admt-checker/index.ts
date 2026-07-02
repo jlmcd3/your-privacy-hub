@@ -16,6 +16,7 @@ import {
 import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -518,8 +519,23 @@ Return this JSON structure exactly. Do not add fields not listed here. Do not om
     "Numbered action item with specific deadline where known. Based only on gaps identified above."
   ],
 
-  "compliant_elements": ["List of elements assessed as compliant, with brief explanation."]
-}`;
+  "compliant_elements": ["List of elements assessed as compliant, with brief explanation."],
+
+  "information_needed": [
+    // REQUIRED whenever any finding in this report is insufficient-basis / Insufficient information; otherwise an empty array. One entry per gap.
+    { "field": "<intake field key that exists in the intake>",
+      "dimensions": "<what specifically to add — dimensions, never suggested values>",
+      "provision": "<already-cited provision making these dimensions relevant>",
+      "enables": "<which section/determination completes with it>" }
+  ]
+}
+
+Every insufficient-basis or Insufficient-information finding elsewhere in this output MUST have a corresponding information_needed entry.
+
+ADDITIONAL DISCIPLINES:
+- 2.8b DISTINCT-SCOPE PHRASING FOR § 7220(c)(5): Where notice_howworks and notice_alternative_process both cite § 7220(c)(5), each entry states its distinct scope in one sentence — how-the-ADMT-works explanation vs. the alternative-process disclosure — so the user does not remediate the same gap twice.
+- 2.8c SIGNIFICANT-DECISION PHRASING: When explaining that a subscription product does not itself trigger the significant-decision test, use: "…or another subscription product that does not involve financial services, lending, housing, education, employment, or healthcare, the trigger is NOT satisfied."
+- 2.8d INTAKE-GAP PHRASING: When flagging missing appeal-mechanics data, use: "the appeal-mechanics fields are not populated or are marked not applicable in the available intake data" (replaces "all marked not applicable").`;
 
     let rawText: string;
     {
@@ -835,6 +851,42 @@ Return this JSON structure exactly:
       } catch (draftErr) {
         console.warn("[run-admt-checker] sample language drafting failed (non-fatal):", draftErr);
       }
+    }
+
+    // 2.8a — deterministic critical_failures mirror. Every gap with status
+    // "missing" AND HIGH enforcement-exposure band is mirrored into
+    // critical_failures[] using the gap's own title and exposure text. Mirror
+    // only from existing gap items; never invent entries.
+    try {
+      const HIGH_BAND = /\bHIGH\b/i;
+      const gapBuckets: any[][] = [
+        Array.isArray(report?.notice_gaps) ? report.notice_gaps : [],
+        Array.isArray(report?.opt_out_gaps) ? report.opt_out_gaps : [],
+        Array.isArray(report?.access_gaps) ? report.access_gaps : [],
+      ];
+      const mirrored: any[] = [];
+      for (const bucket of gapBuckets) {
+        for (const g of bucket) {
+          if (g?.status === "missing" && typeof g?.enforcement_exposure === "string" && HIGH_BAND.test(g.enforcement_exposure)) {
+            mirrored.push({
+              element: g.element,
+              element_id: g.element_id,
+              enforcement_exposure: g.enforcement_exposure,
+            });
+          }
+        }
+      }
+      report.critical_failures = mirrored;
+    } catch (e) {
+      console.warn("[run-admt-checker] critical_failures mirror failed (non-fatal):", e);
+    }
+
+    // 2.8 S2 — forward-path guard.
+    try {
+      const guarded = guardInformationNeeded(report, ((assessment as any).intake_data as Record<string, unknown>) ?? {});
+      report = guarded.report;
+    } catch (e) {
+      console.warn("[run-admt-checker] guardInformationNeeded failed (non-fatal):", e);
     }
 
     // Stage 1: metering + version retention (written BEFORE status:complete).

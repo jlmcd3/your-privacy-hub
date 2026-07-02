@@ -9,6 +9,7 @@ import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 
 
 
@@ -521,8 +522,17 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
       "outcome": "rejected | accepted | penalised | required",
       "relevance": "one sentence why this case is relevant to this assessment"
     }
+  ],
+  "information_needed": [
+    // REQUIRED whenever any finding in this report is insufficient-basis / Insufficient information / "uncertain" verdict; otherwise an empty array. One entry per gap.
+    { "field": "<intake field key that exists in the intake — one of: organization_name, subject_anchor, relationship_type, jurisdictions, data_categories>",
+      "dimensions": "<what specifically to add — dimensions, never suggested values>",
+      "provision": "<already-cited provision making these dimensions relevant>",
+      "enables": "<which section/determination completes with it>" }
   ]
-}`;
+}
+
+Every insufficient-basis or Insufficient-information finding elsewhere in this output (including any "uncertain" verdict in purpose_test, necessity_test, or balancing_test) MUST have a corresponding information_needed entry.`;
 
     async function runStage2(extraUser: string, maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
@@ -823,10 +833,23 @@ Return JSON:
       three_part_test: analysis,
       lint_warnings: lintViolations,
       annotations: (() => { try { return Array.isArray(analysis?.annotations) ? analysis.annotations : []; } catch { return []; } })(),
+      information_needed: Array.isArray((analysis as any)?.information_needed) ? (analysis as any).information_needed : [],
       documentation_recommendations: docRecs,
       disclaimer: "This report helps your organisation identify areas for legal review. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel before relying on legitimate interest as a processing legal basis under UK GDPR, EU GDPR, or equivalent provisions.",
       data_currency_note: `Precedent database last updated: ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}. Regulatory positions evolve. Verify against current DPA guidance.`
     };
+
+    // 2.9 — LIA has no intake_data column; build the guard's intake object
+    // from the row's dedicated columns (never invent an intake_data field).
+    const liaIntakeObject: Record<string, unknown> = {
+      organization_name: assessment.organization_name,
+      subject_anchor: (assessment as any).subject_anchor ?? null,
+      relationship_type: assessment.relationship_type,
+      jurisdictions: assessment.jurisdictions,
+      data_categories: assessment.data_categories,
+    };
+    const guarded = guardInformationNeeded(reportData, liaIntakeObject);
+    Object.assign(reportData, guarded.report);
 
     // Stage 1: metering + version retention (successful runs only).
     // Written BEFORE status:complete so that any client observing "complete"
@@ -835,13 +858,7 @@ Return JSON:
       toolType: "li_assessment",
       assessmentId: assessment_id,
       userId: assessment.user_id ?? null,
-      intake: {
-        organization_name: assessment.organization_name,
-        subject_anchor: (assessment as any).subject_anchor ?? null,
-        relationship_type: assessment.relationship_type,
-        jurisdictions: assessment.jurisdictions,
-        data_categories: assessment.data_categories,
-      },
+      intake: liaIntakeObject,
       reportData,
     });
 

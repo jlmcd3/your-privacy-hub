@@ -8,6 +8,7 @@ import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, type DpiaIntakeFacts, type TransferFlow } from "../_shared/dpia-jurisdiction-registry.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -119,6 +120,11 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "PLANNED MEASURES — DESIGN REQUIREMENT VS CURRENT DEFECT: when a measure's implementation_status is 'Planned,' its appropriateness text must make clear whether the described standard (e.g. 'must assess per individual objection, not a blanket override') is a DESIGN REQUIREMENT for the planned measure (i.e. what the future procedure must include) or a description of a CURRENT deficiency. Do not phrase a design requirement for a not-yet-built procedure as though it were an already-violated standard. If the procedure doesn't exist yet, say so: 'Requires scoping — an objection-handling procedure for this processing activity must be documented; it must assess objections individually, since a blanket override does not satisfy Article 21(1).'",
     "PLAN-ITEM COUNT MUST MATCH: if section_4_risk_management.plan's preamble text numbers items (1) through (N), the plan array must contain exactly N items, and N must equal the number of inherent/residual risk rows if the plan is meant to map 1:1 to risks. Before finalising, count the enumerated plan items and the risk-table rows; if they don't match, either correct the preamble's numbering or add/remove a plan item — do not leave a stated count that the actual array contradicts.",
     "CONDITIONS MUST SPECIFY VERIFY VS IMPLEMENT: when a section_6_conclusion condition references a control already described elsewhere as partially or fully implemented (e.g. encryption), phrase the condition as a verification task, not an ambiguous 'confirmation' that could be read as an implementation gap: 'Confirm and document that encryption in transit (TLS 1.2 or higher, TLS 1.3 recommended) and at rest is in place across all data flows and processors, and verify key-management controls' — not a bare 'encryption confirmation' that leaves open whether encryption already exists.",
+    "2.7a UNCONFIRMED CONTROLS ARE NOT MITIGATING: An unconfirmed fact is never credited as a mitigating factor. Where a control's existence is unknown, phrase as \"if [control] exists (to be confirmed), it may partially mitigate; confirmation is required before this factor can be credited\" and exclude that factor from the risk score.",
+    "2.7b PREREQUISITE-BLOCKED MEASURES: Where a measure is blocked by a prerequisite gap (e.g. erasure pending retention-period definition), keep the schema's status value but state in the appropriateness text that the measure depends on the named prerequisite, so the same gap is not double-counted.",
+    "2.7c TRANSFERS VOICE: Where processor data-centre regions are unconfirmed, write to the organisation in the second person: \"The organisation must not conclude that no international transfers occur until processor data-centre regions are confirmed.\" Do NOT use generator voice (\"Do not assert 'no transfers'…\").",
+    "2.7d ART 13 vs ART 14 DISTINCTION: Privacy-notice conditions distinguish Art. 14 (primary, where data is not obtained from the data subject — e.g. monitoring data collected about individuals) from Art. 13 (where identifiers are collected directly from the data subject). Cite whichever applies to the specific data flow rather than defaulting to Art. 13.",
+    "2.7 S1 SCHEMA — INFORMATION NEEDED: In addition to the existing completion_guidance field, emit a top-level \"information_needed\" array. It is REQUIRED whenever any finding in this report is insufficient-basis / Insufficient information; otherwise emit an empty array. One entry per gap: { field: <intake field key that exists in this DPIA's intake>, dimensions: <what specifically to add — dimensions, never suggested values>, provision: <already-cited provision making these dimensions relevant>, enables: <which section/determination completes with it> }. Every insufficient-basis or Insufficient-information finding elsewhere in this output MUST have a corresponding information_needed entry. Do NOT merge information_needed into completion_guidance — the two coexist.",
   ].join("\n\n"),
   languageVariant: "jurisdiction-conditional",
 };
@@ -753,6 +759,15 @@ Generate substantive draft rows for every table for the controller to verify; us
         ? reportData.section_4_risk_management.annotations
         : [];
     } catch { reportData.annotations = []; }
+
+    // 2.7 S2 — forward-path guard. DPIA keeps its existing completion_guidance;
+    // information_needed is added alongside (not merged).
+    try {
+      const guarded = guardInformationNeeded(reportData, (dpia.intake_data as Record<string, unknown>) ?? {});
+      Object.assign(reportData, guarded.report);
+    } catch (e) {
+      console.warn("[run-dpia-framework] guardInformationNeeded failed (non-fatal):", e);
+    }
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

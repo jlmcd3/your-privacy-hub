@@ -8,6 +8,7 @@ import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
 import { renderRegistryFor } from "../_shared/registry/product-manifest.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
+import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 
 const BIOMETRIC_IDENTITY = `You are a biometric privacy compliance analyst with expertise in BIPA (Illinois), Texas CUBI, Washington My Health My Data, CCPA biometric provisions, GDPR Article 9(1) biometric data, and EDPB biometric guidance.
 
@@ -72,6 +73,24 @@ ENFORCEMENT-POSTURE GROUNDING: in any "Current enforcement posture" paragraph, d
 JURISDICTIONAL HYGIENE — DO NOT MIX REGULATORS ACROSS SECTIONS: The ICO is the UK supervisory authority and must appear ONLY in UK / GB sections — never in an EU GDPR section (post-Brexit the ICO has no EU GDPR competence). This applies to EVERY paragraph type, not just the per-jurisdiction "Current enforcement posture" block that follows the worked examples below — it also applies to any cross-jurisdiction summary, executive overview, or combined "EU GDPR enforcement" discussion you generate for an organisation with both EU and UK presence. If an organisation operates in both the EU and the UK, write TWO separate enforcement-posture statements (one EU, listing only EU/EEA authorities; one UK, naming the ICO) — never one combined "EU GDPR" paragraph that lists the ICO alongside CNIL/Garante/AEPD/DSK. Within an EU GDPR section, name only EU/EEA supervisory authorities (e.g. CNIL, Garante, AEPD, DSK/Land authorities). When listing GDPR Chapter V transfer mechanisms, distinguish Article 45 adequacy decisions from Article 46 appropriate safeguards: an Article 45 adequacy decision (including the EU–US Data Privacy Framework, where the importer is certified under it) removes the need for Article 46 safeguards; absent adequacy, the transfer needs Article 46 safeguards (SCCs or BCRs). The Data Privacy Framework is an Article 45 adequacy decision — NEVER list it (or "adequacy") as an Article 46 safeguard. For UK transfer mechanisms list "a UK adequacy decision (Article 45 equivalent — including the UK–US Data Bridge where the US importer is certified), or absent that, a UK IDTA or the UK Addendum to the EU SCCs".
 
 NO META-COMMENTARY IN USER-FACING OUTPUT: User-facing prose must read as finished advice to the reader. Never emit text directed at yourself or the system — instructions about how to source, ground, or verify enforcement data; notes about the supplied corpus; or bracketed citation-to-be-confirmed markers. If you cannot ground a specific fine or case from the supplied ENFORCEMENT PRECEDENTS block, state the obligation at statute level and direct the reader to the regulator's public enforcement register, without referring to your own grounding instructions. Do not include an external URL unless that exact URL appears in the supplied corpus. Do NOT copy any example phrase from these instructions into the report.
+
+2.6a CHAPTER V SENTENCE (verbatim where the Chapter V mechanism list is presented): "Chapter V transfer mechanisms required for any third-country transfers: an Article 45 adequacy decision, or Article 46 safeguards (SCCs, BCRs) where no adequacy decision applies."
+
+2.6b UK EMPLOYMENT CONDITION CITE (use this form consistently wherever the UK employment lawful-condition is cited): "DPA 2018 Schedule 1, Part 1, paragraph 1 (employment, social security and social protection)."
+
+2.6c ENFORCEMENT-REGISTER FOOTER (emit ONCE per output, not per jurisdiction — place at the end of the enforcement-posture material): "Enforcement posture descriptions reference supervisory-authority registers; verify current actions, amounts and case details against the respective registers."
+
+2.6 S1 SCHEMA — INFORMATION NEEDED: At the very end of the compliance assessment prose (after the currency footer), emit the following block verbatim, populating the JSON array — REQUIRED whenever any finding is insufficient-basis / Insufficient information; otherwise emit an empty array:
+
+===INFORMATION_NEEDED===
+[
+  { "field": "<intake field key that exists in the intake — one of: orgName, orgType, jurisdictions, purpose, biometricTypes, dataSubjectVolume, retentionPeriod, consentMechanism, thirdPartyProcessors>",
+    "dimensions": "<what specifically to add — dimensions, never suggested values>",
+    "provision": "<already-cited provision making these dimensions relevant>",
+    "enables": "<which section/determination completes with it>" }
+]
+
+Every insufficient-basis or Insufficient-information finding elsewhere in this output MUST have a corresponding information_needed entry.
 
 Output ONLY the compliance assessment. No preamble.`;
 
@@ -1113,6 +1132,16 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
     };
+
+    // 2.6 S2 — forward-path guard. Biometric intake is the request body.
+    try {
+      const guarded = guardInformationNeeded(report_data as Record<string, unknown>, (body as unknown) as Record<string, unknown>);
+      Object.assign(report_data as Record<string, unknown>, guarded.report);
+    } catch (e) {
+      console.warn("[check-biometric-compliance] guardInformationNeeded failed (non-fatal):", e);
+    }
+
+
 
 
     let savedId: string | null = null;
