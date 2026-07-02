@@ -364,7 +364,7 @@ const GovernanceAssessment = () => {
 
 
   return (
-    <WorkspaceLayout className="bg-background">
+    <WorkspaceLayout className="bg-paper">
       <Helmet><title>GDPR Governance Assessment | End User Privacy</title>
         <meta name="description" content="Score your privacy programme against the GDPR framework — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>
       {refine.isRefine && refine.intake && !refine.loading ? (
