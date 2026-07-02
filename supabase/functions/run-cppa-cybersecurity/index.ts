@@ -1004,6 +1004,10 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     ];
 
 
+    // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
+    const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {});
+    report = guarded.report;
+
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "cppa_cybersecurity",
@@ -1012,6 +1016,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       intake: ((row as any).intake_data as Record<string, unknown>) ?? {},
       reportData: report,
     });
+
 
     await supabase
       .from("cppa_assessments")
