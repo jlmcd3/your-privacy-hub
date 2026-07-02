@@ -296,6 +296,20 @@ async function runUnit(runId: string) {
       .limit(25);
     const report = (reportRows ?? []).find((row: any) => reportToText(row)) ?? null;
 
+    // Stale-artifact guard: warn when the newest usable sample_report predates this run.
+    // Stale grading must never be silent.
+    if (report?.created_at && run.started_at) {
+      const reportMs = new Date(report.created_at).getTime();
+      const runStartMs = new Date(run.started_at).getTime();
+      if (Number.isFinite(reportMs) && Number.isFinite(runStartMs) && reportMs < runStartMs) {
+        await log(
+          runId,
+          `${reg.label}: STALE ARTIFACT — no fresh dummy job in this run for product "${next}" (slug ${reg.sampleSlug}). Reviewing artifact created_at=${report.created_at} which predates run started_at=${run.started_at}.`,
+          { level: "warn", product: next },
+        );
+      }
+    }
+
     const text = reportToText(report);
     if (!text) {
       await db.from("quality_loop2_results").insert({
