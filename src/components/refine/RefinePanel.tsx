@@ -150,9 +150,15 @@ export default function RefinePanel({
         <div className="space-y-5">
           {editable.map((f) => (
             <div key={f.key}>
-              <label htmlFor={`ref-${f.key}`} className="text-sm font-semibold text-brand-navy">
+              <label htmlFor={`ref-${f.key}`} className="text-sm font-semibold text-brand-navy inline-flex items-center gap-2">
                 {f.label}
+                {infoSet.has(f.key) && (
+                  <span className="text-body-tiny font-semibold text-teal-action bg-teal-wash rounded px-1.5 py-0.5">
+                    named in your report
+                  </span>
+                )}
               </label>
+
               {f.kind === "textarea" ? (
                 <textarea
                   id={`ref-${f.key}`}
