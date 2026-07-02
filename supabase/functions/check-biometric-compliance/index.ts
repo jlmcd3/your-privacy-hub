@@ -1133,6 +1133,16 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       generated_at: new Date().toISOString(),
     };
 
+    // 2.6 S2 — forward-path guard. Biometric intake is the request body.
+    try {
+      const guarded = guardInformationNeeded(report_data as Record<string, unknown>, (body as unknown) as Record<string, unknown>);
+      Object.assign(report_data as Record<string, unknown>, guarded.report);
+    } catch (e) {
+      console.warn("[check-biometric-compliance] guardInformationNeeded failed (non-fatal):", e);
+    }
+
+
+
 
     let savedId: string | null = null;
     const isDryRun = caller.internal && body.dry_run === true;
