@@ -182,7 +182,14 @@ Return a JSON object with EXACTLY these top-level fields:
     "jurisdictions": ["array"], "processorInvolved": boolean,
     "contained": "string", "organisationType": "string"
   },
-  "biometric": null,
+  "biometric": {
+    "orgName": "string — the company name",
+    "biometricTypes": ["array"],
+    "orgType": "string",
+    "purpose": "string",
+    "jurisdictions": ["array"],
+    "enrolledCount": "string"
+  },
   "registration": {
     "organization_name": "string", "organization_country": "string",
     "organization_size": "string", "industry": "string", "email": "string",
@@ -197,8 +204,7 @@ Return a JSON object with EXACTLY these top-level fields:
   }
 }
 
-Only set biometric to a non-null object if the ${industry} sector routinely uses biometric identification (e.g. healthcare, physical security, financial services). For all other sectors set biometric to null.
-The biometric object structure if used: { "orgName": "string — the company name", "biometricTypes": ["array"], "orgType": "string", "purpose": "string", "jurisdictions": ["array"], "enrolledCount": "string" }`;
+Always emit a biometric object for every company (tool selection is handled at the job level by selected_tools). For sectors that do not routinely use biometric identification, still emit the object using realistic minimal values (e.g. biometricTypes may be ["none currently deployed"] and enrolledCount may be "0"). Never emit null.`;
 }
 
 // ── CALL B (EU): lia, dpia, ropa, euNotice ────────────────────────────────────
@@ -344,7 +350,28 @@ Return a JSON object with EXACTLY these fields:
   },
   "usNotice": null,
   "cppaRisk": null,
-  "cppaCyber": null
+  "cppaCyber": null,
+  "cppaAdmt": {
+    "organization_name": "string", "system_name": "string", "system_type": "string",
+    "system_description": "string", "decision_domains": ["array"], "human_review": "string",
+    "training_data_use": "Yes or No", "profiling_use": "Yes or No",
+    "notice_delivery": ["array"], "notice_has_specific_purpose": "Yes or No",
+    "notice_purpose_text": "string",
+    "notice_has_opt_out_desc": "Yes or No", "notice_has_access_desc": "Yes or No",
+    "notice_has_anti_retaliation": "Yes or No", "notice_has_how_it_works": "Yes or No",
+    "notice_has_alternative_process": "Yes or No",
+    "opt_out_exception": "string", "opt_out_methods": ["array"], "opt_out_link_title": "string",
+    "opt_out_no_cookie_banner": "Yes or No", "opt_out_no_account_required": "Yes or No",
+    "opt_out_confirmation_mechanism": "string", "opt_out_appeal_process": "string",
+    "opt_out_fairness_doc": "string",
+    "opt_out_15_day_process": "string", "opt_out_service_provider_notice": "string",
+    "access_submission_methods": "string", "access_verification_process": "string",
+    "access_logic_disclosure": "string", "access_outcome_disclosure": "string",
+    "access_response_timeline": "string", "access_trade_secret_policy": "string",
+    "ca_consumer_count": "string", "third_party_admt": "Yes or No",
+    "admt_system_count": "string", "prior_access_requests_12mo": "string",
+    "admt_detail": {}
+  }
 }
 
 Include 3-5 realistic processing activities in ropa.activities for a ${industry} company.`;
@@ -624,14 +651,16 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       contained: "Credentials revoked, sessions invalidated, logs preserved, vendor access restricted",
       organisationType: `${industry} operator`,
     },
-    biometric: usesBiometric ? {
+    biometric: {
       orgName: c.companyName,
-      biometricTypes: ["facial template", "voiceprint"],
+      biometricTypes: usesBiometric ? ["facial template", "voiceprint"] : ["none currently deployed"],
       orgType: `${industry} organisation`,
-      purpose: "Identity verification and fraud prevention",
+      purpose: usesBiometric
+        ? "Identity verification and fraud prevention"
+        : "No active biometric processing; placeholder profile so Biometric tool can produce a proper insufficient-input analysis",
       jurisdictions,
-      enrolledCount: slot === 1 ? "120,000" : "18,000",
-    } : null,
+      enrolledCount: usesBiometric ? (slot === 1 ? "120,000" : "18,000") : "0",
+    },
     registration: {
       organization_name: c.companyName,
       organization_country: c.countryCode,
@@ -844,6 +873,80 @@ function getRopaActivitiesForSector(industry: string, companyName: string) {
   ];
 }
 
+function buildAdmtFallback(companyName: string, industry: string, slot: number) {
+  const isFintech = /fintech/i.test(industry);
+  const isHr = /\bhr\b|human resources|hiring|recruit/i.test(industry);
+  const isAdtech = /adtech|marketing|advertis/i.test(industry);
+  const isGaming = /gaming|entertainment/i.test(industry);
+  return {
+    organization_name: companyName,
+    system_name:
+      isFintech ? "Credit Risk Scoring Model" :
+      isHr ? "Candidate Screening System" :
+      isAdtech ? "Audience Segmentation Engine" :
+      isGaming ? "Dynamic Difficulty and Monetization Engine" :
+      "AI Decisioning Engine",
+    system_type: "ML model",
+    system_description:
+      isFintech
+        ? "Logistic regression model trained on payment history, utilization, and income proxies to produce a 0–850 creditworthiness score used for loan approval and credit limit decisions for California consumers."
+        : isHr
+        ? "NLP-based resume parser and ranking model that scores applicants 0–100 for initial screening shortlists; human recruiter reviews all shortlisted candidates before any employment decision is made."
+        : isAdtech
+        ? "Collaborative-filtering model that assigns consumers to behavioral segments used for targeted advertising on third-party platforms. The model processes browsing history, purchase signals, and demographic inferences to determine which advertising audiences a consumer is placed in."
+        : isGaming
+        ? "Reinforcement-learning model that adjusts in-game difficulty and surfaces in-game purchase offers based on player behavior signals. The system determines which items are shown to which players and at what price points, and is used solely for entertainment service personalization — not for any financial, housing, employment, education, or healthcare decision."
+        : "Gradient-boosted ensemble that produces a risk score used to determine service eligibility and pricing tiers for California consumers.",
+    decision_domains:
+      isFintech ? ["financial_services"] :
+      isHr ? ["employment"] :
+      isAdtech ? ["advertising"] :
+      isGaming ? ["entertainment_personalization"] :
+      ["service_eligibility"],
+    human_review: isHr
+      ? "Yes — recruiter reviews all shortlisted candidates before any employment decision"
+      : "No — fully automated; opt-out suppresses scoring immediately",
+    training_data_use: "Yes",
+    profiling_use: "Yes",
+    notice_delivery: ["privacy_policy", "just_in_time"],
+    notice_has_specific_purpose: "Yes",
+    notice_purpose_text:
+      isFintech ? "To assess your creditworthiness using automated analysis of your payment history and financial data, for the purpose of determining your eligibility for a loan or credit product." :
+      isHr ? "To screen and rank your job application using automated analysis of your resume and application materials, for the purpose of initial candidate shortlisting for employment opportunities." :
+      isAdtech ? "To assign you to behavioral audience segments for the purpose of delivering targeted advertising on behalf of our advertising clients." :
+      isGaming ? "To personalize your in-game experience and surface relevant in-game offers using automated analysis of your gameplay behavior." :
+      "To assess eligibility and personalize your experience using automated analysis of your data.",
+    notice_has_opt_out_desc: "Yes",
+    notice_has_access_desc: "Yes",
+    notice_has_anti_retaliation: "Yes",
+    notice_has_how_it_works: isAdtech || isGaming ? "No" : "Yes",
+    notice_has_alternative_process: isHr ? "Yes" : "No",
+    opt_out_exception: "none",
+    opt_out_methods: ["webform", "email"],
+    opt_out_link_title: "Opt Out of Automated Decisions",
+    opt_out_no_cookie_banner: "Yes",
+    opt_out_no_account_required: "Yes",
+    opt_out_confirmation_mechanism: "Email confirmation within 24 hours",
+    opt_out_appeal_process: "Consumer may request human review within 30 days",
+    opt_out_fairness_doc: isAdtech || isGaming ? "" : "Fairness testing documented in the model card and reviewed quarterly.",
+    opt_out_15_day_process: "Requests actioned within 15 business days; log maintained.",
+    opt_out_service_provider_notice: "Downstream service providers notified within 24 hours of an accepted opt-out.",
+    access_submission_methods: "Webform at privacy.example.com/access-request",
+    access_verification_process: "Email verification plus last-4 of account identifier",
+    access_logic_disclosure: isAdtech
+      ? "No — pending publication of a plain-language logic summary"
+      : "Yes — plain-language description of inputs and weightings provided",
+    access_outcome_disclosure: "Yes — score and tier communicated at point of decision",
+    access_response_timeline: "45 days",
+    access_trade_secret_policy: "Proprietary model weights withheld; all other factors disclosed",
+    ca_consumer_count: slot === 1 ? "500,000+" : "75,000",
+    third_party_admt: isAdtech ? "Yes" : "No",
+    admt_system_count: slot === 1 ? "3" : "1",
+    prior_access_requests_12mo: slot === 1 ? "42" : "6",
+    admt_detail: {},
+  };
+}
+
 function buildDeterministicGeo(industry: string, geo: string, slot: number, companyId: string, companyName?: string) {
   const c = { ...buildCompany(industry, geo, slot, companyId), companyName: companyName || buildCompany(industry, geo, slot, companyId).companyName };
   if (geo === "eu") {
@@ -929,7 +1032,7 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       usNotice: null,
       cppaRisk: null,
       cppaCyber: null,
-      cppaAdmt: null,
+      cppaAdmt: buildAdmtFallback(c.companyName, industry, slot),
     };
   }
   return {
@@ -1033,69 +1136,7 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
           .map((k) => [k, ["implemented", "Documented and reviewed"]])
       ),
     },
-    cppaAdmt: /ai|fintech|hr|adtech|gaming|entertainment/i.test(industry) ? {
-      organization_name: c.companyName,
-      system_name:
-        /fintech/i.test(industry) ? "Credit Risk Scoring Model" :
-        /hr/i.test(industry) ? "Candidate Screening System" :
-        /adtech/i.test(industry) ? "Audience Segmentation Engine" :
-        /gaming|entertainment/i.test(industry) ? "Dynamic Difficulty and Monetization Engine" :
-        "AI Decisioning Engine",
-      system_type: "ML model",
-      system_description:
-        /fintech/i.test(industry)
-          ? "Logistic regression model trained on payment history, utilization, and income proxies to produce a 0–850 creditworthiness score used for loan approval and credit limit decisions for California consumers."
-          : /hr/i.test(industry)
-          ? "NLP-based resume parser and ranking model that scores applicants 0–100 for initial screening shortlists; human recruiter reviews all shortlisted candidates before any employment decision is made."
-          : /adtech/i.test(industry)
-          ? "Collaborative-filtering model that assigns consumers to behavioral segments used for targeted advertising on third-party platforms. The model processes browsing history, purchase signals, and demographic inferences to determine which advertising audiences a consumer is placed in."
-          : /gaming|entertainment/i.test(industry)
-          ? "Reinforcement-learning model that adjusts in-game difficulty and surfaces in-game purchase offers based on player behavior signals. The system determines which items are shown to which players and at what price points, and is used solely for entertainment service personalization — not for any financial, housing, employment, education, or healthcare decision."
-          : "Gradient-boosted ensemble that produces a risk score used to determine service eligibility and pricing tiers for California consumers.",
-      decision_domains:
-        /fintech/i.test(industry) ? ["financial_services"] :
-        /hr/i.test(industry) ? ["employment"] :
-        /adtech/i.test(industry) ? ["advertising"] :
-        /gaming|entertainment/i.test(industry) ? ["entertainment_personalization"] :
-        ["service_eligibility"],
-      human_review: /hr/i.test(industry) ? "Yes — recruiter reviews all shortlisted candidates before any employment decision" : "No — fully automated; opt-out suppresses scoring immediately",
-      training_data_use: "Yes",
-      profiling_use: "Yes",
-      notice_delivery: ["privacy_policy", "just_in_time"],
-      notice_has_specific_purpose: "Yes",
-      notice_purpose_text:
-        /fintech/i.test(industry) ? "To assess your creditworthiness using automated analysis of your payment history and financial data, for the purpose of determining your eligibility for a loan or credit product." :
-        /hr/i.test(industry) ? "To screen and rank your job application using automated analysis of your resume and application materials, for the purpose of initial candidate shortlisting for employment opportunities." :
-        /adtech/i.test(industry) ? "To assign you to behavioral audience segments for the purpose of delivering targeted advertising on behalf of our advertising clients." :
-        /gaming|entertainment/i.test(industry) ? "To personalize your in-game experience and surface relevant in-game offers using automated analysis of your gameplay behavior." :
-        "To assess eligibility and personalize your experience using automated analysis of your data.",
-      notice_has_opt_out_desc: "Yes",
-      notice_has_access_desc: "Yes",
-      notice_has_anti_retaliation: "Yes",
-      notice_has_how_it_works: /adtech|gaming/i.test(industry) ? "No" : "Yes",
-      notice_has_alternative_process: /hr/i.test(industry) ? "Yes" : "No",
-      opt_out_exception: "none",
-      opt_out_methods: ["webform", "email"],
-      opt_out_link_title: "Opt Out of Automated Decisions",
-      opt_out_no_cookie_banner: "Yes",
-      opt_out_no_account_required: "Yes",
-      opt_out_confirmation_mechanism: "Email confirmation within 24 hours",
-      opt_out_appeal_process: "Consumer may request human review within 30 days",
-      opt_out_fairness_doc: /adtech|gaming/i.test(industry) ? "" : "Fairness testing documented in the model card and reviewed quarterly.",
-      opt_out_15_day_process: "Requests actioned within 15 business days; log maintained.",
-      opt_out_service_provider_notice: "Downstream service providers notified within 24 hours of an accepted opt-out.",
-      access_submission_methods: "Webform at privacy.example.com/access-request",
-      access_verification_process: "Email verification plus last-4 of account identifier",
-      access_logic_disclosure: /adtech/i.test(industry) ? "No — pending publication of a plain-language logic summary" : "Yes — plain-language description of inputs and weightings provided",
-      access_outcome_disclosure: "Yes — score and tier communicated at point of decision",
-      access_response_timeline: "45 days",
-      access_trade_secret_policy: "Proprietary model weights withheld; all other factors disclosed",
-      ca_consumer_count: slot === 1 ? "500,000+" : "75,000",
-      third_party_admt: /adtech|marketing/i.test(industry) ? "Yes" : "No",
-      admt_system_count: slot === 1 ? "3" : "1",
-      prior_access_requests_12mo: slot === 1 ? "42" : "6",
-      admt_detail: {},
-    } : null,
+    cppaAdmt: buildAdmtFallback(c.companyName, industry, slot),
     lia: null,
     dpia: null,
     ropa: null,
