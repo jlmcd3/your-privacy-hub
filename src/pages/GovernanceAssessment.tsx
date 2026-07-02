@@ -319,10 +319,10 @@ const GovernanceAssessment = () => {
         { citation: "Art. 28(3) GDPR", label: "Eight mandatory DPA clauses" },
         { citation: "Art. 46(2)(c) GDPR", label: "Standard Contractual Clauses" },
       ],
-      coachLead: "Check each processor for a DPA and — if data leaves the EEA — a transfer mechanism.",
-      coachBody: "Art. 28(3) needs the eight clauses in writing. Art. 46 needs a live safeguard — SCCs, an adequacy decision, or an equivalent — for every export.",
-      goodAnswer: "A controller lists its cloud host, help-desk vendor, and email platform — each on the 2021 SCCs where the destination is a third country, with a signed Art. 28 DPA on file.",
-      commonMistake: "Assuming a signed MSA is enough. The Art. 28(3) clauses have to be there in terms, not implied.",
+      coachLead: "Inventory your vendors first — then answer for all of them.",
+      coachBody: "Every processor needs an Art. 28(3) contract. Every transfer out of the EEA needs a Chapter V mechanism. Check the vendor list against signed DPAs and mapped routes before picking a status.",
+      goodAnswer: "A company selects partial coverage: 9 of 11 vendors have DPAs, and two US transfers rely on checked DPF certifications. Counted, not assumed.",
+      commonMistake: "Selecting 'covered' because the main cloud provider has a DPA. The duty is per-processor — the eleventh vendor is the finding.",
     },
   };
 
