@@ -23,6 +23,9 @@ import { toast } from "sonner";
 import ToolTierNote from "@/components/tools/ToolTierNote";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
+import { useRefineMode } from "@/hooks/useRefineMode";
+import RefinePanel from "@/components/refine/RefinePanel";
+import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
@@ -74,6 +77,7 @@ export default function IRPlaybook() {
   const pricing = useToolPrice("ir_playbook");
   const access = useToolAccess({ standalonePrice: pricing.standalonePrice, subscriberPrice: null });
   const { clientId } = useActiveClient();
+  const refine = useRefineMode("ir_playbook");
   const [phase, setPhase] = useState<"sample" | "form" | "generating" | "result">("sample");
   const [form, setForm] = useState({
     organizationName: "",
@@ -149,7 +153,19 @@ export default function IRPlaybook() {
           <ToolTierNote />
         </div>
 
-        {phase === "result" ? (
+        {refine.isRefine && refine.intake && !refine.loading ? (
+          <RefinePanel
+            toolType="ir_playbook"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/ir-playbook/result/${refine.assessmentId}`}
+          />
+        ) : phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4"><h2 className="font-display text-brand-navy">Your Incident Response Playbook</h2><CopyButton text={result} /></div>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">{result}</pre>

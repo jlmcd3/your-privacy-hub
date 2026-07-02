@@ -26,6 +26,9 @@ import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
 import { BIOMETRIC_RAIL } from "@/components/biometric/BiometricRailEntries";
+import { useRefineMode } from "@/hooks/useRefineMode";
+import RefinePanel from "@/components/refine/RefinePanel";
+import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
@@ -41,6 +44,7 @@ export default function BiometricChecker() {
   const access = useToolAccess({ standalonePrice: 49, subscriberPrice: null });
   const pricing = useToolPrice("biometric_checker");
   const { clientId } = useActiveClient();
+  const refine = useRefineMode("biometric_checker");
   const [form, setForm] = useState({
     biometricTypes: [] as string[], orgType: ORG[0], orgName: "", purpose: PURPOSE[0],
     jurisdictions: [] as string[], enrolledCount: COUNTS[1],
@@ -130,7 +134,19 @@ export default function BiometricChecker() {
           
         </div>
 
-        {phase === "result" && result ? (
+        {refine.isRefine && refine.intake && !refine.loading ? (
+          <RefinePanel
+            toolType="biometric_checker"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/biometric-checker/result/${refine.assessmentId}`}
+          />
+        ) : phase === "result" && result ? (
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between"><h2 className="font-display text-brand-navy">Compliance assessment</h2><CopyButton text={result.assessment_text} /></div>
             {result.bipa_risk && (

@@ -33,6 +33,9 @@ import { ChoiceRadio } from "@/components/intake/ChoiceRadio";
 import { ChoiceWithOther } from "@/components/intake/ChoiceWithOther";
 import { ADMT_RAIL } from "@/components/admt/admtRailEntries";
 import type { RailEntry } from "@/components/intake/StatuteRail";
+import { useRefineMode } from "@/hooks/useRefineMode";
+import RefinePanel from "@/components/refine/RefinePanel";
+import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 
 const SIGNIFICANT_DECISION_DOMAINS = [
   "Financial or lending services (credit decisions, loans, accounts)",
@@ -120,6 +123,7 @@ export default function ADMTChecker() {
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const refine = useRefineMode("cppa_admt");
   const [step, setStep] = useState(1);
   const totalSteps = 5;
 
@@ -464,6 +468,21 @@ export default function ADMTChecker() {
         <IntakeGuidance className="mb-4">Describe each automated decision-making system specifically and separately — what it decides, on what data, and the human-review step. If you run several systems, give each its own description rather than merging them.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a compliance gap analysis for your ADMT systems under 11 CCR Article 11 (§§ 7200–7222). It is an analytical aid, not legal advice. Review all output with qualified California privacy counsel before relying on it for regulatory submissions." />
+
+        {refine.isRefine && refine.intake && !refine.loading && (
+          <RefinePanel
+            toolType="cppa_admt"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/cppa-admt-checker/result/${refine.assessmentId}`}
+          />
+        )}
+        {!refine.isRefine && (<>
 
         {draftFound && !touched && (
           <div className="flex items-start justify-between gap-3 p-3 rounded-md border border-brand-teal/40 bg-[hsl(var(--cobalt)/0.06)] text-sm mb-4">
@@ -1414,6 +1433,7 @@ export default function ADMTChecker() {
 
           <StatuteRail entry={activeRailEntry} defaultSourceUrl="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf" />
         </div>
+        </>)}
       </main>
 
       <AuthGateModal open={authGateOpen} onClose={() => setAuthGateOpen(false)} redirectTo="/cppa-admt-checker" />

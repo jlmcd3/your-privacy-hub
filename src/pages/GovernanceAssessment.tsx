@@ -26,6 +26,9 @@ import { useActiveClient } from "@/hooks/useActiveClient";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import { useRefineMode } from "@/hooks/useRefineMode";
+import RefinePanel from "@/components/refine/RefinePanel";
+import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -69,6 +72,7 @@ const GovernanceAssessment = () => {
   const { isPremium } = usePremiumStatus();
   const { clientId } = useActiveClient();
 
+  const refine = useRefineMode("governance_assessment");
   const [step, setStep] = useState(1);
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
   const [purchasing, setPurchasing] = useState(false);
@@ -358,7 +362,24 @@ const GovernanceAssessment = () => {
   return (
     <WorkspaceLayout className="bg-background">
       <Helmet><title>GDPR Governance Assessment | End User Privacy</title>
-        <meta name="description" content="Score your privacy programme against the GDPR framework — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>      <header className="bg-[#0d2a45] text-white py-12">
+        <meta name="description" content="Score your privacy programme against the GDPR framework — with cited enforcement decisions behind every risk finding and recommended action." /></Helmet>
+      {refine.isRefine && refine.intake && !refine.loading ? (
+        <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <RefinePanel
+            toolType="governance_assessment"
+            assessmentId={refine.assessmentId!}
+            intake={refine.intake}
+            lockedFields={refine.lockedFields ?? {}}
+            editable={autoEditableFromIntake(refine.intake, refine.lockedFields)}
+            runsUsed={refine.runsUsed}
+            runsAllowed={refine.runsAllowed}
+            runsRemaining={refine.runsRemaining}
+            resultPath={`/governance-assessment/result/${refine.assessmentId}`}
+          />
+        </main>
+      ) : (<>
+      <header className="bg-[#0d2a45] text-white py-12">
+
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ GDPR Governance Assessment · ${pricing.price}
@@ -641,6 +662,7 @@ const GovernanceAssessment = () => {
           purchasing={purchasing}
         />
       </main>
+      </>)}
     </WorkspaceLayout>
   );
 };
