@@ -229,6 +229,7 @@ export default function CPPARiskAssessment() {
 
   const [step, setStep] = useState(1);
   const refine = useRefineMode("cppa_risk_assessment");
+  const { meter } = useRunMeter("cppa_risk_assessment", refine.assessmentId);
   const topRef = useRef<HTMLDivElement>(null);
   useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [step]);
   const [authGateOpen, setAuthGateOpen] = useState(false);
