@@ -88,6 +88,8 @@ const DPIAFramework = () => {
   const sourceId = params.get("source");
   const pricing = useToolPrice("dpia_framework");
 
+  const refine = useRefineMode("dpia_framework");
+
   const [organizationName, setOrganizationName] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
