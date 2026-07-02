@@ -522,8 +522,17 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
       "outcome": "rejected | accepted | penalised | required",
       "relevance": "one sentence why this case is relevant to this assessment"
     }
+  ],
+  "information_needed": [
+    // REQUIRED whenever any finding in this report is insufficient-basis / Insufficient information / "uncertain" verdict; otherwise an empty array. One entry per gap.
+    { "field": "<intake field key that exists in the intake — one of: organization_name, subject_anchor, relationship_type, jurisdictions, data_categories>",
+      "dimensions": "<what specifically to add — dimensions, never suggested values>",
+      "provision": "<already-cited provision making these dimensions relevant>",
+      "enables": "<which section/determination completes with it>" }
   ]
-}`;
+}
+
+Every insufficient-basis or Insufficient-information finding elsewhere in this output (including any "uncertain" verdict in purpose_test, necessity_test, or balancing_test) MUST have a corresponding information_needed entry.`;
 
     async function runStage2(extraUser: string, maxTokens: number = PRODUCT_MAX_OUTPUT_TOKENS): Promise<{ text: string; stopReason: string | null }> {
       const finalUser = extraUser ? `${analysisUserBase}\n\n${extraUser}` : analysisUserBase;
