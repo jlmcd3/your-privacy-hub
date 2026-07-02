@@ -305,7 +305,7 @@ Use the same company name, domain, DPO details, and country as already establish
 Return a JSON object with EXACTLY these fields:
 {
   "lia": {
-    "organization_name": "string", "processing_description": "string", "sector": "string",
+    "organization_name": "string", "subject_anchor": "string — one line naming the single interest, e.g. Fraud screening of new account signups", "processing_description": "string", "sector": "string",
     "stated_purpose": "string", "relationship_type": "string", "data_categories": ["array"],
     "jurisdictions": ["array"], "alternatives_considered": "string",
     "purpose_details": { "interest_holder": "string", "interest_type": "string", "purpose_text": "string" },
