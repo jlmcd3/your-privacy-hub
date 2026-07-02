@@ -556,7 +556,7 @@ export default function CPPARiskAssessment() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-paper">
       <Navbar />
       <DashboardSubnav />
       <Helmet>
