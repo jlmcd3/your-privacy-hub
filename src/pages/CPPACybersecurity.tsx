@@ -181,6 +181,7 @@ export default function CPPACybersecurity() {
             runsAllowed={refine.runsAllowed}
             runsRemaining={refine.runsRemaining}
             resultPath={`/cppa-cybersecurity/result/${refine.assessmentId}`}
+            infoNeededKeys={refine.infoNeededKeys}
           />
         )}
         {!refine.isRefine && (<></>)}

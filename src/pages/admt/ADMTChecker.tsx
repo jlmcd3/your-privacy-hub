@@ -480,6 +480,7 @@ export default function ADMTChecker() {
             runsAllowed={refine.runsAllowed}
             runsRemaining={refine.runsRemaining}
             resultPath={`/cppa-admt-checker/result/${refine.assessmentId}`}
+            infoNeededKeys={refine.infoNeededKeys}
           />
         )}
         {!refine.isRefine && (<>

@@ -164,6 +164,7 @@ export default function IRPlaybook() {
             runsAllowed={refine.runsAllowed}
             runsRemaining={refine.runsRemaining}
             resultPath={`/ir-playbook/result/${refine.assessmentId}`}
+            infoNeededKeys={refine.infoNeededKeys}
           />
         ) : phase === "result" ? (
           <div className="bg-card border border-border rounded-2xl p-6">

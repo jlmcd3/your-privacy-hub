@@ -301,6 +301,7 @@ const LIAssessment = () => {
               runsAllowed={refine.runsAllowed}
               runsRemaining={refine.runsRemaining}
               resultPath={`/li-assessment-result/${refine.assessmentId}`}
+              infoNeededKeys={refine.infoNeededKeys}
             />
           </section>
         ) : (

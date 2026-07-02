@@ -375,6 +375,7 @@ const GovernanceAssessment = () => {
             runsAllowed={refine.runsAllowed}
             runsRemaining={refine.runsRemaining}
             resultPath={`/governance-assessment/result/${refine.assessmentId}`}
+            infoNeededKeys={refine.infoNeededKeys}
           />
         </main>
       ) : (<>

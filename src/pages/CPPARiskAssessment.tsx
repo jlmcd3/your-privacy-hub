@@ -584,6 +584,7 @@ export default function CPPARiskAssessment() {
             runsAllowed={refine.runsAllowed}
             runsRemaining={refine.runsRemaining}
             resultPath={`/cppa-risk-assessment/result/${refine.assessmentId}`}
+            infoNeededKeys={refine.infoNeededKeys}
           />
         )}
         {!refine.isRefine && (<></>)}
