@@ -1140,6 +1140,7 @@ export default function CPPARiskAssessment() {
             }
           }}
         />
+        </>)}
       </main>
       <CPPAToolsCrossLinks current="risk" />
     <Footer />
