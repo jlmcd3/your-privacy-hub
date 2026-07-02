@@ -337,14 +337,20 @@ export default function ADMTCheckerResult() {
       >
         {(() => {
           const { meter } = useRunMeter("cppa_admt", id);
+          const infoNeeded = (report as any)?.information_needed;
           return meter ? (
-            <RunMeterBar
-              meter={meter}
-              refineHref={`/cppa-admt-checker?refine=${id}`}
-              onExtend={() => startMeterExtension("cppa_admt", id!)}
-            />
+            <>
+              <RunMeterBar
+                meter={meter}
+                refineHref={`/cppa-admt-checker?refine=${id}`}
+                onExtend={() => startMeterExtension("cppa_admt", id!)}
+                infoNeededCount={Array.isArray(infoNeeded) ? infoNeeded.length : 0}
+              />
+              <InformationNeededBlock items={infoNeeded} />
+            </>
           ) : null;
         })()}
+
         {purchased && (
           <div className="p-3 border-l-4 border-green-500 bg-green-50 dark:bg-green-950/20 rounded text-sm mb-2">
             ✅ Purchase confirmed.
