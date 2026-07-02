@@ -634,7 +634,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       };
     }
 
-    const reportData = {
+    let reportData: any = {
       generated_at: new Date().toISOString(),
       assessment_id,
       organisation_profile: intake,
@@ -657,6 +657,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       enforcement_precedents: enforcementPrecedents,
       enforcement_meta: enforcementMeta,
       annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
+      information_needed: Array.isArray((synthesis as any)?.information_needed) ? (synthesis as any).information_needed : [],
       lint_warnings: [
         ...failedDomains.map((d) => ({
           code: "domain_assessment_failed",
@@ -667,6 +668,10 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       ],
       disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
+
+    // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
+    const guarded = guardInformationNeeded(reportData, ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {});
+    reportData = guarded.report;
 
     const dpiaScope = synthesis.dpia_scope || [];
 
