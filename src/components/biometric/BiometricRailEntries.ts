@@ -1,3 +1,17 @@
+// COACHING CONTENT RULE — coaching describes the SHAPE of a complete answer
+// (dimensions, specificity, separateness). It NEVER describes the CONTENT of a
+// compliant answer (what facts satisfy the law, what answer "passes").
+// goodAnswer examples are clearly fictional and illustrate FORM, never a template.
+// Voice: imperative, active, plain subject-verb-object, one idea per sentence,
+// specific over vague, no ornamental legalese. Layered: coachLead = one line an
+// expert acts on instantly; goodAnswer/commonMistake = the expansion for newer users.
+//
+// ENUMERATED-FIELD ADDENDUM — for selects, radios, and pills, coaching explains
+// WHAT FACTS DETERMINE the accurate choice and WHAT EVIDENCE to check. It never
+// recommends an option, never suggests claiming an exemption, and never implies
+// which selection is favourable. goodAnswer shows a FICTIONAL determination —
+// facts mapped to a selection — illustrating method, not a preferred outcome.
+
 // src/components/biometric/BiometricRailEntries.ts
 // StatuteRail entries for the Biometric Privacy Compliance Assessment.
 // Citations: 740 ILCS 14/ (BIPA), Tex. Bus. & Com. Code § 503.001 (CUBI),
