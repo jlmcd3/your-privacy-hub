@@ -91,6 +91,9 @@ const LIAssessment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const pricing = useToolPrice("li_assessment");
+  const refine = useRefineMode("li_assessment");
+
+
 
   const [organizationName, setOrganizationName] = useState("");
   const [subjectAnchor, setSubjectAnchor] = useState("");
