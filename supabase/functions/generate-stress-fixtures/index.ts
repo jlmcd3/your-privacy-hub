@@ -625,6 +625,7 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       organisationType: `${industry} operator`,
     },
     biometric: usesBiometric ? {
+      orgName: c.companyName,
       biometricTypes: ["facial template", "voiceprint"],
       orgType: `${industry} organisation`,
       purpose: "Identity verification and fraud prevention",
