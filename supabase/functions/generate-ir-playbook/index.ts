@@ -884,6 +884,16 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           return { playbook_text, parsedAnnotations };
         }
 
+        // QB8-1(f)(1): strip any Section 2/3 deferral notes that leaked into Section 4.
+        function stripSection4DeferralNotes(text: string): string {
+          const idx = text.search(/^#+\s*SECTION 4/mi);
+          if (idx < 0) return text;
+          const head = text.slice(0, idx);
+          const tail = text.slice(idx).replace(/\s*Note: this preliminary assessment[^.]*\.(?:[^.\n]*operative\.)?/g, "");
+          return head + tail;
+        }
+
+
         let partA = "";
         let partB = "";
         let partC = "";
