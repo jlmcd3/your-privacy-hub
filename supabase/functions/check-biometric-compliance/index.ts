@@ -264,7 +264,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 5. UK-to-third-country transfers require a UK adequacy decision under UK GDPR Article 45 — including the UK–US Data Bridge (in force since 12 October 2023, SI 2023/1028) where the importer is certified under the UK Extension — or, where no adequacy decision applies, a UK IDTA or UK-approved SCCs (not EU SCCs).
 
 Consent and notice:
-Explicit consent in employment context is unlikely to satisfy "freely given" under UK GDPR — use DPA 2018 Schedule 1 para 1 (employment, social security, social protection law) where national employment law authorises biometric use.
+Explicit consent in employment context is unlikely to satisfy "freely given" under UK GDPR — use DPA 2018 Schedule 1 Part 1 para 1 (employment, social security and social protection law) where national employment law authorises biometric use.
 
 Retention and destruction:
 Apply UK GDPR storage limitation principle: define retention period per purpose; delete biometric templates promptly when purpose expires; document the retention schedule.
