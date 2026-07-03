@@ -1,7 +1,9 @@
-// Shared EUP prompt core (v2.3)
-// v2.3: jurisdiction-conditional English variant via ToolModule.languageVariant.
+// Shared EUP prompt core (v3.1)
+// v3.1: counsel-parenthetical removed; argument-voice parenthetical removed;
+// EU-transfers content modularized (opt-in via ToolModule.includeEuTransfers); UK–US Data Bridge
+// verified date added.
 
-export const PROMPT_CORE_VERSION = "3.0";
+export const PROMPT_CORE_VERSION = "3.1";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
