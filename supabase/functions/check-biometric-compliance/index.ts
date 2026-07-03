@@ -244,9 +244,9 @@ Active supervisory authority enforcement of Article 9 biometric obligations acro
     }
 
     if (isUK) {
-      return `${jurisdiction} — UK GDPR and Data Protection Act 2018
+      return `${jurisdiction} — UK GDPR / DPA 2018
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under UK GDPR Article 9(1). The operative law is UK GDPR (retained EU GDPR as amended) together with DPA 2018 — not EU GDPR.
+Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data processed for unique identification is special-category data under UK GDPR Article 9(1). The operative law is UK GDPR (retained EU GDPR as amended) together with DPA 2018 — not EU GDPR.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. UK GDPR Article 9(2) condition must be identified in addition to an Article 6 lawful basis. Common conditions: Article 9(2)(a) explicit consent; Article 9(2)(b) employment law; Article 9(2)(h) health/care.
