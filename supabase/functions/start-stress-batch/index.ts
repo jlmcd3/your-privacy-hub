@@ -390,7 +390,7 @@ Deno.serve(async (req) => {
   const companies: Array<{ industryId: string; industryLabel: string; geo: string; slot: number }> = [];
   for (const ind of industries as Array<{ id: string; label: string }>) {
     for (const g of geos) {
-      for (const slot of [1, 2]) {
+      for (let slot = 1; slot <= slotsPerGeo; slot++) {
         companies.push({ industryId: ind.id, industryLabel: ind.label, geo: g, slot });
       }
     }
