@@ -191,6 +191,22 @@ async function list(admin: ReturnType<typeof createClient>) {
   return json({ rows: data ?? [] });
 }
 
+// After removing a sample-reports storage file, clear any static_stress_jobs
+// row that referenced the same pdf_path — otherwise the QL2 batch view
+// (/samples/report-output?batch=...) keeps listing the artifact with a broken
+// storage link because it reads pdf_path from static_stress_jobs.
+async function clearStressJobRefs(
+  admin: ReturnType<typeof createClient>,
+  paths: string[],
+): Promise<void> {
+  if (paths.length === 0) return;
+  const { error } = await admin
+    .from("static_stress_jobs")
+    .update({ pdf_path: null })
+    .in("pdf_path", paths);
+  if (error) console.warn("[save-sample-report] clearStressJobRefs failed:", error.message);
+}
+
 async function deleteSample(admin: ReturnType<typeof createClient>, body: any) {
   const { id } = body ?? {};
   if (!id) return json({ error: "missing id" }, 400);
@@ -201,6 +217,7 @@ async function deleteSample(admin: ReturnType<typeof createClient>, body: any) {
     .maybeSingle();
   if (row?.pdf_path) {
     await admin.storage.from("sample-reports").remove([row.pdf_path]);
+    await clearStressJobRefs(admin, [row.pdf_path]);
   }
   const { error } = await admin.from("sample_reports").delete().eq("id", id);
   if (error) return json({ error: error.message }, 400);
@@ -209,35 +226,43 @@ async function deleteSample(admin: ReturnType<typeof createClient>, body: any) {
 
 async function deleteSamples(admin: ReturnType<typeof createClient>, body: any) {
   const ids = Array.isArray(body?.ids) ? body.ids.filter((id: unknown) => typeof id === "string" && id) : [];
+  const rawPaths = Array.isArray(body?.paths) ? body.paths.filter((p: unknown) => typeof p === "string" && p) as string[] : [];
   const toolSlug = typeof body?.tool_slug === "string" && body.tool_slug ? body.tool_slug : null;
   const deleteAll = body?.all === true;
-  if (!deleteAll && !toolSlug && ids.length === 0) {
-    return json({ error: "missing ids, tool_slug, or all=true" }, 400);
+  if (!deleteAll && !toolSlug && ids.length === 0 && rawPaths.length === 0) {
+    return json({ error: "missing ids, paths, tool_slug, or all=true" }, 400);
   }
 
   let query = admin.from("sample_reports").select("id,pdf_path");
   if (!deleteAll) {
-    query = toolSlug ? query.eq("tool_slug", toolSlug) : query.in("id", ids);
+    if (toolSlug) query = query.eq("tool_slug", toolSlug);
+    else if (ids.length > 0) query = query.in("id", ids);
+    else query = query.in("pdf_path", rawPaths);
   }
   const { data: rows, error: readErr } = await query;
   if (readErr) return json({ error: readErr.message }, 400);
 
   const targets = (rows ?? []) as Array<{ id: string; pdf_path: string | null }>;
-  if (targets.length === 0) return json({ ok: true, deleted: 0, deleted_ids: [] });
+  const allPaths = Array.from(new Set([
+    ...targets.map((r) => r.pdf_path).filter(Boolean) as string[],
+    ...rawPaths,
+  ]));
 
   const BATCH_SIZE = 500;
   const storageErrors: string[] = [];
-  for (let i = 0; i < targets.length; i += BATCH_SIZE) {
-    const paths = targets.slice(i, i + BATCH_SIZE).map((r) => r.pdf_path).filter(Boolean) as string[];
+  for (let i = 0; i < allPaths.length; i += BATCH_SIZE) {
+    const paths = allPaths.slice(i, i + BATCH_SIZE);
     if (paths.length === 0) continue;
     const { error } = await admin.storage.from("sample-reports").remove(paths);
     if (error) storageErrors.push(error.message);
   }
+  await clearStressJobRefs(admin, allPaths);
 
   let deleted = 0;
   const deletedIds: string[] = [];
   for (let i = 0; i < targets.length; i += BATCH_SIZE) {
     const batchIds = targets.slice(i, i + BATCH_SIZE).map((r) => r.id);
+    if (batchIds.length === 0) continue;
     const { data, error } = await admin.from("sample_reports").delete().in("id", batchIds).select("id");
     if (error) return json({ error: error.message, deleted, storage_errors: storageErrors }, 400);
     const batchDeleted = ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
@@ -245,7 +270,7 @@ async function deleteSamples(admin: ReturnType<typeof createClient>, body: any) 
     deletedIds.push(...batchDeleted);
   }
 
-  return json({ ok: true, deleted, deleted_ids: deletedIds, storage_errors: storageErrors });
+  return json({ ok: true, deleted, deleted_ids: deletedIds, cleared_paths: allPaths.length, storage_errors: storageErrors });
 }
 
 // --- generate_pdf: fetch the REAL generated report PDF for the freshly-run

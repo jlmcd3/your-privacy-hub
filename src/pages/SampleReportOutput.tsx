@@ -226,8 +226,8 @@ export default function SampleReportOutput() {
   }, [requestedBatchId, viewAll]);
 
   async function onDelete(r: Row) {
-    if (r.is_job_artifact) {
-      toast.error("This batch artifact can be downloaded, but its sample row is not available to delete here.");
+    if (!r.is_job_artifact && !r.pdf_path) {
+      toast.error("No PDF path on this row — nothing to delete.");
       return;
     }
     if (!confirm(`Delete sample report "${r.title}"? This removes the PDF and the record permanently.`)) return;
@@ -238,13 +238,18 @@ export default function SampleReportOutput() {
         toast.error("Sign in as admin to delete");
         return;
       }
+      // For job-artifact rows (no matching sample_reports row) we send the pdf_path
+      // so the backend can null out static_stress_jobs.pdf_path and remove storage.
+      const payload = r.is_job_artifact
+        ? { action: "delete_many", paths: [r.pdf_path] }
+        : { action: "delete", id: r.id };
       const res = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ action: "delete", id: r.id }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
@@ -263,14 +268,15 @@ export default function SampleReportOutput() {
       toast.error("No documents to delete");
       return;
     }
-    const deletable = list.filter((r) => !r.is_job_artifact);
-    if (deletable.length === 0) {
-      toast.error("No deletable sample rows are available on this batch view");
+    const sampleIds = list.filter((r) => !r.is_job_artifact).map((r) => r.id);
+    const jobPaths = list.filter((r) => r.is_job_artifact && r.pdf_path).map((r) => r.pdf_path as string);
+    if (sampleIds.length === 0 && jobPaths.length === 0) {
+      toast.error("Nothing deletable in this view");
       return;
     }
-    if (!confirm(`Delete all ${deletable.length} sample reports? This removes every PDF and record permanently.`)) return;
+    if (!confirm(`Delete all ${list.length} sample reports? This removes every PDF and record permanently.`)) return;
     setDeletingAll(true);
-    const t = toast.loading(`Deleting ${deletable.length} reports…`);
+    const t = toast.loading(`Deleting ${list.length} reports…`);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -283,13 +289,15 @@ export default function SampleReportOutput() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-          body: JSON.stringify({ action: "delete_many", ids: deletable.map((r) => r.id) }),
+        body: JSON.stringify({ action: "delete_many", ids: sampleIds, paths: jobPaths }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
-      const deletedIds = new Set<string>(Array.isArray(data?.deleted_ids) ? data.deleted_ids : deletable.map((r) => r.id));
-      setRows((cur) => (cur ?? []).filter((x) => !deletedIds.has(x.id)));
-      toast.success(`Deleted ${data?.deleted ?? deletedIds.size} report${(data?.deleted ?? deletedIds.size) === 1 ? "" : "s"}`, { id: t });
+      const deletedIds = new Set<string>(Array.isArray(data?.deleted_ids) ? data.deleted_ids : sampleIds);
+      const deletedPaths = new Set<string>(jobPaths);
+      setRows((cur) => (cur ?? []).filter((x) => !deletedIds.has(x.id) && !(x.pdf_path && deletedPaths.has(x.pdf_path))));
+      const total = (data?.deleted ?? 0) + jobPaths.length;
+      toast.success(`Deleted ${total} report${total === 1 ? "" : "s"}`, { id: t });
     } catch (e) {
       toast.error(`Delete all failed: ${(e as Error).message}`, { id: t });
     } finally {
@@ -298,8 +306,10 @@ export default function SampleReportOutput() {
   }
 
   async function onDeleteTool(toolSlug: string) {
-    const list = (grouped[toolSlug] ?? []).filter((r) => !r.is_job_artifact);
-    if (list.length === 0) {
+    const list = grouped[toolSlug] ?? [];
+    const sampleIds = list.filter((r) => !r.is_job_artifact).map((r) => r.id);
+    const jobPaths = list.filter((r) => r.is_job_artifact && r.pdf_path).map((r) => r.pdf_path as string);
+    if (sampleIds.length === 0 && jobPaths.length === 0) {
       toast.error("No documents to delete in this section");
       return;
     }
@@ -313,21 +323,24 @@ export default function SampleReportOutput() {
         toast.error("Sign in as admin to delete", { id: t });
         return;
       }
+      const body = viewAll && sampleIds.length > 0 && jobPaths.length === 0
+        ? { action: "delete_many", tool_slug: toolSlug }
+        : { action: "delete_many", ids: sampleIds, paths: jobPaths };
       const res = await fetch(`${SUPABASE_URL}/functions/v1/save-sample-report`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: viewAll
-          ? JSON.stringify({ action: "delete_many", tool_slug: toolSlug })
-          : JSON.stringify({ action: "delete_many", ids: list.map((r) => r.id) }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
-      const deletedIds = new Set<string>(Array.isArray(data?.deleted_ids) ? data.deleted_ids : list.map((r) => r.id));
-      setRows((cur) => (cur ?? []).filter((x) => !deletedIds.has(x.id)));
-      toast.success(`Deleted ${data?.deleted ?? deletedIds.size} ${label} report${(data?.deleted ?? deletedIds.size) === 1 ? "" : "s"}`, { id: t });
+      const deletedIds = new Set<string>(Array.isArray(data?.deleted_ids) ? data.deleted_ids : sampleIds);
+      const deletedPaths = new Set<string>(jobPaths);
+      setRows((cur) => (cur ?? []).filter((x) => !deletedIds.has(x.id) && !(x.pdf_path && deletedPaths.has(x.pdf_path))));
+      const total = (data?.deleted ?? 0) + jobPaths.length;
+      toast.success(`Deleted ${total} ${label} report${total === 1 ? "" : "s"}`, { id: t });
     } catch (e) {
       toast.error(`Delete failed: ${(e as Error).message}`, { id: t });
     } finally {
@@ -633,9 +646,9 @@ export default function SampleReportOutput() {
                           <button
                             type="button"
                             onClick={() => onDelete(r)}
-                            disabled={deleting === r.id || r.is_job_artifact}
+                            disabled={deleting === r.id}
                             className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive/10 disabled:opacity-50"
-                            title={r.is_job_artifact ? "This batch artifact has no deletable sample row" : "Delete this sample report (admin only)"}
+                            title={r.is_job_artifact ? "Remove this batch artifact (clears the PDF and the batch's pdf_path)" : "Delete this sample report (admin only)"}
                           >
                             <Trash2 className="h-4 w-4" aria-hidden />
                             {deleting === r.id ? "Deleting…" : "Delete"}
