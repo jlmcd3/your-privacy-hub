@@ -167,6 +167,7 @@ export default function SampleReport() {
           {rows?.map((r) => {
             const vSummary = summarizeVerification(r.verification);
             const pdfUrl = pdfUrls[r.id];
+            const viewHref = `/samples/${r.tool_slug}/${r.variant}`;
             return (
               <article
                 key={r.id}
@@ -178,7 +179,9 @@ export default function SampleReport() {
                       SAMPLE — fictional scenario
                     </span>
                     <h2 className="font-display text-xl text-brand-navy">
-                      {r.title}
+                      <Link to={viewHref} className="hover:underline underline-offset-4">
+                        {r.title}
+                      </Link>
                     </h2>
                   </div>
                   <span className="text-xs uppercase tracking-wide text-muted-foreground font-mono">
@@ -199,20 +202,24 @@ export default function SampleReport() {
                   </div>
                 )}
 
-                {pdfUrl ? (
-                  <a
-                    href={pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    to={viewHref}
                     className="inline-flex items-center gap-2 rounded-md bg-brand-navy text-white px-4 py-2 text-sm font-medium hover:bg-brand-navy/90"
                   >
-                    <FileText className="h-4 w-4" aria-hidden /> Download sample PDF (.pdf)
-                  </a>
-                ) : (
-                  <span className="text-xs text-muted-foreground">
-                    PDF not attached yet.
-                  </span>
-                )}
+                    <FileText className="h-4 w-4" aria-hidden /> Read sample report
+                  </Link>
+                  {pdfUrl && (
+                    <a
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-md border border-brand-cloud px-4 py-2 text-sm font-medium text-brand-navy hover:bg-brand-cloud/40"
+                    >
+                      Download PDF
+                    </a>
+                  )}
+                </div>
               </article>
             );
           })}
