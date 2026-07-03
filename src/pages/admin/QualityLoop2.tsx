@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -343,6 +344,13 @@ export default function QualityLoop2() {
               {starting ? "Starting…" : "Run quality loop 2"}
             </Button>
             {isRunning && <Button variant="destructive" onClick={onStop}>Stop</Button>}
+            {activeRun?.stress_batch_id && (
+              <Button asChild variant="outline" size="sm">
+                <Link to={`/samples/report-output?batch=${activeRun.stress_batch_id}`}>
+                  View batch PDFs
+                </Link>
+              </Button>
+            )}
             {activeRun && (
               <div className="text-sm text-muted-foreground">
                 Run <code>{activeRun.id.slice(0, 8)}</code> · <Badge variant="outline">{activeRun.status}</Badge> ·
