@@ -1,4 +1,5 @@
 // build-marker: stress-qi2c-biometric-none-2026-07-03
+// Keep in sync: generate-stress-fixtures specs <-> src/lib/sampleFixtureShapes.ts (sample fixtures drift guard)
 console.log("[build-marker] generate-stress-fixtures qi2c-biometric-none-2026-07-03");
 // generate-stress-fixtures — given { industry, geo, company_slot, company_id }
 // generates a complete, internally-consistent test company profile with payloads
