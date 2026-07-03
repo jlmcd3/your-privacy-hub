@@ -281,6 +281,12 @@ export interface ToolModule {
    *   in the tool's extraRules) keyed off the governing jurisdiction.
    */
   languageVariant?: LanguageVariant;
+  /**
+   * When false, the EU-transfers module (Chapter V transfer tiers + verified
+   * adequacy-decision dates, ~350 tokens) is omitted from the core. Set false
+   * on CA-only tools. Defaults to true.
+   */
+  includeEuTransfers?: boolean;
 }
 
 export type SystemBlock = {
