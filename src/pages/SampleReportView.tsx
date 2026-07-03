@@ -197,9 +197,11 @@ export default function SampleReportView() {
             </header>
 
             <div className="rounded-lg border border-brand-cloud bg-card p-6 md:p-8 shadow-sm">
-              <SampleReportBody
+              <SampleToolReport
+                toolSlug={row.tool_slug}
                 documentText={row.document_text}
                 reportData={row.report_data}
+                publishedAt={row.published_at}
               />
             </div>
 
