@@ -8,6 +8,8 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, FileText, ShieldCheck } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 type Row = {
   id: string;
@@ -314,7 +316,9 @@ export default function SampleReportView() {
         />
       </Helmet>
 
+      <Navbar />
       <main className="flex-1 max-w-[900px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
         <Link
           to={`/samples/${toolSlug}`}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
@@ -403,6 +407,7 @@ export default function SampleReportView() {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
