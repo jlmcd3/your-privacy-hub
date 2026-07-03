@@ -1,7 +1,10 @@
 // Sample report fixtures for SAMPLES-2.
-// Each fixture mirrors the EXACT intake shape used by the matching admin
-// Test* page so the live generators run unmodified. Parties/people use the
-// agreed cast; all facts/data categories/safeguards are written professionally.
+// Each fixture mirrors the EXACT intake shape used by the matching tool page
+// (LIAssessment / DPIAFramework / etc.) so the live generators run unmodified.
+// Parties/people use the agreed Rudolph-adjacent cast; all facts/data
+// categories/safeguards are written professionally.
+// Keep in sync: generate-stress-fixtures specs <-> src/lib/sampleFixtureShapes.ts
+// (sample fixtures drift guard).
 
 export type ToolSlug =
   | "li_assessment"
@@ -22,13 +25,8 @@ export interface SampleFixture {
   variant: string;
   title: string;
   scenario_summary: string;
-  // The generator-specific intake payload — mirrors the matching Test*.tsx shape.
-  // The admin page dispatches on tool_slug to know how to use it.
   fixture: Record<string, unknown>;
-  // For the snapshot, which row to copy from. The admin page sets this after
-  // generation; here we just record the source table name to help the function.
   source_table: string;
-  // Result-page URL pattern, with {id} placeholder; admin page substitutes.
   result_url_pattern: string;
 }
 
@@ -45,10 +43,17 @@ const F_LIA_UK: SampleFixture = {
     insert: {
       stage: "final",
       status: "pending",
+      organization_name: "North Pole Manual Mining Ltd",
+      subject_anchor:
+        "Wearable safety telemetry (underground location and heart rate) on underground shift workers",
       processing_description:
         "North Pole Manual Mining Ltd proposes wearable safety telemetry on underground shift workers at its UK rare-earth mining sites. Devices record approximate underground location (via beacon proximity) and continuous heart-rate. Data feeds a real-time control-room dashboard so supervisors can trigger evacuation, dispatch medics, or pause haulage when a worker exhibits signs of physiological stress or has entered a restricted zone.",
       relationship_type: "Employee (existing employment relationship)",
-      data_categories: ["Location data (workplace beacon proximity)", "Health or medical data (heart rate)", "Employee records"],
+      data_categories: [
+        "Location data (workplace beacon proximity)",
+        "Health or medical data (heart rate)",
+        "Employee records",
+      ],
       jurisdictions: ["United Kingdom (UK GDPR)"],
       sector: "Mining and resource extraction",
       stated_purpose:
@@ -115,19 +120,25 @@ const F_DPIA_EU: SampleFixture = {
       status: "pending",
       is_subscriber_credit: true,
       intake_data: {
+        organization_name: "Really, Really North Gold Possibilities GmbH",
         processing_activity_name: "Drone-based geological survey imagery capture",
         description:
-          "Really, Really North Gold Possibilities GmbH operates fixed-wing and multirotor drones to capture aerial magnetometry and high-resolution visual imagery over prospecting permits in Saxony and Brandenburg. Flights are pre-cleared with Luftfahrt-Bundesamt and stay above 120m AGL. Despite buffer zones around populated areas, transit corridors and the edges of survey blocks incidentally capture residential property boundaries, gardens, and occasionally identifiable individuals.",
+          "Fixed-wing and multirotor drones capture aerial magnetometry and high-resolution visual imagery over prospecting permits in Saxony and Brandenburg; transit corridors and survey-block edges incidentally capture residential property boundaries and occasionally identifiable individuals, feeding a blurring pipeline with 30-day raw-frame deletion.",
         purpose:
           "To produce ortho-rectified visual mosaics and magnetic-anomaly maps used by exploration geologists to identify drill-target prospects. Imagery is not used for any non-geological purpose.",
-        data_categories: ["Image data (incidental — building edges, gardens, occasional individuals)", "Location data (flight telemetry)"],
+        data_categories: [
+          "Image data (incidental — building edges, gardens, occasional individuals)",
+          "Location data (flight telemetry)",
+        ],
         data_subjects:
           "Residents of properties along survey transit corridors. Estimated 600–1,200 individuals per campaign; no targeting, no tracking, no enrolment.",
         volume_frequency:
           "4–6 campaigns per year, each producing ~40,000 raw frames. Raw frames retained 30 days; processed mosaics (with all residential edges blurred) retained for the life of the prospecting permit.",
-        retention:
+        retention_period:
           "Raw frames: 30 days from capture, then deleted via automated job. Blurred mosaics: duration of the prospecting permit plus 2 years for regulatory dispute window.",
-        third_party_processors: ["Glacier Peak Hosting GmbH (DE) cloud storage; OrthoMosaic Alpine SA (CH) photogrammetry processing"],
+        third_party_processors: [
+          "Glacier Peak Hosting GmbH (DE) cloud storage; OrthoMosaic Alpine SA (CH) photogrammetry processing",
+        ],
         automated_decisions:
           "No. Geologists review mosaics manually. The blurring pipeline applies a YOLOv8-based detector for faces, license plates, and house numbers and is reviewed by a human before mosaic release.",
         existing_safeguards: [
@@ -138,6 +149,9 @@ const F_DPIA_EU: SampleFixture = {
         jurisdictions: ["EU (GDPR)"],
         legal_basis_proposed:
           "Article 6(1)(f) legitimate interests for the geological survey purpose; no special category data is processed (imagery does not reveal Article 9 data once blurred).",
+        article_9_condition: "",
+        necessity_proportionality:
+          "The blurring pipeline plus 30-day raw-frame deletion is the least-intrusive means of producing usable geological mosaics; alternatives (ground surveys, satellite imagery at lower resolution) were considered and rejected as insufficient for drill-target identification.",
         sector: "Mining and resource extraction (exploration)",
         source_assessment_id: null,
       },
@@ -194,6 +208,7 @@ const F_GOV_EU: SampleFixture = {
     insert: {
       status: "pending",
       intake_data: {
+        organization_name: "Misfit Toys Logistics Ltd",
         sector: "Logistics / e-commerce fulfilment",
         org_size: "51-250",
         jurisdictions: ["EU (GDPR)", "Ireland (Data Protection Act 2018)"],
@@ -232,12 +247,19 @@ const F_GOV_US: SampleFixture = {
     insert: {
       status: "pending",
       intake_data: {
+        organization_name: "Busted Sled Solutions, Inc.",
         sector: "Logistics / SaaS",
         org_size: "251-1000",
         jurisdictions: ["California (CCPA/CPRA)", "Colorado (CPA)", "Virginia (VCDPA)", "Illinois (BIPA)"],
         eu_uk_data: "No",
         tools: ["Microsoft 365 / Copilot", "Salesforce", "Snowflake", "HubSpot"],
-        data_categories: ["Customer records", "Employee records", "Contact identifiers", "Internet/network activity", "Biometric identifiers (fingerprint timeclocks)"],
+        data_categories: [
+          "Customer records",
+          "Employee records",
+          "Contact identifiers",
+          "Internet/network activity",
+          "Biometric identifiers (fingerprint timeclocks)",
+        ],
         special_category: "Yes",
         special_categories_list: ["Biometric data (fingerprint templates)"],
         privacy_policy: "Yes, but outdated",
@@ -271,12 +293,12 @@ const F_IR_EU: SampleFixture = {
       discoveryDateTime: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
       cause:
         "Unauthorised external access / ransomware on warehouse-management system. WMS holds driver schedules, employee personnel data, and refrigerated-shipment manifests for ~70 cold-chain customers. Backups were partially encrypted; recovery from off-site backup is underway. No evidence of public exfiltration yet.",
-      dataTypes: ["Employee records", "Driver / contractor records", "Customer business-contact data"],
-      affectedCount: "1,000–10,000",
+      dataTypes: ["employee records", "driver schedules", "refrigerated-shipment manifests"],
+      affectedCount: "approximately 1,900 employees and contractors",
       jurisdictions: ["Denmark", "EU/EEA"],
-      processorInvolved: false,
+      processorInvolved: true,
       contained: "No — recovery underway",
-      organisationType: "Cold-chain warehousing and logistics",
+      organisationType: "Cold-chain logistics operator (Denmark)",
     },
     invoke: { fn: "generate-ir-playbook", returns_id: true },
     poll: null,
@@ -297,12 +319,17 @@ const F_IR_US: SampleFixture = {
       discoveryDateTime: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
       cause:
         "Credential-stuffing attack against the consumer shipment-tracking portal. Successful logins on ~8,400 accounts across CA, CO, VA, and IL. Compromised accounts expose shipment history, delivery addresses, and last-4 of payment card. No direct access to the BIPA-scope fingerprint timeclock data (separate system).",
-      dataTypes: ["General personal data", "Financial / payment data (last-4)", "Shipment / delivery history"],
-      affectedCount: "8,400",
+      dataTypes: [
+        "names",
+        "email addresses",
+        "shipment-tracking account data",
+        "linked fingerprint time-clock records",
+      ],
+      affectedCount: "approximately 8,400 consumer accounts",
       jurisdictions: ["California", "Colorado", "Virginia", "Illinois"],
-      processorInvolved: false,
+      processorInvolved: true,
       contained: "Yes — credential rotation forced, MFA enrolment now mandatory, attacking IPs blocked.",
-      organisationType: "Logistics-tech (consumer shipment-tracking SaaS, ~600 employees, CA/CO/VA/IL footprint)",
+      organisationType: "Logistics-technology company (US multi-state)",
     },
     invoke: { fn: "generate-ir-playbook", returns_id: true },
     poll: null,
@@ -320,8 +347,9 @@ const F_BIO_US: SampleFixture = {
   result_url_pattern: "/biometric-checker/result/{id}",
   fixture: {
     invoke_body_extras: {
-      biometricTypes: ["Fingerprint / finger geometry"],
-      orgType: "Employer (employee biometrics)",
+      orgName: "Busted Sled Solutions, Inc.",
+      orgType: "logistics-technology company",
+      biometricTypes: ["fingerprint"],
       purpose:
         "Time and attendance for warehouse shift workers across three Illinois facilities. Sector: Logistics. Vendor: Yes — fingerprint timeclock hardware and template storage provided by a US-based vendor with cloud-hosted templates. Existing consent: Embedded in employment paperwork, not a standalone BIPA written release. Retention policy: Not formally documented.",
       jurisdictions: ["Illinois, USA (BIPA)"],
@@ -347,6 +375,9 @@ const F_CPPA_RISK_US: SampleFixture = {
       module: "risk_assessment",
       status: "pending",
       intake_data: {
+        entity_name: "Tomorrow4Cariboo, Inc.",
+        subject_anchor:
+          "Consumer shipment-tracking profiles — cross-context behavioural advertising and sale/share of tracking data",
         q1_revenue: "$100M–$500M",
         q2_consumers: "10+ million",
         q3_sector: "Advertising / Marketing technology",
@@ -358,29 +389,36 @@ const F_CPPA_RISK_US: SampleFixture = {
           "Inferences (audience segments, interest categories)",
         ],
         q5_sell_share: "Both",
+        q5b_profiling_observation: "Yes",
         q6_right_know: "Online form with identity verification",
         q7_right_delete: "Manual process, documented",
-        q8_right_correct: "Handled via support",
-        q9_opt_out: "Yes, GPC honored + footer link",
+        q8_right_correct: "Documented process; requests verified and completed within 45 days",
+        q9_opt_out: "Opt-out link in footer; Global Privacy Control honoured",
         q10_id_verification: "Documented verification ladder",
         q11_policy_review: "0–12 months ago",
         q12_notice_at_collection: "Yes, full coverage on owned properties",
         q13_notice_content: "All elements",
         q14_employee_notice: "Yes, standalone employee notice",
         q15_sensitive_pi: "Yes",
+        q15b_under16_knowledge: "No",
         q16_sensitive_limit: "Yes — service-provider purposes only",
         q17_sensitive_basis: "Service delivery and fraud prevention",
         q18_admt_use: "Yes",
+        q18b_admt_training: "No",
         q19_admt_description:
           "Audience-scoring models segment consumers into interest cohorts and predicted-purchase-intent bands. Outputs drive bid eligibility and frequency caps. No financial-eligibility, employment, or housing decisions.",
         q20_admt_opt_out: "Yes",
         i1_processing_purpose:
           "To generate audience-segment and purchase-intent scores from 13 months of cross-publisher browsing, app-usage, and engagement events, used to determine bid eligibility for advertising auctions on partner publishers.",
+        i1b_min_pi:
+          "Data elements limited to shipment identifiers, delivery addresses, and device identifiers required for tracking display; quarterly review removes unused elements",
         i2_retention_period: "13 months from last engagement",
         i2_retention_criteria: "Business purpose duration",
         i2_retention_detail: "Rolling 13-month deletion enforced via warehouse lifecycle policy.",
         i3_ca_consumer_band: "More than 1,000,000",
         i4_disclosure_mechanisms: ["Notice at Collection", "Privacy policy", "Just-in-time notice", "GPC honoring"],
+        i4b_sources:
+          "Directly from consumers at account creation; carrier scan events; device signals from the tracking page",
         i5_admt_logic: "Gradient-boosted ensemble producing a 0–100 segment-affinity score plus a categorical bucket.",
         i5_admt_training_source: "De-identified engagement data 2022–2025 across publisher partners.",
         i5_admt_fairness_testing: "Quarterly subgroup AUC + lift analysis across reported age band, region, and language preference.",
@@ -390,8 +428,50 @@ const F_CPPA_RISK_US: SampleFixture = {
         i7_external_consultees: "Outside privacy counsel; independent bias auditor (annual)",
         i8_certifying_exec_name: "Rudy Rangifer",
         i8_certifying_exec_title: "Chief Privacy Officer (advisory)",
+        i8_contact_email: "privacy@bustedsled.example",
+        i8_contact_phone: "+1 312 555 0148",
         i9_has_existing_dpia: "No",
         i9_existing_dpia_summary: "",
+        exceptions_intake: {
+          fraud_detection: {
+            claimed: true,
+            scope: "Velocity and anomaly checks on tracking-account logins and address changes",
+            safeguards: "Scoped to security telemetry; 90-day retention; access limited to the fraud team",
+          },
+          security_integrity: {
+            claimed: true,
+            scope: "Monitoring of authenticated sessions for credential-stuffing patterns",
+            safeguards: "Pseudonymised session identifiers; alerts reviewed by the security team",
+          },
+          debugging: { claimed: false, scope: "", safeguards: "" },
+          transient_use: { claimed: false, scope: "", safeguards: "" },
+          internal_research: { claimed: false, scope: "", safeguards: "" },
+          employment_context: { claimed: false, scope: "", safeguards: "" },
+          legal_compliance: { claimed: false, scope: "", safeguards: "" },
+          consumer_request: { claimed: false, scope: "", safeguards: "" },
+        },
+        impact_intake: {
+          likelihood: "Possible",
+          severity: "Moderate",
+          harmTypes: [
+            "Unauthorized profiling",
+            "Unwanted cross-context advertising",
+            "Security compromise of tracking accounts",
+          ],
+          vulnerable:
+            "No known processing of consumers under 16; household tracking pages may be viewed by minors",
+          benefitsOutweigh: "Yes",
+          benefitsRationale:
+            "Real-time shipment visibility and fraud screening benefit consumers directly; advertising revenue funds the free tracking tier",
+          cyberGaps: "No",
+          businessBenefits: "Fraud-loss reduction; advertising revenue on the free tier",
+          consumerBenefits: "Real-time delivery visibility; fewer account-takeover incidents",
+          stakeholderBenefits: "Carriers receive fewer misdelivery disputes",
+          safeguards:
+            "Opt-out honoured within 15 business days; GPC support; role-based access; encryption in transit and at rest",
+          harmCauses:
+            "Over-broad ad-segment sharing; retention beyond the stated period; credential-stuffing exposure",
+        },
       },
     },
     invoke: { fn: "run-cppa-risk-assessment", id_key: "assessment_id" },
@@ -400,6 +480,11 @@ const F_CPPA_RISK_US: SampleFixture = {
 };
 
 // --- 10. CPPA Cyber / US -------------------------------------------------
+// Note: tool page (`CPPACybersecurity.tsx`) submits `{ profile, controls: [...] }`
+// with controls as an ARRAY of `{ key, label, maturity, notes }`. Per the
+// sample-refresh rule "on conflict, the tool page wins", we retain the array
+// shape. The 18 control `key`s are re-keyed to match the tool page exactly
+// (c1_auth … c18_continuity per CPPACybersecurity.tsx CONTROLS).
 const F_CPPA_CYBER_US: SampleFixture = {
   tool_slug: "cppa_cyber",
   variant: "us",
@@ -413,33 +498,37 @@ const F_CPPA_CYBER_US: SampleFixture = {
       module: "cybersecurity",
       status: "pending",
       intake_data: {
+        company_name: "Tomorrow4Cariboo, Inc.",
+        profile_industry: "Advertising / Marketing technology",
+        profile_audit: "Within 12 months",
+        industry_sector: "Advertising / Marketing technology",
         profile: {
+          entity_name: "Tomorrow4Cariboo, Inc.",
           industry: "Advertising / Marketing technology",
           incidents_12mo: "0",
           framework: "SOC 2",
           last_audit: "Within 12 months",
         },
         controls: [
-          { key: "c1_auth", label: "Authentication and access controls", maturity: "Implemented across organisation", notes: "MFA enforced via Okta; SSO for all production systems." },
+          { key: "c1_auth", label: "Authentication", maturity: "Implemented across organisation", notes: "MFA enforced via Okta; SSO for all production systems." },
           { key: "c2_encryption", label: "Encryption of personal information", maturity: "Implemented with continuous monitoring", notes: "AES-256 at rest, TLS 1.3 in transit; AWS KMS." },
-          { key: "c3_zero_trust", label: "Zero-trust architecture", maturity: "Documented, partially implemented", notes: "Service mesh in production; corporate network not yet zero-trust." },
-          { key: "c4_account_mgmt", label: "Account management and access control", maturity: "Implemented across organisation", notes: "Automated joiner/leaver via Okta + Terraform." },
-          { key: "c5_inventory", label: "Inventory of personal information and systems", maturity: "Ad hoc / informal", notes: "No formal data map; sensitive-PI inventory is a known gap." },
-          { key: "c6_secure_config", label: "Secure configuration of hardware and software", maturity: "Documented, partially implemented", notes: "CIS benchmarks on AWS; endpoint hardening incomplete." },
-          { key: "c7_vuln_mgmt", label: "Vulnerability management and patching", maturity: "Implemented across organisation", notes: "Snyk + AWS Inspector; critical patches within 7 days." },
-          { key: "c8_audit_logs", label: "Audit-log management", maturity: "Implemented across organisation", notes: "Centralised Datadog; 13-month retention." },
-          { key: "c9_network_mon", label: "Network monitoring and defence", maturity: "Implemented with continuous monitoring", notes: "MSSP-run 24/7 SOC; IDS active." },
-          { key: "c10_anti_malware", label: "Anti-malware protections", maturity: "Implemented across organisation", notes: "CrowdStrike on all endpoints." },
-          { key: "c11_segmentation", label: "Network segmentation", maturity: "Documented, partially implemented", notes: "Prod / staging / corporate segmented; partner-data tenants not yet micro-segmented." },
-          { key: "c12_physical", label: "Limitation of physical access", maturity: "Implemented across organisation", notes: "Co-located AWS only; office uses keycard + CCTV." },
-          { key: "c13_secure_dev", label: "Secure development of software", maturity: "Ad hoc / informal", notes: "No formal secure-SDLC; SAST not in CI." },
-          { key: "c14_third_party", label: "Oversight of service providers and third parties", maturity: "Documented, partially implemented", notes: "DPAs for top vendors; no continuous monitoring." },
-          { key: "c15_retention", label: "Retention schedules and secure disposal", maturity: "Ad hoc / informal", notes: "13-month deletion enforced on warehouse only; no enterprise schedule." },
-          { key: "c16_training", label: "Cybersecurity awareness, education and training", maturity: "Implemented across organisation", notes: "Annual training + quarterly phishing." },
-          { key: "c17_incident", label: "Incident response and post-incident analysis", maturity: "Documented, partially implemented", notes: "IR plan documented; one tabletop in the past 18 months." },
-          { key: "c18_continuity", label: "Business continuity and disaster recovery", maturity: "Documented, partially implemented", notes: "BCP documented; DR drill annually." },
+          { key: "c3_account_access", label: "Account management and access controls", maturity: "Implemented across organisation", notes: "Automated joiner/leaver via Okta + Terraform; least-privilege reviews quarterly." },
+          { key: "c4_inventory", label: "Inventory and management of personal information and systems", maturity: "Ad hoc / informal", notes: "No formal data map; sensitive-PI inventory is a known gap." },
+          { key: "c5_secure_config", label: "Secure configuration of hardware and software", maturity: "Documented, partially implemented", notes: "CIS benchmarks on AWS; endpoint hardening incomplete." },
+          { key: "c6_vuln_mgmt", label: "Vulnerability scanning and penetration testing", maturity: "Implemented across organisation", notes: "Snyk + AWS Inspector; annual third-party pen test; critical patches within 7 days." },
+          { key: "c7_audit_logs", label: "Audit-log management", maturity: "Implemented across organisation", notes: "Centralised Datadog; 13-month retention." },
+          { key: "c8_network_mon", label: "Network monitoring and defenses", maturity: "Implemented with continuous monitoring", notes: "MSSP-run 24/7 SOC; IDS active." },
+          { key: "c9_anti_malware", label: "Antivirus and anti-malware protections", maturity: "Implemented across organisation", notes: "CrowdStrike on all endpoints." },
+          { key: "c10_segmentation", label: "Segmentation of an information system", maturity: "Documented, partially implemented", notes: "Prod / staging / corporate segmented; partner-data tenants not yet micro-segmented." },
+          { key: "c11_port_protocol", label: "Port and protocol management and protection", maturity: "Documented, partially implemented", notes: "Security-group inventory reviewed quarterly; egress-filtering policy in progress." },
+          { key: "c12_awareness", label: "Cybersecurity awareness", maturity: "Documented, partially implemented", notes: "Security team subscribes to ISAC feeds; enterprise threat-intel programme not yet formalised." },
+          { key: "c13_training", label: "Cybersecurity education and training", maturity: "Implemented across organisation", notes: "Annual training + quarterly phishing simulations for all staff." },
+          { key: "c14_secure_dev", label: "Secure development and coding practices", maturity: "Ad hoc / informal", notes: "No formal secure-SDLC; SAST not in CI." },
+          { key: "c15_third_party", label: "Oversight of service providers, contractors, and third parties", maturity: "Documented, partially implemented", notes: "DPAs for top vendors; no continuous monitoring." },
+          { key: "c16_retention", label: "Retention schedules and proper disposal of personal information", maturity: "Ad hoc / informal", notes: "13-month deletion enforced on warehouse only; no enterprise schedule." },
+          { key: "c17_incident", label: "Security-incident response management", maturity: "Documented, partially implemented", notes: "IR plan documented; one tabletop in the past 18 months." },
+          { key: "c18_continuity", label: "Business-continuity and disaster-recovery planning", maturity: "Documented, partially implemented", notes: "BCP documented; DR drill annually." },
         ],
-        industry_sector: "Advertising / Marketing technology",
       },
     },
     invoke: { fn: "run-cppa-cybersecurity", id_key: "assessment_id" },
@@ -461,6 +550,7 @@ const F_CPPA_ADMT_US: SampleFixture = {
       module: "admt",
       status: "pending",
       intake_data: {
+        organization_name: "Tomorrow4Cariboo Lending",
         system_name: "Loan Approval Engine",
         system_type: "Gradient-boosted ML model",
         system_description:
@@ -469,6 +559,10 @@ const F_CPPA_ADMT_US: SampleFixture = {
         human_review: "Partial — reviewer sees the output but cannot override it",
         training_data_use: "Yes",
         profiling_use: "No",
+        third_party_admt: "No",
+        admt_system_count: "1",
+        prior_access_requests_12mo: "12",
+        admt_detail: {},
         notice_delivery: ["In-app just-in-time notice before data collection"],
         notice_has_specific_purpose: "No — uses generic language",
         notice_purpose_text: "",
@@ -484,6 +578,10 @@ const F_CPPA_ADMT_US: SampleFixture = {
         opt_out_no_cookie_banner: "Confirmed — we provide at least one ADMT-specific opt-out method in addition",
         opt_out_no_account_required: "Confirmed — no account required",
         opt_out_confirmation_mechanism: "Confirmation email within 24 hours",
+        opt_out_15_day_process:
+          "Opt-outs processed within 15 business days; confirmation email sent on completion",
+        opt_out_service_provider_notice:
+          "Service providers processing on our behalf are notified of opt-outs within 10 business days via the vendor portal",
         opt_out_appeal_process: "",
         opt_out_fairness_doc: "",
         access_submission_methods: "Same webform as right-to-know requests at privacy.company.com/requests",
@@ -512,6 +610,9 @@ const F_ROPA_EU: SampleFixture = {
   result_url_pattern: "/ropa/documents",
   fixture: {
     org_name: "North Pole Manual Mining Ltd",
+    // author_name and eu_rep_name / uk_rep_name are still read by
+    // generate-ropa-document (author_name → header/footer authorship;
+    // eu_rep_name / uk_rep_name → representative disclosure block). Keep.
     author_name: "Donna Dasher (DPO)",
     profile: {
       legal_entity_type: "Private limited company (UK)",
@@ -527,14 +628,15 @@ const F_ROPA_EU: SampleFixture = {
       uk_rep_email: "uk-rep@northpolemanualmining.example",
     },
     jurisdictions: [
-      { jurisdiction_code: "EU_GDPR", jurisdiction_name: "European Union", jurisdiction_region: "EU & UK" },
-      { jurisdiction_code: "UK_GDPR", jurisdiction_name: "United Kingdom", jurisdiction_region: "EU & UK" },
+      { code: "EU_GDPR", name: "European Union", region: "EU & UK" },
+      { code: "UK_GDPR", name: "United Kingdom", region: "EU & UK" },
     ],
     activities: [
       {
         activity_name: "Employee HR Processing",
         category: "hr_employment",
-        purpose: "Recruitment, payroll, benefits administration, performance management, and statutory employment-law compliance for ~2,400 UK employees and contractors.",
+        purpose:
+          "Recruitment, payroll, benefits administration, performance management, and statutory employment-law compliance for ~2,400 UK employees and contractors.",
         lawful_basis: "contract",
         special_category_basis: "Article 9(2)(b) employment-law condition for occupational-health data",
         data_categories: ["Employee records", "Financial data", "Contact identifiers", "Occupational-health data"],
