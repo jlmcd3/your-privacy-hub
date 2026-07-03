@@ -2,7 +2,7 @@
 // an attached PDF (any status) so admins and reviewers can grab the PDFs
 // generated from /admin/sample-reports without having to publish first.
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, FileText, Trash2, Download } from "lucide-react";
 import JSZip from "jszip";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,17 @@ type Row = {
   status: string;
   pdf_path: string | null;
   updated_at: string | null;
+  batch_id?: string | null;
+  job_id?: string | null;
+  is_job_artifact?: boolean;
+};
+
+type BatchContext = {
+  id: string;
+  runId?: string | null;
+  runStatus?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
 };
 
 const TOOL_DISPLAY: Record<string, string> = {
@@ -35,19 +46,132 @@ const TOOL_DISPLAY: Record<string, string> = {
   ropa: "Record of Processing Activities (RoPA)",
   us_notice: "US State Privacy Notice",
   eu_notice: "EU / Global Privacy Notice",
+  registration: "Registration Assessment",
 };
 
+const STRESS_TOOL_TO_SAMPLE_SLUG: Record<string, string> = {
+  lia: "li_assessment",
+  dpia: "dpia",
+  dpa: "dpa",
+  governance: "governance",
+  "ir-playbook": "ir_playbook",
+  biometric: "biometric",
+  "cppa-risk": "cppa_risk",
+  "cppa-cyber": "cppa_cyber",
+  "cppa-admt": "cppa_admt",
+  registration: "registration",
+  ropa: "ropa",
+  "us-notice": "us_notice",
+  "eu-notice": "eu_notice",
+};
+
+const shortId = (id?: string | null) => (id ? id.slice(0, 8) : "");
+
 export default function SampleReportOutput() {
+  const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [batchContext, setBatchContext] = useState<BatchContext | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
   const [zipping, setZipping] = useState(false);
   const [zippingTool, setZippingTool] = useState<string | null>(null);
   const [deletingTool, setDeletingTool] = useState<string | null>(null);
 
+  const requestedBatchId = searchParams.get("batch");
+  const viewAll = searchParams.get("all") === "1";
+
   async function load() {
+    setError(null);
+    setBatchContext(null);
+
+    if (!viewAll) {
+      let batchId = requestedBatchId;
+      let context: BatchContext | null = batchId ? { id: batchId } : null;
+
+      if (!batchId) {
+        const { data: latestRun, error: runError } = await supabase
+          .from("quality_loop2_runs")
+          .select("id, status, stress_batch_id, started_at, completed_at")
+          .not("stress_batch_id", "is", null)
+          .order("started_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (runError) {
+          setError(runError.message);
+          setRows([]);
+          return;
+        }
+        const run = latestRun as any;
+        batchId = run?.stress_batch_id ?? null;
+        context = batchId
+          ? {
+              id: batchId,
+              runId: run?.id ?? null,
+              runStatus: run?.status ?? null,
+              startedAt: run?.started_at ?? null,
+              completedAt: run?.completed_at ?? null,
+            }
+          : null;
+      }
+
+      if (batchId && context) {
+        const { data: jobs, error: jobsError } = await supabase
+          .from("static_stress_jobs")
+          .select("id, batch_id, company_id, company_name, industry, geo, tool_slug, status, pdf_path, completed_at")
+          .eq("batch_id", batchId)
+          .not("pdf_path", "is", null)
+          .order("tool_slug")
+          .order("company_id");
+        if (jobsError) {
+          setError(jobsError.message);
+          setRows([]);
+          return;
+        }
+
+        const jobList = (jobs ?? []) as any[];
+        const paths = Array.from(new Set(jobList.map((j) => j.pdf_path).filter(Boolean)));
+        let samplesByPath: Record<string, any> = {};
+        if (paths.length > 0) {
+          const { data: samples, error: sampleError } = await supabase
+            .from("sample_reports")
+            .select("id, tool_slug, variant, title, scenario_summary, status, pdf_path, updated_at")
+            .in("pdf_path", paths);
+          if (sampleError) {
+            console.warn("sample_reports lookup failed", sampleError.message);
+          } else {
+            samplesByPath = Object.fromEntries(((samples ?? []) as any[]).map((s) => [s.pdf_path, s]));
+          }
+        }
+
+        const scopedRows: Row[] = jobList.map((job) => {
+          const sample = samplesByPath[job.pdf_path];
+          const sampleSlug = STRESS_TOOL_TO_SAMPLE_SLUG[job.tool_slug] ?? job.tool_slug;
+          return sample
+            ? { ...sample, batch_id: job.batch_id, job_id: job.id }
+            : {
+                id: job.id,
+                tool_slug: sampleSlug,
+                variant: `static-${job.company_id ?? shortId(job.id)}`,
+                title: `[${job.industry ?? "Stress"}] ${job.company_name ?? "Generated company"} — ${TOOL_DISPLAY[sampleSlug] ?? sampleSlug}`,
+                scenario_summary: `QL2 batch ${shortId(job.batch_id)} · ${(job.geo ?? "").toString().toUpperCase()} · ${job.status}`,
+                status: job.status ?? "complete",
+                pdf_path: job.pdf_path,
+                updated_at: job.completed_at ?? null,
+                batch_id: job.batch_id,
+                job_id: job.id,
+                is_job_artifact: true,
+              };
+        });
+
+        setBatchContext(context);
+        setRows(scopedRows);
+        await signUrls(scopedRows);
+        return;
+      }
+    }
+
     const { data, error } = await supabase
       .from("sample_reports")
       .select("id, tool_slug, variant, title, scenario_summary, status, pdf_path, updated_at")
@@ -61,6 +185,10 @@ export default function SampleReportOutput() {
     }
     const list = (data ?? []) as Row[];
     setRows(list);
+    await signUrls(list);
+  }
+
+  async function signUrls(list: Row[]) {
     const map: Record<string, string> = {};
     await Promise.all(
       list.map(async (r) => {
@@ -76,9 +204,13 @@ export default function SampleReportOutput() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [requestedBatchId, viewAll]);
 
   async function onDelete(r: Row) {
+    if (r.is_job_artifact) {
+      toast.error("This batch artifact can be downloaded, but its sample row is not available to delete here.");
+      return;
+    }
     if (!confirm(`Delete sample report "${r.title}"? This removes the PDF and the record permanently.`)) return;
     setDeleting(r.id);
     try {
@@ -113,8 +245,13 @@ export default function SampleReportOutput() {
       return;
     }
     if (!confirm(`Delete all ${list.length} sample reports? This removes every PDF and record permanently.`)) return;
+    const deletable = list.filter((r) => !r.is_job_artifact);
+    if (deletable.length === 0) {
+      toast.error("No deletable sample rows are available on this batch view");
+      return;
+    }
     setDeletingAll(true);
-    const t = toast.loading(`Deleting ${list.length} reports…`);
+    const t = toast.loading(`Deleting ${deletable.length} reports…`);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -127,11 +264,11 @@ export default function SampleReportOutput() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ action: "delete_many", ids: list.map((r) => r.id) }),
+          body: JSON.stringify({ action: "delete_many", ids: deletable.map((r) => r.id) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
-      const deletedIds = new Set<string>(Array.isArray(data?.deleted_ids) ? data.deleted_ids : list.map((r) => r.id));
+      const deletedIds = new Set<string>(Array.isArray(data?.deleted_ids) ? data.deleted_ids : deletable.map((r) => r.id));
       setRows((cur) => (cur ?? []).filter((x) => !deletedIds.has(x.id)));
       toast.success(`Deleted ${data?.deleted ?? deletedIds.size} report${(data?.deleted ?? deletedIds.size) === 1 ? "" : "s"}`, { id: t });
     } catch (e) {
@@ -142,7 +279,7 @@ export default function SampleReportOutput() {
   }
 
   async function onDeleteTool(toolSlug: string) {
-    const list = grouped[toolSlug] ?? [];
+    const list = (grouped[toolSlug] ?? []).filter((r) => !r.is_job_artifact);
     if (list.length === 0) {
       toast.error("No documents to delete in this section");
       return;
@@ -163,7 +300,9 @@ export default function SampleReportOutput() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ action: "delete_many", tool_slug: toolSlug }),
+        body: viewAll
+          ? JSON.stringify({ action: "delete_many", tool_slug: toolSlug })
+          : JSON.stringify({ action: "delete_many", ids: list.map((r) => r.id) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
