@@ -351,7 +351,7 @@ const F_BIO_US: SampleFixture = {
       orgType: "logistics-technology company",
       biometricTypes: ["fingerprint"],
       purpose:
-        "Time and attendance for warehouse shift workers across three Illinois facilities. Sector: Logistics. Vendor: Yes — fingerprint timeclock hardware and template storage provided by a US-based vendor with cloud-hosted templates. Existing consent: Embedded in employment paperwork, not a standalone BIPA written release. Retention policy: Not formally documented.",
+        "Time and attendance for warehouse shift workers across three Illinois facilities. Sector: Logistics. Vendor: Yes — fingerprint timeclock hardware and template storage provided by a US-based vendor bound by a written BIPA-compliant DPA that prohibits secondary use, sale, or lease of templates and requires deletion on request. Existing consent: Standalone written BIPA release signed by each enrolled worker before enrollment, separate from the employment agreement, referencing specific purpose (time and attendance), retention (3 years after last interaction or separation, whichever first), and destruction schedule. Published BIPA policy on the company intranet and worker handbook. Retention policy: Formally documented and published — templates destroyed when the initial purpose is satisfied or within 3 years of the individual's last interaction, whichever occurs first, with automated deletion job and quarterly attestation.",
       jurisdictions: ["Illinois, USA (BIPA)"],
       enrolledCount: "500-5,000",
       is_free_tier: false,
