@@ -646,9 +646,9 @@ export default function SampleReportOutput() {
                           <button
                             type="button"
                             onClick={() => onDelete(r)}
-                            disabled={deleting === r.id || r.is_job_artifact}
+                            disabled={deleting === r.id}
                             className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 text-destructive px-3 py-2 text-sm font-medium hover:bg-destructive/10 disabled:opacity-50"
-                            title={r.is_job_artifact ? "This batch artifact has no deletable sample row" : "Delete this sample report (admin only)"}
+                            title={r.is_job_artifact ? "Remove this batch artifact (clears the PDF and the batch's pdf_path)" : "Delete this sample report (admin only)"}
                           >
                             <Trash2 className="h-4 w-4" aria-hidden />
                             {deleting === r.id ? "Deleting…" : "Delete"}
