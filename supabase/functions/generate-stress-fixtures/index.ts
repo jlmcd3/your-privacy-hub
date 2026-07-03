@@ -657,7 +657,7 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       orgType: `${industry} organisation`,
       purpose: usesBiometric
         ? "Identity verification and fraud prevention"
-        : "No active biometric processing; placeholder profile so Biometric tool can produce a proper insufficient-input analysis",
+        : "None — no biometric systems currently in use",
       jurisdictions,
       enrolledCount: usesBiometric ? (slot === 1 ? "120,000" : "18,000") : "0",
     },

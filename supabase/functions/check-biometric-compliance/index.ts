@@ -195,8 +195,10 @@ async function runStressBiometric(body: Body, resolvedUserId: string | null) {
 
   function stressSection(jurisdiction: string): string {
     const j = jurisdiction.toLowerCase();
+    // Normalize UK aliases: "UK", "U.K.", "GB" all route to the dedicated UK builder.
+    const jNormalized = j.replace(/\./g, "").trim();
     const isEU = j.includes("eu") || j.includes("eea") || (j.includes("gdpr") && !j.includes("uk"));
-    const isUK = j.includes("united kingdom") || j.includes("uk gdpr") || j === "gb";
+    const isUK = j.includes("united kingdom") || j.includes("uk gdpr") || jNormalized === "gb" || jNormalized === "uk";
     const isIL = j.includes("illinois") || j.includes("bipa");
     const isTX = j.includes("texas") || j.includes("cubi");
     const isCA = j.includes("california") || j.includes("ca,") || j === "ca";
@@ -244,7 +246,7 @@ Active supervisory authority enforcement of Article 9 biometric obligations acro
     }
 
     if (isUK) {
-      return `${jurisdiction} — UK GDPR / DPA 2018
+      return `${jurisdiction} — UK GDPR and Data Protection Act 2018
 
 Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data processed for unique identification is special-category data under UK GDPR Article 9(1). The operative law is UK GDPR (retained EU GDPR as amended) together with DPA 2018 — not EU GDPR.
 
