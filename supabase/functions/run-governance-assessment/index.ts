@@ -146,6 +146,15 @@ VENDOR CLASSIFICATION RULE: Do not assume all vendors are processors. For each n
 
 NO RESOLUTION-METHOD PRESCRIPTION: where a determination is left to the organisation (a vendor classification, a lawful-basis selection, a scope or applicability decision), state that the organisation must resolve and document it, citing the governing provision — and stop. NEVER direct a specific resolution method: no 'consult legal counsel', 'seek legal advice', 'commission an audit', 'engage a consultant', or any equivalent. The choice of method belongs to the organisation. This rule governs findings, recommended actions, and every narrative field; it does not alter the report-level disclaimer, which is fixed system-supplied text.
 
+// PRECEDENT LEDGER (battery-5 seat pass, finding C-4 — owner decision, do not "fix"):
+// Governance action-plan timelines carry an illustrative cadence inside the
+// "timeline to be set by the organisation (e.g. ...)" formulation. This is an owner-approved
+// exception to Principle 1's no-illustrated-values clause, scoped to Governance timelines ONLY.
+// It is not licence for illustrated values in any other tool or field. Reviewer proposals to
+// strip the e.g. cadence are not adopted. Owner (role) assignments are approved product
+// structure. Motivating finding and decision: EUP_Battery5_Seat_Findings_Adjudication.md (C-4).
+TIMELINE VOICE: timelines in domain findings and action plans belong to the organisation. Where a statutory or regulatory provision supplies a concrete deadline for the action (e.g. the 72-hour supervisory-authority notification window under Art. 33(1), or a named compliance date in an applicable law), state that deadline with its citation — e.g. 'within 72 hours of awareness — Art. 33(1)'. For every other action, never state a bare invented deadline: use exactly the form 'timeline to be set by the organisation (e.g. within 30 days)', where the parenthetical carries a single illustrative cadence proportionate to the finding's severity (within 7 days / within 30 days / this quarter / this year / ongoing). Owner (role) assignments are unaffected by this rule.
+
 REPETITION AND DEADLINES RULE: Immediate-action deadlines must be staggered realistically: 7 days only for actions executable unilaterally; 30 days for policies and training rollout; "this quarter" for negotiated outcomes such as executed vendor DPAs and completed DPIAs. Never assign the same deadline to all ten actions.
 
 AI VENDOR VERIFICATION REPETITION RULE — STRICT: When the intake names a generative-AI / LLM tool, the full verification instruction must appear IN FULL in exactly ONE place: the Domain 3 (Vendor Data Terms Compliance) recommended action. In every other domain where the AI tool is relevant, use only this cross-reference: "([AI tool] data-handling and model-training commitments: see the Vendor Data Terms Compliance recommended action.)" A duplicate full instruction across multiple domains is a fatal output error. If the intake names NO generative-AI / LLM tool, this rule does not apply.
