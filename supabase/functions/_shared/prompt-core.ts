@@ -1,9 +1,10 @@
-// Shared EUP prompt core (v3.1)
+// Shared EUP prompt core (v3.2)
+// v3.2: NO METHOD PRESCRIPTION added to OUTPUT DISCIPLINE (with IR privilege carve-out).
 // v3.1: counsel-parenthetical removed; argument-voice parenthetical removed;
 // EU-transfers content modularized (opt-in via ToolModule.includeEuTransfers); UK–US Data Bridge
 // verified date added.
 
-export const PROMPT_CORE_VERSION = "3.1";
+export const PROMPT_CORE_VERSION = "3.2";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
