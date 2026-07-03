@@ -407,6 +407,7 @@ export default function SampleReportView() {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
