@@ -16,6 +16,7 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
   citationFramework:
     "Per-control citations are supplied deterministically from the CONTROL_CITATIONS map (11 CCR § 7123(c)(1)–(18)); never invent, alter, or reorder a control citation. Cite procedural provisions only as 11 CCR §§ 7120–7124. Never describe the regulations as proposed.",
   outputMode: "strict-JSON",
+  includeEuTransfers: false,
   extraRules: [
     "PROSE CITATION HYGIENE: In finding, remediation, top_risks, next_steps, and executive_summary, refer to each cybersecurity component by its NAME only. NEVER write a component subsection number — no \"11 CCR § 7123(c)(N)\", \"§ 7123(c)(N)\", or \"(c)(N)\" — in any of these prose fields; the correct per-control citation is supplied by the system in the fsor_citation and regulatory_basis fields. In prose you may cite only the procedural range 11 CCR §§ 7120–7124 (e.g. § 7122, § 7123(e), § 7124) where unavoidable. Writing a § 7123(c)(N) subsection in prose is a defect.",
     "PHASE-IN: first audit certifications are due April 1, 2028 (>$100M 2026 gross revenue), April 1, 2029 ($50–100M), April 1, 2030 (<$50M), under 11 CCR § 7121(a). Never present a readiness deadline earlier than the business's applicable phase-in date (a prospective obligation).",
