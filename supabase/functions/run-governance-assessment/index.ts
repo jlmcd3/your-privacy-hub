@@ -539,7 +539,7 @@ Return JSON:
     { "risk": "risk name", "domain": "domain name", "why_urgent": "one sentence", "severity": "Critical|High" }
   ],
   "immediate_actions": [
-    { "action": "specific action", "domain": "domain name", "timeline": "either a statutory deadline with its citation, or exactly 'timeline to be set by the organisation (e.g. within 7 days | within 30 days | this quarter | this year | ongoing)' — never a bare invented deadline", "owner": "role" }
+    { "action": "specific action", "domain": "domain name", "timeline": "statutory deadline with citation, or exactly: timeline to be set by the organisation (e.g. within X days)", "owner": "role" }
   ],
   "interaction_effects": "one paragraph describing where findings in multiple domains compound each other",
   "dpia_scope": [
