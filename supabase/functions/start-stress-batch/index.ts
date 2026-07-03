@@ -399,7 +399,7 @@ Deno.serve(async (req) => {
   // Log synthesized companies for post-mortem debugging (all-skip runs) and
   // assert setup_total matches. If geo "both" yielded no EU (or no US) wave,
   // fail fast rather than silently produce a half-covered batch.
-  console.log(`[start-stress-batch] synthesized ${companies.length} companies for geo_filter=${geo_filter}:`,
+  console.log(`[start-stress-batch] synthesized ${companies.length} companies for geo_filter=${geo_filter} slots_per_geo=${slotsPerGeo}:`,
     JSON.stringify(companies.map((c) => `${c.geo}-${c.industryId}-slot${c.slot}`)));
   if (geo_filter === "both") {
     const hasUs = companies.some((c) => c.geo === "us");
