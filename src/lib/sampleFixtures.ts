@@ -513,7 +513,7 @@ const F_CPPA_CYBER_US: SampleFixture = {
           { key: "c1_auth", label: "Authentication", maturity: "Implemented across organisation", notes: "MFA enforced via Okta; SSO for all production systems." },
           { key: "c2_encryption", label: "Encryption of personal information", maturity: "Implemented with continuous monitoring", notes: "AES-256 at rest, TLS 1.3 in transit; AWS KMS." },
           { key: "c3_account_access", label: "Account management and access controls", maturity: "Implemented across organisation", notes: "Automated joiner/leaver via Okta + Terraform; least-privilege reviews quarterly." },
-          { key: "c4_inventory", label: "Inventory and management of personal information and systems", maturity: "Ad hoc / informal", notes: "No formal data map; sensitive-PI inventory is a known gap." },
+          { key: "c4_inventory", label: "Inventory and management of personal information and systems", maturity: "Implemented across organisation", notes: "Enterprise data map maintained in OneTrust; sensitive-PI inventory reviewed quarterly by CPO and CISO; all production data stores tagged in the CMDB." },
           { key: "c5_secure_config", label: "Secure configuration of hardware and software", maturity: "Documented, partially implemented", notes: "CIS benchmarks on AWS; endpoint hardening incomplete." },
           { key: "c6_vuln_mgmt", label: "Vulnerability scanning and penetration testing", maturity: "Implemented across organisation", notes: "Snyk + AWS Inspector; annual third-party pen test; critical patches within 7 days." },
           { key: "c7_audit_logs", label: "Audit-log management", maturity: "Implemented across organisation", notes: "Centralised Datadog; 13-month retention." },
