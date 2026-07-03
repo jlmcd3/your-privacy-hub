@@ -1,0 +1,2 @@
+UPDATE public.static_stress_jobs SET status='cancelled', completed_at=now(), error_message=COALESCE(error_message,'')||' | manually cancelled — stuck >20m' WHERE id='1c9fcda0-5d20-41e6-8f99-204e3b1a87bb' AND status='running';
+UPDATE public.static_stress_batches SET status='complete', completed_at=now() WHERE id='1662e9a3-817d-454f-8214-5ef434c18d73' AND status IN ('running','pending');
