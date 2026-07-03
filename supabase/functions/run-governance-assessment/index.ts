@@ -265,6 +265,32 @@ function dedupeLintWarnings(warnings: any[]): any[] {
   return out;
 }
 
+// QB9-5: intake-gap requests live in the top-level information_needed array only.
+function hoistNestedInformationNeeded(reportData: any): any {
+  try {
+    const top = Array.isArray(reportData?.information_needed) ? reportData.information_needed : [];
+    const seen = new Set(top.map((s: any) => String(s).trim()));
+    const findings = reportData?.domain_findings;
+    if (findings && typeof findings === "object") {
+      for (const key of Object.keys(findings)) {
+        const f = (findings as any)[key];
+        if (f && Array.isArray(f.information_needed)) {
+          for (const item of f.information_needed) {
+            if (!seen.has(String(item).trim())) { top.push(item); seen.add(String(item).trim()); }
+          }
+          delete f.information_needed;
+          console.warn(`[GOV] QB9-5: hoisted information_needed from domain '${key}' to top level`);
+        }
+      }
+    }
+    reportData.information_needed = top;
+  } catch (e) {
+    console.error("[GOV] QB9-5 hoist errored:", e);
+  }
+  return reportData;
+}
+
+
 function buildStressGovernanceReport(assessmentId: string, intake: any) {
   const jurisdictions = Array.isArray(intake?.jurisdictions) ? intake.jurisdictions.map(String) : [];
   const hasEuUk = intake?.eu_uk_data === true || jurisdictions.some((j: string) => ["EU", "GB", "UK"].includes(j.toUpperCase()));
