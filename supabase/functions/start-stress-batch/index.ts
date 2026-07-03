@@ -365,7 +365,8 @@ Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "invalid json" }, 400); }
 
-  const { batch_id, company_index, industries, geo_filter, selected_tools, run_by, action } = body ?? {};
+  const { batch_id, company_index, industries, geo_filter, selected_tools, run_by, action, slots_per_geo } = body ?? {};
+  const slotsPerGeo = Math.max(1, Math.min(2, Number.isFinite(Number(slots_per_geo)) ? Number(slots_per_geo) : 2));
 
   if (action === "repair_fixture_failures" && batch_id) {
     // @ts-ignore
