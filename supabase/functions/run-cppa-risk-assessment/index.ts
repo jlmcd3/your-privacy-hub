@@ -754,8 +754,14 @@ async function runPipeline(assessment_id: string) {
     // one regeneration with the appended instruction.
     try {
       const intakeForGuard = ((row as any).intake_data as Record<string, unknown>) ?? {};
-      const preview = guardInformationNeeded({ ...parsed }, intakeForGuard);
-      if (preview.deadEndWithoutPath) {
+      const guarded = guardInformationNeeded(parsed, intakeForGuard);
+      // Auto-repair (synthesised information_needed entries from empty intake keys) is
+      // applied in-place; no model retry needed. We only regenerate when the guard could
+      // not repair AND still detects a dead-end phrase — a rare edge case that used to
+      // cost ~180s per run and push the outer job past the 12-min watchdog.
+      if (guarded.autoRepaired > 0) {
+        parsed = guarded.report;
+      } else if (guarded.deadEndWithoutPath) {
         console.warn(JSON.stringify({ evt: "forward_path_retry", fn: "run-cppa-risk-assessment" }));
         const appended = userPrompt + "\n\nYour previous output contained an insufficient-basis finding with no information_needed entry. Re-emit with the required entry per the FORWARD PATH rule.";
         const retry = await callModel(system, appended, "generate-v4-fwdpath-retry");
