@@ -352,7 +352,7 @@ Priority actions:
 3. Audit all vendor agreements for biometric data processors — ensure destruction obligations and security requirements are contractually binding.
 
 Compliance risk rating: HIGH
-Texas AG enforcement of CUBI is active and has produced multi-billion dollar settlements; the per-violation calculation at scale creates material exposure even without a private right of action.
+Texas AG enforcement of CUBI is active; the per-violation calculation at scale creates material exposure even without a private right of action.
 ---`;
     }
 
