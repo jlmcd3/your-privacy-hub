@@ -139,6 +139,7 @@ export const DPIA_TOOL_MODULE: ToolModule = {
 };
 
 Deno.serve(async (req) => {
+  console.log(`[qb9] run-dpia-framework build active · core=${PROMPT_CORE_VERSION}`);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
