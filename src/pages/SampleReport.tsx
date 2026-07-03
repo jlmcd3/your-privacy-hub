@@ -206,10 +206,13 @@ export default function SampleReport() {
                   )}
                 </header>
 
-                <SampleReportBody
+                <SampleToolReport
+                  toolSlug={r.tool_slug}
                   documentText={r.document_text}
                   reportData={r.report_data}
+                  publishedAt={r.published_at}
                 />
+
               </article>
             );
           })}
