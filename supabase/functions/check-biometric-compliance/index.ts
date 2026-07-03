@@ -622,7 +622,7 @@ German state DPAs actively enforce special-category-data obligations. Refer to t
 Priority actions:
 1. Obtain works council agreement (Betriebsvereinbarung) before deploying any employee biometric system — this is a legal pre-condition, not a best practice.
 2. Complete a DPIA and, if residual risk remains, consult the competent state DPA under Article 36.
-3. Confirm the responsible state DPA (Landesdatenschutzbehörde) for this organisation's location and register the processing where required by state law.
+3. Confirm the responsible state DPA (Landesdatenschutzbehörde) for this organisation's location and register or consult with the competent Land supervisory authority where Landesrecht imposes a consultation or registration duty for the processing (verify against the applicable Land's data-protection law — most biometric employment processing requires no registration, only a DPIA).
 
 Compliance risk rating: HIGH
 Germany's works council codetermination requirement creates a hard legal gate before employee biometric deployment; state DPA enforcement is active and has specifically targeted biometric workplace systems.
