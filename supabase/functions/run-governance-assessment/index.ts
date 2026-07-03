@@ -87,6 +87,13 @@ const DOMAIN_DEFINITIONS = [
 // ---------------------------------------------------------------------------
 export const GOVERNANCE_CITATION_FRAMEWORK = "Cite regulatory bases ONLY for the jurisdictions in the intake. If the intake has no EU/UK jurisdiction, do NOT cite GDPR/UK GDPR/EU authorities anywhere; the number of applicable frameworks must equal the number of intake jurisdictions. In domain findings cite statutes only — no enforcement case names, fines, or SA guidance titles. Name supervisory authorities only from the injected RESOLVED GDPR CITATIONS block; if a jurisdiction is absent from it, write 'the relevant supervisory authority in [country]'. Never name the BfDI for a private-sector controller — Germany private-sector controllers are supervised by the relevant Land authority.";
 
+// PRECEDENT LEDGER (battery-5 seat pass, finding C-4 — owner decision, do not "fix"):
+// Governance action-plan timelines carry an illustrative cadence inside the
+// "timeline to be set by the organisation (e.g. ...)" formulation. This is an owner-approved
+// exception to Principle 1's no-illustrated-values clause, scoped to Governance timelines ONLY.
+// It is not licence for illustrated values in any other tool or field. Reviewer proposals to
+// strip the e.g. cadence are not adopted. Owner (role) assignments are approved product
+// structure. Motivating finding and decision: EUP_Battery5_Seat_Findings_Adjudication.md (C-4).
 export function buildGovernanceSharedRules(jurisdictions: unknown, euUkData: string): string {
   const intakeJurisdictionsJson = JSON.stringify(Array.isArray(jurisdictions) ? jurisdictions : []);
   const euUkValue = euUkData || "not specified";
@@ -145,6 +152,8 @@ DPO RULE: Frame the GDPR Art. 37 DPO question identically in every domain: "asse
 VENDOR CLASSIFICATION RULE: Do not assume all vendors are processors. For each named technology vendor, identify whether it is acting as: (a) a processor; (b) a joint controller; or (c) an independent controller. Flag the classification as requiring legal confirmation rather than asserting it. Where genuinely uncertain (e.g. a generative-AI / LLM platform), say so explicitly: "The controller-processor boundary for [vendor] depends on the tenant configuration and enterprise commitments in place — the organisation must confirm and document the classification before executing a DPA." Never describe the absence of a DPA as meaning "no lawful basis exists for processing" — the correct framing is "processing without an Art. 28-compliant contract is a GDPR violation, but the absence of a DPA does not by itself extinguish all lawful bases for the underlying processing activity."
 
 NO RESOLUTION-METHOD PRESCRIPTION: where a determination is left to the organisation (a vendor classification, a lawful-basis selection, a scope or applicability decision), state that the organisation must resolve and document it, citing the governing provision — and stop. NEVER direct a specific resolution method: no 'consult legal counsel', 'seek legal advice', 'commission an audit', 'engage a consultant', or any equivalent. The choice of method belongs to the organisation. This rule governs findings, recommended actions, and every narrative field; it does not alter the report-level disclaimer, which is fixed system-supplied text.
+
+TIMELINE VOICE: timelines in domain findings and action plans belong to the organisation. Where a statutory or regulatory provision supplies a concrete deadline for the action (e.g. the 72-hour supervisory-authority notification window under Art. 33(1), or a named compliance date in an applicable law), state that deadline with its citation — e.g. 'within 72 hours of awareness — Art. 33(1)'. For every other action, never state a bare invented deadline: use exactly the form 'timeline to be set by the organisation (e.g. within 30 days)', where the parenthetical carries a single illustrative cadence proportionate to the finding's severity (within 7 days / within 30 days / this quarter / this year / ongoing). Owner (role) assignments are unaffected by this rule.
 
 REPETITION AND DEADLINES RULE: Immediate-action deadlines must be staggered realistically: 7 days only for actions executable unilaterally; 30 days for policies and training rollout; "this quarter" for negotiated outcomes such as executed vendor DPAs and completed DPIAs. Never assign the same deadline to all ten actions.
 
@@ -230,7 +239,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     const severity = hasCoreControls
       ? (domain.escalate ? "Medium" : idx % 3 === 0 ? "Low" : "Medium")
       : (domain.escalate ? "High" : "Medium");
-    const timeline = idx < 3 ? "Immediate (within 7 days)" : idx < 7 ? "This quarter" : "Ongoing";
+    const timeline = `timeline to be set by the organisation (e.g. ${idx < 3 ? "within 7 days" : idx < 7 ? "this quarter" : "ongoing"})`;
     return [domain.key, {
       domain_id: domain.id,
       domain_name: domain.name,
@@ -255,9 +264,9 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
       { risk: "Operational proof", domain: "Employee Training and Awareness", why_urgent: "Policies and training must be backed by completion records and exception handling.", severity: "High" },
     ],
     immediate_actions: [
-      { action: "Confirm that each listed tool has an owner, approved use case, and current vendor-risk record.", domain: "Tool Inventory and Sanctioning", timeline: "within 7 days", owner: "Compliance Manager" },
-      { action: "Review vendor classification and contract coverage for each listed tool.", domain: "Vendor Data Terms Compliance", timeline: "this quarter", owner: "Legal Counsel" },
-      { action: "Document DPIA rationale for high-risk workflows and record residual-risk approval.", domain: "Privacy Impact Assessment Status", timeline: "this quarter", owner: "DPO" },
+      { action: "Confirm that each listed tool has an owner, approved use case, and current vendor-risk record.", domain: "Tool Inventory and Sanctioning", timeline: "timeline to be set by the organisation (e.g. within 7 days)", owner: "Compliance Manager" },
+      { action: "Review vendor classification and contract coverage for each listed tool.", domain: "Vendor Data Terms Compliance", timeline: "timeline to be set by the organisation (e.g. this quarter)", owner: "Legal Counsel" },
+      { action: "Document DPIA rationale for high-risk workflows and record residual-risk approval.", domain: "Privacy Impact Assessment Status", timeline: "timeline to be set by the organisation (e.g. this quarter)", owner: "DPO" },
     ],
     overall_readiness_rating: hasCoreControls ? "Defined" : "Developing",
     readiness_rationale: "Severity ratings reflect whether controls are present, documented, and ready for evidence review. Confirm each rating against actual artifacts before relying on this assessment.",
@@ -429,7 +438,7 @@ Return JSON:
   "regulatory_basis": "specific regulatory provision(s) requiring this — e.g. GDPR Art. 28, CCPA §1798.100",
   "recommended_action": "specific action required — must name the regulation and the action",
   "suggested_owner": "DPO | Legal Counsel | CISO | CTO | HR | Compliance Manager",
-  "suggested_timeline": "Immediate (within 7 days) | This quarter | This year | Ongoing"
+  "suggested_timeline": "a statutory deadline with citation where one governs the action; otherwise exactly: timeline to be set by the organisation (e.g. within 7 days | this quarter | this year | ongoing — pick ONE as the illustrative cadence)"
 }`;
         const firstText = await callAnthropic(model, domainSystem, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
         let parsed = tryParseJson(firstText);
@@ -530,7 +539,7 @@ Return JSON:
     { "risk": "risk name", "domain": "domain name", "why_urgent": "one sentence", "severity": "Critical|High" }
   ],
   "immediate_actions": [
-    { "action": "specific action", "domain": "domain name", "timeline": "within X days", "owner": "role" }
+    { "action": "specific action", "domain": "domain name", "timeline": "statutory deadline with citation, or exactly: timeline to be set by the organisation (e.g. within X days)", "owner": "role" }
   ],
   "interaction_effects": "one paragraph describing where findings in multiple domains compound each other",
   "dpia_scope": [

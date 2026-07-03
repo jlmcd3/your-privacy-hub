@@ -1501,6 +1501,7 @@ function buildADMTReportHTML(report: any, record: any): string {
       </div>
       ${it.finding ? `<p>${text(it.finding)}</p>` : ""}
       ${it.remediation ? `<p><span class="label">Remediation:</span> ${text(it.remediation)}</p>` : ""}
+      ${it.enforcement_exposure && it.status !== "compliant" ? `<p><span class="label">Enforcement exposure:</span> ${text(it.enforcement_exposure)}</p>` : ""}
     </article>`).join("");
     return `<section class="section"><h2>${escHtml(title)}</h2>${rows}</section>`;
   };
@@ -1517,6 +1518,16 @@ function buildADMTReportHTML(report: any, record: any): string {
       `<li><span class="label">${escHtml(label)}:</span> ${val ? "Yes — obligations apply" : "No — not triggered"}</li>`
     ).join("");
     return `<section class="section"><h2>Scope Analysis</h2><ul>${items}</ul>${sa.summary ? `<p>${text(sa.summary)}</p>` : ""}</section>`;
+  })() : "";
+
+  const enfBlock = report?.enforcement_context ? (() => {
+    const ec = report.enforcement_context;
+    const fmt = (n: any, fallback: number) =>
+      `$${Number(n ?? fallback).toLocaleString()}`;
+    return `<section class="section"><h2>Enforcement Context</h2><ul>
+      <li><span class="label">Per-violation penalty (unintentional):</span> ${fmt(ec.penalty_per_violation_unintentional, 2663)}${ec.penalty_statutory_basis ? ` — ${text(ec.penalty_statutory_basis)}` : ""}</li>
+      <li><span class="label">Per-violation penalty (intentional):</span> ${fmt(ec.penalty_per_violation_intentional, 7988)}</li>
+    </ul>${ec.aggregate_exposure_note ? `<p>${text(ec.aggregate_exposure_note)}</p>` : ""}</section>`;
   })() : "";
 
   const priorityBlock = Array.isArray(report?.priority_actions) && report.priority_actions.length
@@ -1577,6 +1588,7 @@ function buildADMTReportHTML(report: any, record: any): string {
     ${gapSection("Pre-Use Notice (§ 7220)", report?.notice_gaps ?? [])}
     ${gapSection("Opt-Out Rights (§ 7221)", report?.opt_out_gaps ?? [])}
     ${gapSection("Access Rights (§ 7222)", report?.access_gaps ?? [])}
+    ${enfBlock}
     ${riskNote}
     <div class="footer">EndUserPrivacy.com · CPPA ADMT Compliance Assessment (Module 3) · 11 CCR Article 11 · <a href="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf">Official text</a></div>
   </div>

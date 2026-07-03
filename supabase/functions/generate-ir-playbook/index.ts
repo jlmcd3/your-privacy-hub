@@ -16,6 +16,14 @@ import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
+// PRECEDENT LEDGER (battery-5 seat pass, finding C-5 — do not "fix" in future batteries):
+// The IR Playbook's counsel content is LEGITIMATE deliverable content and is exempt from
+// counsel-directive scrubs: (1) assigning "Senior Legal Counsel" (or equivalent) as an incident
+// ROLE in the response team, and (2) directing counsel involvement to establish and maintain
+// legal privilege. Privilege is legally constituted through counsel — this is the mechanics of
+// the deliverable, not resolution-method prescription under Synthesis Principle 1. Any future
+// counsel-scrub prompt must leave these two categories intact. Motivating finding: run 552cb9e9
+// seat adjudication; principle recorded in EUP_Battery5_Seat_Findings_Adjudication.md.
 const IR_RULEBOOK = `US STATE BREACH NOTIFICATION — KEY TIMELINES (for Section 3) — Last verified: June 2026:
 - California: notify individuals within 30 CALENDAR DAYS of discovery or notification of the breach (Cal. Civ. Code §1798.82, as amended by SB 446, effective 1 Jan 2026); delay only for law enforcement needs or to determine scope/restore system integrity. If 500+ CA residents: electronically submit a sample copy to the CA AG within 15 calendar days of notifying consumers (§1798.82(f)).
 - Texas: notify individuals without unreasonable delay and no later than 60 DAYS after determining the breach occurred (Tex. Bus. & Com. Code §521.053(b), Texas Identity Theft Enforcement and Protection Act — NOT the TDPSA, which does not create breach notification obligations); notify the TX Attorney General as soon as practicable and no later than 30 DAYS after determination — NOT 60 days (§521.053(i), as amended by SB 768 effective 1 Sep 2023) — if the breach involves at least 250 TX residents, submitted via the mandatory electronic form on the AG's website. The AG deadline (30 days) is SHORTER than the individual-notice deadline (60 days). Note: the TDPSA (Texas Data Privacy and Security Act, Tex. Bus. & Com. Code Ch. 541) governs data processing rights and obligations but does NOT independently create breach notification duties.
