@@ -626,6 +626,7 @@ const App = () => (
 
 
             <Route path="/samples/report-output" element={<SampleReportOutput />} />
+            <Route path="/samples/:toolSlug/:variant" element={<SampleReportView />} />
             <Route path="/samples/:toolSlug" element={<SampleReport />} />
 
 
