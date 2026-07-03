@@ -20,7 +20,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
-import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
+import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { BANNED_PHRASES } from "../_shared/citation-verifier.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 // [REVISED] authoritative § 7150(b) section strings — single source of truth
