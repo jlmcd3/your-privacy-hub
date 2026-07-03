@@ -1520,6 +1520,16 @@ function buildADMTReportHTML(report: any, record: any): string {
     return `<section class="section"><h2>Scope Analysis</h2><ul>${items}</ul>${sa.summary ? `<p>${text(sa.summary)}</p>` : ""}</section>`;
   })() : "";
 
+  const enfBlock = report?.enforcement_context ? (() => {
+    const ec = report.enforcement_context;
+    const fmt = (n: any, fallback: number) =>
+      `$${Number(n ?? fallback).toLocaleString()}`;
+    return `<section class="section"><h2>Enforcement Context</h2><ul>
+      <li><span class="label">Per-violation penalty (unintentional):</span> ${fmt(ec.penalty_per_violation_unintentional, 2663)}${ec.penalty_statutory_basis ? ` — ${text(ec.penalty_statutory_basis)}` : ""}</li>
+      <li><span class="label">Per-violation penalty (intentional):</span> ${fmt(ec.penalty_per_violation_intentional, 7988)}</li>
+    </ul>${ec.aggregate_exposure_note ? `<p>${text(ec.aggregate_exposure_note)}</p>` : ""}</section>`;
+  })() : "";
+
   const priorityBlock = Array.isArray(report?.priority_actions) && report.priority_actions.length
     ? `<section class="section"><h2>Priority Actions</h2><ol>${report.priority_actions.map((a: string) => `<li>${text(a.replace(/^(\s*\d+[.)]\s*)+/, ""))}</li>`).join("")}</ol></section>`
     : "";
