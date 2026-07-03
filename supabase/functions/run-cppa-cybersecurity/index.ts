@@ -1089,6 +1089,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 }
 
 Deno.serve(async (req) => {
+  console.log(`[qb9] run-cppa-cybersecurity build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-cppa-cybersecurity] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
