@@ -602,7 +602,7 @@ Applies to this organisation: In scope — ${describeProcessing(body.orgType, bo
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Article 6 GDPR lawful basis AND a separate Article 9(2) condition — both documented. In employment contexts, § 26 BDSG (processing for employment purposes) may provide a basis alongside Article 9(2)(b), but requires necessity and proportionality assessment.
 2. Mandatory DPIA under Article 35 — biometric identification systems generally require a DPIA; verify against the DSK's coordinated DPIA must-list and the competent state DPA's published criteria.
-3. Works council (Betriebsrat) codetermination rights: under § 87(1) no. 6 Betriebsverfassungsgesetz (BetrVG), the introduction of technical systems capable of monitoring employee conduct or performance — which includes biometric time-and-attendance or access systems — requires works council agreement before deployment. Proceeding without Betriebsrat consent exposes the employer to injunctive relief.
+3. Works council (Betriebsrat) codetermination rights: under § 87 Abs. 1 Nr. 6 Betriebsverfassungsgesetz (BetrVG), the introduction of technical systems capable of monitoring employee conduct or performance — which includes biometric time-and-attendance or access systems — requires works council agreement before deployment. Proceeding without Betriebsrat consent exposes the employer to injunctive relief.
 4. Article 13/14 transparency notices in German identifying the Article 9(2) condition, biometric modalities, and data subject rights.
 5. Article 28 DPA for all processors; any non-EEA transfer requires an Article 45 adequacy decision or, absent one, an Article 46 safeguard.
 
