@@ -148,6 +148,14 @@ function scrubVoiceLeaks(text: string): string {
   return cleaned;
 }
 
+function describeProcessing(orgType: string, types: string[], purpose: string): string {
+  const active = (types ?? []).filter((t) => t && !/^none\b/i.test(t.trim()));
+  if (!active.length) return `${orgType} organisation with no active biometric processing currently deployed`;
+  const p = (purpose ?? "").trim().replace(/\s+/g, " ");
+  const short = p.length > 140 ? p.slice(0, 137) + "…" : p;
+  return `${orgType} organisation processing ${active.join(", ")} for the stated purpose: ${short}`;
+}
+
 function estimateBIPARisk(enrolledCount: string): { lowEnd: number; highEnd: number; note: string } {
   const countMap: Record<string, number> = {
     "Fewer than 500": 250,
