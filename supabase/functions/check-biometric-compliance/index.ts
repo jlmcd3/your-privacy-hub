@@ -267,7 +267,7 @@ Consent and notice:
 Explicit consent in employment context is unlikely to satisfy "freely given" under UK GDPR — use DPA 2018 Schedule 1 Part 1 para 1 (employment, social security and social protection law) where national employment law authorises biometric use.
 
 Retention and destruction:
-Apply UK GDPR storage limitation principle: define retention period per purpose; delete biometric templates promptly when purpose expires; document the retention schedule.
+Apply the UK GDPR Article 5(1)(e) storage limitation principle: define retention period per purpose; delete biometric templates promptly when purpose expires; document the retention schedule.
 
 Sale and sharing restrictions:
 UK GDPR purpose limitation (Article 5(1)(b)) and processor contract requirements (Article 28) govern sharing. For transfers to third countries outside the UK adequacy framework, use a UK IDTA or UK-approved SCCs.
