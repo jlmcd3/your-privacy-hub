@@ -87,6 +87,13 @@ const DOMAIN_DEFINITIONS = [
 // ---------------------------------------------------------------------------
 export const GOVERNANCE_CITATION_FRAMEWORK = "Cite regulatory bases ONLY for the jurisdictions in the intake. If the intake has no EU/UK jurisdiction, do NOT cite GDPR/UK GDPR/EU authorities anywhere; the number of applicable frameworks must equal the number of intake jurisdictions. In domain findings cite statutes only — no enforcement case names, fines, or SA guidance titles. Name supervisory authorities only from the injected RESOLVED GDPR CITATIONS block; if a jurisdiction is absent from it, write 'the relevant supervisory authority in [country]'. Never name the BfDI for a private-sector controller — Germany private-sector controllers are supervised by the relevant Land authority.";
 
+// PRECEDENT LEDGER (battery-5 seat pass, finding C-4 — owner decision, do not "fix"):
+// Governance action-plan timelines carry an illustrative cadence inside the
+// "timeline to be set by the organisation (e.g. ...)" formulation. This is an owner-approved
+// exception to Principle 1's no-illustrated-values clause, scoped to Governance timelines ONLY.
+// It is not licence for illustrated values in any other tool or field. Reviewer proposals to
+// strip the e.g. cadence are not adopted. Owner (role) assignments are approved product
+// structure. Motivating finding and decision: EUP_Battery5_Seat_Findings_Adjudication.md (C-4).
 export function buildGovernanceSharedRules(jurisdictions: unknown, euUkData: string): string {
   const intakeJurisdictionsJson = JSON.stringify(Array.isArray(jurisdictions) ? jurisdictions : []);
   const euUkValue = euUkData || "not specified";
