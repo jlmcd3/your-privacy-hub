@@ -116,6 +116,25 @@ export default function SampleReportOutput() {
           : null;
       }
 
+      if (batchId && !context?.runId) {
+        const { data: run } = await supabase
+          .from("quality_loop2_runs")
+          .select("id, status, stress_batch_id, started_at, completed_at")
+          .eq("stress_batch_id", batchId)
+          .order("started_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (run) {
+          context = {
+            id: batchId,
+            runId: (run as any).id ?? null,
+            runStatus: (run as any).status ?? null,
+            startedAt: (run as any).started_at ?? null,
+            completedAt: (run as any).completed_at ?? null,
+          };
+        }
+      }
+
       if (batchId && context) {
         const { data: jobs, error: jobsError } = await supabase
           .from("static_stress_jobs")
