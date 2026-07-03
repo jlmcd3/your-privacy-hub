@@ -862,12 +862,23 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       }
     }
 
+    // QB7-7 sentence-boundary truncation for FSOR commentary previews: never cut mid-sentence.
+    function truncateAtSentence(text: string | null | undefined, maxLen = 600): string | null {
+      if (!text) return text ?? null;
+      const t = String(text);
+      if (t.length <= maxLen) return t;
+      const window = t.slice(0, maxLen);
+      const lastBoundary = Math.max(window.lastIndexOf(". "), window.lastIndexOf("? "), window.lastIndexOf("! "));
+      if (lastBoundary > maxLen * 0.5) return window.slice(0, lastBoundary + 1);
+      return window + "…";
+    }
+
     function shapeFsorItem(r: any): any {
       return {
         ...r,
-        agency_response: r?.agency_response ?? null,
+        agency_response: truncateAtSentence(r?.agency_response ?? null),
         agency_response_verbatim: true,
-        comment_summary: r?.comment_summary ?? null,
+        comment_summary: truncateAtSentence(r?.comment_summary ?? null),
         comment_summary_verbatim: false,
         citation: r?.regulation_citation ?? r?.citation ?? null,
         package: r?.fsor_package ?? null,
@@ -1074,6 +1085,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 }
 
 Deno.serve(async (req) => {
+  console.log("[run-cppa-cybersecurity] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {

@@ -115,6 +115,7 @@ function fmtYear(e: EnforcementCtx): string {
 }
 
 Deno.serve(async (req) => {
+  console.log("[generate-dpa] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -404,6 +405,8 @@ The dispute resolution / jurisdiction clause that follows MUST identify courts c
 - BREACH-NOTIFICATION TIMING COHERENCE: the Processor's breach-notification obligation must not be capable of consuming the Controller's Article 33(1) window. Where a fixed notification period is used, draft the obligation as: notification without undue delay and in any event within the stated period, or within such shorter period as is necessary to enable the Controller to notify the supervisory authority within 72 hours under Article 33(1) GDPR, whichever is sooner.
 - SCHEDULES ARE DESCRIBED ACCURATELY: never describe a schedule that contains [TO BE COMPLETED] placeholders as "populated" or "completed". Describe it as framework content that the responsible Party must populate before the relevant processing or transfer commences, and name that Party.
 - REPEATED VERIFICATION NOTES CONSOLIDATE: where an identical verification note applies to every row of a schedule (e.g. Data Privacy Framework participation checks for US sub-processors), state it once as a note immediately following the schedule heading and do not repeat it inline per row.
+- QB7-5 OFFICIAL AUTHORITY NAMES: whenever a supervisory or data-protection authority is named, use its full official name and native-language abbreviation on first mention (e.g. "the German Federal Commissioner for Data Protection and Freedom of Information (BfDI)", "the Data Protection Commission (DPC) of Ireland", "the Commission Nationale de l'Informatique et des Libertés (CNIL)", "the Information Commissioner's Office (ICO)"). Do NOT use the bare acronym "DPA" as shorthand for a supervisory authority — "DPA" in this document means the Data Processing Agreement being drafted; use the authority's official abbreviation instead.
+- QB7-5 INDEMNITY / LIABILITY-CAP INTERACTION: where the agreement contains both an indemnity in favour of one party and an overall liability cap, expressly state — in brackets adjacent to the indemnity — how the two interact ("[TO BE CONFIRMED: whether liability under this indemnity is subject to, or carved out from, the overall liability cap in Clause X]"). Never draft an indemnity that is silent as to whether the cap applies.
 
 
 Output format:

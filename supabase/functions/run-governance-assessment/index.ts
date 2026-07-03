@@ -153,7 +153,7 @@ VENDOR CLASSIFICATION RULE: Do not assume all vendors are processors. For each n
 
 NO RESOLUTION-METHOD PRESCRIPTION: where a determination is left to the organisation (a vendor classification, a lawful-basis selection, a scope or applicability decision), state that the organisation must resolve and document it, citing the governing provision — and stop. NEVER direct a specific resolution method: no 'consult legal counsel', 'seek legal advice', 'commission an audit', 'engage a consultant', or any equivalent. The choice of method belongs to the organisation. This rule governs findings, recommended actions, and every narrative field; it does not alter the report-level disclaimer, which is fixed system-supplied text.
 
-TIMELINE VOICE: timelines in domain findings and action plans belong to the organisation. Where a statutory or regulatory provision supplies a concrete deadline for the action (e.g. the 72-hour supervisory-authority notification window under Art. 33(1), or a named compliance date in an applicable law), state that deadline with its citation — e.g. 'within 72 hours of awareness — Art. 33(1)'. For every other action, never state a bare invented deadline: use exactly the form 'timeline to be set by the organisation (e.g. within 30 days)', where the parenthetical carries a single illustrative cadence proportionate to the finding's severity (within 7 days / within 30 days / this quarter / this year / ongoing). Owner (role) assignments are unaffected by this rule.
+TIMELINE VOICE: timelines in domain findings and action plans belong to the organisation. Where a statutory or regulatory provision supplies a concrete deadline for the action (e.g. the 72-hour supervisory-authority notification window under Art. 33(1), or a named compliance date in an applicable law), state that deadline with its citation — e.g. 'within 72 hours of awareness — Art. 33(1)'. For every other action, never state a bare invented deadline: use exactly the form 'timeline to be set by the organisation (e.g. within 30 days)', where the parenthetical carries one illustrative cadence per action component, proportionate to the finding's severity (within 7 days / within 30 days / this quarter / this year / ongoing). Owner (role) assignments are unaffected by this rule.
 
 REPETITION AND DEADLINES RULE: Immediate-action deadlines must be staggered realistically: 7 days only for actions executable unilaterally; 30 days for policies and training rollout; "this quarter" for negotiated outcomes such as executed vendor DPAs and completed DPIAs. Never assign the same deadline to all ten actions.
 
@@ -188,7 +188,11 @@ ARTICLE-GLOSS CORRECTIONS (2.3):
 - Art. 12: "(transparent information, communication and modalities for the exercise of the rights of the data subject)" — replace "consumer-rights"; the GDPR term is data subject rights.
 - DPF sentence, user-facing voice: "including the EU–US Data Privacy Framework (Commission Implementing Decision (EU) 2023/1795) for US-established importers certified under the Framework — verify current certification status at dataprivacyframework.gov".
 - DPIA-trigger gloss addition: "Art. 35(3) provides examples and is not exhaustive — any processing likely to result in a high risk under Art. 35(1) requires a DPIA even if not listed in Art. 35(3)."
-- REGULATORY-BASIS SCOPE RULE: a provision appears in a domain's regulatory_basis only if it grounds a gap or recommended action in that domain (e.g. drop Art. 37(1) where the DPO is already appointed and no 37(1) gap exists).`;
+- REGULATORY-BASIS SCOPE RULE: a provision appears in a domain's regulatory_basis only if it grounds a gap or recommended action in that domain (e.g. drop Art. 37(1) where the DPO is already appointed and no 37(1) gap exists).
+
+OBLIGATIONS CARRY THEIR SOURCE: any stated compliance obligation — including data-residency requirements in DPAs, verification duties, and retention duties — names the legal basis that imposes it (the provision, or the contractual clause class where the obligation is contractual). An obligation asserted without a source is incomplete; where the source is genuinely uncertain, say so and route it through information_needed rather than asserting the obligation bare.
+
+VERIFIED CALIFORNIA BREACH DEADLINES (cite these; do not recall breach-notification timelines from memory): Cal. Civ. Code § 1798.82, as amended by SB 446 (signed October 2025, effective January 1, 2026), requires (1) disclosure to affected California residents within 30 calendar days of discovery or notification of the breach, subject to the law-enforcement and scope-determination delay provisions, and (2) for breaches affecting more than 500 California residents, electronic submission of a single sample copy of the notification to the California Attorney General within 15 calendar days of notifying affected consumers. Where the incident predates January 1, 2026, the prior 'most expedient time possible and without unreasonable delay' standard governed; state which regime applies by incident date.`;
 }
 
 export function buildGovernanceDomainToolModule(jurisdictions: unknown, euUkData: string): ToolModule {
@@ -209,6 +213,51 @@ export function buildGovernanceSynthesisToolModule(jurisdictions: unknown, euUkD
     extraRules: buildGovernanceSharedRules(jurisdictions, euUkData),
     languageVariant: "jurisdiction-conditional",
   };
+}
+
+// QB7-3(a): deterministic TIMELINE VOICE wrapper — ensures every timeline-bearing field
+// is either citation-bearing (statutory deadline with a §/Art. citation) or wrapped in
+// the mandated 'timeline to be set by the organisation (e.g. …)' form.
+function applyTimelineForm(report: any): void {
+  const CITED = /§|Art\.|Article|C\.F\.R\.|Code/;
+  const WRAPPED = /^timeline to be set by the organisation \(e\.g\./i;
+  const wrap = (v: any) =>
+    typeof v === "string" && v.trim() && !WRAPPED.test(v.trim()) && !CITED.test(v)
+      ? `timeline to be set by the organisation (e.g. ${v.trim()})`
+      : v;
+  for (const df of Object.values(report?.domain_findings ?? {})) {
+    if (df && typeof df === "object" && "suggested_timeline" in (df as any)) {
+      (df as any).suggested_timeline = wrap((df as any).suggested_timeline);
+    }
+  }
+  for (const arr of [report?.action_plan, report?.immediate_actions]) {
+    if (Array.isArray(arr)) for (const item of arr) {
+      if (item && typeof item === "object" && "timeline" in item) item.timeline = wrap(item.timeline);
+    }
+  }
+}
+
+// QB7-3(b): deduplicate lint warnings that describe the same underlying deadline
+// or defect. Dedup key = code + normalised detail (lowercased, whitespace collapsed,
+// SB-446 phrasing variants normalised, dates extracted).
+function dedupeLintWarnings(warnings: any[]): any[] {
+  const seen = new Set<string>();
+  const out: any[] = [];
+  for (const w of warnings) {
+    if (!w || typeof w !== "object") { out.push(w); continue; }
+    const detail = String((w as any).detail ?? "").toLowerCase()
+      .replace(/\s+/g, " ")
+      .replace(/deadline as amended by sb\s*446/g, "sb446")
+      .replace(/as amended by sb\s*446/g, "sb446")
+      .replace(/by sb\s*446/g, "sb446")
+      .trim();
+    const dateMatch = detail.match(/\d{4}-\d{2}-\d{2}/);
+    const key = `${(w as any).code ?? ""}|${dateMatch ? dateMatch[0] : detail.slice(0, 80)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(w);
+  }
+  return out;
 }
 
 function buildStressGovernanceReport(assessmentId: string, intake: any) {
@@ -253,7 +302,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     }];
   }));
 
-  return {
+  const report = {
     generated_at: new Date().toISOString(),
     assessment_id: assessmentId,
     organisation_profile: intake,
@@ -281,9 +330,13 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     lint_warnings: [],
     disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
   };
+  applyTimelineForm(report);
+  return report;
 }
 
+
 Deno.serve(async (req) => {
+  console.log("[run-governance-assessment] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   let assessment_id: string | undefined;
@@ -669,20 +722,23 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       enforcement_meta: enforcementMeta,
       annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
       information_needed: Array.isArray((synthesis as any)?.information_needed) ? (synthesis as any).information_needed : [],
-      lint_warnings: [
+      lint_warnings: dedupeLintWarnings([
         ...failedDomains.map((d) => ({
           code: "domain_assessment_failed",
           severity: "hard",
           detail: d.domain_name,
         })),
         ...lintViolations,
-      ],
+      ]),
       disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
 
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
     const guarded = guardInformationNeeded(reportData, ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {});
     reportData = guarded.report;
+
+    // QB7-3(a): enforce TIMELINE VOICE post-generation (main path).
+    applyTimelineForm(reportData);
 
     const dpiaScope = synthesis.dpia_scope || [];
 

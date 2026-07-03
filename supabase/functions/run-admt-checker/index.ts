@@ -202,7 +202,11 @@ export const ADMT_TOOL_MODULE: ToolModule = {
     "You author NO citations. Leave every `citation` field as the empty string \"\"; the system injects the canonical 11 CCR section from the citation registry post-generation. Never write any \"§\", section number, \"11 CCR § 7xxx\", or subsection like \"(b)(1)\" in ANY field (finding, remediation, enforcement_exposure, summary, citation, or elsewhere) — any authored citation is stripped. Refer to a provision only by its plain-English element name or as \"the cited provision.\"",
   outputMode: "strict-JSON",
   includeEuTransfers: false,
-  extraRules: ADMT_EXTRA_RULES,
+  extraRules: ADMT_EXTRA_RULES + `
+
+QB7-6 NO SUBSECTION BLENDING: never blend subsections when referring to a provision. If two different subsections of the same section carry different obligations (e.g. §7221(a) vs §7221(b)), treat and refer to them as distinct provisions. Do not write a single element name or plain-English label that silently combines the elements of two subsections into one.
+
+QB7-6 CONDITIONAL LABELLING FOR UNESTABLISHED TRIGGERS: where the intake does NOT establish that a triggering condition applies (e.g. the record does not confirm ADMT is being used for a "significant decision", or does not confirm profiling of a consumer under 16), any obligation that depends on that trigger must be labelled as conditional in the finding and remediation (e.g. "IF the ADMT is used for a significant decision as defined by the cited provision, then …"). Never state a trigger-dependent obligation as unconditionally applicable when the trigger itself is unresolved in the record.`,
   languageVariant: "american",
 };
 
@@ -281,6 +285,7 @@ function tryParseJson(text: string): any | null {
 }
 
 Deno.serve(async (req) => {
+  console.log("[run-admt-checker] qb7 build active");
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   // Auth: accept a valid user JWT OR service-role invocation (webhook).

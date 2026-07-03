@@ -103,7 +103,11 @@ const BIOMETRIC_TOOL_MODULE: ToolModule = {
   citationFramework:
     "Cite statutes by official identifier: BIPA = 740 ILCS 14 (section letters 15(a)/(b)/(d), 20); Texas CUBI = Tex. Bus. & Com. Code § 503.001; California = Cal. Civ. Code §§ 1798.x; EU/UK biometric special-category data = GDPR / UK GDPR Article 9. Cite enforcement actions and case law ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt; never assert a fine or settlement amount from training knowledge — direct the reader to the regulator's enforcement register.",
   identity: BIOMETRIC_IDENTITY,
-  extraRules: BIOMETRIC_RULEBOOK,
+  extraRules: BIOMETRIC_RULEBOOK + `
+
+QB7-4 QUANTIFICATION SCRUB: never recall or assert dollar amounts, settlement quantums, verdict sizes, or "multi-billion dollar" characterisations for BIPA/CUBI or any enforcement matter from training memory. Cite enforcement actions from the ENFORCEMENT PRECEDENTS block only, and where the precedent block does not carry a figure, describe the matter qualitatively (e.g. "class-action settlement", "consent decree") without inventing scale.
+
+QB7-4 UK ADEQUACY / DATA BRIDGE: for transfers from the UK to the United States, cite the UK Extension to the EU-US Data Privacy Framework (the "Data Bridge") as effective 12 October 2023; frame it as the operative UK-to-US safeguard for certified US organisations, distinct from (and additional to) the EU-US Data Privacy Framework adequacy decision of 10 July 2023. Do not conflate the two decisions.`,
 };
 
 const corsHeaders = {
@@ -750,6 +754,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
 }
 
 Deno.serve(async (req) => {
+  console.log("[check-biometric-compliance] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
