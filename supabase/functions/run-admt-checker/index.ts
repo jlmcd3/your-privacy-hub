@@ -292,6 +292,7 @@ function tryParseJson(text: string): any | null {
 }
 
 Deno.serve(async (req) => {
+  console.log(`[qb9] run-admt-checker build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-admt-checker] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
