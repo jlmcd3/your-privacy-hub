@@ -302,7 +302,10 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     }];
   }));
 
-  return {
+  const stressReport: any = {
+    return: undefined,
+  };
+  const report = {
     generated_at: new Date().toISOString(),
     assessment_id: assessmentId,
     organisation_profile: intake,
@@ -718,20 +721,23 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       enforcement_meta: enforcementMeta,
       annotations: (() => { try { return Array.isArray(synthesis?.annotations) ? synthesis.annotations : []; } catch { return []; } })(),
       information_needed: Array.isArray((synthesis as any)?.information_needed) ? (synthesis as any).information_needed : [],
-      lint_warnings: [
+      lint_warnings: dedupeLintWarnings([
         ...failedDomains.map((d) => ({
           code: "domain_assessment_failed",
           severity: "hard",
           detail: d.domain_name,
         })),
         ...lintViolations,
-      ],
+      ]),
       disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
     };
 
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
     const guarded = guardInformationNeeded(reportData, ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {});
     reportData = guarded.report;
+
+    // QB7-3(a): enforce TIMELINE VOICE post-generation (main path).
+    applyTimelineForm(reportData);
 
     const dpiaScope = synthesis.dpia_scope || [];
 
