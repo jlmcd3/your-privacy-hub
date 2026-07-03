@@ -281,7 +281,7 @@ ICO enforcement posture on biometric data is active; failure to satisfy both the
       const risk = estimateBIPARisk(body.enrolledCount);
       return `${jurisdiction} — Biometric Information Privacy Act (BIPA), 740 ILCS 14
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. BIPA applies to private entities in Illinois that collect, capture, purchase, receive through trade, or otherwise obtain biometric identifiers or biometric information.
+Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. BIPA applies to private entities in Illinois that collect, capture, purchase, receive through trade, or otherwise obtain biometric identifiers or biometric information.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Section 15(a): written, publicly available retention and destruction policy before or at the time of collection.
