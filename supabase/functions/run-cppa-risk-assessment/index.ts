@@ -1,3 +1,4 @@
+// qb8 build active
 // run-meter deploy-check v1
 // CPPA Risk Assessment — v4 (CR-2, June 2026)
 // Five-stage intake + corpus-grounded generation. See

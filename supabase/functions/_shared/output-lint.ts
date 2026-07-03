@@ -1,3 +1,4 @@
+// qb8 build active
 // output-lint.ts — deterministic post-generation checks for report text.
 // Zero LLM calls. Returns cleaned text plus a list of violations.
 // "auto_fixed" violations are corrected in the returned text;

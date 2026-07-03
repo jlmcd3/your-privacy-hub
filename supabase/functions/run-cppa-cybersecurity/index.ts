@@ -1,3 +1,4 @@
+// qb8 build active
 // build-marker: cyber-qi3-observations-not-directives-2026-07-03
 console.log("[build-marker] run-cppa-cybersecurity qi3-observations-not-directives-2026-07-03");
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";

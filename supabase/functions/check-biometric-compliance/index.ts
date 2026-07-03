@@ -1,3 +1,4 @@
+// qb8 build active
 // build-marker: biometric-qi-battery4-fix-2026-07-03
 console.log("[build-marker] check-biometric-compliance qi-battery4-fix-2026-07-03");
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.

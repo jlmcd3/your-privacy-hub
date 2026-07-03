@@ -1,3 +1,4 @@
+// qb8 build active
 // run-meter deploy-check v1
 // supabase/functions/run-admt-checker/index.ts
 // ADMT Compliance Assessment — gap analysis generator.

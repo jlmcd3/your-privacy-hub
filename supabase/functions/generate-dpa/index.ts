@@ -1,3 +1,4 @@
+// qb8 build active
 // run-meter deploy-check v1
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";

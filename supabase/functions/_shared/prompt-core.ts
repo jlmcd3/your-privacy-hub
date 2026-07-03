@@ -1,3 +1,4 @@
+// qb8 build active
 // Shared EUP prompt core (v3.2)
 // v3.2: NO METHOD PRESCRIPTION added to OUTPUT DISCIPLINE (with IR privilege carve-out).
 // v3.1: counsel-parenthetical removed; argument-voice parenthetical removed;
