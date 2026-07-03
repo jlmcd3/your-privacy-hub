@@ -1,8 +1,4 @@
-// Public single-sample rendered view. Reads a `sample_reports` row and
-// renders it as HTML — either the stored `document_text` (for tools that
-// produce a single flowing document) or a generic sectioned render of
-// `report_data` (for tools that produce structured JSON). Also offers the
-// PDF download and a back-link to the underlying tool.
+// Public single-sample rendered view. Deep-link to a specific variant.
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, FileText, ShieldCheck } from "lucide-react";
@@ -10,6 +6,7 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SampleReportBody } from "@/components/SampleReportBody";
 
 type Row = {
   id: string;
@@ -20,7 +17,6 @@ type Row = {
   document_text: string | null;
   report_data: Record<string, unknown> | null;
   verification: Record<string, unknown> | null;
-  pdf_path: string | null;
   published_at: string | null;
 };
 
@@ -38,7 +34,6 @@ const TOOL_DISPLAY: Record<string, string> = {
   eu_notice: "EU / Global Privacy Notice",
 };
 
-// Where "Back to the tool" should point per slug.
 const TOOL_ROUTE: Record<string, string> = {
   li_assessment: "/legitimate-interest-assessment",
   dpia: "/dpia-framework",
@@ -52,47 +47,6 @@ const TOOL_ROUTE: Record<string, string> = {
   us_notice: "/notice-builder/us",
   eu_notice: "/notice-builder/eu",
 };
-
-// Keys we intentionally hide from the generic renderer — they're
-// bookkeeping/metadata that would clutter the reader view.
-const HIDDEN_KEYS = new Set([
-  "generated_at",
-  "assessment_id",
-  "dpia_id",
-  "schema_version",
-  "retrieval_meta",
-  "annotations",
-  "lint_warnings",
-  "enforcement_meta",
-  "gdpr_meta",
-  "legacy_shim_applied",
-  "has_unresolved_placeholders",
-  "document_metadata",
-  "framework_disclaimer",
-  "disclaimer",
-  "enforcement_context",
-  "enforcement_precedents",
-  "enforcement_precedents_note",
-  "precedent_database_size",
-  "precedents_reviewed",
-  "data_currency_note",
-  "methodology_note",
-  "jurisdiction_validation",
-  "jurisdictions_analysed",
-]);
-
-function titleCase(key: string) {
-  return key
-    .replace(/[_-]+/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .replace(/\bDpia\b/g, "DPIA")
-    .replace(/\bDpa\b/g, "DPA")
-    .replace(/\bCppa\b/g, "CPPA")
-    .replace(/\bBipa\b/g, "BIPA")
-    .replace(/\bGdpr\b/g, "GDPR")
-    .replace(/\bFsor\b/g, "FSOR")
-    .replace(/\bIr\b/g, "IR");
-}
 
 function summarizeVerification(v: Record<string, unknown> | null): string | null {
   if (!v || typeof v !== "object") return null;
@@ -118,131 +72,10 @@ function summarizeVerification(v: Record<string, unknown> | null): string | null
   return `Citations verified against official sources: ${X} of ${Y}${Z > 0 ? `; ${Z} generalized` : ""}.`;
 }
 
-// Convert a plain-text document (with blank lines and inline markdown-ish
-// separators like "---") into a readable HTML block. Preserves paragraph
-// structure without pulling in a markdown parser.
-function renderDocumentText(text: string) {
-  const blocks = text.split(/\n{2,}/);
-  return (
-    <div className="space-y-4 text-[15px] leading-7 text-foreground">
-      {blocks.map((block, i) => {
-        const trimmed = block.trim();
-        if (!trimmed) return null;
-        if (/^-{3,}$/.test(trimmed)) {
-          return <hr key={i} className="border-t border-brand-cloud my-6" />;
-        }
-        // ALL-CAPS single line → treat as a section heading.
-        if (
-          !trimmed.includes("\n") &&
-          trimmed.length < 140 &&
-          trimmed === trimmed.toUpperCase() &&
-          /[A-Z]/.test(trimmed)
-        ) {
-          return (
-            <h2
-              key={i}
-              className="font-display text-xl text-brand-navy mt-8 mb-2 first:mt-0"
-            >
-              {trimmed}
-            </h2>
-          );
-        }
-        // "Section 1: Something" style heading.
-        const sectionMatch = trimmed.match(/^(Section\s+\d+[^:\n]*):?\s*(.*)$/i);
-        if (sectionMatch && !trimmed.includes("\n\n")) {
-          return (
-            <h2
-              key={i}
-              className="font-display text-xl text-brand-navy mt-8 mb-2 first:mt-0"
-            >
-              {sectionMatch[1]}
-              {sectionMatch[2] ? `: ${sectionMatch[2]}` : ""}
-            </h2>
-          );
-        }
-        return (
-          <p key={i} className="whitespace-pre-wrap">
-            {trimmed}
-          </p>
-        );
-      })}
-    </div>
-  );
-}
-
-function isPlainObject(x: unknown): x is Record<string, unknown> {
-  return !!x && typeof x === "object" && !Array.isArray(x);
-}
-
-function renderValue(value: unknown, depth = 0): JSX.Element | null {
-  if (value === null || value === undefined || value === "") return null;
-  if (typeof value === "string") {
-    return <p className="whitespace-pre-wrap leading-7">{value}</p>;
-  }
-  if (typeof value === "number" || typeof value === "boolean") {
-    return <p className="leading-7">{String(value)}</p>;
-  }
-  if (Array.isArray(value)) {
-    if (value.length === 0) return null;
-    // Array of primitives → bullet list.
-    if (value.every((v) => typeof v === "string" || typeof v === "number")) {
-      return (
-        <ul className="list-disc pl-6 space-y-1.5">
-          {value.map((v, i) => (
-            <li key={i} className="leading-7">{String(v)}</li>
-          ))}
-        </ul>
-      );
-    }
-    // Array of objects → stacked cards.
-    return (
-      <div className="space-y-4">
-        {value.map((v, i) => (
-          <div
-            key={i}
-            className="rounded-md border border-brand-cloud bg-muted/20 p-4"
-          >
-            {renderValue(v, depth + 1)}
-          </div>
-        ))}
-      </div>
-    );
-  }
-  if (isPlainObject(value)) {
-    const entries = Object.entries(value).filter(
-      ([k, v]) => !HIDDEN_KEYS.has(k) && v !== null && v !== undefined && v !== "",
-    );
-    if (entries.length === 0) return null;
-    return (
-      <div className={depth === 0 ? "space-y-8" : "space-y-3"}>
-        {entries.map(([k, v]) => {
-          const HeadingTag = depth === 0 ? "h2" : depth === 1 ? "h3" : "h4";
-          const headingCls =
-            depth === 0
-              ? "font-display text-xl text-brand-navy mb-3"
-              : depth === 1
-                ? "font-display text-base text-brand-navy mb-2"
-                : "text-sm font-semibold text-brand-navy mb-1";
-          return (
-            <section key={k}>
-              <HeadingTag className={headingCls}>{titleCase(k)}</HeadingTag>
-              <div className={depth === 0 ? "" : "pl-0"}>
-                {renderValue(v, depth + 1)}
-              </div>
-            </section>
-          );
-        })}
-      </div>
-    );
-  }
-  return null;
-}
-
 export default function SampleReportView() {
   const { toolSlug, variant } = useParams<{ toolSlug: string; variant: string }>();
   const [row, setRow] = useState<Row | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const displayName = useMemo(
     () => (toolSlug ? TOOL_DISPLAY[toolSlug] ?? toolSlug : ""),
@@ -257,7 +90,7 @@ export default function SampleReportView() {
       const { data, error } = await supabase
         .from("sample_reports")
         .select(
-          "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, pdf_path, published_at",
+          "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, published_at",
         )
         .eq("tool_slug", toolSlug)
         .eq("variant", variant)
@@ -270,12 +103,6 @@ export default function SampleReportView() {
         return;
       }
       setRow((data as Row) ?? null);
-      if (data?.pdf_path) {
-        const { data: signed } = await supabase.storage
-          .from("sample-reports")
-          .createSignedUrl(data.pdf_path, 60 * 60);
-        if (!cancelled && signed?.signedUrl) setPdfUrl(signed.signedUrl);
-      }
     })();
     return () => {
       cancelled = true;
@@ -283,17 +110,6 @@ export default function SampleReportView() {
   }, [toolSlug, variant]);
 
   const vSummary = row ? summarizeVerification(row.verification) : null;
-
-  const body = useMemo(() => {
-    if (!row) return null;
-    if (row.document_text && row.document_text.trim().length > 0) {
-      return renderDocumentText(row.document_text);
-    }
-    if (row.report_data && Object.keys(row.report_data).length > 0) {
-      return renderValue(row.report_data, 0);
-    }
-    return null;
-  }, [row]);
 
   const pageTitle = row
     ? `${row.title} — sample ${displayName}`
@@ -318,7 +134,6 @@ export default function SampleReportView() {
 
       <Navbar />
       <main className="flex-1 max-w-[900px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
         <Link
           to={`/samples/${toolSlug}`}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
@@ -369,35 +184,23 @@ export default function SampleReportView() {
                   <span>{vSummary}</span>
                 </div>
               )}
-              <div className="mt-5 flex flex-wrap gap-3">
-                {pdfUrl && (
-                  <a
-                    href={pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md bg-brand-navy text-white px-4 py-2 text-sm font-medium hover:bg-brand-navy/90"
-                  >
-                    <FileText className="h-4 w-4" aria-hidden /> Download PDF
-                  </a>
-                )}
-                {toolRoute && (
+              {toolRoute && (
+                <div className="mt-5">
                   <Link
                     to={toolRoute}
-                    className="inline-flex items-center gap-2 rounded-md border border-brand-cloud px-4 py-2 text-sm font-medium text-brand-navy hover:bg-brand-cloud/40"
+                    className="inline-flex items-center gap-2 rounded-md bg-brand-navy text-white px-4 py-2 text-sm font-medium hover:bg-brand-navy/90"
                   >
                     Start your own {displayName}
                   </Link>
-                )}
-              </div>
+                </div>
+              )}
             </header>
 
             <div className="rounded-lg border border-brand-cloud bg-card p-6 md:p-8 shadow-sm">
-              {body ?? (
-                <div className="text-sm text-muted-foreground">
-                  This sample is available as a PDF above — a rendered view isn&apos;t
-                  stored for this tool.
-                </div>
-              )}
+              <SampleReportBody
+                documentText={row.document_text}
+                reportData={row.report_data}
+              />
             </div>
 
             <p className="mt-8 text-xs text-muted-foreground">
