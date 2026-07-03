@@ -1501,6 +1501,7 @@ function buildADMTReportHTML(report: any, record: any): string {
       </div>
       ${it.finding ? `<p>${text(it.finding)}</p>` : ""}
       ${it.remediation ? `<p><span class="label">Remediation:</span> ${text(it.remediation)}</p>` : ""}
+      ${it.enforcement_exposure && it.status !== "compliant" ? `<p><span class="label">Enforcement exposure:</span> ${text(it.enforcement_exposure)}</p>` : ""}
     </article>`).join("");
     return `<section class="section"><h2>${escHtml(title)}</h2>${rows}</section>`;
   };
