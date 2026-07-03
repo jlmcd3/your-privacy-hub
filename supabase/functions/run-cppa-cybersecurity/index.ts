@@ -40,6 +40,7 @@ export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
     "AWARENESS AND TRAINING ARE SEPARATE COMPONENTS — DO NOT CONFLATE: an earlier draft treated cybersecurity awareness and cybersecurity education/training as a single component; the final regulation split them into two distinct components — \"Cybersecurity awareness\" (§ 7123(c)(12)) and \"Cybersecurity education and training\" (§ 7123(c)(13)). Assess and score them independently. If the intake provides a single undifferentiated entry covering both, do not assume it satisfies both components — flag that the intake does not separately distinguish awareness activities (ongoing threat-landscape literacy) from formal training (structured onboarding/annual/post-incident instruction), and that the business's documentation should reflect both components per the final regulatory structure.",
     "FINDINGS ARE OBSERVATIONS, NOT REGISTERS OF ABSENT ARTEFACTS: every 'finding' string must describe the state of the control as evidenced (or not) by the intake — a neutral observation of what the intake does or does not establish. Do NOT phrase a finding as a shopping list of documents the business must produce, and do NOT lead with 'Missing: …' or a bare enumeration of artefacts. Where evidence is absent, say so plainly (e.g. 'the intake does not establish [component]') and reserve the enumeration of required artefacts for the remediation field. Findings observe; remediation directs. This separation must hold across every control regardless of status.",
     "FINDINGS ARE OBSERVATIONS, NOT DIRECTIVES: the 'finding' field is a neutral, past/present-tense observation of what the intake does or does not establish for this control. It must NOT contain imperatives, recommendations, or directives (e.g. 'implement…', 'establish…', 'the business should…', 'must document…', 'needs to…'). All directive language — what the business should do, produce, or change — belongs exclusively in the 'remediation' field. If a finding currently reads as an instruction, rewrite it as an observation of the current state (e.g. 'the intake does not establish an inventory of personal information as required by § 7123(c)(1)') and move any prescriptive content to remediation. This rule holds regardless of control status.",
+    "NO FALSE TOTALIZERS — NARRATIVES STATE THE ACTUAL DISTRIBUTION: top_risks, executive_summary, and next_steps must never say 'every control', 'all controls', or 'all 18' unless it is literally true of all 18. Where control statuses are mixed, state the actual counts and treat each population on its own terms (e.g. \"Eleven controls are recorded as implemented but lack the operational specifics an auditor must examine; seven could not be assessed because the intake provided insufficient information\"). A risk narrative that misstates the status distribution is a factual error, whatever its analytical point.",
   ].join("\n"),
   languageVariant: "american",
 };
@@ -591,6 +592,12 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       const insufficientCount = controls.filter((c: any) =>
         String(c?.status ?? "").trim().toLowerCase() === "insufficient information"
       ).length;
+      rep.control_status_counts = {
+        implemented: controls.filter((c: any) => /^implemented$/i.test(String(c?.status ?? "").trim())).length,
+        partially_implemented: controls.filter((c: any) => /^partially/i.test(String(c?.status ?? "").trim())).length,
+        not_implemented: controls.filter((c: any) => /^not implemented$/i.test(String(c?.status ?? "").trim())).length,
+        insufficient_information: insufficientCount,
+      };
       const INSUFFICIENT_THRESHOLD = 6;
       const expectedLevel = insufficientCount >= INSUFFICIENT_THRESHOLD
         ? "Insufficient basis to assess"
