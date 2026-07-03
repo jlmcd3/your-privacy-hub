@@ -133,7 +133,7 @@ export default function SampleReportView() {
       </Helmet>
 
       <Navbar />
-      <main className="flex-1 max-w-[900px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <Link
           to={`/samples/${toolSlug}`}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
