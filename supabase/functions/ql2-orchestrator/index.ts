@@ -302,12 +302,16 @@ async function runUnit(runId: string) {
     // is worthless: it doesn't reflect the current prompt/rule state and it
     // pollutes the score column with noise. Enforce freshness at the query,
     // not with a soft warning. Applied uniformly to every product.
+    // Freshness is tracked on updated_at, NOT created_at: save-sample-report
+    // upserts on (tool_slug, variant), so a regenerated row keeps its original
+    // created_at and only bumps updated_at. Filtering by created_at would skip
+    // every fresh artifact from this run.
     const runStartIso = run.started_at ?? new Date(0).toISOString();
     const { data: reportRows } = await db.from("sample_reports")
-      .select("id, document_text, report_data, status, created_at")
+      .select("id, document_text, report_data, status, created_at, updated_at")
       .eq("tool_slug", reg.sampleSlug)
-      .gte("created_at", runStartIso)
-      .order("created_at", { ascending: false })
+      .gte("updated_at", runStartIso)
+      .order("updated_at", { ascending: false })
       .limit(25);
     const report = (reportRows ?? []).find((row: any) => reportToText(row)) ?? null;
 
@@ -317,13 +321,13 @@ async function runUnit(runId: string) {
       // "dummy job never produced a row" from "row exists but stale" for the
       // operator, but in both cases skip the review — never grade stale.
       const { data: anyRows } = await db.from("sample_reports")
-        .select("id, created_at")
+        .select("id, updated_at")
         .eq("tool_slug", reg.sampleSlug)
-        .order("created_at", { ascending: false })
+        .order("updated_at", { ascending: false })
         .limit(1);
-      const staleCreatedAt = anyRows?.[0]?.created_at ?? null;
-      const reason = staleCreatedAt
-        ? `no fresh sample_report for slug ${reg.sampleSlug} in this run (newest is stale: created_at=${staleCreatedAt}, run started_at=${runStartIso}) — review skipped`
+      const staleUpdatedAt = anyRows?.[0]?.updated_at ?? null;
+      const reason = staleUpdatedAt
+        ? `no fresh sample_report for slug ${reg.sampleSlug} in this run (newest is stale: updated_at=${staleUpdatedAt}, run started_at=${runStartIso}) — review skipped`
         : `no sample_report ever produced for slug ${reg.sampleSlug} — review skipped`;
       await db.from("quality_loop2_results").insert({
         run_id: runId, product: next,
