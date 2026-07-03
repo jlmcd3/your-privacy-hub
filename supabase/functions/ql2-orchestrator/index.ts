@@ -461,6 +461,7 @@ async function startRun(runBy: string | null, requestedProducts: string[] | unde
     industries: [{ id: "technology", label: "Technology" }],
     geo_filter: "both",
     selected_tools: products,
+    slots_per_geo: 1,
   };
   const res = await fetch(`${SUPABASE_URL}/functions/v1/start-stress-batch`, {
     method: "POST",
