@@ -292,12 +292,12 @@ const F_IR_EU: SampleFixture = {
     invoke_body_extras: {
       discoveryDateTime: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
       cause:
-        "Unauthorised external access / ransomware on warehouse-management system. WMS holds driver schedules, employee personnel data, and refrigerated-shipment manifests for ~70 cold-chain customers. Backups were partially encrypted; recovery from off-site backup is underway. No evidence of public exfiltration yet.",
+        "Unauthorised external access / ransomware on warehouse-management system. WMS held driver schedules, employee personnel data, and refrigerated-shipment manifests for ~70 cold-chain customers. Attacker access was contained within 3 hours by network isolation; the encrypted segment was rebuilt from immutable off-site backups. Forensics (Mandiant) confirmed no successful exfiltration and no public leak-site posting; ransomware execution was blocked on the primary tenant and only affected the WMS staging tier.",
       dataTypes: ["employee records", "driver schedules", "refrigerated-shipment manifests"],
       affectedCount: "approximately 1,900 employees and contractors",
       jurisdictions: ["Denmark", "EU/EEA"],
       processorInvolved: true,
-      contained: "No — recovery underway",
+      contained: "Yes — isolated within 3 hours; eradicated and rebuilt from immutable backup; forensics confirm no exfiltration.",
       organisationType: "Cold-chain logistics operator (Denmark)",
     },
     invoke: { fn: "generate-ir-playbook", returns_id: true },
