@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { SampleReportBody } from "@/components/SampleReportBody";
+import { SampleToolReport } from "@/components/SampleToolReport";
 
 type SampleRow = {
   id: string;
@@ -126,7 +126,7 @@ export default function SampleReport() {
       </Helmet>
 
       <Navbar />
-      <main className="flex-1 max-w-[900px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <Link
           to="/tools"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
@@ -206,10 +206,13 @@ export default function SampleReport() {
                   )}
                 </header>
 
-                <SampleReportBody
+                <SampleToolReport
+                  toolSlug={r.tool_slug}
                   documentText={r.document_text}
                   reportData={r.report_data}
+                  publishedAt={r.published_at}
                 />
+
               </article>
             );
           })}
