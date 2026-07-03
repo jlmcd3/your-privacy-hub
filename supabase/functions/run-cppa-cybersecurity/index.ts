@@ -592,6 +592,12 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       const insufficientCount = controls.filter((c: any) =>
         String(c?.status ?? "").trim().toLowerCase() === "insufficient information"
       ).length;
+      rep.control_status_counts = {
+        implemented: controls.filter((c: any) => /^implemented$/i.test(String(c?.status ?? "").trim())).length,
+        partially_implemented: controls.filter((c: any) => /^partially/i.test(String(c?.status ?? "").trim())).length,
+        not_implemented: controls.filter((c: any) => /^not implemented$/i.test(String(c?.status ?? "").trim())).length,
+        insufficient_information: insufficientCount,
+      };
       const INSUFFICIENT_THRESHOLD = 6;
       const expectedLevel = insufficientCount >= INSUFFICIENT_THRESHOLD
         ? "Insufficient basis to assess"
