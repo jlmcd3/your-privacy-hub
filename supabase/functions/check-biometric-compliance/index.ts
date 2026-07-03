@@ -71,7 +71,7 @@ RISK RATING CRITERIA: Apply these criteria consistently when assigning LOW / MED
 Always state in one sentence after the rating why that level was selected, referencing enforcement posture and identified gaps.
 
 ENFORCEMENT-POSTURE GROUNDING: in any "Current enforcement posture" paragraph, do NOT assert that a specific named authority (ICO, CNIL, Garante, AEPD, DSK, a German state DPA, etc.) "has issued", "has targeted", or "actively enforces via" specific enforcement actions unless a specific action from the ENFORCEMENT PRECEDENTS block is cited alongside the claim. If no cited action is available, state only general enforceability plus the register reference — e.g. "EU supervisory authorities enforce Article 9 biometric obligations; consult the relevant national DPA enforcement register for current cases" (EU section) or "The ICO enforces UK GDPR biometric obligations; consult ico.org.uk/action-weve-taken/ for current cases" (UK section). Never pair an uncited factual assertion that specific enforcement has occurred with a direction to verify it elsewhere. And do NOT emit any self-directed sourcing instruction as user-facing text (e.g. "do not rely on training-knowledge fine amounts") — that governs your sourcing, not the reader's; if a currency caution belongs in the output, address it to the reader.
-JURISDICTIONAL HYGIENE — DO NOT MIX REGULATORS ACROSS SECTIONS: The ICO is the UK supervisory authority and must appear ONLY in UK / GB sections — never in an EU GDPR section (post-Brexit the ICO has no EU GDPR competence). This applies to EVERY paragraph type, not just the per-jurisdiction "Current enforcement posture" block that follows the worked examples below — it also applies to any cross-jurisdiction summary, executive overview, or combined "EU GDPR enforcement" discussion you generate for an organisation with both EU and UK presence. If an organisation operates in both the EU and the UK, write TWO separate enforcement-posture statements (one EU, listing only EU/EEA authorities; one UK, naming the ICO) — never one combined "EU GDPR" paragraph that lists the ICO alongside CNIL/Garante/AEPD/DSK. Within an EU GDPR section, name only EU/EEA supervisory authorities (e.g. CNIL, Garante, AEPD, DSK/Land authorities). When listing GDPR Chapter V transfer mechanisms, distinguish Article 45 adequacy decisions from Article 46 appropriate safeguards: an Article 45 adequacy decision (including the EU–US Data Privacy Framework, where the importer is certified under it) removes the need for Article 46 safeguards; absent adequacy, the transfer needs Article 46 safeguards (SCCs or BCRs). The Data Privacy Framework is an Article 45 adequacy decision — NEVER list it (or "adequacy") as an Article 46 safeguard. For UK transfer mechanisms list "a UK adequacy decision (Article 45 equivalent — including the UK–US Data Bridge where the US importer is certified), or absent that, a UK IDTA or the UK Addendum to the EU SCCs".
+JURISDICTIONAL HYGIENE — DO NOT MIX REGULATORS ACROSS SECTIONS: The ICO is the UK supervisory authority and must appear ONLY in UK / GB sections — never in an EU GDPR section (post-Brexit the ICO has no EU GDPR competence). This applies to EVERY paragraph type, not just the per-jurisdiction "Current enforcement posture" block that follows the worked examples below — it also applies to any cross-jurisdiction summary, executive overview, or combined "EU GDPR enforcement" discussion you generate for an organisation with both EU and UK presence. If an organisation operates in both the EU and the UK, write TWO separate enforcement-posture statements (one EU, listing only EU/EEA authorities; one UK, naming the ICO) — never one combined "EU GDPR" paragraph that lists the ICO alongside CNIL/Garante/AEPD/DSK. Within an EU GDPR section, name only EU/EEA supervisory authorities (e.g. CNIL, Garante, AEPD, DSK/Land authorities). When listing GDPR Chapter V transfer mechanisms, distinguish Article 45 adequacy decisions from Article 46 appropriate safeguards: an Article 45 adequacy decision (including the EU–US Data Privacy Framework, where the importer is certified under it) removes the need for Article 46 safeguards; absent adequacy, the transfer needs Article 46 safeguards (SCCs or BCRs). The Data Privacy Framework is an Article 45 adequacy decision — NEVER list it (or "adequacy") as an Article 46 safeguard. For UK transfer mechanisms list "a UK adequacy decision under UK GDPR Article 45 (including the UK–US Data Bridge where the US importer is certified), or absent adequacy, a UK IDTA or the UK Addendum to the EU SCCs".
 
 NO META-COMMENTARY IN USER-FACING OUTPUT: User-facing prose must read as finished advice to the reader. Never emit text directed at yourself or the system — instructions about how to source, ground, or verify enforcement data; notes about the supplied corpus; or bracketed citation-to-be-confirmed markers. If you cannot ground a specific fine or case from the supplied ENFORCEMENT PRECEDENTS block, state the obligation at statute level and direct the reader to the regulator's public enforcement register, without referring to your own grounding instructions. Do not include an external URL unless that exact URL appears in the supplied corpus. Do NOT copy any example phrase from these instructions into the report.
 
@@ -103,11 +103,8 @@ const BIOMETRIC_TOOL_MODULE: ToolModule = {
   citationFramework:
     "Cite statutes by official identifier: BIPA = 740 ILCS 14 (section letters 15(a)/(b)/(d), 20); Texas CUBI = Tex. Bus. & Com. Code § 503.001; California = Cal. Civ. Code §§ 1798.x; EU/UK biometric special-category data = GDPR / UK GDPR Article 9. Cite enforcement actions and case law ONLY from the ENFORCEMENT PRECEDENTS block in the user prompt; never assert a fine or settlement amount from training knowledge — direct the reader to the regulator's enforcement register.",
   identity: BIOMETRIC_IDENTITY,
-  extraRules: BIOMETRIC_RULEBOOK + `
+  extraRules: BIOMETRIC_RULEBOOK,
 
-QB7-4 QUANTIFICATION SCRUB: never recall or assert dollar amounts, settlement quantums, verdict sizes, or "multi-billion dollar" characterisations for BIPA/CUBI or any enforcement matter from training memory. Cite enforcement actions from the ENFORCEMENT PRECEDENTS block only, and where the precedent block does not carry a figure, describe the matter qualitatively (e.g. "class-action settlement", "consent decree") without inventing scale.
-
-QB7-4 UK ADEQUACY / DATA BRIDGE: for transfers from the UK to the United States, cite the UK Extension to the EU-US Data Privacy Framework (the "Data Bridge") as effective 12 October 2023; frame it as the operative UK-to-US safeguard for certified US organisations, distinct from (and additional to) the EU-US Data Privacy Framework adequacy decision of 10 July 2023. Do not conflate the two decisions.`,
 };
 
 const corsHeaders = {
@@ -264,7 +261,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 2. DPA 2018 Schedule 1 condition must also be satisfied — the applicable Schedule 1 paragraph must be documented.
 3. Conduct a DPIA under UK GDPR Article 35 — biometric processing for identification typically requires a DPIA; verify against the ICO's current DPIA guidance and examples lists.
 4. Article 13/14 transparency notices must cover the Article 9(2) condition and DPA 2018 Schedule 1 condition relied upon.
-5. UK-to-third-country transfers require a UK adequacy decision (Article 45 equivalent — including the UK–US Data Bridge where the importer is certified) or, absent one, a UK IDTA or UK-approved SCCs (not EU SCCs).
+5. UK-to-third-country transfers require a UK adequacy decision under UK GDPR Article 45 — including the UK–US Data Bridge (in force since 12 October 2023, SI 2023/1028) where the importer is certified under the UK Extension — or, where no adequacy decision applies, a UK IDTA or UK-approved SCCs (not EU SCCs).
 
 Consent and notice:
 Explicit consent in employment context is unlikely to satisfy "freely given" under UK GDPR — use DPA 2018 Schedule 1 para 1 (employment, social security, social protection law) where national employment law authorises biometric use.
@@ -355,7 +352,7 @@ Priority actions:
 3. Audit all vendor agreements for biometric data processors — ensure destruction obligations and security requirements are contractually binding.
 
 Compliance risk rating: HIGH
-Texas AG enforcement of CUBI is active and has produced multi-billion dollar settlements; the per-violation calculation at scale creates material exposure even without a private right of action.
+Texas AG enforcement of CUBI is active; the per-violation calculation at scale creates material exposure even without a private right of action.
 ---`;
     }
 
@@ -518,7 +515,7 @@ Federal frameworks applicable to biometrics by sector:
 3. FTC Act Section 5: the FTC has brought unfair or deceptive practice actions relating to biometric data misuse; consent and security failures are enforcement targets.
 
 Current enforcement posture:
-At federal level, FTC enforcement under Section 5 is the primary risk for deceptive biometric practices. At state level, Illinois BIPA private litigation is by far the highest-volume risk. Texas AG enforcement has produced multi-billion dollar settlements against large companies. State AG enforcement of comprehensive privacy law biometric provisions is expanding.
+At federal level, FTC enforcement under Section 5 is the primary risk for deceptive biometric practices. At state level, Illinois BIPA private litigation is by far the highest-volume risk. Texas Attorney General enforcement of CUBI is active; consult the Attorney General's public enforcement records for current actions. State AG enforcement of comprehensive privacy law biometric provisions is expanding.
 
 Priority actions:
 1. Map each operational jurisdiction where the organisation collects biometric data and assess applicable state law — at minimum confirm Illinois, Texas, Washington, and California applicability.
@@ -754,7 +751,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
 }
 
 Deno.serve(async (req) => {
-  console.log("[check-biometric-compliance] qb7 build active");
+  console.log("[check-biometric-compliance] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
