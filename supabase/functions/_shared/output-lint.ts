@@ -129,6 +129,10 @@ export function lintReportText(text: string, opts?: LintOptions): LintResult {
     const refMs = ref.getTime();
 
     const phrase = /\b(?:by|deadline|target(?:ed)?|recommended|due|complete[d]? by|no later than)\b[^.\n]{0,80}?\b(Q([1-4])\s+(\d{4})|(\d{1,2}\s+[A-Za-z]+\s+\d{4})|([A-Za-z]+\s+\d{1,2},?\s+\d{4}))/gi;
+    // QB8-2(b): statutory effective dates, in-force dates, and amendment dates in the past
+    // are NOT compliance-due-date lint targets. Skip when nearby context marks the date as
+    // an effective/in-force/enactment/signed/amended timestamp rather than an open obligation.
+    const STATUTORY_CONTEXT = /\b(effective|in[-\s]force|came into force|took effect|takes effect|enacted|signed|amended|amendment|as amended|revised|published|adopted|passed)\b/i;
     let pm: RegExpExecArray | null;
     while ((pm = phrase.exec(clean)) !== null) {
       let deadline: Date | null = null;
@@ -138,6 +142,11 @@ export function lintReportText(text: string, opts?: LintOptions): LintResult {
         deadline = parseLooseDate(pm[4] || pm[5] || "");
       }
       if (deadline && deadline.getTime() < refMs) {
+        const windowStart = Math.max(0, pm.index - 200);
+        const contextWindow = clean.slice(windowStart, pm.index + pm[0].length);
+        if (STATUTORY_CONTEXT.test(contextWindow)) {
+          continue; // statutory effective/in-force/amendment date, not a missed compliance deadline
+        }
         violations.push({
           code: "past_deadline",
           severity: "hard",
