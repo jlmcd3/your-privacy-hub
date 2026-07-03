@@ -903,6 +903,9 @@ Return JSON:
     };
     const guarded = guardInformationNeeded(reportData, liaIntakeObject);
     Object.assign(reportData, guarded.report);
+    ensureReferenceCategoryCaveat(dedupeInformationNeeded(reportData));
+
+
 
     // Stage 1: metering + version retention (successful runs only).
     // Written BEFORE status:complete so that any client observing "complete"
