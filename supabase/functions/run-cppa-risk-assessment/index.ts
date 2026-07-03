@@ -351,6 +351,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
   citationFramework:
     "Cite only Cal. Code Regs. tit. 11 (format \"§ 7150(b)(1)\") or Cal. Civ. Code § 1798 (format \"§ 1798.185\"). Never cite § 7221(c)(5) for any purpose. Exception citations are § 7152(a)(1)–(8) only — verify each exists in the provided regulation text before use. § 7150(b) trigger→subsection mappings are provided to you explicitly below and in the regulation text; use those exact subsections — never assign a § 7150(b) subsection from memory.",
   outputMode: "strict-JSON",
+  includeEuTransfers: false,
   languageVariant: "american",
   extraRules: [
     "§ 7152 MAPPING: every output section maps to a § 7152 required content element; generate nothing not required by statute.",
