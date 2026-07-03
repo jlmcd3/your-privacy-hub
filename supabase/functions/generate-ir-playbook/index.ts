@@ -366,6 +366,8 @@ function formatEnforcementContext(rows: any[]): string {
     .map((e, i) => {
       const year = e.decision_date ? new Date(e.decision_date).getFullYear() : null;
       const citation = year ? `${e.regulator ?? "Regulator"} (${year})` : `${e.regulator ?? "Regulator"}`;
+      const decided = e.decision_date ? String(e.decision_date).slice(0, 10) : "date not recorded in corpus";
+      const ref = e.source_url ? `Official source: ${e.source_url}` : "No decision reference or source URL recorded in corpus";
       const fineVerified = e.fine_verified !== false;
       // ICO fines are denominated in GBP, not EUR. Use £ for ICO cases regardless of the
       // column name. For all other regulators, use € as the stored value represents EUR.
@@ -376,7 +378,7 @@ function formatEnforcementContext(rows: any[]): string {
       const fine = !fineVerified
         ? "fine amount under verification — omitted"
         : (e.fine_eur_equivalent ? `${currencySymbol}${Number(e.fine_eur_equivalent).toLocaleString()}` : "fine: n/a");
-      return `[E${i + 1}] id:${e.id ?? "—"} CITATION: ${citation} — ${e.subject ?? ""} — ${e.jurisdiction ?? "—"}\n   Fine: ${fine}\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}\n   Lesson: ${e.preventive_measures ?? "—"}`;
+      return `[E${i + 1}] id:${e.id ?? "—"} CITATION: ${citation} — ${e.subject ?? ""} — ${e.jurisdiction ?? "—"}\n   Decided: ${decided}\n   ${ref}\n   Fine: ${fine}\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}\n   Lesson: ${e.preventive_measures ?? "—"}`;
     })
     .join("\n\n");
 }
