@@ -6,7 +6,7 @@ import { verifyCaller } from "../_shared/verify-caller.ts";
 import { lintReportText } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
-import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
+import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import {
   renderAiActCitationBlock,
   renderTransferAdequacyNote,
@@ -59,7 +59,7 @@ QUALITY STANDARDS:
 
 CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name, section number, subsection letter) must be verifiable against the actual statute. Known hallucination risks to guard against: (1) PIPEDA does not use decimal sub-principle numbering — cite as "Schedule 1, Principle N (Name)" only. (2) The Breach of Security Safeguards Regulations under PIPEDA are SOR/2018-64 — no other SOR number is correct. (3) US state privacy laws do not have a universal 72-hour breach notification deadline — that is a GDPR Article 33 concept only. Apply it only where GDPR explicitly applies. (4) Quebec Law 25 uses "without delay" not "72 hours" — present 72 hours as a planning benchmark only. (5) California breach notification (Cal. Civ. Code §1798.82, as amended by SB 446 effective 1 Jan 2026): individuals within 30 calendar days of discovery; AG sample copy within 15 calendar days of consumer notice when 500+ CA residents affected. Do NOT describe California as having no fixed deadline — that was the pre-2026 standard. 72 hours remains a GDPR Article 33 concept only. If you are uncertain of a specific section number, write the section in descriptive terms and flag it: "[statutory reference to be confirmed with counsel]" rather than inventing a section number. (9) When stating a computed notification deadline, give the date and time only — NEVER state the day of the week, as computing weekday names is error-prone; if the input data explicitly provides a weekday you may repeat it verbatim. (10) Danish Data Protection Act (Databeskyttelsesloven, Act No. 502 of 23 May 2018): cite the employment-context processing provision as §12. NEVER cite this Act by chapter number — refer to numbered sections (§) only, and if uncertain of the section, describe the obligation and flag [statutory reference to be confirmed with counsel].
 (11) HIPAA CITATION ANCHORS: Under HIPAA, cite specific provisions as follows — PHI definition: 45 C.F.R. §160.103 (NOT §164.514); breach definition: 45 C.F.R. §164.402; breach risk assessment methodology: 45 C.F.R. §164.402; individual notice obligation: 45 C.F.R. §164.404; HHS and media notice: 45 C.F.R. §164.408; business associate breach-to-covered-entity notice: 45 C.F.R. §164.410; de-identification safe harbour: 45 C.F.R. §164.514(b) — cite §164.514 ONLY for the de-identification rule, never as the basis for PHI status. Never cite §164.514 to support a conclusion that data constitutes PHI; that citation is backwards — §164.514 describes when data is NOT PHI.
-(12) ENFORCEMENT CONTEXT PROVENANCE RULE: When using a case from the ENFORCEMENT CONTEXT block to support a finding, check whether a subject (case name or matter name) is provided in the block. If the block supplies only a regulator and year with no subject, do NOT cite it as "Regulator (Year) decision" or present it as a specifically identified case — instead cite it as "the [Regulator]'s enforcement posture in this area" or "[Regulator] enforcement actions in [year]." Only use the "[Regulator] ([Year]) — [Matter Name]" citation format when a matter name is explicitly present in the enforcement block. This rule exists because a regulator + year without a matter identifier cannot be independently verified by the recipient.
+(12) ENFORCEMENT CITATION COMPLETENESS RULE: every named-decision citation follows the single standard in ENFORCEMENT CITATION GROUNDING — STRICT. A named-decision citation carries the matter name, the decision date (the "Decided:" value), AND the official source reference (the "Official source:" URL or decision reference) exactly as they appear in the supplied block — all three. Names are reproduced character-for-character as the block records them: never re-spell, transliterate, translate, or "correct" an entity or matter name (a Polish "Fundacja" never becomes a Portuguese "Fundação"). Where the block supplies a subject but its Decided line reads "date not recorded in corpus" or its reference line reads "No decision reference or source URL recorded in corpus", do NOT present the entry as a specifically identified case — frame it as a general principle attributed to the corpus per PRECEDENTS CITE ONLY WHAT IS CITABLE. Where the block supplies only a regulator and year with no subject, cite it as "the [Regulator]'s enforcement posture in this area" — never "[Regulator] ([Year]) decision". The bare "[Regulator] ([Year]) — [Matter Name]" format without the decision date and official source reference is no longer a permitted citation form.
 
 VERIFIED JURISDICTION FACTS (use these anchors verbatim where relevant):
 - California (Cal. Civ. Code §1798.82, as amended by SB 446, eff. Jan 1, 2026): 30-day individual notice from discovery; AG sample copy within 15 days of consumer notice when 500+ CA residents affected. SB 446 RETAINED both delay allowances — legitimate law-enforcement needs AND time necessary to determine the scope of the breach and restore system integrity. Never state that the scope/integrity exception was removed.
@@ -366,6 +366,8 @@ function formatEnforcementContext(rows: any[]): string {
     .map((e, i) => {
       const year = e.decision_date ? new Date(e.decision_date).getFullYear() : null;
       const citation = year ? `${e.regulator ?? "Regulator"} (${year})` : `${e.regulator ?? "Regulator"}`;
+      const decided = e.decision_date ? String(e.decision_date).slice(0, 10) : "date not recorded in corpus";
+      const ref = e.source_url ? `Official source: ${e.source_url}` : "No decision reference or source URL recorded in corpus";
       const fineVerified = e.fine_verified !== false;
       // ICO fines are denominated in GBP, not EUR. Use £ for ICO cases regardless of the
       // column name. For all other regulators, use € as the stored value represents EUR.
@@ -376,12 +378,13 @@ function formatEnforcementContext(rows: any[]): string {
       const fine = !fineVerified
         ? "fine amount under verification — omitted"
         : (e.fine_eur_equivalent ? `${currencySymbol}${Number(e.fine_eur_equivalent).toLocaleString()}` : "fine: n/a");
-      return `[E${i + 1}] id:${e.id ?? "—"} CITATION: ${citation} — ${e.subject ?? ""} — ${e.jurisdiction ?? "—"}\n   Fine: ${fine}\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}\n   Lesson: ${e.preventive_measures ?? "—"}`;
+      return `[E${i + 1}] id:${e.id ?? "—"} CITATION: ${citation} — ${e.subject ?? ""} — ${e.jurisdiction ?? "—"}\n   Decided: ${decided}\n   ${ref}\n   Fine: ${fine}\n   Failure: ${e.key_compliance_failure ?? e.violation ?? "—"}\n   Lesson: ${e.preventive_measures ?? "—"}`;
     })
     .join("\n\n");
 }
 
 Deno.serve(async (req) => {
+  console.log(`[qb9] generate-ir-playbook build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[generate-ir-playbook] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 

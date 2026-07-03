@@ -14,7 +14,7 @@ import {
   normalizeIntake,
   type ElementId,
 } from "../_shared/admt-citation-registry.ts";
-import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
+import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
@@ -213,7 +213,7 @@ export const ADMT_TOOL_MODULE: ToolModule = {
 
 STANDARDS BELONG TO THEIR SUBSECTION: never attribute characterising language ("expressly prohibits generic descriptions", a sufficiency standard, a consumer-understanding test) to a provision unless that language appears in the supplied regulation text for that provision. Where two provisions carry parallel or complementary standards (e.g. the pre-use-notice purpose requirement and the access-response purpose requirement; a trade-secret carve-out and the surviving logic-disclosure obligation), name BOTH by their plain-English element names, state which obligation each imposes, and keep their findings separable so the system can inject each provision's canonical citation — never blend two provisions' standards under one element name.
 
-UNESTABLISHED TRIGGERS ARE LABELLED AS SUCH: an entry in triggers_identified that depends on an unconfirmed determination states its status inside the entry — "this trigger is NOT currently established because [the determining fact] has not been confirmed; it would apply if the business determines [condition]" — and the surrounding reasoning reflects uncertainty about what the service IS ("the intake does not identify the service as falling within an enumerated category") rather than affirmatively characterising it as outside the enumerated categories. Summary and list must carry the same conditional status.`,
+PARTIALLY CONFIRMED TRIGGERS ARE CONDITIONALLY PRESENT: an entry in triggers_identified that depends on an unconfirmed determination states its status inside the entry as conditional, never as negation — "this trigger is conditionally present: [the confirmed fact] is confirmed, but [the determining fact] has not been confirmed; it applies if the business determines [condition]". Never open an entry with a confirmed fact ("Profiling use confirmed") and then negate the trigger in the same entry ("NOT currently established") — a confirmed limb plus an unconfirmed limb is CONDITIONAL, not negated. The entry's status must agree with its boolean: where the conservative determination sets the trigger boolean to true (per SIGNIFICANT-DECISION DETERMINATION IS DEFINITIVE), the entry describes the trigger as conditionally present with the assumption recorded once at the top; where the boolean is false, the entry states what would establish it. The surrounding reasoning reflects uncertainty about what the service IS ("the intake does not identify the service as falling within an enumerated category") rather than affirmatively characterising it as outside the enumerated categories. Summary, list, and boolean must carry the same conditional status.`,
   languageVariant: "american",
 };
 
@@ -292,6 +292,7 @@ function tryParseJson(text: string): any | null {
 }
 
 Deno.serve(async (req) => {
+  console.log(`[qb9] run-admt-checker build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-admt-checker] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 

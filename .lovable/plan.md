@@ -1,41 +1,47 @@
-# Make sample reports look identical to real results
+# Battery 9 execution plan
 
-## Problem
-Sample pages under `/samples/:tool` currently use a generic renderer (`SampleReportBody`) that walks `report_data` as a plain JSON tree. Real result pages (e.g. `GovernanceAssessmentResult`) use rich, tool-specific UI — executive summary card, domain grid, accordion of findings, DPIA scope callout, enforcement precedents, etc. The two look nothing alike.
+Apply the 9 prompts in `EUP_QUALITY_FIXES_BATTERY9.md` verbatim. Hard rules honored: exact find/replace or verbatim append only, no rewording, no "QB9-" prefixed rule text, one logical commit per prompt, HARD-STOP if any locate-target diverges from what the doc describes.
 
-## Fix
+## Per-prompt actions
 
-Extract the report body from each result page into a reusable, presentation-only component that takes `report_data` (and where relevant `intake_data` / `id`) as props. Both the real result page and the sample page render the same component, so they look identical.
+- **QB9-1** `supabase/functions/generate-dpa/index.ts`
+  - (a) Replace the full `NO ENFORCEMENT FROM MEMORY` rule line with the extended version (adds intake meta-commentary prohibition).
+  - (b) Append the `NON-EEA PARTIES ON A GDPR FRAMEWORK SAY WHY` bullet as a new `- ` line in the same list.
 
-### New components (one per tool, in `src/components/report-bodies/`)
-- `GovernanceReportBody.tsx` — 10-domain grid, findings accordion, top risks, DPIA scope, enforcement precedents
-- `LIAssessmentReportBody.tsx`
-- `DPIAFrameworkReportBody.tsx`
-- `DPAReportBody.tsx`
-- `IRPlaybookReportBody.tsx`
-- `BiometricReportBody.tsx`
-- `CPPARiskReportBody.tsx`
-- `CPPACyberReportBody.tsx`
-- Notice/RoPA samples currently have no `report_data`; keep the existing prose fallback for those two slugs.
+- **QB9-2** `supabase/functions/generate-ir-playbook/index.ts`
+  - (a) In `formatEnforcementContext`, after the `year`/`citation` pair, add `decided` and `ref` locals; extend the returned template string with `Decided:` and `${ref}` lines exactly as specified.
+  - (b) Replace rule (12) `ENFORCEMENT CONTEXT PROVENANCE RULE` with the new `ENFORCEMENT CITATION COMPLETENESS RULE` text verbatim.
 
-Each body component is pure: no data fetching, no `useRunMeter`, no PDF button, no translate menu. It receives `{ report, intake?, sampleMode?: boolean }`. In `sampleMode`, deep-link CTAs (like "Open Impact Assessment Builder") point at the marketing tool page instead of `?source=<id>`.
+- **QB9-3** `supabase/functions/run-li-assessment/index.ts`
+  - Define `dedupeInformationNeeded` and `ensureReferenceCategoryCaveat` as specified; call `ensureReferenceCategoryCaveat(dedupeInformationNeeded(report))` immediately before the report is persisted as `report_data`. HARD-STOP if there is no single persistence site.
 
-### Result-page refactor
-Each existing result page keeps its shell (Navbar, ReportShell, meter, status banners, actions) and delegates the `status === "complete"` block to the new body component. No visual change to the real result experience.
+- **QB9-4** `supabase/functions/run-dpia-framework/index.ts`
+  - (a) Replace the `processing_name` schema descriptor with the extended "distinct by design" version.
+  - (b) Append the `PLACEHOLDERS NEVER RE-REQUEST DOCUMENTED WORK` string element to the rules array containing PLACEHOLDER FORMAT RULE.
 
-### Sample page refactor
-`src/pages/SampleReport.tsx` and `src/pages/SampleReportView.tsx`:
-- Look up the correct body component by `tool_slug` via a small dispatcher map.
-- Render it with `report={row.report_data}` and `sampleMode`.
-- Fall back to the existing prose renderer for slugs without structured `report_data` (`eu_notice`, `us_notice`, `ropa` when applicable).
-- Keep the sample header (SAMPLE badge, scenario summary, verification line, "Start your own …" CTA).
+- **QB9-5** `supabase/functions/run-governance-assessment/index.ts`
+  - Add `hoistNestedInformationNeeded` alongside the existing Stage-5 forward-path guard; call it on the assembled report before persistence. HARD-STOP if the Stage-5 guard is not locatable.
 
-### Out of scope
-- No changes to the sample_reports schema or admin generator.
-- No PDF download (still removed, per prior instruction).
-- No changes to actual assessment result behavior — just moving JSX into a component.
+- **QB9-6** `supabase/functions/check-biometric-compliance/index.ts`
+  - (a) Replace CITATION INTEGRITY item (5) with the SB 446 version.
+  - (b) Replace the Land-consultation template item 3 with the Article 36 wording.
+  - (c) Extend the BetrVG sentence in HR EMPLOYMENT BIOMETRIC CONSENT RULE with the § 87 BetrVG / § 26 BDSG clarification.
 
-## Technical notes
-- Body components are presentational; they must not import `useParams`, `supabase`, or any hook that touches network/session state.
-- Preserve the existing helpers (`ratingColor`, `sevColor`, etc.) by moving them alongside each body component or into `src/lib/reportStyles.ts` if shared.
-- Enforcement precedent annotations exist in `report_data.annotations` on real runs and in sample fixtures — render them the same way in both.
+- **QB9-7** `supabase/functions/run-admt-checker/index.ts`
+  - Replace `UNESTABLISHED TRIGGERS ARE LABELLED AS SUCH` rule with `PARTIALLY CONFIRMED TRIGGERS ARE CONDITIONALLY PRESENT` verbatim.
+
+- **QB9-8** Ten files — add/extend `PROMPT_CORE_VERSION` import from `../_shared/prompt-core.ts`, then insert `console.log(\`[qb9] <fn> build active · core=${PROMPT_CORE_VERSION}\`);` as the first statement of the `Deno.serve` handler in each of:
+  `generate-ir-playbook`, `run-governance-assessment`, `generate-dpa`, `run-cppa-risk-assessment`, `run-cppa-cybersecurity`, `run-admt-checker`, `run-li-assessment`, `run-dpia-framework`, `check-biometric-compliance`, `run-registration-assessment`.
+
+- **QB9-9** `supabase/functions/run-registration-assessment/index.ts`
+  - In the jurisdictions mapping, for the UK/ICO entry when `filing_fee_cents` is non-null, append the ICO fee-tier sentence to `notes` (single-space separator, create `notes` if null). HARD-STOP if the mapping does not match.
+
+## Verification (post-edit, pre-report)
+
+Run the 10-item checklist from the doc (§ Verification checklist), all greps must return the sentinel phrases; confirm zero occurrences of rule text beginning with "QB9-" in prompt strings.
+
+## Notes
+
+- No prompt-string may begin with "QB9-"; the token appears only in code comments and the console.log build marker.
+- No rewording — any divergence in a locate target triggers HARD-STOP with a report of the actual code, not an improvised substitute.
+- Redeploy + QL2 execution are John's steps after commit; not part of this plan.

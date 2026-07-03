@@ -7,7 +7,7 @@ import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun, type FnRunHandle } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
-import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
+import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
@@ -181,7 +181,47 @@ async function generateAssessment(assessment_id: string, assessment: any, fnRun:
   }
 }
 
+// QB9-3(a): information_needed is emitted once, at the top level only.
+function dedupeInformationNeeded(report: any): any {
+  try {
+    const top = Array.isArray(report?.information_needed) ? report.information_needed : [];
+    const nested = Array.isArray(report?.three_part_test?.information_needed)
+      ? report.three_part_test.information_needed : [];
+    if (nested.length) {
+      const seen = new Set(top.map((s: any) => String(s).trim()));
+      for (const item of nested) {
+        if (!seen.has(String(item).trim())) top.push(item);
+      }
+      report.information_needed = top;
+      delete report.three_part_test.information_needed;
+    }
+  } catch (e) {
+    console.error("[LIA] QB9-3(a) dedupe errored:", e);
+  }
+  return report;
+}
+
+// QB9-3(b): a reference-category label may not appear without its caveat sentence.
+const REFERENCE_CATEGORY_CAVEAT = "Reference-category note: reference category drawn from the precedent database; no directly analogous enforcement decision was retrieved — this is a database category entry, not a cited case.";
+function ensureReferenceCategoryCaveat(report: any): any {
+  try {
+    const doc = JSON.stringify(report);
+    if (/reference categor/i.test(doc) && !doc.includes("this is a database category entry, not a cited case")) {
+      const oa = report?.overall_assessment;
+      if (oa && typeof oa === "object") {
+        oa.reference_category_caveat = REFERENCE_CATEGORY_CAVEAT;
+        console.warn("[LIA] QB9-3(b): reference-category label present without caveat — caveat injected into overall_assessment");
+      }
+    }
+  } catch (e) {
+    console.error("[LIA] QB9-3(b) caveat guard errored:", e);
+  }
+  return report;
+}
+
+
 Deno.serve(async (req) => {
+  console.log(`[qb9] run-li-assessment build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-li-assessment] qb7 qb7r build active");
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -864,6 +904,9 @@ Return JSON:
     };
     const guarded = guardInformationNeeded(reportData, liaIntakeObject);
     Object.assign(reportData, guarded.report);
+    ensureReferenceCategoryCaveat(dedupeInformationNeeded(reportData));
+
+
 
     // Stage 1: metering + version retention (successful runs only).
     // Written BEFORE status:complete so that any client observing "complete"
