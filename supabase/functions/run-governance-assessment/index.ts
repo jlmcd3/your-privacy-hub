@@ -367,6 +367,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 
 
 Deno.serve(async (req) => {
+  console.log(`[qb9] run-governance-assessment build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[run-governance-assessment] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
