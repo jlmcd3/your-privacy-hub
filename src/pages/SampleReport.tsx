@@ -229,6 +229,7 @@ export default function SampleReport() {
           })}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
