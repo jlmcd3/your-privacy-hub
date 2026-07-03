@@ -1,3 +1,4 @@
+// qb8 build active
 // build-marker: biometric-qi-battery4-fix-2026-07-03
 console.log("[build-marker] check-biometric-compliance qi-battery4-fix-2026-07-03");
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
@@ -264,10 +265,10 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 5. UK-to-third-country transfers require a UK adequacy decision under UK GDPR Article 45 — including the UK–US Data Bridge (in force since 12 October 2023, SI 2023/1028) where the importer is certified under the UK Extension — or, where no adequacy decision applies, a UK IDTA or UK-approved SCCs (not EU SCCs).
 
 Consent and notice:
-Explicit consent in employment context is unlikely to satisfy "freely given" under UK GDPR — use DPA 2018 Schedule 1 para 1 (employment, social security, social protection law) where national employment law authorises biometric use.
+Explicit consent in employment context is unlikely to satisfy "freely given" under UK GDPR — use DPA 2018 Schedule 1 Part 1 para 1 (employment, social security and social protection law) where national employment law authorises biometric use.
 
 Retention and destruction:
-Apply UK GDPR storage limitation principle: define retention period per purpose; delete biometric templates promptly when purpose expires; document the retention schedule.
+Apply the UK GDPR Article 5(1)(e) storage limitation principle: define retention period per purpose; delete biometric templates promptly when purpose expires; document the retention schedule.
 
 Sale and sharing restrictions:
 UK GDPR purpose limitation (Article 5(1)(b)) and processor contract requirements (Article 28) govern sharing. For transfers to third countries outside the UK adequacy framework, use a UK IDTA or UK-approved SCCs.
@@ -608,7 +609,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 5. Article 28 DPA for all processors; any non-EEA transfer requires an Article 45 adequacy decision or, absent one, an Article 46 safeguard.
 
 Consent and notice:
-Employee consent is generally not valid as an Article 9(2) condition in the German employment context (DSK and EDPB alignment on power imbalance). Rely on § 26 BDSG with Article 9(2)(b) basis. Works council agreement (Betriebsvereinbarung) is typically the pre-condition for lawful employee biometric processing.
+Employee consent is generally not valid as an Article 9(2) condition in the German employment context (EDPB Guidelines 05/2020 on consent; the DSK aligns with this position). Rely on § 26 BDSG with Article 9(2)(b) basis. Works council agreement (Betriebsvereinbarung) is typically the pre-condition for lawful employee biometric processing.
 
 Retention and destruction:
 Delete biometric templates when the employment relationship ends or the stated purpose expires — define the destruction trigger in the Betriebsvereinbarung or retention policy.
@@ -622,7 +623,7 @@ German state DPAs actively enforce special-category-data obligations. Refer to t
 Priority actions:
 1. Obtain works council agreement (Betriebsvereinbarung) before deploying any employee biometric system — this is a legal pre-condition, not a best practice.
 2. Complete a DPIA and, if residual risk remains, consult the competent state DPA under Article 36.
-3. Confirm the responsible state DPA (Landesdatenschutzbehörde) for this organisation's location and register the processing where required by state law.
+3. Confirm the responsible state DPA (Landesdatenschutzbehörde) for this organisation's location and register or consult with the competent Land supervisory authority where Landesrecht imposes a consultation or registration duty for the processing (verify against the applicable Land's data-protection law — most biometric employment processing requires no registration, only a DPIA).
 
 Compliance risk rating: HIGH
 Germany's works council codetermination requirement creates a hard legal gate before employee biometric deployment; state DPA enforcement is active and has specifically targeted biometric workplace systems.

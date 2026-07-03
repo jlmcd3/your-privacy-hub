@@ -1,3 +1,4 @@
+// qb8 build active
 // run-meter deploy-check v1
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -130,6 +131,8 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "UNRESOLVED DETERMINATIONS STAY UNRESOLVED EVERYWHERE: where a determination is left open as a fill-in (e.g. the controller's EU main-establishment status and one-stop-shop availability under Art. 56(1)), every field that references it must express the same open status — never assert it as settled fact in one field (dpia_metadata.supervisory_authority_consultation_trigger, section_6_conclusion) while another field carries the [TO COMPLETE] placeholder. Canonical form for the OSS case: 'OSS availability cannot be determined until the controller's main-establishment status is confirmed. If no EU main establishment exists, or an EU establishment lacks decision-making authority over this processing, OSS is unavailable under Art. 56(1) and each concerned supervisory authority is independently competent. [TO COMPLETE — confirm main-establishment status and document the Art. 56(1) determination.]'",
     "THE CONCLUSION NAMES ITS BLOCKERS: where approval or conditional approval is withheld because foundational inputs are absent, section_6_conclusion must name those inputs specifically (e.g. retention periods, the LIA, the log-content audit, processor data-centre mapping) — and each named input must correspond to an information_needed entry. 'Foundational inputs are absent' without the list is a dead-end phrasing.",
     "NO RESOLUTION-METHOD PRESCRIPTION: where a determination is left to the organisation, state that the organisation must resolve and document it, citing the governing provision — never direct a specific resolution method (consulting legal counsel, commissioning an audit, or any other). The framework_disclaimer is fixed system-supplied text and is unaffected.",
+    "CONFIRMED TRIGGERS AND CANDIDATE TRIGGERS ARE LISTED SEPARATELY: the reasons the DPIA is required list ONLY criteria confirmed on the intake facts. Criteria that are merely potential ('evaluation or scoring — potentially engaged if automated analysis is used') are listed under a separate heading as additional criteria for the organisation to confirm, each with the single fact that would confirm it — never blended into the mandatory-trigger list where a conditional reads as a confirmed basis.",
+    "IMPLEMENTATION STATUS IS STATE, NOT TASKS: an implementation_status states the current state of the measure in one clause ('Partially implemented — DPAs exist for all three processors'). Verification and preparation tasks belong in the measure's action text, not inside the status. And distinct obligations get distinct measures: an erasure-request procedure (responding to Article 17 requests) is not the same measure as automated deletion at end of retention — where both are relevant, state them as two measures with their own statuses, noting the dependency where it exists.",
   ].join("\n\n"),
   languageVariant: "jurisdiction-conditional",
 };
@@ -595,8 +598,9 @@ Generate substantive draft rows for every table for the controller to verify; us
       let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
       console.log(`[DPIA] genHalf stopReason=${r.stopReason} chars=${r.text.length} tail=${JSON.stringify(r.text.slice(-120))}`);
       if (r.stopReason === "max_tokens") {
-        console.warn(`[DPIA] genHalf truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
-        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
+        const bumped = Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 1.25);
+        console.warn(`[DPIA] genHalf truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry at ${bumped} (QB8-8 +25%)`);
+        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, bumped);
         console.log(`[DPIA] genHalf retry stopReason=${r.stopReason} chars=${r.text.length}`);
         if (r.stopReason === "max_tokens") {
           console.error("[DPIA] genHalf truncated_output after retry — returning empty half");
@@ -613,6 +617,43 @@ Generate substantive draft rows for every table for the controller to verify; us
     let [partA, partB] = await Promise.all([genHalf(promptA, ""), genHalf(promptB, "")]);
 
     let reportData: any = { ...partA, ...partB };
+
+    // QB8-8(a): structural completeness check for residual_risk_assessment entries.
+    // Every entry must carry residual_likelihood, residual_risk_level, and additional_measures.
+    // If any entry is missing fields, run ONE repair scoped to the deficient entries.
+    try {
+      const requiredResidualFields = ["residual_likelihood", "residual_risk_level", "additional_measures"];
+      const s4 = reportData?.section_4_risk_management;
+      const residual = Array.isArray(s4?.residual_risk_assessment) ? s4.residual_risk_assessment : null;
+      if (residual) {
+        const deficient = residual
+          .map((e: any, i: number) => ({ i, e, missing: requiredResidualFields.filter((f) => !e?.[f] || (typeof e[f] === "string" && !e[f].trim())) }))
+          .filter((x: any) => x.missing.length > 0);
+        if (deficient.length > 0) {
+          console.warn(`[DPIA] QB8-8(a): ${deficient.length} residual_risk_assessment entries missing required fields — repair pass`);
+          const repairPrompt = `The following residual_risk_assessment entries from a DPIA are incomplete. Return ONLY a JSON object of the form {"residual_risk_assessment":[...]} containing the SAME entries in the SAME order, completing the listed missing fields for each. Do not change fields that are already populated. Missing fields per entry:\n\n${JSON.stringify(deficient.map((d: any) => ({ index: d.i, entry: d.e, missing_fields: d.missing })), null, 2)}`;
+          const repair = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, repairPrompt, Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 0.5));
+          const repaired = parseJsonish(repair.text);
+          const repairedArr = Array.isArray(repaired?.residual_risk_assessment) ? repaired.residual_risk_assessment : null;
+          if (repairedArr) {
+            for (const d of deficient) {
+              const match = repairedArr.find((x: any, idx: number) => idx === d.i || x?.risk_name === d.e?.risk_name);
+              if (match) residual[d.i] = { ...residual[d.i], ...match };
+            }
+          }
+          // Re-validate; if still incomplete, mark report failed rather than persisting truncated table.
+          const stillDeficient = residual.filter((e: any) => requiredResidualFields.some((f) => !e?.[f] || (typeof e[f] === "string" && !e[f].trim())));
+          if (stillDeficient.length > 0) {
+            console.error(`[DPIA] QB8-8(a): residual_risk_assessment still incomplete after repair (${stillDeficient.length} entries) — marking report failed`);
+            throw new Error(`DPIA residual_risk_assessment incomplete after repair (${stillDeficient.length} entries missing required fields)`);
+          }
+        }
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message.startsWith("DPIA residual_risk_assessment incomplete")) throw e;
+      console.error("[DPIA] QB8-8(a) repair pass errored:", e);
+    }
+
 
     // Lint narrative strings across the framework JSON; one retry on hard violations
     // — surgically regenerating ONLY the half(s) whose top-level keys contain hard

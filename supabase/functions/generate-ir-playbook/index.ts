@@ -1,3 +1,4 @@
+// qb8 build active
 // run-meter deploy-check v1
 // generate-ir-playbook: produces a 7-section breach response playbook.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -196,7 +197,7 @@ EU–UK ADEQUACY — DO NOT QUALIFY: The EU adequacy decision for the UK (in for
 
 CONFIRMED-DATA-TYPE VS UNCONFIRMED-CONTENT: When a data type is confirmed in scope but its content (e.g. whether the affected records contain special-category data, payment card data, or authentication credentials) is unconfirmed, state the two facts separately — e.g. "Email addresses are confirmed in scope. Whether any of the affected accounts include special-category data in linked profile fields is unconfirmed and requires investigation." Do NOT use phrasing that implies the data TYPE itself is uncertain when only its content is.
 
-SECTION 2 / SECTION 4 CROSS-REFERENCES (2.5c): preliminary assessments in Sections 2–3 are scoping heuristics superseded by the Section 4 determinations, and every cross-reference must name the step that actually decides the question. PLACEMENT: the mandated deferral sentences below appear ONLY within Sections 2–3. They NEVER appear inside Section 4: each Section 4 step states its own determination in its own voice and never defers to itself — STEP 2 must not emit "may be superseded by the … determination at Section 4 STEP 2", it IS that determination and concludes directly (e.g. "Supervisory authority notification is required under Article 33(1). Proceed to STEP 3."). JURISDICTION GUARD: the mandated sentences apply ONLY where GDPR or UK GDPR governs at least one jurisdiction in scope for this incident. In a playbook with no GDPR/UK GDPR jurisdiction, NEVER emit these sentences or reference Article 33 or Article 34 at all; the cross-reference instead names the playbook's actual Section 4 operative gate for the relevant jurisdiction — e.g. "Note: this preliminary assessment is resolved at Section 4 — for California, the operative analysis is the §1798.82(h) data-element determination; treat that determination as operative." ARTICLE 33 (supervisory-authority notification): where in scope and Section 2 concludes "Medium" (or any non-High) confidence, add exactly: "Note: this preliminary assessment may be superseded by the Article 33 determination at Section 4 STEP 2 — treat that determination as operative." ARTICLE 34 (individual notification): where in scope and a preliminary high-risk view is expressed in Sections 2–3, add exactly: "Note: this preliminary assessment of the Article 34 high-risk question is resolved at Section 4 STEP 4 (high-risk determination) and STEP 5 (exceptions) — treat those determinations as operative for individual notification." DIVISION OF LABOUR IN SECTION 4: STEP 4 concludes the Article 34 high-risk question itself, qualified only by genuinely unresolved facts, and directs the reader to STEP 5 solely to assess the Article 34(3) exceptions; STEP 5 assesses exceptions only and never re-determines or defers the high-risk question. NEVER cite STEP 2 for an Article 34 question or STEP 4/STEP 5 for an Article 33 question, and never point an Article-numbered sentence at a Section 4 step that asks a different question (a US playbook's STEP 2 may be a state-statute breach-definition gate, not Article 33). Do NOT leave Section 2 and Section 4 reading as independent, contradictory conclusions.
+SECTION 2 / SECTION 4 CROSS-REFERENCES (2.5c): preliminary assessments in Sections 2–3 are scoping heuristics superseded by the Section 4 determinations, and every cross-reference must name the step that actually decides the question. PLACEMENT: the mandated deferral sentences below appear ONLY within Sections 2–3. They NEVER appear inside Section 4: each Section 4 step states its own determination in its own voice and never defers to itself — STEP 2 must not emit "is resolved by the … determination at Section 4 STEP 2", it IS that determination and concludes directly (e.g. "Supervisory authority notification is required under Article 33(1). Proceed to STEP 3."). JURISDICTION GUARD: the mandated sentences apply ONLY where GDPR or UK GDPR governs at least one jurisdiction in scope for this incident. In a playbook with no GDPR/UK GDPR jurisdiction, NEVER emit these sentences or reference Article 33 or Article 34 at all; the cross-reference instead names the playbook's actual Section 4 operative gate for the relevant jurisdiction — e.g. "Note: this preliminary assessment is resolved at Section 4 — for California, the operative analysis is the §1798.82(h) data-element determination; treat that determination as operative." ARTICLE 33 (supervisory-authority notification): where in scope and Section 2 concludes "Medium" (or any non-High) confidence, add exactly: "Note: this preliminary assessment is resolved by the Article 33 determination at Section 4 STEP 2 — treat that determination as operative." ARTICLE 34 (individual notification): where in scope and a preliminary high-risk view is expressed in Sections 2–3, add exactly: "Note: this preliminary assessment of the Article 34 high-risk question is resolved at Section 4 STEP 4 (high-risk determination) and STEP 5 (exceptions) — treat those determinations as operative for individual notification." DIVISION OF LABOUR IN SECTION 4: STEP 4 concludes the Article 34 high-risk question itself, qualified only by genuinely unresolved facts, and directs the reader to STEP 5 solely to assess the Article 34(3) exceptions; STEP 5 assesses exceptions only and never re-determines or defers the high-risk question. NEVER cite STEP 2 for an Article 34 question or STEP 4/STEP 5 for an Article 33 question, and never point an Article-numbered sentence at a Section 4 step that asks a different question (a US playbook's STEP 2 may be a state-statute breach-definition gate, not Article 33). Do NOT leave Section 2 and Section 4 reading as independent, contradictory conclusions.
 
 NO DUPLICATE MAIN-ESTABLISHMENT PLACEHOLDER IN STEP 3A: The "[TO BE COMPLETED: confirm location of main EU establishment…]" placeholder (or any equivalent wording) MUST appear at most once in Step 3A. If the same information is needed at a later point in the step, cross-reference the first placeholder rather than repeating it.
 
@@ -218,7 +219,15 @@ ONE AWARENESS ANCHOR, EVERY JURISDICTION: the 72-hour clock is anchored to the c
 
 PRECEDENTS SAY ONLY WHAT THE CORPUS RECORDS: when describing an enforcement action from the supplied corpus, assert only the failure aspects the corpus entry itself records. Never join two failure types ("a storage-limitation failure alongside a breach-notification failure") unless the entry records both; where only one is recorded, describe that one and, if a broader principle is drawn, attribute the generalisation to the playbook's analysis, not to the decision. Cross-jurisdictional precedents keep the existing not-binding caveat and state which Article's obligation (33 or 34) the action concerned.
 
-NATIONAL-LAW SUPPLEMENTS ARE SPECIFIC OR ABSENT: where the playbook states that a national law operating alongside GDPR (e.g. the BDSG) imposes obligations beyond the GDPR minimum "where noted", it must either name the specific supplementary obligation applicable to this incident with its provision, or state affirmatively that no supplementary national obligation beyond the GDPR baseline applies on these facts. A pointer to obligations that are never enumerated is a dead end.`;
+NATIONAL-LAW SUPPLEMENTS ARE SPECIFIC OR ABSENT: where the playbook states that a national law operating alongside GDPR (e.g. the BDSG) imposes obligations beyond the GDPR minimum "where noted", it must either name the specific supplementary obligation applicable to this incident with its provision, or state affirmatively that no supplementary national obligation beyond the GDPR baseline applies on these facts. A pointer to obligations that are never enumerated is a dead end.
+
+REGULATORS BELONG TO THEIR JURISDICTIONS: never name a regulator, sectoral supervisor, or statute from a jurisdiction that is not in scope for this incident. A playbook whose jurisdictions are EU/UK/EEA member states never mentions NYDFS, DFS-regulated entities, US state Attorneys General, the FTC, or US state statutes; a US-only playbook never mentions EU/UK supervisory authorities except where an explicit cross-border scoping question is being answered. If a comparative aside feels useful, omit it — out-of-scope regulators are noise in an operational playbook.
+
+PRECEDENTS CITE ONLY WHAT IS CITABLE: where an enforcement-corpus entry carries a citable identifier (decision number, docket, official-gazette reference, or precise decision date), include that identifier with the citation. Where the supplied entry carries no such identifier, do NOT cite it as a specific named decision — frame it as a general principle ("supervisory-authority precedent illustrates that …") attributed to the corpus without a specific-decision citation, and never invent an identifier or year.
+
+VERIFIED CALIFORNIA BREACH DEADLINES (cite these; do not recall breach-notification timelines from memory): Cal. Civ. Code § 1798.82, as amended by SB 446 (signed October 2025, effective January 1, 2026), requires (1) disclosure to affected California residents within 30 calendar days of discovery or notification of the breach, subject to the law-enforcement and scope-determination delay provisions, and (2) for breaches affecting more than 500 California residents, electronic submission of a single sample copy of the notification to the California Attorney General within 15 calendar days of notifying affected consumers. Where the incident predates January 1, 2026, the prior 'most expedient time possible and without unreasonable delay' standard governed; state which regime applies by incident date.
+
+PROVISIONAL DEADLINES SAY SO: where a statutory clock is computed from a timestamp that the playbook itself marks as pending confirmation (e.g. detection treated as concurrent with controller awareness), the deadline statement must carry the provisional framing inline — "provisionally computed from the detection timestamp, treating it as concurrent with awareness pending confirmation; if awareness is confirmed later, recalculate all deadlines from the confirmed timestamp" — never a bare "computed from the stated awareness timestamp" while another section calls that timestamp unconfirmed.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
@@ -756,11 +765,14 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           return { text: joined, stopReason };
         }
 
+        // QB8-1(f)(2): raise part maxTokens by 25% to reduce truncation pressure.
+        const IR_PART_MAX_TOKENS = Math.ceil(PRODUCT_MAX_OUTPUT_TOKENS * 1.25);
+
         async function generateHalves(extra: string): Promise<{ partA: string; partB: string; partC: string; incomplete?: string }> {
           const [a, b, c] = await Promise.all([
-            generatePart("A", extra, PRODUCT_MAX_OUTPUT_TOKENS, 720_000),
-            generatePart("B", extra, PRODUCT_MAX_OUTPUT_TOKENS, 720_000),
-            generatePart("C", extra, PRODUCT_MAX_OUTPUT_TOKENS, 720_000),
+            generatePart("A", extra, IR_PART_MAX_TOKENS, 720_000),
+            generatePart("B", extra, IR_PART_MAX_TOKENS, 720_000),
+            generatePart("C", extra, IR_PART_MAX_TOKENS, 720_000),
           ]);
           const initial: Array<{ which: "A" | "B" | "C"; text: string; stopReason: string | null }> = [
             { which: "A", text: a.text, stopReason: a.stopReason },
@@ -784,28 +796,50 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
             })
             .filter((x): x is { which: "A" | "B" | "C"; text: string } => x !== null);
 
-          if (failures.length === 0) {
-            return { partA, partB, partC };
+          if (failures.length > 0) {
+            // Phase 2 — run all needed continuations concurrently.
+            const continuedResults = await Promise.all(
+              failures.map((f) => continuePart(f.which, extra, f.text, IR_PART_MAX_TOKENS, 600_000)),
+            );
+
+            for (let i = 0; i < failures.length; i++) {
+              const f = failures[i];
+              const { text: continued } = continuedResults[i];
+              if (f.which === "A") partA = continued;
+              else if (f.which === "B") partB = continued;
+              else partC = continued;
+            }
           }
 
-          // Phase 2 — run all needed continuations concurrently.
-          const continuedResults = await Promise.all(
-            failures.map((f) => continuePart(f.which, extra, f.text, PRODUCT_MAX_OUTPUT_TOKENS, 600_000)),
-          );
-
-          const stillFailing: string[] = [];
-          for (let i = 0; i < failures.length; i++) {
-            const f = failures[i];
-            const { text: continued, stopReason: contStop } = continuedResults[i];
-            if (f.which === "A") partA = continued;
-            else if (f.which === "B") partB = continued;
-            else partC = continued;
-            const v2 = validatePart(continued, f.which);
-            if (contStop === "max_tokens") {
-              stillFailing.push(`part${f.which}: continuation also stop_reason=max_tokens`);
-            } else if (!v2.ok) {
-              stillFailing.push(`part${f.which}: ${v2.reason}`);
+          // QB8-1(f)(2) Phase 3 — terminal-punctuation guard. If any part ends without
+          // terminal punctuation, run one additional continuation round for that part.
+          const TERMINAL = /[.?!)\]}»"'`]\s*$/;
+          const terminalFailures: Array<{ which: "A" | "B" | "C"; text: string }> = [];
+          for (const [which, txt] of [["A", partA], ["B", partB], ["C", partC]] as const) {
+            if (!TERMINAL.test(txt.trim())) {
+              console.warn(`[IR Playbook] Part ${which} ends without terminal punctuation; running additional continuation.`);
+              terminalFailures.push({ which, text: txt });
             }
+          }
+          if (terminalFailures.length > 0) {
+            const extraContinuations = await Promise.all(
+              terminalFailures.map((f) => continuePart(f.which, extra, f.text, IR_PART_MAX_TOKENS, 600_000)),
+            );
+            for (let i = 0; i < terminalFailures.length; i++) {
+              const f = terminalFailures[i];
+              const { text: continued } = extraContinuations[i];
+              if (f.which === "A") partA = continued;
+              else if (f.which === "B") partB = continued;
+              else partC = continued;
+            }
+          }
+
+          // Final validation across all parts.
+          const stillFailing: string[] = [];
+          for (const [which, txt] of [["A", partA], ["B", partB], ["C", partC]] as const) {
+            const v2 = validatePart(txt, which);
+            if (!v2.ok) stillFailing.push(`part${which}: ${v2.reason}`);
+            else if (!TERMINAL.test(txt.trim())) stillFailing.push(`part${which}: no terminal punctuation after continuation`);
           }
 
           if (stillFailing.length > 0) {
@@ -813,6 +847,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           }
           return { partA, partB, partC };
         }
+
 
         function assembleFromHalves(partA: string, partB: string, partC: string): { playbook_text: string; parsedAnnotations: any[] } {
           const fullText = `${partA.trim()}\n\n${partB.trim()}\n\n${partC.trim()}`;
@@ -850,6 +885,16 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           return { playbook_text, parsedAnnotations };
         }
 
+        // QB8-1(f)(1): strip any Section 2/3 deferral notes that leaked into Section 4.
+        function stripSection4DeferralNotes(text: string): string {
+          const idx = text.search(/^#+\s*SECTION 4/mi);
+          if (idx < 0) return text;
+          const head = text.slice(0, idx);
+          const tail = text.slice(idx).replace(/\s*Note: this preliminary assessment[^.]*\.(?:[^.\n]*operative\.)?/g, "");
+          return head + tail;
+        }
+
+
         let partA = "";
         let partB = "";
         let partC = "";
@@ -880,6 +925,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         }
 
         const assembled = assembleFromHalves(partA, partB, partC);
+        assembled.playbook_text = stripSection4DeferralNotes(assembled.playbook_text);
         const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
         for (const v of lint.violations) lintWarnings.push(v);

@@ -1,9 +1,11 @@
-// Shared EUP prompt core (v3.1)
+// qb8 build active
+// Shared EUP prompt core (v3.2)
+// v3.2: NO METHOD PRESCRIPTION added to OUTPUT DISCIPLINE (with IR privilege carve-out).
 // v3.1: counsel-parenthetical removed; argument-voice parenthetical removed;
 // EU-transfers content modularized (opt-in via ToolModule.includeEuTransfers); UK–US Data Bridge
 // verified date added.
 
-export const PROMPT_CORE_VERSION = "3.1";
+export const PROMPT_CORE_VERSION = "3.2";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
@@ -70,6 +72,7 @@ OUTPUT DISCIPLINE
   no reviewer-style self-commentary, and no raw internal field names or snake_case keys. A genuine
   fill-in is a neutral bracketed placeholder naming what the user must supply (e.g. "[retention period —
   to be set by the controller]"), never an instruction addressed to the generator.
+- NO METHOD PRESCRIPTION: never direct the user to a particular method, process, or professional engagement to resolve an open item — no "consult counsel", "engage outside advisors", "conduct a quantified analysis", or any prescription of HOW to resolve what the document flags. State what is unresolved, cite the provision that makes it matter, and stop. EXCEPTION: incident-response playbooks may describe counsel roles and privilege mechanics as operational content where the playbook's subject matter requires it (see the IR privilege carve-out comment in generate-ir-playbook).
 
 FIVE OPERATING PRINCIPLES (non-negotiable)
 1. NO ADAPTIVE GUIDANCE. Present regulatory standards and enforcement patterns as context. Never tell
