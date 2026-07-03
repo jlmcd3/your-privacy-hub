@@ -1,3 +1,4 @@
+// build-marker: stress-qi2c-biometric-none-2026-07-03
 // generate-stress-fixtures — given { industry, geo, company_slot, company_id }
 // generates a complete, internally-consistent test company profile with payloads
 // for every applicable compliance tool.

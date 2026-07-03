@@ -1,4 +1,4 @@
-// run-meter deploy-check v1
+// build-marker: cyber-qi3-observations-not-directives-2026-07-03
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
