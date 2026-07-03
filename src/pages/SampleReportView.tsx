@@ -8,6 +8,8 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, FileText, ShieldCheck } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 type Row = {
   id: string;
