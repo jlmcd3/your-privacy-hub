@@ -25,6 +25,7 @@ const supabase = createClient(
 );
 
 Deno.serve(async (req) => {
+  console.log(`[qb9] run-registration-assessment build active · core=${PROMPT_CORE_VERSION}`);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const fnRun = await startFunctionRun(supabase, "run-registration-assessment", {
