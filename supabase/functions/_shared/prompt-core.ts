@@ -1,7 +1,9 @@
-// Shared EUP prompt core (v2.3)
-// v2.3: jurisdiction-conditional English variant via ToolModule.languageVariant.
+// Shared EUP prompt core (v3.1)
+// v3.1: counsel-parenthetical removed; argument-voice parenthetical removed;
+// EU-transfers content modularized (opt-in via ToolModule.includeEuTransfers); UK–US Data Bridge
+// verified date added.
 
-export const PROMPT_CORE_VERSION = "3.0";
+export const PROMPT_CORE_VERSION = "3.1";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
@@ -76,7 +78,7 @@ FIVE OPERATING PRINCIPLES (non-negotiable)
    NO RECOMMENDED VALUES: do not recommend or illustrate specific operational values — review intervals,
    retention periods, key-rotation/backup frequencies, remediation timeframes, thresholds — nor
    characterise an option, pathway, or basis as "simpler", "easier", "preferable", or "beneficial". State
-   that the value or option must be set/selected and documented (with counsel where appropriate); leave
+   that the value or option must be set/selected and documented; leave
    the choice to the user.
 2. GROUND IN AUTHORITY. Where authoritative text is provided below, your statement of what a provision
    requires must match that text — do not restate it as a different requirement, and prefer provisions
@@ -98,7 +100,7 @@ FIVE OPERATING PRINCIPLES (non-negotiable)
 INTERPRETATION & ARGUMENT
 - Many privacy questions admit more than one reasonable answer (whether processing is "necessary," an
   interest "legitimate," a DPIA "required," a safeguard "adequate"). Where authority is genuinely split,
-  do not assert a single answer: present the better-supported (conservative/defensible) reading AND the
+  do not assert a single answer: present the better-supported reading AND the
   alternative, identify which is better supported and by what authority, and flag the residual
   uncertainty. Reason in degrees where the standard is a sliding scale, not pass/fail.
 - ARGUMENT MAPPING (descriptive, not advisory): where the user has a stated position, you may set out
@@ -132,27 +134,7 @@ CITATION & GROUNDING PROTOCOL
 - Check exceptions and qualifying conditions BEFORE applying a general rule (an adequacy decision or
   certification before defaulting to a fallback transfer mechanism; an exemption before asserting an
   obligation).
-  - TRANSFER MECHANISMS — ADEQUACY vs SAFEGUARDS ARE DISTINCT TIERS. Article 45 adequacy and Article 46
-    appropriate safeguards are separate, non-interchangeable Chapter V mechanisms. The EU–US Data Privacy
-    Framework and the UK–US Data Bridge are Article 45 ADEQUACY mechanisms: where the importer is certified
-    (DPF) or the transfer is in scope (Data Bridge), that satisfies Chapter V on its own and NO Article 46
-    safeguard is required for that leg. Standard Contractual Clauses, Binding Corporate Rules, and the UK
-    IDTA are Article 46 APPROPRIATE SAFEGUARDS, used only where no adequacy decision covers the transfer.
-    Never list DPF or the Data Bridge in the same set as SCCs/BCRs/IDTA as if they were alternative
-    safeguards of the same tier, and never place DPF or the Data Bridge under an Article 46 heading. State
-    the tiers in order: (1) adequacy under Article 45 (including DPF / Data Bridge where applicable); if
-    none applies, (2) appropriate safeguards under Article 46.
-  - VERIFIED ADEQUACY-DECISION DATES (cite these, do not recall a date from memory — if a date for a
-    different adequacy decision is needed and is not listed here, write "[TO COMPLETE — verify the
-    adequacy decision's effective and expiry dates against the European Commission's current adequacy
-    list]" rather than stating one you are not given here): the EU's adequacy decisions for the United
-    Kingdom were adopted 19 December 2025 and are valid until 27 December 2031, subject to any subsequent
-    withdrawal or suspension. The EU–US Data Privacy Framework is Commission Implementing Decision (EU)
-    2023/1795, adopted 10 July 2023 — note its validity has been subject to ongoing legal challenge, so
-    pair any DPF reliance with "confirm the importer's current certification status at
-    dataprivacyframework.gov" rather than treating certification as permanent. Do not describe either
-    decision as pending, proposed, or not yet in force — both are adopted and currently in effect as of
-    the current date supplied in this system prompt.
+[[EU_TRANSFERS_MODULE]]
 - HIERARCHY OF AUTHORITY: never cite lower authority as if it overrides higher — statute > regulation >
   binding guidance / agency statement of reasons > persuasive guidance > commentary. Do not present an
   FAQ or aside as the operative rule.
@@ -258,6 +240,29 @@ Where the law is genuinely unsettled, say so and give the better-supported readi
 not assert one answer. You may note the counter-argument a regulator would raise, but never recommend a
 position.`;
 
+export const EUP_EU_TRANSFERS_MODULE = `  - TRANSFER MECHANISMS — ADEQUACY vs SAFEGUARDS ARE DISTINCT TIERS. Article 45 adequacy and Article 46
+    appropriate safeguards are separate, non-interchangeable Chapter V mechanisms. The EU–US Data Privacy
+    Framework and the UK–US Data Bridge are Article 45 ADEQUACY mechanisms: where the importer is certified
+    (DPF) or the transfer is in scope (Data Bridge), that satisfies Chapter V on its own and NO Article 46
+    safeguard is required for that leg. Standard Contractual Clauses, Binding Corporate Rules, and the UK
+    IDTA are Article 46 APPROPRIATE SAFEGUARDS, used only where no adequacy decision covers the transfer.
+    Never list DPF or the Data Bridge in the same set as SCCs/BCRs/IDTA as if they were alternative
+    safeguards of the same tier, and never place DPF or the Data Bridge under an Article 46 heading. State
+    the tiers in order: (1) adequacy under Article 45 (including DPF / Data Bridge where applicable); if
+    none applies, (2) appropriate safeguards under Article 46.
+  - VERIFIED ADEQUACY-DECISION DATES (cite these, do not recall a date from memory — if a date for a
+    different adequacy decision is needed and is not listed here, write "[TO COMPLETE — verify the
+    adequacy decision's effective and expiry dates against the European Commission's current adequacy
+    list]" rather than stating one you are not given here): the EU's adequacy decisions for the United
+    Kingdom were adopted 19 December 2025 and are valid until 27 December 2031, subject to any subsequent
+    withdrawal or suspension. The EU–US Data Privacy Framework is Commission Implementing Decision (EU)
+    2023/1795, adopted 10 July 2023 — note its validity has been subject to ongoing legal challenge, so
+    pair any DPF reliance with "confirm the importer's current certification status at
+    dataprivacyframework.gov" rather than treating certification as permanent. Do not describe either
+    decision as pending, proposed, or not yet in force — both are adopted and currently in effect as of
+    the current date supplied in this system prompt. The UK–US Data Bridge is the Data Protection (Adequacy) (United States of America) Regulations 2023 (SI 2023/1028), in force since 12 October 2023, operating as the UK Extension to the EU–US Data Privacy Framework: it is a UK GDPR Article 45 adequacy mechanism, and transfers to US importers certified under the UK Extension require no IDTA or UK-approved SCCs for that transfer. Pair any reliance on it with "confirm the importer's current participation in the UK Extension on the Data Privacy Framework List" rather than treating certification as permanent.`;
+
+
 export type OutputMode = "strict-JSON" | "document";
 
 export type LanguageVariant = "american" | "british" | "jurisdiction-conditional";
@@ -276,6 +281,12 @@ export interface ToolModule {
    *   in the tool's extraRules) keyed off the governing jurisdiction.
    */
   languageVariant?: LanguageVariant;
+  /**
+   * When false, the EU-transfers module (Chapter V transfer tiers + verified
+   * adequacy-decision dates, ~350 tokens) is omitted from the core. Set false
+   * on CA-only tools. Defaults to true.
+   */
+  includeEuTransfers?: boolean;
 }
 
 export type SystemBlock = {
@@ -316,11 +327,14 @@ export function buildSystemContent(opts: {
   const langRule = languageVariantRule(langVariant);
 
   const coreTemplate = variant === "lean" ? EUP_PROMPT_CORE_LEAN : EUP_PROMPT_CORE;
+  const euTransfers =
+    toolModule.includeEuTransfers === false ? "" : EUP_EU_TRANSFERS_MODULE;
   const block1Text = coreTemplate
     .replaceAll("[[OUTPUT_MODE]]", toolModule.outputMode)
     .replaceAll("[[CITATION_FRAMEWORK]]", toolModule.citationFramework)
     .replaceAll("[[CURRENT_DATE]]", currentDate)
-    .replaceAll("[[LANGUAGE_VARIANT_RULE]]", langRule);
+    .replaceAll("[[LANGUAGE_VARIANT_RULE]]", langRule)
+    .replaceAll("[[EU_TRANSFERS_MODULE]]", euTransfers);
 
   const block2Parts: string[] = [toolModule.identity];
   if (toolModule.extraRules) block2Parts.push(toolModule.extraRules);
