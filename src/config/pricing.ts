@@ -887,6 +887,12 @@ export const PRICING = {
   },
 } as const;
 
+// Included-generations feature — canonical marketing copy. Use these constants
+// everywhere the feature is mentioned; never restate the mechanics ad hoc.
+export const INCLUDED_GENERATIONS_SHORT = "4 generations included";
+export const INCLUDED_GENERATIONS_COPY =
+  "Includes 4 generations — refine your answers and regenerate up to 3 times at no extra cost.";
+
 export type ToolKey = keyof typeof PRICING.tools;
 export type SubscriptionTier = 'anonymous' | 'free' | 'intelligence' | 'professional';
 
