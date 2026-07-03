@@ -608,7 +608,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 5. Article 28 DPA for all processors; any non-EEA transfer requires an Article 45 adequacy decision or, absent one, an Article 46 safeguard.
 
 Consent and notice:
-Employee consent is generally not valid as an Article 9(2) condition in the German employment context (DSK and EDPB alignment on power imbalance). Rely on § 26 BDSG with Article 9(2)(b) basis. Works council agreement (Betriebsvereinbarung) is typically the pre-condition for lawful employee biometric processing.
+Employee consent is generally not valid as an Article 9(2) condition in the German employment context (EDPB Guidelines 05/2020 on consent; the DSK aligns with this position). Rely on § 26 BDSG with Article 9(2)(b) basis. Works council agreement (Betriebsvereinbarung) is typically the pre-condition for lawful employee biometric processing.
 
 Retention and destruction:
 Delete biometric templates when the employment relationship ends or the stated purpose expires — define the destruction trigger in the Betriebsvereinbarung or retention policy.
