@@ -215,7 +215,51 @@ export function buildGovernanceSynthesisToolModule(jurisdictions: unknown, euUkD
   };
 }
 
-function buildStressGovernanceReport(assessmentId: string, intake: any) {
+// QB7-3(a): deterministic TIMELINE VOICE wrapper — ensures every timeline-bearing field
+// is either citation-bearing (statutory deadline with a §/Art. citation) or wrapped in
+// the mandated 'timeline to be set by the organisation (e.g. …)' form.
+function applyTimelineForm(report: any): void {
+  const CITED = /§|Art\.|Article|C\.F\.R\.|Code/;
+  const WRAPPED = /^timeline to be set by the organisation \(e\.g\./i;
+  const wrap = (v: any) =>
+    typeof v === "string" && v.trim() && !WRAPPED.test(v.trim()) && !CITED.test(v)
+      ? `timeline to be set by the organisation (e.g. ${v.trim()})`
+      : v;
+  for (const df of Object.values(report?.domain_findings ?? {})) {
+    if (df && typeof df === "object" && "suggested_timeline" in (df as any)) {
+      (df as any).suggested_timeline = wrap((df as any).suggested_timeline);
+    }
+  }
+  for (const arr of [report?.action_plan, report?.immediate_actions]) {
+    if (Array.isArray(arr)) for (const item of arr) {
+      if (item && typeof item === "object" && "timeline" in item) item.timeline = wrap(item.timeline);
+    }
+  }
+}
+
+// QB7-3(b): deduplicate lint warnings that describe the same underlying deadline
+// or defect. Dedup key = code + normalised detail (lowercased, whitespace collapsed,
+// SB-446 phrasing variants normalised, dates extracted).
+function dedupeLintWarnings(warnings: any[]): any[] {
+  const seen = new Set<string>();
+  const out: any[] = [];
+  for (const w of warnings) {
+    if (!w || typeof w !== "object") { out.push(w); continue; }
+    const detail = String((w as any).detail ?? "").toLowerCase()
+      .replace(/\s+/g, " ")
+      .replace(/deadline as amended by sb\s*446/g, "sb446")
+      .replace(/as amended by sb\s*446/g, "sb446")
+      .replace(/by sb\s*446/g, "sb446")
+      .trim();
+    const dateMatch = detail.match(/\d{4}-\d{2}-\d{2}/);
+    const key = `${(w as any).code ?? ""}|${dateMatch ? dateMatch[0] : detail.slice(0, 80)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(w);
+  }
+  return out;
+}
+
   const jurisdictions = Array.isArray(intake?.jurisdictions) ? intake.jurisdictions.map(String) : [];
   const hasEuUk = intake?.eu_uk_data === true || jurisdictions.some((j: string) => ["EU", "GB", "UK"].includes(j.toUpperCase()));
   const sector = String(intake?.sector || "").toLowerCase();
