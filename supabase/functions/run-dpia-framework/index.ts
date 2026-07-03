@@ -597,8 +597,9 @@ Generate substantive draft rows for every table for the controller to verify; us
       let r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
       console.log(`[DPIA] genHalf stopReason=${r.stopReason} chars=${r.text.length} tail=${JSON.stringify(r.text.slice(-120))}`);
       if (r.stopReason === "max_tokens") {
-        console.warn(`[DPIA] genHalf truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry`);
-        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, PRODUCT_MAX_OUTPUT_TOKENS);
+        const bumped = Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 1.25);
+        console.warn(`[DPIA] genHalf truncated at ${PRODUCT_MAX_OUTPUT_TOKENS} — single retry at ${bumped} (QB8-8 +25%)`);
+        r = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, finalUser, bumped);
         console.log(`[DPIA] genHalf retry stopReason=${r.stopReason} chars=${r.text.length}`);
         if (r.stopReason === "max_tokens") {
           console.error("[DPIA] genHalf truncated_output after retry — returning empty half");
@@ -615,6 +616,43 @@ Generate substantive draft rows for every table for the controller to verify; us
     let [partA, partB] = await Promise.all([genHalf(promptA, ""), genHalf(promptB, "")]);
 
     let reportData: any = { ...partA, ...partB };
+
+    // QB8-8(a): structural completeness check for residual_risk_assessment entries.
+    // Every entry must carry residual_likelihood, residual_risk_level, and additional_measures.
+    // If any entry is missing fields, run ONE repair scoped to the deficient entries.
+    try {
+      const requiredResidualFields = ["residual_likelihood", "residual_risk_level", "additional_measures"];
+      const s4 = reportData?.section_4_risk_management;
+      const residual = Array.isArray(s4?.residual_risk_assessment) ? s4.residual_risk_assessment : null;
+      if (residual) {
+        const deficient = residual
+          .map((e: any, i: number) => ({ i, e, missing: requiredResidualFields.filter((f) => !e?.[f] || (typeof e[f] === "string" && !e[f].trim())) }))
+          .filter((x: any) => x.missing.length > 0);
+        if (deficient.length > 0) {
+          console.warn(`[DPIA] QB8-8(a): ${deficient.length} residual_risk_assessment entries missing required fields — repair pass`);
+          const repairPrompt = `The following residual_risk_assessment entries from a DPIA are incomplete. Return ONLY a JSON object of the form {"residual_risk_assessment":[...]} containing the SAME entries in the SAME order, completing the listed missing fields for each. Do not change fields that are already populated. Missing fields per entry:\n\n${JSON.stringify(deficient.map((d: any) => ({ index: d.i, entry: d.e, missing_fields: d.missing })), null, 2)}`;
+          const repair = await callAnthropic("claude-sonnet-4-6", systemWithGdpr, repairPrompt, Math.floor(PRODUCT_MAX_OUTPUT_TOKENS * 0.5));
+          const repaired = parseJsonish(repair.text);
+          const repairedArr = Array.isArray(repaired?.residual_risk_assessment) ? repaired.residual_risk_assessment : null;
+          if (repairedArr) {
+            for (const d of deficient) {
+              const match = repairedArr.find((x: any, idx: number) => idx === d.i || x?.risk_name === d.e?.risk_name);
+              if (match) residual[d.i] = { ...residual[d.i], ...match };
+            }
+          }
+          // Re-validate; if still incomplete, mark report failed rather than persisting truncated table.
+          const stillDeficient = residual.filter((e: any) => requiredResidualFields.some((f) => !e?.[f] || (typeof e[f] === "string" && !e[f].trim())));
+          if (stillDeficient.length > 0) {
+            console.error(`[DPIA] QB8-8(a): residual_risk_assessment still incomplete after repair (${stillDeficient.length} entries) — marking report failed`);
+            throw new Error(`DPIA residual_risk_assessment incomplete after repair (${stillDeficient.length} entries missing required fields)`);
+          }
+        }
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message.startsWith("DPIA residual_risk_assessment incomplete")) throw e;
+      console.error("[DPIA] QB8-8(a) repair pass errored:", e);
+    }
+
 
     // Lint narrative strings across the framework JSON; one retry on hard violations
     // — surgically regenerating ONLY the half(s) whose top-level keys contain hard
