@@ -673,6 +673,11 @@ export default function Tools() {
                           : `${tool.standalonePrice} without subscription`}
                       </div>
                     )}
+                    {INCLUDED_GENERATIONS_SLUGS.has(tool.slug) && (
+                      <p className="text-body-small text-ink-soft mt-1">
+                        {INCLUDED_GENERATIONS_COPY}
+                      </p>
+                    )}
                   </div>
 
                   {/* Body */}
