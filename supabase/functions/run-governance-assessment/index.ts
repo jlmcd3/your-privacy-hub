@@ -438,7 +438,7 @@ Return JSON:
   "regulatory_basis": "specific regulatory provision(s) requiring this — e.g. GDPR Art. 28, CCPA §1798.100",
   "recommended_action": "specific action required — must name the regulation and the action",
   "suggested_owner": "DPO | Legal Counsel | CISO | CTO | HR | Compliance Manager",
-  "suggested_timeline": "Immediate (within 7 days) | This quarter | This year | Ongoing"
+  "suggested_timeline": "either a statutory deadline with its citation (e.g. 'within 72 hours of awareness — Art. 33(1)'), or exactly 'timeline to be set by the organisation (e.g. within 7 days | within 30 days | this quarter | this year | ongoing)' with a single illustrative cadence proportionate to severity"
 }`;
         const firstText = await callAnthropic(model, domainSystem, userPrompt, PRODUCT_MAX_OUTPUT_TOKENS);
         let parsed = tryParseJson(firstText);
