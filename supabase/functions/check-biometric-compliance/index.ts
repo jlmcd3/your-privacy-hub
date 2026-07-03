@@ -261,7 +261,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 2. DPA 2018 Schedule 1 condition must also be satisfied — the applicable Schedule 1 paragraph must be documented.
 3. Conduct a DPIA under UK GDPR Article 35 — biometric processing for identification typically requires a DPIA; verify against the ICO's current DPIA guidance and examples lists.
 4. Article 13/14 transparency notices must cover the Article 9(2) condition and DPA 2018 Schedule 1 condition relied upon.
-5. UK-to-third-country transfers require a UK adequacy decision (Article 45 equivalent — including the UK–US Data Bridge where the importer is certified) or, absent one, a UK IDTA or UK-approved SCCs (not EU SCCs).
+5. UK-to-third-country transfers require a UK adequacy decision under UK GDPR Article 45 — including the UK–US Data Bridge (in force since 12 October 2023, SI 2023/1028) where the importer is certified under the UK Extension — or, where no adequacy decision applies, a UK IDTA or UK-approved SCCs (not EU SCCs).
 
 Consent and notice:
 Explicit consent in employment context is unlikely to satisfy "freely given" under UK GDPR — use DPA 2018 Schedule 1 para 1 (employment, social security, social protection law) where national employment law authorises biometric use.
