@@ -240,6 +240,29 @@ Where the law is genuinely unsettled, say so and give the better-supported readi
 not assert one answer. You may note the counter-argument a regulator would raise, but never recommend a
 position.`;
 
+export const EUP_EU_TRANSFERS_MODULE = `  - TRANSFER MECHANISMS — ADEQUACY vs SAFEGUARDS ARE DISTINCT TIERS. Article 45 adequacy and Article 46
+    appropriate safeguards are separate, non-interchangeable Chapter V mechanisms. The EU–US Data Privacy
+    Framework and the UK–US Data Bridge are Article 45 ADEQUACY mechanisms: where the importer is certified
+    (DPF) or the transfer is in scope (Data Bridge), that satisfies Chapter V on its own and NO Article 46
+    safeguard is required for that leg. Standard Contractual Clauses, Binding Corporate Rules, and the UK
+    IDTA are Article 46 APPROPRIATE SAFEGUARDS, used only where no adequacy decision covers the transfer.
+    Never list DPF or the Data Bridge in the same set as SCCs/BCRs/IDTA as if they were alternative
+    safeguards of the same tier, and never place DPF or the Data Bridge under an Article 46 heading. State
+    the tiers in order: (1) adequacy under Article 45 (including DPF / Data Bridge where applicable); if
+    none applies, (2) appropriate safeguards under Article 46.
+  - VERIFIED ADEQUACY-DECISION DATES (cite these, do not recall a date from memory — if a date for a
+    different adequacy decision is needed and is not listed here, write "[TO COMPLETE — verify the
+    adequacy decision's effective and expiry dates against the European Commission's current adequacy
+    list]" rather than stating one you are not given here): the EU's adequacy decisions for the United
+    Kingdom were adopted 19 December 2025 and are valid until 27 December 2031, subject to any subsequent
+    withdrawal or suspension. The EU–US Data Privacy Framework is Commission Implementing Decision (EU)
+    2023/1795, adopted 10 July 2023 — note its validity has been subject to ongoing legal challenge, so
+    pair any DPF reliance with "confirm the importer's current certification status at
+    dataprivacyframework.gov" rather than treating certification as permanent. Do not describe either
+    decision as pending, proposed, or not yet in force — both are adopted and currently in effect as of
+    the current date supplied in this system prompt. The UK–US Data Bridge is the Data Protection (Adequacy) (United States of America) Regulations 2023 (SI 2023/1028), in force since 12 October 2023, operating as the UK Extension to the EU–US Data Privacy Framework: it is a UK GDPR Article 45 adequacy mechanism, and transfers to US importers certified under the UK Extension require no IDTA or UK-approved SCCs for that transfer. Pair any reliance on it with "confirm the importer's current participation in the UK Extension on the Data Privacy Framework List" rather than treating certification as permanent.`;
+
+
 export type OutputMode = "strict-JSON" | "document";
 
 export type LanguageVariant = "american" | "british" | "jurisdiction-conditional";
