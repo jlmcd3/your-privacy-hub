@@ -770,6 +770,9 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
     // QB7-3(a): enforce TIMELINE VOICE post-generation (main path).
     applyTimelineForm(reportData);
+    hoistNestedInformationNeeded(reportData);
+
+
 
     const dpiaScope = synthesis.dpia_scope || [];
 
