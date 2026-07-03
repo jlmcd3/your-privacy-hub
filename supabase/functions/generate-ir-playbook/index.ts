@@ -924,6 +924,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
         }
 
         const assembled = assembleFromHalves(partA, partB, partC);
+        assembled.playbook_text = stripSection4DeferralNotes(assembled.playbook_text);
         const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
         for (const v of lint.violations) lintWarnings.push(v);
