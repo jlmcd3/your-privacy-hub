@@ -175,6 +175,7 @@ async function generateAssessment(assessment_id: string, assessment: any, fnRun:
 }
 
 Deno.serve(async (req) => {
+  console.log("[run-li-assessment] qb7 build active");
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
