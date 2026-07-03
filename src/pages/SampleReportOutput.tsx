@@ -244,12 +244,12 @@ export default function SampleReportOutput() {
       toast.error("No documents to delete");
       return;
     }
-    if (!confirm(`Delete all ${list.length} sample reports? This removes every PDF and record permanently.`)) return;
     const deletable = list.filter((r) => !r.is_job_artifact);
     if (deletable.length === 0) {
       toast.error("No deletable sample rows are available on this batch view");
       return;
     }
+    if (!confirm(`Delete all ${deletable.length} sample reports? This removes every PDF and record permanently.`)) return;
     setDeletingAll(true);
     const t = toast.loading(`Deleting ${deletable.length} reports…`);
     try {
