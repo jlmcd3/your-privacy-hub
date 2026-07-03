@@ -150,11 +150,15 @@ function scrubVoiceLeaks(text: string): string {
 }
 
 function describeProcessing(orgType: string, types: string[], purpose: string): string {
+  const raw = (orgType ?? "").trim() || "The";
+  const org = /\b(organisation|organization|company|business|employer|entity)\s*$/i.test(raw)
+    ? raw
+    : `${raw} organisation`;
   const active = (types ?? []).filter((t) => t && !/^none\b/i.test(t.trim()));
-  if (!active.length) return `${orgType} organisation with no active biometric processing currently deployed`;
+  if (!active.length) return `${org} with no active biometric processing currently deployed`;
   const p = (purpose ?? "").trim().replace(/\s+/g, " ");
   const short = p.length > 140 ? p.slice(0, 137) + "…" : p;
-  return `${orgType} organisation processing ${active.join(", ")} for the stated purpose: ${short}`;
+  return `${org} processing ${active.join(", ")} for the stated purpose: ${short}`;
 }
 
 function estimateBIPARisk(enrolledCount: string): { lowEnd: number; highEnd: number; note: string } {
