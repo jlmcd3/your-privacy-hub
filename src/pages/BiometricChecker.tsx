@@ -1,5 +1,5 @@
 
-import { PRICING } from "@/config/pricing";
+import { PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useEffect, useState } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { RequirementBadge } from "@/components/RequirementBadge";
@@ -129,6 +129,7 @@ export default function BiometricChecker() {
           <p className="text-slate-300 text-lg max-w-3xl">
             A per-jurisdiction read on your biometric data processing — surfacing obligations under Illinois BIPA, Texas CUBI, Washington MHMD, GDPR Article 9, and other regimes, with cited enforcement decisions behind every priority action.
           </p>
+          <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
           <div className="mt-4"><SampleReportLink toolSlug="biometric" tone="onDark" variant="link" /></div>
         </div>
       </header>

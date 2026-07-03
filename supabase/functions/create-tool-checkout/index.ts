@@ -497,12 +497,29 @@ Deno.serve(async (req) => {
     const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
     const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://www.enduserprivacy.com";
 
+    const INCLUDED_GEN_TOOLS = new Set([
+      "li_assessment",
+      "governance_assessment",
+      "dpia_framework",
+      "dpa_generator",
+      "ir_playbook",
+      "biometric_checker",
+      "cppa_risk_assessment",
+      "cppa_cybersecurity",
+      "cppa_admt",
+    ]);
+    const includedGenerationsDescription =
+      "Includes 4 generations — refine your answers and regenerate up to 3 times at no extra cost.";
+    const productDataWithDescription = INCLUDED_GEN_TOOLS.has(tool_type)
+      ? { name: tool.name, description: includedGenerationsDescription }
+      : { name: tool.name };
+
     const lineItemBase = stripePrice
       ? { price: stripePrice.id, quantity: 1 }
       : {
           price_data: {
             currency: "usd",
-            product_data: { name: tool.name },
+            product_data: productDataWithDescription,
             unit_amount: amountCents,
           },
           quantity: 1,

@@ -40,6 +40,10 @@ const faqs = [
     a: "Smart Tools (LIA, DPIA, Governance Assessment, DPA Generator, Biometric Check, CPPA Risk, CPPA Cybersecurity) show enforcement corpus citations alongside their findings — the specific regulatory decisions that supported each conclusion. Citations link directly to the enforcement action record. Primary sources and legal counsel review are still required before relying on any regulatory position.",
   },
   {
+    q: "How many generations do I get per Smart Tool report?",
+    a: "Every Smart Tool report includes 4 generations — one initial run plus up to 3 revisions. Use the Refine panel to change your answers or add context and regenerate at no extra cost. Once you've used all 4, you can purchase 4 additional generations as a top-up.",
+  },
+  {
     q: "How do I cancel my subscription?",
     a: "You can cancel anytime — no cancellation fees, no notice period required. Cancel directly from your account settings or by emailing hello@enduserprivacy.com. If you cancel, you retain access until the end of your current billing period.",
   },
