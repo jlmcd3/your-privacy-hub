@@ -197,6 +197,7 @@ export const ADMT_TOOL_MODULE: ToolModule = {
   citationFramework:
     "You author NO citations. Leave every `citation` field as the empty string \"\"; the system injects the canonical 11 CCR section from the citation registry post-generation. Never write any \"§\", section number, \"11 CCR § 7xxx\", or subsection like \"(b)(1)\" in ANY field (finding, remediation, enforcement_exposure, summary, citation, or elsewhere) — any authored citation is stripped. Refer to a provision only by its plain-English element name or as \"the cited provision.\"",
   outputMode: "strict-JSON",
+  includeEuTransfers: false,
   extraRules: ADMT_EXTRA_RULES,
   languageVariant: "american",
 };
