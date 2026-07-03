@@ -1,4 +1,5 @@
-// run-meter deploy-check v1
+// build-marker: biometric-qi-battery4-fix-2026-07-03
+console.log("[build-marker] check-biometric-compliance qi-battery4-fix-2026-07-03");
 // check-biometric-compliance: per-jurisdiction biometric obligations + BIPA risk.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -195,8 +196,10 @@ async function runStressBiometric(body: Body, resolvedUserId: string | null) {
 
   function stressSection(jurisdiction: string): string {
     const j = jurisdiction.toLowerCase();
+    // Normalize UK aliases: "UK", "U.K.", "GB" all route to the dedicated UK builder.
+    const jNormalized = j.replace(/\./g, "").trim();
     const isEU = j.includes("eu") || j.includes("eea") || (j.includes("gdpr") && !j.includes("uk"));
-    const isUK = j.includes("united kingdom") || j.includes("uk gdpr") || j === "gb";
+    const isUK = j.includes("united kingdom") || j.includes("uk gdpr") || jNormalized === "gb" || jNormalized === "uk";
     const isIL = j.includes("illinois") || j.includes("bipa");
     const isTX = j.includes("texas") || j.includes("cubi");
     const isCA = j.includes("california") || j.includes("ca,") || j === "ca";
@@ -244,7 +247,7 @@ Active supervisory authority enforcement of Article 9 biometric obligations acro
     }
 
     if (isUK) {
-      return `${jurisdiction} — UK GDPR / DPA 2018
+      return `${jurisdiction} — UK GDPR and Data Protection Act 2018
 
 Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data processed for unique identification is special-category data under UK GDPR Article 9(1). The operative law is UK GDPR (retained EU GDPR as amended) together with DPA 2018 — not EU GDPR.
 
@@ -316,7 +319,7 @@ BIPA private right of action with per-person statutory damages creates the highe
     if (isTX) {
       return `${jurisdiction} — Capture or Use of Biometric Identifier Act (CUBI), Tex. Bus. & Com. Code § 503.001
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. CUBI applies to persons capturing biometric identifiers (retina/iris scan, fingerprint, voiceprint, or record of hand or face geometry) for a commercial purpose in Texas.
+Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. CUBI applies to persons capturing biometric identifiers (retina/iris scan, fingerprint, voiceprint, or record of hand or face geometry) for a commercial purpose in Texas.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. § 503.001(b): inform each individual before or at the time of capture that a biometric identifier is being collected; obtain consent. Notice and consent are required — CUBI does not prescribe a signed written release (unlike Illinois BIPA); documented written or electronic consent is recommended as best practice.
@@ -351,7 +354,7 @@ Texas AG enforcement of CUBI is active and has produced multi-billion dollar set
     if (isCA) {
       return `${jurisdiction} — California Consumer Privacy Act / California Privacy Rights Act (CCPA/CPRA)
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. California has no standalone biometric privacy statute equivalent to Illinois BIPA. The primary framework is CPRA (amending CCPA), which classifies biometric information as Sensitive Personal Information (SPI). A financial institution GLBA analysis should be conducted before applying CCPA where applicable.
+Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. California has no standalone biometric privacy statute equivalent to Illinois BIPA. The primary framework is CPRA (amending CCPA), which classifies biometric information as Sensitive Personal Information (SPI). A financial institution GLBA analysis should be conducted before applying CCPA where applicable.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Cal. Civ. Code § 1798.140(ae)(1)(B): biometric information used to identify a consumer is Sensitive Personal Information (SPI).
@@ -390,7 +393,7 @@ California has no BIPA-equivalent private litigation; CPPA enforcement is active
       if (isEmploymentContext) {
         return `${jurisdiction} — Virginia CDPA — Employment context applicability gate
 
-Applies to this organisation: Likely not applicable to this data processing activity — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. The Virginia Consumer Data Protection Act (VCDPA), Va. Code § 59.1-571 et seq., defines "consumer" as a natural person acting in an individual or household capacity. Va. Code § 59.1-575 expressly excludes natural persons acting in a commercial or employment context. Biometric data collected from employees or job applicants is therefore likely outside VCDPA scope.
+Applies to this organisation: Likely not applicable to this data processing activity — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. The Virginia Consumer Data Protection Act (VCDPA), Va. Code § 59.1-571 et seq., defines "consumer" as a natural person acting in an individual or household capacity. Va. Code § 59.1-575 expressly excludes natural persons acting in a commercial or employment context. Biometric data collected from employees or job applicants is therefore likely outside VCDPA scope.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Confirm that the data subjects are employees or applicants — if so, VCDPA consumer rights and consent requirements do not apply to those individuals under § 59.1-575.
@@ -424,7 +427,7 @@ VCDPA does not apply to employee biometric data; Virginia has no employee biomet
       if (isHealthcareContext) {
         return `${jurisdiction} — Virginia CDPA — Healthcare context applicability gate
 
-Applies to this organisation: Likely partially applicable — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. Va. Code § 59.1-575 defines "biometric data" but expressly excludes information collected, used, or stored for health care treatment, payment, or operations purposes where the organisation is subject to HIPAA. If this organisation is a HIPAA covered entity or business associate and the biometric data relates to treatment, payment, or operations, VCDPA biometric requirements do not apply to that data.
+Applies to this organisation: Likely partially applicable — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Va. Code § 59.1-575 defines "biometric data" but expressly excludes information collected, used, or stored for health care treatment, payment, or operations purposes where the organisation is subject to HIPAA. If this organisation is a HIPAA covered entity or business associate and the biometric data relates to treatment, payment, or operations, VCDPA biometric requirements do not apply to that data.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Determine HIPAA covered entity / business associate status — if applicable, and if the biometric processing is for treatment, payment, or operations, the VCDPA § 59.1-575 HIPAA exclusion applies to that data.
@@ -458,7 +461,7 @@ Partial HIPAA exclusion means VCDPA applies to a subset of biometric processing 
       // Standard VCDPA consumer biometric section (non-employment, non-HIPAA healthcare)
       return `${jurisdiction} — Virginia Consumer Data Protection Act (VCDPA), Va. Code § 59.1-571 et seq.
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Virginia has no standalone biometric statute. The VCDPA classifies biometric data as sensitive data requiring opt-in consent. HIPAA exemptions may apply where the data relates to protected health information; employment-context data is excluded from VCDPA consumer scope under § 59.1-575.
+Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Virginia has no standalone biometric statute. The VCDPA classifies biometric data as sensitive data requiring opt-in consent. HIPAA exemptions may apply where the data relates to protected health information; employment-context data is excluded from VCDPA consumer scope under § 59.1-575.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. § 59.1-572: biometric data (data generated by automatic measurements of a consumer's biological characteristics used to identify a specific individual) is sensitive data.
@@ -492,7 +495,7 @@ Virginia AG-only enforcement and nascent enforcement history reduce immediate ex
     if (isUS) {
       return `${jurisdiction} — United States: No federal biometric statute; state law landscape
 
-Applies to this organisation: Conditional — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. The United States has no comprehensive federal biometric privacy statute. Biometric obligations arise from a patchwork of state laws and sector-specific federal frameworks. The primary exposure jurisdictions are assessed separately where selected; this section covers the national landscape and sector-specific federal frameworks.
+Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. The United States has no comprehensive federal biometric privacy statute. Biometric obligations arise from a patchwork of state laws and sector-specific federal frameworks. The primary exposure jurisdictions are assessed separately where selected; this section covers the national landscape and sector-specific federal frameworks.
 
 Key state biometric statutes (by litigation and enforcement risk):
 1. Illinois BIPA (740 ILCS 14): private right of action per person; highest US biometric litigation risk. Select "Illinois, USA (BIPA)" for a full BIPA analysis.
@@ -522,7 +525,7 @@ Multi-state biometric exposure with active private litigation (Illinois) and AG 
     if (isFR) {
       return `${jurisdiction} — GDPR (France) — Supervisory authority: CNIL
 
-Applies to this organisation: In scope — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1). France implements GDPR through the Loi Informatique et Libertés (LIL) as amended. The CNIL has issued specific guidance on biometric systems in the workplace.
+Applies to this organisation: In scope — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1). France implements GDPR through the Loi Informatique et Libertés (LIL) as amended. The CNIL has issued specific guidance on biometric systems in the workplace.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Article 6 lawful basis AND a separate Article 9(2) condition — both must be documented before any biometric processing begins.
@@ -556,7 +559,7 @@ CNIL enforcement is active and has targeted biometric workplace systems specific
     if (isIE) {
       return `${jurisdiction} — GDPR (Ireland) — Supervisory authority: Data Protection Commission (DPC)
 
-Applies to this organisation: In scope — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1). Ireland implements GDPR through the Data Protection Act 2018. The DPC is the lead supervisory authority for many multinational technology companies under Article 56 GDPR.
+Applies to this organisation: In scope — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1). Ireland implements GDPR through the Data Protection Act 2018. The DPC is the lead supervisory authority for many multinational technology companies under Article 56 GDPR.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Article 6 lawful basis AND a separate Article 9(2) condition — both must be separately documented. For most organisations, the Article 9(2) condition will be explicit consent (9(2)(a)) or, in employment contexts, Article 9(2)(b) with Irish employment law authorisation.
@@ -590,7 +593,7 @@ DPC active enforcement and its role as lead supervisory authority for multinatio
     if (isDE) {
       return `${jurisdiction} — GDPR (Germany) — Supervisory authorities: Federal (BfDI) + 16 state DPAs (Datenschutzkonferenz)
 
-Applies to this organisation: In scope — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1), implemented in Germany through the Bundesdatenschutzgesetz (BDSG) 2018. Germany has a dual supervisory structure: the federal BfDI oversees public federal bodies and telecommunications/postal sectors; the 16 state DPAs (Landesdatenschutzbehörden) oversee private organisations in their respective states, coordinated through the Datenschutzkonferenz (DSK).
+Applies to this organisation: In scope — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1), implemented in Germany through the Bundesdatenschutzgesetz (BDSG) 2018. Germany has a dual supervisory structure: the federal BfDI oversees public federal bodies and telecommunications/postal sectors; the 16 state DPAs (Landesdatenschutzbehörden) oversee private organisations in their respective states, coordinated through the Datenschutzkonferenz (DSK).
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Article 6 GDPR lawful basis AND a separate Article 9(2) condition — both documented. In employment contexts, § 26 BDSG (processing for employment purposes) may provide a basis alongside Article 9(2)(b), but requires necessity and proportionality assessment.
@@ -624,7 +627,7 @@ Germany's works council codetermination requirement creates a hard legal gate be
     if (isES) {
       return `${jurisdiction} — GDPR (Spain) — Supervisory authority: AEPD (Agencia Española de Protección de Datos)
 
-Applies to this organisation: In scope — ${body.orgType} using ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1), implemented in Spain through Organic Law 3/2018 (LOPDGDD). The AEPD is Spain's national supervisory authority and is one of the EU's most active enforcers of biometric obligations.
+Applies to this organisation: In scope — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data processed for unique identification is special-category data under GDPR Article 9(1), implemented in Spain through Organic Law 3/2018 (LOPDGDD). The AEPD is Spain's national supervisory authority and is one of the EU's most active enforcers of biometric obligations.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Article 6 GDPR lawful basis AND a separate Article 9(2) condition — both documented. In employment contexts, Article 9(2)(b) with LOPDGDD Article 9 (processing in employment context) may apply; biometric time-and-attendance typically requires works committee (comité de empresa) consultation under the Workers' Statute (Estatuto de los Trabajadores).
@@ -658,7 +661,7 @@ The AEPD actively enforces biometric obligations, and its proportionality requir
     // Generic fallback for other jurisdictions
     return `${jurisdiction} — biometric privacy assessment
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Applicable biometric and sensitive-data obligations depend on the specific laws in force in this jurisdiction.
+Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Applicable biometric and sensitive-data obligations depend on the specific laws in force in this jurisdiction.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Identify the applicable biometric or sensitive-data law in this jurisdiction and confirm whether biometric identifiers fall within its scope.
