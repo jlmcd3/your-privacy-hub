@@ -239,7 +239,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     const severity = hasCoreControls
       ? (domain.escalate ? "Medium" : idx % 3 === 0 ? "Low" : "Medium")
       : (domain.escalate ? "High" : "Medium");
-    const timeline = idx < 3 ? "Immediate (within 7 days)" : idx < 7 ? "This quarter" : "Ongoing";
+    const timeline = `timeline to be set by the organisation (e.g. ${idx < 3 ? "within 7 days" : idx < 7 ? "this quarter" : "ongoing"})`;
     return [domain.key, {
       domain_id: domain.id,
       domain_name: domain.name,
