@@ -11,6 +11,7 @@ import {
 } from "../_shared/registration-engine.ts";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
