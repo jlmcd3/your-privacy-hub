@@ -365,7 +365,8 @@ Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "invalid json" }, 400); }
 
-  const { batch_id, company_index, industries, geo_filter, selected_tools, run_by, action } = body ?? {};
+  const { batch_id, company_index, industries, geo_filter, selected_tools, run_by, action, slots_per_geo } = body ?? {};
+  const slotsPerGeo = Math.max(1, Math.min(2, Number.isFinite(Number(slots_per_geo)) ? Number(slots_per_geo) : 2));
 
   if (action === "repair_fixture_failures" && batch_id) {
     // @ts-ignore
@@ -389,7 +390,7 @@ Deno.serve(async (req) => {
   const companies: Array<{ industryId: string; industryLabel: string; geo: string; slot: number }> = [];
   for (const ind of industries as Array<{ id: string; label: string }>) {
     for (const g of geos) {
-      for (const slot of [1, 2]) {
+      for (let slot = 1; slot <= slotsPerGeo; slot++) {
         companies.push({ industryId: ind.id, industryLabel: ind.label, geo: g, slot });
       }
     }
@@ -398,7 +399,7 @@ Deno.serve(async (req) => {
   // Log synthesized companies for post-mortem debugging (all-skip runs) and
   // assert setup_total matches. If geo "both" yielded no EU (or no US) wave,
   // fail fast rather than silently produce a half-covered batch.
-  console.log(`[start-stress-batch] synthesized ${companies.length} companies for geo_filter=${geo_filter}:`,
+  console.log(`[start-stress-batch] synthesized ${companies.length} companies for geo_filter=${geo_filter} slots_per_geo=${slotsPerGeo}:`,
     JSON.stringify(companies.map((c) => `${c.geo}-${c.industryId}-slot${c.slot}`)));
   if (geo_filter === "both") {
     const hasUs = companies.some((c) => c.geo === "us");

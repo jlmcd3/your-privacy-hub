@@ -148,6 +148,14 @@ function scrubVoiceLeaks(text: string): string {
   return cleaned;
 }
 
+function describeProcessing(orgType: string, types: string[], purpose: string): string {
+  const active = (types ?? []).filter((t) => t && !/^none\b/i.test(t.trim()));
+  if (!active.length) return `${orgType} organisation with no active biometric processing currently deployed`;
+  const p = (purpose ?? "").trim().replace(/\s+/g, " ");
+  const short = p.length > 140 ? p.slice(0, 137) + "…" : p;
+  return `${orgType} organisation processing ${active.join(", ")} for the stated purpose: ${short}`;
+}
+
 function estimateBIPARisk(enrolledCount: string): { lowEnd: number; highEnd: number; note: string } {
   const countMap: Record<string, number> = {
     "Fewer than 500": 250,
@@ -204,7 +212,7 @@ async function runStressBiometric(body: Body, resolvedUserId: string | null) {
     if (isEU) {
       return `${jurisdiction} — General Data Protection Regulation (GDPR)
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for the purpose of uniquely identifying a natural person is special-category data under GDPR Article 9(1), subject to strict prohibition unless an Article 9(2) condition applies.
+Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data processed for the purpose of uniquely identifying a natural person is special-category data under GDPR Article 9(1), subject to strict prohibition unless an Article 9(2) condition applies.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Lawful basis under Article 6 AND a separate Article 9(2) condition — these must both be identified and documented. Do not conflate them into a single "lawful basis" entry.
@@ -236,9 +244,9 @@ Active supervisory authority enforcement of Article 9 biometric obligations acro
     }
 
     if (isUK) {
-      return `${jurisdiction} — UK GDPR and Data Protection Act 2018
+      return `${jurisdiction} — UK GDPR / DPA 2018
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. Biometric data processed for unique identification is special-category data under UK GDPR Article 9(1). The operative law is UK GDPR (retained EU GDPR as amended) together with DPA 2018 — not EU GDPR.
+Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Biometric data processed for unique identification is special-category data under UK GDPR Article 9(1). The operative law is UK GDPR (retained EU GDPR as amended) together with DPA 2018 — not EU GDPR.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. UK GDPR Article 9(2) condition must be identified in addition to an Article 6 lawful basis. Common conditions: Article 9(2)(a) explicit consent; Article 9(2)(b) employment law; Article 9(2)(h) health/care.
@@ -273,7 +281,7 @@ ICO enforcement posture on biometric data is active; failure to satisfy both the
       const risk = estimateBIPARisk(body.enrolledCount);
       return `${jurisdiction} — Biometric Information Privacy Act (BIPA), 740 ILCS 14
 
-Applies to this organisation: Conditional — ${body.orgType} uses ${body.biometricTypes.join(", ")} for ${body.purpose}. BIPA applies to private entities in Illinois that collect, capture, purchase, receive through trade, or otherwise obtain biometric identifiers or biometric information.
+Applies to this organisation: Conditional — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. BIPA applies to private entities in Illinois that collect, capture, purchase, receive through trade, or otherwise obtain biometric identifiers or biometric information.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Section 15(a): written, publicly available retention and destruction policy before or at the time of collection.
