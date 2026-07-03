@@ -59,7 +59,8 @@ const Index = () => (
             <p className="text-sm text-gray-600">
               Run an LIA. Draft a DPA. Generate an IR playbook. Assess
               your CPPA readiness. Thirteen compliance tools included with
-              Annual Platform — each calibrated to enforcement.
+              Annual Platform — each calibrated to enforcement. Every Smart Tool
+              report includes 4 generations so you can refine and regenerate at no extra cost.
             </p>
           </div>
         </div>
