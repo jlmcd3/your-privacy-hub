@@ -515,7 +515,7 @@ Federal frameworks applicable to biometrics by sector:
 3. FTC Act Section 5: the FTC has brought unfair or deceptive practice actions relating to biometric data misuse; consent and security failures are enforcement targets.
 
 Current enforcement posture:
-At federal level, FTC enforcement under Section 5 is the primary risk for deceptive biometric practices. At state level, Illinois BIPA private litigation is by far the highest-volume risk. Texas AG enforcement has produced multi-billion dollar settlements against large companies. State AG enforcement of comprehensive privacy law biometric provisions is expanding.
+At federal level, FTC enforcement under Section 5 is the primary risk for deceptive biometric practices. At state level, Illinois BIPA private litigation is by far the highest-volume risk. Texas Attorney General enforcement of CUBI is active; consult the Attorney General's public enforcement records for current actions. State AG enforcement of comprehensive privacy law biometric provisions is expanding.
 
 Priority actions:
 1. Map each operational jurisdiction where the organisation collects biometric data and assess applicable state law — at minimum confirm Illinois, Texas, Washington, and California applicability.
