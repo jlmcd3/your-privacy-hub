@@ -764,11 +764,14 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           return { text: joined, stopReason };
         }
 
+        // QB8-1(f)(2): raise part maxTokens by 25% to reduce truncation pressure.
+        const IR_PART_MAX_TOKENS = Math.ceil(PRODUCT_MAX_OUTPUT_TOKENS * 1.25);
+
         async function generateHalves(extra: string): Promise<{ partA: string; partB: string; partC: string; incomplete?: string }> {
           const [a, b, c] = await Promise.all([
-            generatePart("A", extra, PRODUCT_MAX_OUTPUT_TOKENS, 720_000),
-            generatePart("B", extra, PRODUCT_MAX_OUTPUT_TOKENS, 720_000),
-            generatePart("C", extra, PRODUCT_MAX_OUTPUT_TOKENS, 720_000),
+            generatePart("A", extra, IR_PART_MAX_TOKENS, 720_000),
+            generatePart("B", extra, IR_PART_MAX_TOKENS, 720_000),
+            generatePart("C", extra, IR_PART_MAX_TOKENS, 720_000),
           ]);
           const initial: Array<{ which: "A" | "B" | "C"; text: string; stopReason: string | null }> = [
             { which: "A", text: a.text, stopReason: a.stopReason },
@@ -792,28 +795,50 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
             })
             .filter((x): x is { which: "A" | "B" | "C"; text: string } => x !== null);
 
-          if (failures.length === 0) {
-            return { partA, partB, partC };
+          if (failures.length > 0) {
+            // Phase 2 — run all needed continuations concurrently.
+            const continuedResults = await Promise.all(
+              failures.map((f) => continuePart(f.which, extra, f.text, IR_PART_MAX_TOKENS, 600_000)),
+            );
+
+            for (let i = 0; i < failures.length; i++) {
+              const f = failures[i];
+              const { text: continued } = continuedResults[i];
+              if (f.which === "A") partA = continued;
+              else if (f.which === "B") partB = continued;
+              else partC = continued;
+            }
           }
 
-          // Phase 2 — run all needed continuations concurrently.
-          const continuedResults = await Promise.all(
-            failures.map((f) => continuePart(f.which, extra, f.text, PRODUCT_MAX_OUTPUT_TOKENS, 600_000)),
-          );
-
-          const stillFailing: string[] = [];
-          for (let i = 0; i < failures.length; i++) {
-            const f = failures[i];
-            const { text: continued, stopReason: contStop } = continuedResults[i];
-            if (f.which === "A") partA = continued;
-            else if (f.which === "B") partB = continued;
-            else partC = continued;
-            const v2 = validatePart(continued, f.which);
-            if (contStop === "max_tokens") {
-              stillFailing.push(`part${f.which}: continuation also stop_reason=max_tokens`);
-            } else if (!v2.ok) {
-              stillFailing.push(`part${f.which}: ${v2.reason}`);
+          // QB8-1(f)(2) Phase 3 — terminal-punctuation guard. If any part ends without
+          // terminal punctuation, run one additional continuation round for that part.
+          const TERMINAL = /[.?!)\]}»"'`]\s*$/;
+          const terminalFailures: Array<{ which: "A" | "B" | "C"; text: string }> = [];
+          for (const [which, txt] of [["A", partA], ["B", partB], ["C", partC]] as const) {
+            if (!TERMINAL.test(txt.trim())) {
+              console.warn(`[IR Playbook] Part ${which} ends without terminal punctuation; running additional continuation.`);
+              terminalFailures.push({ which, text: txt });
             }
+          }
+          if (terminalFailures.length > 0) {
+            const extraContinuations = await Promise.all(
+              terminalFailures.map((f) => continuePart(f.which, extra, f.text, IR_PART_MAX_TOKENS, 600_000)),
+            );
+            for (let i = 0; i < terminalFailures.length; i++) {
+              const f = terminalFailures[i];
+              const { text: continued } = extraContinuations[i];
+              if (f.which === "A") partA = continued;
+              else if (f.which === "B") partB = continued;
+              else partC = continued;
+            }
+          }
+
+          // Final validation across all parts.
+          const stillFailing: string[] = [];
+          for (const [which, txt] of [["A", partA], ["B", partB], ["C", partC]] as const) {
+            const v2 = validatePart(txt, which);
+            if (!v2.ok) stillFailing.push(`part${which}: ${v2.reason}`);
+            else if (!TERMINAL.test(txt.trim())) stillFailing.push(`part${which}: no terminal punctuation after continuation`);
           }
 
           if (stillFailing.length > 0) {
@@ -821,6 +846,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           }
           return { partA, partB, partC };
         }
+
 
         function assembleFromHalves(partA: string, partB: string, partC: string): { playbook_text: string; parsedAnnotations: any[] } {
           const fullText = `${partA.trim()}\n\n${partB.trim()}\n\n${partC.trim()}`;
