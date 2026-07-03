@@ -107,7 +107,19 @@ Deno.serve(async (req) => {
           filing_fee_cents: r?.filing_fee_cents ?? null,
           filing_currency: r?.filing_currency ?? null,
           renewal_period_months: r?.renewal_period_months ?? null,
-          notes: r?.notes ?? null,
+          notes: (() => {
+            const existing = r?.notes ?? null;
+            // QB9-9: ICO fee-tier caveat for UK entries with a base-tier fee.
+            const isIcoUk = j.code === "GB" || j.code === "UK" ||
+              (r?.authority_name ?? "").toLowerCase().includes("ico") ||
+              (r?.jurisdiction_name ?? "").toLowerCase().includes("united kingdom");
+            const feePresent = (r?.filing_fee_cents ?? null) != null;
+            const icoNote = "The filing fee shown is the base-tier amount from our records; the applicable ICO fee tier depends on the organisation's staff count and turnover — confirm the tier and current amount with the ICO's fee self-assessment before filing.";
+            if (isIcoUk && feePresent) {
+              return existing ? `${existing} ${icoNote}` : icoNote;
+            }
+            return existing;
+          })(),
           why: j.why,
           rule_id: j.rule_id,
           obligations,
