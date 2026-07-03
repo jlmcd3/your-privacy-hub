@@ -751,7 +751,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
 }
 
 Deno.serve(async (req) => {
-  console.log("[check-biometric-compliance] qb7 build active");
+  console.log("[check-biometric-compliance] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {

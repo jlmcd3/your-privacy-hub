@@ -179,7 +179,7 @@ async function generateAssessment(assessment_id: string, assessment: any, fnRun:
 }
 
 Deno.serve(async (req) => {
-  console.log("[run-li-assessment] qb7 build active");
+  console.log("[run-li-assessment] qb7 qb7r build active");
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
