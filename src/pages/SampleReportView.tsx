@@ -6,7 +6,7 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { SampleReportBody } from "@/components/SampleReportBody";
+import { SampleToolReport } from "@/components/SampleToolReport";
 
 type Row = {
   id: string;
