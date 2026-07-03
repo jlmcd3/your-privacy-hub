@@ -155,6 +155,7 @@ const QualityLoop2 = lazy(() => import("./pages/admin/QualityLoop2"));
 const FunctionHealth = lazy(() => import("./pages/admin/FunctionHealth"));
 const AdminQAExport = lazy(() => import("./pages/admin/AdminQAExport"));
 const SampleReport = lazy(() => import("./pages/SampleReport.tsx"));
+const SampleReportView = lazy(() => import("./pages/SampleReportView.tsx"));
 const SampleReportOutput = lazy(() => import("./pages/SampleReportOutput.tsx"));
 const TestsGdprDocs = lazy(() => import("./pages/admin/TestsGdprDocs"));
 const AdminAssertionTests = lazy(() => import("./pages/admin/AdminAssertionTests"));
