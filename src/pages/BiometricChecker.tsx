@@ -1,5 +1,5 @@
 
-import { PRICING } from "@/config/pricing";
+import { PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useEffect, useState } from "react";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
 import { RequirementBadge } from "@/components/RequirementBadge";
