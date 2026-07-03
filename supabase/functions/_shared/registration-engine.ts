@@ -144,7 +144,7 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
   // ------- Rule R1: Home jurisdiction registration -------
   if (home) {
     ensure(map, home, "R1_HOME",
-      "Established in this jurisdiction — local data-protection registration applies",
+      "Established in this jurisdiction — home-jurisdiction data-protection obligations apply; general registration only where this jurisdiction operates a registration scheme",
       "registration");
     fired.push("R1_HOME");
   }
