@@ -327,11 +327,14 @@ export function buildSystemContent(opts: {
   const langRule = languageVariantRule(langVariant);
 
   const coreTemplate = variant === "lean" ? EUP_PROMPT_CORE_LEAN : EUP_PROMPT_CORE;
+  const euTransfers =
+    toolModule.includeEuTransfers === false ? "" : EUP_EU_TRANSFERS_MODULE;
   const block1Text = coreTemplate
     .replaceAll("[[OUTPUT_MODE]]", toolModule.outputMode)
     .replaceAll("[[CITATION_FRAMEWORK]]", toolModule.citationFramework)
     .replaceAll("[[CURRENT_DATE]]", currentDate)
-    .replaceAll("[[LANGUAGE_VARIANT_RULE]]", langRule);
+    .replaceAll("[[LANGUAGE_VARIANT_RULE]]", langRule)
+    .replaceAll("[[EU_TRANSFERS_MODULE]]", euTransfers);
 
   const block2Parts: string[] = [toolModule.identity];
   if (toolModule.extraRules) block2Parts.push(toolModule.extraRules);
