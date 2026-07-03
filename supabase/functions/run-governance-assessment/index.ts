@@ -302,9 +302,6 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     }];
   }));
 
-  const stressReport: any = {
-    return: undefined,
-  };
   const report = {
     generated_at: new Date().toISOString(),
     assessment_id: assessmentId,
@@ -333,7 +330,10 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     lint_warnings: [],
     disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
   };
+  applyTimelineForm(report);
+  return report;
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
