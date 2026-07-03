@@ -7,7 +7,7 @@ import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun, type FnRunHandle } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
-import { buildSystemContent, type ToolModule, type SystemBlock } from "../_shared/prompt-core.ts";
+import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
