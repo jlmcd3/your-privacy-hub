@@ -1588,6 +1588,7 @@ function buildADMTReportHTML(report: any, record: any): string {
     ${gapSection("Pre-Use Notice (§ 7220)", report?.notice_gaps ?? [])}
     ${gapSection("Opt-Out Rights (§ 7221)", report?.opt_out_gaps ?? [])}
     ${gapSection("Access Rights (§ 7222)", report?.access_gaps ?? [])}
+    ${enfBlock}
     ${riskNote}
     <div class="footer">EndUserPrivacy.com · CPPA ADMT Compliance Assessment (Module 3) · 11 CCR Article 11 · <a href="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf">Official text</a></div>
   </div>
