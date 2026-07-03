@@ -6,7 +6,20 @@ import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+
+// Nine assessment tools that include 4 generations per purchased report.
+const INCLUDED_GENERATIONS_SLUGS = new Set([
+  "healthcheck",
+  "li-assessment",
+  "dpia",
+  "biometric-checker",
+  "dpa-generator",
+  "ir-playbook",
+  "cppa-risk-assessment",
+  "cppa-cybersecurity",
+  "cppa-admt-checker",
+]);
 
 // Map Tools-page slugs to PRICING tool keys so we can classify per card.
 const SLUG_TO_TOOL_KEY: Record<string, string> = {
