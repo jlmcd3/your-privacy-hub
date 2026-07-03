@@ -14,7 +14,7 @@ import {
   normalizeIntake,
   type ElementId,
 } from "../_shared/admt-citation-registry.ts";
-import { buildSystemContent, type SystemBlock, type ToolModule } from "../_shared/prompt-core.ts";
+import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
