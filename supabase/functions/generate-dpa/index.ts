@@ -117,6 +117,7 @@ function fmtYear(e: EnforcementCtx): string {
 }
 
 Deno.serve(async (req) => {
+  console.log(`[qb9] generate-dpa build active · core=${PROMPT_CORE_VERSION}`);
   console.log("[generate-dpa] qb7 qb7r build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
