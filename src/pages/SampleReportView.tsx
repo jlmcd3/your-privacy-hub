@@ -160,7 +160,20 @@ export default function SampleReportView() {
       </Helmet>
 
       <Navbar />
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground mb-4">
+          <Link to="/" className="hover:text-foreground no-underline">Home</Link>
+          <span className="mx-1.5">/</span>
+          <Link to="/samples" className="hover:text-foreground no-underline">Sample Reports</Link>
+          <span className="mx-1.5">/</span>
+          <Link to={`/samples/${toolSlug}`} className="hover:text-foreground no-underline">{displayName}</Link>
+          {variant && (
+            <>
+              <span className="mx-1.5">/</span>
+              <span className="text-foreground font-mono">{variant}</span>
+            </>
+          )}
+        </nav>
         <Link
           to={`/samples/${toolSlug}`}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
@@ -189,30 +202,53 @@ export default function SampleReportView() {
         )}
 
         {row && (
-          <>
-            <header className="mb-6">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200 px-2.5 py-0.5 text-xs font-medium mb-3">
-                SAMPLE — fictional scenario
-              </span>
-              <h1 className="font-display text-3xl md:text-4xl text-brand-navy mb-2">
-                {row.title}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Sample {displayName} · variant <span className="font-mono">{row.variant}</span>
-              </p>
-              {row.scenario_summary && (
-                <p className="mt-3 text-[15px] text-muted-foreground leading-7">
-                  {row.scenario_summary}
+          <div className="lg:flex lg:gap-8 lg:items-start">
+            <div className="flex-1 min-w-0">
+              <header className="mb-6">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200 px-2.5 py-0.5 text-xs font-medium mb-3">
+                  SAMPLE — fictional scenario
+                </span>
+                <h1 className="font-display text-3xl md:text-4xl text-brand-navy mb-2">
+                  {row.title}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Sample {displayName} · variant <span className="font-mono">{row.variant}</span>
                 </p>
-              )}
-              {vSummary && (
-                <div className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
-                  <ShieldCheck className="h-4 w-4 mt-0.5 text-brand-teal shrink-0" aria-hidden />
-                  <span>{vSummary}</span>
-                </div>
-              )}
+                {row.scenario_summary && (
+                  <p className="mt-3 text-[15px] text-muted-foreground leading-7">
+                    {row.scenario_summary}
+                  </p>
+                )}
+                {vSummary && (
+                  <div className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
+                    <ShieldCheck className="h-4 w-4 mt-0.5 text-brand-teal shrink-0" aria-hidden />
+                    <span>{vSummary}</span>
+                  </div>
+                )}
+                {toolRoute && (
+                  <div className="mt-5">
+                    <Link
+                      to={toolRoute}
+                      className="inline-flex items-center gap-2 rounded-md bg-brand-navy text-white px-4 py-2 text-sm font-medium hover:bg-brand-navy/90"
+                    >
+                      Start your own {displayName}
+                    </Link>
+                  </div>
+                )}
+              </header>
+
+              <div id="sample-report-body" className="scroll-mt-24">
+                <SampleToolReport
+                  toolSlug={row.tool_slug}
+                  documentText={row.document_text}
+                  reportData={row.report_data}
+                  publishedAt={row.published_at}
+                />
+              </div>
+
+              {/* End-of-report CTA + prev/next */}
               {toolRoute && (
-                <div className="mt-5">
+                <div className="mt-10 pt-6 border-t border-brand-cloud">
                   <Link
                     to={toolRoute}
                     className="inline-flex items-center gap-2 rounded-md bg-brand-navy text-white px-4 py-2 text-sm font-medium hover:bg-brand-navy/90"
@@ -221,20 +257,66 @@ export default function SampleReportView() {
                   </Link>
                 </div>
               )}
-            </header>
 
-            <SampleToolReport
-              toolSlug={row.tool_slug}
-              documentText={row.document_text}
-              reportData={row.report_data}
-              publishedAt={row.published_at}
-            />
+              {(prevSib || nextSib) && (
+                <nav
+                  aria-label="Other variants"
+                  className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3"
+                >
+                  {prevSib ? (
+                    <Link
+                      to={`/samples/${toolSlug}/${prevSib.variant}`}
+                      className="rounded-lg border border-brand-cloud p-4 hover:bg-muted/40 no-underline"
+                    >
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+                        ← Previous variant
+                      </p>
+                      <p className="text-sm font-medium text-brand-navy">{prevSib.title}</p>
+                    </Link>
+                  ) : <span />}
+                  {nextSib ? (
+                    <Link
+                      to={`/samples/${toolSlug}/${nextSib.variant}`}
+                      className="rounded-lg border border-brand-cloud p-4 hover:bg-muted/40 no-underline text-right"
+                    >
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+                        Next variant →
+                      </p>
+                      <p className="text-sm font-medium text-brand-navy">{nextSib.title}</p>
+                    </Link>
+                  ) : <span />}
+                </nav>
+              )}
 
-            <p className="mt-8 text-xs text-muted-foreground">
-              This document is not legal advice and must be reviewed by qualified legal
-              counsel before any operational use or reliance.
-            </p>
-          </>
+              <p className="mt-8 text-xs text-muted-foreground">
+                This document is not legal advice and must be reviewed by qualified legal
+                counsel before any operational use or reliance.
+              </p>
+            </div>
+
+            {/* Sticky mini-TOC (desktop) */}
+            {toc.length > 1 && (
+              <aside className="hidden lg:block w-64 shrink-0" aria-label="On this page">
+                <div className="sticky top-24 rounded-lg border border-brand-cloud bg-card p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                    On this page
+                  </p>
+                  <ul className="space-y-1.5">
+                    {toc.map((t) => (
+                      <li key={t.id}>
+                        <a
+                          href={`#${t.id}`}
+                          className="text-xs text-brand-navy hover:text-brand-teal no-underline block leading-snug"
+                        >
+                          {t.text}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </aside>
+            )}
+          </div>
         )}
       </main>
       <Footer />
