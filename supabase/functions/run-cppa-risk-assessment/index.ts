@@ -24,7 +24,7 @@ import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERS
 import { BANNED_PHRASES } from "../_shared/citation-verifier.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 // [REVISED] authoritative § 7150(b) section strings — single source of truth
-import { CITATION_REGISTRY } from "../_shared/admt-citation-registry.ts";
+import { CITATION_REGISTRY, verifyRegistryAgainstCorpus } from "../_shared/admt-citation-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
@@ -33,6 +33,10 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+// L3 stage 1: fire-and-forget corpus-consistency check (once per warm
+// instance). Non-blocking; warns on drift; no behavior change.
+verifyRegistryAgainstCorpus(supabase).catch(() => { /* already warns internally */ });
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

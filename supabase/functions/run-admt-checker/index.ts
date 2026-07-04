@@ -12,6 +12,7 @@ import {
   stripModelCitations,
   validateReport,
   normalizeIntake,
+  verifyRegistryAgainstCorpus,
   type ElementId,
 } from "../_shared/admt-citation-registry.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
@@ -26,6 +27,10 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+// L3 stage 1: fire-and-forget corpus-consistency check (once per warm
+// instance). Non-blocking; warns on drift; no behavior change.
+verifyRegistryAgainstCorpus(supabase).catch(() => { /* already warns internally */ });
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
