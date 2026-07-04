@@ -13,9 +13,11 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
-import { LEGAL_TEXT_ASSERTIONS as ROPA_ASSERTIONS } from "../generate-ropa-document/index.ts";
-import { LEGAL_TEXT_ASSERTIONS as US_ASSERTIONS } from "../generate-us-notice/index.ts";
-import { LEGAL_TEXT_ASSERTIONS as EU_ASSERTIONS } from "../generate-eu-notice/index.ts";
+import {
+  ROPA_LEGAL_TEXT_ASSERTIONS as ROPA_ASSERTIONS,
+  US_NOTICE_LEGAL_TEXT_ASSERTIONS as US_ASSERTIONS,
+  EU_NOTICE_LEGAL_TEXT_ASSERTIONS as EU_ASSERTIONS,
+} from "../_shared/legal-text-assertions.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
