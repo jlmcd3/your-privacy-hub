@@ -14,6 +14,7 @@ import {
 import { renderIcoPenaltyFigures } from "../_shared/enforcement-figures-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { getGdprContext } from "../_shared/gdpr-context.ts";
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
@@ -235,7 +236,9 @@ STEP NUMBERING BELONGS TO SECTION 4 ALONE: the labels "STEP 1" through "STEP 5" 
 
 NOTIFICATION RECORDS LIST NOTIFICATION ITEMS: the notification-specific documentation checklist contains only items that apply when notification IS required. The 'notification determined not to be required' reasoning item belongs to the general breach-register entry (maintained for every breach regardless of notification); if retained in the notification checklist at all, it is framed solely as the reversal edge case ('Where an initial threshold determination is later reversed…').
 
-A DEFERRAL IS ISSUED ONCE: where the same information is deferred to the user in two sections (e.g. geographic segmentation of affected individuals), the [TO BE COMPLETED] instruction appears in full at its primary location only; every other location carries a cross-reference ('see Section 1, step 6') — never a second full deferral for the same fact.`;
+A DEFERRAL IS ISSUED ONCE: where the same information is deferred to the user in two sections (e.g. geographic segmentation of affected individuals), the [TO BE COMPLETED] instruction appears in full at its primary location only; every other location carries a cross-reference ('see Section 1, step 6') — never a second full deferral for the same fact.
+
+SUPPLIED BREACH AUTHORITY: where a GDPR BREACH-NOTIFICATION AUTHORITY block is present in the user prompt, every statement of Article 33 or Article 34 content (thresholds, the 72-hour clock, notification content elements, the high-risk communication standard, exceptions) must be drawn from that block. Where the block is absent (US-state-only incidents), do not cite GDPR articles at all. Existing enforcement-citation grounding rules are unchanged.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
@@ -531,6 +534,32 @@ Deno.serve(async (req) => {
           .map((j) => `${j}: ${DPA_PORTALS[j]}`)
           .join("\n");
 
+        // GDPR breach-notification authority supply (verbatim Art. 33/34 from gdpr_articles).
+        // Only when EU or UK jurisdictions are selected; US-state-only incidents skip this.
+        let gdprBreachBlock = "";
+        try {
+          const jList: string[] = (Array.isArray(body.jurisdictions) ? body.jurisdictions : []).map((j: any) => String(j).toLowerCase());
+          const hasEu = jList.some((j) => j.includes("eu") || j.includes("gdpr")) && !jList.every((j) => j.includes("uk"));
+          const hasUk = jList.some((j) => j.includes("uk") || j.includes("united kingdom"));
+          if (hasEu || hasUk) {
+            const ctx = await getGdprContext(supabase as any, {
+              articles: ["33", "34"],
+              jurisdiction: hasUk && !hasEu ? "uk" : "eu",
+              maxChars: 12000,
+            });
+            if (ctx?.block) {
+              gdprBreachBlock =
+                "\n\nGDPR BREACH-NOTIFICATION AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Article 33/34 content ONLY from this block, never from recollection; applies to all three parts):\n" +
+                ctx.block;
+              if ((ctx.meta?.missing_articles ?? []).length > 0) {
+                console.warn("[generate-ir-playbook] GDPR base articles missing:", ctx.meta.missing_articles.join(", "));
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("[generate-ir-playbook] gdpr-context failed (non-fatal):", e);
+        }
+
         // ── Split into TWO PARALLEL Sonnet calls to stay inside the edge runtime
         // wall-clock budget.
         const INTAKE_BLOCK = `INCIDENT DETAILS
@@ -552,7 +581,7 @@ The following cases show where organisations were penalised for breach notificat
 CITATION RULE: When you reference any of these in section text, use the human-readable CITATION shown (e.g. "ICO (2023)" or "CNIL (2022)") — NEVER the bracketed [E#] code. The [E#] tag is only for your internal lookup. Reserve the exact id values for the ===ANNOTATIONS=== JSON block at the very end of the playbook.
 ${formatEnforcementContext(enforcement_context)}
 
-CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.`;
+CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.${gdprBreachBlock}`;
 
         const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate PART A (Sections 1–3) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
