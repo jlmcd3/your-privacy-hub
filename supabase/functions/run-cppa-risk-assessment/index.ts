@@ -321,6 +321,8 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
   // Verbatim statutory text + plain summaries from the CPPA authorities corpus.
   const authorities: any[] = statuteRes.status === "fulfilled" ? (statuteRes.value?.data?.authorities ?? []) : [];
   if (statuteRes.status === "rejected") console.warn("[cppa-risk] cppa-retrieve-context failed:", statuteRes.reason);
+  const baseMissing = statuteRes.status === "fulfilled" ? (statuteRes.value?.data?.base_missing ?? []) : [];
+  if (baseMissing.length > 0) console.warn("[cppa-risk] BASE CITATIONS MISSING FROM SUPPLY:", baseMissing.join("; "));
   const statuteContext = authorities
     .map((a: any) => `${a.citation}${a.title ? ` — ${a.title}` : ""}\nPlain summary: ${a.plain_summary ?? ""}\nRegulation text: ${String(a.full_text ?? "").slice(0, 1200)}`)
     .join("\n\n");
