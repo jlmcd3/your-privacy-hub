@@ -408,12 +408,12 @@ async function runUnit(runId: string) {
 
     // Persist per-product quality_runs + quality_check_results FIRST (audit B).
     const applyKey = reg.applyKey;
-    const { data: qrun, error: qrunErr } = await db.from("quality_runs").insert({
+    const { data: qrun, error: qrunErr } = await retryDb(() => db.from("quality_runs").insert({
       tool: applyKey,
       status: "complete",
       run_number: 1,
       mode: "manual",
-    }).select("id").maybeSingle();
+    }).select("id").maybeSingle());
     if (qrunErr || !qrun) {
       await log(runId, `${reg.label}: failed to create quality_runs row: ${qrunErr?.message}`, { level: "error", product: next });
       await db.from("quality_loop2_results").insert({
