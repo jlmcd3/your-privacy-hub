@@ -25,29 +25,34 @@ const STUCK_MINUTES = 15;
 interface ReapTarget {
   table: string;
   stuckStatuses: string[];
+  terminalStatus: string;      // status to write when reaping (must satisfy any CHECK constraint)
   hasGenerationError: boolean; // ropa_sessions, eu_notice_sessions
   hasReportData: boolean;      // everything except ropa/eu sessions
 }
 
-// Verified against live schema + check constraints (2026-06-12):
+// Verified against live schema + check constraints (2026-07-04):
 //   - ropa_sessions allows 'processing' and 'failed' (NOT 'generating' — its
 //     constraint does not include 'generating'). generate-ropa-document writes
 //     'processing' as the in-flight value.
 //   - eu_notice_sessions allows 'generating' and 'failed' (constraint updated
 //     in migration 20260612082541_*).
-//   - The other 6 tables have no CHECK constraint on status; 'processing' is
+//   - cppa_assessments has a CHECK constraint (cppa_assessments_status_check)
+//     that permits only pending/processing/complete/error — so we reap to
+//     'error', not 'failed'. Do not attempt to widen the constraint.
+//   - The other 5 tables have no CHECK constraint on status; 'processing' is
 //     the in-flight value written by their generators, and 'failed' is the
 //     terminal value already used by their existing catch blocks.
 const TARGETS: ReapTarget[] = [
-  { table: "ir_playbooks",           stuckStatuses: ["processing"], hasGenerationError: false, hasReportData: true  },
-  { table: "dpa_documents",          stuckStatuses: ["processing"], hasGenerationError: false, hasReportData: true  },
-  { table: "li_assessments",         stuckStatuses: ["processing"], hasGenerationError: false, hasReportData: true  },
-  { table: "dpia_frameworks",        stuckStatuses: ["processing"], hasGenerationError: false, hasReportData: true  },
-  { table: "governance_assessments", stuckStatuses: ["processing"], hasGenerationError: false, hasReportData: true  },
-  { table: "cppa_assessments",       stuckStatuses: ["processing"], hasGenerationError: false, hasReportData: true  },
-  { table: "ropa_sessions",          stuckStatuses: ["processing"], hasGenerationError: true,  hasReportData: false },
-  { table: "eu_notice_sessions",     stuckStatuses: ["generating"], hasGenerationError: true,  hasReportData: false },
+  { table: "ir_playbooks",           stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
+  { table: "dpa_documents",          stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
+  { table: "li_assessments",         stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
+  { table: "dpia_frameworks",        stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
+  { table: "governance_assessments", stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: false, hasReportData: true  },
+  { table: "cppa_assessments",       stuckStatuses: ["processing"], terminalStatus: "error",  hasGenerationError: false, hasReportData: true  },
+  { table: "ropa_sessions",          stuckStatuses: ["processing"], terminalStatus: "failed", hasGenerationError: true,  hasReportData: false },
+  { table: "eu_notice_sessions",     stuckStatuses: ["generating"], terminalStatus: "failed", hasGenerationError: true,  hasReportData: false },
 ];
+
 
 const TIMEOUT_MESSAGE =
   "Generation timed out — background worker did not complete. Please retry.";
