@@ -168,10 +168,11 @@ export default function HealthDataPrivacyPage() {
         }}
         pageSynthesisKey="health__page"
         topToolCta={{
-          toolName: getProduct("governance-assessment").name,
+          toolName: "Impact Assessment Builder",
           toolDescription:
-            "Structured assessment covering HIPAA, the FTC Health Breach Rule, and state health data laws — formatted for leadership or counsel review.",
-          href: getProduct("governance-assessment").route,
+            "Structured DPIA for high-risk health-data processing — HIPAA overlap, FTC Health Breach Rule, and state consumer-health regimes.",
+          href: "/dpia-framework",
+          context: "Put this into practice:",
         }}
         sections={linkGlossaryFirstMentions([
           {
