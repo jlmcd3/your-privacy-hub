@@ -9,6 +9,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { observeCitations } from "../_shared/citation-observe.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
 const corsHeaders = {
