@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
     for (const r of data ?? []) if (!seen.has(r.id)) pool.push(r);
   }
 
-  if (pool.length === 0) {
+  if (pool.length === 0 && base_citations.length === 0) {
     return json({
       authorities: [], deadlines: [],
       retrieved_count: 0, warning: "no_matching_authority",
