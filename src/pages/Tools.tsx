@@ -694,6 +694,15 @@ export default function Tools() {
                         {INCLUDED_GENERATIONS_COPY}
                       </p>
                     )}
+                    {SAMPLE_SLUG_MAP[tool.slug] && (
+                      <div className="mt-2">
+                        <SampleReportLink
+                          toolSlug={SAMPLE_SLUG_MAP[tool.slug]}
+                          variant="link"
+                          label="See a sample →"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Body */}
