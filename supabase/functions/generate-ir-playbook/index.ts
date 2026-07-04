@@ -816,7 +816,8 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
 
           // QB8-1(f)(2) Phase 3 — terminal-punctuation guard. If any part ends without
           // terminal punctuation, run one additional continuation round for that part.
-          const TERMINAL = /[.?!)\]}»"'`]\s*$/;
+          // Accept common markdown enders too (bold **, italic *, code `, table |, blockquote >).
+          const TERMINAL = /([.?!)\]}»"'`*|>]|\*\*|```)\s*$/;
           const terminalFailures: Array<{ which: "A" | "B" | "C"; text: string }> = [];
           for (const [which, txt] of [["A", partA], ["B", partB], ["C", partC]] as const) {
             if (!TERMINAL.test(txt.trim())) {
@@ -837,12 +838,16 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
             }
           }
 
-          // Final validation across all parts.
+          // Final validation across all parts. Structural validity (all required headings
+          // present, Part C annotations block present) is the hard requirement — a missing
+          // terminal punctuation after a structurally complete part is a soft warning only.
           const stillFailing: string[] = [];
           for (const [which, txt] of [["A", partA], ["B", partB], ["C", partC]] as const) {
             const v2 = validatePart(txt, which);
             if (!v2.ok) stillFailing.push(`part${which}: ${v2.reason}`);
-            else if (!TERMINAL.test(txt.trim())) stillFailing.push(`part${which}: no terminal punctuation after continuation`);
+            else if (!TERMINAL.test(txt.trim())) {
+              console.warn(`[IR Playbook] part${which}: structurally complete but no terminal punctuation after continuation — accepting.`);
+            }
           }
 
           if (stillFailing.length > 0) {
