@@ -235,6 +235,18 @@ export function lintReportText(text: string, opts?: LintOptions): LintResult {
     });
   }
 
+  // 15. risk-adaptive-standard-authoring — HARD. Output must FLAG AND CITE the
+  //     7152(a)(1) specificity standard, never author it (Rule R-A).
+  const adaptiveStandardRe = /names the concrete business function|a specific purpose names/gi;
+  let am: RegExpExecArray | null;
+  while ((am = adaptiveStandardRe.exec(clean)) !== null) {
+    violations.push({
+      code: "risk-adaptive-standard-authoring",
+      severity: "hard",
+      detail: "Adaptive guidance: output authors the 7152(a)(1) specificity standard instead of flagging and citing it (Rule R-A).",
+    });
+  }
+
   return { clean, violations };
 }
 

@@ -884,10 +884,14 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         }
         const rowsArr = (Array.isArray(data) ? data : []).filter((r: any) => {
           const cite = String(r?.regulation_citation ?? "").trim();
-          // Keep bare-section commentary (applies to all controls) and commentary
-          // matching this control's own subsection; drop commentary tied to a
-          // DIFFERENT subsection letter (e.g. (d) attached to a (c)(N) control).
-          if (/^11 CCR § 712[0-4]$/.test(cite)) return true;
+          // Constrain control-level FSOR supplements to the control's own § 7123
+          // context. Rows citing other sections (e.g. § 7120 threshold commentary,
+          // § 7122, § 7124) must NOT be attached to a specific 7123(c) control
+          // slot — absence is better than a mislabeled pairing. Bare "11 CCR § 7123"
+          // (applies to all controls) and the control's own subsection both pass.
+          if (!cite.startsWith("11 CCR ")) return false;
+          if (!cite.includes("7123")) return false;
+          if (/^11 CCR § 7123$/.test(cite)) return true;
           return cite === citationFilter;
         });
         const indexed = rowsArr.map((r: any, i: number) => ({ r, i }));
