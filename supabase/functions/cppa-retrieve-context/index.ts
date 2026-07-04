@@ -74,6 +74,12 @@ Deno.serve(async (req) => {
   const full_text_limit: number = Math.max(0, Math.min(30, Number(body?.full_text_limit ?? 8) || 8));
   const limit: number = Math.max(1, Math.min(30, Number(body?.limit ?? 14) || 14));
 
+  // Base set: citation-pinned rows the caller ALWAYS needs, independent of
+  // topic/FTS scoring. Guaranteed-supply counterpart to search-based retrieval.
+  const base_citations: string[] = Array.isArray(body?.base_citations)
+    ? body.base_citations.filter((c: any) => typeof c === "string" && c.trim()).slice(0, 15)
+    : [];
+
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
   // 1. Citation lookup short-circuit
