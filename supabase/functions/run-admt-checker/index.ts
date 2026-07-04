@@ -12,6 +12,7 @@ import {
   stripModelCitations,
   validateReport,
   normalizeIntake,
+  verifyRegistryAgainstCorpus,
   type ElementId,
 } from "../_shared/admt-citation-registry.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
