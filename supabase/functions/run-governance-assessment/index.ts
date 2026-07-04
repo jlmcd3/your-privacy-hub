@@ -9,6 +9,7 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { getGdprContext } from "../_shared/gdpr-context.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
