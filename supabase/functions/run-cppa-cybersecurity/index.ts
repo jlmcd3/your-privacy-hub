@@ -816,6 +816,11 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       "11 CCR § 7122",
       "11 CCR § 7123",
       "11 CCR § 7124",
+      ...(isConnectedDeviceSector ? [
+        `Cal. Civ. Code ${S} 1798.91.04`,
+        `Cal. Civ. Code ${S} 1798.91.05`,
+        `Cal. Civ. Code ${S} 1798.91.06`,
+      ] : []),
     ];
     const { data: authRows } = await supabase
       .from("cppa_authorities")
