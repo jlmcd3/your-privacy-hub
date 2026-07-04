@@ -238,7 +238,9 @@ NOTIFICATION RECORDS LIST NOTIFICATION ITEMS: the notification-specific document
 
 A DEFERRAL IS ISSUED ONCE: where the same information is deferred to the user in two sections (e.g. geographic segmentation of affected individuals), the [TO BE COMPLETED] instruction appears in full at its primary location only; every other location carries a cross-reference ('see Section 1, step 6') — never a second full deferral for the same fact.
 
-SUPPLIED BREACH AUTHORITY: where a GDPR BREACH-NOTIFICATION AUTHORITY block is present in the user prompt, every statement of Article 33 or Article 34 content (thresholds, the 72-hour clock, notification content elements, the high-risk communication standard, exceptions) must be drawn from that block. Where the block is absent (US-state-only incidents), do not cite GDPR articles at all. Existing enforcement-citation grounding rules are unchanged.`;
+SUPPLIED BREACH AUTHORITY: where a GDPR BREACH-NOTIFICATION AUTHORITY block is present in the user prompt, every statement of Article 33 or Article 34 content (thresholds, the 72-hour clock, notification content elements, the high-risk communication standard, exceptions) must be drawn from that block. Where the block is absent (US-state-only incidents), do not cite GDPR articles at all. Existing enforcement-citation grounding rules are unchanged.
+
+CAL AG SAMPLE-COPY THRESHOLD: the Cal. Civ. Code 1798.82(f) trigger is notification to MORE THAN 500 California residents (strictly greater than 500), with the sample copy due to the Attorney General within 15 calendar days of notifying consumers. Never phrase this threshold as '500 or more' or '500+'. State every occurrence of this threshold identically throughout the playbook.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
