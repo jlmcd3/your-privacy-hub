@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import glossaryData from "@/data/glossary.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SourceMethodology from "@/components/research/SourceMethodology";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 
 const GlossaryTerm = () => {
@@ -172,7 +173,11 @@ const GlossaryTerm = () => {
             </Link>
           </div>
         )}
+        <div className="mt-10">
+          <SourceMethodology />
+        </div>
       </div>
+
 
       <Footer />
     </div>
