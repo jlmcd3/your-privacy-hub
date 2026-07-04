@@ -487,7 +487,14 @@ async function startRun(runBy: string | null, requestedProducts: string[] | unde
   // Invoke start-stress-batch.
   const ssbBody = {
     run_by: runBy,
-    industries: [{ id: "technology", label: "Technology" }],
+    industries: [
+      { id: "technology", label: "Technology" },
+      // Permanent IoT fixture slot (Doc B Part 4): US smart-home device
+      // manufacturer that exercises the IoT sector overlay in cppa_cyber and
+      // the supplied §§ 1798.91.04–.06 authority block. US-only, slot 2 so it
+      // is stably identified as static-us-iot-slot2 across every QL2 pass.
+      { id: "iot", label: "Smart-home Device Manufacturer (IoT)", geos: ["us"], slots: [2] },
+    ],
     geo_filter: "both",
     selected_tools: products,
     slots_per_geo: 1,
