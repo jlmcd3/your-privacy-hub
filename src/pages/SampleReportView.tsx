@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SampleToolReport } from "@/components/SampleToolReport";
+import { TOOL_ROUTE } from "@/lib/sampleToolRoutes";
 
 type Row = {
   id: string;
