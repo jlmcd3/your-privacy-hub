@@ -913,13 +913,17 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
-    observeCitations(
-      supabase,
-      "generate-dpa",
-      rowId,
-      dpa_text,
-      (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
-    );
+    try {
+      await observeCitations(
+        supabase,
+        "generate-dpa",
+        rowId,
+        dpa_text,
+        (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
+      );
+    } catch (obsErr) {
+      console.error("[citation-observe] non-fatal:", String(obsErr));
+    }
 
 
 
