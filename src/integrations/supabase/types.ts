@@ -323,6 +323,33 @@ export type Database = {
         }
         Relationships: []
       }
+      citation_lint_events: {
+        Row: {
+          citation: string
+          created_at: string
+          id: string
+          in_supply: boolean
+          run_id: string | null
+          tool: string
+        }
+        Insert: {
+          citation: string
+          created_at?: string
+          id?: string
+          in_supply: boolean
+          run_id?: string | null
+          tool: string
+        }
+        Update: {
+          citation?: string
+          created_at?: string
+          id?: string
+          in_supply?: boolean
+          run_id?: string | null
+          tool?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           created_at: string
