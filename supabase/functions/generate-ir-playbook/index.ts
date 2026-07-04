@@ -236,7 +236,9 @@ STEP NUMBERING BELONGS TO SECTION 4 ALONE: the labels "STEP 1" through "STEP 5" 
 
 NOTIFICATION RECORDS LIST NOTIFICATION ITEMS: the notification-specific documentation checklist contains only items that apply when notification IS required. The 'notification determined not to be required' reasoning item belongs to the general breach-register entry (maintained for every breach regardless of notification); if retained in the notification checklist at all, it is framed solely as the reversal edge case ('Where an initial threshold determination is later reversed…').
 
-A DEFERRAL IS ISSUED ONCE: where the same information is deferred to the user in two sections (e.g. geographic segmentation of affected individuals), the [TO BE COMPLETED] instruction appears in full at its primary location only; every other location carries a cross-reference ('see Section 1, step 6') — never a second full deferral for the same fact.`;
+A DEFERRAL IS ISSUED ONCE: where the same information is deferred to the user in two sections (e.g. geographic segmentation of affected individuals), the [TO BE COMPLETED] instruction appears in full at its primary location only; every other location carries a cross-reference ('see Section 1, step 6') — never a second full deferral for the same fact.
+
+SUPPLIED BREACH AUTHORITY: where a GDPR BREACH-NOTIFICATION AUTHORITY block is present in the user prompt, every statement of Article 33 or Article 34 content (thresholds, the 72-hour clock, notification content elements, the high-risk communication standard, exceptions) must be drawn from that block. Where the block is absent (US-state-only incidents), do not cite GDPR articles at all. Existing enforcement-citation grounding rules are unchanged.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
