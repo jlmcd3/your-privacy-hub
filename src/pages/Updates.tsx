@@ -655,6 +655,8 @@ const Updates = () => {
                 )}
 
                 <AdBanner variant="leaderboard" className="my-4" />
+                <AdSlot format="in-content" />
+
 
                 {/* Free registered: subtle Pro upgrade strip */}
                 {user && !isPremium && (
