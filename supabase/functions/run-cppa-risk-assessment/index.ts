@@ -886,6 +886,41 @@ async function runPipeline(assessment_id: string) {
     }
     report_data = dedupeExceptionCitationNote(report_data);
 
+    // QB13-3(a): strip instruction-voice "Begin now:" from every report field EXCEPT
+    // entries of priority_actions (where the imperative belongs). Same try/catch discipline
+    // as QB11-5(b)/QB12-4(a).
+    function stripBeginNowNonAction(report: any): any {
+      try {
+        if (!report || typeof report !== "object") return report;
+        const paActions = new Set<any>();
+        const pa = (report as any).priority_actions;
+        if (Array.isArray(pa)) for (const e of pa) paActions.add(e);
+        let stripped = 0;
+        const walk = (node: any) => {
+          if (!node || typeof node !== "object") return;
+          if (Array.isArray(node)) { for (const v of node) walk(v); return; }
+          if (paActions.has(node)) return; // skip priority_actions entries entirely
+          for (const key of Object.keys(node)) {
+            const val = (node as any)[key];
+            if (typeof val === "string") {
+              const next = val.split("Begin now: ").join("").split("Begin now:").join("");
+              if (next !== val) { (node as any)[key] = next; stripped += 1; }
+            } else if (val && typeof val === "object") {
+              walk(val);
+            }
+          }
+        };
+        walk(report);
+        if (stripped > 0) console.warn("[RISK] QB13-3(a): stripped instruction-voice 'Begin now:' from a non-action field");
+      } catch (e) {
+        console.error("[RISK] QB13-3(a) strip errored:", e);
+      }
+      return report;
+    }
+    report_data = stripBeginNowNonAction(report_data);
+
+
+
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "cppa_risk_assessment",
