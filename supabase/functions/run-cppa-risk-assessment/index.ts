@@ -351,7 +351,8 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
     console.warn("[cppa-risk] FSOR commentary fetch failed:", e);
   }
 
-  return { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext };
+  const citations = authorities.map((a: any) => a?.citation).filter(Boolean);
+  return { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext, citations };
 }
 
 // ---------------------------------------------------------------------------
