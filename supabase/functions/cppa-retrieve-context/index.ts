@@ -228,9 +228,12 @@ Deno.serve(async (req) => {
   }));
 
   // Enforce 120K char cap on full_text — drop full_text from lowest authority_weight rows
-  const ascByWeight = [...items].sort((a, b) =>
-    (a.raw.authority_weight ?? 0) - (b.raw.authority_weight ?? 0),
-  );
+  const ascByWeight = [...items].sort((a, b) => {
+    const aBase = baseIds.has(a.raw.id) ? 1 : 0;
+    const bBase = baseIds.has(b.raw.id) ? 1 : 0;
+    if (aBase !== bBase) return aBase - bBase; // non-base rows drop first
+    return (a.raw.authority_weight ?? 0) - (b.raw.authority_weight ?? 0);
+  });
   let totalChars = items.reduce((n, x) => n + (x.item.full_text?.length ?? 0), 0);
   for (const x of ascByWeight) {
     if (totalChars <= FULL_TEXT_HARD_CAP) break;
