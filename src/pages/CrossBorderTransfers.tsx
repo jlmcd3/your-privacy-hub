@@ -129,10 +129,11 @@ export default function CrossBorderTransfersPage() {
         }}
         pageSynthesisKey="crossborder__page"
         topToolCta={{
-          toolName: getProduct("dpia").name,
+          toolName: "Custom DPA Generator",
           toolDescription:
-            "Transfer risk lives inside your impact assessments. Build a structured DPIA covering your cross-border processing — Schrems II factors, supplementary measures, and documentation formatted for counsel review.",
-          href: getProduct("dpia").route,
+            "Generate an Article 28-compliant DPA with the SCC modules and supplementary measures your transfer profile requires.",
+          href: "/dpa-generator",
+          context: "Put this into practice:",
         }}
         introBlock={<TransferMechanismSelector />}
         sections={linkGlossaryFirstMentions([
