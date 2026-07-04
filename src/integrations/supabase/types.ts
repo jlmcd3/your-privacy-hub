@@ -3226,6 +3226,95 @@ export type Database = {
         }
         Relationships: []
       }
+      national_provisions: {
+        Row: {
+          authority_type: string
+          authority_weight: number
+          binding: boolean
+          citation: string
+          created_at: string
+          defines_terms: string[]
+          effective_date: string | null
+          full_text: string
+          id: string
+          instrument: string
+          language: string
+          official_url: string | null
+          plain_summary: string | null
+          search_vector: unknown
+          source: string
+          status: string
+          supersedes_id: string | null
+          title: string
+          topics: string[]
+          translation_status: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        Insert: {
+          authority_type: string
+          authority_weight?: number
+          binding?: boolean
+          citation: string
+          created_at?: string
+          defines_terms?: string[]
+          effective_date?: string | null
+          full_text: string
+          id?: string
+          instrument: string
+          language?: string
+          official_url?: string | null
+          plain_summary?: string | null
+          search_vector?: unknown
+          source: string
+          status?: string
+          supersedes_id?: string | null
+          title: string
+          topics?: string[]
+          translation_status?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number
+        }
+        Update: {
+          authority_type?: string
+          authority_weight?: number
+          binding?: boolean
+          citation?: string
+          created_at?: string
+          defines_terms?: string[]
+          effective_date?: string | null
+          full_text?: string
+          id?: string
+          instrument?: string
+          language?: string
+          official_url?: string | null
+          plain_summary?: string | null
+          search_vector?: unknown
+          source?: string
+          status?: string
+          supersedes_id?: string | null
+          title?: string
+          topics?: string[]
+          translation_status?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "national_provisions_supersedes_id_fkey"
+            columns: ["supersedes_id"]
+            isOneToOne: false
+            referencedRelation: "national_provisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       obligation_acknowledgements: {
         Row: {
           action: string
