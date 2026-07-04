@@ -32,7 +32,7 @@ const PrivacyPolicy = () => {
         <h1 className="font-display text-foreground mb-2">
           Privacy Policy
         </h1>
-        <p className="text-sm text-muted-foreground mb-10">Last updated: May 15, 2026</p>
+        <p className="text-sm text-muted-foreground mb-10">Last updated: July 4, 2026</p>
 
         <div className="prose prose-sm max-w-none text-foreground/90 space-y-8">
           <section className="space-y-3">
@@ -272,11 +272,15 @@ const PrivacyPolicy = () => {
               or by installing the Google Analytics Opt-out Browser Add-on.
             </p>
             <p>
-              For EU/EEA/UK visitors: because we serve non-personalized ads, we do not use Google's
-              consent management platform or display a cookie consent banner for advertising
-              purposes. Cookies used solely for non-personalized ad serving (frequency capping,
-              fraud prevention) fall within the legitimate interests basis under applicable
-              guidance.
+              We honor the Global Privacy Control (GPC) signal: if your browser sends GPC, we do
+              not serve advertising to you at all. Advertising appears only for visitors who are
+              not signed in; registered users browse ad-free.
+            </p>
+            <p>
+              For visitors in the European Economic Area, the United Kingdom, and Switzerland: we
+              do not currently serve advertising to these regions. If we begin serving ads there,
+              we will first implement a Google-certified consent management platform and request
+              your consent before any advertising cookie is set.
             </p>
           </section>
 

@@ -58,6 +58,7 @@ const STATIC_PATHS = [
   "/us-privacy-laws",
   "/us-state-privacy-laws",
   "/updates",
+  "/samples",
 ];
 
 const globalAuthorities = JSON.parse(
