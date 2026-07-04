@@ -36,19 +36,8 @@ const TOOL_DISPLAY: Record<string, string> = {
   eu_notice: "EU / Global Privacy Notice",
 };
 
-const TOOL_ROUTE: Record<string, string> = {
-  li_assessment: "/legitimate-interest-assessment",
-  dpia: "/dpia-framework",
-  dpa: "/dpa-generator",
-  governance: "/governance-assessment",
-  ir_playbook: "/ir-playbook",
-  biometric: "/biometric-checker",
-  cppa_risk: "/cppa-risk-assessment",
-  cppa_cyber: "/cppa-cybersecurity",
-  ropa: "/ropa",
-  us_notice: "/notice-builder/us",
-  eu_notice: "/notice-builder/eu",
-};
+
+
 
 function summarizeVerification(v: Record<string, unknown> | null): string | null {
   if (!v || typeof v !== "object") return null;
