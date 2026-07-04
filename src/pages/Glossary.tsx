@@ -6,6 +6,7 @@ import glossaryData from "@/data/glossary.json";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import AdSlot from "@/components/ads/AdSlot";
 import { ResearchToolCTA } from "@/components/research/ResearchToolCTA";
 
 type Term = (typeof glossaryData)[number];
@@ -313,6 +314,7 @@ const Glossary = () => {
         </div>
 
         <AdBanner variant="leaderboard" className="my-4" />
+        <AdSlot format="in-content" />
 
         {/* Themed groups */}
         <div className="space-y-4 mb-10">
