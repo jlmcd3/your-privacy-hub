@@ -99,7 +99,7 @@ export default function USStateLawPage() {
           headline: `${state.state} Privacy Law — Statute, Regulator & Active Bills`,
           description: metaDescription,
           publisher: { "@type": "Organization", name: "End User Privacy" },
-          dateModified: new Date().toISOString().slice(0, 10),
+          
           mainEntityOfPage: canonical,
         })}</script>
       </Helmet>

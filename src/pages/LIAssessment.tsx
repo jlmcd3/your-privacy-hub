@@ -203,7 +203,7 @@ const LIAssessment = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ Legitimate Interest Assessment · Free preliminary signal · Full assessment ${pricing.price}
           </span>
-          <h1 className="font-serif text-white mb-3">
+          <h1 className="text-hero-h1 text-white mb-3">
             Legitimate Interest Assessment
           </h1>
           <RequirementBadge variant="hero" tier="expected" text="To rely on legitimate interests under GDPR Article 6(1)(f), you must conduct and document a balancing test — regulators expect a written LIA as your accountability record." className="mt-2 max-w-3xl" />
@@ -219,7 +219,7 @@ const LIAssessment = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
         <ActiveClientLabel />
         {/* WHY YOU NEED THIS */}

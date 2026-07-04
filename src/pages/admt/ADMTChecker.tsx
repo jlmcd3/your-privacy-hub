@@ -472,7 +472,7 @@ export default function ADMTChecker() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             CPPA AUDIT READINESS · MODULE 3 · ${pricing.price}
           </span>
-          <h1 className="font-serif text-white mb-3">ADMT Compliance Assessment</h1>
+          <h1 className="text-hero-h1 text-white mb-3">ADMT Compliance Assessment</h1>
           <RequirementBadge variant="hero" tier="conditional" text="If you use automated decision-making for significant decisions — hiring, lending, housing, healthcare — California requires pre-use notice, an opt-out, and a risk assessment by January 1, 2027." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg max-w-3xl">
             Assess your automated decisionmaking technology against the CPPA's final regulations. Covers pre-use notice requirements (§ 7220), opt-out obligations (§ 7221), and access rights (§ 7222). Generates a gap report with specific remediation steps for each deficit, cited to the regulation.

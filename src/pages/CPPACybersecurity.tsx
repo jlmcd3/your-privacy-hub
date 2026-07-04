@@ -156,7 +156,7 @@ export default function CPPACybersecurity() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
           </span>
-          <h1 className="font-serif text-white mb-3">CPPA Cybersecurity Audit Readiness</h1>
+          <h1 className="text-hero-h1 text-white mb-3">CPPA Cybersecurity Audit Readiness</h1>
           <RequirementBadge variant="hero" tier="conditional" text="If your business clears the CCPA revenue and data-volume thresholds, an independent annual cybersecurity audit is required — first certification due April 1, 2028 for businesses over $100M in revenue." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">A structured readiness review mapped to the 18 cybersecurity programme components in the CPPA's cybersecurity audit regulations. Generates a control-by-control gap report.</p>
           <p className="text-slate-400 text-sm mt-3">Required for businesses processing personal information posing significant risk. Audit cadence begins for the largest businesses in 2026.</p>
@@ -172,7 +172,7 @@ export default function CPPACybersecurity() {
         </div>
 
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6 bg-paper">
+      <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6 bg-paper">
         <IntakeGuidance>For each control, note the specific tools in place, the scope they cover, and any exceptions — separately and concretely. A control marked "in place" with a vague note produces a weaker gap analysis than one described precisely.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7123(c). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />

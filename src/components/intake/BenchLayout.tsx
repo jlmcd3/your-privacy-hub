@@ -51,9 +51,9 @@ export default function BenchLayout({
       style={{
         gridTemplateColumns:
           showCoach && showRail
-            ? "minmax(240px, 290px) minmax(0, 1fr) minmax(250px, 300px)"
+            ? "280px minmax(0, 1fr) 300px"
             : showRail
-            ? "minmax(0, 1fr) minmax(250px, 300px)"
+            ? "minmax(0, 1fr) 300px"
             : "1fr",
       }}
     >

@@ -148,7 +148,7 @@ const PillarPage = ({
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest uppercase text-brand-mist mb-4 bg-brand-mist/10 px-3 py-1.5 rounded-full border border-brand-mist/20">
             {icon} Intelligence Guide
           </div>
-          <h1 className="font-display text-white mb-3 leading-tight">{title}</h1>
+          <h1 className="text-page-h1 text-white mb-3 leading-tight">{title}</h1>
           {subtitleHtml ? (
             <p
               className="text-sm md:text-base text-brand-mist max-w-[700px] [&_a]:text-brand-mist [&_a]:no-underline [&_a:hover]:underline"
@@ -157,7 +157,7 @@ const PillarPage = ({
           ) : (
             <p className="text-sm md:text-base text-brand-mist max-w-[700px]">{subtitle}</p>
           )}
-          <div className="text-[11px] text-brand-mist mt-4">Last updated: {lastUpdated}</div>
+          
 
           {/* Stat bar */}
           {heroStats && heroStats.length > 0 && (

@@ -75,7 +75,7 @@ export function ResearchPageHeader({
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 lg:gap-12 items-start">
           <div>
-            <h1 className="font-serif text-white mb-2">{title}</h1>
+            <h1 className="text-hero-h1 text-white mb-2">{title}</h1>
 
             <p className="text-slate-300 text-lg max-w-3xl mb-4 leading-relaxed">
               {description}
@@ -92,11 +92,6 @@ export function ResearchPageHeader({
               </div>
             )}
 
-            {(lastUpdated || contextUpdatedLabel) && (
-              <p className="text-xs text-slate-400">
-                {[lastUpdated && `Last updated ${lastUpdated}`, contextUpdatedLabel && `Context updated ${contextUpdatedLabel}`].filter(Boolean).join(" · ")}
-              </p>
-            )}
           </div>
 
           {stats && stats.length > 0 && (

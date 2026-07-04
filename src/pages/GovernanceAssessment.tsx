@@ -410,7 +410,7 @@ const GovernanceAssessment = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             ⚖️ GDPR Governance Assessment · ${pricing.price}
           </span>
-          <h1 className="font-serif text-white mb-3">GDPR Governance Assessment</h1>
+          <h1 className="text-hero-h1 text-white mb-3">GDPR Governance Assessment</h1>
           <RequirementBadge variant="hero" tier="supports" text="GDPR Article 5(2) requires you to demonstrate compliance — this assessment produces the documented evidence of that accountability." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">A structured review of your organisation's data governance practices across ten domains — with cited enforcement decisions behind every risk finding.</p>
           <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
@@ -426,7 +426,7 @@ const GovernanceAssessment = () => {
           
         </div>
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ActiveClientLabel />
         <div className="p-4 bg-muted/50 border-l-4 border-muted-foreground/30 rounded text-sm text-muted-foreground">
           This assessment is a compliance framework tool. It identifies governance gaps to review with qualified legal counsel. It does not constitute legal advice or a legal compliance opinion.

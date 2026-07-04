@@ -15,7 +15,7 @@ const GlobalPrivacyLaws = () => (
         "description": "Comparative reference to 140+ national privacy regimes, covering APAC, Latin America, Middle East, and Africa frameworks and EU GDPR adequacy status.",
         "publisher": { "@type": "Organization", "name": "End User Privacy" },
         "datePublished": "2025-01-15",
-        "dateModified": "2026-06-10",
+        
       })}</script>
     </Helmet>
     <ResearchPageLayout
