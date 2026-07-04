@@ -388,9 +388,16 @@ Deno.serve(async (req) => {
 
   const geos = geo_filter === "both" ? ["us", "eu"] : [geo_filter];
   const companies: Array<{ industryId: string; industryLabel: string; geo: string; slot: number }> = [];
-  for (const ind of industries as Array<{ id: string; label: string }>) {
-    for (const g of geos) {
-      for (let slot = 1; slot <= slotsPerGeo; slot++) {
+  for (const ind of industries as Array<{ id: string; label: string; geos?: string[]; slots?: number[] }>) {
+    // Per-industry overrides let callers register permanent fixture slots
+    // scoped to a single geo/slot (e.g. QL2's static-us-iot-slot2 IoT fixture),
+    // while defaulting to the batch-wide geos × slotsPerGeo product.
+    const indGeos = Array.isArray(ind.geos) && ind.geos.length ? ind.geos.filter((g) => geos.includes(g)) : geos;
+    const indSlots = Array.isArray(ind.slots) && ind.slots.length
+      ? ind.slots
+      : Array.from({ length: slotsPerGeo }, (_, i) => i + 1);
+    for (const g of indGeos) {
+      for (const slot of indSlots) {
         companies.push({ industryId: ind.id, industryLabel: ind.label, geo: g, slot });
       }
     }
