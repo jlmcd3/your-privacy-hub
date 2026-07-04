@@ -2,6 +2,8 @@
 // Shared EUP prompt core (v3.2)
 // v3.2: NO METHOD PRESCRIPTION added to OUTPUT DISCIPLINE (with IR privilege carve-out).
 // v3.3: REPEATED CONTENT APPEARS ONCE promoted to OUTPUT DISCIPLINE (product rules elaborate).
+// v3.4: SEQUENTIAL NUMBERING, GROUNDED LEGAL ASSERTIONS, DERIVED CONCLUSIONS, and
+// STATUTORY-OR-EPISTEMIC CONDITIONALS added to OUTPUT DISCIPLINE (owner rules, 2026-07-04).
 // v3.1: counsel-parenthetical removed; argument-voice parenthetical removed;
 // EU-transfers content modularized (opt-in via ToolModule.includeEuTransfers); UK–US Data Bridge
 // verified date added.
