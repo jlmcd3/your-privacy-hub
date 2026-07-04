@@ -1123,6 +1123,16 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       .update({ status: "complete", report_data: report, obligation_snapshot })
       .eq("id", assessment_id);
 
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "run-cppa-cybersecurity",
+      assessment_id,
+      JSON.stringify(report),
+      (authRows ?? []).map((a: any) => a?.citation).filter(Boolean),
+    );
+
+
 
     // C4 RoPA accumulator: cybersecurity controls map to a Security activity
     if ((row as any).client_id) {
