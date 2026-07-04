@@ -187,18 +187,39 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Base-citation fetch: always included, always full_text, last to be dropped.
+  let baseRows: any[] = [];
+  const baseMissing: string[] = [];
+  if (base_citations.length > 0) {
+    let bq = admin.from("cppa_authorities").select("*")
+      .in("citation", base_citations)
+      .eq("status", "current");
+    if (verifiedOnly) bq = bq.not("verified_by", "is", null);
+    const { data: bRows, error: bErr } = await bq;
+    if (bErr) console.warn("[retrieve-context] base fetch failed:", bErr.message);
+    baseRows = bRows ?? [];
+    const got = new Set(baseRows.map((r: any) => r.citation));
+    for (const c of base_citations) if (!got.has(c)) baseMissing.push(c);
+    if (baseMissing.length > 0) {
+      console.warn("[retrieve-context] base citations missing or gated:", baseMissing.join("; "));
+    }
+  }
+
   // Merge forced into result set without duplicating
   const byId = new Map<string, any>();
   for (const r of top) byId.set(r.id, r);
   for (const r of forced) if (!byId.has(r.id)) byId.set(r.id, r);
+  for (const r of baseRows) if (!byId.has(r.id)) byId.set(r.id, r);
   const merged = Array.from(byId.values());
 
   // 8. Decide which get full_text
   const forcedIds = new Set(forced.map((r) => r.id));
+  const baseIds = new Set(baseRows.map((r) => r.id));
   const topIdsForFullText = new Set(
     scored.slice(0, full_text_limit).map((s) => s.row.id),
   );
-  const wantsFullText = (id: string) => topIdsForFullText.has(id) || forcedIds.has(id);
+  const wantsFullText = (id: string) =>
+    topIdsForFullText.has(id) || forcedIds.has(id) || baseIds.has(id);
 
   // Build initial items
   let items = merged.map((r) => ({
