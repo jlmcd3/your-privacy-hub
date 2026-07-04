@@ -300,7 +300,7 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
       },
     }),
     supabase.functions.invoke("cppa-retrieve-context", {
-      body: { topics: statuteTopics, query: `risk assessment ${primaryActivity}`, include_deadlines: false, full_text_limit: 10, limit: 16 },
+      body: { topics: statuteTopics, query: `risk assessment ${primaryActivity}`, include_deadlines: false, full_text_limit: 10, limit: 16, base_citations: RISK_BASE_CITATIONS },
     }),
   ]);
 
