@@ -28,6 +28,15 @@ import {
 } from "https://esm.sh/docx@9.6.1";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
+// Machine-checkable manifest of statutory assertions carried by the hardcoded
+// templates below. lint-deterministic-legal-text resolves each `citation`
+// against the corpus (gdpr_articles / cppa_authorities) and verifies every
+// `mustContain` phrase appears in the corpus full_text. Update the shared
+// module alongside any template edit that changes a statutory claim.
+import { ROPA_LEGAL_TEXT_ASSERTIONS } from "../_shared/legal-text-assertions.ts";
+export const LEGAL_TEXT_ASSERTIONS = ROPA_LEGAL_TEXT_ASSERTIONS;
+
+
 const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
 
 // ─────────────────────────────────────────────────────────────────────────────

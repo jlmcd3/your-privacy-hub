@@ -21,6 +21,16 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Machine-checkable manifest of statutory assertions carried by the hardcoded
+// templates below. lint-deterministic-legal-text resolves each `citation`
+// against the corpus (gdpr_articles) and verifies every `mustContain` phrase
+// appears in the corpus full_text. Update the shared module alongside any
+// template edit that changes a statutory claim.
+import { EU_NOTICE_LEGAL_TEXT_ASSERTIONS } from "../_shared/legal-text-assertions.ts";
+export const LEGAL_TEXT_ASSERTIONS = EU_NOTICE_LEGAL_TEXT_ASSERTIONS;
+
+
+
 interface RequestBody {
   session_id?: string;
   idempotency_key?: string;
