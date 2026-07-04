@@ -5,6 +5,7 @@ import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SourceMethodology from "@/components/research/SourceMethodology";
 
 import { REGULATORS as allRegulators } from "@/lib/regulators";
 
@@ -247,6 +248,9 @@ const RegulatorPage = () => {
               <span className="text-brand-teal">→</span> GDPR Enforcement
             </Link>
           </div>
+        </div>
+        <div className="mt-10">
+          <SourceMethodology />
         </div>
       </div>
       <Footer />
