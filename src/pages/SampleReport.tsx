@@ -210,6 +210,16 @@ export default function SampleReport() {
                   publishedAt={r.published_at}
                 />
 
+                {toolRoute && (
+                  <div className="mt-8 pt-6 border-t border-brand-cloud flex flex-wrap gap-3">
+                    <Link
+                      to={toolRoute}
+                      className="inline-flex items-center gap-2 rounded-md bg-brand-navy text-white px-4 py-2 text-sm font-medium hover:bg-brand-navy/90"
+                    >
+                      Start your own {displayName}
+                    </Link>
+                  </div>
+                )}
               </article>
             );
           })}
