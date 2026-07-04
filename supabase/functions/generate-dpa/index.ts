@@ -912,6 +912,16 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       throw updateErr;
     }
 
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "generate-dpa",
+      rowId,
+      dpa_text,
+      (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
+    );
+
+
 
     // C4 RoPA accumulator: third-party processor onboarding is a RoPA event
     const dpaClientId = (body as any).client_id as string | null | undefined;
