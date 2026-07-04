@@ -65,6 +65,8 @@ function summarizeVerification(v: Record<string, unknown> | null): string | null
 export default function SampleReportView() {
   const { toolSlug, variant } = useParams<{ toolSlug: string; variant: string }>();
   const [row, setRow] = useState<Row | null | undefined>(undefined);
+  const [siblings, setSiblings] = useState<Array<{ variant: string; title: string }>>([]);
+  const [toc, setToc] = useState<Array<{ id: string; text: string }>>([]);
   const [error, setError] = useState<string | null>(null);
 
   const displayName = useMemo(
@@ -77,15 +79,23 @@ export default function SampleReportView() {
     let cancelled = false;
     (async () => {
       if (!toolSlug || !variant) return;
-      const { data, error } = await supabase
-        .from("sample_reports")
-        .select(
-          "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, published_at",
-        )
-        .eq("tool_slug", toolSlug)
-        .eq("variant", variant)
-        .eq("status", "published")
-        .maybeSingle();
+      const [{ data, error }, { data: sibData }] = await Promise.all([
+        supabase
+          .from("sample_reports")
+          .select(
+            "id, tool_slug, variant, title, scenario_summary, document_text, report_data, verification, published_at",
+          )
+          .eq("tool_slug", toolSlug)
+          .eq("variant", variant)
+          .eq("status", "published")
+          .maybeSingle(),
+        supabase
+          .from("sample_reports")
+          .select("variant, title")
+          .eq("tool_slug", toolSlug)
+          .eq("status", "published")
+          .order("variant"),
+      ]);
       if (cancelled) return;
       if (error) {
         setError(error.message);
@@ -93,11 +103,38 @@ export default function SampleReportView() {
         return;
       }
       setRow((data as Row) ?? null);
+      setSiblings((sibData ?? []) as Array<{ variant: string; title: string }>);
     })();
     return () => {
       cancelled = true;
     };
   }, [toolSlug, variant]);
+
+  // Build TOC from rendered section headings after row loads.
+  useEffect(() => {
+    if (!row) return;
+    const t = window.setTimeout(() => {
+      const main = document.getElementById("sample-report-body");
+      if (!main) return;
+      const items: Array<{ id: string; text: string }> = [];
+      main.querySelectorAll("h2, h3").forEach((el) => {
+        const text = (el.textContent || "").trim();
+        if (!text) return;
+        let id = el.id;
+        if (!id) {
+          id = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+          if (id) el.id = id;
+        }
+        if (id) items.push({ id, text });
+      });
+      setToc(items);
+    }, 200);
+    return () => window.clearTimeout(t);
+  }, [row]);
+
+  const currentIdx = siblings.findIndex((s) => s.variant === variant);
+  const prevSib = currentIdx > 0 ? siblings[currentIdx - 1] : null;
+  const nextSib = currentIdx >= 0 && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null;
 
   const vSummary = row ? summarizeVerification(row.verification) : null;
 
