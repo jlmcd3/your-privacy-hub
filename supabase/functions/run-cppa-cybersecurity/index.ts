@@ -977,8 +977,26 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
             return !/^11 CCR § 712[23]$/.test(cite);
           })
           .slice(0, 2)
-          .map(shapeFsorItem),
+          .map(shapeFsorItem)
+          .map((item: any) => {
+            // QB13-10(b): label general FSOR commentary that doesn't reference the
+            // control's own subsection.
+            try {
+              const subMatch = String(citation).match(/\(([a-z])\)(?:\(\d+\))?/i);
+              const sub = subMatch ? subMatch[0] : "";
+              const itemCite = String(item?.citation ?? "");
+              const itemText = String(item?.text ?? "");
+              const referencesSub = sub && (itemCite.includes(sub) || itemText.includes(sub));
+              const label = "General § 7123 agency response; no subsection-specific interpretive commentary was identified in the FSOR corpus for this component. ";
+              if (sub && !referencesSub && !itemText.startsWith(label)) {
+                console.warn(`[CYBER] QB13-10(b): labelled general FSOR commentary for ${c?.control}`);
+                item.text = label + itemText;
+              }
+            } catch (_e) { /* non-fatal */ }
+            return item;
+          }),
       });
+
 
     }
     report.controls = controlsOut;
