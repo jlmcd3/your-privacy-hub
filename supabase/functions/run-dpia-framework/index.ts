@@ -10,6 +10,7 @@ import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, typ
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { observeCitations } from "../_shared/citation-observe.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
