@@ -174,6 +174,8 @@ export function ResearchPageLayout({
                 </section>
               );
             })}
+            {/* Single in-content AdSlot after the first content section (no-rail variant only). */}
+            {!hasRail && sections.length > 1 && <AdSlot format="in-content" />}
           </div>
           {hasRail && (
             <SectionReferenceRail
