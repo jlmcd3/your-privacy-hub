@@ -390,6 +390,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "PERIOD-DEPENDENT FIGURES ARE CONDITIONAL UNTIL THE PERIOD CLOSES: where a threshold depends on a figure for a period that has not ended as of the assessment date (e.g. 2026 annual gross revenue assessed mid-2026), phrase it conditionally — 'if 2026 annual gross revenue, when final, exceeds $100 million' — never as if the period figure were known. State the threshold analysis once; where it bears on more than one field (a priority_action and cross_tool_recommendations), the second occurrence cross-references the first.",
     "NO SYSTEM-ROUTING VOICE: never describe the generator's internal routing or processing decisions in user-facing text ('No ADMT assessment is routed at this time', 'this module was skipped'). State the regulatory position instead: 'An ADMT assessment is not triggered on the current record pending resolution of the inconsistency identified above.' The output describes the organisation's obligations, never the system's machinery.",
     "CONCLUDE, DON'T ECHO — AND DIRECTIVES BEFORE CAVEATS: (1) a validity_assessment or concluding field synthesizes its verdict in its own words and never repeats a sentence verbatim from missing_elements or another field (cross-reference instead). (2) In any resolution_required or action text, state the directive as a complete sentence FIRST and place qualifying or explanatory clauses in a following sentence — never mid-directive where they read as weakening the requirement. (3) Where a conclusion label could be misread as contradicting the user's stated intake position, use a documentation framing: 'Documentation incomplete — the record does not yet support the stated conclusion' rather than a bare 'Insufficient basis'. (4) Where § 7001(ddd) significant-decision categories are cited AND the supplied regulation text carries the enumeration, include a one-line plain-English list of the categories so the reader can assess scope without leaving the document; where the supplied text does not carry them, cite without enumerating — never list the categories from memory.",
+    "INTAKE 'NO' IS AN ANSWER, NOT A SILENCE: distinguish 'the intake affirmatively records No' from 'the intake is silent'. A field recorded false/No (e.g. dpo_or_privacy_officer: false) is DOCUMENTED — as an absence — and is described as such ('the intake records no designated DPO'), never as 'not documented in the intake' or 'a documentation gap, not a confirmed finding of absence', which is circular. Where the intake is genuinely silent, say the intake does not address the point and route it through the record-completion actions. Never blend the two framings in one finding.",
   ].join("\n"),
   schema: `OUTPUT FORMAT — Return a single JSON object with this exact structure. No markdown fences, no preamble:
 
@@ -827,6 +828,28 @@ async function runPipeline(assessment_id: string) {
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
     const guarded = guardInformationNeeded(report_data, ((row as any).intake_data as Record<string, unknown>) ?? {});
     report_data = guarded.report;
+
+    // QB11-5(b): an exception's missing_elements[] entry and flags[] entry must not be
+    // exact duplicates — keep the missing_elements copy, drop the duplicate flag.
+    function dedupeExceptionFlags(report: any): any {
+      try {
+        const arr = report?.exception_analysis;
+        if (Array.isArray(arr)) {
+          for (const ex of arr) {
+            if (ex && Array.isArray(ex.flags) && Array.isArray(ex.missing_elements)) {
+              const missing = new Set(ex.missing_elements.map((s: any) => String(s).trim().toLowerCase()));
+              const before = ex.flags.length;
+              ex.flags = ex.flags.filter((f: any) => !missing.has(String(f).trim().toLowerCase()));
+              if (ex.flags.length !== before) console.warn(`[RISK] QB11-5(b): removed ${before - ex.flags.length} duplicate exception flag(s)`);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[RISK] QB11-5(b) dedupe errored:", e);
+      }
+      return report;
+    }
+    report_data = dedupeExceptionFlags(report_data);
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

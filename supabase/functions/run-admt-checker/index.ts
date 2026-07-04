@@ -919,6 +919,26 @@ Return this JSON structure exactly:
       console.warn("[run-admt-checker] guardInformationNeeded failed (non-fatal):", e);
     }
 
+    // QB11-3: Step-2 hard rule enforcement — when triggers_significant_decision is false,
+    // the three Article 11 gap arrays MUST be empty (rule text already mandates this; this
+    // makes it structural).
+    function enforceScopeGateOnGaps(report: any): any {
+      try {
+        if (report && report.triggers_significant_decision === false) {
+          for (const key of ["notice_gaps", "opt_out_gaps", "access_gaps"]) {
+            if (Array.isArray(report[key]) && report[key].length > 0) {
+              console.warn(`[ADMT] QB11-3: triggers_significant_decision=false but ${key} had ${report[key].length} entries — emptied per Step-2 rule`);
+              report[key] = [];
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[ADMT] QB11-3 scope-gate enforcement errored:", e);
+      }
+      return report;
+    }
+    report = enforceScopeGateOnGaps(report);
+
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "cppa_admt",
