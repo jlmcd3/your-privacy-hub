@@ -663,11 +663,32 @@ Return JSON:
 
 Every insufficient-basis or "Insufficient information" finding elsewhere in this output MUST have a corresponding information_needed entry; otherwise return an empty array.`;
 
+    // L5 GOVERNANCE INJECTION (synthesis stage only): verbatim GDPR article text
+    // for the applicable regime. Domain stage is untouched.
+    let gdprAuthorityBlock = "";
+    if (euUkJurisdictions.length) {
+      try {
+        const jurisdictionForCtx: "eu" | "uk" = governanceRegime === "uk_gdpr" ? "uk" : "eu";
+        const ctx = await getGdprContext(supabase, {
+          jurisdiction: jurisdictionForCtx,
+          articles: ["5", "24", "28", "32", "33", "35", "37", "39"],
+          maxChars: 14000,
+        });
+        if (ctx?.block) {
+          gdprAuthorityBlock =
+            `${ctx.block}\n\nRULE: Where the GDPR AUTHORITY block is present, statements of these articles' content in the synthesis must be drawn from it.`;
+        }
+      } catch (e) {
+        console.warn(`[Governance] getGdprContext failed: ${String(e).slice(0, 200)}`);
+      }
+    }
+
     const synthesisSystem = buildSystemContent({
       toolModule: GOVERNANCE_SYNTHESIS_TOOL_MODULE,
       currentDate: today,
       injected: [
         gdprCitationsBlock,
+        gdprAuthorityBlock,
         `ENFORCEMENT CONTEXT (synthesis only):\n${enforcementContextStr}`,
       ].filter(Boolean).join("\n\n"),
       cache: true,
