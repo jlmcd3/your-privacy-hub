@@ -540,6 +540,7 @@ Deno.serve(async (req) => {
         // GDPR breach-notification authority supply (verbatim Art. 33/34 from gdpr_articles).
         // Only when EU or UK jurisdictions are selected; US-state-only incidents skip this.
         let gdprBreachBlock = "";
+        let edpbGuidelineBlock = "";
         let irSuppliedCitations: string[] = [];
         try {
           const jList: string[] = (Array.isArray(body.jurisdictions) ? body.jurisdictions : []).map((j: any) => String(j).toLowerCase());
@@ -560,6 +561,50 @@ Deno.serve(async (req) => {
               }
               irSuppliedCitations = (ctx.meta?.matched_articles ?? [])
                 .map((n: string) => `Article ${n} GDPR`);
+            }
+
+            // EDPB Guidelines 9/2022 supply (L6 IR-correction dependency).
+            // Direct pull from edpb_guidelines: guideline_ref = "EDPB Guidelines 9/2022"
+            // AND related_articles overlaps {33,34}. Deterministic order (created_at, id),
+            // capped ~9,000 chars. Non-fatal; if the corpus is empty for any reason the
+            // IR prompt still ships with just the Arts 33/34 verbatim block above.
+            try {
+              const { data: gdRows, error: gdErr } = await (supabase as any)
+                .from("edpb_guidelines")
+                .select("section_heading, excerpt_text, doc_version, adopted_date")
+                .eq("guideline_ref", "EDPB Guidelines 9/2022")
+                .eq("status", "final")
+                .overlaps("related_articles", ["33", "34"])
+                .order("created_at", { ascending: true })
+                .order("id", { ascending: true })
+                .limit(60);
+              if (gdErr) {
+                console.warn("[generate-ir-playbook] edpb 9/2022 fetch failed:", gdErr.message);
+              } else if (Array.isArray(gdRows) && gdRows.length > 0) {
+                const MAX_CHARS = 9000;
+                let used = 0;
+                const parts: string[] = [];
+                for (const r of gdRows as Array<{ section_heading: string | null; excerpt_text: string | null }>) {
+                  const body = (r.excerpt_text ?? "").trim();
+                  if (!body) continue;
+                  const heading = (r.section_heading ?? "").trim();
+                  const chunk = heading ? `[${heading}]\n${body}` : body;
+                  if (used + chunk.length + 2 > MAX_CHARS) break;
+                  parts.push(chunk);
+                  used += chunk.length + 2;
+                }
+                if (parts.length > 0) {
+                  edpbGuidelineBlock =
+                    "\n\nEDPB GUIDELINES 9/2022 -- SUPPLIED AUTHORITY EXCERPTS " +
+                    "(EDPB Guidelines 9/2022 on personal data breach notification under the GDPR, Version 2.0, adopted 28 March 2023). " +
+                    "When stating what EDPB guidance requires on Articles 33/34 (awareness, 72-hour clock, processor notification duty, risk assessment, delayed/phased notification, cross-border cases, communication to data subjects), cite ONLY from this block and never from recollection. " +
+                    "Never cite \"EDPB Guidelines 01/2021\" for breach notification — the correct reference is EDPB Guidelines 9/2022:\n\n" +
+                    parts.join("\n\n");
+                  irSuppliedCitations.push("EDPB Guidelines 9/2022");
+                }
+              }
+            } catch (e) {
+              console.warn("[generate-ir-playbook] edpb 9/2022 supply threw (non-fatal):", e);
             }
           }
         } catch (e) {
@@ -588,7 +633,7 @@ The following cases show where organisations were penalised for breach notificat
 CITATION RULE: When you reference any of these in section text, use the human-readable CITATION shown (e.g. "ICO (2023)" or "CNIL (2022)") — NEVER the bracketed [E#] code. The [E#] tag is only for your internal lookup. Reserve the exact id values for the ===ANNOTATIONS=== JSON block at the very end of the playbook.
 ${formatEnforcementContext(enforcement_context)}
 
-CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.${gdprBreachBlock}`;
+CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.${gdprBreachBlock}${edpbGuidelineBlock}`;`;
 
         const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate PART A (Sections 1–3) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 
