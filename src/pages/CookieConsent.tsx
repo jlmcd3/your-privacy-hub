@@ -180,6 +180,13 @@ export default function CookieConsentPage() {
           ],
         }}
         pageSynthesisKey="cookie__page"
+        topToolCta={{
+          toolName: "EU & Global Notice Builder",
+          toolDescription:
+            "Generate a GDPR- and ePrivacy-aligned privacy notice with cookie disclosures, legal-basis tables and DSR wording.",
+          href: "/eu-global-notice-builder",
+          context: "Put this into practice:",
+        }}
         sections={linkGlossaryFirstMentions([
           {
             id: "matrix",
