@@ -274,7 +274,7 @@ function validateFiveStage(intake: FiveStageIntake, lenient: boolean): { ok: tru
 // ---------------------------------------------------------------------------
 // Corpus retrieval (CR-2 Step 1).
 // ---------------------------------------------------------------------------
-async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforcementContext: string; longitudinalSynthesis: string; statuteContext: string; fsorContext: string }> {
+async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforcementContext: string; longitudinalSynthesis: string; statuteContext: string; fsorContext: string; citations: string[] }> {
   const primaryActivity = Object.entries(intake.triggers)
     .filter(([, v]) => v === true)
     .map(([k]) => k.replace(/_/g, " "))
