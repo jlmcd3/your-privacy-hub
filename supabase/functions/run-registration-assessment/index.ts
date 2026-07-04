@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
               (r?.authority_name ?? "").toLowerCase().includes("ico") ||
               (r?.jurisdiction_name ?? "").toLowerCase().includes("united kingdom");
             const feePresent = (r?.filing_fee_cents ?? null) != null;
-            const icoNote = "The filing fee shown is the base-tier amount from our records; the applicable ICO fee tier depends on the organisation's staff count and turnover — confirm the tier and current amount with the ICO's fee self-assessment before filing.";
+            const icoNote = "The filing fee shown is indicative; the applicable ICO fee tier depends on the organisation's staff count and turnover — Tier 1 (micro: turnover ≤£632K OR ≤10 staff), Tier 2 (small/medium: turnover ≤£36M OR ≤250 staff, not qualifying for Tier 1), Tier 3 (large: BOTH turnover exceeding £36M AND more than 250 staff). Confirm the tier and current amount with the ICO's fee self-assessment before filing.";
             if (isIcoUk && feePresent) {
               return existing ? `${existing} ${icoNote}` : icoNote;
             }
