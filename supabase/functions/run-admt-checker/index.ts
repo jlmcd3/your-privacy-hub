@@ -1003,6 +1003,16 @@ Return this JSON structure exactly:
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
 
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "run-admt-checker",
+      assessment_id,
+      JSON.stringify(report),
+      (authorities ?? []).map((a: any) => a?.citation).filter(Boolean),
+    );
+
+
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
    } catch (e) {
     console.error("[run-admt-checker] pipeline error:", e);
