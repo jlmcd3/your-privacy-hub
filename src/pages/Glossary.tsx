@@ -260,9 +260,10 @@ const Glossary = () => {
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         <ResearchToolCTA
-          toolName="Privacy Intelligence Feed"
-          toolDescription="Terms are the start — the Feed shows you how regulators are applying them, updated daily."
-          href="/updates"
+          toolName="Sample Reports"
+          toolDescription="See how these terms show up in a fully-worked assessment — full-length sample outputs for every tool."
+          href="/samples"
+          context="Put this into practice:"
         />
 
         {/* Search */}
