@@ -586,6 +586,15 @@ export default function CPPARiskAssessment() {
       </div>
 
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <MethodologyBox
+          title="How this assessment works"
+          lines={[
+            "Covers the risk-assessment obligation in Article 10 of the CCPA regulations (11 CCR §§ 7150–7157).",
+            "Your intake is validated before generation; contradictions are flagged with citations, never resolved for you.",
+            "Output: a Part A stakeholder summary and a Part B full assessment record.",
+            "This tool documents your record — it does not provide legal advice; review with counsel before relying on it.",
+          ]}
+        />
         <IntakeGuidance>Where a field asks you to describe something, be specific and complete — name the systems, the data, and the steps. Where several items apply, list each one separately. The report is only as precise as what you put in.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid, not legal advice, and does not constitute a certified audit or regulatory submission. Review all output with qualified counsel before relying on it." />
