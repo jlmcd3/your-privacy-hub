@@ -4,12 +4,15 @@
 // v3.3: REPEATED CONTENT APPEARS ONCE promoted to OUTPUT DISCIPLINE (product rules elaborate).
 // v3.4: SEQUENTIAL NUMBERING, GROUNDED LEGAL ASSERTIONS, DERIVED CONCLUSIONS, and
 // STATUTORY-OR-EPISTEMIC CONDITIONALS added to OUTPUT DISCIPLINE (owner rules, 2026-07-04).
+// v3.5: NO INSTRUCTION LEAKAGE and VERIFIED FACTS STATED ONCE added to OUTPUT DISCIPLINE (owner
+// hard rules, 2026-07-04).
 // v3.1: counsel-parenthetical removed; argument-voice parenthetical removed;
 // EU-transfers content modularized (opt-in via ToolModule.includeEuTransfers); UK–US Data Bridge
 // verified date added.
 
-export const PROMPT_CORE_VERSION = "3.4";
-export const BUILD_TAG = "qb12";
+export const PROMPT_CORE_VERSION = "3.5";
+export const BUILD_TAG = "qb13";
+
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
