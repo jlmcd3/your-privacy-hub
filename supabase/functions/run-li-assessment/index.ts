@@ -935,6 +935,16 @@ Return JSON:
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
 
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "run-li-assessment",
+      assessment_id,
+      JSON.stringify(reportData),
+      (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
+    );
+
+
 
     // C4 RoPA accumulator: draft a suggested processing activity into the
     // client's active RoPA session (fire-and-forget, non-fatal).
