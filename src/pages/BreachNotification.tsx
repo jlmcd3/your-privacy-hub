@@ -41,6 +41,7 @@ export default function BreachNotificationPage() {
           toolDescription:
             "A structured, jurisdiction-specific incident response guide generated for your organization. Covers GDPR, HIPAA, and active U.S. state laws.",
           href: getProduct("ir-playbook").route,
+          context: "Put this into practice:",
         }}
         sections={linkGlossaryFirstMentions([
           {
