@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import EnforcementSourceBlock from "@/components/enforcement/EnforcementSourceBlock";
 
 interface Action {
   id: string;
@@ -287,6 +288,12 @@ export default function EnforcementActionDetail() {
             </CardContent>
           </Card>
         )}
+
+        <EnforcementSourceBlock
+          regulator={action.regulator}
+          sourceUrl={action.source_url}
+          law={action.law}
+        />
 
         {action.source_url && (
           <div className="mb-8">
