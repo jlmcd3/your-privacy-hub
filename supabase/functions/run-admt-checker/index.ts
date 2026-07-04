@@ -225,7 +225,15 @@ WITHIN-15-DAYS FINDINGS STATE THE REAL GAP: where the intake records opt-out req
 
 PRIORITY LABELS MATCH TASK NATURE: a one-time documentation or classification task (identify and record the significant-decision category; document a carve-out policy) is labelled IMMEDIATE (or a deadline label) — never ONGOING. ONGOING is reserved for genuinely continuous activities (monitoring, periodic review cycles). Every priority action that directs documentation of a legal determination carries the governing citation in its own text (e.g. the trade-secret carve-out action cites Civil Code § 3426.1(d) and § 7222(c)) — never 'the referenced definition' without the reference.
 
-ACCESS-RESPONSE CONTENT IS ASSESSED ON ITS OWN TEXT: the access-response purpose disclosure is a distinct artefact from the Pre-use Notice. Where the intake does not supply the verbatim access-response text, say so and state what that response must independently contain — never grade the access response by critiquing the Pre-use Notice language, and never declare the element non-compliant on text the intake did not supply.`,
+ACCESS-RESPONSE CONTENT IS ASSESSED ON ITS OWN TEXT: the access-response purpose disclosure is a distinct artefact from the Pre-use Notice. Where the intake does not supply the verbatim access-response text, say so and state what that response must independently contain — never grade the access response by critiquing the Pre-use Notice language, and never declare the element non-compliant on text the intake did not supply.
+
+EVERY TRIGGER NAMES ITS SUBSECTION: a risk-assessment or ADMT trigger is identified by its specific § 7150(b) subsection as carried in supplied context; a descriptive label alone ('Profiling activity') is not a trigger. Where the applicable subsection cannot be established from the supplied context and intake, the item is framed as information_needed, not asserted as a trigger.
+
+FIELD NAMES MATCH THE NORMALIZED SCHEMA: any reference to an intake field uses the exact key from _normalized_intake (camelCase: profilingUse, not profiling_use). A field reference that does not exist in the normalized object is a defect.
+
+INTAKE FIGURES ONLY AS SUPPLIED: a numeric intake value ('The intake records 42 prior access requests') is stated ONLY where that figure appears in the supplied intake; otherwise describe the class of information without a number ('the intake may record inbound access-request volume; the relevant threshold is …'). A specific figure not present in the supplied intake is a fabrication.
+
+ENFORCEMENT EXPOSURE CARRIES ITS BASIS: the per-violation exposure statement cites Cal. Civ. Code § 1798.155 as its statutory basis, states amounts only as carried in the supplied context, and describes them as subject to inflation adjustment. It appears once at summary level with cross-references (per ENFORCEMENT EXPOSURE STATED ONCE).`,
   languageVariant: "american",
 };
 
@@ -946,6 +954,24 @@ Return this JSON structure exactly:
       return report;
     }
     report = enforceScopeGateOnGaps(report);
+
+    // QB13-6(a): remove entries with status "compliant" from notice_gaps, access_gaps,
+    // and opt_out_gaps (they remain in compliant_elements).
+    try {
+      let removed = 0;
+      for (const key of ["notice_gaps", "opt_out_gaps", "access_gaps"]) {
+        if (Array.isArray(report?.[key])) {
+          const before = report[key].length;
+          report[key] = report[key].filter((it: any) => it?.status !== "compliant");
+          removed += before - report[key].length;
+        }
+      }
+      if (removed > 0) console.warn(`[ADMT] QB13-6(a): removed ${removed} compliant item(s) from gaps arrays`);
+    } catch (e) {
+      console.error("[ADMT] QB13-6(a) compliant-strip errored:", e);
+    }
+
+
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

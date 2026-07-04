@@ -142,7 +142,11 @@ export const DPIA_TOOL_MODULE: ToolModule = {
     "ART. 6(1)(b) STRICT NECESSITY: contractual necessity requires the processing to be objectively necessary to perform the contract with the individual data subject. Platform-scale reliability, security, or resilience purposes are controller interests under Art. 6(1)(f) unless the contract with each data subject explicitly promises the individual-level processing. Where 6(1)(b) is offered for such a purpose, state the strict test and treat 6(1)(f) as the primary basis with 6(1)(b) as a to-be-verified alternative — never the reverse. Where 6(1)(b) is identified as an additional or alternative basis for any element of the processing, the Art. 20 portability entry assesses portability for data provided by the data subject under that basis, rather than stating flatly that portability does not apply.",
     "LEGAL-BASIS AVAILABILITY NEVER DEPENDS ON CONTROLLER ESTABLISHMENT: whether Art. 6(1)(a)–(f) is available for a processing purpose depends on the conditions of that basis (necessity for the contract, the balancing test, the legal obligation), never on where the controller is established. Controller location is relevant to Chapter V transfers and Art. 3 territorial scope — never to the availability of a legal basis. Never write 'Because the controller is outside the EU, Art. 6(1)(b) is not available' or any equivalent; state the basis's own test and whether the facts meet it.",
     "OUTPUT-ABSENCE, NOT CONTROLLER-FAILURE: the assessment sees the intake and its own output — it does not see the controller's files. Where information is missing, say what the intake or the record provided does not present — never that the controller 'has not documented', 'failed to record', or 'cannot demonstrate', which asserts facts about materials the assessment has not seen. Where the intake affirmatively answers a question (a populated field, including 'No'), that answer RESOLVES the question — describe it as answered, not as undocumented.",
+    "RISK LEVEL MATCHES THE DECLARED METHODOLOGY: the risk-assessment tables state their combination rule once and apply it to every row. Where the stated rule is 'the higher of likelihood and severity', every risk_level equals the higher of that row's two values — a Medium severity / Low likelihood row is Medium, never Low. If a different matrix is actually intended, state THAT matrix instead. The methodology sentence and every row must be mutually consistent in both the inherent and residual tables.",
+    "A DEFINITIVE CONCLUSION NEVER COEXISTS WITH ITS OWN OPEN ITEM: where a determination is stated as final ('OSS is unavailable; no EU main establishment has been identified'), no [TO COMPLETE] item may re-open the same fact ('confirm main-establishment status'). Either the fact is established — state the conclusion and drop the placeholder — or it is not — state the conclusion conditionally ('on the facts as stated…; if confirmed…') and keep the placeholder. Both, together, is a contradiction defect.",
+    "ARTICLE 27 IS NOT A FAIRNESS COMPONENT: the Art. 27 EU-representative appointment is an accountability and rights-enablement obligation, assessed separately — never a condition of the Art. 5(1)(a) fairness assessment. Fairness turns on the processing itself (including the Art. 6(1)(f) balancing); state the Art. 27 requirement in its own entry with its own citation.",
   ].join("\n\n"),
+
   languageVariant: "jurisdiction-conditional",
 };
 
@@ -663,6 +667,61 @@ Generate substantive draft rows for every table for the controller to verify; us
       if (e instanceof Error && e.message.startsWith("DPIA residual_risk_assessment incomplete")) throw e;
       console.error("[DPIA] QB8-8(a) repair pass errored:", e);
     }
+
+    // QB13-5(a): deterministic risk_level reconciliation. Where the methodology text
+    // mentions "higher of", recompute each inherent/residual row's risk_level as the
+    // higher of severity/likelihood on the High > Medium > Low scale and overwrite
+    // mismatches.
+    try {
+      const s4 = reportData?.section_4_risk_management;
+      const methodText = [
+        s4?.method,
+        s4?.methodology,
+        s4?.risk_methodology,
+        s4?.guidance_note,
+        s4?.method_note,
+      ].filter((v) => typeof v === "string").join(" \n ").toLowerCase();
+      if (methodText.includes("higher of")) {
+        const rank: Record<string, number> = { low: 1, medium: 2, high: 3 };
+        const label = ["", "Low", "Medium", "High"];
+        const higher = (a: any, b: any): string | null => {
+          const av = rank[String(a ?? "").trim().toLowerCase()];
+          const bv = rank[String(b ?? "").trim().toLowerCase()];
+          if (!av || !bv) return null;
+          return label[Math.max(av, bv)];
+        };
+        let corrections = 0;
+        const inherent = Array.isArray(s4?.inherent_risk_assessment) ? s4.inherent_risk_assessment : [];
+        for (const row of inherent) {
+          const expected = higher(row?.likelihood, row?.severity);
+          if (expected && row?.risk_level && String(row.risk_level).trim().toLowerCase() !== expected.toLowerCase()) {
+            row.risk_level = expected;
+            corrections += 1;
+          }
+        }
+        const residual = Array.isArray(s4?.residual_risk_assessment) ? s4.residual_risk_assessment : [];
+        for (const row of residual) {
+          const expected = higher(row?.residual_likelihood, row?.residual_severity);
+          if (!expected) continue;
+          const cur = String(row?.residual_risk_level ?? "").trim();
+          // Preserve suffix (e.g. " — proposed, subject to the organisation's re-scoring")
+          const suffixMatch = cur.match(/^(?:low|medium|high)\b(.*)$/i);
+          const suffix = suffixMatch ? suffixMatch[1] : "";
+          const curLevel = suffixMatch ? suffixMatch[0].split(/\s|—|-/)[0] : cur;
+          if (curLevel && curLevel.toLowerCase() !== expected.toLowerCase()) {
+            row.residual_risk_level = `${expected}${suffix}`;
+            corrections += 1;
+          }
+        }
+        if (corrections > 0) {
+          console.warn(`[DPIA] QB13-5(a): corrected ${corrections} risk_level value(s) to match declared methodology`);
+        }
+      }
+    } catch (e) {
+      console.error("[DPIA] QB13-5(a) methodology reconciliation errored:", e);
+    }
+
+
 
 
     // Lint narrative strings across the framework JSON; one retry on hard violations
