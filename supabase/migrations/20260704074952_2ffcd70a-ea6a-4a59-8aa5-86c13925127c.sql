@@ -1,0 +1,2 @@
+alter table public.cppa_authorities drop constraint if exists cppa_authorities_source_check;
+alter table public.cppa_authorities add constraint cppa_authorities_source_check check (source in ('CCPA','CPPA_REGS','CPPA_GUIDANCE','CA_IOT'));
