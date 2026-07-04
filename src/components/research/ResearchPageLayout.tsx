@@ -9,6 +9,7 @@ import { ResearchPageHeader, type BreadcrumbItem } from "./ResearchPageHeader";
 import { ResearchSynthesisBlock } from "./ResearchSynthesisBlock";
 import { ResearchToolCTA } from "./ResearchToolCTA";
 import SectionReferenceRail from "./SectionReferenceRail";
+import AdSlot from "@/components/ads/AdSlot";
 import type { RailEntry } from "@/components/intake/StatuteRail";
 
 const SITE_ORIGIN = "https://enduserprivacy.com";
@@ -146,31 +147,35 @@ export function ResearchPageLayout({
             {sections.map((sec, idx) => {
               const placement = sec.toolCtaPlacement ?? "bottom";
               return (
-                <section key={sec.id} id={sec.id} className={`scroll-mt-24 ${idx > 0 ? "pt-10 border-t border-brand-navy/10" : ""}`}>
-                  <h3 className="font-display text-brand-navy mb-4 leading-tight">
-                    <span className="text-brand-mist mr-2">{idx + 1}.</span>{sec.h2}
-                  </h3>
-                  {sec.complianceTrigger && (
-                    <div className="mb-4 rounded-lg border-l-4 border-accent bg-accent/5 px-4 py-3">
-                      <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-1">
-                        Compliance trigger
+                <div key={sec.id}>
+                  <section id={sec.id} className={`scroll-mt-24 ${idx > 0 ? "pt-10 border-t border-brand-navy/10" : ""}`}>
+                    <h3 className="font-display text-brand-navy mb-4 leading-tight">
+                      <span className="text-brand-mist mr-2">{idx + 1}.</span>{sec.h2}
+                    </h3>
+                    {sec.complianceTrigger && (
+                      <div className="mb-4 rounded-lg border-l-4 border-accent bg-accent/5 px-4 py-3">
+                        <div className="text-[11px] font-bold tracking-wider uppercase text-accent mb-1">
+                          Compliance trigger
+                        </div>
+                        <p className="text-sm text-brand-navy leading-relaxed m-0">
+                          {sec.complianceTrigger}
+                        </p>
                       </div>
-                      <p className="text-sm text-brand-navy leading-relaxed m-0">
-                        {sec.complianceTrigger}
-                      </p>
-                    </div>
-                  )}
-                  {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
-                  {sec.content && (
-                    <div
-                      className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-brand-teal [&_a]:no-underline [&_a:hover]:underline [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-brand-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-brand-navy [&_strong]:font-semibold [&_table]:w-full [&_table]:text-sm [&_table]:border-collapse [&_table]:my-4 [&_th]:text-left [&_th]:font-semibold [&_th]:text-brand-navy [&_th]:border-b [&_th]:border-brand-navy/30 [&_th]:py-2 [&_th]:pr-4 [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:border-brand-cloud [&_td]:align-top"
-                      dangerouslySetInnerHTML={{ __html: sec.content }}
-                    />
-                  )}
-                  {sec.children}
-                  {sec.synthesisKey && <ResearchSynthesisBlock sectionKey={sec.synthesisKey} compact />}
-                  {sec.toolCta && placement === "bottom" && <ResearchToolCTA {...sec.toolCta} />}
-                </section>
+                    )}
+                    {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
+                    {sec.content && (
+                      <div
+                        className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-brand-teal [&_a]:no-underline [&_a:hover]:underline [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-brand-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-brand-navy [&_strong]:font-semibold [&_table]:w-full [&_table]:text-sm [&_table]:border-collapse [&_table]:my-4 [&_th]:text-left [&_th]:font-semibold [&_th]:text-brand-navy [&_th]:border-b [&_th]:border-brand-navy/30 [&_th]:py-2 [&_th]:pr-4 [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:border-brand-cloud [&_td]:align-top"
+                        dangerouslySetInnerHTML={{ __html: sec.content }}
+                      />
+                    )}
+                    {sec.children}
+                    {sec.synthesisKey && <ResearchSynthesisBlock sectionKey={sec.synthesisKey} compact />}
+                    {sec.toolCta && placement === "bottom" && <ResearchToolCTA {...sec.toolCta} />}
+                  </section>
+                  {/* Single in-content AdSlot after the first content section (no-rail variant only). */}
+                  {idx === 0 && !hasRail && sections.length > 1 && <AdSlot format="in-content" />}
+                </div>
               );
             })}
           </div>

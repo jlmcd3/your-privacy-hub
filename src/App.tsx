@@ -157,6 +157,7 @@ const AdminQAExport = lazy(() => import("./pages/admin/AdminQAExport"));
 const SampleReport = lazy(() => import("./pages/SampleReport.tsx"));
 const SampleReportView = lazy(() => import("./pages/SampleReportView.tsx"));
 const SampleReportOutput = lazy(() => import("./pages/SampleReportOutput.tsx"));
+const SamplesHub = lazy(() => import("./pages/SamplesHub.tsx"));
 const TestsGdprDocs = lazy(() => import("./pages/admin/TestsGdprDocs"));
 const AdminAssertionTests = lazy(() => import("./pages/admin/AdminAssertionTests"));
 const AdminTestRunMeter = lazy(() => import("./pages/admin/AdminTestRunMeter"));
@@ -637,6 +638,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/samples" element={<SamplesHub />} />
             <Route path="/samples/:toolSlug/:variant" element={<SampleReportView />} />
             <Route path="/samples/:toolSlug" element={<SampleReport />} />
 

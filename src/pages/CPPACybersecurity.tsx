@@ -19,6 +19,7 @@ import ToolDisclaimer from "@/components/ToolDisclaimer";
 import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import SampleReportLink from "@/components/SampleReportLink";
+import MethodologyBox from "@/components/cppa/MethodologyBox";
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
@@ -173,6 +174,14 @@ export default function CPPACybersecurity() {
 
 
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6 bg-paper">
+        <MethodologyBox
+          title="Readiness, not the audit"
+          lines={[
+            "Maps your program against the 18 components in 11 CCR § 7123(c)(1)–(18).",
+            "Produces an audit-readiness gap analysis and evidence checklist.",
+            "It is not the independent cybersecurity audit itself — § 7122 requires a qualified, independent auditor; this prepares you for that engagement.",
+          ]}
+        />
         <IntakeGuidance>For each control, note the specific tools in place, the scope they cover, and any exceptions — separately and concretely. A control marked "in place" with a vague note produces a weaker gap analysis than one described precisely.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a cybersecurity readiness gap analysis against the 18 components enumerated in 11 CCR § 7123(c). It is not a cybersecurity audit, does not satisfy the CPPA's independent-auditor requirement, and is not legal advice. The April 1, 2028 certification requires an independent audit." />

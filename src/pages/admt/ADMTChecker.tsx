@@ -41,6 +41,7 @@ import type { RailEntry } from "@/components/intake/StatuteRail";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
+import MethodologyBox from "@/components/cppa/MethodologyBox";
 
 const SIGNIFICANT_DECISION_DOMAINS = [
   "Financial or lending services (credit decisions, loans, accounts)",
@@ -489,6 +490,15 @@ export default function ADMTChecker() {
       </div>
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <MethodologyBox
+          className="mb-4"
+          title="Scope first"
+          lines={[
+            "Applies only where automated decisionmaking technology makes a significant decision as defined by the regulations.",
+            "The checker gates every finding on that scope determination — ordinary advertising or personalization is not treated as a significant decision.",
+            "Deadline context: ADMT disclosure obligations begin January 1, 2027.",
+          ]}
+        />
         <IntakeGuidance className="mb-4">Describe each automated decision-making system specifically and separately — what it decides, on what data, and the human-review step. If you run several systems, give each its own description rather than merging them.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a compliance gap analysis for your ADMT systems under 11 CCR Article 11 (§§ 7200–7222). It is an analytical aid, not legal advice. Review all output with qualified California privacy counsel before relying on it for regulatory submissions." />

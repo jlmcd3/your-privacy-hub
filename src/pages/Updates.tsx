@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdBanner from "@/components/AdBanner";
+import AdSlot from "@/components/ads/AdSlot";
 import { type ArticleItem } from "@/components/ArticleCard";
 
 import { TieredFeed } from "@/components/TieredFeed";
@@ -654,6 +655,8 @@ const Updates = () => {
                 )}
 
                 <AdBanner variant="leaderboard" className="my-4" />
+                <AdSlot format="in-content" />
+
 
                 {/* Free registered: subtle Pro upgrade strip */}
                 {user && !isPremium && (
