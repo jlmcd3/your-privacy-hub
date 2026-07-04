@@ -1009,13 +1009,17 @@ Return this JSON structure exactly:
     }).eq("id", assessment_id);
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
-    observeCitations(
-      supabase,
-      "run-admt-checker",
-      assessment_id,
-      JSON.stringify(report),
-      (authorities ?? []).map((a: any) => a?.citation).filter(Boolean),
-    );
+    try {
+      await observeCitations(
+        supabase,
+        "run-admt-checker",
+        assessment_id,
+        JSON.stringify(report),
+        (authorities ?? []).map((a: any) => a?.citation).filter(Boolean),
+      );
+    } catch (obsErr) {
+      console.error("[citation-observe] non-fatal:", String(obsErr));
+    }
 
 
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
