@@ -8,6 +8,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SampleToolReport } from "@/components/SampleToolReport";
+import { TOOL_ROUTE } from "@/lib/sampleToolRoutes";
 
 type SampleRow = {
   id: string;
