@@ -230,10 +230,11 @@ export default function GDPREnforcement() {
         }}
         pageSynthesisKey="gdpr__page"
         topToolCta={{
-          toolName: getProduct("dpia").name,
+          toolName: "Governance Assessment",
           toolDescription:
-            "Generate a GDPR-compliant DPIA structured to EDPB WP 248 requirements, calibrated to DPA enforcement patterns.",
-          href: getProduct("dpia").route,
+            "Score your GDPR programme against the domains DPAs actually enforce, with cited enforcement decisions behind every finding.",
+          href: "/governance-assessment",
+          context: "Put this into practice:",
         }}
         sections={linkGlossaryFirstMentions([
           {

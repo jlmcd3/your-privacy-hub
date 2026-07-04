@@ -6,6 +6,7 @@ import { stripHtml, normalizeTitle } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SourceMethodology from "@/components/research/SourceMethodology";
 import { TieredFeed } from "@/components/TieredFeed";
 import { useAuth } from "@/hooks/useAuth";
 import globalAuthorities from "@/data/global_privacy_authorities.json";
@@ -770,6 +771,9 @@ const JurisdictionPage = () => {
               See a sample brief first →
             </Link>
           </p>
+        </div>
+        <div className="mt-10">
+          <SourceMethodology />
         </div>
       </div>
       <Footer />

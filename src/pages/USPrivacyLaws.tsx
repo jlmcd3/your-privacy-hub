@@ -229,9 +229,10 @@ const USPrivacyLaws = () => {
       {/* Landscape at a glance */}
       <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <ResearchToolCTA
-          toolName="GDPR Governance Assessment"
-          toolDescription="See where your privacy program stands against the state laws on this page — a structured, enforcement-calibrated assessment across ten governance domains."
-          href="/governance-assessment"
+          toolName="CPPA Scope Checker"
+          toolDescription="Free scope check — see whether your business is in-scope for California's CPRA and the CPPA's audit, risk-assessment, and ADMT regulations."
+          href="/cppa-scope-checker"
+          context="Put this into practice:"
         />
         <div className="grid grid-cols-3 gap-3">
           {[

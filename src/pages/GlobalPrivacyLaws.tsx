@@ -36,10 +36,11 @@ const GlobalPrivacyLaws = () => (
       ],
     }}
     topToolCta={{
-      toolName: getProduct("dpa-generator").name,
+      toolName: "Registration Manager",
       toolDescription:
-        "Generate a jurisdiction-specific DPA covering LGPD, PIPL, APPI, PDPA and other frameworks tracked on this page.",
-      href: getProduct("dpa-generator").route,
+        "See which registrations, DPO appointments, and EU-representative filings your operations trigger across every jurisdiction on this page.",
+      href: "/registration-manager",
+      context: "Put this into practice:",
     }}
     sections={linkGlossaryFirstMentions([
       {

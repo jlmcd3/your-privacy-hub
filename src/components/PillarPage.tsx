@@ -5,6 +5,7 @@ import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SourceMethodology from "@/components/research/SourceMethodology";
 import AdBanner from "@/components/AdBanner";
 import { TieredFeed } from "@/components/TieredFeed";
 import type { ArticleItem } from "@/components/ArticleCard";
@@ -399,6 +400,9 @@ const PillarPage = ({
             </Link>
           </div>
         )}
+        <div className="mt-10">
+          <SourceMethodology />
+        </div>
       </div>
       <Footer />
     </div>
