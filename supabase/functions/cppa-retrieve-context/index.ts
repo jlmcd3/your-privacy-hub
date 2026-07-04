@@ -74,6 +74,12 @@ Deno.serve(async (req) => {
   const full_text_limit: number = Math.max(0, Math.min(30, Number(body?.full_text_limit ?? 8) || 8));
   const limit: number = Math.max(1, Math.min(30, Number(body?.limit ?? 14) || 14));
 
+  // Base set: citation-pinned rows the caller ALWAYS needs, independent of
+  // topic/FTS scoring. Guaranteed-supply counterpart to search-based retrieval.
+  const base_citations: string[] = Array.isArray(body?.base_citations)
+    ? body.base_citations.filter((c: any) => typeof c === "string" && c.trim()).slice(0, 15)
+    : [];
+
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
   // 1. Citation lookup short-circuit
@@ -123,7 +129,7 @@ Deno.serve(async (req) => {
     for (const r of data ?? []) if (!seen.has(r.id)) pool.push(r);
   }
 
-  if (pool.length === 0) {
+  if (pool.length === 0 && base_citations.length === 0) {
     return json({
       authorities: [], deadlines: [],
       retrieved_count: 0, warning: "no_matching_authority",
@@ -181,18 +187,39 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Base-citation fetch: always included, always full_text, last to be dropped.
+  let baseRows: any[] = [];
+  const baseMissing: string[] = [];
+  if (base_citations.length > 0) {
+    let bq = admin.from("cppa_authorities").select("*")
+      .in("citation", base_citations)
+      .eq("status", "current");
+    if (verifiedOnly) bq = bq.not("verified_by", "is", null);
+    const { data: bRows, error: bErr } = await bq;
+    if (bErr) console.warn("[retrieve-context] base fetch failed:", bErr.message);
+    baseRows = bRows ?? [];
+    const got = new Set(baseRows.map((r: any) => r.citation));
+    for (const c of base_citations) if (!got.has(c)) baseMissing.push(c);
+    if (baseMissing.length > 0) {
+      console.warn("[retrieve-context] base citations missing or gated:", baseMissing.join("; "));
+    }
+  }
+
   // Merge forced into result set without duplicating
   const byId = new Map<string, any>();
   for (const r of top) byId.set(r.id, r);
   for (const r of forced) if (!byId.has(r.id)) byId.set(r.id, r);
+  for (const r of baseRows) if (!byId.has(r.id)) byId.set(r.id, r);
   const merged = Array.from(byId.values());
 
   // 8. Decide which get full_text
   const forcedIds = new Set(forced.map((r) => r.id));
+  const baseIds = new Set(baseRows.map((r) => r.id));
   const topIdsForFullText = new Set(
     scored.slice(0, full_text_limit).map((s) => s.row.id),
   );
-  const wantsFullText = (id: string) => topIdsForFullText.has(id) || forcedIds.has(id);
+  const wantsFullText = (id: string) =>
+    topIdsForFullText.has(id) || forcedIds.has(id) || baseIds.has(id);
 
   // Build initial items
   let items = merged.map((r) => ({
@@ -201,9 +228,12 @@ Deno.serve(async (req) => {
   }));
 
   // Enforce 120K char cap on full_text — drop full_text from lowest authority_weight rows
-  const ascByWeight = [...items].sort((a, b) =>
-    (a.raw.authority_weight ?? 0) - (b.raw.authority_weight ?? 0),
-  );
+  const ascByWeight = [...items].sort((a, b) => {
+    const aBase = baseIds.has(a.raw.id) ? 1 : 0;
+    const bBase = baseIds.has(b.raw.id) ? 1 : 0;
+    if (aBase !== bBase) return aBase - bBase; // non-base rows drop first
+    return (a.raw.authority_weight ?? 0) - (b.raw.authority_weight ?? 0);
+  });
   let totalChars = items.reduce((n, x) => n + (x.item.full_text?.length ?? 0), 0);
   for (const x of ascByWeight) {
     if (totalChars <= FULL_TEXT_HARD_CAP) break;
@@ -233,6 +263,8 @@ Deno.serve(async (req) => {
     authorities,
     deadlines,
     retrieved_count: authorities.length,
+    base_returned: baseRows.map((r) => r.citation),
+    base_missing: baseMissing,
     verified_only_mode: verifiedOnly,
   });
 });

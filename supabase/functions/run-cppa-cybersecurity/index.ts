@@ -236,6 +236,34 @@ async function runAssessment(assessment_id: string): Promise<void> {
       console.warn("[CPPA Cyber] enforcement context fetch failed:", e);
     }
 
+    // IoT sector conditional supply block — verbatim authority text for
+    // Cal. Civ. Code §§ 1798.91.04–1798.91.06 (California IoT Security Law).
+    // Content/rules unchanged; this is supply-side only.
+    const S = String.fromCharCode(167);
+    const sectorStr = String((row.intake_data as any)?.industry_sector ?? (row.intake_data as any)?.org_context?.sector ?? (row.intake_data as any)?.profile?.industry ?? "");
+    const isConnectedDeviceSector = /iot|connected.device|smart.home|device manufactur/i.test(sectorStr);
+    let iotAuthorityBlock = "";
+    if (isConnectedDeviceSector) {
+      const IOT_CITATIONS = [
+        `Cal. Civ. Code ${S} 1798.91.04`,
+        `Cal. Civ. Code ${S} 1798.91.05`,
+        `Cal. Civ. Code ${S} 1798.91.06`,
+      ];
+      const { data: iotRows } = await supabase
+        .from("cppa_authorities")
+        .select("citation, title, full_text")
+        .in("citation", IOT_CITATIONS)
+        .eq("status", "current")
+        .not("verified_by", "is", null);
+      if (iotRows && iotRows.length > 0) {
+        iotAuthorityBlock =
+          "\n\nCALIFORNIA IoT SECURITY LAW -- SUPPLIED AUTHORITY TEXT (cite this law's content ONLY from the text below, never from recollection):\n" +
+          iotRows.map((r: any) => r.full_text).join("\n\n");
+      } else {
+        console.warn("[cppa-cyber] IoT sector detected but IoT authority rows unavailable");
+      }
+    }
+
     const today = new Date().toISOString().slice(0, 10);
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
@@ -306,7 +334,7 @@ SECTOR RULES — include the following additional context in findings and remedi
 - Pharma / Clinical Research: note FDA 21 CFR Part 11 requirements for audit logging and access controls on systems handling electronic records.
 - Children / EdTech: note COPPA security obligations where personal information of minors is involved.
 
-GOVERNMENT/NONPROFIT APPLICABILITY — add a sentence to the finding for each control if the intake indicates the entity is a government agency or public-sector body: "Note: CPPA cybersecurity audit obligations under 11 CCR §§ 7120–7124 apply only to 'businesses' as defined in Cal. Civ. Code § 1798.140(ag). State and local government agencies are expressly excluded from the CCPA definition of 'business.' This readiness assessment assumes CPPA applicability; the entity should confirm its status as a covered business before relying on this report for CPPA compliance purposes." If the entity appears to be a nonprofit, add: "CPPA cybersecurity obligations apply only to entities meeting at least one of the three CCPA business thresholds (annual gross revenues >$25M; processing PI of 100,000+ consumers/households; or deriving 50%+ of revenue from selling/sharing PI). This readiness assessment assumes threshold applicability; the entity should verify its status."`;
+GOVERNMENT/NONPROFIT APPLICABILITY — add a sentence to the finding for each control if the intake indicates the entity is a government agency or public-sector body: "Note: CPPA cybersecurity audit obligations under 11 CCR §§ 7120–7124 apply only to 'businesses' as defined in Cal. Civ. Code § 1798.140(ag). State and local government agencies are expressly excluded from the CCPA definition of 'business.' This readiness assessment assumes CPPA applicability; the entity should confirm its status as a covered business before relying on this report for CPPA compliance purposes." If the entity appears to be a nonprofit, add: "CPPA cybersecurity obligations apply only to entities meeting at least one of the three CCPA business thresholds (annual gross revenues >$25M; processing PI of 100,000+ consumers/households; or deriving 50%+ of revenue from selling/sharing PI). This readiness assessment assumes threshold applicability; the entity should verify its status."${iotAuthorityBlock}`;
     }
 
     function buildSynthesisPrompt(controlsDigest: string, computedScore: number): string {
@@ -788,6 +816,11 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       "11 CCR § 7122",
       "11 CCR § 7123",
       "11 CCR § 7124",
+      ...(isConnectedDeviceSector ? [
+        `Cal. Civ. Code ${S} 1798.91.04`,
+        `Cal. Civ. Code ${S} 1798.91.05`,
+        `Cal. Civ. Code ${S} 1798.91.06`,
+      ] : []),
     ];
     const { data: authRows } = await supabase
       .from("cppa_authorities")
