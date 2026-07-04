@@ -391,6 +391,9 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "NO SYSTEM-ROUTING VOICE: never describe the generator's internal routing or processing decisions in user-facing text ('No ADMT assessment is routed at this time', 'this module was skipped'). State the regulatory position instead: 'An ADMT assessment is not triggered on the current record pending resolution of the inconsistency identified above.' The output describes the organisation's obligations, never the system's machinery.",
     "CONCLUDE, DON'T ECHO — AND DIRECTIVES BEFORE CAVEATS: (1) a validity_assessment or concluding field synthesizes its verdict in its own words and never repeats a sentence verbatim from missing_elements or another field (cross-reference instead). (2) In any resolution_required or action text, state the directive as a complete sentence FIRST and place qualifying or explanatory clauses in a following sentence — never mid-directive where they read as weakening the requirement. (3) Where a conclusion label could be misread as contradicting the user's stated intake position, use a documentation framing: 'Documentation incomplete — the record does not yet support the stated conclusion' rather than a bare 'Insufficient basis'. (4) Where § 7001(ddd) significant-decision categories are cited AND the supplied regulation text carries the enumeration, include a one-line plain-English list of the categories so the reader can assess scope without leaving the document; where the supplied text does not carry them, cite without enumerating — never list the categories from memory.",
     "INTAKE 'NO' IS AN ANSWER, NOT A SILENCE: distinguish 'the intake affirmatively records No' from 'the intake is silent'. A field recorded false/No (e.g. dpo_or_privacy_officer: false) is DOCUMENTED — as an absence — and is described as such ('the intake records no designated DPO'), never as 'not documented in the intake' or 'a documentation gap, not a confirmed finding of absence', which is circular. Where the intake is genuinely silent, say the intake does not address the point and route it through the record-completion actions. Never blend the two framings in one finding.",
+    "MISSING_ELEMENTS NEVER RE-LIST FLAGGED INCONSISTENCIES: an exception's missing_elements[] lists only documentation gaps specific to that exception. A conflict already documented in inconsistency_flags (e.g. two coexisting retention periods) is referenced with a short cross-reference ('see inconsistency_flags: retention-period conflict') — never restated as a missing element.",
+    "CONTRADICTIONS ARE NAMED AS CONTRADICTIONS: where two intake records cannot both be true (detailed ADMT-field responses alongside negated ADMT triggers; two retention periods for the same scope), the flag's opening description states that the records directly contradict each other — never softened to 'is in tension with' or 'sits uneasily alongside'. Reserve tension language for records that are merely incomplete relative to each other, not mutually exclusive.",
+    "NO IMPERATIVES IN DOCUMENTARY FIELDS: fields that summarise the state of the record (purpose, statutory_basis, rationale, description) state requirements and deadlines declaratively; imperative directives ('Begin now: …', 'Do X immediately') live in priority_actions ONLY. An imperative inside a documentary field duplicating a priority_action is a defect.",
   ].join("\n"),
   schema: `OUTPUT FORMAT — Return a single JSON object with this exact structure. No markdown fences, no preamble:
 
@@ -850,6 +853,38 @@ async function runPipeline(assessment_id: string) {
       return report;
     }
     report_data = dedupeExceptionFlags(report_data);
+
+    // QB12-4(a): the exception-citation summary note appears once. Where the same
+    // sentence recurs in later exception_analysis entries' statutory_basis (or any
+    // per-entry field), keep the FIRST occurrence and replace subsequent ones with
+    // a short cross-reference. Same try/catch discipline as QB11-5(b).
+    function dedupeExceptionCitationNote(report: any): any {
+      try {
+        const arr = report?.exception_analysis;
+        if (!Array.isArray(arr)) return report;
+        const marker = "the assessment record must cite the specific statutory or regulatory exception provision";
+        let seen = false;
+        let replaced = 0;
+        for (const ex of arr) {
+          if (!ex || typeof ex !== "object") continue;
+          for (const key of Object.keys(ex)) {
+            const val = (ex as any)[key];
+            if (typeof val !== "string") continue;
+            const lower = val.toLowerCase();
+            const idx = lower.indexOf(marker);
+            if (idx === -1) continue;
+            if (!seen) { seen = true; continue; }
+            (ex as any)[key] = "See the exception-citation note above.";
+            replaced += 1;
+          }
+        }
+        if (replaced > 0) console.warn("[RISK] QB12-4(a): deduplicated exception-citation summary note");
+      } catch (e) {
+        console.error("[RISK] QB12-4(a) dedupe errored:", e);
+      }
+      return report;
+    }
+    report_data = dedupeExceptionCitationNote(report_data);
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
