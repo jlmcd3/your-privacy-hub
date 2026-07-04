@@ -8,8 +8,8 @@
 // EU-transfers content modularized (opt-in via ToolModule.includeEuTransfers); UK–US Data Bridge
 // verified date added.
 
-export const PROMPT_CORE_VERSION = "3.3";
-export const BUILD_TAG = "qb11";
+export const PROMPT_CORE_VERSION = "3.4";
+export const BUILD_TAG = "qb12";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
