@@ -12,6 +12,7 @@ import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
+import { verifyEdpb12024AgainstCorpus } from "../_shared/edpb-1-2024-consistency.ts";
 
 
 
@@ -43,6 +44,11 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
+
+// L3 stage 2 (EDPB): fire-and-forget consistency warn between the
+// hand-written EDPB_1_2024_AUTHORITY constant and edpb_guidelines rows.
+// Runs once per warm instance; never blocks.
+verifyEdpb12024AgainstCorpus(supabase).catch(() => {});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
