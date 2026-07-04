@@ -947,6 +947,24 @@ Return this JSON structure exactly:
     }
     report = enforceScopeGateOnGaps(report);
 
+    // QB13-6(a): remove entries with status "compliant" from notice_gaps, access_gaps,
+    // and opt_out_gaps (they remain in compliant_elements).
+    try {
+      let removed = 0;
+      for (const key of ["notice_gaps", "opt_out_gaps", "access_gaps"]) {
+        if (Array.isArray(report?.[key])) {
+          const before = report[key].length;
+          report[key] = report[key].filter((it: any) => it?.status !== "compliant");
+          removed += before - report[key].length;
+        }
+      }
+      if (removed > 0) console.warn(`[ADMT] QB13-6(a): removed ${removed} compliant item(s) from gaps arrays`);
+    } catch (e) {
+      console.error("[ADMT] QB13-6(a) compliant-strip errored:", e);
+    }
+
+
+
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "cppa_admt",
