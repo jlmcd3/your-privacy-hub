@@ -829,6 +829,28 @@ async function runPipeline(assessment_id: string) {
     const guarded = guardInformationNeeded(report_data, ((row as any).intake_data as Record<string, unknown>) ?? {});
     report_data = guarded.report;
 
+    // QB11-5(b): an exception's missing_elements[] entry and flags[] entry must not be
+    // exact duplicates — keep the missing_elements copy, drop the duplicate flag.
+    function dedupeExceptionFlags(report: any): any {
+      try {
+        const arr = report?.exception_analysis;
+        if (Array.isArray(arr)) {
+          for (const ex of arr) {
+            if (ex && Array.isArray(ex.flags) && Array.isArray(ex.missing_elements)) {
+              const missing = new Set(ex.missing_elements.map((s: any) => String(s).trim().toLowerCase()));
+              const before = ex.flags.length;
+              ex.flags = ex.flags.filter((f: any) => !missing.has(String(f).trim().toLowerCase()));
+              if (ex.flags.length !== before) console.warn(`[RISK] QB11-5(b): removed ${before - ex.flags.length} duplicate exception flag(s)`);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[RISK] QB11-5(b) dedupe errored:", e);
+      }
+      return report;
+    }
+    report_data = dedupeExceptionFlags(report_data);
+
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {
       toolType: "cppa_risk_assessment",
