@@ -9,6 +9,7 @@ import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { observeCitations } from "../_shared/citation-observe.ts";
 
 
 export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
@@ -1121,6 +1122,16 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       .from("cppa_assessments")
       .update({ status: "complete", report_data: report, obligation_snapshot })
       .eq("id", assessment_id);
+
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "run-cppa-cybersecurity",
+      assessment_id,
+      JSON.stringify(report),
+      (authRows ?? []).map((a: any) => a?.citation).filter(Boolean),
+    );
+
 
 
     // C4 RoPA accumulator: cybersecurity controls map to a Security activity

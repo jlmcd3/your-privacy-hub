@@ -18,6 +18,7 @@ import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERS
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { observeCitations } from "../_shared/citation-observe.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -1001,6 +1002,16 @@ Return this JSON structure exactly:
       report_data: report,
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
+
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "run-admt-checker",
+      assessment_id,
+      JSON.stringify(report),
+      (authorities ?? []).map((a: any) => a?.citation).filter(Boolean),
+    );
+
 
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "cppa_assessments", sourceRowId: assessment_id });
    } catch (e) {

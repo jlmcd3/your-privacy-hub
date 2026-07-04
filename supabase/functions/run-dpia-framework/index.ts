@@ -10,6 +10,7 @@ import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, typ
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { observeCitations } from "../_shared/citation-observe.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -898,6 +899,16 @@ Generate substantive draft rows for every table for the controller to verify; us
       report_data: reportData,
       updated_at: new Date().toISOString(),
     }).eq("id", dpia_id);
+
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "run-dpia-framework",
+      dpia_id,
+      JSON.stringify(reportData),
+      (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
+    );
+
 
 
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id });

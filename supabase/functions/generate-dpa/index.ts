@@ -9,6 +9,7 @@ import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { observeCitations } from "../_shared/citation-observe.ts";
 import { PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 
 const corsHeaders = {
@@ -910,6 +911,16 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       console.error("dpa_documents persist failed:", updateErr);
       throw updateErr;
     }
+
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "generate-dpa",
+      rowId,
+      dpa_text,
+      (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
+    );
+
 
 
     // C4 RoPA accumulator: third-party processor onboarding is a RoPA event

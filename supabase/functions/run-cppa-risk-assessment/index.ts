@@ -27,6 +27,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { CITATION_REGISTRY } from "../_shared/admt-citation-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { observeCitations } from "../_shared/citation-observe.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -947,6 +948,16 @@ async function runPipeline(assessment_id: string) {
     await supabase.from("cppa_assessments")
       .update({ status: "complete", report_data })
       .eq("id", assessment_id);
+
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "run-cppa-risk-assessment",
+      assessment_id,
+      JSON.stringify(report_data),
+      (authorities ?? []).map((a: any) => a?.citation).filter(Boolean),
+    );
+
 
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);

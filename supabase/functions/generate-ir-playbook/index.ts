@@ -15,6 +15,7 @@ import { renderIcoPenaltyFigures } from "../_shared/enforcement-figures-registry
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
+import { observeCitations } from "../_shared/citation-observe.ts";
 
 const IR_IDENTITY = `You are a senior data protection incident response specialist with extensive experience advising organizations through live data breach incidents under GDPR, UK GDPR, HIPAA, and US state breach notification laws.`;
 
@@ -539,6 +540,7 @@ Deno.serve(async (req) => {
         // GDPR breach-notification authority supply (verbatim Art. 33/34 from gdpr_articles).
         // Only when EU or UK jurisdictions are selected; US-state-only incidents skip this.
         let gdprBreachBlock = "";
+        let irSuppliedCitations: string[] = [];
         try {
           const jList: string[] = (Array.isArray(body.jurisdictions) ? body.jurisdictions : []).map((j: any) => String(j).toLowerCase());
           const hasEu = jList.some((j) => j.includes("eu") || j.includes("gdpr")) && !jList.every((j) => j.includes("uk"));
@@ -556,11 +558,14 @@ Deno.serve(async (req) => {
               if ((ctx.meta?.missing_articles ?? []).length > 0) {
                 console.warn("[generate-ir-playbook] GDPR base articles missing:", ctx.meta.missing_articles.join(", "));
               }
+              irSuppliedCitations = (ctx.meta?.matched_articles ?? [])
+                .map((n: string) => `Article ${n} GDPR`);
             }
           }
         } catch (e) {
           console.warn("[generate-ir-playbook] gdpr-context failed (non-fatal):", e);
         }
+
 
         // ── Split into TWO PARALLEL Sonnet calls to stay inside the edge runtime
         // wall-clock budget.
@@ -1067,6 +1072,15 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
             updated_at: new Date().toISOString(),
           })
           .eq("id", rowId);
+
+        // L2 — observe-only citation lint (never blocks, never mutates output).
+        observeCitations(
+          supabase,
+          "generate-ir-playbook",
+          rowId,
+          playbook_text,
+          irSuppliedCitations,
+        );
 
         await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "ir_playbooks", sourceRowId: rowId });
       } catch (bgErr) {

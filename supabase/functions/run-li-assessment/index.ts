@@ -11,6 +11,7 @@ import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERS
 import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { observeCitations } from "../_shared/citation-observe.ts";
 
 
 
@@ -933,6 +934,16 @@ Return JSON:
       report_data: reportData,
       updated_at: new Date().toISOString(),
     }).eq("id", assessment_id);
+
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "run-li-assessment",
+      assessment_id,
+      JSON.stringify(reportData),
+      (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
+    );
+
 
 
     // C4 RoPA accumulator: draft a suggested processing activity into the
