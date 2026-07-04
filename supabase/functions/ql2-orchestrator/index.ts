@@ -45,6 +45,35 @@ async function log(runId: string, message: string, opts: { level?: string; produ
   });
 }
 
+// Retry a PostgREST call that hits a transient network/TLS error
+// (e.g. "peer closed connection without sending TLS close_notify").
+// Uses a fresh client per attempt so a broken keep-alive socket is not reused.
+async function retryDb<T extends { error: any }>(
+  fn: () => PromiseLike<T>,
+  attempts = 3,
+  baseDelayMs = 400,
+): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fn();
+      const msg = (res as any)?.error?.message ?? "";
+      const transient = /SendRequest|close_notify|connection error|ECONNRESET|fetch failed|TLS|network/i.test(msg);
+      if (!transient) return res;
+      lastErr = (res as any).error;
+    } catch (e) {
+      lastErr = e;
+      const msg = (e as Error)?.message ?? String(e);
+      const transient = /SendRequest|close_notify|connection error|ECONNRESET|fetch failed|TLS|network/i.test(msg);
+      if (!transient) throw e;
+    }
+    if (i < attempts - 1) await new Promise(r => setTimeout(r, baseDelayMs * (i + 1)));
+  }
+  // Return a synthesized error-shaped response if we exhausted retries via caught throw
+  if (lastErr instanceof Error) return { data: null, error: { message: lastErr.message } } as unknown as T;
+  return { data: null, error: lastErr } as unknown as T;
+}
+
 async function heartbeat(runId: string) {
   await admin().from("quality_loop2_runs").update({ last_heartbeat_at: new Date().toISOString() }).eq("id", runId);
 }
@@ -379,12 +408,12 @@ async function runUnit(runId: string) {
 
     // Persist per-product quality_runs + quality_check_results FIRST (audit B).
     const applyKey = reg.applyKey;
-    const { data: qrun, error: qrunErr } = await db.from("quality_runs").insert({
+    const { data: qrun, error: qrunErr } = await retryDb(() => db.from("quality_runs").insert({
       tool: applyKey,
       status: "complete",
       run_number: 1,
       mode: "manual",
-    }).select("id").maybeSingle();
+    }).select("id").maybeSingle());
     if (qrunErr || !qrun) {
       await log(runId, `${reg.label}: failed to create quality_runs row: ${qrunErr?.message}`, { level: "error", product: next });
       await db.from("quality_loop2_results").insert({
@@ -396,7 +425,7 @@ async function runUnit(runId: string) {
       return;
     }
     const checkId = `ql2:${next}`;
-    const { data: chk, error: chkErr } = await db.from("quality_check_results").insert({
+    const { data: chk, error: chkErr } = await retryDb(() => db.from("quality_check_results").insert({
       run_id: qrun.id,
       tool: applyKey,
       run_number: 1,
@@ -408,7 +437,7 @@ async function runUnit(runId: string) {
       fail_rate: 1,
       proposed_fix: recommendation,
       fix_location: fixLocation,
-    }).select("id").maybeSingle();
+    }).select("id").maybeSingle());
     if (chkErr || !chk) {
       await log(runId, `${reg.label}: failed to create quality_check_results row: ${chkErr?.message}`, { level: "error", product: next });
       await db.from("quality_loop2_results").insert({
