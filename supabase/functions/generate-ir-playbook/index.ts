@@ -227,7 +227,9 @@ PRECEDENTS CITE ONLY WHAT IS CITABLE: where an enforcement-corpus entry carries 
 
 VERIFIED CALIFORNIA BREACH DEADLINES (cite these; do not recall breach-notification timelines from memory): Cal. Civ. Code § 1798.82, as amended by SB 446 (signed October 2025, effective January 1, 2026), requires (1) disclosure to affected California residents within 30 calendar days of discovery or notification of the breach, subject to the law-enforcement and scope-determination delay provisions, and (2) for breaches affecting more than 500 California residents, electronic submission of a single sample copy of the notification to the California Attorney General within 15 calendar days of notifying affected consumers. Where the incident predates January 1, 2026, the prior 'most expedient time possible and without unreasonable delay' standard governed; state which regime applies by incident date.
 
-PROVISIONAL DEADLINES SAY SO: where a statutory clock is computed from a timestamp that the playbook itself marks as pending confirmation (e.g. detection treated as concurrent with controller awareness), the deadline statement must carry the provisional framing inline — "provisionally computed from the detection timestamp, treating it as concurrent with awareness pending confirmation; if awareness is confirmed later, recalculate all deadlines from the confirmed timestamp" — never a bare "computed from the stated awareness timestamp" while another section calls that timestamp unconfirmed.`;
+PROVISIONAL DEADLINES SAY SO: where a statutory clock is computed from a timestamp that the playbook itself marks as pending confirmation (e.g. detection treated as concurrent with controller awareness), the deadline statement must carry the provisional framing inline — "provisionally computed from the detection timestamp, treating it as concurrent with awareness pending confirmation; if awareness is confirmed later, recalculate all deadlines from the confirmed timestamp" — never a bare "computed from the stated awareness timestamp" while another section calls that timestamp unconfirmed.
+
+GERMAN AUTHORITY NOMENCLATURE IS CANONICAL: the federal authority is 'Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI)' — after first use, 'BfDI'. The state authorities are 'Landesdatenschutzbehörde' / 'Landesdatenschutzbehörden' — use that term consistently. 'Bundesdatenschutzbehörde' and 'Bundesdatenschutzbeauftragter' are not standard names and must never appear. Competence default, stated wherever German competence is discussed (alongside any confirmation placeholder): for private-sector controllers the competent authority is the Landesdatenschutzbehörde of the German establishment's registered seat; the BfDI supervises federal public bodies and telecommunications/postal providers.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
@@ -902,6 +904,23 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           return head + tail;
         }
 
+        // QB10-3(b): lint (log-only) — a named "Regulator (YYYY)" citation should carry an
+        // adjacent decision date or official-source reference within the same passage.
+        function lintBareCitations(text: string): void {
+          try {
+            const re = /\b[A-ZÀ-Þ][\w .'’-]{2,80}\((?:19|20)\d{2}\)/g;
+            let m: RegExpExecArray | null;
+            while ((m = re.exec(text)) !== null) {
+              const windowText = text.slice(m.index, m.index + 400);
+              if (!/decided \d{4}-\d{2}-\d{2}|official source:/i.test(windowText)) {
+                console.warn(`[IR] QB10-3(b) bare citation without adjacent identifiers: "${m[0]}" @${m.index}`);
+              }
+            }
+          } catch (e) {
+            console.error("[IR] QB10-3(b) lint errored:", e);
+          }
+        }
+
 
         let partA = "";
         let partB = "";
@@ -934,6 +953,7 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
 
         const assembled = assembleFromHalves(partA, partB, partC);
         assembled.playbook_text = stripSection4DeferralNotes(assembled.playbook_text);
+        lintBareCitations(assembled.playbook_text);
         const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
         for (const v of lint.violations) lintWarnings.push(v);

@@ -1,0 +1,1 @@
+alter table public.tool_run_versions add column if not exists build_info jsonb;

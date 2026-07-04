@@ -317,7 +317,7 @@ async function handle(req: Request): Promise<Response> {
   if (!testId || !output) return jsonResp({ error: "testId and output are required" }, 400);
 
   const outputStr = typeof output === "string" ? output : JSON.stringify(output, null, 2);
-  const trimmed = outputStr.length > 80_000 ? outputStr.slice(0, 80_000) + "\n…[truncated]" : outputStr;
+  const trimmed = outputStr.length > 200_000 ? outputStr.slice(0, 200_000) + "\n…[truncated]" : outputStr;
 
   const isImprovement = mode === "improvement";
   const baseSystem = isImprovement ? IMPROVEMENT_SYSTEM_PROMPT : RUBRIC_SYSTEM_PROMPT;

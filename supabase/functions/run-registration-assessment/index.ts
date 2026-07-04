@@ -88,6 +88,9 @@ Deno.serve(async (req) => {
         } else if (regRequired !== true && obligations.includes("registration")) {
           obligations = obligations.filter((o: string) => o !== "registration");
         }
+        // QB10-10: lead_authority is a status designation, not a filing obligation.
+        const wasLeadAuthority = obligations.includes("lead_authority");
+        obligations = obligations.filter((o: string) => o !== "lead_authority");
         return {
           code: j.code,
           name: r?.jurisdiction_name || j.code,
@@ -108,7 +111,9 @@ Deno.serve(async (req) => {
           filing_currency: r?.filing_currency ?? null,
           renewal_period_months: r?.renewal_period_months ?? null,
           notes: (() => {
-            const existing = r?.notes ?? null;
+            const leadNote = "This jurisdiction serves as the organisation's lead supervisory authority under the GDPR one-stop-shop mechanism.";
+            const baseNotes = r?.notes ?? null;
+            const existing = wasLeadAuthority ? (baseNotes ? `${baseNotes} ${leadNote}` : leadNote) : baseNotes;
             // QB9-9: ICO fee-tier caveat for UK entries with a base-tier fee.
             const isIcoUk = j.code === "GB" || j.code === "UK" ||
               (r?.authority_name ?? "").toLowerCase().includes("ico") ||

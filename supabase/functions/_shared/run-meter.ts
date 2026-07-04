@@ -3,6 +3,7 @@
 // report_data has been written. Errors here are logged and swallowed so
 // they never break user-facing generation.
 import { lockedSnapshot } from "./locked-fields.ts";
+import { PROMPT_CORE_VERSION, BUILD_TAG } from "./prompt-core.ts";
 
 export async function recordRunMeterAndVersion(
   supabase: any,
@@ -64,6 +65,7 @@ export async function recordRunMeterAndVersion(
       intake_snapshot: intake ?? null,
       report_data: reportData ?? null,
       document_text: documentText ?? null,
+      build_info: { build: BUILD_TAG, core_version: PROMPT_CORE_VERSION, recorded_at: new Date().toISOString() },
     });
     if (verErr) {
       console.error(JSON.stringify({ evt: "run_version_insert_failed", tool: toolType, version: nextVersion, detail: verErr.message }));

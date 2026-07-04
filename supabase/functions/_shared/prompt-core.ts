@@ -6,6 +6,7 @@
 // verified date added.
 
 export const PROMPT_CORE_VERSION = "3.2";
+export const BUILD_TAG = "qb10";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
