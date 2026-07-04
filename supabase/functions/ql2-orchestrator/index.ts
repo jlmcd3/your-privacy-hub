@@ -425,7 +425,7 @@ async function runUnit(runId: string) {
       return;
     }
     const checkId = `ql2:${next}`;
-    const { data: chk, error: chkErr } = await db.from("quality_check_results").insert({
+    const { data: chk, error: chkErr } = await retryDb(() => db.from("quality_check_results").insert({
       run_id: qrun.id,
       tool: applyKey,
       run_number: 1,
@@ -437,7 +437,7 @@ async function runUnit(runId: string) {
       fail_rate: 1,
       proposed_fix: recommendation,
       fix_location: fixLocation,
-    }).select("id").maybeSingle();
+    }).select("id").maybeSingle());
     if (chkErr || !chk) {
       await log(runId, `${reg.label}: failed to create quality_check_results row: ${chkErr?.message}`, { level: "error", product: next });
       await db.from("quality_loop2_results").insert({
