@@ -5,8 +5,24 @@ import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { RequirementBadge } from "@/components/RequirementBadge";
+import SampleReportLink from "@/components/SampleReportLink";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+
+// Map Tools-page slugs to /samples/{sampleSlug} slugs where a published sample exists.
+const SAMPLE_SLUG_MAP: Record<string, string> = {
+  healthcheck: "governance",
+  "li-assessment": "li_assessment",
+  dpia: "dpia",
+  "biometric-checker": "biometric",
+  "dpa-generator": "dpa",
+  "ir-playbook": "ir_playbook",
+  "ropa-builder": "ropa",
+  "us-notices": "us_notice",
+  "eu-notices": "eu_notice",
+  "cppa-risk-assessment": "cppa_risk",
+  "cppa-cybersecurity": "cppa_cyber",
+};
 
 // Nine assessment tools that include 4 generations per purchased report.
 const INCLUDED_GENERATIONS_SLUGS = new Set([
