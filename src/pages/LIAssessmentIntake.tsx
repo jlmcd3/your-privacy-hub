@@ -257,11 +257,11 @@ const LIAssessmentIntake = () => {
       <Navbar />
 
       <header className="bg-[#0d2a45] text-white py-10">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8">
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             Step 2 — Full assessment · ${pricing.price}{pricing.isSubscriber && pricing.standalonePrice > pricing.price ? ` (subscriber rate)` : ""}
           </span>
-          <h1 className="font-serif">Full Legitimate Interest Assessment</h1>
+          <h1 className="text-hero-h1 text-white">Full Legitimate Interest Assessment</h1>
           <p className="text-slate-300 mt-2 text-sm">
             These questions track the EDPB's three-part test. We've already loaded what you told us in Step 1
             and adapted the rest to your use case ({row.preview_signal?.use_case_label}).
@@ -273,7 +273,7 @@ const LIAssessmentIntake = () => {
         </div>
 
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main className="flex-1 max-w-[860px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <IntakeGuidance>Answer each question as specifically and completely as you can. Where several things apply — multiple alternatives, safeguards, or vulnerable groups — list them separately rather than as one lump. Anything left blank shows up as "not addressed" in your report.</IntakeGuidance>
         {hasSpecialCategory && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded text-sm text-red-900">
