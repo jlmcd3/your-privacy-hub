@@ -109,7 +109,7 @@ export default function CPPAHub() {
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
         <header className="space-y-4">
           <p className="text-xs uppercase tracking-[0.18em] text-brand-teal font-medium">California Privacy Protection Agency</p>
-          <h1 className="font-serif text-4xl md:text-5xl">CPPA Audit Readiness Suite</h1>
+          <h1 className="text-page-h1">CPPA Audit Readiness Suite</h1>
           <p className="text-lg text-muted-foreground max-w-3xl">
             California's audit regime is live, with three deadlines on the clock. These tools scope your obligations, build your risk-assessment record, and prepare your cybersecurity audit — built directly on the final regulations and the CPPA's Final Statement of Reasons, paragraph-cited.
           </p>

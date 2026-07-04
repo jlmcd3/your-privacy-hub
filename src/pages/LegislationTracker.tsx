@@ -305,7 +305,7 @@ export default function LegislationTracker() {
           eyebrow="Research · Privacy Legislation"
           title="Privacy Legislation Tracker"
           description="Privacy and data-protection bills tracked across major jurisdictions. Refreshed daily from official government sources (Congress.gov, UK Parliament, LEGISinfo, Câmara dos Deputados, EUR-Lex, and Parliament of Australia)."
-          lastUpdated={lastVerified ? formatDate(lastVerified) : undefined}
+          
           feedCategory="legislation"
         />
         <AdBanner variant="leaderboard" className="mt-4" />

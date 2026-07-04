@@ -119,7 +119,7 @@ const GlobalAuthorities = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             🌐 Authority Directory
           </span>
-          <h1 className="font-serif text-white mb-3">Global Privacy Authorities</h1>
+          <h1 className="text-hero-h1 text-white mb-3">Global Privacy Authorities</h1>
           <p className="text-slate-300 text-lg max-w-3xl">
             {ALL_ENTRIES.length} data protection authorities worldwide, ranked by enforcement activity. Search by name,
             country, or acronym, and jump directly to each authority's complaint portal.

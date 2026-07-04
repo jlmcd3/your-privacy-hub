@@ -570,7 +570,7 @@ export default function CPPARiskAssessment() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             {headerLabel} · ${displayPrice}
           </span>
-          <h1 className="font-serif text-white mb-3">CPPA Privacy Risk Assessment</h1>
+          <h1 className="text-hero-h1 text-white mb-3">CPPA Privacy Risk Assessment</h1>
           <RequirementBadge variant="hero" tier="conditional" text="California (11 CCR § 7150) requires a privacy risk assessment if you sell or share personal information, process sensitive data, or use automated decision-making. Existing activities must be assessed by December 31, 2027." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">A regulation-mapped risk assessment framework, structured 1:1 to Cal. Code Regs. tit. 11 § 7152(a)(1)–(9), pre-populated from your intake and ready for your team to review, complete, and sign.</p>
           <p className="text-slate-400 text-sm mt-3">Generates two deliverables: an internal report retained for the § 7156(c) 30-day production demand, and a § 7157 Annual Submission Worksheet for the April 1, 2028 filing.</p>
@@ -585,7 +585,7 @@ export default function CPPARiskAssessment() {
         <ToolTierNote isCppa={true} />
       </div>
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <IntakeGuidance>Where a field asks you to describe something, be specific and complete — name the systems, the data, and the steps. Where several items apply, list each one separately. The report is only as precise as what you put in.</IntakeGuidance>
         <ActiveClientLabel />
         <ToolDisclaimer addition="This tool produces a structured risk assessment framework aligned to the CPPA's audit regulations (11 CCR §§ 7150-7157). It is an analytical aid, not legal advice, and does not constitute a certified audit or regulatory submission. Review all output with qualified counsel before relying on it." />

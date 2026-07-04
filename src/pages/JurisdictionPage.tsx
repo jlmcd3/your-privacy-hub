@@ -381,7 +381,7 @@ const JurisdictionPage = () => {
           headline: `${jurisdiction.name} Data Privacy Law & Regulator Guide`,
           description: jurisdiction.overview,
           publisher: { "@type": "Organization", name: "End User Privacy" },
-          dateModified: new Date().toISOString().slice(0, 10),
+          
         })}</script>
       </Helmet>
       <Navbar />

@@ -112,7 +112,7 @@ export function ResearchPageLayout({
         </div>
       )}
 
-      <div className={`${hasRail ? "max-w-[1180px]" : "max-w-4xl"} mx-auto px-6 py-8`}>
+      <div className={`${hasRail ? "max-w-[1180px]" : "max-w-[860px]"} mx-auto px-6 py-8`}>
         {pageSynthesisKey && (
           <div className="mb-10">
             <ResearchSynthesisBlock

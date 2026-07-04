@@ -225,7 +225,7 @@ export default function CPPAScopeChecker() {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             🛡️ CPPA Scope Checker · Free · No account required
           </span>
-          <h1 className="font-serif text-white mb-3">CPPA Scope Checker</h1>
+          <h1 className="text-hero-h1 text-white mb-3">CPPA Scope Checker</h1>
           <RequirementBadge variant="hero" tier="free" text="Free. Find out which CPPA obligations — risk assessment, cybersecurity audit, ADMT — apply to your business, and by when." className="mt-2 max-w-3xl" />
           <p className="text-slate-300 text-lg">
             Find out whether the California Consumer Privacy Act (CCPA/CPRA) and CPPA
@@ -237,7 +237,7 @@ export default function CPPAScopeChecker() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-[1180px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         <ToolDisclaimer addition="This checker provides an indicative obligation map based on your answers. Applicability thresholds under the CCPA/CPRA are fact-specific; confirm scope conclusions with qualified counsel." />
         <div className="flex gap-6 items-start">
         <div className="flex-1 min-w-0 space-y-6">

@@ -14,7 +14,7 @@ const AIPrivacyRegulations = () => (
         "description": "Global overview of AI-specific privacy regulation: the EU AI Act, GDPR and AI training, national AI strategies, automated decision-making, and emerging enforcement.",
         "publisher": { "@type": "Organization", "name": "End User Privacy" },
         "datePublished": "2025-02-10",
-        "dateModified": "2026-06-10",
+        
       })}</script>
     </Helmet>
   <ResearchPageLayout

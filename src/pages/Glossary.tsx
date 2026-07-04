@@ -249,7 +249,7 @@ const Glossary = () => {
           <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
             📖 Reference
           </span>
-          <h1 className="font-serif text-white mb-3">Privacy Law Glossary</h1>
+          <h1 className="text-hero-h1 text-white mb-3">Privacy Law Glossary</h1>
           <p className="text-slate-300 text-lg max-w-3xl leading-relaxed">
             Plain-English definitions of key privacy and data protection terms sourced from regulation text,
             grouped by theme. {glossaryData.length} terms and growing.
@@ -257,7 +257,7 @@ const Glossary = () => {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         <ResearchToolCTA
           toolName="Privacy Intelligence Feed"
           toolDescription="Terms are the start — the Feed shows you how regulators are applying them, updated daily."
