@@ -625,7 +625,18 @@ const App = () => (
 
 
 
-            <Route path="/samples/report-output" element={<SampleReportOutput />} />
+            <Route
+              path="/admin/samples/report-output"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
+                      <SampleReportOutput />
+                    </Suspense>
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
             <Route path="/samples/:toolSlug/:variant" element={<SampleReportView />} />
             <Route path="/samples/:toolSlug" element={<SampleReport />} />
 

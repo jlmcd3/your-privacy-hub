@@ -504,7 +504,7 @@ export default function SampleReportOutput() {
                 <span className="font-mono">batch {shortId(batchContext.id)}</span>
                 {batchContext.runStatus && <span>{batchContext.runStatus}</span>}
                 {batchContext.startedAt && <span>started {new Date(batchContext.startedAt).toLocaleString()}</span>}
-                <Link to="/samples/report-output?all=1" className="text-brand-teal underline underline-offset-2">
+                <Link to="/admin/samples/report-output?all=1" className="text-brand-teal underline underline-offset-2">
                   View all sample PDFs
                 </Link>
               </div>
