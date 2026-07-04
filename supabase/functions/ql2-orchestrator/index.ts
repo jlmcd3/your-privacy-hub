@@ -45,6 +45,35 @@ async function log(runId: string, message: string, opts: { level?: string; produ
   });
 }
 
+// Retry a PostgREST call that hits a transient network/TLS error
+// (e.g. "peer closed connection without sending TLS close_notify").
+// Uses a fresh client per attempt so a broken keep-alive socket is not reused.
+async function retryDb<T extends { error: any }>(
+  fn: () => PromiseLike<T>,
+  attempts = 3,
+  baseDelayMs = 400,
+): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fn();
+      const msg = (res as any)?.error?.message ?? "";
+      const transient = /SendRequest|close_notify|connection error|ECONNRESET|fetch failed|TLS|network/i.test(msg);
+      if (!transient) return res;
+      lastErr = (res as any).error;
+    } catch (e) {
+      lastErr = e;
+      const msg = (e as Error)?.message ?? String(e);
+      const transient = /SendRequest|close_notify|connection error|ECONNRESET|fetch failed|TLS|network/i.test(msg);
+      if (!transient) throw e;
+    }
+    if (i < attempts - 1) await new Promise(r => setTimeout(r, baseDelayMs * (i + 1)));
+  }
+  // Return a synthesized error-shaped response if we exhausted retries via caught throw
+  if (lastErr instanceof Error) return { data: null, error: { message: lastErr.message } } as unknown as T;
+  return { data: null, error: lastErr } as unknown as T;
+}
+
 async function heartbeat(runId: string) {
   await admin().from("quality_loop2_runs").update({ last_heartbeat_at: new Date().toISOString() }).eq("id", runId);
 }
