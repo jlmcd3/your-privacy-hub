@@ -9,6 +9,7 @@ import { ResearchPageHeader, type BreadcrumbItem } from "./ResearchPageHeader";
 import { ResearchSynthesisBlock } from "./ResearchSynthesisBlock";
 import { ResearchToolCTA } from "./ResearchToolCTA";
 import SectionReferenceRail from "./SectionReferenceRail";
+import AdSlot from "@/components/ads/AdSlot";
 import type { RailEntry } from "@/components/intake/StatuteRail";
 
 const SITE_ORIGIN = "https://enduserprivacy.com";
