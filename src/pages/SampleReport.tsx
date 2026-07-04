@@ -117,11 +117,18 @@ export default function SampleReport() {
 
       <Navbar />
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground mb-4">
+          <Link to="/" className="hover:text-foreground no-underline">Home</Link>
+          <span className="mx-1.5">/</span>
+          <Link to="/samples" className="hover:text-foreground no-underline">Sample Reports</Link>
+          <span className="mx-1.5">/</span>
+          <span className="text-foreground">{displayName}</span>
+        </nav>
         <Link
-          to="/tools"
+          to="/samples"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden /> All tools
+          <ArrowLeft className="h-4 w-4" aria-hidden /> All samples
         </Link>
 
         <header className="mb-8">
