@@ -955,13 +955,17 @@ async function runPipeline(assessment_id: string) {
       .eq("id", assessment_id);
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
-    observeCitations(
-      supabase,
-      "run-cppa-risk-assessment",
-      assessment_id,
-      JSON.stringify(report_data),
-      (authorities ?? []).map((a: any) => a?.citation).filter(Boolean),
-    );
+    try {
+      await observeCitations(
+        supabase,
+        "run-cppa-risk-assessment",
+        assessment_id,
+        JSON.stringify(report_data),
+        citations ?? [],
+      );
+    } catch (obsErr) {
+      console.error("[citation-observe] non-fatal:", String(obsErr));
+    }
 
 
   } catch (e) {
