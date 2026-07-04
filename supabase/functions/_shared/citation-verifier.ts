@@ -68,7 +68,8 @@ const BRACKET_RE = /\[([AEF])(\d+)\]/g;
 const GDPR_BRACKET_RE = /\[(?:Art\.|Recital|EDPB)[^\]]*\]/g;
 
 // Statutory-citation patterns we care about.
-const STAT_PATTERNS: RegExp[] = [
+// Exported so _shared/citation-observe.ts can reuse the SAME regexes.
+export const STAT_PATTERNS: RegExp[] = [
   // 11 CCR § 7152  /  11 CCR §7152  /  11 CCR Section 7152
   /\b\d+\s*CCR\s*(?:§|§§|Section|Sec\.?)\s*\d+(?:\.\d+)?\b/gi,
   // Cal. Civ. Code § 1798.185
