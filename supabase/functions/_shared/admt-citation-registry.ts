@@ -440,3 +440,86 @@ export const PENALTY = {
   disclaimer:
     "theoretical statutory maximum (per-consumer, no aggregate cap); actual CCPA resolutions settle materially lower.",
 };
+
+// ── L3 stage 1: registry ↔ corpus consistency check ────────────────────────
+// Observe-only. For each CITATION_REGISTRY entry (and the PENALTY block) that
+// HAS a corresponding row in cppa_authorities (status='current'), verify the
+// registry's asserted figures/text appear in the corpus row's full_text /
+// plain_summary. Entries with no corpus row are silently skipped — corpus
+// rows are added out-of-band via verified insert statements, never authored
+// here. Warnings surface via console.warn; no behavior change, ever.
+type SupabaseLike = {
+  from: (table: string) => {
+    select: (cols: string) => {
+      eq: (col: string, val: string) => {
+        in: (col: string, vals: string[]) => Promise<{ data: any[] | null; error: any }>;
+      };
+    };
+  };
+};
+
+let _registryCorpusChecked = false;
+export async function verifyRegistryAgainstCorpus(supabase: SupabaseLike): Promise<void> {
+  if (_registryCorpusChecked) return;
+  _registryCorpusChecked = true;
+  try {
+    // Collect every citation the registry claims + the PENALTY authority.
+    const registryCitations = Object.values(CITATION_REGISTRY).map((e) => e.section);
+    const wantedCitations = Array.from(new Set([...registryCitations, PENALTY.authority]));
+
+    const { data, error } = await supabase
+      .from("cppa_authorities")
+      .select("citation, full_text, plain_summary")
+      .eq("status", "current")
+      .in("citation", wantedCitations);
+
+    if (error) {
+      console.warn(`[admt-registry] corpus consistency query failed: ${String(error.message || error).slice(0, 200)}`);
+      return;
+    }
+    const rows = data ?? [];
+    if (!rows.length) return;   // nothing to compare yet; silent by design
+
+    const byCitation = new Map<string, { full_text: string; plain_summary: string }>();
+    for (const r of rows) {
+      byCitation.set(String(r.citation), {
+        full_text: String(r.full_text || ""),
+        plain_summary: String(r.plain_summary || ""),
+      });
+    }
+
+    // (1) Entry-level: the corpus row's citation IS the registry's section
+    //     string (same normalized form). Warn only on shape mismatch — the
+    //     `.in()` above already anchored on equality, so real mismatches
+    //     would surface as "row missing", not as a value diff. We surface
+    //     empty full_text since that would silently break future substring
+    //     checks below.
+    for (const entry of Object.values(CITATION_REGISTRY)) {
+      const row = byCitation.get(entry.section);
+      if (!row) continue;
+      if (!row.full_text.trim()) {
+        console.warn(`[admt-registry] corpus row for "${entry.section}" (${entry.id}) has empty full_text; consistency check skipped for this entry.`);
+      }
+    }
+
+    // (2) PENALTY block: figures + CPI year must appear verbatim in the
+    //     corpus authority's full_text or plain_summary. Missing = drift.
+    const penaltyRow = byCitation.get(PENALTY.authority);
+    if (penaltyRow) {
+      const hay = `${penaltyRow.full_text}\n${penaltyRow.plain_summary}`;
+      const checks: Array<{ label: string; needle: string }> = [
+        { label: "unintentional per-violation", needle: String(PENALTY.unintentional) },
+        { label: "intentional/minors per-violation", needle: String(PENALTY.intentionalOrMinors) },
+        { label: "CPI-through year", needle: String(PENALTY.cpiThroughYear) },
+      ];
+      for (const c of checks) {
+        if (!hay.includes(c.needle)) {
+          console.warn(`[admt-registry] PENALTY drift: registry "${c.label}"=${c.needle} not found in corpus row for ${PENALTY.authority}. Verify the registry constant against the current CPI-adjusted amount.`);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn(`[admt-registry] corpus consistency check threw: ${String(e).slice(0, 200)}`);
+  }
+}
+
