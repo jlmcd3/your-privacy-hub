@@ -949,6 +949,16 @@ async function runPipeline(assessment_id: string) {
       .update({ status: "complete", report_data })
       .eq("id", assessment_id);
 
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "run-cppa-risk-assessment",
+      assessment_id,
+      JSON.stringify(report_data),
+      (authorities ?? []).map((a: any) => a?.citation).filter(Boolean),
+    );
+
+
   } catch (e) {
     console.error("run-cppa-risk-assessment v4 error:", e);
     try {
