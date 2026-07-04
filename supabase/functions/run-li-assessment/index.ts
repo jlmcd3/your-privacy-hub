@@ -45,6 +45,11 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
+// L3 stage 2 (EDPB): fire-and-forget consistency warn between the
+// hand-written EDPB_1_2024_AUTHORITY constant and edpb_guidelines rows.
+// Runs once per warm instance; never blocks.
+verifyEdpb12024AgainstCorpus(supabase).catch(() => {});
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
