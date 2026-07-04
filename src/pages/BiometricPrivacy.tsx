@@ -101,6 +101,13 @@ export default function BiometricPrivacyPage() {
           ],
         }}
         pageSynthesisKey="biometric__page"
+        topToolCta={{
+          toolName: "Biometric Compliance Assessment",
+          toolDescription:
+            "BIPA statutory exposure calculator and multi-jurisdiction analysis (Texas CUBI, Washington, GDPR biometric).",
+          href: "/biometric-checker",
+          context: "Put this into practice:",
+        }}
         introBlock={<BiometricDecisionChecklist />}
         sections={linkGlossaryFirstMentions([
           {
