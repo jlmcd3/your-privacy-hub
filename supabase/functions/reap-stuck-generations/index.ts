@@ -79,7 +79,7 @@ async function reap(target: ReapTarget): Promise<{ table: string; reaped: number
   }
 
   const ids = candidates.map((r: any) => r.id);
-  const patch: Record<string, unknown> = { status: "failed" };
+  const patch: Record<string, unknown> = { status: target.terminalStatus };
   if (target.hasGenerationError) patch.generation_error = TIMEOUT_MESSAGE;
 
   const { error: updErr } = await supabase
