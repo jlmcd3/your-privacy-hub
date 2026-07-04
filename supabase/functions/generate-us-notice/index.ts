@@ -21,6 +21,27 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Machine-checkable manifest of statutory assertions carried by the hardcoded
+// templates below. lint-deterministic-legal-text resolves each `citation`
+// against the corpus (cppa_authorities) and verifies every `mustContain`
+// phrase appears in the corpus full_text. Update this alongside any template
+// edit that changes a statutory claim. `§` is emitted via String.fromCharCode
+// to keep the source ASCII-safe.
+const SECTION = String.fromCharCode(167);
+export const LEGAL_TEXT_ASSERTIONS: { citation: string; mustContain: string[] }[] = [
+  // CCPA/CPRA consumer rights inventory (right to know, delete, correct, opt-out, limit SPI).
+  { citation: "Cal. Civ. Code " + SECTION + " 1798.100", mustContain: ["personal information"] },
+  { citation: "Cal. Civ. Code " + SECTION + " 1798.105", mustContain: ["right to delete"] },
+  { citation: "Cal. Civ. Code " + SECTION + " 1798.110", mustContain: ["right to know"] },
+  // Response window claim: "respond within 45 days" — comes from § 1798.130.
+  { citation: "Cal. Civ. Code " + SECTION + " 1798.130", mustContain: ["45 days", "authorized agent", "extension"] },
+  // Privacy policy content requirements and authorized-agent designation rules.
+  { citation: "11 CCR " + SECTION + " 7011", mustContain: ["privacy policy", "authorized agent"] },
+  { citation: "11 CCR " + SECTION + " 7012", mustContain: ["privacy policy", "sensitive personal information"] },
+];
+
+
+
 interface RequestBody {
   session_id?: string;
 }
