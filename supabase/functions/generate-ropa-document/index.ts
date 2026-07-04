@@ -31,18 +31,10 @@ import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 // Machine-checkable manifest of statutory assertions carried by the hardcoded
 // templates below. lint-deterministic-legal-text resolves each `citation`
 // against the corpus (gdpr_articles / cppa_authorities) and verifies every
-// `mustContain` phrase appears in the corpus full_text. Update this alongside
-// any template edit that changes a statutory claim.
-export const LEGAL_TEXT_ASSERTIONS: { citation: string; mustContain: string[] }[] = [
-  // Article 30(1)/(2) GDPR — controller / processor records of processing.
-  { citation: "gdpr:eu:30", mustContain: ["record of processing activities", "controller's representative", "processor"] },
-  // Article 37 GDPR — DPO designation triggers (public authority, large-scale monitoring, special categories).
-  { citation: "gdpr:eu:37", mustContain: ["designate a data protection officer", "regular and systematic monitoring", "large scale"] },
-  // Article 27 EU GDPR — representative for controllers not established in the Union.
-  { citation: "gdpr:eu:27", mustContain: ["designate in writing a representative"] },
-  // Article 27 UK GDPR — mirrored representative obligation.
-  { citation: "gdpr:uk:27", mustContain: ["representative"] },
-];
+// `mustContain` phrase appears in the corpus full_text. Update the shared
+// module alongside any template edit that changes a statutory claim.
+import { ROPA_LEGAL_TEXT_ASSERTIONS } from "../_shared/legal-text-assertions.ts";
+export const LEGAL_TEXT_ASSERTIONS = ROPA_LEGAL_TEXT_ASSERTIONS;
 
 
 const LOGO_URL = `${Deno.env.get("SITE_URL") || "https://enduserprivacy.com"}/logo.png`;
