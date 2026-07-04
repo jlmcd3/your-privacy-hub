@@ -274,7 +274,7 @@ function validateFiveStage(intake: FiveStageIntake, lenient: boolean): { ok: tru
 // ---------------------------------------------------------------------------
 // Corpus retrieval (CR-2 Step 1).
 // ---------------------------------------------------------------------------
-async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforcementContext: string; longitudinalSynthesis: string; statuteContext: string; fsorContext: string }> {
+async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforcementContext: string; longitudinalSynthesis: string; statuteContext: string; fsorContext: string; citations: string[] }> {
   const primaryActivity = Object.entries(intake.triggers)
     .filter(([, v]) => v === true)
     .map(([k]) => k.replace(/_/g, " "))
@@ -351,7 +351,8 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
     console.warn("[cppa-risk] FSOR commentary fetch failed:", e);
   }
 
-  return { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext };
+  const citations = authorities.map((a: any) => a?.citation).filter(Boolean);
+  return { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext, citations };
 }
 
 // ---------------------------------------------------------------------------
@@ -667,7 +668,7 @@ async function runPipeline(assessment_id: string) {
     }
 
     // Corpus retrieval (parallel).
-    const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext } = await retrieveCorpusContext(fiveStage);
+    const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext, citations } = await retrieveCorpusContext(fiveStage);
 
     const today = new Date().toISOString().slice(0, 10);
     const injected = [
@@ -954,13 +955,17 @@ async function runPipeline(assessment_id: string) {
       .eq("id", assessment_id);
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
-    observeCitations(
-      supabase,
-      "run-cppa-risk-assessment",
-      assessment_id,
-      JSON.stringify(report_data),
-      (authorities ?? []).map((a: any) => a?.citation).filter(Boolean),
-    );
+    try {
+      await observeCitations(
+        supabase,
+        "run-cppa-risk-assessment",
+        assessment_id,
+        JSON.stringify(report_data),
+        citations ?? [],
+      );
+    } catch (obsErr) {
+      console.error("[citation-observe] non-fatal:", String(obsErr));
+    }
 
 
   } catch (e) {

@@ -1124,13 +1124,17 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       .eq("id", assessment_id);
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
-    observeCitations(
-      supabase,
-      "run-cppa-cybersecurity",
-      assessment_id,
-      JSON.stringify(report),
-      (authRows ?? []).map((a: any) => a?.citation).filter(Boolean),
-    );
+    try {
+      await observeCitations(
+        supabase,
+        "run-cppa-cybersecurity",
+        assessment_id,
+        JSON.stringify(report),
+        (authRows ?? []).map((a: any) => a?.citation).filter(Boolean),
+      );
+    } catch (obsErr) {
+      console.error("[citation-observe] non-fatal:", String(obsErr));
+    }
 
 
 

@@ -942,13 +942,17 @@ Return JSON:
     }).eq("id", assessment_id);
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
-    observeCitations(
-      supabase,
-      "run-li-assessment",
-      assessment_id,
-      JSON.stringify(reportData),
-      (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
-    );
+    try {
+      await observeCitations(
+        supabase,
+        "run-li-assessment",
+        assessment_id,
+        JSON.stringify(reportData),
+        (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
+      );
+    } catch (obsErr) {
+      console.error("[citation-observe] non-fatal:", String(obsErr));
+    }
 
 
 
