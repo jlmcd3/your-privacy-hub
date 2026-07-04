@@ -1,12 +1,13 @@
 // qb8 build active
 // Shared EUP prompt core (v3.2)
 // v3.2: NO METHOD PRESCRIPTION added to OUTPUT DISCIPLINE (with IR privilege carve-out).
+// v3.3: REPEATED CONTENT APPEARS ONCE promoted to OUTPUT DISCIPLINE (product rules elaborate).
 // v3.1: counsel-parenthetical removed; argument-voice parenthetical removed;
 // EU-transfers content modularized (opt-in via ToolModule.includeEuTransfers); UK–US Data Bridge
 // verified date added.
 
-export const PROMPT_CORE_VERSION = "3.2";
-export const BUILD_TAG = "qb10";
+export const PROMPT_CORE_VERSION = "3.3";
+export const BUILD_TAG = "qb11";
 
 
 export const EUP_PROMPT_CORE = `PRIORITY ORDER — when any instructions conflict, resolve in this order and never sacrifice a higher
@@ -74,6 +75,7 @@ OUTPUT DISCIPLINE
   fill-in is a neutral bracketed placeholder naming what the user must supply (e.g. "[retention period —
   to be set by the controller]"), never an instruction addressed to the generator.
 - NO METHOD PRESCRIPTION: never direct the user to a particular method, process, or professional engagement to resolve an open item — no "consult counsel", "engage outside advisors", "conduct a quantified analysis", or any prescription of HOW to resolve what the document flags. State what is unresolved, cite the provision that makes it matter, and stop. EXCEPTION: incident-response playbooks may describe counsel roles and privilege mechanics as operational content where the playbook's subject matter requires it (see the IR privilege carve-out comment in generate-ir-playbook).
+- REPEATED CONTENT APPEARS ONCE: a finding, instruction, caveat, verification step, or explanatory passage appears in full exactly ONCE, in its single most relevant location; every other location that needs it carries a short cross-reference to that location and never restates the text. The same sentence appearing verbatim (or near-verbatim) in two fields, two findings, two clauses, or a finding and a summary is a defect. Product-specific repetition rules elaborate this principle; where they conflict, the more specific rule governs.
 
 FIVE OPERATING PRINCIPLES (non-negotiable)
 1. NO ADAPTIVE GUIDANCE. Present regulatory standards and enforcement patterns as context. Never tell
