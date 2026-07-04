@@ -277,6 +277,12 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
   const sector = intake.org_context?.sector ?? "general";
   const corpusQuery = `CPPA risk assessment ${sector} ${primaryActivity} California privacy enforcement`;
 
+  const S = String.fromCharCode(167); // section symbol, encoding-safe
+  const RISK_BASE_CITATIONS = [
+    `11 CCR ${S} 7001`, `11 CCR ${S} 7120`, `11 CCR ${S} 7121`,
+    `11 CCR ${S} 7150`, `11 CCR ${S} 7151`, `11 CCR ${S} 7152`, `11 CCR ${S} 7153`,
+    `11 CCR ${S} 7154`, `11 CCR ${S} 7155`, `11 CCR ${S} 7156`, `11 CCR ${S} 7157`,
+  ];
   const statuteTopics = ["risk-assessment", "thresholds"];
   if (intake.triggers.admt_involved) statuteTopics.push("admt", "significant-decision");
   if (intake.triggers.profiling_significant_effects) statuteTopics.push("profiling");
