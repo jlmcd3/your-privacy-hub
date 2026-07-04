@@ -36,10 +36,11 @@ const AIPrivacyRegulations = () => (
     }}
     pageSynthesisKey="ai_privacy__page"
     topToolCta={{
-      toolName: getProduct("governance-assessment").name,
+      toolName: "CPPA ADMT Assessment",
       toolDescription:
-        "Assess your AI governance program against the EU AI Act, GDPR Article 22, and CPPA ADMT enforcement patterns.",
-      href: getProduct("governance-assessment").route,
+        "Scope-first check against the CPPA's automated decisionmaking regulations (11 CCR Art. 11), gated on the significant-decision test.",
+      href: "/cppa-admt-checker",
+      context: "Put this into practice:",
     }}
     introBlock={
       <div className="rounded-xl border border-brand-teal/30 bg-brand-teal/5 px-5 py-4">
