@@ -900,6 +900,16 @@ Generate substantive draft rows for every table for the controller to verify; us
       updated_at: new Date().toISOString(),
     }).eq("id", dpia_id);
 
+    // L2 — observe-only citation lint (never blocks, never mutates output).
+    observeCitations(
+      supabase,
+      "run-dpia-framework",
+      dpia_id,
+      JSON.stringify(reportData),
+      (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
+    );
+
+
 
     await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "dpia_frameworks", sourceRowId: dpia_id });
 
