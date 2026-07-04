@@ -29,6 +29,7 @@ import { InfoPopover } from "@/components/InfoPopover";
 import { Req, RequiredLegend } from "@/components/RequiredMark";
 import { DefPopover } from "@/components/DefPopover";
 import SampleReportLink from "@/components/SampleReportLink";
+import MethodologyBox from "@/components/cppa/MethodologyBox";
 import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
