@@ -362,6 +362,11 @@ Deno.serve(async (req) => {
     let authorities: any[] = [];
     let deadlines: any[] = [];
     try {
+      const S = String.fromCharCode(167);
+      const ADMT_BASE_CITATIONS = [
+        `11 CCR ${S} 7001`, `11 CCR ${S} 7200`, `11 CCR ${S} 7220`,
+        `11 CCR ${S} 7221`, `11 CCR ${S} 7222`, `Cal. Civ. Code ${S} 1798.199.90`,
+      ];
       const retrieveRes = await supabase.functions.invoke("cppa-retrieve-context", {
         body: {
           topics: ["admt", "significant-decision", "pre-use-notice", "profiling"],
@@ -369,11 +374,14 @@ Deno.serve(async (req) => {
           include_deadlines: true,
           full_text_limit: 12,
           limit: 20,
+          base_citations: ADMT_BASE_CITATIONS,
         },
       });
       const d = (retrieveRes?.data ?? {}) as any;
       authorities = d.authorities ?? [];
       deadlines = d.deadlines ?? [];
+      const baseMissing = d.base_missing ?? [];
+      if (baseMissing.length > 0) console.warn("[run-admt-checker] BASE CITATIONS MISSING FROM SUPPLY:", baseMissing.join("; "));
     } catch (e) {
       console.warn("[run-admt-checker] retrieve-context failed:", e);
     }
