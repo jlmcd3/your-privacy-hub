@@ -31,6 +31,7 @@ const Footer = () => {
             {[
               { label: "Newsfeed", href: "/updates" },
               { label: "Compliance Tools", href: "/tools" },
+              { label: "Sample Reports", href: "/samples" },
               { label: "Pricing", href: "/subscribe" },
               { label: "Sample Intelligence Report", href: "/#brief" },
             ].map((l) => (

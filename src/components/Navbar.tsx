@@ -197,6 +197,7 @@ const navItems: NavItem[] = [
             tooltip: "BIPA statutory exposure calculator and multi-jurisdiction analysis" },
           { icon: "📝", label: "Custom DPA Generator", href: "/dpa-generator",
             tooltip: "Article 28-compliant data processing agreement, enforcement-informed" },
+          { icon: "📄", label: "Sample Reports", href: "/samples" },
           { icon: "🗂️", label: "All Tools →", href: "/tools", bottom: true },
         ],
       },
