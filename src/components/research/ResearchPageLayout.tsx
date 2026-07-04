@@ -10,6 +10,7 @@ import { ResearchSynthesisBlock } from "./ResearchSynthesisBlock";
 import { ResearchToolCTA } from "./ResearchToolCTA";
 import SectionReferenceRail from "./SectionReferenceRail";
 import AdSlot from "@/components/ads/AdSlot";
+import SourceMethodology from "./SourceMethodology";
 import type { RailEntry } from "@/components/intake/StatuteRail";
 
 const SITE_ORIGIN = "https://enduserprivacy.com";
@@ -202,6 +203,11 @@ export function ResearchPageLayout({
               </Link>
             ))}
           </div>
+        </div>
+
+        {/* Source methodology (C-1) */}
+        <div className="mt-10">
+          <SourceMethodology />
         </div>
 
         {/* Intelligence upsell */}
