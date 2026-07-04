@@ -668,6 +668,61 @@ Generate substantive draft rows for every table for the controller to verify; us
       console.error("[DPIA] QB8-8(a) repair pass errored:", e);
     }
 
+    // QB13-5(a): deterministic risk_level reconciliation. Where the methodology text
+    // mentions "higher of", recompute each inherent/residual row's risk_level as the
+    // higher of severity/likelihood on the High > Medium > Low scale and overwrite
+    // mismatches.
+    try {
+      const s4 = reportData?.section_4_risk_management;
+      const methodText = [
+        s4?.method,
+        s4?.methodology,
+        s4?.risk_methodology,
+        s4?.guidance_note,
+        s4?.method_note,
+      ].filter((v) => typeof v === "string").join(" \n ").toLowerCase();
+      if (methodText.includes("higher of")) {
+        const rank: Record<string, number> = { low: 1, medium: 2, high: 3 };
+        const label = ["", "Low", "Medium", "High"];
+        const higher = (a: any, b: any): string | null => {
+          const av = rank[String(a ?? "").trim().toLowerCase()];
+          const bv = rank[String(b ?? "").trim().toLowerCase()];
+          if (!av || !bv) return null;
+          return label[Math.max(av, bv)];
+        };
+        let corrections = 0;
+        const inherent = Array.isArray(s4?.inherent_risk_assessment) ? s4.inherent_risk_assessment : [];
+        for (const row of inherent) {
+          const expected = higher(row?.likelihood, row?.severity);
+          if (expected && row?.risk_level && String(row.risk_level).trim().toLowerCase() !== expected.toLowerCase()) {
+            row.risk_level = expected;
+            corrections += 1;
+          }
+        }
+        const residual = Array.isArray(s4?.residual_risk_assessment) ? s4.residual_risk_assessment : [];
+        for (const row of residual) {
+          const expected = higher(row?.residual_likelihood, row?.residual_severity);
+          if (!expected) continue;
+          const cur = String(row?.residual_risk_level ?? "").trim();
+          // Preserve suffix (e.g. " — proposed, subject to the organisation's re-scoring")
+          const suffixMatch = cur.match(/^(?:low|medium|high)\b(.*)$/i);
+          const suffix = suffixMatch ? suffixMatch[1] : "";
+          const curLevel = suffixMatch ? suffixMatch[0].split(/\s|—|-/)[0] : cur;
+          if (curLevel && curLevel.toLowerCase() !== expected.toLowerCase()) {
+            row.residual_risk_level = `${expected}${suffix}`;
+            corrections += 1;
+          }
+        }
+        if (corrections > 0) {
+          console.warn(`[DPIA] QB13-5(a): corrected ${corrections} risk_level value(s) to match declared methodology`);
+        }
+      }
+    } catch (e) {
+      console.error("[DPIA] QB13-5(a) methodology reconciliation errored:", e);
+    }
+
+
+
 
     // Lint narrative strings across the framework JSON; one retry on hard violations
     // — surgically regenerating ONLY the half(s) whose top-level keys contain hard
