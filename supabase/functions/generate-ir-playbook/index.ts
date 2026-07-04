@@ -534,6 +534,32 @@ Deno.serve(async (req) => {
           .map((j) => `${j}: ${DPA_PORTALS[j]}`)
           .join("\n");
 
+        // GDPR breach-notification authority supply (verbatim Art. 33/34 from gdpr_articles).
+        // Only when EU or UK jurisdictions are selected; US-state-only incidents skip this.
+        let gdprBreachBlock = "";
+        try {
+          const jList: string[] = (Array.isArray(body.jurisdictions) ? body.jurisdictions : []).map((j: any) => String(j).toLowerCase());
+          const hasEu = jList.some((j) => j.includes("eu") || j.includes("gdpr")) && !jList.every((j) => j.includes("uk"));
+          const hasUk = jList.some((j) => j.includes("uk") || j.includes("united kingdom"));
+          if (hasEu || hasUk) {
+            const ctx = await getGdprContext(supabase as any, {
+              articles: ["33", "34"],
+              jurisdiction: hasUk && !hasEu ? "uk" : "eu",
+              maxChars: 12000,
+            });
+            if (ctx?.block) {
+              gdprBreachBlock =
+                "\n\nGDPR BREACH-NOTIFICATION AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Article 33/34 content ONLY from this block, never from recollection; applies to all three parts):\n" +
+                ctx.block;
+              if ((ctx.meta?.missing_articles ?? []).length > 0) {
+                console.warn("[generate-ir-playbook] GDPR base articles missing:", ctx.meta.missing_articles.join(", "));
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("[generate-ir-playbook] gdpr-context failed (non-fatal):", e);
+        }
+
         // ── Split into TWO PARALLEL Sonnet calls to stay inside the edge runtime
         // wall-clock budget.
         const INTAKE_BLOCK = `INCIDENT DETAILS
