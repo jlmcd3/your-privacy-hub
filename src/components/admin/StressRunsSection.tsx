@@ -201,7 +201,7 @@ export default function StressRunsSection() {
             Each run blends fields across four Rudolph-universe personas (org, sector and
             jurisdiction stay coherent; everything else randomizes) and drives the same
             production edge functions subscribers use. PDFs land at{" "}
-            <Link to="/samples/report-output" className="text-brand-teal underline underline-offset-2">/samples/report-output</Link>;
+            <Link to="/admin/samples/report-output" className="text-brand-teal underline underline-offset-2">/samples/report-output</Link>;
             the exact randomized inputs are stored on each sample row for traceability.
           </p>
         </div>

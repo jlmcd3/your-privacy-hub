@@ -346,7 +346,7 @@ export default function QualityLoop2() {
             {isRunning && <Button variant="destructive" onClick={onStop}>Stop</Button>}
             {activeRun?.stress_batch_id && (
               <Button asChild variant="outline" size="sm">
-                <Link to={`/samples/report-output?batch=${activeRun.stress_batch_id}`}>
+                <Link to={`/admin/samples/report-output?batch=${activeRun.stress_batch_id}`}>
                   View batch PDFs
                 </Link>
               </Button>

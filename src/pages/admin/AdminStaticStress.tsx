@@ -550,7 +550,7 @@ export default function AdminStaticStress() {
           Generates deterministic, sector-specific reports across the 31 industries (2 companies per
           industry × applicable tools per geography). Fixtures are generated via Claude per company,
           then queued and run sequentially through the production edge functions. PDFs land in
-          {" "}<Link to="/samples/report-output" className="text-brand-teal underline underline-offset-2">/samples/report-output</Link>{" "}
+          {" "}<Link to="/admin/samples/report-output" className="text-brand-teal underline underline-offset-2">/samples/report-output</Link>{" "}
           with variant prefix <code>static-</code>.
           {" "}Use the{" "}
           <Link to="/admin/qa-export" className="text-brand-teal underline underline-offset-2">
@@ -710,7 +710,7 @@ export default function AdminStaticStress() {
                 {zipping ? "Zipping…" : "Download all PDFs"}
               </Button>
               <Button variant="outline" asChild>
-                <a href="/samples/report-output" target="_blank" rel="noreferrer">View in Sample Reports</a>
+                <a href="/admin/samples/report-output" target="_blank" rel="noreferrer">View in Sample Reports</a>
               </Button>
               <Button variant="ghost" onClick={() => { setActiveBatch(null); setRecentJobs([]); }}>
                 Start another batch
