@@ -28,6 +28,10 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+// L3 stage 1: fire-and-forget corpus-consistency check (once per warm
+// instance). Non-blocking; warns on drift; no behavior change.
+verifyRegistryAgainstCorpus(supabase).catch(() => { /* already warns internally */ });
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
