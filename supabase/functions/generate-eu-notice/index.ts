@@ -24,24 +24,10 @@ const corsHeaders = {
 // Machine-checkable manifest of statutory assertions carried by the hardcoded
 // templates below. lint-deterministic-legal-text resolves each `citation`
 // against the corpus (gdpr_articles) and verifies every `mustContain` phrase
-// appears in the corpus full_text. Update this alongside any template edit
-// that changes a statutory claim.
-export const LEGAL_TEXT_ASSERTIONS: { citation: string; mustContain: string[] }[] = [
-  // Article 6(1) GDPR — lawful bases enumerated in the template (consent, contract, legal obligation, vital interests, public task, legitimate interests).
-  { citation: "gdpr:eu:6", mustContain: ["consent", "legitimate interests", "legal obligation"] },
-  // Article 9(2) GDPR — special-category processing conditions (explicit consent under 9(2)(a) etc.).
-  { citation: "gdpr:eu:9", mustContain: ["explicit consent"] },
-  // Article 14(3) GDPR — timing when data not obtained from the data subject (within one month / first communication / first disclosure).
-  { citation: "gdpr:eu:14", mustContain: ["one month"] },
-  // Article 27 GDPR — EU representative for controllers not established in the Union.
-  { citation: "gdpr:eu:27", mustContain: ["designate in writing a representative"] },
-  // Article 27 UK GDPR — mirrored representative obligation.
-  { citation: "gdpr:uk:27", mustContain: ["representative"] },
-  // Article 46 GDPR — appropriate safeguards for international transfers (SCCs etc.).
-  { citation: "gdpr:eu:46", mustContain: ["appropriate safeguards"] },
-  // Article 49 GDPR — derogations for specific situations for transfers.
-  { citation: "gdpr:eu:49", mustContain: ["appropriate safeguards"] },
-];
+// appears in the corpus full_text. Update the shared module alongside any
+// template edit that changes a statutory claim.
+import { EU_NOTICE_LEGAL_TEXT_ASSERTIONS } from "../_shared/legal-text-assertions.ts";
+export const LEGAL_TEXT_ASSERTIONS = EU_NOTICE_LEGAL_TEXT_ASSERTIONS;
 
 
 
