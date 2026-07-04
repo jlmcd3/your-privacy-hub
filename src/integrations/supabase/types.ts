@@ -6561,6 +6561,7 @@ export type Database = {
       tool_run_versions: {
         Row: {
           assessment_id: string
+          build_info: Json | null
           created_at: string
           document_text: string | null
           id: string
@@ -6572,6 +6573,7 @@ export type Database = {
         }
         Insert: {
           assessment_id: string
+          build_info?: Json | null
           created_at?: string
           document_text?: string | null
           id?: string
@@ -6583,6 +6585,7 @@ export type Database = {
         }
         Update: {
           assessment_id?: string
+          build_info?: Json | null
           created_at?: string
           document_text?: string | null
           id?: string
