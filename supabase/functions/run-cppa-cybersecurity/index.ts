@@ -236,6 +236,34 @@ async function runAssessment(assessment_id: string): Promise<void> {
       console.warn("[CPPA Cyber] enforcement context fetch failed:", e);
     }
 
+    // IoT sector conditional supply block — verbatim authority text for
+    // Cal. Civ. Code §§ 1798.91.04–1798.91.06 (California IoT Security Law).
+    // Content/rules unchanged; this is supply-side only.
+    const S = String.fromCharCode(167);
+    const sectorStr = String((row.intake_data as any)?.industry_sector ?? (row.intake_data as any)?.org_context?.sector ?? (row.intake_data as any)?.profile?.industry ?? "");
+    const isConnectedDeviceSector = /iot|connected.device|smart.home|device manufactur/i.test(sectorStr);
+    let iotAuthorityBlock = "";
+    if (isConnectedDeviceSector) {
+      const IOT_CITATIONS = [
+        `Cal. Civ. Code ${S} 1798.91.04`,
+        `Cal. Civ. Code ${S} 1798.91.05`,
+        `Cal. Civ. Code ${S} 1798.91.06`,
+      ];
+      const { data: iotRows } = await supabase
+        .from("cppa_authorities")
+        .select("citation, title, full_text")
+        .in("citation", IOT_CITATIONS)
+        .eq("status", "current")
+        .not("verified_by", "is", null);
+      if (iotRows && iotRows.length > 0) {
+        iotAuthorityBlock =
+          "\n\nCALIFORNIA IoT SECURITY LAW -- SUPPLIED AUTHORITY TEXT (cite this law's content ONLY from the text below, never from recollection):\n" +
+          iotRows.map((r: any) => r.full_text).join("\n\n");
+      } else {
+        console.warn("[cppa-cyber] IoT sector detected but IoT authority rows unavailable");
+      }
+    }
+
     const today = new Date().toISOString().slice(0, 10);
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
