@@ -1073,6 +1073,15 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
           })
           .eq("id", rowId);
 
+        // L2 — observe-only citation lint (never blocks, never mutates output).
+        observeCitations(
+          supabase,
+          "generate-ir-playbook",
+          rowId,
+          playbook_text,
+          irSuppliedCitations,
+        );
+
         await finishFunctionRun(supabase, fnRun, { status: "success", sourceTable: "ir_playbooks", sourceRowId: rowId });
       } catch (bgErr) {
         console.error("[generate-ir-playbook] background error:", bgErr);
