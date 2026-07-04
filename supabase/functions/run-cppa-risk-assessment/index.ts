@@ -668,7 +668,7 @@ async function runPipeline(assessment_id: string) {
     }
 
     // Corpus retrieval (parallel).
-    const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext } = await retrieveCorpusContext(fiveStage);
+    const { enforcementContext, longitudinalSynthesis, statuteContext, fsorContext, citations } = await retrieveCorpusContext(fiveStage);
 
     const today = new Date().toISOString().slice(0, 10);
     const injected = [
