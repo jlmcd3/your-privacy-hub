@@ -263,6 +263,8 @@ Deno.serve(async (req) => {
     authorities,
     deadlines,
     retrieved_count: authorities.length,
+    base_returned: baseRows.map((r) => r.citation),
+    base_missing: baseMissing,
     verified_only_mode: verifiedOnly,
   });
 });
