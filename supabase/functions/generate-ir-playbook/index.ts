@@ -229,7 +229,9 @@ VERIFIED CALIFORNIA BREACH DEADLINES (cite these; do not recall breach-notificat
 
 PROVISIONAL DEADLINES SAY SO: where a statutory clock is computed from a timestamp that the playbook itself marks as pending confirmation (e.g. detection treated as concurrent with controller awareness), the deadline statement must carry the provisional framing inline — "provisionally computed from the detection timestamp, treating it as concurrent with awareness pending confirmation; if awareness is confirmed later, recalculate all deadlines from the confirmed timestamp" — never a bare "computed from the stated awareness timestamp" while another section calls that timestamp unconfirmed.
 
-GERMAN AUTHORITY NOMENCLATURE IS CANONICAL: the federal authority is 'Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI)' — after first use, 'BfDI'. The state authorities are 'Landesdatenschutzbehörde' / 'Landesdatenschutzbehörden' — use that term consistently. 'Bundesdatenschutzbehörde' and 'Bundesdatenschutzbeauftragter' are not standard names and must never appear. Competence default, stated wherever German competence is discussed (alongside any confirmation placeholder): for private-sector controllers the competent authority is the Landesdatenschutzbehörde of the German establishment's registered seat; the BfDI supervises federal public bodies and telecommunications/postal providers.`;
+GERMAN AUTHORITY NOMENCLATURE IS CANONICAL: the federal authority is 'Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI)' — after first use, 'BfDI'. The state authorities are 'Landesdatenschutzbehörde' / 'Landesdatenschutzbehörden' — use that term consistently. 'Bundesdatenschutzbehörde' and 'Bundesdatenschutzbeauftragter' are not standard names and must never appear. Competence default, stated wherever German competence is discussed (alongside any confirmation placeholder): for private-sector controllers the competent authority is the Landesdatenschutzbehörde of the German establishment's registered seat; the BfDI supervises federal public bodies and telecommunications/postal providers.
+
+STEP NUMBERING BELONGS TO SECTION 4 ALONE: the labels "STEP 1" through "STEP 5" (and any "STEP n" form) appear ONLY as Section 4 headings. Sections 2 and 3 never title a paragraph, conclusion, or note "STEP n" — a preliminary view in Sections 2–3 is titled by its subject ("Preliminary view — Article 33 notification", "Preliminary view — Article 34 high-risk question"), so the mandated cross-reference "resolved by the … determination at Section 4 STEP 2" can never read as a step resolving itself. Where Sections 2–3 currently would write "Preliminary conclusion — STEP 2", write "Preliminary view — Article 33 notification" instead.`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
@@ -953,6 +955,26 @@ Output ONLY Sections 6–7 followed by the ===ANNOTATIONS=== block. No preamble,
 
         const assembled = assembleFromHalves(partA, partB, partC);
         assembled.playbook_text = stripSection4DeferralNotes(assembled.playbook_text);
+        // QB11-2(a): collapse a mandated deferral note that was emitted twice in
+        // immediate succession (identical sentence, optionally separated by whitespace
+        // or a heading line such as "Conclusion — STEP 2").
+        function collapseConsecutiveDuplicateNotes(text: string): string {
+          try {
+            const re = /(Note: this preliminary assessment[^\n]*operative\.)([\s\S]{0,200}?)\1/g;
+            let out = text;
+            let prev = "";
+            while (prev !== out) {
+              prev = out;
+              out = out.replace(re, (_m, note, between) => `${note}${between}`);
+            }
+            if (out !== text) console.warn("[IR] QB11-2(a): collapsed consecutive duplicate deferral note(s)");
+            return out;
+          } catch (e) {
+            console.error("[IR] QB11-2(a) collapse errored:", e);
+            return text;
+          }
+        }
+        assembled.playbook_text = collapseConsecutiveDuplicateNotes(assembled.playbook_text);
         lintBareCitations(assembled.playbook_text);
         const lint = lintReportText(assembled.playbook_text);
         const lintWarnings: any[] = [];
