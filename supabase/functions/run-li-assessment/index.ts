@@ -947,12 +947,21 @@ Return JSON:
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
+      // Supply list mirrors what getGdprContext actually injected. Include the
+      // UK-form variant when UK jurisdiction was selected so extracted tokens
+      // like "Article 5 UK GDPR" canonicalise-match the supply.
+      const matched: string[] = gdprMeta?.matched_articles ?? [];
+      const supplied: string[] = [];
+      for (const n of matched) {
+        supplied.push(`Article ${n} GDPR`);
+        if (gdprJurisdiction === "uk") supplied.push(`Article ${n} UK GDPR`);
+      }
       await observeCitations(
         supabase,
         "run-li-assessment",
         assessment_id,
         JSON.stringify(reportData),
-        (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
+        supplied,
       );
     } catch (obsErr) {
       console.error("[citation-observe] non-fatal:", String(obsErr));
