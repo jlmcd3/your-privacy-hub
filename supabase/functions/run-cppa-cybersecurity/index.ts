@@ -267,6 +267,29 @@ async function runAssessment(assessment_id: string): Promise<void> {
       }
     }
 
+    // Unconditional California breach-notification authority supply — verbatim
+    // Cal. Civ. Code § 1798.82 from cppa_authorities. Cyber is a California
+    // tool, so this fires on every run; content/rules unchanged, supply-side
+    // only.
+    let caBreachAuthorityBlock = "";
+    {
+      const { data: caBrRows } = await supabase
+        .from("cppa_authorities")
+        .select("citation, full_text")
+        .eq("citation", `Cal. Civ. Code ${S} 1798.82`)
+        .limit(1);
+      if (caBrRows && caBrRows.length > 0 && (caBrRows[0] as any).full_text) {
+        const r = caBrRows[0] as any;
+        caBreachAuthorityBlock =
+          "\n\nCALIFORNIA BREACH-NOTIFICATION AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Cal. Civ. Code " + S + " 1798.82 content ONLY from the text below, never from recollection):\n" +
+          `[${r.citation}]\n${r.full_text}`;
+      } else {
+        console.warn("[cppa-cyber] 1798.82 authority row unavailable");
+      }
+    }
+
+
+
     const today = new Date().toISOString().slice(0, 10);
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
