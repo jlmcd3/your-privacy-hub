@@ -868,6 +868,9 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       // injected via caBreachAuthorityBlock below, so the lint supply must
       // reflect it. Source relabelled to CA_BREACH in the corpus.
       `Cal. Civ. Code ${S} 1798.82`,
+      // Unconditional: Cal. Civ. Code § 1798.140 (CCPA definitions). Verbatim
+      // text injected via caDefinitionsAuthorityBlock; lint supply must reflect it.
+      `Cal. Civ. Code ${S} 1798.140`,
       ...(isConnectedDeviceSector ? [
         `Cal. Civ. Code ${S} 1798.91.04`,
         `Cal. Civ. Code ${S} 1798.91.05`,
