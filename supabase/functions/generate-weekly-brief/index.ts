@@ -12,16 +12,23 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-function getWeekLabel(): string {
-  const now = new Date();
-  const dayOfWeek = now.getUTCDay();
-  const daysSinceSunday = dayOfWeek === 0 ? 7 : dayOfWeek;
-  const start = new Date(Date.UTC(
+// Anchor: PREVIOUS MONDAY 00:00 UTC.
+// - On Monday (dayOfWeek === 1): weekStart = today - 7 days at 00:00 UTC (full prior week).
+// - Any other weekday: weekStart = most recent Monday 00:00 UTC.
+function getWeekStart(now: Date = new Date()): Date {
+  const dayOfWeek = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const daysBack = dayOfWeek === 1 ? 7 : ((dayOfWeek + 6) % 7); // Mon->7, Tue->1, ..., Sun->6
+  return new Date(Date.UTC(
     now.getUTCFullYear(),
     now.getUTCMonth(),
-    now.getUTCDate() - daysSinceSunday,
-    0, 0, 0, 0
+    now.getUTCDate() - daysBack,
+    0, 0, 0, 0,
   ));
+}
+
+function getWeekLabel(): string {
+  const now = new Date();
+  const start = getWeekStart(now);
   const fmt = (d: Date) =>
     d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
   return `${fmt(start)} – ${fmt(now)}`;
@@ -116,18 +123,10 @@ Deno.serve(async (req) => {
   });
 
   try {
-    // Anchor to previous Sunday midnight UTC for a consistent weekly window.
-    // Every brief generated on Monday covers Sun 00:00:00 UTC → now,
-    // regardless of what time Monday the brief runs.
+    // Anchor to PREVIOUS MONDAY 00:00 UTC (see getWeekStart). Monday runs cover
+    // the full prior week (Mon 00:00 UTC through generation time).
     const now = new Date();
-    const dayOfWeek = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-    const daysSinceSunday = dayOfWeek === 0 ? 7 : dayOfWeek;
-    const weekStart = new Date(Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() - daysSinceSunday,
-      0, 0, 0, 0
-    ));
+    const weekStart = getWeekStart(now);
 
     const { data: rawArticles, error: fetchError } = await supabase
       .from("updates")
@@ -136,10 +135,27 @@ Deno.serve(async (req) => {
       .order("published_at", { ascending: false })
       .limit(60);
 
-    if (fetchError || !rawArticles || rawArticles.length === 0) {
-      if (fetchError) console.error("Fetch articles error:", fetchError);
-      return new Response(JSON.stringify({ error: "No articles found for this period" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (fetchError) {
+      console.error("Fetch articles error:", fetchError);
+      await failFunctionRun(supabase, fnRun, fetchError, { metadata: { stage: "fetch_updates", window_start: weekStart.toISOString(), window_end: now.toISOString() } });
+      return new Response(JSON.stringify({ error: "Failed to fetch updates", detail: String(fetchError.message ?? fetchError) }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (!rawArticles || rawArticles.length === 0) {
+      const reason = `WEEKLY BRIEF SKIPPED: zero updates in window ${weekStart.toISOString()}..${now.toISOString()}`;
+      console.error(reason);
+      await failFunctionRun(supabase, fnRun, new Error(reason), {
+        metadata: {
+          skipped: true,
+          reason: "zero_updates_in_window",
+          window_start: weekStart.toISOString(),
+          window_end: now.toISOString(),
+        },
+      });
+      return new Response(
+        JSON.stringify({ skipped: true, reason: "zero_updates_in_window", window_start: weekStart.toISOString(), window_end: now.toISOString() }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     // Pre-sort by signal strength so highest-value articles lead the prompt context.
