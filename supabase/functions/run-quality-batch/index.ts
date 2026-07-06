@@ -1,9 +1,22 @@
+// SYNC-MARKER: rubric-mirror v2 -- grade-single-assessment mirrors run-quality-batch rubric lines; edit both together
 // run-quality-batch — orchestrates one "Run N Tests" press.
 // Pipeline: generate intakes → build docs → Claude eval → GPT eval →
 //           cross-review → aggregate → propose fixes.
 // Returns 202 immediately. All work in EdgeRuntime.waitUntil().
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// Intake slice for grader prompts. Cap raised 2500/2000 -> 8000 (Doc X, 2026-07-06)
+// to stop the alphabetical tail (i5_/i7_/i8_/i9_ keys) from being dropped, which
+// produced structural "unsupported detail" deductions on wide-schema fixtures.
+// Beyond 8000, keep HEAD (first 5000) + TAIL (last 3000) with an elision marker
+// so both ends of the JSON serialization survive.
+const INTAKE_SLICE_CAP = 8000;
+function sliceIntakeForGrader(intake: unknown): string {
+  const s = JSON.stringify(intake ?? {});
+  if (s.length <= INTAKE_SLICE_CAP) return s;
+  return `${s.slice(0, 5000)}[...intake middle elided...]${s.slice(-3000)}`;
+}
 
 const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY    = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -364,7 +377,7 @@ async function evaluateDocumentClaude(tool: string, intake: any, report: any): P
   let claudeResult: any = null;
   try {
     const sys = buildRubricSystemPrompt("claude", tool);
-    const raw = await claude(sys, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2500)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`, 5000);
+    const raw = await claude(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`, 5000);
     claudeResult = tryParse(raw);
   } catch (e) {
     console.warn("[run-quality-batch] Claude rubric eval failed:", (e as Error).message);
@@ -407,7 +420,7 @@ async function evaluateDocumentGPT(tool: string, intake: any, report: any): Prom
       ? `\n\nEDITORIAL RUBRIC OVERRIDE: This is editorial copy. Score "formatting" as 100 (N/A). Focus on (1) accuracy of facts and law, (2) citation fidelity, (3) no_adaptive_guidance.`
       : "";
     const sys = buildRubricSystemPrompt("gpt", tool);
-    const raw = await gpt4o(sys, `TOOL: ${tool}\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2000)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 15000)}${editorialNote}\nEvaluate this document. Quote actual text as evidence for each finding.`, 3000);
+    const raw = await gpt4o(sys, `TOOL: ${tool}\nINTAKE: ${sliceIntakeForGrader(intake)}\nDOCUMENT TO EVALUATE: ${JSON.stringify(report ?? {}).slice(0, 15000)}${editorialNote}\nEvaluate this document. Quote actual text as evidence for each finding.`, 3000);
     const parsed = tryParse(raw);
     if (!parsed?.dimension_scores) {
       return { eval: null, error: `GPT returned unexpected structure (first 120 chars: ${raw.slice(0, 120)})` };
