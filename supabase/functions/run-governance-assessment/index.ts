@@ -50,11 +50,30 @@ const DOC_Y_TRANSFER_TERMS = [
   "standard contractual clauses","scc","binding corporate rules","bcr",
   "adequacy decision","adequacy mechanism","gdpr chapter v","uk gdpr chapter v",
   "transfer impact assessment","transfer risk assessment",
+  // Y-2b add: DPF terms.
+  "data privacy framework","dpf",
 ];
+// Y-2b add: regex patterns for Chapter V articles 44-49.
+const DOC_Y_TRANSFER_REGEXES: RegExp[] = [
+  /\bArt(?:icle|\.)?\s*4[4-9]\b/i,
+];
+// Y-2b add: 'adequacy' triggers only within 12 words of transfer/vendor/cross-border.
+const DOC_Y_ADEQUACY_ANCHOR_TOKENS = new Set([
+  "transfer","transfers","transferring","vendor","vendors","cross","cross-border","crossborder",
+]);
+const DOC_Y_ADEQUACY_PROXIMITY = 12;
 const DOC_Y_COMPARATIVE_MARKERS = [
   "for comparison","by contrast","unlike the gdpr","unlike gdpr",
   "as compared with the gdpr","compared to the gdpr","compared with the gdpr",
+  "for reference only",
+  // Note: "analogously" is deliberately NOT a comparative marker (Y-2b).
 ];
+// Y-2b: any sentence containing a GDPR article citation is removed on US-only runs
+// when the enclosing field mentions GDPR, unless the same sentence carries a
+// comparative marker above. Per-sentence only — a labeled cite does not license
+// unlabeled use later in the same field.
+const DOC_Y_GDPR_ARTICLE_RE = /\bArt(?:icle|\.)?\s*\d+/i;
+const DOC_Y_GDPR_CONTEXT_RE = /\b(?:uk\s*gdpr|gdpr)\b/i;
 // Cal. Civ. Code allowlist. Values: null = whole section allowed without
 // subsection validation; array = allowed subsection letters (enumerated).
 const DOC_Y_CAL_CIV_ALLOWLIST: Record<string, string[] | null> = {
@@ -107,17 +126,52 @@ function docYSplitSentences(s: string): string[] {
   return s.split(/(?<=[.!?])\s+(?=[A-Z(“"])/);
 }
 
+function docYAdequacyProximityHit(sentLower: string): boolean {
+  if (!/\badequacy\b/.test(sentLower)) return false;
+  const tokens = sentLower.split(/[^a-z0-9\-]+/).filter(Boolean);
+  const adequacyIdx: number[] = [];
+  const anchorIdx: number[] = [];
+  tokens.forEach((t, i) => {
+    if (t === "adequacy") adequacyIdx.push(i);
+    if (DOC_Y_ADEQUACY_ANCHOR_TOKENS.has(t)) anchorIdx.push(i);
+  });
+  return adequacyIdx.some((a) => anchorIdx.some((b) => Math.abs(a - b) <= DOC_Y_ADEQUACY_PROXIMITY));
+}
+
 function docYStripTransferSentences(s: string, fieldPath: string): string {
   if (!s || typeof s !== "string") return s;
   const sentences = docYSplitSentences(s);
   const kept: string[] = [];
   for (const sent of sentences) {
     const lower = sent.toLowerCase();
-    const hit = DOC_Y_TRANSFER_TERMS.find((t) => lower.includes(t));
+    let hit: string | null = DOC_Y_TRANSFER_TERMS.find((t) => lower.includes(t)) ?? null;
+    if (!hit) {
+      const rx = DOC_Y_TRANSFER_REGEXES.find((r) => r.test(sent));
+      if (rx) hit = `regex:${rx.source}`;
+    }
+    if (!hit && docYAdequacyProximityHit(lower)) hit = "adequacy~transfer/vendor/cross-border";
     if (!hit) { kept.push(sent); continue; }
     const labeled = DOC_Y_COMPARATIVE_MARKERS.some((m) => lower.includes(m));
     if (labeled) { kept.push(sent); continue; }
     console.warn(`[run-governance-assessment] doc-y transfer-gate removed field=${fieldPath} term="${hit}" sentence="${sent.trim().slice(0,240)}"`);
+  }
+  return kept.join(" ").replace(/\s+/g, " ").trim();
+}
+
+// Y-2b: strip unlabeled GDPR article citations on US-only runs when the field
+// mentions GDPR. Per-sentence: a labeled cite in one sentence never licenses
+// unlabeled use in a later sentence.
+function docYStripUnlabeledGdprSentences(s: string, fieldPath: string): string {
+  if (!s || typeof s !== "string") return s;
+  if (!DOC_Y_GDPR_CONTEXT_RE.test(s)) return s;
+  const sentences = docYSplitSentences(s);
+  const kept: string[] = [];
+  for (const sent of sentences) {
+    if (!DOC_Y_GDPR_ARTICLE_RE.test(sent)) { kept.push(sent); continue; }
+    const lower = sent.toLowerCase();
+    const labeled = DOC_Y_COMPARATIVE_MARKERS.some((m) => lower.includes(m));
+    if (labeled) { kept.push(sent); continue; }
+    console.warn(`[run-governance-assessment] doc-y gdpr-unlabeled removed field=${fieldPath} sentence="${sent.trim().slice(0,240)}"`);
   }
   return kept.join(" ").replace(/\s+/g, " ").trim();
 }
@@ -176,6 +230,7 @@ function applyDocYPostGeneration(reportData: any, intake: any): void {
     const euUkInScope = docYIsEuUkInScope(intake);
     if (!euUkInScope) {
       docYWalkStrings(reportData, "report", (s, p) => docYStripTransferSentences(s, p));
+      docYWalkStrings(reportData, "report", (s, p) => docYStripUnlabeledGdprSentences(s, p));
     }
     docYWalkStrings(reportData, "report", (s, p) => docYValidateCalCivCitations(s, p));
   } catch (e) {
@@ -549,7 +604,7 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
 
 Deno.serve(async (req) => {
   console.log(`[qb9] run-governance-assessment build active · core=${PROMPT_CORE_VERSION}`);
-  console.log("[run-governance-assessment] qb7 build active");
+  console.log("[run-governance-assessment] qb7 build active · doc-y-2b");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   let assessment_id: string | undefined;
