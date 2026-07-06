@@ -205,7 +205,9 @@ NO DUPLICATE MAIN-ESTABLISHMENT PLACEHOLDER IN STEP 3A: The "[TO BE COMPLETED: c
 
 CATEGORY HEADING SINGULAR/PLURAL: Use "Category of data subjects affected" (singular) when only one category is listed, and "Categories of data subjects affected" (plural) when two or more are listed. Match the heading to the count.
 
-PRECAUTIONARY PASSWORD-CHANGE FRAMING: When recommending users change their password even though the incident did NOT expose that password with this organisation, include one clarifying sentence framing the advice as precautionary against credential-stuffing risk from password reuse on other services — e.g. "Your password with [org] was not itself exposed in this incident; the recommendation is precautionary, since attackers commonly try leaked email addresses against other services where users may have reused the same password." Do NOT phrase the recommendation in a way that implies the password held by this organisation was compromised.
+PRECAUTIONARY PASSWORD-CHANGE FRAMING: When recommending users change their password, frame the advice as precautionary against credential-stuffing risk from password reuse on other services, and match the epistemic status of the playbook's Section 4 credential-exposure determination — see CREDENTIAL-EXPOSURE PHRASING MATCHES SECTION 4 below. Do NOT phrase the recommendation in a way that implies the password held by this organisation was compromised.
+
+CREDENTIAL-EXPOSURE PHRASING MATCHES SECTION 4: consumer-facing statements about whether passwords or credentials were exposed must carry the same epistemic status as the playbook's Section 4 determination. Where Section 4 records exposure as CONFIRMED not to have occurred, a categorical statement is correct (e.g. "Your password with [ORGANISATION NAME] was not exposed in this incident."). Where Section 4 records exposure as unconfirmed or under investigation, use evidence-based phrasing instead: "Based on our investigation to date, we have no evidence that passwords you hold with [ORGANISATION NAME] were exposed in this incident; this recommendation is precautionary, since attackers commonly try leaked email addresses against other services where users may have reused the same password." NEVER state categorically that a credential "was not exposed" when the playbook's own analysis records the question as unconfirmed.
 
 PROCESSOR NOTIFICATION LABEL — DIRECTIONAL CLARITY: Do NOT use the ambiguous label "Processor notification timestamp" alone. Use "Processor-to-controller notification timestamp" or "Date and time processor notified the controller" (whichever fits the context) so the direction of notification is unambiguous.
 
@@ -235,13 +237,19 @@ GERMAN AUTHORITY NOMENCLATURE IS CANONICAL: the federal authority is 'Bundesbeau
 
 STEP NUMBERING BELONGS TO SECTION 4 ALONE: the labels "STEP 1" through "STEP 5" (and any "STEP n" form) appear ONLY as Section 4 headings. Sections 2 and 3 never title a paragraph, conclusion, or note "STEP n" — a preliminary view in Sections 2–3 is titled by its subject ("Preliminary view — Article 33 notification", "Preliminary view — Article 34 high-risk question"), so the mandated cross-reference "resolved by the … determination at Section 4 STEP 2" can never read as a step resolving itself. Where Sections 2–3 currently would write "Preliminary conclusion — STEP 2", write "Preliminary view — Article 33 notification" instead.
 
+SECTION 4 STEP NUMBERS ARE UNIQUE AND SEQUENTIAL: within Section 4, each STEP number appears exactly once, in ascending order with no gaps and no reuse. Where a playbook adds sections beyond the core sequence (for example, a state-law content-and-delivery-requirements section in a US-only playbook), it takes the NEXT sequential number (STEP 6 where STEPs 1–5 are used; STEP 5 where the Article 34(3) exceptions step is absent because no GDPR jurisdiction is in scope). NEVER annotate numbering decisions: no notes about label retention, numbering continuity, renumbering, or any other numbering rationale — numbering commentary is internal machinery and must not appear in user-facing text.
+
 NOTIFICATION RECORDS LIST NOTIFICATION ITEMS: the notification-specific documentation checklist contains only items that apply when notification IS required. The 'notification determined not to be required' reasoning item belongs to the general breach-register entry (maintained for every breach regardless of notification); if retained in the notification checklist at all, it is framed solely as the reversal edge case ('Where an initial threshold determination is later reversed…').
 
 A DEFERRAL IS ISSUED ONCE: where the same information is deferred to the user in two sections (e.g. geographic segmentation of affected individuals), the [TO BE COMPLETED] instruction appears in full at its primary location only; every other location carries a cross-reference ('see Section 1, step 6') — never a second full deferral for the same fact.
 
 SUPPLIED BREACH AUTHORITY: where a GDPR BREACH-NOTIFICATION AUTHORITY block is present in the user prompt, every statement of Article 33 or Article 34 content (thresholds, the 72-hour clock, notification content elements, the high-risk communication standard, exceptions) must be drawn from that block. Where the block is absent (US-state-only incidents), do not cite GDPR articles at all. Existing enforcement-citation grounding rules are unchanged.
 
-CAL AG SAMPLE-COPY THRESHOLD: the Cal. Civ. Code 1798.82(f) trigger is notification to MORE THAN 500 California residents (strictly greater than 500), with the sample copy due to the Attorney General within 15 calendar days of notifying consumers. Never phrase this threshold as '500 or more' or '500+'. State every occurrence of this threshold identically throughout the playbook.`;
+CAL AG SAMPLE-COPY THRESHOLD: the Cal. Civ. Code 1798.82(f) trigger is notification to MORE THAN 500 California residents (strictly greater than 500), with the sample copy due to the Attorney General within 15 calendar days of notifying consumers. Never phrase this threshold as '500 or more' or '500+'. State every occurrence of this threshold identically throughout the playbook.
+
+SUPPORT-NOTE ELEMENT LIST IS DERIVED: the data elements to check for in support notes / free-text fields (in any support-note review checklist, incident-response step, or template) are EXACTLY the qualifying elements enumerated in this playbook's Section 4 data-element gate(s) for the jurisdiction(s) in scope — reproduce that list; never restate it from memory or abbreviate it, and never omit elements (e.g. passport numbers or military identification numbers under Virginia §18.2-186.6) that the Section 4 gate correctly lists. Where multiple states are in scope, the checklist is the union of the per-state gate elements, attributed per state.
+
+MANDATORY ACTS USE MANDATORY LANGUAGE: where the playbook itself characterises an act as required (statutorily or by the playbook's own preceding text), operative sentences use "must", never "should" and never softeners such as "should be sought" or "is recommended". Pointers are specific: "see below" / "see above" always name the section or step they point to (e.g. "see Section 4, STEP 3" or "see Section 5, consumer notice template").`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
@@ -256,7 +264,7 @@ const IR_TOOL_MODULE: ToolModule = {
 
 // Bump this string whenever generate-ir-playbook changes — it is logged at
 // background-start so deploy staleness is instantly detectable in edge logs.
-const IR_VERSION = "v3.4-ico-currency-fix-2026-06-14";
+const IR_VERSION = "v3.5-dock-numbering-credential-elements-2026-07-06";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
