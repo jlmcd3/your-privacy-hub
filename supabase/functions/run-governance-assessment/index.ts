@@ -315,6 +315,7 @@ function applyDocYPostGeneration(reportData: any, intake: any): void {
         }
       };
       backfill(reportData, "report");
+      docYWalkStrings(reportData, "report", (s, p) => docY3bRewriteDpiaCoCitations(s, p));
     }
     docYWalkStrings(reportData, "report", (s, p) => docYValidateCalCivCitations(s, p));
   } catch (e) {
