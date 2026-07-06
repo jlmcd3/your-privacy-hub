@@ -622,6 +622,42 @@ Deno.serve(async (req) => {
           console.warn("[generate-ir-playbook] gdpr-context failed (non-fatal):", e);
         }
 
+        // California breach-notification authority supply (verbatim Cal. Civ.
+        // Code § 1798.82 from cppa_authorities). Same conditionality style as
+        // the IoT sector block in Cyber: fire only when this incident covers
+        // California/US-CA. Injection-first: only push to irSuppliedCitations
+        // in runs where the verbatim text was actually included in the prompt.
+        let caBreachBlock = "";
+        try {
+          const jListCa: string[] = (Array.isArray(body.jurisdictions) ? body.jurisdictions : []).map((j: any) => String(j).toLowerCase());
+          const hasCa = jListCa.some((j) =>
+            j === "california" || j === "us-ca" || j === "ca" ||
+            j.includes("california") || j.endsWith("-ca") || j === "us:ca"
+          );
+          if (hasCa) {
+            const { data: caRows, error: caErr } = await (supabase as any)
+              .from("cppa_authorities")
+              .select("citation, full_text")
+              .eq("citation", "Cal. Civ. Code § 1798.82")
+              .limit(1);
+            if (caErr) {
+              console.warn("[generate-ir-playbook] 1798.82 fetch failed:", caErr.message);
+            } else if (Array.isArray(caRows) && caRows.length > 0 && (caRows[0] as any).full_text) {
+              const row = caRows[0] as { citation: string; full_text: string };
+              caBreachBlock =
+                "\n\nCALIFORNIA BREACH-NOTIFICATION AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Cal. Civ. Code § 1798.82 content ONLY from the text below, never from recollection):\n" +
+                `[${row.citation}]\n${row.full_text}`;
+              irSuppliedCitations.push("Cal. Civ. Code § 1798.82");
+            } else {
+              console.warn("[generate-ir-playbook] California incident but 1798.82 row unavailable");
+            }
+          }
+        } catch (e) {
+          console.warn("[generate-ir-playbook] ca-breach supply threw (non-fatal):", e);
+        }
+
+
+
 
         // ── Split into TWO PARALLEL Sonnet calls to stay inside the edge runtime
         // wall-clock budget.
@@ -644,7 +680,7 @@ The following cases show where organisations were penalised for breach notificat
 CITATION RULE: When you reference any of these in section text, use the human-readable CITATION shown (e.g. "ICO (2023)" or "CNIL (2022)") — NEVER the bracketed [E#] code. The [E#] tag is only for your internal lookup. Reserve the exact id values for the ===ANNOTATIONS=== JSON block at the very end of the playbook.
 ${formatEnforcementContext(enforcement_context)}
 
-CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.${gdprBreachBlock}${edpbGuidelineBlock}`;
+CROSS-JURISDICTIONAL CITATION NOTE: Where an enforcement precedent in the ENFORCEMENT CONTEXT above was issued by a regulator from a different legal system than the jurisdiction being addressed in a section (for example, an AEPD/Spanish DPA decision cited in a Quebec or PIPEDA section), you MUST note explicitly in the text: "This case is from a different legal system and is cited as cross-jurisdictional precedent illustrating regulatory expectations, not as direct authority." Do not present such cases as directly binding. This rule applies in EVERY section of the playbook including documentation checklists, root-cause-analysis sections, and post-incident sections — not only the first mention. NEVER describe a decision of one national DPA as directly applicable, directly binding, or EU-law precedent in another member state; decisions of national supervisory authorities bind only within their own jurisdiction and are persuasive elsewhere. Only EDPB Article 65 binding decisions and CJEU judgments may be described as binding across member states.${gdprBreachBlock}${edpbGuidelineBlock}${caBreachBlock}`;
 
         const PROMPT_PART_A = `You are a senior data protection incident response specialist. Generate PART A (Sections 1–3) of a complete, actionable 7-section incident response playbook for a data breach. The playbook must be immediately usable by a privacy or legal team during a live incident.
 

@@ -267,6 +267,29 @@ async function runAssessment(assessment_id: string): Promise<void> {
       }
     }
 
+    // Unconditional California breach-notification authority supply — verbatim
+    // Cal. Civ. Code § 1798.82 from cppa_authorities. Cyber is a California
+    // tool, so this fires on every run; content/rules unchanged, supply-side
+    // only.
+    let caBreachAuthorityBlock = "";
+    {
+      const { data: caBrRows } = await supabase
+        .from("cppa_authorities")
+        .select("citation, full_text")
+        .eq("citation", `Cal. Civ. Code ${S} 1798.82`)
+        .limit(1);
+      if (caBrRows && caBrRows.length > 0 && (caBrRows[0] as any).full_text) {
+        const r = caBrRows[0] as any;
+        caBreachAuthorityBlock =
+          "\n\nCALIFORNIA BREACH-NOTIFICATION AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Cal. Civ. Code " + S + " 1798.82 content ONLY from the text below, never from recollection):\n" +
+          `[${r.citation}]\n${r.full_text}`;
+      } else {
+        console.warn("[cppa-cyber] 1798.82 authority row unavailable");
+      }
+    }
+
+
+
     const today = new Date().toISOString().slice(0, 10);
     const system = buildSystemContent({
       toolModule: CPPA_CYBER_TOOL_MODULE,
@@ -337,7 +360,7 @@ SECTOR RULES — include the following additional context in findings and remedi
 - Pharma / Clinical Research: note FDA 21 CFR Part 11 requirements for audit logging and access controls on systems handling electronic records.
 - Children / EdTech: note COPPA security obligations where personal information of minors is involved.
 
-GOVERNMENT/NONPROFIT APPLICABILITY — add a sentence to the finding for each control if the intake indicates the entity is a government agency or public-sector body: "Note: CPPA cybersecurity audit obligations under 11 CCR §§ 7120–7124 apply only to 'businesses' as defined in Cal. Civ. Code § 1798.140(ag). State and local government agencies are expressly excluded from the CCPA definition of 'business.' This readiness assessment assumes CPPA applicability; the entity should confirm its status as a covered business before relying on this report for CPPA compliance purposes." If the entity appears to be a nonprofit, add: "CPPA cybersecurity obligations apply only to entities meeting at least one of the three CCPA business thresholds (annual gross revenues >$25M; processing PI of 100,000+ consumers/households; or deriving 50%+ of revenue from selling/sharing PI). This readiness assessment assumes threshold applicability; the entity should verify its status."${iotAuthorityBlock}`;
+GOVERNMENT/NONPROFIT APPLICABILITY — add a sentence to the finding for each control if the intake indicates the entity is a government agency or public-sector body: "Note: CPPA cybersecurity audit obligations under 11 CCR §§ 7120–7124 apply only to 'businesses' as defined in Cal. Civ. Code § 1798.140(ag). State and local government agencies are expressly excluded from the CCPA definition of 'business.' This readiness assessment assumes CPPA applicability; the entity should confirm its status as a covered business before relying on this report for CPPA compliance purposes." If the entity appears to be a nonprofit, add: "CPPA cybersecurity obligations apply only to entities meeting at least one of the three CCPA business thresholds (annual gross revenues >$25M; processing PI of 100,000+ consumers/households; or deriving 50%+ of revenue from selling/sharing PI). This readiness assessment assumes threshold applicability; the entity should verify its status."${iotAuthorityBlock}${caBreachAuthorityBlock}`;
     }
 
     function buildSynthesisPrompt(controlsDigest: string, computedScore: number): string {
@@ -819,12 +842,18 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       "11 CCR § 7122",
       "11 CCR § 7123",
       "11 CCR § 7124",
+      // Unconditional: Cal. Civ. Code § 1798.82 (Customer Records Act breach
+      // notification). Cyber is a California tool and the verbatim text is
+      // injected via caBreachAuthorityBlock below, so the lint supply must
+      // reflect it. Source relabelled to CA_BREACH in the corpus.
+      `Cal. Civ. Code ${S} 1798.82`,
       ...(isConnectedDeviceSector ? [
         `Cal. Civ. Code ${S} 1798.91.04`,
         `Cal. Civ. Code ${S} 1798.91.05`,
         `Cal. Civ. Code ${S} 1798.91.06`,
       ] : []),
     ];
+
     const { data: authRows } = await supabase
       .from("cppa_authorities")
       .select("id, citation, version, authority_type, authority_weight, effective_date, official_url, title, status")
