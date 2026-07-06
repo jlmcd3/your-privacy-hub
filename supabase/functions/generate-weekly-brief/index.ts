@@ -258,6 +258,7 @@ Note: Based on ${enforcementHistory.briefCount} weeks of tracked data.`
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) {
+      await failFunctionRun(supabase, fnRun, new Error("ANTHROPIC_API_KEY not configured"), { metadata: { stage: "config" } });
       return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -544,6 +545,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
 
     if (!aiResponse.ok) {
       const err = await aiResponse.text();
+      await failFunctionRun(supabase, fnRun, new Error(`AI API error: ${aiResponse.status}`), { metadata: { stage: "brief_gen", status: aiResponse.status, detail: err.slice(0, 500) } });
       return new Response(JSON.stringify({ error: "AI API error", detail: err }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -559,6 +561,7 @@ Return ONLY the JSON object. No preamble, no explanation, no markdown.`;
     } catch {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
+        await failFunctionRun(supabase, fnRun, new Error("Failed to parse AI response"), { metadata: { stage: "brief_parse", raw_head: rawText.slice(0, 500) } });
         return new Response(JSON.stringify({ error: "Failed to parse AI response", raw: rawText.slice(0, 500) }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
@@ -653,6 +656,7 @@ VERIFICATION STANDARDS:
 
     if (insertError) {
       console.error("Insert brief error:", insertError);
+      await failFunctionRun(supabase, fnRun, insertError, { metadata: { stage: "insert_brief" } });
       return new Response(JSON.stringify({ error: "Failed to store brief" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
