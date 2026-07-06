@@ -1033,39 +1033,70 @@ async function runPipeline(assessment_id: string) {
     }
     report_data = dedupeExceptionCitationNote(report_data);
 
-    // QB12-4(b): [TO COMPLETE ...] placeholders are fill-in slots, never essays.
-    // Truncate any placeholder that exceeds 200 chars OR contains the exception-
-    // citation note. Preserves the leading bracket clause; discards trailing prose.
-    // Structurally non-fatal (try/catch cannot change status or metering).
+    // QB12-4(b) v2 (Doc V Step 3): [TO COMPLETE ...] placeholders are fill-in slots.
+    // Surgical excision: remove ONLY the exception-citation note text (and any
+    // resulting doubled whitespace/punctuation); keep the remaining prose so the
+    // controller retains statutory context. Length cap becomes a fallback: if the
+    // placeholder still exceeds 400 chars after excision, truncate at the end of
+    // the first sentence (not at the bracket clause), reappending "]" if the
+    // closing bracket was lost. Structurally non-fatal.
     function truncateToCompletePlaceholders(report: any): any {
       try {
-        let truncated = 0;
+        let excised = 0;
+        let sentenceTruncated = 0;
         const PLACEHOLDER = /\[\s*TO\s+COMPLETE[^\]]*\]/i;
-        const containsNote = (s: string) => {
+        const isNote = (s: string) => {
+          if (typeof s !== "string") return false;
           const n = s.replace(/\s+/g, " ").toLowerCase();
           return n.includes("1798.145") && n.includes("under which");
         };
-        const walk = (node: any) => {
+        const stripNoteText = (s: string): string => {
+          const parts = s.split(/(?<=[.!?])\s+/);
+          const kept = parts.filter((p) => !isNote(p));
+          return kept.join(" ").replace(/\s{2,}/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
+        };
+        const walk = (node: any, path: string) => {
           if (!node) return;
-          if (Array.isArray(node)) { for (const v of node) walk(v); return; }
+          if (Array.isArray(node)) { for (let i = 0; i < node.length; i++) walk(node[i], `${path}[${i}]`); return; }
           if (typeof node !== "object") return;
           for (const key of Object.keys(node)) {
             const val = node[key];
             if (typeof val === "string") {
-              const m = val.match(PLACEHOLDER);
-              if (m && (val.length > 200 || containsNote(val))) {
-                node[key] = m[0];
-                truncated += 1;
+              if (!PLACEHOLDER.test(val)) continue;
+              let out = val;
+              // 3a: excise note text only, keep the rest.
+              if (isNote(out)) {
+                const stripped = stripNoteText(out);
+                if (stripped !== out) {
+                  out = stripped;
+                  excised += 1;
+                  console.warn(`[RISK] QB12-4(b) v2: excised note from ${path}.${key}`);
+                }
               }
+              // 3b: length fallback — truncate at first sentence end if still >400.
+              if (out.length > 400) {
+                const sentEnd = out.search(/(?<=[.!?])\s+/);
+                let cut = sentEnd > 0 ? out.slice(0, sentEnd + 1).trim() : out.slice(0, 400).trim();
+                // Reappend ] if the closing bracket was lost.
+                if (cut.includes("[") && !cut.includes("]")) cut = cut + "]";
+                if (cut !== out) {
+                  out = cut;
+                  sentenceTruncated += 1;
+                  console.warn(`[RISK] QB12-4(b) v2: sentence-truncated ${path}.${key} (>400 chars post-excision)`);
+                }
+              }
+              if (out !== val) node[key] = out;
             } else {
-              walk(val);
+              walk(val, `${path}.${key}`);
             }
           }
         };
-        walk(report);
-        if (truncated > 0) console.warn(`[RISK] QB12-4(b): truncated ${truncated} oversized/leaky [TO COMPLETE] placeholder(s)`);
+        walk(report, "");
+        if (excised + sentenceTruncated > 0) {
+          console.warn(`[RISK] QB12-4(b) v2 summary: excised=${excised} sentence_truncated=${sentenceTruncated}`);
+        }
       } catch (e) {
-        console.error("[RISK] QB12-4(b) placeholder truncation errored:", e);
+        console.error("[RISK] QB12-4(b) v2 placeholder rework errored:", e);
       }
       return report;
     }
