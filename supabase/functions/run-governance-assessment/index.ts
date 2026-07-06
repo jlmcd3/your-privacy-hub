@@ -1,5 +1,8 @@
 // qb8 build active
 // run-meter deploy-check v1
+// doc-y-3 build marker
+const DOC_Y_BUILD_MARKER = "doc-y-3";
+console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
@@ -68,12 +71,17 @@ const DOC_Y_COMPARATIVE_MARKERS = [
   "for reference only",
   // Note: "analogously" is deliberately NOT a comparative marker (Y-2b).
 ];
-// Y-2b: any sentence containing a GDPR article citation is removed on US-only runs
-// when the enclosing field mentions GDPR, unless the same sentence carries a
-// comparative marker above. Per-sentence only — a labeled cite does not license
-// unlabeled use later in the same field.
-const DOC_Y_GDPR_ARTICLE_RE = /\bArt(?:icle|\.)?\s*\d+/i;
-const DOC_Y_GDPR_CONTEXT_RE = /\b(?:uk\s*gdpr|gdpr)\b/i;
+// Y-2b (original): field-token-gated GDPR article strip.
+// Y-3: drop the field-contains-'gdpr' precondition. Per-sentence strip when
+// the sentence contains a GDPR-style article citation AND (an EU/UK/EDPB/
+// authority context token OR the article number is in the GDPR-typical set).
+const DOC_Y_GDPR_ARTICLE_RE = /\bArt(?:icle|\.)?\s*\d{1,2}(?:\(\d+\))?(?:\([a-z]\))?/i;
+const DOC_Y_GDPR_ARTICLE_NUM_RE = /\bArt(?:icle|\.)?\s*(\d{1,2})\b/i;
+const DOC_Y_GDPR_CONTEXT_RE = /\b(?:uk\s*gdpr|gdpr|edpb|wp29|cnil|ico|dpia\s+list)\b/i;
+const DOC_Y_GDPR_TYPICAL_ARTICLES = new Set([
+  5,6,9,12,13,14,15,17,20,21,22,24,25,27,28,30,32,33,34,35,36,
+  44,45,46,47,48,49,
+]);
 // Cal. Civ. Code allowlist. Values: null = whole section allowed without
 // subsection validation; array = allowed subsection letters (enumerated).
 const DOC_Y_CAL_CIV_ALLOWLIST: Record<string, string[] | null> = {
@@ -158,20 +166,29 @@ function docYStripTransferSentences(s: string, fieldPath: string): string {
   return kept.join(" ").replace(/\s+/g, " ").trim();
 }
 
-// Y-2b: strip unlabeled GDPR article citations on US-only runs when the field
-// mentions GDPR. Per-sentence: a labeled cite in one sentence never licenses
-// unlabeled use in a later sentence.
+// Y-3: pattern-based GDPR-article strip on US-only runs. No field-token gate.
+// Per-sentence: strip when the sentence has a GDPR-style article citation AND
+// (sentence carries an EU/UK/EDPB/authority context token OR the article
+// number is in the GDPR-typical set), unless the sentence carries a
+// comparative label per DOC_Y_COMPARATIVE_MARKERS.
 function docYStripUnlabeledGdprSentences(s: string, fieldPath: string): string {
   if (!s || typeof s !== "string") return s;
-  if (!DOC_Y_GDPR_CONTEXT_RE.test(s)) return s;
   const sentences = docYSplitSentences(s);
   const kept: string[] = [];
   for (const sent of sentences) {
     if (!DOC_Y_GDPR_ARTICLE_RE.test(sent)) { kept.push(sent); continue; }
     const lower = sent.toLowerCase();
+    const hasCtx = DOC_Y_GDPR_CONTEXT_RE.test(sent);
+    let numHit = false;
+    const numMatch = sent.match(DOC_Y_GDPR_ARTICLE_NUM_RE);
+    if (numMatch) {
+      const n = parseInt(numMatch[1], 10);
+      if (Number.isFinite(n) && DOC_Y_GDPR_TYPICAL_ARTICLES.has(n)) numHit = true;
+    }
+    if (!hasCtx && !numHit) { kept.push(sent); continue; }
     const labeled = DOC_Y_COMPARATIVE_MARKERS.some((m) => lower.includes(m));
     if (labeled) { kept.push(sent); continue; }
-    console.warn(`[run-governance-assessment] doc-y gdpr-unlabeled removed field=${fieldPath} sentence="${sent.trim().slice(0,240)}"`);
+    console.warn(`[run-governance-assessment] doc-y gdpr-unlabeled removed field=${fieldPath} ctx=${hasCtx?"1":"0"} num=${numHit?"1":"0"} sentence="${sent.trim().slice(0,240)}"`);
   }
   return kept.join(" ").replace(/\s+/g, " ").trim();
 }
@@ -225,12 +242,50 @@ function docYWalkStrings(obj: any, path: string, fn: (s: string, path: string) =
   }
 }
 
+// Y-3 Step 3: deterministic fallback for basis/regulatory fields left empty
+// or under 20 chars by the strips. Assembled from the run's US jurisdictions.
+const DOC_Y_BASIS_FIELD_RE = /basis|regulatory/i;
+function docYBuildUsBasisFallback(intake: any): string {
+  const jl = (Array.isArray(intake?.jurisdictions) ? intake.jurisdictions : [])
+    .map((j: any) => String(j).toLowerCase());
+  const parts: string[] = [];
+  const has = (needles: string[]) => jl.some((j: string) => needles.some((n) => j.includes(n)));
+  if (has(["us-ca","california"])) parts.push("Cal. Civ. Code § 1798.185; 11 CCR §§ 7150-7157 (risk assessments)");
+  if (has(["us-va","virginia"])) parts.push("Va. Code § 59.1-580 (data protection assessments)");
+  if (has(["us-co","colorado"])) parts.push("C.R.S. § 6-1-1309 (data protection assessments)");
+  parts.push("applicable US state privacy assessment obligations");
+  return parts.join("; ");
+}
+
 function applyDocYPostGeneration(reportData: any, intake: any): void {
   try {
     const euUkInScope = docYIsEuUkInScope(intake);
     if (!euUkInScope) {
       docYWalkStrings(reportData, "report", (s, p) => docYStripTransferSentences(s, p));
       docYWalkStrings(reportData, "report", (s, p) => docYStripUnlabeledGdprSentences(s, p));
+      // Y-3 Step 3: coherence backstop for basis/regulatory fields.
+      const fallback = docYBuildUsBasisFallback(intake);
+      const backfill = (obj: any, path: string): void => {
+        if (obj == null || typeof obj !== "object") return;
+        if (Array.isArray(obj)) {
+          for (let i = 0; i < obj.length; i++) backfill(obj[i], `${path}[${i}]`);
+          return;
+        }
+        for (const k of Object.keys(obj)) {
+          if (k === "organisation_profile") continue;
+          const v = obj[k];
+          const p = `${path}.${k}`;
+          if (typeof v === "string") {
+            if (DOC_Y_BASIS_FIELD_RE.test(k) && v.trim().length < 20) {
+              console.warn(`[run-governance-assessment] doc-y3 basis-backfill field=${p} prev_len=${v.trim().length} fallback="${fallback}"`);
+              obj[k] = fallback;
+            }
+          } else {
+            backfill(v, p);
+          }
+        }
+      };
+      backfill(reportData, "report");
     }
     docYWalkStrings(reportData, "report", (s, p) => docYValidateCalCivCitations(s, p));
   } catch (e) {
@@ -433,7 +488,9 @@ ENFORCEMENT CLAIMS CARRY CITATIONS OR DO NOT APPEAR: any statement about what a 
 
 NO UNDEFINED DOCTRINE LABELS: do not attach doctrinal labels the cited provision does not use ("safe harbour", "strict liability", "per se violation"). State the liability mechanics with the provision instead (e.g. exposure under §1798.100(d) absent the contractual restrictions required by §1798.140(ag)).
 
-RESOLVE JURISDICTION QUESTIONS FROM THE INTAKE: never direct the user to verify a fact the intake already answers. Where the intake records EU/UK data as No, GDPR-specific obligations (DPIA under Art 35, DPO under Art 37, representatives under Art 27) are marked out-of-scope on the intake's stated basis — with one sentence noting the basis — and the analysis addresses the applicable US analog instead where one exists (e.g. risk/data-protection assessments under C.R.S. §6-1-1309 or Va. Code §59.1-580, citing ONLY provisions present in the supplied context; where the analog provision is not in supply, name the obligation generically without a pinpoint citation). An obligation is either in scope, out of scope on a stated basis, or contingent on a fact the intake does NOT answer — only the third kind generates a verification item."`;
+RESOLVE JURISDICTION QUESTIONS FROM THE INTAKE: never direct the user to verify a fact the intake already answers. Where the intake records EU/UK data as No, GDPR-specific obligations (DPIA under Art 35, DPO under Art 37, representatives under Art 27) are marked out-of-scope on the intake's stated basis — with one sentence noting the basis — and the analysis addresses the applicable US analog instead where one exists (e.g. risk/data-protection assessments under C.R.S. §6-1-1309 or Va. Code §59.1-580, citing ONLY provisions present in the supplied context; where the analog provision is not in supply, name the obligation generically without a pinpoint citation). An obligation is either in scope, out of scope on a stated basis, or contingent on a fact the intake does NOT answer — only the third kind generates a verification item."
+
+${!hasEuUk ? `US-ONLY ASSESSMENT FRAMING (Y-3): every domain finding, including dpia_status, is framed EXCLUSIVELY under the applicable US authorities for the run's jurisdictions — assessment obligations under C.R.S. § 6-1-1309 and Va. Code § 59.1-580 where Colorado or Virginia apply, and California risk-assessment obligations under Cal. Civ. Code § 1798.185 and 11 CCR §§ 7150-7157 where California applies. Thresholds, triggers, current-state descriptions, gap descriptions, and recommended actions all use the US authorities' own terms. GDPR or UK GDPR provisions (including Art. 35 and any other Chapter III/IV/V article) may appear ONLY as an explicitly labeled comparison ("for comparison", "by contrast", "for reference only") and a labeled sentence never licenses unlabeled use elsewhere; never direct the user to evaluate anything against a GDPR threshold on a US-only run.` : ``}`;
 }
 
 export function buildGovernanceDomainToolModule(jurisdictions: unknown, euUkData: string): ToolModule {
