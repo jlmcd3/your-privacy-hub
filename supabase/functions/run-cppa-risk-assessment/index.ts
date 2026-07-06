@@ -928,6 +928,102 @@ async function runPipeline(assessment_id: string) {
       report_data.record_sufficiency = { complete: false, statement: "" };
     }
 
+    // Doc W: deterministic BELIEVED-routing enforcement (belt and braces —
+    // the generator has already ignored rule 3a once). Non-fatal, no status
+    // or metering writes (Doc F posture). Contradiction flags are never
+    // touched by this pass; only strengthen_items and information_needed.
+    try {
+      const intake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const assertions = (intake?.assertions ?? {}) as Record<string, { state?: string; basis?: string | null }>;
+      const believedFields = new Set(
+        Object.entries(assertions)
+          .filter(([, v]) => v && v.state === "believed" && !!v.basis)
+          .map(([k]) => k),
+      );
+
+      // 3b ENFORCE STRENGTHEN EXCLUSIVITY: remove any strengthen_items entry
+      // whose field_ids contain NO believed-basis field. Empties the list on
+      // legacy runs; logs each removal.
+      const siBefore: any[] = Array.isArray(report_data.strengthen_items) ? report_data.strengthen_items : [];
+      const siKept: any[] = [];
+      for (const it of siBefore) {
+        const fids: string[] = Array.isArray(it?.field_ids) ? it.field_ids : [];
+        const anyBelieved = fids.some((f) => believedFields.has(f));
+        if (anyBelieved) {
+          siKept.push(it);
+        } else {
+          console.warn(`[cppa-risk Doc W] strengthen-exclusivity: removed entry item_id=${it?.item_id ?? "?"} field_ids=${JSON.stringify(fids)}`);
+        }
+      }
+      report_data.strengthen_items = siKept;
+
+      // 3a ENFORCE STRENGTHEN MEMBERSHIP: for every believed-basis field, if
+      // no surviving strengthen_items entry references it, synthesize one.
+      // Citation preference: the citation of any inconsistency_flags or
+      // information_needed entry that references the field, else the R2
+      // default "11 CCR 7152(a)".
+      const findCitationForField = (f: string): string => {
+        const flags: any[] = Array.isArray(report_data.inconsistency_flags) ? report_data.inconsistency_flags : [];
+        for (const fl of flags) {
+          const sf: string[] = Array.isArray(fl?.source_fields) ? fl.source_fields : [];
+          if (sf.includes(f) && typeof fl?.regulatory_citation === "string" && fl.regulatory_citation.trim()) {
+            return String(fl.regulatory_citation);
+          }
+        }
+        const infos: any[] = Array.isArray(report_data.information_needed) ? report_data.information_needed : [];
+        for (const inf of infos) {
+          const sf: string[] = Array.isArray(inf?.source_fields) ? inf.source_fields : [];
+          if ((sf.includes(f) || inf?.field === f) && typeof inf?.provision === "string" && inf.provision.trim()) {
+            return String(inf.provision);
+          }
+        }
+        return "11 CCR 7152(a)";
+      };
+      let nextIdx = report_data.strengthen_items.length + 1;
+      const covered = new Set<string>();
+      for (const it of report_data.strengthen_items) {
+        for (const f of (it?.field_ids ?? [])) covered.add(f);
+      }
+      for (const f of believedFields) {
+        if (covered.has(f)) continue;
+        const basisToken = assertions[f]?.basis ?? "";
+        const synth = {
+          item_id: `S-${nextIdx++}`,
+          citation: findCitationForField(f),
+          field_ids: [f],
+          recorded_basis: String(basisToken),
+        };
+        report_data.strengthen_items.push(synth);
+        console.warn(`[cppa-risk Doc W] strengthen-membership: synthesized ${synth.item_id} for believed field ${f} (basis=${basisToken}, citation=${synth.citation})`);
+      }
+
+      // 3c INFORMATION_NEEDED SCRUB: remove any information_needed entry
+      // whose `field` is a believed-basis field AND whose text asks to
+      // verify/confirm/check/document the answer already given. Distinct
+      // missing facts are preserved. Contradiction flags untouched.
+      const verifyVerb = /\b(verify|verif(y|ies|ied|ication)|confirm(ed|ation|s)?|check(ed|s)?|validate(d|s)?|document(ed|ation|s)?)\b/i;
+      const infoBefore: any[] = Array.isArray(report_data.information_needed) ? report_data.information_needed : [];
+      const infoKept: any[] = [];
+      for (const inf of infoBefore) {
+        const f = String(inf?.field ?? "");
+        if (believedFields.has(f)) {
+          const blob = [inf?.dimensions, inf?.enables, inf?.provision]
+            .filter((s) => typeof s === "string")
+            .join(" ");
+          if (verifyVerb.test(blob)) {
+            console.warn(`[cppa-risk Doc W] info-scrub: removed information_needed entry field=${f} text=${JSON.stringify(String(inf?.dimensions ?? "").slice(0, 200))}`);
+            continue;
+          }
+        }
+        infoKept.push(inf);
+      }
+      report_data.information_needed = infoKept;
+    } catch (e) {
+      console.warn("[cppa-risk Doc W] BELIEVED-routing pass error:", e);
+    }
+
+
+
 
     // QB11-5(b): an exception's missing_elements[] entry and flags[] entry must not be
     // exact duplicates — keep the missing_elements copy, drop the duplicate flag.
