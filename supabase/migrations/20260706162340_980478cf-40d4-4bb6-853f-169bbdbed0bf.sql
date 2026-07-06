@@ -1,0 +1,8 @@
+INSERT INTO public.quality_loop2_notes (kind, note) VALUES (
+  'grader_instrument_change',
+  'Doc X (2026-07-06): INTAKE slice cap raised 2500/2000 -> 8000 (head 5000 + [...intake middle elided...] + tail 3000 beyond 8000) in run-quality-batch/index.ts (Claude line 367, GPT line 410) AND grade-single-assessment/index.ts (line 132). Both files deployed 2026-07-06 ~16:23 UTC (this migration timestamp is the deploy anchor). Rubric text, checklist IDs, dimension weights, and grader model IDs (claude-*, gpt-4o) are byte-identical to the pre-change state. Report slices (18000/15000) unchanged.
+
+CONSEQUENCE: Scores generated on or after this timestamp are NOT directly comparable to earlier runs on the hallucination and support/analysis dimensions for tools whose serialized intake exceeded the old 2500/2000 caps. Believed fixture f4fc323f-b703-4864-8e68-f3a6a5521050 has intake ~4,683 chars — its previously-captured baselines (quality_loop2_notes rows 43bb4d83-1b6d-4183-beab-ac84392d8bb7 and af651d71-f0f6-492e-b156-0c3abe74db26; kind=believed_fixture_baseline; claude 76 / gpt 81) are hereby SUPERSEDED: those values measured the slicer, not the generator. Do not use them as comparators post-cap-raise.
+
+LEGACY BASELINE IMPACT: Any legacy cppa-risk/cppa-cyber/cppa-admt/dpia/lia/governance baseline whose fixture intake exceeded 2500 chars carries the same truncation floor. Step 3c query attached identifies which. July 13 review packet decides which legacy tools warrant re-baselining on the new instrument.'
+) RETURNING id, kind, created_at;

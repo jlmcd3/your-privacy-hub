@@ -1,3 +1,4 @@
+// SYNC-MARKER: rubric-mirror v2 -- grade-single-assessment mirrors run-quality-batch rubric lines; edit both together
 // grade-single-assessment — standalone, admin-gated one-off grader for a
 // SINGLE cppa_assessments row (Doc W step 4f baseline for BELIEVED fixture,
 // and future Doc R Cyber/ADMT believed fixtures).
@@ -16,6 +17,15 @@
 //  5. Standalone invocation only — never wired into ql2-orchestrator
 //     or run-stress-job.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+
+// Intake slice for grader prompts. Cap raised 2500 -> 8000 (Doc X, 2026-07-06)
+// to mirror run-quality-batch. Beyond 8000, keep HEAD (5000) + TAIL (3000).
+const INTAKE_SLICE_CAP = 8000;
+function sliceIntakeForGrader(intake: unknown): string {
+  const s = JSON.stringify(intake ?? {});
+  if (s.length <= INTAKE_SLICE_CAP) return s;
+  return `${s.slice(0, 5000)}[...intake middle elided...]${s.slice(-3000)}`;
+}
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -129,7 +139,7 @@ function computeOverall(scores: any): number {
 
 async function gradeOne(role: "claude" | "gpt", intake: any, report: any) {
   const sys = buildRubricSystemPrompt(role);
-  const user = `TOOL: cppa-risk\nINTAKE: ${JSON.stringify(intake ?? {}).slice(0, 2500)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`;
+  const user = `TOOL: cppa-risk\nINTAKE: ${sliceIntakeForGrader(intake)}\nREPORT: ${JSON.stringify(report ?? {}).slice(0, 18000)}\nEvaluate this report. Quote actual text as evidence for each finding.`;
   const raw = role === "claude" ? await claudeCall(sys, user) : await gptCall(sys, user);
   const parsed = tryParse(raw);
   if (!parsed?.dimension_scores) throw new Error(`${role} returned no dimension_scores`);
