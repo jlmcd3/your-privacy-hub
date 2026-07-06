@@ -424,6 +424,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "ONE DEADLINE PER ACTION: every priority action carries exactly one governing deadline that matches its deadline field. Where two deliverables have different deadlines (e.g. an ADMT pre-use notice and the risk-assessment record), split them into separate actions. Never place two alternative dates in one action's text. Where a submission date depends on a statutory cycle rather than published guidance, state the cycle (e.g. 'first submission due in the 2028 submission year per 11 CCR 7157') — never defer to 'guidance TBD' without a fallback.",
     "UNDOCUMENTED IS NOT CONTRADICTORY: where two intake values could be complementary (e.g. a 90-day retention for one data category and a 24-month general period), describe the RELATIONSHIP as undocumented and flag it for the user to specify — do not assert direct contradiction unless the values cannot coexist. Where a conclusion of 'insufficient basis' is reached, state explicitly that it reflects record incompleteness, not a substantive determination on the merits.",
     "ASSERTION LEVELS: intake_data.assertions, where present, records the epistemic basis of designated answers. state 'confirmed' = directly checked. state 'believed' with a basis = a complete, legitimate record entry: record the answer WITH its stated basis in the relevant entry's text (factually, no alarm), count it fully toward record completeness, and NEVER generate an insufficient-basis finding, an information_needed entry, or an inconsistency flag from the believed status alone. state 'unknown' = treat exactly as an unanswered question is treated today. Fields with no assertions entry are legacy answers, treated exactly as today. A believed answer participates in contradiction detection on its CONTENT like any other answer — the assertion level itself is never the contradiction.",
+    "ROUTING PRECEDENCE FOR BELIEVED FIELDS: strengthen_items is derived MECHANICALLY from intake_data.assertions — exactly one entry per believed-basis field, no more and no fewer; a run with no believed assertions has an empty strengthen_items. Membership in strengthen_items is independent of everything else: a believed field that is also party to a genuine CONTENT contradiction appears BOTH in the contradiction's inconsistency_flags entry AND in strengthen_items with its basis. information_needed never contains an entry whose substance is verifying, confirming, or deepening a believed-basis answer — the recorded basis is the answer; only a genuinely distinct missing fact may generate an information_needed entry, attributed to the field that is actually missing.",
     "RECORD SUFFICIENCY: record_sufficiency.complete is true when every required element of 11 CCR 7152(a) is addressed in the record — including elements answered on a believed basis — and no unresolved determinative gap or contradiction remains open. record_sufficiency.statement, when complete is true, says in your own words that this assessment constitutes a complete risk-assessment record under 11 CCR 7150-7157 as of the assessment date; when complete is false, it states which 7152(a) element(s) remain open, citing them. Never condition completeness on verification depth.",
     "ITEM TAXONOMY + source_fields: strengthen_items lists each believed-basis entry — item_id (S-1, S-2, ...), the citing regulation, the intake field_ids involved, and the recorded basis verbatim from the assertion. strengthen_items are OPTIONAL depth items: they are never counted in any issues total, never appear in inconsistency_flags or information_needed, and carry no urgency language. Separately, every inconsistency_flags and information_needed entry carries source_fields listing ALL intake field ids that gave rise to it (both sides of a contradiction).",
     "FIELD-ID VOCABULARY (CLOSED SET): source_fields and any intake-field reference (including inconsistency_flags.intake_field_1 / intake_field_2 and information_needed.field) may ONLY use ids from the CANONICAL_INTAKE_FIELDS list injected below, verbatim. NEVER invent, rename, or paraphrase a field id. Never emit descriptors like 'recipients_third_parties' or 'ADMT trigger fields' unless that exact string appears in the canonical list. An entry that cannot be tied to canonical ids should omit source_fields rather than fabricate them.",
@@ -926,6 +927,102 @@ async function runPipeline(assessment_id: string) {
     if (!report_data.record_sufficiency || typeof report_data.record_sufficiency !== "object") {
       report_data.record_sufficiency = { complete: false, statement: "" };
     }
+
+    // Doc W: deterministic BELIEVED-routing enforcement (belt and braces —
+    // the generator has already ignored rule 3a once). Non-fatal, no status
+    // or metering writes (Doc F posture). Contradiction flags are never
+    // touched by this pass; only strengthen_items and information_needed.
+    try {
+      const intake = ((row as any).intake_data as Record<string, unknown>) ?? {};
+      const assertions = (intake?.assertions ?? {}) as Record<string, { state?: string; basis?: string | null }>;
+      const believedFields = new Set(
+        Object.entries(assertions)
+          .filter(([, v]) => v && v.state === "believed" && !!v.basis)
+          .map(([k]) => k),
+      );
+
+      // 3b ENFORCE STRENGTHEN EXCLUSIVITY: remove any strengthen_items entry
+      // whose field_ids contain NO believed-basis field. Empties the list on
+      // legacy runs; logs each removal.
+      const siBefore: any[] = Array.isArray(report_data.strengthen_items) ? report_data.strengthen_items : [];
+      const siKept: any[] = [];
+      for (const it of siBefore) {
+        const fids: string[] = Array.isArray(it?.field_ids) ? it.field_ids : [];
+        const anyBelieved = fids.some((f) => believedFields.has(f));
+        if (anyBelieved) {
+          siKept.push(it);
+        } else {
+          console.warn(`[cppa-risk Doc W] strengthen-exclusivity: removed entry item_id=${it?.item_id ?? "?"} field_ids=${JSON.stringify(fids)}`);
+        }
+      }
+      report_data.strengthen_items = siKept;
+
+      // 3a ENFORCE STRENGTHEN MEMBERSHIP: for every believed-basis field, if
+      // no surviving strengthen_items entry references it, synthesize one.
+      // Citation preference: the citation of any inconsistency_flags or
+      // information_needed entry that references the field, else the R2
+      // default "11 CCR 7152(a)".
+      const findCitationForField = (f: string): string => {
+        const flags: any[] = Array.isArray(report_data.inconsistency_flags) ? report_data.inconsistency_flags : [];
+        for (const fl of flags) {
+          const sf: string[] = Array.isArray(fl?.source_fields) ? fl.source_fields : [];
+          if (sf.includes(f) && typeof fl?.regulatory_citation === "string" && fl.regulatory_citation.trim()) {
+            return String(fl.regulatory_citation);
+          }
+        }
+        const infos: any[] = Array.isArray(report_data.information_needed) ? report_data.information_needed : [];
+        for (const inf of infos) {
+          const sf: string[] = Array.isArray(inf?.source_fields) ? inf.source_fields : [];
+          if ((sf.includes(f) || inf?.field === f) && typeof inf?.provision === "string" && inf.provision.trim()) {
+            return String(inf.provision);
+          }
+        }
+        return "11 CCR 7152(a)";
+      };
+      let nextIdx = report_data.strengthen_items.length + 1;
+      const covered = new Set<string>();
+      for (const it of report_data.strengthen_items) {
+        for (const f of (it?.field_ids ?? [])) covered.add(f);
+      }
+      for (const f of believedFields) {
+        if (covered.has(f)) continue;
+        const basisToken = assertions[f]?.basis ?? "";
+        const synth = {
+          item_id: `S-${nextIdx++}`,
+          citation: findCitationForField(f),
+          field_ids: [f],
+          recorded_basis: String(basisToken),
+        };
+        report_data.strengthen_items.push(synth);
+        console.warn(`[cppa-risk Doc W] strengthen-membership: synthesized ${synth.item_id} for believed field ${f} (basis=${basisToken}, citation=${synth.citation})`);
+      }
+
+      // 3c INFORMATION_NEEDED SCRUB: remove any information_needed entry
+      // whose `field` is a believed-basis field AND whose text asks to
+      // verify/confirm/check/document the answer already given. Distinct
+      // missing facts are preserved. Contradiction flags untouched.
+      const verifyVerb = /\b(verify|verif(y|ies|ied|ication)|confirm(ed|ation|s)?|check(ed|s)?|validate(d|s)?|document(ed|ation|s)?)\b/i;
+      const infoBefore: any[] = Array.isArray(report_data.information_needed) ? report_data.information_needed : [];
+      const infoKept: any[] = [];
+      for (const inf of infoBefore) {
+        const f = String(inf?.field ?? "");
+        if (believedFields.has(f)) {
+          const blob = [inf?.dimensions, inf?.enables, inf?.provision]
+            .filter((s) => typeof s === "string")
+            .join(" ");
+          if (verifyVerb.test(blob)) {
+            console.warn(`[cppa-risk Doc W] info-scrub: removed information_needed entry field=${f} text=${JSON.stringify(String(inf?.dimensions ?? "").slice(0, 200))}`);
+            continue;
+          }
+        }
+        infoKept.push(inf);
+      }
+      report_data.information_needed = infoKept;
+    } catch (e) {
+      console.warn("[cppa-risk Doc W] BELIEVED-routing pass error:", e);
+    }
+
+
 
 
     // QB11-5(b): an exception's missing_elements[] entry and flags[] entry must not be
