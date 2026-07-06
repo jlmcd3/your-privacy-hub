@@ -494,6 +494,11 @@ async function startRun(runBy: string | null, requestedProducts: string[] | unde
       // the supplied §§ 1798.91.04–.06 authority block. US-only, slot 2 so it
       // is stably identified as static-us-iot-slot2 across every QL2 pass.
       { id: "iot", label: "Smart-home Device Manufacturer (IoT)", geos: ["us"], slots: [2] },
+      // Doc O Step 4 (BELIEVED fixture, R8) is registered via
+      // generate-stress-fixtures' industry-scoped override and is
+      // fired through direct start-stress-batch invocation (not
+      // via the always-on QL2 sweep), so 5e's legacy-only baseline
+      // comparison remains uncontaminated.
     ],
     geo_filter: "both",
     selected_tools: products,

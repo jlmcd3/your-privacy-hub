@@ -38,6 +38,12 @@ import { useToolDraft } from "@/hooks/useToolDraft";
 import StatuteRail from "@/components/intake/StatuteRail";
 import { CPPA_RISK_RAIL } from "@/components/cppa/CPPARiskRailEntries";
 import type { RailEntry } from "@/components/intake/StatuteRail";
+import {
+  IMPROVEMENT_KIT_ENABLED,
+  IMPROVEMENT_KIT_DESIGNATED_FIELDS,
+  type AssertionMap,
+} from "@/config/improvementKit";
+import { AssertionLevel } from "@/components/cppa/AssertionLevel";
 import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
@@ -290,6 +296,40 @@ export default function CPPARiskAssessment() {
   const [i1bMinPi, setI1bMinPi] = useState("");              // § 7152(a)(2) minimum PI necessary
   const [i4bSources, setI4bSources] = useState("");          // § 7152(a)(3) sources of the PI
 
+  // Improvement Kit (Doc N R1): parallel assertion map only — never
+  // mutates existing field values. When flag off or designated list
+  // empty, this stays empty and is omitted from intake_data.
+  const [assertions, setAssertions] = useState<AssertionMap>({});
+
+  /**
+   * Render the AssertionLevel control under a designated evidence-heavy
+   * question. Returns null when the flag is off OR the field is not in
+   * the designated list (Katherine P4). Callers embed as:
+   *   {renderAssertion("i6_vendors")}
+   */
+  const renderAssertion = (fieldId: string) => {
+    if (!IMPROVEMENT_KIT_ENABLED) return null;
+    if (!IMPROVEMENT_KIT_DESIGNATED_FIELDS.includes(fieldId)) return null;
+    return (
+      <AssertionLevel
+        fieldId={fieldId}
+        value={assertions[fieldId]}
+        onChange={(next) => {
+          setAssertions((prev) => {
+            const copy = { ...prev };
+            if (next === undefined) {
+              delete copy[fieldId];
+            } else {
+              copy[fieldId] = next;
+            }
+            return copy;
+          });
+        }}
+      />
+    );
+  };
+
+
   const totalSteps = 7; // 6 input steps + summary
 
   // ADMT trigger fires when § 7150(b)(3) or (b)(6) implicated.
@@ -439,6 +479,12 @@ export default function CPPARiskAssessment() {
     i9_existing_dpia_summary: i9DpiaSummary,
     exceptions_intake: exceptionClaims,
     impact_intake: impactData,
+    // Improvement Kit (Doc N R1): parallel assertions map, only when
+    // the flag is on AND at least one designated field carries an
+    // entry. Absent key = legacy semantics.
+    ...(IMPROVEMENT_KIT_ENABLED && Object.keys(assertions).length > 0
+      ? { assertions }
+      : {}),
   }), [
     entityName, subjectAnchor,
     q1, q2, q3, q4, q5, q6Multi, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20,
@@ -447,6 +493,7 @@ export default function CPPARiskAssessment() {
     i4Disclosures, i5AdmtLogic, i5AdmtTrainingSource, i5AdmtFairnessTesting, i5AdmtHumanReview,
     i6Vendors, i7InternalContributors, i7ExternalConsultees, i8ExecName, i8ExecTitle, i8ContactPhone, i8ContactEmail,
     i9HasDpia, i9DpiaSummary, exceptionClaims, impactData,
+    assertions,
   ]);
 
   // ---- Draft autosave ------------------------------------------------------
