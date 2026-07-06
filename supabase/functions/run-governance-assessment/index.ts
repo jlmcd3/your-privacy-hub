@@ -101,6 +101,19 @@ export function buildGovernanceSharedRules(jurisdictions: unknown, euUkData: str
   const euUkValue = euUkData || "not specified";
   const jurisdictionList = (Array.isArray(jurisdictions) ? jurisdictions : []).map((j) => String(j).toLowerCase());
   const hasIreland = jurisdictionList.some((j) => j.includes("ireland") || j === "ie" || j === "irl");
+  // Doc L: gate GDPR-specific rule content on EU/UK scope, mirroring the
+  // gdprCitationsBlock derivation at ~line 472. hasEuUk is true when the
+  // intake lists any EU/EEA member state or the UK, OR eu_uk_data === "Yes".
+  const EU_UK_CODES = new Set([
+    "gb","uk","united kingdom","eu",
+    "at","austria","be","belgium","bg","bulgaria","hr","croatia","cy","cyprus","cz","czechia","czech republic",
+    "dk","denmark","ee","estonia","fi","finland","fr","france","de","germany","gr","greece","hu","hungary",
+    "ie","ireland","irl","it","italy","lv","latvia","lt","lithuania","lu","luxembourg","mt","malta",
+    "nl","netherlands","pl","poland","pt","portugal","ro","romania","sk","slovakia","si","slovenia",
+    "es","spain","se","sweden",
+  ]);
+  const hasEuUk = String(euUkData || "").toLowerCase() === "yes"
+    || jurisdictionList.some((j) => EU_UK_CODES.has(j) || [...EU_UK_CODES].some((c) => j.includes(c)));
   return `LANGUAGE: use the English variant matching the intake's jurisdictions — American English when no EU/UK jurisdiction is present; British English when any EU/UK jurisdiction is present. Never mix variants within one report. (This overrides the core's default American-English rule for this jurisdiction-aware tool.)
 
 CITATION INTEGRITY: Cite provisions ONLY in the exact forms below. If you cannot match a citation to one of these patterns with certainty, name the law and obligation in plain language instead (e.g. 'CCPA — service provider contract requirement') rather than fabricate.
