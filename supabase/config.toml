@@ -218,3 +218,6 @@ verify_jwt = false
 
 [functions.improvement-cycle-watchdog]
 verify_jwt = false
+
+[functions.grade-single-assessment]
+verify_jwt = false
