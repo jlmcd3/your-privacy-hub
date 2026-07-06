@@ -349,7 +349,11 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
         },
       }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; }),
       getGdprContext(supabase as any, {
-        articles: ["6"],
+        // Extend beyond Art. 6: LIA reasoning routinely cites Art. 5 (principles,
+        // esp. 5(1)(a) fairness/lawfulness/transparency) and Art. 21 (right to
+        // object) — inject verbatim so the lint supply reflects what the model
+        // actually receives.
+        articles: ["6", "5", "21"],
         jurisdiction: gdprJurisdiction,
         recitals: [47],
         guidelineArticles: ["6"],
@@ -943,12 +947,21 @@ Return JSON:
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
+      // Supply list mirrors what getGdprContext actually injected. Include the
+      // UK-form variant when UK jurisdiction was selected so extracted tokens
+      // like "Article 5 UK GDPR" canonicalise-match the supply.
+      const matched: string[] = gdprMeta?.matched_articles ?? [];
+      const supplied: string[] = [];
+      for (const n of matched) {
+        supplied.push(`Article ${n} GDPR`);
+        if (gdprJurisdiction === "uk") supplied.push(`Article ${n} UK GDPR`);
+      }
       await observeCitations(
         supabase,
         "run-li-assessment",
         assessment_id,
         JSON.stringify(reportData),
-        (gdprMeta?.matched_articles ?? []).map((n: string) => `Article ${n} GDPR`),
+        supplied,
       );
     } catch (obsErr) {
       console.error("[citation-observe] non-fatal:", String(obsErr));

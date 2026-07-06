@@ -547,9 +547,17 @@ Deno.serve(async (req) => {
           const hasEu = jList.some((j) => j.includes("eu") || j.includes("gdpr")) && !jList.every((j) => j.includes("uk"));
           const hasUk = jList.some((j) => j.includes("uk") || j.includes("united kingdom"));
           if (hasEu || hasUk) {
+            const irJurisdiction: "eu" | "uk" = hasUk && !hasEu ? "uk" : "eu";
             const ctx = await getGdprContext(supabase as any, {
-              articles: ["33", "34"],
-              jurisdiction: hasUk && !hasEu ? "uk" : "eu",
+              // Beyond the Art. 33/34 breach block, IR routinely cites Art. 4
+              // (definitions — "personal data breach"), Art. 9 (special
+              // categories, drives high-risk analysis), Art. 28 (processor
+              // duties incl. 33(2) notification chain), and Art. 32 (security
+              // of processing). Inject verbatim so the lint supply reflects
+              // what the model actually receives. Arts 37/38/55/56/60 remain
+              // deferred pending a clean L2 window.
+              articles: ["33", "34", "4", "9", "28", "32"],
+              jurisdiction: irJurisdiction,
               maxChars: 12000,
             });
             if (ctx?.block) {
@@ -559,8 +567,11 @@ Deno.serve(async (req) => {
               if ((ctx.meta?.missing_articles ?? []).length > 0) {
                 console.warn("[generate-ir-playbook] GDPR base articles missing:", ctx.meta.missing_articles.join(", "));
               }
-              irSuppliedCitations = (ctx.meta?.matched_articles ?? [])
-                .map((n: string) => `Article ${n} GDPR`);
+              const matched: string[] = ctx.meta?.matched_articles ?? [];
+              for (const n of matched) {
+                irSuppliedCitations.push(`Article ${n} GDPR`);
+                if (irJurisdiction === "uk") irSuppliedCitations.push(`Article ${n} UK GDPR`);
+              }
             }
 
             // EDPB Guidelines 9/2022 supply (L6 IR-correction dependency).
