@@ -818,26 +818,53 @@ async function runPipeline(assessment_id: string) {
     }
 
 
-    // DETERMINISTIC § 7157 DEADLINE NORMALISATION: the model has twice produced a
-    // specific "2028-01-01" deadline for the § 7157 annual attestation despite an
-    // explicit prompt rule against it (deadline_basis correctly says the exact
-    // date within 2028 is unconfirmed). Rather than a third prompt-only attempt,
-    // correct it deterministically: any priority_action referencing § 7157 with a
-    // deadline matching a specific 2028 ISO date gets rewritten to the bracketed
-    // placeholder form, regardless of what the model produced.
-    if (parsed && Array.isArray(parsed.priority_actions)) {
-      const SEVEN_157_PATTERN = /§\s*7157|section\s*7157/i;
-      const SPECIFIC_2028_DATE = /^2028-\d{2}-\d{2}$/;
-      for (const action of parsed.priority_actions) {
-        const referencesSeven157 =
-          SEVEN_157_PATTERN.test(String(action?.action ?? "")) ||
-          SEVEN_157_PATTERN.test(String(action?.statutory_basis ?? "")) ||
-          SEVEN_157_PATTERN.test(String(action?.deadline_basis ?? ""));
-        if (referencesSeven157 && SPECIFIC_2028_DATE.test(String(action?.deadline ?? ""))) {
-          console.warn(`[cppa-risk] normalised § 7157 deadline from "${action.deadline}" to bracketed placeholder (deterministic backstop)`);
-          action.deadline = "[2028 — exact date to be confirmed per § 7157 and regulatory guidance]";
+    // DETERMINISTIC § 7157 DEADLINE NORMALISATION (Branch A — corpus-confirmed date):
+    // 11 CCR § 7157(a)(1) confirms that risk assessments conducted in 2026 and 2027
+    // must be submitted no later than April 1, 2028. Normalise any § 7157 action's
+    // deadline to that canonical value: rewrite bracketed "TBD" placeholders and any
+    // other specific 2028 ISO date to 2028-04-01, and ensure deadline_basis quotes
+    // § 7157(a)(1). Also rewrite any specific non-April-1 2028 calendar-date phrasing
+    // in the action text to the canonical date. Structurally non-fatal (same try/catch
+    // posture as other backstops).
+    try {
+      if (parsed && Array.isArray(parsed.priority_actions)) {
+        const SEVEN_157_PATTERN = /§\s*7157|section\s*7157|11\s*CCR\s*§?\s*7157/i;
+        const SPECIFIC_2028_DATE = /^2028-\d{2}-\d{2}$/;
+        const BRACKETED_2028 = /^\[?\s*2028[^\]]*\]?$/;
+        const CANONICAL = "2028-04-01";
+        const BASIS_QUOTE = "11 CCR § 7157(a)(1): for risk assessments conducted in 2026 and 2027, the business must submit to the Agency the information required by subsection (b) no later than April 1, 2028.";
+        for (const action of parsed.priority_actions) {
+          const referencesSeven157 =
+            SEVEN_157_PATTERN.test(String(action?.action ?? "")) ||
+            SEVEN_157_PATTERN.test(String(action?.statutory_basis ?? "")) ||
+            SEVEN_157_PATTERN.test(String(action?.deadline_basis ?? ""));
+          if (!referencesSeven157) continue;
+          const deadlineStr = String(action?.deadline ?? "");
+          const needsFix =
+            (SPECIFIC_2028_DATE.test(deadlineStr) && deadlineStr !== CANONICAL) ||
+            BRACKETED_2028.test(deadlineStr);
+          if (needsFix) {
+            console.warn(`[cppa-risk] normalised § 7157 deadline from "${action.deadline}" to ${CANONICAL} (deterministic backstop, Branch A)`);
+            action.deadline = CANONICAL;
+            const existingBasis = String(action?.deadline_basis ?? "").trim();
+            action.deadline_basis = existingBasis && !existingBasis.includes("7157(a)(1)")
+              ? `${BASIS_QUOTE} ${existingBasis}`
+              : BASIS_QUOTE;
+          }
+          // Rewrite any specific non-April-1 2028 calendar date in the action text.
+          const actionText = String(action?.action ?? "");
+          const badDatePattern = /\b(January|February|March|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+2028\b/gi;
+          if (badDatePattern.test(actionText)) {
+            const fixed = actionText.replace(badDatePattern, "April 1, 2028");
+            if (fixed !== actionText) {
+              console.warn(`[cppa-risk] rewrote non-canonical 2028 date in § 7157 action text to April 1, 2028`);
+              action.action = fixed;
+            }
+          }
         }
       }
+    } catch (e) {
+      console.warn("[cppa-risk] § 7157 deadline backstop error:", e);
     }
 
     let report_data: any = {
