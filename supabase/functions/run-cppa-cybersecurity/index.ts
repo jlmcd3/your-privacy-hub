@@ -288,6 +288,27 @@ async function runAssessment(assessment_id: string): Promise<void> {
       }
     }
 
+    // Unconditional CCPA definitions supply — verbatim Cal. Civ. Code § 1798.140.
+    // Definitions ("personal information", "business", "service provider", etc.)
+    // are load-bearing for every cyber run. Same mechanism as 1798.82.
+    let caDefinitionsAuthorityBlock = "";
+    {
+      const { data: defRows } = await supabase
+        .from("cppa_authorities")
+        .select("citation, full_text")
+        .eq("citation", `Cal. Civ. Code ${S} 1798.140`)
+        .eq("status", "current")
+        .limit(1);
+      if (defRows && defRows.length > 0 && (defRows[0] as any).full_text) {
+        const r = defRows[0] as any;
+        caDefinitionsAuthorityBlock =
+          "\n\nCCPA DEFINITIONS AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Cal. Civ. Code " + S + " 1798.140 content ONLY from the text below, never from recollection):\n" +
+          `[${r.citation}]\n${r.full_text}`;
+      } else {
+        console.warn("[cppa-cyber] 1798.140 authority row unavailable");
+      }
+    }
+
 
 
     const today = new Date().toISOString().slice(0, 10);
