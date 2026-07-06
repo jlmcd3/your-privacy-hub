@@ -391,7 +391,7 @@ Deno.serve(async (req) => {
           topics: ["admt", "significant-decision", "pre-use-notice", "profiling"],
           query: `ADMT compliance ${(intake.decision_domains ?? []).join(" ")} opt-out pre-use notice access right`,
           include_deadlines: true,
-          full_text_limit: 12,
+          full_text_limit: 15,
           limit: 20,
           base_citations: ADMT_BASE_CITATIONS,
         },
