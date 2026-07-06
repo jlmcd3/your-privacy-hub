@@ -378,7 +378,14 @@ Deno.serve(async (req) => {
       const ADMT_BASE_CITATIONS = [
         `11 CCR ${S} 7001`, `11 CCR ${S} 7200`, `11 CCR ${S} 7220`,
         `11 CCR ${S} 7221`, `11 CCR ${S} 7222`, `Cal. Civ. Code ${S} 1798.199.90`,
+        // Recurrent-miss sections pinned to base set (already in corpus).
+        // Retrieval force-includes full text; supply list is derived from the
+        // returned authorities, so this simultaneously wires lint supply.
+        `11 CCR ${S} 7021`, `11 CCR ${S} 7051`,
+        `11 CCR ${S} 7155`, `11 CCR ${S} 7157`,
+        `Cal. Civ. Code ${S} 1798.155`,
       ];
+
       const retrieveRes = await supabase.functions.invoke("cppa-retrieve-context", {
         body: {
           topics: ["admt", "significant-decision", "pre-use-notice", "profiling"],
