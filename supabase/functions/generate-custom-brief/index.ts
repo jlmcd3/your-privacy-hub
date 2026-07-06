@@ -281,15 +281,15 @@ Deno.serve(async (req) => {
   }
 
   // Get recent articles (60 instead of 40)
-  // Same Sunday midnight anchor as generate-weekly-brief for consistency
+  // Same PREVIOUS MONDAY 00:00 UTC anchor as generate-weekly-brief for consistency.
   const now = new Date();
-  const dayOfWeek = now.getUTCDay();
-  const daysSinceSunday = dayOfWeek === 0 ? 7 : dayOfWeek;
+  const dayOfWeek = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const daysBack = dayOfWeek === 1 ? 7 : ((dayOfWeek + 6) % 7);
   const weekStart = new Date(Date.UTC(
     now.getUTCFullYear(),
     now.getUTCMonth(),
-    now.getUTCDate() - daysSinceSunday,
-    0, 0, 0, 0
+    now.getUTCDate() - daysBack,
+    0, 0, 0, 0,
   ));
   const { data: recentArticles } = await supabase
     .from("updates")
