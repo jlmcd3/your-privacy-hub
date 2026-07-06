@@ -905,41 +905,129 @@ async function runPipeline(assessment_id: string) {
     }
     report_data = dedupeExceptionFlags(report_data);
 
-    // QB12-4(a) v2: collapse duplicate exception-citation summary notes anywhere in
-    // the document (not just inside exception_analysis). A note is any string that
-    // contains both "1798.145" and "under which" (normalised whitespace); the FIRST
-    // occurrence is kept, subsequent occurrences are replaced with a cross-reference.
+    // QB12-4(a) v3 (Doc V Step 2): field-aware dedupe of the exception-citation
+    // summary note. A "note occurrence" is any string containing both "1798.145"
+    // and "under which" (whitespace-normalized).
+    //   - The KEPT occurrence is the one inside priority_actions[] (the note's
+    //     designed home). If no priority_actions occurrence exists, keep the first
+    //     occurrence encountered by depth-first walk.
+    //   - A duplicate inside any REFERENCE field (e.g. exception_analysis
+    //     statutory_basis) is replaced with the short pointer
+    //     "see exception-citation note in priority_actions".
+    //   - A duplicate whose priority_actions[].action is ONLY the note (fewer than
+    //     40 chars of substantive content remain after excision) means the action
+    //     exists only to restate the note: DELETE the whole action entry (never
+    //     leave a pointer-only action). An action that CONTAINS the note alongside
+    //     real content has only the note text excised.
     // Structurally non-fatal: try/catch cannot change status or metering.
     function dedupeExceptionCitationNote(report: any): any {
       try {
-        let seen = false;
-        let replaced = 0;
-        const XREF = "(see the exception-citation note above)";
+        const POINTER = "see exception-citation note in priority_actions";
         const isNote = (s: string) => {
+          if (typeof s !== "string") return false;
           const n = s.replace(/\s+/g, " ").toLowerCase();
           return n.includes("1798.145") && n.includes("under which");
         };
-        const walk = (node: any) => {
+        // Extract every note substring occurrence for excision (case-insensitive
+        // match on the sentence around "1798.145 ... under which ...").
+        const stripNoteText = (s: string): string => {
+          // Remove sentences containing both markers; conservative: split on
+          // sentence terminators, drop matching sentences, then normalise
+          // doubled whitespace/punctuation.
+          const parts = s.split(/(?<=[.!?])\s+/);
+          const kept = parts.filter((p) => !isNote(p));
+          let out = kept.join(" ").replace(/\s{2,}/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
+          return out;
+        };
+
+        // Pass 1: locate the KEPT occurrence — prefer priority_actions.
+        let keptRef: { container: any; key: string | number } | null = null;
+        const actions = Array.isArray(report?.priority_actions) ? report.priority_actions : [];
+        for (let i = 0; i < actions.length; i++) {
+          const a = actions[i];
+          if (a && typeof a === "object") {
+            for (const k of Object.keys(a)) {
+              if (typeof a[k] === "string" && isNote(a[k])) {
+                keptRef = { container: a, key: k };
+                break;
+              }
+            }
+          }
+          if (keptRef) break;
+        }
+        // Fallback: first occurrence anywhere.
+        if (!keptRef) {
+          const findFirst = (node: any): boolean => {
+            if (!node) return false;
+            if (Array.isArray(node)) { for (const v of node) if (findFirst(v)) return true; return false; }
+            if (typeof node !== "object") return false;
+            for (const k of Object.keys(node)) {
+              const v = node[k];
+              if (typeof v === "string" && isNote(v)) { keptRef = { container: node, key: k }; return true; }
+              if (findFirst(v)) return true;
+            }
+            return false;
+          };
+          findFirst(report);
+        }
+
+        let pointerReplaced = 0;
+        let actionDeleted = 0;
+        let actionExcised = 0;
+
+        // Pass 2a: walk priority_actions[] for duplicates — action-level logic.
+        if (Array.isArray(report?.priority_actions)) {
+          for (let i = report.priority_actions.length - 1; i >= 0; i--) {
+            const a = report.priority_actions[i];
+            if (!a || typeof a !== "object") continue;
+            // Never touch the kept entry's action field.
+            if (keptRef && keptRef.container === a) continue;
+            // Only the .action field is a substantive directive; other fields
+            // are references handled by pass 2b below.
+            if (typeof a.action === "string" && isNote(a.action)) {
+              const stripped = stripNoteText(a.action).replace(/\s+/g, "");
+              if (stripped.length < 40) {
+                report.priority_actions.splice(i, 1);
+                actionDeleted += 1;
+                console.warn(`[RISK] QB12-4(a) v3: deleted priority_actions[${i}] (pointer-only after note excision)`);
+              } else {
+                a.action = stripNoteText(a.action);
+                actionExcised += 1;
+                console.warn(`[RISK] QB12-4(a) v3: excised note from priority_actions[${i}].action`);
+              }
+            }
+          }
+        }
+
+        // Pass 2b: walk everything else — reference fields get the short pointer.
+        const walk = (node: any, path: string) => {
           if (!node) return;
-          if (Array.isArray(node)) { for (const v of node) walk(v); return; }
+          if (Array.isArray(node)) { for (let i = 0; i < node.length; i++) walk(node[i], `${path}[${i}]`); return; }
           if (typeof node !== "object") return;
           for (const key of Object.keys(node)) {
             const val = node[key];
             if (typeof val === "string") {
               if (isNote(val)) {
-                if (!seen) { seen = true; continue; }
-                node[key] = XREF;
-                replaced += 1;
+                // Skip the kept occurrence.
+                if (keptRef && keptRef.container === node && keptRef.key === key) continue;
+                // Skip priority_actions[].action — already handled in pass 2a.
+                if (path.startsWith(".priority_actions") && key === "action") continue;
+                node[key] = POINTER;
+                pointerReplaced += 1;
+                console.warn(`[RISK] QB12-4(a) v3: replaced duplicate note at ${path}.${key} with pointer`);
               }
             } else {
-              walk(val);
+              walk(val, `${path}.${key}`);
             }
           }
         };
-        walk(report);
-        if (replaced > 0) console.warn(`[RISK] QB12-4(a) v2: collapsed ${replaced} duplicate exception-citation note(s)`);
+        walk(report, "");
+
+        if (pointerReplaced + actionDeleted + actionExcised > 0) {
+          console.warn(`[RISK] QB12-4(a) v3 summary: pointer=${pointerReplaced} action_deleted=${actionDeleted} action_excised=${actionExcised}`);
+        }
       } catch (e) {
-        console.error("[RISK] QB12-4(a) v2 dedupe errored:", e);
+        console.error("[RISK] QB12-4(a) v3 dedupe errored:", e);
       }
       return report;
     }
