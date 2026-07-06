@@ -39,6 +39,151 @@ function stripMd(s: unknown): string {
     .replace(/^\s*[-_]{3,}\s*$/gm, '');
 }
 
+// ---------------------------------------------------------------------------
+// Doc Y post-generation deterministic gates (Governance only).
+//   (Y-2) Non-EU/UK runs: strip unlabeled transfer-mechanism sentences.
+//   (Y-1) Cal. Civ. Code citation-existence validator with hard-fail on the
+//         Readers' Privacy Act / 1798.1xx pairing.
+// Non-fatal try/catch; no status/metering writes; console.warn per action.
+// ---------------------------------------------------------------------------
+const DOC_Y_TRANSFER_TERMS = [
+  "standard contractual clauses","scc","binding corporate rules","bcr",
+  "adequacy decision","adequacy mechanism","gdpr chapter v","uk gdpr chapter v",
+  "transfer impact assessment","transfer risk assessment",
+];
+const DOC_Y_COMPARATIVE_MARKERS = [
+  "for comparison","by contrast","unlike the gdpr","unlike gdpr",
+  "as compared with the gdpr","compared to the gdpr","compared with the gdpr",
+];
+// Cal. Civ. Code allowlist. Values: null = whole section allowed without
+// subsection validation; array = allowed subsection letters (enumerated).
+const DOC_Y_CAL_CIV_ALLOWLIST: Record<string, string[] | null> = {
+  // Breach notification (agencies / individuals)
+  "1798.29": null,
+  "1798.82": null,
+  // Readers' Privacy Act (Cal. Civ. Code §§ 1798.90 - 1798.90.05)
+  "1798.90": null,
+  "1798.90.05": null,
+  // CCPA / CPRA operative sections the tool cites today
+  "1798.100": ["a","b","c","d","e"],
+  "1798.105": null,
+  "1798.106": null,
+  "1798.110": null,
+  "1798.115": null,
+  "1798.120": null,
+  "1798.121": null,
+  "1798.125": null,
+  "1798.130": null,
+  "1798.135": null,
+  "1798.140": null,
+  "1798.145": null,
+  "1798.150": null,
+  "1798.155": null,
+  "1798.185": null,
+  "1798.199.10": null,
+  "1798.199.40": null,
+  "1798.199.90": null,
+  "1798.199.100": null,
+};
+
+function docYIsEuUkInScope(intake: any): boolean {
+  const jl = (Array.isArray(intake?.jurisdictions) ? intake.jurisdictions : [])
+    .map((j: any) => String(j).toLowerCase());
+  const EU_UK = new Set([
+    "gb","uk","united kingdom","eu",
+    "at","austria","be","belgium","bg","bulgaria","hr","croatia","cy","cyprus",
+    "cz","czechia","czech republic","dk","denmark","ee","estonia","fi","finland",
+    "fr","france","de","germany","gr","greece","hu","hungary","ie","ireland","irl",
+    "it","italy","lv","latvia","lt","lithuania","lu","luxembourg","mt","malta",
+    "nl","netherlands","pl","poland","pt","portugal","ro","romania","sk","slovakia",
+    "si","slovenia","es","spain","se","sweden",
+  ]);
+  const eu = String(intake?.eu_uk_data ?? "").toLowerCase();
+  if (eu === "yes" || intake?.eu_uk_data === true) return true;
+  return jl.some((j: string) => EU_UK.has(j) || [...EU_UK].some((c) => j.includes(c)));
+}
+
+function docYSplitSentences(s: string): string[] {
+  return s.split(/(?<=[.!?])\s+(?=[A-Z(“"])/);
+}
+
+function docYStripTransferSentences(s: string, fieldPath: string): string {
+  if (!s || typeof s !== "string") return s;
+  const sentences = docYSplitSentences(s);
+  const kept: string[] = [];
+  for (const sent of sentences) {
+    const lower = sent.toLowerCase();
+    const hit = DOC_Y_TRANSFER_TERMS.find((t) => lower.includes(t));
+    if (!hit) { kept.push(sent); continue; }
+    const labeled = DOC_Y_COMPARATIVE_MARKERS.some((m) => lower.includes(m));
+    if (labeled) { kept.push(sent); continue; }
+    console.warn(`[run-governance-assessment] doc-y transfer-gate removed field=${fieldPath} term="${hit}" sentence="${sent.trim().slice(0,240)}"`);
+  }
+  return kept.join(" ").replace(/\s+/g, " ").trim();
+}
+
+const DOC_Y_CAL_CIV_RE = /Cal\.?\s*Civ\.?\s*Code\s*(?:§\s*)?(\d{4}\.\d+(?:\.\d+)?)(\([a-z](?:\)\([a-z0-9]+)*\))?/gi;
+
+function docYValidateCalCivCitations(s: string, fieldPath: string): string {
+  if (!s || typeof s !== "string") return s;
+  const lowerCtx = s.toLowerCase();
+  const readersCtx = lowerCtx.includes("readers' privacy act") || lowerCtx.includes("readers privacy act") || lowerCtx.includes("reader's privacy act");
+  return s.replace(DOC_Y_CAL_CIV_RE, (match: string, section: string, sub: string | undefined) => {
+    // Y-3c: Readers' Privacy Act paired with a 1798.1xx section is a hard-fail.
+    if (readersCtx && /^1798\.1\d\d/.test(section)) {
+      console.warn(`[run-governance-assessment] doc-y calciv-hardfail readers/1798.1xx field=${fieldPath} match="${match}"`);
+      return "";
+    }
+    const hasSection = Object.prototype.hasOwnProperty.call(DOC_Y_CAL_CIV_ALLOWLIST, section);
+    if (!hasSection) {
+      console.warn(`[run-governance-assessment] doc-y calciv-invalid section field=${fieldPath} match="${match}"`);
+      return "";
+    }
+    const allowedSubs = DOC_Y_CAL_CIV_ALLOWLIST[section];
+    if (sub && Array.isArray(allowedSubs)) {
+      const letter = (sub.match(/^\(([a-z])\)/i)?.[1] || "").toLowerCase();
+      if (letter && !allowedSubs.includes(letter)) {
+        console.warn(`[run-governance-assessment] doc-y calciv-invalid subsection field=${fieldPath} match="${match}"`);
+        return "";
+      }
+    }
+    return match;
+  });
+}
+
+function docYWalkStrings(obj: any, path: string, fn: (s: string, path: string) => string): void {
+  if (obj == null) return;
+  if (Array.isArray(obj)) {
+    for (let i = 0; i < obj.length; i++) {
+      const v = obj[i];
+      if (typeof v === "string") obj[i] = fn(v, `${path}[${i}]`);
+      else docYWalkStrings(v, `${path}[${i}]`, fn);
+    }
+    return;
+  }
+  if (typeof obj === "object") {
+    for (const k of Object.keys(obj)) {
+      if (k === "organisation_profile") continue; // never mutate intake echo
+      const v = obj[k];
+      if (typeof v === "string") obj[k] = fn(v, `${path}.${k}`);
+      else docYWalkStrings(v, `${path}.${k}`, fn);
+    }
+  }
+}
+
+function applyDocYPostGeneration(reportData: any, intake: any): void {
+  try {
+    const euUkInScope = docYIsEuUkInScope(intake);
+    if (!euUkInScope) {
+      docYWalkStrings(reportData, "report", (s, p) => docYStripTransferSentences(s, p));
+    }
+    docYWalkStrings(reportData, "report", (s, p) => docYValidateCalCivCitations(s, p));
+  } catch (e) {
+    console.warn(`[run-governance-assessment] doc-y post-generation error: ${(e as Error).message}`);
+  }
+}
+
+
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = 6000, timeoutMs = 720_000): Promise<string> {
   const startedAt = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
