@@ -245,7 +245,11 @@ A DEFERRAL IS ISSUED ONCE: where the same information is deferred to the user in
 
 SUPPLIED BREACH AUTHORITY: where a GDPR BREACH-NOTIFICATION AUTHORITY block is present in the user prompt, every statement of Article 33 or Article 34 content (thresholds, the 72-hour clock, notification content elements, the high-risk communication standard, exceptions) must be drawn from that block. Where the block is absent (US-state-only incidents), do not cite GDPR articles at all. Existing enforcement-citation grounding rules are unchanged.
 
-CAL AG SAMPLE-COPY THRESHOLD: the Cal. Civ. Code 1798.82(f) trigger is notification to MORE THAN 500 California residents (strictly greater than 500), with the sample copy due to the Attorney General within 15 calendar days of notifying consumers. Never phrase this threshold as '500 or more' or '500+'. State every occurrence of this threshold identically throughout the playbook.`;
+CAL AG SAMPLE-COPY THRESHOLD: the Cal. Civ. Code 1798.82(f) trigger is notification to MORE THAN 500 California residents (strictly greater than 500), with the sample copy due to the Attorney General within 15 calendar days of notifying consumers. Never phrase this threshold as '500 or more' or '500+'. State every occurrence of this threshold identically throughout the playbook.
+
+SUPPORT-NOTE ELEMENT LIST IS DERIVED: the data elements to check for in support notes / free-text fields (in any support-note review checklist, incident-response step, or template) are EXACTLY the qualifying elements enumerated in this playbook's Section 4 data-element gate(s) for the jurisdiction(s) in scope — reproduce that list; never restate it from memory or abbreviate it, and never omit elements (e.g. passport numbers or military identification numbers under Virginia §18.2-186.6) that the Section 4 gate correctly lists. Where multiple states are in scope, the checklist is the union of the per-state gate elements, attributed per state.
+
+MANDATORY ACTS USE MANDATORY LANGUAGE: where the playbook itself characterises an act as required (statutorily or by the playbook's own preceding text), operative sentences use "must", never "should" and never softeners such as "should be sought" or "is recommended". Pointers are specific: "see below" / "see above" always name the section or step they point to (e.g. "see Section 4, STEP 3" or "see Section 5, consumer notice template").`;
 
 const IR_TOOL_MODULE: ToolModule = {
   outputMode: "document",
