@@ -160,12 +160,13 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
   const { data: row, error: selErr } = await admin
     .from("cppa_assessments")
-    .select("id, intake_data, result_data, status, created_at")
+    .select("id, intake_data, report_data, status, created_at")
     .eq("id", body.assessment_id)
     .maybeSingle();
   if (selErr) return json({ error: selErr.message }, 500);
   if (!row) return json({ error: "assessment_not_found" }, 404);
-  if (!row.result_data) return json({ error: "assessment_not_generated" }, 400);
+  if (!row.report_data) return json({ error: "assessment_not_generated" }, 400);
+
 
   let claudeRes: any = null, claudeErr: string | null = null;
   let gptRes: any = null, gptErr: string | null = null;
