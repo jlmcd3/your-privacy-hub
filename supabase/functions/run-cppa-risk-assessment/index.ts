@@ -905,37 +905,84 @@ async function runPipeline(assessment_id: string) {
     }
     report_data = dedupeExceptionFlags(report_data);
 
-    // QB12-4(a): the exception-citation summary note appears once. Where the same
-    // sentence recurs in later exception_analysis entries' statutory_basis (or any
-    // per-entry field), keep the FIRST occurrence and replace subsequent ones with
-    // a short cross-reference. Same try/catch discipline as QB11-5(b).
+    // QB12-4(a) v2: collapse duplicate exception-citation summary notes anywhere in
+    // the document (not just inside exception_analysis). A note is any string that
+    // contains both "1798.145" and "under which" (normalised whitespace); the FIRST
+    // occurrence is kept, subsequent occurrences are replaced with a cross-reference.
+    // Structurally non-fatal: try/catch cannot change status or metering.
     function dedupeExceptionCitationNote(report: any): any {
       try {
-        const arr = report?.exception_analysis;
-        if (!Array.isArray(arr)) return report;
-        const marker = "the assessment record must cite the specific statutory or regulatory exception provision";
         let seen = false;
         let replaced = 0;
-        for (const ex of arr) {
-          if (!ex || typeof ex !== "object") continue;
-          for (const key of Object.keys(ex)) {
-            const val = (ex as any)[key];
-            if (typeof val !== "string") continue;
-            const lower = val.toLowerCase();
-            const idx = lower.indexOf(marker);
-            if (idx === -1) continue;
-            if (!seen) { seen = true; continue; }
-            (ex as any)[key] = "See the exception-citation note above.";
-            replaced += 1;
+        const XREF = "(see the exception-citation note above)";
+        const isNote = (s: string) => {
+          const n = s.replace(/\s+/g, " ").toLowerCase();
+          return n.includes("1798.145") && n.includes("under which");
+        };
+        const walk = (node: any) => {
+          if (!node) return;
+          if (Array.isArray(node)) { for (const v of node) walk(v); return; }
+          if (typeof node !== "object") return;
+          for (const key of Object.keys(node)) {
+            const val = node[key];
+            if (typeof val === "string") {
+              if (isNote(val)) {
+                if (!seen) { seen = true; continue; }
+                node[key] = XREF;
+                replaced += 1;
+              }
+            } else {
+              walk(val);
+            }
           }
-        }
-        if (replaced > 0) console.warn("[RISK] QB12-4(a): deduplicated exception-citation summary note");
+        };
+        walk(report);
+        if (replaced > 0) console.warn(`[RISK] QB12-4(a) v2: collapsed ${replaced} duplicate exception-citation note(s)`);
       } catch (e) {
-        console.error("[RISK] QB12-4(a) dedupe errored:", e);
+        console.error("[RISK] QB12-4(a) v2 dedupe errored:", e);
       }
       return report;
     }
     report_data = dedupeExceptionCitationNote(report_data);
+
+    // QB12-4(b): [TO COMPLETE ...] placeholders are fill-in slots, never essays.
+    // Truncate any placeholder that exceeds 200 chars OR contains the exception-
+    // citation note. Preserves the leading bracket clause; discards trailing prose.
+    // Structurally non-fatal (try/catch cannot change status or metering).
+    function truncateToCompletePlaceholders(report: any): any {
+      try {
+        let truncated = 0;
+        const PLACEHOLDER = /\[\s*TO\s+COMPLETE[^\]]*\]/i;
+        const containsNote = (s: string) => {
+          const n = s.replace(/\s+/g, " ").toLowerCase();
+          return n.includes("1798.145") && n.includes("under which");
+        };
+        const walk = (node: any) => {
+          if (!node) return;
+          if (Array.isArray(node)) { for (const v of node) walk(v); return; }
+          if (typeof node !== "object") return;
+          for (const key of Object.keys(node)) {
+            const val = node[key];
+            if (typeof val === "string") {
+              const m = val.match(PLACEHOLDER);
+              if (m && (val.length > 200 || containsNote(val))) {
+                node[key] = m[0];
+                truncated += 1;
+              }
+            } else {
+              walk(val);
+            }
+          }
+        };
+        walk(report);
+        if (truncated > 0) console.warn(`[RISK] QB12-4(b): truncated ${truncated} oversized/leaky [TO COMPLETE] placeholder(s)`);
+      } catch (e) {
+        console.error("[RISK] QB12-4(b) placeholder truncation errored:", e);
+      }
+      return report;
+    }
+    report_data = truncateToCompletePlaceholders(report_data);
+
 
     // QB13-3(a): strip instruction-voice "Begin now:" from every report field EXCEPT
     // entries of priority_actions (where the imperative belongs). Same try/catch discipline
