@@ -170,9 +170,9 @@ Deno.serve(async (req) => {
 
   let claudeRes: any = null, claudeErr: string | null = null;
   let gptRes: any = null, gptErr: string | null = null;
-  try { claudeRes = await gradeOne("claude", row.intake_data, row.result_data); }
+  try { claudeRes = await gradeOne("claude", row.intake_data, row.report_data); }
   catch (e) { claudeErr = (e as Error).message; }
-  try { gptRes = await gradeOne("gpt", row.intake_data, row.result_data); }
+  try { gptRes = await gradeOne("gpt", row.intake_data, row.report_data); }
   catch (e) { gptErr = (e as Error).message; }
 
   const payload = {
