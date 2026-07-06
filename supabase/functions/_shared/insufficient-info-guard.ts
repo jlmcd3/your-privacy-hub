@@ -33,7 +33,26 @@ function synthesiseEntriesFromIntake(
   max = 3,
 ): Array<{ field: string; why: string; how_to_provide: string }> {
   const out: Array<{ field: string; why: string; how_to_provide: string }> = [];
+  // Doc O 3d: an intake field carrying assertions[field] = {state:"believed", basis: <non-null>}
+  // is a complete record entry and must NEVER be synthesised into an
+  // insufficient-basis information_needed pairing. Build the exclusion
+  // set once and skip those keys during the empty-value scan below.
+  const assertions = (intake as Record<string, unknown>).assertions;
+  const believedWithBasis = new Set<string>();
+  if (assertions && typeof assertions === "object") {
+    for (const [k, v] of Object.entries(assertions as Record<string, unknown>)) {
+      if (
+        v && typeof v === "object" &&
+        (v as any).state === "believed" &&
+        (v as any).basis // non-null, non-empty basis
+      ) {
+        believedWithBasis.add(k);
+      }
+    }
+  }
   for (const [k, v] of Object.entries(intake)) {
+    if (k === "assertions") continue;
+    if (believedWithBasis.has(k)) continue;
     if (isEmpty(v)) {
       out.push({
         field: k,
@@ -45,6 +64,7 @@ function synthesiseEntriesFromIntake(
   }
   return out;
 }
+
 
 export function guardInformationNeeded(
   report: any,

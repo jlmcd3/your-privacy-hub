@@ -27,6 +27,7 @@ import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { CITATION_REGISTRY, verifyRegistryAgainstCorpus } from "../_shared/admt-citation-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
+import { validateSourceFields } from "../_shared/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -422,6 +423,10 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "FLAG, CITE, NEVER PRESCRIBE THE STANDARD: when a purpose statement or other intake element may not satisfy a specificity requirement (e.g. 11 CCR 7152(a)(1)), state that the current formulation may not satisfy the cited requirement and direct review with counsel. NEVER author the standard the user must meet (e.g. never write 'a specific purpose names the concrete business function' or equivalent prescriptive formulations). Cite the regulation; do not paraphrase it into a test.",
     "ONE DEADLINE PER ACTION: every priority action carries exactly one governing deadline that matches its deadline field. Where two deliverables have different deadlines (e.g. an ADMT pre-use notice and the risk-assessment record), split them into separate actions. Never place two alternative dates in one action's text. Where a submission date depends on a statutory cycle rather than published guidance, state the cycle (e.g. 'first submission due in the 2028 submission year per 11 CCR 7157') — never defer to 'guidance TBD' without a fallback.",
     "UNDOCUMENTED IS NOT CONTRADICTORY: where two intake values could be complementary (e.g. a 90-day retention for one data category and a 24-month general period), describe the RELATIONSHIP as undocumented and flag it for the user to specify — do not assert direct contradiction unless the values cannot coexist. Where a conclusion of 'insufficient basis' is reached, state explicitly that it reflects record incompleteness, not a substantive determination on the merits.",
+    "ASSERTION LEVELS: intake_data.assertions, where present, records the epistemic basis of designated answers. state 'confirmed' = directly checked. state 'believed' with a basis = a complete, legitimate record entry: record the answer WITH its stated basis in the relevant entry's text (factually, no alarm), count it fully toward record completeness, and NEVER generate an insufficient-basis finding, an information_needed entry, or an inconsistency flag from the believed status alone. state 'unknown' = treat exactly as an unanswered question is treated today. Fields with no assertions entry are legacy answers, treated exactly as today. A believed answer participates in contradiction detection on its CONTENT like any other answer — the assertion level itself is never the contradiction.",
+    "RECORD SUFFICIENCY: record_sufficiency.complete is true when every required element of 11 CCR 7152(a) is addressed in the record — including elements answered on a believed basis — and no unresolved determinative gap or contradiction remains open. record_sufficiency.statement, when complete is true, says in your own words that this assessment constitutes a complete risk-assessment record under 11 CCR 7150-7157 as of the assessment date; when complete is false, it states which 7152(a) element(s) remain open, citing them. Never condition completeness on verification depth.",
+    "ITEM TAXONOMY + source_fields: strengthen_items lists each believed-basis entry — item_id (S-1, S-2, ...), the citing regulation, the intake field_ids involved, and the recorded basis verbatim from the assertion. strengthen_items are OPTIONAL depth items: they are never counted in any issues total, never appear in inconsistency_flags or information_needed, and carry no urgency language. Separately, every inconsistency_flags and information_needed entry carries source_fields listing ALL intake field ids that gave rise to it (both sides of a contradiction).",
+    "FIELD-ID VOCABULARY (CLOSED SET): source_fields and any intake-field reference (including inconsistency_flags.intake_field_1 / intake_field_2 and information_needed.field) may ONLY use ids from the CANONICAL_INTAKE_FIELDS list injected below, verbatim. NEVER invent, rename, or paraphrase a field id. Never emit descriptors like 'recipients_third_parties' or 'ADMT trigger fields' unless that exact string appears in the canonical list. An entry that cannot be tied to canonical ids should omit source_fields rather than fabricate them.",
   ].join("\n"),
 
   schema: `OUTPUT FORMAT — Return a single JSON object with this exact structure. No markdown fences, no preamble:
@@ -456,7 +461,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
       "section_7152_mapping": string }
   ],
   "inconsistency_flags": [
-    { "description": string, "intake_field_1": string, "intake_field_2": string, "regulatory_citation": string, "resolution_required": string }
+    { "description": string, "intake_field_1": string, "intake_field_2": string, "regulatory_citation": string, "resolution_required": string, "source_fields": string[] }
   ],
   "enforcement_context": {
     "relevant_precedents": string, "sector_specific_patterns": string, "audit_division_priorities": string
@@ -475,7 +480,11 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "disclaimer": "This document has been generated to assist in preparing a CPPA risk assessment. It does not constitute legal advice. Review with qualified privacy counsel before submission or reliance."
   },
   "information_needed": [
-    { "field": "<intake field key that exists in the intake>", "dimensions": "<what specifically to add — dimensions, never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>" }
+    { "field": "<intake field key that exists in the intake>", "dimensions": "<what specifically to add — dimensions, never suggested values>", "provision": "<already-cited provision that makes these dimensions relevant>", "enables": "<which section/determination of this report completes with it>", "source_fields": string[] }
+  ],
+  "record_sufficiency": { "complete": boolean, "statement": string },
+  "strengthen_items": [
+    { "item_id": string, "citation": string, "field_ids": string[], "recorded_basis": string }
   ]
 }
 Every insufficient-basis or "Insufficient information" finding elsewhere in this output MUST have a corresponding information_needed entry; otherwise return an empty array.`,
@@ -693,7 +702,15 @@ async function runPipeline(assessment_id: string) {
     });
     const rawIntake = (row.intake_data ?? {}) as Record<string, unknown>;
     const subjectAnchor = typeof rawIntake?.subject_anchor === "string" ? (rawIntake.subject_anchor as string).trim() : "";
-    const userPrompt = buildUserPrompt(fiveStage, subjectAnchor);
+    // Doc O 3c-2(i): canonical intake-field vocabulary. The intake IS
+    // the schema — enumerate its top-level keys and inject them into
+    // the user prompt so the model has an authoritative closed set
+    // for source_fields / intake_field_1 / intake_field_2 / field.
+    const canonicalFieldIds = Object.keys(rawIntake)
+      .filter((k) => k !== "assertions")
+      .sort();
+    const canonicalBlock = `CANONICAL_INTAKE_FIELDS (closed vocabulary — use only these ids verbatim in source_fields, intake_field_1/2, and information_needed.field):\n${canonicalFieldIds.map((k) => `  - ${k}`).join("\n")}`;
+    const userPrompt = `${canonicalBlock}\n\n${buildUserPrompt(fiveStage, subjectAnchor)}`;
 
     const t0 = Date.now();
     let parsed: any = null;
@@ -887,6 +904,29 @@ async function runPipeline(assessment_id: string) {
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
     const guarded = guardInformationNeeded(report_data, ((row as any).intake_data as Record<string, unknown>) ?? {});
     report_data = guarded.report;
+
+    // Doc O 3c-2(ii): non-fatal source_fields validation. Drop any
+    // source_fields / field_ids value that is not a canonical intake
+    // key. Never blocks. Logs invented-id counts for the July 13 review.
+    try {
+      validateSourceFields(
+        report_data,
+        ((row as any).intake_data as Record<string, unknown>) ?? {},
+      );
+    } catch (e) {
+      console.warn("[cppa-risk v4] source_fields validator error:", e);
+    }
+
+    // Doc O R2: ensure the two new top-level keys are always present so
+    // downstream renderers / graders can rely on their shape even when
+    // the model omits them (additive defaults, never overwriting).
+    if (!report_data.strengthen_items || !Array.isArray(report_data.strengthen_items)) {
+      report_data.strengthen_items = [];
+    }
+    if (!report_data.record_sufficiency || typeof report_data.record_sufficiency !== "object") {
+      report_data.record_sufficiency = { complete: false, statement: "" };
+    }
+
 
     // QB11-5(b): an exception's missing_elements[] entry and flags[] entry must not be
     // exact duplicates — keep the missing_elements copy, drop the duplicate flag.

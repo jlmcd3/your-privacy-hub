@@ -1038,7 +1038,7 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
       cppaAdmt: buildAdmtFallback(c.companyName, industry, slot),
     };
   }
-  return {
+  const base = {
     usNotice: {
       business_name: c.companyName,
       business_description: `${industry} provider operating digital services in the United States`,
@@ -1145,7 +1145,39 @@ function buildDeterministicGeo(industry: string, geo: string, slot: number, comp
     ropa: null,
     euNotice: null,
   };
+
+  // Doc O Step 4 (BELIEVED fixture, R8): new industry-scoped override.
+  // Company_id "us-believed-slot1" (source_row_id "static-us-believed-slot1").
+  // Field selection is PROVISIONAL pending Katherine's P4 enumeration —
+  // uses only REAL intake keys from CPPARiskAssessment.tsx (Doc V
+  // Theme-2 lesson: never invent intake keys).
+  if (/^Believed-basis Pilot$/i.test(industry)) {
+    // Deliberate content contradiction on a CONFIRMED pair: q18_admt_use
+    // reads "No" while i5_admt_logic + i5_admt_human_review + i5_admt_fairness_testing
+    // are populated. Both sides are marked CONFIRMED so the RESOLVE
+    // behavior (inconsistency_flags) is exercised alongside STRENGTHEN.
+    (base as any).cppaRisk.q18_admt_use = "No";
+    (base as any).cppaRisk.q18b_admt_training = "No";
+    (base as any).cppaRisk.q19_admt_description = "Rules-based scoring with human review is in place";
+    // Assertions ride on intake_data.assertions per Doc N R1 (values unchanged).
+    (base as any).cppaRisk.assertions = {
+      // BELIEVED, standard_template
+      i6_vendors: { state: "believed", basis: "standard_template" },
+      // BELIEVED, written_policy
+      i2_retention_period: { state: "believed", basis: "written_policy" },
+      // CONFIRMED sides of the deliberate contradiction
+      q18_admt_use: { state: "confirmed", basis: null },
+      i5_admt_logic: { state: "confirmed", basis: null },
+      // CONFIRMED (baseline)
+      q11_policy_review: { state: "confirmed", basis: null },
+      // UNKNOWN (evidence-heavy safeguard; treat as unanswered)
+      i5_admt_fairness_testing: { state: "unknown", basis: null },
+    };
+  }
+
+  return base;
 }
+
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 
