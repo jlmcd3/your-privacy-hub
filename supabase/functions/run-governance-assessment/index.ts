@@ -257,6 +257,35 @@ function docYBuildUsBasisFallback(intake: any): string {
   return parts.join("; ");
 }
 
+// Y-3b deterministic backstop: on US-only runs, when a single sentence
+// co-cites 'DPIA'/'Data Protection Impact Assessment' AND a US statute
+// citation AND carries no comparative label, replace the DPIA token with
+// 'data protection assessment'. Own-document echoes and labeled comparative
+// sentences do not co-cite a US statute in the same sentence and are
+// therefore untouched.
+const DOC_Y3B_DPIA_TOKEN_RE = /\b(Data Protection Impact Assessments?|DPIAs?)\b/g;
+const DOC_Y3B_US_STATUTE_RE = /(C\.R\.S\.|Va\.\s*Code|Cal\.\s*Civ\.\s*Code|11\s*CCR|1798\.|6-1-13|59\.1-5)/i;
+const DOC_Y3B_DPIA_SENTINEL_RE = /\bDPIA\b|data protection impact assessment/i;
+function docY3bRewriteDpiaCoCitations(s: string, fieldPath: string): string {
+  if (!s || typeof s !== "string") return s;
+  if (!DOC_Y3B_DPIA_SENTINEL_RE.test(s)) return s;
+  const sentences = docYSplitSentences(s);
+  const out: string[] = [];
+  for (const sent of sentences) {
+    if (!DOC_Y3B_DPIA_SENTINEL_RE.test(sent) || !DOC_Y3B_US_STATUTE_RE.test(sent)) { out.push(sent); continue; }
+    const lower = sent.toLowerCase();
+    const labeled = DOC_Y_COMPARATIVE_MARKERS.some((m) => lower.includes(m));
+    if (labeled) { out.push(sent); continue; }
+    const replaced = sent.replace(DOC_Y3B_DPIA_TOKEN_RE, (m) => {
+      const isPlural = /s$/i.test(m);
+      return isPlural ? "data protection assessments" : "data protection assessment";
+    });
+    console.warn(`[run-governance-assessment] doc-y3b dpia-cocite-rewrite field=${fieldPath} original="${sent.trim().slice(0,240)}" rewritten="${replaced.trim().slice(0,240)}"`);
+    out.push(replaced);
+  }
+  return out.join(" ").replace(/\s+/g, " ").trim();
+}
+
 function applyDocYPostGeneration(reportData: any, intake: any): void {
   try {
     const euUkInScope = docYIsEuUkInScope(intake);
