@@ -39,6 +39,151 @@ function stripMd(s: unknown): string {
     .replace(/^\s*[-_]{3,}\s*$/gm, '');
 }
 
+// ---------------------------------------------------------------------------
+// Doc Y post-generation deterministic gates (Governance only).
+//   (Y-2) Non-EU/UK runs: strip unlabeled transfer-mechanism sentences.
+//   (Y-1) Cal. Civ. Code citation-existence validator with hard-fail on the
+//         Readers' Privacy Act / 1798.1xx pairing.
+// Non-fatal try/catch; no status/metering writes; console.warn per action.
+// ---------------------------------------------------------------------------
+const DOC_Y_TRANSFER_TERMS = [
+  "standard contractual clauses","scc","binding corporate rules","bcr",
+  "adequacy decision","adequacy mechanism","gdpr chapter v","uk gdpr chapter v",
+  "transfer impact assessment","transfer risk assessment",
+];
+const DOC_Y_COMPARATIVE_MARKERS = [
+  "for comparison","by contrast","unlike the gdpr","unlike gdpr",
+  "as compared with the gdpr","compared to the gdpr","compared with the gdpr",
+];
+// Cal. Civ. Code allowlist. Values: null = whole section allowed without
+// subsection validation; array = allowed subsection letters (enumerated).
+const DOC_Y_CAL_CIV_ALLOWLIST: Record<string, string[] | null> = {
+  // Breach notification (agencies / individuals)
+  "1798.29": null,
+  "1798.82": null,
+  // Readers' Privacy Act (Cal. Civ. Code §§ 1798.90 - 1798.90.05)
+  "1798.90": null,
+  "1798.90.05": null,
+  // CCPA / CPRA operative sections the tool cites today
+  "1798.100": ["a","b","c","d","e"],
+  "1798.105": null,
+  "1798.106": null,
+  "1798.110": null,
+  "1798.115": null,
+  "1798.120": null,
+  "1798.121": null,
+  "1798.125": null,
+  "1798.130": null,
+  "1798.135": null,
+  "1798.140": null,
+  "1798.145": null,
+  "1798.150": null,
+  "1798.155": null,
+  "1798.185": null,
+  "1798.199.10": null,
+  "1798.199.40": null,
+  "1798.199.90": null,
+  "1798.199.100": null,
+};
+
+function docYIsEuUkInScope(intake: any): boolean {
+  const jl = (Array.isArray(intake?.jurisdictions) ? intake.jurisdictions : [])
+    .map((j: any) => String(j).toLowerCase());
+  const EU_UK = new Set([
+    "gb","uk","united kingdom","eu",
+    "at","austria","be","belgium","bg","bulgaria","hr","croatia","cy","cyprus",
+    "cz","czechia","czech republic","dk","denmark","ee","estonia","fi","finland",
+    "fr","france","de","germany","gr","greece","hu","hungary","ie","ireland","irl",
+    "it","italy","lv","latvia","lt","lithuania","lu","luxembourg","mt","malta",
+    "nl","netherlands","pl","poland","pt","portugal","ro","romania","sk","slovakia",
+    "si","slovenia","es","spain","se","sweden",
+  ]);
+  const eu = String(intake?.eu_uk_data ?? "").toLowerCase();
+  if (eu === "yes" || intake?.eu_uk_data === true) return true;
+  return jl.some((j: string) => EU_UK.has(j) || [...EU_UK].some((c) => j.includes(c)));
+}
+
+function docYSplitSentences(s: string): string[] {
+  return s.split(/(?<=[.!?])\s+(?=[A-Z(“"])/);
+}
+
+function docYStripTransferSentences(s: string, fieldPath: string): string {
+  if (!s || typeof s !== "string") return s;
+  const sentences = docYSplitSentences(s);
+  const kept: string[] = [];
+  for (const sent of sentences) {
+    const lower = sent.toLowerCase();
+    const hit = DOC_Y_TRANSFER_TERMS.find((t) => lower.includes(t));
+    if (!hit) { kept.push(sent); continue; }
+    const labeled = DOC_Y_COMPARATIVE_MARKERS.some((m) => lower.includes(m));
+    if (labeled) { kept.push(sent); continue; }
+    console.warn(`[run-governance-assessment] doc-y transfer-gate removed field=${fieldPath} term="${hit}" sentence="${sent.trim().slice(0,240)}"`);
+  }
+  return kept.join(" ").replace(/\s+/g, " ").trim();
+}
+
+const DOC_Y_CAL_CIV_RE = /Cal\.?\s*Civ\.?\s*Code\s*(?:§\s*)?(\d{4}\.\d+(?:\.\d+)?)(\([a-z](?:\)\([a-z0-9]+)*\))?/gi;
+
+function docYValidateCalCivCitations(s: string, fieldPath: string): string {
+  if (!s || typeof s !== "string") return s;
+  const lowerCtx = s.toLowerCase();
+  const readersCtx = lowerCtx.includes("readers' privacy act") || lowerCtx.includes("readers privacy act") || lowerCtx.includes("reader's privacy act");
+  return s.replace(DOC_Y_CAL_CIV_RE, (match: string, section: string, sub: string | undefined) => {
+    // Y-3c: Readers' Privacy Act paired with a 1798.1xx section is a hard-fail.
+    if (readersCtx && /^1798\.1\d\d/.test(section)) {
+      console.warn(`[run-governance-assessment] doc-y calciv-hardfail readers/1798.1xx field=${fieldPath} match="${match}"`);
+      return "";
+    }
+    const hasSection = Object.prototype.hasOwnProperty.call(DOC_Y_CAL_CIV_ALLOWLIST, section);
+    if (!hasSection) {
+      console.warn(`[run-governance-assessment] doc-y calciv-invalid section field=${fieldPath} match="${match}"`);
+      return "";
+    }
+    const allowedSubs = DOC_Y_CAL_CIV_ALLOWLIST[section];
+    if (sub && Array.isArray(allowedSubs)) {
+      const letter = (sub.match(/^\(([a-z])\)/i)?.[1] || "").toLowerCase();
+      if (letter && !allowedSubs.includes(letter)) {
+        console.warn(`[run-governance-assessment] doc-y calciv-invalid subsection field=${fieldPath} match="${match}"`);
+        return "";
+      }
+    }
+    return match;
+  });
+}
+
+function docYWalkStrings(obj: any, path: string, fn: (s: string, path: string) => string): void {
+  if (obj == null) return;
+  if (Array.isArray(obj)) {
+    for (let i = 0; i < obj.length; i++) {
+      const v = obj[i];
+      if (typeof v === "string") obj[i] = fn(v, `${path}[${i}]`);
+      else docYWalkStrings(v, `${path}[${i}]`, fn);
+    }
+    return;
+  }
+  if (typeof obj === "object") {
+    for (const k of Object.keys(obj)) {
+      if (k === "organisation_profile") continue; // never mutate intake echo
+      const v = obj[k];
+      if (typeof v === "string") obj[k] = fn(v, `${path}.${k}`);
+      else docYWalkStrings(v, `${path}.${k}`, fn);
+    }
+  }
+}
+
+function applyDocYPostGeneration(reportData: any, intake: any): void {
+  try {
+    const euUkInScope = docYIsEuUkInScope(intake);
+    if (!euUkInScope) {
+      docYWalkStrings(reportData, "report", (s, p) => docYStripTransferSentences(s, p));
+    }
+    docYWalkStrings(reportData, "report", (s, p) => docYValidateCalCivCitations(s, p));
+  } catch (e) {
+    console.warn(`[run-governance-assessment] doc-y post-generation error: ${(e as Error).message}`);
+  }
+}
+
+
 async function callAnthropic(model: string, system: string | SystemBlock[], user: string, maxTokens = 6000, timeoutMs = 720_000): Promise<string> {
   const startedAt = Date.now();
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -158,7 +303,7 @@ ARTICLE 32 SUBSECTION PRECISION: Art. 32(1) = the general obligation to implemen
 
 ARTICLE 35 SUBSECTION PRECISION: Art. 35(1) = the general DPIA obligation, triggered where processing is 'likely to result in a high risk.' Art. 35(3)(a)–(c) = specific enumerated processing types that are illustrative examples of the Art. 35(1) threshold (NOT independent triggers separate from 35(1)). Do not present 35(3)(a) or (c) as standalone triggers, and do not write that '35(3) does not apply' in the same passage that asserts a DPIA is mandatory under 35(1) on the same facts — state plainly which provision is engaged: 35(1) if the WP248 high-risk criteria are met, and additionally cite the specific 35(3) subparagraph only if an enumerated type is also present.
 
-STATUTE-GLOSS INTEGRITY RULE (US / UNCONDITIONAL): When citing a statute at the section/subsection level, the parenthetical gloss must match that exact subsection. If unsure of the subsection, cite at the statute level only. Verified anchors — CCPA: §1798.100 notice/collection; §1798.105 right to DELETE; §1798.106 right to CORRECT; §1798.110 right to know; §1798.120 opt-out of sale/sharing; §1798.121 limit SPI; §1798.130 request methods; §1798.135 opt-out links; §1798.140(ag) service-provider definition; §1798.150 breach private right of action. There is NO §1798.104. BIPA 740 ILCS 14/15: (a) retention/destruction policy; (b) informed written consent; (c) no profit; (d) disclosure restrictions; (e) reasonable safeguards. DSR response deadlines (US): CCPA 45 days (extendable 45); Colorado 45 days; Virginia 45 days. California breach notification (Cal. Civ. Code §1798.82, as amended by SB 446 effective Jan 1, 2026): 30-day INDIVIDUAL notice from discovery; AG receives a SAMPLE COPY within 15 days of consumer notice when 500+ CA residents are affected.
+STATUTE-GLOSS INTEGRITY RULE (US / UNCONDITIONAL): When citing a statute at the section/subsection level, the parenthetical gloss must match that exact subsection. If unsure of the subsection, cite at the statute level only. Verified anchors — CCPA: §1798.100 notice/collection; §1798.105 right to DELETE; §1798.106 right to CORRECT; §1798.110 right to know; §1798.120 opt-out of sale/sharing; §1798.121 limit SPI; §1798.130 request methods; §1798.135 opt-out links; §1798.140(ag) service-provider definition; §1798.150 breach private right of action. There is NO §1798.104. BIPA 740 ILCS 14/15: (a) retention/destruction policy; (b) informed written consent; (c) no profit; (d) disclosure restrictions; (e) reasonable safeguards. DSR response deadlines (US): CCPA 45 days (extendable 45); Colorado 45 days; Virginia 45 days. California breach notification (Cal. Civ. Code §1798.82): the statutory standard is "in the most expedient time possible and without unreasonable delay"; present any 30-day timeframe strictly as the SB 446 safe-harbor option (effective Jan 1, 2026), never as the deadline itself. AG receives a SAMPLE COPY within 15 days of consumer notice when 500+ CA residents are affected.
 ${hasEuUk ? `
 STATUTE-GLOSS INTEGRITY RULE (GDPR): GDPR anchors — Art 24 accountability; Art 28(3)(b) processor confidentiality undertaking; Art 32(1)(b) confidentiality/integrity/availability/resilience; Art 32(4)/29 act-only-on-instructions (NOT a confidentiality provision — confidentiality is Art 28(3)(b)); Art 37 = WHEN a DPO must be designated (37(1)(b) systematic monitoring; 37(1)(c) large-scale special categories), NOT DPO tasks; Art 39 = DPO TASKS (39(1)(a) inform/advise; 39(1)(b) monitor compliance incl. awareness-raising and staff training; 39(1)(e) cooperate with the SA) — cite DPO tasks as Art 39, never Art 37; Art 77 = right to lodge a complaint with a supervisory authority, in particular in the data subject's habitual residence, place of work, or place of the alleged infringement (a privacy-notice complaint-rights disclosure must reflect Art 77 generally, not restrict it to the lead/main-establishment SA). Art 13(2) subsections: (a) = the storage period, or the criteria used to determine it (cite Art 13(2)(a) for retention-period / storage-limitation transparency and for erasure/retention-limitation disclosure — NOT (e)); (b) = the rights enumeration (access, rectification, erasure, restriction, object, portability); (d) = right to lodge a complaint with a supervisory authority; (e) = whether providing the data is a statutory/contractual requirement and the consequences of failure. Cite the data-subject rights enumeration as Art 13(2)(b) — do NOT cite (e) for it, and do NOT cite (e) for retention-period transparency (that is (a)). Art 28(3)(f) = processor assistance with the controller's Arts 32–36 obligations (security, breach notification, DPIA, prior consultation) ONLY — do NOT cite Art 28(3)(f) as a basis for general accountability, tool inventory, or vendor-sanctioning governance; the bases for those are Art 5(2) (accountability), Art 24 (controller responsibility), and Art 32(1) (security measures). DSR response deadline (GDPR/UK GDPR): one month from receipt under Art 12(3), extendable by two further months for complex or numerous requests.` : ``}
 
@@ -829,6 +974,13 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // QB7-3(a): enforce TIMELINE VOICE post-generation (main path).
     applyTimelineForm(reportData);
     hoistNestedInformationNeeded(reportData);
+
+    // Doc Y: post-generation transfer-language gate (non-EU/UK runs) + Cal.
+    // Civ. Code citation-existence validator. Non-fatal; console.warn only.
+    applyDocYPostGeneration(
+      reportData,
+      ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {},
+    );
 
 
 
