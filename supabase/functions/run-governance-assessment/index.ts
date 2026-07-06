@@ -1,7 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
-// doc-y-3 build marker
-const DOC_Y_BUILD_MARKER = "doc-y-3";
+// doc-y-3b build marker
+const DOC_Y_BUILD_MARKER = "doc-y-3b";
 console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
