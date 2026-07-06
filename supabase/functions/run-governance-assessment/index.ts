@@ -200,7 +200,7 @@ IMPLEMENT-OR-VERIFY DISAMBIGUATION: Avoid the ambiguous phrase 'implement or ver
 
 ARTICLE-GLOSS CORRECTIONS (2.3):
 - Art. 24: "GDPR Art. 24 (controller must implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation)".
-- Art. 29: "GDPR Art. 29 (persons acting under the authority of the controller or processor may process personal data only on the controller's instructions, unless required by Union or Member State law)". Do not mention confidentiality here — that is Art. 28(3)(b).
+${hasEuUk ? `- Art. 29: "GDPR Art. 29 (persons acting under the authority of the controller or processor may process personal data only on the controller's instructions, unless required by Union or Member State law)". Do not mention confidentiality here — that is Art. 28(3)(b).` : ``}
 - Art. 14: "(information to be provided where personal data have not been obtained from the data subject)".
 - Art. 12: "(transparent information, communication and modalities for the exercise of the rights of the data subject)" — replace "consumer-rights"; the GDPR term is data subject rights.
 - DPF sentence, user-facing voice: "including the EU–US Data Privacy Framework (Commission Implementing Decision (EU) 2023/1795) for US-established importers certified under the Framework — verify current certification status at dataprivacyframework.gov".
