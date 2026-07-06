@@ -288,6 +288,27 @@ async function runAssessment(assessment_id: string): Promise<void> {
       }
     }
 
+    // Unconditional CCPA definitions supply — verbatim Cal. Civ. Code § 1798.140.
+    // Definitions ("personal information", "business", "service provider", etc.)
+    // are load-bearing for every cyber run. Same mechanism as 1798.82.
+    let caDefinitionsAuthorityBlock = "";
+    {
+      const { data: defRows } = await supabase
+        .from("cppa_authorities")
+        .select("citation, full_text")
+        .eq("citation", `Cal. Civ. Code ${S} 1798.140`)
+        .eq("status", "current")
+        .limit(1);
+      if (defRows && defRows.length > 0 && (defRows[0] as any).full_text) {
+        const r = defRows[0] as any;
+        caDefinitionsAuthorityBlock =
+          "\n\nCCPA DEFINITIONS AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Cal. Civ. Code " + S + " 1798.140 content ONLY from the text below, never from recollection):\n" +
+          `[${r.citation}]\n${r.full_text}`;
+      } else {
+        console.warn("[cppa-cyber] 1798.140 authority row unavailable");
+      }
+    }
+
 
 
     const today = new Date().toISOString().slice(0, 10);
@@ -360,7 +381,7 @@ SECTOR RULES — include the following additional context in findings and remedi
 - Pharma / Clinical Research: note FDA 21 CFR Part 11 requirements for audit logging and access controls on systems handling electronic records.
 - Children / EdTech: note COPPA security obligations where personal information of minors is involved.
 
-GOVERNMENT/NONPROFIT APPLICABILITY — add a sentence to the finding for each control if the intake indicates the entity is a government agency or public-sector body: "Note: CPPA cybersecurity audit obligations under 11 CCR §§ 7120–7124 apply only to 'businesses' as defined in Cal. Civ. Code § 1798.140(ag). State and local government agencies are expressly excluded from the CCPA definition of 'business.' This readiness assessment assumes CPPA applicability; the entity should confirm its status as a covered business before relying on this report for CPPA compliance purposes." If the entity appears to be a nonprofit, add: "CPPA cybersecurity obligations apply only to entities meeting at least one of the three CCPA business thresholds (annual gross revenues >$25M; processing PI of 100,000+ consumers/households; or deriving 50%+ of revenue from selling/sharing PI). This readiness assessment assumes threshold applicability; the entity should verify its status."${iotAuthorityBlock}${caBreachAuthorityBlock}`;
+GOVERNMENT/NONPROFIT APPLICABILITY — add a sentence to the finding for each control if the intake indicates the entity is a government agency or public-sector body: "Note: CPPA cybersecurity audit obligations under 11 CCR §§ 7120–7124 apply only to 'businesses' as defined in Cal. Civ. Code § 1798.140(ag). State and local government agencies are expressly excluded from the CCPA definition of 'business.' This readiness assessment assumes CPPA applicability; the entity should confirm its status as a covered business before relying on this report for CPPA compliance purposes." If the entity appears to be a nonprofit, add: "CPPA cybersecurity obligations apply only to entities meeting at least one of the three CCPA business thresholds (annual gross revenues >$25M; processing PI of 100,000+ consumers/households; or deriving 50%+ of revenue from selling/sharing PI). This readiness assessment assumes threshold applicability; the entity should verify its status."${iotAuthorityBlock}${caBreachAuthorityBlock}${caDefinitionsAuthorityBlock}`;
     }
 
     function buildSynthesisPrompt(controlsDigest: string, computedScore: number): string {
@@ -847,6 +868,9 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       // injected via caBreachAuthorityBlock below, so the lint supply must
       // reflect it. Source relabelled to CA_BREACH in the corpus.
       `Cal. Civ. Code ${S} 1798.82`,
+      // Unconditional: Cal. Civ. Code § 1798.140 (CCPA definitions). Verbatim
+      // text injected via caDefinitionsAuthorityBlock; lint supply must reflect it.
+      `Cal. Civ. Code ${S} 1798.140`,
       ...(isConnectedDeviceSector ? [
         `Cal. Civ. Code ${S} 1798.91.04`,
         `Cal. Civ. Code ${S} 1798.91.05`,
