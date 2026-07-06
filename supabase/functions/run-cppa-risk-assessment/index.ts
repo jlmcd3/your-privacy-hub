@@ -287,6 +287,11 @@ async function retrieveCorpusContext(intake: FiveStageIntake): Promise<{ enforce
     `11 CCR ${S} 7001`, `11 CCR ${S} 7120`, `11 CCR ${S} 7121`,
     `11 CCR ${S} 7150`, `11 CCR ${S} 7151`, `11 CCR ${S} 7152`, `11 CCR ${S} 7153`,
     `11 CCR ${S} 7154`, `11 CCR ${S} 7155`, `11 CCR ${S} 7156`, `11 CCR ${S} 7157`,
+    // Doc V Step 4: § 7220 is cited by the ADMT LINKAGE rule; must be pinned so
+    // citation-lint reports in_supply=true. Corpus row exists (6,774 chars,
+    // status=current). Base citations are fetched separately from full_text_limit,
+    // so this does not consume semantic slots.
+    `11 CCR ${S} 7220`,
     // Pinned per Doc H: § 1798.145 (CCPA exceptions) — cited by every US risk
     // run for exception_analysis; base citations are fetched separately from
     // full_text_limit, so this does not consume semantic slots.
