@@ -349,7 +349,11 @@ async function runAssessment(assessment_id: string, assessment: any): Promise<vo
         },
       }).catch((e: Error) => { console.error("get-enforcement-context failed (non-fatal):", e); return { data: null }; }),
       getGdprContext(supabase as any, {
-        articles: ["6"],
+        // Extend beyond Art. 6: LIA reasoning routinely cites Art. 5 (principles,
+        // esp. 5(1)(a) fairness/lawfulness/transparency) and Art. 21 (right to
+        // object) — inject verbatim so the lint supply reflects what the model
+        // actually receives.
+        articles: ["6", "5", "21"],
         jurisdiction: gdprJurisdiction,
         recitals: [47],
         guidelineArticles: ["6"],
