@@ -3969,6 +3969,27 @@ export type Database = {
           },
         ]
       }
+      quality_loop2_notes: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          note: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          note: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          note?: string
+        }
+        Relationships: []
+      }
       quality_loop2_results: {
         Row: {
           applied: boolean
