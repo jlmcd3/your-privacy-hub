@@ -622,6 +622,42 @@ Deno.serve(async (req) => {
           console.warn("[generate-ir-playbook] gdpr-context failed (non-fatal):", e);
         }
 
+        // California breach-notification authority supply (verbatim Cal. Civ.
+        // Code § 1798.82 from cppa_authorities). Same conditionality style as
+        // the IoT sector block in Cyber: fire only when this incident covers
+        // California/US-CA. Injection-first: only push to irSuppliedCitations
+        // in runs where the verbatim text was actually included in the prompt.
+        let caBreachBlock = "";
+        try {
+          const jListCa: string[] = (Array.isArray(body.jurisdictions) ? body.jurisdictions : []).map((j: any) => String(j).toLowerCase());
+          const hasCa = jListCa.some((j) =>
+            j === "california" || j === "us-ca" || j === "ca" ||
+            j.includes("california") || j.endsWith("-ca") || j === "us:ca"
+          );
+          if (hasCa) {
+            const { data: caRows, error: caErr } = await (supabase as any)
+              .from("cppa_authorities")
+              .select("citation, full_text")
+              .eq("citation", "Cal. Civ. Code § 1798.82")
+              .limit(1);
+            if (caErr) {
+              console.warn("[generate-ir-playbook] 1798.82 fetch failed:", caErr.message);
+            } else if (Array.isArray(caRows) && caRows.length > 0 && (caRows[0] as any).full_text) {
+              const row = caRows[0] as { citation: string; full_text: string };
+              caBreachBlock =
+                "\n\nCALIFORNIA BREACH-NOTIFICATION AUTHORITY -- SUPPLIED VERBATIM TEXT (cite Cal. Civ. Code § 1798.82 content ONLY from the text below, never from recollection):\n" +
+                `[${row.citation}]\n${row.full_text}`;
+              irSuppliedCitations.push("Cal. Civ. Code § 1798.82");
+            } else {
+              console.warn("[generate-ir-playbook] California incident but 1798.82 row unavailable");
+            }
+          }
+        } catch (e) {
+          console.warn("[generate-ir-playbook] ca-breach supply threw (non-fatal):", e);
+        }
+
+
+
 
         // ── Split into TWO PARALLEL Sonnet calls to stay inside the edge runtime
         // wall-clock budget.
