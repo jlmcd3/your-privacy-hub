@@ -35,11 +35,44 @@ function extractCitations(text: string): string[] {
   return Array.from(found);
 }
 
-/** Prefix-normalised supply check: a citation is "in supply" when its
- *  normalised form is a prefix of, or contains, any supplied normalised
- *  citation (or vice-versa). This is tolerant of "Art. 6" vs "Art. 6 GDPR"
- *  and "§ 7011" vs "11 CCR § 7011". */
-function isInSupply(token: string, suppliedNorm: string[]): boolean {
+/** Canonicalise a citation (from either side) to a stable key form used ONLY
+ *  for matching. Bridges the supply side (corpus keys like `gdpr:eu:6`) with
+ *  the extraction side (statutory tokens like "Article 6 GDPR" / "Art. 6(1)(f)
+ *  GDPR" / "UK GDPR Article 33" / "Articolul 5(1)(a) din GDPR"). Article
+ *  number only — subsection detail is dropped for the match. The full original
+ *  token is still stored verbatim on the lint row. Returns null when the
+ *  citation is not a GDPR-family form; the caller then falls back to the
+ *  existing loose matcher (unchanged for CCR / Civ Code / everything else). */
+function canonicalize(raw: string): string | null {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  // Corpus key already: gdpr:eu:6, gdpr:uk:33, gdpr:eu:6(1)(f) -> article only.
+  const keyMatch = /^gdpr:(eu|uk):([0-9]+)/i.exec(s);
+  if (keyMatch) return `gdpr:${keyMatch[1].toLowerCase()}:${keyMatch[2]}`;
+  // Statutory forms. Require GDPR/RGPD to be present in the token.
+  const hasGdpr = /\b(?:GDPR|RGPD|Regulamentului)\b/i.test(s);
+  if (!hasGdpr) return null;
+  const isUk = /\bUK[\s-]?GDPR\b/i.test(s) || /\bUnited Kingdom GDPR\b/i.test(s);
+  const jur = isUk ? "uk" : "eu";
+  const artMatch = /\b(?:Articolul|Article|Art\.?)\s*([0-9]{1,3})/i.exec(s);
+  if (!artMatch) return null;
+  return `gdpr:${jur}:${artMatch[1]}`;
+}
+
+/** Supply check. First tries canonical-key equality (bridges corpus keys and
+ *  statutory GDPR tokens). Falls back to the previous prefix/contains matcher
+ *  so CCR / Civ Code / non-GDPR behaviour is unchanged. */
+function isInSupply(
+  token: string,
+  suppliedNorm: string[],
+  suppliedCanon: (string | null)[],
+): boolean {
+  const canonTok = canonicalize(token);
+  if (canonTok) {
+    for (const c of suppliedCanon) {
+      if (c && c === canonTok) return true;
+    }
+  }
   const t = normCite(token);
   if (!t) return false;
   for (const s of suppliedNorm) {
@@ -61,14 +94,16 @@ export async function observeCitations(
   try {
     const tokens = extractCitations(outputText);
     if (tokens.length === 0) return;
-    const suppliedNorm = (suppliedCitations ?? [])
-      .filter((c) => typeof c === "string" && c.length > 0)
-      .map(normCite);
+    const suppliedClean = (suppliedCitations ?? []).filter(
+      (c) => typeof c === "string" && c.length > 0,
+    );
+    const suppliedNorm = suppliedClean.map(normCite);
+    const suppliedCanon = suppliedClean.map(canonicalize);
     const rows = tokens.map((citation) => ({
       tool,
       run_id: runId ? String(runId) : null,
       citation,
-      in_supply: isInSupply(citation, suppliedNorm),
+      in_supply: isInSupply(citation, suppliedNorm, suppliedCanon),
     }));
     const { error } = await supabase.from("citation_lint_events").insert(rows);
     if (error) {
