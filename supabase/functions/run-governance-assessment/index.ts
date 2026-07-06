@@ -1,7 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
-// doc-y-3 build marker
-const DOC_Y_BUILD_MARKER = "doc-y-3";
+// doc-y-3b build marker
+const DOC_Y_BUILD_MARKER = "doc-y-3b";
 console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -257,6 +257,35 @@ function docYBuildUsBasisFallback(intake: any): string {
   return parts.join("; ");
 }
 
+// Y-3b deterministic backstop: on US-only runs, when a single sentence
+// co-cites 'DPIA'/'Data Protection Impact Assessment' AND a US statute
+// citation AND carries no comparative label, replace the DPIA token with
+// 'data protection assessment'. Own-document echoes and labeled comparative
+// sentences do not co-cite a US statute in the same sentence and are
+// therefore untouched.
+const DOC_Y3B_DPIA_TOKEN_RE = /\b(Data Protection Impact Assessments?|DPIAs?)\b/g;
+const DOC_Y3B_US_STATUTE_RE = /(C\.R\.S\.|Va\.\s*Code|Cal\.\s*Civ\.\s*Code|11\s*CCR|1798\.|6-1-13|59\.1-5)/i;
+const DOC_Y3B_DPIA_SENTINEL_RE = /\bDPIA\b|data protection impact assessment/i;
+function docY3bRewriteDpiaCoCitations(s: string, fieldPath: string): string {
+  if (!s || typeof s !== "string") return s;
+  if (!DOC_Y3B_DPIA_SENTINEL_RE.test(s)) return s;
+  const sentences = docYSplitSentences(s);
+  const out: string[] = [];
+  for (const sent of sentences) {
+    if (!DOC_Y3B_DPIA_SENTINEL_RE.test(sent) || !DOC_Y3B_US_STATUTE_RE.test(sent)) { out.push(sent); continue; }
+    const lower = sent.toLowerCase();
+    const labeled = DOC_Y_COMPARATIVE_MARKERS.some((m) => lower.includes(m));
+    if (labeled) { out.push(sent); continue; }
+    const replaced = sent.replace(DOC_Y3B_DPIA_TOKEN_RE, (m) => {
+      const isPlural = /s$/i.test(m);
+      return isPlural ? "data protection assessments" : "data protection assessment";
+    });
+    console.warn(`[run-governance-assessment] doc-y3b dpia-cocite-rewrite field=${fieldPath} original="${sent.trim().slice(0,240)}" rewritten="${replaced.trim().slice(0,240)}"`);
+    out.push(replaced);
+  }
+  return out.join(" ").replace(/\s+/g, " ").trim();
+}
+
 function applyDocYPostGeneration(reportData: any, intake: any): void {
   try {
     const euUkInScope = docYIsEuUkInScope(intake);
@@ -286,6 +315,7 @@ function applyDocYPostGeneration(reportData: any, intake: any): void {
         }
       };
       backfill(reportData, "report");
+      docYWalkStrings(reportData, "report", (s, p) => docY3bRewriteDpiaCoCitations(s, p));
     }
     docYWalkStrings(reportData, "report", (s, p) => docYValidateCalCivCitations(s, p));
   } catch (e) {
@@ -490,7 +520,7 @@ NO UNDEFINED DOCTRINE LABELS: do not attach doctrinal labels the cited provision
 
 RESOLVE JURISDICTION QUESTIONS FROM THE INTAKE: never direct the user to verify a fact the intake already answers. Where the intake records EU/UK data as No, GDPR-specific obligations (DPIA under Art 35, DPO under Art 37, representatives under Art 27) are marked out-of-scope on the intake's stated basis — with one sentence noting the basis — and the analysis addresses the applicable US analog instead where one exists (e.g. risk/data-protection assessments under C.R.S. §6-1-1309 or Va. Code §59.1-580, citing ONLY provisions present in the supplied context; where the analog provision is not in supply, name the obligation generically without a pinpoint citation). An obligation is either in scope, out of scope on a stated basis, or contingent on a fact the intake does NOT answer — only the third kind generates a verification item."
 
-${!hasEuUk ? `US-ONLY ASSESSMENT FRAMING (Y-3): every domain finding, including dpia_status, is framed EXCLUSIVELY under the applicable US authorities for the run's jurisdictions — assessment obligations under C.R.S. § 6-1-1309 and Va. Code § 59.1-580 where Colorado or Virginia apply, and California risk-assessment obligations under Cal. Civ. Code § 1798.185 and 11 CCR §§ 7150-7157 where California applies. Thresholds, triggers, current-state descriptions, gap descriptions, and recommended actions all use the US authorities' own terms. GDPR or UK GDPR provisions (including Art. 35 and any other Chapter III/IV/V article) may appear ONLY as an explicitly labeled comparison ("for comparison", "by contrast", "for reference only") and a labeled sentence never licenses unlabeled use elsewhere; never direct the user to evaluate anything against a GDPR threshold on a US-only run.` : ``}`;
+${!hasEuUk ? `US-ONLY ASSESSMENT FRAMING (Y-3): every domain finding, including dpia_status, is framed EXCLUSIVELY under the applicable US authorities for the run's jurisdictions — assessment obligations under C.R.S. § 6-1-1309 and Va. Code § 59.1-580 where Colorado or Virginia apply, and California risk-assessment obligations under Cal. Civ. Code § 1798.185 and 11 CCR §§ 7150-7157 where California applies. Thresholds, triggers, current-state descriptions, gap descriptions, and recommended actions all use the US authorities' own terms. GDPR or UK GDPR provisions (including Art. 35 and any other Chapter III/IV/V article) may appear ONLY as an explicitly labeled comparison ("for comparison", "by contrast", "for reference only") and a labeled sentence never licenses unlabeled use elsewhere; never direct the user to evaluate anything against a GDPR threshold on a US-only run. The token 'DPIA' (and 'Data Protection Impact Assessment') may appear ONLY in one of three contexts: (1) an explicitly labeled comparative sentence contrasting EU/GDPR with the US regime; (2) a factual reference to the company's own existing document as recorded in intake (e.g. echoing dpia_status or i9_existing_dpia_summary); (3) inside the internal schema key name dpia_status. For every US-law obligation, use the statute's own term — 'data protection assessment' for Colorado (C.R.S. § 6-1-1309) and Virginia (Va. Code § 59.1-580), and 'risk assessment' for California (11 CCR §§ 7150-7157). Never write 'DPIA' alongside a US statute citation, and never write 'DPIA / data protection assessment' as a slash-alternative.` : ``}`;
 }
 
 export function buildGovernanceDomainToolModule(jurisdictions: unknown, euUkData: string): ToolModule {
