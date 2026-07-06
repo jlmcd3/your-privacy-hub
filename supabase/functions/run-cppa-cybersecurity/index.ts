@@ -819,12 +819,18 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       "11 CCR § 7122",
       "11 CCR § 7123",
       "11 CCR § 7124",
+      // Unconditional: Cal. Civ. Code § 1798.82 (Customer Records Act breach
+      // notification). Cyber is a California tool and the verbatim text is
+      // injected via caBreachAuthorityBlock below, so the lint supply must
+      // reflect it. Source relabelled to CA_BREACH in the corpus.
+      `Cal. Civ. Code ${S} 1798.82`,
       ...(isConnectedDeviceSector ? [
         `Cal. Civ. Code ${S} 1798.91.04`,
         `Cal. Civ. Code ${S} 1798.91.05`,
         `Cal. Civ. Code ${S} 1798.91.06`,
       ] : []),
     ];
+
     const { data: authRows } = await supabase
       .from("cppa_authorities")
       .select("id, citation, version, authority_type, authority_weight, effective_date, official_url, title, status")
