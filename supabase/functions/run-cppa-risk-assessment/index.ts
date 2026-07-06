@@ -388,7 +388,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "THIRD PARTY ≠ SALE/SHARE: classifying a recipient as a third party (rather than a service provider/contractor) does NOT by itself make a disclosure a \"sale\" or \"share.\" Under the § 1798.140 definitions of \"sell\" and \"share,\" a sale/share additionally requires monetary or other valuable consideration, or that the disclosure is for cross-context behavioural advertising. When the intake shows a vendor (e.g. a support/ticketing tool) that may not be under a compliant service-provider contract, state the two determinations SEPARATELY: (1) recipient classification (service provider/contractor vs third party), and (2) whether any transfer is a sale/share (which turns on consideration or cross-context advertising and, if present, triggers a separate § 7150(b)(1) assessment). Never write that non-service-provider status \"is\" or \"constitutes\" a sale/share — flag both as items the user must confirm.",
     "§ 7152(a) SUBSECTION DISCIPLINE: cite each element to its own subsection and never reuse (a)(2) as a catch-all. (a)(1) = processing summary and specific (non-generic) purpose; (a)(2) = categories of PI and whether they include sensitive PI (NOT minimum-PI, NOT consumer categories); (a)(3) = the processing-operation details; (a)(4) = benefits; (a)(5) = negative impacts; (a)(6) = safeguards; (a)(8)–(a)(9) = the individuals involved and the decisionmaker with authority to proceed. The benefits-outweigh-risks balancing itself is the § 7154 goal, not a content element. Consumer categories belong to the (a)(1) processing summary, never (a)(2).",
     "OVERALL_RISK_LEVEL MEASURES SUBSTANTIVE PRIVACY RISK ONLY: overall_risk_level reflects the severity and likelihood of the enumerated adverse effects to consumers from the processing itself, net of safeguards CONFIRMED in the record. It is NOT increased by documentation gaps, unresolved classifications, missing intake answers, deadline proximity, or the incompleteness of the assessment record — those are compliance-record issues, expressed exclusively through benefits_outweigh_risks_conclusion ('Insufficient basis' where the record cannot support a conclusion), the inconsistency flags, information_needed, and priority_actions. If every enumerated harm is Moderate severity / Possible likelihood, overall_risk_level is Moderate even where the record is materially incomplete. The balancing conclusion and overall_risk_level remain distinct axes and can diverge; when they do, add one sentence to benefits_outweigh_risks_rationale stating what the rating reflects (identified-harm severity net of confirmed safeguards) and noting that record-completeness issues are addressed separately in the conclusion and priority actions.",
-    "DEADLINE FIELD PRECISION MUST MATCH CERTAINTY: do not populate `deadline` with a specific ISO date (YYYY-MM-DD) when the regulation only specifies a year and the exact date is unconfirmed (e.g. § 7157 annual attestation, due 'in 2028' with the specific date to be confirmed against CPPA guidance). In that case, either (a) set `deadline` to a bracketed placeholder such as '[2028 — exact date TBD per § 7157 guidance]', or (b) if a specific date is used as a working assumption, say so explicitly in `deadline_basis` (e.g. 'January 1, 2028 is used as a placeholder for the 2028 submission year pending confirmed CPPA guidance') rather than presenting it as the confirmed deadline.",
+    "DEADLINE FIELD PRECISION MUST MATCH CERTAINTY: do not populate `deadline` with a specific ISO date (YYYY-MM-DD) when the regulation only specifies a year and the exact date is unconfirmed. The § 7157 submission date IS confirmed by the regulation text: for risk assessments conducted in 2026 and 2027 the submission is due no later than April 1, 2028 (11 CCR § 7157(a)(1)); for risk assessments conducted after 2027 the submission is due no later than April 1 of the year following the assessment year (§ 7157(a)(2)). Populate `deadline` as `2028-04-01` for the 2026/2027 cohort and quote § 7157(a)(1) in `deadline_basis`; use the § 7157(a)(2) April 1 rolling date for subsequent cohorts and cite § 7157(a)(2). Do not emit bracketed 'exact date TBD' placeholders for § 7157.",
     "ACTIONABLE FILL-IN GUIDANCE: where a priority_action requires the user to supply a judgment call the tool cannot make (e.g. 'document specific, non-generic purposes', 'confirm recipient classification', 'document minimum PI necessary'), append one clause of concrete guidance rather than leaving the standard bare. The guidance names the DIMENSIONS a sufficient answer must cover — never an example value or drafted text (see NO DRAFTED MODEL LANGUAGE; the prohibition applies inside parentheticals and 'e.g.' clauses). For a non-generic purpose requirement, add '(a specific purpose names the concrete business function, the data used, and the outcome achieved; a formulation naming only a broad business goal does not satisfy the § 7152(a)(1) specificity requirement)'. For recipient classification, add '(a service provider/contractor processes PI only on the business's behalf under a compliant contract per § 1798.140(ag)/(j); a third party does not)'. For minimum-necessary determinations, add '(document, per data element, why it is required for the stated purpose; remove elements collected but not used for that purpose).' Keep each addition to one parenthetical clause — do not turn priority_actions into an instructional essay.",
     "INCONSISTENCY FLAGS MUST CITE, NEVER RESOLVE, NEVER PRESCRIBE A METHOD: when flagging an inconsistency (e.g. ADMT disclosure vs. negated profiling field), resolution_required must name the controlling provision(s) and state that the controller must resolve and document the determination — it must NEVER state what the controller should conclude, NEVER assert 'if [condition] applies, [consequence] is required,' NEVER direct a specific follow-on action contingent on an unresolved determination, and NEVER direct the controller to a specific resolution method (consulting counsel, commissioning an audit, internal analysis, or any other). Correct form: 'The controller must resolve, with reference to § 7001(ddd) and § 7150(b)(3)–(4), whether the rules-based scoring system triggers either provision, and document the determination in the assessment record.' Incorrect forms: 'if X applies, Y is required' (tells the user the consequence of a determination the tool has not made) and 'consult privacy counsel to confirm/determine …' (prescribes the resolution method — the choice of method belongs to the controller). Strip both constructions wherever they arise and replace with 'The controller must resolve and document [the determination] in the assessment record.' This applies to resolution_required, priority_actions, rationale text, and every narrative field.",
     "EXCEPTIONS_STATUS MUST AGREE WITH THE RECORD: do not set assessment_summary.exceptions_status to 'All well-documented' when the same assessment identifies missing required fields (e.g. § 7152(a)(4) benefits documentation, sources of PI, minimum-necessary determinations) elsewhere in the output. If required fill-ins remain open anywhere in the document, exceptions_status must reflect that — e.g. 'No exceptions claimed; § 7152(a)(4) benefits documentation incomplete' — not an unqualified 'All well-documented.'",
@@ -401,7 +401,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "RECONCILE INTAKE ECHOES WITH THE ASSESSMENT'S CONCLUSION: where the normalised intake echoes an assertion the assessment's own determination does not adopt (e.g. the intake records benefits_outweigh_risks as 'Yes' while the conclusion is 'Insufficient basis'), add one sentence IN THE benefits_outweigh_risks_conclusion FIELD ITSELF — not only in narrative rationale elsewhere — making the relationship explicit: \"The intake asserts [X]; the assessment record as documented does not yet satisfy the § 7152(a) documentation requirements to support that determination.\" Never leave an intake echo standing in apparent contradiction to the conclusion without this reconciling sentence in the conclusion field.",
     "SEVERITY LABELS COHERE WITH DEADLINES: an action labelled 'Immediate' states the immediate act and the statutory deadline as two clauses — 'Begin now: [the act]. The § 7155(b) compliance deadline for existing activities is December 31, 2027.' — never a bare 'Immediate' severity beside a 2027 deadline field as though they described the same clock. Where a deadline is conditional across cohorts (§ 7121(a): April 1, 2028 / 2029 / 2030 by revenue tier), the structured deadline field carries the earliest applicable date with the qualifier '(earliest cohort; conditional — see action text)' so the field cannot be read alone as unconditional. Record-completion items of the same kind carry the same severity label; where two siblings differ (one 'Immediate', one 'High'), the action text states why, or the labels are aligned.",
     "EACH INCONSISTENCY IS DOCUMENTED ONCE: every distinct inconsistency is documented fully — provisions, resolution requirement — in inconsistency_flags only. Where the same inconsistency is relevant to another section (an exception_analysis entry, a narrative), that section carries a one-line cross-reference (\"See inconsistency_flags: retention-period conflict\") and never restates the resolution language, so the reader cannot count one defect twice.",
-    "EXCEPTION CITATIONS — SAY WHERE THE CITATION MUST COME FROM: when exception_analysis entries flag that the governing exception provision is not cited in the record, include ONE summary-level note (not per entry) stating at pattern level where such citations come from: \"the assessment record must cite the specific statutory or regulatory exception provision under which each exception is claimed — for example Cal. Civ. Code § 1798.145 or the applicable provision of 11 CCR §§ 7150–7157.\" This names the sources; it never asserts which provision applies to this business.",
+    "EXCEPTION CITATIONS — SAY WHERE THE CITATION MUST COME FROM: when one or more exception_analysis entries flag that the governing exception provision is not cited in the record, include ONE summary-level note, in the single most relevant field and never inside any exception_analysis entry or any [TO COMPLETE] placeholder, conveying in your own words that: (1) the assessment record must cite the specific provision of Cal. Civ. Code § 1798.145 under which each claimed exception is asserted; (2) 11 CCR §§ 7150–7157 impose the duty to document the claimed exception — they do not themselves create exceptions and are never cited as the source of an exception; (3) the note names where citations come from and never asserts which provision applies to this business. Do not reproduce these instructions verbatim; paraphrase. Per the MANDATED TEXT APPEARS ONCE rule, every other field cross-references the note and never restates it.",
     "CHARACTERISING § 7152(a)(1) AND EXCEPTION SCOPING: describe § 7152(a)(1) as requiring identification of the specific purpose of the processing. Do NOT assert that the regulation text expressly enumerates prohibited generic phrases ('to improve our services', 'for security purposes') — the insufficiency of a generic statement is the APPLICATION of the specificity requirement and must be framed as such ('a generic formulation does not satisfy the § 7152(a)(1) specificity requirement'), not as quoted regulatory text. Separately: the requirement that processing under a claimed exception be limited to what that exception's purpose requires derives from the claimed exception provision itself, NOT from § 7152(a)(3). Where the exception provision is identified, cite it for the scoping requirement; where it is not yet identified, state the necessity requirement without a citation. § 7152(a)(3) governs the categories of PI and minimum-necessary documentation for the processing generally and is never cited as the source of exception-specific scoping.",
     "MANDATED TEXT APPEARS ONCE PER DOCUMENT: every mandated parenthetical or definitional clause from these rules — the dimension guidance for non-generic purposes, the service-provider/contractor definition, the minimum-necessary clause, the exception-citation summary note — appears exactly ONCE in the output, in the single most relevant field. Every other field that needs it carries a short cross-reference ('see priority_actions[1]' / '(see § 1798.140(ag)/(j) definitions above)') and never restates the text verbatim. Restating an identical definitional clause in two or more fields is a defect, and the exception-citation note is a single summary-level note, never repeated per exception_analysis entry.",
     "EMPTY INTAKE FIELDS ARE GAPS, NOT GENERATOR-SEVERITY FINDINGS: where a required element is absent because the corresponding intake field arrived empty (e.g. consumer_categories as an empty array), frame it as an intake documentation gap ('Consumer categories were not provided in the intake and must be documented to complete the § 7152(a)(1) processing summary'), severity proportionate to a fill-in — not as a High-severity omission. High severity is reserved for elements the record contains but the processing posture leaves exposed.",
@@ -818,26 +818,53 @@ async function runPipeline(assessment_id: string) {
     }
 
 
-    // DETERMINISTIC § 7157 DEADLINE NORMALISATION: the model has twice produced a
-    // specific "2028-01-01" deadline for the § 7157 annual attestation despite an
-    // explicit prompt rule against it (deadline_basis correctly says the exact
-    // date within 2028 is unconfirmed). Rather than a third prompt-only attempt,
-    // correct it deterministically: any priority_action referencing § 7157 with a
-    // deadline matching a specific 2028 ISO date gets rewritten to the bracketed
-    // placeholder form, regardless of what the model produced.
-    if (parsed && Array.isArray(parsed.priority_actions)) {
-      const SEVEN_157_PATTERN = /§\s*7157|section\s*7157/i;
-      const SPECIFIC_2028_DATE = /^2028-\d{2}-\d{2}$/;
-      for (const action of parsed.priority_actions) {
-        const referencesSeven157 =
-          SEVEN_157_PATTERN.test(String(action?.action ?? "")) ||
-          SEVEN_157_PATTERN.test(String(action?.statutory_basis ?? "")) ||
-          SEVEN_157_PATTERN.test(String(action?.deadline_basis ?? ""));
-        if (referencesSeven157 && SPECIFIC_2028_DATE.test(String(action?.deadline ?? ""))) {
-          console.warn(`[cppa-risk] normalised § 7157 deadline from "${action.deadline}" to bracketed placeholder (deterministic backstop)`);
-          action.deadline = "[2028 — exact date to be confirmed per § 7157 and regulatory guidance]";
+    // DETERMINISTIC § 7157 DEADLINE NORMALISATION (Branch A — corpus-confirmed date):
+    // 11 CCR § 7157(a)(1) confirms that risk assessments conducted in 2026 and 2027
+    // must be submitted no later than April 1, 2028. Normalise any § 7157 action's
+    // deadline to that canonical value: rewrite bracketed "TBD" placeholders and any
+    // other specific 2028 ISO date to 2028-04-01, and ensure deadline_basis quotes
+    // § 7157(a)(1). Also rewrite any specific non-April-1 2028 calendar-date phrasing
+    // in the action text to the canonical date. Structurally non-fatal (same try/catch
+    // posture as other backstops).
+    try {
+      if (parsed && Array.isArray(parsed.priority_actions)) {
+        const SEVEN_157_PATTERN = /§\s*7157|section\s*7157|11\s*CCR\s*§?\s*7157/i;
+        const SPECIFIC_2028_DATE = /^2028-\d{2}-\d{2}$/;
+        const BRACKETED_2028 = /^\[?\s*2028[^\]]*\]?$/;
+        const CANONICAL = "2028-04-01";
+        const BASIS_QUOTE = "11 CCR § 7157(a)(1): for risk assessments conducted in 2026 and 2027, the business must submit to the Agency the information required by subsection (b) no later than April 1, 2028.";
+        for (const action of parsed.priority_actions) {
+          const referencesSeven157 =
+            SEVEN_157_PATTERN.test(String(action?.action ?? "")) ||
+            SEVEN_157_PATTERN.test(String(action?.statutory_basis ?? "")) ||
+            SEVEN_157_PATTERN.test(String(action?.deadline_basis ?? ""));
+          if (!referencesSeven157) continue;
+          const deadlineStr = String(action?.deadline ?? "");
+          const needsFix =
+            (SPECIFIC_2028_DATE.test(deadlineStr) && deadlineStr !== CANONICAL) ||
+            BRACKETED_2028.test(deadlineStr);
+          if (needsFix) {
+            console.warn(`[cppa-risk] normalised § 7157 deadline from "${action.deadline}" to ${CANONICAL} (deterministic backstop, Branch A)`);
+            action.deadline = CANONICAL;
+            const existingBasis = String(action?.deadline_basis ?? "").trim();
+            action.deadline_basis = existingBasis && !existingBasis.includes("7157(a)(1)")
+              ? `${BASIS_QUOTE} ${existingBasis}`
+              : BASIS_QUOTE;
+          }
+          // Rewrite any specific non-April-1 2028 calendar date in the action text.
+          const actionText = String(action?.action ?? "");
+          const badDatePattern = /\b(January|February|March|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+2028\b/gi;
+          if (badDatePattern.test(actionText)) {
+            const fixed = actionText.replace(badDatePattern, "April 1, 2028");
+            if (fixed !== actionText) {
+              console.warn(`[cppa-risk] rewrote non-canonical 2028 date in § 7157 action text to April 1, 2028`);
+              action.action = fixed;
+            }
+          }
         }
       }
+    } catch (e) {
+      console.warn("[cppa-risk] § 7157 deadline backstop error:", e);
     }
 
     let report_data: any = {
@@ -878,37 +905,84 @@ async function runPipeline(assessment_id: string) {
     }
     report_data = dedupeExceptionFlags(report_data);
 
-    // QB12-4(a): the exception-citation summary note appears once. Where the same
-    // sentence recurs in later exception_analysis entries' statutory_basis (or any
-    // per-entry field), keep the FIRST occurrence and replace subsequent ones with
-    // a short cross-reference. Same try/catch discipline as QB11-5(b).
+    // QB12-4(a) v2: collapse duplicate exception-citation summary notes anywhere in
+    // the document (not just inside exception_analysis). A note is any string that
+    // contains both "1798.145" and "under which" (normalised whitespace); the FIRST
+    // occurrence is kept, subsequent occurrences are replaced with a cross-reference.
+    // Structurally non-fatal: try/catch cannot change status or metering.
     function dedupeExceptionCitationNote(report: any): any {
       try {
-        const arr = report?.exception_analysis;
-        if (!Array.isArray(arr)) return report;
-        const marker = "the assessment record must cite the specific statutory or regulatory exception provision";
         let seen = false;
         let replaced = 0;
-        for (const ex of arr) {
-          if (!ex || typeof ex !== "object") continue;
-          for (const key of Object.keys(ex)) {
-            const val = (ex as any)[key];
-            if (typeof val !== "string") continue;
-            const lower = val.toLowerCase();
-            const idx = lower.indexOf(marker);
-            if (idx === -1) continue;
-            if (!seen) { seen = true; continue; }
-            (ex as any)[key] = "See the exception-citation note above.";
-            replaced += 1;
+        const XREF = "(see the exception-citation note above)";
+        const isNote = (s: string) => {
+          const n = s.replace(/\s+/g, " ").toLowerCase();
+          return n.includes("1798.145") && n.includes("under which");
+        };
+        const walk = (node: any) => {
+          if (!node) return;
+          if (Array.isArray(node)) { for (const v of node) walk(v); return; }
+          if (typeof node !== "object") return;
+          for (const key of Object.keys(node)) {
+            const val = node[key];
+            if (typeof val === "string") {
+              if (isNote(val)) {
+                if (!seen) { seen = true; continue; }
+                node[key] = XREF;
+                replaced += 1;
+              }
+            } else {
+              walk(val);
+            }
           }
-        }
-        if (replaced > 0) console.warn("[RISK] QB12-4(a): deduplicated exception-citation summary note");
+        };
+        walk(report);
+        if (replaced > 0) console.warn(`[RISK] QB12-4(a) v2: collapsed ${replaced} duplicate exception-citation note(s)`);
       } catch (e) {
-        console.error("[RISK] QB12-4(a) dedupe errored:", e);
+        console.error("[RISK] QB12-4(a) v2 dedupe errored:", e);
       }
       return report;
     }
     report_data = dedupeExceptionCitationNote(report_data);
+
+    // QB12-4(b): [TO COMPLETE ...] placeholders are fill-in slots, never essays.
+    // Truncate any placeholder that exceeds 200 chars OR contains the exception-
+    // citation note. Preserves the leading bracket clause; discards trailing prose.
+    // Structurally non-fatal (try/catch cannot change status or metering).
+    function truncateToCompletePlaceholders(report: any): any {
+      try {
+        let truncated = 0;
+        const PLACEHOLDER = /\[\s*TO\s+COMPLETE[^\]]*\]/i;
+        const containsNote = (s: string) => {
+          const n = s.replace(/\s+/g, " ").toLowerCase();
+          return n.includes("1798.145") && n.includes("under which");
+        };
+        const walk = (node: any) => {
+          if (!node) return;
+          if (Array.isArray(node)) { for (const v of node) walk(v); return; }
+          if (typeof node !== "object") return;
+          for (const key of Object.keys(node)) {
+            const val = node[key];
+            if (typeof val === "string") {
+              const m = val.match(PLACEHOLDER);
+              if (m && (val.length > 200 || containsNote(val))) {
+                node[key] = m[0];
+                truncated += 1;
+              }
+            } else {
+              walk(val);
+            }
+          }
+        };
+        walk(report);
+        if (truncated > 0) console.warn(`[RISK] QB12-4(b): truncated ${truncated} oversized/leaky [TO COMPLETE] placeholder(s)`);
+      } catch (e) {
+        console.error("[RISK] QB12-4(b) placeholder truncation errored:", e);
+      }
+      return report;
+    }
+    report_data = truncateToCompletePlaceholders(report_data);
+
 
     // QB13-3(a): strip instruction-voice "Begin now:" from every report field EXCEPT
     // entries of priority_actions (where the imperative belongs). Same try/catch discipline
