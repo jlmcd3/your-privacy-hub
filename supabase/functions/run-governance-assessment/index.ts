@@ -975,6 +975,13 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     applyTimelineForm(reportData);
     hoistNestedInformationNeeded(reportData);
 
+    // Doc Y: post-generation transfer-language gate (non-EU/UK runs) + Cal.
+    // Civ. Code citation-existence validator. Non-fatal; console.warn only.
+    applyDocYPostGeneration(
+      reportData,
+      ((assessment as any).intake_data as Record<string, unknown>) ?? intake ?? {},
+    );
+
 
 
     const dpiaScope = synthesis.dpia_scope || [];
