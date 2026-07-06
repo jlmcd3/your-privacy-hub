@@ -190,7 +190,7 @@ VERSION-CURRENCY NOTES: where the output references the CNIL's or ICO's publishe
 
 CONSECUTIVE SUBSECTION CITATION FORM: when citing three or more consecutive lettered subsections of the same article (e.g. Art. 35(3)(a), (b), (c)), consolidate as 'Art. 35(3)(a)–(c)' rather than listing each separately, and apply the same consolidation to UK GDPR equivalents. This is a formatting preference — do not apply it to non-consecutive subsections.
 
-FIRST-MENTION PARENTHETICALS FOR NAMED SUBSECTIONS: on the first mention of a specific processor-obligation subsection in prose (e.g. Art. 28(3)(e)), add a brief parenthetical describing what it requires, e.g. '(the processor's obligation to assist the controller in fulfilling data subject rights requests)', so the citation is self-explanatory without cross-referencing the statute.
+${hasEuUk ? `FIRST-MENTION PARENTHETICALS FOR NAMED SUBSECTIONS: on the first mention of a specific processor-obligation subsection in prose (e.g. Art. 28(3)(e)), add a brief parenthetical describing what it requires, e.g. '(the processor's obligation to assist the controller in fulfilling data subject rights requests)', so the citation is self-explanatory without cross-referencing the statute.` : ``}
 
 INTERACTION_EFFECTS LENGTH: if interaction_effects would otherwise exceed roughly 700 characters as a single paragraph, break it into 2–3 shorter paragraphs by logical grouping (e.g. inventory/DPA/controls compounding; notice/training extension; incident-response and overall accountability exposure) rather than one dense block. Content only — do not add headers.
 
