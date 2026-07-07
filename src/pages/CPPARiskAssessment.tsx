@@ -1033,6 +1033,7 @@ export default function CPPARiskAssessment() {
                       </InfoPopover>
                     </div>
                     <Textarea rows={2} value={i5AdmtHumanReview} onChange={(e) => setI5AdmtHumanReview(e.target.value)} placeholder="Human review process for outputs *" />
+                    {renderAssertion("i5_admt_human_review")}
                   </div>
                   <FscrCallout citation="11 CCR § 7152(a)(3)(G)" callouts={fscrCallouts} />
                 </div>
