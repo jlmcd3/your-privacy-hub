@@ -43,6 +43,7 @@ import {
   IMPROVEMENT_KIT_DESIGNATED_FIELDS,
   type AssertionMap,
 } from "@/config/improvementKit";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { AssertionLevel } from "@/components/cppa/AssertionLevel";
 import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
