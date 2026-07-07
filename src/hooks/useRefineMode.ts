@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useRunMeter } from "./useRunMeter";
+import { deriveResolveFields, type ResolveFieldMap } from "@/lib/rerunHighlighting";
 
 // Maps a tool_type to the result table where its intake lives.
 export const TABLE_MAP: Record<string, string> = {
@@ -56,6 +57,11 @@ export interface RefineMode {
   loading: boolean;
   infoNeeded: InfoNeededEntry[];
   infoNeededKeys: string[];
+  // Doc Q: fields referenced by inconsistency_flags[].source_fields or
+  // information_needed[].field on the prior report. Strengthen items are
+  // NEVER included (P3/D5 binding). Consumers must additionally gate
+  // rendering on IMPROVEMENT_KIT_ENABLED && isPro.
+  resolveFields: ResolveFieldMap;
 }
 
 export function useRefineMode(toolType: string): RefineMode {
@@ -63,6 +69,7 @@ export function useRefineMode(toolType: string): RefineMode {
   const assessmentId = params.get("refine") || undefined;
   const [intake, setIntake] = useState<Record<string, unknown> | null>(null);
   const [infoNeeded, setInfoNeeded] = useState<InfoNeededEntry[]>([]);
+  const [resolveFields, setResolveFields] = useState<ResolveFieldMap>({ fields: {}, fieldOrder: [], count: 0 });
   const [loading, setLoading] = useState(!!assessmentId);
   const { meter } = useRunMeter(toolType, assessmentId);
 
@@ -95,6 +102,9 @@ export function useRefineMode(toolType: string): RefineMode {
       const rd = (data as any)?.report_data;
       const arr = Array.isArray(rd?.information_needed) ? rd.information_needed : [];
       setInfoNeeded(arr as InfoNeededEntry[]);
+      // Doc Q: derive RESOLVE-field map from the prior report_data.
+      // strengthen_items is intentionally never inspected here.
+      setResolveFields(deriveResolveFields(rd));
       setLoading(false);
     })();
   }, [assessmentId, toolType]);
@@ -110,5 +120,6 @@ export function useRefineMode(toolType: string): RefineMode {
     loading,
     infoNeeded,
     infoNeededKeys: infoNeeded.map((e) => (e as any).field).filter(Boolean),
+    resolveFields,
   };
 }

@@ -43,6 +43,7 @@ import {
   IMPROVEMENT_KIT_DESIGNATED_FIELDS,
   type AssertionMap,
 } from "@/config/improvementKit";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { AssertionLevel } from "@/components/cppa/AssertionLevel";
 import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
@@ -237,6 +238,10 @@ export default function CPPARiskAssessment() {
 
   const [step, setStep] = useState(1);
   const refine = useRefineMode("cppa_risk_assessment");
+  const { isPro } = useSubscriptionTier();
+  // Doc Q: highlighting is gated on both the Kit flag AND the Pro check.
+  // Intelligence / non-Pro re-runs render the intake exactly as today.
+  const resolveHighlightingEnabled = IMPROVEMENT_KIT_ENABLED && isPro;
   const { meter } = useRunMeter("cppa_risk_assessment", refine.assessmentId);
   const topRef = useRef<HTMLDivElement>(null);
   useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [step]);
@@ -658,6 +663,8 @@ export default function CPPARiskAssessment() {
             runsRemaining={refine.runsRemaining}
             resultPath={`/cppa-risk-assessment/result/${refine.assessmentId}`}
             infoNeededKeys={refine.infoNeededKeys}
+            resolveFields={refine.resolveFields}
+            resolveHighlightingEnabled={resolveHighlightingEnabled}
           />
         )}
         {!refine.isRefine && (<></>)}

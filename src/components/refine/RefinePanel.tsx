@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRegenerate } from "@/hooks/useRegenerate";
 import { startMeterExtension } from "@/lib/meterExtension";
+import type { ResolveFieldMap } from "@/lib/rerunHighlighting";
 
 export interface EditableFieldSpec {
   key: string;
@@ -24,6 +25,13 @@ interface Props {
   runsRemaining: number;
   resultPath: string; // where to navigate after acceptance, e.g. "/li-assessment-result/:id"
   infoNeededKeys?: string[]; // fields the report named as needed for a fuller determination
+  // Doc Q: fields referenced by inconsistency_flags[].source_fields or
+  // information_needed[].field on the prior report. Rendered ONLY when
+  // resolveHighlightingEnabled === true (caller gates on
+  // IMPROVEMENT_KIT_ENABLED && isPro). Strengthen fields NEVER appear
+  // here by construction (P3/D5).
+  resolveFields?: ResolveFieldMap;
+  resolveHighlightingEnabled?: boolean;
 }
 
 
@@ -37,8 +45,14 @@ function renderLockedValue(v: unknown): string {
 export default function RefinePanel({
   toolType, assessmentId, intake, lockedFields, editable,
   runsUsed, runsAllowed, runsRemaining, resultPath, infoNeededKeys,
+  resolveFields, resolveHighlightingEnabled,
 }: Props) {
   const infoSet = new Set(infoNeededKeys ?? []);
+  // Doc Q: active RESOLVE map, empty when disabled. Local cleared-set
+  // hides the highlight/chip visually on edit -- never mutates data.
+  const activeResolve = resolveHighlightingEnabled && resolveFields ? resolveFields : { fields: {}, fieldOrder: [], count: 0 };
+  const [clearedResolve, setClearedResolve] = useState<Set<string>>(new Set());
+  const firstResolveRef = useRef<HTMLDivElement | null>(null);
 
   const nav = useNavigate();
   const { toast } = useToast();
@@ -61,6 +75,24 @@ export default function RefinePanel({
 
   const lockedKeys = Object.keys(lockedFields ?? {});
   const exhausted = runsRemaining <= 0;
+
+  // Visible RESOLVE fields = derived map minus cleared minus fields the
+  // editable list does not surface (only editable fields can highlight).
+  const editableKeys = useMemo(() => new Set(editable.map((f) => f.key)), [editable]);
+  const visibleResolveOrder = useMemo(
+    () => activeResolve.fieldOrder.filter((k) => editableKeys.has(k) && !clearedResolve.has(k)),
+    [activeResolve, editableKeys, clearedResolve],
+  );
+  const visibleResolveCount = visibleResolveOrder.length;
+
+  // Scroll to the first highlighted field on mount / first render with data.
+  useEffect(() => {
+    if (visibleResolveCount > 0 && firstResolveRef.current) {
+      firstResolveRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    // Intentionally scroll only when the visible order first becomes non-empty.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeResolve.count]);
 
   async function onRegenerate() {
     // Strip any locked keys defensively; coerce values back to their original
@@ -127,6 +159,15 @@ export default function RefinePanel({
         </p>
       </header>
 
+      {visibleResolveCount > 0 && (
+        <div
+          data-testid="rerun-highlight-banner"
+          className="rounded-md border border-blue-400/60 bg-blue-50 text-blue-900 dark:bg-blue-950/40 dark:text-blue-100 px-4 py-3 text-sm"
+        >
+          {visibleResolveCount} {visibleResolveCount === 1 ? "field relates" : "fields relate"} to open items from your last run.
+        </div>
+      )}
+
       {lockedKeys.length > 0 && (
         <div>
           <div className="text-eyebrow text-brand-mist mb-2">Locked from run 1</div>
@@ -148,11 +189,39 @@ export default function RefinePanel({
 
       {editable.length > 0 && (
         <div className="space-y-5">
-          {editable.map((f) => (
-            <div key={f.key}>
-              <label htmlFor={`ref-${f.key}`} className="text-sm font-semibold text-brand-navy inline-flex items-center gap-2">
+          {editable.map((f) => {
+            const resolveItems = activeResolve.fields[f.key];
+            const isResolveHighlighted =
+              !!resolveItems && resolveItems.length > 0 && !clearedResolve.has(f.key);
+            const isFirstResolve =
+              isResolveHighlighted && visibleResolveOrder[0] === f.key;
+            const clearResolveOnEdit = () => {
+              if (!isResolveHighlighted) return;
+              setClearedResolve((prev) => {
+                if (prev.has(f.key)) return prev;
+                const next = new Set(prev);
+                next.add(f.key);
+                return next;
+              });
+            };
+            return (
+            <div
+              key={f.key}
+              ref={isFirstResolve ? firstResolveRef : undefined}
+              data-resolve-highlighted={isResolveHighlighted ? "true" : undefined}
+              className={isResolveHighlighted ? "rounded-md ring-2 ring-blue-400/70 bg-blue-50/40 dark:bg-blue-950/20 p-3 -m-1" : undefined}
+            >
+              <label htmlFor={`ref-${f.key}`} className="text-sm font-semibold text-brand-navy inline-flex items-center gap-2 flex-wrap">
                 {f.label}
-                {infoSet.has(f.key) && (
+                {isResolveHighlighted && (
+                  <span
+                    data-testid={`rerun-highlight-chip-${f.key}`}
+                    className="text-body-tiny font-semibold text-blue-900 bg-blue-100 border border-blue-300 rounded px-1.5 py-0.5"
+                  >
+                    From your open items ({resolveItems!.join(", ")})
+                  </span>
+                )}
+                {infoSet.has(f.key) && !isResolveHighlighted && (
                   <span className="text-body-tiny font-semibold text-teal-action bg-teal-wash rounded px-1.5 py-0.5">
                     named in your report
                   </span>
@@ -163,7 +232,7 @@ export default function RefinePanel({
                 <textarea
                   id={`ref-${f.key}`}
                   value={(values[f.key] as string) ?? ""}
-                  onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  onChange={(e) => { clearResolveOnEdit(); setValues((v) => ({ ...v, [f.key]: e.target.value })); }}
                   placeholder={f.placeholder}
                   className="mt-2 min-h-24 w-full rounded-md border border-brand-cloud bg-background text-sm p-3"
                 />
@@ -172,14 +241,15 @@ export default function RefinePanel({
                   id={`ref-${f.key}`}
                   type="text"
                   value={(values[f.key] as string) ?? ""}
-                  onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  onChange={(e) => { clearResolveOnEdit(); setValues((v) => ({ ...v, [f.key]: e.target.value })); }}
                   placeholder={f.placeholder}
                   className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm"
                 />
               )}
               {f.help && <p className="text-meta text-muted-foreground mt-1">{f.help}</p>}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
