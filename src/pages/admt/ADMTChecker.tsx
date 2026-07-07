@@ -21,6 +21,8 @@ import IntakeMasthead from "@/components/intake/IntakeMasthead";
 import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { ExhibitTextarea, isExhibit } from "@/components/ExhibitTextarea";
+import { AssistedInput } from "@/components/AssistedInput";
+import { ASSISTED_INPUT_REGISTRY } from "@/config/assistedInput";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
@@ -706,7 +708,15 @@ export default function ADMTChecker() {
                       </div>
                       <div>
                         <Label className="text-[12px]">Vendor training-data / model-improvement rights &amp; sub-processors</Label>
-                        <ExhibitTextarea className="mt-1" rows={2} value={adv.vendor_training_rights || ""} onChange={(v) => setA("vendor_training_rights", v)} placeholder="e.g. Vendor may use de-identified inputs to improve its model; sub-processors: AWS (hosting), Acme Labelling Co." />
+                        <AssistedInput
+                          className="mt-1"
+                          rows={2}
+                          useExhibit
+                          value={adv.vendor_training_rights || ""}
+                          onChange={(v) => setA("vendor_training_rights", v)}
+                          pills={ASSISTED_INPUT_REGISTRY.admt_vendor_training_rights.pills}
+                          placeholder="e.g. Vendor may use de-identified inputs to improve its model; sub-processors: AWS (hosting), Acme Labelling Co."
+                        />
                       </div>
                     </div>
                   )}
@@ -1118,12 +1128,12 @@ export default function ADMTChecker() {
                         This exception only applies if the ADMT 'works for the business's purpose and does not unlawfully discriminate based upon protected characteristics' (§ 7221(b)(2)(B), (b)(3)(B)). You must have documented evidence.
                       </p>
                       <Label className="text-[12px]">Describe your fairness and non-discrimination testing <Req /></Label>
-                      <Textarea
+                      <AssistedInput
                         className="mt-2"
                         rows={3}
                         value={optOutFairnessDoc}
-                        onChange={(e) => setOptOutFairnessDoc(e.target.value)}
-                        onFocus={() => focus("optout_exception_hiring")}
+                        onChange={setOptOutFairnessDoc}
+                        pills={ASSISTED_INPUT_REGISTRY.opt_out_fairness_doc.pills}
                         placeholder="e.g. Annual disparate-impact analysis across protected classes conducted by [firm]; results documented in [document]; last conducted [date]"
                       />
                       <div className="mt-4 space-y-3 border-t pt-3">
@@ -1284,12 +1294,12 @@ export default function ADMTChecker() {
                     <p className="text-xs text-muted-foreground mt-1">
                       You may use existing right-to-know methods (§ 7222(d)). Methods must be easy to use and must not use dark patterns.
                     </p>
-                    <Textarea
+                    <AssistedInput
                       className="mt-2"
                       rows={2}
                       value={accessSubmissionMethods}
-                      onChange={(e) => setAccessSubmissionMethods(e.target.value)}
-                      onFocus={() => focus("access_logic_disclosure")}
+                      onChange={setAccessSubmissionMethods}
+                      pills={ASSISTED_INPUT_REGISTRY.access_submission_methods.pills}
                       placeholder="e.g. Online form at [URL]; designated email privacy@company.com; same methods as right-to-know requests"
                     />
                   </div>
@@ -1301,12 +1311,12 @@ export default function ADMTChecker() {
                     <p className="text-xs text-muted-foreground mt-1">
                       Access requests require verification under Article 5. If you cannot verify identity, you must tell the consumer — you cannot silently deny.
                     </p>
-                    <Textarea
+                    <AssistedInput
                       className="mt-2"
                       rows={2}
                       value={accessVerificationProcess}
-                      onChange={(e) => setAccessVerificationProcess(e.target.value)}
-                      onFocus={() => focus("access_verification")}
+                      onChange={setAccessVerificationProcess}
+                      pills={ASSISTED_INPUT_REGISTRY.access_verification_process.pills}
                       placeholder="e.g. Two-factor verification via email + account login; third-party identity verification service for non-account holders"
                     />
                   </div>
