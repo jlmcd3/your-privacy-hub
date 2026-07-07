@@ -289,6 +289,17 @@ export default function CPPASuiteResult() {
               />
             </>
           )}
+          {kitAvailable && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleDownloadKit}
+              disabled={kitLoading}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold"
+            >
+              {kitLoading ? "Preparing..." : "Assessment Improvement Kit"}
+            </Button>
+          )}
           <Button asChild variant="outline"><Link to="/dashboard/reports">Back to My Reports</Link></Button>
           <Button asChild variant="ghost"><Link to="/account/cppa-runs">View all CPPA runs</Link></Button>
         </div>
