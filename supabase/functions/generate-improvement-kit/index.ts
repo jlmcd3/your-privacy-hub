@@ -209,7 +209,7 @@ async function isProfessional(userId: string): Promise<boolean> {
 async function enforcementLineForItem(
   admin: ReturnType<typeof createClient>,
   topic: string,
-): Promise<string | null> {
+): Promise<{ line: string; citation: string } | null> {
   try {
     const { data, error } = await admin.functions.invoke(
       "get-enforcement-context",
@@ -242,7 +242,17 @@ async function enforcementLineForItem(
         r.key_compliance_failure ?? r.violation ?? "posture noted",
       );
       const date = r.decision_date ? ` (${String(r.decision_date)})` : "";
-      return `${regulator}${subject}: ${failure}${date} [${cite.trim()}]`;
+      const citation = cite.trim();
+      const line = `${regulator}${subject}: ${failure}${date} [${citation}]`;
+      // R3: "gap" is absolute. If the verbatim quoted content contains
+      // "gap", treat this item as uncited -- omit and log; do NOT 500.
+      if (containsAbsoluteBanned(line)) {
+        console.warn(
+          `[improvement-kit] R3 omit: cited enforcement quote contains absolute banned term ("gap"); item treated as uncited. citation=${citation}`,
+        );
+        return null;
+      }
+      return { line, citation };
     }
     return null;
   } catch (e) {
