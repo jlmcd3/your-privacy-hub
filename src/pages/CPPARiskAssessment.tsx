@@ -886,6 +886,7 @@ export default function CPPARiskAssessment() {
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-1b: What is the minimum personal information necessary to achieve this purpose? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="I-1b · Minimum PI necessary" summary="The assessment must identify the minimum personal information necessary to achieve the purpose, reflecting the CCPA's data-minimisation principle." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Name the specific data elements you actually need for the purpose above, and note any you collect today that are <span className="font-medium">not</span> strictly necessary. If a less-identifying alternative (de-identified, aggregated, or shorter-retained data) could achieve the same purpose, say so — § 7152(a)(2) requires this minimisation analysis.</p>
                 <ExhibitTextarea className="mt-2" rows={3} value={i1bMinPi} onChange={setI1bMinPi} placeholder='E.g. "Purpose needs account ID + 12-month purchase history only. Precise geolocation and device fingerprint are collected but not required for recommendations; candidates for minimisation."' />
+                {renderAssertion("i1b_min_pi")}
               </div>
 
               <div onFocus={() => focusRail('i2_retention')}>
@@ -896,6 +897,7 @@ export default function CPPARiskAssessment() {
                   onChange={(e) => setI2RetentionPeriod(e.target.value)}
                   placeholder="E.g. 24 months from collection; 7 years after relationship ends"
                 />
+                {renderAssertion("i2_retention_period")}
                 <select
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                   value={i2RetentionCriteria}
@@ -904,6 +906,7 @@ export default function CPPARiskAssessment() {
                   <option value="">Retention criteria…</option>
                   {RETENTION_CRITERIA.map((c) => <option key={c}>{c}</option>)}
                 </select>
+                {renderAssertion("i2_retention_criteria")}
                 <Textarea
                   className="mt-2"
                   rows={2}
@@ -911,6 +914,7 @@ export default function CPPARiskAssessment() {
                   onChange={(e) => setI2RetentionDetail(e.target.value)}
                   placeholder="Optional: cite the statutory/regulatory basis or describe 'Other criteria'."
                 />
+                {renderAssertion("i2_retention_detail")}
               </div>
 
               {/* === CCPA business purposes / statutory exemptions (optional) — moved to follow retention === */}
