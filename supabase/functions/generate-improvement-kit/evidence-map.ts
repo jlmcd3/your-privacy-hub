@@ -3,10 +3,13 @@
 // Versioned, ASCII-only map from the 19 P4-designated CPPA Risk intake field
 // ids to { where_it_lives, sufficient_form }. Strings are taken VERBATIM from
 // the P4 designation record (John, 2026-07-06). Any field id not present in
-// the map falls back to a generic team-records line rather than failing.
+// the map falls back to a generic team-records line rather than failing
+// (Doc F posture); the fallback path emits a console.warn naming the
+// unmapped field id so upstream defects (an id outside the Doc O closed
+// vocabulary reaching the Kit) are observable.
 //
-// Set-equality with IMPROVEMENT_KIT_DESIGNATED_FIELDS is verified in the
-// smoke test; see src/test/improvementKit.smoke.test.tsx.
+// Set-equality with IMPROVEMENT_KIT_DESIGNATED_FIELDS is asserted in
+// src/test/improvementKit.smoke.test.tsx ("EVIDENCE_MAP key set equality").
 
 export const EVIDENCE_MAP_VERSION = "p4-2026-07-06";
 
