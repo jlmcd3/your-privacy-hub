@@ -1108,7 +1108,15 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         })),
         ...lintViolations,
       ]),
-      disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
+      disclaimer: (() => {
+        const _juris = (intake?.jurisdictions || []) as string[];
+        const _hasEuUk = intake?.eu_uk_data === true
+          || String(intake?.eu_uk_data || "").toLowerCase() === "yes"
+          || _juris.some((j: string) => ["EU", "GB", "UK"].includes(String(j).toUpperCase()));
+        return _hasEuUk
+          ? "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel."
+          : "This report helps your organisation identify potential privacy governance gaps under the applicable US state privacy laws. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.";
+      })(),
     };
 
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
