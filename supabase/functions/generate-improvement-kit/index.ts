@@ -389,13 +389,15 @@ Deno.serve(async (req) => {
           (s.description as string | undefined) ??
           fieldId,
       );
-      const enforcementLine = await enforcementLineForItem(admin, topic);
+      const enforcement = await enforcementLineForItem(admin, topic);
       sectionB.push({
         item_id: String(s.id ?? `strengthen-${sectionB.length + 1}`),
         citing_regulation: String(s.citation ?? "11 CCR § 7152"),
         recorded_basis: basis,
         template_or_policy: ev.sufficient_form,
-        enforcement_line: enforcementLine,
+        enforcement_line: enforcement ? enforcement.line : null,
+        enforcement_quote: enforcement ? enforcement.line : null,
+        enforcement_citation: enforcement ? enforcement.citation : null,
       });
     }
 
