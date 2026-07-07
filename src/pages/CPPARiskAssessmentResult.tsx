@@ -663,6 +663,17 @@ export default function CPPARiskAssessmentResult() {
                 return null;
               })()}
 
+              {kitAvailable && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleDownloadKit}
+                  disabled={kitLoading}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold"
+                >
+                  {kitLoading ? "Preparing..." : "Assessment Improvement Kit"}
+                </Button>
+              )}
               <Button asChild variant="outline"><Link to="/cppa-risk-assessment">Run New Assessment</Link></Button>
               <Button asChild><Link to="/dashboard/reports">Back to My Reports</Link></Button>
             </div>
