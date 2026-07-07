@@ -116,6 +116,11 @@ interface KitItemB {
   recorded_basis: string;
   template_or_policy: string;
   enforcement_line: string | null;
+  // The full cited-enforcement quoted span (same string as enforcement_line
+  // when rendered). Used by the R2 structural masking; kept separate so the
+  // self-check can identify exactly what to mask before running R1.
+  enforcement_quote: string | null;
+  enforcement_citation: string | null;
 }
 
 function renderSectionA(items: KitItemA[]): string {
