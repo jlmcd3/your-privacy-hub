@@ -8,7 +8,14 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon, ArrowRight, ShieldCheck } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
-import { PRICING } from "@/config/pricing";
+import {
+  PRICING,
+  INTELLIGENCE_ANNUAL_FREE_RUN_VALUE_DISPLAY,
+  PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY,
+  SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY,
+  SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY,
+  CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY,
+} from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
 import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
