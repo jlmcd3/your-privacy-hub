@@ -1021,8 +1021,14 @@ export default function CPPARiskAssessment() {
                         </div>
                       </InfoPopover>
                     </div>
-                    <Textarea rows={2} value={i5AdmtTrainingSource} onChange={(e) => setI5AdmtTrainingSource(e.target.value)} placeholder="Training-data source(s)" />
-                    {renderAssertion("i5_admt_training_source")}
+                    <AssistedInput
+                      value={i5AdmtTrainingSource}
+                      onChange={setI5AdmtTrainingSource}
+                      pills={ASSISTED_INPUT_REGISTRY.i5_admt_training_source.pills}
+                      rows={2}
+                      placeholder="Training-data source(s)"
+                      assertionSlot={renderAssertion("i5_admt_training_source")}
+                    />
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -1034,8 +1040,14 @@ export default function CPPARiskAssessment() {
                         </div>
                       </InfoPopover>
                     </div>
-                    <Textarea rows={2} value={i5AdmtFairnessTesting} onChange={(e) => setI5AdmtFairnessTesting(e.target.value)} placeholder="Fairness / bias testing approach" />
-                    {renderAssertion("i5_admt_fairness_testing")}
+                    <AssistedInput
+                      value={i5AdmtFairnessTesting}
+                      onChange={setI5AdmtFairnessTesting}
+                      pills={ASSISTED_INPUT_REGISTRY.i5_admt_fairness_testing.pills}
+                      rows={2}
+                      placeholder="Fairness / bias testing approach"
+                      assertionSlot={renderAssertion("i5_admt_fairness_testing")}
+                    />
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -1047,8 +1059,14 @@ export default function CPPARiskAssessment() {
                         </div>
                       </InfoPopover>
                     </div>
-                    <Textarea rows={2} value={i5AdmtHumanReview} onChange={(e) => setI5AdmtHumanReview(e.target.value)} placeholder="Human review process for outputs *" />
-                    {renderAssertion("i5_admt_human_review")}
+                    <AssistedInput
+                      value={i5AdmtHumanReview}
+                      onChange={setI5AdmtHumanReview}
+                      pills={ASSISTED_INPUT_REGISTRY.i5_admt_human_review.pills}
+                      rows={2}
+                      placeholder="Human review process for outputs *"
+                      assertionSlot={renderAssertion("i5_admt_human_review")}
+                    />
                   </div>
                   <FscrCallout citation="11 CCR § 7152(a)(3)(G)" callouts={fscrCallouts} />
                 </div>
