@@ -1,7 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
-// doc-y-3b build marker
-const DOC_Y_BUILD_MARKER = "doc-y-3b";
+// doc-y-3c build marker
+const DOC_Y_BUILD_MARKER = "doc-y-3c";
 console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -682,7 +682,9 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     enforcement_meta: { attempted: false, skipped: "stress_run" },
     annotations: [],
     lint_warnings: [],
-    disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
+    disclaimer: hasEuUk
+      ? "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel."
+      : "This report helps your organisation identify potential privacy governance gaps under the applicable US state privacy laws. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
   };
   applyTimelineForm(report);
   return report;
@@ -1106,7 +1108,15 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         })),
         ...lintViolations,
       ]),
-      disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
+      disclaimer: (() => {
+        const _juris = (intake?.jurisdictions || []) as string[];
+        const _hasEuUk = intake?.eu_uk_data === true
+          || String(intake?.eu_uk_data || "").toLowerCase() === "yes"
+          || _juris.some((j: string) => ["EU", "GB", "UK"].includes(String(j).toUpperCase()));
+        return _hasEuUk
+          ? "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel."
+          : "This report helps your organisation identify potential privacy governance gaps under the applicable US state privacy laws. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.";
+      })(),
     };
 
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
