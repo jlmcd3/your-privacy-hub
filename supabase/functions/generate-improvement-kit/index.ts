@@ -12,15 +12,31 @@
 //
 // Provenance:
 //   - Section W templates: EUP_DocP_Kit_Phase1_Function_Entitlement_Lovable_v2.md
-//     (signed off John 2026-07-06; W3 amended "open items" wording; the
-//     bright-lines banned-word list has ZERO exceptions -- "gap" is fully
-//     banned in user-facing Kit strings).
+//     (signed off John 2026-07-06; W3 amended "open items" wording).
 //   - Entitlement (pin P2): Professional monthly AND annual only.
 //     Intelligence subscribers and standalone purchasers are NOT entitled.
 //   - Enforcement context (W6): cited-or-absent; fail-open with
 //     console.warn (Doc F posture).
 //   - QL2 exposure: zero by design (spec rule R4). run-stress-job never
 //     invokes this function.
+//
+// Bright-lines doctrine (5c HYBRID ruling, John 2026-07-07):
+//   R1. Bright-lines applies to KIT-AUTHORED text (skeleton, template,
+//       preamble, framing) with ZERO exceptions.
+//   R2. QUOTATION CARVE-OUT: within the verbatim quoted substring of a
+//       cited enforcement item (guaranteed by W6 cited-or-absent), all
+//       banned words EXCEPT "gap" are exempt. Masking is structural:
+//       only the quoted span is masked before the R1 check; kit-authored
+//       words around each quote remain fully checked. Each carve-out use
+//       is logged.
+//   R3. "gap" REMAINS ABSOLUTE (P5 zero-exception term): a cited quote
+//       containing "gap" causes that ITEM to be treated as uncited --
+//       omitted per-item, rest of Kit unaffected, omission logged. Never
+//       a 500 for this.
+//   R4. 500 fail-closed REMAINS for any R1 violation in kit-authored
+//       text -- that is a build defect, not data.
+//   R5. This comment IS the doctrine; keep it in sync with the code
+//       below (claim-vs-reality discipline).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
