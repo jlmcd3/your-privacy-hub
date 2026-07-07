@@ -11,6 +11,8 @@ import ActiveClientLabel from "@/components/ActiveClientLabel";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ExhibitTextarea } from "@/components/ExhibitTextarea";
+import { AssistedInput } from "@/components/AssistedInput";
+import { ASSISTED_INPUT_REGISTRY } from "@/config/assistedInput";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -629,7 +631,14 @@ const DPIAFramework = () => {
               </div>
               <div onFocus={() => handleTemplateRailFocus('1.3')}>
                 <Label>Means of processing, supporting assets &amp; architecture <span className="text-xs text-muted-foreground font-mono">(§ 1.3 — can be sent to an Exhibit annex)</span></Label>
-                <ExhibitTextarea value={supportingAssets} onChange={setSupportingAssets} placeholder="IT systems, infrastructure, applications and sub-processor systems that support the processing." className="mt-2 min-h-16" />
+                <AssistedInput
+                  className="mt-2"
+                  useExhibit
+                  value={supportingAssets}
+                  onChange={setSupportingAssets}
+                  pills={ASSISTED_INPUT_REGISTRY.supportingAssets.pills}
+                  placeholder="IT systems, infrastructure, applications and sub-processor systems that support the processing."
+                />
               </div>
               <div onFocus={() => handleTemplateRailFocus('1.4')}>
                 <Label>Approved codes of conduct / certifications <span className="text-xs text-muted-foreground font-mono">(§ 1.4)</span></Label>
@@ -647,15 +656,33 @@ const DPIAFramework = () => {
               </div>
               <div onFocus={() => handleTemplateRailFocus('2.2.b')}>
                 <Label>Data quality measures <span className="text-xs text-muted-foreground font-mono">(§ 2.2.b)</span></Label>
-                <Textarea value={dataQualityMeasures} onChange={(e) => setDataQualityMeasures(e.target.value)} placeholder="How you keep data accurate and up to date, and correct or erase inaccuracies (Art. 5(1)(d))." className="mt-2 min-h-16" />
+                <AssistedInput
+                  className="mt-2"
+                  value={dataQualityMeasures}
+                  onChange={setDataQualityMeasures}
+                  pills={ASSISTED_INPUT_REGISTRY.dataQualityMeasures.pills}
+                  placeholder="How you keep data accurate and up to date, and correct or erase inaccuracies (Art. 5(1)(d))."
+                />
               </div>
               <div onFocus={() => handleTemplateRailFocus('2.3.b')}>
                 <Label>Measures supporting data subjects' rights <span className="text-xs text-muted-foreground font-mono">(§ 2.3.b)</span></Label>
-                <Textarea value={dataSubjectRightsMechanisms} onChange={(e) => setDataSubjectRightsMechanisms(e.target.value)} placeholder="How data subjects exercise access, rectification, erasure, restriction, portability and objection — and how you handle those requests (Arts. 12–22)." className="mt-2 min-h-16" />
+                <AssistedInput
+                  className="mt-2"
+                  value={dataSubjectRightsMechanisms}
+                  onChange={setDataSubjectRightsMechanisms}
+                  pills={ASSISTED_INPUT_REGISTRY.dataSubjectRightsMechanisms.pills}
+                  placeholder="How data subjects exercise access, rectification, erasure, restriction, portability and objection — and how you handle those requests (Arts. 12–22)."
+                />
               </div>
               <div onFocus={() => handleTemplateRailFocus('2.3.d')}>
                 <Label>Data protection by design &amp; by default <span className="text-xs text-muted-foreground font-mono">(§ 2.3.d)</span></Label>
-                <Textarea value={dpByDesignMeasures} onChange={(e) => setDpByDesignMeasures(e.target.value)} placeholder="Measures built into the design — pseudonymisation, minimisation and access restriction by default (Art. 25)." className="mt-2 min-h-16" />
+                <AssistedInput
+                  className="mt-2"
+                  value={dpByDesignMeasures}
+                  onChange={setDpByDesignMeasures}
+                  pills={ASSISTED_INPUT_REGISTRY.dpByDesignMeasures.pills}
+                  placeholder="Measures built into the design — pseudonymisation, minimisation and access restriction by default (Art. 25)."
+                />
               </div>
             </div>
           </details>

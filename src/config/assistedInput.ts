@@ -60,12 +60,14 @@ export interface AssistedInputFieldConfig {
  */
 import { RISK_PILOT_ASSISTED_INPUT } from "./assistedInput/risk";
 import { ADMT_PILOT_ASSISTED_INPUT } from "./assistedInput/admt";
+import { DPIA_PILOT_ASSISTED_INPUT } from "./assistedInput/dpia";
 
 export const ASSISTED_INPUT_REGISTRY: Readonly<
   Record<string, AssistedInputFieldConfig>
 > = Object.freeze({
   ...RISK_PILOT_ASSISTED_INPUT,
   ...ADMT_PILOT_ASSISTED_INPUT,
+  ...DPIA_PILOT_ASSISTED_INPUT,
 });
 
 /**
