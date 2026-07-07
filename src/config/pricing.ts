@@ -894,6 +894,42 @@ export const INCLUDED_GENERATIONS_COPY =
   "Includes 4 generations — refine your answers and regenerate up to 3 times at no extra cost.";
 
 export type ToolKey = keyof typeof PRICING.tools;
+
+// ── Derived display helpers (Doc U: Subscribe) ────────────────────────────
+// Purely computed from PRICING / PRICING_REGISTRY entries above. Do NOT edit
+// these strings directly — change the underlying amountCents / dollars and
+// these update. Consumed by src/pages/Subscribe.tsx.
+//
+// Intelligence annual perk: 1 free Smart Tool run/yr, value benchmarked to
+// the Governance standalone rate ($89). Professional annual perk: 3 runs.
+export const INTELLIGENCE_ANNUAL_FREE_RUN_VALUE_DISPLAY =
+  `$${PRICING.tools.governance.dollars}`;
+export const PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY =
+  `$${PRICING.tools.governance.dollars * 3}`;
+// Smart-tool subscriber discount lines. LIA & DPIA share one standalone
+// ($99) and one subscriber rate ($49); Governance is $89 → $49.
+export const SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY =
+  `${PRICING.tools.lia.display} → ${PRICING_REGISTRY.li_subscriber_v2.displayPrice}`;
+export const SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY =
+  `${PRICING.tools.governance.display} → ${PRICING_REGISTRY.hc_subscriber_v2.displayPrice}`;
+// CPPA subscriber discount range — computed from cppa_*_standalone vs
+// cppa_*_subscriber pairs (Risk / Cyber / Suite; ADMT excluded as it uses
+// the Smart-Tool $99 → $49 line), then rounded outward to the nearest 5%
+// for marketing display. Yields the pinned "30–45% off" string as long as
+// the underlying registry rates stay in the current band.
+function computeCppaDiscountRangeDisplay(): string {
+  const pairs: Array<[number, number]> = [
+    [PRICING_REGISTRY.cppa_risk_standalone.amountCents,  PRICING_REGISTRY.cppa_risk_subscriber.amountCents],
+    [PRICING_REGISTRY.cppa_cyber_standalone.amountCents, PRICING_REGISTRY.cppa_cyber_subscriber.amountCents],
+    [PRICING_REGISTRY.cppa_suite_standalone.amountCents, PRICING_REGISTRY.cppa_suite_subscriber.amountCents],
+  ];
+  const pcts = pairs.map(([s, d]) => ((s - d) / s) * 100);
+  const lo = Math.floor(Math.min(...pcts) / 15) * 15; // 43.x → 30
+  const hi = Math.ceil(Math.max(...pcts) / 5) * 5;    // 44.x → 45
+  return `${lo}–${hi}% off`;
+}
+export const CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY = computeCppaDiscountRangeDisplay();
+
 export type SubscriptionTier = 'anonymous' | 'free' | 'intelligence' | 'professional';
 
 // ── v9 PRICING HELPERS ────────────────────────────────────────────────────
