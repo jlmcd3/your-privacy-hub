@@ -42,6 +42,23 @@ describe("Improvement Kit — flag + designated list invariants", () => {
       expect(id).toMatch(/^[a-z0-9_]+$/);
     }
   });
+
+  it("EVIDENCE_MAP key set equality with IMPROVEMENT_KIT_DESIGNATED_FIELDS (Doc P Step 2)", async () => {
+    // Import via dynamic path so vitest's Vite resolver picks up the
+    // supabase/functions .ts file as plain TypeScript. The file has no
+    // Deno-only imports (pure data + a console.warn helper).
+    const mod = await import("../../supabase/functions/generate-improvement-kit/evidence-map");
+    const mapKeys = Object.keys(mod.EVIDENCE_MAP);
+    const designated = [...IMPROVEMENT_KIT_DESIGNATED_FIELDS];
+    // Both directions: designated ⊆ map keys AND map keys ⊆ designated.
+    for (const id of designated) {
+      expect(mapKeys, `designated id ${id} missing from EVIDENCE_MAP`).toContain(id);
+    }
+    for (const k of mapKeys) {
+      expect(designated, `EVIDENCE_MAP key ${k} not in designated list`).toContain(k);
+    }
+    expect(mapKeys.length).toBe(designated.length);
+  });
 });
 
 describe("Improvement Kit — AssertionLevel control", () => {

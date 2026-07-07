@@ -13,6 +13,9 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 import CPPASuitePDFButton from "@/components/cppa/CPPASuitePDFButton";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
+import { IMPROVEMENT_KIT_ENABLED } from "@/config/improvementKit";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { toast } from "@/hooks/use-toast";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
@@ -159,6 +162,43 @@ export default function CPPASuiteResult() {
   const [riskRow, setRiskRow] = useState<any>(null);
   const [cyberRow, setCyberRow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { isPro } = useSubscriptionTier();
+  const [kitLoading, setKitLoading] = useState(false);
+
+  // Doc P Step 4: result-page entry point, flag-gated AND Professional-only.
+  // Flag stays OFF in production. Non-Professional users with the flag on
+  // see nothing here (upgrade teaser is Doc S, kept separate).
+  const kitAvailable = IMPROVEMENT_KIT_ENABLED && isPro && riskRow?.status === "complete" && !!riskRow?.id;
+
+  const handleDownloadKit = async () => {
+    if (!riskRow?.id) return;
+    setKitLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-improvement-kit", {
+        body: { assessment_id: riskRow.id },
+      });
+      if (error) throw error;
+      if (!data?.entitled) {
+        toast({ title: "Not available", description: "This capability is Professional-only.", variant: "destructive" });
+        return;
+      }
+      const md = data.rendered_markdown ?? "";
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `assessment-improvement-kit-${riskRow.id}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      toast({ title: "Could not generate Kit", description: e?.message ?? "Unknown error", variant: "destructive" });
+    } finally {
+      setKitLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     let timer: any;
@@ -248,6 +288,17 @@ export default function CPPASuiteResult() {
                 className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-brand-navy bg-brand-cloud hover:bg-brand-cloud/70 border border-brand-cloud rounded-lg no-underline transition-colors disabled:opacity-60"
               />
             </>
+          )}
+          {kitAvailable && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleDownloadKit}
+              disabled={kitLoading}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold"
+            >
+              {kitLoading ? "Preparing..." : "Assessment Improvement Kit"}
+            </Button>
           )}
           <Button asChild variant="outline"><Link to="/dashboard/reports">Back to My Reports</Link></Button>
           <Button asChild variant="ghost"><Link to="/account/cppa-runs">View all CPPA runs</Link></Button>
