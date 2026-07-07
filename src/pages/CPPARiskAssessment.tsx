@@ -1020,6 +1020,7 @@ export default function CPPARiskAssessment() {
                       </InfoPopover>
                     </div>
                     <Textarea rows={2} value={i5AdmtFairnessTesting} onChange={(e) => setI5AdmtFairnessTesting(e.target.value)} placeholder="Fairness / bias testing approach" />
+                    {renderAssertion("i5_admt_fairness_testing")}
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
