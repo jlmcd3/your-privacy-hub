@@ -1,7 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
-// doc-y-5-2 build marker (Commit 2: Defect 2 illustrative-frequency prompt rule + backstop)
-const DOC_Y_BUILD_MARKER = "doc-y-5-2";
+// doc-y-6 build marker (Y-6: Art. 39(1)(b) canonical-wording gloss correction, hasEuUk-gated)
+const DOC_Y_BUILD_MARKER = "doc-y-6";
 console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -492,6 +492,7 @@ IMPLEMENT-OR-VERIFY DISAMBIGUATION: Avoid the ambiguous phrase 'implement or ver
 ARTICLE-GLOSS CORRECTIONS (2.3):
 - Art. 24: "GDPR Art. 24 (controller must implement appropriate technical and organisational measures to ensure and to be able to demonstrate that processing is performed in accordance with this Regulation)".
 ${hasEuUk ? `- Art. 29: "GDPR Art. 29 (persons acting under the authority of the controller or processor may process personal data only on the controller's instructions, unless required by Union or Member State law)". Do not mention confidentiality here — that is Art. 28(3)(b).` : ``}
+${hasEuUk ? `- Art. 39(1)(b): "GDPR Art. 39(1)(b) (the DPO's task to monitor compliance with the GDPR, with other Union or Member State data protection provisions, and with the controller's or processor's policies in relation to the protection of personal data, including the assignment of responsibilities, awareness-raising and training of staff involved in processing operations, and the related audits)". Do NOT paraphrase this as "training and staff training" or any variant that repeats "training" as if it were two distinct items — awareness-raising and training of staff is a single conjoined task element. If a shorter reference is needed, use "GDPR Art. 39(1)(b) (DPO monitoring task, including awareness-raising and staff training)".` : ``}
 - Art. 14: "(information to be provided where personal data have not been obtained from the data subject)".
 - Art. 12: "(transparent information, communication and modalities for the exercise of the rights of the data subject)" — replace "consumer-rights"; the GDPR term is data subject rights.
 - DPF sentence, user-facing voice: "including the EU–US Data Privacy Framework (Commission Implementing Decision (EU) 2023/1795) for US-established importers certified under the Framework — verify current certification status at dataprivacyframework.gov".
