@@ -108,6 +108,12 @@ interface KitItemA {
   where_facts_like_this_usually_live: string;
   a_sufficient_answer_looks_like: string;
   source_fields: string[];
+  // Fixed-template reference back to the source report (E2, collision #2
+  // ruling): the Kit never reproduces analyzer prose; when report detail
+  // is relevant we point the reader at the numbered item in the report
+  // itself. Kit-authored -- checked against the bright lines like any
+  // other Kit string.
+  reference_line: string;
 }
 
 interface KitItemB {
@@ -138,7 +144,8 @@ function renderSectionA(items: KitItemA[]): string {
         `\n${it.item_id} -- ${it.citing_regulation}\n` +
         `FACT REQUIRED: ${it.fact_required}\n` +
         `WHERE FACTS LIKE THIS USUALLY LIVE: ${it.where_facts_like_this_usually_live}\n` +
-        `A SUFFICIENT ANSWER LOOKS LIKE: ${it.a_sufficient_answer_looks_like}\n`,
+        `A SUFFICIENT ANSWER LOOKS LIKE: ${it.a_sufficient_answer_looks_like}\n` +
+        `${it.reference_line}\n`,
     )
     .join("");
   return header + body;
@@ -345,53 +352,105 @@ Deno.serve(async (req) => {
     const strengthenItems = (report.strengthen_items as Array<Record<string, unknown>>) ?? [];
 
     // ---- Section A: inconsistency_flags + information_needed.
+    //
+    // W4 compliance (Doc P v2 lines 67-73): fact_required is FORM ONLY --
+    // days / yes-no / clause number / named list -- and NEVER reproduces
+    // analyzer prose (E2, collision #2 ruling). where/sufficient_form come
+    // from the static evidence map. A fixed reference_line template points
+    // the reader back to the numbered item in the source report.
+    // Contradiction items MUST render BOTH source fields (Doc P 5b:
+    // "both source fields on the contradiction").
     const sectionA: KitItemA[] = [];
-    for (const f of inconsistencyFlags) {
+    for (let i = 0; i < inconsistencyFlags.length; i++) {
+      const f = inconsistencyFlags[i];
       const sourceFields = Array.isArray(f.source_fields)
-        ? (f.source_fields as string[])
+        ? (f.source_fields as string[]).map(String)
         : [];
-      const primary = sourceFields[0] ?? String(f.field_id ?? "unknown_field");
-      const ev = lookupEvidence(primary);
+      const f1 = String(
+        (f.intake_field_1 as string | undefined) ??
+          sourceFields[0] ??
+          "unknown_field",
+      );
+      const f2 = String(
+        (f.intake_field_2 as string | undefined) ??
+          sourceFields[1] ??
+          f1,
+      );
+      const ev1 = lookupEvidence(f1);
+      const ev2 = lookupEvidence(f2);
+      const citation = String(
+        (f.regulatory_citation as string | undefined) ??
+          (f.citation as string | undefined) ??
+          "11 CCR § 7150",
+      );
+      const bothFields = f1 !== f2;
       sectionA.push({
-        item_id: String(f.id ?? `inconsistency-${sectionA.length + 1}`),
-        citing_regulation: String(f.citation ?? "11 CCR § 7150"),
-        fact_required: String(f.fact_required ?? f.description ?? "unresolved contradiction between recorded fields"),
-        where_facts_like_this_usually_live: ev.where_it_lives,
-        a_sufficient_answer_looks_like: ev.sufficient_form,
-        source_fields: sourceFields.length ? sourceFields : [primary],
+        item_id: String(f.id ?? `C-${i + 1}`),
+        citing_regulation: citation,
+        fact_required: bothFields
+          ? `reconciliation between fields ${f1} and ${f2}, stated as which recorded value applies to which scope (form: named scope per value)`
+          : `a stated value for field ${f1} in the form its entry accepts (days, yes-no, clause number, or named list)`,
+        where_facts_like_this_usually_live: bothFields
+          ? `${ev1.where_it_lives}; and ${ev2.where_it_lives}`
+          : ev1.where_it_lives,
+        a_sufficient_answer_looks_like: bothFields
+          ? `${ev1.sufficient_form}; and ${ev2.sufficient_form}`
+          : ev1.sufficient_form,
+        source_fields: bothFields
+          ? [f1, f2]
+          : (sourceFields.length ? sourceFields : [f1]),
+        reference_line:
+          `See inconsistency flag ${i + 1} in your CPPA Risk Assessment report.`,
       });
     }
-    for (const n of informationNeeded) {
-      const fieldId = String(n.field_id ?? n.id ?? "unknown_field");
+    for (let i = 0; i < informationNeeded.length; i++) {
+      const n = informationNeeded[i];
+      const fieldId = String(
+        (n.field as string | undefined) ??
+          (n.field_id as string | undefined) ??
+          (n.id as string | undefined) ??
+          "unknown_field",
+      );
       const ev = lookupEvidence(fieldId);
+      const citation = String(
+        (n.provision as string | undefined) ??
+          (n.citation as string | undefined) ??
+          "11 CCR § 7152",
+      );
       sectionA.push({
-        item_id: String(n.id ?? `information-needed-${sectionA.length + 1}`),
-        citing_regulation: String(n.citation ?? "11 CCR § 7152"),
-        fact_required: String(n.fact_required ?? n.description ?? "fact not yet documented"),
+        item_id: String(n.id ?? `N-${i + 1}`),
+        citing_regulation: citation,
+        fact_required:
+          `a stated value for field ${fieldId} in the form its entry accepts (days, yes-no, clause number, or named list)`,
         where_facts_like_this_usually_live: ev.where_it_lives,
         a_sufficient_answer_looks_like: ev.sufficient_form,
         source_fields: [fieldId],
+        reference_line:
+          `See open-items entry ${i + 1} in your CPPA Risk Assessment report.`,
       });
     }
 
     // ---- Section B: strengthen_items. Enforcement line: cited-or-absent.
     const sectionB: KitItemB[] = [];
-    for (const s of strengthenItems) {
-      const fieldId = String(s.field_id ?? s.id ?? "unknown_field");
+    for (let i = 0; i < strengthenItems.length; i++) {
+      const s = strengthenItems[i];
+      const fieldIds = Array.isArray(s.field_ids)
+        ? (s.field_ids as string[]).map(String)
+        : (s.field_id ? [String(s.field_id)] : []);
+      const fieldId = fieldIds[0] ?? "unknown_field";
       const ev = lookupEvidence(fieldId);
       const basis = String(
         (s.recorded_basis as string | undefined) ??
           (s.basis as string | undefined) ??
           "standard_template",
       );
-      const topic = String(
-        (s.enforcement_topic as string | undefined) ??
-          (s.description as string | undefined) ??
-          fieldId,
-      );
+      // Enforcement topic is a Kit-authored short string derived from the
+      // field id only -- never from analyzer prose. get-enforcement-context
+      // does its own semantic search from the topic keyword.
+      const topic = fieldId;
       const enforcement = await enforcementLineForItem(admin, topic);
       sectionB.push({
-        item_id: String(s.id ?? `strengthen-${sectionB.length + 1}`),
+        item_id: String(s.item_id ?? s.id ?? `S-${i + 1}`),
         citing_regulation: String(s.citation ?? "11 CCR § 7152"),
         recorded_basis: basis,
         template_or_policy: ev.sufficient_form,
@@ -400,6 +459,8 @@ Deno.serve(async (req) => {
         enforcement_citation: enforcement ? enforcement.citation : null,
       });
     }
+
+
 
     const rendered = renderKit({
       reportId: String(row.id),
