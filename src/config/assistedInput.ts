@@ -54,13 +54,17 @@ export interface AssistedInputFieldConfig {
 }
 
 /**
- * Empty by design. Product wiring prompts extend this registry via
- * per-product config files (e.g. src/config/assistedInput/risk.ts)
- * and re-export here as their signed-off packs land.
+ * Per-product wiring prompts extend this registry via per-product
+ * config files (e.g. src/config/assistedInput/risk.ts) as their
+ * signed-off packs land.
  */
+import { RISK_PILOT_ASSISTED_INPUT } from "./assistedInput/risk";
+
 export const ASSISTED_INPUT_REGISTRY: Readonly<
   Record<string, AssistedInputFieldConfig>
-> = Object.freeze({});
+> = Object.freeze({
+  ...RISK_PILOT_ASSISTED_INPUT,
+});
 
 /**
  * Regex matching any unresolved "[...]" slot token from a pill

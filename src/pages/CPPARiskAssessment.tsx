@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ExhibitTextarea } from "@/components/ExhibitTextarea";
+import { AssistedInput } from "@/components/AssistedInput";
+import { ASSISTED_INPUT_REGISTRY } from "@/config/assistedInput";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useToolPrice } from "@/hooks/useToolPrice";
@@ -848,9 +850,15 @@ export default function CPPARiskAssessment() {
               <div onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">"Significant effects" covers credit, housing, employment, education, and healthcare decisions.</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
                 <div><Label>Q19: Describe the ADMT system and its decisions <Req /></Label>
-                  <Textarea value={q19} onChange={(e) => setQ19(e.target.value)} rows={3} placeholder="E.g. Credit scoring algorithm, automated fraud detection, hiring screening software…" className="mt-2" />
+                  <div className="mt-2"><AssistedInput
+                    value={q19}
+                    onChange={setQ19}
+                    pills={ASSISTED_INPUT_REGISTRY.q19_admt_description.pills}
+                    rows={3}
+                    placeholder="E.g. Credit scoring algorithm, automated fraud detection, hiring screening software…"
+                    assertionSlot={renderAssertion("q19_admt_description")}
+                  /></div>
                   <p className="text-[11px] text-muted-foreground mt-1">Examples: an automated résumé-screening tool that ranks or rejects job applicants · a credit-decisioning model that sets limits without human review · worker-productivity scoring that drives scheduling or discipline decisions.</p>
-                  {renderAssertion("q19_admt_description")}
                 </div>
               )}
               {q18 === "Yes" && (
@@ -1013,8 +1021,14 @@ export default function CPPARiskAssessment() {
                         </div>
                       </InfoPopover>
                     </div>
-                    <Textarea rows={2} value={i5AdmtTrainingSource} onChange={(e) => setI5AdmtTrainingSource(e.target.value)} placeholder="Training-data source(s)" />
-                    {renderAssertion("i5_admt_training_source")}
+                    <AssistedInput
+                      value={i5AdmtTrainingSource}
+                      onChange={setI5AdmtTrainingSource}
+                      pills={ASSISTED_INPUT_REGISTRY.i5_admt_training_source.pills}
+                      rows={2}
+                      placeholder="Training-data source(s)"
+                      assertionSlot={renderAssertion("i5_admt_training_source")}
+                    />
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -1026,8 +1040,14 @@ export default function CPPARiskAssessment() {
                         </div>
                       </InfoPopover>
                     </div>
-                    <Textarea rows={2} value={i5AdmtFairnessTesting} onChange={(e) => setI5AdmtFairnessTesting(e.target.value)} placeholder="Fairness / bias testing approach" />
-                    {renderAssertion("i5_admt_fairness_testing")}
+                    <AssistedInput
+                      value={i5AdmtFairnessTesting}
+                      onChange={setI5AdmtFairnessTesting}
+                      pills={ASSISTED_INPUT_REGISTRY.i5_admt_fairness_testing.pills}
+                      rows={2}
+                      placeholder="Fairness / bias testing approach"
+                      assertionSlot={renderAssertion("i5_admt_fairness_testing")}
+                    />
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -1039,8 +1059,14 @@ export default function CPPARiskAssessment() {
                         </div>
                       </InfoPopover>
                     </div>
-                    <Textarea rows={2} value={i5AdmtHumanReview} onChange={(e) => setI5AdmtHumanReview(e.target.value)} placeholder="Human review process for outputs *" />
-                    {renderAssertion("i5_admt_human_review")}
+                    <AssistedInput
+                      value={i5AdmtHumanReview}
+                      onChange={setI5AdmtHumanReview}
+                      pills={ASSISTED_INPUT_REGISTRY.i5_admt_human_review.pills}
+                      rows={2}
+                      placeholder="Human review process for outputs *"
+                      assertionSlot={renderAssertion("i5_admt_human_review")}
+                    />
                   </div>
                   <FscrCallout citation="11 CCR § 7152(a)(3)(G)" callouts={fscrCallouts} />
                 </div>
@@ -1061,22 +1087,24 @@ export default function CPPARiskAssessment() {
 
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-7: Who contributed to or was consulted in preparing this assessment? <Req /> <span className="text-xs text-muted-foreground">(§§ 7151, 7152(a)(8))</span></Label><StatutePopover term="I-7 · Contributors and consultees" summary="Identify the individuals and roles who contributed to or were consulted in preparing the risk assessment." cite="11 CCR § 7152(a)(9)" /></div>
-                <ExhibitTextarea
-                  className="mt-2"
-                  rows={2}
+                <div className="mt-2"><AssistedInput
                   value={i7InternalContributors}
                   onChange={setI7InternalContributors}
-                  placeholder="Internal — roles (e.g. Privacy lead, CISO, Legal, Business owner)"
-                />
-                {renderAssertion("i7_internal_contributors")}
-                <ExhibitTextarea
-                  className="mt-2"
+                  pills={ASSISTED_INPUT_REGISTRY.i7_internal_contributors.pills}
                   rows={2}
+                  useExhibit
+                  placeholder="Internal — roles (e.g. Privacy lead, CISO, Legal, Business owner)"
+                  assertionSlot={renderAssertion("i7_internal_contributors")}
+                /></div>
+                <div className="mt-2"><AssistedInput
                   value={i7ExternalConsultees}
                   onChange={setI7ExternalConsultees}
+                  pills={ASSISTED_INPUT_REGISTRY.i7_external_consultees.pills}
+                  rows={2}
+                  useExhibit
                   placeholder="External — counsel, auditors, regulator engagement (optional)"
-                />
-                {renderAssertion("i7_external_consultees")}
+                  assertionSlot={renderAssertion("i7_external_consultees")}
+                /></div>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-3">
