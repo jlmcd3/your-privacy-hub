@@ -1,4 +1,4 @@
-// Doc P Step 2 — static evidence-location mapping.
+// Doc P Step 2 -- static evidence-location mapping.
 //
 // Versioned, ASCII-only map from the 19 P4-designated CPPA Risk intake field
 // ids to { where_it_lives, sufficient_form }. Strings are taken VERBATIM from
@@ -95,7 +95,7 @@ export const EVIDENCE_MAP: Record<string, EvidenceLocation> = {
 };
 
 /**
- * Fallback for unknown field ids. Never throws — Doc P Step 2 requires that
+ * Fallback for unknown field ids. Never throws -- Doc P Step 2 requires that
  * unmapped ids render a generic team-records line rather than failing.
  */
 export const GENERIC_FALLBACK: EvidenceLocation = {
