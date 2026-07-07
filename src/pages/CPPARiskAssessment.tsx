@@ -756,6 +756,7 @@ export default function CPPARiskAssessment() {
                     }}
                   />
                 </div>
+                {renderAssertion("q4_pi_categories")}
               </div>
               <div onFocus={() => focusRail('q5_sell_share')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q5: Do you sell or share personal information for cross-context behavioural advertising? <Req /></Label><DefPopover termKey="ccba" /><EnforcementSignalIcon signalKey="sell_share" signals={enforcementSignals} /></div>
                 <p className="text-xs text-muted-foreground mt-1">"Sell" and "share" have specific CCPA meanings — tap the definition icon.</p><div className="mt-2"><Radio name="q5" options={["Yes — sell only", "Yes — share for advertising only", "Both", "No"]} value={q5} onChange={setQ5} /></div>
@@ -807,7 +808,7 @@ export default function CPPARiskAssessment() {
               <h2>Step 3 — Privacy Notices</h2>
               <p className="text-xs font-mono text-muted-foreground -mt-3">Cal. Civ. Code §§ 1798.100(a), 1798.130; 11 CCR § 7003 — notice requirements</p>
               <RequiredLegend />
-              <div><Label>Q11: When was your privacy policy last reviewed or updated? <Req /> <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.130(a)(5))</span></Label><p className="text-xs text-muted-foreground mt-1">CCPA expects a review at least every 12 months.</p><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div></div>
+              <div><Label>Q11: When was your privacy policy last reviewed or updated? <Req /> <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.130(a)(5))</span></Label><p className="text-xs text-muted-foreground mt-1">CCPA expects a review at least every 12 months.</p><div className="mt-2"><Radio name="q11" options={["Within 12 months", "12–24 months ago", "Over 24 months ago", "No privacy policy"]} value={q11} onChange={setQ11} /></div>{renderAssertion("q11_policy_review")}</div>
               <div><Label>Q12: Do you show a notice at collection at or before the point you collect PI? <Req /> <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.100(a))</span></Label><p className="text-xs text-muted-foreground mt-1">The short notice shown where data is collected — separate from the full policy.</p><div className="mt-2"><Radio name="q12" options={["Yes, covers all collection points", "Yes, partial coverage", "No"]} value={q12} onChange={setQ12} /></div></div>
               <div><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q13: Do your notices include the categories of PI collected, the purpose, and the right to opt-out? <Req /></Label><DefPopover termKey="notice_at_collection" /></div><p className="text-xs text-muted-foreground mt-1">Notice at collection must state categories, purpose, and the opt-out right.</p><div className="mt-2"><Radio name="q13" options={["Yes, all three", "Some elements", "No"]} value={q13} onChange={setQ13} /></div></div>
               <div><Label>Q14: For employees/job applicants — do you provide a separate California-specific notice? <Req /> <span className="text-xs text-muted-foreground font-mono">(Cal. Civ. Code § 1798.100(a))</span></Label><p className="text-xs text-muted-foreground mt-1">California employees and job applicants need their own notice.</p><div className="mt-2"><Radio name="q14" options={["Yes", "No — we use our general privacy policy", "Not applicable (no CA employees)"]} value={q14} onChange={setQ14} /></div></div>
@@ -842,10 +843,11 @@ export default function CPPARiskAssessment() {
                 <div><Label>Q19: Describe the ADMT system and its decisions <Req /></Label>
                   <Textarea value={q19} onChange={(e) => setQ19(e.target.value)} rows={3} placeholder="E.g. Credit scoring algorithm, automated fraud detection, hiring screening software…" className="mt-2" />
                   <p className="text-[11px] text-muted-foreground mt-1">Examples: an automated résumé-screening tool that ranks or rejects job applicants · a credit-decisioning model that sets limits without human review · worker-productivity scoring that drives scheduling or discipline decisions.</p>
+                  {renderAssertion("q19_admt_description")}
                 </div>
               )}
               {q18 === "Yes" && (
-                <div><Label>Q20: Do you provide consumers with the right to opt out of ADMT? <Req /></Label><p className="text-xs text-muted-foreground mt-1">An opt-out is required for qualifying ADMT.</p><div className="mt-2"><Radio name="q20" options={["Yes, with documented opt-out", "Planned for implementation", "No"]} value={q20} onChange={setQ20} /></div></div>
+                <div><Label>Q20: Do you provide consumers with the right to opt out of ADMT? <Req /></Label><p className="text-xs text-muted-foreground mt-1">An opt-out is required for qualifying ADMT.</p><div className="mt-2"><Radio name="q20" options={["Yes, with documented opt-out", "Planned for implementation", "No"]} value={q20} onChange={setQ20} /></div>{renderAssertion("q20_admt_opt_out")}</div>
               )}
               <div onFocus={() => focusRail('q18b_admt_training')}>
                 <Label>Q21: Do you process personal information to train ADMT, facial-recognition, emotion-recognition, identity-verification, or physical/biological-identification technology? <Req /> <span className="text-xs text-muted-foreground font-mono">(11 CCR § 7150(b)(5))</span></Label>
@@ -884,6 +886,7 @@ export default function CPPARiskAssessment() {
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-1b: What is the minimum personal information necessary to achieve this purpose? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(2))</span></Label><StatutePopover term="I-1b · Minimum PI necessary" summary="The assessment must identify the minimum personal information necessary to achieve the purpose, reflecting the CCPA's data-minimisation principle." cite="11 CCR § 7152(a)(2)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Name the specific data elements you actually need for the purpose above, and note any you collect today that are <span className="font-medium">not</span> strictly necessary. If a less-identifying alternative (de-identified, aggregated, or shorter-retained data) could achieve the same purpose, say so — § 7152(a)(2) requires this minimisation analysis.</p>
                 <ExhibitTextarea className="mt-2" rows={3} value={i1bMinPi} onChange={setI1bMinPi} placeholder='E.g. "Purpose needs account ID + 12-month purchase history only. Precise geolocation and device fingerprint are collected but not required for recommendations; candidates for minimisation."' />
+                {renderAssertion("i1b_min_pi")}
               </div>
 
               <div onFocus={() => focusRail('i2_retention')}>
@@ -894,6 +897,7 @@ export default function CPPARiskAssessment() {
                   onChange={(e) => setI2RetentionPeriod(e.target.value)}
                   placeholder="E.g. 24 months from collection; 7 years after relationship ends"
                 />
+                {renderAssertion("i2_retention_period")}
                 <select
                   className="mt-2 w-full h-10 px-3 rounded-md border border-input bg-background"
                   value={i2RetentionCriteria}
@@ -902,6 +906,7 @@ export default function CPPARiskAssessment() {
                   <option value="">Retention criteria…</option>
                   {RETENTION_CRITERIA.map((c) => <option key={c}>{c}</option>)}
                 </select>
+                {renderAssertion("i2_retention_criteria")}
                 <Textarea
                   className="mt-2"
                   rows={2}
@@ -909,6 +914,7 @@ export default function CPPARiskAssessment() {
                   onChange={(e) => setI2RetentionDetail(e.target.value)}
                   placeholder="Optional: cite the statutory/regulatory basis or describe 'Other criteria'."
                 />
+                {renderAssertion("i2_retention_detail")}
               </div>
 
               {/* === CCPA business purposes / statutory exemptions (optional) — moved to follow retention === */}
@@ -951,6 +957,7 @@ export default function CPPARiskAssessment() {
                     );
                   })}
                 </div>
+                {renderAssertion("exceptions_intake")}
               </div>
 
               <div>
@@ -962,12 +969,14 @@ export default function CPPARiskAssessment() {
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-4: How are consumers informed of this processing activity? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3)(E))</span></Label><StatutePopover term="I-4 · Disclosure mechanisms" summary="Identify the disclosures made to consumers about the processing and how they are provided." cite="11 CCR § 7152(a)(4)(E)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Select every mechanism that applies. The report will map your selections against the conspicuousness requirements of § 7003.</p>
                 <div className="mt-2"><Pills options={DISCLOSURE_MECHANISMS} value={i4Disclosures} onChange={setI4Disclosures} /></div>
+                {renderAssertion("i4_disclosure_mechanisms")}
               </div>
 
               <div onFocus={() => focusRail('i4b_sources')}>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-4b: Where does this personal information come from? <Req /> <span className="text-xs text-muted-foreground">(§ 7152(a)(3))</span></Label><StatutePopover term="I-4b · Sources of the PI" summary="The operational elements of the processing must identify the sources of the personal information — for example, directly from the consumer, observed, or obtained from third parties." cite="11 CCR § 7152(a)(3)" /></div>
                 <p className="text-xs text-muted-foreground mt-1">Identify each source: collected directly from the consumer, passively observed from their activity, generated/inferred by you, or obtained from third parties (data brokers, advertising or analytics partners, affiliates, public records). Note which categories come from which source.</p>
                 <ExhibitTextarea className="mt-2" rows={3} value={i4bSources} onChange={setI4bSources} placeholder='E.g. "Contact + account data: directly from consumer at sign-up. Device + activity: observed in-app. Geolocation: derived from IP. Audience segments: appended from ad partner X."' />
+                {renderAssertion("i4b_sources")}
               </div>
 
 
@@ -985,6 +994,7 @@ export default function CPPARiskAssessment() {
                       </InfoPopover>
                     </div>
                     <Textarea rows={3} value={i5AdmtLogic} onChange={(e) => setI5AdmtLogic(e.target.value)} placeholder="ADMT logic summary — what the system decides and how *" />
+                    {renderAssertion("i5_admt_logic")}
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -997,6 +1007,7 @@ export default function CPPARiskAssessment() {
                       </InfoPopover>
                     </div>
                     <Textarea rows={2} value={i5AdmtTrainingSource} onChange={(e) => setI5AdmtTrainingSource(e.target.value)} placeholder="Training-data source(s)" />
+                    {renderAssertion("i5_admt_training_source")}
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -1009,6 +1020,7 @@ export default function CPPARiskAssessment() {
                       </InfoPopover>
                     </div>
                     <Textarea rows={2} value={i5AdmtFairnessTesting} onChange={(e) => setI5AdmtFairnessTesting(e.target.value)} placeholder="Fairness / bias testing approach" />
+                    {renderAssertion("i5_admt_fairness_testing")}
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
@@ -1021,6 +1033,7 @@ export default function CPPARiskAssessment() {
                       </InfoPopover>
                     </div>
                     <Textarea rows={2} value={i5AdmtHumanReview} onChange={(e) => setI5AdmtHumanReview(e.target.value)} placeholder="Human review process for outputs *" />
+                    {renderAssertion("i5_admt_human_review")}
                   </div>
                   <FscrCallout citation="11 CCR § 7152(a)(3)(G)" callouts={fscrCallouts} />
                 </div>
@@ -1036,6 +1049,7 @@ export default function CPPARiskAssessment() {
                   onChange={setI6Vendors}
                   placeholder='One per line: "Vendor name — role — PI categories shared". Write "None" if none.'
                 />
+                {renderAssertion("i6_vendors")}
               </div>
 
               <div>
@@ -1047,6 +1061,7 @@ export default function CPPARiskAssessment() {
                   onChange={setI7InternalContributors}
                   placeholder="Internal — roles (e.g. Privacy lead, CISO, Legal, Business owner)"
                 />
+                {renderAssertion("i7_internal_contributors")}
                 <ExhibitTextarea
                   className="mt-2"
                   rows={2}
@@ -1054,6 +1069,7 @@ export default function CPPARiskAssessment() {
                   onChange={setI7ExternalConsultees}
                   placeholder="External — counsel, auditors, regulator engagement (optional)"
                 />
+                {renderAssertion("i7_external_consultees")}
               </div>
 
               <div className="grid sm:grid-cols-2 gap-3">
@@ -1108,6 +1124,7 @@ export default function CPPARiskAssessment() {
                     placeholder="Brief summary: framework, scope, date — Appendix E will map § 7152 elements already covered."
                   />
                 )}
+                {renderAssertion("i9_existing_dpia_summary")}
               </div>
 
               {/* === Impact assessment (optional but recommended) === */}
