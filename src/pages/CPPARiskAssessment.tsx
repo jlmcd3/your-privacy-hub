@@ -1124,6 +1124,7 @@ export default function CPPARiskAssessment() {
                     placeholder="Brief summary: framework, scope, date — Appendix E will map § 7152 elements already covered."
                   />
                 )}
+                {renderAssertion("i9_existing_dpia_summary")}
               </div>
 
               {/* === Impact assessment (optional but recommended) === */}
