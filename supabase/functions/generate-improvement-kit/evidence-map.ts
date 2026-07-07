@@ -107,5 +107,12 @@ export const GENERIC_FALLBACK: EvidenceLocation = {
 };
 
 export function lookupEvidence(fieldId: string): EvidenceLocation {
-  return EVIDENCE_MAP[fieldId] ?? GENERIC_FALLBACK;
+  const hit = EVIDENCE_MAP[fieldId];
+  if (hit) return hit;
+  // Non-fatal (Doc F) but observable: an id outside the Doc O closed
+  // vocabulary reached the Kit -- upstream defect worth surfacing.
+  console.warn(
+    `[improvement-kit] evidence-map fallback fired for unmapped field id: "${fieldId}" (version ${EVIDENCE_MAP_VERSION})`,
+  );
+  return GENERIC_FALLBACK;
 }
