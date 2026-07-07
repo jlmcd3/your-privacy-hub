@@ -10,7 +10,7 @@
  * feature-flag system, so a simple config constant is used per R6's
  * explicit allowance.
  */
-export const IMPROVEMENT_KIT_ENABLED = true;
+export const IMPROVEMENT_KIT_ENABLED = false;
 
 /**
  * Designated evidence-heavy field ids that receive the AssertionLevel
