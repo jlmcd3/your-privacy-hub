@@ -850,9 +850,15 @@ export default function CPPARiskAssessment() {
               <div onFocus={() => focusRail('q18_admt')}><div className="inline-flex items-center gap-1.5 flex-wrap"><Label>Q18: Do you use any ADMT that makes, or materially contributes to, decisions with significant effects on consumers? <Req /></Label><DefPopover termKey="admt" /><span className="text-xs text-muted-foreground font-mono">(11 CCR § 7001(e))</span></div><p className="text-xs text-muted-foreground mt-1">"Significant effects" covers credit, housing, employment, education, and healthcare decisions.</p><div className="mt-2"><Radio name="q18" options={["Yes", "No", "In evaluation"]} value={q18} onChange={setQ18} /></div></div>
               {(q18 === "Yes" || q18 === "In evaluation") && (
                 <div><Label>Q19: Describe the ADMT system and its decisions <Req /></Label>
-                  <Textarea value={q19} onChange={(e) => setQ19(e.target.value)} rows={3} placeholder="E.g. Credit scoring algorithm, automated fraud detection, hiring screening software…" className="mt-2" />
+                  <div className="mt-2"><AssistedInput
+                    value={q19}
+                    onChange={setQ19}
+                    pills={ASSISTED_INPUT_REGISTRY.q19_admt_description.pills}
+                    rows={3}
+                    placeholder="E.g. Credit scoring algorithm, automated fraud detection, hiring screening software…"
+                    assertionSlot={renderAssertion("q19_admt_description")}
+                  /></div>
                   <p className="text-[11px] text-muted-foreground mt-1">Examples: an automated résumé-screening tool that ranks or rejects job applicants · a credit-decisioning model that sets limits without human review · worker-productivity scoring that drives scheduling or discipline decisions.</p>
-                  {renderAssertion("q19_admt_description")}
                 </div>
               )}
               {q18 === "Yes" && (
