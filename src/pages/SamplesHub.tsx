@@ -41,6 +41,8 @@ type Grouped = {
 export default function SamplesHub() {
   const [rows, setRows] = useState<SampleRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,10 +66,38 @@ export default function SamplesHub() {
     };
   }, []);
 
+  // Distinct chip options derived from the already-loaded rows.
+  const toolOptions = useMemo(() => {
+    if (!rows) return [] as { slug: string; label: string }[];
+    const seen = new Map<string, string>();
+    for (const r of rows) {
+      if (!seen.has(r.tool_slug)) {
+        seen.set(r.tool_slug, TOOL_DISPLAY[r.tool_slug] ?? r.tool_slug);
+      }
+    }
+    return Array.from(seen, ([slug, label]) => ({ slug, label })).sort((a, b) =>
+      a.label.localeCompare(b.label),
+    );
+  }, [rows]);
+
+  const variantOptions = useMemo(() => {
+    if (!rows) return [] as string[];
+    return Array.from(new Set(rows.map((r) => r.variant))).sort();
+  }, [rows]);
+
+  const filteredRows = useMemo(() => {
+    if (!rows) return [] as SampleRow[];
+    return rows.filter(
+      (r) =>
+        (!selectedTool || r.tool_slug === selectedTool) &&
+        (!selectedVariant || r.variant === selectedVariant),
+    );
+  }, [rows, selectedTool, selectedVariant]);
+
   const grouped: Grouped[] = useMemo(() => {
     if (!rows) return [];
     const map = new Map<string, Grouped>();
-    for (const r of rows) {
+    for (const r of filteredRows) {
       const existing = map.get(r.tool_slug);
       if (existing) {
         existing.variants.push(r);
@@ -82,7 +112,7 @@ export default function SamplesHub() {
       }
     }
     return Array.from(map.values()).sort((a, b) => a.displayName.localeCompare(b.displayName));
-  }, [rows]);
+  }, [rows, filteredRows]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -132,6 +162,65 @@ export default function SamplesHub() {
           <div className="rounded-lg border border-brand-cloud bg-muted/30 p-8 text-center">
             <FileText className="h-8 w-8 mx-auto mb-3 text-muted-foreground" aria-hidden />
             <p className="font-medium text-brand-navy">Samples are being finalized. Check back shortly.</p>
+          </div>
+        )}
+
+        {rows !== null && rows.length > 0 && (
+          <div className="mb-6 space-y-3" aria-label="Sample filters">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Filter by tool</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTool(null)}
+                  aria-pressed={selectedTool === null}
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${selectedTool === null ? "bg-brand-navy text-white border-brand-navy" : "border-brand-cloud bg-muted/40 text-brand-navy hover:bg-brand-cloud/60"}`}
+                >
+                  All tools
+                </button>
+                {toolOptions.map((t) => (
+                  <button
+                    key={t.slug}
+                    type="button"
+                    onClick={() => setSelectedTool(t.slug === selectedTool ? null : t.slug)}
+                    aria-pressed={selectedTool === t.slug}
+                    className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${selectedTool === t.slug ? "bg-brand-navy text-white border-brand-navy" : "border-brand-cloud bg-muted/40 text-brand-navy hover:bg-brand-cloud/60"}`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Filter by report type</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedVariant(null)}
+                  aria-pressed={selectedVariant === null}
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${selectedVariant === null ? "bg-brand-navy text-white border-brand-navy" : "border-brand-cloud bg-muted/40 text-brand-navy hover:bg-brand-cloud/60"}`}
+                >
+                  All types
+                </button>
+                {variantOptions.map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setSelectedVariant(v === selectedVariant ? null : v)}
+                    aria-pressed={selectedVariant === v}
+                    className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium uppercase transition-colors ${selectedVariant === v ? "bg-brand-navy text-white border-brand-navy" : "border-brand-cloud bg-muted/40 text-brand-navy hover:bg-brand-cloud/60"}`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {rows !== null && rows.length > 0 && grouped.length === 0 && (
+          <div className="rounded-lg border border-brand-cloud bg-muted/30 p-6 text-center text-sm text-muted-foreground mb-6">
+            No samples match the selected filters.
           </div>
         )}
 
