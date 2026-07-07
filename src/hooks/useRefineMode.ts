@@ -102,6 +102,9 @@ export function useRefineMode(toolType: string): RefineMode {
       const rd = (data as any)?.report_data;
       const arr = Array.isArray(rd?.information_needed) ? rd.information_needed : [];
       setInfoNeeded(arr as InfoNeededEntry[]);
+      // Doc Q: derive RESOLVE-field map from the prior report_data.
+      // strengthen_items is intentionally never inspected here.
+      setResolveFields(deriveResolveFields(rd));
       setLoading(false);
     })();
   }, [assessmentId, toolType]);
@@ -117,5 +120,6 @@ export function useRefineMode(toolType: string): RefineMode {
     loading,
     infoNeeded,
     infoNeededKeys: infoNeeded.map((e) => (e as any).field).filter(Boolean),
+    resolveFields,
   };
 }
