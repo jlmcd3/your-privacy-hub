@@ -195,6 +195,7 @@ const App = () => (
           <Suspense fallback={<div style={{padding:"4rem",textAlign:"center",color:"#64748b",fontSize:"14px"}}>Loading…</div>}>
 <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/__dev/u32-harness" element={<DocU32Harness />} />
             <Route path="/logo-preview" element={<LogoPreview />} />
             <Route path="/us-state-privacy-authorities" element={<Navigate to="/us-privacy-laws#authority-directory" replace />} />
             <Route path="/global-privacy-authorities" element={<GlobalAuthorities />} />
