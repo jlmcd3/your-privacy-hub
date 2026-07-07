@@ -49,8 +49,8 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const KIT_BUILD_MARKER = "doc-p";
 const KIT_VERSION = `${KIT_BUILD_MARKER}-${EVIDENCE_MAP_VERSION}`;
 
-// Bright-lines banned-word list (P5 sign-off: ZERO exceptions; "gap" fully
-// banned). Matched case-insensitively, whole-word.
+// Bright-lines banned-word list. Matched case-insensitively, whole-word.
+// See R1-R4 doctrine in the header for scoping (kit-authored vs quoted).
 const BANNED_WORDS = [
   "trail",
   "evidence",
@@ -67,6 +67,9 @@ const BANNED_WORDS = [
   "assurance",
 ] as const;
 
+// "gap" is the absolute term (R3): never eligible for the quotation carve-out.
+const ABSOLUTE_BANNED = new Set<string>(["gap"]);
+
 function bannedWordHits(text: string): string[] {
   const hits: string[] = [];
   for (const w of BANNED_WORDS) {
@@ -74,6 +77,23 @@ function bannedWordHits(text: string): string[] {
     if (re.test(text)) hits.push(w);
   }
   return hits;
+}
+
+function containsAbsoluteBanned(text: string): boolean {
+  for (const w of ABSOLUTE_BANNED) {
+    if (new RegExp(`\\b${w}\\b`, "i").test(text)) return true;
+  }
+  return false;
+}
+
+// Mask a substring occurrence in `text` with spaces of equal length. Used
+// to structurally exempt quoted enforcement spans from the R1 check while
+// keeping all surrounding kit-authored text under check.
+function maskFirstOccurrence(text: string, needle: string): string {
+  if (!needle) return text;
+  const idx = text.indexOf(needle);
+  if (idx < 0) return text;
+  return text.slice(0, idx) + " ".repeat(needle.length) + text.slice(idx + needle.length);
 }
 
 interface AssertionEntry {
