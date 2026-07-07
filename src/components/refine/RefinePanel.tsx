@@ -245,14 +245,11 @@ export default function RefinePanel({
                   placeholder={f.placeholder}
                   className="mt-2 w-full h-10 px-3 rounded-md border border-brand-cloud bg-background text-sm"
                 />
-              );
-            })}
-        </div>
-      )}
               )}
               {f.help && <p className="text-meta text-muted-foreground mt-1">{f.help}</p>}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
