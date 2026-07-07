@@ -430,6 +430,13 @@ Deno.serve(async (req) => {
     }
     const banned = bannedWordHits(maskedForR1);
     if (banned.length) {
+      // Debug: emit which line contains the banned word so we can trace
+      // the offending kit-authored substring.
+      for (const w of banned) {
+        const re = new RegExp(`.{0,80}\\b${w}\\b.{0,80}`, "i");
+        const m = maskedForR1.match(re);
+        console.warn(`[improvement-kit] R1 hit context (${w}): ${m ? m[0] : "(no context)"}`);
+      }
       console.warn(
         `[improvement-kit] R1 bright-lines violation in kit-authored text, refusing to return Kit: ${banned.join(", ")}`,
       );
