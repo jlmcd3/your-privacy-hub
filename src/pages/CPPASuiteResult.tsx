@@ -13,6 +13,9 @@ import PDFDownloadButton from "@/components/PDFDownloadButton";
 
 import CPPASuitePDFButton from "@/components/cppa/CPPASuitePDFButton";
 import { ProcessingInterstitial } from "@/components/ProcessingInterstitial";
+import { IMPROVEMENT_KIT_ENABLED } from "@/config/improvementKit";
+import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
+import { toast } from "@/hooks/use-toast";
 
 const riskColor = (r: string) => {
   const x = (r || "").toLowerCase();
