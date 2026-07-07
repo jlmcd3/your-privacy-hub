@@ -165,6 +165,65 @@ export default function SamplesHub() {
           </div>
         )}
 
+        {rows !== null && rows.length > 0 && (
+          <div className="mb-6 space-y-3" aria-label="Sample filters">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Filter by tool</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTool(null)}
+                  aria-pressed={selectedTool === null}
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${selectedTool === null ? "bg-brand-navy text-white border-brand-navy" : "border-brand-cloud bg-muted/40 text-brand-navy hover:bg-brand-cloud/60"}`}
+                >
+                  All tools
+                </button>
+                {toolOptions.map((t) => (
+                  <button
+                    key={t.slug}
+                    type="button"
+                    onClick={() => setSelectedTool(t.slug === selectedTool ? null : t.slug)}
+                    aria-pressed={selectedTool === t.slug}
+                    className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${selectedTool === t.slug ? "bg-brand-navy text-white border-brand-navy" : "border-brand-cloud bg-muted/40 text-brand-navy hover:bg-brand-cloud/60"}`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Filter by report type</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedVariant(null)}
+                  aria-pressed={selectedVariant === null}
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${selectedVariant === null ? "bg-brand-navy text-white border-brand-navy" : "border-brand-cloud bg-muted/40 text-brand-navy hover:bg-brand-cloud/60"}`}
+                >
+                  All types
+                </button>
+                {variantOptions.map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setSelectedVariant(v === selectedVariant ? null : v)}
+                    aria-pressed={selectedVariant === v}
+                    className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium uppercase transition-colors ${selectedVariant === v ? "bg-brand-navy text-white border-brand-navy" : "border-brand-cloud bg-muted/40 text-brand-navy hover:bg-brand-cloud/60"}`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {rows !== null && rows.length > 0 && grouped.length === 0 && (
+          <div className="rounded-lg border border-brand-cloud bg-muted/30 p-6 text-center text-sm text-muted-foreground mb-6">
+            No samples match the selected filters.
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {grouped.map((g) => (
             <article
