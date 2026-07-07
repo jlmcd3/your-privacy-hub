@@ -69,6 +69,7 @@ export function useRefineMode(toolType: string): RefineMode {
   const assessmentId = params.get("refine") || undefined;
   const [intake, setIntake] = useState<Record<string, unknown> | null>(null);
   const [infoNeeded, setInfoNeeded] = useState<InfoNeededEntry[]>([]);
+  const [resolveFields, setResolveFields] = useState<ResolveFieldMap>({ fields: {}, fieldOrder: [], count: 0 });
   const [loading, setLoading] = useState(!!assessmentId);
   const { meter } = useRunMeter(toolType, assessmentId);
 
