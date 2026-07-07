@@ -78,6 +78,7 @@ import ScrollToTop from "./components/ScrollToTop.tsx";
 import ScrollToTopButton from "./components/ScrollToTopButton.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 import BlankScreenDiagnostic from "./components/BlankScreenDiagnostic.tsx";
+import DocU32Harness from "./pages/dev/DocU32Harness.tsx";
 const JurisdictionsHub = lazy(() => import("./pages/JurisdictionsHub.tsx"));
 const LegislationTracker = lazy(() => import("./pages/LegislationTracker.tsx"));
 const BriefPreferences = lazy(() => import("./pages/BriefPreferences.tsx"));
