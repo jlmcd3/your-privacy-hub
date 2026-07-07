@@ -76,6 +76,24 @@ export default function RefinePanel({
   const lockedKeys = Object.keys(lockedFields ?? {});
   const exhausted = runsRemaining <= 0;
 
+  // Visible RESOLVE fields = derived map minus cleared minus fields the
+  // editable list does not surface (only editable fields can highlight).
+  const editableKeys = useMemo(() => new Set(editable.map((f) => f.key)), [editable]);
+  const visibleResolveOrder = useMemo(
+    () => activeResolve.fieldOrder.filter((k) => editableKeys.has(k) && !clearedResolve.has(k)),
+    [activeResolve, editableKeys, clearedResolve],
+  );
+  const visibleResolveCount = visibleResolveOrder.length;
+
+  // Scroll to the first highlighted field on mount / first render with data.
+  useEffect(() => {
+    if (visibleResolveCount > 0 && firstResolveRef.current) {
+      firstResolveRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    // Intentionally scroll only when the visible order first becomes non-empty.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeResolve.count]);
+
   async function onRegenerate() {
     // Strip any locked keys defensively; coerce values back to their original
     // JSON shape when the seed value was an array/object.
