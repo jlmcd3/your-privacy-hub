@@ -22,7 +22,27 @@ export const IMPROVEMENT_KIT_ENABLED = false;
  * Ids in this list MUST be real intake keys emitted by
  * CPPARiskAssessment.tsx `intake` useMemo (lines ~405-450).
  */
-export const IMPROVEMENT_KIT_DESIGNATED_FIELDS: readonly string[] = [];
+export const IMPROVEMENT_KIT_DESIGNATED_FIELDS: readonly string[] = [
+  "i2_retention_period",
+  "i2_retention_detail",
+  "i2_retention_criteria",
+  "i6_vendors",
+  "i4_disclosure_mechanisms",
+  "i4b_sources",
+  "i5_admt_logic",
+  "i5_admt_human_review",
+  "i5_admt_training_source",
+  "i5_admt_fairness_testing",
+  "q19_admt_description",
+  "q20_admt_opt_out",
+  "i7_external_consultees",
+  "i7_internal_contributors",
+  "i9_existing_dpia_summary",
+  "i1b_min_pi",
+  "q4_pi_categories",
+  "q11_policy_review",
+  "exceptions_intake",
+];
 
 export type AssertionState = "confirmed" | "believed" | "unknown";
 export type AssertionBasis =
