@@ -1087,22 +1087,24 @@ export default function CPPARiskAssessment() {
 
               <div>
                 <div className="inline-flex items-center gap-1.5 flex-wrap"><Label>I-7: Who contributed to or was consulted in preparing this assessment? <Req /> <span className="text-xs text-muted-foreground">(§§ 7151, 7152(a)(8))</span></Label><StatutePopover term="I-7 · Contributors and consultees" summary="Identify the individuals and roles who contributed to or were consulted in preparing the risk assessment." cite="11 CCR § 7152(a)(9)" /></div>
-                <ExhibitTextarea
-                  className="mt-2"
-                  rows={2}
+                <div className="mt-2"><AssistedInput
                   value={i7InternalContributors}
                   onChange={setI7InternalContributors}
-                  placeholder="Internal — roles (e.g. Privacy lead, CISO, Legal, Business owner)"
-                />
-                {renderAssertion("i7_internal_contributors")}
-                <ExhibitTextarea
-                  className="mt-2"
+                  pills={ASSISTED_INPUT_REGISTRY.i7_internal_contributors.pills}
                   rows={2}
+                  useExhibit
+                  placeholder="Internal — roles (e.g. Privacy lead, CISO, Legal, Business owner)"
+                  assertionSlot={renderAssertion("i7_internal_contributors")}
+                /></div>
+                <div className="mt-2"><AssistedInput
                   value={i7ExternalConsultees}
                   onChange={setI7ExternalConsultees}
+                  pills={ASSISTED_INPUT_REGISTRY.i7_external_consultees.pills}
+                  rows={2}
+                  useExhibit
                   placeholder="External — counsel, auditors, regulator engagement (optional)"
-                />
-                {renderAssertion("i7_external_consultees")}
+                  assertionSlot={renderAssertion("i7_external_consultees")}
+                /></div>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-3">
