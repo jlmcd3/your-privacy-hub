@@ -6,6 +6,7 @@ import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
 import Footer from "@/components/Footer";
 import { RequirementBadge } from "@/components/RequirementBadge";
 import SampleReportLink from "@/components/SampleReportLink";
+import ToolsSelector from "@/components/tools/ToolsSelector";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
 import { PRICING, isSmartTool, INTELLIGENCE_PRICING, PLATFORM_PRICING, INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 
@@ -591,6 +592,9 @@ export default function Tools() {
           ))}
         </div>
       </div>
+
+      {/* ── U-S Selector (deterministic, static, no fetch/LLM) ─────────── */}
+      <ToolsSelector tools={TOOLS} sampleSlugMap={SAMPLE_SLUG_MAP} />
 
       {/* ── Grouped tool sections ──────────────────────────────────────── */}
       <div id="tools" className="border-t border-brand-cloud">
