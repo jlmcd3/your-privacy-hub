@@ -994,6 +994,7 @@ export default function CPPARiskAssessment() {
                       </InfoPopover>
                     </div>
                     <Textarea rows={3} value={i5AdmtLogic} onChange={(e) => setI5AdmtLogic(e.target.value)} placeholder="ADMT logic summary — what the system decides and how *" />
+                    {renderAssertion("i5_admt_logic")}
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
