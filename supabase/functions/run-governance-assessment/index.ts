@@ -682,7 +682,9 @@ function buildStressGovernanceReport(assessmentId: string, intake: any) {
     enforcement_meta: { attempted: false, skipped: "stress_run" },
     annotations: [],
     lint_warnings: [],
-    disclaimer: "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
+    disclaimer: hasEuUk
+      ? "This report helps your organisation identify potential GDPR governance gaps. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel."
+      : "This report helps your organisation identify potential privacy governance gaps under the applicable US state privacy laws. It does not constitute legal advice. All findings should be reviewed with qualified legal counsel.",
   };
   applyTimelineForm(report);
   return report;
