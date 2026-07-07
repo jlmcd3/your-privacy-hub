@@ -1,7 +1,7 @@
 // qb8 build active
 // run-meter deploy-check v1
-// doc-y-3c build marker
-const DOC_Y_BUILD_MARKER = "doc-y-3c";
+// doc-y-5-2 build marker (Commit 2: Defect 2 illustrative-frequency prompt rule + backstop)
+const DOC_Y_BUILD_MARKER = "doc-y-5-2";
 console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
@@ -13,6 +13,7 @@ import { renderGdprCitationBlock } from "../_shared/gdpr-registry.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
+import { docY5StripIllustrativeFrequency } from "./_doc_y_5.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -222,6 +223,9 @@ function docYValidateCalCivCitations(s: string, fieldPath: string): string {
   });
 }
 
+// Doc Y-5 Defect 2 backstop is imported at the top of the file (see imports).
+
+
 function docYWalkStrings(obj: any, path: string, fn: (s: string, path: string) => string): void {
   if (obj == null) return;
   if (Array.isArray(obj)) {
@@ -318,6 +322,8 @@ function applyDocYPostGeneration(reportData: any, intake: any): void {
       docYWalkStrings(reportData, "report", (s, p) => docY3bRewriteDpiaCoCitations(s, p));
     }
     docYWalkStrings(reportData, "report", (s, p) => docYValidateCalCivCitations(s, p));
+    // Doc Y-5 Defect 2 backstop — runs on ALL geos (not gated by euUkInScope).
+    docYWalkStrings(reportData, "report", (s, p) => docY5StripIllustrativeFrequency(s, p));
   } catch (e) {
     console.warn(`[run-governance-assessment] doc-y post-generation error: ${(e as Error).message}`);
   }
@@ -489,6 +495,7 @@ ${hasEuUk ? `- Art. 29: "GDPR Art. 29 (persons acting under the authority of the
 - Art. 14: "(information to be provided where personal data have not been obtained from the data subject)".
 - Art. 12: "(transparent information, communication and modalities for the exercise of the rights of the data subject)" — replace "consumer-rights"; the GDPR term is data subject rights.
 - DPF sentence, user-facing voice: "including the EU–US Data Privacy Framework (Commission Implementing Decision (EU) 2023/1795) for US-established importers certified under the Framework — verify current certification status at dataprivacyframework.gov".
+${hasEuUk ? `- UK EXTENSION ARTICLE PRECISION: the UK Extension to the EU–US Data Privacy Framework is an ADEQUACY REGULATION under UK GDPR Art. 45, NOT an Art. 46 appropriate safeguard. Any sentence describing a transfer leg to a US importer certified under the UK Extension must cite "UK GDPR Art. 45 adequacy" (or "the UK adequacy regulation for the UK Extension") and MUST NOT cite Art. 46, Art. 46(1), Art. 46(2), or the phrase "appropriate safeguard" for that leg. Art. 46 mechanisms (SCCs, IDTA, UK Addendum, BCRs) apply only where the importer is NOT relying on the UK Extension adequacy.` : ``}
 - DPIA-trigger gloss addition: "Art. 35(3) provides examples and is not exhaustive — any processing likely to result in a high risk under Art. 35(1) requires a DPIA even if not listed in Art. 35(3)."
 - REGULATORY-BASIS SCOPE RULE: a provision appears in a domain's regulatory_basis only if it grounds a gap or recommended action in that domain (e.g. drop Art. 37(1) where the DPO is already appointed and no 37(1) gap exists).
 
@@ -503,6 +510,8 @@ VERIFIED CALIFORNIA BREACH DEADLINES (cite these; do not recall breach-notificat
 "NATIONAL IMPLEMENTING ACTS ARE NAMED ONLY FROM SUPPLIED DATA: never expand, translate, or attribute a national implementing act's name or acronym from memory. Acronyms belong to specific countries (UAVG is the Netherlands' Uitvoeringswet AVG; Germany's federal act is the Bundesdatenschutzgesetz (BDSG)) and a mismatched attribution or an invented expansion is a fatal citation error. Where a finding must reference the national implementing framework and no verified act name is supplied in the prompt or the organisation's profile, write 'the national implementing legislation of [Member State]' generically — never a named act from recall."
 
 "REPEATED CONTENT APPEARS ONCE: a verification instruction, cross-reference direction, or documentation step appears in full exactly ONCE, in its single most relevant finding; every other finding that needs it carries a short cross-reference ('apply the DPIA-list verification set out in the Privacy Impact Assessment Status finding') and never restates the text. The same sentence appearing verbatim in two or more findings, or in both a finding and immediate_actions, is a defect."
+
+"NO ILLUSTRATIVE FREQUENCIES OR PERIODS FOR ORGANISATION-DETERMINED TERMS: where a recommendation directs the organisation to set, adopt, verify, or maintain a schedule, cadence, interval, cycle, or refresher — the frequency is for the organisation to determine and MUST NOT be illustrated. Never emit parenthetical or 'e.g.' examples such as 'quarterly', 'biannual', 'annual', 'monthly', 'weekly', 'daily', 'every N months/years', or any comparable interval. Direct the organisation to establish or verify the schedule without proposing periods. The only exception is a period fixed by a cited statute (e.g., the GDPR Art. 33(1) 72-hour breach clock) — statutory periods are cited, never illustrated."
 
 ${hasEuUk ? `"ARTICLE 28 PRECISION: (1) sub-processor authorisation is grounded in Art. 28(2) (prior specific or general written authorisation) and Art. 28(4) (the same data protection obligations imposed on the sub-processor); Art. 28(3)(d) may be cited only as the contract element that stipulates the processor respects those conditions — never with a gloss presenting 28(3)(d) as itself containing the authorisation requirement. (2) Art. 28(3)(e) requires the processor to ASSIST the controller with data subject rights obligations under Arts. 15–22; the Art. 12(3) one-month window is the CONTROLLER'S deadline — state that DPAs should specify a contractual assistance mechanism and timeframe that enables the controller to meet its Art. 12(3) obligations, never that the processor must fulfil requests within it, and NEVER as a parenthetical glossing the content of Art. 28(3)(e) itself — Art. 28(3)(e) requires assistance; it does not mandate a contractual timeframe. The timeframe is the operational mechanism, not a statutory element, and the sentence must read that way. (3) Art. 33(1) awareness is not limited to receipt of a processor's Art. 33(2) notice — where that notice is described as the typical trigger, add 'or through internal detection or any other means'. (4) The EU–US Data Privacy Framework list and the UK Extension are verified on the same public list at dataprivacyframework.gov — say so when directing both verifications."` : ``}
 
