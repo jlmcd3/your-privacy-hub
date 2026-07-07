@@ -41,6 +41,8 @@ type Grouped = {
 export default function SamplesHub() {
   const [rows, setRows] = useState<SampleRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,10 +66,38 @@ export default function SamplesHub() {
     };
   }, []);
 
+  // Distinct chip options derived from the already-loaded rows.
+  const toolOptions = useMemo(() => {
+    if (!rows) return [] as { slug: string; label: string }[];
+    const seen = new Map<string, string>();
+    for (const r of rows) {
+      if (!seen.has(r.tool_slug)) {
+        seen.set(r.tool_slug, TOOL_DISPLAY[r.tool_slug] ?? r.tool_slug);
+      }
+    }
+    return Array.from(seen, ([slug, label]) => ({ slug, label })).sort((a, b) =>
+      a.label.localeCompare(b.label),
+    );
+  }, [rows]);
+
+  const variantOptions = useMemo(() => {
+    if (!rows) return [] as string[];
+    return Array.from(new Set(rows.map((r) => r.variant))).sort();
+  }, [rows]);
+
+  const filteredRows = useMemo(() => {
+    if (!rows) return [] as SampleRow[];
+    return rows.filter(
+      (r) =>
+        (!selectedTool || r.tool_slug === selectedTool) &&
+        (!selectedVariant || r.variant === selectedVariant),
+    );
+  }, [rows, selectedTool, selectedVariant]);
+
   const grouped: Grouped[] = useMemo(() => {
     if (!rows) return [];
     const map = new Map<string, Grouped>();
-    for (const r of rows) {
+    for (const r of filteredRows) {
       const existing = map.get(r.tool_slug);
       if (existing) {
         existing.variants.push(r);
@@ -78,6 +108,11 @@ export default function SamplesHub() {
           toolRoute: TOOL_ROUTE[r.tool_slug],
           firstScenario: r.scenario_summary,
           variants: [r],
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => a.displayName.localeCompare(b.displayName));
+  }, [rows, filteredRows]);
         });
       }
     }
