@@ -1049,6 +1049,7 @@ export default function CPPARiskAssessment() {
                   onChange={setI6Vendors}
                   placeholder='One per line: "Vendor name — role — PI categories shared". Write "None" if none.'
                 />
+                {renderAssertion("i6_vendors")}
               </div>
 
               <div>
@@ -1060,6 +1061,7 @@ export default function CPPARiskAssessment() {
                   onChange={setI7InternalContributors}
                   placeholder="Internal — roles (e.g. Privacy lead, CISO, Legal, Business owner)"
                 />
+                {renderAssertion("i7_internal_contributors")}
                 <ExhibitTextarea
                   className="mt-2"
                   rows={2}
@@ -1067,6 +1069,7 @@ export default function CPPARiskAssessment() {
                   onChange={setI7ExternalConsultees}
                   placeholder="External — counsel, auditors, regulator engagement (optional)"
                 />
+                {renderAssertion("i7_external_consultees")}
               </div>
 
               <div className="grid sm:grid-cols-2 gap-3">
