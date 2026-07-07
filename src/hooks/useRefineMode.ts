@@ -57,6 +57,11 @@ export interface RefineMode {
   loading: boolean;
   infoNeeded: InfoNeededEntry[];
   infoNeededKeys: string[];
+  // Doc Q: fields referenced by inconsistency_flags[].source_fields or
+  // information_needed[].field on the prior report. Strengthen items are
+  // NEVER included (P3/D5 binding). Consumers must additionally gate
+  // rendering on IMPROVEMENT_KIT_ENABLED && isPro.
+  resolveFields: ResolveFieldMap;
 }
 
 export function useRefineMode(toolType: string): RefineMode {
