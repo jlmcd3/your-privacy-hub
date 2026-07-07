@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useRunMeter } from "./useRunMeter";
+import { deriveResolveFields, type ResolveFieldMap } from "@/lib/rerunHighlighting";
 
 // Maps a tool_type to the result table where its intake lives.
 export const TABLE_MAP: Record<string, string> = {
