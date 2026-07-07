@@ -1007,6 +1007,7 @@ export default function CPPARiskAssessment() {
                       </InfoPopover>
                     </div>
                     <Textarea rows={2} value={i5AdmtTrainingSource} onChange={(e) => setI5AdmtTrainingSource(e.target.value)} placeholder="Training-data source(s)" />
+                    {renderAssertion("i5_admt_training_source")}
                   </div>
                   <div className="mt-2">
                     <div className="inline-flex items-center gap-1.5 mb-1">
