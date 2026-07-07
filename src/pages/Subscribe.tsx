@@ -8,7 +8,14 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, X as XIcon, ArrowRight, ShieldCheck } from "lucide-react";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
-import { PRICING } from "@/config/pricing";
+import {
+  PRICING,
+  INTELLIGENCE_ANNUAL_FREE_RUN_VALUE_DISPLAY,
+  PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY,
+  SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY,
+  SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY,
+  CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY,
+} from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
 import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
@@ -162,11 +169,11 @@ const Subscribe = () => {
                 <ul className="space-y-1.5 text-sm text-white/90">
                   <li className="flex items-start gap-2">
                     <span className="text-brand-mist font-bold">✓</span>
-                    <span><strong className="text-white">1 free Smart Tool run/year</strong> (Governance, LIA, or DPIA — up to $89 value)</span>
+                    <span><strong className="text-white">1 free Smart Tool run/year</strong> (Governance, LIA, or DPIA — up to {INTELLIGENCE_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-brand-mist font-bold">✓</span>
-                    <span>Subscriber pricing on Smart Tools — <strong className="text-white">LIA & DPIA drop from $99 → $49</strong>, Governance $89 → $49, CPPA tools 30–45% off</span>
+                    <span>Subscriber pricing on Smart Tools — <strong className="text-white">LIA & DPIA drop from {SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY}</strong>, Governance {SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY}, CPPA tools {CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-brand-mist font-bold">✓</span>
@@ -223,7 +230,7 @@ const Subscribe = () => {
                 {[
                   "Everything in Intelligence (for account holder)",
                   "Client/matter workspace & compliance record",
-                  "3 free Smart Tool runs per year (annual plan only — up to $267 value)",
+                  `3 free Smart Tool runs per year (annual plan only — up to ${PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)`,
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-white">
                     <span className="text-amber-400 font-bold">✓</span> {item}
@@ -239,11 +246,11 @@ const Subscribe = () => {
                 <ul className="space-y-1.5 text-sm text-white/90">
                   <li className="flex items-start gap-2">
                     <span className="text-amber-400 font-bold">✓</span>
-                    <span><strong className="text-white">3 free Smart Tool runs/year</strong> (Governance, LIA, or DPIA — up to $267 value)</span>
+                    <span><strong className="text-white">3 free Smart Tool runs/year</strong> (Governance, LIA, or DPIA — up to {PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY} value)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-400 font-bold">✓</span>
-                    <span>Lowest per-tool pricing — <strong className="text-white">LIA & DPIA drop from $99 → $49</strong>, Governance $89 → $49, CPPA tools 30–45% off</span>
+                    <span>Lowest per-tool pricing — <strong className="text-white">LIA & DPIA drop from {SMART_TOOL_LIA_DPIA_DISCOUNT_DISPLAY}</strong>, Governance {SMART_TOOL_GOVERNANCE_DISCOUNT_DISPLAY}, CPPA tools {CPPA_SUBSCRIBER_DISCOUNT_RANGE_DISPLAY}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-400 font-bold">✓</span>
