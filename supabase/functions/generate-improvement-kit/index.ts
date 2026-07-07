@@ -408,14 +408,33 @@ Deno.serve(async (req) => {
       sectionB,
     });
 
-    // Bright-lines self-check (never ship if a banned word slipped in).
-    const banned = bannedWordHits(rendered);
+    // Bright-lines self-check (R1-R4).
+    // R2 structural masking: mask each cited enforcement quote before the
+    // R1 check so kit-authored text alone is measured. R3 already omitted
+    // any item whose quote contains "gap" upstream.
+    let maskedForR1 = rendered;
+    for (const it of sectionB) {
+      if (it.enforcement_quote) {
+        // Per-item carve-out log: report any banned words present INSIDE
+        // the quoted span (excluding "gap", which R3 already handled).
+        const inQuote = bannedWordHits(it.enforcement_quote).filter(
+          (w) => !ABSOLUTE_BANNED.has(w),
+        );
+        if (inQuote.length) {
+          console.log(
+            `[improvement-kit] bright-lines quotation carve-out used: ${inQuote.join(", ")} in cited enforcement quote ${it.enforcement_citation ?? "(no-cite)"}`,
+          );
+        }
+        maskedForR1 = maskFirstOccurrence(maskedForR1, it.enforcement_quote);
+      }
+    }
+    const banned = bannedWordHits(maskedForR1);
     if (banned.length) {
       console.warn(
-        `[improvement-kit] bright-lines violation, refusing to return Kit: ${banned.join(", ")}`,
+        `[improvement-kit] R1 bright-lines violation in kit-authored text, refusing to return Kit: ${banned.join(", ")}`,
       );
       return new Response(
-        JSON.stringify({ error: "bright_lines_violation", banned }),
+        JSON.stringify({ error: "bright_lines_violation", banned, scope: "kit_authored" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
