@@ -1,0 +1,1 @@
+UPDATE public.profiles SET is_pro = true WHERE id = '02bc7cd6-a2ef-41c0-8ea8-eaa52e1b1122';

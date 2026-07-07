@@ -12,15 +12,31 @@
 //
 // Provenance:
 //   - Section W templates: EUP_DocP_Kit_Phase1_Function_Entitlement_Lovable_v2.md
-//     (signed off John 2026-07-06; W3 amended "open items" wording; the
-//     bright-lines banned-word list has ZERO exceptions -- "gap" is fully
-//     banned in user-facing Kit strings).
+//     (signed off John 2026-07-06; W3 amended "open items" wording).
 //   - Entitlement (pin P2): Professional monthly AND annual only.
 //     Intelligence subscribers and standalone purchasers are NOT entitled.
 //   - Enforcement context (W6): cited-or-absent; fail-open with
 //     console.warn (Doc F posture).
 //   - QL2 exposure: zero by design (spec rule R4). run-stress-job never
 //     invokes this function.
+//
+// Bright-lines doctrine (5c HYBRID ruling, John 2026-07-07):
+//   R1. Bright-lines applies to KIT-AUTHORED text (skeleton, template,
+//       preamble, framing) with ZERO exceptions.
+//   R2. QUOTATION CARVE-OUT: within the verbatim quoted substring of a
+//       cited enforcement item (guaranteed by W6 cited-or-absent), all
+//       banned words EXCEPT "gap" are exempt. Masking is structural:
+//       only the quoted span is masked before the R1 check; kit-authored
+//       words around each quote remain fully checked. Each carve-out use
+//       is logged.
+//   R3. "gap" REMAINS ABSOLUTE (P5 zero-exception term): a cited quote
+//       containing "gap" causes that ITEM to be treated as uncited --
+//       omitted per-item, rest of Kit unaffected, omission logged. Never
+//       a 500 for this.
+//   R4. 500 fail-closed REMAINS for any R1 violation in kit-authored
+//       text -- that is a build defect, not data.
+//   R5. This comment IS the doctrine; keep it in sync with the code
+//       below (claim-vs-reality discipline).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
@@ -33,8 +49,8 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const KIT_BUILD_MARKER = "doc-p";
 const KIT_VERSION = `${KIT_BUILD_MARKER}-${EVIDENCE_MAP_VERSION}`;
 
-// Bright-lines banned-word list (P5 sign-off: ZERO exceptions; "gap" fully
-// banned). Matched case-insensitively, whole-word.
+// Bright-lines banned-word list. Matched case-insensitively, whole-word.
+// See R1-R4 doctrine in the header for scoping (kit-authored vs quoted).
 const BANNED_WORDS = [
   "trail",
   "evidence",
@@ -51,6 +67,9 @@ const BANNED_WORDS = [
   "assurance",
 ] as const;
 
+// "gap" is the absolute term (R3): never eligible for the quotation carve-out.
+const ABSOLUTE_BANNED = new Set<string>(["gap"]);
+
 function bannedWordHits(text: string): string[] {
   const hits: string[] = [];
   for (const w of BANNED_WORDS) {
@@ -58,6 +77,23 @@ function bannedWordHits(text: string): string[] {
     if (re.test(text)) hits.push(w);
   }
   return hits;
+}
+
+function containsAbsoluteBanned(text: string): boolean {
+  for (const w of ABSOLUTE_BANNED) {
+    if (new RegExp(`\\b${w}\\b`, "i").test(text)) return true;
+  }
+  return false;
+}
+
+// Mask a substring occurrence in `text` with spaces of equal length. Used
+// to structurally exempt quoted enforcement spans from the R1 check while
+// keeping all surrounding kit-authored text under check.
+function maskFirstOccurrence(text: string, needle: string): string {
+  if (!needle) return text;
+  const idx = text.indexOf(needle);
+  if (idx < 0) return text;
+  return text.slice(0, idx) + " ".repeat(needle.length) + text.slice(idx + needle.length);
 }
 
 interface AssertionEntry {
@@ -80,6 +116,11 @@ interface KitItemB {
   recorded_basis: string;
   template_or_policy: string;
   enforcement_line: string | null;
+  // The full cited-enforcement quoted span (same string as enforcement_line
+  // when rendered). Used by the R2 structural masking; kept separate so the
+  // self-check can identify exactly what to mask before running R1.
+  enforcement_quote: string | null;
+  enforcement_citation: string | null;
 }
 
 function renderSectionA(items: KitItemA[]): string {
@@ -168,7 +209,7 @@ async function isProfessional(userId: string): Promise<boolean> {
 async function enforcementLineForItem(
   admin: ReturnType<typeof createClient>,
   topic: string,
-): Promise<string | null> {
+): Promise<{ line: string; citation: string } | null> {
   try {
     const { data, error } = await admin.functions.invoke(
       "get-enforcement-context",
@@ -201,7 +242,17 @@ async function enforcementLineForItem(
         r.key_compliance_failure ?? r.violation ?? "posture noted",
       );
       const date = r.decision_date ? ` (${String(r.decision_date)})` : "";
-      return `${regulator}${subject}: ${failure}${date} [${cite.trim()}]`;
+      const citation = cite.trim();
+      const line = `${regulator}${subject}: ${failure}${date} [${citation}]`;
+      // R3: "gap" is absolute. If the verbatim quoted content contains
+      // "gap", treat this item as uncited -- omit and log; do NOT 500.
+      if (containsAbsoluteBanned(line)) {
+        console.warn(
+          `[improvement-kit] R3 omit: cited enforcement quote contains absolute banned term ("gap"); item treated as uncited. citation=${citation}`,
+        );
+        return null;
+      }
+      return { line, citation };
     }
     return null;
   } catch (e) {
@@ -338,13 +389,15 @@ Deno.serve(async (req) => {
           (s.description as string | undefined) ??
           fieldId,
       );
-      const enforcementLine = await enforcementLineForItem(admin, topic);
+      const enforcement = await enforcementLineForItem(admin, topic);
       sectionB.push({
         item_id: String(s.id ?? `strengthen-${sectionB.length + 1}`),
         citing_regulation: String(s.citation ?? "11 CCR § 7152"),
         recorded_basis: basis,
         template_or_policy: ev.sufficient_form,
-        enforcement_line: enforcementLine,
+        enforcement_line: enforcement ? enforcement.line : null,
+        enforcement_quote: enforcement ? enforcement.line : null,
+        enforcement_citation: enforcement ? enforcement.citation : null,
       });
     }
 
@@ -355,14 +408,40 @@ Deno.serve(async (req) => {
       sectionB,
     });
 
-    // Bright-lines self-check (never ship if a banned word slipped in).
-    const banned = bannedWordHits(rendered);
+    // Bright-lines self-check (R1-R4).
+    // R2 structural masking: mask each cited enforcement quote before the
+    // R1 check so kit-authored text alone is measured. R3 already omitted
+    // any item whose quote contains "gap" upstream.
+    let maskedForR1 = rendered;
+    for (const it of sectionB) {
+      if (it.enforcement_quote) {
+        // Per-item carve-out log: report any banned words present INSIDE
+        // the quoted span (excluding "gap", which R3 already handled).
+        const inQuote = bannedWordHits(it.enforcement_quote).filter(
+          (w) => !ABSOLUTE_BANNED.has(w),
+        );
+        if (inQuote.length) {
+          console.log(
+            `[improvement-kit] bright-lines quotation carve-out used: ${inQuote.join(", ")} in cited enforcement quote ${it.enforcement_citation ?? "(no-cite)"}`,
+          );
+        }
+        maskedForR1 = maskFirstOccurrence(maskedForR1, it.enforcement_quote);
+      }
+    }
+    const banned = bannedWordHits(maskedForR1);
     if (banned.length) {
+      // Debug: emit which line contains the banned word so we can trace
+      // the offending kit-authored substring.
+      for (const w of banned) {
+        const re = new RegExp(`.{0,80}\\b${w}\\b.{0,80}`, "i");
+        const m = maskedForR1.match(re);
+        console.warn(`[improvement-kit] R1 hit context (${w}): ${m ? m[0] : "(no context)"}`);
+      }
       console.warn(
-        `[improvement-kit] bright-lines violation, refusing to return Kit: ${banned.join(", ")}`,
+        `[improvement-kit] R1 bright-lines violation in kit-authored text, refusing to return Kit: ${banned.join(", ")}`,
       );
       return new Response(
-        JSON.stringify({ error: "bright_lines_violation", banned }),
+        JSON.stringify({ error: "bright_lines_violation", banned, scope: "kit_authored" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
