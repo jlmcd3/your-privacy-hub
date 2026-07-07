@@ -113,11 +113,6 @@ export default function SamplesHub() {
     }
     return Array.from(map.values()).sort((a, b) => a.displayName.localeCompare(b.displayName));
   }, [rows, filteredRows]);
-        });
-      }
-    }
-    return Array.from(map.values()).sort((a, b) => a.displayName.localeCompare(b.displayName));
-  }, [rows]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
