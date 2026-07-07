@@ -99,6 +99,41 @@ export default function CPPARiskAssessmentResult() {
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
   const [pollTimedOut, setPollTimedOut] = useState(false);
+  const { isPro } = useSubscriptionTier();
+  const [kitLoading, setKitLoading] = useState(false);
+
+  // Doc P Step 4: standalone Risk result page entry point.
+  // Flag stays OFF in production; Professional-only.
+  const kitAvailable = IMPROVEMENT_KIT_ENABLED && isPro && row?.status === "complete" && !!row?.id;
+
+  const handleDownloadKit = async () => {
+    if (!row?.id) return;
+    setKitLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-improvement-kit", {
+        body: { assessment_id: row.id },
+      });
+      if (error) throw error;
+      if (!data?.entitled) {
+        toast({ title: "Not available", description: "This capability is Professional-only.", variant: "destructive" });
+        return;
+      }
+      const md = data.rendered_markdown ?? "";
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `assessment-improvement-kit-${row.id}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      toast({ title: "Could not generate Kit", description: e?.message ?? "Unknown error", variant: "destructive" });
+    } finally {
+      setKitLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
