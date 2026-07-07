@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRegenerate } from "@/hooks/useRegenerate";
 import { startMeterExtension } from "@/lib/meterExtension";
+import type { ResolveFieldMap } from "@/lib/rerunHighlighting";
 
 export interface EditableFieldSpec {
   key: string;
@@ -24,6 +25,13 @@ interface Props {
   runsRemaining: number;
   resultPath: string; // where to navigate after acceptance, e.g. "/li-assessment-result/:id"
   infoNeededKeys?: string[]; // fields the report named as needed for a fuller determination
+  // Doc Q: fields referenced by inconsistency_flags[].source_fields or
+  // information_needed[].field on the prior report. Rendered ONLY when
+  // resolveHighlightingEnabled === true (caller gates on
+  // IMPROVEMENT_KIT_ENABLED && isPro). Strengthen fields NEVER appear
+  // here by construction (P3/D5).
+  resolveFields?: ResolveFieldMap;
+  resolveHighlightingEnabled?: boolean;
 }
 
 
@@ -37,8 +45,14 @@ function renderLockedValue(v: unknown): string {
 export default function RefinePanel({
   toolType, assessmentId, intake, lockedFields, editable,
   runsUsed, runsAllowed, runsRemaining, resultPath, infoNeededKeys,
+  resolveFields, resolveHighlightingEnabled,
 }: Props) {
   const infoSet = new Set(infoNeededKeys ?? []);
+  // Doc Q: active RESOLVE map, empty when disabled. Local cleared-set
+  // hides the highlight/chip visually on edit -- never mutates data.
+  const activeResolve = resolveHighlightingEnabled && resolveFields ? resolveFields : { fields: {}, fieldOrder: [], count: 0 };
+  const [clearedResolve, setClearedResolve] = useState<Set<string>>(new Set());
+  const firstResolveRef = useRef<HTMLDivElement | null>(null);
 
   const nav = useNavigate();
   const { toast } = useToast();
