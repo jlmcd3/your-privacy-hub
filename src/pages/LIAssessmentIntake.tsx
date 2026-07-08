@@ -471,8 +471,13 @@ const LIAssessmentIntake = () => {
 
           <div>
             <Label className="text-base">How can data subjects object or opt out? *</Label>
-            <Textarea value={optOutMechanism} onChange={(e) => setOptOutMechanism(e.target.value)} className="mt-2" rows={2}
-              placeholder="e.g. One-click unsubscribe in every email, account-level toggle, privacy@ inbox monitored within 7 days." />
+            <AssistedInput
+              className="mt-2"
+              value={optOutMechanism}
+              onChange={setOptOutMechanism}
+              pills={ASSISTED_INPUT_REGISTRY.optOutMechanism.pills}
+              placeholder="e.g. One-click unsubscribe in every email, account-level toggle, privacy@ inbox monitored within 7 days."
+            />
           </div>
 
           {showEmploymentBranch && (
@@ -482,7 +487,12 @@ const LIAssessmentIntake = () => {
                 Regulators expect proportionate safeguards: works council consultation, transparency, no covert monitoring,
                 limits on use against the employee.
               </p>
-              <Textarea value={employmentSafeguards} onChange={(e) => setEmploymentSafeguards(e.target.value)} rows={2} />
+              <AssistedInput
+                className="mt-2"
+                value={employmentSafeguards}
+                onChange={setEmploymentSafeguards}
+                pills={ASSISTED_INPUT_REGISTRY.employmentSafeguards.pills}
+              />
             </div>
           )}
         </section>
