@@ -149,7 +149,7 @@ export default function CPPACybersecurity() {
           description: "18-control gap assessment with dynamic Breach Precedent Map, FSOR-cited findings, and auditor handoff package.",
           brand: { "@type": "Brand", name: "End User Privacy" },
           url: "https://enduserprivacy.com/cppa-cybersecurity",
-          offers: { "@type": "Offer", price: "99", priceCurrency: "USD", availability: "https://schema.org/InStock" },
+          offers: { "@type": "Offer", price: String(PRICING.tools.cppa_cyber.dollars), priceCurrency: "USD", availability: "https://schema.org/InStock" },
         })}</script>
       </Helmet>
       <header className="bg-[#1a4a6e] text-white py-12">
