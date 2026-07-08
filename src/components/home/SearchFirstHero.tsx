@@ -8,7 +8,7 @@ export default function SearchFirstHero() {
   const euMode = isEuOrUk(country);
 
   return (
-    <div className="relative bg-gradient-to-br from-brand-navy via-brand-ocean to-brand-slate-teal border-b border-white/10 overflow-hidden">
+    <div className="relative bg-gradient-to-br from-brand-navy via-brand-ocean to-[#1f6674] border-b border-white/10 overflow-hidden">
       <StarFieldBackground />
       <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
@@ -22,12 +22,12 @@ export default function SearchFirstHero() {
                 ? "New EDPB DPIA template is just about here"
                 : "California's CPPA deadlines are here"}
             </p>
-            <p className="font-display text-3xl md:text-4xl text-white/90 mb-6">
+            <p className="font-display text-3xl md:text-4xl text-white/95 mb-6">
               {euMode
                 ? "Generate your EDPB-aligned DPIA now."
                 : "Find out which CPPA rules apply to you — free."}
             </p>
-            <p className="text-blue-200/80 text-sm md:text-base mb-6 whitespace-pre-line">
+            <p className="text-blue-100 text-sm md:text-base mb-6 whitespace-pre-line">
               {euMode
                 ? "The EDPB's harmonised DPIA template — out for public consultation through June 2026 — will be adopted by national supervisory authorities across the EEA as their unique or 'meta' template. Get ahead of the rollout: generate a DPIA structured to the EDPB template today, with controller inputs, risk analysis, and Article 35 mapping built in. Plus daily global privacy intelligence and enforcement-calibrated tools."
                 : "California businesses face risk-assessment, cybersecurity-audit, and ADMT deadlines through 2027. Check your obligations in two minutes — then generate the assessments that satisfy them. Plus daily global privacy intelligence and enforcement-calibrated tools."}
@@ -47,15 +47,15 @@ export default function SearchFirstHero() {
               {/* Card 1 — Privacy Intelligence Feed (Free, subdued blue) */}
               <a
                 href="#updates"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-teal hover:bg-brand-teal/80 border border-brand-teal hover:border-brand-teal/80 transition-all duration-200"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-teal-deep hover:bg-brand-teal/80 border border-brand-teal hover:border-brand-teal/80 transition-all duration-200"
               >
-                <p className="text-eyebrow text-white/50 mb-1.5">
+                <p className="text-eyebrow text-white/95 mb-1.5">
                   Privacy Intelligence Feed
                 </p>
                 <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Feed — to keep you ahead
                 </p>
-                <p className="text-meta text-white/60 leading-snug">
+                <p className="text-meta text-white/95 leading-snug">
                   Key privacy developments. Enriched with compliance intelligence. Updated daily.
                 </p>
               </a>
@@ -65,13 +65,13 @@ export default function SearchFirstHero() {
                 href="#brief"
                 className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-slate-teal hover:bg-brand-slate-teal/80 border border-brand-slate-teal hover:border-brand-slate-teal/80 transition-all duration-200"
               >
-                <p className="text-eyebrow text-white/80 mb-1.5">
+                <p className="text-eyebrow text-white/95 mb-1.5">
                   Intelligence Report
                 </p>
                 <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
                   Your Privacy Intelligence Report — to save you time
                 </p>
-                <p className="text-meta text-white/85 leading-snug">
+                <p className="text-meta text-white/95 leading-snug">
                   Personalized to your jurisdiction, role, and tracked topics. Every Monday.
                 </p>
               </a>
@@ -79,15 +79,15 @@ export default function SearchFirstHero() {
               {/* Card 3 — Compliance Tools (Premium, midpoint teal) */}
               <a
                 href="#tools"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-[hsl(182,55%,38%)] hover:bg-[hsl(182,55%,38%)]/80 border border-[hsl(182,55%,38%)] hover:border-[hsl(182,55%,38%)]/80 transition-all duration-200"
+                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-[#1f6674] hover:bg-[#1f6674]/80 border border-[#1f6674] hover:border-[#1f6674]/80 transition-all duration-200"
               >
-                <p className="text-eyebrow text-white/80 mb-1.5">
+                <p className="text-eyebrow text-white/95 mb-1.5">
                   Compliance Tools
                 </p>
                 <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
                   Your Compliance Tools — to do your job well
                 </p>
-                <p className="text-meta text-white/85 leading-snug">
+                <p className="text-meta text-white/95 leading-snug">
                   LIA, DPIA, DPA, IR Playbook, Governance. Enforcement-calibrated — with annotated reasoning in every output.
                 </p>
               </a>
@@ -97,13 +97,13 @@ export default function SearchFirstHero() {
                 href="/cppa-scope-checker"
                 className="group flex-1 order-first rounded-2xl px-5 py-4 no-underline block bg-[#1f6a6a] hover:bg-[#1f6a6a]/80 border border-[#1f6a6a] hover:border-[#1f6a6a]/80 transition-all duration-200"
               >
-                <p className="text-eyebrow text-white/80 mb-1.5">
+                <p className="text-eyebrow text-white/95 mb-1.5">
                   CPPA Compliance
                 </p>
                 <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
                   Your CPPA Readiness — to assess and act
                 </p>
-                <p className="text-meta text-white/85 leading-snug">
+                <p className="text-meta text-white/95 leading-snug">
                   CPPA scope checker, risk assessment, cybersecurity audit, and ADMT assessment. Calibrated to California's CPPA regulations.
                 </p>
               </a>
@@ -111,7 +111,7 @@ export default function SearchFirstHero() {
             </div>
 
             {/* Subtle pricing note */}
-            <p className="text-white/40 text-meta mt-4 text-center lg:text-left">
+            <p className="text-white/95 text-meta mt-4 text-center lg:text-left">
               Intelligence from {INTELLIGENCE_PRICING.monthly()} ·
               Professional from {PLATFORM_PRICING.standardMonthly()} + {PLATFORM_PRICING.clientAddon()} ·
               Tools available standalone

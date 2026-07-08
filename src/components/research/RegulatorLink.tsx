@@ -35,7 +35,7 @@ export function RegulatorLink({ slug, full = false }: RegulatorLinkProps) {
   return (
     <Link
       to={`/regulator/${slug}`}
-      className="text-brand-teal no-underline hover:underline"
+      className="text-brand-teal-text no-underline hover:underline"
     >
       {label}
     </Link>

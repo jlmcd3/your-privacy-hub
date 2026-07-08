@@ -36,7 +36,7 @@ export default function CPPADeadlineStrip() {
         <div className="flex items-center gap-3 md:ml-auto">
           <Link
             to="/cppa-scope-checker"
-            className="text-brand-teal hover:text-white font-semibold whitespace-nowrap no-underline"
+            className="text-brand-teal-on-navy hover:text-white font-semibold whitespace-nowrap no-underline"
           >
             Check your scope free →
           </Link>

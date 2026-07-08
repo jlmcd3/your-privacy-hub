@@ -268,7 +268,7 @@ const CompactCard = ({ item }: { item: ArticleItem }) => {
   return (
     <Wrapper>
       <div className="flex items-start gap-2">
-        <p className="text-[9px] font-semibold text-gray-900 leading-snug group-hover:text-brand-teal transition-colors line-clamp-2 flex-1">
+        <p className="text-[9px] font-semibold text-gray-900 leading-snug group-hover:text-brand-teal-text transition-colors line-clamp-2 flex-1">
           {normalizeTitle(item.title)}
         </p>
         {enriched && <IntelligenceBadge />}
@@ -309,7 +309,7 @@ const BriefBuilderCTA = ({ item }: { item: ArticleItem }) => {
     <div className="mt-2">
       <Link
         to={href}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:underline no-underline"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal-text hover:underline no-underline"
       >
         <Sparkles className="w-3 h-3" />
         {label}
@@ -391,7 +391,7 @@ const FullCard = ({
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleArticle(); }}
-            className="flex items-center gap-1 px-1.5 py-1 rounded hover:text-brand-teal hover:bg-brand-cloud/50 transition-colors"
+            className="flex items-center gap-1 px-1.5 py-1 rounded hover:text-brand-teal-text hover:bg-brand-cloud/50 transition-colors"
             aria-label={expanded ? 'Collapse this article' : 'Expand this article'}
           >
             <span>{expanded ? 'Collapse this article' : 'Expand this article'}</span>
@@ -401,7 +401,7 @@ const FullCard = ({
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleAll(); }}
-            className="flex items-center gap-1 px-1.5 py-1 rounded hover:text-brand-teal hover:bg-brand-cloud/50 transition-colors"
+            className="flex items-center gap-1 px-1.5 py-1 rounded hover:text-brand-teal-text hover:bg-brand-cloud/50 transition-colors"
             aria-label={showAll ? 'Collapse all articles' : 'Expand all articles'}
           >
             <span>{showAll ? 'Collapse all' : 'Expand all'}</span>
@@ -457,7 +457,7 @@ const FullCard = ({
         {/* Title */}
         <TitleLink
           item={item}
-          className="text-base text-gray-900 hover:text-brand-teal block mb-1 no-underline transition-colors"
+          className="text-base text-gray-900 hover:text-brand-teal-text block mb-1 no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-3 h-3 inline ml-1 opacity-30" />}
@@ -477,7 +477,7 @@ const FullCard = ({
               <Link to="/signup" className="text-sm font-semibold text-brand-steel hover:underline no-underline">
                 Register free to see analysis →
               </Link>
-              <Link to="/subscribe" className="text-sm font-semibold text-brand-teal hover:underline no-underline">
+              <Link to="/subscribe" className="text-sm font-semibold text-brand-teal-text hover:underline no-underline">
                 Subscribe to use AI investigation prompts →
               </Link>
             </div>
@@ -537,7 +537,7 @@ const FullCard = ({
                     <ul className="space-y-1 list-none pl-0">
                       {actionItems.slice(0, 3).map((a, i) => (
                         <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy leading-relaxed">
-                          <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                          <span className="text-brand-teal-text flex-shrink-0 mt-0.5">•</span>
                           <span>{a.action}</span>
                         </li>
                       ))}
@@ -566,7 +566,7 @@ const FullCard = ({
               )}
 
               <div className="pt-2 border-t border-brand-cloud">
-                <Link to={toolCTA.href} className="text-sm font-semibold text-brand-teal hover:underline no-underline">
+                <Link to={toolCTA.href} className="text-sm font-semibold text-brand-teal-text hover:underline no-underline">
                   {toolCTA.label}
                 </Link>
               </div>
@@ -656,7 +656,7 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
         <a
           href={item.source_url || `/updates/${item.id}`}
           {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-          className="text-[9px] font-semibold text-gray-900 hover:text-brand-teal no-underline leading-snug block">
+          className="text-[9px] font-semibold text-gray-900 hover:text-brand-teal-text no-underline leading-snug block">
           {normalizeTitle(item.title)}
         </a>
         {item.summary && (
@@ -675,7 +675,7 @@ const EnforcementCard = ({ item }: { item: ArticleItem }) => {
       )}
       {item.source_url && (
         <a href={item.source_url} target="_blank" rel="noopener noreferrer"
-          className="flex-shrink-0 text-brand-mist hover:text-brand-teal mt-0.5">
+          className="flex-shrink-0 text-brand-mist hover:text-brand-teal-text mt-0.5">
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
       )}
@@ -871,7 +871,7 @@ export const HomepageCard = ({ item }: { item: ArticleItem }) => {
         </div>
         <TitleLink
           item={item}
-          className="text-[9px] font-semibold text-gray-900 hover:text-brand-teal leading-snug block no-underline transition-colors"
+          className="text-[9px] font-semibold text-gray-900 hover:text-brand-teal-text leading-snug block no-underline transition-colors"
         >
           {normalizeTitle(item.title)}
           {item.source_url && <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />}

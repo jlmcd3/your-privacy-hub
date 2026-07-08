@@ -67,7 +67,7 @@ export default function Art9Art10Checklist({ activityId }: Props) {
   return (
     <div className="mb-4 rounded-lg border border-border bg-muted/20 p-4">
       <div className="flex items-center gap-2 mb-1">
-        <CheckSquare className="w-4 h-4 text-brand-teal" />
+        <CheckSquare className="w-4 h-4 text-brand-teal-text" />
         <h4 className="text-sm font-semibold">
           Special category & criminal-offence self-check
         </h4>

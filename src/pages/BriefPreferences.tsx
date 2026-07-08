@@ -222,7 +222,7 @@ export default function BriefPreferences() {
             </div>
           )}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-1.5 text-brand-teal text-xs font-bold uppercase tracking-widest mb-3">
+            <div className="inline-flex items-center gap-1.5 text-brand-teal-text text-xs font-bold uppercase tracking-widest mb-3">
               <span>⭐</span> Intelligence
             </div>
             <h1 className="font-display text-brand-navy mb-2">Configure your Privacy Intelligence Report</h1>

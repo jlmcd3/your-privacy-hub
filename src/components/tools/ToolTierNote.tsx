@@ -31,7 +31,7 @@ export default function ToolTierNote({
   if (isIncluded) {
     return (
       <p
-        className={`text-[12px] text-brand-teal bg-brand-teal/10 border border-brand-teal/30 rounded-lg px-3 py-2 mt-2 ${className}`}
+        className={`text-[12px] text-brand-teal-text bg-brand-teal/10 border border-brand-teal/30 rounded-lg px-3 py-2 mt-2 ${className}`}
       >
         ✓ Included with your subscription —{" "}
         <Link to="/account" className="underline">

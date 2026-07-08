@@ -272,7 +272,7 @@ export default function Horizon() {
             <p className="text-slate text-[14px] mb-3">
               No horizon signals published yet. Check back next week.
             </p>
-            <Link to="/updates" className="text-brand-teal text-sm font-medium no-underline">
+            <Link to="/updates" className="text-brand-teal-text text-sm font-medium no-underline">
               Browse latest regulatory updates →
             </Link>
           </div>

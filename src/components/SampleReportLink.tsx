@@ -25,7 +25,7 @@ export default function SampleReportLink({
       <Link
         to={`/samples/${toolSlug}`}
         className={`inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline ${
-          tone === "onDark" ? "text-white/90 hover:text-white" : "text-brand-teal"
+          tone === "onDark" ? "text-white/90 hover:text-white" : "text-brand-teal-text"
         } ${className ?? ""}`}
       >
         <FileText className="h-4 w-4" aria-hidden />

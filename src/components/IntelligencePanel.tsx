@@ -47,7 +47,7 @@ export function IntelligencePanel({
     return (
       <div className="bg-card border border-brand-cloud rounded-xl overflow-hidden">
         <div className="bg-brand-navy px-4 py-3">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-brand-teal mb-0.5">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-brand-teal-text mb-0.5">
             Privacy Intelligence Brief
           </p>
           <h3 className="text-[17px] text-white leading-snug">
@@ -60,7 +60,7 @@ export function IntelligencePanel({
 
         {hasSeed && selectedArticle && (
           <div className="px-4 py-2.5 bg-brand-teal/10 border-b border-brand-cloud flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-brand-teal flex-shrink-0" />
+            <div className="w-1.5 h-1.5 rounded-full bg-brand-teal-deep flex-shrink-0" />
             <p className="text-[11px] text-brand-navy/80">
               Context pre-loaded: {selectedArticle.jurisdiction || selectedArticle.category}
             </p>
@@ -117,7 +117,7 @@ export function IntelligencePanel({
           href={selectedArticle.source_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-display text-[12px] font-bold text-brand-navy hover:text-brand-teal leading-snug block no-underline transition-colors"
+          className="font-display text-[12px] font-bold text-brand-navy hover:text-brand-teal-text leading-snug block no-underline transition-colors"
         >
           {normalizeTitle(selectedArticle.title)}
           <ExternalLink className="w-3 h-3 inline ml-1 opacity-40 flex-shrink-0" />
@@ -152,7 +152,7 @@ export function IntelligencePanel({
             next.{" "}
             <Link
               to="/subscribe"
-              className="text-brand-teal font-semibold no-underline hover:underline"
+              className="text-brand-teal-text font-semibold no-underline hover:underline"
             >
               See Platform →
             </Link>

@@ -140,7 +140,7 @@ export default function CPPAHub() {
           </p>
           <Link
             to="/cppa-scope-checker"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal/90 no-underline"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded bg-brand-teal-deep text-white text-sm font-medium hover:bg-brand-teal/90 no-underline"
           >
             Run Scope Checker <ArrowRight className="w-4 h-4" />
           </Link>
@@ -197,7 +197,7 @@ export default function CPPAHub() {
           </p>
           <Link
             to="/cppa-admt-checker"
-            className="inline-block text-sm font-semibold text-white bg-brand-teal px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline"
+            className="inline-block text-sm font-semibold text-white bg-brand-teal-deep px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline"
           >
             Open the ADMT Compliance Assessment →
           </Link>

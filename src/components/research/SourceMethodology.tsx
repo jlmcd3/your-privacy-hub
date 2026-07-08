@@ -24,7 +24,7 @@ export default function SourceMethodology({ className }: { className?: string })
       <p className="mt-3 text-sm m-0">
         <Link
           to={contactHref}
-          className="text-brand-teal font-medium hover:underline no-underline"
+          className="text-brand-teal-text font-medium hover:underline no-underline"
         >
           Report an error →
         </Link>

@@ -74,7 +74,7 @@ function formatDate(value?: string | null) {
 function statusBadge(status?: string | null) {
   const s = (status || "").toLowerCase();
   if (s === "generated" || s === "completed" || s === "complete") {
-    return <Badge className="bg-brand-teal/15 text-brand-teal border-brand-teal/30 text-[10px]">Generated</Badge>;
+    return <Badge className="bg-brand-teal/15 text-brand-teal-text border-brand-teal/30 text-[10px]">Generated</Badge>;
   }
   if (s === "in_progress" || s === "draft" || s === "pending") {
     return <Badge variant="secondary" className="text-[10px]">In progress</Badge>;
@@ -236,7 +236,7 @@ export default function NoticesRopaHub() {
                         <div className="min-w-0">
                           <Link
                             to={meta.viewPath(row.id)}
-                            className="text-sm font-semibold text-brand-navy hover:text-brand-teal truncate block"
+                            className="text-sm font-semibold text-brand-navy hover:text-brand-teal-text truncate block"
                           >
                             {meta.label}
                           </Link>

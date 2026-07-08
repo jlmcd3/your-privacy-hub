@@ -146,7 +146,7 @@ export default function AdminSubscribers() {
                 : `Showing ${filtered.length} of ${rows.length} paid subscribers`}
             </p>
           </div>
-          <Link to="/admin/sample-reports" className="text-sm text-brand-teal hover:underline">
+          <Link to="/admin/sample-reports" className="text-sm text-brand-teal-text hover:underline">
             ← Admin home
           </Link>
         </div>
@@ -225,7 +225,7 @@ export default function AdminSubscribers() {
             <button
               onClick={exportCsv}
               disabled={filtered.length === 0}
-              className="w-full text-sm px-3 py-2 rounded-lg bg-brand-navy text-white font-medium hover:bg-brand-teal disabled:opacity-50"
+              className="w-full text-sm px-3 py-2 rounded-lg bg-brand-navy text-white font-medium hover:bg-brand-teal-deep disabled:opacity-50"
             >
               Export CSV
             </button>
@@ -263,7 +263,7 @@ export default function AdminSubscribers() {
                         {r.email ?? "—"}
                       </td>
                       <td className="px-4 py-2">
-                        <span className="text-[11px] px-2 py-0.5 rounded bg-brand-teal/10 text-brand-teal font-medium">
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-brand-teal/10 text-brand-teal-text font-medium">
                           {r.subscription_tier ?? "—"}
                         </span>
                       </td>

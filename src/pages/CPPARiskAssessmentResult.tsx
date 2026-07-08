@@ -424,7 +424,7 @@ export default function CPPARiskAssessmentResult() {
                         {d.priority && <p className="text-xs text-muted-foreground">Priority: {d.priority}</p>}
                         {Array.isArray(d.fsor_commentary) && d.fsor_commentary.length > 0 && (
                           <div className="mt-3 border-l-2 border-brand-teal bg-brand-teal/5 pl-3 py-2 space-y-2">
-                            <p className="text-[11px] font-bold tracking-wider uppercase text-brand-teal">
+                            <p className="text-[11px] font-bold tracking-wider uppercase text-brand-teal-text">
                               Background
                             </p>
                             {d.fsor_commentary.slice(0, 3).map((f: any, fi: number) => (
@@ -443,7 +443,7 @@ export default function CPPARiskAssessmentResult() {
                                   )}
                                   {f.source_url && (
                                     <a href={f.source_url} target="_blank" rel="noopener noreferrer"
-                                      className="text-brand-teal underline">Source</a>
+                                      className="text-brand-teal-text underline">Source</a>
                                   )}
                                 </AdminOnly>
                               </div>
@@ -560,7 +560,7 @@ export default function CPPARiskAssessmentResult() {
                         <div key={f.id ?? i} className="border rounded-lg p-4 space-y-2">
                           {/* Regulation tag */}
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-mono text-xs font-semibold text-brand-teal">
+                            <span className="font-mono text-xs font-semibold text-brand-teal-text">
                               {f.regulation_citation}
                             </span>
                             {Array.isArray(f.topic_tags) && f.topic_tags.slice(0, 2).map((t: string) => (

@@ -336,10 +336,10 @@ const Subscribe = () => {
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b-2 border-brand-cloud bg-brand-mist">
-                  <th className="text-left py-3 pr-4 pl-5 font-semibold text-gray-700 w-1/2 !bg-brand-mist">Feature</th>
-                  <th className="text-center py-3 px-2 font-semibold text-gray-500 text-xs uppercase tracking-wider">Anonymous</th>
-                  <th className="text-center py-3 px-2 font-semibold text-brand-steel text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">{PRICING.intelligence.monthly.display}/mo</span></th>
-                  <th className="text-center py-3 px-2 font-semibold text-xs uppercase tracking-wider" style={{color:'hsl(var(--gold))'}}>Professional<br/><span className="font-normal normal-case tracking-normal">{PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr</span></th>
+                  <th className="text-left py-3 pr-4 pl-5 font-semibold text-brand-navy w-1/2 !bg-brand-mist">Feature</th>
+                  <th className="text-center py-3 px-2 font-semibold text-brand-navy text-xs uppercase tracking-wider">Anonymous</th>
+                  <th className="text-center py-3 px-2 font-semibold text-brand-navy text-xs uppercase tracking-wider">Intelligence<br/><span className="font-normal normal-case tracking-normal">{PRICING.intelligence.monthly.display}/mo</span></th>
+                  <th className="text-center py-3 px-2 font-semibold text-brand-navy text-xs uppercase tracking-wider">Professional<br/><span className="font-normal normal-case tracking-normal">{PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-cloud/60">
@@ -390,7 +390,7 @@ const Subscribe = () => {
                   if (row.type === 'section') {
                     return (
                       <tr key={i} className="bg-brand-navy/5">
-                        <td colSpan={4} className="px-5 py-2 text-eyebrow text-brand-navy/60 border-t border-brand-cloud">
+                        <td colSpan={4} className="px-5 py-2 text-eyebrow text-brand-steel border-t border-brand-cloud">
                           {row.feature}
                         </td>
                       </tr>
@@ -398,10 +398,10 @@ const Subscribe = () => {
                   }
                   return (
                     <tr key={i} className={i % 2 === 0 ? 'bg-card' : 'bg-brand-cloud/50'}>
-                      <td className="py-2.5 pr-4 pl-5 text-gray-700">{row.feature}</td>
-                      <td className="py-2.5 px-2 text-center text-gray-400">{row.free}</td>
+                      <td className="py-2.5 pr-4 pl-5 text-brand-navy">{row.feature}</td>
+                      <td className="py-2.5 px-2 text-center text-brand-steel">{row.free}</td>
                       <td className="py-2.5 px-2 text-center font-medium text-brand-steel">{row.intel}</td>
-                      <td className="py-2.5 px-2 text-center font-medium" style={{color:'hsl(var(--gold))'}}>{row.platform}</td>
+                      <td className="py-2.5 px-2 text-center font-medium text-brand-teal-text">{row.platform}</td>
                     </tr>
                   );
                 })}
@@ -409,7 +409,7 @@ const Subscribe = () => {
             </table>
           </div>
         </div>
-        <p className="text-center text-xs text-gray-400 mt-4">
+        <p className="text-center text-xs text-brand-steel mt-4">
           Individual tools also available as standalone purchases.
           CPPA Scope Checker is free — no account required.
         </p>
@@ -418,7 +418,7 @@ const Subscribe = () => {
       {fromBuilder && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
           <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4 flex items-start gap-3">
-            <span className="text-green-600 text-lg flex-shrink-0 mt-0.5">✓</span>
+            <span className="text-green-700 text-lg flex-shrink-0 mt-0.5">✓</span>
             <div>
               <p className="font-bold text-brand-navy text-sm mb-0.5">
                 Your Intelligence Report is configured and ready.
@@ -461,7 +461,7 @@ const Subscribe = () => {
                     <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-brand-navy/70 w-[170px]">
                       Intelligence ({PRICING.intelligence.monthly.display}/mo)
                     </th>
-                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-amber-600 w-[230px]">
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-amber-800 w-[230px]">
                       Professional ({PRICING.professional.base.display}/mo + {PRICING.professional.perClient.display}/client/yr)
                     </th>
                   </tr>
@@ -473,7 +473,7 @@ const Subscribe = () => {
                         <tr key={i} className="bg-brand-navy/5">
                           <td
                             colSpan={4}
-                            className="px-5 py-2 text-eyebrow text-brand-navy/60 border-t border-brand-cloud"
+                            className="px-5 py-2 text-eyebrow text-brand-steel border-t border-brand-cloud"
                           >
                             {row.feature}
                           </td>
@@ -492,7 +492,7 @@ const Subscribe = () => {
                       }
                       if (val === false) return <XIcon className="w-4 h-4 text-brand-navy/70 mx-auto" />;
                       if (val === "Included") {
-                        return <span className="text-meta font-semibold text-green-600">Included</span>;
+                        return <span className="text-meta font-semibold text-green-700">Included</span>;
                       }
                       const cls = color === "platform" ? "text-amber-700" : "text-slate";
                       return <span className={`text-meta font-medium ${cls}`}>{val}</span>;

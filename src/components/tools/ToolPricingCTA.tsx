@@ -60,7 +60,7 @@ export default function ToolPricingCTA({ toolKey, unitLabel, className = "" }: P
   if (isPremium && isIncludedTool(toolKey)) {
     return (
       <div className={`text-sm ${className}`}>
-        <div className="font-bold text-brand-teal">Included with your subscription</div>
+        <div className="font-bold text-brand-teal-text">Included with your subscription</div>
         <div className="text-meta text-muted-foreground mt-1">
           Standalone price: {standaloneDisplay}{unit}
         </div>

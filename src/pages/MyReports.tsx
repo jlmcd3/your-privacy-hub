@@ -561,7 +561,7 @@ export default function MyReports() {
                               {r.client_name && !r.is_personal_client && (
                                 <Badge
                                   variant="outline"
-                                  className="text-[10px] py-0 px-1.5 h-5 border-brand-teal/40 text-brand-teal"
+                                  className="text-[10px] py-0 px-1.5 h-5 border-brand-teal/40 text-brand-teal-text"
                                   title={`Client workspace: ${r.client_name}`}
                                 >
                                   {r.client_name}

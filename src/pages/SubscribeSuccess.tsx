@@ -167,9 +167,9 @@ export default function SubscribeSuccess() {
         </div>
 
         <p className="text-center text-brand-mist text-[12px] mt-6">
-          Questions? <Link to="/contact" className="text-brand-teal hover:text-brand-navy no-underline">Contact us</Link>
-          {" "}· <Link to="/faq" className="text-brand-teal hover:text-brand-navy no-underline">FAQ</Link>
-          {" "}· Cancel anytime from <Link to="/account" className="text-brand-teal hover:text-brand-navy no-underline">My Account</Link>
+          Questions? <Link to="/contact" className="text-brand-teal-text hover:text-brand-navy no-underline">Contact us</Link>
+          {" "}· <Link to="/faq" className="text-brand-teal-text hover:text-brand-navy no-underline">FAQ</Link>
+          {" "}· Cancel anytime from <Link to="/account" className="text-brand-teal-text hover:text-brand-navy no-underline">My Account</Link>
         </p>
       </div>
 

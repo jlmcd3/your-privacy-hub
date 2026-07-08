@@ -191,7 +191,7 @@ export default function AdminLawUpdates() {
                       href={c.detected_statute_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-brand-teal hover:underline"
+                      className="text-brand-teal-text hover:underline"
                     >
                       Statute ↗
                     </a>

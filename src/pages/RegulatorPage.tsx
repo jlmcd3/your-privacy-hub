@@ -35,7 +35,7 @@ const RegulatorPage = () => {
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <h1 className="font-display text-brand-navy mb-4">Regulator Not Found</h1>
           <p className="text-slate mb-6">The regulator you're looking for is not yet in our database.</p>
-          <Link to="/global-privacy-authorities" className="text-brand-teal hover:underline">Browse all regulators →</Link>
+          <Link to="/global-privacy-authorities" className="text-brand-teal-text hover:underline">Browse all regulators →</Link>
         </div>
         <Footer />
       </div>
@@ -115,9 +115,9 @@ const RegulatorPage = () => {
           <div className="border-t border-brand-cloud p-5">
             <div className="text-meta font-semibold tracking-wider uppercase text-slate mb-3">Links</div>
             <div className="flex gap-4 flex-wrap">
-              <a href={regulator.website} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-teal hover:underline no-underline font-medium">Official Website ↗</a>
+              <a href={regulator.website} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-teal-text hover:underline no-underline font-medium">Official Website ↗</a>
               {regulator.complaint_portal && (
-                <a href={regulator.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-teal hover:underline no-underline font-medium">Complaint / Enforcement Portal ↗</a>
+                <a href={regulator.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-teal-text hover:underline no-underline font-medium">Complaint / Enforcement Portal ↗</a>
               )}
             </div>
           </div>
@@ -211,7 +211,7 @@ const RegulatorPage = () => {
                       {new Date(article.published_at).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
                     </span>
                   </div>
-                  <p className="text-[9px] font-semibold text-brand-navy leading-snug group-hover:text-brand-teal transition-colors">
+                  <p className="text-[9px] font-semibold text-brand-navy leading-snug group-hover:text-brand-teal-text transition-colors">
                     {article.title}
                   </p>
                   {article.ai_summary?.why_it_matters && (
@@ -224,7 +224,7 @@ const RegulatorPage = () => {
             </div>
             <a
               href={'/updates?q=' + encodeURIComponent(regulator?.abbreviation || regulator?.name || '')}
-              className="block mt-4 text-sm font-semibold text-brand-teal no-underline hover:text-brand-navy transition-colors"
+              className="block mt-4 text-sm font-semibold text-brand-teal-text no-underline hover:text-brand-navy transition-colors"
             >
               See all developments →
             </a>
@@ -236,16 +236,16 @@ const RegulatorPage = () => {
           <h3 className="text-brand-navy mb-4">Related Resources</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Link to={`/jurisdiction/${regulator.country.toLowerCase().replace(/\s+/g, "-")}`} className="flex items-center gap-2 p-3 bg-card border border-brand-cloud rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy font-medium">
-              <span className="text-brand-teal">→</span> {regulator.country} Jurisdiction Page
+              <span className="text-brand-teal-text">→</span> {regulator.country} Jurisdiction Page
             </Link>
             <Link to="/global-privacy-authorities" className="flex items-center gap-2 p-3 bg-card border border-brand-cloud rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy font-medium">
-              <span className="text-brand-teal">→</span> Global Authority Directory
+              <span className="text-brand-teal-text">→</span> Global Authority Directory
             </Link>
             <Link to="/enforcement-tracker" className="flex items-center gap-2 p-3 bg-card border border-brand-cloud rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy font-medium">
-              <span className="text-brand-teal">→</span> Enforcement Tracker
+              <span className="text-brand-teal-text">→</span> Enforcement Tracker
             </Link>
             <Link to="/gdpr-enforcement" className="flex items-center gap-2 p-3 bg-card border border-brand-cloud rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy font-medium">
-              <span className="text-brand-teal">→</span> GDPR Enforcement
+              <span className="text-brand-teal-text">→</span> GDPR Enforcement
             </Link>
           </div>
         </div>

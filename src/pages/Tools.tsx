@@ -168,7 +168,7 @@ const DIFFERENTIATORS = [
     icon: "📄",
     title: "Documents drafted to survive scrutiny, not just satisfy it",
     body: "A DPA that satisfies Article 28 is table stakes. Every document here is calibrated to the failure patterns supervisory authorities have actually penalised – not to the statutory minimum.",
-    checkColor: "text-amber-600",
+    checkColor: "text-amber-800",
     checks: [
       "Provisions informed by enforcement failures — with a Drafting Notes appendix citing the specific cases",
       "Jurisdiction-specific and calibrated to your processing activities",
@@ -549,15 +549,15 @@ export default function Tools() {
       <DashboardSubnav />
 
       {/* ── Hero ───────────────────────────────────────────────────────── */}
-      <header className="bg-[#2d7a8a] text-white py-12">
+      <header className="bg-[#1f6674] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-brand-cloud mb-3">
+          <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-black/30 text-white mb-3">
             🧰 Compliance Tools
           </span>
           <h1 className="font-serif text-white mb-3">
             Intelligence, assessments, and compliance documents
           </h1>
-          <p className="text-slate-300 text-lg max-w-3xl">
+          <p className="text-white/95 text-lg max-w-3xl">
             Every tool draws from a live database of 3,700+ enforcement decisions before producing a single word of output. Available individually at standalone prices. Every report can be translated into more than 20 languages from the report page.
           </p>
           <div className="flex gap-3 mt-6 flex-wrap">

@@ -19,7 +19,7 @@ export default function MethodologyBox({ title, lines, className }: MethodologyB
       <ul className="space-y-2">
         {lines.map((line, i) => (
           <li key={i} className="text-sm text-slate leading-6 flex gap-2">
-            <span className="text-brand-teal font-bold shrink-0" aria-hidden>
+            <span className="text-brand-teal-text font-bold shrink-0" aria-hidden>
               ·
             </span>
             <span>{line}</span>

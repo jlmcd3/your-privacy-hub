@@ -185,7 +185,7 @@ export default function Account() {
               <span className="text-sm text-slate">Password</span>
               <Link
                 to="/forgot-password"
-                className="text-sm text-brand-teal hover:text-brand-navy no-underline font-medium"
+                className="text-sm text-brand-teal-text hover:text-brand-navy no-underline font-medium"
               >
                 Change password →
               </Link>
@@ -209,7 +209,7 @@ export default function Account() {
         {tier === "monthly" && (
           <div className="bg-[hsl(var(--cobalt)/0.06)] border border-[hsl(var(--cobalt)/0.20)] rounded-2xl p-5 mb-4">
             <p className="font-bold text-brand-navy text-[15px]">Intelligence — Monthly</p>
-            <p className="text-sm text-brand-teal mt-1">
+            <p className="text-sm text-brand-teal-text mt-1">
               {PRICING.intelligence.monthly.display}/month · Cancel any time
             </p>
             <p className="text-[12px] text-slate mt-1">
@@ -252,7 +252,7 @@ export default function Account() {
                 <span className="text-sm text-slate">Brief preferences</span>
                 <Link
                   to="/brief-preferences"
-                  className="text-sm text-brand-teal hover:text-brand-navy no-underline font-medium flex items-center gap-1"
+                  className="text-sm text-brand-teal-text hover:text-brand-navy no-underline font-medium flex items-center gap-1"
                 >
                   Customize <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
@@ -266,7 +266,7 @@ export default function Account() {
                     type="button"
                     onClick={handleResume}
                     disabled={cancelBusy}
-                    className="text-sm font-medium text-brand-teal hover:text-brand-navy bg-transparent border-none cursor-pointer disabled:opacity-50"
+                    className="text-sm font-medium text-brand-teal-text hover:text-brand-navy bg-transparent border-none cursor-pointer disabled:opacity-50"
                   >
                     {cancelBusy ? "Working…" : "Resume auto-renewal →"}
                   </button>
@@ -354,7 +354,7 @@ export default function Account() {
                   to={link.href}
                   className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-brand-cloud transition-colors no-underline group"
                 >
-                  <span className="text-sm text-brand-navy group-hover:text-brand-teal transition-colors">
+                  <span className="text-sm text-brand-navy group-hover:text-brand-teal-text transition-colors">
                     {link.label}
                   </span>
                   <ChevronRight className="w-4 h-4 text-brand-mist" />

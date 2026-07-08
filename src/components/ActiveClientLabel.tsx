@@ -31,7 +31,7 @@ export default function ActiveClientLabel() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="text-brand-teal hover:text-brand-navy bg-transparent border-none cursor-pointer font-medium inline-flex items-center gap-0.5"
+        className="text-brand-teal-text hover:text-brand-navy bg-transparent border-none cursor-pointer font-medium inline-flex items-center gap-0.5"
       >
         Change <ChevronDown className="w-3 h-3" />
       </button>
@@ -50,7 +50,7 @@ export default function ActiveClientLabel() {
                 className="w-full flex items-center justify-between px-3 py-2 text-sm text-brand-navy hover:bg-brand-cloud bg-transparent border-none cursor-pointer text-left"
               >
                 <span className={active ? 'font-semibold' : ''}>{c.name}</span>
-                {active && <Check className="w-3.5 h-3.5 text-brand-teal" />}
+                {active && <Check className="w-3.5 h-3.5 text-brand-teal-text" />}
               </button>
             );
           })}

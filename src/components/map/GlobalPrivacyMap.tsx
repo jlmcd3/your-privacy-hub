@@ -340,7 +340,7 @@ export default function GlobalPrivacyMap() {
               onClick={() => setRegion(r)}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                 region === r
-                  ? "bg-brand-teal/10 text-brand-teal border-brand-teal/30"
+                  ? "bg-brand-teal/10 text-brand-teal-text border-brand-teal/30"
                   : "bg-white text-slate border-brand-cloud hover:border-brand-teal/20"
               }`}
             >

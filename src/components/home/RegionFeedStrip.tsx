@@ -39,11 +39,11 @@ export default function RegionFeedStrip({ items }: RegionFeedStripProps) {
                 </div>
                 <div className="text-meta text-brand-mist">{item.date}</div>
               </div>
-              <span className="ml-auto text-eyebrow bg-brand-teal/5 text-brand-teal border border-brand-teal/10 px-1.5 py-0.5 rounded-full">
+              <span className="ml-auto text-eyebrow bg-brand-teal/5 text-brand-teal-text border border-brand-teal/10 px-1.5 py-0.5 rounded-full">
                 {item.category}
               </span>
             </div>
-            <h4 className="font-bold text-brand-navy text-sm leading-snug group-hover:text-brand-teal transition-colors line-clamp-2">
+            <h4 className="font-bold text-brand-navy text-sm leading-snug group-hover:text-brand-teal-text transition-colors line-clamp-2">
               {normalizeTitle(item.headline)}
             </h4>
             {item.summary && (

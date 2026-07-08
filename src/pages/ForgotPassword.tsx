@@ -69,7 +69,7 @@ export default function ForgotPassword() {
                 </button>
               </form>
               <div className="text-center mt-5">
-                <Link to="/login" className="text-sm text-brand-teal hover:text-brand-navy no-underline">
+                <Link to="/login" className="text-sm text-brand-teal-text hover:text-brand-navy no-underline">
                   ← Back to Sign In
                 </Link>
               </div>
@@ -86,13 +86,13 @@ export default function ForgotPassword() {
                 Didn't receive it? Check your spam folder, or{" "}
                 <button
                   onClick={() => setSent(false)}
-                  className="text-brand-teal hover:text-brand-navy bg-transparent border-none cursor-pointer p-0 text-[12px]"
+                  className="text-brand-teal-text hover:text-brand-navy bg-transparent border-none cursor-pointer p-0 text-[12px]"
                 >
                   try again
                 </button>
                 .
               </p>
-              <Link to="/login" className="text-sm text-brand-teal hover:text-brand-navy no-underline">
+              <Link to="/login" className="text-sm text-brand-teal-text hover:text-brand-navy no-underline">
                 ← Back to Sign In
               </Link>
             </div>

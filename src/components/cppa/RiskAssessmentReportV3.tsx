@@ -386,7 +386,7 @@ export default function RiskAssessmentReportV3({ report }: { report: Report }) {
       {report?.part_b && (
         <section className="border-2 rounded-lg p-5 bg-brand-cloud/30">
           <header className="flex items-baseline gap-3 mb-3 flex-wrap">
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-brand-teal text-white">Part B</span>
+            <span className="text-xs font-mono px-2 py-0.5 rounded bg-brand-teal-deep text-white">Part B</span>
             <h3 className="font-serif text-lg">§ 7157 Annual Submission Worksheet</h3>
             <span className="text-[11px] font-mono text-muted-foreground">{report.part_b.statute}</span>
           </header>

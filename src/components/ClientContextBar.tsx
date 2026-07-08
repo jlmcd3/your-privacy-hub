@@ -126,7 +126,7 @@ function WorkspaceRow({
           {name}
         </span>
       </span>
-      {active && <Check className="w-3.5 h-3.5 text-brand-teal shrink-0" />}
+      {active && <Check className="w-3.5 h-3.5 text-brand-teal-text shrink-0" />}
     </button>
   );
 }

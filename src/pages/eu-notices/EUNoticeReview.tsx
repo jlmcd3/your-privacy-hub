@@ -438,7 +438,7 @@ export default function EUNoticeReview() {
           action={
             <button
               onClick={() => navigate(`/eu-notices/frameworks/${sessionId}`)}
-              className="text-sm font-semibold text-brand-teal hover:underline inline-flex items-center gap-1"
+              className="text-sm font-semibold text-brand-teal-text hover:underline inline-flex items-center gap-1"
             >
               <Pencil className="w-3 h-3" /> Edit scope →
             </button>
@@ -471,7 +471,7 @@ export default function EUNoticeReview() {
           action={
             <button
               onClick={() => setShowAllFrameworks((v) => !v)}
-              className="text-sm font-semibold text-brand-teal hover:underline"
+              className="text-sm font-semibold text-brand-teal-text hover:underline"
             >
               {showAllFrameworks ? "Show flagged only" : `Show all ${frameworks.length} frameworks`}
             </button>
@@ -532,7 +532,7 @@ export default function EUNoticeReview() {
                         </ul>
                         <button
                           onClick={() => navigate(`/eu-notices/questions/${sessionId}`)}
-                          className="mt-2 inline-flex items-center gap-1 text-brand-teal font-semibold hover:underline"
+                          className="mt-2 inline-flex items-center gap-1 text-brand-teal-text font-semibold hover:underline"
                         >
                           Edit answers →
                         </button>
@@ -655,7 +655,7 @@ export default function EUNoticeReview() {
               </div>
             )}
             {!pricing.isSubscriber && !session?.payment_confirmed && pricing.standalonePrice > pricing.subscriberPrice && (
-              <p className="text-meta text-brand-teal mt-2">
+              <p className="text-meta text-brand-teal-text mt-2">
                 Subscribe to save ${pricing.standalonePrice - pricing.subscriberPrice} ·{" "}
                 <a
                   href="/get-intelligence"

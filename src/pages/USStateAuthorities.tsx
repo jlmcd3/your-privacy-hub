@@ -109,7 +109,7 @@ const USStateAuthorities = () => {
         <div className="mb-4">
           <Link
             to="/compare/us-states"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-brand-teal border border-brand-teal/30 rounded-lg hover:bg-brand-teal hover:text-white hover:border-brand-teal transition-colors no-underline"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-brand-teal-text border border-brand-teal/30 rounded-lg hover:bg-brand-teal-deep hover:text-white hover:border-brand-teal transition-colors no-underline"
           >
             Compare enacted state laws side by side →
           </Link>
@@ -154,7 +154,7 @@ const USStateAuthorities = () => {
                       href={state.statute_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="italic text-brand-teal hover:text-brand-navy no-underline"
+                      className="italic text-brand-teal-text hover:text-brand-navy no-underline"
                     >
                       {state.statute_name} ↗
                     </a>
@@ -175,7 +175,7 @@ const USStateAuthorities = () => {
                   {showView && (
                     <Link
                       to={`/jurisdiction/${slug}`}
-                      className="text-brand-teal hover:text-brand-navy no-underline font-semibold"
+                      className="text-brand-teal-text hover:text-brand-navy no-underline font-semibold"
                     >
                       View →
                     </Link>

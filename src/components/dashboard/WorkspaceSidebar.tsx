@@ -85,7 +85,7 @@ function WorkspaceSection({
         className={cn(
           "w-full inline-flex items-center gap-2 px-2 lg:px-3 py-2 rounded-lg text-sm font-semibold transition-colors bg-transparent border-none cursor-pointer text-left justify-center lg:justify-start",
           isActiveWorkspace
-            ? "text-brand-teal"
+            ? "text-brand-teal-text"
             : "text-brand-navy hover:bg-brand-cloud",
         )}
         aria-expanded={open}

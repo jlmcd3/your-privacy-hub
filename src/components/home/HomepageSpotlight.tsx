@@ -27,9 +27,9 @@ interface SpotlightArticle {
 }
 
 const SLOT_LABELS = [
-  { icon: "👁", text: "What any visitor sees", className: "text-slate/60" },
-  { icon: "✉", text: "Free account — see this level on every article", className: "text-brand-teal font-medium" },
-  { icon: "⭐", text: "Platform subscriber view — everything you need to act", className: "text-brand-teal font-semibold" },
+  { icon: "👁", text: "What any visitor sees", className: "text-brand-steel" },
+  { icon: "✉", text: "Free account — see this level on every article", className: "text-brand-teal-text font-medium" },
+  { icon: "⭐", text: "Platform subscriber view — everything you need to act", className: "text-brand-teal-text font-semibold" },
 ];
 
 const SpotlightCard = ({
@@ -100,7 +100,7 @@ const SpotlightCard = ({
             href={article.source_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[9px] font-bold text-brand-navy hover:text-brand-teal leading-snug block mb-2 no-underline transition-colors"
+            className="text-[9px] font-bold text-brand-navy hover:text-brand-teal-text leading-snug block mb-2 no-underline transition-colors"
           >
             {normalizeTitle(article.title)}
             <ExternalLink className="w-3 h-3 inline ml-1 opacity-40" />
@@ -120,7 +120,7 @@ const SpotlightCard = ({
               <p className="text-sm text-slate leading-relaxed mb-2">{firstSentence}</p>
               <Link
                 to={briefHref}
-                className="inline-flex items-center gap-1.5 text-meta font-semibold text-brand-teal hover:underline no-underline"
+                className="inline-flex items-center gap-1.5 text-meta font-semibold text-brand-teal-text hover:underline no-underline"
               >
                 <Sparkles className="w-3 h-3" />
                 {briefLabel}
@@ -138,7 +138,7 @@ const SpotlightCard = ({
               <div className="rounded-lg bg-brand-cloud border border-brand-cloud px-3 py-2">
                 <p className="text-meta text-slate/70 italic">
                   Platform subscribers see what to do about this and what to watch for next.{" "}
-                  <Link to="/subscribe" className="text-brand-teal font-semibold no-underline hover:underline">
+                  <Link to="/subscribe" className="text-brand-teal-text font-semibold no-underline hover:underline">
                     See Platform →
                   </Link>
                 </p>
@@ -174,7 +174,7 @@ const SpotlightCard = ({
 
 const FeedCtaBanner = ({ count }: { count: number }) => (
   <div className="rounded-2xl bg-brand-navy px-6 py-8 text-center mt-6">
-    <p className="text-eyebrow text-brand-teal mb-2">
+    <p className="text-eyebrow text-brand-teal-text mb-2">
       Privacy Intelligence Feed
     </p>
     <h2 className="text-section-h2 text-white mb-2">
@@ -186,7 +186,7 @@ const FeedCtaBanner = ({ count }: { count: number }) => (
     </p>
     <Link
       to="/updates"
-      className="inline-block bg-brand-teal text-white font-semibold text-[15px] px-7 py-3 rounded-xl no-underline hover:opacity-90 transition-all"
+      className="inline-block bg-brand-teal-deep text-white font-semibold text-[15px] px-7 py-3 rounded-xl no-underline hover:opacity-90 transition-all"
     >
       Open the full Privacy Intelligence Feed →
     </Link>
@@ -358,7 +358,7 @@ export default function HomepageSpotlight() {
   return (
     <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
       <div className="mb-6">
-        <p className="text-eyebrow text-slate/60 mb-1">
+        <p className="text-eyebrow text-brand-steel mb-1">
           Today's top regulatory development
         </p>
         <h2 className="text-section-h2 text-brand-navy">

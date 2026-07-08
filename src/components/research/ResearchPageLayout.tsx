@@ -136,7 +136,7 @@ export function ResearchPageLayout({
               {sections.map((s, i) => (
                 <span key={s.id}>
                   {i > 0 && <span className="text-brand-mist mx-1.5">·</span>}
-                  <a href={`#${s.id}`} className="text-brand-teal no-underline hover:underline">{i + 1}. {s.h2}</a>
+                  <a href={`#${s.id}`} className="text-brand-teal-text no-underline hover:underline">{i + 1}. {s.h2}</a>
                 </span>
               ))}
             </p>
@@ -166,7 +166,7 @@ export function ResearchPageLayout({
                     {sec.toolCta && placement === "top" && <ResearchToolCTA {...sec.toolCta} />}
                     {sec.content && (
                       <div
-                        className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-brand-teal [&_a]:no-underline [&_a:hover]:underline [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-brand-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-brand-navy [&_strong]:font-semibold [&_table]:w-full [&_table]:text-sm [&_table]:border-collapse [&_table]:my-4 [&_th]:text-left [&_th]:font-semibold [&_th]:text-brand-navy [&_th]:border-b [&_th]:border-brand-navy/30 [&_th]:py-2 [&_th]:pr-4 [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:border-brand-cloud [&_td]:align-top"
+                        className="text-[14px] text-slate leading-relaxed space-y-4 [&_a]:text-brand-teal-text [&_a]:no-underline [&_a:hover]:underline [&_h3]:font-display [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:text-brand-navy [&_h3]:mt-6 [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_strong]:text-brand-navy [&_strong]:font-semibold [&_table]:w-full [&_table]:text-sm [&_table]:border-collapse [&_table]:my-4 [&_th]:text-left [&_th]:font-semibold [&_th]:text-brand-navy [&_th]:border-b [&_th]:border-brand-navy/30 [&_th]:py-2 [&_th]:pr-4 [&_td]:py-2 [&_td]:pr-4 [&_td]:border-b [&_td]:border-brand-cloud [&_td]:align-top"
                         dangerouslySetInnerHTML={{ __html: sec.content }}
                       />
                     )}
@@ -199,7 +199,7 @@ export function ResearchPageLayout({
                 to={link.href}
                 className="flex items-center gap-2 p-3 bg-card border border-brand-cloud rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy font-medium"
               >
-                <span className="text-brand-teal">→</span> {link.label}
+                <span className="text-brand-teal-text">→</span> {link.label}
               </Link>
             ))}
           </div>

@@ -306,7 +306,7 @@ function AuthorityRow({ row, expanded, onToggle, onUpdated }: {
                 </div>
                 {row.official_url && (
                   <a href={row.official_url} target="_blank" rel="noreferrer"
-                    className="text-xs text-brand-teal underline">Open source</a>
+                    className="text-xs text-brand-teal-text underline">Open source</a>
                 )}
               </div>
             </div>

@@ -59,7 +59,7 @@ export default function CPPASuitePDFButton({ riskId, cyberId, className }: Props
   };
 
   const base = className ??
-    "inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-brand-teal hover:bg-brand-teal/90 border border-brand-teal rounded-lg transition-colors disabled:opacity-60";
+    "inline-flex items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-white bg-brand-teal-deep hover:bg-brand-teal/90 border border-brand-teal rounded-lg transition-colors disabled:opacity-60";
 
   return (
     <button type="button" onClick={handle} disabled={busy} className={base}>

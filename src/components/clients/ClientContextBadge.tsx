@@ -25,7 +25,7 @@ export function ClientContextBadge() {
           <button
             type="button"
             onClick={() => setShowSwitcher((v) => !v)}
-            className="text-brand-teal hover:text-brand-navy bg-transparent border-none cursor-pointer text-xs font-medium ml-1"
+            className="text-brand-teal-text hover:text-brand-navy bg-transparent border-none cursor-pointer text-xs font-medium ml-1"
           >
             {showSwitcher ? 'Hide' : 'Change client'}
           </button>

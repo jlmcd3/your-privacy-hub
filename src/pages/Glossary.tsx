@@ -101,7 +101,7 @@ const TermCard = ({ t, q }: { t: Term; q: string }) => {
           <a
             href={anchorHref}
             aria-label={`Copy link to ${t.term}`}
-            className="ml-1.5 text-brand-mist hover:text-brand-teal opacity-0 group-hover:opacity-100 transition-opacity text-sm font-mono no-underline"
+            className="ml-1.5 text-brand-mist hover:text-brand-teal-text opacity-0 group-hover:opacity-100 transition-opacity text-sm font-mono no-underline"
             onClick={(e) => {
               e.preventDefault();
               const url = `${window.location.origin}/glossary#${t.slug}`;
@@ -125,7 +125,7 @@ const TermCard = ({ t, q }: { t: Term; q: string }) => {
         {(t.regulations || []).map((r) => (
           <span
             key={r}
-            className="font-mono-code text-meta px-1.5 py-0.5 rounded-full bg-brand-teal/10 text-brand-teal font-medium"
+            className="font-mono-code text-meta px-1.5 py-0.5 rounded-full bg-brand-teal/10 text-brand-teal-text font-medium"
           >
             {r}
           </span>
@@ -140,7 +140,7 @@ const TermCard = ({ t, q }: { t: Term; q: string }) => {
             <span key={rel}>
               <a
                 href={`#${rel}`}
-                className="text-brand-teal hover:underline no-underline"
+                className="text-brand-teal-text hover:underline no-underline"
               >
                 {rel.replace(/-/g, " ")}
               </a>
@@ -156,7 +156,7 @@ const TermCard = ({ t, q }: { t: Term; q: string }) => {
               href={(t as Term & { sourceUrl?: string }).sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-brand-mist hover:text-brand-teal no-underline"
+              className="text-brand-mist hover:text-brand-teal-text no-underline"
             >
               {t.source} ↗
             </a>
@@ -369,7 +369,7 @@ const Glossary = () => {
                 key={l}
                 href={`#letter-${l}`}
                 className={`w-8 h-8 flex items-center justify-center text-xs font-semibold rounded-lg no-underline transition-colors ${
-                  groupedAZ[l] ? "text-brand-teal hover:bg-brand-teal/10" : "text-slate/30 pointer-events-none"
+                  groupedAZ[l] ? "text-brand-teal-text hover:bg-brand-teal/10" : "text-slate/30 pointer-events-none"
                 }`}
               >
                 {l}

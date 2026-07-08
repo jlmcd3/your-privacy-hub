@@ -327,7 +327,7 @@ export default function AdminAssertionTests() {
             </div>
             {isRunning && (
               <div className="mt-3 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full bg-brand-teal rounded-full transition-all duration-300" style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }} />
+                <div className="h-full bg-brand-teal-deep rounded-full transition-all duration-300" style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }} />
               </div>
             )}
             {allPassed && <div className="mt-2 text-sm text-green-700 font-medium">✅ All assertions passed — known error catalog is clean.</div>}

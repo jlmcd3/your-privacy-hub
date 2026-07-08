@@ -181,7 +181,7 @@ function ClientCard({
           </button>
           <button
             onClick={onOpen}
-            className="text-sm font-semibold text-brand-teal hover:text-brand-navy bg-transparent border-none cursor-pointer flex items-center gap-1"
+            className="text-sm font-semibold text-brand-teal-text hover:text-brand-navy bg-transparent border-none cursor-pointer flex items-center gap-1"
           >
             Open <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -201,7 +201,7 @@ function ClientCard({
           </p>
           <Link
             to="/dashboard"
-            className="text-sm font-semibold text-brand-teal hover:text-brand-navy no-underline"
+            className="text-sm font-semibold text-brand-teal-text hover:text-brand-navy no-underline"
           >
             Go to tools →
           </Link>

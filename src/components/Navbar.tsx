@@ -421,7 +421,7 @@ const Navbar = () => {
                 className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                   sub.badgeGreen
                     ? "bg-accent/10 text-accent border border-accent/20"
-                    : "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
+                    : "bg-brand-teal/10 text-brand-teal-text border border-brand-teal/20"
                 }`}
               >
                 {sub.badge}
@@ -533,7 +533,7 @@ const Navbar = () => {
                                       className={`text-[11px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full ${
                                         section.headerBadgeGreen
                                           ? "bg-accent/10 text-accent border border-accent/20"
-                                          : "bg-brand-teal/10 text-brand-teal border border-brand-teal/20"
+                                          : "bg-brand-teal/10 text-brand-teal-text border border-brand-teal/20"
                                       }`}
                                     >
                                       {section.headerBadge}
@@ -659,8 +659,8 @@ const Navbar = () => {
             to="/subscribe"
             className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
               location.pathname === "/subscribe"
-                ? "text-[hsl(var(--accent-light))]"
-                : "text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]"
+                ? "text-white"
+                : "text-brand-teal-on-navy hover:text-white"
             }`}
           >
             Pricing

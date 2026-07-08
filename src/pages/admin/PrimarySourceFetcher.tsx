@@ -229,7 +229,7 @@ export default function PrimarySourceFetcher() {
             <Button
               disabled={busy !== null}
               onClick={() => run_(false)}
-              className="bg-brand-teal text-white"
+              className="bg-brand-teal-deep text-white"
             >
               {busy === "real" ? "Dispatching…" : "Run (fetch & extract)"}
             </Button>
@@ -255,7 +255,7 @@ export default function PrimarySourceFetcher() {
                 </p>
               </div>
               {!isDone && (
-                <span className="text-xs px-2 py-1 rounded bg-brand-teal/10 text-brand-teal">
+                <span className="text-xs px-2 py-1 rounded bg-brand-teal/10 text-brand-teal-text">
                   polling every 2s…
                 </span>
               )}

@@ -180,7 +180,7 @@ function BillCard({
                 href={bill.source_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-brand-teal hover:underline font-medium"
+                className="text-brand-teal-text hover:underline font-medium"
               >
                 View at {bill.source_name ?? "source"} →
               </a>
@@ -191,7 +191,7 @@ function BillCard({
             {bill.jurisdiction_slug && (
               <Link
                 to={`/jurisdiction/${bill.jurisdiction_slug}`}
-                className="text-brand-teal hover:underline font-medium"
+                className="text-brand-teal-text hover:underline font-medium"
               >
                 · Jurisdiction page →
               </Link>

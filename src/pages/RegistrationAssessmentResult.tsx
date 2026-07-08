@@ -336,7 +336,7 @@ export default function RegistrationAssessmentResult() {
                   <p className="text-sm text-slate flex-1">
                     Subscribers get renewal deadline reminders for every filing automatically — nothing extra to buy.
                   </p>
-                  <Link to="/subscribe" className="mt-4 text-sm font-medium text-brand-teal hover:underline">
+                  <Link to="/subscribe" className="mt-4 text-sm font-medium text-brand-teal-text hover:underline">
                     See subscription plans →
                   </Link>
                 </div>

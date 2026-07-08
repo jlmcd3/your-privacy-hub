@@ -272,7 +272,7 @@ export default function AdminQAExport() {
         {!loadingBatches && batches.length === 0 && (
           <p className="text-sm text-muted-foreground">
             No completed batches yet. Run a static stress test from{" "}
-            <a href="/admin/static-stress" className="text-brand-teal underline">
+            <a href="/admin/static-stress" className="text-brand-teal-text underline">
               /admin/static-stress
             </a>{" "}
             first.
@@ -280,7 +280,7 @@ export default function AdminQAExport() {
         )}
         <p className="text-xs text-muted-foreground">
           See also:{" "}
-          <a href="/admin/quality-loop" className="text-brand-teal underline">🔬 /admin/quality-loop</a> — self-improving quality refinement loop.
+          <a href="/admin/quality-loop" className="text-brand-teal-text underline">🔬 /admin/quality-loop</a> — self-improving quality refinement loop.
         </p>
         {batches.length > 0 && (
           <div className="space-y-2">
@@ -348,7 +348,7 @@ export default function AdminQAExport() {
               <div className="flex items-center justify-between">
                 <div className="text-sm font-medium">Tools ({selectedTools.length}/{availableTools.length})</div>
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => setSelectedTools([...availableTools])} className="text-xs text-brand-teal hover:underline">All</button>
+                  <button type="button" onClick={() => setSelectedTools([...availableTools])} className="text-xs text-brand-teal-text hover:underline">All</button>
                   <button type="button" onClick={() => setSelectedTools([])} className="text-xs text-muted-foreground hover:underline">None</button>
                 </div>
               </div>
@@ -368,7 +368,7 @@ export default function AdminQAExport() {
                   Industries ({selectedIndustries.length}/{availableIndustries.length})
                 </div>
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => setSelectedIndustries([...availableIndustries])} className="text-xs text-brand-teal hover:underline">All</button>
+                  <button type="button" onClick={() => setSelectedIndustries([...availableIndustries])} className="text-xs text-brand-teal-text hover:underline">All</button>
                   <button type="button" onClick={() => setSelectedIndustries([])} className="text-xs text-muted-foreground hover:underline">None</button>
                 </div>
               </div>

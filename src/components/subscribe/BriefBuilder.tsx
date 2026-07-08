@@ -337,7 +337,7 @@ export default function BriefBuilder() {
               — available in the weekly brief, not included in this sample
             </span>
           </p>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-teal bg-brand-teal/10 border border-brand-teal/20 px-2 py-0.5 rounded-full">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-teal-text bg-brand-teal/10 border border-brand-teal/20 px-2 py-0.5 rounded-full">
             ⭐ Subscription
           </span>
         </div>
@@ -360,7 +360,7 @@ export default function BriefBuilder() {
         <div className="mt-2 text-right">
           <a
             href="/subscribe"
-            className="text-[11px] font-semibold text-brand-teal hover:underline no-underline"
+            className="text-[11px] font-semibold text-brand-teal-text hover:underline no-underline"
           >
             Unlock industry tailoring with a subscription →
           </a>
@@ -376,7 +376,7 @@ export default function BriefBuilder() {
               — available in the weekly brief, not included in this sample
             </span>
           </p>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-teal bg-brand-teal/10 border border-brand-teal/20 px-2 py-0.5 rounded-full">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-teal-text bg-brand-teal/10 border border-brand-teal/20 px-2 py-0.5 rounded-full">
             ⭐ Subscription
           </span>
         </div>
@@ -402,7 +402,7 @@ export default function BriefBuilder() {
         <div className="mt-2 text-right">
           <a
             href="/subscribe"
-            className="text-[11px] font-semibold text-brand-teal hover:underline no-underline"
+            className="text-[11px] font-semibold text-brand-teal-text hover:underline no-underline"
           >
             Unlock format options with a subscription →
           </a>

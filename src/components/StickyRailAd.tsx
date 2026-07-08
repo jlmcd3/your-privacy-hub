@@ -47,7 +47,7 @@ export default function StickyRailAd({ className = '', topOffset = 96 }: StickyR
             className="flex items-center justify-center bg-brand-cloud/40 border border-silver/60 rounded-xl"
             style={{ width: 300, height: 600 }}
           >
-            <span className="text-meta uppercase tracking-widest text-slate/60">
+            <span className="text-meta uppercase tracking-widest text-brand-steel">
               Ad · 300×600
             </span>
           </div>

@@ -60,7 +60,7 @@ const TONE_CLASSES: Record<string, string> = {
   ok: "bg-severity-positive/15 text-severity-positive border-severity-positive/30",
   warn: "bg-severity-warning/15 text-severity-warning border-severity-warning/30",
   bad: "bg-severity-negative/15 text-severity-negative border-severity-negative/30",
-  info: "bg-brand-teal/15 text-brand-teal border-brand-teal/30",
+  info: "bg-brand-teal/15 text-brand-teal-text border-brand-teal/30",
   muted: "bg-muted text-muted-foreground border-border",
 };
 

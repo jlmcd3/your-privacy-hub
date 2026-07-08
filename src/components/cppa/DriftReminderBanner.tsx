@@ -49,7 +49,7 @@ export default function DriftReminderBanner() {
     <div className="space-y-2">
       {reminders.map((r) => (
         <div key={r.id} className="flex items-start gap-3 p-4 bg-brand-teal/5 border border-brand-teal/30 rounded-lg">
-          <Bell className="w-4 h-4 mt-0.5 text-brand-teal shrink-0" />
+          <Bell className="w-4 h-4 mt-0.5 text-brand-teal-text shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium">Time to re-run your CPPA Cybersecurity assessment</p>
             <p className="text-xs text-muted-foreground mt-1">

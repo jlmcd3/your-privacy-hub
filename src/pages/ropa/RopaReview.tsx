@@ -314,7 +314,7 @@ export default function RopaReview() {
           action={
             <button
               onClick={() => setEditDrawerOpen(true)}
-              className="text-sm font-semibold text-brand-teal hover:underline"
+              className="text-sm font-semibold text-brand-teal-text hover:underline"
             >
               Edit →
             </button>
@@ -353,7 +353,7 @@ export default function RopaReview() {
           action={
             <button
               onClick={() => setShowAllActivities((v) => !v)}
-              className="text-sm font-semibold text-brand-teal hover:underline"
+              className="text-sm font-semibold text-brand-teal-text hover:underline"
             >
               {showAllActivities
                 ? "Show flagged only"
@@ -392,7 +392,7 @@ export default function RopaReview() {
                         <p>{a.is_high_risk ? "Marked high-risk" : "Standard risk"}</p>
                         <button
                           onClick={() => navigate(withSession(`/ropa/activity/${a.id}`, sessionId ?? currentSession?.id))}
-                          className="mt-2 inline-flex items-center gap-1 text-brand-teal font-semibold hover:underline"
+                          className="mt-2 inline-flex items-center gap-1 text-brand-teal-text font-semibold hover:underline"
                         >
                           Edit answers →
                         </button>
@@ -461,7 +461,7 @@ export default function RopaReview() {
                   : `Continue to payment — $${pricing.price}`}
           </button>
           {!currentSession?.payment_confirmed && !pricing.isSubscriber && !pricing.loading && (
-            <p className="text-meta text-brand-teal mt-2 text-center">
+            <p className="text-meta text-brand-teal-text mt-2 text-center">
               RoPA Builder is included with any{" "}
               <a
                 href="/get-intelligence"

@@ -332,7 +332,7 @@ export default function VerificationScanAdmin() {
             <button
               onClick={runScan}
               disabled={running}
-              className="px-4 py-2 rounded bg-brand-teal text-white disabled:opacity-50"
+              className="px-4 py-2 rounded bg-brand-teal-deep text-white disabled:opacity-50"
             >
               {running ? "Running…" : "Run initial scan"}
             </button>

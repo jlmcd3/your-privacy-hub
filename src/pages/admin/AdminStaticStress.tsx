@@ -550,10 +550,10 @@ export default function AdminStaticStress() {
           Generates deterministic, sector-specific reports across the 31 industries (2 companies per
           industry × applicable tools per geography). Fixtures are generated via Claude per company,
           then queued and run sequentially through the production edge functions. PDFs land in
-          {" "}<Link to="/admin/samples/report-output" className="text-brand-teal underline underline-offset-2">/samples/report-output</Link>{" "}
+          {" "}<Link to="/admin/samples/report-output" className="text-brand-teal-text underline underline-offset-2">/samples/report-output</Link>{" "}
           with variant prefix <code>static-</code>.
           {" "}Use the{" "}
-          <Link to="/admin/qa-export" className="text-brand-teal underline underline-offset-2">
+          <Link to="/admin/qa-export" className="text-brand-teal-text underline underline-offset-2">
             QA Export page
           </Link>{" "}
           to download filtered batches for review.

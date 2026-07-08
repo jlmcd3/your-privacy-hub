@@ -214,7 +214,7 @@ export default function CorpusExtractionAdmin() {
           <button
             disabled={running}
             onClick={() => runExtraction(true)}
-            className="px-4 py-2 rounded bg-brand-teal text-white disabled:opacity-50"
+            className="px-4 py-2 rounded bg-brand-teal-deep text-white disabled:opacity-50"
           >
             {running ? "Running…" : "Run extraction (re-process all rows)"}
           </button>

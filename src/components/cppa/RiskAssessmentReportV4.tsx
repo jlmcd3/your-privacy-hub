@@ -181,7 +181,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <p className="font-medium">{t.activity}</p>
                   {t.statutory_basis && (
-                    <span className="font-mono text-xs text-brand-teal">{t.statutory_basis}</span>
+                    <span className="font-mono text-xs text-brand-teal-text">{t.statutory_basis}</span>
                   )}
                 </div>
                 {(t.data_categories?.length || t.consumer_categories?.length) ? (
@@ -221,7 +221,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                 <AccordionTrigger>
                   <div className="flex items-center gap-3 flex-wrap">
                     <span>{e.exception_name || "Exception"}</span>
-                    {e.statutory_basis && <span className="font-mono text-xs text-brand-teal">{e.statutory_basis}</span>}
+                    {e.statutory_basis && <span className="font-mono text-xs text-brand-teal-text">{e.statutory_basis}</span>}
                     {e.documentation_status && (
                       <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-800">{e.documentation_status}</span>
                     )}
@@ -256,7 +256,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                 <AccordionTrigger>
                   <div className="flex items-center gap-3 flex-wrap">
                     <span>{a.activity || `Activity ${i + 1}`}</span>
-                    {a.statutory_basis && <span className="font-mono text-xs text-brand-teal">{a.statutory_basis}</span>}
+                    {a.statutory_basis && <span className="font-mono text-xs text-brand-teal-text">{a.statutory_basis}</span>}
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="space-y-3 text-sm">
@@ -329,7 +329,7 @@ export default function RiskAssessmentReportV4({ report }: { report: V4Report })
                   </p>
                 )}
                 {f.regulatory_citation && (
-                  <p className="font-mono text-xs text-brand-teal">{f.regulatory_citation}</p>
+                  <p className="font-mono text-xs text-brand-teal-text">{f.regulatory_citation}</p>
                 )}
                 {f.resolution_required && <p className="text-xs"><strong>Resolution:</strong> {f.resolution_required}</p>}
               </li>

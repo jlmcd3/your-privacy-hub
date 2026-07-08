@@ -41,7 +41,7 @@ export default function FreeRunIndicator({ toolKey }: Props) {
 
   if (isIncludedTool(toolKey)) {
     return (
-      <p className="text-sm font-medium text-brand-teal">
+      <p className="text-sm font-medium text-brand-teal-text">
         ✓ Included with your subscription
       </p>
     );
@@ -50,7 +50,7 @@ export default function FreeRunIndicator({ toolKey }: Props) {
   if (eligible && credits > 0) {
     const noun = credits === 1 ? "run" : "runs";
     return (
-      <p className="text-sm font-medium text-brand-teal">
+      <p className="text-sm font-medium text-brand-teal-text">
         🎁 {credits} free Smart Tool {noun} available this year — redeemable on this assessment
       </p>
     );
