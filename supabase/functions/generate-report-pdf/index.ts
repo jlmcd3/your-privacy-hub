@@ -1826,13 +1826,11 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const caller = await verifyCaller(req);
-    if (!caller.internal && !caller.userId) {
-      return new Response(
-        JSON.stringify({ error: "unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // SEC-1b: Do not 401 anon callers here — let the eligibility check below
+    // return the stable PREVIEW_REQUIRES_ACCOUNT / forbidden codes instead.
+    // A missing/invalid token is treated as an anon caller (userId=null).
+    const callerRaw = await verifyCaller(req);
+    const caller = callerRaw.ok ? callerRaw : { ok: true, userId: null as string | null, internal: false };
 
     const { tool_type, assessment_id, user_email, user_name, result_url, force, mode } = await req.json();
 
