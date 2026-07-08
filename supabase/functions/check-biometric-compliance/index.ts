@@ -512,7 +512,7 @@ Key state biometric statutes (by litigation and enforcement risk):
 5. Colorado, Connecticut, Oregon, and Montana have comprehensive privacy laws treating biometric information as sensitive personal data subject to heightened notice and consent or opt-out requirements; consult each state's statute for the specific lawful basis rules.
 
 Federal frameworks applicable to biometrics by sector:
-1. HIPAA: biometric identifiers constitute PHI under HIPAA (45 CFR § 160.103) and are among the 18 identifier categories enumerated in the de-identification safe harbor at § 164.514(b)(2). Covered entities and business associates processing patient biometrics must comply with HIPAA minimum necessary, authorisation, and Security Rule requirements.
+1. HIPAA: biometric identifiers constitute PHI under HIPAA (45 CFR § 160.103) and are among the 18 identifier categories enumerated in the de-identification safe harbor at § 164.514(b)(2)(i). Covered entities and business associates processing patient biometrics must comply with HIPAA minimum necessary, authorisation, and Security Rule requirements.
 2. GLBA Safeguards Rule (16 CFR Part 314): financial institutions must protect biometric data as customer information under their written information security programme, implementing safeguards appropriate to the data's sensitivity under 16 CFR § 314.4.
 3. FTC Act Section 5: the FTC has brought unfair or deceptive practice actions relating to biometric data misuse; consent and security failures are enforcement targets.
 
