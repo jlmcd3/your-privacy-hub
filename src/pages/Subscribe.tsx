@@ -312,13 +312,13 @@ const Subscribe = () => {
           >
             Try Registration Filings →
           </Link>{" "}
-          <span className="text-brand-mist">— {T.registration.display} per filing.</span>
+          <span className="text-brand-navy/70">— {T.registration.display} per filing.</span>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 mt-6 mb-10">
         <div className="flex items-center justify-center gap-2 rounded-xl bg-brand-cloud py-3 px-5">
-          <ShieldCheck className="w-5 h-5 text-brand-teal flex-shrink-0" />
+          <ShieldCheck className="w-5 h-5 text-brand-teal-text flex-shrink-0" />
           <p className="text-center text-base font-semibold text-brand-navy">
             Tool output calibrated against enforcement decisions and regulatory guidance — not just statutory text.
           </p>
@@ -457,7 +457,7 @@ const Subscribe = () => {
                     <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-slate w-[110px]">
                       Free
                     </th>
-                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-brand-mist w-[170px]">
+                    <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-brand-navy/70 w-[170px]">
                       Intelligence ({PRICING.intelligence.monthly.display}/mo)
                     </th>
                     <th className="px-5 py-3.5 text-center text-meta font-semibold tracking-wider uppercase text-amber-600 w-[230px]">
@@ -485,11 +485,11 @@ const Subscribe = () => {
                           color === "platform"
                             ? "text-amber-500"
                             : color === "intel"
-                              ? "text-brand-mist"
+                              ? "text-brand-navy/70"
                               : "text-accent";
                         return <Check className={`w-4 h-4 ${cls} mx-auto`} />;
                       }
-                      if (val === false) return <XIcon className="w-4 h-4 text-brand-mist mx-auto" />;
+                      if (val === false) return <XIcon className="w-4 h-4 text-brand-navy/70 mx-auto" />;
                       if (val === "Included") {
                         return <span className="text-meta font-semibold text-green-600">Included</span>;
                       }

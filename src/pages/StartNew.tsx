@@ -285,7 +285,7 @@ export default function StartNew() {
                 for <span className="font-semibold text-brand-navy">{workspaceLabel}</span>
               </span>
             </p>
-            <p className="text-xs text-brand-mist mt-2">
+            <p className="text-xs text-brand-navy/70 mt-2">
               Pick a tool to begin. New work will be saved under{" "}
               {isPersonalActive ? "your personal workspace" : clientName}.
             </p>
@@ -309,7 +309,7 @@ export default function StartNew() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
                           to={tool.startPath}
-                          className="text-sm font-semibold text-brand-navy hover:text-brand-teal hover:underline"
+                          className="text-sm font-semibold text-brand-navy hover:text-brand-teal-text hover:underline"
                         >
                           {tool.label}
                         </Link>
@@ -345,7 +345,7 @@ export default function StartNew() {
                       {has && tool.viewPath && (
                         <Link
                           to={tool.viewPath}
-                          className="text-[11px] text-brand-teal hover:underline whitespace-nowrap"
+                          className="text-[11px] text-brand-teal-text hover:underline whitespace-nowrap"
                         >
                           View
                         </Link>
@@ -357,9 +357,9 @@ export default function StartNew() {
             </div>
           )}
 
-          <p className="text-xs text-brand-mist mt-8">
+          <p className="text-xs text-brand-navy/70 mt-8">
             Looking for tool descriptions, pricing, or samples?{" "}
-            <Link to="/tools" className="text-brand-teal hover:underline">
+            <Link to="/tools" className="text-brand-teal-text hover:underline">
               See the full tool catalog
             </Link>
             .
