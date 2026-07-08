@@ -2313,17 +2313,15 @@ Deno.serve(async (req) => {
           upsert: true,
         });
       if (!storageError) {
-        // Bucket is private — issue a long-lived signed URL (1 year).
+        // SEC-1b: short-TTL signed URL (600s), never persisted.
         const { data: urlData } = await supabase.storage
           .from("assessment-reports")
-          .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
+          .createSignedUrl(storagePath, 600);
         pdfUrl = urlData?.signedUrl || null;
       }
     }
 
-    if (pdfUrl && TABLES_WITH_PDF_URL.has(table)) {
-      await supabase.from(table).update({ pdf_url: pdfUrl }).eq("id", assessment_id);
-    }
+    // SEC-1b: do NOT persist pdf_url. URL is returned to the authorized caller only.
 
 
     return new Response(
