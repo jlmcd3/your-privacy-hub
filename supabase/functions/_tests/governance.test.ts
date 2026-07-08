@@ -42,7 +42,7 @@ Deno.test("German private-sector controllers map to Land authority (never BfDI)"
   const tm = buildGovernanceDomainToolModule(["Germany"], "Yes");
   const blocks = buildSystemContent({ toolModule: tm, currentDate: today });
   const all = blocks.map((b) => b.text).join("\n");
-  assertStringIncludes(all, "NEVER name the BfDI for a private-sector German controller");
+  assertStringIncludes(all, "Never name the BfDI for a private-sector controller");
 });
 
 Deno.test("Netherlands authority is AP, never UODO", () => {
