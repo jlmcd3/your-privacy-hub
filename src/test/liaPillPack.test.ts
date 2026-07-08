@@ -16,7 +16,7 @@ import { LIA_PILOT_ASSISTED_INPUT } from "@/config/assistedInput/lia";
 // keyword be satisfied by an alternate substring that the pack
 // author confirmed is the on-page realisation of that category.
 const KEYWORD_SYNONYMS: Record<string, readonly string[]> = {
-  behavioral: ["behavioural", "behavioral", "tracking"],
+  behavioral: ["behavioural", "behavioral", "tracking", "global privacy control"],
   analytics: ["analytics", "pseudonymisation", "hashed", "k-anonymity", "identifier", "not documented", "not currently documented"],
   administration: ["account", "in-app", "privacy email", "no ongoing processing"],
   customer: ["privacy email", "customers", "customer"],
