@@ -45,12 +45,15 @@ Deno.test("German private-sector controllers map to Land authority (never BfDI)"
   assertStringIncludes(all, "Never name the BfDI for a private-sector controller");
 });
 
-Deno.test("Netherlands authority is AP, never UODO", () => {
+Deno.test("SA naming discipline routes Netherlands (and every jurisdiction) through the resolved block", () => {
   const tm = buildGovernanceDomainToolModule(["Netherlands"], "Yes");
   const all = buildSystemContent({ toolModule: tm, currentDate: today })
     .map((b) => b.text).join("\n");
-  assertStringIncludes(all, "Netherlands AP");
-  assertStringIncludes(all, "NEVER \"UODO\"");
+  // Post-3.6 governance module names SAs ONLY from the injected RESOLVED GDPR
+  // CITATIONS block — no per-country literal ("Netherlands AP", "NEVER UODO",
+  // etc.) is emitted from the static prompt. Assert the discipline itself.
+  assertStringIncludes(all, "Name supervisory authorities ONLY from the injected RESOLVED GDPR CITATIONS block");
+  assertStringIncludes(all, "the relevant supervisory authority in");
 });
 
 Deno.test("US-only intake: framework scoping rule is present and EU_UK_DATA=No is rendered", () => {
