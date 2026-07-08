@@ -22,13 +22,16 @@ Deno.test("each stage's system is a block array; block 1 contains PRIORITY ORDER
   }
 });
 
-Deno.test("analysis block 2 contains the jurisdiction-aware Article-6 rule", () => {
+Deno.test("analysis block 2 routes Article-6 examples/recognised-LI through the resolved-citations block", () => {
   const blocks = buildSystemContent({ toolModule: LIA_ANALYSIS_TOOL_MODULE, currentDate: today });
-  // Citation framework is rendered into block 1 (core template substitution).
+  // Post-3.6 the jurisdiction-aware Article-6 wording is delivered via the
+  // injected RESOLVED GDPR CITATIONS block; the static module carries the
+  // routing rule, not the per-jurisdiction paragraph counts.
   const all = blocks.map((b) => b.text).join("\n");
-  assertStringIncludes(all, "EU GDPR has only four paragraphs");
-  assertStringIncludes(all, "UK GDPR (post-DUAA");
+  assertStringIncludes(all, "RECITAL/EXAMPLE CITATION RULE");
+  assertStringIncludes(all, "Article 6(11)");
   assertStringIncludes(all, "Article 6(1)(ea)");
+  assertStringIncludes(all, "RESOLVED GDPR CITATIONS");
 });
 
 Deno.test("injected corpus block has no cache_control", () => {
