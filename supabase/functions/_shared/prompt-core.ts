@@ -10,8 +10,8 @@
 // EU-transfers content modularized (opt-in via ToolModule.includeEuTransfers); UK–US Data Bridge
 // verified date added.
 
-export const PROMPT_CORE_VERSION = "3.5";
-export const BUILD_TAG = "qb13";
+export const PROMPT_CORE_VERSION = "3.6";
+export const BUILD_TAG = "qb14";
 
 
 
