@@ -22,7 +22,7 @@ const KEYWORD_SYNONYMS: Record<string, readonly string[]> = {
   customer: ["privacy email", "customers", "customer"],
   worker: ["employment", "worker", "workers"],
   workplace: ["works-council", "adverse actions", "employment", "monitoring"],
-  employee: ["employee", "employment", "worker", "workers", "works-council"],
+  employee: ["employee", "employment", "worker", "workers", "works-council", "monitoring", "adverse actions"],
   system: ["system", "network"],
   targeting: ["targeting"],
   fraud: ["fraud"],
