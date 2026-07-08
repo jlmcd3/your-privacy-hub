@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
 
     const { data: urlData } = await supabase.storage
       .from("assessment-reports")
-      .createSignedUrl(storagePath, 60 * 60 * 24 * 30); // 30 days
+      .createSignedUrl(storagePath, 3600); // 1 hour
 
     return new Response(
       JSON.stringify({ success: true, pdf_url: urlData?.signedUrl || null }),

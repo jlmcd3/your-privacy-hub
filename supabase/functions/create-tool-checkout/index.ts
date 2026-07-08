@@ -262,7 +262,7 @@ Deno.serve(async (req) => {
         return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
       const originTop = /^https?:\/\//i.test(rawOriginTop)
         ? rawOriginTop.replace(/\/$/, "")
-        : "https://www.enduserprivacy.com";
+        : "https://enduserprivacy.com";
       const defaultPathTop = DEFAULT_REVIEW_PATHS[tool.table] || "/account";
       const returnPathTop = success_path || `${defaultPathTop}?topup_success=true`;
       const session = await topupStripe.checkout.sessions.create({
@@ -495,7 +495,7 @@ Deno.serve(async (req) => {
 
 
     const rawOrigin = return_url || req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
-    const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://www.enduserprivacy.com";
+    const origin = /^https?:\/\//i.test(rawOrigin) ? rawOrigin.replace(/\/$/, "") : "https://enduserprivacy.com";
 
     const INCLUDED_GEN_TOOLS = new Set([
       "li_assessment",

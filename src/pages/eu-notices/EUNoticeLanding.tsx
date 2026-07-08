@@ -36,7 +36,7 @@ export default function EUNoticeLanding() {
       <Helmet>
         <title>EU & Global Privacy Notice Builder | EndUserPrivacy</title>
         <meta name="description" content="Generate GDPR, UK GDPR, Swiss FADP, LGPD, APPI, DPDPA, POPIA, PIPEDA and 4 more privacy notices in one session." />
-        <link rel="canonical" href="https://www.enduserprivacy.com/eu-global-notice-builder" />
+        <link rel="canonical" href="https://enduserprivacy.com/eu-global-notice-builder" />
       </Helmet>      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <ToolTierNote />
         {hasToolAccess && (

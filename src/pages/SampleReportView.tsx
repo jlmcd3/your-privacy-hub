@@ -155,7 +155,7 @@ export default function SampleReportView() {
         />
         <link
           rel="canonical"
-          href={`https://www.enduserprivacy.com/samples/${toolSlug}/${variant}`}
+          href={`https://enduserprivacy.com/samples/${toolSlug}/${variant}`}
         />
       </Helmet>
 

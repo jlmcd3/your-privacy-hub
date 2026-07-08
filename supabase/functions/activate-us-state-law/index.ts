@@ -204,7 +204,7 @@ Deno.serve(async (req) => {
         if (page > 20) break; // safety
       }
 
-      const updateUrl = `https://www.enduserprivacy.com/us-notices`;
+      const updateUrl = `https://enduserprivacy.com/us-notices`;
 
       for (const client of clients ?? []) {
         if (notifiedSet.has(client.id)) {

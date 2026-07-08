@@ -308,7 +308,7 @@ Deno.serve(async (req) => {
       if (cached) {
         const { data: urlData } = await supabase.storage
           .from("assessment-reports")
-          .createSignedUrl(`${folder}/${cached.name}`, 60 * 60 * 24 * 30);
+          .createSignedUrl(`${folder}/${cached.name}`, 3600);
         if (urlData?.signedUrl) {
           return new Response(JSON.stringify({ success: true, pdf_url: urlData.signedUrl, cached: true }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -332,7 +332,7 @@ Deno.serve(async (req) => {
 
     const { data: urlData } = await supabase.storage
       .from("assessment-reports")
-      .createSignedUrl(path, 60 * 60 * 24 * 30);
+      .createSignedUrl(path, 3600);
 
     return new Response(JSON.stringify({ success: true, pdf_url: urlData?.signedUrl || null }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });

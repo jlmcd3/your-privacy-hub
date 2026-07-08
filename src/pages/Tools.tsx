@@ -615,7 +615,7 @@ export default function Tools() {
                       <p className={`text-eyebrow ${hdr.colors.label} mb-0.5`}>
                         {hdr.label}
                       </p>
-                      <p className={`text-[15px] font-semibold ${hdr.colors.title}`}>
+                      <p className={`text-base font-semibold ${hdr.colors.title}`}>
                         {hdr.title}
                       </p>
                     </div>
@@ -778,7 +778,7 @@ export default function Tools() {
             <div className="bg-brand-navy px-6 py-4 rounded-t-2xl flex items-center justify-between sticky top-0">
               <div>
                 <p className="text-eyebrow text-amber-400 mb-0.5">Sample Output</p>
-                <p className="text-white font-semibold text-[15px]">{activeTool.name}</p>
+                <p className="text-white font-semibold text-base">{activeTool.name}</p>
               </div>
               <button
                 onClick={() => setSampleModal(null)}
