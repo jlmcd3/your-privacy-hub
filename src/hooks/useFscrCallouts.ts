@@ -13,13 +13,16 @@ export function useFscrCallouts(citations: string[]): FscrCalloutMap {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await (supabase as any)
-          .from("cppa_fsor_commentary")
+        const { data, error } = await (supabase as any)
+          .from("cppa_fsor_callouts")
           .select("regulation_citation, agency_position_summary")
           .in("regulation_citation", citations)
-          .not("agency_position_summary", "is", null)
           .limit(citations.length * 3);
 
+        if (error) {
+          console.warn("[useFscrCallouts] query failed:", error.message);
+          return;
+        }
         if (cancelled || !data) return;
 
         const map: FscrCalloutMap = {};
@@ -30,8 +33,8 @@ export function useFscrCallouts(citations: string[]): FscrCalloutMap {
           }
         }
         setCallouts(map);
-      } catch {
-        // Silent — callouts are enhancement only
+      } catch (e) {
+        console.warn("[useFscrCallouts] unexpected error:", (e as Error).message);
       }
     })();
     return () => { cancelled = true; };

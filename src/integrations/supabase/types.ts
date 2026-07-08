@@ -7672,6 +7672,21 @@ export type Database = {
       }
     }
     Views: {
+      cppa_fsor_callouts: {
+        Row: {
+          agency_position_summary: string | null
+          regulation_citation: string | null
+        }
+        Insert: {
+          agency_position_summary?: string | null
+          regulation_citation?: string | null
+        }
+        Update: {
+          agency_position_summary?: string | null
+          regulation_citation?: string | null
+        }
+        Relationships: []
+      }
       founding_subscriber_count: {
         Row: {
           total: number | null
