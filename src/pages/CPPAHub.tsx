@@ -12,6 +12,7 @@ const TOOLS = [
   {
     href: "/cppa-scope-checker",
     title: "CPPA Scope Checker",
+    article: null,
     description: "Determine if your business is in scope for the new CPPA risk-assessment and cybersecurity-audit regulations.",
     price: "Free",
     icon: ClipboardCheck,
@@ -19,6 +20,7 @@ const TOOLS = [
   {
     href: "/cppa-risk-assessment",
     title: "CPPA Risk Assessment",
+    article: "Module 1 · Article 10 (§§ 7150–7159)",
     description: "Module 1 risk assessment built directly on the final CPPA regulations and FSOR agency commentary.",
     price: `${riskStandalone} standalone · discounted with a subscription`,
     icon: Shield,
@@ -26,7 +28,8 @@ const TOOLS = [
   {
     href: "/cppa-cybersecurity",
     title: "CPPA Cybersecurity Readiness",
-    description: "Module 2 audit readiness across all 18 required controls, mapped to NIST CSF and ISO 27001. Includes Drift Watch (compare re-runs) and Breach Precedent Map (real enforcement actions for each control gap).",
+    article: "Module 2 · Article 9 (§§ 7120–7124)",
+    description: "Module 2 audit readiness across all 18 required controls, mapped to NIST CSF and ISO 27001. Includes Drift Watch (compare re-runs) and Breach Precedent Map (real enforcement actions for each control control-readiness item).",
     price: `${cyberStandalone} standalone · discounted with a subscription`,
     icon: Lock,
   },
