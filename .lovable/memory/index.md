@@ -16,7 +16,7 @@ Routing: React Router `<Link>` for internal. External links use `target="_blank"
 - [Project Overview](mem://project/overview) — What EndUserPrivacy.com is and its core features
 - [Design System](mem://design/typography-and-colors) — Fonts, UI colors, article card styling, and document layouts
 - [Brand Voice](mem://brand/voice-policy) — Banned words, allowed terminology, product identity
-- [Monetization](mem://features/monetization) — Pricing ($19/$190), report limits, credit bundles, gating, ad policy
+- [Monetization](mem://features/monetization) — Pricing (Intel $20/$200, Prof $49/$490 + $150/client), tool tiers, annual credits, gating, ad policy
 - [Newsfeed Rules](mem://features/newsfeed) — Access limits, breaking news logic, URL sync, ungated fields
 - [Intelligence Brief](mem://features/intelligence-brief) — Inline citations, relevance scoring, custom generation
 - [Routing & Navigation](mem://architecture/routing-navigation) — Link handling, scroll behavior, SEO redirects, jurisdiction slugs
