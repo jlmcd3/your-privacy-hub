@@ -91,6 +91,7 @@ export default {
           ocean: "hsl(var(--brand-ocean) / <alpha-value>)",
           "slate-teal": "hsl(var(--brand-slate-teal) / <alpha-value>)",
           teal: "hsl(var(--brand-teal) / <alpha-value>)",
+          "teal-text": "hsl(var(--brand-teal-text) / <alpha-value>)",
           "light-teal": "hsl(var(--brand-light-teal) / <alpha-value>)",
           steel: "hsl(var(--brand-steel) / <alpha-value>)",
           mist: "hsl(var(--brand-mist) / <alpha-value>)",
