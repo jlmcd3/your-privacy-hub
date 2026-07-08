@@ -164,6 +164,9 @@ export default function CPPAHub() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-serif text-xl mb-1 group-hover:text-brand-teal-text text-brand-navy">{t.title}</h3>
+                    {t.article && (
+                      <p className="text-body-tiny uppercase tracking-wider text-brand-teal-text font-semibold mb-2">{t.article}</p>
+                    )}
                     <p className="text-sm text-muted-foreground mb-3">{t.description}</p>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-brand-steel">{t.price}</span>
