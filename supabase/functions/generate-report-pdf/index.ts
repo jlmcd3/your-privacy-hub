@@ -1834,7 +1834,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { tool_type, assessment_id, user_email, user_name, result_url, force } = await req.json();
+    const { tool_type, assessment_id, user_email, user_name, result_url, force, mode } = await req.json();
 
     if (!tool_type || !assessment_id) {
       return new Response(JSON.stringify({ error: "tool_type and assessment_id are required" }),
@@ -1872,12 +1872,66 @@ Deno.serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Ownership check — internal callers (service-role / admin sample generation)
-    // are trusted; end-user callers must own the record.
-    if (!caller.internal && (record as any).user_id && caller.userId !== (record as any).user_id) {
+    // SEC-1b: Owner-only PDF access. Allow only if:
+    //   - caller is internal (service-role), OR
+    //   - caller is an admin end-user, OR
+    //   - record.user_id IS SET AND matches the caller.
+    // A NULL record.user_id (preview-stage) can never mint a PDF.
+    {
+      const recordUserId = (record as any).user_id ?? null;
+      let allowed = false;
+      if (caller.internal) {
+        allowed = true;
+      } else if (recordUserId && caller.userId === recordUserId) {
+        allowed = true;
+      } else if (caller.userId) {
+        try {
+          const { data: isAdmin } = await supabase.rpc("has_role", {
+            _user_id: caller.userId, _role: "admin",
+          });
+          if (isAdmin) allowed = true;
+        } catch (_e) { /* fall through */ }
+      }
+      if (!allowed) {
+        if (!recordUserId) {
+          return new Response(
+            JSON.stringify({ error: "PREVIEW_REQUIRES_ACCOUNT" }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        return new Response(
+          JSON.stringify({ error: "forbidden" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // SEC-1b: sign-only mode — return a fresh short-TTL (600s) signed URL for
+    // an already-rendered cached PDF. Never persists the URL. Never renders.
+    if (mode === "sign-only") {
+      const folder = `reports/${table}/${assessment_id}`;
+      const { data: existing } = await supabase.storage
+        .from("assessment-reports")
+        .list(folder, { limit: 10, sortBy: { column: "created_at", order: "desc" } });
+      const cachedFile = (existing || []).find((f) => f.name.toLowerCase().endsWith(".pdf"));
+      if (!cachedFile) {
+        return new Response(
+          JSON.stringify({ error: "report_not_ready" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const { data: urlData } = await supabase.storage
+        .from("assessment-reports")
+        .createSignedUrl(`${folder}/${cachedFile.name}`, 600);
+      if (!urlData?.signedUrl) {
+        return new Response(
+          JSON.stringify({ error: "sign_failed" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       return new Response(
-        JSON.stringify({ error: "forbidden" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: true, pdf_url: urlData.signedUrl, cached: true, sign_only: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
