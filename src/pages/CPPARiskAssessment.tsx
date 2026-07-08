@@ -437,7 +437,7 @@ export default function CPPARiskAssessment() {
       if (!i7InternalContributors) return "I-7: List internal contributor roles (or write 'None').";
       if (!i8ExecName || !i8ExecTitle) return "I-8: Certifying executive name and title are required.";
       if (!i9HasDpia) return "I-9: Please answer whether an existing DPIA exists.";
-      if (i9HasDpia === "Yes" && !i9DpiaSummary) return "I-9: Please summarise the existing DPIA.";
+      if (i9HasDpia === "Yes" && !i9DpiaSummary) return "I-9: Please summarize the existing DPIA.";
     }
     return null;
   };

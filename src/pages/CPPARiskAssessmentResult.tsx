@@ -67,7 +67,7 @@ const ledgerColor = (c?: string) => {
 };
 
 // Sprint 1 #5 — Confidence stratification.
-// Tier derived from corpus + FSOR alignment so attorneys can prioritise review.
+// Tier derived from corpus + FSOR alignment so attorneys can prioritize review.
 type ConfidenceTier = "High-confidence" | "Inference" | "Heuristic";
 const NO_AUTH_PHRASE = "no retrieved authority";
 function classifyDomain(d: any): ConfidenceTier {
@@ -371,7 +371,7 @@ export default function CPPARiskAssessmentResult() {
                   <section className="bg-card border rounded-lg p-6">
                     <h2 className="mb-1">Confidence Stratification <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">(admin)</span></h2>
                     <p className="text-xs text-muted-foreground mb-4">
-                      Domains grouped by how strongly the conclusion is grounded in statutory or regulatory authority and agency commentary (FSOR). Use this to prioritise attorney review.
+                      Domains grouped by how strongly the conclusion is grounded in statutory or regulatory authority and agency commentary (FSOR). Use this to prioritize attorney review.
                     </p>
                     <div className="grid md:grid-cols-3 gap-3">
                       {order.map((tier) => (

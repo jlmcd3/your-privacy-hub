@@ -206,7 +206,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
             <div className="flex items-center gap-2"><span className="px-2 py-0.5 text-xs rounded bg-emerald-100 text-emerald-900">Implemented</span><span className="text-xs text-muted-foreground">75–100</span></div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Scores reflect this tool's assessment of programme maturity based on the inputs you provided. They are not a substitute for an independent auditor's determination and should be reviewed with a qualified CPPA-registered or equivalent cybersecurity auditor before certification.
+            Scores reflect this tool's assessment of program maturity based on the inputs you provided. They are not a substitute for an independent auditor's determination and should be reviewed with a qualified CPPA-registered or equivalent cybersecurity auditor before certification.
           </p>
         </section>
       )}

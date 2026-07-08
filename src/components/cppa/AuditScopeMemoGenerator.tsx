@@ -93,8 +93,8 @@ export default function AuditScopeMemoGenerator({ intake, report }: Props) {
   }, []);
 
   const defaultFrameworkRef = profile.framework && profile.framework !== "None / informal"
-    ? `The business operates a ${profile.framework} programme. Auditor should use the CPPA-to-${profile.framework} cross-walk (see Framework Mapping section of this report) to identify which existing ${profile.framework} controls and evidence the auditor may rely upon, and which § 7122(a) components require CPPA-specific evidence that the ${profile.framework} programme does not produce.`
-    : "The business does not operate a recognised baseline framework (NIST CSF, ISO 27001, SOC 2). Auditor should not assume any existing certifications or attestations satisfy § 7122(a); all 18 components require primary evidence.";
+    ? `The business operates a ${profile.framework} program. Auditor should use the CPPA-to-${profile.framework} cross-walk (see Framework Mapping section of this report) to identify which existing ${profile.framework} controls and evidence the auditor may rely upon, and which § 7122(a) components require CPPA-specific evidence that the ${profile.framework} program does not produce.`
+    : "The business does not operate a recognized baseline framework (NIST CSF, ISO 27001, SOC 2). Auditor should not assume any existing certifications or attestations satisfy § 7122(a); all 18 components require primary evidence.";
 
   const [scopeStart, setScopeStart] = useState(period.start);
   const [scopeEnd, setScopeEnd] = useState(period.end);
@@ -187,7 +187,7 @@ ${dataCats.split("\n").map((l) => `   - ${l}`).join("\n")}
 5. PROCESSING ACTIVITIES IN SCOPE
 ${activities.split("\n").map((l) => `   - ${l}`).join("\n")}
 
-6. CYBERSECURITY PROGRAMME COMPONENTS IN SCOPE — § 7122(a)
+6. CYBERSECURITY PROGRAM COMPONENTS IN SCOPE — § 7122(a)
    All 18 components below are in scope. None may be omitted.
 ${componentLines}
 

@@ -715,7 +715,7 @@ export default function ADMTChecker() {
                           value={adv.vendor_training_rights || ""}
                           onChange={(v) => setA("vendor_training_rights", v)}
                           pills={ASSISTED_INPUT_REGISTRY.admt_vendor_training_rights.pills}
-                          placeholder="e.g. Vendor may use de-identified inputs to improve its model; sub-processors: AWS (hosting), Acme Labelling Co."
+                          placeholder="e.g. Vendor may use de-identified inputs to improve its model; sub-processors: AWS (hosting), Acme Labeling Co."
                         />
                       </div>
                     </div>
@@ -1161,7 +1161,7 @@ export default function ADMTChecker() {
                         </div>
                         <div>
                           <Label className="text-[12px]">Outcome distribution / false-positive &amp; false-negative rates by group</Label>
-                          <ExhibitTextarea className="mt-1" rows={2} value={adv.bias_outcome_summary || ""} onChange={(v) => setA("bias_outcome_summary", v)} placeholder="Summarise selection rates and error rates by protected group, or attach as an Exhibit." />
+                          <ExhibitTextarea className="mt-1" rows={2} value={adv.bias_outcome_summary || ""} onChange={(v) => setA("bias_outcome_summary", v)} placeholder="Summarize selection rates and error rates by protected group, or attach as an Exhibit." />
                         </div>
                       </div>
                     </div>
