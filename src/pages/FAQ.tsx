@@ -3,12 +3,14 @@ import { ChevronDown } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING, PRICING } from "@/config/pricing";
 
 const I_MO = INTELLIGENCE_PRICING.monthly();
 const I_YR = INTELLIGENCE_PRICING.yearly();
 const P_MO = PLATFORM_PRICING.standardMonthly();
 const P_CLIENT = PLATFORM_PRICING.clientAddon();
+// Annual saving derived so it can't drift from PRICING.
+const I_ANNUAL_SAVING = `$${PRICING.intelligence.monthly.dollars * 12 - PRICING.intelligence.annual.dollars}`;
 
 const faqs = [
   {
