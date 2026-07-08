@@ -74,7 +74,7 @@ Deno.test("ToolModule shape: only identity/citationFramework/extraRules/outputMo
   const keys = Object.keys(ADMT_TOOL_MODULE).sort();
   for (const k of keys) {
     assert(
-      ["identity", "citationFramework", "outputMode", "extraRules", "schema"].includes(k),
+      ["identity", "citationFramework", "outputMode", "extraRules", "schema", "includeEuTransfers", "languageVariant"].includes(k),
       `unexpected key in ADMT_TOOL_MODULE: ${k}`,
     );
   }
