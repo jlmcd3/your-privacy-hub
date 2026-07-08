@@ -29,7 +29,7 @@ const TOOLS = [
     href: "/cppa-cybersecurity",
     title: "CPPA Cybersecurity Readiness",
     article: "Module 2 · Article 9 (§§ 7120–7124)",
-    description: "Module 2 audit readiness across all 18 required controls, mapped to NIST CSF and ISO 27001. Includes Drift Watch (compare re-runs) and Breach Precedent Map (real enforcement actions for each control control-readiness item).",
+    description: "Module 2 audit readiness across all 18 required controls, mapped to NIST CSF and ISO 27001. Includes Drift Watch (compare re-runs) and Breach Precedent Map (real enforcement actions for each control gap).",
     price: `${cyberStandalone} standalone · discounted with a subscription`,
     icon: Lock,
   },
