@@ -507,13 +507,13 @@ Applies to this organisation: Conditional — ${describeProcessing(body.orgType,
 Key state biometric statutes (by litigation and enforcement risk):
 1. Illinois BIPA (740 ILCS 14): private right of action per person; highest US biometric litigation risk. Select "Illinois, USA (BIPA)" for a full BIPA analysis.
 2. Texas CUBI (Tex. Bus. & Com. Code § 503.001): AG-only enforcement; $25,000/violation; no private right of action. Select "Texas, USA (CUBI)" for a full CUBI analysis.
-3. Washington MHMD (RCW 70.372): applies where biometrics are used to infer health status; private right of action via WA Consumer Protection Act.
+3. Washington MHMD (RCW 19.373): applies where biometrics are used to infer health status; private right of action under RCW 19.373.600, with remedies available under the WA Consumer Protection Act (RCW 19.86).
 4. California CCPA/CPRA (Cal. Civ. Code § 1798.100 et seq.): biometric information is Sensitive Personal Information; Limit-Use right applies. Select "California" for full CCPA analysis.
-5. Several additional states (Colorado, Connecticut, Oregon, Montana) have comprehensive privacy laws treating biometrics as sensitive data requiring opt-in consent and data protection assessments.
+5. Colorado, Connecticut, Oregon, and Montana have comprehensive privacy laws treating biometric information as sensitive personal data subject to heightened notice and consent or opt-out requirements; consult each state's statute for the specific lawful basis rules.
 
 Federal frameworks applicable to biometrics by sector:
-1. HIPAA (45 CFR Parts 160 and 164): biometric identifiers are listed PHI identifiers under the Privacy Rule (§ 164.514(b)(2)(i)). Covered entities and business associates processing patient biometrics must comply with HIPAA minimum necessary, authorisation, and Security Rule requirements.
-2. GLBA Safeguards Rule (16 CFR Part 314): financial institutions must protect biometric data under their written information security programme.
+1. HIPAA: biometric identifiers constitute PHI under HIPAA (45 CFR § 160.103) and are among the 18 identifier categories enumerated in the de-identification safe harbor at § 164.514(b)(2). Covered entities and business associates processing patient biometrics must comply with HIPAA minimum necessary, authorisation, and Security Rule requirements.
+2. GLBA Safeguards Rule (16 CFR Part 314): financial institutions must protect biometric data as customer information under their written information security programme, implementing safeguards appropriate to the data's sensitivity under 16 CFR § 314.4.
 3. FTC Act Section 5: the FTC has brought unfair or deceptive practice actions relating to biometric data misuse; consent and security failures are enforcement targets.
 
 Current enforcement posture:
