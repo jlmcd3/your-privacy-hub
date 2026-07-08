@@ -2058,11 +2058,9 @@ Deno.serve(async (req) => {
         if (cachedFile) {
           const { data: urlData } = await supabase.storage
             .from("assessment-reports")
-            .createSignedUrl(`${folder}/${cachedFile.name}`, 60 * 60 * 24 * 365);
+            .createSignedUrl(`${folder}/${cachedFile.name}`, 600);
           if (urlData?.signedUrl) {
-            if (TABLES_WITH_PDF_URL.has(table)) {
-              await supabase.from(table).update({ pdf_url: urlData.signedUrl }).eq("id", assessment_id);
-            }
+            // SEC-1b: do NOT persist the signed URL. Return to authorized caller only.
             return new Response(
               JSON.stringify({ success: true, pdf_generated: true, pdf_url: urlData.signedUrl, email_sent: false, cached: true }),
               { headers: { ...corsHeaders, "Content-Type": "application/json" } }
