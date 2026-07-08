@@ -192,7 +192,7 @@ export default function SamplesHub() {
               </div>
             </div>
             <div>
-              <p className="text-body-tiny uppercase tracking-wider text-muted-foreground mb-2">Filter by report type</p>
+              <p className="text-body-tiny uppercase tracking-wider text-muted-foreground mb-2">Filter by jurisdiction</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
