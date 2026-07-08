@@ -314,6 +314,30 @@ export const ADMT_RAIL: Record<string, RailEntry> = {
     ],
   },
 
+  access_anti_retaliation: {
+    coachLead: "State non-retaliation explicitly in the access response AND link directly to the privacy-policy section for exercising CCPA rights.",
+    coachBody: "The access response must (1) say plainly that the business will not retaliate for exercising CCPA rights and (2) give instructions with a direct link to the SPECIFIC privacy-policy section where those rights are exercised. A link to the top of the privacy policy does not satisfy this — the link must land on the rights-exercise section.",
+    goodAnswer:
+      "An explicit non-retaliation line together with a direct link that deep-links to the 'Your CCPA Rights' section of the privacy policy (not the policy's homepage anchor).",
+    commonMistake:
+      "Copying the pre-use notice's non-retaliation line but omitting the deep link, or providing only a generic link to the privacy policy that lands on the top of the page.",
+    fieldLabel: "Access response: anti-retaliation statement and rights-exercise link",
+    citation: "11 CCR § 7222(b)(4)",
+    plainSummary:
+      "The access response must include an explanation that the business is prohibited from retaliating against the consumer for exercising CCPA rights, together with instructions — including a direct link — for exercising the CCPA rights described in the business's privacy policy. A link to the top of the privacy policy does not comply; the link must point to the specific rights-exercise section.",
+    regulationText:
+      "An explanation that the business is prohibited from retaliating against the consumer for exercising their rights under the CCPA, and instructions, including any direct link, for how the consumer may exercise the CCPA rights described in the business's privacy policy.",
+    fscrContext:
+      "§ 7222(b)(4) imposes the DISCLOSURE duty inside the access response itself. It is distinct from § 7222(k), which is the separate substantive prohibition on retaliation, and from § 7220(c)(4), which is the pre-use-notice counterpart. Both prongs — the statement AND the direct link — are required.",
+    relatedCitations: [
+      { citation: "11 CCR § 7222(k)", label: "Substantive prohibition on retaliation for exercising ADMT rights" },
+      { citation: "Cal. Civ. Code § 1798.125", label: "Statutory anti-retaliation prohibition" },
+      { citation: "11 CCR § 7220(c)(4)", label: "Pre-use notice counterpart (notice_anti_retaliation)" },
+    ],
+  },
+
+
+
   access_verification: {
     coachLead: "Verify identity proportionately under Article 5 — and if you cannot, tell the requester so.",
     coachBody: "Match the request to the account holder with a proportionate check; do not over-collect new sensitive PI. If verification fails, respond that identity could not be verified rather than declining without explanation.",
