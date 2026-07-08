@@ -144,8 +144,8 @@ const HomepageArticleCard = ({
           {(why || impact || actionItems.length > 0) && (
             <div className="pl-3 border-l-[3px] rounded-r-md py-2 pr-2 mt-2 space-y-2" style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.04)' }}>
               <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal))' }} />
-                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal))' }}>Key Takeaways</span>
+                <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal-text))' }} />
+                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal-text))' }}>Key Takeaways</span>
               </div>
               {(why || impact) && (
                 <p className="text-[13px] text-brand-steel">
@@ -193,8 +193,8 @@ const HomepageArticleCard = ({
           {(why || impact || actionItems.length > 0) && (
             <div className="pl-3 border-l-[3px] rounded-r-md py-2 pr-2 mt-2 space-y-2" style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.04)' }}>
               <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal))' }} />
-                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal))' }}>Key Takeaways</span>
+                <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal-text))' }} />
+                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal-text))' }}>Key Takeaways</span>
               </div>
               {(why || impact) && (
                 <p className="text-[13px] text-brand-steel">
@@ -249,8 +249,8 @@ const HomepageArticleCard = ({
           {(why || impact || actionItems.length > 0) && (
             <div className="pl-3 border-l-[3px] rounded-r-md py-2 pr-2 mt-2 space-y-2" style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.04)' }}>
               <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal))' }} />
-                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal))' }}>Key Takeaways</span>
+                <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal-text))' }} />
+                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal-text))' }}>Key Takeaways</span>
               </div>
               {(why || impact) && (
                 <p className="text-[13px] text-brand-steel">
@@ -289,8 +289,8 @@ const HomepageArticleCard = ({
         {(why || impact || actionItems.length > 0) && (
           <div className="pl-3 border-l-[3px] rounded-r-md py-2 pr-2 mt-2 space-y-2" style={{ borderColor: 'hsl(var(--brand-teal))', background: 'hsl(var(--brand-teal) / 0.04)' }}>
             <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal))' }} />
-              <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal))' }}>Key Takeaways</span>
+              <Sparkles className="w-3 h-3" style={{ color: 'hsl(var(--brand-teal-text))' }} />
+              <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-teal-text))' }}>Key Takeaways</span>
             </div>
             {(why || impact) && (
               <p className="text-[13px] text-brand-steel">
