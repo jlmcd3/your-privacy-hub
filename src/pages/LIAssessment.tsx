@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import { Textarea } from "@/components/ui/textarea";
+import { AssistedInput } from "@/components/AssistedInput";
+import { ASSISTED_INPUT_REGISTRY } from "@/config/assistedInput";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
