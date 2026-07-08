@@ -238,7 +238,7 @@ export default function CPPASuiteResult() {
             CPPA AUDIT READINESS SUITE
           </span>
           <h1 className="font-serif">Combined CPPA Audit Readiness Report</h1>
-          <p className="text-slate-300 mt-2 text-sm">Module 1 (Privacy Risk Assessment) and Module 2 (Cybersecurity Audit Readiness) for your organisation.</p>
+          <p className="text-slate-300 mt-2 text-sm">Module 1 (Privacy Risk Assessment) and Module 2 (Cybersecurity Audit Readiness) for your organization.</p>
         </header>
 
         {loading && <p>Loading…</p>}

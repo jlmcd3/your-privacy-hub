@@ -630,7 +630,7 @@ function ResultsPanel({
           title="Sensitive Personal Information"
           deadline="In force now"
           statusLabel={status(obligationMap.sensitiveRequired, obligationMap.hasUnsure)}
-          description="Consumers have the right to limit use of sensitive PI. You must honour this right and provide the required disclosure."
+          description="Consumers have the right to limit use of sensitive PI. You must honor this right and provide the required disclosure."
         />
         <Row
           title="Data Broker Registration"

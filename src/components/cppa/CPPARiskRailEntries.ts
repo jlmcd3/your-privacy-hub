@@ -78,7 +78,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
       { citation: "11 CCR § 7150(b)", label: "Categories of processing that present significant risk" },
     ],
     coachLead: "Pick the sector of the processing being assessed — not the parent company.",
-    coachBody: "Sector decides which enforcement patterns the assessment weighs. If your organisation spans several, choose the one this activity belongs to.",
+    coachBody: "Sector decides which enforcement patterns the assessment weighs. If your organization spans several, choose the one this activity belongs to.",
     goodAnswer: "A conglomerate assessing its consumer-lending app selects financial services, not technology. The assessed activity is lending, whatever the parent does.",
     commonMistake: "Selecting the corporate industry when the assessed processing sits in a different one. That pulls the wrong regulatory context into every later section.",
   },
@@ -105,7 +105,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     citationUrl: CPPA_URL,
     plainSummary: "Businesses that sell or share PI must provide a 'Do Not Sell or Share My Personal Information' link on their homepage. Selling or sharing PI is also one of the six categories of processing that triggers the CPPA's risk assessment requirement.",
     regulationText: "A consumer shall have the right, at any time, to direct a business that sells or shares personal information about the consumer to third parties not to sell or share the consumer's personal information.",
-    enforcementNote: "Undisclosed data selling and sharing is among the most cited CCPA violations. The CPPA's first wave of enforcement investigations (2024–2025) prioritised businesses with absent or non-functional opt-out mechanisms. Ensure your answer here is consistent with your privacy policy and actual data flows.",
+    enforcementNote: "Undisclosed data selling and sharing is among the most cited CCPA violations. The CPPA's first wave of enforcement investigations (2024–2025) prioritized businesses with absent or non-functional opt-out mechanisms. Ensure your answer here is consistent with your privacy policy and actual data flows.",
     relatedCitations: [
       { citation: "11 CCR § 7150(b)(1)", label: "Risk assessment trigger — sell/share" },
       { citation: "Cal. Civ. Code § 1798.140(k)", label: "Cross-context behavioural advertising definition" },
@@ -330,7 +330,7 @@ export const CPPA_RISK_RAIL: Record<string, RailEntry> = {
     coachLead: "Check this exemption's current status before relying on it.",
     coachBody: "The claim needs two things: processing genuinely inside the HR relationship, and an exemption still in force at its claimed scope. Say which employment processing it covers.",
     goodAnswer: "'Payroll and benefits administration for California employees' — clearly employment-context, claimed after checking the current statutory scope.",
-    commonMistake: "Assuming everything touching employees is exempt. The exemption has narrowed over the years, and behaviour-profiling workplace monitoring tests its edge.",
+    commonMistake: "Assuming everything touching employees is exempt. The exemption has narrowed over the years, and behavior-profiling workplace monitoring tests its edge.",
   },
 
   exc_legal_compliance: {

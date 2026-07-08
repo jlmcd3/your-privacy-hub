@@ -34,7 +34,7 @@ function controlKeyFromLabel(label: string): string | null {
 
 async function fetchActionsForPatterns(patterns: string[]): Promise<Action[]> {
   if (patterns.length === 0) return [];
-  // OR across patterns, on either key_compliance_failure OR violation, prioritising
+  // OR across patterns, on either key_compliance_failure OR violation, prioritizing
   // California / CCPA-relevant actions but not restricting to them — most consumer-data
   // enforcement is informative regardless of jurisdiction.
   const orClauses = patterns

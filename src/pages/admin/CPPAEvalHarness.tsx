@@ -230,7 +230,7 @@ export default function CPPAEvalHarness() {
           : "ADMT asserts advertising = significant decision and validator did NOT flag it";
       }
       results.push({
-        name: "Advertising NOT affirmatively labelled an ADMT 'significant decision' (or validator caught it)",
+        name: "Advertising NOT affirmatively labeled an ADMT 'significant decision' (or validator caught it)",
         pass: admtPass, detail: admtDetail,
       });
 

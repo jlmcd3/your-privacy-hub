@@ -30,7 +30,7 @@ const CRITERIA: Criterion[] = [
   {
     id: "reporting_line",
     label:
-      "For an internal auditor: does the auditor have a functional reporting line to the person, team, or executive responsible for the cybersecurity programme being audited (e.g., CISO, head of IT, head of engineering)?",
+      "For an internal auditor: does the auditor have a functional reporting line to the person, team, or executive responsible for the cybersecurity program being audited (e.g., CISO, head of IT, head of engineering)?",
     citation: "11 CCR § 7122(b)(4)",
     helpText:
       "Internal auditor must report directly to the board (or board-equivalent governing body), not to the function being audited.",
@@ -46,7 +46,7 @@ const CRITERIA: Criterion[] = [
   {
     id: "non_audit_services",
     label:
-      "Is the auditor (or the auditor's firm) currently providing — or will it provide during the audit period — non-audit services that touch the cybersecurity programme (e.g., MSSP, SOC operations, vCISO, IR retainer, control remediation)?",
+      "Is the auditor (or the auditor's firm) currently providing — or will it provide during the audit period — non-audit services that touch the cybersecurity program (e.g., MSSP, SOC operations, vCISO, IR retainer, control remediation)?",
     citation: "11 CCR § 7122(b)(2)",
     helpText:
       "Concurrent non-audit services create the appearance and substance of self-review. FSOR rejected industry comments asking for a carve-out.",

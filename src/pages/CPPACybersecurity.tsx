@@ -1,4 +1,4 @@
-// CPPA Cybersecurity Audit Readiness — Module 2 intake. Covers 18 programme components.
+// CPPA Cybersecurity Audit Readiness — Module 2 intake. Covers 18 program components.
 import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
@@ -42,7 +42,7 @@ const MATURITY = [
   "Not implemented",
   "Ad hoc / informal",
   "Documented, partially implemented",
-  "Implemented across organisation",
+  "Implemented across organization",
   "Implemented with continuous monitoring",
 ];
 
@@ -140,7 +140,7 @@ export default function CPPACybersecurity() {
       <DashboardSubnav />
       <Helmet>
         <title>CPPA Cybersecurity Audit Readiness — Module 2 | End User Privacy</title>
-        <meta name="description" content="CPPA cybersecurity audit readiness mapped to the 18 programme components in the agency's regulations. Includes Breach Precedent Map, Auditor Independence Advisor, and Auditor Handoff Package." />
+        <meta name="description" content="CPPA cybersecurity audit readiness mapped to the 18 program components in the agency's regulations. Includes Breach Precedent Map, Auditor Independence Advisor, and Auditor Handoff Package." />
         <link rel="canonical" href="https://enduserprivacy.com/cppa-cybersecurity" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
@@ -159,7 +159,7 @@ export default function CPPACybersecurity() {
           </span>
           <h1 className="text-hero-h1 text-white mb-3">CPPA Cybersecurity Audit Readiness</h1>
           <RequirementBadge variant="hero" tier="conditional" text="If your business clears the CCPA revenue and data-volume thresholds, an independent annual cybersecurity audit is required — first certification due April 1, 2028 for businesses over $100M in revenue." className="mt-2 max-w-3xl" />
-          <p className="text-slate-300 text-lg">A structured readiness review mapped to the 18 cybersecurity programme components in the CPPA's cybersecurity audit regulations. Generates a control-by-control gap report.</p>
+          <p className="text-slate-300 text-lg">A structured readiness review mapped to the 18 cybersecurity program components in the CPPA's cybersecurity audit regulations. Generates a control-by-control gap report.</p>
           <p className="text-slate-400 text-sm mt-3">Required for businesses processing personal information posing significant risk. Audit cadence begins for the largest businesses in 2026.</p>
           <p className="text-slate-400 text-xs italic mt-3 max-w-3xl">{INCLUDED_GENERATIONS_COPY}</p>
           <p className="text-slate-400 text-xs italic mt-2">
@@ -208,7 +208,7 @@ export default function CPPACybersecurity() {
 
         <IntakeMasthead
           kicker="CPPA Cybersecurity Audit Readiness · 11 CCR § 7123"
-          title="Cybersecurity Programme Assessment"
+          title="Cybersecurity Program Assessment"
           subjectLabel={meter ? "Assessment subject · locked" : undefined}
           subjectValue={
             meter && typeof meter.lockedFields?.entity_name === "string"
@@ -225,7 +225,7 @@ export default function CPPACybersecurity() {
         >
         <div className="flex-1 min-w-0 space-y-6">
         <section className="bg-card border rounded-lg p-6 space-y-4">
-          <h2 className="">Organisation Profile</h2>
+          <h2 className="">Organization Profile</h2>
           <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7123 — cybersecurity audit scope and components; § 7124 — annual certification requirement</p>
           <RequiredLegend />
           <div>
@@ -261,9 +261,9 @@ export default function CPPACybersecurity() {
 
         <section className="bg-card border rounded-lg p-6 space-y-6">
           <div>
-            <h2 className="">18 Cybersecurity Programme Components</h2>
-            <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7123(c)(1)–(18) — enumerated programme components</p>
-            <p className="text-sm text-muted-foreground mt-1">Rate each control against the CPPA's enumerated programme components.</p>
+            <h2 className="">18 Cybersecurity Program Components</h2>
+            <p className="text-xs font-mono text-muted-foreground mt-0.5">11 CCR § 7123(c)(1)–(18) — enumerated program components</p>
+            <p className="text-sm text-muted-foreground mt-1">Rate each control against the CPPA's enumerated program components.</p>
           </div>
 
           {CONTROLS.map((c, i) => (
