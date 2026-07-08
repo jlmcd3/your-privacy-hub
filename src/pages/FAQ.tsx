@@ -58,7 +58,7 @@ const faqs = [
 const pricingFaqs = [
   {
     q: "How much does End User Privacy cost?",
-    a: `Privacy Intelligence is ${I_MO} (or ${I_YR} — save $40) and includes the weekly Privacy Intelligence Report, enforcement tracking of privacy developments across the world, and all reference content. Every paid subscription also includes RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator at no extra charge. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces. Annual Intelligence plans include 1 free Smart Tool run per year; annual Professional plans include 3 free Smart Tool runs per year (Governance, LIA, or DPIA).`,
+    a: `Privacy Intelligence is ${I_MO} (or ${I_YR} — save ${I_ANNUAL_SAVING}) and includes the weekly Privacy Intelligence Report, enforcement tracking of privacy developments across the world, and all reference content. Every paid subscription also includes RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator at no extra charge. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces. Annual Intelligence plans include 1 free Smart Tool run per year; annual Professional plans include 3 free Smart Tool runs per year (Governance, LIA, or DPIA).`,
   },
   {
     q: "What is included in Professional?",
