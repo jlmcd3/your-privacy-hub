@@ -266,16 +266,8 @@ export default function PremiumToolsSection({ isPremium }: Props) {
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  {row.pdf_url && (
-                    <a
-                      href={row.pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] font-medium text-primary hover:underline no-underline"
-                    >
-                      ↓ PDF
-                    </a>
-                  )}
+                  {/* SEC-1b: persisted pdf_url no longer exists; users mint a
+                      short-TTL URL on demand from the result page's PDF button. */}
                   <Link
                     to={`${TYPE_HREF[row.type]}/${row.id}`}
                     className="text-sm font-semibold text-primary hover:underline no-underline"

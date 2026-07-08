@@ -179,7 +179,9 @@ const LIAssessmentResult = () => {
           onTranslated={(p, d) => { setTranslated(p); setDir(d); }}
         />
       )}
-      {status === "complete" && (
+      {/* SEC-1b: PDF affordance requires an owner. Preview-stage (user_id NULL)
+          rows never render the button and no replacement CTA per §3b ruling. */}
+      {status === "complete" && assessment?.user_id && (
         <PDFDownloadButton
           toolType="li_assessment"
           assessmentId={assessment.id}
