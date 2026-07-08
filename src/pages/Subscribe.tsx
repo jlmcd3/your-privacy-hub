@@ -186,20 +186,20 @@ const Subscribe = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mt-auto pt-5">
-                <button
-                  onClick={() => startCheckout("month", "intelligence")}
-                  disabled={!!loading}
-                  className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
-                >
-                  Monthly →
-                </button>
+              <div className="mt-auto pt-5">
                 <button
                   onClick={() => startCheckout("year", "intelligence")}
                   disabled={!!loading}
-                  className="w-full py-3 rounded-xl text-sm font-bold bg-brand-mist text-brand-navy hover:opacity-90 disabled:opacity-50"
+                  className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
                 >
-                  Annual →
+                  Start annual — {PRICING.intelligence.annual.display}/yr <ArrowRight className="w-4 h-4 inline ml-1" />
+                </button>
+                <button
+                  onClick={() => startCheckout("month", "intelligence")}
+                  disabled={!!loading}
+                  className="w-full mt-2 text-center text-meta text-brand-cloud/90 underline underline-offset-2 hover:text-white disabled:opacity-50"
+                >
+                  or pay monthly at {PRICING.intelligence.monthly.display}/mo
                 </button>
               </div>
               <p className="text-center text-brand-cloud/80 text-meta mt-2">
