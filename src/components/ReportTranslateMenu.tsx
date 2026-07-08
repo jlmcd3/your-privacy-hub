@@ -131,7 +131,7 @@ export default function ReportTranslateMenu({
                   key={l.code}
                   type="button"
                   onClick={() => handleSelect(l.code)}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-accent transition-colors ${
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-brand-cloud transition-colors ${
                     isActive ? "text-foreground font-medium" : "text-foreground/80"
                   }`}
                   role="option"
