@@ -9,7 +9,7 @@ Voice: Never use "AI-generated" or "AI-summarized". Use "Key takeaways" and "Ful
 Security: Supabase with RLS. Write restricted to service_role. Sub/billing fields are read-only.
 Cron: pg_cron jobs must use hardcoded function URLs.
 Content: All AI-enriched analysis fields are completely ungated for all users.
-Subscriptions: Professional tier $19/mo or $190/yr. Legacy "grandfathered_premium" preserved. Contextual ads shown to ALL users including Professional — never claim "ad-free".
+Subscriptions: Intelligence $20/mo ($200/yr, save $40). Professional $49/mo ($490/yr, save $98) + $150/client/yr add-on. Never hardcode price strings in UI — always import from `src/config/pricing.ts` (PRICING / PRICING_REGISTRY / INTELLIGENCE_PRICING / PLATFORM_PRICING). Contextual ads shown to ALL users including Professional — never claim "ad-free".
 Routing: React Router `<Link>` for internal. External links use `target="_blank"`.
 
 ## Memories
