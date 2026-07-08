@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
 import { Textarea } from "@/components/ui/textarea";
+import { AssistedInput } from "@/components/AssistedInput";
+import { ASSISTED_INPUT_REGISTRY } from "@/config/assistedInput";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -380,7 +382,12 @@ const LIAssessmentIntake = () => {
           {showAnalyticsBranch && (
             <div className="border-l-2 border-amber-300 pl-4">
               <Label className="text-base">Could pseudonymisation or aggregation achieve the same result?</Label>
-              <Textarea value={pseudonymisationOptions} onChange={(e) => setPseudonymisationOptions(e.target.value)} rows={2} />
+              <AssistedInput
+                className="mt-2"
+                value={pseudonymisationOptions}
+                onChange={setPseudonymisationOptions}
+                pills={ASSISTED_INPUT_REGISTRY.pseudonymisationOptions.pills}
+              />
             </div>
           )}
         </section>
@@ -464,8 +471,13 @@ const LIAssessmentIntake = () => {
 
           <div>
             <Label className="text-base">How can data subjects object or opt out? *</Label>
-            <Textarea value={optOutMechanism} onChange={(e) => setOptOutMechanism(e.target.value)} className="mt-2" rows={2}
-              placeholder="e.g. One-click unsubscribe in every email, account-level toggle, privacy@ inbox monitored within 7 days." />
+            <AssistedInput
+              className="mt-2"
+              value={optOutMechanism}
+              onChange={setOptOutMechanism}
+              pills={ASSISTED_INPUT_REGISTRY.optOutMechanism.pills}
+              placeholder="e.g. One-click unsubscribe in every email, account-level toggle, privacy@ inbox monitored within 7 days."
+            />
           </div>
 
           {showEmploymentBranch && (
@@ -475,7 +487,12 @@ const LIAssessmentIntake = () => {
                 Regulators expect proportionate safeguards: works council consultation, transparency, no covert monitoring,
                 limits on use against the employee.
               </p>
-              <Textarea value={employmentSafeguards} onChange={(e) => setEmploymentSafeguards(e.target.value)} rows={2} />
+              <AssistedInput
+                className="mt-2"
+                value={employmentSafeguards}
+                onChange={setEmploymentSafeguards}
+                pills={ASSISTED_INPUT_REGISTRY.employmentSafeguards.pills}
+              />
             </div>
           )}
         </section>

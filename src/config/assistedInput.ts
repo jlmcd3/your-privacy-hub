@@ -61,6 +61,7 @@ export interface AssistedInputFieldConfig {
 import { RISK_PILOT_ASSISTED_INPUT } from "./assistedInput/risk";
 import { ADMT_PILOT_ASSISTED_INPUT } from "./assistedInput/admt";
 import { DPIA_PILOT_ASSISTED_INPUT } from "./assistedInput/dpia";
+import { LIA_PILOT_ASSISTED_INPUT } from "./assistedInput/lia";
 
 export const ASSISTED_INPUT_REGISTRY: Readonly<
   Record<string, AssistedInputFieldConfig>
@@ -68,6 +69,7 @@ export const ASSISTED_INPUT_REGISTRY: Readonly<
   ...RISK_PILOT_ASSISTED_INPUT,
   ...ADMT_PILOT_ASSISTED_INPUT,
   ...DPIA_PILOT_ASSISTED_INPUT,
+  ...LIA_PILOT_ASSISTED_INPUT,
 });
 
 /**

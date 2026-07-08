@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import ActiveClientLabel from "@/components/ActiveClientLabel";
 import { Textarea } from "@/components/ui/textarea";
+import { AssistedInput } from "@/components/AssistedInput";
+import { ASSISTED_INPUT_REGISTRY } from "@/config/assistedInput";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveClient } from "@/hooks/useActiveClient";
@@ -379,12 +381,14 @@ const LIAssessment = () => {
             </div>
             <div onFocus={() => focusLia("processing_description")}>
               <Label htmlFor="desc" className="font-serif-text font-semibold text-[16.5px] text-brand-navy">What processing are you considering?<Req /> <DefPopover termKey="gdpr_legitimate_interests" /></Label>
-              <Textarea
+              <AssistedInput
                 id="desc"
+                className="mt-2"
+                textareaClassName="min-h-24 border-brand-cloud"
                 value={processingDescription}
-                onChange={(e) => setProcessingDescription(e.target.value)}
+                onChange={setProcessingDescription}
+                pills={ASSISTED_INPUT_REGISTRY.processing_description.pills}
                 placeholder="e.g. Send personalised product recommendations to existing customers based on their purchase history."
-                className="mt-2 min-h-24 border-brand-cloud"
               />
               <IntakeGuidance className="mt-2" lead="Assess one interest at a time:">If you have several distinct purposes, run a separate LIA for each — combining them into one weakens the balancing test and muddies the result. A sentence or two describing this single purpose is enough; more detail sharpens the analysis.</IntakeGuidance>
             </div>
