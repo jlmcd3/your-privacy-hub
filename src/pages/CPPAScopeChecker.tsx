@@ -357,7 +357,7 @@ export default function CPPAScopeChecker() {
                     </div>
                   </div>
                 ))}
-                <p className="text-[11px] text-muted-foreground pt-1">Complete all questions and click Check my scope for the full obligation map.</p>
+                <p className="text-body-tiny text-muted-foreground pt-1">Complete all questions and click Check my scope for the full obligation map.</p>
               </div>
             )}
             <div className="flex justify-end pt-4 border-t">

@@ -328,7 +328,7 @@ export default function StartNew() {
                           )}
                         </div>
                       </div>
-                      <p className="text-[11px] text-slate mt-0.5 leading-relaxed truncate">
+                      <p className="text-body-tiny text-slate mt-0.5 leading-relaxed truncate">
                         {tool.blurb}
                       </p>
                     </div>
@@ -345,7 +345,7 @@ export default function StartNew() {
                       {has && tool.viewPath && (
                         <Link
                           to={tool.viewPath}
-                          className="text-[11px] text-brand-teal-text hover:underline whitespace-nowrap"
+                          className="text-body-tiny text-brand-teal-text hover:underline whitespace-nowrap"
                         >
                           View
                         </Link>

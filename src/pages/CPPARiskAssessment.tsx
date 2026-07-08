@@ -220,7 +220,7 @@ const HARM_TYPES = [
 function StatutePopover({ term, summary, cite }: { term: string; summary: string; cite: string }) {
   return (
     <InfoPopover term={term} cite={cite}>
-      <p><span className="font-mono text-[11px] mr-1">(summary)</span>{summary}</p>
+      <p><span className="font-mono text-body-tiny mr-1">(summary)</span>{summary}</p>
     </InfoPopover>
   );
 }
@@ -858,7 +858,7 @@ export default function CPPARiskAssessment() {
                     placeholder="E.g. Credit scoring algorithm, automated fraud detection, hiring screening software…"
                     assertionSlot={renderAssertion("q19_admt_description")}
                   /></div>
-                  <p className="text-[11px] text-muted-foreground mt-1">Examples: an automated résumé-screening tool that ranks or rejects job applicants · a credit-decisioning model that sets limits without human review · worker-productivity scoring that drives scheduling or discipline decisions.</p>
+                  <p className="text-body-tiny text-muted-foreground mt-1">Examples: an automated résumé-screening tool that ranks or rejects job applicants · a credit-decisioning model that sets limits without human review · worker-productivity scoring that drives scheduling or discipline decisions.</p>
                 </div>
               )}
               {q18 === "Yes" && (
@@ -1239,9 +1239,9 @@ export default function CPPARiskAssessment() {
             <div className="flex items-center gap-3 ml-auto">
               {user && (
                 draftSaving ? (
-                  <span className="text-[11px] text-muted-foreground">Saving…</span>
+                  <span className="text-body-tiny text-muted-foreground">Saving…</span>
                 ) : lastSavedAt ? (
-                  <span className="text-[11px] text-muted-foreground">Draft saved {formatRelativeTime(lastSavedAt)}</span>
+                  <span className="text-body-tiny text-muted-foreground">Draft saved {formatRelativeTime(lastSavedAt)}</span>
                 ) : null
               )}
               {!summaryStep ? (
