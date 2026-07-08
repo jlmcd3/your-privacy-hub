@@ -32,82 +32,21 @@ export default function SearchFirstHero() {
                 ? "The EDPB's harmonised DPIA template — out for public consultation through June 2026 — will be adopted by national supervisory authorities across the EEA as their unique or 'meta' template. Get ahead of the rollout: generate a DPIA structured to the EDPB template today, with controller inputs, risk analysis, and Article 35 mapping built in. Plus daily global privacy intelligence and enforcement-calibrated tools."
                 : "California businesses face risk-assessment, cybersecurity-audit, and ADMT deadlines through 2027. Check your obligations in two minutes — then generate the assessments that satisfy them. Plus daily global privacy intelligence and enforcement-calibrated tools."}
             </p>
-            <a
-              href={euMode ? "/dpia-framework" : "/cppa-scope-checker"}
-              className="inline-flex items-center justify-center bg-[#C8922A] text-brand-navy font-semibold px-6 py-3 rounded-lg no-underline hover:opacity-90 mb-8"
-            >
-              {euMode
-                ? "Start your EDPB-aligned DPIA →"
-                : "Run the free CPPA Scope Checker →"}
-            </a>
-
-            {/* ── Hero CTA Cards ─────────────────────────────────── */}
-            <div className="@container flex flex-col gap-3 w-full max-w-3xl mt-2">
-              <div className="grid grid-cols-1 @md:grid-cols-2 @[900px]:grid-cols-4 gap-3">
-              {/* Card 1 — Privacy Intelligence Feed (Free, subdued blue) */}
+            <div className="flex flex-col sm:flex-row gap-3 items-center lg:items-start justify-center lg:justify-start mb-8">
               <a
-                href="#updates"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-teal-deep hover:bg-brand-teal/80 border border-brand-teal hover:border-brand-teal/80 transition-all duration-200"
+                href={euMode ? "/dpia-framework" : "/cppa-scope-checker"}
+                className="inline-flex items-center justify-center bg-[#C8922A] text-brand-navy font-semibold px-6 py-3 rounded-lg no-underline hover:opacity-90"
               >
-                <p className="text-eyebrow text-white/95 mb-1.5">
-                  Privacy Intelligence Feed
-                </p>
-                <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
-                  Your Privacy Intelligence Feed — to keep you ahead
-                </p>
-                <p className="text-meta text-white/95 leading-snug">
-                  Key privacy developments. Enriched with compliance intelligence. Updated daily.
-                </p>
+                {euMode
+                  ? "Start your EDPB-aligned DPIA →"
+                  : "Run the free CPPA Scope Checker →"}
               </a>
-
-              {/* Card 2 — Intelligence Brief (Premium, slate-teal) */}
               <a
-                href="#brief"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-brand-slate-teal hover:bg-brand-slate-teal/80 border border-brand-slate-teal hover:border-brand-slate-teal/80 transition-all duration-200"
+                href="/samples"
+                className="inline-flex items-center justify-center border border-white/40 text-white font-semibold px-6 py-3 rounded-lg no-underline hover:bg-white/10"
               >
-                <p className="text-eyebrow text-white/95 mb-1.5">
-                  Intelligence Report
-                </p>
-                <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
-                  Your Privacy Intelligence Report — to save you time
-                </p>
-                <p className="text-meta text-white/95 leading-snug">
-                  Personalized to your jurisdiction, role, and tracked topics. Every Monday.
-                </p>
+                View a sample report →
               </a>
-
-              {/* Card 3 — Compliance Tools (Premium, midpoint teal) */}
-              <a
-                href="#tools"
-                className="group flex-1 rounded-2xl px-5 py-4 no-underline block bg-[#1f6674] hover:bg-[#1f6674]/80 border border-[#1f6674] hover:border-[#1f6674]/80 transition-all duration-200"
-              >
-                <p className="text-eyebrow text-white/95 mb-1.5">
-                  Compliance Tools
-                </p>
-                <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
-                  Your Compliance Tools — to do your job well
-                </p>
-                <p className="text-meta text-white/95 leading-snug">
-                  LIA, DPIA, DPA, IR Playbook, Governance. Enforcement-calibrated — with annotated reasoning in every output.
-                </p>
-              </a>
-
-              {/* Card 4 — CPPA Compliance (California-specific) */}
-              <a
-                href="/cppa-scope-checker"
-                className="group flex-1 order-first rounded-2xl px-5 py-4 no-underline block bg-[#1f6a6a] hover:bg-[#1f6a6a]/80 border border-[#1f6a6a] hover:border-[#1f6a6a]/80 transition-all duration-200"
-              >
-                <p className="text-eyebrow text-white/95 mb-1.5">
-                  CPPA Compliance
-                </p>
-                <p className="font-display text-[15px] font-medium text-white leading-snug mb-1.5">
-                  Your CPPA Readiness — to assess and act
-                </p>
-                <p className="text-meta text-white/95 leading-snug">
-                  CPPA scope checker, risk assessment, cybersecurity audit, and ADMT assessment. Calibrated to California's CPPA regulations.
-                </p>
-              </a>
-              </div>
             </div>
 
             {/* Subtle pricing note */}
