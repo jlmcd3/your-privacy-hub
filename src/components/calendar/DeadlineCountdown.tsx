@@ -59,7 +59,7 @@ function getPriorityStyle(_priority: string, days: number) {
   if (days < 0)   return { bg: "bg-slate-50", border: "border-slate-200", badge: "bg-slate-200 text-slate-500", text: "Done" };
   if (days <= 14) return { bg: "bg-red-50",    border: "border-red-200",   badge: "bg-red-500 text-white",      text: `${days}d` };
   if (days <= 60) return { bg: "bg-amber-50",  border: "border-amber-200", badge: "bg-amber-400 text-white",    text: `${days}d` };
-  return           { bg: "bg-blue-50",   border: "border-blue-100",  badge: "bg-brand-teal/10 text-brand-teal border border-brand-teal/20", text: `${days}d` };
+  return           { bg: "bg-blue-50",   border: "border-blue-100",  badge: "bg-brand-teal/10 text-brand-teal-text border border-brand-teal/20", text: `${days}d` };
 }
 
 export default function DeadlineCountdown() {

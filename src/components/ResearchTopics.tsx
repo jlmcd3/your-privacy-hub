@@ -34,7 +34,7 @@ const ResearchTopics = () => {
               <div className="text-xs text-slate leading-relaxed flex-1">{topic.desc}</div>
               <div className="flex justify-between items-center mt-4 pt-3 border-t border-brand-cloud">
                 <span className="text-[11px] text-brand-mist">{topic.updated}</span>
-                <span className="text-[12px] text-brand-teal">→</span>
+                <span className="text-[12px] text-brand-teal-text">→</span>
               </div>
             </Link>
           ))}

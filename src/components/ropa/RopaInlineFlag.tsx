@@ -61,9 +61,9 @@ export default function RopaInlineFlag({
     return (
       <div className="border-l-4 border-brand-teal bg-[hsl(var(--cobalt)/0.06)] dark:bg-[hsl(var(--cobalt)/0.15)] rounded-r-lg p-3 my-2">
         <div className="flex items-start gap-2">
-          <Briefcase className="w-4 h-4 text-brand-teal mt-0.5 shrink-0" />
+          <Briefcase className="w-4 h-4 text-brand-teal-text mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] font-semibold text-brand-teal mb-1">
+            <p className="text-[12px] font-semibold text-brand-teal-text mb-1">
               Related compliance tool
             </p>
             <p className="text-sm text-brand-navy dark:text-white">{message}</p>
@@ -72,12 +72,12 @@ export default function RopaInlineFlag({
                 href={actionRoute}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block mt-2 text-[12px] font-semibold text-brand-teal hover:underline"
+                className="inline-block mt-2 text-[12px] font-semibold text-brand-teal-text hover:underline"
               >
                 {actionLabel} →
               </a>
             ) : actionLabel ? (
-              <p className="mt-2 text-[12px] font-semibold text-brand-teal">
+              <p className="mt-2 text-[12px] font-semibold text-brand-teal-text">
                 {actionLabel}
               </p>
             ) : null}

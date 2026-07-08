@@ -225,7 +225,7 @@ const GlobalAuthorities = () => {
                       </div>
                       <Link
                         to={`/jurisdiction/${entry.slug || slugify(entry.country)}`}
-                        className="block mt-1 text-sm font-semibold text-brand-navy hover:text-brand-teal no-underline"
+                        className="block mt-1 text-sm font-semibold text-brand-navy hover:text-brand-teal-text no-underline"
                       >
                         {entry.authority_name}
                       </Link>
@@ -234,7 +234,7 @@ const GlobalAuthorities = () => {
                       )}
                     </div>
                     {entry.monitoring_tier === 1 ? (
-                      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full border border-brand-teal text-brand-teal">
+                      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full border border-brand-teal text-brand-teal-text">
                         Tier 1 · Active enforcement
                       </span>
                     ) : (
@@ -263,7 +263,7 @@ const GlobalAuthorities = () => {
                         href={entry.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-brand-teal hover:underline no-underline"
+                        className="text-brand-teal-text hover:underline no-underline"
                       >
                         Website ↗
                       </a>
@@ -273,7 +273,7 @@ const GlobalAuthorities = () => {
                         href={entry.complaint_portal}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-brand-teal hover:underline no-underline font-medium"
+                        className="text-brand-teal-text hover:underline no-underline font-medium"
                       >
                         File complaint / notify ↗
                       </a>

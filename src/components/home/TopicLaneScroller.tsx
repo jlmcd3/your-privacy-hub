@@ -48,7 +48,7 @@ export default function TopicLaneScroller({
           </button>
           <Link
             to={laneHref}
-            className="text-brand-teal text-xs font-semibold no-underline hover:underline ml-1"
+            className="text-brand-teal-text text-xs font-semibold no-underline hover:underline ml-1"
           >
             See all →
           </Link>

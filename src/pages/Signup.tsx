@@ -55,13 +55,13 @@ const Signup = () => {
 
           <p className="text-sm text-slate mb-2">
             Already have a beta account?{" "}
-            <Link to="/login" className="text-brand-teal font-medium hover:underline no-underline">
+            <Link to="/login" className="text-brand-teal-text font-medium hover:underline no-underline">
               Sign in
             </Link>
           </p>
           <p className="text-xs text-brand-mist">
             Interested in beta access?{" "}
-            <Link to="/contact" className="text-brand-teal hover:underline no-underline">
+            <Link to="/contact" className="text-brand-teal-text hover:underline no-underline">
               Contact us
             </Link>
             .

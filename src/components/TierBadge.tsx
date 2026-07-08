@@ -4,7 +4,7 @@ export type Tier = "free" | "intelligence" | "professional";
 
 const TIER_STYLES: Record<Tier, string> = {
   free: "bg-brand-cloud text-brand-steel border-brand-mist",
-  intelligence: "bg-brand-teal text-white border-brand-teal",
+  intelligence: "bg-brand-teal-deep text-white border-brand-teal-deep",
   professional: "bg-brand-navy text-brand-light-teal border-brand-navy",
 };
 

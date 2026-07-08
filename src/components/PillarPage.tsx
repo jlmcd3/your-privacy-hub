@@ -257,7 +257,7 @@ const PillarPage = ({
               {recentArticles.length > 0 && (
                 <a
                   href="#recent-developments"
-                  className="text-sm text-brand-teal hover:text-brand-navy transition-colors no-underline flex items-start gap-2"
+                  className="text-sm text-brand-teal-text hover:text-brand-navy transition-colors no-underline flex items-start gap-2"
                 >
                   <span className="text-slate">→</span>
                   <span>Recent developments <span className="text-[11px] font-bold tracking-widest uppercase px-1.5 py-0.5 ml-1 rounded bg-[hsl(var(--cobalt)/0.12)] text-[hsl(var(--cobalt))] align-middle">Live</span></span>
@@ -273,7 +273,7 @@ const PillarPage = ({
                   <a
                     key={i}
                     href={`#${slug}`}
-                    className="text-sm text-brand-teal hover:text-brand-navy transition-colors no-underline flex items-start gap-2"
+                    className="text-sm text-brand-teal-text hover:text-brand-navy transition-colors no-underline flex items-start gap-2"
                   >
                     <span className="text-slate">→</span>
                     <span>{sec.heading}</span>
@@ -367,7 +367,7 @@ const PillarPage = ({
                 to={link.href}
                 className="flex items-center gap-2 p-3 bg-card border border-brand-cloud rounded-lg hover:bg-brand-cloud transition-colors no-underline text-sm text-brand-navy font-medium"
               >
-                <span className="text-brand-teal">→</span> {link.label}
+                <span className="text-brand-teal-text">→</span> {link.label}
               </Link>
             ))}
           </div>

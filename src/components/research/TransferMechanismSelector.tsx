@@ -142,7 +142,7 @@ export function TransferMechanismSelector() {
             <p className="text-xs text-slate leading-relaxed flex-1">{m.why}</p>
             <div className="flex flex-wrap gap-3 pt-1 text-xs">
               {m.href && (
-                <a href={m.href} className="text-brand-teal font-medium hover:underline no-underline">
+                <a href={m.href} className="text-brand-teal-text font-medium hover:underline no-underline">
                   Read in detail ↓
                 </a>
               )}

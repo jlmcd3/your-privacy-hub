@@ -45,7 +45,7 @@ const GLOSSARY_SLUGS = new Set(
 );
 const TERMS: CuratedTerm[] = CURATED.filter((t) => GLOSSARY_SLUGS.has(t.slug));
 
-const LINK_CLASS = "text-brand-teal underline-offset-2 hover:underline";
+const LINK_CLASS = "text-brand-teal-text underline-offset-2 hover:underline";
 
 function escapeForRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

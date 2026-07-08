@@ -63,7 +63,7 @@ export default function USStateLawPage() {
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <h1 className="font-display text-brand-navy mb-4">State Not Found</h1>
           <p className="text-slate mb-6">No U.S. state matches this slug.</p>
-          <Link to="/us-privacy-laws" className="text-brand-teal hover:underline">
+          <Link to="/us-privacy-laws" className="text-brand-teal-text hover:underline">
             Browse all U.S. state privacy laws →
           </Link>
         </div>
@@ -110,11 +110,11 @@ export default function USStateLawPage() {
         aria-label="Breadcrumb"
         className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 text-sm text-slate"
       >
-        <Link to="/" className="text-brand-teal hover:underline no-underline">Home</Link>
+        <Link to="/" className="text-brand-teal-text hover:underline no-underline">Home</Link>
         <span className="mx-2 text-brand-mist">›</span>
         <span className="text-slate">Research</span>
         <span className="mx-2 text-brand-mist">›</span>
-        <Link to="/us-privacy-laws" className="text-brand-teal hover:underline no-underline">
+        <Link to="/us-privacy-laws" className="text-brand-teal-text hover:underline no-underline">
           U.S. Privacy Laws
         </Link>
         <span className="mx-2 text-brand-mist">›</span>
@@ -138,7 +138,7 @@ export default function USStateLawPage() {
           <div className="mt-4">
             <Link
               to={topToolCta.href}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-brand-teal text-white text-sm font-semibold rounded-lg no-underline hover:opacity-90 transition"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-brand-teal-deep text-white text-sm font-semibold rounded-lg no-underline hover:opacity-90 transition"
             >
               {topToolCta.label} →
             </Link>
@@ -160,7 +160,7 @@ export default function USStateLawPage() {
                       href={state.statute_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-brand-teal hover:underline no-underline"
+                      className="text-brand-teal-text hover:underline no-underline"
                     >
                       {state.statute_name} ↗
                     </a>
@@ -215,7 +215,7 @@ export default function USStateLawPage() {
                     href={state.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-brand-teal hover:underline no-underline"
+                    className="text-brand-teal-text hover:underline no-underline"
                   >
                     {state.website} ↗
                   </a>
@@ -230,7 +230,7 @@ export default function USStateLawPage() {
                     href={state.complaint_portal}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-brand-teal hover:underline no-underline"
+                    className="text-brand-teal-text hover:underline no-underline"
                   >
                     File a complaint ↗
                   </a>
@@ -296,7 +296,7 @@ export default function USStateLawPage() {
                           href={b.source_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm font-medium text-brand-navy hover:text-brand-teal no-underline"
+                          className="text-sm font-medium text-brand-navy hover:text-brand-teal-text no-underline"
                         >
                           {b.bill_name}
                         </a>

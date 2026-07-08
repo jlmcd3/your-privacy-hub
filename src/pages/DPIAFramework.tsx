@@ -574,7 +574,7 @@ const DPIAFramework = () => {
             <div>
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Third-country transfer flows</Label>
-                <button type="button" onClick={() => setTransferFlows([...transferFlows, { importer: "", destination: "", originRegime: "EU", dpfCertified: false, ukExtensionCertified: false }])} className="text-xs underline text-brand-teal">+ Add flow</button>
+                <button type="button" onClick={() => setTransferFlows([...transferFlows, { importer: "", destination: "", originRegime: "EU", dpfCertified: false, ukExtensionCertified: false }])} className="text-xs underline text-brand-teal-text">+ Add flow</button>
               </div>
               {transferFlows.length === 0 && <p className="text-xs text-muted-foreground mt-1">No transfers added. EEA-internal flows do not need a Chapter V mechanism.</p>}
               {transferFlows.map((f, i) => (

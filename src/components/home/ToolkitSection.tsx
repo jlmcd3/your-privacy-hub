@@ -41,18 +41,18 @@ export default function ToolkitSection() {
               className="group bg-card border border-brand-cloud rounded-2xl p-6 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all text-center"
             >
               <span className="text-3xl block mb-3">{t.icon}</span>
-              <h3 className="text-brand-navy text-[15px] mb-1 group-hover:text-brand-teal transition-colors">
+              <h3 className="text-brand-navy text-[15px] mb-1 group-hover:text-brand-teal-text transition-colors">
                 {t.title}
               </h3>
               <p className="text-slate text-meta leading-relaxed mb-3">{t.sub}</p>
-              <span className="text-brand-teal text-meta font-semibold">Explore →</span>
+              <span className="text-brand-teal-text text-meta font-semibold">Explore →</span>
             </Link>
           ))}
         </div>
         <div className="text-center mt-6">
           <Link
             to="/tools"
-            className="text-brand-teal text-sm font-semibold hover:text-brand-navy transition-colors no-underline"
+            className="text-brand-teal-text text-sm font-semibold hover:text-brand-navy transition-colors no-underline"
           >
             See all tools →
           </Link>

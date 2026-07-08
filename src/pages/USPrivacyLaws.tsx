@@ -290,13 +290,13 @@ const USPrivacyLaws = () => {
                 key={a.abbr}
                 className="grid grid-cols-[4px_1fr] items-stretch bg-card rounded-lg border border-brand-cloud hover:border-brand-navy/30 hover:shadow-eup-sm transition overflow-hidden"
               >
-                <div className="bg-brand-teal self-stretch" aria-hidden="true" />
+                <div className="bg-brand-teal-deep self-stretch" aria-hidden="true" />
                 <div className="px-4 py-3 md:px-5 md:py-4">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="font-display text-base md:text-[17px] leading-tight text-brand-navy">
                       {a.name}
                     </div>
-                    <span className="text-eyebrow px-2 py-0.5 rounded bg-brand-teal/10 text-brand-teal border border-brand-teal/20 shrink-0">
+                    <span className="text-eyebrow px-2 py-0.5 rounded bg-brand-teal/10 text-brand-teal-text border border-brand-teal/20 shrink-0">
                       {a.abbr}
                     </span>
                   </div>
@@ -313,7 +313,7 @@ const USPrivacyLaws = () => {
                     href={a.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-meta font-medium text-brand-teal hover:text-brand-navy no-underline"
+                    className="text-meta font-medium text-brand-teal-text hover:text-brand-navy no-underline"
                   >
                     Site ↗
                   </a>
@@ -348,7 +348,7 @@ const USPrivacyLaws = () => {
               <span className="text-sm font-bold text-brand-navy">
                 Compare enacted state laws side by side
               </span>
-              <span className="text-brand-teal whitespace-nowrap font-bold text-sm group-hover:translate-x-0.5 transition-transform">
+              <span className="text-brand-teal-text whitespace-nowrap font-bold text-sm group-hover:translate-x-0.5 transition-transform">
                 Open comparison →
               </span>
             </Link>
@@ -425,7 +425,7 @@ const USPrivacyLaws = () => {
                         href={state.statute_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block text-meta italic text-brand-teal hover:text-brand-navy no-underline leading-snug mb-2"
+                        className="block text-meta italic text-brand-teal-text hover:text-brand-navy no-underline leading-snug mb-2"
                       >
                         {state.statute_name} ↗
                       </a>
@@ -442,7 +442,7 @@ const USPrivacyLaws = () => {
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta font-medium">
                         <Link
                           to={`/us-privacy-laws/${slug}`}
-                          className="text-brand-teal hover:text-brand-navy no-underline font-semibold"
+                          className="text-brand-teal-text hover:text-brand-navy no-underline font-semibold"
                         >
                           View →
                         </Link>
@@ -511,10 +511,10 @@ const USPrivacyLaws = () => {
                 className="group bg-card border border-brand-cloud rounded-xl p-5 no-underline hover:shadow-eup-md hover:-translate-y-0.5 transition-all"
               >
                 <span className="text-2xl block mb-2">{link.icon}</span>
-                <p className="font-display font-bold text-brand-navy text-sm mb-1 group-hover:text-brand-teal transition-colors">
+                <p className="font-display font-bold text-brand-navy text-sm mb-1 group-hover:text-brand-teal-text transition-colors">
                   {link.label}
                 </p>
-                <span className="text-brand-teal text-meta font-semibold">Explore →</span>
+                <span className="text-brand-teal-text text-meta font-semibold">Explore →</span>
               </Link>
             ))}
           </div>

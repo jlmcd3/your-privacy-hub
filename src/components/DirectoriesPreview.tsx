@@ -58,7 +58,7 @@ const DirectoriesPreview = () => {
               ))}
             </div>
             <div className="p-3.5 text-center border-t border-brand-cloud bg-brand-cloud">
-              <Link to="/us-state-privacy-authorities" className="text-sm font-medium text-brand-teal hover:gap-2 transition-all no-underline flex items-center justify-center gap-1">
+              <Link to="/us-state-privacy-authorities" className="text-sm font-medium text-brand-teal-text hover:gap-2 transition-all no-underline flex items-center justify-center gap-1">
                 View all 51 state authorities →
               </Link>
             </div>
@@ -91,7 +91,7 @@ const DirectoriesPreview = () => {
               ))}
             </div>
             <div className="p-3.5 text-center border-t border-brand-cloud bg-brand-cloud">
-              <Link to="/global-privacy-authorities" className="text-sm font-medium text-brand-teal hover:gap-2 transition-all no-underline flex items-center justify-center gap-1">
+              <Link to="/global-privacy-authorities" className="text-sm font-medium text-brand-teal-text hover:gap-2 transition-all no-underline flex items-center justify-center gap-1">
                 View all 68 global authorities →
               </Link>
             </div>

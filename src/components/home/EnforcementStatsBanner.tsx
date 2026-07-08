@@ -9,9 +9,9 @@ interface StatItem {
 
 const STATS: StatItem[] = [
   { label: "Actions tracked", value: "Live", sub: "Privacy regulators across the world", color: "text-accent" },
-  { label: "Regulators", value: "Global", sub: "DPAs + US AGs", color: "text-brand-teal" },
+  { label: "Regulators", value: "Global", sub: "DPAs + US AGs", color: "text-brand-teal-text" },
   { label: "Jurisdictions", value: "Global", sub: "Worldwide coverage", color: "text-accent" },
-  { label: "Weekly brief", value: "Free", sub: "every Monday", color: "text-brand-teal" },
+  { label: "Weekly brief", value: "Free", sub: "every Monday", color: "text-brand-teal-text" },
 
 ];
 
@@ -24,7 +24,7 @@ export default function EnforcementStatsBanner() {
         </h3>
         <Link
           to="/enforcement-tracker"
-          className="text-brand-teal text-xs font-medium no-underline hover:text-brand-navy transition-colors"
+          className="text-brand-teal-text text-xs font-medium no-underline hover:text-brand-navy transition-colors"
         >
           Full tracker →
         </Link>

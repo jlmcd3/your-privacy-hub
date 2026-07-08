@@ -44,7 +44,7 @@ const AIPrivacyRegulations = () => (
     }}
     introBlock={
       <div className="rounded-xl border border-brand-teal/30 bg-brand-teal/5 px-5 py-4">
-        <div className="text-[11px] font-bold tracking-wider uppercase text-brand-teal mb-1.5">
+        <div className="text-[11px] font-bold tracking-wider uppercase text-brand-teal-text mb-1.5">
           Why this matters now
         </div>
         <p className="text-sm text-brand-navy leading-relaxed m-0">

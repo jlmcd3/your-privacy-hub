@@ -43,7 +43,7 @@ const NotFound = () => {
                 className="group bg-card border border-brand-cloud rounded-xl p-4 no-underline hover:shadow-eup-sm hover:-translate-y-0.5 transition-all text-left"
               >
                 <span className="text-2xl block mb-2">{d.icon}</span>
-                <p className="font-display font-bold text-brand-navy text-[14px] mb-0.5 group-hover:text-brand-teal transition-colors">
+                <p className="font-display font-bold text-brand-navy text-[14px] mb-0.5 group-hover:text-brand-teal-text transition-colors">
                   {d.title}
                 </p>
                 <p className="text-slate text-[12px]">{d.desc}</p>
@@ -53,7 +53,7 @@ const NotFound = () => {
 
           <Link
             to="/"
-            className="text-brand-teal text-sm font-semibold hover:text-brand-navy transition-colors no-underline"
+            className="text-brand-teal-text text-sm font-semibold hover:text-brand-navy transition-colors no-underline"
           >
             ← Back to homepage
           </Link>

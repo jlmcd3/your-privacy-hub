@@ -366,7 +366,7 @@ const Dashboard = () => {
             <h2 className="font-display text-lg text-brand-navy mb-1">Obligations</h2>
             <p className="text-sm text-muted-foreground">
               Subscribers see renewal and review deadlines derived from their documents here.{" "}
-              <Link to="/subscribe" className="text-brand-teal hover:underline">See plans →</Link>
+              <Link to="/subscribe" className="text-brand-teal-text hover:underline">See plans →</Link>
             </p>
           </div>
           {/* Premium upsell banner */}

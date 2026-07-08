@@ -48,7 +48,7 @@ export default function EnforcementSourceBlock({
                 href={sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-brand-teal hover:underline"
+                className="inline-flex items-center gap-1 text-brand-teal-text hover:underline"
               >
                 View original <ExternalLink className="w-3.5 h-3.5" aria-hidden />
               </a>

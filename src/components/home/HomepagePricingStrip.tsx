@@ -6,7 +6,7 @@ export default function HomepagePricingStrip() {
     <section className="bg-brand-navy py-9 px-4">
       <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-5">
         <div>
-          <p className="text-eyebrow text-brand-teal mb-2">
+          <p className="text-eyebrow text-brand-teal-on-navy mb-2">
             Subscription options
           </p>
           <h2 className="text-section-h2 text-white leading-tight">
@@ -18,7 +18,7 @@ export default function HomepagePricingStrip() {
         </div>
         <Link
           to="/subscribe"
-          className="inline-flex items-center justify-center bg-brand-teal text-white font-semibold text-sm px-6 py-3 rounded-lg no-underline hover:opacity-90 transition-opacity"
+          className="inline-flex items-center justify-center bg-brand-teal-deep text-white font-semibold text-sm px-6 py-3 rounded-lg no-underline hover:opacity-90 transition-opacity"
         >
           See plans →
         </Link>

@@ -208,7 +208,7 @@ function Card({
         <button
           onClick={onRun}
           disabled={state.status === "running"}
-          className="text-xs px-3 py-1.5 rounded bg-brand-teal text-white disabled:opacity-50"
+          className="text-xs px-3 py-1.5 rounded bg-brand-teal-deep text-white disabled:opacity-50"
         >
           {state.status === "running" ? "Running…" : state.status === "complete" ? "Re-run" : "Run"}
         </button>
@@ -243,7 +243,7 @@ function Card({
 
       {state.recordId && resultPath && (
         <a
-          className="text-brand-teal underline text-xs"
+          className="text-brand-teal-text underline text-xs"
           href={resultPath}
           target="_blank"
           rel="noreferrer"

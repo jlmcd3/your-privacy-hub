@@ -521,7 +521,7 @@ export default function AdminSampleReports() {
               One click per card: the live tool generates the report, the result is
               rendered to PDF via PDFShift, and the PDF is saved automatically.
               View, download, and delete everything at{" "}
-              <Link to="/admin/samples/report-output" className="text-brand-teal underline underline-offset-2">
+              <Link to="/admin/samples/report-output" className="text-brand-teal-text underline underline-offset-2">
                 /samples/report-output
               </Link>.
             </p>

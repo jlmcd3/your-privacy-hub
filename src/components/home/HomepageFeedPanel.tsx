@@ -27,8 +27,8 @@ const toArticleItem = (row: UpdateArticleRow): ArticleItem => {
 
 const SLOT_LABELS = [
   { icon: "👁", text: "What any visitor sees", className: "text-slate/60 text-sm" },
-  { icon: "✉", text: "Free registered — full analysis", className: "text-brand-teal text-sm font-medium" },
-  { icon: "⭐", text: "Subscriber — + AI investigation prompt", className: "text-brand-teal text-sm font-semibold" },
+  { icon: "✉", text: "Free registered — full analysis", className: "text-brand-teal-text text-sm font-medium" },
+  { icon: "⭐", text: "Subscriber — + AI investigation prompt", className: "text-brand-teal-text text-sm font-semibold" },
 ];
 
 const getToolCTA = (item: ArticleItem): { label: string; href: string } => {
@@ -77,7 +77,7 @@ const HomepageArticleCard = ({
 
   const renderEnrichment = () => {
     const excerpt = article.summary ? (
-      <p className="text-body text-gray-500 mt-1.5 line-clamp-2">
+      <p className="text-body text-brand-steel mt-1.5 line-clamp-2">
         {stripHtml(article.summary)}
       </p>
     ) : null;
@@ -128,7 +128,7 @@ const HomepageArticleCard = ({
             <Link to="/signup" className="text-meta font-semibold text-brand-steel hover:underline no-underline">
               Register free to see analysis →
             </Link>
-            <Link to="/subscribe" className="text-meta font-semibold text-brand-teal hover:underline no-underline">
+            <Link to="/subscribe" className="text-meta font-semibold text-brand-teal-text hover:underline no-underline">
               Subscribe to use AI investigation prompts →
             </Link>
             {briefCTA}
@@ -160,7 +160,7 @@ const HomepageArticleCard = ({
                 <ul className="space-y-1 list-none pl-0">
                   {actionItems.slice(0, 3).map((a, i) => (
                     <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
-                      <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                      <span className="text-brand-teal-text flex-shrink-0 mt-0.5">•</span>
                       <span>{a.action}</span>
                     </li>
                   ))}
@@ -209,7 +209,7 @@ const HomepageArticleCard = ({
                 <ul className="space-y-1 list-none pl-0">
                   {actionItems.slice(0, 3).map((a, i) => (
                     <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
-                      <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                      <span className="text-brand-teal-text flex-shrink-0 mt-0.5">•</span>
                       <span>{a.action}</span>
                     </li>
                   ))}
@@ -234,7 +234,7 @@ const HomepageArticleCard = ({
             }}
           />
           <div className="pt-1.5 border-t border-brand-cloud">
-            <Link to={toolCTA.href} className="text-meta font-semibold text-brand-teal hover:underline no-underline">
+            <Link to={toolCTA.href} className="text-meta font-semibold text-brand-teal-text hover:underline no-underline">
               {toolCTA.label}
             </Link>
           </div>
@@ -265,7 +265,7 @@ const HomepageArticleCard = ({
                 <ul className="space-y-1 list-none pl-0">
                   {actionItems.slice(0, 3).map((a, i) => (
                     <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
-                      <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                      <span className="text-brand-teal-text flex-shrink-0 mt-0.5">•</span>
                       <span>{a.action}</span>
                     </li>
                   ))}
@@ -275,7 +275,7 @@ const HomepageArticleCard = ({
           )}
           <InvestigationPrompt item={article} />
           <div className="pt-1.5 border-t border-brand-cloud">
-            <Link to={toolCTA.href} className="text-meta font-semibold text-brand-teal hover:underline no-underline">
+            <Link to={toolCTA.href} className="text-meta font-semibold text-brand-teal-text hover:underline no-underline">
               {toolCTA.label}
             </Link>
           </div>
@@ -305,7 +305,7 @@ const HomepageArticleCard = ({
               <ul className="space-y-1 list-none pl-0">
                 {actionItems.slice(0, 3).map((a, i) => (
                   <li key={i} className="flex gap-2 items-start text-[13px] font-medium text-brand-navy">
-                    <span className="text-brand-teal flex-shrink-0 mt-0.5">•</span>
+                    <span className="text-brand-teal-text flex-shrink-0 mt-0.5">•</span>
                     <span>{a.action}</span>
                   </li>
                 ))}
@@ -373,7 +373,7 @@ const HomepageArticleCard = ({
           </div>
           <Link
             to="/updates"
-            className="absolute top-3 right-3 text-eyebrow font-semibold px-1.5 py-0.5 rounded bg-brand-teal text-white hover:opacity-90 no-underline transition-opacity"
+            className="absolute top-3 right-3 text-eyebrow font-semibold px-1.5 py-0.5 rounded bg-brand-teal-deep text-white hover:opacity-90 no-underline transition-opacity"
             onClick={(e) => e.stopPropagation()}
           >
             Open feed →
@@ -383,7 +383,7 @@ const HomepageArticleCard = ({
               href={article.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-base text-gray-900 hover:text-brand-teal block no-underline transition-colors"
+              className="text-base text-gray-900 hover:text-brand-teal-text block no-underline transition-colors"
             >
               {normalizeTitle(article.title)}
               <ExternalLink className="w-2.5 h-2.5 inline ml-1 opacity-30" />
@@ -595,7 +595,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
           </p>
           <Link
             to="/updates"
-            className="inline-flex items-center gap-2 bg-brand-teal text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+            className="inline-flex items-center gap-2 bg-brand-teal-deep text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
           >
             Open the full Privacy Intelligence Feed →
           </Link>
@@ -650,7 +650,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
           <div className="mt-5 pt-4 border-t border-brand-cloud">
             <Link
               to="/updates"
-              className="inline-flex items-center gap-2 bg-brand-teal text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
+              className="inline-flex items-center gap-2 bg-brand-teal-deep text-white font-semibold text-sm px-5 py-2.5 rounded-xl no-underline hover:opacity-90 transition-all"
             >
               Open the full Privacy Intelligence Feed →
             </Link>

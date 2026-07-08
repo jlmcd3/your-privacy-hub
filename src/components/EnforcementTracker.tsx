@@ -25,7 +25,7 @@ const EnforcementTracker = () => {
             <h2 className="font-display tracking-tight text-brand-navy">Enforcement Tracker</h2>
             <p className="text-sm text-slate mt-1">Every fine, order and sanction — all jurisdictions, updated as decisions are issued.</p>
           </div>
-          <a href="/enforcement-tracker" className="text-sm font-medium text-brand-teal flex items-center gap-1 hover:gap-2 transition-all no-underline">
+          <a href="/enforcement-tracker" className="text-sm font-medium text-brand-teal-text flex items-center gap-1 hover:gap-2 transition-all no-underline">
             View full tracker →
           </a>
         </div>

@@ -197,7 +197,7 @@ export default function SampleReport() {
                   )}
                   {vSummary && (
                     <div className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
-                      <ShieldCheck className="h-4 w-4 mt-0.5 text-brand-teal shrink-0" aria-hidden />
+                      <ShieldCheck className="h-4 w-4 mt-0.5 text-brand-teal-text shrink-0" aria-hidden />
                       <span>{vSummary}</span>
                     </div>
                   )}

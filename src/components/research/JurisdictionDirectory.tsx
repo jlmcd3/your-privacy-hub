@@ -287,7 +287,7 @@ export function JurisdictionDirectory() {
                         {/* Expandable secondary detail */}
                         <button
                           onClick={() => setExpanded((s) => ({ ...s, [key]: !open }))}
-                          className="mt-2 text-meta font-semibold text-brand-teal hover:underline"
+                          className="mt-2 text-meta font-semibold text-brand-teal-text hover:underline"
                         >
                           {open ? "Hide detail ▲" : "Show detail ▼"}
                         </button>
@@ -299,7 +299,7 @@ export function JurisdictionDirectory() {
                                 href={entry.website}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-brand-teal font-semibold no-underline hover:underline"
+                                className="text-brand-teal-text font-semibold no-underline hover:underline"
                               >
                                 Authority site ↗
                               </a>
@@ -308,14 +308,14 @@ export function JurisdictionDirectory() {
                                   href={entry.complaint_portal}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-brand-teal font-semibold no-underline hover:underline"
+                                  className="text-brand-teal-text font-semibold no-underline hover:underline"
                                 >
                                   Complaint portal ↗
                                 </a>
                               )}
                               <Link
                                 to={`/jurisdiction/${entry.slug}`}
-                                className="text-brand-teal font-semibold no-underline hover:underline"
+                                className="text-brand-teal-text font-semibold no-underline hover:underline"
                               >
                                 Full jurisdiction page →
                               </Link>

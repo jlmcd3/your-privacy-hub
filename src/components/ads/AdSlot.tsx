@@ -81,7 +81,7 @@ export default function AdSlot({
         </span>
         <Link
           to="/signup"
-          className="text-[11px] text-brand-teal hover:underline no-underline"
+          className="text-[11px] text-brand-teal-text hover:underline no-underline"
         >
           Create a free account to browse ad-free.
         </Link>

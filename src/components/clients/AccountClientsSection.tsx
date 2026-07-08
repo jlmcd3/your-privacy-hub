@@ -80,7 +80,7 @@ function ClientRow({ client }: { client: Client }) {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setEditing((v) => !v)}
-            className="text-xs font-medium text-brand-teal hover:text-brand-navy bg-transparent border-none cursor-pointer flex items-center gap-1"
+            className="text-xs font-medium text-brand-teal-text hover:text-brand-navy bg-transparent border-none cursor-pointer flex items-center gap-1"
             disabled={busy}
           >
             <Pencil className="w-3 h-3" /> Edit
@@ -281,7 +281,7 @@ export function AccountClientsSection() {
                 </div>
                 <button
                   onClick={() => setEditingPersonal(true)}
-                  className="text-sm font-medium text-brand-teal hover:text-brand-navy bg-transparent border-none cursor-pointer"
+                  className="text-sm font-medium text-brand-teal-text hover:text-brand-navy bg-transparent border-none cursor-pointer"
                 >
                   Rename
                 </button>
@@ -320,7 +320,7 @@ export function AccountClientsSection() {
                 </button>
               ) : (
                 <>
-                  <Link to="/subscribe" className="text-sm font-semibold text-brand-teal hover:text-brand-navy no-underline">
+                  <Link to="/subscribe" className="text-sm font-semibold text-brand-teal-text hover:text-brand-navy no-underline">
                     Learn more →
                   </Link>
                   <Link
@@ -468,7 +468,7 @@ export function ComplianceDocumentsSection() {
         </div>
         <Link
           to={href}
-          className="text-sm font-medium text-brand-teal hover:text-brand-navy no-underline"
+          className="text-sm font-medium text-brand-teal-text hover:text-brand-navy no-underline"
         >
           View →
         </Link>
@@ -511,7 +511,7 @@ export function ComplianceDocumentsSection() {
       <div className="mt-3 text-right">
         <Link
           to="/clients"
-          className="text-sm font-semibold text-brand-teal hover:text-brand-navy no-underline"
+          className="text-sm font-semibold text-brand-teal-text hover:text-brand-navy no-underline"
         >
           View all documents →
         </Link>

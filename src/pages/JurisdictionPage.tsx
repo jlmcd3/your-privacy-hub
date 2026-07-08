@@ -360,7 +360,7 @@ const JurisdictionPage = () => {
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <h1 className="font-display text-brand-navy mb-4">Jurisdiction Not Found</h1>
           <p className="text-slate mb-6">The jurisdiction you're looking for is not yet in our database.</p>
-          <Link to="/global-privacy-authorities" className="text-brand-teal hover:underline">Browse all jurisdictions →</Link>
+          <Link to="/global-privacy-authorities" className="text-brand-teal-text hover:underline">Browse all jurisdictions →</Link>
         </div>
         <Footer />
       </div>
@@ -392,7 +392,7 @@ const JurisdictionPage = () => {
         const crumbLabel = isUSState ? "U.S. Privacy Laws" : "Global Privacy Laws";
         return (
           <nav aria-label="Breadcrumb" className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 text-sm text-slate">
-            <Link to={crumbHref} className="text-brand-teal hover:underline no-underline">{crumbLabel}</Link>
+            <Link to={crumbHref} className="text-brand-teal-text hover:underline no-underline">{crumbLabel}</Link>
             <span className="mx-2 text-brand-mist">›</span>
             <span className="text-brand-navy">{jurisdiction.name}</span>
           </nav>
@@ -458,7 +458,7 @@ const JurisdictionPage = () => {
                       href={auth.statute_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-brand-teal hover:underline no-underline font-medium inline-flex items-center gap-1"
+                      className="text-brand-teal-text hover:underline no-underline font-medium inline-flex items-center gap-1"
                     >
                       {auth.legislation}
                       <ExternalLink className="w-3 h-3" />
@@ -481,12 +481,12 @@ const JurisdictionPage = () => {
                 </p>
               )}
               <div className="mt-3 flex gap-4 flex-wrap">
-                <a href={auth.website} target="_blank" rel="noopener noreferrer" className="text-meta font-medium text-brand-teal hover:underline no-underline">Official Website ↗</a>
+                <a href={auth.website} target="_blank" rel="noopener noreferrer" className="text-meta font-medium text-brand-teal-text hover:underline no-underline">Official Website ↗</a>
                 {(auth as any).regulations_url && (
-                  <a href={(auth as any).regulations_url} target="_blank" rel="noopener noreferrer" className="text-meta font-medium text-brand-teal hover:underline no-underline">{(auth as any).regulations_name || "Regulations"} ↗</a>
+                  <a href={(auth as any).regulations_url} target="_blank" rel="noopener noreferrer" className="text-meta font-medium text-brand-teal-text hover:underline no-underline">{(auth as any).regulations_name || "Regulations"} ↗</a>
                 )}
                 {auth.complaint_portal && (
-                  <a href={auth.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-meta font-medium text-brand-teal hover:underline no-underline">Complaint Portal ↗</a>
+                  <a href={auth.complaint_portal} target="_blank" rel="noopener noreferrer" className="text-meta font-medium text-brand-teal-text hover:underline no-underline">Complaint Portal ↗</a>
                 )}
               </div>
             </div>
@@ -564,7 +564,7 @@ const JurisdictionPage = () => {
                   >
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <span className="font-display text-[15px] text-brand-navy">{t.label}</span>
-                      <span className="text-brand-teal group-hover:translate-x-0.5 transition-transform">→</span>
+                      <span className="text-brand-teal-text group-hover:translate-x-0.5 transition-transform">→</span>
                     </div>
                     <p className="text-xs text-slate leading-snug">{t.desc}</p>
                   </Link>
@@ -636,17 +636,17 @@ const JurisdictionPage = () => {
                   </p>
                   <div className="flex flex-wrap gap-3 text-meta font-medium">
                     {hasRegional && (
-                      <button onClick={() => setShowRegional(true)} className="text-brand-teal hover:underline">
+                      <button onClick={() => setShowRegional(true)} className="text-brand-teal-text hover:underline">
                         See {regionalRecent.length} regional / spillover {regionalRecent.length === 1 ? "article" : "articles"} ↓
                       </button>
                     )}
                     {hasArchive && (
-                      <button onClick={() => setShowArchive(true)} className="text-brand-teal hover:underline">
+                      <button onClick={() => setShowArchive(true)} className="text-brand-teal-text hover:underline">
                         Browse earlier coverage ↓
                       </button>
                     )}
                     {jurisdiction.authorities[0]?.website && (
-                      <a href={jurisdiction.authorities[0].website} target="_blank" rel="noopener noreferrer" className="text-brand-teal hover:underline">
+                      <a href={jurisdiction.authorities[0].website} target="_blank" rel="noopener noreferrer" className="text-brand-teal-text hover:underline">
                         Visit {jurisdiction.authorities[0].abbreviation || "regulator"} site ↗
                       </a>
                     )}
@@ -658,7 +658,7 @@ const JurisdictionPage = () => {
                 <div className="mt-6">
                   <button
                     onClick={() => setShowRegional((v) => !v)}
-                    className="w-full flex items-center justify-between text-left py-2 border-t border-brand-cloud hover:text-brand-teal transition-colors"
+                    className="w-full flex items-center justify-between text-left py-2 border-t border-brand-cloud hover:text-brand-teal-text transition-colors"
                   >
                     <div>
                       <span className="font-display text-base text-brand-navy">Also relevant to {jurisdiction.name}</span>
@@ -680,7 +680,7 @@ const JurisdictionPage = () => {
                 <div className="mt-6">
                   <button
                     onClick={() => setShowArchive((v) => !v)}
-                    className="w-full flex items-center justify-between text-left py-2 border-t border-brand-cloud hover:text-brand-teal transition-colors"
+                    className="w-full flex items-center justify-between text-left py-2 border-t border-brand-cloud hover:text-brand-teal-text transition-colors"
                   >
                     <div>
                       <span className="font-display text-base text-brand-navy">Earlier coverage</span>
@@ -700,7 +700,7 @@ const JurisdictionPage = () => {
 
               {(hasDirect || hasRegional || hasArchive) && (
                 <div className="flex items-center justify-end mt-4 pt-3 border-t border-brand-cloud">
-                  <Link to={`/category/${derivedCategory}`} className="text-sm text-brand-teal font-semibold no-underline hover:text-brand-navy transition-colors">
+                  <Link to={`/category/${derivedCategory}`} className="text-sm text-brand-teal-text font-semibold no-underline hover:text-brand-navy transition-colors">
                     View all {categoryLabel} updates →
                   </Link>
                 </div>

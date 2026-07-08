@@ -141,7 +141,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Bell className="w-5 h-5 text-brand-teal" />
+        <Bell className="w-5 h-5 text-brand-teal-text" />
         <h2 className="text-brand-navy text-[16px]">My Watchlist</h2>
         <span className="text-xs text-brand-mist">· Click any item below to add or remove. Selections power your weekly digest and AI prompts.</span>
       </div>
@@ -168,7 +168,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
                 title={selected ? "Click again to clear" : "Click to select this role"}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                   selected
-                    ? "bg-brand-teal/10 text-brand-teal border-brand-teal/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                    ? "bg-brand-teal/10 text-brand-teal-text border-brand-teal/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                     : "bg-white text-slate border-brand-cloud hover:border-brand-teal/30 hover:text-brand-navy"
                 }`}
               >
@@ -202,7 +202,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
                   title={inList ? "Click to remove from your watchlist" : "Click to add to your watchlist"}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                     inList
-                      ? "bg-brand-teal/10 text-brand-teal border-brand-teal/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                      ? "bg-brand-teal/10 text-brand-teal-text border-brand-teal/30 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                       : "bg-white text-slate border-brand-cloud hover:border-brand-teal/30 hover:text-brand-navy"
                   }`}
                 >
@@ -233,7 +233,7 @@ export default function WatchlistManager({ isPremium }: { isPremium: boolean }) 
                 title="Click to choose this format"
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                   selected
-                    ? "bg-brand-teal/10 text-brand-teal border-brand-teal/30"
+                    ? "bg-brand-teal/10 text-brand-teal-text border-brand-teal/30"
                     : "bg-white text-slate border-brand-cloud hover:border-brand-teal/30 hover:text-brand-navy"
                 }`}
               >

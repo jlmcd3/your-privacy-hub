@@ -60,7 +60,7 @@ const WeeklyBriefTeaser = () => {
           </div>
           <Link
             to="/#brief"
-            className="text-sm font-medium text-brand-teal hover:underline no-underline hidden sm:block"
+            className="text-sm font-medium text-brand-teal-text hover:underline no-underline hidden sm:block"
           >
             See a sample report →
           </Link>

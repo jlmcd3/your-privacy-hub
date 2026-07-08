@@ -52,7 +52,7 @@ export default function SectorPrimerDialog({
             <ul className="space-y-1.5 text-sm">
               {primer.rulePreview.map((r) => (
                 <li key={r} className="flex gap-2">
-                  <span className="text-brand-teal mt-0.5">•</span>
+                  <span className="text-brand-teal-text mt-0.5">•</span>
                   <span>{r}</span>
                 </li>
               ))}
@@ -100,7 +100,7 @@ export default function SectorPrimerDialog({
                 <button
                   type="button"
                   onClick={() => onUseSampleActivity(primer.sampleActivity)}
-                  className="mt-2 text-xs font-semibold text-brand-teal hover:underline"
+                  className="mt-2 text-xs font-semibold text-brand-teal-text hover:underline"
                 >
                   Use this as my first activity →
                 </button>

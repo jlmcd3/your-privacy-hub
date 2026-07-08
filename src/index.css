@@ -23,8 +23,10 @@
     --brand-slate-teal: 190 51% 36%;     /* #2d7a8a */
     --brand-teal: 173 58% 39%;           /* #2a9d8f — primary accent (surfaces/icons, non-text on light bg) */
     --brand-teal-text: 173 58% 26%;      /* #1c6960 — AA-compliant teal for TEXT on light bgs (6.51:1 white, 5.60:1 cloud). Do not use on navy. */
+    --brand-teal-deep: 173 55% 26%;      /* #1c6960 — AA-compliant teal SURFACE for white text (6.48:1). AXE-2. */
+    --brand-teal-on-navy: 173 51% 60%;   /* #69c9be — teal accent for TEXT on navy (7.46:1 on --brand-navy). AXE-2. */
     --brand-light-teal: 155 47% 58%;     /* #5dcaa5 — dark-bg accent */
-    --brand-steel: 199 19% 52%;          /* #6b8f9e */
+    --brand-steel: 199 19% 39%;          /* #516a76 — AXE-2 darkened (white 5.72:1, cloud 4.92:1, #f4f7f8 5.31:1) */
     --brand-mist: 199 27% 77%;           /* #b5ccd6 */
     --brand-cloud: 200 21% 93%;          /* #e8eff2 */
     --brand-shadow: 211 70% 12%;         /* #0a1f35 */
@@ -44,11 +46,11 @@
     --navy: 209 68% 16%;                 /* was #0D1F35 → brand-navy */
     --navy-mid: 206 62% 27%;             /* → brand-ocean */
     --navy-light: 190 51% 36%;           /* → brand-slate-teal */
-    --steel: 199 19% 52%;                /* → brand-steel */
+    --steel: 199 19% 39%;                /* → brand-steel (AXE-2 darkened #516a76) */
     --blue: 173 58% 39%;                 /* → brand-teal (interactive) */
     --blue-light: 155 47% 58%;           /* → brand-light-teal */
     --sky: 199 27% 77%;                  /* → brand-mist */
-    --slate: 199 19% 52%;                /* → brand-steel */
+    --slate: 199 19% 39%;                /* → brand-steel (AXE-2 darkened #516a76) */
     --slate-light: 199 27% 77%;          /* → brand-mist */
     --silver: 50 9% 87%;                 /* → brand-card-border */
     --fog: 200 21% 93%;                  /* → brand-cloud */
@@ -56,7 +58,7 @@
     --paper: 200 21% 93%;                /* → brand-cloud */
     --accent: 173 58% 39%;               /* was gold #C8922A → brand-teal */
     --accent-light: 155 47% 58%;         /* → brand-light-teal */
-    --cobalt: 173 58% 39%;               /* was #2563EB → brand-teal */
+    --cobalt: 173 58% 26%;               /* AXE-2: retargeted to --brand-teal-text (#1c6960) so hsl(var(--cobalt)) text passes AA on light bgs */
     --warn: 25 76% 44%;                  /* → severity-warning */
 
     /* shadcn semantic tokens */
@@ -71,7 +73,7 @@
     --secondary: 200 21% 93%;            /* cloud */
     --secondary-foreground: 209 68% 16%;
     --muted: 200 21% 93%;
-    --muted-foreground: 199 19% 52%;
+    --muted-foreground: 199 19% 39%;     /* AXE-2 darkened → brand-steel #516a76 */
     --accent-foreground: 0 0% 100%;
     --destructive: 1 45% 51%;            /* severity-critical */
     --destructive-foreground: 0 0% 100%;
@@ -81,7 +83,7 @@
     --radius: 0.75rem;                   /* 12px — card default per brand */
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 199 19% 52%;
+    --sidebar-foreground: 199 19% 39%;         /* AXE-2 darkened → brand-steel #516a76 */
     --sidebar-primary: 209 68% 16%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 200 21% 93%;

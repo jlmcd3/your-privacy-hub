@@ -70,7 +70,7 @@ export function CrossToolPrompt({
   if (!enabled || !isSecondVisit || dismissed) return null;
   return (
     <div className="mb-4 bg-card border border-brand-cloud rounded-xl p-4 flex items-start gap-3 shadow-eup-sm">
-      <div className="text-brand-teal mt-0.5">{icon ?? <Globe2 className="w-5 h-5" />}</div>
+      <div className="text-brand-teal-text mt-0.5">{icon ?? <Globe2 className="w-5 h-5" />}</div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-brand-navy">{title}</p>
         <p className="text-xs text-slate mt-0.5">{body}</p>

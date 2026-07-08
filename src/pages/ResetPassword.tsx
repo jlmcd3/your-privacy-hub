@@ -68,7 +68,7 @@ export default function ResetPassword() {
               </p>
               <p className="text-brand-mist text-[12px] mt-3">
                 If this takes too long,{" "}
-                <Link to="/forgot-password" className="text-brand-teal no-underline">
+                <Link to="/forgot-password" className="text-brand-teal-text no-underline">
                   request a new link
                 </Link>
                 .
