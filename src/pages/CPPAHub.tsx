@@ -195,10 +195,11 @@ export default function CPPAHub() {
         </section>
 
         <section className="bg-card border rounded-lg p-8">
+          <p className="text-body-tiny uppercase tracking-wider text-brand-teal-text font-semibold mb-1">Module 3 · Article 11 (§§ 7200–7222)</p>
           <h2 className="font-serif text-2xl mb-2">ADMT Compliance Assessment — Module 3</h2>
           <p className="text-sm text-muted-foreground mb-5 max-w-2xl">
             Automated decision-making technology disclosures are required from January 1, 2027.
-            The ADMT Compliance Assessment produces a gap analysis covering pre-use notice (§ 7220),
+            The ADMT Compliance Assessment produces a compliance-readiness analysis covering pre-use notice (§ 7220),
             opt-out (§ 7221), and access right (§ 7222) obligations — cited to the regulation.
           </p>
           <Link
