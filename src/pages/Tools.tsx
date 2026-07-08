@@ -551,7 +551,7 @@ export default function Tools() {
       {/* ── Hero ───────────────────────────────────────────────────────── */}
       <header className="bg-[#2d7a8a] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 mb-3">
+          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-brand-cloud mb-3">
             🧰 Compliance Tools
           </span>
           <h1 className="font-serif text-white mb-3">
@@ -745,7 +745,7 @@ export default function Tools() {
           <h2 className="font-display text-white mb-4">
             Available individually at standalone prices.
           </h2>
-          <p className="text-blue-200 text-sm leading-relaxed max-w-[540px] mx-auto mb-8">
+          <p className="text-brand-cloud text-sm leading-relaxed max-w-[540px] mx-auto mb-8">
             Every tool is pay-per-use.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-[580px] mx-auto mb-8">
@@ -759,7 +759,7 @@ export default function Tools() {
           <Link to="/subscribe" className="inline-block text-sm font-semibold text-brand-navy bg-white px-6 py-3 rounded-xl hover:opacity-90 transition-all no-underline">
             Start 10-day Intelligence trial →
           </Link>
-          <p className="text-blue-200/60 text-meta mt-4">
+          <p className="text-brand-cloud/60 text-meta mt-4">
             Intelligence {INTELLIGENCE_PRICING.monthlyShort()} (10-day free trial) · Professional {PLATFORM_PRICING.standardMonthly()} + {PLATFORM_PRICING.clientAddon()} · Cancel any time
           </p>
         </div>
@@ -777,7 +777,7 @@ export default function Tools() {
           >
             <div className="bg-brand-navy px-6 py-4 rounded-t-2xl flex items-center justify-between sticky top-0">
               <div>
-                <p className="text-eyebrow text-amber-400 mb-0.5">Sample Output</p>
+                <p className="text-eyebrow text-brand-mist mb-0.5">Sample Output</p>
                 <p className="text-white font-semibold text-base">{activeTool.name}</p>
               </div>
               <button
