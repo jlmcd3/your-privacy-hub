@@ -22,6 +22,7 @@ const FollowButton = ({ followType, followKey, label }: FollowButtonProps) => {
     setStatus("loading");
 
     const { error } = await supabase.from("regulator_follows").insert({
+      user_id: user.id,
       email: user.email.toLowerCase().trim(),
       follow_type: followType,
       follow_key: followKey,
