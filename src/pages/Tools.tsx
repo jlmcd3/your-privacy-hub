@@ -551,7 +551,7 @@ export default function Tools() {
       {/* ── Hero ───────────────────────────────────────────────────────── */}
       <header className="bg-[#1f6674] text-white py-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-          <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-white/20 text-white mb-3">
+          <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-black/30 text-white mb-3">
             🧰 Compliance Tools
           </span>
           <h1 className="font-serif text-white mb-3">
