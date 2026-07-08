@@ -23,42 +23,76 @@ function slugify(source) {
     .replace(/-+/g, "-");
 }
 
-// (a) Static routes — preserved from the previous hand-edited public/sitemap.xml (33 entries).
+// (a) Static routes — every PUBLIC, INDEXABLE content page.
+//
+// Sitemap policy (LAUNCH-2 fix batch, 2026-07-08):
+//   INCLUDE = public content, marketing landings, sample/reference pages.
+//   EXCLUDE = auth/session pages (login, signup, reset, account, dashboard,
+//             onboarding, brief-preferences, watchlist, clients),
+//             admin (/admin/*) and dev pages (/__dev/*, /logo-preview —
+//             the logo comparison preview is intentionally excluded and
+//             should NOT be re-added as a sitemap regression finding),
+//             gated in-app views (ropa/, eu-notices/, us-notices/,
+//             notices-ropa, registration-manager/my-filings, ...),
+//             and legacy client-side alias redirects (/rofa, /article-30,
+//             /notices, /assessments, /laws, /sample-brief,
+//             /enforcement-intelligence, /governance, /registration-documents,
+//             /lia-assessment, /lia-tool).
+//   The alias /enforcement-tracker is retained by directive despite
+//   redirecting to /enforcement; both are indexable in the meantime.
 const STATIC_PATHS = [
   "/",
+  "/about",
   "/ai-privacy-regulations",
   "/biometric-checker",
   "/biometric-privacy",
   "/breach-notification",
+  "/calendar",
   "/contact",
   "/cookie-consent",
   "/cppa",
   "/cppa-admt",
+  "/cppa-admt-checker",
   "/cppa-cybersecurity",
   "/cppa-risk-assessment",
   "/cppa-scope-checker",
   "/cross-border-transfers",
   "/dpa-generator",
   "/dpia-framework",
+  "/enforcement",
+  "/enforcement-tracker",
   "/eu-global-notice-builder",
+  "/eu-notice-builder",
+  "/faq",
   "/gdpr-enforcement",
+  "/get-intelligence",
   "/global-privacy-authorities",
   "/global-privacy-laws",
   "/glossary",
   "/governance-assessment",
   "/health-data-privacy",
+  "/horizon",
   "/ir-playbook",
+  "/jurisdictions",
   "/legislation-tracker",
+  "/legitimate-interest-tracker",
   "/li-assessment",
   "/notice-builder",
+  "/privacy-policy",
   "/registration-manager",
   "/ropa-builder",
+  "/samples",
+  "/start",
+  "/subscribe",
+  "/terms",
+  "/timelines",
+  "/tools",
+  "/updates",
   "/us-federal-privacy-law",
   "/us-notice-builder",
   "/us-privacy-laws",
+  "/us-state-privacy-authorities",
   "/us-state-privacy-laws",
-  "/updates",
-  "/samples",
 ];
 
 const globalAuthorities = JSON.parse(
