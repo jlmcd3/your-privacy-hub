@@ -259,6 +259,7 @@ export default function BriefBuilder() {
               Your jurisdiction
             </label>
             <select
+              aria-label="Your jurisdiction"
               value={jurisdiction}
               onChange={(e) => { setJurisdiction(e.target.value); setBriefShown(false); }}
               className="w-full px-3.5 py-2.5 text-sm bg-brand-cloud border border-silver rounded-lg text-brand-navy outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors"
@@ -274,6 +275,7 @@ export default function BriefBuilder() {
               Your role
             </label>
             <select
+              aria-label="Your role"
               value={role}
               onChange={(e) => { setRole(e.target.value); setBriefShown(false); }}
               className="w-full px-3.5 py-2.5 text-sm bg-brand-cloud border border-silver rounded-lg text-brand-navy outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors"
