@@ -12,6 +12,7 @@ const TOOLS = [
   {
     href: "/cppa-scope-checker",
     title: "CPPA Scope Checker",
+    article: null,
     description: "Determine if your business is in scope for the new CPPA risk-assessment and cybersecurity-audit regulations.",
     price: "Free",
     icon: ClipboardCheck,
@@ -19,6 +20,7 @@ const TOOLS = [
   {
     href: "/cppa-risk-assessment",
     title: "CPPA Risk Assessment",
+    article: "Module 1 · Article 10 (§§ 7150–7159)",
     description: "Module 1 risk assessment built directly on the final CPPA regulations and FSOR agency commentary.",
     price: `${riskStandalone} standalone · discounted with a subscription`,
     icon: Shield,
@@ -26,6 +28,7 @@ const TOOLS = [
   {
     href: "/cppa-cybersecurity",
     title: "CPPA Cybersecurity Readiness",
+    article: "Module 2 · Article 9 (§§ 7120–7124)",
     description: "Module 2 audit readiness across all 18 required controls, mapped to NIST CSF and ISO 27001. Includes Drift Watch (compare re-runs) and Breach Precedent Map (real enforcement actions for each control gap).",
     price: `${cyberStandalone} standalone · discounted with a subscription`,
     icon: Lock,
@@ -161,6 +164,9 @@ export default function CPPAHub() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-serif text-xl mb-1 group-hover:text-brand-teal-text text-brand-navy">{t.title}</h3>
+                    {t.article && (
+                      <p className="text-body-tiny uppercase tracking-wider text-brand-teal-text font-semibold mb-2">{t.article}</p>
+                    )}
                     <p className="text-sm text-muted-foreground mb-3">{t.description}</p>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-brand-steel">{t.price}</span>
@@ -189,10 +195,11 @@ export default function CPPAHub() {
         </section>
 
         <section className="bg-card border rounded-lg p-8">
+          <p className="text-body-tiny uppercase tracking-wider text-brand-teal-text font-semibold mb-1">Module 3 · Article 11 (§§ 7200–7222)</p>
           <h2 className="font-serif text-2xl mb-2">ADMT Compliance Assessment — Module 3</h2>
           <p className="text-sm text-muted-foreground mb-5 max-w-2xl">
             Automated decision-making technology disclosures are required from January 1, 2027.
-            The ADMT Compliance Assessment produces a gap analysis covering pre-use notice (§ 7220),
+            The ADMT Compliance Assessment produces a compliance-readiness analysis covering pre-use notice (§ 7220),
             opt-out (§ 7221), and access right (§ 7222) obligations — cited to the regulation.
           </p>
           <Link
