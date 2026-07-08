@@ -128,7 +128,7 @@ const Subscribe = () => {
           <h1 className="font-display text-white mb-4 leading-tight">
             Two plans. One Mission.
           </h1>
-          <p className="text-[15px] text-brand-mist max-w-[600px] leading-relaxed mb-10">
+          <p className="text-base text-brand-mist max-w-[600px] leading-relaxed mb-10">
             Stay informed with Intelligence for {PRICING.intelligence.monthly.display}/month.
             Run a client-facing practice with Professional from {PRICING.professional.monthly.display}/month.
           </p>

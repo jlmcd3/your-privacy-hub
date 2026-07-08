@@ -168,7 +168,7 @@ export default function SamplesHub() {
         {rows !== null && rows.length > 0 && (
           <div className="mb-6 space-y-3" aria-label="Sample filters">
             <div>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Filter by tool</p>
+              <p className="text-body-tiny uppercase tracking-wider text-muted-foreground mb-2">Filter by tool</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -192,7 +192,7 @@ export default function SamplesHub() {
               </div>
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Filter by report type</p>
+              <p className="text-body-tiny uppercase tracking-wider text-muted-foreground mb-2">Filter by report type</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -243,7 +243,7 @@ export default function SamplesHub() {
 
               {g.variants.length > 0 && (
                 <div className="mt-2 mb-4">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
+                  <p className="text-body-tiny uppercase tracking-wider text-muted-foreground mb-2">
                     Jurisdiction variants
                   </p>
                   <div className="flex flex-wrap gap-2">

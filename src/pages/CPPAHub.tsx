@@ -121,7 +121,7 @@ export default function CPPAHub() {
               key={node.date}
               className="relative bg-card border rounded-lg p-4 flex flex-col gap-1"
             >
-              <span className="text-[11px] uppercase tracking-wider text-brand-teal-text font-semibold">
+              <span className="text-body-tiny uppercase tracking-wider text-brand-teal-text font-semibold">
                 Step {i + 1}
               </span>
               <span className="font-serif text-lg text-brand-navy">{node.date}</span>
