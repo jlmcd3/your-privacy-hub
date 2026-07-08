@@ -659,8 +659,8 @@ const Navbar = () => {
             to="/subscribe"
             className={`text-xs lg:text-sm font-semibold no-underline transition-colors px-2 lg:px-3 py-2 ${
               location.pathname === "/subscribe"
-                ? "text-[hsl(var(--accent-light))]"
-                : "text-[hsl(var(--accent))] hover:text-[hsl(var(--accent-light))]"
+                ? "text-white"
+                : "text-brand-teal-on-navy hover:text-white"
             }`}
           >
             Pricing
