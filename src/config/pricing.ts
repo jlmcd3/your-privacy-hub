@@ -679,8 +679,8 @@ export const INTELLIGENCE_PRICING = {
 
 /** Platform pricing helpers (annual subscriptions). */
 export const PLATFORM_PRICING = {
-  standard: () => formatPrice("professional_annual"),                              // "$350/year"
-  standardMonthly: () => formatPrice("professional_monthly"),                      // "$35/month"
+  standard: () => formatPrice("professional_annual"),                              // "$490/year"
+  standardMonthly: () => formatPrice("professional_monthly"),                      // "$49/month"
   clientAddon: () => formatPrice("professional_client"),                           // "$150/client/year"
 } as const;
 
