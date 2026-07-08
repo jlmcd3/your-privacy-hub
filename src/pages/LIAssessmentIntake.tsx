@@ -382,7 +382,12 @@ const LIAssessmentIntake = () => {
           {showAnalyticsBranch && (
             <div className="border-l-2 border-amber-300 pl-4">
               <Label className="text-base">Could pseudonymisation or aggregation achieve the same result?</Label>
-              <Textarea value={pseudonymisationOptions} onChange={(e) => setPseudonymisationOptions(e.target.value)} rows={2} />
+              <AssistedInput
+                className="mt-2"
+                value={pseudonymisationOptions}
+                onChange={setPseudonymisationOptions}
+                pills={ASSISTED_INPUT_REGISTRY.pseudonymisationOptions.pills}
+              />
             </div>
           )}
         </section>
