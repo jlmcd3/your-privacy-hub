@@ -20,7 +20,7 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import SampleReportLink from "@/components/SampleReportLink";
 import MethodologyBox from "@/components/cppa/MethodologyBox";
-import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { INCLUDED_GENERATIONS_COPY, PRICING } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
