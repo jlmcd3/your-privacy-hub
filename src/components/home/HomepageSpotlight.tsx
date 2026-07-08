@@ -27,7 +27,7 @@ interface SpotlightArticle {
 }
 
 const SLOT_LABELS = [
-  { icon: "👁", text: "What any visitor sees", className: "text-slate/60" },
+  { icon: "👁", text: "What any visitor sees", className: "text-brand-steel" },
   { icon: "✉", text: "Free account — see this level on every article", className: "text-brand-teal-text font-medium" },
   { icon: "⭐", text: "Platform subscriber view — everything you need to act", className: "text-brand-teal-text font-semibold" },
 ];
@@ -358,7 +358,7 @@ export default function HomepageSpotlight() {
   return (
     <section className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
       <div className="mb-6">
-        <p className="text-eyebrow text-slate/60 mb-1">
+        <p className="text-eyebrow text-brand-steel mb-1">
           Today's top regulatory development
         </p>
         <h2 className="text-section-h2 text-brand-navy">

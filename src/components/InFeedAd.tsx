@@ -38,7 +38,7 @@ export default function InFeedAd(_props: InFeedAdProps = {}) {
         style={{ minHeight: 90 }}
         aria-label="Advertisement placeholder"
       >
-        <span className="text-meta uppercase tracking-widest text-slate/60">
+        <span className="text-meta uppercase tracking-widest text-brand-steel">
           Ad · In-feed
         </span>
       </div>

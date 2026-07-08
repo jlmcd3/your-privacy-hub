@@ -74,7 +74,7 @@ export default function AdBanner({ variant = 'leaderboard', className = '' }: Ad
         style={{ minHeight: h, maxWidth: w, marginLeft: 'auto', marginRight: 'auto' }}
         aria-label="Advertisement placeholder"
       >
-        <span className="text-meta uppercase tracking-widest text-slate/60">
+        <span className="text-meta uppercase tracking-widest text-brand-steel">
           Ad · {w}×{h}
         </span>
       </div>

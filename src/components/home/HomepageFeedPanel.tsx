@@ -26,7 +26,7 @@ const toArticleItem = (row: UpdateArticleRow): ArticleItem => {
 };
 
 const SLOT_LABELS = [
-  { icon: "👁", text: "What any visitor sees", className: "text-slate/60 text-sm" },
+  { icon: "👁", text: "What any visitor sees", className: "text-brand-steel text-sm" },
   { icon: "✉", text: "Free registered — full analysis", className: "text-brand-teal-text text-sm font-medium" },
   { icon: "⭐", text: "Subscriber — + AI investigation prompt", className: "text-brand-teal-text text-sm font-semibold" },
 ];
@@ -365,7 +365,7 @@ const HomepageArticleCard = ({
               </span>
             )}
             {article.published_at && (
-              <span className="text-meta text-brand-mist">
+              <span className="text-meta text-brand-steel">
                 {fmtDate(article.published_at)}
               </span>
             )}
@@ -607,7 +607,7 @@ export function HomepageFeedPanel({ isPremium, isAuthenticated, embedded = false
   return (
     <section className={embedded ? "px-5 py-5" : "max-w-[1280px] mx-auto px-4 md:px-8 py-10"}>
       <div className="mb-5">
-        <p className="text-eyebrow text-slate/60 mb-1">
+        <p className="text-eyebrow text-brand-steel mb-1">
           Today's regulatory developments
         </p>
         <h2 className="text-section-h2 text-brand-navy">
