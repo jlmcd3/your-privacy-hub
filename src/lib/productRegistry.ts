@@ -117,7 +117,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "Assess your privacy program against active enforcement patterns from the EDPB, FTC, ICO and CPPA across ten governance domains.",
     tierIncluded: false,
-    priority: 4,
+    priority: 5,
     triggers: [
       "privacy program assessment",
       "governance assessment",
@@ -134,7 +134,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "Generate a structured Data Protection Impact Assessment aligned to GDPR Article 35 and EDPB WP 248.",
     tierIncluded: false,
-    priority: 5,
+    priority: 6,
     triggers: [
       "dpia",
       "data protection impact assessment",
@@ -151,7 +151,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "Documented three-part balancing test for processing relying on legitimate interests under GDPR Article 6(1)(f).",
     tierIncluded: false,
-    priority: 6,
+    priority: 7,
     triggers: [
       "legitimate interest",
       "lia",
@@ -168,7 +168,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "Jurisdiction-specific incident response playbook covering notification deadlines, regulator contacts and required content.",
     tierIncluded: true,
-    priority: 7,
+    priority: 8,
     triggers: [
       "incident response",
       "breach response plan",
@@ -185,7 +185,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "Covers BIPA, Texas CUBI, Washington and GDPR biometric requirements in a single structured assessment.",
     tierIncluded: true,
-    priority: 8,
+    priority: 9,
     triggers: [
       "biometric",
       "bipa",
@@ -202,7 +202,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "Generate a custom Data Processing Agreement or Standard Contractual Clauses module for any controller-processor arrangement.",
     tierIncluded: true,
-    priority: 9,
+    priority: 10,
     triggers: [
       "data processing agreement",
       "dpa",
@@ -219,7 +219,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "Build and maintain your GDPR Article 30 Record of Processing Activities — included free with any active subscription.",
     tierIncluded: true,
-    priority: 10,
+    priority: 11,
     triggers: [
       "ropa",
       "record of processing",
@@ -235,7 +235,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "Generate a CCPA/CPRA-compliant US privacy notice tailored to each state where you do business.",
     tierIncluded: true,
-    priority: 11,
+    priority: 12,
     triggers: [
       "us privacy notice",
       "ccpa notice",
@@ -251,7 +251,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "GDPR- and global-aligned privacy notice with cookie disclosures, legal basis tables and data-subject rights wording.",
     tierIncluded: true,
-    priority: 12,
+    priority: 13,
     triggers: [
       "gdpr privacy notice",
       "eu privacy notice",
@@ -268,7 +268,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "DPO, DPA and AI Act registration filings with attorney-review-ready document packs and renewal monitoring.",
     tierIncluded: false,
-    priority: 13,
+    priority: 14,
     triggers: [
       "dpo registration",
       "dpa filing",
@@ -284,7 +284,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "Weekly Monday brief — what changed in privacy regulation, personalized to your jurisdictions and topics.",
     tierIncluded: true,
-    priority: 14,
+    priority: 15,
     triggers: [
       "weekly report",
       "intelligence brief",
@@ -300,7 +300,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
     shortPitch:
       "Daily privacy intelligence feed covering enforcement, legislation, guidance and regulator actions worldwide.",
     tierIncluded: true,
-    priority: 15,
+    priority: 16,
     triggers: [
       "privacy news",
       "enforcement feed",

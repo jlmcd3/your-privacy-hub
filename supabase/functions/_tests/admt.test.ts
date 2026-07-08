@@ -40,10 +40,10 @@ Deno.test("block 2 does NOT duplicate generic core rules", () => {
     currentDate: "2026-06-26",
     injected,
   });
-  assert(!blocks[1].text.includes("American English"));
-  assert(!blocks[1].text.includes("NO ADAPTIVE GUIDANCE"));
-  assertStringIncludes(blocks[0].text, "American English");
-  assertStringIncludes(blocks[0].text, "NO ADAPTIVE GUIDANCE");
+  assert(!blocks[1].text.includes("Use American English throughout this document"));
+  assert(!blocks[1].text.includes("NO ADAPTIVE GUIDANCE. Present regulatory standards"));
+  assertStringIncludes(blocks[0].text, "Use American English throughout this document");
+  assertStringIncludes(blocks[0].text, "NO ADAPTIVE GUIDANCE. Present regulatory standards");
 });
 
 Deno.test("registry intact: significant-decision intake resolves to non-empty citations", () => {
@@ -74,7 +74,7 @@ Deno.test("ToolModule shape: only identity/citationFramework/extraRules/outputMo
   const keys = Object.keys(ADMT_TOOL_MODULE).sort();
   for (const k of keys) {
     assert(
-      ["identity", "citationFramework", "outputMode", "extraRules", "schema"].includes(k),
+      ["identity", "citationFramework", "outputMode", "extraRules", "schema", "includeEuTransfers", "languageVariant"].includes(k),
       `unexpected key in ADMT_TOOL_MODULE: ${k}`,
     );
   }

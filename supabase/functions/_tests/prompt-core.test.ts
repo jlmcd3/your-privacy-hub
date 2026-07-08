@@ -18,8 +18,8 @@ const toolModule: ToolModule = {
   extraRules: "Tool-specific rules here.",
 };
 
-Deno.test("version is 2.3", () => {
-  assertEquals(PROMPT_CORE_VERSION, "2.3");
+Deno.test("version is 3.6", () => {
+  assertEquals(PROMPT_CORE_VERSION, "3.6");
 });
 
 Deno.test("languageVariant: british emits British English instruction; american the American one", () => {

@@ -22,7 +22,7 @@ Deno.test("assembled system is a 3-block array with expected content", () => {
   });
   assertEquals(blocks.length, 3);
   assertStringIncludes(blocks[0].text, "PRIORITY ORDER");
-  assertStringIncludes(blocks[1].text, "§ 7153 MAPPING");
+  assertStringIncludes(blocks[1].text, "§ 7152 MAPPING");
   assertStringIncludes(blocks[2].text, "VERBATIM REGULATION TEXT");
 });
 
