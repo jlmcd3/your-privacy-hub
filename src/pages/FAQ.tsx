@@ -3,12 +3,14 @@ import { ChevronDown } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
+import { INTELLIGENCE_PRICING, PLATFORM_PRICING, PRICING } from "@/config/pricing";
 
 const I_MO = INTELLIGENCE_PRICING.monthly();
 const I_YR = INTELLIGENCE_PRICING.yearly();
 const P_MO = PLATFORM_PRICING.standardMonthly();
 const P_CLIENT = PLATFORM_PRICING.clientAddon();
+// Annual saving derived so it can't drift from PRICING.
+const I_ANNUAL_SAVING = `$${PRICING.intelligence.monthly.dollars * 12 - PRICING.intelligence.annual.dollars}`;
 
 const faqs = [
   {
@@ -56,7 +58,7 @@ const faqs = [
 const pricingFaqs = [
   {
     q: "How much does End User Privacy cost?",
-    a: `Privacy Intelligence is ${I_MO} (or ${I_YR} — save $40) and includes the weekly Privacy Intelligence Report, enforcement tracking of privacy developments across the world, and all reference content. Every paid subscription also includes RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator at no extra charge. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces. Annual Intelligence plans include 1 free Smart Tool run per year; annual Professional plans include 3 free Smart Tool runs per year (Governance, LIA, or DPIA).`,
+    a: `Privacy Intelligence is ${I_MO} (or ${I_YR} — save ${I_ANNUAL_SAVING}) and includes the weekly Privacy Intelligence Report, enforcement tracking of privacy developments across the world, and all reference content. Every paid subscription also includes RoPA Builder, US + EU/Global Notice Builders, IR Playbook, Biometric Checker, and DPA Generator at no extra charge. It starts with a 10-day free trial. Professional is ${P_MO} base + ${P_CLIENT} and adds client/matter workspaces. Annual Intelligence plans include 1 free Smart Tool run per year; annual Professional plans include 3 free Smart Tool runs per year (Governance, LIA, or DPIA).`,
   },
   {
     q: "What is included in Professional?",

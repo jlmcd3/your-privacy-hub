@@ -9,14 +9,14 @@ Voice: Never use "AI-generated" or "AI-summarized". Use "Key takeaways" and "Ful
 Security: Supabase with RLS. Write restricted to service_role. Sub/billing fields are read-only.
 Cron: pg_cron jobs must use hardcoded function URLs.
 Content: All AI-enriched analysis fields are completely ungated for all users.
-Subscriptions: Professional tier $19/mo or $190/yr. Legacy "grandfathered_premium" preserved. Contextual ads shown to ALL users including Professional — never claim "ad-free".
+Subscriptions: Intelligence $20/mo ($200/yr, save $40). Professional $49/mo ($490/yr, save $98) + $150/client/yr add-on. Never hardcode price strings in UI — always import from `src/config/pricing.ts` (PRICING / PRICING_REGISTRY / INTELLIGENCE_PRICING / PLATFORM_PRICING). Contextual ads shown to ALL users including Professional — never claim "ad-free".
 Routing: React Router `<Link>` for internal. External links use `target="_blank"`.
 
 ## Memories
 - [Project Overview](mem://project/overview) — What EndUserPrivacy.com is and its core features
 - [Design System](mem://design/typography-and-colors) — Fonts, UI colors, article card styling, and document layouts
 - [Brand Voice](mem://brand/voice-policy) — Banned words, allowed terminology, product identity
-- [Monetization](mem://features/monetization) — Pricing ($19/$190), report limits, credit bundles, gating, ad policy
+- [Monetization](mem://features/monetization) — Pricing (Intel $20/$200, Prof $49/$490 + $150/client), tool tiers, annual credits, gating, ad policy
 - [Newsfeed Rules](mem://features/newsfeed) — Access limits, breaking news logic, URL sync, ungated fields
 - [Intelligence Brief](mem://features/intelligence-brief) — Inline citations, relevance scoring, custom generation
 - [Routing & Navigation](mem://architecture/routing-navigation) — Link handling, scroll behavior, SEO redirects, jurisdiction slugs

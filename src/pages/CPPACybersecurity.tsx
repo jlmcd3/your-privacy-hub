@@ -20,7 +20,7 @@ import ToolCheckoutModal from "@/components/ToolCheckoutModal";
 import { useActiveClient } from "@/hooks/useActiveClient";
 import SampleReportLink from "@/components/SampleReportLink";
 import MethodologyBox from "@/components/cppa/MethodologyBox";
-import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
+import { INCLUDED_GENERATIONS_COPY, PRICING } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
@@ -149,7 +149,7 @@ export default function CPPACybersecurity() {
           description: "18-control gap assessment with dynamic Breach Precedent Map, FSOR-cited findings, and auditor handoff package.",
           brand: { "@type": "Brand", name: "End User Privacy" },
           url: "https://enduserprivacy.com/cppa-cybersecurity",
-          offers: { "@type": "Offer", price: "99", priceCurrency: "USD", availability: "https://schema.org/InStock" },
+          offers: { "@type": "Offer", price: String(PRICING.tools.cppa_cyber.dollars), priceCurrency: "USD", availability: "https://schema.org/InStock" },
         })}</script>
       </Helmet>
       <header className="bg-[#1a4a6e] text-white py-12">
