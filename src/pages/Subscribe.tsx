@@ -263,35 +263,26 @@ const Subscribe = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mt-auto pt-5">
-                <button
-                  onClick={() => startCheckout("month", "professional")}
-                  disabled={!!loading}
-                  className="w-full py-3 rounded-xl text-sm font-bold bg-white text-brand-navy hover:opacity-90 disabled:opacity-50"
-                >
-                  Monthly →
-                </button>
+              <div className="mt-auto pt-5">
                 <button
                   onClick={() => startCheckout("year", "professional")}
                   disabled={!!loading}
                   className="w-full py-3 rounded-xl text-sm font-bold bg-amber-400 text-brand-navy hover:opacity-90 disabled:opacity-50"
                 >
-                  Annual →
+                  Start annual — {PRICING.professional.annual.display}/yr <ArrowRight className="w-4 h-4 inline ml-1" />
+                </button>
+                <button
+                  onClick={() => startCheckout("month", "professional")}
+                  disabled={!!loading}
+                  className="w-full mt-2 text-center text-meta text-amber-100/90 underline underline-offset-2 hover:text-white disabled:opacity-50"
+                >
+                  or pay monthly at {PRICING.professional.monthly.display}/mo
                 </button>
               </div>
               <p className="text-center text-amber-100/80 text-meta mt-2">
                 Add clients at {PRICING.professional.perClient.display}/client/year — no minimum.
               </p>
             </div>
-          </div>
-          <div className="flex justify-center mt-8">
-            <button
-              onClick={() => startCheckout("year", "intelligence")}
-              disabled={!!loading}
-              className="flex items-center gap-2 py-4 px-10 rounded-2xl text-base font-bold bg-white text-brand-navy shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
-            >
-              Start free trial <ArrowRight className="w-5 h-5" />
-            </button>
           </div>
           {error && <p className="text-red-300 text-meta mt-4">{error}</p>}
           {isPremium && (
