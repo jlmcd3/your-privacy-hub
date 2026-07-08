@@ -140,9 +140,10 @@ const Subscribe = () => {
                 Privacy Intelligence
               </p>
               <div className="text-white font-display font-bold text-[36px] leading-none mb-1">
-                {PRICING.intelligence.monthly.display}<span className="text-lg font-normal text-blue-200">/month</span>
+                {PRICING.intelligence.monthly.display}<span className="text-lg font-normal text-brand-cloud">/month</span>
               </div>
-              <p className="text-blue-200 text-meta mb-1">
+              <p className="text-brand-cloud text-meta mb-1">
+
                 or {PRICING.intelligence.annual.display}/year — {PRICING.intelligence.annual.savingDisplay}
               </p>
               <ul className="space-y-2 mb-6">
@@ -180,7 +181,7 @@ const Subscribe = () => {
                     <span>Two months free vs. paying monthly</span>
                   </li>
                 </ul>
-                <p className="text-blue-200/80 text-meta mt-3 italic">
+                <p className="text-brand-cloud/80 text-meta mt-3 italic">
                   One annual Smart Tool run pays back most of your subscription.
                 </p>
               </div>
@@ -201,7 +202,7 @@ const Subscribe = () => {
                   Annual →
                 </button>
               </div>
-              <p className="text-center text-blue-200/80 text-meta mt-2">
+              <p className="text-center text-brand-cloud/80 text-meta mt-2">
                 10-day free trial · Card required · No tools in trial
               </p>
             </div>
@@ -215,12 +216,12 @@ const Subscribe = () => {
                 <span className="text-white font-display font-bold text-[36px] leading-none">
                   {PRICING.professional.monthly.display}
                 </span>
-                <span className="text-blue-200 text-lg font-normal">/month</span>
+                <span className="text-brand-cloud text-lg font-normal">/month</span>
               </div>
               <p className="text-amber-100 text-meta mb-1">
                 or {PRICING.professional.annual.display}/year — {PRICING.professional.annual.savingDisplay}
               </p>
-              <p className="text-blue-200/80 text-meta mb-1">
+              <p className="text-brand-cloud/80 text-meta mb-1">
                 {PRICING.professional.annual.note}
               </p>
               <p className="text-amber-100 text-meta mb-4">
@@ -294,7 +295,7 @@ const Subscribe = () => {
           </div>
           {error && <p className="text-red-300 text-meta mt-4">{error}</p>}
           {isPremium && (
-            <p className="text-blue-200 text-meta mt-4">
+            <p className="text-brand-cloud text-meta mt-4">
               You're already subscribed. <Link to="/account" className="underline">Manage your subscription →</Link>
             </p>
           )}
