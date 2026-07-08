@@ -108,7 +108,7 @@ export default function CPPAHub() {
       <Navbar />
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
         <header className="space-y-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-brand-teal font-medium">California Privacy Protection Agency</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-brand-teal-text font-medium">California Privacy Protection Agency</p>
           <h1 className="text-page-h1">CPPA Audit Readiness Suite</h1>
           <p className="text-lg text-muted-foreground max-w-3xl">
             California's audit regime is live, with three deadlines on the clock. These tools scope your obligations, build your risk-assessment record, and prepare your cybersecurity audit — built directly on the final regulations and the CPPA's Final Statement of Reasons, paragraph-cited.
@@ -121,7 +121,7 @@ export default function CPPAHub() {
               key={node.date}
               className="relative bg-card border rounded-lg p-4 flex flex-col gap-1"
             >
-              <span className="text-[11px] uppercase tracking-wider text-brand-teal font-semibold">
+              <span className="text-[11px] uppercase tracking-wider text-brand-teal-text font-semibold">
                 Step {i + 1}
               </span>
               <span className="font-serif text-lg text-brand-navy">{node.date}</span>
@@ -131,7 +131,7 @@ export default function CPPAHub() {
         </section>
 
         <section className="bg-brand-navy text-white rounded-lg p-8">
-          <p className="text-xs uppercase tracking-[0.18em] text-brand-teal font-semibold mb-2">
+          <p className="text-xs uppercase tracking-[0.18em] text-brand-cloud font-semibold mb-2">
             Step 1 — find out what applies to you (free)
           </p>
           <h2 className="font-serif text-2xl mb-3">Start with the Scope Checker</h2>
@@ -156,15 +156,15 @@ export default function CPPAHub() {
                 className="group block bg-card border rounded-lg p-6 hover:border-brand-teal transition-colors no-underline"
               >
                 <div className="flex items-start gap-4">
-                  <div className="p-2 rounded-md bg-brand-cloud text-brand-teal shrink-0">
+                  <div className="p-2 rounded-md bg-brand-cloud text-brand-teal-text shrink-0">
                     <t.icon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-serif text-xl mb-1 group-hover:text-brand-teal text-brand-navy">{t.title}</h3>
+                    <h3 className="font-serif text-xl mb-1 group-hover:text-brand-teal-text text-brand-navy">{t.title}</h3>
                     <p className="text-sm text-muted-foreground mb-3">{t.description}</p>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-brand-steel">{t.price}</span>
-                      <ArrowRight className="w-4 h-4 text-brand-teal group-hover:translate-x-0.5 transition-transform" />
+                      <ArrowRight className="w-4 h-4 text-brand-teal-text group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </div>
                 </div>

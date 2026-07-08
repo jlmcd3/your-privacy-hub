@@ -689,7 +689,7 @@ function ResultsPanel({
         {obligationMap.riskAssessmentRequired && cyberRequiredConfirmed && (
           <p className="text-sm text-muted-foreground">
             Need both? The{" "}
-            <Link to="/cppa" className="underline text-brand-teal">CPPA Full Audit Suite</Link>{" "}
+            <Link to="/cppa" className="underline text-brand-teal-text">CPPA Full Audit Suite</Link>{" "}
             covers risk assessment and cybersecurity readiness together —{" "}
             <span className="font-semibold text-foreground">
               {PRICING_REGISTRY.cppa_suite_standalone.displayPrice} (subscribers {PRICING_REGISTRY.cppa_suite_subscriber.displayPrice})

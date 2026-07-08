@@ -21,7 +21,8 @@
     --ink-soft: 210 25% 31%;             /* #3c5164 */
     --brand-ocean: 206 62% 27%;          /* #1a4a6e */
     --brand-slate-teal: 190 51% 36%;     /* #2d7a8a */
-    --brand-teal: 173 58% 39%;           /* #2a9d8f — primary accent */
+    --brand-teal: 173 58% 39%;           /* #2a9d8f — primary accent (surfaces/icons, non-text on light bg) */
+    --brand-teal-text: 173 58% 26%;      /* #1c6960 — AA-compliant teal for TEXT on light bgs (6.51:1 white, 5.60:1 cloud). Do not use on navy. */
     --brand-light-teal: 155 47% 58%;     /* #5dcaa5 — dark-bg accent */
     --brand-steel: 199 19% 52%;          /* #6b8f9e */
     --brand-mist: 199 27% 77%;           /* #b5ccd6 */

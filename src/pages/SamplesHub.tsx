@@ -133,7 +133,7 @@ export default function SamplesHub() {
       {/* Hero */}
       <header className="bg-brand-navy text-white">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20">
-          <p className="text-xs uppercase tracking-[0.18em] text-brand-teal mb-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-brand-cloud mb-3">
             Sample Reports
           </p>
           <h1 className="font-display text-4xl md:text-5xl text-white mb-4 leading-tight">
@@ -263,7 +263,7 @@ export default function SamplesHub() {
               <div className="mt-auto flex flex-wrap gap-4 items-center pt-4 border-t border-brand-cloud/60">
                 <Link
                   to={`/samples/${g.toolSlug}`}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:underline no-underline"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal-text hover:underline no-underline"
                 >
                   <FileText className="h-4 w-4" aria-hidden /> View sample
                 </Link>
