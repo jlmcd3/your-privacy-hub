@@ -1064,7 +1064,7 @@ async function runPipeline(assessment_id: string) {
     // Structurally non-fatal: try/catch cannot change status or metering.
     function dedupeExceptionCitationNote(report: any): any {
       try {
-        const POINTER = "see exception-citation note in priority_actions";
+        const POINTER = "Cal. Civ. Code § 1798.145 [specific subsection to be determined and documented]. Note: 11 CCR §§ 7150–7157 impose the documentation duty but do not create exceptions; the applicable § 1798.145 subsection must be cited in the assessment record.";
         const isNote = (s: string) => {
           if (typeof s !== "string") return false;
           const n = s.replace(/\s+/g, " ").toLowerCase();
