@@ -109,5 +109,5 @@ Deno.test("Citation framework explicitly routes SA/transfers through the resolve
   const blocks = buildSystemContent({ toolModule: DPIA_TOOL_MODULE, currentDate: today });
   const all = blocks.map((b) => b.text).join("\n");
   assertStringIncludes(all, "RESOLVED JURISDICTION");
-  assertStringIncludes(all, "never name a supervisory authority");
+  assertStringIncludes(all, "Do not name a supervisory authority");
 });
