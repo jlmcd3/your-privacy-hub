@@ -1054,8 +1054,9 @@ async function runPipeline(assessment_id: string) {
     //     designed home). If no priority_actions occurrence exists, keep the first
     //     occurrence encountered by depth-first walk.
     //   - A duplicate inside any REFERENCE field (e.g. exception_analysis
-    //     statutory_basis) is replaced with the short pointer
-    //     "see exception-citation note in priority_actions".
+    //     statutory_basis) is replaced with the self-contained POINTER constant
+    //     below (the § 1798.145 citation text plus the 11 CCR §§ 7150–7157
+    //     clarifier), per CORE-1.
     //   - A duplicate whose priority_actions[].action is ONLY the note (fewer than
     //     40 chars of substantive content remain after excision) means the action
     //     exists only to restate the note: DELETE the whole action entry (never

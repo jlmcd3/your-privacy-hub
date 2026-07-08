@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const refreshUrl = "https://www.enduserprivacy.com/ropa/refresh/" + session.id;
+      const refreshUrl = "https://enduserprivacy.com/ropa/refresh/" + session.id;
       const jurChips = (jurisdictions || []).map((j) => j.jurisdiction_name).join(", ");
       const top = matched.slice(0, 5);
       const itemsHtml = top

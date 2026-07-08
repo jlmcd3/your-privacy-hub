@@ -50,7 +50,7 @@ export default function NoticeBuilderLanding() {
           name="description"
           content="One builder, two flows: US state notices (CCPA + 19 more) and EU/Global notices (GDPR, UK GDPR, LGPD, APPI, DPDPA, PIPEDA + more). Included with any subscription."
         />
-        <link rel="canonical" href="https://www.enduserprivacy.com/notice-builder" />
+        <link rel="canonical" href="https://enduserprivacy.com/notice-builder" />
       </Helmet>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">

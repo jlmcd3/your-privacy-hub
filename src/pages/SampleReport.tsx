@@ -111,7 +111,7 @@ export default function SampleReport() {
         />
         <link
           rel="canonical"
-          href={`https://www.enduserprivacy.com/samples/${toolSlug ?? ""}`}
+          href={`https://enduserprivacy.com/samples/${toolSlug ?? ""}`}
         />
       </Helmet>
 

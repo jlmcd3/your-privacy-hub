@@ -22,7 +22,7 @@ const Terms = () => {
         <div className="prose prose-sm max-w-none space-y-8 text-foreground/90">
           <section className="space-y-3">
             <p>
-              These Terms of Service (the "Agreement") govern use of the www.enduserprivacy.com
+              These Terms of Service (the "Agreement") govern use of the enduserprivacy.com
               website (the "Site") and all information, tools, documents, agreements and services
               available through the Site provided by Enduserprivacy ("we", "us" and "our"). By using
               the Site or purchasing any documents and/or agreements made available through the

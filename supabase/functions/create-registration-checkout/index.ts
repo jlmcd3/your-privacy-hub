@@ -179,7 +179,7 @@ serve(async (req) => {
     const rawOrigin = return_url || req.headers.get("origin") || "";
     const origin = /^https?:\/\//i.test(rawOrigin)
       ? rawOrigin.replace(/\/$/, "")
-      : "https://www.enduserprivacy.com";
+      : "https://enduserprivacy.com";
 
     const session = await stripe.checkout.sessions.create({
       mode: cfg.recurring ? "subscription" : "payment",
