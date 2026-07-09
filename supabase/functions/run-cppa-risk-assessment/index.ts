@@ -458,7 +458,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     { "activity": string, "statutory_basis": string, "purpose": string, "benefits_to_business": string, "benefits_to_consumers": string,
       "adverse_effects": [ { "harm_type": string, "likelihood": string, "severity": string, "description": string } ],
       "current_safeguards": string, "safeguard_gaps": string,
-      "benefits_outweigh_risks_conclusion": "Yes" | "No" | "Uncertain" | "Insufficient basis", "benefits_outweigh_risks_rationale": string,
+      "benefits_outweigh_risks_conclusion": "Yes" | "No" | "Uncertain" | "Cannot be determined — record incomplete. See benefits_outweigh_risks_rationale for detail", "benefits_outweigh_risks_rationale": string,
       "section_7152_mapping": string }
   ],
   "inconsistency_flags": [
