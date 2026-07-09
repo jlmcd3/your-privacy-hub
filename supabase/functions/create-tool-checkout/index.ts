@@ -501,8 +501,15 @@ Deno.serve(async (req) => {
 
     // Preserve legacy variable names referenced later in the file.
     const stripePrice: { id: string; unit_amount?: number | null } | null = null;
-    const isProfessionalSubscriber = isProfessionalAnnual; // alias for legacy code below
-    const isIntelligenceSubscriber = subscriptionType === "monthly";
+    // Tier bookkeeping mirrors the entitlement read used for pricing: any
+    // active subscription (monthly, annual, annual_founding) records its
+    // real tier. "standalone" is reserved for non-premium buyers. Without
+    // this alignment, intelligence-annual subscribers received subscriber
+    // pricing but were tagged tier="standalone", reproducing the same
+    // bookkeeping mismatch the payments-webhook subscriber_at_time fix
+    // corrected.
+    const isProfessionalSubscriber = isPremium && isPro;
+    const isIntelligenceSubscriber = isPremium && !isPro;
     void stripePrice; void isIntelligenceSubscriber; void isProfessionalSubscriber;
 
 
