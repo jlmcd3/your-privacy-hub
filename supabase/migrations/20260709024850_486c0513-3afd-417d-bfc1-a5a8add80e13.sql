@@ -1,0 +1,1 @@
+ALTER TABLE public.user_entitlements ADD COLUMN IF NOT EXISTS stripe_subscription_created_at timestamptz;
