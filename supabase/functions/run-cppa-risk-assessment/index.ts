@@ -894,6 +894,59 @@ async function runPipeline(assessment_id: string) {
       console.warn("[cppa-risk] § 7157 deadline backstop error:", e);
     }
 
+    // DETERMINISTIC 2027-DATE TEMPORAL-FRAMING NORMALISATION: for every
+    // priority_action whose deadline or deadline_basis text references
+    // 2027-01-01 / "January 1, 2027" or 2027-12-31 / "December 31, 2027",
+    // compare the date to the run's assessment date; if the date is AFTER
+    // the assessment date, rewrite any attached framing token reading
+    // "operative", "took effect", or "in force" to "prospective as of the
+    // assessment date"; if ON OR BEFORE, rewrite any attached "prospective"
+    // framing to "operative". Same try/catch posture as other backstops.
+    try {
+      if (parsed && Array.isArray(parsed.priority_actions)) {
+        const assessmentDateStr = String((parsed as any)?.assessment_date || new Date().toISOString().slice(0, 10));
+        const assessmentDate = new Date(assessmentDateStr);
+        const TARGETS: { iso: string; prose: RegExp }[] = [
+          { iso: "2027-01-01", prose: /January\s+1,?\s+2027/i },
+          { iso: "2027-12-31", prose: /December\s+31,?\s+2027/i },
+        ];
+        for (let idx = 0; idx < parsed.priority_actions.length; idx++) {
+          const action = parsed.priority_actions[idx];
+          const deadlineStr = String(action?.deadline ?? "");
+          const basisStr = String(action?.deadline_basis ?? "");
+          for (const t of TARGETS) {
+            const referenced =
+              deadlineStr.includes(t.iso) ||
+              basisStr.includes(t.iso) ||
+              t.prose.test(deadlineStr) ||
+              t.prose.test(basisStr);
+            if (!referenced) continue;
+            const target = new Date(t.iso);
+            const isProspective = target.getTime() > assessmentDate.getTime();
+            const fieldsToRewrite: Array<"deadline" | "deadline_basis" | "action"> = ["deadline", "deadline_basis", "action"];
+            for (const f of fieldsToRewrite) {
+              const original = String((action as any)?.[f] ?? "");
+              if (!original) continue;
+              let rewritten = original;
+              if (isProspective) {
+                rewritten = rewritten.replace(/\b(operative|took effect|in force)\b/gi, "prospective as of the assessment date");
+              } else {
+                rewritten = rewritten.replace(/\bprospective(?: as of the assessment date)?\b/gi, "operative");
+              }
+              if (rewritten !== original) {
+                console.warn(`[cppa-risk] 2027-date temporal framing rewrite on priority_actions[${idx}].${f} (target=${t.iso}, prospective=${isProspective})`);
+                (action as any)[f] = rewritten;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[cppa-risk] 2027-date temporal framing backstop error:", e);
+    }
+
+
+
     let report_data: any = {
       schema_version: "v4-five-stage",
       generated_at: new Date().toISOString(),
