@@ -162,17 +162,11 @@ Deno.serve(async (req) => {
       }),
     };
 
-    // Grader-error ledger (QL2-FIX-1): claims investigated during authoring
-    // that were verified false against the primary source and therefore did
-    // NOT drive any tool change. Surfaced in the output so downstream reviewers
-    // see what was evaluated. Update in place; do not delete verified entries.
-    (result_summary as any).grader_error_ledger = [
-      {
-        claim: "CPPA operates an ADMT registration regime at 11 CCR § 7330 et seq.",
-        verified_against: "Barclays Official California Code of Regulations, Title 11, Division 6 (via govt.westlaw.com, current through 6/26/26 Register 2026, No. 26) and CPPA Notice of Proposed Rulemaking, Data Broker Registration (published 5 July 2024) at cppa.ca.gov/regulations/pdf/data_broker_reg_nopa.pdf.",
-        finding: "No such section exists. ADMT is Chapter 1, Article 11 (§§ 7200–7222); data-broker registration is a separate Chapter 3 (§§ 7600–7605). § 7330 does not appear in the CPPA regulations. No tool change made.",
-      },
-    ];
+    // NO-INSTRUCTION-LEAKAGE: internal QA / grader-error bookkeeping never appears
+    // in user-facing product output. Verified grader errors are recorded separately
+    // in quality_loop2_notes (kind = 'grader_error_ledger'), not in result_summary.
+
+
 
 
 
