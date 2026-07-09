@@ -7,7 +7,7 @@ import { stripHtml, normalizeTitle } from "@/lib/utils";
 
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
-import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import ArticleThumb from "@/components/feed/ArticleThumb";
 import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
 import { fmtDate } from "@/lib/dates";
 import { getSeverityLabel } from "@/lib/severity";
@@ -55,7 +55,7 @@ const AdminHideButton = ({ articleId }: { articleId: string }) => {
 // Render-time fallback for any article missing a real image. Curated photo
 // rotation is applied at ingestion time via the assign-fallback-images
 // edge function; this is the safety net so no card ever looks empty.
-const EUP_TILE = eupTile;
+// (See src/components/feed/ArticleFallbackImage.tsx.)
 
 // Shared type for all article-like content across the site
 export interface ArticleItem {
@@ -412,12 +412,9 @@ const FullCard = ({
 
 
       {/* Article thumbnail */}
-      <img
-        src={item.image_url || EUP_TILE}
-        alt=""
-        loading="lazy"
+      <ArticleThumb
+        item={item}
         className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
-        onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
       />
       <div className="flex-1 min-w-0">
         {/* Metadata row */}
@@ -694,12 +691,9 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
         {...(hasExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         className="flex gap-3 flex-1 min-w-0 no-underline"
       >
-        <img
-          src={item.image_url || EUP_TILE}
-          alt=""
-          loading="lazy"
+        <ArticleThumb
+          item={item}
           className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
-          onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -784,12 +778,9 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 
       <div className="px-4 py-3">
         <div className="flex gap-3 mb-3">
-          <img
-            src={item.image_url || EUP_TILE}
-            alt=""
-            loading="lazy"
+          <ArticleThumb
+            item={item}
             className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
-            onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
           />
           <div className="flex-1 min-w-0">
             <p className="text-[9px] font-semibold text-gray-900 leading-snug mb-1">{normalizeTitle(item.title)}</p>
@@ -845,12 +836,9 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 export const HomepageCard = ({ item }: { item: ArticleItem }) => {
   return (
     <div className="flex gap-3 items-start py-3 border-b border-brand-cloud last:border-0">
-      <img
-        src={item.image_url || EUP_TILE}
-        alt=""
-        loading="lazy"
+      <ArticleThumb
+        item={item}
         className="w-10 h-10 rounded-md object-cover flex-shrink-0 bg-slate-100"
-        onError={(e) => { (e.target as HTMLImageElement).src = EUP_TILE; }}
       />
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1">

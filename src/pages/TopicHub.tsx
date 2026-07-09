@@ -63,11 +63,10 @@ const TOPIC_META: Record<string, { name: string; icon: string; description: stri
   },
 };
 
-import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import ArticleThumb from "@/components/feed/ArticleThumb";
 
-// Render-time fallback: when an article has no image, show the EUP brand tile.
+// Render-time fallback: when an article has no image, show the branded SVG tile.
 // (Curated photo pool is applied at ingestion time via assign-fallback-images.)
-const FALLBACK_IMAGE = eupTile;
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -192,11 +191,9 @@ const TopicHub = () => {
               className="group flex gap-4 p-4 md:p-5 bg-card border border-border rounded-xl hover:border-primary/30 hover:shadow-md hover:-translate-y-px transition-all no-underline cursor-pointer"
             >
               <div className="w-28 h-20 md:w-36 md:h-24 rounded-lg overflow-hidden shrink-0 bg-muted">
-                <img
-                  src={u.image_url || FALLBACK_IMAGE}
-                  alt=""
+                <ArticleThumb
+                  item={u}
                   className="w-full h-full object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE; }}
                 />
               </div>
               <div className="flex-1 min-w-0">

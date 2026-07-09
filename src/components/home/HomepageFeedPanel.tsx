@@ -6,7 +6,7 @@ import { fmtDate } from "@/lib/dates";
 import { normalizeTitle, stripHtml } from "@/lib/utils";
 import type { ArticleItem } from "@/components/ArticleCard";
 import { InvestigationPrompt } from "@/components/InvestigationPrompt";
-import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import ArticleThumb from "@/components/feed/ArticleThumb";
 
 type UpdateArticleRow = ArticleItem & {
   url?: string | null;
@@ -350,12 +350,9 @@ const HomepageArticleCard = ({
       )}
 
       <div className="flex gap-3 items-start">
-        <img
-          src={article.image_url || eupTile}
-          alt=""
-          loading="lazy"
+        <ArticleThumb
+          item={article}
           className="w-10 h-10 rounded-md object-cover flex-shrink-0 bg-slate-100"
-          onError={(e) => { (e.target as HTMLImageElement).src = eupTile; }}
         />
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1 mb-1 pr-20">

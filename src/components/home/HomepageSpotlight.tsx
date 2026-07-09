@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/lib/dates";
 import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
 import { normalizeTitle } from "@/lib/utils";
-import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import ArticleThumb from "@/components/feed/ArticleThumb";
 
 interface SpotlightArticle {
   id: string;
@@ -65,14 +65,9 @@ const SpotlightCard = ({
 
   return (
     <div className="flex gap-4 items-start">
-      <img
-        src={article.image_url || eupTile}
-        alt=""
-        loading="lazy"
+      <ArticleThumb
+        item={article}
         className="w-14 h-14 rounded-lg object-cover flex-shrink-0 bg-slate-100"
-        onError={e => {
-          (e.target as HTMLImageElement).src = eupTile;
-        }}
       />
 
       <div className="flex-1 min-w-0">
