@@ -490,7 +490,7 @@ const F_CPPA_CYBER_US: SampleFixture = {
   variant: "us",
   title: "Cybersecurity readiness for ad-tech processing estate",
   scenario_summary:
-    "Cybersecurity readiness assessment for Tomorrow4Cariboo, Inc.'s ad-tech processing estate. CISO Blitz Zenn provided maturity ratings across the 18 CPPA-listed controls; the assessment surfaces inventory gaps, secure-development gaps, and retention/disposal gaps as priority items.",
+    "Cybersecurity readiness assessment for Tomorrow4Cariboo, Inc.'s ad-tech processing estate. CISO Blitz Zenn provided maturity ratings across the 18 CPPA-listed controls; all eighteen assess as implemented with documentation noted, producing a clean readiness posture.",
   source_table: "cppa_assessments",
   result_url_pattern: "/cppa-cybersecurity/result/{id}",
   fixture: {
