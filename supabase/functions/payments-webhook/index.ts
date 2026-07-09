@@ -13,10 +13,26 @@
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
 
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-);
+// Lazy so importing this module in tests (which do not set SUPABASE_URL)
+// does not crash at load time.
+let _supabase: SupabaseClient | null = null;
+function supabaseClient(): SupabaseClient {
+  if (!_supabase) {
+    _supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+  }
+  return _supabase;
+}
+// Backwards-compat alias for the inline call sites below.
+const supabase = new Proxy({} as SupabaseClient, {
+  get(_t, prop) {
+    const c = supabaseClient() as any;
+    const v = c[prop];
+    return typeof v === "function" ? v.bind(c) : v;
+  },
+});
 
 /**
  * Upsert the env-scoped entitlement row. `patch` carries only the fields
