@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
             return `${r?.jurisdiction_name || j.code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry — sector-specific authorisations, if any, are surfaced in notes.`;
           }
           // null — no requirement metadata row was found in jurisdiction_requirements
-          return `No jurisdiction_requirements metadata resolved for ${j.code}; registration status must be confirmed against the local authority (${r?.authority_name || "competent authority"}) before filing.`;
+          return `Registration requirements for ${j.code} could not be resolved from the sources available to this assessment; confirm registration obligations with ${r?.authority_name || "the jurisdiction's data-protection authority"} before filing.`;
         })();
         const aiRequired = engineOutput.obligations_summary.ai_act_provider_obligations;
         const aiBasis = aiRequired
