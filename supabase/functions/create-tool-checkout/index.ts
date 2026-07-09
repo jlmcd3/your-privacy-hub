@@ -719,6 +719,7 @@ Deno.serve(async (req) => {
       payment_method_types: ["card"],
       line_items: [lineItemBase as any],
       mode: "payment",
+      ...(canonicalCustomerId && { customer: canonicalCustomerId }),
       metadata: {
         tool_type,
         assessment_id: record.id,
