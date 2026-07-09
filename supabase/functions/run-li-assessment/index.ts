@@ -558,14 +558,14 @@ Apply the EDPB Guidelines 1/2024 three-part test to the SPECIFIC facts above —
   },
   "necessity_test": {
     "verdict": "passes | fails | uncertain",
-    "analysis": "3-4 sentences. Test whether the processing is the LEAST intrusive way to achieve the stated purpose, given the alternatives the user considered, the data minimisation they described, and any pseudonymisation potential.",
-    "risk_factors": ["factors weakening necessity, e.g. overly broad data, weak alternatives analysis"],
+    "analysis": "3-4 sentences. Test whether the processing is the LEAST intrusive way to achieve the stated purpose, given the alternatives the user considered, the data minimisation they described, and any pseudonymisation potential. For EACH data category identified in the intake, state the retention period AND the deletion trigger (event that starts the clock) drawn from the intake — Article 5(1)(e) UK GDPR / GDPR requires storage limitation to be documented per category and purpose. Where the intake does not state a specific retention period or deletion trigger for a category, name that category and record the gap in open_questions and (if it blocks the necessity verdict) blocking_issues — do NOT invent a period.",
+    "risk_factors": ["factors weakening necessity, e.g. overly broad data, weak alternatives analysis, retention period or deletion trigger not stated for a specific data category"],
     "supporting_factors": ["factors strengthening necessity"],
     "open_questions": ["facts that would affect this verdict"]
   },
   "balancing_test": {
     "verdict": "likely_passes | likely_fails | uncertain",
-    "analysis": "4-5 sentences applying the EDPB four-factor balancing: (1) reasonable expectations, (2) nature of the relationship, (3) potential impact and severity, (4) safeguards including opt-out. Address vulnerable subjects if any.",
+    "analysis": "4-5 sentences applying the EDPB four-factor balancing: (1) reasonable expectations, (2) nature of the relationship, (3) potential impact and severity, (4) safeguards including opt-out. Address vulnerable subjects if any. Where the analysis references a worst-case harm scenario (e.g. 'unexpected profiling if safeguards fail'), include a QUALITATIVE assessment of BOTH (a) the likelihood that the safeguard-failure scenario occurs on the facts stated (rare / plausible / foreseeable) AND (b) the nature and severity of the resulting harm to data subjects (limited / significant / severe, and the type of harm — reputational, financial, discrimination, chilling effect on rights, etc.), per EDPB Guidelines 1/2024 para. 39 (impact of the processing on the data subjects — qualitative assessment of the likely impact covering nature, context and further consequences). Do NOT quantify probability numerically and do NOT treat the absence of quantification as, by itself, a deficiency (see LIKELY IMPACT rule).",
     "risk_factors": ["factors tipping the balance toward data subjects"],
     "supporting_factors": ["factors supporting the controller's interest"],
     "open_questions": ["facts that would affect this verdict"],
@@ -898,7 +898,7 @@ Return JSON:
       enforcement_meta: enforcementMeta,
       gdpr_meta: gdprMeta,
       enforcement_precedents_note: enforcementPrecedents.length === 0
-        ? "No enforcement decisions matching this jurisdiction and processing theory were retrieved from the precedent database. The analysis above may reference relevant decisions that are not yet indexed against this scenario — verify any cited cases directly."
+        ? "The analysis references database reference categories only; no individual enforcement decisions were matched or cited."
         : null,
       three_part_test: analysis,
       lint_warnings: lintViolations,
