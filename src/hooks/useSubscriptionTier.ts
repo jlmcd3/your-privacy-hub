@@ -126,12 +126,13 @@ export function useSubscriptionTier(): SubscriptionTierState {
     };
 
     (async () => {
-      const { data: entRow } = await supabase
-        .from("user_entitlements" as any)
+      const { data: entRow } = await (supabase as any)
+        .from("user_entitlements")
         .select("is_premium, is_pro, subscription_type, stripe_trial_end")
         .eq("user_id", user.id)
         .eq("environment", clientEnv)
         .maybeSingle();
+
 
       if (cancelled) return;
       if (entRow) {
