@@ -152,8 +152,8 @@ serve(async (req) => {
 
       if (alreadySubscribed) {
         const { data: prof } = await supabase
-
           .from("profiles")
+
           .select("stripe_customer_id")
           .eq("id", user.id)
           .maybeSingle();
