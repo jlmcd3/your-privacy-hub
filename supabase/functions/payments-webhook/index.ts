@@ -11,7 +11,7 @@
 //     production entitlement.
 
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
+import { createStripeClient, type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
 
 // Lazy so importing this module in tests (which do not set SUPABASE_URL)
 // does not crash at load time.
