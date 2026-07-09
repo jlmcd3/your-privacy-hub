@@ -457,7 +457,7 @@ Virginia AG enforcement nascent. HHS OCR is the primary enforcement risk for HIP
 
 Priority actions:
 1. Complete a HIPAA boundary analysis to determine which biometric data falls within the § 59.1-575 HIPAA exclusion and which does not.
-2. For any non-HIPAA-excluded biometric data, implement VCDPA § 59.1-577(B) opt-in consent before processing begins.
+2. For any non-HIPAA-excluded biometric data, implement VCDPA § 59.1-578(A)(5) opt-in consent before processing begins.
 3. Execute both BAAs (for HIPAA) and § 59.1-574 processor agreements (for non-HIPAA biometric data) with all relevant vendors.
 
 Compliance risk rating: MEDIUM
