@@ -561,14 +561,15 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   if (session.subscription) {
     try {
       const stripe = createStripeClient(env);
-      const subId =
-        typeof session.subscription === "string"
-          ? session.subscription
-          : session.subscription.id;
-      const fullSub = await stripe.subscriptions.retrieve(subId, {
-        expand: ["items.data.price"],
-      });
-      await handleSubscriptionEvent(supabase, fullSub as any, env);
+      await dispatchCheckoutSubscription(
+        supabase,
+        session,
+        env,
+        (subId) =>
+          stripe.subscriptions.retrieve(subId, {
+            expand: ["items.data.price"],
+          }) as unknown as Promise<any>,
+      );
     } catch (e) {
       console.error(
         "checkout.session.completed subscription retrieve/dispatch failed:",
