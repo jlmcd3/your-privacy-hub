@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { stripHtml, normalizeTitle } from "@/lib/utils";
-import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import ArticleThumb from "@/components/feed/ArticleThumb";
 import { getSeverityLabel } from "@/lib/severity";
 
 interface AnonymousUpdatesCardItem {
