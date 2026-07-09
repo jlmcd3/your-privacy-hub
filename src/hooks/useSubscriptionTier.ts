@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { getStripeEnvironment } from "@/lib/env";
+
 
 export type SubscriptionTier = "free" | "monthly" | "annual" | "annual_founding";
 
@@ -87,40 +89,72 @@ export function useSubscriptionTier(): SubscriptionTierState {
       return;
     }
 
-    supabase
-      .from("profiles")
-      .select("is_premium, is_pro, subscription_type, stripe_trial_end")
-      .eq("id", user.id)
-      .single()
-      .then(({ data }) => {
-        if (cancelled) return;
-        const subType = (data as any)?.subscription_type as string | null;
-        const isPrem = data?.is_premium === true || data?.is_pro === true;
-        const proFlag =
-          data?.is_pro === true ||
-          subType === "pro_monthly" ||
-          subType === "pro_annual";
-        setIsPro(proFlag);
-        setTrialEnd(((data as any)?.stripe_trial_end as string | null) ?? null);
+    // ENT-1: entitlements are env-scoped. Read user_entitlements for the
+    // build's Stripe environment; if there is no row (e.g. a legacy user
+    // whose live entitlement pre-dates the backfill, or a rollout race),
+    // fall back to the profiles row for safety.
+    const clientEnv = getStripeEnvironment();
 
-        if (!isPrem) {
-          setTier("free");
-          return;
-        }
-        if (subType === "annual_founding" || subType === "annual") {
-          setTier(subType as SubscriptionTier);
-        } else if (subType === "pro_annual") {
-          setTier("annual");
-        } else if (subType === "monthly" || subType === "pro_monthly") {
-          setTier("monthly");
-        } else {
-          // eslint-disable-next-line no-console
-          console.warn(
-            `useSubscriptionTier: premium user ${user.id} has subscription_type=${subType ?? "null"}; defaulting to monthly.`,
-          );
-          setTier("monthly");
-        }
-      });
+    const resolveFromRow = (data: any) => {
+      if (cancelled) return;
+      const subType = (data?.subscription_type ?? null) as string | null;
+      const isPrem = data?.is_premium === true || data?.is_pro === true;
+      const proFlag =
+        data?.is_pro === true ||
+        subType === "pro_monthly" ||
+        subType === "pro_annual";
+      setIsPro(proFlag);
+      setTrialEnd((data?.stripe_trial_end as string | null) ?? null);
+
+      if (!isPrem) {
+        setTier("free");
+        return;
+      }
+      if (subType === "annual_founding" || subType === "annual") {
+        setTier(subType as SubscriptionTier);
+      } else if (subType === "pro_annual") {
+        setTier("annual");
+      } else if (subType === "monthly" || subType === "pro_monthly") {
+        setTier("monthly");
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `useSubscriptionTier: premium user ${user.id} has subscription_type=${subType ?? "null"}; defaulting to monthly.`,
+        );
+        setTier("monthly");
+      }
+    };
+
+    (async () => {
+      const { data: entRow } = await supabase
+        .from("user_entitlements" as any)
+        .select("is_premium, is_pro, subscription_type, stripe_trial_end")
+        .eq("user_id", user.id)
+        .eq("environment", clientEnv)
+        .maybeSingle();
+
+      if (cancelled) return;
+      if (entRow) {
+        resolveFromRow(entRow);
+        return;
+      }
+
+      // Fallback: rollout safety only. profiles is legacy live state.
+      const { data: profRow } = await supabase
+        .from("profiles")
+        .select("is_premium, is_pro, subscription_type, stripe_trial_end")
+        .eq("id", user.id)
+        .single();
+      if (cancelled) return;
+      // In sandbox builds we must NOT surface live profile entitlement as
+      // sandbox entitlement — that would re-open the contamination hole.
+      if (clientEnv === "sandbox") {
+        resolveFromRow({});
+        return;
+      }
+      resolveFromRow(profRow);
+    })();
+
 
     return () => {
       cancelled = true;
