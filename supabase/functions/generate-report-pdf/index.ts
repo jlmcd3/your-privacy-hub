@@ -782,14 +782,15 @@ function buildTextReportHTML(opts: TextReportOpts): string {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// CPPA shared compact renderers — never emit verbatim agency_response or
-// raw internal field-name dumps. Used by both cppa_risk and cppa_cybersecurity.
+// CPPA shared compact renderers — prefer the synthesized agency_position_summary;
+// fall back to the sentence-truncated agency_response already stored in report
+// payloads. Never present comment_summary (the commenter's position) as agency voice.
 // ─────────────────────────────────────────────────────────────────────────
 function renderCppaFsorCompact(items: any[], maxItems = 2): string {
   if (!Array.isArray(items) || items.length === 0) return "";
   const rows = items.slice(0, maxItems).map((it: any) => {
     const cite = escHtml(it?.citation || it?.regulation_citation || "");
-    const summary = escHtml(it?.comment_summary || "");
+    const summary = escHtml(it?.agency_position_summary || it?.agency_response || "");
     const url = it?.source_url ? String(it.source_url) : "";
     const urlHtml = url ? ` · <a href="${escHtml(url)}">${escHtml(url)}</a>` : "";
     if (!cite && !summary && !url) return "";
@@ -808,7 +809,7 @@ function renderCppaSectionCommentary(sectionMap: any): string {
   if (all.length === 0) return "";
   const rows = all.slice(0, 6).map((it: any) => {
     const cite = escHtml(it?.citation || it?.regulation_citation || "");
-    const summary = escHtml(it?.comment_summary || "");
+    const summary = escHtml(it?.agency_position_summary || it?.agency_response || "");
     const url = it?.source_url ? String(it.source_url) : "";
     const urlHtml = url ? ` · <a href="${escHtml(url)}">${escHtml(url)}</a>` : "";
     if (!cite && !summary && !url) return "";
@@ -1331,7 +1332,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
     for (const it of items) {
       const cite = String(it?.citation || it?.regulation_citation || "").trim();
       const url = String(it?.source_url || "").trim();
-      const summary = String(it?.comment_summary || "").trim();
+      const summary = String(it?.agency_position_summary || it?.agency_response || "").trim();
       const key = `${cite}||${url}||${summary.slice(0, 40)}`;
       if (!key.replaceAll("|", "").trim()) continue;
       if (!fsorMap.has(key)) fsorMap.set(key, it);
@@ -1341,7 +1342,7 @@ function buildCPPACyberReportHTML(report: any, record: any): string {
   const dedupedFsorBlock = dedupedFsor.length
     ? `<section class="section"><h2>Rulemaking context</h2><ul class="fsor-refs">${dedupedFsor.map((it: any) => {
         const cite = escHtml(it?.citation || it?.regulation_citation || "");
-        const summary = escHtml(it?.comment_summary || "");
+        const summary = escHtml(it?.agency_position_summary || it?.agency_response || "");
         const url = it?.source_url ? String(it.source_url) : "";
         const urlHtml = url ? ` · <a href="${escHtml(url)}">${escHtml(url)}</a>` : "";
         return `<li><span class="label">${cite}</span>${summary ? ` — ${summary}` : ""}${urlHtml}</li>`;
