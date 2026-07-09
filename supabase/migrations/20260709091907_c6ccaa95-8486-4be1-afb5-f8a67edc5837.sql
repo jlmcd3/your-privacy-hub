@@ -1,0 +1,1 @@
+SELECT public.stress_batch_watchdog();
