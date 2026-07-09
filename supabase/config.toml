@@ -221,3 +221,6 @@ verify_jwt = false
 
 [functions.grade-single-assessment]
 verify_jwt = false
+
+[functions.admin-list-stripe-prices]
+verify_jwt = false
