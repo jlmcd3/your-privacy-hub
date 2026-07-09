@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
           ai_registration_required: aiRequired,
           ai_registration_required_basis: aiBasis,
           data_broker_evaluation: {
-            definition_cite: "Cal. Civ. Code § 1798.99.80(c)",
+            definition_cite: isCalifornia ? "Cal. Civ. Code § 1798.99.80(c)" : null,
             met: isBroker,
             basis: dataBrokerBasis,
           },
