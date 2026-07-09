@@ -412,12 +412,9 @@ const FullCard = ({
 
 
       {/* Article thumbnail */}
-      <img
-        src={item.image_url || EUP_TILE}
-        alt=""
-        loading="lazy"
+      <ArticleThumb
+        item={item}
         className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
-        onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
       />
       <div className="flex-1 min-w-0">
         {/* Metadata row */}
