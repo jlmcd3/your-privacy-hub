@@ -223,11 +223,13 @@ async function resolveExhausted(table: string, row: any): Promise<Resolution> {
     const idHash = row.id.replace(/-/g, "").slice(0, 8);
     const creditIndex = -1 * (parseInt(idHash, 16) % 2_000_000_000);
 
+    // ENT-1: server-side sweeper always grants live-scoped credits.
     const { error: insertErr } = await supabase.from("annual_tool_credits").insert({
       user_id: row.user_id,
       cycle_start: new Date().toISOString().slice(0, 10),
       granted_at: new Date().toISOString(),
       credit_index: creditIndex,
+      environment: "live",
     });
     // 23505 = unique_violation → already granted for this row, idempotent.
     if (insertErr && (insertErr as any).code !== "23505") {

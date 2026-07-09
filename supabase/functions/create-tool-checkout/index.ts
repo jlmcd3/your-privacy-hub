@@ -396,10 +396,12 @@ Deno.serve(async (req) => {
     };
     if (redeem_annual_credit === true && user_id && ANNUAL_CREDIT_TOOL_MAP[tool_type]) {
       const creditTool = ANNUAL_CREDIT_TOOL_MAP[tool_type];
+      // ENT-1: server-side execution contexts always operate on live entitlement.
       let creditQ = supabase
         .from("annual_tool_credits")
         .select("id, cycle_start")
         .eq("user_id", user_id)
+        .eq("environment", "live")
         .is("redeemed_at", null)
         .order("cycle_start", { ascending: false })
         .limit(1);
