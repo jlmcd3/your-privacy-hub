@@ -1,0 +1,2 @@
+UPDATE public.sample_reports SET pdf_path = NULL, updated_at = now() WHERE status = 'published' AND tool_slug IN ('cppa_cyber','cppa_risk') AND id IN ('04ab79ac-554b-4436-8fe5-087eacf7b120','180b836f-9830-4ac9-86db-2806a1bf59c1');
+UPDATE public.static_stress_jobs SET pdf_path = NULL WHERE pdf_path IN ('cppa_risk/us--behavioral-ad-personalization-profiling-of-ca-consumers.pdf','cppa_cyber/us--cybersecurity-readiness-for-ad-tech-processing-estate.pdf');
