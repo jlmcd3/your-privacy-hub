@@ -111,9 +111,14 @@ Deno.serve(async (req) => {
         // Data-broker evaluation (QL2-FIX-1 Item 2.3): documented even when the
         // answer is "not a data broker" — CA § 1798.99.80(c) definition anchor.
         const isBroker = engineOutput.obligations_summary.data_broker_registrations.includes(j.code);
+        const isCalifornia = j.code === "US-CA";
         const dataBrokerBasis = isBroker
-          ? `Data-broker registration is engaged in ${j.code}: the intake declares the organisation to be a data broker, evaluated against the Cal. Civ. Code § 1798.99.80(c) definition ("a business that knowingly collects and sells to third parties the personal information of a consumer with whom the business does not have a direct relationship") and analogous state definitions.`
-          : `No data-broker-registry filing is engaged for ${j.code}: the intake does not indicate the organisation meets the Cal. Civ. Code § 1798.99.80(c) definition ("a business that knowingly collects and sells to third parties the personal information of a consumer with whom the business does not have a direct relationship") or analogous state definitions.`;
+          ? (isCalifornia
+              ? `Data-broker registration is engaged in ${j.code}: the intake declares the organisation to be a data broker, evaluated against the Cal. Civ. Code § 1798.99.80(c) definition ("a business that knowingly collects and sells to third parties the personal information of a consumer with whom the business does not have a direct relationship") and analogous state definitions.`
+              : `Data-broker registration is engaged in ${j.code}: the intake declares the organisation to be a data broker; confirm the jurisdiction's own registry definition and filing requirements with its competent authority.`)
+          : (isCalifornia
+              ? `No data-broker-registry filing is engaged for ${j.code}: the intake does not indicate the organisation meets the Cal. Civ. Code § 1798.99.80(c) definition ("a business that knowingly collects and sells to third parties the personal information of a consumer with whom the business does not have a direct relationship") or analogous state definitions.`
+              : `No data-broker-registry filing is engaged for ${j.code}: the intake does not indicate the organisation meets a data-broker definition requiring registry filing in this jurisdiction.`);
         return {
           code: j.code,
           name: r?.jurisdiction_name || j.code,
