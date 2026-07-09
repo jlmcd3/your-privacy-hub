@@ -105,7 +105,7 @@ and email exposure alone.
 
 NEW YORK DATA ELEMENT GATE: N.Y. Gen. Bus. Law §899-aa defines "private information"
 as personal information (name or number that identifies a natural person) combined with
-one of the enumerated data elements. Per the S2659B amendment (effective 21 Dec 2024),
+one of the enumerated data elements. Per the A8872A amendment (signed December 2024, effective 21 March 2025),
 the enumerated elements EXPLICITLY INCLUDE, in addition to SSN, driver's licence/state
 ID, financial account number with access code, and biometric data, both (i) MEDICAL
 INFORMATION (any information regarding an individual's medical history, mental or
@@ -118,7 +118,7 @@ password or security question and answer that permits access to an online accoun
 account/credit/debit card numbers where the number alone can be used to access the
 account. When assessing whether NY notification is triggered, apply this gate explicitly:
 identify which specific enumerated element is satisfied. If the incident involves medical
-information or health insurance information as defined above, cite the S2659B expansion
+information or health insurance information as defined above, cite the A8872A expansion
 of §899-aa and do not analyse NY breach-trigger scope as if those categories were
 excluded — the pre-amendment "private information" definition did not enumerate them
 explicitly and playbooks must not rely on the pre-amendment scope.
