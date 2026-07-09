@@ -857,7 +857,7 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         console.warn("[generate-dpa] truncated_output on first attempt — retrying once with concise instruction");
         const retryCall = await callAi(
           "Your previous attempt exceeded the length limit and was cut off. Produce the complete document more concisely; every numbered section, the signature block, and all Schedules must be present.",
-          240_000,
+          360_000,
         );
         if (retryCall.finishReason === "length") {
           throw new Error("truncated_output: DPA generation hit length limit twice; refusing to persist truncated contract");
