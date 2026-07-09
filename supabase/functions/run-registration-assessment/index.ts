@@ -106,8 +106,8 @@ Deno.serve(async (req) => {
         })();
         const aiRequired = engineOutput.obligations_summary.ai_act_provider_obligations;
         const aiBasis = aiRequired
-          ? "EU AI Act GPAI-provider obligations engaged per intake.ai_general_purpose_provider = true; provider must register on the EU AI Office GPAI database (Art. 52a et seq., prospective per the Act's staggered application dates)."
-          : "Intake does not declare the organisation as an EU AI Act GPAI provider (ai_general_purpose_provider = false); no GPAI-database registration engaged. High-risk AI use, where present, engages separate documentation duties (see Governance / DPIA), not AI-registry filing.";
+          ? "EU AI Act GPAI-provider obligations engaged per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. The Act imposes no general GPAI registry filing — the Art. 71 EU database covers high-risk AI systems, not GPAI models."
+          : "The intake does not declare the organisation as a provider of a general-purpose AI model, so no EU AI Act Chapter V provider obligations are engaged. High-risk AI use, where present, engages separate duties — including Art. 49/Art. 71 EU-database registration for providers of high-risk AI systems — assessed in the Governance / DPIA products, not through a GPAI filing.";
         // Data-broker evaluation (QL2-FIX-1 Item 2.3): documented even when the
         // answer is "not a data broker" — CA § 1798.99.80(c) definition anchor.
         const isBroker = engineOutput.obligations_summary.data_broker_registrations.includes(j.code);
