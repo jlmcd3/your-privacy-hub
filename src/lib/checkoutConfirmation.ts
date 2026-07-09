@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getStripeEnvironment } from "@/lib/env";
+
 
 export interface PollOptions {
   /** Total time to wait before giving up. Default 30s. */
@@ -36,15 +38,21 @@ export function waitForSubscriptionActive(
   userId: string,
   opts?: PollOptions
 ): Promise<boolean> {
+  const env = getStripeEnvironment();
   return poll(async () => {
+    // ENT-1: subscription activation is env-scoped. Poll user_entitlements
+    // for the build's Stripe environment; do NOT read profiles here — that
+    // would falsely confirm sandbox checkouts against live entitlement.
     const { data } = await supabase
-      .from("profiles")
+      .from("user_entitlements" as any)
       .select("is_premium, is_pro")
-      .eq("id", userId)
-      .single();
+      .eq("user_id", userId)
+      .eq("environment", env)
+      .maybeSingle();
     return data?.is_premium === true || data?.is_pro === true ? true : null;
   }, opts).then((v) => v === true);
 }
+
 
 /**
  * Polls assessment_purchases for a paid record matching the given assessment id.
