@@ -691,12 +691,9 @@ const NewsfeedCard = ({ item }: { item: ArticleItem }) => {
         {...(hasExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         className="flex gap-3 flex-1 min-w-0 no-underline"
       >
-        <img
-          src={item.image_url || EUP_TILE}
-          alt=""
-          loading="lazy"
+        <ArticleThumb
+          item={item}
           className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
-          onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
