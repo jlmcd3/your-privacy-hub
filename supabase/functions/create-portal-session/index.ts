@@ -8,9 +8,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function detectEnv(): StripeEnv {
+function detectEnv(override?: string): StripeEnv {
+  if (override === "sandbox" || override === "live") return override;
+  // Fallback for callers that don't pass an env. Prefer sandbox when its
+  // key exists — live-key presence alone is not enough to assume live
+  // mode (post-go-live both keys exist simultaneously).
+  if (Deno.env.get("STRIPE_SANDBOX_API_KEY")) return "sandbox";
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
+export { detectEnv };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
