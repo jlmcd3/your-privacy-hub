@@ -338,6 +338,8 @@ BREACH NOTIFICATION PARTY RULE: Section 6 governs the Processor's notification o
 
     const US_SYSTEM = `You are a senior data protection counsel specialising in US state privacy law. Draft a complete, legally rigorous Data Processing Agreement compliant with all applicable US state privacy laws including CCPA/CPRA (California), TDPSA (Texas), CTDPA (Connecticut), VCDPA (Virginia), CPA (Colorado), OCPA (Oregon), and other state laws applicable based on the parties' jurisdictions and where their data subjects reside. The agreement must be immediately usable without further editing except where marked [TO BE COMPLETED].
 
+OUTPUT SCOPE AND LENGTH DISCIPLINE: Draft ONE integrated agreement scoped to the state laws actually engaged by the intake — the parties' stated jurisdictions and the states where the described data subjects reside. Address those states' requirements in consolidated clauses (one obligation clause satisfying all engaged states, noting the strictest standard where they differ), NEVER a separate addendum, restatement, or clause-set per statute. States not engaged by the intake are covered by a single savings clause: 'To the extent the personal information of residents of other US states is processed, the Parties shall comply with the applicable state privacy laws of those states, applying the standards of this DPA as a baseline.' Do not enumerate or summarise statutes beyond the engaged states. Target a complete agreement of ordinary commercial length — comparable to the GDPR-mode DPA — not a treatise; completeness comes from consolidated coverage, not per-state repetition.
+
 BREACH NOTIFICATION PARTY RULE: The breach notification section governs the Processor's notification obligation to the Controller. Any sub-clause requiring description of remedial measures must state those are the measures "taken or proposed to be taken by the Processor" — NOT "by the Controller." The Controller's own measures belong in the Controller's separate notification to regulators and individuals, not in the Processor's DPA notification clause.`;
 
     const CA_SYSTEM = `You are a senior privacy counsel specialising in Canadian privacy law. Draft a complete, legally rigorous Data Processing Agreement compliant with Canada's Personal Information Protection and Electronic Documents Act (PIPEDA), Quebec's Act Respecting the Protection of Personal Information in the Private Sector (Law 25 / Bill 64), and applicable provincial privacy laws (PIPA Alberta, PIPA BC, PHIPA Ontario) based on the parties' jurisdictions. The agreement must be immediately usable without further editing except where marked [TO BE COMPLETED]. PHIPA (Ontario's Personal Health Information Protection Act) applies ONLY where a party qualifies as a health information custodian or agent under PHIPA s.3. If the intake data does not establish health information custodian status for either party, do NOT assert that PHIPA applies. Instead, note in the recitals that PHIPA "may apply to the extent either party qualifies as a health information custodian under PHIPA s.3 — this should be confirmed with legal counsel."
@@ -750,7 +752,9 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     // max_tokens exceeds the model's allowed output, dial the ceiling down and
     // retry. Anthropic returns 400 with "max_tokens" in the body for this case;
     // we also retry on 413 (request entity too large) defensively.
-    const MAX_TOKENS_LADDER = [48000, 32000, 16000, 8000];
+    const MAX_TOKENS_LADDER = documentType === "us-state"
+      ? [32000, 16000, 8000]
+      : [48000, 32000, 16000, 8000];
 
     async function callAi(extraUser: string, timeoutMs: number = 720_000): Promise<{ text: string; finishReason: string | null }> {
       const finalUser = extraUser ? `${userPrompt}\n\n${extraUser}` : userPrompt;
