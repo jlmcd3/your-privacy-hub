@@ -201,7 +201,7 @@ const F_GOV_EU: SampleFixture = {
   variant: "eu",
   title: "EU e-commerce fulfilment programme review",
   scenario_summary:
-    "Misfit Toys Logistics Ltd is an Irish e-commerce fulfilment company operating across 11 EU jurisdictions with ~180 staff. The privacy programme has matured around DPA-DK and DPC-IE engagement but has no appointed DPO yet — a finding the assessment surfaces.",
+    "Misfit Toys Logistics Ltd is an Irish e-commerce fulfilment company operating across 11 EU jurisdictions with ~180 staff. The privacy programme is mature: appointed DPO, formal DPIA programme with register, tested incident-response plan, annual mandatory training, SCCs and TIAs in place for transfers, and DPAs with all vendors.",
   source_table: "governance_assessments",
   result_url_pattern: "/governance-assessment/result/{id}",
   fixture: {
