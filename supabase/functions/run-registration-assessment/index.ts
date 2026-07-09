@@ -91,6 +91,29 @@ Deno.serve(async (req) => {
         // QB10-10: lead_authority is a status designation, not a filing obligation.
         const wasLeadAuthority = obligations.includes("lead_authority");
         obligations = obligations.filter((o: string) => o !== "lead_authority");
+        // Determination bases (QL2-FIX-1 Item 2.3): never emit bare null/false on a
+        // jurisdiction with a known registry — always surface the basis of the
+        // determination so a reader can see what was evaluated against what.
+        const regBasis = (() => {
+          if (regRequired === true) {
+            return `Registration required in ${r?.jurisdiction_name || j.code} per ${r?.law_name || "the governing statute"} (${r?.authority_name || "competent authority"}); see obligations.registration.`;
+          }
+          if (regRequired === false) {
+            return `${r?.jurisdiction_name || j.code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry — sector-specific authorisations, if any, are surfaced in notes.`;
+          }
+          // null — no requirement metadata row was found in jurisdiction_requirements
+          return `No jurisdiction_requirements metadata resolved for ${j.code}; registration status must be confirmed against the local authority (${r?.authority_name || "competent authority"}) before filing.`;
+        })();
+        const aiRequired = engineOutput.obligations_summary.ai_act_provider_obligations;
+        const aiBasis = aiRequired
+          ? "EU AI Act GPAI-provider obligations engaged per intake.ai_general_purpose_provider = true; provider must register on the EU AI Office GPAI database (Art. 52a et seq., prospective per the Act's staggered application dates)."
+          : "Intake does not declare the organisation as an EU AI Act GPAI provider (ai_general_purpose_provider = false); no GPAI-database registration engaged. High-risk AI use, where present, engages separate documentation duties (see Governance / DPIA), not AI-registry filing.";
+        // Data-broker evaluation (QL2-FIX-1 Item 2.3): documented even when the
+        // answer is "not a data broker" — CA § 1798.99.80(c) definition anchor.
+        const isBroker = engineOutput.obligations_summary.data_broker_registrations.includes(j.code);
+        const dataBrokerBasis = isBroker
+          ? `Evaluated against Cal. Civ. Code § 1798.99.80(c) definition ("a business that knowingly collects and sells to third parties the personal information of a consumer with whom the business does not have a direct relationship") and analogous state definitions — the intake declares the organisation as a data broker (acts_as_data_broker = true); registration engaged in ${j.code}.`
+          : `Evaluated against Cal. Civ. Code § 1798.99.80(c) definition ("a business that knowingly collects and sells to third parties the personal information of a consumer with whom the business does not have a direct relationship") and analogous state definitions — the intake does not indicate the organisation meets that definition (acts_as_data_broker not asserted); no data-broker-registry filing engaged for ${j.code}.`;
         return {
           code: j.code,
           name: r?.jurisdiction_name || j.code,
@@ -99,11 +122,18 @@ Deno.serve(async (req) => {
           authority: r?.authority_name || null,
           authority_url: r?.authority_url || null,
           registration_required: regRequired,
+          registration_required_basis: regBasis,
           // Use engine-computed values rather than the generic DB row defaults.
           // The DB row encodes a jurisdiction's rules; the engine applies them
           // to the entity's actual data (size, processing scope, establishment).
           dpo_required: engineOutput.obligations_summary.dpo_required,
-          ai_registration_required: engineOutput.obligations_summary.ai_act_provider_obligations,
+          ai_registration_required: aiRequired,
+          ai_registration_required_basis: aiBasis,
+          data_broker_evaluation: {
+            definition_cite: "Cal. Civ. Code § 1798.99.80(c)",
+            met: isBroker,
+            basis: dataBrokerBasis,
+          },
           representative_required: obligations.includes("eu_representative")
             ? true
             : (obligations.includes("uk_representative") ? true : false),
@@ -131,6 +161,7 @@ Deno.serve(async (req) => {
         };
       }),
     };
+
 
     // 4. Persist
     let row;
