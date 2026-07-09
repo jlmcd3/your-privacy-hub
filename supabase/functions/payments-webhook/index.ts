@@ -504,11 +504,13 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   if (!userId) return;
 
   // Premium subscription (checkout.session.completed side)
-  // Env-scoped entitlement write; dual-write profiles only on live.
-  await upsertEntitlement(supabase, userId, env, {
-    is_premium: true,
-    payment_failed: false,
-  });
+  // WEBHOOK-1: write the customer mapping FIRST so a subsequent
+  // profileIdForCustomer lookup succeeds, then — if this session created a
+  // subscription — retrieve it and run through the SAME full-fidelity
+  // handleSubscriptionEvent path. This heals the ordering race for any
+  // in-flight or legacy session regardless of subscription metadata,
+  // populating subscription_type / trial_end / period_end / subscription_id
+  // instead of leaving a partial row.
   if (env === "live") {
     await supabase
       .from("profiles")
@@ -520,11 +522,9 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       })
       .eq("id", userId);
   } else {
-    // Sandbox: we still need to know which stripe customer maps to which
-    // user for follow-up subscription.* events, but that mapping lives on
-    // the profile row and must not encode entitlement. Only set the
-    // customer id if it isn't already present, and never touch entitlement
-    // fields here.
+    // Sandbox: never touch entitlement fields on profiles; only backfill
+    // stripe_customer_id when missing so follow-up subscription.* events
+    // can resolve the user via profileIdForCustomer.
     const { data: prof } = await supabase
       .from("profiles")
       .select("stripe_customer_id")
@@ -536,6 +536,37 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
         .update({ stripe_customer_id: session.customer })
         .eq("id", userId);
     }
+  }
+
+  if (session.subscription) {
+    try {
+      const stripe = createStripeClient(env);
+      const subId =
+        typeof session.subscription === "string"
+          ? session.subscription
+          : session.subscription.id;
+      const fullSub = await stripe.subscriptions.retrieve(subId, {
+        expand: ["items.data.price"],
+      });
+      await handleSubscriptionEvent(supabase, fullSub as any, env);
+    } catch (e) {
+      console.error(
+        "checkout.session.completed subscription retrieve/dispatch failed:",
+        (e as Error).message,
+      );
+      // Fall back to the bare entitlement write so we don't regress.
+      await upsertEntitlement(supabase, userId, env, {
+        is_premium: true,
+        payment_failed: false,
+      });
+    }
+  } else {
+    // Non-subscription completions (should be rare on this branch — most
+    // one-time paths return earlier) still get the minimal entitlement.
+    await upsertEntitlement(supabase, userId, env, {
+      is_premium: true,
+      payment_failed: false,
+    });
   }
 }
 
