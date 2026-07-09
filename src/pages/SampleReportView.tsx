@@ -214,6 +214,9 @@ export default function SampleReportView() {
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   Sample {displayName} · variant <span className="font-mono">{row.variant}</span>
+                  {fmtDate(row.published_at) && (
+                    <> · created {fmtDate(row.published_at)}</>
+                  )}
                 </p>
                 {row.scenario_summary && (
                   <p className="mt-3 text-[15px] text-muted-foreground leading-7">
