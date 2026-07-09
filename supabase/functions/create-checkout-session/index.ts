@@ -262,10 +262,18 @@ serve(async (req) => {
     const isIntelligenceSub =
       mode === "subscription" && metadata.subscription_tier === "intelligence";
 
+    // CUSTOMER-1: resolve or create a canonical Stripe customer keyed by
+    // metadata.userId so repeat checkouts reuse the same customer id
+    // instead of minting a new one from customer_email.
+    const customerId = await resolveOrCreateCustomer(stripe, {
+      userId: user.id,
+      email: user.email ?? undefined,
+    });
+
     const session = await stripe.checkout.sessions.create({
       mode,
       line_items: [{ price: stripePrice.id, quantity: 1 }],
-      customer_email: user.email!,
+      customer: customerId,
       metadata,
       ...(mode === "subscription" && {
         subscription_data: {
