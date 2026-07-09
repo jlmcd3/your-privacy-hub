@@ -81,7 +81,20 @@ export interface AssessmentOutput {
     uk_representative_required: boolean;
     dpo_required: boolean;
     ai_act_provider_obligations: boolean;
-    data_broker_registrations: string[]; // jurisdiction codes
+    // NB: `data_broker_registrations` is a REGISTRATION-SPECIFIC SUBSET, not
+    // a mirror of every jurisdiction with a "registration" obligation on
+    // `jurisdictions[i].obligations`. It contains only the states where the
+    // R7 data-broker rule fired (i.e. `intake.acts_as_data_broker === true`
+    // and the state operates a standalone data-broker registry — CA, VT, TX,
+    // OR). A jurisdiction can therefore appear on `jurisdictions[]` with
+    // `obligations: ['registration']` (via R1_HOME, R2_ART27, or R3_MARKET
+    // — general residency/market-served filings) while being ABSENT from
+    // `data_broker_registrations` because the intake does not declare the
+    // organisation as a data broker. The two arrays are not inconsistent
+    // when they diverge; consumers displaying "data broker registration"
+    // must read this field only, and consumers displaying "any registration
+    // filing" must read `jurisdictions[i].obligations` only.
+    data_broker_registrations: string[]; // jurisdiction codes (data-broker registries only)
   };
   confidence: "high" | "medium" | "low";
   confidence_reasons: string[];
