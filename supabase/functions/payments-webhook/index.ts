@@ -504,7 +504,10 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       amount_cents: session.amount_total || 0,
       stripe_payment_intent_id: (session.payment_intent as string) || session.id,
       status: "paid",
-      subscriber_at_time: session.metadata?.tier === "subscriber",
+      // Align with the sessionTable branch above (line 472): checkout emits
+      // tier ∈ {"professional","intelligence","standalone"} — never "subscriber".
+      // Subscriber pricing is applied whenever tier !== "standalone".
+      subscriber_at_time: session.metadata?.tier !== "standalone",
       environment: env,
     });
 
