@@ -23,8 +23,15 @@ Deno.serve(async (req) => {
     const periodEnd = item?.current_period_end ?? s.current_period_end;
     const trialEnd = s.trial_end;
     const priceLookup = item?.price?.lookup_key;
-    const isPremium = ["active","trialing","past_due"].includes(s.status) ||
-      (s.status === "canceled" && periodEnd && periodEnd*1000 > Date.now());
+    // REVOKE-1: canceled subscriptions never grant premium, even if
+    // current_period_end is still in the future. Stripe fires the
+    // canceled status only when the subscription is genuinely over
+    // (period-end cancel completing OR immediate cancel for
+    // refund/chargeback/fraud/support). Continued access on any of
+    // those is wrong. cancel_at_period_end=true on a still-active
+    // sub is handled elsewhere (subscription.updated path) and keeps
+    // access until the delete event fires.
+    const isPremium = ["active","trialing","past_due"].includes(s.status);
 
     const row = {
       user_id: USER_ID,
