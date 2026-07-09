@@ -37,10 +37,23 @@ export default function SubscribeCheckoutModal({ open, interval, tier = "intelli
         embedded: true,
       },
     });
+    // Already-subscribed handling: server returns { already_subscribed: true, url? }.
+    // If a portal URL is present, redirect there instead of erroring out.
+    // If not (409 fallback), surface the message to the user.
+    if (data?.already_subscribed) {
+      if (data?.url) {
+        window.location.assign(data.url as string);
+        // Return a sentinel to satisfy Stripe's fetchClientSecret typing;
+        // navigation is already underway and the modal will unmount.
+        return "";
+      }
+      throw new Error(data?.message || data?.error || "You already have an active subscription.");
+    }
     if (error || !data?.client_secret) {
       throw new Error(error?.message || data?.error || "Failed to create checkout session");
     }
     return data.client_secret as string;
+
   }, [interval, tier]);
 
   const confirmAndComplete = useCallback(async () => {

@@ -43,6 +43,34 @@ function detectEnv(override?: string): StripeEnv {
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
+// Exported for tests. Given a supabase-like client, returns whether the
+// user has an active subscription IN THE CURRENT ENV. Reads
+// user_entitlements first (env-scoped); for env='live' falls back to
+// profiles.is_premium/is_pro when no entitlement row exists (rollout
+// safety). Env='sandbox' with no row = not subscribed (no fallback).
+export async function resolveSubscribedInEnv(
+  supabase: any,
+  userId: string,
+  env: StripeEnv,
+): Promise<boolean> {
+  const { data: entRow } = await supabase
+    .from("user_entitlements")
+    .select("is_premium, is_pro")
+    .eq("user_id", userId)
+    .eq("environment", env)
+    .maybeSingle();
+  if (entRow) return entRow.is_premium === true || entRow.is_pro === true;
+  if (env === "live") {
+    const { data: legacy } = await supabase
+      .from("profiles")
+      .select("is_premium, is_pro")
+      .eq("id", userId)
+      .maybeSingle();
+    return legacy?.is_premium === true || legacy?.is_pro === true;
+  }
+  return false;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -110,36 +138,53 @@ serve(async (req) => {
       metadata.parent_subscription_type = subType!;
     }
 
-    // Guard: if this is a SUBSCRIPTION request and the user is already a
-    // premium subscriber, route them to the Stripe Billing Portal instead
-    // of attempting to create a duplicate subscription (Stripe would reject
-    // it with "Customer already has an active subscription to this price").
-    // SKIPPED for add-on subscriptions (the user IS already subscribed by design).
+    // Guard: if this is a SUBSCRIPTION request and the user already has an
+    // active entitlement IN THE CURRENT ENV, route them to the Stripe
+    // Billing Portal. Reads are env-scoped against user_entitlements so a
+    // live subscriber isn't blocked from a sandbox test flow, and vice
+    // versa. Fallback semantics:
+    //   - env='live': if no row, fall back to profiles.is_premium/is_pro
+    //     (rollout safety for legacy rows not yet backfilled).
+    //   - env='sandbox': missing row means not subscribed. No fallback.
+    // SKIPPED for add-on subscriptions (user IS already subscribed by design).
     if (!tool_slug && !addon) {
-      const { data: existing } = await supabase
-        .from("profiles")
-        .select("is_premium, is_pro, stripe_customer_id")
-        .eq("id", user.id)
-        .maybeSingle();
-      const alreadySubscribed = existing?.is_premium === true || existing?.is_pro === true;
-      if (alreadySubscribed && existing?.stripe_customer_id) {
-        try {
-          const stripe = createStripeClient(env);
-          const origin = req.headers.get("origin") || "http://localhost:5173";
-          const portal = await stripe.billingPortal.sessions.create({
-            customer: existing.stripe_customer_id as string,
-            return_url: `${origin}/account`,
-          });
-          return new Response(
-            JSON.stringify({
-              url: portal.url,
-              already_subscribed: true,
-              message: "You already have an active subscription. Opening your billing portal.",
-            }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-          );
-        } catch (portalErr) {
-          console.error("portal fallback failed:", portalErr);
+      const alreadySubscribed = await resolveSubscribedInEnv(supabase, user.id, env);
+
+      if (alreadySubscribed) {
+        const { data: prof } = await supabase
+          .from("profiles")
+
+          .select("stripe_customer_id")
+          .eq("id", user.id)
+          .maybeSingle();
+        const customerId = prof?.stripe_customer_id as string | undefined;
+        if (customerId) {
+          try {
+            const stripe = createStripeClient(env);
+            const origin = req.headers.get("origin") || "http://localhost:5173";
+            const portal = await stripe.billingPortal.sessions.create({
+              customer: customerId,
+              return_url: `${origin}/account`,
+            });
+            return new Response(
+              JSON.stringify({
+                url: portal.url,
+                already_subscribed: true,
+                message: "You already have an active subscription. Opening your billing portal.",
+              }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+            );
+          } catch (portalErr) {
+            console.error("portal fallback failed:", portalErr);
+            return new Response(
+              JSON.stringify({
+                error: "You already have an active subscription. Please use Manage subscription to make changes.",
+                already_subscribed: true,
+              }),
+              { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+            );
+          }
+        } else {
           return new Response(
             JSON.stringify({
               error: "You already have an active subscription. Please use Manage subscription to make changes.",
@@ -151,6 +196,7 @@ serve(async (req) => {
       }
     }
 
+
     if (!addon && tool_slug) {
       const lookups = TOOL_LOOKUPS[tool_slug];
       if (!lookups) {
@@ -159,8 +205,12 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const { data: profile } = await supabase.from("profiles").select("is_premium").eq("id", user.id).single();
-      const isSubscriber = !!profile?.is_premium;
+      // Env-scoped subscriber check. Live falls back to profiles for
+      // rollout safety; sandbox missing row = not a subscriber.
+      const isSubscriber = await resolveSubscribedInEnv(supabase, user.id, env);
+
+
+
       lookupKey = isSubscriber ? lookups.subscriber : lookups.standalone;
       mode = "payment";
       metadata.tool_slug = tool_slug;
