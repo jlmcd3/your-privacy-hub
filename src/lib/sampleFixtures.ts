@@ -596,7 +596,7 @@ const F_CPPA_ADMT_US: SampleFixture = {
       },
     },
     invoke: { fn: "run-admt-checker", id_key: "assessment_id" },
-    poll: { table: "cppa_assessments", terminal: ["complete", "failed", "error"], max: 60, interval_ms: 4000 },
+    poll: { table: "cppa_assessments", terminal: ["complete", "failed", "error"], max: 120, interval_ms: 4000 },
   },
 };
 
