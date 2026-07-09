@@ -404,7 +404,7 @@ const F_CPPA_RISK_US: SampleFixture = {
         q16_sensitive_limit: "Yes — service-provider purposes only",
         q17_sensitive_basis: "Service delivery and fraud prevention",
         q18_admt_use: "Yes",
-        q18b_admt_training: "No",
+        q18b_admt_training: "Yes",
         q19_admt_description:
           "Audience-scoring models segment consumers into interest cohorts and predicted-purchase-intent bands. Outputs drive bid eligibility and frequency caps. No financial-eligibility, employment, or housing decisions.",
         q20_admt_opt_out: "Yes",
