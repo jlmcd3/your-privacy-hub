@@ -221,6 +221,14 @@ Deno.serve(async (req) => {
     }
 
     const runBackground = async () => {
+      // Stamp attempt time immediately so watchdog/operator can see the row is
+      // being worked on and distinguish from an abandoned 'processing' row.
+      try {
+        await supabase.from("dpa_documents").update({
+          last_attempt_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }).eq("id", rowId);
+      } catch (_e) { /* non-fatal */ }
       try {
     // Resolve document type (from request or jurisdictional inference)
     const documentType = detectDocType(
@@ -902,16 +910,11 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       console.warn("[generate-dpa] insufficient-info guard error:", e);
     }
 
-    // Stage 1: metering + version retention (written BEFORE status:complete).
-    await recordRunMeterAndVersion(supabase, {
-      toolType: "dpa_generator",
-      assessmentId: rowId,
-      userId: resolvedUserId ?? null,
-      intake: (body as unknown) as Record<string, unknown>,
-      reportData: report_data,
-      documentText: dpa_text,
-    });
-
+    // PRIMARY PERSISTENCE — do this FIRST, before any optional side-effects
+    // (metering, versioning, citation observation, RoPA accumulation). If the
+    // background worker is killed by wall-time or a side-effect throws, the
+    // document must still be saved.
+    console.log(`[generate-dpa] persisting rowId=${rowId} chars=${dpa_text.length}`);
     const { error: updateErr } = await supabase
       .from("dpa_documents")
       .update({
@@ -924,8 +927,23 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       })
       .eq("id", rowId);
     if (updateErr) {
-      console.error("dpa_documents persist failed:", updateErr);
+      console.error("[generate-dpa] dpa_documents persist failed:", updateErr);
       throw updateErr;
+    }
+    console.log(`[generate-dpa] persisted rowId=${rowId} status=complete`);
+
+    // Stage 2 (non-fatal): metering + version retention.
+    try {
+      await recordRunMeterAndVersion(supabase, {
+        toolType: "dpa_generator",
+        assessmentId: rowId,
+        userId: resolvedUserId ?? null,
+        intake: (body as unknown) as Record<string, unknown>,
+        reportData: report_data,
+        documentText: dpa_text,
+      });
+    } catch (meterErr) {
+      console.error("[generate-dpa] recordRunMeterAndVersion non-fatal:", meterErr);
     }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
@@ -940,8 +958,6 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     } catch (obsErr) {
       console.error("[citation-observe] non-fatal:", String(obsErr));
     }
-
-
 
     // C4 RoPA accumulator: third-party processor onboarding is a RoPA event
     const dpaClientId = (body as any).client_id as string | null | undefined;
@@ -961,11 +977,20 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       }).catch((e: Error) => console.error("[dpa] accumulate-ropa failed (non-fatal):", e.message));
     }
       } catch (bgErr) {
-        console.error("[generate-dpa] background error:", bgErr);
-        await supabase.from("dpa_documents").update({
-          status: "failed",
-          updated_at: new Date().toISOString(),
-        }).eq("id", rowId);
+        const errMsg = bgErr instanceof Error ? bgErr.message : String(bgErr);
+        console.error("[generate-dpa] background error:", errMsg, bgErr);
+        // Write the actual error to last_error so watchdog/operator can diagnose
+        // instead of leaving the row silently stuck in 'processing'.
+        try {
+          await supabase.from("dpa_documents").update({
+            status: "failed",
+            last_error: `bg: ${errMsg}`.slice(0, 500),
+            last_attempt_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }).eq("id", rowId);
+        } catch (writeErr) {
+          console.error("[generate-dpa] failed to write failure state:", writeErr);
+        }
         await failFunctionRun(supabase, fnRun, bgErr, { metadata: { rowId } });
         return;
       }
