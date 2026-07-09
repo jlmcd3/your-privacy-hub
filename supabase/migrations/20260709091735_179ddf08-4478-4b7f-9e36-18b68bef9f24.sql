@@ -1,0 +1,2 @@
+UPDATE public.static_stress_jobs SET status='pending', started_at=NULL, completed_at=NULL, error_message=NULL, retry_count=0 WHERE id IN ('610a3cf8-dd84-45fe-bb2e-44230de64c74','a97a1c53-c282-47cf-9be3-d245cc5f530b');
+UPDATE public.static_stress_batches SET failed_jobs=0 WHERE id='6031f6aa-3a89-4b2b-b7fa-9d70445c4d6c';
