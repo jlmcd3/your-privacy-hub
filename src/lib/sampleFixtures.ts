@@ -72,7 +72,7 @@ const F_LIA_UK: SampleFixture = {
         why_consent_not_used:
           "Workers are in a clear power imbalance with the employer; consent could not be freely given for safety monitoring that is uniformly applied across all underground shifts.",
         data_minimised:
-          "Only beacon-proximity zone (not GPS-precise location) and heart-rate (not ECG) are processed. No surface or break-room monitoring.",
+          "Only beacon-proximity zone (not GPS-precise location) and heart-rate (not ECG) are processed. No surface or break-room monitoring. Per-category retention and deletion triggers: (a) Location data (beacon proximity) — 90 days from the capture timestamp, deletion trigger is capture_ts + 90d enforced by an automated storage-lifecycle job that runs daily and writes a deletion attestation; (b) Health data (heart rate) — 90 days from the capture timestamp on the same daily automated job as (a); (c) Employee records (worker-to-shift-ID mapping used for identity re-link on alarm) — retained for the duration of the employment relationship, with a deletion trigger of employment termination + 6 years (UK statutory retention for occupational-health-adjacent records), after which the mapping row is purged by the HR system's leaver job. Aggregate safety metrics (no individual identifiers) — 12 months from computation, deletion trigger is computation_ts + 12m on the same automated lifecycle job.",
         pseudonymisation_options:
           "Dashboards display shift-ID and zone, not name. Identity is re-linked only when an alarm is triggered and only for the named on-call supervisor and medic.",
       },
@@ -201,7 +201,7 @@ const F_GOV_EU: SampleFixture = {
   variant: "eu",
   title: "EU e-commerce fulfilment programme review",
   scenario_summary:
-    "Misfit Toys Logistics Ltd is an Irish e-commerce fulfilment company operating across 11 EU jurisdictions with ~180 staff. The privacy programme has matured around DPA-DK and DPC-IE engagement but has no appointed DPO yet — a finding the assessment surfaces.",
+    "Misfit Toys Logistics Ltd is an Irish e-commerce fulfilment company operating across 11 EU jurisdictions with ~180 staff. The privacy programme is mature: appointed DPO, formal DPIA programme with register, tested incident-response plan, annual mandatory training, SCCs and TIAs in place for transfers, and DPAs with all vendors.",
   source_table: "governance_assessments",
   result_url_pattern: "/governance-assessment/result/{id}",
   fixture: {
@@ -404,7 +404,7 @@ const F_CPPA_RISK_US: SampleFixture = {
         q16_sensitive_limit: "Yes — service-provider purposes only",
         q17_sensitive_basis: "Service delivery and fraud prevention",
         q18_admt_use: "Yes",
-        q18b_admt_training: "No",
+        q18b_admt_training: "Yes",
         q19_admt_description:
           "Audience-scoring models segment consumers into interest cohorts and predicted-purchase-intent bands. Outputs drive bid eligibility and frequency caps. No financial-eligibility, employment, or housing decisions.",
         q20_admt_opt_out: "Yes",
@@ -427,7 +427,7 @@ const F_CPPA_RISK_US: SampleFixture = {
         i7_internal_contributors: "CISO Blitz Zenn; CPO Rudy Rangifer (advisory); VP Engineering; General Counsel; Product Owner",
         i7_external_consultees: "Outside privacy counsel; independent bias auditor (annual)",
         i8_certifying_exec_name: "Rudy Rangifer",
-        i8_certifying_exec_title: "Chief Privacy Officer (advisory)",
+        i8_certifying_exec_title: "Chief Privacy Officer",
         i8_contact_email: "privacy@bustedsled.example",
         i8_contact_phone: "+1 312 555 0148",
         i9_has_existing_dpia: "No",
@@ -490,7 +490,7 @@ const F_CPPA_CYBER_US: SampleFixture = {
   variant: "us",
   title: "Cybersecurity readiness for ad-tech processing estate",
   scenario_summary:
-    "Cybersecurity readiness assessment for Tomorrow4Cariboo, Inc.'s ad-tech processing estate. CISO Blitz Zenn provided maturity ratings across the 18 CPPA-listed controls; the assessment surfaces inventory gaps, secure-development gaps, and retention/disposal gaps as priority items.",
+    "Cybersecurity readiness assessment for Tomorrow4Cariboo, Inc.'s ad-tech processing estate. CISO Blitz Zenn provided maturity ratings across the 18 CPPA-listed controls; all eighteen assess as implemented with documentation noted, producing a clean readiness posture.",
   source_table: "cppa_assessments",
   result_url_pattern: "/cppa-cybersecurity/result/{id}",
   fixture: {
@@ -514,20 +514,20 @@ const F_CPPA_CYBER_US: SampleFixture = {
           { key: "c2_encryption", label: "Encryption of personal information", maturity: "Implemented with continuous monitoring", notes: "AES-256 at rest, TLS 1.3 in transit; AWS KMS." },
           { key: "c3_account_access", label: "Account management and access controls", maturity: "Implemented across organisation", notes: "Automated joiner/leaver via Okta + Terraform; least-privilege reviews quarterly." },
           { key: "c4_inventory", label: "Inventory and management of personal information and systems", maturity: "Implemented across organisation", notes: "Enterprise data map maintained in OneTrust; sensitive-PI inventory reviewed quarterly by CPO and CISO; all production data stores tagged in the CMDB." },
-          { key: "c5_secure_config", label: "Secure configuration of hardware and software", maturity: "Documented, partially implemented", notes: "CIS benchmarks on AWS; endpoint hardening incomplete." },
+          { key: "c5_secure_config", label: "Secure configuration of hardware and software", maturity: "Implemented across organisation", notes: "CIS benchmarks enforced on AWS via config-as-code; hardened AMIs and container base images; endpoint hardening baselines applied via MDM (Jamf/Intune) with quarterly compliance attestation." },
           { key: "c6_vuln_mgmt", label: "Vulnerability scanning and penetration testing", maturity: "Implemented across organisation", notes: "Snyk + AWS Inspector; annual third-party pen test; critical patches within 7 days." },
           { key: "c7_audit_logs", label: "Audit-log management", maturity: "Implemented across organisation", notes: "Centralised Datadog; 13-month retention." },
           { key: "c8_network_mon", label: "Network monitoring and defenses", maturity: "Implemented with continuous monitoring", notes: "MSSP-run 24/7 SOC; IDS active." },
           { key: "c9_anti_malware", label: "Antivirus and anti-malware protections", maturity: "Implemented across organisation", notes: "CrowdStrike on all endpoints." },
-          { key: "c10_segmentation", label: "Segmentation of an information system", maturity: "Documented, partially implemented", notes: "Prod / staging / corporate segmented; partner-data tenants not yet micro-segmented." },
-          { key: "c11_port_protocol", label: "Port and protocol management and protection", maturity: "Documented, partially implemented", notes: "Security-group inventory reviewed quarterly; egress-filtering policy in progress." },
-          { key: "c12_awareness", label: "Cybersecurity awareness", maturity: "Documented, partially implemented", notes: "Security team subscribes to ISAC feeds; enterprise threat-intel programme not yet formalised." },
+          { key: "c10_segmentation", label: "Segmentation of an information system", maturity: "Implemented across organisation", notes: "Prod / staging / corporate networks segmented at VPC and IAM boundary; per-tenant micro-segmentation for partner-data tenants via AWS PrivateLink and per-tenant IAM roles; segmentation reviewed quarterly by the security architecture team." },
+          { key: "c11_port_protocol", label: "Port and protocol management and protection", maturity: "Implemented across organisation", notes: "Default-deny security groups managed as code; quarterly security-group inventory review; egress filtering enforced via AWS Network Firewall with allow-listed destinations for production workloads." },
+          { key: "c12_awareness", label: "Cybersecurity awareness", maturity: "Implemented across organisation", notes: "Formal enterprise threat-intel programme; membership in Retail & Hospitality ISAC and MS-ISAC; monthly threat-brief circulated to engineering and product; CISO briefs the executive team quarterly." },
           { key: "c13_training", label: "Cybersecurity education and training", maturity: "Implemented across organisation", notes: "Annual training + quarterly phishing simulations for all staff." },
           { key: "c14_secure_dev", label: "Secure development and coding practices", maturity: "Implemented across organisation", notes: "Formal secure SDLC; mandatory code review; SAST (Semgrep) and SCA (Snyk) enforced in CI; annual secure-coding training for engineers." },
           { key: "c15_third_party", label: "Oversight of service providers, contractors, and third parties", maturity: "Implemented across organisation", notes: "Vendor risk programme with tiered onboarding assessments; DPAs for all processors; SOC 2 reports reviewed annually; continuous monitoring via SecurityScorecard for tier-1 vendors." },
           { key: "c16_retention", label: "Retention schedules and proper disposal of personal information", maturity: "Implemented across organisation", notes: "Enterprise retention schedule published; 13-month deletion enforced on warehouse; automated lifecycle policies on S3 and Snowflake; quarterly disposal attestations." },
-          { key: "c17_incident", label: "Security-incident response management", maturity: "Documented, partially implemented", notes: "IR plan documented; one tabletop in the past 18 months." },
-          { key: "c18_continuity", label: "Business-continuity and disaster-recovery planning", maturity: "Documented, partially implemented", notes: "BCP documented; DR drill annually." },
+          { key: "c17_incident", label: "Security-incident response management", maturity: "Implemented across organisation", notes: "Formal IR plan owned by CISO; on-call rotation with defined severity playbooks; two full tabletops in the last 12 months (ransomware and credential-stuffing scenarios) plus one live purple-team exercise; retained IR counsel and forensics retainer (Mandiant) on standby." },
+          { key: "c18_continuity", label: "Business-continuity and disaster-recovery planning", maturity: "Implemented across organisation", notes: "BCP and DR runbooks maintained per system tier; RTO/RPO targets defined and tested; full multi-region failover drill completed in the last 12 months with results reviewed by the executive team." },
         ],
       },
     },
