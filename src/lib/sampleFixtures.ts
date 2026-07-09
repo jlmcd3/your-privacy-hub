@@ -427,7 +427,7 @@ const F_CPPA_RISK_US: SampleFixture = {
         i7_internal_contributors: "CISO Blitz Zenn; CPO Rudy Rangifer (advisory); VP Engineering; General Counsel; Product Owner",
         i7_external_consultees: "Outside privacy counsel; independent bias auditor (annual)",
         i8_certifying_exec_name: "Rudy Rangifer",
-        i8_certifying_exec_title: "Chief Privacy Officer (advisory)",
+        i8_certifying_exec_title: "Chief Privacy Officer",
         i8_contact_email: "privacy@bustedsled.example",
         i8_contact_phone: "+1 312 555 0148",
         i9_has_existing_dpia: "No",
