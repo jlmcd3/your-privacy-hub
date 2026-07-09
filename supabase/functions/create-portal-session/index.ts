@@ -63,7 +63,11 @@ serve(async (req) => {
     }
 
     let customerId = profile?.stripe_customer_id as string | undefined;
-    const env = detectEnv();
+    const body = (await req.json().catch(() => ({}))) as {
+      return_url?: string;
+      environment?: string;
+    };
+    const env = detectEnv(body.environment);
     const stripe = createStripeClient(env);
 
     // Fallback: find customer by email (handles users whose profile row
@@ -90,7 +94,7 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
-    const { return_url } = (await req.json().catch(() => ({}))) as { return_url?: string };
+    const { return_url } = body;
 
     const portal = await stripe.billingPortal.sessions.create({
       customer: customerId,
