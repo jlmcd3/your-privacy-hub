@@ -371,7 +371,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 5. CPPA enforcement: the California Privacy Protection Agency (CPPA) enforces CCPA/CPRA; private right of action only for data breaches (§ 1798.150).
 
 Consent and notice:
-No opt-in consent required for biometric collection under CCPA/CPRA (unlike BIPA). Provide clear at-collection notice and update Privacy Policy to reflect SPI categories and processing purposes. Honor Limit SPI Use requests.
+No opt-in consent is required for biometric collection under CCPA/CPRA (unlike BIPA) — but at-collection notice is required, and consumers must be provided the § 1798.121 right to limit use and disclosure of SPI and any applicable sale/sharing opt-outs.
 
 Retention and destruction:
 Retain biometric data only as long as necessary for the disclosed purpose (§ 1798.100(a)(3)). Honor deletion requests under § 1798.105 subject to exceptions.
