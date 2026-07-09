@@ -143,7 +143,7 @@ export function CybersecurityReportBody({ row, hideHeader = false }: { row: any;
                       </p>
                       <ul className="space-y-3">
                         {d.fsor_commentary.slice(0, 3).map((f: any) => {
-                          const positionText = f.agency_position_summary || f.comment_summary || "";
+                          const positionText = f.agency_position_summary || f.agency_response || "";
                           const sourceLabel = [f.fsor_package, f.page_ref].filter(Boolean).join(" · ");
                           return (
                             <li key={f.id} className="space-y-1">

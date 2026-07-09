@@ -554,7 +554,7 @@ export default function CPPARiskAssessmentResult() {
                   </p>
                   <div className="space-y-3">
                     {report.fsor_commentary.map((f: any, i: number) => {
-                      const positionText = f.agency_position_summary || f.comment_summary || "";
+                      const positionText = f.agency_position_summary || f.agency_response || "";
                       const sourceLabel = [f.fsor_package, f.page_ref].filter(Boolean).join(" · ");
                       return (
                         <div key={f.id ?? i} className="border rounded-lg p-4 space-y-2">
