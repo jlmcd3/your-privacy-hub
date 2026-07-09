@@ -59,25 +59,19 @@ Deno.serve(async (req) => {
   const limit = Math.min(Math.max(Number(body.limit ?? 1000), 1), 5000);
   const onlyCategory: string | undefined = body.onlyCategory;
 
-  // 1. Load pool grouped by category — only approved images (plus brand tile)
+  // 1. Load pool grouped by category — only approved curated images.
   const { data: poolRows, error: poolErr } = await supabase
     .from("article_image_pool")
     .select("id, public_url, category, source, approval_status")
-    .or("approval_status.eq.approved,source.eq.eup-tile");
+    .eq("approval_status", "approved")
+    .neq("source", "eup-tile");
   if (poolErr) {
     return new Response(JSON.stringify({ error: poolErr.message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
-  const tile = (poolRows || []).find((r: any) => r.source === "eup-tile");
-  const pool = (poolRows || []).filter((r: any) => r.source !== "eup-tile");
-
-  if (!tile) {
-    return new Response(JSON.stringify({ error: "EUP tile not seeded yet — run seed-eup-tile first" }), {
-      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  const pool = poolRows || [];
   if (pool.length === 0) {
     return new Response(JSON.stringify({ error: "image pool empty — run curate-unsplash-images first" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -91,11 +85,12 @@ Deno.serve(async (req) => {
   }
   const allPool = pool;
 
-  // 2. Find updates needing an image — null OR picsum
+  // 2. Find updates needing an image — null OR picsum OR previously assigned
+  // to the retired EUP tile source.
   let q = supabase
     .from("updates")
-    .select("id, category")
-    .or("image_url.is.null,image_url.ilike.%picsum.photos%")
+    .select("id, category, image_source")
+    .or("image_url.is.null,image_url.ilike.%picsum.photos%,image_source.eq.eup-tile")
     .limit(limit);
   if (onlyCategory) q = q.eq("category", onlyCategory);
   const { data: rows, error: rowsErr } = await q;
@@ -105,41 +100,26 @@ Deno.serve(async (req) => {
     });
   }
 
-  let assignedTile = 0;
   let assignedPool = 0;
   const errors: string[] = [];
 
   for (const row of rows || []) {
     const id = (row as any).id as string;
     const cat = ((row as any).category as string) || "global";
-    // 1-in-6 → tile
-    const useTile = hashIndex(`tile:${id}`, 6) === 0;
-    let nextUrl: string;
-    let nextSource: string;
-
-    if (useTile) {
-      nextUrl = tile.public_url;
-      nextSource = "eup-tile";
-    } else {
-      const bucket = byCategory[cat]?.length ? byCategory[cat] : allPool;
-      const pick = bucket[hashIndex(`pool:${id}`, bucket.length)];
-      nextUrl = pick.public_url;
-      nextSource = "pool";
-    }
+    const bucket = byCategory[cat]?.length ? byCategory[cat] : allPool;
+    const pick = bucket[hashIndex(`pool:${id}`, bucket.length)];
 
     const { error: upErr } = await supabase
       .from("updates")
-      .update({ image_url: nextUrl, image_source: nextSource })
+      .update({ image_url: pick.public_url, image_source: "pool" })
       .eq("id", id);
     if (upErr) errors.push(`${id}: ${upErr.message}`);
-    else if (useTile) assignedTile++;
     else assignedPool++;
   }
 
   return new Response(
     JSON.stringify({
       considered: rows?.length || 0,
-      assigned_tile: assignedTile,
       assigned_pool: assignedPool,
       errors: errors.slice(0, 20),
       error_count: errors.length,
