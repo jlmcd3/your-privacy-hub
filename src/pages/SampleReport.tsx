@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SampleToolReport } from "@/components/SampleToolReport";
 import { TOOL_ROUTE } from "@/lib/sampleToolRoutes";
+import { fmtDate } from "@/lib/dates";
 
 type SampleRow = {
   id: string;
