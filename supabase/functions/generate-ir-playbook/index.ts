@@ -103,6 +103,51 @@ which specific statutory element is satisfied, AND state why the harm trigger is
 reasonably anticipated. Do not conclude Virginia notification is triggered based on name
 and email exposure alone.
 
+NEW YORK DATA ELEMENT GATE: N.Y. Gen. Bus. Law §899-aa defines "private information"
+as personal information (name or number that identifies a natural person) combined with
+one of the enumerated data elements. Per the S2659B amendment (effective 21 Dec 2024),
+the enumerated elements EXPLICITLY INCLUDE, in addition to SSN, driver's licence/state
+ID, financial account number with access code, and biometric data, both (i) MEDICAL
+INFORMATION (any information regarding an individual's medical history, mental or
+physical condition, or medical treatment or diagnosis by a health care professional) and
+(ii) HEALTH INSURANCE INFORMATION (an individual's health insurance policy number,
+subscriber identification number, or any unique identifier used by a health insurer to
+identify the individual, or any information in an individual's application and claims
+history). "Private information" also covers username or email address combined with a
+password or security question and answer that permits access to an online account, and
+account/credit/debit card numbers where the number alone can be used to access the
+account. When assessing whether NY notification is triggered, apply this gate explicitly:
+identify which specific enumerated element is satisfied. If the incident involves medical
+information or health insurance information as defined above, cite the S2659B expansion
+of §899-aa and do not analyse NY breach-trigger scope as if those categories were
+excluded — the pre-amendment "private information" definition did not enumerate them
+explicitly and playbooks must not rely on the pre-amendment scope.
+
+GDPR NON-APPLICABILITY FRAMING: Where a section concludes that GDPR (or UK GDPR) does
+not govern the incident, NEVER state this as a general proposition about GDPR
+applicability (e.g. "GDPR does not apply to this incident" as a bare statement, or "the
+GDPR Article 33 72-hour supervisory-authority clock does not apply to this incident"
+without a reason). State the reason specific to this incident: the absence of EU (or UK)
+data subjects among the affected individuals, the absence of EU/UK establishment or Art.
+3(2) targeting on the facts recorded in the intake, or whichever specific ground is
+supported by the intake. Correct form: "GDPR (and UK GDPR) do not govern this incident
+because the intake records no EU or UK data subjects among the affected individuals and
+no EU/UK establishment or Art. 3(2) targeting; accordingly, the Article 33 72-hour
+supervisory-authority clock does not apply." If the intake is silent or ambiguous on
+EU/UK data subject presence, say so and flag it for confirmation rather than issuing a
+categorical non-applicability statement.
+
+CALIFORNIA AG SAMPLE-COPY SUBMISSION METHOD (Section 5 template): The Section 5
+Sample-Copy Submission Letter template for the California Attorney General must include
+a placeholder note directing the user to confirm the current electronic submission
+method on the California Attorney General's official website (https://oag.ca.gov/ecrime/databreach/reporting)
+before filing — the template itself must not embed a specific portal path or form URL
+beyond that landing page, because the AG's electronic submission mechanism may change
+without amendment to §1798.82(f). The note reads: "[TO BE CONFIRMED before filing:
+consult the California Attorney General's current electronic submission method at
+https://oag.ca.gov/ecrime/databreach/reporting — the specific portal or form path is
+maintained by the AG's office and may change without a statutory amendment.]"
+
 AFFECTED-RESIDENT COUNT RULE: The "affected count" in the intake represents the total
 number of individuals affected globally. It is NOT a per-state or per-country resident
 count. State-specific notification thresholds are keyed to residents of that specific state:
