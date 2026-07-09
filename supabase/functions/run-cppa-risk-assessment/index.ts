@@ -433,6 +433,7 @@ export const CPPA_RISK_TOOL_MODULE: ToolModule = {
     "BENEFITS_OUTWEIGH_RISKS_CONCLUSION IS A RECORD-COMPLETENESS LABEL, NOT A MERITS DETERMINATION: where the record is incomplete, the value of benefits_outweigh_risks_conclusion is exactly 'Cannot be determined — record incomplete. See benefits_outweigh_risks_rationale for detail' (verbatim, matching the schema enum) — NEVER 'Insufficient basis' as a shorthand label, and NEVER 'No' or 'Uncertain' when the underlying issue is record completeness rather than a substantive weighing. The rationale field carries the specifics of what is missing and why the balance cannot yet be struck. Where the record IS sufficient and a substantive determination is possible, use 'Yes' / 'No' / 'Uncertain' as appropriate and put the merits reasoning in the rationale. Do not use the record-completeness label to avoid a substantive determination that the record actually supports.",
     "ADMT-INCONSISTENCY DEADLINE SURFACES BOTH DATES: the priority_action addressing the negated-q18-vs-detailed-ADMT-fields inconsistency (or any action that combines the § 7155(b) assessment-record deadline with the § 7220 ADMT pre-use-notice deadline in its deadline_basis) MUST surface both dates in the deadline field itself so the field cannot be read alone as governed by a single clock. Each date carries its computed temporal framing per the prompt-core TEMPORAL FRAMING RULE, based on the assessment date. Canonical form for the deadline field (framing conditional on the assessment date; substitute the operative phrase for each date at generation time): \"2027-12-31 (assessment record — [operative | prospective as of the assessment date]); 2027-01-01 if ADMT confirmed (pre-use notice — [operative | prospective as of the assessment date]; see action [N])\" — where [N] cross-references the separate ADMT pre-use notice priority action if one exists. deadline_basis then cites both § 7155(b) and § 7220 with the conditional trigger for each. Where the two deadlines govern genuinely separate deliverables, prefer splitting into two priority actions (per the ONE DEADLINE PER ACTION rule) — the both-dates deadline form is reserved for the single-action inconsistency-resolution case where the applicable deadline depends on how the controller resolves the ADMT determination. Where a separate ADMT pre-use-notice priority action EXISTS in the same output, the inconsistency action's deadline field carries ONLY the § 7155(b) assessment-record date, and the § 7220 date lives solely in that separate action.",
     "EXCEPTION FLAGS ARE EXCEPTION-SPECIFIC: a placeholder-type deficiency shared by every exception (e.g. 'Controlling § 1798.145 subsection not documented') is stated ONCE — as a single information_needed item or a single priority_action covering all affected exceptions — and never repeated in each exception's flags[] array. flags[] carries only the deficiencies specific to that exception.",
+    "STATUTORY_BASIS MATCHES THE PROSE: every provision cited in an action's text (e.g. 11 CCR § 7001(ddd) for the significant-decision categories) also appears in that action's statutory_basis field. A provision cited in prose but missing from statutory_basis is a defect.",
   ].join("\n"),
 
   schema: `OUTPUT FORMAT — Return a single JSON object with this exact structure. No markdown fences, no preamble:
@@ -944,6 +945,68 @@ async function runPipeline(assessment_id: string) {
       }
     } catch (e) {
       console.warn("[cppa-risk] 2027-date temporal framing backstop error:", e);
+    }
+
+    // DETERMINISTIC ADMT PRE-USE-NOTICE DEADLINE COLLAPSE + SELF-REFERENCE FIX:
+    // (a) if a § 7220 pre-use-notice action exists, strip the "if ADMT confirmed"
+    //     second-date clause from other actions' deadline fields and annotate their
+    //     deadline_basis to point at the separate action.
+    // (b) rewrite priority_actions[N] self-references / out-of-bounds references
+    //     to the § 7150(b)(3) or ADMT-determination action's index.
+    try {
+      if (parsed && Array.isArray(parsed.priority_actions)) {
+        const actions = parsed.priority_actions;
+        const preUseIdx = actions.findIndex((a: any) => {
+          const t = String(a?.action ?? a?.text ?? "");
+          const b = String(a?.deadline_basis ?? "");
+          return /§\s*7220/.test(t) || /§\s*7220/.test(b);
+        });
+        if (preUseIdx >= 0) {
+          for (let idx = 0; idx < actions.length; idx++) {
+            if (idx === preUseIdx) continue;
+            const action = actions[idx];
+            const deadline = String(action?.deadline ?? "");
+            const hasDate = /\d{4}-\d{2}-\d{2}|January|February|March|April|May|June|July|August|September|October|November|December/i.test(deadline);
+            const hasSecondClause = /§\s*7220|if\s+ADMT\s+confirmed/i.test(deadline);
+            if (hasDate && hasSecondClause) {
+              const firstDateMatch = deadline.match(/^[^;]*/);
+              const firstDate = firstDateMatch ? firstDateMatch[0].trim() : deadline;
+              action.deadline = firstDate;
+              const basis = String(action?.deadline_basis ?? "");
+              const note = " (see the separate ADMT pre-use-notice action)";
+              if (!basis.includes("separate ADMT pre-use-notice action")) {
+                action.deadline_basis = basis + note;
+              }
+              console.warn(`[cppa-risk] ADMT pre-use-notice deadline collapse on priority_actions[${idx}] (pre-use action at ${preUseIdx})`);
+            }
+          }
+        }
+        const determinationIdx = actions.findIndex((a: any) => {
+          const t = String(a?.action ?? a?.text ?? "");
+          const b = String(a?.statutory_basis ?? "");
+          return /§\s*7150\(b\)\(3\)/.test(t) || /§\s*7150\(b\)\(3\)/.test(b) || /ADMT\s+determination/i.test(t);
+        });
+        for (let idx = 0; idx < actions.length; idx++) {
+          const action = actions[idx];
+          const text = String(action?.action ?? action?.text ?? "");
+          const rewritten = text.replace(/priority_actions\[(\d+)\]/g, (m, nStr) => {
+            const n = Number(nStr);
+            if (n === idx || n < 0 || n >= actions.length) {
+              if (determinationIdx >= 0 && determinationIdx !== idx) {
+                console.warn(`[cppa-risk] priority_actions self/out-of-bounds reference rewrite on priority_actions[${idx}] -> [${determinationIdx}]`);
+                return `priority_actions[${determinationIdx}]`;
+              }
+            }
+            return m;
+          });
+          if (rewritten !== text) {
+            if ("action" in action) action.action = rewritten;
+            else action.text = rewritten;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[cppa-risk] ADMT deadline-collapse / self-reference backstop error:", e);
     }
 
 
