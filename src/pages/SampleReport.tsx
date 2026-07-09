@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SampleToolReport } from "@/components/SampleToolReport";
 import { TOOL_ROUTE } from "@/lib/sampleToolRoutes";
+import { fmtDate } from "@/lib/dates";
 
 type SampleRow = {
   id: string;
@@ -189,6 +190,9 @@ export default function SampleReport() {
                   </h2>
                   <p className="text-xs uppercase tracking-wide text-muted-foreground font-mono">
                     Variant {r.variant}
+                    {fmtDate(r.published_at) && (
+                      <> · Created {fmtDate(r.published_at)}</>
+                    )}
                   </p>
                   {r.scenario_summary && (
                     <p className="mt-3 text-[15px] text-muted-foreground leading-7">
