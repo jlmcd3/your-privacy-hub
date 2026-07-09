@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { type StripeEnv, createStripeClient, resolvePriceId } from "../_shared/stripe.ts";
+import { type StripeEnv, createStripeClient, resolvePriceId, resolveOrCreateCustomer } from "../_shared/stripe.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -476,6 +476,17 @@ Deno.serve(async (req) => {
     const env = detectEnv(environment);
     const stripe = createStripeClient(env);
 
+    // CUSTOMER-1: canonical customer resolution keyed by user_id. When
+    // no authenticated user_id is supplied (anonymous flow), fall back
+    // to no customer attachment.
+    let canonicalCustomerId: string | undefined;
+    if (user_id) {
+      const { data: userLookup } = await supabase.auth.admin.getUserById(user_id);
+      const email = userLookup?.user?.email ?? undefined;
+      canonicalCustomerId = await resolveOrCreateCustomer(stripe, { userId: user_id, email });
+    }
+
+
     const standaloneCents = fallbackCents;
 
     // NOTE: free convenience-run consumption is enforced client-side via
@@ -549,6 +560,7 @@ Deno.serve(async (req) => {
         payment_method_types: ["card"],
         line_items: [lineItemBase as any],
         mode: "payment",
+        ...(canonicalCustomerId && { customer: canonicalCustomerId }),
         metadata: {
           tool_type,
           assessment_id: sessionId,
@@ -707,6 +719,7 @@ Deno.serve(async (req) => {
       payment_method_types: ["card"],
       line_items: [lineItemBase as any],
       mode: "payment",
+      ...(canonicalCustomerId && { customer: canonicalCustomerId }),
       metadata: {
         tool_type,
         assessment_id: record.id,

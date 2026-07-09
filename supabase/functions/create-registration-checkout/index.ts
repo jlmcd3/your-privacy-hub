@@ -21,7 +21,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+import { type StripeEnv, createStripeClient, resolveOrCreateCustomer } from "../_shared/stripe.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -181,6 +181,13 @@ serve(async (req) => {
       ? rawOrigin.replace(/\/$/, "")
       : "https://enduserprivacy.com";
 
+    // CUSTOMER-1: canonical customer resolution by userId (metadata),
+    // then email fallback with userId backfill.
+    const customerId = await resolveOrCreateCustomer(stripe, {
+      userId: user.id,
+      email: user.email ?? undefined,
+    });
+
     const session = await stripe.checkout.sessions.create({
       mode: cfg.recurring ? "subscription" : "payment",
       line_items: [
@@ -194,7 +201,7 @@ serve(async (req) => {
           quantity,
         },
       ],
-      customer_email: user.email!,
+      customer: customerId,
       metadata: {
         // NOTE: webhook keys off `type === "registration_order"` — keep both
         // for forward-compat with existing dashboards / queries.
