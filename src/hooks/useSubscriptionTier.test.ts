@@ -8,7 +8,7 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: "user-john-uuid", email: "x@y" }, loading: false }),
 }));
 
-const envMock = vi.fn<[], "sandbox" | "live">();
+const envMock = vi.fn(() => "sandbox" as "sandbox" | "live");
 vi.mock("@/lib/env", () => ({
   getStripeEnvironment: () => envMock(),
 }));
