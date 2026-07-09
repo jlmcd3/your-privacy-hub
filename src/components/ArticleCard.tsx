@@ -778,12 +778,9 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 
       <div className="px-4 py-3">
         <div className="flex gap-3 mb-3">
-          <img
-            src={item.image_url || EUP_TILE}
-            alt=""
-            loading="lazy"
+          <ArticleThumb
+            item={item}
             className="w-16 h-16 rounded-md object-cover flex-shrink-0 bg-slate-100"
-            onError={e => { (e.target as HTMLImageElement).src = EUP_TILE; }}
           />
           <div className="flex-1 min-w-0">
             <p className="text-[9px] font-semibold text-gray-900 leading-snug mb-1">{normalizeTitle(item.title)}</p>
