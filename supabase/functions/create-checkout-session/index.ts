@@ -148,26 +148,11 @@ serve(async (req) => {
     //   - env='sandbox': missing row means not subscribed. No fallback.
     // SKIPPED for add-on subscriptions (user IS already subscribed by design).
     if (!tool_slug && !addon) {
-      const { data: entRow } = await supabase
-        .from("user_entitlements")
-        .select("is_premium, is_pro")
-        .eq("user_id", user.id)
-        .eq("environment", env)
-        .maybeSingle();
-
-      let alreadySubscribed = entRow?.is_premium === true || entRow?.is_pro === true;
-
-      if (!entRow && env === "live") {
-        const { data: legacy } = await supabase
-          .from("profiles")
-          .select("is_premium, is_pro")
-          .eq("id", user.id)
-          .maybeSingle();
-        alreadySubscribed = legacy?.is_premium === true || legacy?.is_pro === true;
-      }
+      const alreadySubscribed = await resolveSubscribedInEnv(supabase, user.id, env);
 
       if (alreadySubscribed) {
         const { data: prof } = await supabase
+
           .from("profiles")
           .select("stripe_customer_id")
           .eq("id", user.id)
