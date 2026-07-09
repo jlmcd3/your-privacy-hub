@@ -889,7 +889,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       .eq("status", "current");
     const { data: fsorRows } = await supabase
       .from("cppa_fsor_commentary")
-      .select("id, regulation_citation, page_ref, fsor_package, comment_summary, agency_response, source_url")
+      .select("id, regulation_citation, page_ref, fsor_package, comment_summary, agency_response, agency_position_summary, source_url")
       .in("regulation_citation", CYBER_CITATIONS);
 
     // Per-control "What the agency said" attachment.
@@ -981,6 +981,7 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
       return {
         ...r,
         agency_response: truncateAtSentence(r?.agency_response ?? null),
+        agency_position_summary: r?.agency_position_summary ?? null,
         agency_response_verbatim: true,
         comment_summary: truncateAtSentence(r?.comment_summary ?? null),
         comment_summary_verbatim: false,
