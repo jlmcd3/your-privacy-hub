@@ -410,7 +410,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 5. Apply strong security, retention, and vendor controls as contractual and operational best practice regardless of VCDPA applicability.
 
 Consent and notice:
-No VCDPA opt-in consent obligation applies to employee data. Use clear notice in employee onboarding materials as best practice. Where separate consumer populations are in scope, opt-in consent is required under § 59.1-577(B).
+No VCDPA opt-in consent obligation applies to employee data. Use clear notice in employee onboarding materials as best practice. Where separate consumer populations are in scope, opt-in consent is required under § 59.1-578(A)(5).
 
 Retention and destruction:
 Establish a written retention and destruction policy as best practice — no Virginia statute prescribes a specific period for employee biometric data, but proportionality and data minimisation principles apply.
