@@ -129,7 +129,16 @@ export async function handleSubscriptionEvent(
   const isAnnualTier =
     subscriptionType === "annual" || subscriptionType === "pro_annual";
 
-  const userId = await profileIdForCustomer(sb, sub.customer);
+  // WEBHOOK-1: resolve userId metadata-first (populated on the Subscription
+  // via subscription_data.metadata in create-checkout-session) with a
+  // customer→profile lookup as a fallback for legacy subscriptions that
+  // predate that field. Without the metadata path, a `subscription.created`
+  // event that races ahead of `checkout.session.completed` writes a partial
+  // row because the profiles.stripe_customer_id mapping doesn't exist yet.
+  const userId =
+    (sub.metadata?.user_id as string | undefined) ??
+    (sub.metadata?.userId as string | undefined) ??
+    (await profileIdForCustomer(sb, sub.customer));
 
   const entPatch: Record<string, unknown> = {
     stripe_subscription_id: sub.id,
