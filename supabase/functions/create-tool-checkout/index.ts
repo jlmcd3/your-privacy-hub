@@ -476,6 +476,17 @@ Deno.serve(async (req) => {
     const env = detectEnv(environment);
     const stripe = createStripeClient(env);
 
+    // CUSTOMER-1: canonical customer resolution keyed by user_id. When
+    // no authenticated user_id is supplied (anonymous flow), fall back
+    // to no customer attachment.
+    let canonicalCustomerId: string | undefined;
+    if (user_id) {
+      const { data: userLookup } = await supabase.auth.admin.getUserById(user_id);
+      const email = userLookup?.user?.email ?? undefined;
+      canonicalCustomerId = await resolveOrCreateCustomer(stripe, { userId: user_id, email });
+    }
+
+
     const standaloneCents = fallbackCents;
 
     // NOTE: free convenience-run consumption is enforced client-side via
