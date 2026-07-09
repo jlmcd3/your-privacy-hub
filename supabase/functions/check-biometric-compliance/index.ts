@@ -507,7 +507,7 @@ Applies to this organisation: Conditional — ${describeProcessing(body.orgType,
 Key state biometric statutes (by litigation and enforcement risk):
 1. Illinois BIPA (740 ILCS 14): private right of action per person; highest US biometric litigation risk. Select "Illinois, USA (BIPA)" for a full BIPA analysis.
 2. Texas CUBI (Tex. Bus. & Com. Code § 503.001): AG-only enforcement; $25,000/violation; no private right of action. Select "Texas, USA (CUBI)" for a full CUBI analysis.
-3. Washington MHMD (RCW 19.373): applies where biometrics are used to infer health status; private right of action under RCW 19.373.600, with remedies available under the WA Consumer Protection Act (RCW 19.86).
+3. Washington My Health My Data Act (chapter 19.373 RCW): applies where biometric data is collected, processed, or shared in a way that identifies or can identify a consumer's health status; violations are enforceable under the Washington Consumer Protection Act (chapter 19.86 RCW) per RCW 19.373.090, which supplies a private right of action.
 4. California CCPA/CPRA (Cal. Civ. Code § 1798.100 et seq.): biometric information is Sensitive Personal Information; Limit-Use right applies. Select "California" for full CCPA analysis.
 5. Colorado, Connecticut, Oregon, and Montana have comprehensive privacy laws treating biometric information as sensitive personal data subject to heightened notice and consent or opt-out requirements; consult each state's statute for the specific lawful basis rules.
 
