@@ -211,6 +211,26 @@ export async function handleSubscriptionEvent(
   }
 }
 
+/**
+ * WEBHOOK-1: checkout.session.completed handler dispatches through this
+ * helper so the race-heal path is testable without a real Stripe client.
+ * The caller supplies `retrieveSubscription`, which the tests stub.
+ */
+export async function dispatchCheckoutSubscription(
+  sb: SupabaseClient,
+  session: any,
+  env: StripeEnv,
+  retrieveSubscription: (id: string) => Promise<any>,
+) {
+  if (!session?.subscription) return;
+  const subId =
+    typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription.id;
+  const fullSub = await retrieveSubscription(subId);
+  await handleSubscriptionEvent(sb, fullSub, env);
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
