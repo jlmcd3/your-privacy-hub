@@ -1,6 +1,8 @@
 // Backfill / assign fallback images on `updates` rows that have no image_url
-// or that currently use picsum.photos. Uses a deterministic 1-in-6 mix of the
-// EUP brand tile, with the rest pulled from article_image_pool by category.
+// or that currently use picsum.photos. Pulls from article_image_pool by
+// category. Articles that have no curated photo are left with a null
+// image_url — the render-time branded SVG tile (ArticleFallbackImage) is
+// the visual fallback and no longer needs a pre-assigned raster tile.
 //
 // Auth: Bearer JWT of an admin user (verified via has_role).
 // Body (optional): { limit?: number, onlyCategory?: string }
