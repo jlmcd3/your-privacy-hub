@@ -752,7 +752,9 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     // max_tokens exceeds the model's allowed output, dial the ceiling down and
     // retry. Anthropic returns 400 with "max_tokens" in the body for this case;
     // we also retry on 413 (request entity too large) defensively.
-    const MAX_TOKENS_LADDER = [48000, 32000, 16000, 8000];
+    const MAX_TOKENS_LADDER = documentType === "us-state"
+      ? [32000, 16000, 8000]
+      : [48000, 32000, 16000, 8000];
 
     async function callAi(extraUser: string, timeoutMs: number = 720_000): Promise<{ text: string; finishReason: string | null }> {
       const finalUser = extraUser ? `${userPrompt}\n\n${extraUser}` : userPrompt;
