@@ -236,6 +236,3 @@ verify_jwt = false
 
 [functions.admin-inspect-session]
 verify_jwt = false
-
-[functions.admin-purge-eup-tile]
-verify_jwt = false
