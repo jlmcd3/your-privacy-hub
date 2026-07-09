@@ -105,7 +105,7 @@ and email exposure alone.
 
 NEW YORK DATA ELEMENT GATE: N.Y. Gen. Bus. Law §899-aa defines "private information"
 as personal information (name or number that identifies a natural person) combined with
-one of the enumerated data elements. Per the S2659B amendment (effective 21 Dec 2024),
+one of the enumerated data elements. Per the A8872A amendment (signed December 2024, effective 21 March 2025),
 the enumerated elements EXPLICITLY INCLUDE, in addition to SSN, driver's licence/state
 ID, financial account number with access code, and biometric data, both (i) MEDICAL
 INFORMATION (any information regarding an individual's medical history, mental or
