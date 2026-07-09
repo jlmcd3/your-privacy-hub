@@ -444,7 +444,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 5. Virginia AG has exclusive enforcement authority; no private right of action under VCDPA.
 
 Consent and notice:
-For HIPAA-excluded data: standard HIPAA Notice of Privacy Practices and authorisation requirements apply. For non-excluded biometric data: VCDPA § 59.1-577(B) opt-in consent is required before processing.
+For HIPAA-excluded data: standard HIPAA Notice of Privacy Practices and authorisation requirements apply. For non-excluded biometric data: VCDPA § 59.1-578(A)(5) opt-in consent is required before processing.
 
 Retention and destruction:
 HIPAA data: follow HIPAA retention requirements (generally 6 years). Non-HIPAA biometric data: retain only as long as necessary for the stated purpose.
