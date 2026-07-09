@@ -192,8 +192,24 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const { data: profile } = await supabase.from("profiles").select("is_premium").eq("id", user.id).single();
-      const isSubscriber = !!profile?.is_premium;
+      // Env-scoped subscriber check. Live falls back to profiles for
+      // rollout safety; sandbox missing row = not a subscriber.
+      const { data: entRow } = await supabase
+        .from("user_entitlements")
+        .select("is_premium")
+        .eq("user_id", user.id)
+        .eq("environment", env)
+        .maybeSingle();
+      let isSubscriber = !!entRow?.is_premium;
+      if (!entRow && env === "live") {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_premium")
+          .eq("id", user.id)
+          .maybeSingle();
+        isSubscriber = !!profile?.is_premium;
+      }
+
       lookupKey = isSubscriber ? lookups.subscriber : lookups.standalone;
       mode = "payment";
       metadata.tool_slug = tool_slug;
