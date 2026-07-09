@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/lib/dates";
 import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
 import { normalizeTitle } from "@/lib/utils";
-import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import ArticleThumb from "@/components/feed/ArticleThumb";
 
 interface SpotlightArticle {
   id: string;
