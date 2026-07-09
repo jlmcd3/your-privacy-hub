@@ -43,13 +43,14 @@ export function waitForSubscriptionActive(
     // ENT-1: subscription activation is env-scoped. Poll user_entitlements
     // for the build's Stripe environment; do NOT read profiles here — that
     // would falsely confirm sandbox checkouts against live entitlement.
-    const { data } = await supabase
-      .from("user_entitlements" as any)
+    const { data } = await (supabase as any)
+      .from("user_entitlements")
       .select("is_premium, is_pro")
       .eq("user_id", userId)
       .eq("environment", env)
       .maybeSingle();
     return data?.is_premium === true || data?.is_pro === true ? true : null;
+
   }, opts).then((v) => v === true);
 }
 
