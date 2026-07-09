@@ -43,6 +43,34 @@ function detectEnv(override?: string): StripeEnv {
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
 
+// Exported for tests. Given a supabase-like client, returns whether the
+// user has an active subscription IN THE CURRENT ENV. Reads
+// user_entitlements first (env-scoped); for env='live' falls back to
+// profiles.is_premium/is_pro when no entitlement row exists (rollout
+// safety). Env='sandbox' with no row = not subscribed (no fallback).
+export async function resolveSubscribedInEnv(
+  supabase: any,
+  userId: string,
+  env: StripeEnv,
+): Promise<boolean> {
+  const { data: entRow } = await supabase
+    .from("user_entitlements")
+    .select("is_premium, is_pro")
+    .eq("user_id", userId)
+    .eq("environment", env)
+    .maybeSingle();
+  if (entRow) return entRow.is_premium === true || entRow.is_pro === true;
+  if (env === "live") {
+    const { data: legacy } = await supabase
+      .from("profiles")
+      .select("is_premium, is_pro")
+      .eq("id", userId)
+      .maybeSingle();
+    return legacy?.is_premium === true || legacy?.is_pro === true;
+  }
+  return false;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
