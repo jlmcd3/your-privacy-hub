@@ -10,7 +10,7 @@
 //     contamination hole where a test-card checkout could grant real
 //     production entitlement.
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
 
 const supabase = createClient(
