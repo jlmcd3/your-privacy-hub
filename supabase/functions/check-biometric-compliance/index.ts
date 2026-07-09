@@ -437,7 +437,7 @@ VCDPA does not apply to employee biometric data; Virginia has no employee biomet
 Applies to this organisation: Likely partially applicable — ${describeProcessing(body.orgType, body.biometricTypes, body.purpose)}. Va. Code § 59.1-575 defines "biometric data" but expressly excludes information collected, used, or stored for health care treatment, payment, or operations purposes where the organisation is subject to HIPAA. If this organisation is a HIPAA covered entity or business associate and the biometric data relates to treatment, payment, or operations, VCDPA biometric requirements do not apply to that data.
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
-1. Determine HIPAA covered entity / business associate status — if applicable, and if the biometric processing is for treatment, payment, or operations, the VCDPA § 59.1-575 HIPAA exclusion applies to that data.
+1. Determine HIPAA covered entity / business associate status — if applicable, and if the biometric processing is for treatment, payment, or operations, the VCDPA § 59.1-576 HIPAA exclusion applies to that data.
 2. For biometric data NOT covered by HIPAA exclusion (e.g. biometric access control for non-clinical staff, visitor identification not linked to patient care): VCDPA sensitive data requirements apply — § 59.1-578(A)(5) opt-in consent required.
 3. Conduct a data inventory to draw the HIPAA/non-HIPAA boundary within the organisation's biometric processing activities.
 4. Execute controller-processor agreements under § 59.1-574 for any biometric data outside the HIPAA exclusion.
@@ -456,7 +456,7 @@ Current enforcement posture:
 Virginia AG enforcement nascent. HHS OCR is the primary enforcement risk for HIPAA-covered biometric data. VCDPA exposure is secondary for organisations with valid HIPAA coverage.
 
 Priority actions:
-1. Complete a HIPAA boundary analysis to determine which biometric data falls within the § 59.1-575 HIPAA exclusion and which does not.
+1. Complete a HIPAA boundary analysis to determine which biometric data falls within the § 59.1-576 HIPAA-related exemption and which does not.
 2. For any non-HIPAA-excluded biometric data, implement VCDPA § 59.1-578(A)(5) opt-in consent before processing begins.
 3. Execute both BAAs (for HIPAA) and § 59.1-574 processor agreements (for non-HIPAA biometric data) with all relevant vendors.
 
