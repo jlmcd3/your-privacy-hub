@@ -42,7 +42,14 @@ export default function SubscribeCheckoutModal({ open, interval, tier = "intelli
     // If not (409 fallback), surface the message to the user.
     if (data?.already_subscribed) {
       if (data?.url) {
-        window.location.assign(data.url as string);
+        const url = data.url as string;
+        // billing.stripe.com refuses X-Frame-Options, so if we're inside
+        // an iframe (editor preview, embeds), break out with a new tab.
+        if (typeof window !== "undefined" && window.self !== window.top) {
+          window.open(url, "_blank", "noopener");
+        } else {
+          window.location.assign(url);
+        }
         // Return a sentinel to satisfy Stripe's fetchClientSecret typing;
         // navigation is already underway and the modal will unmount.
         return "";

@@ -8,9 +8,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function detectEnv(): StripeEnv {
+function detectEnv(override?: string): StripeEnv {
+  if (override === "sandbox" || override === "live") return override;
+  // Fallback for callers that don't pass an env. Prefer sandbox when its
+  // key exists — live-key presence alone is not enough to assume live
+  // mode (post-go-live both keys exist simultaneously).
+  if (Deno.env.get("STRIPE_SANDBOX_API_KEY")) return "sandbox";
   return Deno.env.get("STRIPE_LIVE_API_KEY") ? "live" : "sandbox";
 }
+export { detectEnv };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -57,7 +63,11 @@ serve(async (req) => {
     }
 
     let customerId = profile?.stripe_customer_id as string | undefined;
-    const env = detectEnv();
+    const body = (await req.json().catch(() => ({}))) as {
+      return_url?: string;
+      environment?: string;
+    };
+    const env = detectEnv(body.environment);
     const stripe = createStripeClient(env);
 
     // Fallback: find customer by email (handles users whose profile row
@@ -84,7 +94,7 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
-    const { return_url } = (await req.json().catch(() => ({}))) as { return_url?: string };
+    const { return_url } = body;
 
     const portal = await stripe.billingPortal.sessions.create({
       customer: customerId,
