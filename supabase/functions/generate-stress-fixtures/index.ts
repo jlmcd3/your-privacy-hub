@@ -603,9 +603,14 @@ function getEuNoticeAutomatedDecisions(industry: string): string {
 
 function buildDeterministicProfile(industry: string, geo: string, slot: number, companyId: string) {
   const c = buildCompany(industry, geo, slot, companyId);
+  // Jurisdictions surface as display names in downstream governance/registration
+  // intake summaries. Use readable names ("Virginia (US)") rather than raw ISO
+  // subdivision codes ("US-VA") so QL2 output for jurisdictions[N] renders a
+  // human-legible label. Canonical mapping lives in
+  // src/data/registration_jurisdictions.ts.
   const jurisdictions = geo === "eu"
-    ? ["EU", "UK", c.countryCode]
-    : ["US", "US-CA", "US-VA"];
+    ? ["European Union", "United Kingdom", c.countryCode]
+    : ["United States", "California (US)", "Virginia (US)"];
   const dataCategories = ["account identifiers", "contact details", "usage logs", "device identifiers", "support records"];
   const usesBiometric = /health|financial|security|workforce|hr/i.test(industry);
   return {
