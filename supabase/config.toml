@@ -227,3 +227,6 @@ verify_jwt = false
 
 [functions.admin-inspect-stripe-session]
 verify_jwt = false
+
+[functions.stripe-diag-webhook3]
+verify_jwt = false

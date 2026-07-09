@@ -7433,6 +7433,7 @@ export type Database = {
           is_premium: boolean
           is_pro: boolean
           payment_failed: boolean
+          stripe_subscription_created_at: string | null
           stripe_subscription_id: string | null
           stripe_trial_end: string | null
           subscription_end_date: string | null
@@ -7446,6 +7447,7 @@ export type Database = {
           is_premium?: boolean
           is_pro?: boolean
           payment_failed?: boolean
+          stripe_subscription_created_at?: string | null
           stripe_subscription_id?: string | null
           stripe_trial_end?: string | null
           subscription_end_date?: string | null
@@ -7459,6 +7461,7 @@ export type Database = {
           is_premium?: boolean
           is_pro?: boolean
           payment_failed?: boolean
+          stripe_subscription_created_at?: string | null
           stripe_subscription_id?: string | null
           stripe_trial_end?: string | null
           subscription_end_date?: string | null

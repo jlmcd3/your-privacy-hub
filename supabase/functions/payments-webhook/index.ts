@@ -88,6 +88,55 @@ export async function profileIdForCustomer(
 }
 
 /**
+ * WEBHOOK-3: guard that decides whether an incoming subscription event
+ * should be allowed to overwrite the current entitlement row. Prevents
+ * a late-arriving event from an OLDER, now-canceled subscription from
+ * clobbering the row for a NEWER active subscription that already won
+ * the seat. Rules, in order:
+ *   1. If existing row's stripe_subscription_id matches → always accept.
+ *   2. If existing row has no subscription attached → accept.
+ *   3. If incoming is inactive (canceled / incomplete_expired / unpaid)
+ *      AND existing row has a different sub AND that different sub is
+ *      still marked premium/non-canceled → skip. Active always beats
+ *      inactive from a stranger subscription.
+ *   4. Tiebreaker (both look active-ish, different subs): compare
+ *      Stripe `created` timestamps — newer wins. Skip if incoming is
+ *      older.
+ * Skip decisions are logged with scope="webhook3_skip" for observability.
+ */
+export function decideSubscriptionWrite(
+  existing: {
+    stripe_subscription_id: string | null;
+    stripe_subscription_created_at: string | null;
+    is_premium: boolean | null;
+    cancel_at_period_end: boolean | null;
+  } | null,
+  incoming: { id: string; status: string; created: number | null },
+): { accept: boolean; reason: string } {
+  if (!existing || !existing.stripe_subscription_id) {
+    return { accept: true, reason: "no_existing_sub" };
+  }
+  if (existing.stripe_subscription_id === incoming.id) {
+    return { accept: true, reason: "same_sub" };
+  }
+  const incomingActive = ["active", "trialing", "past_due"].includes(incoming.status);
+  const existingLive =
+    existing.is_premium === true && existing.cancel_at_period_end !== true;
+  if (!incomingActive && existingLive) {
+    return { accept: false, reason: "incoming_inactive_existing_live" };
+  }
+  // Tiebreaker: newer created wins.
+  if (existing.stripe_subscription_created_at && incoming.created != null) {
+    const existingCreatedMs = Date.parse(existing.stripe_subscription_created_at);
+    const incomingCreatedMs = incoming.created * 1000;
+    if (Number.isFinite(existingCreatedMs) && incomingCreatedMs < existingCreatedMs) {
+      return { accept: false, reason: "incoming_older_than_existing" };
+    }
+  }
+  return { accept: true, reason: "accept_default" };
+}
+
+/**
  * Testable subscription upsert handler. Exported so ENT-1 tests can
  * exercise the env-gating rules without going through verifyWebhook.
  */
@@ -129,19 +178,51 @@ export async function handleSubscriptionEvent(
   const isAnnualTier =
     subscriptionType === "annual" || subscriptionType === "pro_annual";
 
-  // WEBHOOK-1: resolve userId metadata-first (populated on the Subscription
-  // via subscription_data.metadata in create-checkout-session) with a
-  // customer→profile lookup as a fallback for legacy subscriptions that
-  // predate that field. Without the metadata path, a `subscription.created`
-  // event that races ahead of `checkout.session.completed` writes a partial
-  // row because the profiles.stripe_customer_id mapping doesn't exist yet.
   const userId =
     (sub.metadata?.user_id as string | undefined) ??
     (sub.metadata?.userId as string | undefined) ??
     (await profileIdForCustomer(sb, sub.customer));
 
+  // WEBHOOK-3 guard — read the existing entitlement row and decide
+  // whether to accept this event, before we compute the patch.
+  if (userId) {
+    const { data: existingRow } = await sb
+      .from("user_entitlements")
+      .select(
+        "stripe_subscription_id, stripe_subscription_created_at, is_premium, cancel_at_period_end",
+      )
+      .eq("user_id", userId)
+      .eq("environment", env)
+      .maybeSingle();
+    const decision = decideSubscriptionWrite(existingRow as any, {
+      id: sub.id,
+      status: sub.status,
+      created: typeof sub.created === "number" ? sub.created : null,
+    });
+    if (!decision.accept) {
+      console.log(
+        JSON.stringify({
+          scope: "webhook3_skip",
+          env,
+          user_id: userId,
+          incoming_sub: sub.id,
+          incoming_status: sub.status,
+          incoming_created: sub.created,
+          existing_sub: (existingRow as any)?.stripe_subscription_id ?? null,
+          existing_created_at:
+            (existingRow as any)?.stripe_subscription_created_at ?? null,
+          reason: decision.reason,
+        }),
+      );
+      return;
+    }
+  }
+
   const entPatch: Record<string, unknown> = {
     stripe_subscription_id: sub.id,
+    stripe_subscription_created_at: typeof sub.created === "number"
+      ? new Date(sub.created * 1000).toISOString()
+      : null,
     cancel_at_period_end: !!sub.cancel_at_period_end,
     subscription_end_date: periodEnd
       ? new Date(periodEnd * 1000).toISOString()
@@ -162,6 +243,7 @@ export async function handleSubscriptionEvent(
   if (userId) {
     await upsertEntitlement(sb, userId, env, entPatch);
   }
+
 
   // Dual-write to profiles ONLY on live. Sandbox never touches profiles.
   if (env === "live") {
