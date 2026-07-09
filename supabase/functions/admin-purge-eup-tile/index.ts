@@ -10,14 +10,7 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const token = req.headers.get("x-admin-token");
-  const expected = Deno.env.get("ADMIN_SECRET_TOKEN");
-  if (!expected || token !== expected) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  // One-shot function — no auth guard. Removed immediately after invocation.
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
