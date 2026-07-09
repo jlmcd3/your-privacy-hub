@@ -294,6 +294,59 @@ export async function handleSubscriptionEvent(
 }
 
 /**
+ * REVOKE-1: on customer.subscription.deleted, immediately revoke
+ * entitlement regardless of subscription_end_date. Stripe fires the
+ * delete only when the subscription is genuinely over — either a
+ * period-end cancel completing (revoke correct) or an immediate
+ * cancel for refund/chargeback/fraud/support (continued access wrong).
+ * The graceful cancel-at-period-end path is handled by
+ * handleSubscriptionEvent while the sub is still active.
+ */
+export async function handleSubscriptionDeleted(
+  sb: SupabaseClient,
+  sub: any,
+  env: StripeEnv,
+) {
+  const userId =
+    (sub.metadata?.user_id as string | undefined) ??
+    (sub.metadata?.userId as string | undefined) ??
+    (await profileIdForCustomer(sb, sub.customer));
+  if (userId) {
+    await upsertEntitlement(sb, userId, env, {
+      is_premium: false,
+      is_pro: false,
+      cancel_at_period_end: false,
+      stripe_trial_end: null,
+      subscription_end_date: null,
+      subscription_type: null,
+    });
+    console.log(
+      JSON.stringify({
+        scope: "revoke1_immediate",
+        env,
+        user_id: userId,
+        stripe_subscription_id: sub.id,
+        stripe_customer_id: sub.customer,
+      }),
+    );
+  }
+  if (env === "live") {
+    await sb
+      .from("profiles")
+      .update({
+        is_premium: false,
+        is_pro: false,
+        cancel_at_period_end: false,
+        stripe_trial_end: null,
+        subscription_end_date: null,
+        subscription_type: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("stripe_customer_id", sub.customer);
+  }
+}
+
+/**
  * WEBHOOK-1: checkout.session.completed handler dispatches through this
  * helper so the race-heal path is testable without a real Stripe client.
  * The caller supplies `retrieveSubscription`, which the tests stub.
@@ -348,47 +401,7 @@ Deno.serve(async (req) => {
       }
       case "customer.subscription.deleted":
       case "subscription.canceled": {
-        const sub = event.data.object;
-        // Immediate revocation on delete — no grace period. Even if
-        // subscription_end_date is still in the future, the subscription
-        // is dead in Stripe and access must stop now.
-        const userId =
-          (sub.metadata?.user_id as string | undefined) ??
-          (sub.metadata?.userId as string | undefined) ??
-          (await profileIdForCustomer(supabase, sub.customer));
-        if (userId) {
-          await upsertEntitlement(supabase, userId, env, {
-            is_premium: false,
-            is_pro: false,
-            cancel_at_period_end: false,
-            stripe_trial_end: null,
-            subscription_end_date: null,
-            subscription_type: null,
-          });
-          console.log(
-            JSON.stringify({
-              scope: "webhook3_revoke_immediate",
-              env,
-              user_id: userId,
-              stripe_subscription_id: sub.id,
-              stripe_customer_id: sub.customer,
-            }),
-          );
-        }
-        if (env === "live") {
-          await supabase
-            .from("profiles")
-            .update({
-              is_premium: false,
-              is_pro: false,
-              cancel_at_period_end: false,
-              stripe_trial_end: null,
-              subscription_end_date: null,
-              subscription_type: null,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("stripe_customer_id", sub.customer);
-        }
+        await handleSubscriptionDeleted(supabase, event.data.object, env);
         break;
       }
       case "invoice.payment_failed":
