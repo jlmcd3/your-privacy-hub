@@ -57,16 +57,10 @@ export default function AnonymousUpdatesCard({ item }: { item: AnonymousUpdatesC
       {...(item.source_url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="group flex gap-4 items-start py-4 border-b border-brand-cloud last:border-0 no-underline"
     >
-      {/* Article thumbnail — falls back to EUP brand tile when missing */}
-      <img
-        src={item.image_url || eupTile}
-        alt=""
-        loading="lazy"
-        referrerPolicy="no-referrer"
+      {/* Article thumbnail — falls back to branded SVG tile when missing */}
+      <ArticleThumb
+        item={item}
         className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-slate-100"
-        onError={(e) => {
-          (e.target as HTMLImageElement).src = eupTile;
-        }}
       />
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
