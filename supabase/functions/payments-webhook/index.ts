@@ -216,121 +216,15 @@ Deno.serve(async (req) => {
       }
       case "customer.subscription.created":
       case "customer.subscription.updated": {
-        const sub = event.data.object;
-        const item = sub.items?.data?.[0];
-        const periodStart =
-          item?.current_period_start ?? sub.current_period_start ?? null;
-        const periodEnd =
-          item?.current_period_end ?? sub.current_period_end ?? null;
-        const isActive = ["active", "trialing", "past_due"].includes(sub.status);
-
-        const lookupKey: string | null =
-          item?.price?.lookup_key ||
-          item?.price?.metadata?.lovable_external_id ||
-          null;
-
-        let subscriptionType:
-          | "monthly"
-          | "annual"
-          | "pro_monthly"
-          | "pro_annual"
-          | null = null;
-        if (lookupKey === "intelligence_yearly" || lookupKey === "intelligence_annual") {
-          subscriptionType = "annual";
-        } else if (lookupKey === "intelligence_monthly") {
-          subscriptionType = "monthly";
-        } else if (lookupKey === "professional_annual" || lookupKey === "professional_yearly") {
-          subscriptionType = "pro_annual";
-        } else if (lookupKey === "professional_monthly") {
-          subscriptionType = "pro_monthly";
-        }
-
-        const isProTier =
-          subscriptionType === "pro_monthly" || subscriptionType === "pro_annual";
-        const isAnnualTier =
-          subscriptionType === "annual" || subscriptionType === "pro_annual";
-
-        // Resolve user id via the stripe customer.
-        const userId = await profileIdForCustomer(sub.customer);
-
-        // Build the entitlement patch (env-scoped, always safe).
-        const entPatch: Record<string, unknown> = {
-          stripe_subscription_id: sub.id,
-          cancel_at_period_end: !!sub.cancel_at_period_end,
-          subscription_end_date: periodEnd
-            ? new Date(periodEnd * 1000).toISOString()
-            : null,
-          stripe_trial_end: sub.trial_end
-            ? new Date(sub.trial_end * 1000).toISOString()
-            : null,
-          ...(isActive
-            ? {
-                is_premium: true,
-                payment_failed: false,
-                ...(isProTier ? { is_pro: true } : {}),
-              }
-            : {}),
-          ...(subscriptionType ? { subscription_type: subscriptionType } : {}),
-        };
-
-        if (userId) {
-          await upsertEntitlement(userId, env, entPatch);
-        }
-
-        // Dual-write to profiles ONLY on live. Sandbox never touches profiles.
-        if (env === "live") {
-          await supabase
-            .from("profiles")
-            .update({
-              stripe_subscription_id: sub.id,
-              cancel_at_period_end: !!sub.cancel_at_period_end,
-              subscription_end_date: periodEnd
-                ? new Date(periodEnd * 1000).toISOString()
-                : null,
-              stripe_trial_end: sub.trial_end
-                ? new Date(sub.trial_end * 1000).toISOString()
-                : null,
-              ...(isActive
-                ? {
-                    is_premium: true,
-                    payment_failed: false,
-                    ...(isProTier ? { is_pro: true } : {}),
-                  }
-                : {}),
-              ...(subscriptionType ? { subscription_type: subscriptionType } : {}),
-              updated_at: new Date().toISOString(),
-            })
-            .eq("stripe_customer_id", sub.customer);
-        }
-
-        // Layer 3 — annual Smart Tool credits. Env-scoped.
-        if (isActive && isAnnualTier && userId && periodStart) {
-          const cycleStart = new Date(periodStart * 1000)
-            .toISOString()
-            .split("T")[0];
-          const creditsToGrant = subscriptionType === "pro_annual" ? 3 : 1;
-          const rows = Array.from({ length: creditsToGrant }, (_, i) => ({
-            user_id: userId,
-            client_id: null,
-            cycle_start: cycleStart,
-            credit_index: i + 1,
-            environment: env,
-          }));
-          const { error: creditErr } = await supabase
-            .from("annual_tool_credits")
-            .insert(rows);
-          if (creditErr && (creditErr as any).code !== "23505") {
-            console.error("annual_tool_credits insert failed:", creditErr.message);
-          }
-        }
+        await handleSubscriptionEvent(supabase, event.data.object, env);
         break;
       }
       case "customer.subscription.deleted":
       case "subscription.canceled": {
         const sub = event.data.object;
-        const userId = await profileIdForCustomer(sub.customer);
+        const userId = await profileIdForCustomer(supabase, sub.customer);
         if (userId) {
-          await upsertEntitlement(userId, env, {
+          await upsertEntitlement(supabase, userId, env, {
             is_premium: false,
             cancel_at_period_end: false,
             stripe_trial_end: null,
@@ -352,9 +246,9 @@ Deno.serve(async (req) => {
       case "invoice.payment_failed":
       case "transaction.payment_failed": {
         const inv = event.data.object;
-        const userId = await profileIdForCustomer(inv.customer);
+        const userId = await profileIdForCustomer(supabase, inv.customer);
         if (userId) {
-          await upsertEntitlement(userId, env, { payment_failed: true });
+          await upsertEntitlement(supabase, userId, env, { payment_failed: true });
         }
         if (env === "live") {
           await supabase
