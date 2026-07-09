@@ -49,13 +49,29 @@ const CA_JURS = new Set(["Canada (federal / PIPEDA)","Quebec (Law 25)","Ontario 
 
 function detectDocType(ctrl: string, proc: string, explicit?: string): string {
   if (explicit) return explicit;
-  const ctrlEU = EU_JURS.has(ctrl); const procEU = EU_JURS.has(proc);
-  const ctrlUS = US_JURS.has(ctrl); const procUS = US_JURS.has(proc);
-  const ctrlCA = CA_JURS.has(ctrl); const procCA = CA_JURS.has(proc);
+  const normalize = (raw: string): string => {
+    const trimmed = (raw ?? "").trim();
+    if (!trimmed) return trimmed;
+    if (/^(the )?united states( of america)?$|^usa$|^u\.?s\.?a?\.?$/i.test(trimmed)) {
+      return "United States (federal)";
+    }
+    if (/^(the )?united kingdom$|^uk$|^great britain$|^gb$/i.test(trimmed)) {
+      return "United Kingdom";
+    }
+    return trimmed;
+  };
+  const ctrlN = normalize(ctrl);
+  const procN = normalize(proc);
+  const ctrlEU = EU_JURS.has(ctrlN); const procEU = EU_JURS.has(procN);
+  const ctrlUS = US_JURS.has(ctrlN); const procUS = US_JURS.has(procN);
+  const ctrlCA = CA_JURS.has(ctrlN); const procCA = CA_JURS.has(procN);
   if ((ctrlEU || procEU) && (ctrlUS || procUS)) return "dual-eu-us";
   if ((ctrlEU || procEU) && (ctrlCA || procCA)) return "dual-eu-ca";
   if (ctrlUS || procUS) return "us-state";
   if (ctrlCA || procCA) return "canada";
+  if (ctrlN && procN && !ctrlEU && !procEU && !ctrlUS && !procUS && !ctrlCA && !procCA) {
+    console.warn(`[generate-dpa] detectDocType fell through to gdpr default — raw values: controller="${ctrl}", processor="${proc}"`);
+  }
   return "gdpr";
 }
 

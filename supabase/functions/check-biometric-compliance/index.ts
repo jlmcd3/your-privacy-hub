@@ -366,18 +366,18 @@ Applies to this organisation: Conditional — ${describeProcessing(body.orgType,
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Cal. Civ. Code § 1798.140(ae)(1)(B): biometric information used to identify a consumer is Sensitive Personal Information (SPI).
 2. § 1798.121: consumers have the right to direct the business to limit use of SPI to what is necessary to perform services or provide goods reasonably expected. Implement a "Limit the Use of My Sensitive Personal Information" opt-out link.
-3. § 1798.100 et seq.: provide notice at or before collection (Privacy Policy and at-collection notice must identify biometric information and SPI status).
+3. § 1798.100(b): provide notice at or before collection identifying biometric information as a category of personal information collected and the purposes of use; the Privacy Policy must additionally reflect the SPI classification for purposes of the § 1798.121 limit-use right.
 4. § 1798.145(e): GLBA exemption — if the organisation is a financial institution under GLBA and the biometric data relates to GLBA-covered activities, CCPA may not apply to that data; complete GLBA boundary analysis first.
 5. CPPA enforcement: the California Privacy Protection Agency (CPPA) enforces CCPA/CPRA; private right of action only for data breaches (§ 1798.150).
 
 Consent and notice:
-No opt-in consent required for biometric collection under CCPA/CPRA (unlike BIPA). Provide clear at-collection notice and update Privacy Policy to reflect SPI categories and processing purposes. Honor Limit SPI Use requests.
+No opt-in consent is required for biometric collection under CCPA/CPRA (unlike BIPA) — but at-collection notice is required, and consumers must be provided the § 1798.121 right to limit use and disclosure of SPI and any applicable sale/sharing opt-outs.
 
 Retention and destruction:
 Retain biometric data only as long as necessary for the disclosed purpose (§ 1798.100(a)(3)). Honor deletion requests under § 1798.105 subject to exceptions.
 
 Sale and sharing restrictions:
-Prohibition on "sale" and "sharing" of SPI for cross-context behavioral advertising (§ 1798.121). Provide opt-out if SPI is sold or shared. Service providers receiving biometric data must be under written contract restricting further use.
+Consumers may opt out of the "sale" or "sharing" of SPI and may limit its use and disclosure, including for cross-context behavioral advertising (§ 1798.121) — a consumer-directed right, not an outright prohibition; provide the required opt-out/limit-use mechanism.
 
 Current enforcement posture:
 CPPA enforcement is active; limited private litigation (breach-only). Enforcement focus includes missing SPI notices, inadequate at-collection disclosures, and failure to honor consumer rights.
@@ -410,7 +410,7 @@ Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 5. Apply strong security, retention, and vendor controls as contractual and operational best practice regardless of VCDPA applicability.
 
 Consent and notice:
-No VCDPA opt-in consent obligation applies to employee data. Use clear notice in employee onboarding materials as best practice. Where separate consumer populations are in scope, opt-in consent is required under § 59.1-577(B).
+No VCDPA opt-in consent obligation applies to employee data. Use clear notice in employee onboarding materials as best practice. Where separate consumer populations are in scope, opt-in consent is required under § 59.1-578(A)(5).
 
 Retention and destruction:
 Establish a written retention and destruction policy as best practice — no Virginia statute prescribes a specific period for employee biometric data, but proportionality and data minimisation principles apply.
@@ -438,13 +438,13 @@ Applies to this organisation: Likely partially applicable — ${describeProcessi
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Determine HIPAA covered entity / business associate status — if applicable, and if the biometric processing is for treatment, payment, or operations, the VCDPA § 59.1-575 HIPAA exclusion applies to that data.
-2. For biometric data NOT covered by HIPAA exclusion (e.g. biometric access control for non-clinical staff, visitor identification not linked to patient care): VCDPA sensitive data requirements apply — § 59.1-577(B) opt-in consent required.
+2. For biometric data NOT covered by HIPAA exclusion (e.g. biometric access control for non-clinical staff, visitor identification not linked to patient care): VCDPA sensitive data requirements apply — § 59.1-578(A)(5) opt-in consent required.
 3. Conduct a data inventory to draw the HIPAA/non-HIPAA boundary within the organisation's biometric processing activities.
 4. Execute controller-processor agreements under § 59.1-574 for any biometric data outside the HIPAA exclusion.
 5. Virginia AG has exclusive enforcement authority; no private right of action under VCDPA.
 
 Consent and notice:
-For HIPAA-excluded data: standard HIPAA Notice of Privacy Practices and authorisation requirements apply. For non-excluded biometric data: VCDPA § 59.1-577(B) opt-in consent is required before processing.
+For HIPAA-excluded data: standard HIPAA Notice of Privacy Practices and authorisation requirements apply. For non-excluded biometric data: VCDPA § 59.1-578(A)(5) opt-in consent is required before processing.
 
 Retention and destruction:
 HIPAA data: follow HIPAA retention requirements (generally 6 years). Non-HIPAA biometric data: retain only as long as necessary for the stated purpose.
@@ -457,7 +457,7 @@ Virginia AG enforcement nascent. HHS OCR is the primary enforcement risk for HIP
 
 Priority actions:
 1. Complete a HIPAA boundary analysis to determine which biometric data falls within the § 59.1-575 HIPAA exclusion and which does not.
-2. For any non-HIPAA-excluded biometric data, implement VCDPA § 59.1-577(B) opt-in consent before processing begins.
+2. For any non-HIPAA-excluded biometric data, implement VCDPA § 59.1-578(A)(5) opt-in consent before processing begins.
 3. Execute both BAAs (for HIPAA) and § 59.1-574 processor agreements (for non-HIPAA biometric data) with all relevant vendors.
 
 Compliance risk rating: MEDIUM
@@ -472,7 +472,7 @@ Applies to this organisation: Conditional — ${describeProcessing(body.orgType,
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. § 59.1-572: biometric data (data generated by automatic measurements of a consumer's biological characteristics used to identify a specific individual) is sensitive data.
-2. § 59.1-577(B): processing sensitive data requires obtaining consumer opt-in consent before processing. This is an affirmative consent requirement — not merely an opt-out.
+2. § 59.1-578(A)(5): a controller shall not process sensitive data concerning a consumer without obtaining the consumer's consent — an affirmative opt-in requirement, not merely an opt-out.
 3. § 59.1-575: data minimization — collect only what is adequate, relevant, and reasonably necessary for the disclosed purpose.
 4. § 59.1-579: conduct a data protection assessment for processing presenting heightened risk, including processing sensitive data.
 5. Virginia AG has exclusive enforcement authority — there is NO private right of action under the VCDPA.
@@ -507,7 +507,7 @@ Applies to this organisation: Conditional — ${describeProcessing(body.orgType,
 Key state biometric statutes (by litigation and enforcement risk):
 1. Illinois BIPA (740 ILCS 14): private right of action per person; highest US biometric litigation risk. Select "Illinois, USA (BIPA)" for a full BIPA analysis.
 2. Texas CUBI (Tex. Bus. & Com. Code § 503.001): AG-only enforcement; $25,000/violation; no private right of action. Select "Texas, USA (CUBI)" for a full CUBI analysis.
-3. Washington MHMD (RCW 19.373): applies where biometrics are used to infer health status; private right of action under RCW 19.373.600, with remedies available under the WA Consumer Protection Act (RCW 19.86).
+3. Washington My Health My Data Act (chapter 19.373 RCW): applies where biometric data is collected, processed, or shared in a way that identifies or can identify a consumer's health status; violations are enforceable under the Washington Consumer Protection Act (chapter 19.86 RCW) per RCW 19.373.090, which supplies a private right of action.
 4. California CCPA/CPRA (Cal. Civ. Code § 1798.100 et seq.): biometric information is Sensitive Personal Information; Limit-Use right applies. Select "California" for full CCPA analysis.
 5. Colorado, Connecticut, Oregon, and Montana have comprehensive privacy laws treating biometric information as sensitive personal data subject to heightened notice and consent or opt-out requirements; consult each state's statute for the specific lawful basis rules.
 

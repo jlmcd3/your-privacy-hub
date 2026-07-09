@@ -102,18 +102,18 @@ Deno.serve(async (req) => {
             return `${r?.jurisdiction_name || j.code} does not operate a general controller-registration scheme (${r?.law_name || "governing law"}); no filing under a general registry — sector-specific authorisations, if any, are surfaced in notes.`;
           }
           // null — no requirement metadata row was found in jurisdiction_requirements
-          return `No jurisdiction_requirements metadata resolved for ${j.code}; registration status must be confirmed against the local authority (${r?.authority_name || "competent authority"}) before filing.`;
+          return `Registration requirements for ${j.code} could not be resolved from the sources available to this assessment; confirm registration obligations with ${r?.authority_name || "the jurisdiction's data-protection authority"} before filing.`;
         })();
         const aiRequired = engineOutput.obligations_summary.ai_act_provider_obligations;
         const aiBasis = aiRequired
-          ? "EU AI Act GPAI-provider obligations engaged per intake.ai_general_purpose_provider = true; provider must register on the EU AI Office GPAI database (Art. 52a et seq., prospective per the Act's staggered application dates)."
-          : "Intake does not declare the organisation as an EU AI Act GPAI provider (ai_general_purpose_provider = false); no GPAI-database registration engaged. High-risk AI use, where present, engages separate documentation duties (see Governance / DPIA), not AI-registry filing.";
+          ? "EU AI Act GPAI-provider obligations engaged per the intake's declaration that the organisation provides a general-purpose AI model: Regulation (EU) 2024/1689, Chapter V (Arts. 53–55), in application since 2 August 2025, imposes technical-documentation, transparency, and copyright-policy duties; where the Art. 51 systemic-risk condition is met, Art. 52 requires notification to the European Commission. The Act imposes no general GPAI registry filing — the Art. 71 EU database covers high-risk AI systems, not GPAI models."
+          : "The intake does not declare the organisation as a provider of a general-purpose AI model, so no EU AI Act Chapter V provider obligations are engaged. High-risk AI use, where present, engages separate duties — including Art. 49/Art. 71 EU-database registration for providers of high-risk AI systems — assessed in the Governance / DPIA products, not through a GPAI filing.";
         // Data-broker evaluation (QL2-FIX-1 Item 2.3): documented even when the
         // answer is "not a data broker" — CA § 1798.99.80(c) definition anchor.
         const isBroker = engineOutput.obligations_summary.data_broker_registrations.includes(j.code);
         const dataBrokerBasis = isBroker
           ? `Evaluated against Cal. Civ. Code § 1798.99.80(c) definition ("a business that knowingly collects and sells to third parties the personal information of a consumer with whom the business does not have a direct relationship") and analogous state definitions — the intake declares the organisation as a data broker (acts_as_data_broker = true); registration engaged in ${j.code}.`
-          : `Evaluated against Cal. Civ. Code § 1798.99.80(c) definition ("a business that knowingly collects and sells to third parties the personal information of a consumer with whom the business does not have a direct relationship") and analogous state definitions — the intake does not indicate the organisation meets that definition (acts_as_data_broker not asserted); no data-broker-registry filing engaged for ${j.code}.`;
+          : `Evaluated against Cal. Civ. Code § 1798.99.80(c) definition ("a business that knowingly collects and sells to third parties the personal information of a consumer with whom the business does not have a direct relationship") and analogous state definitions — the intake does not indicate the organisation meets that definition; no data-broker-registry filing is engaged for ${j.code}.`;
         return {
           code: j.code,
           name: r?.jurisdiction_name || j.code,
