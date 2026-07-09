@@ -190,6 +190,9 @@ export default function SampleReport() {
                   </h2>
                   <p className="text-xs uppercase tracking-wide text-muted-foreground font-mono">
                     Variant {r.variant}
+                    {fmtDate(r.published_at) && (
+                      <> · Created {fmtDate(r.published_at)}</>
+                    )}
                   </p>
                   {r.scenario_summary && (
                     <p className="mt-3 text-[15px] text-muted-foreground leading-7">
