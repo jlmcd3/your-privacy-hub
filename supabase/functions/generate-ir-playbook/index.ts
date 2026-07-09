@@ -118,7 +118,7 @@ password or security question and answer that permits access to an online accoun
 account/credit/debit card numbers where the number alone can be used to access the
 account. When assessing whether NY notification is triggered, apply this gate explicitly:
 identify which specific enumerated element is satisfied. If the incident involves medical
-information or health insurance information as defined above, cite the S2659B expansion
+information or health insurance information as defined above, cite the A8872A expansion
 of §899-aa and do not analyse NY breach-trigger scope as if those categories were
 excluded — the pre-amendment "private information" definition did not enumerate them
 explicitly and playbooks must not rely on the pre-amendment scope.
