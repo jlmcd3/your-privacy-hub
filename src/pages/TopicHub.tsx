@@ -63,11 +63,10 @@ const TOPIC_META: Record<string, { name: string; icon: string; description: stri
   },
 };
 
-import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import ArticleThumb from "@/components/feed/ArticleThumb";
 
-// Render-time fallback: when an article has no image, show the EUP brand tile.
+// Render-time fallback: when an article has no image, show the branded SVG tile.
 // (Curated photo pool is applied at ingestion time via assign-fallback-images.)
-const FALLBACK_IMAGE = eupTile;
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
