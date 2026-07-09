@@ -1,0 +1,9 @@
+UPDATE public.jurisdiction_requirements
+SET
+  registration_required = true,
+  notes = 'California data broker annual registration: required January 1-31 each year under the Delete Act (Cal. Civ. Code §1798.99.80 et seq., SB 362 (2023), as amended by SB 361 (2025)). Registration and payment run through the CPPA''s Delete Request and Opt-Out Platform (DROP) at https://databroker.drop.privacy.ca.gov/ after account approval; the CPPA''s data-broker information page is https://cppa.ca.gov/data_brokers/. Filing fee for the 2026 registration year: $6,000 plus an associated third-party processing fee for electronic payments (percentage set by the payment processor at time of filing; the CPPA portal does not publish a fixed percentage — confirm at DROP checkout before filing). Failure to register by January 31 exposes the data broker to administrative fines and costs (Cal. Civ. Code §1798.99.82(d)); the historical $100/day figure pre-dates the Delete Act and is retained as an enforcement reference — treat the statutory fine ceiling as governed by §1798.99.82(d) and the CPPA''s implementing regulations. Registration is required even if the data broker does not sell personal information (registration turns on the §1798.99.80(c) data-broker definition, not on sale/share). Spot-check the fee and portal path against https://cppa.ca.gov/data_brokers/ before each filing season — the exact section of Title 11 CCR (the §7600-series CPPA regulations governing data brokers and DROP) that sets the fee amount for the current year should be confirmed against the current text of Title 11 CCR at verification, rather than relying on a fixed cross-reference here.',
+  filing_fee_cents = 600000,
+  filing_currency = 'USD',
+  filing_portal_url = 'https://cppa.ca.gov/data_brokers/',
+  last_verified_at = now()
+WHERE jurisdiction_code = 'US-CA';
