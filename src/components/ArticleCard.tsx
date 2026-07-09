@@ -7,7 +7,7 @@ import { stripHtml, normalizeTitle } from "@/lib/utils";
 
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
-import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import ArticleThumb from "@/components/feed/ArticleThumb";
 import { categoryClass, categoryLabel, CATEGORY_BADGE_CLASS } from "@/config/categories";
 import { fmtDate } from "@/lib/dates";
 import { getSeverityLabel } from "@/lib/severity";
