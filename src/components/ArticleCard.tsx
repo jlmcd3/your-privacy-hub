@@ -836,12 +836,9 @@ const PreviewCard = ({ item }: { item: ArticleItem }) => {
 export const HomepageCard = ({ item }: { item: ArticleItem }) => {
   return (
     <div className="flex gap-3 items-start py-3 border-b border-brand-cloud last:border-0">
-      <img
-        src={item.image_url || EUP_TILE}
-        alt=""
-        loading="lazy"
+      <ArticleThumb
+        item={item}
         className="w-10 h-10 rounded-md object-cover flex-shrink-0 bg-slate-100"
-        onError={(e) => { (e.target as HTMLImageElement).src = EUP_TILE; }}
       />
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-1">
