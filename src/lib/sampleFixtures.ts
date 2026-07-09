@@ -72,7 +72,7 @@ const F_LIA_UK: SampleFixture = {
         why_consent_not_used:
           "Workers are in a clear power imbalance with the employer; consent could not be freely given for safety monitoring that is uniformly applied across all underground shifts.",
         data_minimised:
-          "Only beacon-proximity zone (not GPS-precise location) and heart-rate (not ECG) are processed. No surface or break-room monitoring.",
+          "Only beacon-proximity zone (not GPS-precise location) and heart-rate (not ECG) are processed. No surface or break-room monitoring. Per-category retention and deletion triggers: (a) Location data (beacon proximity) — 90 days from the capture timestamp, deletion trigger is capture_ts + 90d enforced by an automated storage-lifecycle job that runs daily and writes a deletion attestation; (b) Health data (heart rate) — 90 days from the capture timestamp on the same daily automated job as (a); (c) Employee records (worker-to-shift-ID mapping used for identity re-link on alarm) — retained for the duration of the employment relationship, with a deletion trigger of employment termination + 6 years (UK statutory retention for occupational-health-adjacent records), after which the mapping row is purged by the HR system's leaver job. Aggregate safety metrics (no individual identifiers) — 12 months from computation, deletion trigger is computation_ts + 12m on the same automated lifecycle job.",
         pseudonymisation_options:
           "Dashboards display shift-ID and zone, not name. Identity is re-linked only when an alarm is triggered and only for the named on-call supervisor and medic.",
       },
