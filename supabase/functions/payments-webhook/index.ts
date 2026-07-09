@@ -1,6 +1,14 @@
 // Unified payments webhook for gateway-registered Stripe events.
 // Both sandbox (?env=sandbox) and live (?env=live) point here.
 // Handles: tool one-time purchases, premium subscription, report-credit bundles.
+//
+// ENT-1: Entitlement writes are environment-scoped.
+//   - Writes to public.user_entitlements keyed on (user_id, environment).
+//   - Live events ALSO dual-write the existing profiles row (server-side
+//     consumers keep working unchanged).
+//   - Sandbox events NEVER touch profiles — this closes the preview-URL
+//     contamination hole where a test-card checkout could grant real
+//     production entitlement.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
@@ -9,6 +17,55 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
+
+/**
+ * Upsert the env-scoped entitlement row. `patch` carries only the fields
+ * the caller wants to change. Existing values for unspecified fields are
+ * preserved via an explicit merge (Postgres upsert would otherwise reset
+ * DEFAULTed columns).
+ */
+async function upsertEntitlement(
+  userId: string,
+  env: StripeEnv,
+  patch: Record<string, unknown>,
+) {
+  const { data: existing } = await supabase
+    .from("user_entitlements")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("environment", env)
+    .maybeSingle();
+
+  const merged = {
+    user_id: userId,
+    environment: env,
+    is_premium: false,
+    is_pro: false,
+    payment_failed: false,
+    cancel_at_period_end: false,
+    ...(existing ?? {}),
+    ...patch,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabase
+    .from("user_entitlements")
+    .upsert(merged, { onConflict: "user_id,environment" });
+  if (error) console.error("user_entitlements upsert failed:", error.message);
+}
+
+/**
+ * Look up the profile id for a given stripe_customer_id. Only used on the
+ * live path where dual-writing to profiles is required.
+ */
+async function profileIdForCustomer(customerId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("stripe_customer_id", customerId)
+    .maybeSingle();
+  return (data?.id as string | undefined) ?? null;
+}
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
@@ -48,17 +105,11 @@ Deno.serve(async (req) => {
           item?.current_period_end ?? sub.current_period_end ?? null;
         const isActive = ["active", "trialing", "past_due"].includes(sub.status);
 
-        // Resolve the lookup key so we can derive subscription_type.
-        // Prefer Stripe's native lookup_key on the Price; fall back to the
-        // lovable_external_id metadata we stamp via sync-pricing.
         const lookupKey: string | null =
           item?.price?.lookup_key ||
           item?.price?.metadata?.lovable_external_id ||
           null;
 
-        // v9: 4 subscription_type values — intelligence (monthly|annual) +
-        // professional (pro_monthly|pro_annual). Annual variants make the
-        // user eligible for the Layer-3 Smart Tool credit.
         let subscriptionType:
           | "monthly"
           | "annual"
@@ -80,51 +131,75 @@ Deno.serve(async (req) => {
         const isAnnualTier =
           subscriptionType === "annual" || subscriptionType === "pro_annual";
 
-        // Update the profile row (matched by stripe_customer_id).
-        const { data: updatedProfile } = await supabase
-          .from("profiles")
-          .update({
-            stripe_subscription_id: sub.id,
-            cancel_at_period_end: !!sub.cancel_at_period_end,
-            subscription_end_date: periodEnd
-              ? new Date(periodEnd * 1000).toISOString()
-              : null,
-            stripe_trial_end: sub.trial_end
-              ? new Date(sub.trial_end * 1000).toISOString()
-              : null,
-            ...(isActive
-              ? {
-                  is_premium: true,
-                  payment_failed: false,
-                  ...(isProTier ? { is_pro: true } : {}),
-                }
-              : {}),
-            ...(subscriptionType ? { subscription_type: subscriptionType } : {}),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("stripe_customer_id", sub.customer)
-          .select("id")
-          .maybeSingle();
+        // Resolve user id via the stripe customer.
+        const userId = await profileIdForCustomer(sub.customer);
 
-        // Layer 3 — Annual subscribers receive free Smart Tool credits per
-        // cycle. Professional annual = 3 credits/yr, Intelligence annual = 1.
-        // Idempotent: the (user_id, client_id, cycle_start, credit_index)
-        // unique index makes re-inserts a no-op when the same cycle replays.
-        if (isActive && isAnnualTier && updatedProfile?.id && periodStart) {
+        // Build the entitlement patch (env-scoped, always safe).
+        const entPatch: Record<string, unknown> = {
+          stripe_subscription_id: sub.id,
+          cancel_at_period_end: !!sub.cancel_at_period_end,
+          subscription_end_date: periodEnd
+            ? new Date(periodEnd * 1000).toISOString()
+            : null,
+          stripe_trial_end: sub.trial_end
+            ? new Date(sub.trial_end * 1000).toISOString()
+            : null,
+          ...(isActive
+            ? {
+                is_premium: true,
+                payment_failed: false,
+                ...(isProTier ? { is_pro: true } : {}),
+              }
+            : {}),
+          ...(subscriptionType ? { subscription_type: subscriptionType } : {}),
+        };
+
+        if (userId) {
+          await upsertEntitlement(userId, env, entPatch);
+        }
+
+        // Dual-write to profiles ONLY on live. Sandbox never touches profiles.
+        if (env === "live") {
+          await supabase
+            .from("profiles")
+            .update({
+              stripe_subscription_id: sub.id,
+              cancel_at_period_end: !!sub.cancel_at_period_end,
+              subscription_end_date: periodEnd
+                ? new Date(periodEnd * 1000).toISOString()
+                : null,
+              stripe_trial_end: sub.trial_end
+                ? new Date(sub.trial_end * 1000).toISOString()
+                : null,
+              ...(isActive
+                ? {
+                    is_premium: true,
+                    payment_failed: false,
+                    ...(isProTier ? { is_pro: true } : {}),
+                  }
+                : {}),
+              ...(subscriptionType ? { subscription_type: subscriptionType } : {}),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_customer_id", sub.customer);
+        }
+
+        // Layer 3 — annual Smart Tool credits. Env-scoped.
+        if (isActive && isAnnualTier && userId && periodStart) {
           const cycleStart = new Date(periodStart * 1000)
             .toISOString()
             .split("T")[0];
           const creditsToGrant = subscriptionType === "pro_annual" ? 3 : 1;
           const rows = Array.from({ length: creditsToGrant }, (_, i) => ({
-            user_id: updatedProfile.id,
+            user_id: userId,
             client_id: null,
             cycle_start: cycleStart,
             credit_index: i + 1,
+            environment: env,
           }));
           const { error: creditErr } = await supabase
             .from("annual_tool_credits")
             .insert(rows);
-          // 23505 = unique_violation → expected on replay; everything else is real.
           if (creditErr && (creditErr as any).code !== "23505") {
             console.error("annual_tool_credits insert failed:", creditErr.message);
           }
@@ -134,26 +209,40 @@ Deno.serve(async (req) => {
       case "customer.subscription.deleted":
       case "subscription.canceled": {
         const sub = event.data.object;
-        await supabase
-          .from("profiles")
-          .update({
+        const userId = await profileIdForCustomer(sub.customer);
+        if (userId) {
+          await upsertEntitlement(userId, env, {
             is_premium: false,
             cancel_at_period_end: false,
-            // Clear stale trial timestamp so a re-subscribed user isn't
-            // ghost-blocked by a future date left from a prior cycle.
             stripe_trial_end: null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("stripe_customer_id", sub.customer);
+          });
+        }
+        if (env === "live") {
+          await supabase
+            .from("profiles")
+            .update({
+              is_premium: false,
+              cancel_at_period_end: false,
+              stripe_trial_end: null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_customer_id", sub.customer);
+        }
         break;
       }
       case "invoice.payment_failed":
       case "transaction.payment_failed": {
         const inv = event.data.object;
-        await supabase
-          .from("profiles")
-          .update({ payment_failed: true, updated_at: new Date().toISOString() })
-          .eq("stripe_customer_id", inv.customer);
+        const userId = await profileIdForCustomer(inv.customer);
+        if (userId) {
+          await upsertEntitlement(userId, env, { payment_failed: true });
+        }
+        if (env === "live") {
+          await supabase
+            .from("profiles")
+            .update({ payment_failed: true, updated_at: new Date().toISOString() })
+            .eq("stripe_customer_id", inv.customer);
+        }
         break;
       }
       default:
@@ -165,7 +254,6 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("payments-webhook handler error:", err);
-    // Return 200 anyway to avoid retries on logic errors. Stripe will retry on 5xx.
     return new Response(JSON.stringify({ received: true, warning: (err as Error).message }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -176,8 +264,6 @@ Deno.serve(async (req) => {
 async function handleCheckoutCompleted(session: any, env: StripeEnv) {
   const userId = session.metadata?.user_id || session.metadata?.userId;
 
-  // Session-based tools (RoPA / US Notice / EU Notice) — mark the existing
-  // session row as paid so the review page can advance to generation.
   const SESSION_TOOL_TABLES: Record<string, string> = {
     ropa_initial: "ropa_sessions",
     ropa_refresh: "ropa_sessions",
@@ -210,13 +296,11 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       stripe_payment_intent_id: (session.payment_intent as string) || session.id,
       status: "paid",
       subscriber_at_time: session.metadata?.tier !== "standalone",
+      environment: env,
     });
     return;
   }
 
-  // Stage 1 Prompt 1.7: half-price top-up grants +4 generations on the
-  // existing meter. Handled BEFORE the standard tool-purchase block so we
-  // don't double-insert an assessment_purchases row.
   if (session.metadata?.topup === "true") {
     const { tool_type, assessment_id } = session.metadata;
     const { data: m } = await supabase
@@ -232,7 +316,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
         updated_at: new Date().toISOString(),
       }).eq("id", m.id as string);
     }
-    return; // a top-up grants budget only; user initiates runs via regenerate-assessment
+    return;
   }
 
   // Tool purchase
@@ -247,6 +331,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       stripe_payment_intent_id: (session.payment_intent as string) || session.id,
       status: "paid",
       subscriber_at_time: session.metadata?.tier === "subscriber",
+      environment: env,
     });
 
     const tableMap: Record<string, string> = {
@@ -286,14 +371,10 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       const fn = fnMap[tool_type];
       if (fn) {
         const bodyKey = tool_type === "dpia_framework" ? "dpia_id" : "assessment_id";
-        // Fire-and-forget: generators can run 2-3 minutes; awaiting them makes
-        // Stripe time out this webhook delivery and retry it, risking duplicate
-        // runs. waitUntil keeps the invoke alive after we respond to Stripe.
         EdgeRuntime.waitUntil(
           supabase.functions.invoke(fn, { body: { [bodyKey]: assessment_id } })
         );
 
-        // CPPA Suite: also dispatch the cybersecurity module for the second row.
         if (tool_type === "cppa_suite" && session.metadata?.suite_cyber_id) {
           const suiteCyberId = session.metadata.suite_cyber_id as string;
           await supabase
@@ -335,8 +416,6 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       })
     );
 
-    // Mark order as paid. Note: we never submit filings on the user's behalf, so
-    // the fulfillment status only ever moves through document generation states.
     const { error: updateErr } = await supabase
       .from("registration_orders")
       .update({
@@ -359,7 +438,6 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       );
     }
 
-    // Trigger document generation immediately for all paid one-time tiers
     if (tier === "diy" || tier === "counsel_review" || tier === "done_for_you") {
       const { error: invokeErr } = await supabase.functions.invoke("generate-registration-docs", {
         body: { order_id: orderId },
@@ -376,7 +454,6 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       }
     }
 
-    // Audit log
     await supabase.from("registration_audit_log").insert({
       action: "order_paid",
       order_id: orderId,
@@ -388,20 +465,43 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
 
   if (!userId) return;
 
-  // Premium subscription
-  await supabase
-    .from("profiles")
-    .update({
-      is_premium: true,
-      stripe_customer_id: session.customer,
-      payment_failed: false,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", userId);
+  // Premium subscription (checkout.session.completed side)
+  // Env-scoped entitlement write; dual-write profiles only on live.
+  await upsertEntitlement(userId, env, {
+    is_premium: true,
+    payment_failed: false,
+  });
+  if (env === "live") {
+    await supabase
+      .from("profiles")
+      .update({
+        is_premium: true,
+        stripe_customer_id: session.customer,
+        payment_failed: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+  } else {
+    // Sandbox: we still need to know which stripe customer maps to which
+    // user for follow-up subscription.* events, but that mapping lives on
+    // the profile row and must not encode entitlement. Only set the
+    // customer id if it isn't already present, and never touch entitlement
+    // fields here.
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (!prof?.stripe_customer_id && session.customer) {
+      await supabase
+        .from("profiles")
+        .update({ stripe_customer_id: session.customer })
+        .eq("id", userId);
+    }
+  }
 }
 
 async function handleCheckoutFailed(session: any, eventType: string, env: StripeEnv) {
-  // Only act on registration orders here. Other flows can be added later.
   if (session.metadata?.type !== "registration_order" || !session.metadata?.order_id) {
     return;
   }
@@ -423,7 +523,6 @@ async function handleCheckoutFailed(session: any, eventType: string, env: Stripe
     })
   );
 
-  // Only mark canceled if still pending — never overwrite a paid order.
   await supabase
     .from("registration_orders")
     .update({ payment_status: "canceled", updated_at: new Date().toISOString() })
