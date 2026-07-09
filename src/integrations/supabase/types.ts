@@ -60,6 +60,7 @@ export type Database = {
           client_id: string | null
           credit_index: number
           cycle_start: string
+          environment: string
           granted_at: string
           id: string
           redeemed_assessment_id: string | null
@@ -71,6 +72,7 @@ export type Database = {
           client_id?: string | null
           credit_index?: number
           cycle_start: string
+          environment?: string
           granted_at?: string
           id?: string
           redeemed_assessment_id?: string | null
@@ -82,6 +84,7 @@ export type Database = {
           client_id?: string | null
           credit_index?: number
           cycle_start?: string
+          environment?: string
           granted_at?: string
           id?: string
           redeemed_assessment_id?: string | null
@@ -194,6 +197,7 @@ export type Database = {
           amount_cents: number
           assessment_id: string
           created_at: string | null
+          environment: string
           id: string
           status: string
           stripe_payment_intent_id: string
@@ -205,6 +209,7 @@ export type Database = {
           amount_cents: number
           assessment_id: string
           created_at?: string | null
+          environment?: string
           id?: string
           status?: string
           stripe_payment_intent_id: string
@@ -216,6 +221,7 @@ export type Database = {
           amount_cents?: number
           assessment_id?: string
           created_at?: string | null
+          environment?: string
           id?: string
           status?: string
           stripe_payment_intent_id?: string
@@ -7417,6 +7423,48 @@ export type Database = {
           id?: string
           user_id?: string | null
           user_role?: string | null
+        }
+        Relationships: []
+      }
+      user_entitlements: {
+        Row: {
+          cancel_at_period_end: boolean
+          environment: string
+          is_premium: boolean
+          is_pro: boolean
+          payment_failed: boolean
+          stripe_subscription_id: string | null
+          stripe_trial_end: string | null
+          subscription_end_date: string | null
+          subscription_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          environment: string
+          is_premium?: boolean
+          is_pro?: boolean
+          payment_failed?: boolean
+          stripe_subscription_id?: string | null
+          stripe_trial_end?: string | null
+          subscription_end_date?: string | null
+          subscription_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          environment?: string
+          is_premium?: boolean
+          is_pro?: boolean
+          payment_failed?: boolean
+          stripe_subscription_id?: string | null
+          stripe_trial_end?: string | null
+          subscription_end_date?: string | null
+          subscription_type?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

@@ -15,6 +15,8 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { ANNUAL_CREDIT_ELIGIBLE_KEYS } from '@/config/pricing';
+import { getStripeEnvironment } from '@/lib/env';
+
 
 export interface AnnualCreditStatus {
   /** True when an unredeemed credit exists for this user/client cycle. */
@@ -45,9 +47,11 @@ export async function getAvailableAnnualCredit(
     .from('annual_tool_credits')
     .select('id, cycle_start')
     .eq('user_id', userId)
+    .eq('environment', getStripeEnvironment())
     .is('redeemed_at', null)
     .order('cycle_start', { ascending: false })
     .limit(1);
+
 
   if (clientId) {
     q = q.eq('client_id', clientId);
@@ -75,7 +79,9 @@ export async function countAvailableAnnualCredits(
     .from('annual_tool_credits')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
+    .eq('environment', getStripeEnvironment())
     .is('redeemed_at', null);
+
 
   if (clientId) {
     q = q.eq('client_id', clientId);
