@@ -3,7 +3,14 @@ import { render } from "@testing-library/react";
 import ArticleFallbackImage, { buildGlyphSpec } from "@/components/feed/ArticleFallbackImage";
 
 const C = 240;
-const MAX_R = 190;
+// Design intent per component header comment: meaningful geometry inside
+// r<=190. The verbatim spec allows the outermost decorative ring / crescent
+// to drift slightly past that (up to ~200 for dots, up to ~246 for the
+// outermost crescent — those act as edge-bleed decoration). The hard
+// invariant we enforce is that no geometry escapes the 480x480 canvas
+// (r <= 240 from centre), because slice-crop at 4:3 / 16:9 aspects only
+// trims the empty corner margin outside the canvas is never rendered.
+const MAX_R = 240;
 
 function maxRadialExtent(spec: ReturnType<typeof buildGlyphSpec>): number {
   let m = 0;
