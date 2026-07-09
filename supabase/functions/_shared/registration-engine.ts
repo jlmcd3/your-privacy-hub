@@ -288,6 +288,37 @@ export function runRegistrationAssessment(intake: IntakeData): AssessmentOutput 
       }
     }
     if (dataBrokerStates.length > 0) fired.push("R7_DATA_BROKER");
+
+    // ------- Rule R7a: California SB 361 (2025) expanded DROP disclosures -------
+    // SB 361 amended Civ. Code § 1798.99.82(b)(2) effective for the 2026 registration
+    // cycle. Data brokers registering with the CPPA must now be prepared to answer
+    // an expanded set of yes/no disclosures at filing time, covering collection of
+    // sensitive personal-information categories AND sharing/selling to specified
+    // recipient classes (foreign actors, federal government, other state
+    // governments, law enforcement, and developers of GenAI systems). List drawn
+    // verbatim from SB 361 Sec. 1, subparagraphs (C)–(S) as enrolled at
+    // leginfo.ca.gov (bill_id 202520260SB361).
+    if (map.has("US-CA") && map.get("US-CA")!.obligations.includes("data_broker_registration")) {
+      const ca = map.get("US-CA")!;
+      if (!ca.obligations.includes("sb361_disclosure_preparation")) {
+        ca.obligations.push("sb361_disclosure_preparation");
+      }
+      warnings.push(
+        "California SB 361 (2025) — before submitting the 2026 CPPA data-broker (DROP) " +
+        "registration, prepare responses to the expanded § 1798.99.82(b)(2) disclosures: " +
+        "(C) collects minors' PI; (D) names / DOB / ZIP / email / phone; (E) account " +
+        "login-or-account-number plus credential; (F) government identifiers (driver's " +
+        "license, state ID, tax ID, SSN, passport, military ID); (G) MAID / connected-TV / " +
+        "VIN identifiers; (H) citizenship or immigration status; (I) union membership; " +
+        "(J) sexual orientation; (K) gender identity or expression; (L) biometric data; " +
+        "(M) precise geolocation; (N) reproductive-health-care data; (O) shared/sold to a " +
+        "foreign actor (foreign-adversary-country government or entity); (P) shared/sold to " +
+        "the federal government; (Q) shared/sold to other state governments; (R) shared/sold " +
+        "to law enforcement (excluding subpoena/court-order transfers); (S) shared/sold to a " +
+        "developer of a GenAI system. Confirm each item against the current CPPA DROP form " +
+        "at https://cppa.ca.gov/data_brokers/ before filing."
+      );
+    }
   }
 
   // ------- Rule R8: CCPA-family — sells or shares -------
