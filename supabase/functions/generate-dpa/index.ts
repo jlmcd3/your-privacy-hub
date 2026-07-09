@@ -871,29 +871,14 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
 
     let parsed = parseDpa(fullText);
     let lint = lintReportText(parsed.dpa_text, { checkClauseNumbering: true });
-    if (hasHardViolations(lint)) {
-      try {
-        const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
-        const retryCall = await callAi(
-          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the document again, correcting these defects silently. Do not mention this instruction or the defects in the document.`,
-          200_000,
-        );
-        const retryParsed = parseDpa(retryCall.text);
-        const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
-        parsed = retryParsed;
-        lint = retryLint;
-      } catch (e) {
-        console.warn("[DPA] lint retry failed (non-fatal):", e);
-      }
-    }
-    const dpa_text = stripEnforcementTags(lint.clean);
-    const parsedAnnotations = parsed.annotations;
+    let dpa_text = stripEnforcementTags(lint.clean);
+    let parsedAnnotations = parsed.annotations;
 
     if (!dpa_text.trim()) {
       throw new Error("AI generation returned an empty document");
     }
 
-    const report_data = {
+    const buildReportData = () => ({
       enforcement_precedents: enforcement_context.slice(0, 5),
       enforcement_meta: enforcementMeta,
       gdpr_meta: gdprMeta,
@@ -902,7 +887,8 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
         ? (parsed as any).information_needed
         : [],
       generated_at: new Date().toISOString(),
-    };
+    });
+    let report_data: ReturnType<typeof buildReportData> = buildReportData();
 
     try {
       const guarded = guardInformationNeeded(
@@ -914,10 +900,11 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       console.warn("[generate-dpa] insufficient-info guard error:", e);
     }
 
-    // PRIMARY PERSISTENCE — do this FIRST, before any optional side-effects
-    // (metering, versioning, citation observation, RoPA accumulation). If the
-    // background worker is killed by wall-time or a side-effect throws, the
-    // document must still be saved.
+    // PRIMARY PERSISTENCE — persist-first, BEFORE the lint-repair regeneration.
+    // The generated document must never be lost to a downstream repair failure
+    // or a wall-time kill during repair. If repair later succeeds, we update
+    // the row again with the repaired text; if it fails, the original document
+    // stays saved with its lint warnings recorded.
     console.log(`[generate-dpa] persisting rowId=${rowId} chars=${dpa_text.length}`);
     const { error: updateErr } = await supabase
       .from("dpa_documents")
@@ -935,6 +922,56 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
       throw updateErr;
     }
     console.log(`[generate-dpa] persisted rowId=${rowId} status=complete`);
+
+    // Post-persist lint repair (non-fatal). If hard violations exist, attempt
+    // one regeneration and update the row with repaired text on success. On
+    // failure, keep the already-persisted document with its lint warnings.
+    if (hasHardViolations(lint)) {
+      try {
+        const details = lint.violations.map((v) => `${v.code}: ${v.detail}`).join("; ");
+        const retryCall = await callAi(
+          `PREVIOUS ATTEMPT REJECTED by automated lint for: ${details}. Produce the document again, correcting these defects silently. Do not mention this instruction or the defects in the document.`,
+          360_000,
+        );
+        const retryParsed = parseDpa(retryCall.text);
+        const retryLint = lintReportText(retryParsed.dpa_text, { checkClauseNumbering: true });
+        const repairedText = stripEnforcementTags(retryLint.clean);
+        if (repairedText.trim()) {
+          parsed = retryParsed;
+          lint = retryLint;
+          dpa_text = repairedText;
+          parsedAnnotations = retryParsed.annotations;
+          report_data = buildReportData();
+          try {
+            const guarded = guardInformationNeeded(
+              { ...report_data, document_text: dpa_text } as Record<string, unknown>,
+              (body as unknown) as Record<string, unknown>,
+            );
+            (report_data as any).information_needed = (guarded as any).information_needed ?? report_data.information_needed;
+          } catch (e) {
+            console.warn("[generate-dpa] insufficient-info guard error (post-repair):", e);
+          }
+          console.log(`[generate-dpa] persisting repaired rowId=${rowId} chars=${dpa_text.length}`);
+          const { error: repairUpdateErr } = await supabase
+            .from("dpa_documents")
+            .update({
+              document_text: dpa_text,
+              report_data,
+              lint_warnings: lint.violations,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", rowId);
+          if (repairUpdateErr) {
+            console.warn("[generate-dpa] repaired persist failed (non-fatal):", repairUpdateErr);
+          } else {
+            console.log(`[generate-dpa] persisted repaired rowId=${rowId}`);
+          }
+        }
+      } catch (e) {
+        console.warn("[DPA] lint repair failed (non-fatal, original document retained):", e);
+      }
+    }
+
 
     // Stage 2 (non-fatal): metering + version retention.
     try {
