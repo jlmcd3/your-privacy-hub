@@ -366,7 +366,7 @@ Applies to this organisation: Conditional — ${describeProcessing(body.orgType,
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Cal. Civ. Code § 1798.140(ae)(1)(B): biometric information used to identify a consumer is Sensitive Personal Information (SPI).
 2. § 1798.121: consumers have the right to direct the business to limit use of SPI to what is necessary to perform services or provide goods reasonably expected. Implement a "Limit the Use of My Sensitive Personal Information" opt-out link.
-3. § 1798.100 et seq.: provide notice at or before collection (Privacy Policy and at-collection notice must identify biometric information and SPI status).
+3. § 1798.100(b): provide notice at or before collection identifying biometric information as a category of personal information collected and the purposes of use; the Privacy Policy must additionally reflect the SPI classification for purposes of the § 1798.121 limit-use right.
 4. § 1798.145(e): GLBA exemption — if the organisation is a financial institution under GLBA and the biometric data relates to GLBA-covered activities, CCPA may not apply to that data; complete GLBA boundary analysis first.
 5. CPPA enforcement: the California Privacy Protection Agency (CPPA) enforces CCPA/CPRA; private right of action only for data breaches (§ 1798.150).
 
