@@ -18,9 +18,17 @@ const toolModule: ToolModule = {
   extraRules: "Tool-specific rules here.",
 };
 
-Deno.test("version is 3.6", () => {
-  assertEquals(PROMPT_CORE_VERSION, "3.6");
+Deno.test("version is 3.7", () => {
+  assertEquals(PROMPT_CORE_VERSION, "3.7");
 });
+
+Deno.test("v3.7 META rules present in prompt core", () => {
+  const blocks = buildSystemContent({ toolModule });
+  const b1 = blocks[0].text;
+  assertStringIncludes(b1, "CANONICAL FORMS CARRY NO FROZEN TIME FACTS");
+  assertStringIncludes(b1, "TEMPORAL FRAMING RULE");
+});
+
 
 Deno.test("languageVariant: british emits British English instruction; american the American one", () => {
   const british = buildSystemContent({
