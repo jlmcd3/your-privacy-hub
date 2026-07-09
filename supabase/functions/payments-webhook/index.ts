@@ -480,7 +480,7 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
 
   // Premium subscription (checkout.session.completed side)
   // Env-scoped entitlement write; dual-write profiles only on live.
-  await upsertEntitlement(userId, env, {
+  await upsertEntitlement(supabase, userId, env, {
     is_premium: true,
     payment_failed: false,
   });
