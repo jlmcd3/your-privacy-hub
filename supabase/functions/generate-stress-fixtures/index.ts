@@ -623,7 +623,8 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
     governance: {
       sector: industry,
       org_size: slot === 1 ? "Large Enterprise" : "Mid-Market",
-      jurisdictions,
+      jurisdictions: jurisdictionsDisplay,
+
       eu_uk_data: geo === "eu" ? "Yes" : "No",
       tools: ["OneTrust", "Jira", "AWS", "Salesforce"],
       data_categories: dataCategories,
@@ -659,7 +660,8 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       cause: "Compromised vendor credential exposed a limited support dataset",
       dataTypes: ["names", "emails", "account IDs", "support notes"],
       affectedCount: slot === 1 ? "186,000" : "24,500",
-      jurisdictions,
+      jurisdictions: jurisdictionsDisplay,
+
       processorInvolved: true,
       contained: "Credentials revoked, sessions invalidated, logs preserved, vendor access restricted",
       organisationType: `${industry} operator`,
@@ -671,7 +673,8 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       purpose: usesBiometric
         ? "Identity verification and fraud prevention"
         : "None — no biometric systems currently in use",
-      jurisdictions,
+      jurisdictions: jurisdictionsDisplay,
+
       enrolledCount: usesBiometric ? (slot === 1 ? "120,000" : "18,000") : "0",
     },
     registration: {
@@ -692,7 +695,7 @@ function buildDeterministicProfile(industry: string, geo: string, slot: number, 
       ai_high_risk: /hr|health|financial/i.test(industry),
       ai_general_purpose_provider: /ai/i.test(industry),
       cross_border_transfers: true,
-      markets_served: jurisdictions,
+      markets_served: jurisdictionsIso,
       has_eu_establishment: geo === "eu",
       has_uk_establishment: geo === "eu",
       acts_as_data_broker: /adtech|marketing|data.broker|data.intel|enrichment/i.test(industry),
