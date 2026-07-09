@@ -24,12 +24,13 @@ const supabase = createClient(
  * preserved via an explicit merge (Postgres upsert would otherwise reset
  * DEFAULTed columns).
  */
-async function upsertEntitlement(
+export async function upsertEntitlement(
+  sb: SupabaseClient,
   userId: string,
   env: StripeEnv,
   patch: Record<string, unknown>,
 ) {
-  const { data: existing } = await supabase
+  const { data: existing } = await sb
     .from("user_entitlements")
     .select("*")
     .eq("user_id", userId)
@@ -48,7 +49,7 @@ async function upsertEntitlement(
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase
+  const { error } = await sb
     .from("user_entitlements")
     .upsert(merged, { onConflict: "user_id,environment" });
   if (error) console.error("user_entitlements upsert failed:", error.message);
@@ -58,13 +59,131 @@ async function upsertEntitlement(
  * Look up the profile id for a given stripe_customer_id. Only used on the
  * live path where dual-writing to profiles is required.
  */
-async function profileIdForCustomer(customerId: string): Promise<string | null> {
-  const { data } = await supabase
+export async function profileIdForCustomer(
+  sb: SupabaseClient,
+  customerId: string,
+): Promise<string | null> {
+  const { data } = await sb
     .from("profiles")
     .select("id")
     .eq("stripe_customer_id", customerId)
     .maybeSingle();
   return (data?.id as string | undefined) ?? null;
+}
+
+/**
+ * Testable subscription upsert handler. Exported so ENT-1 tests can
+ * exercise the env-gating rules without going through verifyWebhook.
+ */
+export async function handleSubscriptionEvent(
+  sb: SupabaseClient,
+  sub: any,
+  env: StripeEnv,
+) {
+  const item = sub.items?.data?.[0];
+  const periodStart =
+    item?.current_period_start ?? sub.current_period_start ?? null;
+  const periodEnd =
+    item?.current_period_end ?? sub.current_period_end ?? null;
+  const isActive = ["active", "trialing", "past_due"].includes(sub.status);
+
+  const lookupKey: string | null =
+    item?.price?.lookup_key ||
+    item?.price?.metadata?.lovable_external_id ||
+    null;
+
+  let subscriptionType:
+    | "monthly"
+    | "annual"
+    | "pro_monthly"
+    | "pro_annual"
+    | null = null;
+  if (lookupKey === "intelligence_yearly" || lookupKey === "intelligence_annual") {
+    subscriptionType = "annual";
+  } else if (lookupKey === "intelligence_monthly") {
+    subscriptionType = "monthly";
+  } else if (lookupKey === "professional_annual" || lookupKey === "professional_yearly") {
+    subscriptionType = "pro_annual";
+  } else if (lookupKey === "professional_monthly") {
+    subscriptionType = "pro_monthly";
+  }
+
+  const isProTier =
+    subscriptionType === "pro_monthly" || subscriptionType === "pro_annual";
+  const isAnnualTier =
+    subscriptionType === "annual" || subscriptionType === "pro_annual";
+
+  const userId = await profileIdForCustomer(sb, sub.customer);
+
+  const entPatch: Record<string, unknown> = {
+    stripe_subscription_id: sub.id,
+    cancel_at_period_end: !!sub.cancel_at_period_end,
+    subscription_end_date: periodEnd
+      ? new Date(periodEnd * 1000).toISOString()
+      : null,
+    stripe_trial_end: sub.trial_end
+      ? new Date(sub.trial_end * 1000).toISOString()
+      : null,
+    ...(isActive
+      ? {
+          is_premium: true,
+          payment_failed: false,
+          ...(isProTier ? { is_pro: true } : {}),
+        }
+      : {}),
+    ...(subscriptionType ? { subscription_type: subscriptionType } : {}),
+  };
+
+  if (userId) {
+    await upsertEntitlement(sb, userId, env, entPatch);
+  }
+
+  // Dual-write to profiles ONLY on live. Sandbox never touches profiles.
+  if (env === "live") {
+    await sb
+      .from("profiles")
+      .update({
+        stripe_subscription_id: sub.id,
+        cancel_at_period_end: !!sub.cancel_at_period_end,
+        subscription_end_date: periodEnd
+          ? new Date(periodEnd * 1000).toISOString()
+          : null,
+        stripe_trial_end: sub.trial_end
+          ? new Date(sub.trial_end * 1000).toISOString()
+          : null,
+        ...(isActive
+          ? {
+              is_premium: true,
+              payment_failed: false,
+              ...(isProTier ? { is_pro: true } : {}),
+            }
+          : {}),
+        ...(subscriptionType ? { subscription_type: subscriptionType } : {}),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("stripe_customer_id", sub.customer);
+  }
+
+  // Layer 3 — annual Smart Tool credits. Env-scoped.
+  if (isActive && isAnnualTier && userId && periodStart) {
+    const cycleStart = new Date(periodStart * 1000)
+      .toISOString()
+      .split("T")[0];
+    const creditsToGrant = subscriptionType === "pro_annual" ? 3 : 1;
+    const rows = Array.from({ length: creditsToGrant }, (_, i) => ({
+      user_id: userId,
+      client_id: null,
+      cycle_start: cycleStart,
+      credit_index: i + 1,
+      environment: env,
+    }));
+    const { error: creditErr } = await sb
+      .from("annual_tool_credits")
+      .insert(rows);
+    if (creditErr && (creditErr as any).code !== "23505") {
+      console.error("annual_tool_credits insert failed:", creditErr.message);
+    }
+  }
 }
 
 Deno.serve(async (req) => {
