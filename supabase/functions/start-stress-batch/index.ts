@@ -173,18 +173,22 @@ async function processNextCompany(batchId: string, companyIndex: number): Promis
         .update({ setup_done: companyIndex + 1 })
         .eq("id", batchId);
 
-      // After the first company's jobs are inserted, launch 8 parallel workers.
-      // They will continuously claim and process jobs as more companies are
-      // added by the ongoing setup chain. Workers self-sustain via selfInvokeNext.
+      // After the first company's jobs are inserted, launch parallel workers.
+      // They continuously claim and process jobs as more companies are added by
+      // the ongoing setup chain. Workers self-sustain via run-stress-job's own
+      // self-chain. 20 workers ensures all DPA jobs (the slow tool, ~5 min LLM)
+      // in a typical batch can run truly in parallel, collapsing the critical
+      // path to a single DPA-cycle.
       if (companyIndex === 0 && jobRows.length > 0) {
         await admin.from("static_stress_batches").update({
           status: "running",
           started_at: new Date().toISOString(),
         }).eq("id", batchId);
 
-        const WORKER_COUNT = 12;
+        const WORKER_COUNT = 20;
         for (let w = 0; w < WORKER_COUNT; w++) {
-          await new Promise((r) => setTimeout(r, w * 800));
+          // Stagger launches to avoid a thundering-herd claim collision.
+          await new Promise((r) => setTimeout(r, w * 500));
           invokeFn("run-stress-job", { batch_id: batchId, job_id: null }).catch((e) =>
             console.warn(`[start-stress-batch] worker ${w} early-start launch failed:`, e)
           );
