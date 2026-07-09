@@ -91,7 +91,7 @@ async function runGenerator(
   // -- LIA / DPIA / Governance / CPPA risk / CPPA cyber -------------------
   if (fix.tool_slug === "li_assessment" || fix.tool_slug === "dpia" ||
       fix.tool_slug === "governance" || fix.tool_slug === "cppa_risk" ||
-      fix.tool_slug === "cppa_cyber") {
+      fix.tool_slug === "cppa_cyber" || fix.tool_slug === "cppa_admt") {
     const insert = { ...(f.insert as Record<string, unknown>), user_id: userId };
     const invoke = f.invoke as { fn: string; id_key: string };
     const poll = f.poll as { table: string; terminal: string[]; max: number; interval_ms: number };
@@ -185,7 +185,12 @@ async function runGenerator(
     log(`✓ session ${session.id}`);
 
     log("▶ Upsert ropa_jurisdiction_selections...");
-    const jurs = (f.jurisdictions as Array<Record<string, unknown>>).map((j) => ({ client_id: clientId, ...j }));
+    const jurs = (f.jurisdictions as Array<{ code: string; name: string; region: string }>).map((j) => ({
+      client_id: clientId,
+      jurisdiction_code: j.code,
+      jurisdiction_name: j.name,
+      jurisdiction_region: j.region,
+    }));
     const { error: jErr } = await (supabase as any)
       .from("ropa_jurisdiction_selections")
       .upsert(jurs, { onConflict: "client_id,jurisdiction_code" });
