@@ -6,7 +6,7 @@ import { fmtDate } from "@/lib/dates";
 import { normalizeTitle, stripHtml } from "@/lib/utils";
 import type { ArticleItem } from "@/components/ArticleCard";
 import { InvestigationPrompt } from "@/components/InvestigationPrompt";
-import eupTile from "@/assets/eup-intelligence-tile.jpg";
+import ArticleThumb from "@/components/feed/ArticleThumb";
 
 type UpdateArticleRow = ArticleItem & {
   url?: string | null;
