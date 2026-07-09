@@ -52,6 +52,55 @@ export async function resolvePriceId(
 }
 
 /**
+ * Resolve or create a Stripe Customer keyed by our internal userId.
+ * Search order:
+ *   1. metadata['userId'] exact match (Stripe Search API)
+ *   2. email match (customers.list) — backfill metadata.userId if missing
+ *   3. create new customer with { email, metadata: { userId } }
+ * Prevents duplicate customer creation when a user re-checkouts
+ * (CUSTOMER-1 fix). Callers should pass `customer: customerId` to
+ * `checkout.sessions.create` instead of `customer_email`.
+ */
+export async function resolveOrCreateCustomer(
+  stripe: Stripe,
+  opts: { userId: string; email?: string },
+): Promise<string> {
+  if (!/^[a-zA-Z0-9_-]+$/.test(opts.userId)) throw new Error("Invalid userId");
+
+  // 1) Search by metadata.userId — authoritative.
+  try {
+    const found = await stripe.customers.search({
+      query: `metadata['userId']:'${opts.userId}'`,
+      limit: 1,
+    });
+    if (found.data.length) return found.data[0].id;
+  } catch (_) {
+    // search index may lag; fall through to email match.
+  }
+
+  // 2) Fallback: email match. Backfill userId metadata on hit.
+  if (opts.email) {
+    const existing = await stripe.customers.list({ email: opts.email, limit: 1 });
+    if (existing.data.length) {
+      const customer = existing.data[0];
+      if (customer.metadata?.userId !== opts.userId) {
+        await stripe.customers.update(customer.id, {
+          metadata: { ...customer.metadata, userId: opts.userId },
+        });
+      }
+      return customer.id;
+    }
+  }
+
+  // 3) Create.
+  const created = await stripe.customers.create({
+    ...(opts.email && { email: opts.email }),
+    metadata: { userId: opts.userId },
+  });
+  return created.id;
+}
+
+/**
  * Verify a Stripe webhook signature using HMAC-SHA256 without the SDK.
  * Reads the secret from PAYMENTS_SANDBOX_WEBHOOK_SECRET / PAYMENTS_LIVE_WEBHOOK_SECRET.
  */
