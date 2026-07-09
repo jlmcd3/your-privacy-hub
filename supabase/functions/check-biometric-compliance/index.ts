@@ -377,7 +377,7 @@ Retention and destruction:
 Retain biometric data only as long as necessary for the disclosed purpose (§ 1798.100(a)(3)). Honor deletion requests under § 1798.105 subject to exceptions.
 
 Sale and sharing restrictions:
-Prohibition on "sale" and "sharing" of SPI for cross-context behavioral advertising (§ 1798.121). Provide opt-out if SPI is sold or shared. Service providers receiving biometric data must be under written contract restricting further use.
+Consumers may opt out of the "sale" or "sharing" of SPI and may limit its use and disclosure, including for cross-context behavioral advertising (§ 1798.121) — a consumer-directed right, not an outright prohibition; provide the required opt-out/limit-use mechanism.
 
 Current enforcement posture:
 CPPA enforcement is active; limited private litigation (breach-only). Enforcement focus includes missing SPI notices, inadequate at-collection disclosures, and failure to honor consumer rights.
