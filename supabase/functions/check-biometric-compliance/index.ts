@@ -438,7 +438,7 @@ Applies to this organisation: Likely partially applicable — ${describeProcessi
 
 Key requirements for ${body.orgType} using ${body.biometricTypes[0]}:
 1. Determine HIPAA covered entity / business associate status — if applicable, and if the biometric processing is for treatment, payment, or operations, the VCDPA § 59.1-575 HIPAA exclusion applies to that data.
-2. For biometric data NOT covered by HIPAA exclusion (e.g. biometric access control for non-clinical staff, visitor identification not linked to patient care): VCDPA sensitive data requirements apply — § 59.1-577(B) opt-in consent required.
+2. For biometric data NOT covered by HIPAA exclusion (e.g. biometric access control for non-clinical staff, visitor identification not linked to patient care): VCDPA sensitive data requirements apply — § 59.1-578(A)(5) opt-in consent required.
 3. Conduct a data inventory to draw the HIPAA/non-HIPAA boundary within the organisation's biometric processing activities.
 4. Execute controller-processor agreements under § 59.1-574 for any biometric data outside the HIPAA exclusion.
 5. Virginia AG has exclusive enforcement authority; no private right of action under VCDPA.
