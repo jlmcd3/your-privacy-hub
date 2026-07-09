@@ -349,21 +349,42 @@ Deno.serve(async (req) => {
       case "customer.subscription.deleted":
       case "subscription.canceled": {
         const sub = event.data.object;
-        const userId = await profileIdForCustomer(supabase, sub.customer);
+        // Immediate revocation on delete — no grace period. Even if
+        // subscription_end_date is still in the future, the subscription
+        // is dead in Stripe and access must stop now.
+        const userId =
+          (sub.metadata?.user_id as string | undefined) ??
+          (sub.metadata?.userId as string | undefined) ??
+          (await profileIdForCustomer(supabase, sub.customer));
         if (userId) {
           await upsertEntitlement(supabase, userId, env, {
             is_premium: false,
+            is_pro: false,
             cancel_at_period_end: false,
             stripe_trial_end: null,
+            subscription_end_date: null,
+            subscription_type: null,
           });
+          console.log(
+            JSON.stringify({
+              scope: "webhook3_revoke_immediate",
+              env,
+              user_id: userId,
+              stripe_subscription_id: sub.id,
+              stripe_customer_id: sub.customer,
+            }),
+          );
         }
         if (env === "live") {
           await supabase
             .from("profiles")
             .update({
               is_premium: false,
+              is_pro: false,
               cancel_at_period_end: false,
               stripe_trial_end: null,
+              subscription_end_date: null,
+              subscription_type: null,
               updated_at: new Date().toISOString(),
             })
             .eq("stripe_customer_id", sub.customer);
