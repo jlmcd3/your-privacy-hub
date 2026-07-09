@@ -1,15 +1,14 @@
 // Thin composition helper: renders <img> when the article has a real
 // image_url (and it loads), otherwise renders the deterministic branded
-// SVG tile from ArticleFallbackImage. Keeps the render sites (ArticleCard,
+// SVG glyph from ArticleFallbackImage. Keeps the render sites (ArticleCard,
 // AnonymousUpdatesCard, HomepageSpotlight, HomepageFeedPanel, CategoryPage,
 // TopicHub) tidy — one component, one place to update fallback behavior.
 //
-// See FEEDART-1 spec: seed = stable article id/url; label = jurisdiction
-// or short regulator; eyebrow = category label; category tints accent.
+// See FEEDART-3 spec: seed = stable article id/url; category tints accent.
+// No text, no label, no eyebrow — text at 40-64px reads as a rendering bug.
 
 import { useState } from "react";
 import ArticleFallbackImage, { type FallbackCategory } from "./ArticleFallbackImage";
-import { categoryLabel } from "@/config/categories";
 
 interface ArticleLike {
   id?: string | null;
@@ -18,6 +17,7 @@ interface ArticleLike {
   category?: string | null;
   jurisdiction?: string | string[] | null;
   source_name?: string | null;
+  title?: string | null;
 }
 
 const CATEGORY_MAP: Record<string, FallbackCategory> = {
@@ -38,17 +38,6 @@ const CATEGORY_MAP: Record<string, FallbackCategory> = {
 function toFallbackCategory(cat?: string | null): FallbackCategory {
   if (!cat) return "default";
   return CATEGORY_MAP[cat] ?? "default";
-}
-
-function deriveLabel(item: ArticleLike): string | undefined {
-  const jur = Array.isArray(item.jurisdiction)
-    ? (item.jurisdiction[0] ?? "")
-    : (item.jurisdiction ?? "");
-  const j = (jur || "").toString().trim();
-  if (j && j.length <= 18) return j;
-  const src = (item.source_name || "").trim();
-  if (src && src.length <= 18) return src;
-  return undefined;
 }
 
 interface Props {
@@ -74,14 +63,12 @@ export default function ArticleThumb({ item, className, alt = "" }: Props) {
     );
   }
   const seed = (item.id || item.source_url || "eup-article").toString();
-  const eyebrow = item.category ? categoryLabel(item.category) : undefined;
   return (
     <ArticleFallbackImage
       seed={seed}
-      label={deriveLabel(item)}
-      eyebrow={eyebrow || undefined}
       category={toFallbackCategory(item.category)}
       className={className}
+      alt={alt || item.title || undefined}
     />
   );
 }

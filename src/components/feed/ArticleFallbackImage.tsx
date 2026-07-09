@@ -1,13 +1,15 @@
-// ArticleFallbackImage — deterministic, branded SVG placeholder for ingested
-// articles that arrive without artwork. Seeded by article id: the same article
-// always renders the same tile; different articles get visibly different
-// geometry, so a feed of fallbacks never looks like a wall of identical logos.
+// ArticleFallbackImage v3 — "signal glyph": deterministic, text-free, branded
+// SVG placeholder for articles without artwork.
 //
-// Brand: EUP v7 — navy #0d2a45, teal #2a9d8f, mist #b5ccd6, cloud #e8eff2.
-// Text is brand-cloud on navy (≈12:1, WCAG AA with margin). Decorative strokes
-// are exempt from contrast requirements (non-text).
-//
-// Zero dependencies, zero network requests, renders anywhere an <img> would.
+// Design rules (learned from v1/v2 failures in production slots):
+// - NO TEXT. The live slots are 40-64px squares and 112x80 rects; letters at
+//   that scale read as rendering bugs. Meaning is carried by color + geometry.
+// - CROP-PROOF. Square canvas, radial composition centered at (240,240) with
+//   all meaningful geometry inside r<=190, so preserveAspectRatio="slice" in
+//   any slot aspect (square, 16:9, 4:3) only trims empty margin.
+// - Deterministic: same article id => same glyph, forever.
+// - Brand: EUP v7 — navy #0d2a45, teal #2a9d8f, mist #b5ccd6, cloud #e8eff2;
+//   category tints the accent. Zero deps, zero network.
 
 import { useMemo } from "react";
 
@@ -19,16 +21,12 @@ export type FallbackCategory =
   | "default";
 
 interface ArticleFallbackImageProps {
-  /** Stable identifier — article id or URL. Same seed ⇒ same tile, always. */
+  /** Stable identifier — article id or URL. Same seed ⇒ same glyph, always. */
   seed: string;
-  /** Optional anchor text: regulator, statute, or jurisdiction (e.g. "CNIL", "GDPR", "California"). */
-  label?: string;
-  /** Optional small eyebrow above the label (e.g. "Enforcement", "Legislation"). */
-  eyebrow?: string;
   /** Tints the accent geometry. Defaults to teal. */
   category?: FallbackCategory;
   className?: string;
-  /** Accessible description; defaults to the label or a generic alt. */
+  /** Accessible description, e.g. the article title. */
   alt?: string;
 }
 
@@ -64,185 +62,192 @@ const CLOUD = "#e8eff2";
 
 const ACCENT: Record<FallbackCategory, string> = {
   legislation: "#2a9d8f", // brand teal
-  enforcement: "#d9a441", // gold — matches CTA gold family
+  enforcement: "#d9a441", // gold
   guidance: "#b5ccd6",    // brand mist
   analysis: "#69c9be",    // brand teal-on-navy
   default: "#2a9d8f",
 };
 
-// Gradient mid-stops the geometry sits on — all deep, all AA-safe under cloud text.
 const MIDS = ["#123a52", "#1f6674", "#14324e", "#1c5a63"];
 
-/* ---------- pure tile-spec builder (exported for tests) ---------- */
+/* ---------- pure glyph-spec builder (exported for tests) ---------- */
 
-export interface TileSpec {
-  angle: number;
+const C = 240; // center of the 480x480 canvas
+
+export interface GlyphSpec {
   mid: string;
-  pattern: "contours" | "dots" | "arcs";
-  paths: string[];
-  dots: Array<{ x: number; y: number; r: number; o: number }>;
-  arcs: Array<{ r: number; o: number }>;
-  arcCorner: { x: number; y: number };
+  family: "orbits" | "burst" | "crescents";
+  rings: Array<{ r: number; w: number; o: number; dash?: string }>;
+  orbitDots: Array<{ x: number; y: number; r: number; o: number }>;
+  burstTicks: Array<{ x1: number; y1: number; x2: number; y2: number; w: number; o: number }>;
+  crescents: Array<{ r: number; start: number; sweep: number; w: number; o: number }>;
+  coreR: number;
+  coreRingR: number;
 }
 
-export function buildTileSpec(seed: string): TileSpec {
+export function buildGlyphSpec(seed: string): GlyphSpec {
   const rand = mulberry32(xmur3(seed)());
-  const angle = Math.floor(rand() * 360);
   const mid = MIDS[Math.floor(rand() * MIDS.length)];
-  const pattern = (["contours", "dots", "arcs"] as const)[Math.floor(rand() * 3)];
+  const family = (["orbits", "burst", "crescents"] as const)[Math.floor(rand() * 3)];
 
-  // Flowing contour lines (topographic feel)
-  const paths: string[] = [];
-  const lines = 4 + Math.floor(rand() * 3);
-  for (let i = 0; i < lines; i++) {
-    const y0 = 60 + rand() * 340;
-    const c1x = 150 + rand() * 200;
-    const c1y = y0 - 80 + rand() * 160;
-    const c2x = 450 + rand() * 200;
-    const c2y = y0 - 80 + rand() * 160;
-    const y1 = 60 + rand() * 340;
-    paths.push(`M -20 ${y0.toFixed(1)} C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, 820 ${y1.toFixed(1)}`);
+  // Concentric base rings (all families get 2-3, faint)
+  const rings: GlyphSpec["rings"] = [];
+  const nRings = 2 + Math.floor(rand() * 2);
+  for (let i = 0; i < nRings; i++) {
+    const r = 70 + i * (38 + rand() * 22);
+    rings.push({
+      r: +r.toFixed(1),
+      w: rand() < 0.4 ? 2 : 1,
+      o: +(0.35 - i * 0.08).toFixed(2),
+      dash: rand() < 0.45 ? `${(4 + rand() * 10).toFixed(0)} ${(6 + rand() * 12).toFixed(0)}` : undefined,
+    });
   }
 
-  // Data-field dot grid with per-dot jitter and fade
-  const dots: TileSpec["dots"] = [];
-  const cols = 12, rows = 7;
-  const fx = rand() * 800, fy = rand() * 450;
-  for (let cx = 0; cx < cols; cx++) {
-    for (let cy = 0; cy < rows; cy++) {
-      const x = 40 + cx * 66 + (rand() - 0.5) * 14;
-      const y = 40 + cy * 60 + (rand() - 0.5) * 14;
-      const d = Math.hypot(x - fx, y - fy);
-      const o = Math.max(0.06, 0.5 - d / 900);
-      dots.push({ x: +x.toFixed(1), y: +y.toFixed(1), r: +(1.2 + rand() * 2).toFixed(1), o: +o.toFixed(2) });
-    }
+  // Family: orbiting dots on the rings
+  const orbitDots: GlyphSpec["orbitDots"] = [];
+  const nDots = 5 + Math.floor(rand() * 5);
+  for (let i = 0; i < nDots; i++) {
+    const ring = rings[Math.floor(rand() * rings.length)];
+    const a = rand() * Math.PI * 2;
+    orbitDots.push({
+      x: +(C + ring.r * Math.cos(a)).toFixed(1),
+      y: +(C + ring.r * Math.sin(a)).toFixed(1),
+      r: +(3 + rand() * 6).toFixed(1),
+      o: +(0.5 + rand() * 0.45).toFixed(2),
+    });
   }
 
-  // Concentric arcs radiating from a corner (horizon/radar feel)
-  const corners = [
-    { x: 0, y: 0 }, { x: 800, y: 0 }, { x: 0, y: 450 }, { x: 800, y: 450 },
-  ];
-  const arcCorner = corners[Math.floor(rand() * 4)];
-  const arcs: TileSpec["arcs"] = [];
-  const n = 5 + Math.floor(rand() * 3);
-  for (let i = 0; i < n; i++) {
-    arcs.push({ r: 90 + i * (70 + rand() * 30), o: +(0.28 - i * 0.03).toFixed(2) });
+  // Family: radial burst ticks
+  const burstTicks: GlyphSpec["burstTicks"] = [];
+  const nTicks = 14 + Math.floor(rand() * 10);
+  for (let i = 0; i < nTicks; i++) {
+    const a = (i / nTicks) * Math.PI * 2 + rand() * 0.2;
+    const r0 = 80 + rand() * 40;
+    const r1 = r0 + 22 + rand() * 60;
+    burstTicks.push({
+      x1: +(C + r0 * Math.cos(a)).toFixed(1),
+      y1: +(C + r0 * Math.sin(a)).toFixed(1),
+      x2: +(C + Math.min(r1, 188) * Math.cos(a)).toFixed(1),
+      y2: +(C + Math.min(r1, 188) * Math.sin(a)).toFixed(1),
+      w: rand() < 0.3 ? 3 : 2,
+      o: +(0.3 + rand() * 0.5).toFixed(2),
+    });
   }
 
-  return { angle, mid, pattern, paths, dots, arcs, arcCorner };
+  // Family: nested crescent arcs
+  const crescents: GlyphSpec["crescents"] = [];
+  const nCr = 3 + Math.floor(rand() * 3);
+  for (let i = 0; i < nCr; i++) {
+    crescents.push({
+      r: +(70 + i * (30 + rand() * 14)).toFixed(1),
+      start: +(rand() * 360).toFixed(0),
+      sweep: +(90 + rand() * 180).toFixed(0),
+      w: rand() < 0.4 ? 5 : 3,
+      o: +(0.55 - i * 0.08).toFixed(2),
+    });
+  }
+
+  return {
+    mid,
+    family,
+    rings,
+    orbitDots,
+    burstTicks,
+    crescents,
+    coreR: +(7 + rand() * 6).toFixed(1),
+    coreRingR: +(22 + rand() * 12).toFixed(1),
+  };
+}
+
+function arcPath(r: number, startDeg: number, sweepDeg: number): string {
+  const s = (startDeg * Math.PI) / 180;
+  const e = ((startDeg + sweepDeg) * Math.PI) / 180;
+  const large = sweepDeg > 180 ? 1 : 0;
+  return `M ${(C + r * Math.cos(s)).toFixed(1)} ${(C + r * Math.sin(s)).toFixed(1)} A ${r} ${r} 0 ${large} 1 ${(C + r * Math.cos(e)).toFixed(1)} ${(C + r * Math.sin(e)).toFixed(1)}`;
 }
 
 /* ---------- component ---------- */
 
 export default function ArticleFallbackImage({
   seed,
-  label,
-  eyebrow,
   category = "default",
   className,
   alt,
 }: ArticleFallbackImageProps) {
-  const spec = useMemo(() => buildTileSpec(seed), [seed]);
+  const spec = useMemo(() => buildGlyphSpec(seed), [seed]);
   const accent = ACCENT[category] ?? ACCENT.default;
-  const gid = useMemo(
-    () => `fbg-${xmur3(seed)().toString(36)}`,
-    [seed],
-  );
-  const rad = (spec.angle * Math.PI) / 180;
-  const x2 = 50 + 50 * Math.cos(rad);
-  const y2 = 50 + 50 * Math.sin(rad);
+  const gid = useMemo(() => `fbg-${xmur3(seed)().toString(36)}`, [seed]);
 
   return (
     <svg
-      viewBox="0 0 800 450"
+      viewBox="0 0 480 480"
       role="img"
-      aria-label={alt ?? (label ? `${label} — End User Privacy` : "End User Privacy article")}
+      aria-label={alt ?? "End User Privacy article"}
       className={className}
       preserveAspectRatio="xMidYMid slice"
+      width="100%"
+      height="100%"
+      style={{ display: "block" }}
     >
       <defs>
-        <linearGradient id={gid} x1="0%" y1="0%" x2={`${x2}%`} y2={`${y2}%`}>
-          <stop offset="0%" stopColor={NAVY} />
-          <stop offset="62%" stopColor={spec.mid} />
+        <radialGradient id={gid} cx="50%" cy="46%" r="75%">
+          <stop offset="0%" stopColor={spec.mid} />
           <stop offset="100%" stopColor={NAVY} />
-        </linearGradient>
+        </radialGradient>
       </defs>
 
-      <rect width="800" height="450" fill={`url(#${gid})`} />
+      <rect width="480" height="480" fill={`url(#${gid})`} />
 
-      {spec.pattern === "contours" &&
-        spec.paths.map((d, i) => (
+      {spec.rings.map((rg, i) => (
+        <circle
+          key={`r${i}`}
+          cx={C}
+          cy={C}
+          r={rg.r}
+          fill="none"
+          stroke={CLOUD}
+          strokeWidth={rg.w}
+          strokeDasharray={rg.dash}
+          opacity={rg.o * 0.5}
+        />
+      ))}
+
+      {spec.family === "orbits" &&
+        spec.orbitDots.map((d, i) => (
+          <circle key={`d${i}`} cx={d.x} cy={d.y} r={d.r} fill={accent} opacity={d.o} />
+        ))}
+
+      {spec.family === "burst" &&
+        spec.burstTicks.map((t, i) => (
+          <line
+            key={`t${i}`}
+            x1={t.x1}
+            y1={t.y1}
+            x2={t.x2}
+            y2={t.y2}
+            stroke={accent}
+            strokeWidth={t.w}
+            strokeLinecap="round"
+            opacity={t.o}
+          />
+        ))}
+
+      {spec.family === "crescents" &&
+        spec.crescents.map((cr, i) => (
           <path
-            key={i}
-            d={d}
+            key={`c${i}`}
+            d={arcPath(cr.r, cr.start, cr.sweep)}
             fill="none"
             stroke={accent}
-            strokeWidth={i % 2 === 0 ? 2 : 1}
-            opacity={0.22 - i * 0.02}
+            strokeWidth={cr.w}
+            strokeLinecap="round"
+            opacity={cr.o}
           />
         ))}
 
-      {spec.pattern === "dots" &&
-        spec.dots.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={p.r} fill={accent} opacity={p.o * 0.55} />
-        ))}
-
-      {spec.pattern === "arcs" &&
-        spec.arcs.map((a, i) => (
-          <circle
-            key={i}
-            cx={spec.arcCorner.x}
-            cy={spec.arcCorner.y}
-            r={a.r}
-            fill="none"
-            stroke={accent}
-            strokeWidth={i === 0 ? 2 : 1}
-            opacity={a.o}
-          />
-        ))}
-
-      {/* subtle accent baseline */}
-      <rect x="0" y="444" width="800" height="6" fill={accent} opacity="0.85" />
-
-      {eyebrow && (
-        <text
-          x="48"
-          y="330"
-          fill={CLOUD}
-          opacity="0.72"
-          fontFamily="'DM Sans', system-ui, sans-serif"
-          fontSize="19"
-          fontWeight="600"
-          letterSpacing="3.5"
-        >
-          {eyebrow.toUpperCase()}
-        </text>
-      )}
-
-      {label && (
-        <text
-          x="46"
-          y="392"
-          fill={CLOUD}
-          fontFamily="'DM Serif Display', Georgia, serif"
-          fontSize="58"
-        >
-          {label}
-        </text>
-      )}
-
-      {!label && (
-        <text
-          x="48"
-          y="392"
-          fill={CLOUD}
-          opacity="0.85"
-          fontFamily="'DM Serif Display', Georgia, serif"
-          fontSize="30"
-        >
-          End User Privacy
-        </text>
-      )}
+      {/* core: accent dot inside a cloud ring — the constant brand anchor */}
+      <circle cx={C} cy={C} r={spec.coreRingR} fill="none" stroke={CLOUD} strokeWidth="2" opacity="0.8" />
+      <circle cx={C} cy={C} r={spec.coreR} fill={accent} />
     </svg>
   );
 }
