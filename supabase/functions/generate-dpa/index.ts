@@ -221,6 +221,14 @@ Deno.serve(async (req) => {
     }
 
     const runBackground = async () => {
+      // Stamp attempt time immediately so watchdog/operator can see the row is
+      // being worked on and distinguish from an abandoned 'processing' row.
+      try {
+        await supabase.from("dpa_documents").update({
+          last_attempt_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }).eq("id", rowId);
+      } catch (_e) { /* non-fatal */ }
       try {
     // Resolve document type (from request or jurisdictional inference)
     const documentType = detectDocType(
