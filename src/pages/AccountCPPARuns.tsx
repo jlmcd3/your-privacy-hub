@@ -68,7 +68,7 @@ const moduleStartRoute = (mod: string) => {
   if (mod === "risk") return "/cppa-risk-assessment";
   if (mod === "cybersecurity") return "/cppa-cybersecurity";
   if (mod === "admt") return "/cppa-admt-checker";
-  return "/cppa-cybersecurity-drift";
+  return "/cppa-cybersecurity";
 };
 
 const moduleToolType = (mod: string): "cppa_risk" | "cppa_cybersecurity" | "cppa_admt" => {
