@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import PremiumGate from "@/components/PremiumGate";
+
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 interface HorizonItem {
