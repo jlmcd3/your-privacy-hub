@@ -129,11 +129,12 @@ export default function Horizon() {
       const fullFields =
         "id, week_of, jurisdiction, sector, anticipated_development, confidence, timeline_label, source_signal, recommended_action";
 
-      const horizonReq = supabase
+      const horizonReq = (supabase as any)
         .from("horizon_intelligence")
         .select(isPremium ? fullFields : teaserFields)
         .order("week_of", { ascending: false })
         .limit(isPremium ? 60 : 4);
+
 
       // Only Intelligence subscribers get personalized watchlist filtering on this page
       const watchReq = user && isPremium
