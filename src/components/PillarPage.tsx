@@ -127,6 +127,7 @@ const PillarPage = ({
       await (supabase as any)
         .from("email_signups")
         .insert({ email: captureEmail.toLowerCase().trim(), source: "pillar-hero" });
+      fireEmailCaptured("pillar-hero");
     } catch {
       /* swallow */
     }
