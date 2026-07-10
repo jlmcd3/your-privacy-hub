@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
 import { waitForAssessmentPaid } from "@/lib/checkoutConfirmation";
+import { fireCheckoutStarted } from "@/lib/analyticsEvents";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
