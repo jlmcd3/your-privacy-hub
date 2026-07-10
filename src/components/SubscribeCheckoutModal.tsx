@@ -29,6 +29,7 @@ export default function SubscribeCheckoutModal({ open, interval, tier = "intelli
     const plan = tier === "professional"
       ? (interval === "year" ? "professional_annual" : "professional_monthly")
       : (interval === "year" ? "intelligence_yearly" : "intelligence_monthly");
+    fireCheckoutStarted({ plan, surface: "subscribe_checkout_modal" });
     const { data, error } = await supabase.functions.invoke("create-checkout-session", {
       body: {
         plan,
