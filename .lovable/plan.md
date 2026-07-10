@@ -1,47 +1,39 @@
-# Battery 9 execution plan
+## Courier C — execution shape
 
-Apply the 9 prompts in `EUP_QUALITY_FIXES_BATTERY9.md` verbatim. Hard rules honored: exact find/replace or verbatim append only, no rewording, no "QB9-" prefixed rule text, one logical commit per prompt, HARD-STOP if any locate-target diverges from what the doc describes.
+Courier C spec covers 8 pages (~5,300 LOC across intake, Tools, Homepage, Subscribe, Samples, Get Intelligence, Auth). Applying it as one atomic edit risks silently regressing intake surfaces that Couriers A/B just verified green. I want to split into three verify-in-between turns, all within this Courier C build cycle.
 
-## Per-prompt actions
+### Approach — shared components first, then per-page injects
 
-- **QB9-1** `supabase/functions/generate-dpa/index.ts`
-  - (a) Replace the full `NO ENFORCEMENT FROM MEMORY` rule line with the extended version (adds intake meta-commentary prohibition).
-  - (b) Append the `NON-EEA PARTIES ON A GDPR FRAMEWORK SAY WHY` bullet as a new `- ` line in the same list.
+Build two small shared components once, then inject them across pages:
 
-- **QB9-2** `supabase/functions/generate-ir-playbook/index.ts`
-  - (a) In `formatEnforcementContext`, after the `year`/`citation` pair, add `decided` and `ref` locals; extend the returned template string with `Decided:` and `${ref}` lines exactly as specified.
-  - (b) Replace rule (12) `ENFORCEMENT CONTEXT PROVENANCE RULE` with the new `ENFORCEMENT CITATION COMPLETENESS RULE` text verbatim.
+- `<ToolAboveFoldHero />` — renders the intake formula (obligation sentence, sample preview thumb, registry price + est. time, "View sample" secondary, "Start" primary, disclaimer line, "Also available" row).
+- `<HomeGeographyPaths />` — two equal cards (California CPPA / EU GDPR) + trust line.
 
-- **QB9-3** `supabase/functions/run-li-assessment/index.ts`
-  - Define `dedupeInformationNeeded` and `ensureReferenceCategoryCaveat` as specified; call `ensureReferenceCategoryCaveat(dedupeInformationNeeded(report))` immediately before the report is persisted as `report_data`. HARD-STOP if there is no single persistence site.
+All prices from `PRICING` registry. All CTAs already-wired analytics wrappers from `analyticsEvents.ts`. No new copy uses the banned word "gap". Brand tokens only.
 
-- **QB9-4** `supabase/functions/run-dpia-framework/index.ts`
-  - (a) Replace the `processing_name` schema descriptor with the extended "distinct by design" version.
-  - (b) Append the `PLACEHOLDERS NEVER RE-REQUEST DOCUMENTED WORK` string element to the rules array containing PLACEHOLDER FORMAT RULE.
+### Turn split
 
-- **QB9-5** `supabase/functions/run-governance-assessment/index.ts`
-  - Add `hoistNestedInformationNeeded` alongside the existing Stage-5 forward-path guard; call it on the assembled report before persistence. HARD-STOP if the Stage-5 guard is not locatable.
+**Turn 1 (this turn) — Pages 1, 2, 3, 4** (intake + Tools + Homepage)
+- Build `<ToolAboveFoldHero />` + `<HomeGeographyPaths />`.
+- Inject hero on: `GovernanceAssessment`, `DPIAFramework`, `DPAGenerator`, `LIAssessment`, `IRPlaybook`.
+- `Tools.tsx`: add `?region=us|eu` toggle above card grid, normalize card price badge + sample link + Start.
+- `Index.tsx`: inject `<HomeGeographyPaths />` between hero and CPPA deadline strip.
+- Typecheck, report per-page diff.
 
-- **QB9-6** `supabase/functions/check-biometric-compliance/index.ts`
-  - (a) Replace CITATION INTEGRITY item (5) with the SB 446 version.
-  - (b) Replace the Land-consultation template item 3 with the Article 36 wording.
-  - (c) Extend the BetrVG sentence in HR EMPLOYMENT BIOMETRIC CONSENT RULE with the § 87 BetrVG / § 26 BDSG clarification.
+**Turn 2 — Pages 5, 6, 7, 8**
+- `Subscribe.tsx`: sticky monthly/annual toggle, ROI block (registry-computed), 4-item FAQ, one sample link per tier, `checkout_started` on plan click.
+- `SamplesHub.tsx` + `SampleReportView.tsx`: "Generate your own report" above-fold CTA, metadata sidebar (tool/juris/length + citation count when present), sticky Start CTA on long bodies.
+- `GetIntelligence.tsx`: instant on-page truncated preview after selection; email required for full delivery; fires `email_captured` source=`get_intelligence`.
+- `Login.tsx` + `Signup.tsx`: one value line.
+- Typecheck.
 
-- **QB9-7** `supabase/functions/run-admt-checker/index.ts`
-  - Replace `UNESTABLISHED TRIGGERS ARE LABELLED AS SUCH` rule with `PARTIALLY CONFIRMED TRIGGERS ARE CONDITIONALLY PRESENT` verbatim.
+**Turn 3 — Publish + live spot-checks**
+- Security scan check → `preview_ui--publish`.
+- Playwright against live: homepage geography paths (both CTAs route correctly, `View sample` links land), `/tools?region=eu` filters, `/tools?region=us` filters, default shows all. Screenshots.
 
-- **QB9-8** Ten files — add/extend `PROMPT_CORE_VERSION` import from `../_shared/prompt-core.ts`, then insert `console.log(\`[qb9] <fn> build active · core=${PROMPT_CORE_VERSION}\`);` as the first statement of the `Deno.serve` handler in each of:
-  `generate-ir-playbook`, `run-governance-assessment`, `generate-dpa`, `run-cppa-risk-assessment`, `run-cppa-cybersecurity`, `run-admt-checker`, `run-li-assessment`, `run-dpia-framework`, `check-biometric-compliance`, `run-registration-assessment`.
+### Guardrails
+- No changes to intake question logic, submission flow, or pricing values — only presentation adds above the existing fold.
+- Additive components; existing sections stay unless the spec explicitly replaces them.
+- If any target page's structure diverges from the formula in a way that would require restructuring the intake itself, I stop and report rather than force-fit.
 
-- **QB9-9** `supabase/functions/run-registration-assessment/index.ts`
-  - In the jurisdictions mapping, for the UK/ICO entry when `filing_fee_cents` is non-null, append the ICO fee-tier sentence to `notes` (single-space separator, create `notes` if null). HARD-STOP if the mapping does not match.
-
-## Verification (post-edit, pre-report)
-
-Run the 10-item checklist from the doc (§ Verification checklist), all greps must return the sentinel phrases; confirm zero occurrences of rule text beginning with "QB9-" in prompt strings.
-
-## Notes
-
-- No prompt-string may begin with "QB9-"; the token appears only in code comments and the console.log build marker.
-- No rewording — any divergence in a locate target triggers HARD-STOP with a report of the actual code, not an improvised substitute.
-- Redeploy + QL2 execution are John's steps after commit; not part of this plan.
+Confirm and I start Turn 1 immediately.
