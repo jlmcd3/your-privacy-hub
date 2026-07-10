@@ -11,6 +11,7 @@ import { TieredFeed } from "@/components/TieredFeed";
 import type { ArticleItem } from "@/components/ArticleCard";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
+import { fireEmailCaptured } from "@/lib/analyticsEvents";
 
 interface PillarPageProps {
   title: string;
