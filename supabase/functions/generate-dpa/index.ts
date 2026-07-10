@@ -151,6 +151,23 @@ Deno.serve(async (req) => {
     // callers may pass user_id in the body (service-role bearer).
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
 
+    if (body.assessment_id) {
+      const ent = await requireEntitlement(caller, "dpa_generator", { rowId: body.assessment_id });
+      if (!ent.ok) {
+        console.log(JSON.stringify({ evt: "entitlement_denied", fn: "generate-dpa", reason: ent.reason }));
+        return new Response(JSON.stringify({ error: "forbidden" }), {
+          status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else if (!caller.internal) {
+      // Non-service callers must operate on an existing row (created by the
+      // subscriber/checkout flow). Creating-and-generating in one shot is
+      // reserved for the payments-webhook (internal) path.
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Row-first dispatch — on the webhook path (payments-webhook invokes with
     // only { assessment_id }), hydrate body from the stored intake_data BEFORE
     // validating. Then create/update the row with status='processing' and
