@@ -7,6 +7,7 @@ import { getStripeEnvironment } from "@/lib/env";
 import { useAuth } from "@/hooks/useAuth";
 import { waitForSubscriptionActive } from "@/lib/checkoutConfirmation";
 import { PRICING } from "@/config/pricing";
+import { fireCheckoutStarted } from "@/lib/analyticsEvents";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
@@ -29,6 +30,7 @@ export default function SubscribeCheckoutModal({ open, interval, tier = "intelli
     const plan = tier === "professional"
       ? (interval === "year" ? "professional_annual" : "professional_monthly")
       : (interval === "year" ? "intelligence_yearly" : "intelligence_monthly");
+    fireCheckoutStarted({ plan, surface: "subscribe_checkout_modal" });
     const { data, error } = await supabase.functions.invoke("create-checkout-session", {
       body: {
         plan,

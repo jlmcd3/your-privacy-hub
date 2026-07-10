@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/env";
 import { waitForAssessmentPaid } from "@/lib/checkoutConfirmation";
+import { fireCheckoutStarted, firePurchaseCompleted } from "@/lib/analyticsEvents";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
@@ -47,6 +48,7 @@ export default function ToolCheckoutModal({
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const fetchClientSecret = useCallback(async () => {
+    fireCheckoutStarted({ tool: toolType, surface: "tool_checkout_modal" });
     const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
       body: {
         tool_type: toolType,
@@ -77,13 +79,14 @@ export default function ToolCheckoutModal({
     const ok = await waitForAssessmentPaid(id, { timeoutMs: 30_000, intervalMs: 1_500 });
     setConfirming(false);
     if (ok) {
+      firePurchaseCompleted({ tool: toolType, surface: "tool_checkout_modal" });
       onComplete?.(id, lastSuiteCyberIdRef.current || undefined);
     } else {
       setConfirmError(
         "Payment received, but your purchase hasn't finalized yet. It usually takes a few seconds — you can continue to your result and we'll keep working in the background."
       );
     }
-  }, [onComplete]);
+  }, [onComplete, toolType]);
 
   useEffect(() => {
     if (!open) return;

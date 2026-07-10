@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import { SampleToolReport } from "@/components/SampleToolReport";
 import { TOOL_ROUTE } from "@/lib/sampleToolRoutes";
 import { fmtDate } from "@/lib/dates";
+import { fireSampleOpened } from "@/lib/analyticsEvents";
 
 type SampleRow = {
   id: string;
@@ -76,6 +77,7 @@ export default function SampleReport() {
   const toolRoute = toolSlug ? TOOL_ROUTE[toolSlug] : undefined;
 
   useEffect(() => {
+    if (toolSlug) fireSampleOpened(toolSlug);
     let cancelled = false;
     (async () => {
       if (!toolSlug) return;

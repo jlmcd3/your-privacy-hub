@@ -32,6 +32,7 @@ import { BIOMETRIC_RAIL } from "@/components/biometric/BiometricRailEntries";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
+import { fireToolStarted } from "@/lib/analyticsEvents";
 
 
 const TYPES = ["Facial geometry / facial recognition","Fingerprint / palm print","Voiceprint / speaker recognition","Iris or retina scan","Gait analysis","Vein pattern recognition","Other biometric identifier"];
@@ -41,6 +42,8 @@ const JURS = ["EU / EEA (GDPR)","United Kingdom (UK GDPR)","Illinois, USA (BIPA)
 const COUNTS = ["Fewer than 500","500-5,000","5,000-50,000","50,000-500,000","More than 500,000"];
 
 export default function BiometricChecker() {
+  useEffect(() => { fireToolStarted("biometric"); }, []);
+
   const [params] = useSearchParams();
   const navigate = useNavigate();
   // No more anonymous free tier — every analysis requires a signed-in account.

@@ -33,6 +33,7 @@ import { INCLUDED_GENERATIONS_COPY } from "@/config/pricing";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
+import { fireToolStarted } from "@/lib/analyticsEvents";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -69,6 +70,8 @@ const Radio = ({ name, options, value, onChange }: { name: string; options: stri
 );
 
 const GovernanceAssessment = () => {
+  useEffect(() => { fireToolStarted("governance"); }, []);
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();

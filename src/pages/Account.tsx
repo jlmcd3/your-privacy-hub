@@ -7,6 +7,7 @@ import { Helmet } from "react-helmet-async";
 import { Check, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { fireCheckoutStarted } from "@/lib/analyticsEvents";
 
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
@@ -113,6 +114,7 @@ export default function Account() {
 
   const handleAddClientWorkspace = async () => {
     setAddonBusy(true);
+    fireCheckoutStarted({ plan: "per_client_addon", surface: "account_addon" });
     const { data, error } = await supabase.functions.invoke("create-checkout-session", {
       body: { addon: "per_client_addon" },
     });
