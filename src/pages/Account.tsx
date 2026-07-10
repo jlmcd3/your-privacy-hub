@@ -7,6 +7,7 @@ import { Helmet } from "react-helmet-async";
 import { Check, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { fireCheckoutStarted } from "@/lib/analyticsEvents";
 
 import BriefLanguageSelector from "@/components/account/BriefLanguageSelector";
 import WorkspaceLayout from "@/components/dashboard/WorkspaceLayout";
