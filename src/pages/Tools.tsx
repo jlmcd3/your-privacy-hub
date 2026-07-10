@@ -642,6 +642,40 @@ export default function Tools() {
       {/* ── U-S Selector (deterministic, static, no fetch/LLM) ─────────── */}
       <ToolsSelector tools={TOOLS} sampleSlugMap={SAMPLE_SLUG_MAP} />
 
+      {/* ── Region toggle (Courier C) ──────────────────────────────────── */}
+      <div className="bg-brand-cloud border-t border-brand-cloud">
+        <div className="max-w-[1100px] mx-auto px-4 py-4 flex flex-wrap items-center gap-3">
+          <span className="text-eyebrow text-brand-navy">Filter by jurisdiction:</span>
+          <div className="inline-flex rounded-full border border-brand-cloud bg-card p-1" role="tablist" aria-label="Jurisdiction filter">
+            {(["all", "us", "eu"] as const).map((r) => {
+              const active = region === r;
+              const label = r === "all" ? "All" : r === "us" ? "US · California" : "EU / UK";
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setRegion(r)}
+                  className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${
+                    active
+                      ? "bg-brand-navy text-white"
+                      : "text-brand-navy hover:bg-brand-cloud"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {region !== "all" && (
+            <span className="text-meta text-slate">
+              Showing tools relevant to {region === "us" ? "US / California" : "EU / UK GDPR"} jurisdictions.
+            </span>
+          )}
+        </div>
+      </div>
+
       {/* ── Grouped tool sections ──────────────────────────────────────── */}
       <div id="tools" className="border-t border-brand-cloud">
         {toolsBySection.map(({ section, tools }, secIdx) => {
