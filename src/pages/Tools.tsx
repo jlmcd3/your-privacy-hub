@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
@@ -72,6 +72,31 @@ const SUBSCRIBER_ONLY_SLUGS = new Set([
   "us-notices",
   "eu-notices",
 ]);
+
+// Courier C — region toggle. Each slug is tagged by primary jurisdiction:
+//   us  — California CPPA, US state notice, US registration
+//   eu  — GDPR-family assessments and EU notice builder
+//   all — jurisdiction-agnostic tools shown under both regions
+type ToolRegion = "us" | "eu" | "all";
+const TOOL_REGIONS: Record<string, ToolRegion> = {
+  // US
+  "cppa-scope-checker": "us",
+  "cppa-risk-assessment": "us",
+  "cppa-cybersecurity": "us",
+  "cppa-admt-checker": "us",
+  "us-notices": "us",
+  "registration-manager": "us",
+  // EU
+  "healthcheck": "eu",
+  "li-assessment": "eu",
+  "dpia": "eu",
+  "eu-notices": "eu",
+  "ropa-builder": "eu",
+  // Both regions
+  "dpa-generator": "all",
+  "ir-playbook": "all",
+  "biometric-checker": "all",
+};
 
 // ── Section header definitions ────────────────────────────────────────────
 const SECTION_HEADERS: Record<ToolSection, {
@@ -533,11 +558,32 @@ export default function Tools() {
   const activeTool = sampleModal ? TOOLS.find((t) => t.slug === sampleModal) : null;
   const { hasToolAccess, tier } = useSubscriptionTier();
 
+  // Courier C — ?region=us|eu filters the tool grid; anything else = all.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawRegion = (searchParams.get("region") ?? "").toLowerCase();
+  const region: "us" | "eu" | "all" =
+    rawRegion === "us" ? "us" : rawRegion === "eu" ? "eu" : "all";
+
+  const inRegion = (slug: string): boolean => {
+    if (region === "all") return true;
+    const tag = TOOL_REGIONS[slug] ?? "all";
+    return tag === region || tag === "all";
+  };
+
+  const setRegion = (r: "us" | "eu" | "all") => {
+    const next = new URLSearchParams(searchParams);
+    if (r === "all") next.delete("region");
+    else next.set("region", r);
+    setSearchParams(next, { replace: true });
+  };
+
   const sections: ToolSection[] = ["assessments", "documents", "cppa"];
-  const toolsBySection = sections.map((sec) => ({
-    section: sec,
-    tools: TOOLS.filter((t) => t.section === sec),
-  }));
+  const toolsBySection = sections
+    .map((sec) => ({
+      section: sec,
+      tools: TOOLS.filter((t) => t.section === sec && inRegion(t.slug)),
+    }))
+    .filter((s) => s.tools.length > 0);
 
   return (
     <>
@@ -595,6 +641,40 @@ export default function Tools() {
 
       {/* ── U-S Selector (deterministic, static, no fetch/LLM) ─────────── */}
       <ToolsSelector tools={TOOLS} sampleSlugMap={SAMPLE_SLUG_MAP} />
+
+      {/* ── Region toggle (Courier C) ──────────────────────────────────── */}
+      <div className="bg-brand-cloud border-t border-brand-cloud">
+        <div className="max-w-[1100px] mx-auto px-4 py-4 flex flex-wrap items-center gap-3">
+          <span className="text-eyebrow text-brand-navy">Filter by jurisdiction:</span>
+          <div className="inline-flex rounded-full border border-brand-cloud bg-card p-1" role="tablist" aria-label="Jurisdiction filter">
+            {(["all", "us", "eu"] as const).map((r) => {
+              const active = region === r;
+              const label = r === "all" ? "All" : r === "us" ? "US · California" : "EU / UK";
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setRegion(r)}
+                  className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${
+                    active
+                      ? "bg-brand-navy text-white"
+                      : "text-brand-navy hover:bg-brand-cloud"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {region !== "all" && (
+            <span className="text-meta text-slate">
+              Showing tools relevant to {region === "us" ? "US / California" : "EU / UK GDPR"} jurisdictions.
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* ── Grouped tool sections ──────────────────────────────────────── */}
       <div id="tools" className="border-t border-brand-cloud">

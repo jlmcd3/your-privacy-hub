@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import BreakingNewsBanner from "@/components/BreakingNewsBanner";
 
 import SearchFirstHero from "@/components/home/SearchFirstHero";
+import HomeGeographyPaths from "@/components/home/HomeGeographyPaths";
 import CPPADeadlineStrip from "@/components/CPPADeadlineStrip";
 import HomepageFeedSection from "@/components/home/HomepageFeedSection";
 import HomepageBriefSection from "@/components/home/HomepageBriefSection";
@@ -21,6 +22,7 @@ const Index = () => (
     <Navbar />
     <BreakingNewsBanner />
     <SearchFirstHero />
+    <HomeGeographyPaths />
     <CPPADeadlineStrip />
 
     <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-8 space-y-6">
