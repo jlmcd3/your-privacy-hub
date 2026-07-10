@@ -636,7 +636,7 @@ function ResultsPanel({
           title="Data Broker Registration"
           deadline="In force now — annual renewal"
           statusLabel={status(obligationMap.dataBrokerRequired, false)}
-          description="Data brokers must register with the California AG annually. Failure to register can result in fines of up to $200 per day."
+          description="Data brokers must register annually with the California Privacy Protection Agency (CPPA) under the Delete Act. Failure to register can result in administrative fines of $200 per day."
         />
       </section>
 
