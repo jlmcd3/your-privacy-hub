@@ -182,6 +182,14 @@ Deno.serve(async (req) => {
     if (!dpia_id) return new Response(JSON.stringify({ error: "dpia_id required" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
+    const ent = await requireEntitlement(caller, "dpia_framework", { rowId: dpia_id });
+    if (!ent.ok) {
+      console.log(JSON.stringify({ evt: "entitlement_denied", fn: "run-dpia-framework", reason: ent.reason }));
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: dpia } = await supabase
       .from("dpia_frameworks").select("*").eq("id", dpia_id).single();
 
