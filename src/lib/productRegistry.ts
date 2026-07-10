@@ -280,7 +280,7 @@ export const PRODUCT_REGISTRY: ProductEntry[] = [
   {
     slug: "intelligence-report",
     name: "Privacy Intelligence Report",
-    route: "/pricing",
+    route: "/get-intelligence",
     shortPitch:
       "Weekly Monday brief — what changed in privacy regulation, personalized to your jurisdictions and topics.",
     tierIncluded: true,
