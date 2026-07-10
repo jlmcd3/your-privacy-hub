@@ -94,9 +94,8 @@ const STRENGTH_STYLE: Record<string, string> = {
 
 // Outcome palette (stripe/accent) lives in @/lib/li-outcome-palette and is shared with /li-tracker
 
-const LIAssessmen
+const LIAssessment = () => {
   useEffect(() => { fireToolStarted("li_assessment"); }, []);
-t = () => {
   const { user } = useAuth();
   const { clientId } = useActiveClient();
   const navigate = useNavigate();
