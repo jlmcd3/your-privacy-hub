@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import DashboardSubnav from "@/components/dashboard/DashboardSubnav";
@@ -72,6 +72,31 @@ const SUBSCRIBER_ONLY_SLUGS = new Set([
   "us-notices",
   "eu-notices",
 ]);
+
+// Courier C — region toggle. Each slug is tagged by primary jurisdiction:
+//   us  — California CPPA, US state notice, US registration
+//   eu  — GDPR-family assessments and EU notice builder
+//   all — jurisdiction-agnostic tools shown under both regions
+type ToolRegion = "us" | "eu" | "all";
+const TOOL_REGIONS: Record<string, ToolRegion> = {
+  // US
+  "cppa-scope-checker": "us",
+  "cppa-risk-assessment": "us",
+  "cppa-cybersecurity": "us",
+  "cppa-admt-checker": "us",
+  "us-notices": "us",
+  "registration-manager": "us",
+  // EU
+  "healthcheck": "eu",
+  "li-assessment": "eu",
+  "dpia": "eu",
+  "eu-notices": "eu",
+  "ropa-builder": "eu",
+  // Both regions
+  "dpa-generator": "all",
+  "ir-playbook": "all",
+  "biometric-checker": "all",
+};
 
 // ── Section header definitions ────────────────────────────────────────────
 const SECTION_HEADERS: Record<ToolSection, {
