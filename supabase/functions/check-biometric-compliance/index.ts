@@ -770,6 +770,24 @@ Deno.serve(async (req) => {
     const body = (await req.json()) as Body;
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
 
+    if (body.assessment_id) {
+      const ent = await requireEntitlement(caller, "biometric_checker", { rowId: body.assessment_id });
+      if (!ent.ok) {
+        console.log(JSON.stringify({ evt: "entitlement_denied", fn: "check-biometric-compliance", reason: ent.reason }));
+        return new Response(JSON.stringify({ error: "forbidden" }), {
+          status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else if (!caller.internal) {
+      // Non-service callers must reference an existing row created via the
+      // subscriber/checkout flow. New-row generation is reserved for the
+      // internal payments-webhook path.
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+
 
     if (!Array.isArray(body.jurisdictions) || body.jurisdictions.length === 0) {
       return new Response(JSON.stringify({ error: "At least one jurisdiction required" }), {
