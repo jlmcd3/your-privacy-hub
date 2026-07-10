@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,8 @@ import {
 } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
-import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
+// Lazy — only pulls @stripe/stripe-js when the user opens checkout.
+const SubscribeCheckoutModal = lazy(() => import("@/components/SubscribeCheckoutModal"));
 
 type CellValue = boolean | string;
 type ComparisonRow =
@@ -723,13 +724,17 @@ const Subscribe = () => {
       </div>
       <Footer />
       <UIDebugOverlay label="Subscribe UI debug" />
-      <SubscribeCheckoutModal
-        open={checkoutOpen}
-        interval={checkoutInterval}
-        tier={checkoutTier}
-        onClose={() => setCheckoutOpen(false)}
-        onComplete={handleCheckoutComplete}
-      />
+      {checkoutOpen && (
+        <Suspense fallback={null}>
+          <SubscribeCheckoutModal
+            open={checkoutOpen}
+            interval={checkoutInterval}
+            tier={checkoutTier}
+            onClose={() => setCheckoutOpen(false)}
+            onComplete={handleCheckoutComplete}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

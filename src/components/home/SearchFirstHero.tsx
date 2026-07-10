@@ -1,5 +1,6 @@
-import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
-import StarFieldBackground from "@/components/globe/StarFieldBackground";
+import { lazy, Suspense } from "react";
+const SpinTheGlobe = lazy(() => import("@/components/globe/SpinTheGlobe"));
+const StarFieldBackground = lazy(() => import("@/components/globe/StarFieldBackground"));
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 import { useGeoCountry, isEuOrUk } from "@/hooks/useGeoCountry";
 
@@ -9,7 +10,7 @@ export default function SearchFirstHero() {
 
   return (
     <div className="relative bg-gradient-to-br from-brand-navy via-brand-ocean to-[#1f6674] border-b border-white/10 overflow-hidden">
-      <StarFieldBackground />
+      <Suspense fallback={null}><StarFieldBackground /></Suspense>
       <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           {/* Left: text content */}
@@ -57,11 +58,13 @@ export default function SearchFirstHero() {
             </p>
           </div>
 
-          {/* Right: Globe */}
+          {/* Right: Globe (lazy, fixed dimensions to prevent CLS) */}
           <div className="hidden sm:block flex-shrink-0 w-full lg:w-[400px]">
-            <div className="rounded-xl overflow-hidden relative" style={{ height: "420px" }}>
+            <div className="rounded-xl overflow-hidden relative" style={{ height: "420px", width: "100%", minWidth: 0, aspectRatio: "auto" }}>
               <div className="relative z-10 flex items-center justify-center w-full h-full">
-                <SpinTheGlobe compact />
+                <Suspense fallback={<div style={{ width: 400, height: 420 }} aria-hidden />}>
+                  <SpinTheGlobe compact />
+                </Suspense>
               </div>
             </div>
           </div>

@@ -163,7 +163,33 @@ export default function SamplesHub() {
         )}
 
         {rows === null && (
-          <div className="text-sm text-muted-foreground">Loading samples…</div>
+          <>
+            {/* Filter row placeholder — reserves height to prevent CLS */}
+            <div className="mb-6 space-y-3" aria-hidden>
+              <div className="h-4 w-32 bg-muted/40 rounded mb-2" />
+              <div className="h-8 w-full bg-muted/30 rounded" style={{ minHeight: 32 }} />
+              <div className="h-4 w-40 bg-muted/40 rounded mb-2 mt-3" />
+              <div className="h-8 w-full bg-muted/30 rounded" style={{ minHeight: 32 }} />
+            </div>
+            <div
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+              aria-label="Loading samples"
+              aria-busy="true"
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl border border-brand-cloud bg-card p-6 md:p-7 shadow-sm animate-pulse"
+                  style={{ minHeight: 220 }}
+                >
+                  <div className="h-6 w-2/3 bg-muted/50 rounded mb-3" />
+                  <div className="h-4 w-full bg-muted/40 rounded mb-2" />
+                  <div className="h-4 w-4/5 bg-muted/40 rounded mb-6" />
+                  <div className="h-4 w-1/3 bg-muted/30 rounded" />
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {rows !== null && grouped.length === 0 && (
