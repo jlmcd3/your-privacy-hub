@@ -38,6 +38,7 @@ import { EDPB_DPIA_GUIDANCE, EDPB_DPIA_SOURCE } from "@/components/dpia/EdpbDpia
 import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
+import { fireToolStarted } from "@/lib/analyticsEvents";
 
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
@@ -86,6 +87,8 @@ const Pills = ({ options, value, onChange }: { options: string[]; value: string[
 );
 
 const DPIAFramework = () => {
+  useEffect(() => { fireToolStarted("dpia"); }, []);
+
   const { user } = useAuth();
   const { clientId } = useActiveClient();
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 // CPPA Cybersecurity Audit Readiness — Module 2 intake. Covers 18 program components.
-import { useMemo, useState } from "react";
+import { useMemo, useState , useEffect} from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
@@ -37,6 +37,7 @@ import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useFscrCallouts } from "@/hooks/useFscrCallouts";
 import { FscrCallout } from "@/components/FscrCallout";
+import { fireToolStarted } from "@/lib/analyticsEvents";
 
 const MATURITY = [
   "Not implemented",
@@ -69,7 +70,9 @@ const CONTROLS: Control[] = [
   { key: "c18_continuity", label: "Business-continuity and disaster-recovery planning", description: "BC/DR plans, data-recovery, backups, and testing to ensure availability of PI.", citation: "§ 7123(c)(18)" },
 ];
 
-export default function CPPACybersecurity() {
+export default function CPPACybers
+  useEffect(() => { fireToolStarted("cppa_cyber"); }, []);
+ecurity() {
   const { user } = useAuth();
   const { clientId } = useActiveClient();
   const navigate = useNavigate();

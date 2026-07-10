@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import Navbar from "@/components/Navbar";
 import { IntakeGuidance } from "@/components/IntakeGuidance";
 import Footer from "@/components/Footer";
@@ -29,6 +29,7 @@ import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { LIA_RAIL } from "@/components/lia/LIARailEntries";
 import type { RailEntry } from "@/components/intake/RailEntry";
+import { fireToolStarted } from "@/lib/analyticsEvents";
 
 
 
@@ -93,7 +94,9 @@ const STRENGTH_STYLE: Record<string, string> = {
 
 // Outcome palette (stripe/accent) lives in @/lib/li-outcome-palette and is shared with /li-tracker
 
-const LIAssessment = () => {
+const LIAssessmen
+  useEffect(() => { fireToolStarted("li_assessment"); }, []);
+t = () => {
   const { user } = useAuth();
   const { clientId } = useActiveClient();
   const navigate = useNavigate();

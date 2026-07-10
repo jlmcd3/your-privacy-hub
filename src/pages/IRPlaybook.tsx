@@ -27,6 +27,7 @@ import { DefPopover } from "@/components/DefPopover";
 import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
+import { fireToolStarted } from "@/lib/analyticsEvents";
 
 const CAUSES = ["Unauthorized external access / cyberattack","Ransomware or malware","Phishing / credential compromise","Insider threat","Lost or stolen device","Accidental disclosure","Unknown / still investigating"];
 const DATA_TYPES = ["Names and contact details","Financial / payment data","Health / medical records","Government IDs / SSN","Passwords / credentials","Location data","Children's data","Biometric data","Special category data"];
@@ -73,6 +74,8 @@ const SAMPLE = `## 1. IMMEDIATE ACTIONS (0–2 HOURS)
 [Sections 2–7 available after generation]`;
 
 export default function IRPlaybook() {
+  useEffect(() => { fireToolStarted("ir_playbook"); }, []);
+
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const pricing = useToolPrice("ir_playbook");

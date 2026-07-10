@@ -64,6 +64,7 @@ import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useFscrCallouts } from "@/hooks/useFscrCallouts";
 import { FscrCallout } from "@/components/FscrCallout";
+import { fireToolStarted } from "@/lib/analyticsEvents";
 
 function formatRelativeTime(d: Date): string {
   const s = Math.round((Date.now() - d.getTime()) / 1000);
@@ -226,6 +227,8 @@ function StatutePopover({ term, summary, cite }: { term: string; summary: string
 }
 
 export default function CPPARiskAssessment() {
+  useEffect(() => { fireToolStarted("cppa_risk"); }, []);
+
   const { user } = useAuth();
   const { clientId } = useActiveClient();
   const navigate = useNavigate();
