@@ -10,7 +10,7 @@ export default function SearchFirstHero() {
 
   return (
     <div className="relative bg-gradient-to-br from-brand-navy via-brand-ocean to-[#1f6674] border-b border-white/10 overflow-hidden">
-      <StarFieldBackground />
+      <Suspense fallback={null}><StarFieldBackground /></Suspense>
       <div className="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           {/* Left: text content */}
