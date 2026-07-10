@@ -210,6 +210,7 @@ export default function CPPAHub() {
             Open the ADMT Compliance Assessment →
           </Link>
         </section>
+      </main>
       <Footer />
     </div>
   );
