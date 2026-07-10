@@ -548,6 +548,17 @@ export default function ADMTChecker() {
           preRunHint="The subject you set below is fixed once you first generate — everything else stays editable across your 4 included generations."
         />
 
+        <div className="mt-3 rounded-md border border-brand-teal/30 bg-brand-cloud/40 p-3 text-sm">
+          <span className="font-semibold text-brand-navy">Also need Risk (M1) + Cybersecurity (M2)?</span>{" "}
+          <span className="text-muted-foreground">
+            ADMT is standalone. If you triggered M1 and M2 in the Scope Checker, the{" "}
+          </span>
+          <a href="/cppa-risk-assessment?suite=true" className="text-brand-teal-text underline">
+            CPPA Full Audit Suite
+          </a>
+          <span className="text-muted-foreground"> bundles them at a discount.</span>
+        </div>
+
         <div className="text-sm text-muted-foreground my-4">Step {step} of {totalSteps}</div>
 
         <BenchLayout
