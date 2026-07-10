@@ -52,6 +52,81 @@ export function fireToolStarted(tool: string) {
   });
 }
 
+/**
+ * Fires `tool_started` on the FIRST INTAKE INTERACTION (focus/change of a
+ * form control, or pointerdown on an interactive element inside <main>,
+ * <form>, or [data-intake]). Excludes clicks in nav/header/footer so that
+ * ad landings that never touch the intake do not count as a start.
+ * Deduped per session per tool via fireToolStarted().
+ */
+export function useToolStartedOnInteraction(tool: string) {
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    // If already fired this session for this tool, no need to attach.
+    if (firedSet().has(`tool_started:${tool}`)) return;
+
+    let done = false;
+    const cleanup = () => {
+      if (done) return;
+      done = true;
+      document.removeEventListener("focusin", onFocus, true);
+      document.removeEventListener("change", onChange, true);
+      document.removeEventListener("pointerdown", onPointer, true);
+      document.removeEventListener("keydown", onKey, true);
+    };
+
+    const inIntake = (el: Element | null): boolean => {
+      if (!el) return false;
+      if (el.closest("nav, header, footer, [data-analytics-ignore]")) return false;
+      return !!el.closest("main, form, [data-intake]");
+    };
+
+    const isFormControl = (el: Element | null): el is HTMLElement => {
+      if (!el) return false;
+      return !!(el as HTMLElement).matches?.(
+        'input:not([type="hidden"]), select, textarea, [contenteditable="true"]',
+      );
+    };
+
+    const isInteractive = (el: Element | null): boolean => {
+      if (!el) return false;
+      return !!el.closest(
+        'button, [role="button"], [role="radio"], [role="checkbox"], [role="option"], [role="tab"], label, a[data-intake]',
+      );
+    };
+
+    const fire = () => {
+      fireToolStarted(tool);
+      cleanup();
+    };
+
+    const onFocus = (e: FocusEvent) => {
+      const t = e.target as Element | null;
+      if (isFormControl(t) && inIntake(t)) fire();
+    };
+    const onChange = (e: Event) => {
+      const t = e.target as Element | null;
+      if (isFormControl(t) && inIntake(t)) fire();
+    };
+    const onPointer = (e: PointerEvent) => {
+      const t = e.target as Element | null;
+      if (inIntake(t) && (isInteractive(t) || isFormControl(t))) fire();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+      const t = e.target as Element | null;
+      if (inIntake(t) && (isInteractive(t) || isFormControl(t))) fire();
+    };
+
+    document.addEventListener("focusin", onFocus, true);
+    document.addEventListener("change", onChange, true);
+    document.addEventListener("pointerdown", onPointer, true);
+    document.addEventListener("keydown", onKey, true);
+
+    return cleanup;
+  }, [tool]);
+}
+
 export function fireEmailCaptured(source: string) {
   void trackEvent("email_captured", { source });
 }
