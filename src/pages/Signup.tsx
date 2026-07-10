@@ -19,8 +19,8 @@ const Signup = () => {
             <Lock className="w-5 h-5 text-slate" aria-hidden="true" />
           </div>
           <h1 className="font-display text-brand-navy mb-2">Account creation paused</h1>
-          <p className="text-xs uppercase tracking-widest text-brand-teal-text font-semibold mb-2">
-            Global privacy law, tracked daily.
+          <p className="text-sm text-slate mb-3 leading-relaxed">
+            Create a free account to save reports, alerts, and weekly intelligence.
           </p>
           <p className="text-sm text-slate mb-6 leading-relaxed">
             End User Privacy is currently in <span className="font-semibold text-brand-navy">private beta</span>.
