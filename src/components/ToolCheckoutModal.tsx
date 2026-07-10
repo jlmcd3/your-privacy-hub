@@ -48,7 +48,6 @@ export default function ToolCheckoutModal({
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const fetchClientSecret = useCallback(async () => {
-  const fetchClientSecret = useCallback(async () => {
     fireCheckoutStarted({ tool: toolType, surface: "tool_checkout_modal" });
     const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
       body: {
