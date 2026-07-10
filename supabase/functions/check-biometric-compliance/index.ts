@@ -377,7 +377,7 @@ Retention and destruction:
 Retain biometric data only as long as necessary for the disclosed purpose (§ 1798.100(a)(3)). Honor deletion requests under § 1798.105 subject to exceptions.
 
 Sale and sharing restrictions:
-Consumers may opt out of the "sale" or "sharing" of SPI and may limit its use and disclosure, including for cross-context behavioral advertising (§ 1798.121) — a consumer-directed right, not an outright prohibition; provide the required opt-out/limit-use mechanism.
+Consumers may opt out of the "sale" or "sharing" of personal information (including biometric SPI) under Cal. Civ. Code § 1798.120 — "sharing" is defined at § 1798.140(ah) as cross-context behavioural advertising, and the opt-out link/mechanism is required by § 1798.135. Separately, consumers may direct the business to limit use and disclosure of Sensitive Personal Information under Cal. Civ. Code § 1798.121(a). These are three distinct rights (sale opt-out, sharing opt-out for cross-context behavioural advertising, and limit-use for SPI) — not an outright prohibition; provide each required mechanism.
 
 Current enforcement posture:
 CPPA enforcement is active; limited private litigation (breach-only). Enforcement focus includes missing SPI notices, inadequate at-collection disclosures, and failure to honor consumer rights.
@@ -507,7 +507,7 @@ Applies to this organisation: Conditional — ${describeProcessing(body.orgType,
 Key state biometric statutes (by litigation and enforcement risk):
 1. Illinois BIPA (740 ILCS 14): private right of action per person; highest US biometric litigation risk. Select "Illinois, USA (BIPA)" for a full BIPA analysis.
 2. Texas CUBI (Tex. Bus. & Com. Code § 503.001): AG-only enforcement; $25,000/violation; no private right of action. Select "Texas, USA (CUBI)" for a full CUBI analysis.
-3. Washington My Health My Data Act (chapter 19.373 RCW): applies where biometric data is collected, processed, or shared in a way that identifies or can identify a consumer's health status; violations are enforceable under the Washington Consumer Protection Act (chapter 19.86 RCW) per RCW 19.373.090, which supplies a private right of action.
+3. Washington My Health My Data Act (chapter 19.373 RCW): applies to "consumer health data" as defined in RCW 19.373.010(8)(a) — personal information linked or reasonably linkable to a consumer that identifies the consumer's past, present, or future physical or mental health status. Biometric data is expressly included within consumer health data under RCW 19.373.010(8)(b)(ix), so MHMD applies to biometric data when it is generated from or used to identify a consumer seeking health care services, or used to identify or infer the consumer's health conditions, treatment, or status. Violations are enforceable under the Washington Consumer Protection Act (chapter 19.86 RCW) per RCW 19.373.090, which supplies a private right of action.
 4. California CCPA/CPRA (Cal. Civ. Code § 1798.100 et seq.): biometric information is Sensitive Personal Information; Limit-Use right applies. Select "California" for full CCPA analysis.
 5. Colorado, Connecticut, Oregon, and Montana have comprehensive privacy laws treating biometric information as sensitive personal data subject to heightened notice and consent or opt-out requirements; consult each state's statute for the specific lawful basis rules.
 
