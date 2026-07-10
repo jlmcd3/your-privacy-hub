@@ -114,6 +114,7 @@ export default function Account() {
 
   const handleAddClientWorkspace = async () => {
     setAddonBusy(true);
+    fireCheckoutStarted({ plan: "per_client_addon", surface: "account_addon" });
     const { data, error } = await supabase.functions.invoke("create-checkout-session", {
       body: { addon: "per_client_addon" },
     });
