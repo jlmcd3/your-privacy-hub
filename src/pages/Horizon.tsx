@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremiumStatus } from "@/hooks/usePremiumStatus";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import PremiumGate from "@/components/PremiumGate";
+
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 
 interface HorizonItem {
@@ -108,22 +108,33 @@ function HorizonCard({ item }: { item: HorizonItem }) {
 
 export default function Horizon() {
   const { user } = useAuth();
-  const { isPremium } = usePremiumStatus();
+  const { isPremium, isLoading: premiumLoading } = usePremiumStatus();
   const [items, setItems] = useState<HorizonItem[]>([]);
   const [watch, setWatch] = useState<WatchItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterMine, setFilterMine] = useState(true);
 
   useEffect(() => {
+    // Defer the query until we know the premium status, so non-premium
+    // sessions never receive gated columns on the wire.
+    if (premiumLoading) return;
     let cancelled = false;
     (async () => {
-      const horizonReq = supabase
+      // Courier-A Item 2: teaser-only projection for non-premium sessions.
+      // Body/analysis fields (source_signal, recommended_action, confidence,
+      // sector) are omitted from the SELECT so they never ship in the DOM
+      // or the network response for anonymous / free users.
+      const teaserFields =
+        "id, week_of, jurisdiction, anticipated_development, timeline_label";
+      const fullFields =
+        "id, week_of, jurisdiction, sector, anticipated_development, confidence, timeline_label, source_signal, recommended_action";
+
+      const horizonReq = (supabase as any)
         .from("horizon_intelligence")
-        .select(
-          "id, week_of, jurisdiction, sector, anticipated_development, confidence, timeline_label, source_signal, recommended_action"
-        )
+        .select(isPremium ? fullFields : teaserFields)
         .order("week_of", { ascending: false })
-        .limit(60);
+        .limit(isPremium ? 60 : 4);
+
 
       // Only Intelligence subscribers get personalized watchlist filtering on this page
       const watchReq = user && isPremium
@@ -146,7 +157,8 @@ export default function Horizon() {
     return () => {
       cancelled = true;
     };
-  }, [user, isPremium]);
+  }, [user, isPremium, premiumLoading]);
+
 
   const hasWatchlist = isPremium && watch.length > 0;
 
@@ -283,17 +295,53 @@ export default function Horizon() {
             ))}
           </div>
         ) : (
-          <PremiumGate
-            message="Enforcement forecast intelligence is included in the Intelligence plan — forward-looking signals, source analysis, and recommended actions across every active regulatory signal."
-            blur={true}
-          >
-            <div className="grid gap-4">
-              {visibleItems.slice(0, 2).map((item) => (
-                <HorizonCard key={item.id} item={item} />
-              ))}
+          <div className="grid gap-4">
+            <div className="rounded-2xl border border-brand-teal/40 bg-brand-teal/5 p-5">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-brand-teal-text mb-2">
+                🔒 Intelligence subscription required
+              </p>
+              <p className="text-sm text-slate leading-relaxed mb-3">
+                Full source analysis, confidence rating, and recommended action
+                for every signal are included with an Intelligence subscription
+                ({INTELLIGENCE_PRICING.monthly()} or {INTELLIGENCE_PRICING.yearly()}).
+                Below is a locked teaser of the most recent signals — titles only.
+              </p>
+              <Link
+                to="/subscribe"
+                className="inline-block text-sm font-semibold text-brand-teal-text no-underline hover:underline"
+              >
+                Start your subscription →
+              </Link>
             </div>
-          </PremiumGate>
+            {visibleItems.map((item) => (
+              <article
+                key={item.id}
+                className="bg-card border border-brand-cloud rounded-2xl p-5 opacity-90"
+              >
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  {item.timeline_label && (
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-brand-navy bg-brand-cloud border border-silver/60 px-2 py-0.5 rounded">
+                      {item.timeline_label}
+                    </span>
+                  )}
+                  {item.jurisdiction && (
+                    <span className="text-[11px] font-medium text-slate">{item.jurisdiction}</span>
+                  )}
+                  <span className="ml-auto text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 border border-brand-teal/40 bg-brand-teal/10 text-brand-teal-text rounded-full">
+                    🔒 Locked
+                  </span>
+                </div>
+                <h2 className="font-display text-brand-navy leading-snug mb-2">
+                  {item.anticipated_development}
+                </h2>
+                <p className="text-sm text-brand-mist italic">
+                  Source signal and recommended action available to Intelligence subscribers.
+                </p>
+              </article>
+            ))}
+          </div>
         )}
+
 
       </main>
 
