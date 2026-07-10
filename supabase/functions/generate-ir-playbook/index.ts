@@ -476,6 +476,20 @@ Deno.serve(async (req) => {
     let body = (await req.json()) as Body;
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
 
+    if (body.assessment_id) {
+      const ent = await requireEntitlement(caller, "ir_playbook", { rowId: body.assessment_id });
+      if (!ent.ok) {
+        console.log(JSON.stringify({ evt: "entitlement_denied", fn: "generate-ir-playbook", reason: ent.reason }));
+        return new Response(JSON.stringify({ error: "forbidden" }), {
+          status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else if (!caller.internal) {
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Row-first: ensure an ir_playbooks row exists and capture its id before dispatching
     // the heavy work in the background. This lets us return 202 immediately and lets
     // the result page poll the row's status (existing behavior in IRPlaybookResult.tsx).
