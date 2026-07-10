@@ -398,7 +398,7 @@ function SavedNote({ isAuthed }: { isAuthed: boolean }) {
     return (
       <p className="text-xs text-muted-foreground italic pt-3 border-t">
         Saved to your account — find it any time in{" "}
-        <Link to="/my-reports" className="underline hover:text-foreground">My Reports</Link>.
+        <Link to="/dashboard/reports" className="underline hover:text-foreground">My Reports</Link>.
       </p>
     );
   }
