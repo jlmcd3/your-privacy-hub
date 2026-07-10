@@ -35,8 +35,24 @@ export default defineConfig(({ mode }) => {
         // Rollup's file-operation concurrency keeps builds deterministic without
         // changing application behavior.
         maxParallelFileOps: 8,
+        output: {
+          // Split long-lived vendor libraries from app code so the initial parse
+          // is smaller and vendor chunks cache across route navigations. Routes
+          // remain lazy-split via React.lazy in the app.
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return;
+            if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return "react-vendor";
+            if (id.includes("react-router")) return "router-vendor";
+            if (id.includes("@tanstack/react-query")) return "query-vendor";
+            if (id.includes("react-helmet-async")) return "helmet-vendor";
+            if (id.includes("@radix-ui")) return "radix-vendor";
+            if (id.includes("lucide-react")) return "icons-vendor";
+            if (id.includes("sonner") || id.includes("cmdk") || id.includes("vaul")) return "ui-vendor";
+          },
+        },
       },
     },
+
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

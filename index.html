@@ -15,10 +15,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://tvksbtrelpzhbyeutzgp.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://tvksbtrelpzhbyeutzgp.supabase.co" />
+    <!-- Fonts: async load to avoid render-blocking. Trimmed to the weights/styles
+         actually used in code (audited 2026-07-10): DM Serif Display 400;
+         DM Sans 300;400;500;600;700 + italic 400; DM Mono 400;500;
+         Source Serif 4 400;600. Fallbacks (Georgia/system-ui) render immediately. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Source+Serif+4:wght@400;600&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Source+Serif+4:wght@400;600&display=swap"
+      />
+    </noscript>
 
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -43,15 +55,9 @@
       window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
       plausible.init()
     </script>
-    <!-- Google AdSense — non-personalized, contextual ads only.
-         Replace ca-pub-PLACEHOLDER with the real Publisher ID once AdSense is approved. -->
-    <script async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7713080064663325"
-      crossorigin="anonymous"></script>
-    <script>
-      // Force non-personalized ads (NPA=1) for all visitors.
-      (window.adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
-    </script>
+    <!-- AdSense loader removed 2026-07-10: ads parked behind Terms/Privacy + certified CMP.
+         Re-introduce (loaded conditionally after consent) when ads go live. -->
+
   </head>
   <body>
     <div id="root"></div>
