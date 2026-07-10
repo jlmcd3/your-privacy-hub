@@ -70,9 +70,8 @@ const CONTROLS: Control[] = [
   { key: "c18_continuity", label: "Business-continuity and disaster-recovery planning", description: "BC/DR plans, data-recovery, backups, and testing to ensure availability of PI.", citation: "§ 7123(c)(18)" },
 ];
 
-export default function CPPACybers
+export default function CPPACybersecurity() {
   useEffect(() => { fireToolStarted("cppa_cyber"); }, []);
-ecurity() {
   const { user } = useAuth();
   const { clientId } = useActiveClient();
   const navigate = useNavigate();
