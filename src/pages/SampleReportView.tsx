@@ -185,7 +185,33 @@ export default function SampleReportView() {
         </Link>
 
         {row === undefined && (
-          <div className="text-sm text-muted-foreground">Loading sample…</div>
+          <div
+            className="lg:flex lg:gap-8 lg:items-start"
+            aria-label="Loading sample"
+            aria-busy="true"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="h-5 w-32 bg-muted/40 rounded mb-3 animate-pulse" />
+              <div className="h-9 w-3/4 bg-muted/50 rounded mb-3 animate-pulse" />
+              <div className="h-4 w-1/2 bg-muted/40 rounded mb-6 animate-pulse" />
+              <div
+                className="rounded-lg border border-brand-cloud bg-card p-6 animate-pulse"
+                style={{ minHeight: 800 }}
+              >
+                <div className="h-5 w-2/3 bg-muted/40 rounded mb-4" />
+                <div className="space-y-2">
+                  <div className="h-3 w-full bg-muted/30 rounded" />
+                  <div className="h-3 w-11/12 bg-muted/30 rounded" />
+                  <div className="h-3 w-10/12 bg-muted/30 rounded" />
+                  <div className="h-3 w-full bg-muted/30 rounded" />
+                  <div className="h-3 w-9/12 bg-muted/30 rounded" />
+                </div>
+              </div>
+            </div>
+            <aside className="hidden lg:block w-64 shrink-0" aria-hidden>
+              <div className="rounded-lg border border-brand-cloud bg-card p-4 animate-pulse" style={{ minHeight: 200 }} />
+            </aside>
+          </div>
         )}
 
         {error && (
