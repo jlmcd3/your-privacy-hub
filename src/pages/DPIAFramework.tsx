@@ -39,6 +39,7 @@ import { useGuidanceTier } from "@/hooks/useGuidanceTier";
 import { useGdprEnforcementSignals } from "@/hooks/useGdprEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
 
 
 const DATA_CATS = ["Contact details", "Employee records", "Customer records", "Health or medical data", "Financial data", "Biometric data", "Children's data", "Location data", "Communications content", "Other"];
@@ -424,6 +425,7 @@ const DPIAFramework = () => {
           <div className="mt-4"><SampleReportLink toolSlug="dpia" tone="onDark" variant="link" /></div>
         </div>
       </header>
+      <ToolAlsoAvailableRow currentTool="dpia" />
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           
         </div>

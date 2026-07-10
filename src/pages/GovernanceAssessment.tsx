@@ -34,6 +34,7 @@ import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
 
@@ -425,6 +426,7 @@ const GovernanceAssessment = () => {
           <div className="mt-4"><SampleReportLink toolSlug="governance" tone="onDark" variant="link" /></div>
         </div>
       </header>
+      <ToolAlsoAvailableRow currentTool="governance" />
         <div className="max-w-[860px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 -mb-2">
           
         </div>

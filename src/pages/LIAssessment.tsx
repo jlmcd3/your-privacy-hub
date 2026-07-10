@@ -30,6 +30,7 @@ import { useRunMeter } from "@/hooks/useRunMeter";
 import { LIA_RAIL } from "@/components/lia/LIARailEntries";
 import type { RailEntry } from "@/components/intake/RailEntry";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
 
 
 
@@ -222,6 +223,7 @@ const LIAssessment = () => {
           </div>
         </div>
       </header>
+      <ToolAlsoAvailableRow currentTool="lia" />
 
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
