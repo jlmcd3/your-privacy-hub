@@ -17,6 +17,10 @@ export default function SubscribeSuccess() {
   const [activated, setActivated] = useState(false);
 
   useEffect(() => {
+    // Fire once on landing — /subscribe/success is the post-purchase surface
+    // for subscription plans. Plan is inferred from the resolved tier below.
+    const plan = searchParams.get("plan") ?? null;
+    firePurchaseCompleted({ plan, surface: "subscribe_success" });
     if (!user) return;
     let attempts = 0;
     const poll = setInterval(async () => {
@@ -32,7 +36,7 @@ export default function SubscribeSuccess() {
       if (++attempts >= 10) clearInterval(poll);
     }, 1000);
     return () => clearInterval(poll);
-  }, [user]);
+  }, [user, searchParams]);
 
   // Tier-aware content
   const headline = hasToolAccess
