@@ -649,7 +649,7 @@ function ResultsPanel({
             <p className="font-medium">Saved to your account.</p>
             <p className="mt-1">
               Find this result any time in{" "}
-              <Link to="/my-reports" className="underline">My Reports</Link>.
+              <Link to="/dashboard/reports" className="underline">My Reports</Link>.
               For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.
             </p>
           </>
