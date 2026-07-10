@@ -658,11 +658,6 @@ const Subscribe = () => {
 
         {error && <p className="text-center text-severity-warning text-sm mt-6">{error}</p>}
 
-        {/* Free digest signup */}
-        <FreeDigestSignup source="website" className="mt-10" />
-
-        {/* Trust strip */}
-        <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground py-3 border-t border-border mt-8">
         {/* ROI block — registry-computed */}
         <div className="max-w-3xl mx-auto mt-12 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl border border-brand-cloud bg-card p-5">
