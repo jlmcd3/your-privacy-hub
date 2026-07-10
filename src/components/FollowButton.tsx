@@ -13,17 +13,16 @@ interface FollowButtonProps {
 const FollowButton = ({ followType, followKey, label }: FollowButtonProps) => {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
-  // Email is always the signed-in user's email — RLS binds inserts to auth.email().
+  // Follows are keyed by user_id; RLS binds inserts to auth.uid().
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "duplicate">("idle");
 
   const handleFollow = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.email) return;
+    if (!user?.id) return;
     setStatus("loading");
 
     const { error } = await supabase.from("regulator_follows").insert({
       user_id: user.id,
-      email: user.email.toLowerCase().trim(),
       follow_type: followType,
       follow_key: followKey,
     });
