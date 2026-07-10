@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { fireCheckoutStarted } from "@/lib/analyticsEvents";
 
 // Kicks off half-price top-up checkout for +4 additional generations
 // on an existing tool assessment. Redirects the browser on success.
@@ -7,6 +8,7 @@ export async function startMeterExtension(
   assessmentId: string,
 ): Promise<void> {
   const { data: userData } = await supabase.auth.getUser();
+  fireCheckoutStarted({ tool: toolType, surface: "meter_extension_topup" });
   const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
     body: {
       tool_type: toolType,
