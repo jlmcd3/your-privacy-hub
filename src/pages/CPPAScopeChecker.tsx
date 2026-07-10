@@ -398,7 +398,7 @@ function SavedNote({ isAuthed }: { isAuthed: boolean }) {
     return (
       <p className="text-xs text-muted-foreground italic pt-3 border-t">
         Saved to your account — find it any time in{" "}
-        <Link to="/my-reports" className="underline hover:text-foreground">My Reports</Link>.
+        <Link to="/dashboard/reports" className="underline hover:text-foreground">My Reports</Link>.
       </p>
     );
   }
@@ -411,7 +411,7 @@ function SavedNote({ isAuthed }: { isAuthed: boolean }) {
 }
 
 function CreateAccountPrompt() {
-  const redirect = encodeURIComponent("/cppa/scope-checker");
+  const redirect = encodeURIComponent("/cppa-scope-checker");
   return (
     <section className="bg-card border rounded-lg p-4">
       <p className="text-sm font-medium">Save this obligation map to your account</p>
@@ -649,7 +649,7 @@ function ResultsPanel({
             <p className="font-medium">Saved to your account.</p>
             <p className="mt-1">
               Find this result any time in{" "}
-              <Link to="/my-reports" className="underline">My Reports</Link>.
+              <Link to="/dashboard/reports" className="underline">My Reports</Link>.
               For a formal, downloadable assessment use the CPPA Risk Assessment or CPPA Cybersecurity Readiness tools.
             </p>
           </>

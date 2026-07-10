@@ -313,7 +313,7 @@ export default function LegislationTracker() {
           <ResearchToolCTA
             toolName="Privacy Intelligence Report"
             toolDescription="Bills move weekly. The Privacy Intelligence Report delivers what changed — personalized to your jurisdictions and topics — every Monday."
-            href="/pricing"
+            href="/get-intelligence"
           />
           <div className="mb-8 mt-6">
             <ResearchSynthesisBlock sectionKey="legislation__page" promoteHeading />
