@@ -144,6 +144,14 @@ export default function SamplesHub() {
             unedited, and built from realistic fictional scenarios. Open any sample, then start
             your own.
           </p>
+          <div className="mt-6">
+            <Link
+              to="/tools"
+              className="inline-flex items-center gap-2 rounded-md bg-amber-400 text-brand-navy px-5 py-2.5 text-sm font-bold hover:opacity-90 no-underline"
+            >
+              Generate your own report →
+            </Link>
+          </div>
         </div>
       </header>
 

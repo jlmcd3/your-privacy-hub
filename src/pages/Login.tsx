@@ -121,7 +121,7 @@ const Login = () => {
                 ? "Sign in to access your Privacy Intelligence Report"
                 : safeRedirect?.includes("account")
                 ? "Sign in to manage your account"
-                : "Welcome back to End User Privacy"}
+                : "Global privacy law, tracked daily — sign in to pick up where you left off."}
             </p>
 
             {error && (

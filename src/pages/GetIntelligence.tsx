@@ -26,6 +26,9 @@ const GetIntelligence = () => (
           representative brief showing exactly the depth and format you'll
           receive every Monday — written for your practice.
         </p>
+        <p className="text-amber-200/90 text-sm mt-3">
+          Preview appears instantly on this page — no email required.
+        </p>
       </div>
     </header>
     <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
