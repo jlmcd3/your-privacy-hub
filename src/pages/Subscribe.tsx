@@ -18,7 +18,8 @@ import {
 } from "@/config/pricing";
 import FreeDigestSignup from "@/components/subscribe/FreeDigestSignup";
 import UIDebugOverlay from "@/components/UIDebugOverlay";
-import SubscribeCheckoutModal from "@/components/SubscribeCheckoutModal";
+// Lazy — only pulls @stripe/stripe-js when the user opens checkout.
+const SubscribeCheckoutModal = lazy(() => import("@/components/SubscribeCheckoutModal"));
 
 type CellValue = boolean | string;
 type ComparisonRow =
