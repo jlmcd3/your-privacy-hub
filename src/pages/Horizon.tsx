@@ -108,22 +108,32 @@ function HorizonCard({ item }: { item: HorizonItem }) {
 
 export default function Horizon() {
   const { user } = useAuth();
-  const { isPremium } = usePremiumStatus();
+  const { isPremium, isLoading: premiumLoading } = usePremiumStatus();
   const [items, setItems] = useState<HorizonItem[]>([]);
   const [watch, setWatch] = useState<WatchItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterMine, setFilterMine] = useState(true);
 
   useEffect(() => {
+    // Defer the query until we know the premium status, so non-premium
+    // sessions never receive gated columns on the wire.
+    if (premiumLoading) return;
     let cancelled = false;
     (async () => {
+      // Courier-A Item 2: teaser-only projection for non-premium sessions.
+      // Body/analysis fields (source_signal, recommended_action, confidence,
+      // sector) are omitted from the SELECT so they never ship in the DOM
+      // or the network response for anonymous / free users.
+      const teaserFields =
+        "id, week_of, jurisdiction, anticipated_development, timeline_label";
+      const fullFields =
+        "id, week_of, jurisdiction, sector, anticipated_development, confidence, timeline_label, source_signal, recommended_action";
+
       const horizonReq = supabase
         .from("horizon_intelligence")
-        .select(
-          "id, week_of, jurisdiction, sector, anticipated_development, confidence, timeline_label, source_signal, recommended_action"
-        )
+        .select(isPremium ? fullFields : teaserFields)
         .order("week_of", { ascending: false })
-        .limit(60);
+        .limit(isPremium ? 60 : 4);
 
       // Only Intelligence subscribers get personalized watchlist filtering on this page
       const watchReq = user && isPremium
@@ -146,7 +156,8 @@ export default function Horizon() {
     return () => {
       cancelled = true;
     };
-  }, [user, isPremium]);
+  }, [user, isPremium, premiumLoading]);
+
 
   const hasWatchlist = isPremium && watch.length > 0;
 
