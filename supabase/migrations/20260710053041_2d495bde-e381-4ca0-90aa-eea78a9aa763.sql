@@ -1,0 +1,1 @@
+UPDATE public.sample_reports SET pdf_path = 'cppa_cyber/us--cybersecurity-readiness-for-ad-tech-processing-estate.pdf', updated_at = now() WHERE id = '180b836f-9830-4ac9-86db-2806a1bf59c1';
