@@ -1192,6 +1192,24 @@ export type Database = {
           },
         ]
       }
+      edge_rate_limits: {
+        Row: {
+          bucket_key: string
+          hits: number
+          window_start: string
+        }
+        Insert: {
+          bucket_key: string
+          hits?: number
+          window_start?: string
+        }
+        Update: {
+          bucket_key?: string
+          hits?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       edpb_guidelines: {
         Row: {
           adopted_date: string | null
@@ -7861,6 +7879,10 @@ export type Database = {
           _session_id: string
         }
         Returns: Json
+      }
+      consume_rate_limit: {
+        Args: { _key: string; _max: number; _window_seconds: number }
+        Returns: boolean
       }
       cppa_supersede_and_insert: {
         Args: {
