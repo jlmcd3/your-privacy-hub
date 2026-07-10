@@ -61,6 +61,7 @@ export default function SessionCheckoutModal({
   const completedRef = useRef(false);
 
   const fetchClientSecret = useCallback(async () => {
+    fireCheckoutStarted({ tool: toolType, surface: "session_checkout_modal" });
     const { data, error } = await supabase.functions.invoke("create-tool-checkout", {
       body: {
         tool_type: toolType,
