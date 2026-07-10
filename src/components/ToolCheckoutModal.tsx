@@ -86,7 +86,7 @@ export default function ToolCheckoutModal({
         "Payment received, but your purchase hasn't finalized yet. It usually takes a few seconds — you can continue to your result and we'll keep working in the background."
       );
     }
-  }, [onComplete]);
+  }, [onComplete, toolType]);
 
   useEffect(() => {
     if (!open) return;
