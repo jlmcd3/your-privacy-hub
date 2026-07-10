@@ -295,17 +295,53 @@ export default function Horizon() {
             ))}
           </div>
         ) : (
-          <PremiumGate
-            message="Enforcement forecast intelligence is included in the Intelligence plan — forward-looking signals, source analysis, and recommended actions across every active regulatory signal."
-            blur={true}
-          >
-            <div className="grid gap-4">
-              {visibleItems.slice(0, 2).map((item) => (
-                <HorizonCard key={item.id} item={item} />
-              ))}
+          <div className="grid gap-4">
+            <div className="rounded-2xl border border-brand-teal/40 bg-brand-teal/5 p-5">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-brand-teal-text mb-2">
+                🔒 Intelligence subscription required
+              </p>
+              <p className="text-sm text-slate leading-relaxed mb-3">
+                Full source analysis, confidence rating, and recommended action
+                for every signal are included with an Intelligence subscription
+                ({INTELLIGENCE_PRICING.monthly()} or {INTELLIGENCE_PRICING.yearly()}).
+                Below is a locked teaser of the most recent signals — titles only.
+              </p>
+              <Link
+                to="/subscribe"
+                className="inline-block text-sm font-semibold text-brand-teal-text no-underline hover:underline"
+              >
+                Start your subscription →
+              </Link>
             </div>
-          </PremiumGate>
+            {visibleItems.map((item) => (
+              <article
+                key={item.id}
+                className="bg-card border border-brand-cloud rounded-2xl p-5 opacity-90"
+              >
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  {item.timeline_label && (
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-brand-navy bg-brand-cloud border border-silver/60 px-2 py-0.5 rounded">
+                      {item.timeline_label}
+                    </span>
+                  )}
+                  {item.jurisdiction && (
+                    <span className="text-[11px] font-medium text-slate">{item.jurisdiction}</span>
+                  )}
+                  <span className="ml-auto text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 border border-brand-teal/40 bg-brand-teal/10 text-brand-teal-text rounded-full">
+                    🔒 Locked
+                  </span>
+                </div>
+                <h2 className="font-display text-brand-navy leading-snug mb-2">
+                  {item.anticipated_development}
+                </h2>
+                <p className="text-sm text-brand-mist italic">
+                  Source signal and recommended action available to Intelligence subscribers.
+                </p>
+              </article>
+            ))}
+          </div>
         )}
+
 
       </main>
 
