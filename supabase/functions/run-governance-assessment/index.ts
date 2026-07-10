@@ -5,6 +5,7 @@ const DOC_Y_BUILD_MARKER = "doc-y-6";
 console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER}`);
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { requireEntitlement } from "../_shared/entitlement.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
