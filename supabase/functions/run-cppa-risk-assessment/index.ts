@@ -956,11 +956,20 @@ async function runPipeline(assessment_id: string) {
     try {
       if (parsed && Array.isArray(parsed.priority_actions)) {
         const actions = parsed.priority_actions;
-        const preUseIdx = actions.findIndex((a: any) => {
+        // Identify the pre-use-notice action as one that cites § 7220 in its
+        // action/text or deadline_basis AND whose OWN deadline field is a
+        // single-clause form (does not itself contain the second conditional
+        // "§ 7220 / if ADMT confirmed" clause). This prevents self-matching the
+        // dual-date inconsistency action, whose deadline_basis also cites § 7220.
+        const cites7220 = (a: any) => {
           const t = String(a?.action ?? a?.text ?? "");
           const b = String(a?.deadline_basis ?? "");
           return /§\s*7220/.test(t) || /§\s*7220/.test(b);
-        });
+        };
+        const hasSecondClauseDeadline = (a: any) =>
+          /§\s*7220|if\s+ADMT\s+confirmed/i.test(String(a?.deadline ?? ""));
+        const preUseIdx = actions.findIndex((a: any) => cites7220(a) && !hasSecondClauseDeadline(a));
+        const anyCites7220 = actions.some((a: any) => cites7220(a));
         if (preUseIdx >= 0) {
           for (let idx = 0; idx < actions.length; idx++) {
             if (idx === preUseIdx) continue;
@@ -980,6 +989,11 @@ async function runPipeline(assessment_id: string) {
               console.warn(`[cppa-risk] ADMT pre-use-notice deadline collapse on priority_actions[${idx}] (pre-use action at ${preUseIdx})`);
             }
           }
+        } else if (anyCites7220) {
+          // Per the ADMT-INCONSISTENCY canonical, if a § 7220-citing action
+          // exists but no qualifying single-date pre-use action is present, the
+          // both-dates deadline form is legitimate and nothing is rewritten.
+          console.warn("[cppa-risk] ADMT pre-use-notice deadline collapse: § 7220-citing action found but no single-date pre-use action; leaving both-dates form intact per ADMT-INCONSISTENCY canonical");
         }
         const determinationIdx = actions.findIndex((a: any) => {
           const t = String(a?.action ?? a?.text ?? "");
