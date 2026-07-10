@@ -7,6 +7,7 @@
 // modals, /subscribe/success). Couriers B/C will keep and extend these
 // calls when they rebuild the surfaces — they do not create them.
 
+import { useEffect } from "react";
 import { trackEvent } from "@/lib/trackEvent";
 
 const FIRED_KEY = "eup_fired_events_v1";
