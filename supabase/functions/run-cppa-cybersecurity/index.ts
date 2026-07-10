@@ -11,6 +11,8 @@ import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERS
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
+import { verifyCaller } from "../_shared/verify-caller.ts";
+import { requireEntitlement } from "../_shared/entitlement.ts";
 
 
 export const CPPA_CYBER_TOOL_MODULE: ToolModule = {
@@ -1232,11 +1234,25 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const caller = await verifyCaller(req, "user");
+    if (!caller.ok) {
+      return new Response(JSON.stringify({ error: caller.error ?? "Unauthorized" }), {
+        status: caller.status ?? 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const { assessment_id } = await req.json();
     if (!assessment_id) {
       return new Response(JSON.stringify({ error: "assessment_id required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const ent = await requireEntitlement(caller, "cppa_cybersecurity", { rowId: assessment_id });
+    if (!ent.ok) {
+      console.log(JSON.stringify({ evt: "entitlement_denied", fn: "run-cppa-cybersecurity", reason: ent.reason }));
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 

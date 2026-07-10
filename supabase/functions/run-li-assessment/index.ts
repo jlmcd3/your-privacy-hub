@@ -3,6 +3,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonrepair } from "https://esm.sh/jsonrepair@3.8.0";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { requireEntitlement } from "../_shared/entitlement.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun, type FnRunHandle } from "../_shared/function-run-logger.ts";
@@ -257,6 +258,14 @@ Deno.serve(async (req) => {
     if (!assessment_id) {
       return new Response(JSON.stringify({ error: "assessment_id required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const ent = await requireEntitlement(caller, "li_assessment", { rowId: assessment_id });
+    if (!ent.ok) {
+      console.log(JSON.stringify({ evt: "entitlement_denied", fn: "run-li-assessment", reason: ent.reason }));
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { data: assessment, error: fetchErr } = await supabase

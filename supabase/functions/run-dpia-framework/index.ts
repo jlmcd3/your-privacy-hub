@@ -2,6 +2,7 @@
 // run-meter deploy-check v1
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { requireEntitlement } from "../_shared/entitlement.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
@@ -181,6 +182,14 @@ Deno.serve(async (req) => {
     const { dpia_id } = await req.json();
     if (!dpia_id) return new Response(JSON.stringify({ error: "dpia_id required" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    const ent = await requireEntitlement(caller, "dpia_framework", { rowId: dpia_id });
+    if (!ent.ok) {
+      console.log(JSON.stringify({ evt: "entitlement_denied", fn: "run-dpia-framework", reason: ent.reason }));
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { data: dpia } = await supabase
       .from("dpia_frameworks").select("*").eq("id", dpia_id).single();

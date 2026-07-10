@@ -30,6 +30,8 @@ import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
 import { guardInformationNeeded } from "../_shared/insufficient-info-guard.ts";
 import { validateSourceFields } from "../_shared/source-fields-validator.ts";
 import { observeCitations } from "../_shared/citation-observe.ts";
+import { verifyCaller } from "../_shared/verify-caller.ts";
+import { requireEntitlement } from "../_shared/entitlement.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -1467,6 +1469,13 @@ Deno.serve(async (req) => {
   console.log("[run-cppa-risk-assessment] qb7 build active");
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const caller = await verifyCaller(req, "user");
+  if (!caller.ok) {
+    return new Response(JSON.stringify({ error: caller.error ?? "Unauthorized" }), {
+      status: caller.status ?? 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   let assessment_id: string | undefined;
   try {
     const body = await req.json();
@@ -1479,6 +1488,14 @@ Deno.serve(async (req) => {
   if (!assessment_id) {
     return new Response(JSON.stringify({ error: "assessment_id required" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const ent = await requireEntitlement(caller, "cppa_risk_assessment", { rowId: assessment_id });
+  if (!ent.ok) {
+    console.log(JSON.stringify({ evt: "entitlement_denied", fn: "run-cppa-risk-assessment", reason: ent.reason }));
+    return new Response(JSON.stringify({ error: "forbidden" }), {
+      status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 

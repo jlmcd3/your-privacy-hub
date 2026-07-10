@@ -3,6 +3,7 @@
 // generate-dpa: produces a GDPR Article 28 DPA, calibrated to live enforcement context.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { requireEntitlement } from "../_shared/entitlement.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
@@ -150,6 +151,23 @@ Deno.serve(async (req) => {
     // Trust user identity only from the verified JWT; internal webhook
     // callers may pass user_id in the body (service-role bearer).
     const resolvedUserId = caller.internal ? (body.user_id ?? null) : caller.userId;
+
+    if (body.assessment_id) {
+      const ent = await requireEntitlement(caller, "dpa_generator", { rowId: body.assessment_id });
+      if (!ent.ok) {
+        console.log(JSON.stringify({ evt: "entitlement_denied", fn: "generate-dpa", reason: ent.reason }));
+        return new Response(JSON.stringify({ error: "forbidden" }), {
+          status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else if (!caller.internal) {
+      // Non-service callers must operate on an existing row (created by the
+      // subscriber/checkout flow). Creating-and-generating in one shot is
+      // reserved for the payments-webhook (internal) path.
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Row-first dispatch — on the webhook path (payments-webhook invokes with
     // only { assessment_id }), hydrate body from the stored intake_data BEFORE
