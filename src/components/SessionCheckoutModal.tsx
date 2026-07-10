@@ -90,6 +90,7 @@ export default function SessionCheckoutModal({
     });
     setConfirming(false);
     if (ok) {
+      firePurchaseCompleted({ tool: toolType, surface: "session_checkout_modal" });
       onComplete?.(sessionId);
     } else {
       setConfirmError(
