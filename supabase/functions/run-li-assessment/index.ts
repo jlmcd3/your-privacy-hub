@@ -259,6 +259,14 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const ent = await requireEntitlement(caller, "li_assessment", { rowId: assessment_id });
+    if (!ent.ok) {
+      console.log(JSON.stringify({ evt: "entitlement_denied", fn: "run-li-assessment", reason: ent.reason }));
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: ent.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: assessment, error: fetchErr } = await supabase
       .from("li_assessments")
       .select("*")
