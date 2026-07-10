@@ -3,6 +3,7 @@
 // generate-ir-playbook: produces a 7-section breach response playbook.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
+import { requireEntitlement } from "../_shared/entitlement.ts";
 import { lintReportText } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { stampPromptVersion } from "../_shared/prompt-version.ts";
