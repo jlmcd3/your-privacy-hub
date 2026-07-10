@@ -411,7 +411,7 @@ function SavedNote({ isAuthed }: { isAuthed: boolean }) {
 }
 
 function CreateAccountPrompt() {
-  const redirect = encodeURIComponent("/cppa/scope-checker");
+  const redirect = encodeURIComponent("/cppa-scope-checker");
   return (
     <section className="bg-card border rounded-lg p-4">
       <p className="text-sm font-medium">Save this obligation map to your account</p>
