@@ -205,6 +205,12 @@ const Subscribe = () => {
               <p className="text-center text-brand-cloud/80 text-meta mt-2">
                 10-day free trial · Card required · No tools in trial
               </p>
+              <Link
+                to="/get-intelligence"
+                className="mt-2 block text-center text-meta text-white/80 hover:text-white underline underline-offset-2 no-underline"
+              >
+                See a sample Intelligence brief →
+              </Link>
             </div>
 
             {/* Professional card */}
@@ -282,6 +288,12 @@ const Subscribe = () => {
               <p className="text-center text-amber-100/80 text-meta mt-2">
                 Add clients at {PRICING.professional.perClient.display}/client/year — no minimum.
               </p>
+              <Link
+                to="/samples/governance"
+                className="mt-2 block text-center text-meta text-amber-100/90 hover:text-white underline underline-offset-2 no-underline"
+              >
+                See a sample Governance Assessment →
+              </Link>
             </div>
           </div>
           {error && <p className="text-red-300 text-meta mt-4">{error}</p>}
@@ -645,6 +657,59 @@ const Subscribe = () => {
         </div>
 
         {error && <p className="text-center text-severity-warning text-sm mt-6">{error}</p>}
+
+        {/* ROI block — registry-computed */}
+        <div className="max-w-3xl mx-auto mt-12 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-brand-cloud bg-card p-5">
+            <p className="text-eyebrow text-brand-teal-text mb-2">Intelligence annual — return on cost</p>
+            <p className="text-sm text-slate leading-relaxed">
+              At <strong className="text-brand-navy">{PRICING.intelligence.annual.display}/year</strong>,
+              one included Smart Tool run (up to <strong className="text-brand-navy">{INTELLIGENCE_ANNUAL_FREE_RUN_VALUE_DISPLAY}</strong> value)
+              covers most of the subscription. Subscriber pricing on additional runs applies for the rest of the year.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <p className="text-eyebrow text-amber-800 mb-2">Professional annual — return on cost</p>
+            <p className="text-sm text-slate leading-relaxed">
+              At <strong className="text-brand-navy">{PRICING.professional.annual.display}/year</strong>,
+              three included Smart Tool runs (up to <strong className="text-brand-navy">{PROFESSIONAL_ANNUAL_FREE_RUN_VALUE_DISPLAY}</strong> value)
+              cover more than half the subscription — before the client workspace pays for itself.
+            </p>
+          </div>
+        </div>
+
+        {/* Four-item objection FAQ */}
+        <div className="max-w-3xl mx-auto mt-8 mb-4">
+          <h2 className="font-display text-brand-navy text-center mb-5">Common questions</h2>
+          <div className="space-y-3">
+            {[
+              {
+                q: "Can I try it before I pay?",
+                a: "Intelligence includes a 10-day free trial (card required, no tools during trial). Every Smart Tool has a full sample report you can read end-to-end at /samples.",
+              },
+              {
+                q: "What happens if I cancel?",
+                a: "Cancel anytime from your account. You keep access through the end of the paid period. Reports and documents you've already generated remain in your account.",
+              },
+              {
+                q: "Is the output legal advice?",
+                a: "No. Outputs are calibrated against enforcement decisions and regulatory guidance to support your legal review — they must be reviewed by qualified counsel before operational use.",
+              },
+              {
+                q: "Do free Smart Tool runs roll over?",
+                a: "No. Free runs are per annual term (1 for Intelligence annual, 3 for Professional annual — Governance, LIA, or DPIA). Subscriber pricing applies to every additional run.",
+              },
+            ].map((item) => (
+              <details key={item.q} className="group rounded-xl border border-brand-cloud bg-card p-4 open:shadow-eup-sm">
+                <summary className="cursor-pointer list-none flex items-center justify-between text-sm font-semibold text-brand-navy">
+                  {item.q}
+                  <span className="text-brand-teal-text ml-3 group-open:rotate-45 transition-transform">+</span>
+                </summary>
+                <p className="mt-2 text-sm text-slate leading-relaxed">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
 
         {/* Free digest signup */}
         <FreeDigestSignup source="website" className="mt-10" />
