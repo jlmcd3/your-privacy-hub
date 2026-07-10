@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check } from "lucide-react";
 import { PRICING } from "@/config/pricing";
+import { firePurchaseCompleted } from "@/lib/analyticsEvents";
 
 export default function SubscribeSuccess() {
   const { user } = useAuth();
