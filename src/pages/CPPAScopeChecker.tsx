@@ -21,7 +21,7 @@ import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
 import { CPPA_SCOPE_RAIL } from "@/components/cppa/CPPAScopeRailEntries";
-import { fireToolStarted } from "@/lib/analyticsEvents";
+import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
@@ -71,7 +71,7 @@ const Radio = ({
 );
 
 export default function CPPAScopeChecker() {
-  useEffect(() => { fireToolStarted("cppa_scope"); }, []);
+  useToolStartedOnInteraction("cppa_scope");
 
   const navigate = useNavigate();
   const { user } = useAuth();

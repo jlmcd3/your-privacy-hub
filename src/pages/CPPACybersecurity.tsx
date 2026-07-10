@@ -37,7 +37,7 @@ import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import { useFscrCallouts } from "@/hooks/useFscrCallouts";
 import { FscrCallout } from "@/components/FscrCallout";
-import { fireToolStarted } from "@/lib/analyticsEvents";
+import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 
 const MATURITY = [
   "Not implemented",
@@ -71,7 +71,7 @@ const CONTROLS: Control[] = [
 ];
 
 export default function CPPACybersecurity() {
-  useEffect(() => { fireToolStarted("cppa_cyber"); }, []);
+  useToolStartedOnInteraction("cppa_cyber");
   const { user } = useAuth();
   const { clientId } = useActiveClient();
   const navigate = useNavigate();
