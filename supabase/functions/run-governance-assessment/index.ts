@@ -6,6 +6,7 @@ console.log(`[run-governance-assessment] boot build_marker=${DOC_Y_BUILD_MARKER}
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
@@ -1161,6 +1162,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
 
 
     const dpiaScope = synthesis.dpia_scope || [];
+
+    (reportData as any)._meta = { ...((reportData as any)._meta ?? {}), prompt_version: stampPromptVersion("governance-assessment") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

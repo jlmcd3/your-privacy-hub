@@ -6,6 +6,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type ToolModule, type SystemBlock, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { renderRegistryFor } from "../_shared/registry/product-manifest.ts";
@@ -712,6 +713,7 @@ Biometric data carries elevated regulatory risk in most jurisdictions; this asse
     annotations: [],
     lint_warnings: [],
     generated_at: new Date().toISOString(),
+    _meta: { prompt_version: stampPromptVersion("biometric-compliance", "stress") },
   };
 
   let savedId: string | null = null;
@@ -1165,6 +1167,7 @@ STATIC-STRESS MODE: Produce the same required sections, but keep each section co
       annotations: parsedAnnotations,
       lint_warnings: lintViolations,
       generated_at: new Date().toISOString(),
+      _meta: { prompt_version: stampPromptVersion("biometric-compliance") },
     };
 
     // 2.6 S2 — forward-path guard. Biometric intake is the request body.

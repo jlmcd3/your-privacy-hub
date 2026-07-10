@@ -4941,7 +4941,6 @@ export type Database = {
       regulator_follows: {
         Row: {
           created_at: string | null
-          email: string
           follow_key: string
           follow_type: string
           id: string
@@ -4950,7 +4949,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          email: string
           follow_key: string
           follow_type: string
           id?: string
@@ -4959,7 +4957,6 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          email?: string
           follow_key?: string
           follow_type?: string
           id?: string

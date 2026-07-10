@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
 import { stripEnforcementTags } from "../_shared/enforcement-id-hygiene.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
+import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { buildSystemContent, type SystemBlock, type ToolModule, PROMPT_CORE_VERSION } from "../_shared/prompt-core.ts";
 import { recordRunMeterAndVersion } from "../_shared/run-meter.ts";
@@ -1167,6 +1168,8 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
     // Stage 5: forward-path guard (strip invented information_needed fields; log dead-ends).
     const guarded = guardInformationNeeded(report, ((row as any).intake_data as Record<string, unknown>) ?? {});
     report = guarded.report;
+
+    (report as any)._meta = { ...((report as any)._meta ?? {}), prompt_version: stampPromptVersion("cppa-cybersecurity") };
 
     // Stage 1: metering + version retention (written BEFORE status:complete).
     await recordRunMeterAndVersion(supabase, {

@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyCaller } from "../_shared/verify-caller.ts";
 import { getGdprContext } from "../_shared/gdpr-context.ts";
 import { lintReportText, hasHardViolations } from "../_shared/output-lint.ts";
+import { stampPromptVersion } from "../_shared/prompt-version.ts";
 import { startFunctionRun, finishFunctionRun, failFunctionRun } from "../_shared/function-run-logger.ts";
 import { PRODUCT_MAX_OUTPUT_TOKENS } from "../_shared/generation-policy.ts";
 import { resolveDpiaJurisdiction, renderResolvedBlock, validateJurisdiction, type DpiaIntakeFacts, type TransferFlow } from "../_shared/dpia-jurisdiction-registry.ts";
@@ -854,6 +855,7 @@ Generate substantive draft rows for every table for the controller to verify; us
     reportData.enforcement_meta = enforcementMeta;
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
+    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework") };
 
     // ── Layer 4: Jurisdiction validator ──────────────────────────────────────
     try {
