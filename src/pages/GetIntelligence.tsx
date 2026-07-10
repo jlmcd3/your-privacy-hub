@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BriefBuilder from "@/components/subscribe/BriefBuilder";
+import GetIntelligenceEmailCapture from "@/components/subscribe/GetIntelligenceEmailCapture";
 
 const GetIntelligence = () => (
   <div className="min-h-screen bg-brand-cloud">
@@ -33,6 +34,7 @@ const GetIntelligence = () => (
     </header>
     <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
       <BriefBuilder />
+      <GetIntelligenceEmailCapture />
     </main>
     <Footer />
   </div>
