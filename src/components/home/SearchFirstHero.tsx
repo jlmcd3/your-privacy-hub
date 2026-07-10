@@ -1,5 +1,6 @@
-import SpinTheGlobe from "@/components/globe/SpinTheGlobe";
-import StarFieldBackground from "@/components/globe/StarFieldBackground";
+import { lazy, Suspense } from "react";
+const SpinTheGlobe = lazy(() => import("@/components/globe/SpinTheGlobe"));
+const StarFieldBackground = lazy(() => import("@/components/globe/StarFieldBackground"));
 import { INTELLIGENCE_PRICING, PLATFORM_PRICING } from "@/config/pricing";
 import { useGeoCountry, isEuOrUk } from "@/hooks/useGeoCountry";
 
