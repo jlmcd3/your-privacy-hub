@@ -78,6 +78,7 @@ export default function SampleReportView() {
   const toolRoute = toolSlug ? TOOL_ROUTE[toolSlug] : undefined;
 
   useEffect(() => {
+    if (toolSlug) fireSampleOpened(toolSlug, variant);
     let cancelled = false;
     (async () => {
       if (!toolSlug || !variant) return;
