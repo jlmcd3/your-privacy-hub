@@ -21,7 +21,7 @@ import { useEnforcementSignals } from "@/hooks/useEnforcementSignals";
 import { EnforcementSignalIcon } from "@/components/EnforcementSignalIcon";
 import StatuteRail, { type RailEntry } from "@/components/intake/StatuteRail";
 import { CPPA_SCOPE_RAIL } from "@/components/cppa/CPPAScopeRailEntries";
-import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import { useToolStartedOnInteraction, fireEmailCaptured } from "@/lib/analyticsEvents";
 
 type Q1 = "" | "Yes" | "No" | "Unsure";
 type Q2 = "" | "Under $25 million" | "$25M–$100M" | "$100M–$500M" | "Over $500M" | "Unsure";
@@ -670,43 +670,51 @@ function ResultsPanel({
         not legal advice. Confirm your obligations with qualified legal counsel.
       </section>
 
-      <section className="bg-card border rounded-lg p-6 space-y-3">
-        <h3 className="">Next steps</h3>
-        <div className="flex flex-wrap gap-3">
-          {obligationMap.riskAssessmentRequired && (
-            <Button onClick={() => navigate("/cppa-risk-assessment")}>
-              Run CPPA Risk Assessment — Module 1 →
-            </Button>
-          )}
-          {cyberRequiredConfirmed && (
-            <Button onClick={() => navigate("/cppa-cybersecurity")}>
-              Run CPPA Cybersecurity Readiness — Module 2 →
-            </Button>
-          )}
-          {obligationMap.admtRequired && (
-            <Button onClick={() => navigate("/cppa-admt-checker")}>
-              Run ADMT Compliance Assessment — Module 3 →
-            </Button>
-          )}
-        </div>
-        {obligationMap.riskAssessmentRequired && cyberRequiredConfirmed && (
-          <p className="text-sm text-muted-foreground">
-            Need both? The{" "}
-            <Link to="/cppa" className="underline text-brand-teal-text">CPPA Full Audit Suite</Link>{" "}
-            covers risk assessment and cybersecurity readiness together —{" "}
-            <span className="font-semibold text-foreground">
-              {PRICING_REGISTRY.cppa_suite_standalone.displayPrice} (subscribers {PRICING_REGISTRY.cppa_suite_subscriber.displayPrice})
-            </span>
-            , versus{" "}
-            <span className="font-semibold text-foreground">
+      {obligationMap.riskAssessmentRequired && cyberRequiredConfirmed && (
+        <section className="rounded-lg border-2 border-brand-teal bg-brand-cloud/40 p-6 space-y-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-brand-teal-text font-semibold">
+            Recommended — you triggered 2+ modules
+          </p>
+          <h3 className="font-serif text-2xl text-brand-navy">CPPA Full Audit Suite (M1 + M2)</h3>
+          <p className="text-sm text-foreground">
+            Covers Risk Assessment (Module 1) and Cybersecurity Readiness (Module 2) together —{" "}
+            <span className="font-semibold">
+              {PRICING_REGISTRY.cppa_suite_standalone.displayPrice}
+            </span>{" "}
+            standalone (subscribers {PRICING_REGISTRY.cppa_suite_subscriber.displayPrice}), versus{" "}
+            <span className="font-semibold">
               ${
                 (PRICING_REGISTRY.cppa_risk_standalone.amountCents +
                   PRICING_REGISTRY.cppa_cyber_standalone.amountCents) / 100
               }
             </span>{" "}
-            separately.
+            purchased separately.
           </p>
-        )}
+          <Button onClick={() => navigate("/cppa-risk-assessment?suite=true")}>
+            Start CPPA Full Suite →
+          </Button>
+        </section>
+      )}
+
+      <section className="bg-card border rounded-lg p-6 space-y-3">
+        <h3 className="">Next steps</h3>
+        <div className="flex flex-wrap gap-3">
+          {obligationMap.riskAssessmentRequired && (
+            <Button variant={obligationMap.riskAssessmentRequired && cyberRequiredConfirmed ? "outline" : "default"} onClick={() => navigate("/cppa-risk-assessment")}>
+              Run CPPA Risk Assessment — Module 1 · {PRICING_REGISTRY.cppa_risk_standalone.displayPrice} →
+            </Button>
+          )}
+          {cyberRequiredConfirmed && (
+            <Button variant={obligationMap.riskAssessmentRequired && cyberRequiredConfirmed ? "outline" : "default"} onClick={() => navigate("/cppa-cybersecurity")}>
+              Run CPPA Cybersecurity Readiness — Module 2 · {PRICING_REGISTRY.cppa_cyber_standalone.displayPrice} →
+            </Button>
+          )}
+          {obligationMap.admtRequired && (
+            <Button variant="outline" onClick={() => navigate("/cppa-admt-checker")}>
+              Run ADMT Compliance Assessment — Module 3 · {PRICING_REGISTRY.cppa_admt_standalone.displayPrice} →
+            </Button>
+          )}
+        </div>
         <p className="text-xs text-muted-foreground italic">
           When you complete a risk assessment here, we track your § 7155(a) triennial review date for you — it goes straight into your Obligations Register.
         </p>
@@ -717,6 +725,60 @@ function ResultsPanel({
           Start over
         </button>
       </section>
+
+      {!isAuthed && <CPPAUpdatesCapture />}
     </div>
+  );
+}
+
+function CPPAUpdatesCapture() {
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = email.toLowerCase().trim();
+    if (!clean) return;
+    try {
+      await (supabase as any)
+        .from("email_signups")
+        .insert({ email: clean, source: "cppa_scope_updates" });
+      fireEmailCaptured("cppa_scope_updates");
+    } catch {
+      /* silent */
+    }
+    setSent(true);
+  };
+  if (sent) {
+    return (
+      <section className="rounded-lg border bg-card p-6">
+        <p className="text-sm font-medium text-brand-navy">Subscribed to CPPA regulatory updates.</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          You'll receive periodic CPPA rulemaking and enforcement updates. Your obligation-map results were not emailed — create a free account above to save them.
+        </p>
+      </section>
+    );
+  }
+  return (
+    <section className="rounded-lg border bg-card p-6 space-y-3">
+      <div>
+        <p className="text-sm font-semibold text-brand-navy">Track CPPA rulemaking and enforcement</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Periodic email updates on CPPA regulations, deadlines, and enforcement actions.
+          <span className="block mt-1 italic">We do not email your obligation-map results. To save results, create a free account above.</span>
+        </p>
+      </div>
+      <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2">
+        <input
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@company.com"
+          className="flex-1 h-10 px-3 rounded-md border border-input bg-background text-sm"
+          autoComplete="email"
+        />
+        <Button type="submit">Subscribe to CPPA updates</Button>
+      </form>
+    </section>
   );
 }

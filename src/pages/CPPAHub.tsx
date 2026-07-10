@@ -133,26 +133,29 @@ export default function CPPAHub() {
           ))}
         </section>
 
-        <section className="bg-brand-navy text-white rounded-lg p-8">
-          <p className="text-xs uppercase tracking-[0.18em] text-brand-cloud font-semibold mb-2">
-            Step 1 — find out what applies to you (free)
+        <section className="bg-brand-navy text-white rounded-lg p-10 text-center">
+          <p className="text-xs uppercase tracking-[0.18em] text-brand-cloud font-semibold mb-3">
+            Start here — free, 2 minutes, no signup
           </p>
-          <h2 className="font-serif text-2xl mb-3">Start with the Scope Checker</h2>
-          <p className="text-sm text-white/80 mb-5 max-w-2xl">
-            Two minutes, free, no signup. Returns a clear in-scope / out-of-scope determination with cite-level reasoning.
+          <h2 className="font-serif text-3xl md:text-4xl mb-3 text-white">Run the CPPA Scope Checker</h2>
+          <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
+            Answers eight scoped questions and returns a cite-level obligation map: which modules apply to you (Risk, Cybersecurity, ADMT), by when, and at what registry price.
           </p>
           <Link
             to="/cppa-scope-checker"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded bg-brand-teal-deep text-white text-sm font-medium hover:bg-brand-teal/90 no-underline"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded bg-brand-teal-deep text-white text-base font-semibold hover:bg-brand-teal/90 no-underline"
           >
-            Run Scope Checker <ArrowRight className="w-4 h-4" />
+            Run Scope Checker <ArrowRight className="w-5 h-5" />
           </Link>
         </section>
 
         <section aria-label="Tools" className="space-y-4">
-          <h2 className="font-serif text-2xl">Step 2 — build your readiness record</h2>
+          <h2 className="font-serif text-2xl">The three modules</h2>
+          <p className="text-sm text-muted-foreground">
+            The Scope Checker routes you to the modules that apply. You can also open them directly:
+          </p>
           <div className="grid md:grid-cols-2 gap-5">
-            {TOOLS.map((t) => (
+            {TOOLS.filter((t) => t.href !== "/cppa-scope-checker").map((t) => (
               <Link
                 key={t.title}
                 to={t.href}
@@ -194,17 +197,15 @@ export default function CPPAHub() {
           </dl>
         </section>
 
-        <section className="bg-card border rounded-lg p-8">
+        <section className="bg-card border rounded-lg p-6">
           <p className="text-body-tiny uppercase tracking-wider text-brand-teal-text font-semibold mb-1">Module 3 · Article 11 (§§ 7200–7222)</p>
-          <h2 className="font-serif text-2xl mb-2">ADMT Compliance Assessment — Module 3</h2>
-          <p className="text-sm text-muted-foreground mb-5 max-w-2xl">
-            Automated decision-making technology disclosures are required from January 1, 2027.
-            The ADMT Compliance Assessment produces a compliance-readiness analysis covering pre-use notice (§ 7220),
-            opt-out (§ 7221), and access right (§ 7222) obligations — cited to the regulation.
+          <h3 className="font-serif text-xl mb-2">ADMT Compliance Assessment — Module 3</h3>
+          <p className="text-sm text-muted-foreground mb-4 max-w-2xl">
+            Sold standalone. If you also need Risk (Module 1) and Cybersecurity (Module 2), the Scope Checker will surface the Full Suite bundle.
           </p>
           <Link
             to="/cppa-admt-checker"
-            className="inline-block text-sm font-semibold text-white bg-brand-teal-deep px-5 py-2.5 rounded-lg hover:opacity-90 transition no-underline"
+            className="text-sm font-medium text-brand-teal-text hover:underline no-underline"
           >
             Open the ADMT Compliance Assessment →
           </Link>
