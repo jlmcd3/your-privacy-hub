@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, ArrowRight, ExternalLink, FileText, ListChecks, Download } from "lucide-react";
 import { INTELLIGENCE_PRICING } from "@/config/pricing";
 import { useToolPrice } from "@/hooks/useToolPrice";
-import { fireToolStarted } from "@/lib/analyticsEvents";
+import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 
 const TITLE =
   "RoPA Builder — Records of Processing | End User Privacy";
@@ -89,7 +89,7 @@ const FAQ = [
 ];
 
 export default function RopaLanding() {
-  useEffect(() => { fireToolStarted("ropa"); }, []);
+  useToolStartedOnInteraction("ropa");
 
   const pricing = useToolPrice("ropa_initial");
   useEffect(() => {

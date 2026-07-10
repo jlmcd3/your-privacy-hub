@@ -14,7 +14,7 @@ import SampleReportLink from "@/components/SampleReportLink";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSubscriptionTier } from "@/hooks/useSubscriptionTier";
-import { fireToolStarted } from "@/lib/analyticsEvents";
+import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 
 const US_VIRGINIA_STATES = [
   "Virginia", "Colorado", "Connecticut", "Utah", "Texas", "Oregon",
@@ -38,7 +38,7 @@ const EU_FRAMEWORKS = [
 ];
 
 export default function NoticeBuilderLanding() {
-  useEffect(() => { fireToolStarted("notice_builder"); }, []);
+  useToolStartedOnInteraction("notice_builder");
 
   const { hasToolAccess } = useSubscriptionTier();
   const usHref = hasToolAccess ? "/us-notices" : "/subscribe";

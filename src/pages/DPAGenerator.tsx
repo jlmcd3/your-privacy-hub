@@ -27,7 +27,7 @@ import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 
 import { JURS_EU, JURS_US, JURS_CANADA, JURS_OTHER, detectDocumentType } from "@/lib/dpaDocumentType";
-import { fireToolStarted } from "@/lib/analyticsEvents";
+import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 
 const DATA_CATS = ["General personal data","Financial / payment data","Location data","Health / medical data","Employee / HR data","Children's data (under 18)","Biometric data","Genetic data","Criminal records"];
 
@@ -45,7 +45,7 @@ const SAMPLE = `1. PARTIES AND RECITALS
 [Section 3 onwards continues — full DPA available after generation]`;
 
 export default function DPAGenerator() {
-  useEffect(() => { fireToolStarted("dpa"); }, []);
+  useToolStartedOnInteraction("dpa");
 
   const [params] = useSearchParams();
   const navigate = useNavigate();

@@ -29,7 +29,7 @@ import BenchLayout from "@/components/intake/BenchLayout";
 import { useRunMeter } from "@/hooks/useRunMeter";
 import { LIA_RAIL } from "@/components/lia/LIARailEntries";
 import type { RailEntry } from "@/components/intake/RailEntry";
-import { fireToolStarted } from "@/lib/analyticsEvents";
+import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
 
 
 
@@ -95,7 +95,7 @@ const STRENGTH_STYLE: Record<string, string> = {
 // Outcome palette (stripe/accent) lives in @/lib/li-outcome-palette and is shared with /li-tracker
 
 const LIAssessment = () => {
-  useEffect(() => { fireToolStarted("li_assessment"); }, []);
+  useToolStartedOnInteraction("li_assessment");
   const { user } = useAuth();
   const { clientId } = useActiveClient();
   const navigate = useNavigate();
