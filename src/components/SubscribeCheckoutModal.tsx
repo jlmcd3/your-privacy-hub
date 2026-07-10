@@ -7,6 +7,7 @@ import { getStripeEnvironment } from "@/lib/env";
 import { useAuth } from "@/hooks/useAuth";
 import { waitForSubscriptionActive } from "@/lib/checkoutConfirmation";
 import { PRICING } from "@/config/pricing";
+import { fireCheckoutStarted } from "@/lib/analyticsEvents";
 
 const publishableKey = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string;
 const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
