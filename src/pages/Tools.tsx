@@ -558,11 +558,32 @@ export default function Tools() {
   const activeTool = sampleModal ? TOOLS.find((t) => t.slug === sampleModal) : null;
   const { hasToolAccess, tier } = useSubscriptionTier();
 
+  // Courier C — ?region=us|eu filters the tool grid; anything else = all.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawRegion = (searchParams.get("region") ?? "").toLowerCase();
+  const region: "us" | "eu" | "all" =
+    rawRegion === "us" ? "us" : rawRegion === "eu" ? "eu" : "all";
+
+  const inRegion = (slug: string): boolean => {
+    if (region === "all") return true;
+    const tag = TOOL_REGIONS[slug] ?? "all";
+    return tag === region || tag === "all";
+  };
+
+  const setRegion = (r: "us" | "eu" | "all") => {
+    const next = new URLSearchParams(searchParams);
+    if (r === "all") next.delete("region");
+    else next.set("region", r);
+    setSearchParams(next, { replace: true });
+  };
+
   const sections: ToolSection[] = ["assessments", "documents", "cppa"];
-  const toolsBySection = sections.map((sec) => ({
-    section: sec,
-    tools: TOOLS.filter((t) => t.section === sec),
-  }));
+  const toolsBySection = sections
+    .map((sec) => ({
+      section: sec,
+      tools: TOOLS.filter((t) => t.section === sec && inRegion(t.slug)),
+    }))
+    .filter((s) => s.tools.length > 0);
 
   return (
     <>
