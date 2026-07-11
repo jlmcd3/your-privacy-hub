@@ -925,11 +925,14 @@ Generate substantive draft rows for every table for the controller to verify; us
       reportData,
     });
 
-    await supabase.from("dpia_frameworks").update({
+    const completeWrite = await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, {
       status: "complete",
       report_data: reportData,
       updated_at: new Date().toISOString(),
-    }).eq("id", dpia_id);
+    }, { fn: "run-dpia-framework", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "dpia_frameworks", dpia_id, { status: "failed" }, { fn: "run-dpia-framework", phase: "terminal_fallback" });
+    }
 
     // L2 — observe-only citation lint (never blocks, never mutates output).
     try {
