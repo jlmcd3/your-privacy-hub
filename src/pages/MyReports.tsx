@@ -75,6 +75,10 @@ const DRAFT_TOOL_MAP: Record<string, { route: string; labelKey: string }> = {
   dpia: { route: "/dpia-framework", labelKey: "dpia" },
   governance: { route: "/governance-assessment", labelKey: "governance" },
   lia: { route: "/li-assessment", labelKey: "li" },
+  dpa: { route: "/dpa-generator", labelKey: "dpa" },
+  ir: { route: "/ir-playbook", labelKey: "ir" },
+  biometric: { route: "/biometric-checker", labelKey: "biometric" },
+  registration: { route: "/registration-manager/start", labelKey: "registration" },
 };
 
 const TOOL_LABEL: Record<string, string> = {
