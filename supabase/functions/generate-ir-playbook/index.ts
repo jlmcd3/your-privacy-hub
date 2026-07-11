@@ -1413,6 +1413,30 @@ const playbook_text = lint.clean;
           console.error("[IR Playbook][R1b2 post-check] errored (non-fatal):", e);
         }
 
+        // T-5 — TEST-STATES vocabulary leakage (leg-(b) 2026-07-11). IR posture is
+        // log-only: the PRIMARY fix for IR is the prompt rule; residual leakage is
+        // surfaced in lint_warnings and console.warn but does NOT trigger a retry
+        // (IR generation is expensive and the prompt-side gate is expected to hold).
+        try {
+          const t5Hits = detectTestStatesLeak(playbook_text);
+          if (t5Hits.length > 0) {
+            console.warn(JSON.stringify({
+              evt: "post_lint_violation",
+              rule: "T-5",
+              fn: "generate-ir-playbook",
+              posture: "log_only",
+              count: t5Hits.length,
+              hits: t5Hits.slice(0, 10),
+            }));
+            for (const h of t5Hits) {
+              lintWarnings.push({ rule: "T-5", posture: "log_only", field: h.path, match: h.match, context: h.context });
+            }
+          }
+        } catch (e) {
+          console.error("[IR Playbook][T-5 post-check] errored (non-fatal):", e);
+        }
+
+
 
         const portals = body.jurisdictions
           .filter((j) => DPA_PORTALS[j])
