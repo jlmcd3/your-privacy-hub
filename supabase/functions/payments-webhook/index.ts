@@ -553,12 +553,9 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
 
         if (tool_type === "cppa_suite" && session.metadata?.suite_cyber_id) {
           const suiteCyberId = session.metadata.suite_cyber_id as string;
-          await supabase
-            .from("cppa_assessments")
-            .update({
-              stripe_payment_intent_id: (session.payment_intent as string) || session.id,
-            })
-            .eq("id", suiteCyberId);
+          await lifecycleUpdate(supabase, "cppa_assessments", suiteCyberId, {
+            stripe_payment_intent_id: (session.payment_intent as string) || session.id,
+          }, { fn: "payments-webhook", phase: "payment_evidence" });
           EdgeRuntime.waitUntil(
             supabase.functions.invoke("run-cppa-cybersecurity", {
               body: { assessment_id: suiteCyberId },
