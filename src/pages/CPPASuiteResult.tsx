@@ -267,11 +267,11 @@ export default function CPPASuiteResult() {
               <TabsTrigger value="cyber">Module 2 · Cybersecurity</TabsTrigger>
             </TabsList>
             <TabsContent value="risk" className="mt-6 space-y-6">
-              <StatusBlock row={riskRow} label="Privacy Risk Assessment" ctaTo="/cppa-risk-assessment?suite=true" />
+              <StatusBlock row={riskRow} label="Privacy Risk Assessment" ctaTo="/cppa-risk-assessment?suite=true" phase={risk.phase} onRefresh={risk.refresh} />
               {riskRow?.status === "complete" && <RiskReportBody row={riskRow} />}
             </TabsContent>
             <TabsContent value="cyber" className="mt-6 space-y-6">
-              <StatusBlock row={cyberRow} label="Cybersecurity Readiness Report" ctaTo="/cppa-cybersecurity?suite=true" />
+              <StatusBlock row={cyberRow} label="Cybersecurity Readiness Report" ctaTo="/cppa-cybersecurity?suite=true" phase={cyber.phase} onRefresh={cyber.refresh} />
               {cyberRow?.status === "complete" && <CybersecurityReportBody row={cyberRow} />}
             </TabsContent>
           </Tabs>
