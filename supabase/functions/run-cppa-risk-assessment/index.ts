@@ -686,7 +686,11 @@ async function runPipeline(assessment_id: string) {
   try {
     const { data: row } = await supabase.from("cppa_assessments").select("*").eq("id", assessment_id).single();
     if (!row) return;
-    await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
+    const procWrite = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-cppa-risk-assessment", phase: "pre_generation" });
+    if (!procWrite.ok) {
+      // Cannot persist lifecycle state — abort before spending model time.
+      return;
+    }
 
     const { intake: fiveStage, wasLegacyShimmed } = normaliseIntake(row.intake_data ?? {});
 
