@@ -100,6 +100,7 @@ export default function CPPARiskAssessmentResult() {
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
   const { isPro } = useSubscriptionTier();
   const [kitLoading, setKitLoading] = useState(false);
+  const { meter } = useRunMeter("cppa_risk_assessment", id);
 
   // Report-ready predicate is shared between the polling hook and render.
   const computeReportReady = (r: any): boolean => {
