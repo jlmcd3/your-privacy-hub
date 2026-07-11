@@ -641,6 +641,21 @@ const GovernanceAssessment = () => {
             </>
           )}
 
+          {/* R1a: optional catch-all rendered on the final input step (before the summary). */}
+          {!summaryStep && step === totalSteps - 1 && (
+            <div className="pt-2 border-t">
+              <Label htmlFor="additional_context">Additional context — anything material to your privacy program not captured above (optional)</Label>
+              <p className="text-xs text-muted-foreground mt-1">Free text. Anything you want the generator to weigh that the questions above didn't cover.</p>
+              <textarea
+                id="additional_context"
+                className="mt-2 w-full min-h-24 px-3 py-2 rounded-md border border-input bg-background text-sm"
+                value={additionalContext}
+                onChange={(e) => setAdditionalContext(e.target.value)}
+                placeholder="E.g. pending re-org affecting DPO reporting line; open sub-processor gap under review; recent enforcement letter from a state AG."
+              />
+            </div>
+          )}
+
           {summaryStep && (() => {
             const rows: { label: string; value: string }[] = [];
             const push = (label: string, value: string | string[] | undefined | null) => {
