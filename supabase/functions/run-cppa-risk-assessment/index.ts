@@ -201,14 +201,17 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
   const exceptions = { ...EMPTY_EXCEPTIONS };
   for (const [key, v] of Object.entries(exceptionsIntake)) {
     if (v && v.claimed && key in exceptions) {
-      (exceptions as Record<string, any>)[key] = {
+      (exceptions as Record<string, ExceptionEntry>)[key] = {
         claimed: true,
         scope: String(v.scope ?? ""),
         safeguards: String(v.safeguards ?? ""),
         documented: Boolean(v.scope || v.safeguards),
+        authority_basis: String(v.authority_basis ?? ""),   // R1a claimed authority (TESTED, never adopted)
+        retention_period: String(v.retention_period ?? ""), // R1a per-exception retention (additional to i2_retention_period)
       };
     }
   }
+
 
   // Recover the § 7152(a)(1)–(9) content the wizard collects but the v4 slots don't carry.
   const content_detail = {
