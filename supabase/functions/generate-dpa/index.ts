@@ -948,20 +948,17 @@ CITATION INTEGRITY RULE: Every specific statutory citation you produce (act name
     // the row again with the repaired text; if it fails, the original document
     // stays saved with its lint warnings recorded.
     console.log(`[generate-dpa] persisting rowId=${rowId} chars=${dpa_text.length}`);
-    const { error: updateErr } = await supabase
-      .from("dpa_documents")
-      .update({
-        status: "complete",
-        intake_data: body,
-        document_text: dpa_text,
-        report_data,
-        lint_warnings: lint.violations,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", rowId);
-    if (updateErr) {
-      console.error("[generate-dpa] dpa_documents persist failed:", updateErr);
-      throw updateErr;
+    const completeWrite = await lifecycleUpdate(supabase, "dpa_documents", rowId, {
+      status: "complete",
+      intake_data: body,
+      document_text: dpa_text,
+      report_data,
+      lint_warnings: lint.violations,
+      updated_at: new Date().toISOString(),
+    }, { fn: "generate-dpa", phase: "terminal_complete" });
+    if (!completeWrite.ok) {
+      await lifecycleUpdate(supabase, "dpa_documents", rowId, { status: "failed", last_error: `terminal_complete: ${completeWrite.message}`.slice(0, 500), updated_at: new Date().toISOString() }, { fn: "generate-dpa", phase: "terminal_fallback" });
+      throw new Error(`dpa_documents persist failed: ${completeWrite.message}`);
     }
     console.log(`[generate-dpa] persisted rowId=${rowId} status=complete`);
 
