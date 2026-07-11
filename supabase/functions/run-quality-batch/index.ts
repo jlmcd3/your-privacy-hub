@@ -44,7 +44,7 @@ const cors = {
 // registration / cppa-admt) and PDF template D8 fixes (Safeguard deficiencies,
 // Material deficiencies identified). CONSUMER_OPTS enum enforced on
 // cppa-risk annual_consumer_volume.
-console.log("[run-quality-batch] build 2026-07-11-dpia-type-fix");
+console.log("[run-quality-batch] build 2026-07-11-chunk1-boundary");
 
 // Per-invocation chunk size: ALWAYS 1 doc per isolate. Each doc (real generation
 // + Claude eval + GPT-4o eval + cross-review) takes ~2.5–3 min; the edge runtime
