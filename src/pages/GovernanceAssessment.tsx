@@ -34,6 +34,8 @@ import { useRefineMode } from "@/hooks/useRefineMode";
 import RefinePanel from "@/components/refine/RefinePanel";
 import { autoEditableFromIntake } from "@/components/refine/autoEditable";
 import { useToolStartedOnInteraction } from "@/lib/analyticsEvents";
+import { useToolDraft } from "@/hooks/useToolDraft";
+import DraftRestoreBanner from "@/components/DraftRestoreBanner";
 import ToolAlsoAvailableRow from "@/components/tools/ToolAlsoAvailableRow";
 
 // Price tiers managed by useToolPrice hook (subscriber-aware)
