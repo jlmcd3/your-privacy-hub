@@ -17,9 +17,14 @@ export const INTAKE_POLICY: Record<string, IntakePolicy> = {
   cppa_risk:  { rail: true,  goodAnswer: true  }, // free-text + enumerated coaching; BenchLayout collapses coaching column per-entry when a rail key has no coach content
   cppa_cyber: { rail: true,  goodAnswer: true  },
   biometric:  { rail: true,  goodAnswer: true  }, // enumerated intake — coaching explains what facts determine the accurate choice; no free-text fields
-  us_notice:  { rail: true,  goodAnswer: true  },
-  eu_notice:  { rail: true,  goodAnswer: true  },
-  rofa:       { rail: true,  goodAnswer: true  },
+  // NOT WIRED (2026-07-11): the US/EU Notice and RoPA wizard flows do not use
+  // BenchLayout/IntakeLayout/StatuteRail, so rail entries here have no effect.
+  // Adding statute rails to those flows is a tracked post-launch feature
+  // decision; when it lands, restore these as { rail: true, goodAnswer: true }
+  // (note: the old key "rofa" was a typo for "ropa").
+  us_notice:  { rail: false, goodAnswer: false },
+  eu_notice:  { rail: false, goodAnswer: false },
+  ropa:       { rail: false, goodAnswer: false },
 
   // Deterministic tool — rail yes (statutory context), goodAnswer NO (no AI prompt)
   cppa_scope: { rail: true,  goodAnswer: false },
