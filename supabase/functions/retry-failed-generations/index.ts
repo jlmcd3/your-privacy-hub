@@ -102,7 +102,26 @@ async function sweepTable(table: string): Promise<SweepResult> {
 
   for (const row of rows) {
     const attemptsSoFar: number = row.retry_count ?? 0;
+
+    // ENTITLEMENT-EVIDENCE GUARD: never re-dispatch a row that carries no
+    // evidence of a legitimately entitled original dispatch. The generator
+    // invocation below uses the service key, which bypasses requireEntitlement —
+    // so this check is the entitlement gate for retries. status='error' alone
+    // is NOT evidence (2026-07-11: manually-erred rows were regenerated free).
+    const evidenceBacked =
+      row.stripe_payment_intent_id != null ||
+      row.is_subscriber_credit === true; // column absent on cppa_assessments → undefined → falsy
+    if (!evidenceBacked) {
+      result.skipped_no_evidence = (result.skipped_no_evidence ?? 0) + 1;
+      console.warn(JSON.stringify({
+        evt: "retry_skipped_no_evidence",
+        table, row_id: row.id, status: row.status,
+      }));
+      continue;
+    }
+
     const exhausted = attemptsSoFar >= MAX_ATTEMPTS - 1;
+
 
     if (!exhausted) {
       // ── RETRY ───────────────────────────────────────────────────────────
