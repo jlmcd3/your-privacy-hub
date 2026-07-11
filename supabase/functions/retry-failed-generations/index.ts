@@ -71,13 +71,15 @@ interface SweepResult {
   refunded: number;
   credited: number;
   failed_resolved: number;
+  skipped_no_evidence: number;
   errors: string[];
 }
 
 async function sweepTable(table: string): Promise<SweepResult> {
   const result: SweepResult = {
-    table, retried: 0, refunded: 0, credited: 0, failed_resolved: 0, errors: [],
+    table, retried: 0, refunded: 0, credited: 0, failed_resolved: 0, skipped_no_evidence: 0, errors: [],
   };
+
 
   const stuckCutoff = new Date(Date.now() - STUCK_PROCESSING_MINUTES * 60_000).toISOString();
 
