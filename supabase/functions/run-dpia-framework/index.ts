@@ -961,6 +961,143 @@ Generate substantive draft rows for every table for the controller to verify; us
       }
     }
 
+    // R1b2 — post-lint T-2/T-3/T-4 gate. Single-call topology; one retry cap.
+    // Rebuilds BOTH halves once on violation (the target defects can land in
+    // either half); merges over reportData. Then proceeds with residuals logged.
+    {
+      const hedgeAskRe = /\b(please confirm|please verify|to be confirmed|\[TO COMPLETE)/i;
+      const collapseRe = /\b(cannot be determined|no basis to assess|not established)\b/i;
+      const depthLangRe = /\b(could|would strengthen|additional context|nice to have|consider (?:adding|providing)|optionally|for completeness|to enrich)\b/i;
+      const statAnchorRe = /(Art\.\s*\d|Article\s+\d|Recital\s+\d|GDPR|WP248|EDPB)/i;
+
+      function collectStrings(obj: any, out: string[]): void {
+        if (typeof obj === "string") { out.push(obj); return; }
+        if (Array.isArray(obj)) { for (const v of obj) collectStrings(v, out); return; }
+        if (obj && typeof obj === "object") { for (const k of Object.keys(obj)) collectStrings(obj[k], out); }
+      }
+
+      function detectDpiaViolations(): { t2: any[]; t3: any[]; t4: any[] } {
+        const t2: any[] = [];
+        const t3: any[] = [];
+        const t4: any[] = [];
+
+        // T-2: RESOLVED test contradicted or re-asked.
+        // M3 RESOLVED_MET → do not [TO COMPLETE] the Art. 9(2) condition.
+        const s2 = reportData?.section_2_analysis;
+        if (dpiaTestStates.M3?.state === "resolved_met") {
+          const s2Strings: string[] = []; collectStrings(s2, s2Strings);
+          for (const s of s2Strings) {
+            if (/\[TO COMPLETE[^\]]*(Art(?:icle)?\.?\s*9(?:\(2\))?|special.category.condition)/i.test(s)) {
+              t2.push({ test: "M3", kind: "re_asks_art9_condition", detail: s.slice(0, 160) });
+            }
+          }
+        }
+        // M4 RESOLVED_MET → do not [TO COMPLETE] the legal basis.
+        if (dpiaTestStates.M4?.state === "resolved_met") {
+          const allStrings: string[] = []; collectStrings(reportData, allStrings);
+          for (const s of allStrings) {
+            if (/\[TO COMPLETE[^\]]*(legal\s+basis|Art(?:icle)?\.?\s*6\(1\))/i.test(s)) {
+              t2.push({ test: "M4", kind: "re_asks_legal_basis", detail: s.slice(0, 160) });
+            }
+          }
+        }
+        // M7 RESOLVED_MET → do not [TO COMPLETE] retention.
+        if (dpiaTestStates.M7?.state === "resolved_met") {
+          const allStrings: string[] = []; collectStrings(reportData, allStrings);
+          for (const s of allStrings) {
+            if (/\[TO COMPLETE[^\]]*retention/i.test(s)) {
+              t2.push({ test: "M7", kind: "re_asks_retention", detail: s.slice(0, 160) });
+            }
+          }
+        }
+        // M1 RESOLVED_MET → special-category conditions section MUST NOT deny Art. 35(3)(b) engagement.
+        if (dpiaTestStates.M1?.state === "resolved_met") {
+          const meta = String(reportData?.dpia_metadata?.article_35_3_trigger ?? "");
+          if (/(does not apply|not engaged|no Art\.\s*35\(3\)\(b\))/i.test(meta)) {
+            t2.push({ test: "M1", kind: "denies_resolved_prong", detail: meta.slice(0, 160) });
+          }
+        }
+        // M6 RESOLVED_MET → transfers chapter must be present, not "none identified".
+        if (dpiaTestStates.M6?.state === "resolved_met") {
+          const allStrings: string[] = []; collectStrings(reportData, allStrings);
+          for (const s of allStrings) {
+            if (/no (?:international )?transfers? (?:identified|apply)/i.test(s)) {
+              t2.push({ test: "M6", kind: "denies_transfer_surface", detail: s.slice(0, 160) });
+              break;
+            }
+          }
+        }
+
+        // T-3: banned-collapse phrasing where the intake credits substantive input.
+        const anyResolvedMet = Object.values(dpiaTestStates).some((v) => v.state === "resolved_met");
+        if (anyResolvedMet) {
+          const proseFields: Array<[string, any]> = [
+            ["section_3_necessity_proportionality", reportData?.section_3_necessity_proportionality],
+            ["section_6_conclusion.justification", reportData?.section_6_conclusion?.justification],
+          ];
+          for (const [name, obj] of proseFields) {
+            const bucket: string[] = []; collectStrings(obj, bucket);
+            for (const s of bucket) {
+              if (collapseRe.test(s)) { t3.push({ field: name, detail: s.slice(0, 160) }); break; }
+            }
+          }
+        }
+
+        // T-4: enhancement-class completion_guidance entries — depth language without a statutory anchor.
+        function walkForT4(obj: any, path: string): void {
+          if (!obj) return;
+          if (Array.isArray(obj)) { obj.forEach((v, i) => walkForT4(v, `${path}[${i}]`)); return; }
+          if (typeof obj !== "object") return;
+          for (const k of Object.keys(obj)) {
+            const v = obj[k];
+            if (k === "completion_guidance" && typeof v === "string") {
+              if (depthLangRe.test(v) && !statAnchorRe.test(v)) {
+                t4.push({ path: `${path}.${k}`, detail: v.slice(0, 160) });
+              }
+            } else if (v && typeof v === "object") {
+              walkForT4(v, `${path}.${k}`);
+            }
+          }
+        }
+        walkForT4(reportData, "report");
+
+        return { t2, t3, t4 };
+      }
+
+      let detected = detectDpiaViolations();
+      const totalHits = detected.t2.length + detected.t3.length + detected.t4.length;
+      if (totalHits > 0) {
+        console.warn(JSON.stringify({
+          evt: "post_lint_violation",
+          fn: "run-dpia-framework",
+          t2: detected.t2.slice(0, 6),
+          t3: detected.t3.slice(0, 6),
+          t4: detected.t4.slice(0, 6),
+        }));
+        try {
+          const parts: string[] = [];
+          if (detected.t2.length) parts.push(`T-2 (TEST-STATES BINDING) — do NOT re-ask or contradict RESOLVED tests: ${detected.t2.map((v) => `${v.test}:${v.kind}`).join(", ")}`);
+          if (detected.t3.length) parts.push(`T-3 (BANNED COLLAPSE) — the intake supplies substantive inputs; do NOT collapse determinations with 'cannot be determined'/'no basis to assess'/'not established'`);
+          if (detected.t4.length) parts.push(`T-4 (ENHANCEMENT-CLASS) — every completion_guidance item must be verdict-blocking or record-completeness, anchored to a cited GDPR/EDPB provision; remove pure depth items`);
+          const retryInstr = `PREVIOUS ATTEMPT REJECTED by post-lint TEST-STATES gate: ${parts.join(" | ")}. Produce the JSON again, correcting these defects silently. Do not mention this instruction in the output.`;
+          const [newA, newB] = await Promise.all([genHalf(promptA, retryInstr), genHalf(promptB, retryInstr)]);
+          const mergedA = (newA && Object.keys(newA).length > 0) ? newA : partA;
+          const mergedB = (newB && Object.keys(newB).length > 0) ? newB : partB;
+          reportData = { ...mergedA, ...mergedB };
+          detected = detectDpiaViolations();
+          const stillHits = detected.t2.length + detected.t3.length + detected.t4.length;
+          if (stillHits > 0) {
+            console.warn(JSON.stringify({ evt: "post_lint_violation_after_retry", fn: "run-dpia-framework", remaining: stillHits }));
+          }
+        } catch (e) {
+          console.warn("[DPIA] T-2/T-3/T-4 retry failed (non-fatal):", e);
+        }
+        for (const v of detected.t2) lintViolations.push({ rule: "T-2", ...v });
+        for (const v of detected.t3) lintViolations.push({ rule: "T-3", ...v });
+        for (const v of detected.t4) lintViolations.push({ rule: "T-4", ...v });
+      }
+    }
+
     if (!reportData.section_0_overview && !reportData.section_4_risk_management) {
       reportData = {
         framework_disclaimer: "This is not legal advice.",
@@ -975,7 +1112,7 @@ Generate substantive draft rows for every table for the controller to verify; us
     reportData.enforcement_meta = enforcementMeta;
     reportData.gdpr_meta = gdprMeta;
     reportData.lint_warnings = lintViolations;
-    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework") };
+    reportData._meta = { ...(reportData._meta ?? {}), prompt_version: stampPromptVersion("dpia-framework", "r1b2") };
 
     // ── Layer 4: Jurisdiction validator ──────────────────────────────────────
     try {
