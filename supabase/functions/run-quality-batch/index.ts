@@ -392,10 +392,12 @@ const CHECKS: Check[] = [
         id: "qc_r1_2_spi_prong_utilization", dimension: "accuracy", severity: "high",
         tools: CPPA_RISK_ONLY,
         run: (intake, report) => {
-          const q15 = String(intake?.q15_sensitive_pi ?? "").trim();
-          const q15c = String(intake?.q15c_spi_volume ?? "").trim();
+          const r = resolveForChecks(intake);
+          const q15 = String(r.rawForStates.q15_sensitive_pi ?? "").trim();
+          const q15c = String(r.rawForStates.q15c_spi_volume ?? "").trim();
           if (!q15c && q15 !== "No") return { passed: true }; // absent-value variant: nothing to test
-          const states = computeRiskTestStates(asFiveStage(intake), intake ?? {});
+          const states = computeRiskTestStates(r.fiveStage, r.rawForStates);
+
           const m4 = states.M4;
           if (!m4 || !isResolved(m4.state)) return { passed: true };
           const s = JSON.stringify(report ?? "").toLowerCase();
