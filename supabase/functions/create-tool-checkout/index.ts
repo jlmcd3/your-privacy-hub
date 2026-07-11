@@ -308,21 +308,47 @@ Deno.serve(async (req) => {
     // Founding-subscriber discount has been retired. Every tier pays the
     // standalone price; we still surface `subscription_type` for downstream
     // routing (e.g. Professional free convenience runs are handled client-side).
+    //
+    // ENT-2: entitlement is environment-scoped, mirroring useSubscriptionTier
+    // on the client. Read user_entitlements for THIS checkout's Stripe
+    // environment. No row → in sandbox the user is FREE (never surface live
+    // entitlement in sandbox); in live, fall back to profiles (rollout
+    // safety for legacy users only).
+    const checkoutEnv = detectEnv(environment);
     let isProfessionalAnnual = false;
     let isPro = false;
     let isPremium = false;
     let subscriptionType: string | null = null;
     if (user_id) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("is_premium, is_pro, subscription_type, professional_annual")
-        .eq("id", user_id)
-        .single();
-      subscriptionType = (profile as any)?.subscription_type ?? null;
-      isPro = (profile as any)?.is_pro === true;
-      isPremium = (profile as any)?.is_premium === true || isPro;
-      isProfessionalAnnual = (profile as any)?.professional_annual === true
-        || subscriptionType === "annual" || subscriptionType === "annual_founding";
+      const { data: entRow } = await supabase
+        .from("user_entitlements")
+        .select("is_premium, is_pro, subscription_type")
+        .eq("user_id", user_id)
+        .eq("environment", checkoutEnv)
+        .maybeSingle();
+      if (entRow) {
+        subscriptionType = (entRow as any)?.subscription_type ?? null;
+        isPro = (entRow as any)?.is_pro === true;
+        isPremium = (entRow as any)?.is_premium === true || isPro;
+        isProfessionalAnnual =
+          subscriptionType === "annual" ||
+          subscriptionType === "annual_founding" ||
+          subscriptionType === "pro_annual";
+      } else if (checkoutEnv === "live") {
+        // Fallback: rollout safety only. profiles is legacy live state.
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_premium, is_pro, subscription_type, professional_annual")
+          .eq("id", user_id)
+          .single();
+        subscriptionType = (profile as any)?.subscription_type ?? null;
+        isPro = (profile as any)?.is_pro === true;
+        isPremium = (profile as any)?.is_premium === true || isPro;
+        isProfessionalAnnual = (profile as any)?.professional_annual === true
+          || subscriptionType === "annual" || subscriptionType === "annual_founding";
+      }
+      // checkoutEnv === "sandbox" with no entitlement row → FREE. Do NOT
+      // read profiles here.
     }
     const isAnnualSubscriber =
       isProfessionalAnnual ||
@@ -473,7 +499,7 @@ Deno.serve(async (req) => {
       ? tool.fallback_subscriber_cents
       : tool.fallback_standalone_cents;
 
-    const env = detectEnv(environment);
+    const env = checkoutEnv;
     const stripe = createStripeClient(env);
 
     // CUSTOMER-1: canonical customer resolution keyed by user_id. When
