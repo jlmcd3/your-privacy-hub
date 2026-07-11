@@ -21,6 +21,10 @@ export interface LintOptions {
   referenceDate?: string | Date;
   /** Allowlist for upper_enum_in_prose (e.g. ["ISO_27001","SOC_2","NIST_CSF"]). */
   upperEnumAllowlist?: string[];
+  /** Enable d8_gap_word (HARD): ban the word "gap"/"gaps" in prose, EXCEPT
+   *  inside the exact schema enum value "Material gaps identified".
+   *  Opt-in per caller; do NOT enable outside CPPA Risk without a courier. */
+  banGapWord?: boolean;
 }
 
 const WEEKDAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -245,6 +249,26 @@ export function lintReportText(text: string, opts?: LintOptions): LintResult {
       severity: "hard",
       detail: "Adaptive guidance: output authors the 7152(a)(1) specificity standard instead of flagging and citing it (Rule R-A).",
     });
+  }
+
+  // 16. d8_gap_word — HARD, opt-in. Ban standalone "gap"/"gaps" in prose,
+  //     EXCEPT inside the exact schema enum value "Material gaps identified".
+  if (opts?.banGapWord) {
+    const ENUM_PHRASE = "Material gaps identified";
+    const gapRe = /\bgaps?\b/gi;
+    let gm: RegExpExecArray | null;
+    while ((gm = gapRe.exec(clean)) !== null) {
+      // Check whether this match sits inside the exact enum phrase.
+      const windowStart = Math.max(0, gm.index - "Material ".length);
+      const windowEnd = Math.min(clean.length, gm.index + ENUM_PHRASE.length);
+      const contextWindow = clean.slice(windowStart, windowEnd);
+      if (contextWindow.includes(ENUM_PHRASE)) continue;
+      violations.push({
+        code: "d8_gap_word",
+        severity: "hard",
+        detail: `"${gm[0]}" at offset ${gm.index}`,
+      });
+    }
   }
 
   return { clean, violations };
