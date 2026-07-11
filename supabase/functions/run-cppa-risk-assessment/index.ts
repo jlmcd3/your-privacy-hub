@@ -1503,16 +1503,19 @@ Deno.serve(async (req) => {
     });
   }
 
-  try {
-    await supabase.from("cppa_assessments").update({ status: "processing" }).eq("id", assessment_id);
-  } catch { /* row presence is re-checked inside runPipeline */ }
-
   const fnRun = await startFunctionRun(supabase, "run-cppa-risk-assessment", {
     archetype: "background",
     trustClass: "user",
     invokedBy: "user",
     metadata: { assessment_id },
   });
+  const httpProc = await lifecycleUpdate(supabase, "cppa_assessments", assessment_id, { status: "processing" }, { fn: "run-cppa-risk-assessment", phase: "pre_generation_http" });
+  if (!httpProc.ok) {
+    await failFunctionRun(supabase, fnRun, new Error(`lifecycle_write_failed: ${httpProc.message}`), { metadata: { assessment_id, phase: "pre_generation_http" } });
+    return new Response(JSON.stringify({ error: "lifecycle_write_failed", message: httpProc.message }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   const wrapped = (async () => {
     try {
       await runPipeline(assessment_id!);
