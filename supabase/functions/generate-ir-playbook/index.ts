@@ -1,4 +1,4 @@
-// qb8 build active
+// qb8 build active · ir-playbook r1b2.2 — jurisdictional conclusions carry their basis
 // run-meter deploy-check v1
 // generate-ir-playbook: produces a 7-section breach response playbook.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
