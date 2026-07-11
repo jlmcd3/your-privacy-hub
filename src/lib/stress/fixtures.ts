@@ -1309,7 +1309,9 @@ export const CPPA_RISK_VARIANTS = [
         // No authority_basis / retention_period on this claim — mixed shape variant.
       },
     },
+  },
   // R1a coverage variant #7 — resolved new q2 band "100,000–249,999" (lower slice
+
   // of the legacy straddle). Keeps q15=Yes so q15c exercises "50,000 or more".
   {
     entity_name: "Sequoia Ledger Analytics, Inc.",
