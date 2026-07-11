@@ -58,8 +58,6 @@ const GovernanceAssessmentResult = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const purchased = searchParams.get("purchased") === "true";
-  const [assessment, setAssessment] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [translated, setTranslated] = useState<any | null>(null);
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
   const [openDomains, setOpenDomains] = useState<string[]>([]);
@@ -73,35 +71,12 @@ const GovernanceAssessmentResult = () => {
     }, 60);
   };
 
-  useEffect(() => {
-    if (!id) return;
-    let timer: any;
-    let pollCount = 0;
-    const MAX_POLLS = 300; // ~20 min: 4s × 75 (5 min) + 8s × 225 (30 min cap) — heavy runs can exceed prior 5-min cap
-
-    const fetchOnce = async () => {
-      const { data } = await supabase
-        .from("governance_assessments")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
-      setAssessment(data);
-      setLoading(false);
-
-      if (data && (data.status === "pending" || data.status === "processing")) {
-        pollCount += 1;
-        if (pollCount < MAX_POLLS) {
-          const delay = pollCount < 75 ? 4000 : 8000;
-          timer = setTimeout(fetchOnce, delay);
-        } else {
-          setAssessment((prev: any) => ({ ...prev, status: "failed" }));
-        }
-      }
-    };
-
-    fetchOnce();
-    return () => timer && clearTimeout(timer);
-  }, [id]);
+  const { row: assessment, loading, phase, refresh, setRow: setAssessment } = useGenerationStatus<any>({
+    table: "governance_assessments",
+    rowId: id,
+    isTerminal: (r) => GOV_TERMINAL.has(String(r?.status ?? "")),
+    isReportReady: (r) => r?.status === "complete",
+  });
 
   const report = (translated?.report_data ?? assessment?.report_data) || {};
   const intake = assessment?.intake_data || {};
