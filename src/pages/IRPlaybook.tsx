@@ -100,18 +100,8 @@ export default function IRPlaybook() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const { user } = useAuth();
-  const INITIAL_FORM = useMemo(() => ({
-    organizationName: "",
-    discoveryDateTime: "",
-    cause: CAUSES[0], dataTypes: [] as string[], affectedCount: COUNTS[2],
-    jurisdictions: [] as string[], processorInvolved: false, processorName: "",
-    contained: "Unknown", organisationType: "Company",
-  }), []);
-  const touched = useMemo(() => {
-    // Ignore discoveryDateTime which is initialised to "now"; treat any other change as touched.
-    const a = { ...form, discoveryDateTime: "" };
-    return JSON.stringify(a) !== JSON.stringify(INITIAL_FORM);
-  }, [form, INITIAL_FORM]);
+  const initialFormRef = useMemo(() => JSON.stringify(form), []);
+  const touched = useMemo(() => JSON.stringify(form) !== initialFormRef, [form, initialFormRef]);
   const draftData = useMemo(() => ({ form }), [form]);
   const {
     draftFound, draftUpdatedAt, restoreData, clearDraft,
