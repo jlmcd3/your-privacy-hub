@@ -373,21 +373,47 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const env = (url.searchParams.get("env") || "sandbox") as StripeEnv;
 
-  let event: { type: string; data: { object: any } };
+  let event: { id: string; type: string; data: { object: any } };
   try {
-    event = await verifyWebhook(req, env);
+    event = await verifyWebhook(req, env) as any;
   } catch (e) {
     console.error("Webhook verify failed:", (e as Error).message);
     return new Response("Webhook verify failed", { status: 400 });
   }
 
-  console.log("payments-webhook event:", event.type, "env:", env);
+  console.log("payments-webhook event:", event.type, "id:", event.id, "env:", env);
+
+  // Event-level dedupe: if we have already fully handled this Stripe event,
+  // return 200 immediately and do NOT reprocess. Recorded AFTER the switch
+  // below completes without throwing — a failed handling MUST NOT mark the
+  // event processed (Stripe retries then reprocess safely via the inner
+  // idempotency added in Change 3).
+  if (event.id) {
+    const { data: already } = await supabase
+      .from("processed_stripe_events")
+      .select("event_id")
+      .eq("event_id", event.id)
+      .eq("phase", "handled")
+      .maybeSingle();
+    if (already) {
+      console.log(JSON.stringify({
+        evt: "webhook_duplicate_skipped",
+        event_id: event.id,
+        event_type: event.type,
+        env,
+      }));
+      return new Response(JSON.stringify({ received: true, duplicate: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
 
   try {
     switch (event.type) {
       case "checkout.session.completed":
       case "transaction.completed": {
-        await handleCheckoutCompleted(event.data.object, env);
+        await handleCheckoutCompleted(event.data.object, env, event.id);
         break;
       }
       case "checkout.session.expired":
@@ -423,14 +449,39 @@ Deno.serve(async (req) => {
       default:
         console.log("Unhandled event:", event.type);
     }
+    // Record after successful handling. ON CONFLICT DO NOTHING via
+    // upsert(ignoreDuplicates) so a concurrent redelivery loses the race
+    // gracefully rather than throwing.
+    if (event.id) {
+      const { error: recErr } = await supabase
+        .from("processed_stripe_events")
+        .upsert(
+          { event_id: event.id, phase: "handled", event_type: event.type, environment: env },
+          { onConflict: "event_id,phase", ignoreDuplicates: true },
+        );
+      if (recErr) {
+        console.error(JSON.stringify({
+          evt: "processed_stripe_events_record_failed",
+          event_id: event.id,
+          error: recErr.message,
+        }));
+      }
+    }
     return new Response(JSON.stringify({ received: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("payments-webhook handler error:", err);
-    return new Response(JSON.stringify({ received: true, warning: (err as Error).message }), {
-      status: 200,
+    console.error(JSON.stringify({
+      evt: "payments_webhook_handler_error",
+      event_id: event?.id ?? null,
+      event_type: event?.type ?? null,
+      env,
+      error: (err as Error).message,
+    }));
+    // Non-2xx so Stripe retries. Inner idempotency (Change 3) makes retry safe.
+    return new Response(JSON.stringify({ received: false, error: (err as Error).message }), {
+      status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
