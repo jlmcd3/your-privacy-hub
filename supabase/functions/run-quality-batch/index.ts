@@ -1193,7 +1193,19 @@ async function runBatch(runId: string): Promise<void> {
         clearInterval(heartbeat);
         return;
       }
-      await admin.from("quality_runs").update({ intakes, status: "building" }).eq("id", runId);
+      await admin.from("quality_runs").update({ intakes, status: "building", next_doc_index: 0 }).eq("id", runId);
+      // CHUNK BOUNDARY (2026-07-11): scenario generation consumes 200-300s of the
+      // 400s isolate budget on heavy tools (cppa-risk 5-stage, dpia, governance,
+      // cppa-admt). Starting Doc 1 in the SAME isolate leaves too little budget
+      // and the isolate is hard-killed mid-doc-1 (orphan class root cause verified
+      // 2026-07-11: #62/#64/#66/#67/#70 all died ~400s after isolate boot with
+      // Doc 1/N building). Persist intakes, hand off to a fresh isolate so Doc 1
+      // gets a full ~400s budget — same treatment every subsequent doc already
+      // gets via the tail-of-loop self-reinvoke.
+      await log("info", `Intakes persisted — self-reinvoking so Doc 1 starts in a fresh isolate (chunk-1 wall-clock guard)`);
+      await selfReinvoke(runId);
+      clearInterval(heartbeat);
+      return;
     } else {
       await log("info", `Resuming run #${runNumber} for ${tool} at doc ${(run.next_doc_index ?? 0) + 1}/${intakes.length}`);
       await upd({ status: "building" });
