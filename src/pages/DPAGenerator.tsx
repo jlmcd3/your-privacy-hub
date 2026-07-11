@@ -303,7 +303,7 @@ export default function DPAGenerator() {
         onClose={() => setCheckoutOpen(false)}
         onComplete={(id) => {
           setCheckoutOpen(false);
-          if (id) navigate(`/dpa-generator/result/${id}?purchased=true`);
+          if (id) { void clearDraft(); navigate(`/dpa-generator/result/${id}?purchased=true`); }
         }}
       />
     <Footer />
