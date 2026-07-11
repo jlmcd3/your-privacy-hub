@@ -248,7 +248,18 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     stakeholder_public_benefits: String(intake.impact_intake?.stakeholderBenefits ?? ""),
     planned_safeguards: String(intake.impact_intake?.safeguards ?? ""),
     harm_sources_and_causes: String(intake.impact_intake?.harmCauses ?? ""),
+    // R1b0 threading — new intake fields exposed on content_detail so
+    // computeTestStates and downstream prose read normalised state, never raw intake.
+    q15c_spi_volume: String(intake.q15c_spi_volume ?? ""),
+    q5c_share_revenue_50pct: String(intake.q5c_share_revenue_50pct ?? ""),
+    revenue_band: classifyRevenueBand(intake.q1_revenue).label,
+    revenue_band_key: classifyRevenueBand(intake.q1_revenue).key,
+    revenue_audit_cohort: classifyRevenueBand(intake.q1_revenue).audit_cohort,
   };
+
+  // R1b0: expose the split revenue band into triggers too, so any downstream
+  // check that reads triggers rather than content_detail can see the resolved posture.
+  (triggers as Record<string, any>).revenue_over_100m = classifyRevenueBand(intake.q1_revenue).over_100m;
 
   return {
     triggers,
@@ -260,6 +271,7 @@ function shimLegacyIntake(intake: any): FiveStageIntake {
     content_detail,
   };
 }
+
 
 function normaliseIntake(intake: any): { intake: FiveStageIntake; wasLegacyShimmed: boolean } {
   if (intake?.triggers === undefined) {
